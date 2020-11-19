@@ -75,7 +75,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			var lastResponse = Synchronizer.LastResponse;
 			if (lastResponse is { })
 			{
-				TaskRemembler.AddAndClearCompleted(TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates));
+				AbandonedTasks.AddAndClearCompleted(TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates));
 			}
 		}
 
@@ -85,7 +85,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public event EventHandler<DequeueResult>? OnDequeue;
 
-		private TaskRemembler TaskRemembler { get; } = new TaskRemembler();
+		private AbandonedTasks AbandonedTasks { get; } = new AbandonedTasks();
 
 		public Network Network { get; private set; }
 		public KeyManager KeyManager { get; }
@@ -1053,7 +1053,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					}
 				}
 			}
-			await TaskRemembler.WhenAllAsync().ConfigureAwait(false);
+			await AbandonedTasks.WhenAllAsync().ConfigureAwait(false);
 		}
 
 		public async Task DequeueAllCoinsFromMixGracefullyAsync(DequeueReason reason, CancellationToken cancel)

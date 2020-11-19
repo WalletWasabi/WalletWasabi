@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.Nito.AsyncEx
@@ -9,7 +7,7 @@ namespace WalletWasabi.Nito.AsyncEx
 	/// <summary>
 	/// To remember tasks those were fired to forget and so wait for them during dispose.
 	/// </summary>
-	public class TaskRemembler
+	public class AbandonedTasks
 	{
 		private HashSet<Task> Tasks { get; } = new HashSet<Task>();
 		private object Lock { get; } = new object();
@@ -64,19 +62,12 @@ namespace WalletWasabi.Nito.AsyncEx
 
 		private void ClearCompletedNoLock()
 		{
-			var toRemove = new List<Task>();
-
-			foreach (var t in Tasks)
+			foreach (var t in Tasks.ToArray())
 			{
 				if (t.IsCompleted)
 				{
-					toRemove.Add(t);
+					Tasks.Remove(t);
 				}
-			}
-
-			foreach (var t in toRemove)
-			{
-				Tasks.Remove(t);
 			}
 		}
 	}

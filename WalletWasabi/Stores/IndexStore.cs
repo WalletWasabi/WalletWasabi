@@ -44,7 +44,7 @@ namespace WalletWasabi.Stores
 
 		public event EventHandler<FilterModel>? NewFilter;
 
-		private TaskRemembler TaskRemembler { get; } = new TaskRemembler();
+		private AbandonedTasks AbandonedTasks { get; } = new AbandonedTasks();
 
 		private string WorkFolderPath { get; }
 		private Network Network { get; }
@@ -303,7 +303,7 @@ namespace WalletWasabi.Stores
 
 			if (successAny)
 			{
-				TaskRemembler.AddAndClearCompleted(TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel));
+				AbandonedTasks.AddAndClearCompleted(TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel));
 			}
 		}
 
@@ -324,7 +324,7 @@ namespace WalletWasabi.Stores
 
 			Reorged?.Invoke(this, filter);
 
-			TaskRemembler.AddAndClearCompleted(TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel));
+			AbandonedTasks.AddAndClearCompleted(TryCommitToFileAsync(TimeSpan.FromSeconds(3), cancel));
 
 			return filter;
 		}
@@ -503,7 +503,7 @@ namespace WalletWasabi.Stores
 
 		public async ValueTask DisposeAsync()
 		{
-			await TaskRemembler.WhenAllAsync().ConfigureAwait(false);
+			await AbandonedTasks.WhenAllAsync().ConfigureAwait(false);
 		}
 	}
 }

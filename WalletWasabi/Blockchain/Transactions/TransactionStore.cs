@@ -26,7 +26,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		private List<ITxStoreOperation> Operations { get; } = new List<ITxStoreOperation>();
 		private object OperationsLock { get; } = new object();
 
-		private TaskRemembler TaskRemembler { get; } = new TaskRemembler();
+		private AbandonedTasks AbandonedTasks { get; } = new AbandonedTasks();
 
 		public async Task InitializeAsync(string workFolderPath, Network network, string operationName)
 		{
@@ -114,12 +114,12 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			if (ret.isAdded)
 			{
-				TaskRemembler.AddAndClearCompleted(TryAppendToFileAsync(tx));
+				AbandonedTasks.AddAndClearCompleted(TryAppendToFileAsync(tx));
 			}
 
 			if (ret.isUpdated)
 			{
-				TaskRemembler.AddAndClearCompleted(TryUpdateFileAsync(tx));
+				AbandonedTasks.AddAndClearCompleted(TryUpdateFileAsync(tx));
 			}
 
 			return ret;
@@ -156,7 +156,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			if (ret)
 			{
-				TaskRemembler.AddAndClearCompleted(TryUpdateFileAsync(tx));
+				AbandonedTasks.AddAndClearCompleted(TryUpdateFileAsync(tx));
 			}
 
 			return ret;
@@ -185,7 +185,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			if (isRemoved)
 			{
-				TaskRemembler.AddAndClearCompleted(TryRemoveFromFileAsync(hash));
+				AbandonedTasks.AddAndClearCompleted(TryRemoveFromFileAsync(hash));
 			}
 
 			return isRemoved;
@@ -398,7 +398,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		public async ValueTask DisposeAsync()
 		{
-			await TaskRemembler.WhenAllAsync().ConfigureAwait(false);
+			await AbandonedTasks.WhenAllAsync().ConfigureAwait(false);
 		}
 	}
 }
