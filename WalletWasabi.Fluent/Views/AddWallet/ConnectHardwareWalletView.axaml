@@ -21,7 +21,7 @@
                   <TextBlock Text="- Hardware wallets are picky about their USB cables, so try out multiple ones." TextWrapping="Wrap" />
                   <StackPanel IsVisible="{h:Platform {x:Static h:Const.False}, Linux={x:Static h:Const.True}}">
                       <TextBlock Text="- Make sure that you properly applied udev rules. These are necessary for the devices to be reachable on Linux environments:" TextWrapping="Wrap" />
-                      <Button Content="{Binding UDevRulesLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding UDevRulesLink}" />
+                      <Button Content="https://github.com/bitcoin-core/HWI/tree/master/hwilib/udev" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding $self.Content}" />
                   </StackPanel>
               </StackPanel>
               <StackPanel>

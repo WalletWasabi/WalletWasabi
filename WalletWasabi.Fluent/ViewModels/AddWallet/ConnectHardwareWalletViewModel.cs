@@ -76,8 +76,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
 
-		public string UDevRulesLink => "https://github.com/bitcoin-core/HWI/tree/master/hwilib/udev";
-
 		private async void ConnectSelectedHardwareWallet()
 		{
 			// TODO: canExecute checks for null, this is just preventing warning
