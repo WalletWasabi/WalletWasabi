@@ -70,22 +70,25 @@ namespace WalletWasabi.Services
 				Logger.LogDebug("This instance is the first one on this computer.");
 			}
 
-			try
+			if (anotherInstanceExists)
 			{
-				// Try to create a pipe with the specified name.
-				NamedPipeServerStream = new NamedPipeServerStream(PipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+				try
+				{
+					// Try to create a pipe with the specified name.
+					NamedPipeServerStream = new NamedPipeServerStream(PipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
 
-				// Start listening for ClientPipes with ExecuteAsync.
-				await StartAsync(DisposeCts.Token).ConfigureAwait(false);
+					// Start listening for ClientPipes with ExecuteAsync.
+					await StartAsync(DisposeCts.Token).ConfigureAwait(false);
 
-				// This is the first instance of Wasabi we can return.
-				return;
-			}
-			catch (IOException ex)
-			{
-				// Could not create a pipe. There is another instance already running.
-				Logger.LogDebug($"Could not create {nameof(NamedPipeServerStream)} reason '{ex}'.");
-				anotherInstanceExists = true;
+					// This is the first instance of Wasabi we can return.
+					return;
+				}
+				catch (IOException ex)
+				{
+					// Could not create a pipe. There is another instance already running.
+					Logger.LogDebug($"Could not create {nameof(NamedPipeServerStream)} reason '{ex}'.");
+					anotherInstanceExists = true;
+				}
 			}
 
 			if (anotherInstanceExists)
