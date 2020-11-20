@@ -148,8 +148,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			while (!detectionCts.IsCancellationRequested)
 			{
-				var sw = new Stopwatch();
-				sw.Start();
+				var sw = Stopwatch.StartNew();
 
 				try
 				{
