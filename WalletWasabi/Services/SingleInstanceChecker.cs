@@ -52,17 +52,15 @@ namespace WalletWasabi.Services
 
 			bool anotherInstanceExists = false;
 
-
+			// Check if the connection can be made.
+			// "." to specify the local computer.
+			using var client = new NamedPipeClientStream(".", PipeName, PipeDirection.Out);
 			try
 			{
-				// Check if the connection can be made.
-				// "." to specify the local computer.
-				await using var client = new NamedPipeClientStream(".", PipeName, PipeDirection.Out, PipeOptions.Asynchronous);
-
 				// Just make a connection and close the client.
 				// This will also signal to the first instance that we were trying to run for a secondary instance.
-				await client.ConnectAsync(5000, DisposeCts.Token).ConfigureAwait(false);
-				await client.DisposeAsync();
+				await client.ConnectAsync(500, DisposeCts.Token).ConfigureAwait(false);
+
 				// Connection successfully made, so another instance is there.
 				anotherInstanceExists = true;
 			}
@@ -72,20 +70,25 @@ namespace WalletWasabi.Services
 				Logger.LogDebug("This instance is the first one on this computer.");
 			}
 
-			try
+			if (anotherInstanceExists)
 			{
+				try
+				{
+					// Try to create a pipe with the specified name.
+					NamedPipeServerStream = new NamedPipeServerStream(PipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
 
-				// Start listening for ClientPipes with ExecuteAsync.
-				await StartAsync(DisposeCts.Token).ConfigureAwait(false);
+					// Start listening for ClientPipes with ExecuteAsync.
+					await StartAsync(DisposeCts.Token).ConfigureAwait(false);
 
-				// This is the first instance of Wasabi we can return.
-				return;
-			}
-			catch (IOException ex)
-			{
-				// Could not create a pipe. There is another instance already running.
-				Logger.LogDebug($"Could not create {nameof(NamedPipeServerStream)} reason '{ex}'.");
-				anotherInstanceExists = true;
+					// This is the first instance of Wasabi we can return.
+					return;
+				}
+				catch (IOException ex)
+				{
+					// Could not create a pipe. There is another instance already running.
+					Logger.LogDebug($"Could not create {nameof(NamedPipeServerStream)} reason '{ex}'.");
+					anotherInstanceExists = true;
+				}
 			}
 
 			if (anotherInstanceExists)
@@ -98,12 +101,16 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
+				var server = NamedPipeServerStream;
+
+				if (server is null)
+				{
+					// This should not happen.
+					throw new InvalidOperationException();
+				}
 
 				while (!stoppingToken.IsCancellationRequested)
 				{
-					Logger.LogDebug("Create a new PipeServer");
-					await using var server = new NamedPipeServerStream(PipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-
 					// The cancellationToken not working on Unix. So make sure to call NamedPipeServerStream.DisposeAsync() as well.
 					await server.WaitForConnectionAsync(stoppingToken).ConfigureAwait(false);
 
@@ -131,10 +138,10 @@ namespace WalletWasabi.Services
 			if (NamedPipeServerStream is { } server)
 			{
 				await server.DisposeAsync().ConfigureAwait(false);
-
-				// Wait for the end of ExecuteAsync.
-				await StopAsync(CancellationToken.None).ConfigureAwait(false);
 			}
+
+			// Wait for the end of ExecuteAsync.
+			await StopAsync(CancellationToken.None).ConfigureAwait(false);
 
 			Dispose();
 		}
