@@ -44,15 +44,21 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Where(x => x is { } && !x.HardwareWalletInfo.IsInitialized() && x.HardwareWalletInfo.Model != HardwareWalletModels.Coldcard)
 				.Subscribe(async x =>
 				{
-					// TODO: Notify the user to check the device
-					using var ctsSetup = new CancellationTokenSource(TimeSpan.FromMinutes(21));
+					if (NavigatedToCts is null)
+					{
+						return;
+					}
+
+					using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(21));
+					using var initCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, NavigatedToCts.Token);
 
 					// Trezor T doesn't require interactive mode.
 					var interactiveMode = !(x!.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T || x.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T_Simulator);
 
 					try
 					{
-						await HwiClient.SetupAsync(x.HardwareWalletInfo.Model, x.HardwareWalletInfo.Path, interactiveMode, ctsSetup.Token);
+						// TODO: Notify the user to check the device
+						await HwiClient.SetupAsync(x.HardwareWalletInfo.Model, x.HardwareWalletInfo.Path, interactiveMode, initCts.Token);
 					}
 					catch (Exception ex)
 					{
