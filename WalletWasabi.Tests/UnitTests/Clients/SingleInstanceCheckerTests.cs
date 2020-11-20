@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Services;
 using Xunit;
@@ -60,7 +61,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 
 			// Disposal test.
 			await using SingleInstanceChecker sic = new(mainNetPort);
-			bool eventCalled = false;
+			long eventCalled = 0;
 
 			sic.OtherInstanceStarted += SetCalled;
 
@@ -69,12 +70,16 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 				// I am the first instance this should be fine.
 				await sic.CheckAsync();
 
-				await using SingleInstanceChecker second = new(mainNetPort);
+				await using SingleInstanceChecker secondInstance = new(mainNetPort);
 
-				// I am the second one.
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await second.CheckAsync());
+				for (int i = 0; i < 3; i++)
+				{
+					// I am the second one.
+					await Assert.ThrowsAsync<InvalidOperationException>(async () => await secondInstance.CheckAsync());
+				}
 
-				Assert.True(eventCalled);
+				// There should be the same number of event as the number of tries from the second instance.
+				Assert.Equal(3, Interlocked.Read(ref eventCalled));
 			}
 			finally
 			{
@@ -83,7 +88,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 
 			void SetCalled(object? sender, EventArgs args)
 			{
-				eventCalled = true;
+				Interlocked.Increment(ref eventCalled);
 			}
 		}
 	}
