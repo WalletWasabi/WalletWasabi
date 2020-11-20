@@ -153,11 +153,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private void StartDetection()
 		{
 			_searchHardwareWalletCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-			_detectionTask = new Task(HardwareWalletDetectionAsync);
-			_detectionTask.Start();
+			_detectionTask = HardwareWalletDetectionAsync();
 		}
 
-		private async void HardwareWalletDetectionAsync()
+		private async Task HardwareWalletDetectionAsync()
 		{
 			while (!_searchHardwareWalletCts.IsCancellationRequested)
 			{
