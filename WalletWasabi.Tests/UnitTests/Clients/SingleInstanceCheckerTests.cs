@@ -13,42 +13,44 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		[Fact]
 		public async Task SingleInstanceTestsAsync()
 		{
-			string mainLockName = GenerateLockName(Network.Main);
+			int mainNetPort = GenerateRandomPort();
+			int testNetPort = GenerateRandomPort();
+			int regTestPort = GenerateRandomPort();
 
 			// Disposal test.
-			using (SingleInstanceChecker sic = new SingleInstanceChecker(Network.Main, mainLockName))
+			await using (SingleInstanceChecker sic = new(mainNetPort))
 			{
 				await sic.CheckAsync();
 			}
 
 			// Check different networks.
-			using (SingleInstanceChecker sic = new SingleInstanceChecker(Network.Main, mainLockName))
+			await using (SingleInstanceChecker sic = new(mainNetPort))
 			{
 				await sic.CheckAsync();
 				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic.CheckAsync());
 
-				using SingleInstanceChecker sicMainNet2 = new SingleInstanceChecker(Network.Main, mainLockName);
+				await using SingleInstanceChecker sicMainNet2 = new(mainNetPort);
 				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicMainNet2.CheckAsync());
 
-				string testnetLockName = GenerateLockName(Network.TestNet);
-				using SingleInstanceChecker sicTestNet = new SingleInstanceChecker(Network.TestNet, testnetLockName);
+				await using SingleInstanceChecker sicTestNet = new(testNetPort);
 				await sicTestNet.CheckAsync();
 				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicTestNet.CheckAsync());
 
-				string regtestLockName = GenerateLockName(Network.RegTest);
-				using SingleInstanceChecker sicRegTest = new SingleInstanceChecker(Network.RegTest, regtestLockName);
+				await using SingleInstanceChecker sicRegTest = new(regTestPort);
 				await sicRegTest.CheckAsync();
 				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicRegTest.CheckAsync());
 			}
 		}
 
+		private static Random Random { get; } = new();
+
 		/// <summary>
 		/// Global lock names may collide when several PRs are being tested on CI at the same time,
 		/// so we need some sort of non-determinism here (e.g. random numbers).
 		/// </summary>
-		private static string GenerateLockName(Network network)
+		private static int GenerateRandomPort()
 		{
-			return $"{network}-{new Random().Next(1_000_000)}";
+			return Random.Next(37128, 37168);
 		}
 	}
 }

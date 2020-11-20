@@ -761,7 +761,7 @@ namespace WalletWasabi.Gui
 
 				try
 				{
-					SingleInstanceChecker?.Dispose();
+					await SingleInstanceChecker.DisposeAsync().ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{
