@@ -14,6 +14,7 @@ namespace WalletWasabi.Fluent.Controls
 		private Point _arcSegmentPoint;
 		private Size _arcSegmentSize;
 		private bool _arcSegmentIsLargeArc;
+		private double _radius;
 
 		public static readonly StyledProperty<IBrush> SegmentColorProperty =
 			AvaloniaProperty.Register<ProgressRingArc, IBrush>(nameof(SegmentColor), Brushes.Gray);
@@ -61,8 +62,6 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.RegisterDirect<ProgressRingArc, bool>(nameof(ArcSegmentIsLargeArc),
 				o => o.ArcSegmentIsLargeArc,
 				(o, v) => o.ArcSegmentIsLargeArc = v);
-
-		private double _radius;
 
 		public IBrush SegmentColor
 		{
@@ -130,7 +129,6 @@ namespace WalletWasabi.Fluent.Controls
 			private set => SetAndRaise(ArcSegmentIsLargeArcProperty, ref _arcSegmentIsLargeArc, value);
 		}
 
-
 		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
 		{
 			base.OnPropertyChanged(change);
@@ -140,7 +138,8 @@ namespace WalletWasabi.Fluent.Controls
 
 		protected override Size MeasureOverride(Size availableSize)
 		{
-			_radius = (availableSize.Height / 2) - StrokeThickness;
+			_radius = availableSize.Height / 2;
+			_radius -= StrokeThickness;
 			RenderArc();
 			return new Size(_radius * 2, _radius * 2);
 		}
