@@ -116,7 +116,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private bool InitializationCompleted { get; set; } = false;
+		private TaskCompletionSource<bool> InitializationCompleted { get; } = new();
 
 		private bool InitializationStarted { get; set; } = false;
 
@@ -362,7 +362,7 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
-				InitializationCompleted = true;
+				InitializationCompleted.TrySetResult(true);
 			}
 		}
 
@@ -586,17 +586,6 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		/// <returns>If initialization is successful, otherwise it was interrupted which means stopping was requested.</returns>
-		public async Task<bool> WaitForInitializationCompletedAsync(CancellationToken cancellationToken)
-		{
-			while (!InitializationCompleted)
-			{
-				await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-			}
-
-			return !StoppingCts.IsCancellationRequested;
-		}
-
 		private void NotifyAndLog(string message, string title, NotificationType notificationType, ProcessedResult e, object? sender)
 		{
 			message = Guard.Correct(message);
@@ -622,12 +611,12 @@ namespace WalletWasabi.Gui
 
 				try
 				{
-					using var initCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
-					await WaitForInitializationCompletedAsync(initCts.Token).ConfigureAwait(false);
+					using var initCompletitionWaitCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
+					await InitializationCompleted.Task.WithAwaitCancellationAsync(initCompletitionWaitCts.Token, 100).ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError($"Error during {nameof(WaitForInitializationCompletedAsync)}: {ex}");
+					Logger.LogError($"Error during wait for initialization to be completed: {ex}");
 				}
 
 				Logger.LogDebug($"Step: {nameof(WalletManager)}.", nameof(Global));
