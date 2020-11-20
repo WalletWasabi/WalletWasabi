@@ -6,18 +6,12 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Newtonsoft.Json.Linq;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
-	public enum WalletJsonType
-	{
-		Unknown = 0,
-		Wasabi = 1,
-		Coldcard = 2,
-	}
-
 	public class ImportWalletViewModel : RoutableViewModel
 	{
 		public ImportWalletViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, string walletName, WalletManager walletManager)
@@ -42,22 +36,15 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				return;
 			}
 
-			switch (GetWalletType(filePath))
-			{
-				case WalletJsonType.Coldcard:
-					break;
-				case WalletJsonType.Wasabi:
-					break;
-				default:
-					throw new FileLoadException("Unknown wallet file.");
-			}
+			var json = JObject.Parse(await File.ReadAllTextAsync(filePath));
 
-			ClearNavigation();
-		}
-
-		private WalletJsonType GetWalletType(string filePath)
-		{
-
+			/*
+			 * Note for me.
+			 * First check for possible wasabi wallet if not success, then
+			 * check for Coldcard (Xpub, fingerprint exists?)
+			 * order is important!
+			 * still not success, throw
+			 */
 		}
 
 		private async Task<string?> GetFilePath()
@@ -65,7 +52,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			var ofd = new OpenFileDialog
 			{
 				AllowMultiple = false,
-				Title = "Import Coldcard",
+				Title = "Import wallet file",
 				Directory = SetDefaultDirectory(),
 			};
 
@@ -91,6 +78,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				return Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 			}
 
+			// TODO: Windows default
 			return "";
 		}
 	}
