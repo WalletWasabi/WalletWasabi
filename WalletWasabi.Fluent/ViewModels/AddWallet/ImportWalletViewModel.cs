@@ -62,6 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 			catch (Exception ex)
 			{
+				// TODO: Notify the user
 				Logger.LogError(ex);
 			}
 		}
