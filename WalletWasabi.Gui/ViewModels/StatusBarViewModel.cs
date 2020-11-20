@@ -23,7 +23,7 @@ using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
-using WalletWasabi.Tor.Exceptions;
+using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -362,7 +362,7 @@ namespace WalletWasabi.Gui.ViewModels
 						{
 							if (LegalDocuments is null || LegalDocuments.Version < x.LegalDocumentsVersion)
 							{
-								using WasabiClient client = Synchronizer.WasabiClientFactory.NewBackendClient();
+								WasabiClient client = Synchronizer.WasabiClientFactory.SharedWasabiClient;
 								var versions = await client.GetVersionsAsync(CancellationToken.None);
 								var version = versions.LegalDocumentsVersion;
 								var legalFolderPath = Path.Combine(DataDir, LegalDocuments.LegalFolderName);
@@ -375,7 +375,7 @@ namespace WalletWasabi.Gui.ViewModels
 						catch (Exception ex)
 						{
 							Logger.LogError(ex);
-							NotificationHelpers.Error($"Could not get Legal Documents!{(ex is ConnectionException ? " Backend not connected. Check your internet connection!" : "")}");
+							NotificationHelpers.Error($"Could not get Legal Documents!{(ex is TorConnectionException ? " Backend not connected. Check your internet connection!" : "")}");
 						}
 						finally
 						{

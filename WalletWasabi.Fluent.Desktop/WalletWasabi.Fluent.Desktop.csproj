@@ -2,6 +2,7 @@
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net5.0</TargetFramework>
+		<AnalysisLevel>latest</AnalysisLevel>
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
 		<NoWarn>1701;1702;1705;1591;1573;CA1031</NoWarn>
@@ -40,8 +41,8 @@
 		<AvaloniaResource Include="Assets\**" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia.Desktop" Version="0.10.999-cibuild0011962-beta" />
-		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0011962-beta" />
+		<PackageReference Include="Avalonia.Desktop" Version="0.10.999-cibuild0012021-beta" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0012021-beta" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj" />
