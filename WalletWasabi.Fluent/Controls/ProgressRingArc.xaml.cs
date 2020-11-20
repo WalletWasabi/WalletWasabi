@@ -20,8 +20,7 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<ProgressRingArc, IBrush>(nameof(SegmentColor));
 
 		public static readonly StyledProperty<int> StrokeThicknessProperty =
-			AvaloniaProperty.Register<ProgressRingArc, int>(
-				nameof(StrokeThickness));
+			AvaloniaProperty.Register<ProgressRingArc, int>(nameof(StrokeThickness));
 
 		public static readonly StyledProperty<double> PercentageProperty =
 			AvaloniaProperty.Register<ProgressRingArc, double>(
@@ -58,12 +57,14 @@ namespace WalletWasabi.Fluent.Controls
 				(o, v) => o.ArcSegmentPoint = v);
 
 		public static readonly DirectProperty<ProgressRingArc, Size> ArcSegmentSizeProperty =
-			AvaloniaProperty.RegisterDirect<ProgressRingArc, Size>(nameof(ArcSegmentSize),
+			AvaloniaProperty.RegisterDirect<ProgressRingArc, Size>(
+				nameof(ArcSegmentSize),
 				o => o.ArcSegmentSize,
 				(o, v) => o.ArcSegmentSize = v);
 
 		public static readonly DirectProperty<ProgressRingArc, bool> ArcSegmentIsLargeArcProperty =
-			AvaloniaProperty.RegisterDirect<ProgressRingArc, bool>(nameof(ArcSegmentIsLargeArc),
+			AvaloniaProperty.RegisterDirect<ProgressRingArc, bool>(
+				nameof(ArcSegmentIsLargeArc),
 				o => o.ArcSegmentIsLargeArc,
 				(o, v) => o.ArcSegmentIsLargeArc = v);
 
