@@ -12,10 +12,9 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
-	public class ImportWalletViewModel : RoutableViewModel
+	public class ImportWalletViewModel
 	{
-		public ImportWalletViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, string walletName, WalletManager walletManager)
-			: base(navigationState, navigationTarget)
+		public ImportWalletViewModel(string walletName, WalletManager walletManager)
 		{
 			Task.Run(ImportWallet)
 				.ContinueWith(o =>
@@ -69,6 +68,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		private string SetDefaultDirectory()
 		{
+			// TODO: Test if this still needed
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
 				return Path.Combine("/media", Environment.UserName);
@@ -78,7 +78,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				return Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 			}
 
-			// TODO: Windows default
+			// TODO: Windows default?
 			return "";
 		}
 	}
