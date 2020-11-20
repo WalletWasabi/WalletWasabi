@@ -72,7 +72,7 @@ namespace WalletWasabi.Stores
 		/// </summary>
 		private AsyncLock IndexLock { get; } = new AsyncLock();
 
-		public async Task InitializeAsync()
+		public async Task InitializeAsync(CancellationToken cancel = default)
 		{
 			using (BenchmarkLogger.Measure())
 			{
@@ -82,6 +82,8 @@ namespace WalletWasabi.Stores
 				{
 					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
+					cancel.ThrowIfCancellationRequested();
+
 					await EnsureBackwardsCompatibilityAsync().ConfigureAwait(false);
 
 					if (Network == Network.RegTest)
@@ -89,13 +91,15 @@ namespace WalletWasabi.Stores
 						MatureIndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
 						ImmatureIndexFileManager.DeleteMe();
 					}
+					cancel.ThrowIfCancellationRequested();
 
 					if (!MatureIndexFileManager.Exists())
 					{
 						await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToLine() }).ConfigureAwait(false);
 					}
+					cancel.ThrowIfCancellationRequested();
 
-					await InitializeFiltersAsync().ConfigureAwait(false);
+					await InitializeFiltersAsync(cancel).ConfigureAwait(false);
 				}
 			}
 		}
@@ -134,7 +138,7 @@ namespace WalletWasabi.Stores
 			}
 		}
 
-		private async Task InitializeFiltersAsync()
+		private async Task InitializeFiltersAsync(CancellationToken cancel)
 		{
 			try
 			{
@@ -148,6 +152,7 @@ namespace WalletWasabi.Stores
 						while (lineTask is { })
 						{
 							line ??= await lineTask.ConfigureAwait(false);
+							cancel.ThrowIfCancellationRequested();
 
 							lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
 
@@ -158,7 +163,7 @@ namespace WalletWasabi.Stores
 					}
 				}
 			}
-			catch
+			catch (Exception ex) when (ex is not OperationCanceledException)
 			{
 				// We found a corrupted entry. Stop here.
 				// Delete the currupted file.
@@ -168,6 +173,7 @@ namespace WalletWasabi.Stores
 				ImmatureIndexFileManager.DeleteMe();
 				throw;
 			}
+			cancel.ThrowIfCancellationRequested();
 
 			try
 			{
@@ -176,10 +182,11 @@ namespace WalletWasabi.Stores
 					foreach (var line in await ImmatureIndexFileManager.ReadAllLinesAsync().ConfigureAwait(false)) // We can load ImmatureIndexFileManager to the memory, no problem.
 					{
 						ProcessLine(line, enqueue: true);
+						cancel.ThrowIfCancellationRequested();
 					}
 				}
 			}
-			catch
+			catch (Exception ex) when (ex is not OperationCanceledException)
 			{
 				// We found a corrupted entry. Stop here.
 				// Delete the currupted file.
@@ -414,7 +421,7 @@ namespace WalletWasabi.Stores
 					await Task.WhenAll(tasks).ConfigureAwait(false);
 				}
 			}
-			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
+			catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 			{
 				Logger.LogTrace(ex);
 			}

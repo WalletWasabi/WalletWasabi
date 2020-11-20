@@ -158,7 +158,7 @@ namespace WalletWasabi.Tor.Http
 			catch (TaskCanceledException ex)
 			{
 				SetTorNotWorkingState(ex);
-				throw new OperationCanceledException(ex.Message, ex, cancel);
+				throw;
 			}
 			catch (Exception ex)
 			{
