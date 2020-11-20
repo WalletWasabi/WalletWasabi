@@ -1,10 +1,11 @@
 using System;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 
 namespace WalletWasabi.Fluent.ViewModels.Search
 {
-	public class SearchItemViewModel : RoutableViewModel
+	public class SearchItemViewModel : NavBarItemViewModel
 	{
 		public SearchItemViewModel(
 			string title,
@@ -17,18 +18,16 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			NavigationTarget navigationTarget,
 			Func<RoutableViewModel> createTargetView) : base(navigationState, navigationTarget)
 		{
-			IconName = iconName;
 			Title = title;
 			Caption = caption;
 			Order = order;
 			Category = category;
 			Keywords = keywords;
+			IconName = iconName;
 			OpenCommand = ReactiveCommand.Create(() => NavigateTo(createTargetView(), navigationTarget));
 		}
 
-		public string IconName { get; }
-
-		public string Title { get; }
+		public override string IconName { get; }
 
 		public string Caption { get; }
 
@@ -37,7 +36,5 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 		public SearchCategory Category { get; }
 
 		public string Keywords { get; }
-
-		public ICommand OpenCommand { get; }
 	}
 }

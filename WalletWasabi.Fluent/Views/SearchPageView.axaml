@@ -54,7 +54,7 @@
                           <Panel>
                             <PathIcon Width="20" Height="20" Opacity="0.8" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="12,12,0,0">
                               <PathIcon.Data>
-                                <Binding Converter="{x:Static conv:SearchIconConverter.Instance}" />
+                                <Binding Converter="{x:Static conv:NavBarIconConverter.Instance}" />
                               </PathIcon.Data>
                             </PathIcon>
                             <TextBlock Text="{Binding Title}" Classes="h7 bold" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="48 13 0 0" />
