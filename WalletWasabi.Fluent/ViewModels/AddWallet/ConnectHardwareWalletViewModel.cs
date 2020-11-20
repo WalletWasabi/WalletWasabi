@@ -106,7 +106,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				await StopDetection();
 
 				var fingerPrint = (HDFingerprint)SelectedHardwareWallet.HardwareWalletInfo.Fingerprint;
-				var extPubKey = await GetXpubAsync(SelectedHardwareWallet);
+
+				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+				var extPubKey = await _hwiClient.GetXpubAsync(SelectedHardwareWallet.HardwareWalletInfo.Model, SelectedHardwareWallet.HardwareWalletInfo.Path, KeyManager.DefaultAccountKeyPath, cts.Token);
+
 				var path = _walletManager.WalletDirectories.GetWalletFilePaths(_walletName).walletFilePath;
 
 				_walletManager.AddWallet(KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, path));
@@ -121,31 +124,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 				// Restart detection
 				StartDetection();
-			}
-		}
-
-		private async Task<ExtPubKey> GetXpubAsync(HardwareWalletViewModel wallet)
-		{
-			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-			var tryCounter = 1;
-
-			while (true)
-			{
-				try
-				{
-					return await _hwiClient.GetXpubAsync(wallet.HardwareWalletInfo.Model, wallet.HardwareWalletInfo.Path, KeyManager.DefaultAccountKeyPath, cts.Token);
-				}
-				catch (OperationCanceledException)
-				{
-					throw;
-				}
-				catch (Exception)
-				{
-					if (tryCounter++ >= 3)
-					{
-						throw;
-					}
-				}
 			}
 		}
 
@@ -174,7 +152,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 				try
 				{
-					// Reset token
 					using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
 					var detectedHardwareWallets = (await _hwiClient.EnumerateAsync(timeoutCts.Token)).Select(x => new HardwareWalletViewModel(x)).ToList();
