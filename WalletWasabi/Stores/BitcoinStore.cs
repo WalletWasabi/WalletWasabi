@@ -1,4 +1,6 @@
 using NBitcoin;
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
@@ -13,7 +15,7 @@ namespace WalletWasabi.Stores
 	/// The purpose of this class is to safely and efficiently manage all the Bitcoin related data
 	/// that's being serialized to disk, like transactions, wallet files, keys, blocks, index files, etc.
 	/// </summary>
-	public class BitcoinStore
+	public class BitcoinStore : IAsyncDisposable
 	{
 		public BitcoinStore(
 			IndexStore indexStore,
@@ -41,20 +43,26 @@ namespace WalletWasabi.Stores
 		/// </summary>
 		public UntrustedP2pBehavior CreateUntrustedP2pBehavior() => new UntrustedP2pBehavior(MempoolService);
 
-		public async Task InitializeAsync()
+		public async Task InitializeAsync(CancellationToken cancel = default)
 		{
 			using (BenchmarkLogger.Measure())
 			{
 				var initTasks = new[]
 				{
-					IndexStore.InitializeAsync(),
-					TransactionStore.InitializeAsync()
+					IndexStore.InitializeAsync(cancel),
+					TransactionStore.InitializeAsync(cancel)
 				};
 
 				await Task.WhenAll(initTasks).ConfigureAwait(false);
 
 				IsInitialized = true;
 			}
+		}
+
+		public async ValueTask DisposeAsync()
+		{
+			await IndexStore.DisposeAsync().ConfigureAwait(false);
+			await TransactionStore.DisposeAsync().ConfigureAwait(false);
 		}
 	}
 }

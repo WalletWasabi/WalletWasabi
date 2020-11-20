@@ -474,7 +474,7 @@ namespace WalletWasabi.Packager
 					var driveLetterUpper = BinDistDirectory[0];
 					var driveLetterLower = char.ToLower(driveLetterUpper);
 
-					var linuxPath = $"/mnt/{driveLetterLower}/{Tools.LinuxPath(BinDistDirectory.Substring(3))}";
+					var linuxPath = $"/mnt/{driveLetterLower}/{Tools.LinuxPath(BinDistDirectory[3..])}";
 
 					var commands = new[]
 					{

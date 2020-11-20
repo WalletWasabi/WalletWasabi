@@ -2,7 +2,8 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>netcoreapp3.1</TargetFramework>
+		<TargetFramework>net5.0</TargetFramework>
+		<AnalysisLevel>latest</AnalysisLevel>
 		<LangVersion>latest</LangVersion>
 		<NoWarn>1701;1702;1705;1591;1573;CA1031</NoWarn>
 		<Nullable>enable</Nullable>
@@ -43,7 +44,7 @@
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DocumentationFile>bin\Debug\netcoreapp3.1\WalletWasabi.Gui.xml</DocumentationFile>
+		<DocumentationFile>bin\Debug\net5.0\WalletWasabi.Gui.xml</DocumentationFile>
 		<OutputPath />
 	</PropertyGroup>
 
@@ -69,6 +70,7 @@
 		<PackageReference Include="AvalonStudio.Shell" Version="0.9.9" />
 		<PackageReference Include="Dock.Avalonia.Themes.Default" Version="0.9.9" />
 		<PackageReference Include="Dock.Avalonia.Themes.Metro" Version="0.9.9" />
+		<PackageReference Include="System.Reactive" Version="5.0.0" />
 		<PackageReference Include="System.Runtime" Version="4.3.1" />
 	</ItemGroup>
 

@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>netcoreapp3.1</TargetFramework>
+		<TargetFramework>net5.0</TargetFramework>
+		<AnalysisLevel>latest</AnalysisLevel>
 		<TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
 		<LangVersion>latest</LangVersion>
 		<NoWarn>1701;1702;1705;1591;1573;CA1031</NoWarn>
@@ -14,7 +15,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DocumentationFile>bin\Debug\netcoreapp3.1\WalletWasabi.xml</DocumentationFile>
+		<DocumentationFile>bin\Debug\net5.0\WalletWasabi.xml</DocumentationFile>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -25,9 +26,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.1" />
-		<PackageReference Include="Microsoft.Win32.SystemEvents" Version="4.7.0" />
-		<PackageReference Include="NBitcoin" Version="5.0.60" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Win32.SystemEvents" Version="5.0.0" />
+		<PackageReference Include="NBitcoin" Version="5.0.65" />
 		<PackageReference Include="NBitcoin.Secp256k1" Version="1.0.8" />
 	</ItemGroup>
 
