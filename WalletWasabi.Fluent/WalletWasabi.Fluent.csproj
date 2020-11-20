@@ -18,7 +18,6 @@
 		  <DependentUpon>ConnectHardwareWalletView.axaml</DependentUpon>
 		  <SubType>Code</SubType>
 		</Compile>
-
 		<Compile Update="Controls\ProgressRingArc.xaml.cs">
 		  <DependentUpon>ProgressRingArc.xaml</DependentUpon>
 		</Compile>
