@@ -130,7 +130,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		public void GoBack(NavigationTarget navigationTarget)
 		{
 			var router = GetRouter(navigationTarget);
-			if (router is not null)
+			if (router is not null && router.NavigationStack.Count >= 1)
 			{
 				// Close all dialogs so the awaited tasks can complete.
 				// - DialogViewModelBase.ShowDialogAsync()
