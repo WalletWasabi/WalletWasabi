@@ -17,36 +17,43 @@ namespace WalletWasabi.Fluent.Controls
 		private double _radius;
 
 		public static readonly StyledProperty<IBrush> SegmentColorProperty =
-			AvaloniaProperty.Register<ProgressRingArc, IBrush>(nameof(SegmentColor), Brushes.Gray);
+			AvaloniaProperty.Register<ProgressRingArc, IBrush>(nameof(SegmentColor));
 
 		public static readonly StyledProperty<int> StrokeThicknessProperty =
-			AvaloniaProperty.Register<ProgressRingArc, int>(nameof(StrokeThickness), 5);
+			AvaloniaProperty.Register<ProgressRingArc, int>(
+				nameof(StrokeThickness));
 
 		public static readonly StyledProperty<double> PercentageProperty =
-			AvaloniaProperty.Register<ProgressRingArc, double>(nameof(Percentage), 1);
+			AvaloniaProperty.Register<ProgressRingArc, double>(
+				nameof(Percentage), 1);
 
 		public static readonly DirectProperty<ProgressRingArc, int> PathFigureWidthProperty =
-			AvaloniaProperty.RegisterDirect<ProgressRingArc, int>(nameof(PathFigureWidth),
+			AvaloniaProperty.RegisterDirect<ProgressRingArc, int>(
+				nameof(PathFigureWidth),
 				o => o.PathFigureWidth,
 				(o, v) => o.PathFigureWidth = v);
 
 		public static readonly DirectProperty<ProgressRingArc, int> PathFigureHeightProperty =
-			AvaloniaProperty.RegisterDirect<ProgressRingArc, int>(nameof(PathFigureHeight),
+			AvaloniaProperty.RegisterDirect<ProgressRingArc, int>(
+				nameof(PathFigureHeight),
 				o => o.PathFigureHeight,
 				(o, v) => o.PathFigureHeight = v);
 
 		public static readonly DirectProperty<ProgressRingArc, Thickness> PathFigureMarginProperty =
-			AvaloniaProperty.RegisterDirect<ProgressRingArc, Thickness>(nameof(PathFigureMargin),
+			AvaloniaProperty.RegisterDirect<ProgressRingArc, Thickness>(
+				nameof(PathFigureMargin),
 				o => o.PathFigureMargin,
 				(o, v) => o.PathFigureMargin = v);
 
 		public static readonly DirectProperty<ProgressRingArc, Point> PathFigureStartPointProperty =
-			AvaloniaProperty.RegisterDirect<ProgressRingArc, Point>(nameof(PathFigureStartPoint),
+			AvaloniaProperty.RegisterDirect<ProgressRingArc, Point>(
+				nameof(PathFigureStartPoint),
 				o => o.PathFigureStartPoint,
 				(o, v) => o.PathFigureStartPoint = v);
 
 		public static readonly DirectProperty<ProgressRingArc, Point> ArcSegmentPointProperty =
-			AvaloniaProperty.RegisterDirect<ProgressRingArc, Point>(nameof(ArcSegmentPoint),
+			AvaloniaProperty.RegisterDirect<ProgressRingArc, Point>(
+				nameof(ArcSegmentPoint),
 				o => o.ArcSegmentPoint,
 				(o, v) => o.ArcSegmentPoint = v);
 
