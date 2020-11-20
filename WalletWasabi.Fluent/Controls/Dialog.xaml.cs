@@ -5,17 +5,35 @@ using Avalonia.Controls.Primitives;
 namespace WalletWasabi.Fluent.Controls
 {
 	/// <summary>
-	/// Manages and hosts dialogs when it's bound to <see cref="IContent"/> objects.
+	/// A simple overlay Dialog control.
 	/// </summary>
 	public class Dialog : ContentControl
 	{
 		public static readonly StyledProperty<bool> IsDialogOpenProperty =
 			AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
 
+		public static readonly StyledProperty<double> MaxContentHeightProperty =
+			AvaloniaProperty.Register<Dialog, double>(nameof(MaxContentHeight), double.PositiveInfinity);
+
+		public static readonly StyledProperty<double> MaxContentWidthProperty =
+			AvaloniaProperty.Register<Dialog, double>(nameof(MaxContentWidth), double.PositiveInfinity);
+
 		public bool IsDialogOpen
 		{
 			get => GetValue(IsDialogOpenProperty);
 			set => SetValue(IsDialogOpenProperty, value);
+		}
+
+		public double MaxContentHeight
+		{
+			get { return GetValue(MaxContentHeightProperty); }
+			set { SetValue(MaxContentHeightProperty, value); }
+		}
+
+		public double MaxContentWidth
+		{
+			get { return GetValue(MaxContentWidthProperty); }
+			set { SetValue(MaxContentWidthProperty, value); }
 		}
 
 		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)

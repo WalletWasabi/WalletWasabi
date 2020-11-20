@@ -17,9 +17,9 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		private IEnumerable<SmartCoin> Coins { get; }
 
-		public ICoinsView Unspent() => new CoinsView(Coins.Where(x => x.Unspent && !x.SpentAccordingToBackend));
+		public ICoinsView Unspent() => new CoinsView(Coins.Where(x => !x.IsSpent() && !x.SpentAccordingToBackend));
 
-		public ICoinsView Available() => new CoinsView(Coins.Where(x => !x.Unavailable));
+		public ICoinsView Available() => new CoinsView(Coins.Where(x => x.IsAvailable()));
 
 		public ICoinsView CoinJoinInProcess() => new CoinsView(Coins.Where(x => x.CoinJoinInProgress));
 
@@ -31,9 +31,9 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public ICoinsView CreatedBy(uint256 txid) => new CoinsView(Coins.Where(x => x.TransactionId == txid));
 
-		public ICoinsView SpentBy(uint256 txid) => new CoinsView(Coins.Where(x => x.SpenderTransactionId == txid));
+		public ICoinsView SpentBy(uint256 txid) => new CoinsView(Coins.Where(x => x.SpenderTransaction is { } && x.SpenderTransaction.GetHash() == txid));
 
-		public ICoinsView ChildrenOf(SmartCoin coin) => new CoinsView(Coins.Where(x => x.TransactionId == coin.SpenderTransactionId));
+		public ICoinsView ChildrenOf(SmartCoin coin) => new CoinsView(Coins.Where(x => coin.SpenderTransaction is { } && x.TransactionId == coin.SpenderTransaction.GetHash()));
 
 		public ICoinsView DescendantOf(SmartCoin coin)
 		{
@@ -61,7 +61,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public ICoinsView FilterBy(Func<SmartCoin, bool> expression) => new CoinsView(Coins.Where(expression));
 
-		public ICoinsView OutPoints(IEnumerable<OutPoint> outPoints) => new CoinsView(Coins.Where(x => outPoints.Any(y => y == x.OutPoint)));
+		public ICoinsView OutPoints(ISet<OutPoint> outPoints) => new CoinsView(Coins.Where(x => outPoints.Contains(x.OutPoint)));
 
 		public ICoinsView OutPoints(TxInList txIns)
 		{

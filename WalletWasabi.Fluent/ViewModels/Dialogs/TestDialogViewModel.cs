@@ -1,3 +1,4 @@
+using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
 
@@ -5,16 +6,21 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class TestDialogViewModel : DialogViewModelBase<bool>
 	{
-		private IScreen _screen;
 		private string _message;
 
-		public TestDialogViewModel(IScreen screen, string message)
+		public TestDialogViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, string message) : base(navigationState, navigationTarget)
 		{
-			_screen = screen;
 			_message = message;
 
-			CancelCommand = ReactiveCommand.Create(() => Close(false));
-			ConfirmCommand = ReactiveCommand.Create(() => Close(true));
+			var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
+
+			var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
+
+			var nextCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
+
+			BackCommand = ReactiveCommand.Create(() => GoBack(), backCommandCanExecute);
+			CancelCommand = ReactiveCommand.Create(() => Close(false), cancelCommandCanExecute);
+			NextCommand = ReactiveCommand.Create(() => Close(true), nextCommandCanExecute);
 		}
 
 		public string Message
@@ -23,12 +29,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _message, value);
 		}
 
-		public ICommand CancelCommand { get; }
-		public ICommand ConfirmCommand { get; }
+		public ICommand NextCommand { get; }
 
 		protected override void OnDialogClosed()
 		{
-			_screen.Router.NavigateAndReset.Execute(new AddWalletPageViewModel(_screen));
+			// TODO: Disable when using Dialog inside DialogScreenViewModel / Settings
+			// NavigateTo(new SettingsPageViewModel(NavigationState), NavigationTarget.HomeScreen, true);
 		}
 
 		public void Close()

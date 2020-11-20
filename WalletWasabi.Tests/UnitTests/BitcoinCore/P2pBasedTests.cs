@@ -28,6 +28,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			using var services = new HostedServices();
 			CoreNode coreNode = await TestNodeBuilder.CreateAsync(services);
 			await services.StartAllAsync();
+			BitcoinStore? bitcoinStore = null;
 
 			using var node = await coreNode.CreateNewP2pNodeAsync();
 			try
@@ -41,7 +42,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				var blocks = new FileSystemBlockRepository(Path.Combine(dir, "blocks"), network);
 
 				// Construct BitcoinStore.
-				var bitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
+				bitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
 				await bitcoinStore.InitializeAsync();
 
 				await rpc.GenerateAsync(blockCount: 101);
@@ -87,6 +88,10 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
+				if (bitcoinStore is { } store)
+				{
+					await store.DisposeAsync();
+				}
 				await services.StopAllAsync();
 				node.Disconnect();
 				await coreNode.TryStopAsync();

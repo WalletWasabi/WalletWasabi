@@ -2,17 +2,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:dialog="using:WalletWasabi.Fluent.ViewModels.Dialogs"
              mc:Ignorable="d" Width="450" Height="200"
+             x:DataType="dialog:TestDialogViewModel"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.TestDialogView">
-  <c:ContentArea Title="Test Dialog" Caption="A quick example of a dialog:">
+  <c:ContentArea Title="Test Dialog" Caption="A quick example of a dialog:" EnableCancel="False" EnableNext="True" NextContent="Confirm">
     <StackPanel HorizontalAlignment="Center"
                 VerticalAlignment="Center">
       <TextBlock Text="{Binding Message}" />
-      <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-        <Button Content="Cancel" Margin="10" Command="{Binding CancelCommand}" />
-        <Button Content="Confirm" Margin="10" Command="{Binding ConfirmCommand}" />
-      </StackPanel>
     </StackPanel>
   </c:ContentArea>
 </UserControl>

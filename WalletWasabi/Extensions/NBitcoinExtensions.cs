@@ -122,7 +122,7 @@ namespace NBitcoin
 				.Where(x => includeSingle || x.Value > 1);
 		}
 
-		public static int GetAnonymitySet(this Transaction me, int outputIndex)
+		public static int GetAnonymitySet(this Transaction me, uint outputIndex)
 		{
 			// 1. Get the output corresponting to the output index.
 			var output = me.Outputs[outputIndex];
@@ -134,7 +134,9 @@ namespace NBitcoin
 			return anonSet;
 		}
 
-		public static int GetAnonymitySet(this Transaction me, uint outputIndex) => GetAnonymitySet(me, (int)outputIndex);
+		public static bool IsLikelyCoinjoin(this Transaction me)
+		=> me.Inputs.Count > 1 // The tx must have more than one input in order to be a coinjoin.
+			&& me.HasIndistinguishableOutputs(); // The tx must have more than one equal output in order to be a coinjoin.
 
 		/// <summary>
 		/// Careful, if it's in a legacy block then this won't work.
@@ -466,7 +468,7 @@ namespace NBitcoin
 		{
 			var mempoolMinFee = (decimal)me.MemPoolMinFee;
 
-			// Make sure to be prepare for mempool spikes.
+			// Make sure to be prepared for mempool spikes.
 			var spikeSanity = mempoolMinFee * 1.5m;
 
 			var sanityFee = FeeRate.Max(new FeeRate(Money.Coins(spikeSanity)), new FeeRate(2m));

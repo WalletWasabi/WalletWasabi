@@ -5,6 +5,7 @@ using DynamicData;
 using DynamicData.Binding;
 using System.Reactive;
 using System.IO;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -12,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private readonly ReadOnlyObservableCollection<NavBarItemViewModel> _items;
 
-		public HomePageViewModel(IScreen screen, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage) : base(screen)
+		public HomePageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage) : base(navigationState, NavigationTarget.HomeScreen)
 		{
 			Title = "Home";
 

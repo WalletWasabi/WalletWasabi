@@ -1,18 +1,15 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Xaml.Interactivity;
+using ReactiveUI;
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
-	public class SplitViewAutoBehavior : Behavior<SplitView>
+	public class SplitViewAutoBehavior : DisposingBehavior<SplitView>
 	{
 		private bool _sidebarWasForceClosed;
-
-		private CompositeDisposable Disposables { get; set; }
 
 		public static readonly StyledProperty<double> CollapseThresholdProperty =
 			AvaloniaProperty.Register<SplitViewAutoBehavior, double>(nameof(CollapseThreshold));
@@ -41,37 +38,33 @@ namespace WalletWasabi.Fluent.Behaviors
 			set => SetValue(CollapseOnClickActionProperty, value);
 		}
 
-		protected override void OnAttached()
+		protected override void OnAttached(CompositeDisposable disposables)
 		{
-			Disposables = new CompositeDisposable
-			{
-				AssociatedObject.WhenAnyValue(x => x.Bounds)
+			AssociatedObject!.WhenAnyValue(x => x.Bounds)
 				.DistinctUntilChanged()
 				.Subscribe(SplitViewBoundsChanged)
-			};
+				.DisposeWith(disposables);
 
 			ToggleAction = OnToggleAction;
 			CollapseOnClickAction = OnCollapseOnClickAction;
-
-			base.OnAttached();
 		}
 
 		private void OnCollapseOnClickAction()
 		{
-			if (AssociatedObject.Bounds.Width <= CollapseThreshold && AssociatedObject.IsPaneOpen)
+			if (AssociatedObject!.Bounds.Width <= CollapseThreshold && AssociatedObject!.IsPaneOpen)
 			{
-				AssociatedObject.IsPaneOpen = false;
+				AssociatedObject!.IsPaneOpen = false;
 			}
 		}
 
 		private void OnToggleAction()
 		{
-			if (AssociatedObject.Bounds.Width > CollapseThreshold)
+			if (AssociatedObject!.Bounds.Width > CollapseThreshold)
 			{
-				_sidebarWasForceClosed = AssociatedObject.IsPaneOpen;
+				_sidebarWasForceClosed = AssociatedObject!.IsPaneOpen;
 			}
 
-			AssociatedObject.IsPaneOpen = !AssociatedObject.IsPaneOpen;
+			AssociatedObject!.IsPaneOpen = !AssociatedObject!.IsPaneOpen;
 		}
 
 		private void SplitViewBoundsChanged(Rect x)
@@ -99,13 +92,6 @@ namespace WalletWasabi.Fluent.Behaviors
 					AssociatedObject.IsPaneOpen = true;
 				}
 			}
-		}
-
-		protected override void OnDetaching()
-		{
-			base.OnDetaching();
-
-			Disposables?.Dispose();
 		}
 	}
 }

@@ -51,12 +51,12 @@ namespace Nito.AsyncEx
 		/// <summary>
 		/// The queue of TCSs that other tasks are awaiting to acquire the lock.
 		/// </summary>
-		private readonly IAsyncWaitQueue<IDisposable> Queue;
+		private readonly IAsyncWaitQueue<IDisposable> _queue;
 
 		/// <summary>
 		/// The object used for mutual exclusion.
 		/// </summary>
-		private readonly object Mutex;
+		private readonly object _mutex;
 
 		/// <summary>
 		/// Whether the lock is taken by a task.
@@ -80,10 +80,10 @@ namespace Nito.AsyncEx
 		/// Creates a new async-compatible mutual exclusion lock using the specified wait queue.
 		/// </summary>
 		/// <param name="queue">The wait queue used to manage waiters. This may be <c>null</c> to use a default (FIFO) queue.</param>
-		public AsyncLock(IAsyncWaitQueue<IDisposable> queue)
+		public AsyncLock(IAsyncWaitQueue<IDisposable>? queue)
 		{
-			Queue = queue ?? new DefaultAsyncWaitQueue<IDisposable>();
-			Mutex = new object();
+			_queue = queue ?? new DefaultAsyncWaitQueue<IDisposable>();
+			_mutex = new object();
 		}
 
 		/// <summary>
@@ -98,7 +98,7 @@ namespace Nito.AsyncEx
 		/// <returns>A disposable that releases the lock when disposed.</returns>
 		private Task<IDisposable> RequestLockAsync(CancellationToken cancellationToken)
 		{
-			lock (Mutex)
+			lock (_mutex)
 			{
 				if (!_taken)
 				{
@@ -109,7 +109,7 @@ namespace Nito.AsyncEx
 				else
 				{
 					// Wait for the lock to become available or cancellation.
-					return Queue.Enqueue(Mutex, cancellationToken);
+					return _queue.Enqueue(_mutex, cancellationToken);
 				}
 			}
 		}
@@ -155,15 +155,15 @@ namespace Nito.AsyncEx
 		/// </summary>
 		internal void ReleaseLock()
 		{
-			lock (Mutex)
+			lock (_mutex)
 			{
-				if (Queue.IsEmpty)
+				if (_queue.IsEmpty)
 				{
 					_taken = false;
 				}
 				else
 				{
-					Queue.Dequeue(new Key(this));
+					_queue.Dequeue(new Key(this));
 				}
 			}
 		}
@@ -192,18 +192,18 @@ namespace Nito.AsyncEx
 		[DebuggerNonUserCode]
 		private sealed class DebugView
 		{
-			private readonly AsyncLock Mutex;
+			private readonly AsyncLock _mutex;
 
 			public DebugView(AsyncLock mutex)
 			{
-				Mutex = mutex;
+				_mutex = mutex;
 			}
 
-			public int Id => Mutex.Id;
+			public int Id => _mutex.Id;
 
-			public bool Taken => Mutex._taken;
+			public bool Taken => _mutex._taken;
 
-			public IAsyncWaitQueue<IDisposable> WaitQueue => Mutex.Queue;
+			public IAsyncWaitQueue<IDisposable> WaitQueue => _mutex._queue;
 		}
 
 		// ReSharper restore UnusedMember.Local

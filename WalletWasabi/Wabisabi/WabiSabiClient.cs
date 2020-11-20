@@ -12,6 +12,10 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Wabisabi
 {
+	/// <summary>
+	/// Provides the methods for creating <see cref="RegistrationRequestMessage">unified WabiSabi credential registration request messages</see>
+	/// and for handling the <see cref="RegistrationResponseMessage">credential registration responses</see> received from the coordinator.
+	/// </summary>
 	public class WabiSabiClient
 	{
 		public WabiSabiClient(
@@ -29,11 +33,23 @@ namespace WalletWasabi.Wabisabi
 
 		private CoordinatorParameters CoordinatorParameters { get; }
 
-		public CredentialPool Credentials { get; }
-
 		private WasabiRandom RandomNumberGenerator { get; }
 
-		public (RegistrationRequest, RegistrationValidationData) CreateRequestForZeroAmount()
+		/// <summary>
+		/// The credentials pool containing the available credentials.
+		/// </summary>
+		public CredentialPool Credentials { get; }
+
+		/// <summary>
+		/// Creates a <see cref="RegistrationRequestMessage">credential registration request messages</see> 
+		/// for requesting `k` zero-value credentials.
+		/// </summary>
+		/// <remarks>
+		/// The request messages created by CreateRequestForZeroAmount are called null requests. The first
+		/// registration request message that has to be sent to the coordinator is a null request, in this
+		/// way the coordinator issues `k` zero-value credentials that can be used in following requests.
+		/// </remarks>
+		public (RegistrationRequestMessage, RegistrationValidationData) CreateRequestForZeroAmount()
 		{
 			var credentialsToRequest = new IssuanceRequest[NumberOfCredentials];
 			var knowledge = new Knowledge[NumberOfCredentials];
@@ -44,7 +60,7 @@ namespace WalletWasabi.Wabisabi
 				var randomness = RandomNumberGenerator.GetScalar(allowZero: false);
 				var Ma = randomness * Generators.Gh;
 
-				knowledge[i] = ProofSystem.ZeroProof(Ma, randomness);
+				knowledge[i] = ProofSystem.ZeroProofKnowledge(Ma, randomness);
 				credentialsToRequest[i] = new IssuanceRequest(Ma, Enumerable.Empty<GroupElement>());
 				validationData[i] = new IssuanceValidationData(Money.Zero, randomness, Ma);
 			}
@@ -52,7 +68,7 @@ namespace WalletWasabi.Wabisabi
 			var transcript = BuildTransnscript(isNullRequest: true);
 
 			return (
-				new RegistrationRequest(
+				new RegistrationRequestMessage(
 					Money.Zero,
 					Enumerable.Empty<CredentialPresentation>(),
 					credentialsToRequest,
@@ -63,7 +79,17 @@ namespace WalletWasabi.Wabisabi
 					validationData));
 		}
 
-		public (RegistrationRequest, RegistrationValidationData) CreateRequest(
+		/// <summary>
+		/// Creates a <see cref="RegistrationRequestMessage">credential registration request messages</see> 
+		/// for requesting `k` non-zero-value credentials.
+		/// </summary>
+		/// <param name="amountsToRequest">List of amounts requested in credentials.</param>
+		/// <param name="credentialsToPresent">List of credentials to be presented to the coordinator.</param>
+		/// <returns>
+		/// A tuple containing the registration request message instance and the registration validation data
+		/// to be used to validate the coordinator response message (the issued credentials).  
+		/// </returns>
+		public (RegistrationRequestMessage, RegistrationValidationData) CreateRequest(
 			IEnumerable<Money> amountsToRequest,
 			IEnumerable<Credential> credentialsToPresent)
 		{
@@ -105,7 +131,7 @@ namespace WalletWasabi.Wabisabi
 				var z = RandomNumberGenerator.GetScalar();
 				var presentation = credential.Present(z);
 				presentations.Add(presentation);
-				knowledgeToProve.Add(ProofSystem.ShowCredential(presentation, z, credential, CoordinatorParameters));
+				knowledgeToProve.Add(ProofSystem.ShowCredentialKnowledge(presentation, z, credential, CoordinatorParameters));
 				zs.Add(z);
 			}
 
@@ -120,7 +146,7 @@ namespace WalletWasabi.Wabisabi
 				var randomness = RandomNumberGenerator.GetScalar(allowZero: false);
 				var Ma = scalarAmount * Generators.Gg + randomness * Generators.Gh;
 
-				var (rangeKnowledge, bitCommitments) = ProofSystem.RangeProof(scalarAmount, randomness, Constants.RangeProofWidth, RandomNumberGenerator);
+				var (rangeKnowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(scalarAmount, randomness, Constants.RangeProofWidth, RandomNumberGenerator);
 				knowledgeToProve.Add(rangeKnowledge);
 
 				var credentialRequest = new IssuanceRequest(Ma, bitCommitments);
@@ -134,12 +160,12 @@ namespace WalletWasabi.Wabisabi
 			var r = validationData.Select(x => x.Randomness).Sum();
 			var deltaR = cr + r.Negate();
 
-			var balanceKnowledge = ProofSystem.BalanceProof(sumOfZ, deltaR);
+			var balanceKnowledge = ProofSystem.BalanceProofKnowledge(sumOfZ, deltaR);
 			knowledgeToProve.Add(balanceKnowledge);
 
 			var transcript = BuildTransnscript(isNullRequest: false);
 			return (
-				new RegistrationRequest(
+				new RegistrationRequestMessage(
 					amountsToRequest.Sum() - credentialsToPresent.Sum(x => x.Amount.ToMoney()),
 					presentations,
 					credentialsToRequest,
@@ -150,7 +176,17 @@ namespace WalletWasabi.Wabisabi
 					validationData));
 		}
 
-		public void HandleResponse(RegistrationResponse registrationResponse, RegistrationValidationData registrationValidationData)
+		/// <summary>
+		/// Handles the registration response received from the coordinator.
+		/// </summary>
+		/// <remarks>
+		/// Verifies the registration response message proofs, creates the credentials based on the issued MACs and
+		/// finally updates the credentials pool by removing those credentials that were presented and by adding 
+		/// those that were issued. 
+		/// </remarks>
+		/// <param name="registrationResponse">The registration response message received from the coordinator.</param>
+		/// <param name="registrationValidationData">The state data required to validate the issued credentials and the proofs.</param>
+		public void HandleResponse(RegistrationResponseMessage registrationResponse, RegistrationValidationData registrationValidationData)
 		{
 			Guard.NotNull(nameof(registrationResponse), registrationResponse);
 			Guard.NotNull(nameof(registrationValidationData), registrationValidationData);
@@ -170,7 +206,7 @@ namespace WalletWasabi.Wabisabi
 				.ToArray();
 
 			var statements = credentials
-				.Select(x => ProofSystem.IssuerParametersStmt(CoordinatorParameters, x.Issued, x.Requested.Ma));
+				.Select(x => ProofSystem.IssuerParametersStatement(CoordinatorParameters, x.Issued, x.Requested.Ma));
 
 			var areCorrectlyIssued = ProofSystem.Verify(registrationValidationData.Transcript, statements, registrationResponse.Proofs);
 			if (!areCorrectlyIssued)

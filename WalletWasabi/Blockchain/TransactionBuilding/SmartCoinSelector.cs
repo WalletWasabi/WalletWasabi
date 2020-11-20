@@ -30,14 +30,14 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 
 			// Get unique clusters.
 			IEnumerable<Cluster> uniqueClusters = UnspentCoins
-				.Select(coin => coin.Cluster)
+				.Select(coin => coin.HdPubKey.Cluster)
 				.Distinct();
 
 			// Build all the possible coin clusters, except when it's computationally too expensive.
 			List<IEnumerable<SmartCoin>> coinClusters = uniqueClusters.Count() < 10
 				? uniqueClusters
 					.CombinationsWithoutRepetition(ofLength: 1, upToLength: 6)
-					.Select(clusterCombination => UnspentCoins.Where(coin => clusterCombination.Contains(coin.Cluster)))
+					.Select(clusterCombination => UnspentCoins.Where(coin => clusterCombination.Contains(coin.HdPubKey.Cluster)))
 					.ToList()
 				: new List<IEnumerable<SmartCoin>>();
 
@@ -45,12 +45,12 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 
 			// This operation is doing super advanced grouping on the coin clusters and adding properties to each of them.
 			var sayajinCoinClusters = coinClusters
-				.Select(coins => (Coins: coins, Privacy: 1.0m / (1 + coins.Sum(x => x.Cluster.Labels.Count()))))
+				.Select(coins => (Coins: coins, Privacy: 1.0m / (1 + coins.Sum(x => x.HdPubKey.Cluster.Labels.Count()))))
 				.Select(group => new
 				{
 					group.Coins,
 					Unconfirmed = group.Coins.Any(x => !x.Confirmed),    // If group has an unconfirmed, then the whole group is unconfirmed.
-					AnonymitySet = group.Coins.Min(x => x.AnonymitySet), // The group is as anonymous as its weakest member.
+					AnonymitySet = group.Coins.Min(x => x.HdPubKey.AnonymitySet), // The group is as anonymous as its weakest member.
 					ClusterPrivacy = group.Privacy, // The number people/entities that know the cluster.
 					Amount = group.Coins.Sum(x => x.Amount)
 				});
@@ -67,12 +67,9 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 
 			var coinsInBestClusterByScript = bestCoinCluster
 				.GroupBy(c => c.ScriptPubKey)
-				.Select(group => new
-				{
-					Coins = group
-				});
+				.Select(group => new { Coins = group });
 
-			List<SmartCoin> coinsToSpend = new List<SmartCoin>();
+			var coinsToSpend = new List<SmartCoin>();
 
 			foreach (IGrouping<Script, SmartCoin> coinsGroup in coinsInBestClusterByScript
 				.Select(group => group.Coins))
@@ -85,7 +82,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 				}
 			}
 
-			return coinsToSpend.Select(c => c.GetCoin());
+			return coinsToSpend.Select(c => c.Coin);
 		}
 	}
 }

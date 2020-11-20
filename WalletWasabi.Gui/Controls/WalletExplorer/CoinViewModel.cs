@@ -26,10 +26,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isSelected;
 		private SmartCoinStatus _status;
 		private ObservableAsPropertyHelper<bool> _coinJoinInProgress;
-		private ObservableAsPropertyHelper<bool> _unspent;
 		private ObservableAsPropertyHelper<bool> _confirmed;
-		private ObservableAsPropertyHelper<bool> _unavailable;
 		private ObservableAsPropertyHelper<string> _cluster;
+		private ObservableAsPropertyHelper<int> _anonymitySet;
 
 		private volatile bool _disposedValue = false;
 
@@ -50,25 +49,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ToProperty(this, x => x.CoinJoinInProgress, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
-			_unspent = Model
-				.WhenAnyValue(x => x.Unspent)
-				.ToProperty(this, x => x.Unspent, scheduler: RxApp.MainThreadScheduler)
-				.DisposeWith(Disposables);
-
 			_confirmed = Model
 				.WhenAnyValue(x => x.Confirmed)
 				.ToProperty(this, x => x.Confirmed, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
-			_cluster = Model
-				.WhenAnyValue(x => x.Cluster, x => x.Cluster.Labels)
-				.Select(x => x.Item2.ToString())
-				.ToProperty(this, x => x.Cluster, scheduler: RxApp.MainThreadScheduler)
+			_anonymitySet = Model
+				.WhenAnyValue(x => x.HdPubKey.AnonymitySet)
+				.ToProperty(this, x => x.AnonymitySet, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
-			_unavailable = Model
-				.WhenAnyValue(x => x.Unavailable)
-				.ToProperty(this, x => x.Unavailable, scheduler: RxApp.MainThreadScheduler)
+			_cluster = Model
+				.WhenAnyValue(x => x.HdPubKey.Cluster, x => x.HdPubKey.Cluster.Labels)
+				.Select(x => x.Item2.ToString())
+				.ToProperty(this, x => x.Cluster, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.Status)
@@ -142,10 +136,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public bool CoinJoinInProgress => _coinJoinInProgress?.Value ?? false;
 
-		public bool Unavailable => _unavailable?.Value ?? false;
-
-		public bool Unspent => _unspent?.Value ?? false;
-
 		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
 
 		public int Confirmations => Model.Height.Type == HeightType.Chain
@@ -183,15 +173,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public uint OutputIndex => Model.Index;
 
-		public int AnonymitySet => Model.AnonymitySet;
+		public int AnonymitySet => _anonymitySet?.Value ?? 1;
 
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
 		public string Cluster => _cluster?.Value ?? "";
 
-		public string PubKey => Model.HdPubKey?.PubKey?.ToString() ?? "";
+		public string PubKey => Model.HdPubKey.PubKey.ToString();
 
-		public string KeyPath => Model.HdPubKey?.FullKeyPath?.ToString() ?? "";
+		public string KeyPath => Model.HdPubKey.FullKeyPath.ToString();
 
 		public SmartCoinStatus Status
 		{

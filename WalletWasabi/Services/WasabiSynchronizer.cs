@@ -13,7 +13,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
-using WalletWasabi.Tor.Exceptions;
+using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
@@ -43,6 +43,7 @@ namespace WalletWasabi.Services
 
 		private long _blockRequests; // There are priority requests in queue.
 
+		/// <param name="wasabiClientFactory">The class takes ownership of the instance.</param>
 		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, WasabiClientFactory wasabiClientFactory)
 		{
 			Network = network;
@@ -50,9 +51,9 @@ namespace WalletWasabi.Services
 			_running = StateNotStarted;
 			BitcoinStore = bitcoinStore;
 			WasabiClientFactory = wasabiClientFactory;
-			WasabiClient = wasabiClientFactory.NewBackendClient();
+			WasabiClient = wasabiClientFactory.SharedWasabiClient;
 
-			Cancel = new CancellationTokenSource();
+			StopCts = new CancellationTokenSource();
 		}
 
 		#region EventsPropertiesMembers
@@ -65,6 +66,7 @@ namespace WalletWasabi.Services
 
 		public SynchronizeResponse? LastResponse { get; private set; }
 
+		/// <summary><see cref="WasabiSynchronizer"/> is responsible for disposing of this object.</summary>
 		public WasabiClientFactory WasabiClientFactory { get; }
 
 		public WasabiClient WasabiClient { get; }
@@ -110,7 +112,10 @@ namespace WalletWasabi.Services
 
 		public bool IsRunning => Interlocked.Read(ref _running) == StateRunning;
 
-		private CancellationTokenSource Cancel { get; set; }
+		/// <summary>
+		/// Cancellation token source for stopping <see cref="WasabiSynchronizer"/>.
+		/// </summary>
+		private CancellationTokenSource StopCts { get; }
 
 		public bool AreRequestsBlocked() => Interlocked.Read(ref _blockRequests) == 1;
 
@@ -153,7 +158,7 @@ namespace WalletWasabi.Services
 						{
 							while (AreRequestsBlocked())
 							{
-								await Task.Delay(3000, Cancel.Token).ConfigureAwait(false);
+								await Task.Delay(3000, StopCts.Token).ConfigureAwait(false);
 							}
 
 							EstimateSmartFeeMode? estimateMode = null;
@@ -173,8 +178,8 @@ namespace WalletWasabi.Services
 									return;
 								}
 
-								response = await WasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token)
-									.WithAwaitCancellationAsync(Cancel.Token, 300)
+								response = await WasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, StopCts.Token)
+									.WithAwaitCancellationAsync(StopCts.Token, 300)
 									.ConfigureAwait(false);
 
 								// NOT GenSocksServErr
@@ -182,14 +187,14 @@ namespace WalletWasabi.Services
 								TorStatus = TorStatus.Running;
 								DoNotGenSocksServFail();
 							}
-							catch (ConnectionException ex)
+							catch (TorConnectionException ex)
 							{
 								TorStatus = TorStatus.NotRunning;
 								BackendStatus = BackendStatus.NotConnected;
 								HandleIfGenSocksServFail(ex);
 								throw;
 							}
-							catch (TorSocks5FailureResponseException ex)
+							catch (TorConnectCommandFailedException ex)
 							{
 								TorStatus = TorStatus.Running;
 								BackendStatus = BackendStatus.NotConnected;
@@ -203,7 +208,7 @@ namespace WalletWasabi.Services
 								try
 								{
 									// Backend API version might be updated meanwhile. Trying to update the versions.
-									var result = await WasabiClient.CheckUpdatesAsync(Cancel.Token).ConfigureAwait(false);
+									var result = await WasabiClient.CheckUpdatesAsync(StopCts.Token).ConfigureAwait(false);
 
 									// If the backend is compatible and the Api version updated then we just used the wrong API.
 									if (result.BackendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
@@ -271,11 +276,11 @@ namespace WalletWasabi.Services
 										$"{nameof(firstFilter)}.{nameof(firstFilter.Header)}.{nameof(firstFilter.Header.BlockHash)}:{firstFilter.Header.BlockHash}{Environment.NewLine}" +
 										$"{nameof(firstFilter)}.{nameof(firstFilter.Header)}.{nameof(firstFilter.Header.Height)}:{firstFilter.Header.Height}");
 
-									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(Cancel.Token, deleteAndCrashIfMature: true).ConfigureAwait(false);
+									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(StopCts.Token, deleteAndCrashIfMature: true).ConfigureAwait(false);
 								}
 								else
 								{
-									await BitcoinStore.IndexStore.AddNewFiltersAsync(filters, Cancel.Token).ConfigureAwait(false);
+									await BitcoinStore.IndexStore.AddNewFiltersAsync(filters, StopCts.Token).ConfigureAwait(false);
 
 									if (filters.Count() == 1)
 									{
@@ -291,7 +296,7 @@ namespace WalletWasabi.Services
 							{
 								// Reorg happened
 								// 1. Rollback index
-								FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync(Cancel.Token).ConfigureAwait(false);
+								FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync(StopCts.Token).ConfigureAwait(false);
 								Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}.");
 
 								ignoreRequestInterval = true;
@@ -303,7 +308,7 @@ namespace WalletWasabi.Services
 								if (response.BestHeight > hashChain.TipHeight) // If the server's tip height is larger than ours, we're missing a filter, our index got corrupted.
 								{
 									// If still bad delete filters and crash the software?
-									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(Cancel.Token, deleteAndCrashIfMature: true).ConfigureAwait(false);
+									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(StopCts.Token, deleteAndCrashIfMature: true).ConfigureAwait(false);
 								}
 							}
 
@@ -314,12 +319,12 @@ namespace WalletWasabi.Services
 						{
 							Logger.LogInfo("Wasabi Synchronizer execution was canceled.");
 						}
-						catch (ConnectionException ex)
+						catch (TorConnectionException ex)
 						{
 							Logger.LogError(ex);
 							try
 							{
-								await Task.Delay(3000, Cancel.Token).ConfigureAwait(false); // Give other threads time to do stuff.
+								await Task.Delay(3000, StopCts.Token).ConfigureAwait(false); // Give other threads time to do stuff.
 							}
 							catch (TaskCanceledException ex2)
 							{
@@ -341,7 +346,7 @@ namespace WalletWasabi.Services
 								try
 								{
 									int delay = (int)Math.Min(requestInterval.TotalMilliseconds, MaxRequestIntervalForMixing.TotalMilliseconds);
-									await Task.Delay(delay, Cancel.Token).ConfigureAwait(false); // Ask for new index in every requestInterval.
+									await Task.Delay(delay, StopCts.Token).ConfigureAwait(false); // Ask for new index in every requestInterval.
 								}
 								catch (TaskCanceledException ex)
 								{
@@ -393,20 +398,24 @@ namespace WalletWasabi.Services
 
 		#endregion Methods
 
+		/// <summary>
+		/// Stops <see cref="WasabiSynchronizer"/>.
+		/// </summary>
+		/// <remarks>The method is supposed to be called just once.</remarks>
 		public async Task StopAsync()
 		{
 			Logger.LogTrace(">");
 
 			Interlocked.CompareExchange(ref _running, StateStopping, StateRunning); // If running, make it stopping.
-			Cancel.Cancel();
+			StopCts.Cancel();
 
 			while (Interlocked.CompareExchange(ref _running, StateStopped, StateNotStarted) == StateStopping)
 			{
 				await Task.Delay(50).ConfigureAwait(false);
 			}
 
-			WasabiClient.Dispose();
-			Cancel?.Dispose();
+			WasabiClientFactory.Dispose();
+			StopCts.Dispose();
 
 			EnableRequests(); // Enable requests (it's possible something is being blocked outside the class by AreRequestsBlocked.
 

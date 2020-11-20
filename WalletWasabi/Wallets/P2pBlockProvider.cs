@@ -116,7 +116,7 @@ namespace WalletWasabi.Wallets
 
 							await NodeTimeoutsAsync(false).ConfigureAwait(false);
 						}
-						catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
+						catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 						{
 							await NodeTimeoutsAsync(true).ConfigureAwait(false);
 

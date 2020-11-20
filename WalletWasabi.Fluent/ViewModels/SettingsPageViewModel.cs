@@ -1,35 +1,36 @@
+using Avalonia;
+using Avalonia.Markup.Xaml.Styling;
+using ReactiveUI;
 using System;
 using System.Linq;
-using ReactiveUI;
 using System.Reactive.Threading.Tasks;
 using System.Windows.Input;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Gui.Validation;
-using WalletWasabi.Models;
-using Avalonia;
-using Avalonia.Markup.Xaml.Styling;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
 	public class SettingsPageViewModel : NavBarItemViewModel
 	{
-		private string _randomString;
-
-		public SettingsPageViewModel(IScreen screen) : base(screen)
+		public SettingsPageViewModel(NavigationStateViewModel navigationState) : base(navigationState, NavigationTarget.HomeScreen)
 		{
 			Title = "Settings";
 
-			NextCommand = ReactiveCommand.Create(() => screen.Router.Navigate.Execute(new AddWalletPageViewModel(screen)));
+			BackCommand = ReactiveCommand.Create(() => ClearNavigation());
+
+			NextCommand = ReactiveCommand.Create(() => NavigateTo(new SettingsPageViewModel(navigationState), NavigationTarget.HomeScreen));
 
 			OpenDialogCommand = ReactiveCommand.CreateFromTask(async () => await ConfirmSetting.Handle("Please confirm the setting:").ToTask());
+
+			OpenDialogScreenCommand = ReactiveCommand.Create(() => NavigateTo(new SettingsPageViewModel(navigationState), NavigationTarget.DialogScreen));
 
 			ConfirmSetting = new Interaction<string, bool>();
 
 			ConfirmSetting.RegisterHandler(
 				async interaction =>
 				{
-					var x = new TestDialogViewModel(screen, interaction.Input);
-					var result = await x.ShowDialogAsync(MainViewModel.Instance);
+					var x = new TestDialogViewModel(navigationState, NavigationTarget.DialogHost, interaction.Input);
+					var result = await x.ShowDialogAsync(navigationState.DialogHost());
 					interaction.SetOutput(result);
 				});
 
@@ -37,33 +38,28 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				var currentTheme = Application.Current.Styles.Select(x => (StyleInclude)x).FirstOrDefault(x => x.Source is { } && x.Source.AbsolutePath.Contains("Themes"));
 
-				if (currentTheme?.Source is { })
+				if (currentTheme?.Source is { } src)
 				{
 					var themeIndex = Application.Current.Styles.IndexOf(currentTheme);
 
 					var newTheme = new StyleInclude(new Uri("avares://WalletWasabi.Fluent/App.xaml"))
 					{
-						Source = new Uri($"avares://WalletWasabi.Fluent/Styles/Themes/{(currentTheme.Source.AbsolutePath.Contains("Light") ? "BaseDark" : "BaseLight")}.xaml")
+						Source = new Uri($"avares://WalletWasabi.Fluent/Styles/Themes/{(src.AbsolutePath.Contains("Light") ? "BaseDark" : "BaseLight")}.xaml")
 					};
 
 					Application.Current.Styles[themeIndex] = newTheme;
 				}
 			});
-
-			// For TextBox error look
-			this.ValidateProperty(x => x.RandomString, (errors) => errors.Add(ErrorSeverity.Error, "Random Error Message"));
-			this.RaisePropertyChanged(nameof(RandomString));
-		}
-
-		public string RandomString
-		{
-			get => _randomString;
-			set => this.RaiseAndSetIfChanged(ref _randomString, value);
 		}
 
 		public ICommand NextCommand { get; }
+
 		public ICommand OpenDialogCommand { get; }
+
+		public ICommand OpenDialogScreenCommand { get; }
+
 		public Interaction<string, bool> ConfirmSetting { get; }
+
 		public ICommand ChangeThemeCommand { get; }
 
 		public override string IconName => "settings_regular";

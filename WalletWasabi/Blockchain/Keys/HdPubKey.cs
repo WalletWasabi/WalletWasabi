@@ -1,20 +1,27 @@
 using NBitcoin;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Blockchain.Keys
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class HdPubKey : IEquatable<HdPubKey>
+	public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	{
+		private Cluster _cluster;
+		private int _anonymitySet = int.MaxValue;
+
 		public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, SmartLabel label, KeyState keyState)
 		{
 			PubKey = Guard.NotNull(nameof(pubKey), pubKey);
 			FullKeyPath = Guard.NotNull(nameof(fullKeyPath), fullKeyPath);
+			_cluster = new Cluster(this);
 			SetLabel(label, null);
 			KeyState = keyState;
 
@@ -43,6 +50,20 @@ namespace WalletWasabi.Blockchain.Keys
 				throw new ArgumentException(nameof(FullKeyPath));
 			}
 		}
+
+		public Cluster Cluster
+		{
+			get => _cluster;
+			set => RaiseAndSetIfChanged(ref _cluster, value);
+		}
+
+		public int AnonymitySet
+		{
+			get => _anonymitySet;
+			set => RaiseAndSetIfChanged(ref _anonymitySet, value);
+		}
+
+		public HashSet<SmartCoin> Coins { get; } = new HashSet<SmartCoin>();
 
 		[JsonProperty(Order = 1)]
 		[JsonConverter(typeof(PubKeyJsonConverter))]
@@ -82,6 +103,7 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 
 			Label = label;
+			Cluster.UpdateLabels();
 
 			kmToFile?.ToFile();
 		}

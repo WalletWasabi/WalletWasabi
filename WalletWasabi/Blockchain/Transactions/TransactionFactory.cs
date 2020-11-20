@@ -13,7 +13,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Tor.Exceptions;
+using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Blockchain.Transactions
@@ -108,7 +108,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			TransactionBuilder builder = Network.CreateTransactionBuilder();
 			builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs));
-			builder.AddCoins(allowedSmartCoinInputs.Select(c => c.GetCoin()));
+			builder.AddCoins(allowedSmartCoinInputs.Select(c => c.Coin));
 			builder.SetLockTime(lockTimeSelector());
 
 			foreach (var request in payments.Requests.Where(x => x.Amount.Type == MoneyRequestType.Value))
@@ -268,50 +268,44 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 			}
 
-			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(spentCoins.Select(x => x.Label)));
-			var outerWalletOutputs = new List<SmartCoin>();
-			var innerWalletOutputs = new List<SmartCoin>();
+			var smartTransaction = new SmartTransaction(tx, Height.Unknown, label: SmartLabel.Merge(payments.Requests.Select(x => x.Label)));
+			foreach (var coin in spentCoins)
+			{
+				smartTransaction.WalletInputs.Add(coin);
+			}
+			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(smartTransaction.WalletInputs.Select(x => x.HdPubKey.Label)));
+
 			for (var i = 0U; i < tx.Outputs.Count; i++)
 			{
 				TxOut output = tx.Outputs[i];
-				var anonset = tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet) - 1; // Minus 1, because count own only once.
 				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
-				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToOutPoints().ToArray(), Height.Unknown, tx.RBF, anonset, pubKey: foundKey);
-				label = SmartLabel.Merge(label, coin.Label); // foundKey's label is already added to the coinlabel.
-
-				if (foundKey is null)
+				if (foundKey is { })
 				{
-					outerWalletOutputs.Add(coin);
-				}
-				else
-				{
-					innerWalletOutputs.Add(coin);
+					var smartCoin = new SmartCoin(smartTransaction, i, foundKey);
+					label = SmartLabel.Merge(label, smartCoin.HdPubKey.Label); // foundKey's label is already added to the coinlabel.
+					smartTransaction.WalletOutputs.Add(smartCoin);
 				}
 			}
 
-			foreach (var coin in outerWalletOutputs.Concat(innerWalletOutputs))
+			foreach (var coin in smartTransaction.WalletOutputs)
 			{
 				var foundPaymentRequest = payments.Requests.FirstOrDefault(x => x.Destination.ScriptPubKey == coin.ScriptPubKey);
 
 				// If change then we concatenate all the labels.
+				// The foundkeylabel has already been added previously, so no need to concatenate.
 				if (foundPaymentRequest is null) // Then it's autochange.
 				{
-					coin.Label = label;
+					coin.HdPubKey.SetLabel(label);
 				}
 				else
 				{
-					coin.Label = SmartLabel.Merge(coin.Label, foundPaymentRequest.Label);
+					coin.HdPubKey.SetLabel(SmartLabel.Merge(coin.HdPubKey.Label, foundPaymentRequest.Label));
 				}
-
-				var foundKey = KeyManager.GetKeyForScriptPubKey(coin.ScriptPubKey);
-				foundKey?.SetLabel(coin.Label); // The foundkeylabel has already been added previously, so no need to concatenate.
 			}
 
 			Logger.LogInfo($"Transaction is successfully built: {tx.GetHash()}.");
 			var sign = !KeyManager.IsWatchOnly;
-			var spendsUnconfirmed = spentCoins.Any(c => !c.Confirmed);
-			SmartTransaction smartTransaction = new SmartTransaction(tx, Height.Unknown, label: SmartLabel.Merge(payments.Requests.Select(x => x.Label)));
-			return new BuildTransactionResult(smartTransaction, psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
+			return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePc);
 		}
 
 		private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilder builder, PSBT psbt, HdPubKey changeHdPubKey)
@@ -329,7 +323,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				Logger.LogInfo($"Payjoin payment was negotiated successfully.");
 			}
-			catch (TorSocks5FailureResponseException e)
+			catch (TorConnectCommandFailedException e)
 			{
 				if (e.Message.Contains("HostUnreachable"))
 				{

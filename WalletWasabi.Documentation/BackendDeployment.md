@@ -96,7 +96,7 @@ sudo apt-get update && sudo apt-get dist-upgrade -y
 
 # 3. Install .NET SDK
 
-https://www.microsoft.com/net/learn/get-started/linux/ubuntu18-04
+https://docs.microsoft.com/en-us/dotnet/core/install/linux-ubuntu
 
 Opt out of the telemetry:
 
@@ -222,12 +222,12 @@ cd WalletWasabi
 dotnet restore
 dotnet build
 dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
-dotnet WalletWasabi.Backend/bin/Release/netcoreapp3.1/publish/WalletWasabi.Backend.dll
+dotnet WalletWasabi.Backend/bin/Release/net5.0/publish/WalletWasabi.Backend.dll
 cd ..
 cat .walletwasabi/backend/Logs.txt
 pico .walletwasabi/backend/Config.json
 pico .walletwasabi/backend/CcjRoundConfig.json
-dotnet WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.1/publish/WalletWasabi.Backend.dll
+dotnet WalletWasabi/WalletWasabi.Backend/bin/Release/net5.0/publish/WalletWasabi.Backend.dll
 cat .walletwasabi/backend/Logs.txt
 ```
 
@@ -246,8 +246,8 @@ sudo pico /etc/systemd/system/walletwasabi.service
 Description=WalletWasabi Backend API
 
 [Service]
-WorkingDirectory=/home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.1/publish
-ExecStart=/usr/bin/dotnet /home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp3.1/publish/WalletWasabi.Backend.dll
+WorkingDirectory=/home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/net5.0/publish
+ExecStart=/usr/bin/dotnet /home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/net5.0/publish/WalletWasabi.Backend.dll
 Restart=always
 RestartSec=10  # Restart service after 10 seconds if dotnet service crashes
 SyslogIdentifier=walletwasabi-backend

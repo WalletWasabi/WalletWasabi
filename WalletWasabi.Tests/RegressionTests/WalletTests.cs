@@ -286,12 +286,10 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Equal(Money.Coins(0.1m), firstCoin.Amount);
 				Assert.Equal(new Height((int)bitcoinStore.SmartHeaderChain.TipHeight), firstCoin.Height);
 				Assert.InRange(firstCoin.Index, 0U, 1U);
-				Assert.False(firstCoin.Unavailable);
-				Assert.Equal("foo label", firstCoin.Label);
+				Assert.True(firstCoin.IsAvailable());
+				Assert.Equal("foo label", firstCoin.HdPubKey.Label);
 				Assert.Equal(key.P2wpkhScript, firstCoin.ScriptPubKey);
-				Assert.Null(firstCoin.SpenderTransactionId);
-				Assert.NotNull(firstCoin.SpentOutputs);
-				Assert.NotEmpty(firstCoin.SpentOutputs);
+				Assert.Null(firstCoin.SpenderTransaction);
 				Assert.Equal(txId, firstCoin.TransactionId);
 				Assert.Single(keyManager.GetKeys(KeyState.Used, false));
 				Assert.Equal("foo label", keyManager.GetKeys(KeyState.Used, false).Single().Label);
@@ -316,20 +314,14 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Equal(new Height(bitcoinStore.SmartHeaderChain.TipHeight).Value - 2, firstCoin.Height.Value);
 				Assert.Equal(new Height(bitcoinStore.SmartHeaderChain.TipHeight).Value - 1, secondCoin.Height.Value);
 				Assert.Equal(new Height(bitcoinStore.SmartHeaderChain.TipHeight), thirdCoin.Height);
-				Assert.False(thirdCoin.Unavailable);
-				Assert.Equal("foo label", firstCoin.Label);
-				Assert.Equal("bar label", secondCoin.Label);
-				Assert.Equal("bar label", thirdCoin.Label);
+				Assert.True(thirdCoin.IsAvailable());
+				Assert.Equal("foo label", firstCoin.HdPubKey.Label);
+				Assert.Equal("bar label", secondCoin.HdPubKey.Label);
+				Assert.Equal("bar label", thirdCoin.HdPubKey.Label);
 				Assert.Equal(key.P2wpkhScript, firstCoin.ScriptPubKey);
 				Assert.Equal(key2.P2wpkhScript, secondCoin.ScriptPubKey);
 				Assert.Equal(key2.P2wpkhScript, thirdCoin.ScriptPubKey);
-				Assert.Null(thirdCoin.SpenderTransactionId);
-				Assert.NotNull(firstCoin.SpentOutputs);
-				Assert.NotNull(secondCoin.SpentOutputs);
-				Assert.NotNull(thirdCoin.SpentOutputs);
-				Assert.NotEmpty(firstCoin.SpentOutputs);
-				Assert.NotEmpty(secondCoin.SpentOutputs);
-				Assert.NotEmpty(thirdCoin.SpentOutputs);
+				Assert.Null(thirdCoin.SpenderTransaction);
 				Assert.Equal(txId, firstCoin.TransactionId);
 				Assert.Equal(txId2, secondCoin.TransactionId);
 				Assert.Equal(txId3, thirdCoin.TransactionId);
@@ -372,12 +364,10 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				Assert.Equal(Money.Coins(0.03m), rbfCoin.Amount);
 				Assert.Equal(new Height(bitcoinStore.SmartHeaderChain.TipHeight).Value - 2, rbfCoin.Height.Value);
-				Assert.False(rbfCoin.Unavailable);
-				Assert.Equal("bar label", rbfCoin.Label);
+				Assert.True(rbfCoin.IsAvailable());
+				Assert.Equal("bar label", rbfCoin.HdPubKey.Label);
 				Assert.Equal(key2.P2wpkhScript, rbfCoin.ScriptPubKey);
-				Assert.Null(rbfCoin.SpenderTransactionId);
-				Assert.NotNull(rbfCoin.SpentOutputs);
-				Assert.NotEmpty(rbfCoin.SpentOutputs);
+				Assert.Null(rbfCoin.SpenderTransaction);
 				Assert.Equal(tx4bumpRes.TransactionId, rbfCoin.TransactionId);
 
 				Assert.Equal(2, keyManager.GetKeys(KeyState.Used, false).Count());

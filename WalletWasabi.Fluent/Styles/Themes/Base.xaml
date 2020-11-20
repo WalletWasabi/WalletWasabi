@@ -1,7 +1,5 @@
 <Styles xmlns="https://github.com/avaloniaui"
-  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:sys="clr-namespace:System;assembly=netstandard"
-  xmlns:local="clr-namespace:AvalonStudio.Controls.Standard.CodeEditor;assembly=AvalonStudio.Controls.Standard">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
     <Color x:Key="SystemAccentColorLight1">#FF82C690</Color>
     <Color x:Key="SystemAccentColorLight2">#FF92CF9E</Color>
@@ -14,8 +12,8 @@
     <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource SystemAccentColor}"/>
     <SolidColorBrush x:Key="ActionButtonForegroundColor">#FFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{StaticResource SystemAccentColor}"/>
-    <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="#8F72BD81"/>
-    <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="#6F72BD81"/>
+    <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="#59B164"/>
+    <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="#90CB9C"/>
     <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="#80A3A3A3"/>
     <StaticResource x:Key="SystemControlErrorTextForegroundBrush" ResourceKey="SystemErrorTextColor" />
   </Styles.Resources>

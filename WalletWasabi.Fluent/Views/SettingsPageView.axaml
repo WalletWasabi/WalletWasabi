@@ -2,18 +2,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="vm:SettingsPageViewModel"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.SettingsPageView">
   <c:ContentArea Title="Settings" Caption="Some development settings:">
     <StackPanel Spacing="10">
       <Button Command="{Binding NextCommand}" Content="Next" />
       <Button Command="{Binding OpenDialogCommand}" Content="Open Dialog" />
+      <Button Command="{Binding OpenDialogScreenCommand}" Content="Open Dialog Screen" />
       <Button Command="{Binding ChangeThemeCommand}" Content="Change Theme" />
-      <TextBox Watermark="Type here..."/>
-      <TextBox Watermark="Type here... #2"/>
-      <TextBox Watermark="Type here... #3" Text="{Binding RandomString}"/>
-      <Button Classes="action" Content="continue"/>
     </StackPanel>
   </c:ContentArea>
 </UserControl>

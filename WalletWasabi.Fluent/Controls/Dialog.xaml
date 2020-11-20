@@ -1,7 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-        xmlns:dialogs="clr-namespace:WalletWasabi.Fluent.ViewModels.Dialogs">
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:dialogs="using:WalletWasabi.Fluent.ViewModels.Dialogs">
   <Design.PreviewWith>
     <c:Dialog IsDialogOpen="True">
       <dialogs:TestDialogViewModel/>
@@ -13,23 +13,20 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
-          <Panel Background="{DynamicResource DialogOverlayColor}" Name="PART_Overlay" />
-          <Panel Name="PART_DialogHost" VerticalAlignment="Center" HorizontalAlignment="Center">
-            <Border CornerRadius="4" BoxShadow="{DynamicResource DialogBoxShadow}" Background="{DynamicResource DialogBackground}">
-              <DockPanel Margin="20 0">
-                <Button DockPanel.Dock="Left" Margin="0 35 0 0" Classes="invisible" Command="{Binding Close}" HorizontalAlignment="Left" VerticalAlignment="Top">
-                  <PathIcon Data="{StaticResource arrow_left_regular}" />
-                </Button>
-                <ContentPresenter Name="PART_ContentPresenter" Margin="20 36 20 0"
-                               Background="{TemplateBinding Background}"
-                               BorderBrush="{TemplateBinding BorderBrush}"
-                               BorderThickness="{TemplateBinding BorderThickness}"
-                               ContentTemplate="{TemplateBinding ContentTemplate}"
-                               Content="{TemplateBinding Content}"
-                               Padding="{TemplateBinding Padding}"
-                               VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                               HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"/>
-              </DockPanel>
+          <Panel Background="{DynamicResource DialogOverlayColor}" Name="PART_Overlay" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+          <Panel Name="PART_DialogHost" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="40">
+            <Border CornerRadius="4" BoxShadow="{DynamicResource DialogBoxShadow}"
+                    Background="{DynamicResource DialogBackground}"
+                    MaxWidth="{TemplateBinding MaxContentWidth}" MaxHeight="{TemplateBinding MaxContentHeight}" Margin="40">
+              <ContentPresenter Name="PART_ContentPresenter" Margin="20 36 20 0"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                Content="{TemplateBinding Content}"
+                                Padding="{TemplateBinding Padding}"
+                                VerticalContentAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch"/>
             </Border>
           </Panel>
         </Panel>

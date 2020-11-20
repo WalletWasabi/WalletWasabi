@@ -12,9 +12,11 @@ using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.CoinJoin.Client.Rounds;
@@ -43,10 +45,12 @@ namespace WalletWasabi.Tests.RegressionTests
 		{
 			RegTestFixture = regTestFixture;
 			BaseUri = new Uri(RegTestFixture.BackendEndPoint);
+			BackendClearnetHttpClient = new ClearnetHttpClient(() => RegTestFixture.BackendEndPointUri);
 		}
 
 		private RegTestFixture RegTestFixture { get; }
 		public Uri BaseUri { get; }
+		public ClearnetHttpClient BackendClearnetHttpClient { get; }
 
 		[Fact]
 		public async Task CoordinatorCtorTestsAsync()
@@ -105,7 +109,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			coordinator.AbortAllRoundsInInputRegistration("");
 
 			using var torClient = new TorHttpClient(BaseUri, Tests.Common.TorSocks5Endpoint);
-			using var satoshiClient = new SatoshiClient(BaseUri, null);
+			var satoshiClient = new SatoshiClient(new ClearnetHttpClient(() => BaseUri));
 
 			#region PostInputsGetStates
 
@@ -260,8 +264,9 @@ namespace WalletWasabi.Tests.RegressionTests
 			{
 				// Test DelayedClientRoundRegistration logic.
 				ClientRoundRegistration first = null;
+				var randomKey = KeyManager.CreateNew(out _, "").GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false);
 				var second = new ClientRoundRegistration(aliceClient,
-					new[] { new SmartCoin(uint256.One, 1, Script.Empty, Money.Zero, new[] { new OutPoint(uint256.One, 1) }, Height.Unknown, true, 2) },
+					new[] { Tests.Common.RandomSmartCoin(randomKey, 0m, false, 2) },
 					BitcoinAddress.Create("12Rty3c8j3QiZSwLVaBtch6XUMZaja3RC7", Network.Main));
 				first = second;
 				second = null;
@@ -607,9 +612,9 @@ namespace WalletWasabi.Tests.RegressionTests
 					throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
 				}
 
-				using (var bobClient1 = new BobClient(BaseUri, null))
-				using (var bobClient2 = new BobClient(BaseUri, null))
 				{
+					var bobClient1 = new BobClient(BackendClearnetHttpClient);
+					var bobClient2 = new BobClient(BackendClearnetHttpClient);
 					await bobClient1.PostOutputAsync(aliceClient1.RoundId, new ActiveOutput(outputAddress1, connConfResp.activeOutputs.First().Signature, 0));
 					await bobClient2.PostOutputAsync(aliceClient2.RoundId, new ActiveOutput(outputAddress2, connConfResp2.activeOutputs.First().Signature, 0));
 				}
@@ -680,7 +685,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 				Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
 
-				var wasabiClient = new WasabiClient(BaseUri, null);
+				var wasabiClient = new WasabiClient(BackendClearnetHttpClient);
 				var syncInfo = await wasabiClient.GetSynchronizeAsync(blockHashed[0], 1);
 				Assert.Contains(unsignedCoinJoin.GetHash(), syncInfo.UnconfirmedCoinJoins);
 				var txs = await wasabiClient.GetTransactionsAsync(network, new[] { unsignedCoinJoin.GetHash() }, CancellationToken.None);
@@ -705,7 +710,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
 			using var torClient = new TorHttpClient(baseUri, Tests.Common.TorSocks5Endpoint);
-			using var satoshiClient = new SatoshiClient(baseUri, null);
+			var satoshiClient = new SatoshiClient(new ClearnetHttpClient(() => BaseUri));
 			var round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 			var roundId = round.RoundId;
 
@@ -789,16 +794,15 @@ namespace WalletWasabi.Tests.RegressionTests
 			Assert.Equal(RoundPhase.OutputRegistration, roundState.Phase);
 
 			var l = 0;
+			var bobClient = new BobClient(BackendClearnetHttpClient);
+
 			foreach (var (aliceClient, outputs, _) in participants)
 			{
-				using (var bobClient = new BobClient(baseUri, null))
+				var i = 0;
+				foreach (var output in outputs.Take(activeOutputs[l].Count()))
 				{
-					var i = 0;
-					foreach (var output in outputs.Take(activeOutputs[l].Count()))
-					{
-						await bobClient.PostOutputAsync(aliceClient.RoundId, new ActiveOutput(output.outputAddress, activeOutputs[l].ElementAt(i).Signature, i));
-						i++;
-					}
+					await bobClient.PostOutputAsync(aliceClient.RoundId, new ActiveOutput(output.outputAddress, activeOutputs[l].ElementAt(i).Signature, i));
+					i++;
 				}
 				l++;
 			}
@@ -983,17 +987,16 @@ namespace WalletWasabi.Tests.RegressionTests
 				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, user.aliceClient, resp.Item2.First().Signature));
 			}
 
-			var outputRequests = new List<(BobClient, Task)>();
+			var outputRequests = new List<Task>();
 			foreach (var user in users)
 			{
-				var bobClient = new BobClient(baseUri, null);
-				outputRequests.Add((bobClient, bobClient.PostOutputAsync(roundId, new ActiveOutput(user.activeOutputAddress, user.unblindedSignature, 0))));
+				var bobClient = new BobClient(BackendClearnetHttpClient);
+				outputRequests.Add(bobClient.PostOutputAsync(roundId, new ActiveOutput(user.activeOutputAddress, user.unblindedSignature, 0)));
 			}
 
-			foreach (var request in outputRequests)
+			foreach (Task task in outputRequests)
 			{
-				await request.Item2;
-				request.Item1?.Dispose();
+				await task;
 			}
 
 			var coinjoinRequests = new List<Task<Transaction>>();
@@ -1107,9 +1110,11 @@ namespace WalletWasabi.Tests.RegressionTests
 				key.SetKeyState(KeyState.Used);
 				var tx = await rpc.GetRawTransactionAsync(txId);
 				var height = await rpc.GetBlockCountAsync();
+				var stx = new SmartTransaction(tx, height + 1);
 				var bechCoin = tx.Outputs.GetCoins(bech.ScriptPubKey).Single();
 
-				var smartCoin = new SmartCoin(bechCoin, tx.Inputs.ToOutPoints().ToArray(), height + 1, replaceable: false, anonymitySet: tx.GetAnonymitySet(bechCoin.Outpoint.N));
+				var smartCoin = new SmartCoin(stx, bechCoin.Outpoint.N, key);
+				key.AnonymitySet = tx.GetAnonymitySet(bechCoin.Outpoint.N);
 
 				var chaumianClient = new CoinJoinClient(synchronizer, rpc.Network, keyManager);
 
@@ -1212,15 +1217,24 @@ namespace WalletWasabi.Tests.RegressionTests
 			var tx4 = await rpc.GetRawTransactionAsync(txId4);
 			await rpc.GenerateAsync(1);
 			var height = await rpc.GetBlockCountAsync();
+			var stx1 = new SmartTransaction(tx1, height);
+			var stx2 = new SmartTransaction(tx2, height);
+			var stx3 = new SmartTransaction(tx3, height);
+			var stx4 = new SmartTransaction(tx4, height);
+
 			var bech1Coin = tx1.Outputs.GetCoins(bech1.ScriptPubKey).Single();
 			var bech2Coin = tx2.Outputs.GetCoins(bech2.ScriptPubKey).Single();
 			var bech3Coin = tx3.Outputs.GetCoins(bech3.ScriptPubKey).Single();
 			var bech4Coin = tx4.Outputs.GetCoins(bech4.ScriptPubKey).Single();
 
-			var smartCoin1 = new SmartCoin(bech1Coin, tx1.Inputs.ToOutPoints().ToArray(), height, replaceable: false, anonymitySet: tx1.GetAnonymitySet(bech1Coin.Outpoint.N));
-			var smartCoin2 = new SmartCoin(bech2Coin, tx2.Inputs.ToOutPoints().ToArray(), height, replaceable: false, anonymitySet: tx2.GetAnonymitySet(bech2Coin.Outpoint.N));
-			var smartCoin3 = new SmartCoin(bech3Coin, tx3.Inputs.ToOutPoints().ToArray(), height, replaceable: false, anonymitySet: tx3.GetAnonymitySet(bech3Coin.Outpoint.N));
-			var smartCoin4 = new SmartCoin(bech4Coin, tx4.Inputs.ToOutPoints().ToArray(), height, replaceable: false, anonymitySet: tx4.GetAnonymitySet(bech4Coin.Outpoint.N));
+			var smartCoin1 = new SmartCoin(stx1, bech1Coin.Outpoint.N, key1);
+			var smartCoin2 = new SmartCoin(stx2, bech2Coin.Outpoint.N, key2);
+			var smartCoin3 = new SmartCoin(stx3, bech3Coin.Outpoint.N, key3);
+			var smartCoin4 = new SmartCoin(stx4, bech4Coin.Outpoint.N, key4);
+			key1.AnonymitySet = tx1.GetAnonymitySet(bech1Coin.Outpoint.N);
+			key2.AnonymitySet = tx2.GetAnonymitySet(bech2Coin.Outpoint.N);
+			key3.AnonymitySet = tx3.GetAnonymitySet(bech3Coin.Outpoint.N);
+			key4.AnonymitySet = tx4.GetAnonymitySet(bech4Coin.Outpoint.N);
 
 			var chaumianClient1 = new CoinJoinClient(synchronizer, rpc.Network, keyManager);
 			var chaumianClient2 = new CoinJoinClient(synchronizer, rpc.Network, keyManager);
@@ -1242,8 +1256,13 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.True(smartCoin1.CoinJoinInProgress);
 				Assert.True(smartCoin2.CoinJoinInProgress);
 
+				var randomKey = keyManager.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal: false);
 				// Make sure it does not throw.
-				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin(network.Consensus.ConsensusFactory.CreateTransaction().GetHash(), 1, new Script(), Money.Parse("3"), new[] { new OutPoint(uint256.One, 0) }, Height.Mempool, replaceable: false, anonymitySet: 1), DequeueReason.UserRequested);
+				var randomTx = network.Consensus.ConsensusFactory.CreateTransaction();
+				randomTx.Outputs.Add(new TxOut(Money.Coins(3m), randomKey.P2wpkhScript));
+				var randomStx = new SmartTransaction(randomTx, Height.Mempool);
+				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin(randomStx, 0, randomKey), DequeueReason.UserRequested);
+				randomKey.AnonymitySet = 1;
 
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, DequeueReason.UserRequested);
@@ -1274,10 +1293,12 @@ namespace WalletWasabi.Tests.RegressionTests
 					await Task.Delay(1000);
 				}
 
-				var cj = (await rpc.GetRawMempoolAsync()).Single();
-				smartCoin1.SpenderTransactionId = cj;
-				smartCoin2.SpenderTransactionId = cj;
-				smartCoin3.SpenderTransactionId = cj;
+				var cjHash = (await rpc.GetRawMempoolAsync()).Single();
+				var cj = await rpc.GetRawTransactionAsync(cjHash);
+				var sCj = new SmartTransaction(cj, Height.Mempool);
+				smartCoin1.SpenderTransaction = sCj;
+				smartCoin2.SpenderTransaction = sCj;
+				smartCoin3.SpenderTransaction = sCj;
 
 				// Make sure if times out, it tries again.
 				connectionConfirmationTimeout = 1;
@@ -1447,6 +1468,11 @@ namespace WalletWasabi.Tests.RegressionTests
 				Task timeout = Task.Delay(TimeSpan.FromSeconds(2 * (1 + 11 + 7 + 3 * (3 + 7))));
 				while (wallet.Coins.Count() != 4)
 				{
+					// Make sure CJ confirms.
+					if ((await rpc.GetRawMempoolAsync()).Any())
+					{
+						await rpc.GenerateAsync(1);
+					}
 					if (timeout.IsCompletedSuccessfully)
 					{
 						throw new TimeoutException("CoinJoin was not propagated or did not arrive.");
@@ -1455,7 +1481,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				var times = 0;
-				while (wallet.Coins.FirstOrDefault(x => x.Label.IsEmpty) is null)
+				while (wallet.Coins.FirstOrDefault(x => x.HdPubKey.Label.IsEmpty) is null)
 				{
 					await Task.Delay(1000);
 					times++;
@@ -1489,12 +1515,12 @@ namespace WalletWasabi.Tests.RegressionTests
 				var allCoins = wallet.TransactionProcessor.Coins.AsAllCoinsView().ToArray();
 				var allCoins2 = wallet2.TransactionProcessor.Coins.AsAllCoinsView().ToArray();
 
-				Assert.Equal(4, allCoins.Count(x => x.Label.IsEmpty && !x.Unavailable));
-				Assert.Equal(3, allCoins2.Count(x => x.Label.IsEmpty && !x.Unavailable));
-				Assert.Equal(2, allCoins.Count(x => x.Label.IsEmpty && !x.Unspent));
-				Assert.Equal(0, allCoins2.Count(x => x.Label.IsEmpty && !x.Unspent));
-				Assert.Equal(3, allCoins2.Count(x => x.Label.IsEmpty));
-				Assert.Equal(4, allCoins.Count(x => x.Label.IsEmpty && x.Unspent));
+				Assert.Equal(4, allCoins.Count(x => x.HdPubKey.Label.IsEmpty && x.IsAvailable()));
+				Assert.Equal(3, allCoins2.Count(x => x.HdPubKey.Label.IsEmpty && x.IsAvailable()));
+				Assert.Equal(2, allCoins.Count(x => x.HdPubKey.Label.IsEmpty && x.IsSpent()));
+				Assert.Equal(0, allCoins2.Count(x => x.HdPubKey.Label.IsEmpty && x.IsSpent()));
+				Assert.Equal(3, allCoins2.Count(x => x.HdPubKey.Label.IsEmpty));
+				Assert.Equal(4, allCoins.Count(x => x.HdPubKey.Label.IsEmpty && !x.IsSpent()));
 			}
 			finally
 			{

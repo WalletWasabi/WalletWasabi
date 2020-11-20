@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using Avalonia.Threading;
-using DynamicData;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
@@ -15,23 +14,24 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class WalletManagerViewModel : ViewModelBase
 	{
-		private WalletViewModelBase _selectedItem;
+		private WalletViewModelBase? _selectedItem;
 		private ObservableCollection<WalletViewModelBase> _items;
 		private readonly Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
-		private readonly IScreen _screen;
+		private readonly NavigationStateViewModel _navigationState;
 		private bool _anyWalletStarted;
 
-		public WalletManagerViewModel(IScreen screen, WalletManager walletManager, UiConfig uiConfig)
+		public WalletManagerViewModel(NavigationStateViewModel navigationState, WalletManager walletManager, UiConfig uiConfig)
 		{
 			Model = walletManager;
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 			_items = new ObservableCollection<WalletViewModelBase>();
-			_screen = screen;
+			_navigationState = navigationState;
 
 			Observable
 				.FromEventPattern<WalletState>(walletManager, nameof(WalletManager.WalletStateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				.Subscribe(
+					x =>
 				{
 					var wallet = x.Sender as Wallet;
 
@@ -55,11 +55,12 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Select(x => x.EventArgs)
 				.Where(x => x is { })
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(wallet =>
+				.Subscribe(
+					wallet =>
 				{
 					WalletViewModelBase vm = (wallet.State <= WalletState.Starting)
-						? ClosedWalletViewModel.Create(screen, walletManager, wallet)
-						: WalletViewModel.Create(screen, uiConfig, wallet);
+						? ClosedWalletViewModel.Create(_navigationState, walletManager, wallet)
+						: WalletViewModel.Create(_navigationState, uiConfig, wallet);
 
 					InsertWallet(vm);
 				});
@@ -69,7 +70,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public WalletManager Model { get; }
 
-		public WalletViewModelBase SelectedItem
+		public WalletViewModelBase? SelectedItem
 		{
 			get => _selectedItem;
 			set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
@@ -108,7 +109,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				throw new Exception("Wallet already opened.");
 			}
 
-			var walletViewModel = WalletViewModel.Create(_screen, uiConfig, wallet);
+			var walletViewModel = WalletViewModel.Create(_navigationState, uiConfig, wallet);
 
 			InsertWallet(walletViewModel);
 
@@ -122,25 +123,25 @@ namespace WalletWasabi.Fluent.ViewModels
 			return walletViewModel;
 		}
 
-		private void InsertWallet(WalletViewModelBase walletVM)
+		private void InsertWallet(WalletViewModelBase wallet)
 		{
-			Items.InsertSorted(walletVM);
-			_walletDictionary.Add(walletVM.Wallet, walletVM);
+			Items.InsertSorted(wallet);
+			_walletDictionary.Add(wallet.Wallet, wallet);
 		}
 
-		private void RemoveWallet(WalletViewModelBase walletVM)
+		private void RemoveWallet(WalletViewModelBase wallet)
 		{
-			walletVM.Dispose();
+			wallet.Dispose();
 
-			_items.Remove(walletVM);
-			_walletDictionary.Remove(walletVM.Wallet);
+			_items.Remove(wallet);
+			_walletDictionary.Remove(wallet.Wallet);
 		}
 
 		private void LoadWallets(WalletManager walletManager)
 		{
 			foreach (var wallet in walletManager.GetWallets())
 			{
-				InsertWallet(ClosedWalletViewModel.Create(_screen, walletManager, wallet));
+				InsertWallet(ClosedWalletViewModel.Create(_navigationState, walletManager, wallet));
 			}
 		}
 	}

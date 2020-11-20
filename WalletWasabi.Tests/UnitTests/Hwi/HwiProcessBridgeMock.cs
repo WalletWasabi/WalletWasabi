@@ -248,7 +248,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 					|| arguments.Contains("--fingerprint")))
 			{
 				// The +1 is the space.
-				var keyPath = arguments.Substring(arguments.IndexOf(command) + command.Length + 1);
+				var keyPath = arguments[(arguments.IndexOf(command) + command.Length + 1)..];
 				if (keyPath == "m/84h/0h/0h")
 				{
 					extPubKey = "xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M";
