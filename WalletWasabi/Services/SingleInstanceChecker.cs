@@ -50,6 +50,26 @@ namespace WalletWasabi.Services
 				throw new ObjectDisposedException(nameof(SingleInstanceChecker));
 			}
 
+			bool anotherInstanceExists = false;
+
+			// Check if the connection can be made.
+			// "." to specify the local computer.
+			using var client = new NamedPipeClientStream(".", PipeName, PipeDirection.Out);
+			try
+			{
+				// Just make a connection and close the client.
+				// This will also signal to the first instance that we were trying to run for a secondary instance.
+				await client.ConnectAsync(500, DisposeCts.Token).ConfigureAwait(false);
+
+				// Connection successfully made, so another instance is there.
+				anotherInstanceExists = true;
+			}
+			catch (TimeoutException)
+			{
+				// Not able to connect to the PipeServer. There are no other instance. Do nothing let the code run forward.
+				Logger.LogDebug("This instance is the first one on this computer.");
+			}
+
 			try
 			{
 				// Try to create a pipe with the specified name.
@@ -65,29 +85,20 @@ namespace WalletWasabi.Services
 			{
 				// Could not create a pipe. There is another instance already running.
 				Logger.LogDebug($"Could not create {nameof(NamedPipeServerStream)} reason '{ex}'.");
+				anotherInstanceExists = true;
 			}
 
-			// Try to signal the other instance by connecting to it.
-			// "." to specify the local computer.
-			using var client = new NamedPipeClientStream(".", PipeName, PipeDirection.Out);
-			try
+			if (anotherInstanceExists)
 			{
-				// Just make a connection and close the client.
-				await client.ConnectAsync(2000, DisposeCts.Token).ConfigureAwait(false);
+				throw new InvalidOperationException($"Wasabi is already running on {Network}!");
 			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
-
-			throw new InvalidOperationException($"Wasabi is already running on {Network}!");
 		}
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
 			try
 			{
-				using var server = NamedPipeServerStream;
+				var server = NamedPipeServerStream;
 
 				if (server is null)
 				{
@@ -97,7 +108,9 @@ namespace WalletWasabi.Services
 
 				while (!stoppingToken.IsCancellationRequested)
 				{
+					// The cancellationToken not working on Unix. So make sure to call NamedPipeServerStream.DisposeAsync() as well.
 					await server.WaitForConnectionAsync(stoppingToken).ConfigureAwait(false);
+
 					Logger.LogDebug("Other instance connected!");
 
 					OtherInstanceStarted?.Invoke(this, EventArgs.Empty);
@@ -118,14 +131,14 @@ namespace WalletWasabi.Services
 			// Cancel all operations.
 			DisposeCts.Cancel();
 
-			// Wait for the end of ExecuteAsync.
-			await StopAsync(CancellationToken.None).ConfigureAwait(false);
-
 			// Dispose the server.
 			if (NamedPipeServerStream is { } server)
 			{
 				await server.DisposeAsync().ConfigureAwait(false);
 			}
+
+			// Wait for the end of ExecuteAsync.
+			await StopAsync(CancellationToken.None).ConfigureAwait(false);
 
 			Dispose();
 		}
