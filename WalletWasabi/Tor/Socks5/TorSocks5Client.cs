@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Tor.Exceptions;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Models.Messages;
@@ -73,7 +73,7 @@ namespace WalletWasabi.Tor.Socks5
 				}
 				catch (Exception ex) when (IsConnectionRefused(ex))
 				{
-					throw new ConnectionException($"Could not connect to Tor SOCKSPort at {host}:{port}. Is Tor running?", ex);
+					throw new TorConnectionException($"Could not connect to Tor SOCKSPort at {host}:{port}. Is Tor running?", ex);
 				}
 
 				Stream = TcpClient.GetStream();
@@ -96,7 +96,7 @@ namespace WalletWasabi.Tor.Socks5
 
 				return true;
 			}
-			catch (ConnectionException)
+			catch (TorConnectionException)
 			{
 				return false;
 			}
@@ -238,7 +238,7 @@ namespace WalletWasabi.Tor.Socks5
 					// condition that caused a failure.
 					DisposeTcpClient();
 					Logger.LogWarning($"Connection response indicates a failure. Actual response is: '{connectionResponse.Rep}'. Request: '{host}:{port}'.");
-					throw new TorSocks5FailureResponseException(connectionResponse.Rep);
+					throw new TorConnectCommandFailedException(connectionResponse.Rep);
 				}
 
 				// Do not check the Bnd. Address and Bnd. Port. because Tor does not seem to return any, ever. It returns zeros instead.
@@ -280,11 +280,11 @@ namespace WalletWasabi.Tor.Socks5
 				}
 				catch (Exception ex) when (IsConnectionRefused(ex))
 				{
-					throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to '{RemoteEndPoint}'.", ex);
+					throw new TorConnectionException($"{nameof(TorSocks5Client)} is not connected to '{RemoteEndPoint}'.", ex);
 				}
 				if (!IsConnected)
 				{
-					throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to '{RemoteEndPoint}'.");
+					throw new TorConnectionException($"{nameof(TorSocks5Client)} is not connected to '{RemoteEndPoint}'.");
 				}
 			}
 		}
@@ -367,7 +367,7 @@ namespace WalletWasabi.Tor.Socks5
 
 					if (receiveCount <= 0)
 					{
-						throw new ConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
+						throw new TorConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
 					}
 					// if we could fit everything into our buffer, then return it
 					if (!stream.DataAvailable)
@@ -384,7 +384,7 @@ namespace WalletWasabi.Tor.Socks5
 						receiveCount = await stream.ReadAsync(receiveBuffer, 0, actualReceiveBufferSize, cancellationToken).ConfigureAwait(false);
 						if (receiveCount <= 0)
 						{
-							throw new ConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
+							throw new TorConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
 						}
 						builder.Append(receiveBuffer[..receiveCount]);
 					}
@@ -399,7 +399,7 @@ namespace WalletWasabi.Tor.Socks5
 			}
 			catch (IOException ex)
 			{
-				throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.", ex);
+				throw new TorConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.", ex);
 			}
 		}
 

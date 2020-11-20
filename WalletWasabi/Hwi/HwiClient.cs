@@ -54,7 +54,7 @@ namespace WalletWasabi.Hwi
 
 				return responseString;
 			}
-			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
+			catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 			{
 				throw new OperationCanceledException($"'hwi {arguments}' operation is canceled.", ex);
 			}

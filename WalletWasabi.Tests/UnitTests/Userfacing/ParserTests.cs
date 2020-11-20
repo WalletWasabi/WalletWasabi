@@ -186,7 +186,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			foreach (var test in tests)
 			{
-				Assert.False(AddressStringParser.TryParseBitcoinUrl(test.url.Substring(1), test.network, out _));
+				Assert.False(AddressStringParser.TryParseBitcoinUrl(test.url[1..], test.network, out _));
 				Assert.False(AddressStringParser.TryParseBitcoinUrl(test.url.Remove(5, 4), test.network, out _));
 				Assert.False(AddressStringParser.TryParseBitcoinUrl(test.url.Insert(1, "b"), test.network, out _));
 

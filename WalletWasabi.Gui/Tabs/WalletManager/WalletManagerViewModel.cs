@@ -75,8 +75,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			base.OnOpen(disposables);
 
-			LoadWalletDesktop = new LoadWalletViewModel(this, LoadWalletType.Desktop);
-			LoadWalletPassword = new LoadWalletViewModel(this, LoadWalletType.Password);
+			var global = Locator.Current.GetService<Global>();
+			var walletManager = global.WalletManager;
+
+			LoadWalletDesktop = new LoadWalletViewModel(this, LoadWalletType.Desktop, walletManager);
+			LoadWalletPassword = new LoadWalletViewModel(this, LoadWalletType.Password, walletManager);
 
 			Categories = new ObservableCollection<CategoryViewModel>
 			{
@@ -95,9 +98,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					category?.OnCategorySelected();
 					CurrentView = category;
 				});
-
-			var global = Locator.Current.GetService<Global>();
-			var walletManager = global.WalletManager;
 
 			if (!walletManager.GetWallets().Any(wallet => wallet.State == WalletState.Started))
 			{
