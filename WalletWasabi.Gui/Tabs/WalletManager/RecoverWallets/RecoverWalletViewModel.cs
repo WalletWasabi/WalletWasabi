@@ -44,8 +44,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 			RecoverCommand = ReactiveCommand.Create(
 				() => RecoverWallet(owner),
 				Observable
-					.Merge(Observable.FromEventPattern(this, nameof(ErrorsChanged)).Select(_ => true))
-					.Merge(this.WhenAnyValue(x => x.MnemonicWords).Select(_ => true))
+					.Merge(Observable.FromEventPattern(this, nameof(ErrorsChanged)).Select(_ => Unit.Default))
+					.Merge(this.WhenAnyValue(x => x.MnemonicWords).Select(_ => Unit.Default))
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Select(_ => !Validations.AnyErrors));
 
