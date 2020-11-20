@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
@@ -34,7 +35,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		public TransactionStore ConfirmedStore { get; }
 		private object Lock { get; } = new object();
 
-		public async Task InitializeAsync(bool ensureBackwardsCompatibility = true)
+		public async Task InitializeAsync(CancellationToken cancel = default, bool ensureBackwardsCompatibility = true)
 		{
 			using (BenchmarkLogger.Measure())
 			{
@@ -43,8 +44,8 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				var initTasks = new[]
 				{
-					MempoolStore.InitializeAsync(mempoolWorkFolder, Network, $"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}"),
-					ConfirmedStore.InitializeAsync(confirmedWorkFolder, Network, $"{nameof(ConfirmedStore)}.{nameof(ConfirmedStore.InitializeAsync)}")
+					MempoolStore.InitializeAsync(mempoolWorkFolder, Network, $"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}", cancel),
+					ConfirmedStore.InitializeAsync(confirmedWorkFolder, Network, $"{nameof(ConfirmedStore)}.{nameof(ConfirmedStore.InitializeAsync)}", cancel)
 				};
 
 				await Task.WhenAll(initTasks).ConfigureAwait(false);
@@ -52,6 +53,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				if (ensureBackwardsCompatibility)
 				{
+					cancel.ThrowIfCancellationRequested();
 					EnsureBackwardsCompatibility();
 				}
 			}
