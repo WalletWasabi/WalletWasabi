@@ -10,6 +10,17 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 	[Collection("Serial unit tests collection")]
 	public class SingleInstanceCheckerTests
 	{
+		private static Random Random { get; } = new();
+
+		/// <summary>
+		/// Global port may collide when several PRs are being tested on CI at the same time,
+		/// so we need some sort of non-determinism here (e.g. random numbers).
+		/// </summary>
+		private static int GenerateRandomPort()
+		{
+			return Random.Next(37128, 37168);
+		}
+
 		[Fact]
 		public async Task SingleInstanceTestsAsync()
 		{
@@ -42,15 +53,38 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			}
 		}
 
-		private static Random Random { get; } = new();
-
-		/// <summary>
-		/// Global lock names may collide when several PRs are being tested on CI at the same time,
-		/// so we need some sort of non-determinism here (e.g. random numbers).
-		/// </summary>
-		private static int GenerateRandomPort()
+		[Fact]
+		public async Task OtherInstanceStartedTestsAsync()
 		{
-			return Random.Next(37128, 37168);
+			int mainNetPort = GenerateRandomPort();
+
+			// Disposal test.
+			await using SingleInstanceChecker sic = new(mainNetPort);
+			bool eventCalled = false;
+
+			sic.OtherInstanceStarted += SetCalled;
+
+			try
+			{
+				// I am the first instance this should be fine.
+				await sic.CheckAsync();
+
+				await using SingleInstanceChecker second = new(mainNetPort);
+
+				// I am the second one.
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await second.CheckAsync());
+
+				Assert.True(eventCalled);
+			}
+			finally
+			{
+				sic.OtherInstanceStarted -= SetCalled;
+			}
+
+			void SetCalled(object? sender, EventArgs args)
+			{
+				eventCalled = true;
+			}
 		}
 	}
 }

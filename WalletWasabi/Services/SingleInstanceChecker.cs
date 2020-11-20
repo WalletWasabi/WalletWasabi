@@ -36,6 +36,8 @@ namespace WalletWasabi.Services
 		private CancellationTokenSource DisposeCts { get; } = new();
 		private TcpListener? TcpListener { get; set; }
 
+		public event EventHandler? OtherInstanceStarted;
+
 		public async Task CheckAsync()
 		{
 			if (DisposeCts.IsCancellationRequested)
@@ -95,6 +97,7 @@ namespace WalletWasabi.Services
 			{
 				await listener.AcceptTcpClientAsync().ConfigureAwait(false);
 				Logger.LogDebug($"Connection arrived on port: {Port}");
+				OtherInstanceStarted?.Invoke(this, EventArgs.Empty);
 			}
 		}
 
