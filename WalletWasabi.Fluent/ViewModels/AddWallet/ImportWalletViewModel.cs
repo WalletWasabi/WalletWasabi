@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Data;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using NBitcoin;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Helpers;
@@ -17,24 +14,18 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
-	public class ImportWalletViewModel
+	public class ImportWalletViewModel : RoutableViewModel
 	{
 		private const string _walletExistsErrorMessage = "Wallet with the same fingerprint already exists!";
 		private readonly string _walletName;
 		private readonly WalletManager _walletManager;
 
-		public ImportWalletViewModel(string walletName, WalletManager walletManager)
+		public ImportWalletViewModel(NavigationStateViewModel navigationState, string walletName, WalletManager walletManager) : base(navigationState, NavigationTarget.DialogScreen)
 		{
 			_walletName = walletName;
 			_walletManager = walletManager;
-			Task.Run(ImportWallet)
-				.ContinueWith(o =>
-				{
-					if (o.Exception is { } ex)
-					{
-						Logger.LogError(ex);
-					}
-				});
+
+			ImportWallet();
 		}
 
 		private async void ImportWallet()
@@ -59,6 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				KeyManager km = jsonWallet.Count <= 3 ? GetKeyManagerByColdcardJson(jsonWallet, walletFullPath) : GetKeyManagerByWasabiJson(filePath, walletFullPath);
 
 				_walletManager.AddWallet(km);
+				ClearNavigation();
 			}
 			catch (Exception ex)
 			{
