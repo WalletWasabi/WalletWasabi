@@ -70,14 +70,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			{
 				_navigatedToCts = new CancellationTokenSource();
 
+				StartDetection();
+
 				return Disposable.Create(() =>
 				{
 					_navigatedToCts.Cancel();
 					_navigatedToCts.Dispose();
 				});
 			});
-
-			StartDetection();
 		}
 
 		public HardwareWalletViewModel? SelectedHardwareWallet
@@ -94,7 +94,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		private async void ConnectSelectedHardwareWallet()
 		{
-			// TODO: canExecute checks for null, this is just preventing warning
 			if (SelectedHardwareWallet?.HardwareWalletInfo.Fingerprint is null)
 			{
 				return;
@@ -138,9 +137,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		private void StartDetection()
 		{
-			_detectionCts = new CancellationTokenSource();
-
-			_detectionTask = HardwareWalletDetectionAsync(_detectionCts);
+			if (_navigatedToCts is { } cts)
+			{
+				_detectionCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token);
+				_detectionTask = HardwareWalletDetectionAsync(_detectionCts);
+			}
 		}
 
 		private async Task HardwareWalletDetectionAsync(CancellationTokenSource detectionCts)
