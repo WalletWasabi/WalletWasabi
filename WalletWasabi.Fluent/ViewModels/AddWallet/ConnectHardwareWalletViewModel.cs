@@ -111,10 +111,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				await StopDetection();
 
 				var fingerPrint = (HDFingerprint)SelectedHardwareWallet.HardwareWalletInfo.Fingerprint;
-
 				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 				var extPubKey = await HwiClient.GetXpubAsync(SelectedHardwareWallet.HardwareWalletInfo.Model, SelectedHardwareWallet.HardwareWalletInfo.Path, KeyManager.DefaultAccountKeyPath, cts.Token);
-
 				var path = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
 
 				WalletManager.AddWallet(KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, path));
