@@ -25,9 +25,6 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<double> PercentageProperty =
 			AvaloniaProperty.Register<ProgressRingArc, double>(nameof(Percentage), 1);
 
-		public static readonly StyledProperty<double> AngleProperty =
-			AvaloniaProperty.Register<ProgressRingArc, double>(nameof(Angle), 120);
-
 		public static readonly DirectProperty<ProgressRingArc, int> PathFigureWidthProperty =
 			AvaloniaProperty.RegisterDirect<ProgressRingArc, int>(nameof(PathFigureWidth),
 				o => o.PathFigureWidth,
@@ -81,12 +78,6 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(PercentageProperty, value);
 		}
 
-		public double Angle
-		{
-			get => GetValue(AngleProperty);
-			set => SetValue(AngleProperty, value);
-		}
-
 		public int PathFigureWidth
 		{
 			get => _pathFigureWidth;
@@ -129,11 +120,16 @@ namespace WalletWasabi.Fluent.Controls
 			private set => SetAndRaise(ArcSegmentIsLargeArcProperty, ref _arcSegmentIsLargeArc, value);
 		}
 
-		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> e)
 		{
-			base.OnPropertyChanged(change);
-			Angle = Percentage * 360;
-			RenderArc();
+			base.OnPropertyChanged(e);
+
+			if (e.Property == SegmentColorProperty ||
+			    e.Property == StrokeThicknessProperty ||
+			    e.Property == PercentageProperty)
+			{
+				RenderArc();
+			}
 		}
 
 		protected override Size MeasureOverride(Size availableSize)
@@ -146,15 +142,17 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void RenderArc()
 		{
+			var angle = Percentage * 360;
+
 			var startPoint = new Point(_radius, 0);
-			var endPoint = ComputeCartesianCoordinate(Angle, _radius);
+			var endPoint = ComputeCartesianCoordinate(angle, _radius);
 			endPoint += new Point(_radius, _radius);
 
 			PathFigureWidth = (int) _radius * 2 + StrokeThickness;
 			PathFigureHeight = (int) _radius * 2 + StrokeThickness;
 			PathFigureMargin = new Thickness(StrokeThickness, StrokeThickness, 0, 0);
 
-			var largeArc = Angle > 180.0;
+			var largeArc = angle > 180.0;
 
 			var outerArcSize = new Size(_radius, _radius);
 
