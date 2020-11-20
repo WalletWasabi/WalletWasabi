@@ -114,10 +114,9 @@ namespace WalletWasabi.Blockchain.Mempool
 				}
 
 				Logger.LogInfo("Start cleaning out mempool...");
-				using (var client = wasabiClientFactory.NewBackendClient())
 				{
 					var compactness = 10;
-					var allMempoolHashes = await client.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
+					var allMempoolHashes = await wasabiClientFactory.SharedWasabiClient.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
 
 					lock (ProcessedLock)
 					{

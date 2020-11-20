@@ -70,7 +70,7 @@ namespace WalletWasabi.Fluent.ViewModels
 					}
 					else
 					{
-						ClearNavigation();
+						GoBack();
 					}
 				});
 

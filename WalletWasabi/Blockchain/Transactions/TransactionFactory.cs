@@ -13,7 +13,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Tor.Exceptions;
+using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Blockchain.Transactions
@@ -323,7 +323,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				Logger.LogInfo($"Payjoin payment was negotiated successfully.");
 			}
-			catch (TorSocks5FailureResponseException e)
+			catch (TorConnectCommandFailedException e)
 			{
 				if (e.Message.Contains("HostUnreachable"))
 				{
