@@ -24,13 +24,12 @@ namespace WalletWasabi.Services.Terminate
 			AssemblyLoadContext.Default.Unloading += Default_Unloading;
 			AppDomain.CurrentDomain.DomainUnload += CurrentDomain_DomainUnload;
 
-			if (IsSubscribeToSessionEnding)
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				SystemEvents.SessionEnding += Windows_SystemEvents_SessionEnding;
 			}
 		}
 
-		private static bool IsSubscribeToSessionEnding => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 		public bool IsTerminateRequested => Interlocked.Read(ref _terminateStatus) > TerminateStatusNotStarted;
 
 		private void CurrentDomain_DomainUnload(object? sender, EventArgs e)
@@ -110,12 +109,12 @@ namespace WalletWasabi.Services.Terminate
 
 			AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;
 			Console.CancelKeyPress -= Console_CancelKeyPress;
+			AssemblyLoadContext.Default.Unloading -= Default_Unloading;
+			AppDomain.CurrentDomain.DomainUnload -= CurrentDomain_DomainUnload;
 
-			if (IsSubscribeToSessionEnding)
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				SystemEvents.SessionEnding -= Windows_SystemEvents_SessionEnding;
-				AssemblyLoadContext.Default.Unloading -= Default_Unloading;
-				AppDomain.CurrentDomain.DomainUnload -= CurrentDomain_DomainUnload;
 			}
 
 			// Indicate that the termination procedure finished. So other callers can return.
