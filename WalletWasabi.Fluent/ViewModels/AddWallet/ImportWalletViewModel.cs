@@ -17,13 +17,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	public class ImportWalletViewModel : RoutableViewModel
 	{
 		private const string _walletExistsErrorMessage = "Wallet with the same fingerprint already exists!";
-		private readonly string _walletName;
-		private readonly WalletManager _walletManager;
+		private string WalletName { get; }
+		private WalletManager WalletManager { get; }
 
 		public ImportWalletViewModel(NavigationStateViewModel navigationState, string walletName, WalletManager walletManager) : base(navigationState, NavigationTarget.DialogScreen)
 		{
-			_walletName = walletName;
-			_walletManager = walletManager;
+			WalletName = walletName;
+			WalletManager = walletManager;
 
 			ImportWallet();
 		}
@@ -38,7 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				return;
 			}
 
-			var walletFullPath = _walletManager.WalletDirectories.GetWalletFilePaths(_walletName).walletFilePath;
+			var walletFullPath = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
 
 			try
 			{
@@ -49,7 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				// If Count <= 3 then it is a possible Coldcard json otherwise possible Wasabi json
 				KeyManager km = jsonWallet.Count <= 3 ? GetKeyManagerByColdcardJson(jsonWallet, walletFullPath) : GetKeyManagerByWasabiJson(filePath, walletFullPath);
 
-				_walletManager.AddWallet(km);
+				WalletManager.AddWallet(km);
 				ClearNavigation();
 			}
 			catch (Exception ex)
@@ -59,7 +59,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
-		private bool IsWalletExists(HDFingerprint? fingerprint) => _walletManager.GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
+		private bool IsWalletExists(HDFingerprint? fingerprint) => WalletManager.GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
 
 		private KeyManager GetKeyManagerByWasabiJson(string filePath, string walletFullPath)
 		{
