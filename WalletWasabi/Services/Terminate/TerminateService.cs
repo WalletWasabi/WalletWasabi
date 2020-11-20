@@ -16,9 +16,16 @@ namespace WalletWasabi.Services.Terminate
 		private readonly Func<Task> _terminateApplicationAsync;
 		private long _terminateStatus;
 
-		public TerminateService(Func<Task> terminateApplicationAsync)
+		public TerminateService(Func<Task> terminateApplicationAsync, AssemblyLoadContext? assemblyLoadContext)
 		{
 			_terminateApplicationAsync = terminateApplicationAsync;
+			AssemblyLoadContext = assemblyLoadContext;
+
+			if (AssemblyLoadContext is not null)
+			{
+				AssemblyLoadContext.Unloading += Default_Unloading;
+			}
+
 			AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 			Console.CancelKeyPress += Console_CancelKeyPress;
 			AssemblyLoadContext.Default.Unloading += Default_Unloading;
@@ -31,6 +38,8 @@ namespace WalletWasabi.Services.Terminate
 		}
 
 		public bool IsTerminateRequested => Interlocked.Read(ref _terminateStatus) > TerminateStatusNotStarted;
+
+		public AssemblyLoadContext? AssemblyLoadContext { get; }
 
 		private void CurrentDomain_DomainUnload(object? sender, EventArgs e)
 		{
@@ -109,6 +118,11 @@ namespace WalletWasabi.Services.Terminate
 					Logger.LogWarning(ex.ToTypeMessageString());
 				}
 			}).Wait();
+
+			if (AssemblyLoadContext is not null)
+			{
+				AssemblyLoadContext.Unloading -= Default_Unloading;
+			}
 
 			AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;
 			Console.CancelKeyPress -= Console_CancelKeyPress;

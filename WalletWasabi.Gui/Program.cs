@@ -10,6 +10,7 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.CrashReport;
@@ -32,7 +33,7 @@ namespace WalletWasabi.Gui
 		// This is only needed to pass CrashReporter to AppMainAsync otherwise it could be a local variable in Main().
 		private static CrashReporter CrashReporter = new CrashReporter();
 
-		private static TerminateService TerminateService = new TerminateService(TerminateApplicationAsync);
+		private static TerminateService TerminateService = new TerminateService(TerminateApplicationAsync, AssemblyLoadContext.GetLoadContext(typeof(Program).Assembly));
 
 		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
 		/// see https://github.com/AvaloniaUI/Avalonia/wiki/Unresolved-platform-support-issues
