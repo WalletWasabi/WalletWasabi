@@ -127,7 +127,6 @@ namespace WalletWasabi.Gui
 		public async Task InitializeNoWalletAsync(TerminateService terminateService)
 		{
 			InitializationStarted = true;
-			AddressManager = null;
 			var cancel = StoppingCts.Token;
 
 			try
@@ -141,7 +140,7 @@ namespace WalletWasabi.Gui
 					SizeLimit = 1_000,
 					ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 				});
-				var bstoreInitTask = BitcoinStore.InitializeAsync();
+				var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
 				cancel.ThrowIfCancellationRequested();
 
