@@ -78,7 +78,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 					await Assert.ThrowsAsync<InvalidOperationException>(async () => await secondInstance.CheckAsync());
 				}
 
-				// There should be the same number of event as the number of tries from the second instance.
+				// There should be the same number of events as the number of tries from the second instance.
 				Assert.Equal(3, Interlocked.Read(ref eventCalled));
 			}
 			finally
