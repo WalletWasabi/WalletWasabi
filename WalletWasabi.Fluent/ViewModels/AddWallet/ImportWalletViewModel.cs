@@ -17,8 +17,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	public class ImportWalletViewModel : RoutableViewModel
 	{
 		private const string _walletExistsErrorMessage = "Wallet with the same fingerprint already exists!";
-		private string WalletName { get; }
-		private WalletManager WalletManager { get; }
 
 		public ImportWalletViewModel(NavigationStateViewModel navigationState, string walletName, WalletManager walletManager) : base(navigationState, NavigationTarget.DialogScreen)
 		{
@@ -27,6 +25,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			ImportWallet();
 		}
+
+		private string WalletName { get; }
+		private WalletManager WalletManager { get; }
 
 		private async void ImportWallet()
 		{
