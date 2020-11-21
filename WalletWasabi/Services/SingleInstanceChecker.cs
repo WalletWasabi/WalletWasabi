@@ -75,7 +75,7 @@ namespace WalletWasabi.Services
 			{
 				return 37129;
 			}
-			if (network == Network.TestNet)
+			else if (network == Network.TestNet)
 			{
 				return 37130;
 			}
