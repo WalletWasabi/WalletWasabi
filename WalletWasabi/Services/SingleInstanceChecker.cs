@@ -54,8 +54,9 @@ namespace WalletWasabi.Services
 				// This is the first instance, nothing else to do.
 				return;
 			}
-			catch (SocketException ex) when (ex.ErrorCode is 10048 or 48)
+			catch (SocketException ex) when (ex.ErrorCode is 10048 or 48 or 98)
 			{
+				// ErrorCodes are different on every OS: win, macOS, lin.
 				// It is already used -> another Wasabi is running on this network.
 				Logger.LogDebug("Detected another Wasabi instance.");
 			}
