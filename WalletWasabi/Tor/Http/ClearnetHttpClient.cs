@@ -35,6 +35,11 @@ namespace WalletWasabi.Tor.Http
 		/// <inheritdoc cref="HttpClient.SendAsync(HttpRequestMessage, CancellationToken)"/>
 		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
 		{
+			return SendAsync(request, isolateStream: false, token);
+		}
+
+		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream = false, CancellationToken token = default)
+		{
 			return HttpClient.SendAsync(request, token);
 		}
 	}
