@@ -12,7 +12,6 @@ using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
-using WalletWasabi.Tor.Http.Interfaces;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.WebClients.Wasabi;
 using static WalletWasabi.Crypto.SchnorrBlinding;
@@ -47,7 +46,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		public BitcoinAddress[] RegisteredAddresses { get; }
 		public Requester[] Requesters { get; }
 
-		public ITorHttpClient TorClient { get; }
+		public IRelativeHttpClient TorClient { get; }
 
 		public static async Task<AliceClient4> CreateNewAsync(
 			long roundId,
