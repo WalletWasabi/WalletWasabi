@@ -1,6 +1,4 @@
-# Rules in this file were initially inferred by Visual Studio IntelliCode from the C:\Users\user\Desktop\WalletWasabi codebase based on best match to current usage at 2019-04-22
-# You can modify the rules from these initially generated values to suit your own policies
-# You can learn more about editorconfig here: https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-code-style-settings-reference
+# You can learn more about .editorconfig here: https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-code-style-settings-reference
 root = true
 
 # For all files.
@@ -241,6 +239,10 @@ dotnet_style_prefer_simplified_interpolation = true:error
 
 # IDE0004: Remove Unnecessary Cast
 dotnet_diagnostic.IDE0004.severity = error
+
+# CA2007: Do not directly await a Task
+# https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca2007
+dotnet_diagnostic.CA2007.severity = warning
 
 # IDE0019: Use pattern matching
 csharp_style_pattern_matching_over_as_with_null_check = true:error

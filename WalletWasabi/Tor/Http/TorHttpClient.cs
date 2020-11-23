@@ -30,7 +30,7 @@ namespace WalletWasabi.Tor.Http
 			// Connecting to loopback's URIs cannot be done via Tor.
 			TorSocks5EndPoint = DestinationUriAction().IsLoopback ? null : torSocks5EndPoint;
 
-			ForceIsolateStream = isolateStream;
+			DefaultIsolateStream = isolateStream;
 
 			// Pool can be only one.
 			lock (PoolLock)
@@ -55,8 +55,8 @@ namespace WalletWasabi.Tor.Http
 		/// <remarks>All access to this object must be guarded by <see cref="PoolLock"/>.</remarks>
 		private static TorSocks5ClientPool? TorSocks5ClientPool { get; set; }
 
-		/// <summary>All HTTP(s) requests sent by this HTTP client must use different Tor circuits.</summary>
-		private bool ForceIsolateStream { get; }
+		/// <inheritdoc/>
+		public bool DefaultIsolateStream { get; }
 
 		/// <remarks>All access to this object must be guarded by <see cref="PoolLock"/>.</remarks>
 		private static int InstanceCounter { get; set; }
@@ -95,12 +95,7 @@ namespace WalletWasabi.Tor.Http
 				request.Content = content;
 			}
 
-			return await SendAsync(request, token).ConfigureAwait(false);
-		}
-
-		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream = false, CancellationToken token = default)
-		{
-			throw new NotImplementedException();
+			return await SendAsync(request, DefaultIsolateStream, token).ConfigureAwait(false);
 		}
 
 		private static void SetTorNotWorkingState(Exception ex)
@@ -109,8 +104,14 @@ namespace WalletWasabi.Tor.Http
 			LatestTorException = ex;
 		}
 
+		/// <exception cref="OperationCanceledException">If <paramref name="cancel"/> is set.</exception>
+		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
+		{
+			return SendAsync(request, DefaultIsolateStream, cancel);
+		}
+
 		/// <exception cref="OperationCanceledException">If <paramref name="token"/> is set.</exception>
-		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default)
 		{
 			// Use clearnet HTTP client when Tor is disabled.
 			if (TorSocks5EndPoint is null)
