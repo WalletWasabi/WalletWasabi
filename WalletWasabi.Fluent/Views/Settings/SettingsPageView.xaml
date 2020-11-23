@@ -12,7 +12,7 @@
   <UserControl.Styles>
     <Style Selector="TabItem">
       <Setter Property="FontSize" Value="12" />
-      <Setter Property="MinHeight" Value="28" />
+      <Setter Property="MinHeight" Value="50" />
       <Setter Property="Padding" Value="0 0 24 24" />
     </Style>
     <Style Selector="TabControl">
