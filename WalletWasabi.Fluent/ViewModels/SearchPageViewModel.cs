@@ -20,17 +20,17 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			Title = "Search";
 
-			var searchItems = new SourceList<SearchItemViewModel>();
+			var itemsSource = new SourceList<SearchItemViewModel>();
 			var generalCategory = new SearchCategory("General", 0);
 			var walletCategory = new SearchCategory("Wallets", 1);
 
-			searchItems.Add(
+			itemsSource.Add(
 				CreateHomeSearchItem(generalCategory, 0, homePage));
 
-			searchItems.Add(
+			itemsSource.Add(
 				CreateSettingsSearchItem(generalCategory, 1, settingsPage));
 
-			searchItems.Add(
+			itemsSource.Add(
 				CreateAddWalletSearchItem(generalCategory, 2, addWalletPage));
 
 			var queryFilter = this.WhenValueChanged(t => t.SearchQuery)
@@ -38,11 +38,13 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Select(SearchQueryFilter)
 				.DistinctUntilChanged();
 
-			walletManager.Items.ToObservableChangeSet()
+			var wallets = walletManager.Items.ToObservableChangeSet()
 				.Transform(x => CreateWalletSearchItem(walletCategory, 0, x))
-				.Sort(SortExpressionComparer<SearchItemViewModel>.Ascending(i => i.Title))
-				.Merge(searchItems.Connect())
-				.Filter(queryFilter)
+				.Sort(SortExpressionComparer<SearchItemViewModel>.Ascending(i => i.Title));
+
+			var searchItems = wallets.Merge(itemsSource.Connect());
+
+			searchItems.Filter(queryFilter)
 				.GroupWithImmutableState(x => x.Category)
 				.Transform(grouping => new SearchResult(grouping.Key, grouping.Items.OrderBy(x => x.Order).ThenBy(x => x.Title)))
 				.Sort(SortExpressionComparer<SearchResult>.Ascending(i => i.Category.Order).ThenByAscending(i => i.Category.Title))
