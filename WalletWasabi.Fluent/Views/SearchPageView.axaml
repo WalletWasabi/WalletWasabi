@@ -14,7 +14,7 @@
              x:Class="WalletWasabi.Fluent.Views.SearchPageView">
   <c:ContentArea Title="Search" Caption="You can search for settings or other options present in Wasabi Wallet">
     <DockPanel>
-      <Panel DockPanel.Dock="Top" Margin="0 0 0 20">
+      <Panel DockPanel.Dock="Top" Margin="0 0 0 0">
         <TextBox Text="{Binding SearchQuery}" MaxWidth="400" Watermark="Type here to search">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
