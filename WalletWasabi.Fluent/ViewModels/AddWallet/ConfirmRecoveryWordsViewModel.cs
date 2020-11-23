@@ -19,14 +19,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		public ConfirmRecoveryWordsViewModel(NavigationStateViewModel navigationState, List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
 			: base(navigationState, NavigationTarget.DialogScreen)
 		{
-			SourceList<RecoveryWordViewModel> confirmationWordsSourceList = new();
+			var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 
 			var finishCommandCanExecute =
 				confirmationWordsSourceList
 				.Connect()
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.WhenValueChanged(x => x.IsConfirmed)
-				.Select(x => !confirmationWordsSourceList.Items.Any(x => !x.IsConfirmed));
+				.Select(x => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
 
 			NextCommand = ReactiveCommand.Create(
 				() =>
