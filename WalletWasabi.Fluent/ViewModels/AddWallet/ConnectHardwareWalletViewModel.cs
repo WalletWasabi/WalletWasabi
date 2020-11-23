@@ -37,10 +37,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			var nextCommandIsExecute =
 				this.WhenAnyValue(x => x.SelectedHardwareWallet)
+					.ObserveOn(RxApp.MainThreadScheduler)
 					.Select(x => x?.HardwareWalletInfo.Fingerprint is { } && x.HardwareWalletInfo.IsInitialized());
 			NextCommand = ReactiveCommand.Create(ConnectSelectedHardwareWallet,nextCommandIsExecute);
 
 			this.WhenAnyValue(x => x.SelectedHardwareWallet)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Where(x => x is { } && !x.HardwareWalletInfo.IsInitialized() && x.HardwareWalletInfo.Model != HardwareWalletModels.Coldcard)
 				.Subscribe(async x =>
 				{
