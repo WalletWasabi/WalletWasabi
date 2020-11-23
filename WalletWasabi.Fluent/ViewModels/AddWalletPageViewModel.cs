@@ -28,6 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			Title = "Add Wallet";
 
 			this.WhenAnyValue(x => x.WalletName)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
