@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private readonly ReadOnlyObservableCollection<SearchResult> _searchResults;
 		private string? _searchQuery;
 
-		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage) : base(navigationState, NavigationTarget.HomeScreen)
+		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage, SettingsPageViewModel settingsPage, HomePageViewModel homePage) : base(navigationState, NavigationTarget.HomeScreen)
 		{
 			Title = "Search";
 
@@ -25,10 +25,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			var walletCategory = new SearchCategory("Wallets", 1);
 
 			searchItems.Add(
-				CreateHomeSearchItem(generalCategory, 0, walletManager, addWalletPage));
+				CreateHomeSearchItem(generalCategory, 0, homePage));
 
 			searchItems.Add(
-				CreateSettingsSearchItem(generalCategory, 1));
+				CreateSettingsSearchItem(generalCategory, 1, settingsPage));
 
 			searchItems.Add(
 				CreateAddWalletSearchItem(generalCategory, 2, addWalletPage));
@@ -75,7 +75,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			};
 		}
 
-		private SearchItemViewModel CreateHomeSearchItem(SearchCategory category, int order, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage)
+		private SearchItemViewModel CreateHomeSearchItem(SearchCategory category, int order, HomePageViewModel homePage)
 		{
 			return new(
 				title: "Home",
@@ -86,10 +86,10 @@ namespace WalletWasabi.Fluent.ViewModels
 				iconName: "home_regular",
 				navigationState: NavigationState,
 				navigationTarget: NavigationTarget.HomeScreen,
-				createTargetView: () => new HomePageViewModel(NavigationState, walletManager, addWalletPage));
+				createTargetView: () => homePage);
 		}
 
-		private SearchItemViewModel CreateSettingsSearchItem(SearchCategory category, int order)
+		private SearchItemViewModel CreateSettingsSearchItem(SearchCategory category, int order, SettingsPageViewModel settingsPage)
 		{
 			return new(
 				title: "Settings",
@@ -100,7 +100,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				iconName: "settings_regular",
 				navigationState: NavigationState,
 				navigationTarget: NavigationTarget.HomeScreen,
-				createTargetView: () => new SettingsPageViewModel(NavigationState));
+				createTargetView: () => settingsPage);
 		}
 
 		private SearchItemViewModel CreateAddWalletSearchItem(SearchCategory category, int order, AddWalletPageViewModel addWalletPage)
