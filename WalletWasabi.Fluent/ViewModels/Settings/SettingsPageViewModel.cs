@@ -37,8 +37,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private bool _stopLocalBitcoinCoreOnShutdown;
 		private bool _isModified;
 		private bool _terminateTorOnExit;
-		private int _somePrivacyLevel;
-		private int _finePrivacyLevel;
+		private int _minimalPrivacyLevel;
+		private int _mediumPrivacyLevel;
 		private int _strongPrivacyLevel;
 		private string _dustThreshold;
 		private FeeDisplayFormat _selectedFeeDisplayFormat;
@@ -71,8 +71,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			StartLocalBitcoinCoreOnStartup = config.StartLocalBitcoinCoreOnStartup;
 			StopLocalBitcoinCoreOnShutdown = config.StopLocalBitcoinCoreOnShutdown;
 
-			_somePrivacyLevel = config.PrivacyLevelSome;
-			_finePrivacyLevel = config.PrivacyLevelFine;
+			_minimalPrivacyLevel = config.PrivacyLevelSome;
+			_mediumPrivacyLevel = config.PrivacyLevelFine;
 			_strongPrivacyLevel = config.PrivacyLevelStrong;
 
 			_dustThreshold = config.DustThreshold.ToString();
@@ -141,17 +141,17 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 						}
 					});
 
-			this.WhenAnyValue(x => x.SomePrivacyLevel)
+			this.WhenAnyValue(x => x.MinimalPrivacyLevel)
 				.Subscribe(
 					x =>
 					{
-						if (x >= FinePrivacyLevel)
+						if (x >= MediumPrivacyLevel)
 						{
-							FinePrivacyLevel = x + 1;
+							MediumPrivacyLevel = x + 1;
 						}
 					});
 
-			this.WhenAnyValue(x => x.FinePrivacyLevel)
+			this.WhenAnyValue(x => x.MediumPrivacyLevel)
 				.Subscribe(
 					x =>
 					{
@@ -160,9 +160,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 							StrongPrivacyLevel = x + 1;
 						}
 
-						if (x <= SomePrivacyLevel)
+						if (x <= MinimalPrivacyLevel)
 						{
-							SomePrivacyLevel = x - 1;
+							MinimalPrivacyLevel = x - 1;
 						}
 					});
 
@@ -170,19 +170,17 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Subscribe(
 					x =>
 					{
-						if (x <= SomePrivacyLevel)
+						if (x <= MinimalPrivacyLevel)
 						{
-							SomePrivacyLevel = x - 1;
+							MinimalPrivacyLevel = x - 1;
 						}
 
-						if (x <= FinePrivacyLevel)
+						if (x <= MediumPrivacyLevel)
 						{
-							FinePrivacyLevel = x - 1;
+							MediumPrivacyLevel = x - 1;
 						}
 					});
 		}
-
-		private bool TabOpened { get; set; }
 
 		private object ConfigLock { get; } = new object();
 
@@ -277,16 +275,16 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			set => this.RaiseAndSetIfChanged(ref _terminateTorOnExit, value);
 		}
 
-		public int SomePrivacyLevel
+		public int MinimalPrivacyLevel
 		{
-			get => _somePrivacyLevel;
-			set => this.RaiseAndSetIfChanged(ref _somePrivacyLevel, value);
+			get => _minimalPrivacyLevel;
+			set => this.RaiseAndSetIfChanged(ref _minimalPrivacyLevel, value);
 		}
 
-		public int FinePrivacyLevel
+		public int MediumPrivacyLevel
 		{
-			get => _finePrivacyLevel;
-			set => this.RaiseAndSetIfChanged(ref _finePrivacyLevel, value);
+			get => _mediumPrivacyLevel;
+			set => this.RaiseAndSetIfChanged(ref _mediumPrivacyLevel, value);
 		}
 
 		public int StrongPrivacyLevel
@@ -313,18 +311,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		private void Save()
 		{
-			// While the Tab is opening we are setting properties with loading and also LostFocus command called by Avalonia
-			// Those would trigger the Save function before we load the config.
-			if (!TabOpened)
-			{
-				return;
-			}
-
 			var network = Network;
-			if (network is null)
-			{
-				return;
-			}
 
 			if (Validations.Any)
 			{
@@ -354,9 +341,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 						config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
 						config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
 						config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
-						config.PrivacyLevelSome = SomePrivacyLevel;
+						config.PrivacyLevelSome = MinimalPrivacyLevel;
 						config.PrivacyLevelStrong = StrongPrivacyLevel;
-						config.PrivacyLevelFine = FinePrivacyLevel;
+						config.PrivacyLevelFine = MediumPrivacyLevel;
 					}
 					else
 					{
