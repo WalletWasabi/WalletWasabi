@@ -41,7 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Subscribe(AddMnemonic);
 
 			this.WhenAnyValue(x => x.CurrentMnemonics)
-				.Subscribe(x => this.RaisePropertyChanged(nameof(Mnemonics)));
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(Mnemonics)));
 
 			this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 
