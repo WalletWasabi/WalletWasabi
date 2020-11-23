@@ -57,8 +57,8 @@
                                 <Binding Converter="{x:Static conv:NavBarIconConverter.Instance}" />
                               </PathIcon.Data>
                             </PathIcon>
-                            <TextBlock Text="{Binding Title}" Classes="h7 bold" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="48 13 0 0" />
-                            <Panel Margin="48,38,12,12">
+                            <TextBlock Text="{Binding Title}" Classes="h7 bold" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="48 14 0 0" />
+                            <Panel Margin="12,46,12,12">
                               <TextBlock Text="{Binding Caption}" Classes="h8" TextWrapping="Wrap" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Opacity="0.6" />
                             </Panel>
                           </Panel>
