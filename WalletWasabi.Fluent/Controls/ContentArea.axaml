@@ -42,15 +42,17 @@
               </i:Interaction.Behaviors>
             </Button>
           </Panel>
-          <ContentPresenter Name="PART_ContentPresenter"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                ContentTemplate="{TemplateBinding ContentTemplate}"
-                                Content="{TemplateBinding Content}"
-                                Padding="{TemplateBinding Padding}"
-                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled" Margin="0 0 0 32">
+            <ContentPresenter Name="PART_ContentPresenter"
+                              Background="{TemplateBinding Background}"
+                              BorderBrush="{TemplateBinding BorderBrush}"
+                              BorderThickness="{TemplateBinding BorderThickness}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                              Content="{TemplateBinding Content}"
+                              Padding="{TemplateBinding Padding}"
+                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+          </ScrollViewer>
         </DockPanel>
       </ControlTemplate>
     </Setter>
