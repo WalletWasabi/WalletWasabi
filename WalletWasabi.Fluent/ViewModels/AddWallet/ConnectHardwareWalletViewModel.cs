@@ -167,10 +167,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					var detectedHardwareWallets = (await HwiClient.EnumerateAsync(timeoutCts.Token)).Select(x => new HardwareWalletViewModel(x)).ToArray();
 					detectionCts.Token.ThrowIfCancellationRequested();
 
-					// Remove wallets that are already added to the wallets.
+					// The wallets that are already exists in the wallets.
 					var alreadyExistingWalletsToRemove = detectedHardwareWallets.Where(wallet => WalletManager.GetWallets().Any(x => x.KeyManager.MasterFingerprint == wallet.HardwareWalletInfo.Fingerprint));
-
-					// Remove disconnected wallets
+					// The wallets that are not detectable since the last enumeration.
 					var disconnectedWalletsToRemove = HardwareWallets.Except(detectedHardwareWallets);
 
 					var toRemove = alreadyExistingWalletsToRemove.Union(disconnectedWalletsToRemove).ToArray();
@@ -180,7 +179,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					{
 						// Remove disconnected hardware wallets from the list
 						HardwareWallets.RemoveMany(toRemove);
-						// All remained detected hardware wallet is new so add.
+						// Add newly detected hardware wallets
 						HardwareWallets.AddRange(toAdd);
 					}, RxApp.MainThreadScheduler);
 
