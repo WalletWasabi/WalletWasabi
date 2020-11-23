@@ -164,21 +164,26 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				{
 					using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
-					var detectedHardwareWallets = (await HwiClient.EnumerateAsync(timeoutCts.Token)).Select(x => new HardwareWalletViewModel(x)).ToList();
+					var detectedHardwareWallets = (await HwiClient.EnumerateAsync(timeoutCts.Token)).Select(x => new HardwareWalletViewModel(x)).ToArray();
 					detectionCts.Token.ThrowIfCancellationRequested();
 
-					// Remove wallets that are already added to software
-					var walletsToRemove = detectedHardwareWallets.Where(wallet => WalletManager.GetWallets().Any(x => x.KeyManager.MasterFingerprint == wallet.HardwareWalletInfo.Fingerprint));
-					detectedHardwareWallets.RemoveMany(walletsToRemove);
+					// Remove wallets that are already added to the wallets.
+					var alreadyExistingWalletsToRemove = detectedHardwareWallets.Where(wallet => WalletManager.GetWallets().Any(x => x.KeyManager.MasterFingerprint == wallet.HardwareWalletInfo.Fingerprint));
 
-					// Remove disconnected hardware wallets from the list
-					HardwareWallets.RemoveMany(HardwareWallets.Except(detectedHardwareWallets));
+					// Remove disconnected wallets
+					var disconnectedWalletsToRemove = HardwareWallets.Except(detectedHardwareWallets);
 
-					// Remove detected wallets that are already in the list.
-					detectedHardwareWallets.RemoveMany(HardwareWallets);
+					var toRemove = alreadyExistingWalletsToRemove.Union(disconnectedWalletsToRemove).ToArray();
+					var toAdd = detectedHardwareWallets.Except(toRemove).Except(HardwareWallets);
 
-					// All remained detected hardware wallet is new so add.
-					HardwareWallets.AddRange(detectedHardwareWallets);
+					await Observable.Start(() =>
+					{
+						// Remove disconnected hardware wallets from the list
+						HardwareWallets.RemoveMany(toRemove);
+						// All remained detected hardware wallet is new so add.
+						HardwareWallets.AddRange(toAdd);
+					}, RxApp.MainThreadScheduler);
+
 				}
 				catch (Exception ex)
 				{

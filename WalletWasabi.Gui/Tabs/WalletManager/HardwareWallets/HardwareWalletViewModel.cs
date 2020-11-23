@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using WalletWasabi.Extensions;
 using WalletWasabi.Hwi.Models;
@@ -58,7 +59,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 
 		public override int GetHashCode()
 		{
-			return $"{HardwareWalletInfo.Model} {HardwareWalletInfo.Path} {HardwareWalletInfo.Fingerprint}".GetHashCode();
+			return HashCode.Combine(HardwareWalletInfo.Model, HardwareWalletInfo.Path, HardwareWalletInfo.Fingerprint);
 		}
 	}
 }
