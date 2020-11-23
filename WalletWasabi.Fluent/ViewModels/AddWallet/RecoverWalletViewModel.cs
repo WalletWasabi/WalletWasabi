@@ -45,6 +45,20 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 
+			FinishCommandCanExecute =
+				this.WhenAnyValue(x => x.CurrentMnemonics)
+					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
+
+			NextCommand = ReactiveCommand.CreateFromTask(
+				async () => await OnNext(navigationState, walletManager, network, walletName),
+				FinishCommandCanExecute);
+
+			AdvancedOptionsInteraction = new Interaction<(KeyPath, int), (KeyPath?, int?)>();
+			AdvancedOptionsInteraction.RegisterHandler(
+				async interaction =>
+					interaction.SetOutput(
+						await new AdvancedRecoveryOptionsViewModel(navigationState, NavigationTarget.DialogHost, interaction.Input).ShowDialogAsync()));
+
 			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
@@ -57,21 +71,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						MinGapLimit = (int)minGapLimitIn;
 					}
 				});
-
-			FinishCommandCanExecute =
-				this.WhenAnyValue(x => x.CurrentMnemonics)
-					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
-
-			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNext(navigationState, walletManager, network, walletName),
-				FinishCommandCanExecute);
-
-			AdvancedOptionsInteraction = new Interaction<(KeyPath, int), (KeyPath?, int?)>();
-
-			AdvancedOptionsInteraction.RegisterHandler(
-				async interaction =>
-					interaction.SetOutput(
-						await new AdvancedRecoveryOptionsViewModel(navigationState, NavigationTarget.DialogHost, interaction.Input).ShowDialogAsync()));
 		}
 
 		private async Task OnNext(NavigationStateViewModel navigationState, WalletManager walletManager, Network network, string? walletName)
