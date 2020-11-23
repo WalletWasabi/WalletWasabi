@@ -1,4 +1,7 @@
+using System.Reactive;
+using System.Windows.Input;
 using ReactiveUI;
+using System;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
