@@ -7,7 +7,7 @@ using WalletWasabi.Legal;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
-	public class TermsAndConditionsViewModel : DialogViewModelBase<bool>
+	public class TermsAndConditionsViewModel : RoutableViewModel
 	{
 		private bool _isAgreed;
 
@@ -29,16 +29,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			NextCommand = ReactiveCommand.Create(
 				() =>
 				{
-					Close(true);
 					NavigateTo(next, NavigationTarget.DialogScreen);
 				},
 				this.WhenAnyValue(x => x.IsAgreed));
-
-			CancelCommand = ReactiveCommand.Create(() =>
-			{
-				Close();
-				GoBack();
-			});
 		}
 
 		public bool IsAgreed
@@ -48,9 +41,5 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		}
 
 		public ICommand ViewTermsCommand { get; }
-
-		protected override void OnDialogClosed()
-		{
-		}
 	}
 }

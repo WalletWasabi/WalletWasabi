@@ -16,8 +16,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		{
 		}
 
-		public ICommand NextCommand { get; protected set; }
-
 		/// <summary>
 		/// Gets or sets if the dialog is opened/closed.
 		/// </summary>
