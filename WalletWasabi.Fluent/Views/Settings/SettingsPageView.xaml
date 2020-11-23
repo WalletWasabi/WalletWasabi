@@ -30,63 +30,11 @@
       </TabItem>
 
       <TabItem Header="Network">
-        <StackPanel Orientation="Vertical" Spacing="5">
-          <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
-            <ToggleSwitch IsChecked="{Binding UseTor}" Margin="0 0 10 0" />
-            <TextBlock VerticalAlignment="Center" Text= "Tor can be turned off for debugging." />
-          </StackPanel>
-          <StackPanel Margin="0 10" Spacing="5" IsVisible="{Binding UseTor}">
-            <TextBlock Text="Tor SOCKS5 Endpoint" />
-            <TextBox Text="{Binding TorSocks5EndPoint}" />
-          </StackPanel>
-          <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5" IsVisible="{Binding UseTor}">
-            <ToggleSwitch IsChecked="{Binding TerminateTorOnExit}" Margin="0 0 10 0" />
-            <TextBlock VerticalAlignment="Center" Text= "Terminate Tor process on exit." />
-          </StackPanel>
-        </StackPanel>
+        <v:NetworkSettingsView />
       </TabItem>
 
       <TabItem Header="Bitcoin">
-        <StackPanel Orientation="Vertical" Spacing="5">
-          <StackPanel Margin="0 10" Spacing="5">
-            <TextBlock Text="Network" />
-            <ComboBox Items="{Binding Networks}" SelectedItem="{Binding Network}">
-              <!--<ComboBox.ItemTemplate>
-                      <DataTemplate>
-                        <TextBlock Text="{Binding Converter={StaticResource NetworkStringConverter}}" />
-                      </DataTemplate>
-                    </ComboBox.ItemTemplate>-->
-            </ComboBox>
-          </StackPanel>
-          <Panel>
-            <StackPanel Orientation="Vertical" Spacing="5">
-              <TextBlock Classes="warningMessage" Text= "Work in progress..." />
-              <TextBlock Text="Use your own Bitcoin Core or Wasabi's built-in Bitcoin Knots." />
-              <TextBlock Text="Expect high CPU, network usage and 300+ GB disk space requirement." />
-              <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
-                <ToggleSwitch IsChecked="{Binding StartLocalBitcoinCoreOnStartup}" Margin="0 0 10 0" />
-                <TextBlock VerticalAlignment="Center" Text= "Run Bitcoin Knots at Wasabi's startup." />
-              </StackPanel>
-              <StackPanel Margin="0 10" Spacing="5" IsVisible="{Binding StartLocalBitcoinCoreOnStartup}">
-                <TextBlock Text="Bitcoin Core or Bitcoin Knots Data Folder" />
-                <TextBox Text="{Binding LocalBitcoinCoreDataDir}" />
-              </StackPanel>
-              <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5" IsVisible="{Binding StartLocalBitcoinCoreOnStartup}">
-                <ToggleSwitch IsChecked="{Binding StopLocalBitcoinCoreOnShutdown}" Margin="0 0 10 0" />
-                <TextBlock VerticalAlignment="Center" Text= "Stop Bitcoin Knots when Wasabi is shut down." />
-              </StackPanel>
-            </StackPanel>
-          </Panel>
-          <Panel IsVisible="{Binding !StartLocalBitcoinCoreOnStartup}">
-            <StackPanel Orientation="Vertical" Spacing="5">
-              <TextBlock Text="Set Wasabi to download blocks from a full node you control." />
-              <StackPanel Margin="0 10" Spacing="5">
-                <TextBlock Text="Bitcoin P2P Endpoint" />
-                <TextBox Text="{Binding BitcoinP2pEndPoint}" />
-              </StackPanel>
-            </StackPanel>
-          </Panel>
-        </StackPanel>
+        <v:BitCoinSettingsView />
       </TabItem>
     </TabControl>
   </c:ContentArea>
