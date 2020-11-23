@@ -26,20 +26,7 @@
       </TabItem>
 
       <TabItem Header="Privacy">
-        <StackPanel Orientation="Vertical" Spacing="5">
-          <Grid Margin="0 10" ColumnDefinitions="30, *">
-            <DrawingPresenter Height="24" Width="24" Grid.Column="0" Margin="0 0 10 10" VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource PrivacySome}" />
-            <TextBox Text="{Binding SomePrivacyLevel}" Grid.Column="1" />
-          </Grid>
-          <Grid Margin="0 10" ColumnDefinitions="30, *">
-            <DrawingPresenter Height="24" Width="24" Grid.Column="0" Margin="0 0 10 10" VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource PrivacyFine}" />
-            <TextBox Text="{Binding FinePrivacyLevel}" Grid.Column="1" />
-          </Grid>
-          <Grid Margin="0 10" ColumnDefinitions="30, *">
-            <DrawingPresenter Height="24" Width="24" Grid.Column="0" Margin="0 0 10 10" VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource PrivacyStrong}" />
-            <TextBox Text="{Binding StrongPrivacyLevel}" Grid.Column="1" />
-          </Grid>
-        </StackPanel>
+         <v:PrivacySettingsView />
       </TabItem>
 
       <TabItem Header="Network">
@@ -59,7 +46,7 @@
         </StackPanel>
       </TabItem>
 
-      <TabItem Header="Node">
+      <TabItem Header="Bitcoin">
         <StackPanel Orientation="Vertical" Spacing="5">
           <StackPanel Margin="0 10" Spacing="5">
             <TextBlock Text="Network" />

@@ -1,0 +1,49 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:settings="clr-namespace:WalletWasabi.Fluent.ViewModels.Settings"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="settings:SettingsPageViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Settings.PrivacySettingsView">
+  <StackPanel Spacing="20" MaxWidth="650" HorizontalAlignment="Left" Orientation="Vertical">
+    <StackPanel.Styles>
+      <Style Selector="Slider">
+        <Setter Property="IsSnapToTickEnabled" Value="True" />
+        <Setter Property="TickFrequency" Value="1" />
+      </Style>
+    </StackPanel.Styles>
+
+    <TextBlock Text="Anonymity Levels" FontSize="20" />
+    <StackPanel>
+      <TextBlock Text="Minimal" />
+      <DockPanel>
+        <TextBlock Text="2" DockPanel.Dock="Left" VerticalAlignment="Center" />
+        <TextBlock Text="100" DockPanel.Dock="Right" VerticalAlignment="Center" />
+        <Slider Minimum="2" Maximum="98" Value="{Binding SomePrivacyLevel}" Margin="10 0" />
+      </DockPanel>
+      <TextBlock Text="{Binding SomePrivacyLevel}" />
+    </StackPanel>
+
+    <StackPanel>
+      <TextBlock Text="Medium" />
+      <DockPanel>
+        <TextBlock Text="2" DockPanel.Dock="Left" VerticalAlignment="Center" />
+        <TextBlock Text="100" DockPanel.Dock="Right" VerticalAlignment="Center" />
+        <Slider Minimum="3" Maximum="99" Value="{Binding FinePrivacyLevel}" Margin="10 0" />
+      </DockPanel>
+      <TextBlock Text="{Binding FinePrivacyLevel}" />
+    </StackPanel>
+
+    <StackPanel>
+      <TextBlock Text="Strong" />
+      <DockPanel>
+        <TextBlock Text="2" DockPanel.Dock="Left" VerticalAlignment="Center" />
+        <TextBlock Text="100" DockPanel.Dock="Right" VerticalAlignment="Center" />
+        <Slider Minimum="4" Value="{Binding StrongPrivacyLevel}" Margin="10 0" />
+      </DockPanel>
+      <TextBlock Text="{Binding StrongPrivacyLevel}" />
+    </StackPanel>
+
+  </StackPanel>
+</UserControl>
