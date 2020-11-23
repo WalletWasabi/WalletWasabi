@@ -45,7 +45,8 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Transform(x => CreateWalletSearchItem(walletCategory, 0, x))
 				.Sort(SortExpressionComparer<SearchItemViewModel>.Ascending(i => i.Title));
 
-			var searchItems = _enableWallets ? wallets.Merge(itemsSource.Connect()) : itemsSource.Connect();
+			var searchItems = _enableWallets ?
+				wallets.Merge(itemsSource.Connect()) : itemsSource.Connect();
 
 			searchItems.Filter(queryFilter)
 				.GroupWithImmutableState(x => x.Category)
