@@ -115,6 +115,7 @@ private async void Synchronizer_ResponseArrivedAsync(object? sender, EventArgs e
 	}
 }
 ```
+- [Async/Await - Best Practices](https://docs.microsoft.com/en-us/archive/msdn-magazine/2013/march/async-await-best-practices-in-asynchronous-programming)
 
 ## `ConfigureAwait(false)`
 
