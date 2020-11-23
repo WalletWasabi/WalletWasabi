@@ -9,7 +9,7 @@ using WalletWasabi.Tor.Socks5;
 
 namespace WalletWasabi.Tor.Http
 {
-	public class TorHttpClient : ITorHttpClient, IDisposable
+	public class TorHttpClient : IRelativeHttpClient, IDisposable
 	{
 		private static DateTimeOffset? TorDoesntWorkSinceBacking = null;
 
@@ -31,6 +31,8 @@ namespace WalletWasabi.Tor.Http
 			// Connecting to loopback's URIs cannot be done via Tor.
 			TorSocks5EndPoint = DestinationUriAction().IsLoopback ? null : torSocks5EndPoint;
 
+			ForceIsolateStream = isolateStream;
+
 			// Pool can be only one.
 			lock (PoolLock)
 			{
@@ -40,7 +42,7 @@ namespace WalletWasabi.Tor.Http
 				{
 					TorSocks5ClientPool = new TorSocks5ClientPool(TorSocks5EndPoint, isolateStream);
 				}
-			}
+			}			
 		}
 
 		public static Exception? LatestTorException { get; private set; } = null;
@@ -53,6 +55,9 @@ namespace WalletWasabi.Tor.Http
 
 		/// <remarks>All access to this object must be guarded by <see cref="PoolLock"/>.</remarks>
 		private static TorSocks5ClientPool? TorSocks5ClientPool { get; set; }
+
+		/// <summary>All HTTP(s) requests sent by this HTTP client must use different Tor circuits.</summary>
+		private bool ForceIsolateStream { get; }		
 
 		/// <remarks>All access to this object must be guarded by <see cref="PoolLock"/>.</remarks>
 		private static int InstanceCounter { get; set; }

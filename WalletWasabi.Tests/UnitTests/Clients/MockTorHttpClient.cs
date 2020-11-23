@@ -17,7 +17,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
 		{
 			string body = (content is { })
-				? await content.ReadAsStringAsync().ConfigureAwait(false)
+				? await content.ReadAsStringAsync(cancel).ConfigureAwait(false)
 				: "";
 
 			// It does not matter which URI is actually used here, we just need to construct absolute URI to be able to access `uri.Query`.
@@ -28,10 +28,15 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			return await OnSendAsync(method, uri.AbsolutePath, parameters, body).ConfigureAwait(false);
 		}
 
-		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
+		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
+		{
+			return SendAsync(request, isolateStream: false, token);
+		}
+
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream = false, CancellationToken token = default)
 		{
 			string body = (request.Content is { })
-				? await request.Content.ReadAsStringAsync().ConfigureAwait(false)
+				? await request.Content.ReadAsStringAsync(token).ConfigureAwait(false)
 				: "";
 
 			Uri uri = request.RequestUri!;
