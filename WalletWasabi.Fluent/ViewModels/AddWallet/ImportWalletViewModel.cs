@@ -52,13 +52,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				KeyManager km = jsonWallet.Count <= 3 ? GetKeyManagerByColdcardJson(jsonWallet, walletFullPath) : GetKeyManagerByWasabiJson(filePath, walletFullPath);
 
 				WalletManager.AddWallet(km);
-				ClearNavigation();
 			}
 			catch (Exception ex)
 			{
 				// TODO: Notify the user
 				Logger.LogError(ex);
 			}
+
+			ClearNavigation();
 		}
 
 		private bool IsWalletExists(HDFingerprint? fingerprint) => WalletManager.GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
