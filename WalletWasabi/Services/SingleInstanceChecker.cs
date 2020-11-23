@@ -34,7 +34,7 @@ namespace WalletWasabi.Services
 		private int Port { get; }
 
 		private CancellationTokenSource DisposeCts { get; } = new();
-		private TcpListener? TcpListener { get; set; }
+		private TaskCompletionSource? TaskStartTcpListener { get; set; }
 
 		public event EventHandler? OtherInstanceStarted;
 
@@ -47,9 +47,13 @@ namespace WalletWasabi.Services
 
 			try
 			{
-				TcpListener = new TcpListener(IPAddress.Loopback, Port);
-				TcpListener.Start();
+				TaskStartTcpListener = new TaskCompletionSource();
+
+				// Start ExecuteAsync.
 				await StartAsync(DisposeCts.Token).ConfigureAwait(false);
+
+				// Wait for the result of TcpListener.Start().
+				await TaskStartTcpListener.Task.WithAwaitCancellationAsync(DisposeCts.Token).ConfigureAwait(false);
 
 				// This is the first instance, nothing else to do.
 				return;
@@ -64,9 +68,9 @@ namespace WalletWasabi.Services
 			// Signal to the other instance, that there was an attempt to start the software.
 			using TcpClient client = new TcpClient();
 			await client.ConnectAsync(IPAddress.Loopback, Port).ConfigureAwait(false);
-			client.Close();
 
-			throw new InvalidOperationException($"Wasabi is already running. Port {Port}!");
+			// Do not log anything here as the first instance is writing the Log at this time.
+			throw new InvalidOperationException($"Wasabi is already running.");
 		}
 
 		private static int NetworkToPort(Network network)
@@ -85,20 +89,41 @@ namespace WalletWasabi.Services
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
-			var listener = TcpListener;
-			if (listener is null)
+			var task = TaskStartTcpListener;
+			if (task is null)
 			{
-				throw new InvalidOperationException();
+				Logger.LogError("This is impossible!");
+				return;
 			}
 
-			// Stop listener here to ensure thread-safety.
-			using var _ = stoppingToken.Register(() => listener.Stop());
-
-			while (!stoppingToken.IsCancellationRequested)
+			var listener = new TcpListener(IPAddress.Loopback, Port);
+			try
 			{
-				await listener.AcceptTcpClientAsync().ConfigureAwait(false);
-				Logger.LogDebug($"Connection arrived on port: {Port}");
-				OtherInstanceStarted?.Invoke(this, EventArgs.Empty);
+				// This can throw an exception if the port is already opened.
+				listener.Start();
+
+				// Indicate that the Listener created successfully.
+				task.TrySetResult();
+
+				// Stop listener here to ensure thread-safety.
+				using var _ = stoppingToken.Register(() => listener.Stop());
+
+				while (!stoppingToken.IsCancellationRequested)
+				{
+					await listener.AcceptTcpClientAsync().ConfigureAwait(false);
+					Logger.LogInfo($"Detected another Wasabi instance.");
+					OtherInstanceStarted?.Invoke(this, EventArgs.Empty);
+				}
+			}
+			catch (Exception ex)
+			{
+				// Indicate that there was an error.
+				task.TrySetException(ex);
+				return;
+			}
+			finally
+			{
+				listener.Stop();
 			}
 		}
 
@@ -106,10 +131,7 @@ namespace WalletWasabi.Services
 		{
 			DisposeCts.Cancel();
 
-			if (TcpListener is { } listener)
-			{
-				await StopAsync(CancellationToken.None).ConfigureAwait(false);
-			}
+			await StopAsync(CancellationToken.None).ConfigureAwait(false);
 
 			DisposeCts.Dispose();
 		}
