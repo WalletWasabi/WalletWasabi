@@ -121,7 +121,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			return new(
 				title: wallet.WalletName,
-				caption: "Wallet",
+				caption: "",
 				order: order,
 				category: category,
 				keywords: $"Wallet, {wallet.WalletName}",
