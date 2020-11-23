@@ -172,7 +172,7 @@ namespace WalletWasabi.Tor.Socks5
 				{
 					try
 					{
-						bool useSsl = request.RequestUri.Scheme == "https";
+						bool useSsl = request.RequestUri!.Scheme == Uri.UriSchemeHttps;
 
 						TorConnection newClient = await NewSocks5ClientAsync(request, useSsl, token).ConfigureAwait(false);
 						reservedItem = new PoolItem(newClient, allowRecycling: !useSsl);
