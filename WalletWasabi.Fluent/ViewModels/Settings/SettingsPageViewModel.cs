@@ -1,4 +1,3 @@
-using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +9,7 @@ using Avalonia;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Threading;
 using NBitcoin;
+using ReactiveUI;
 using Splat;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui;
@@ -21,7 +21,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.Settings
 {
 	public class SettingsPageViewModel : NavBarItemViewModel
 	{

@@ -2,11 +2,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:v="using:WalletWasabi.Fluent.Views.Settings"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             xmlns:settings="clr-namespace:WalletWasabi.Fluent.ViewModels.Settings"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="vm:SettingsPageViewModel"
-             x:Class="WalletWasabi.Fluent.Views.SettingsPageView">  
+             x:DataType="settings:SettingsPageViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Settings.SettingsPageView">
   <UserControl.Styles>
     <Style Selector="TabItem">
       <Setter Property="FontSize" Value="12" />
@@ -20,51 +22,7 @@
   <c:ContentArea Title="Settings" Caption="Manage appearance, privacy and other settings">
     <TabControl>
       <TabItem Header="General">
-        <StackPanel Spacing="20" MaxWidth="650" HorizontalAlignment="Left" Orientation="Vertical">
-          <StackPanel.Styles>
-            <Style Selector="WrapPanel > TextBlock">
-              <Setter Property="MinWidth" Value="300" />
-              <Setter Property="VerticalAlignment" Value="Center" />              
-            </Style>
-          </StackPanel.Styles>
-
-          <WrapPanel>
-            <Panel Background="Green" Width="300">
-              <TextBlock>Dark Mode</TextBlock>
-            </Panel>
-            <Panel Background="Blue" Height="20" Width="72.66">
-            </Panel>
-            <!--<ToggleSwitch IsChecked="{Binding DarkModeEnabled}" />-->
-          </WrapPanel>
-
-          <WrapPanel>
-            <TextBlock>Auto Copy/Paste Bitcoin addresses</TextBlock>
-            <ToggleSwitch IsChecked="{Binding Autocopy}" />
-          </WrapPanel>
-
-          <WrapPanel>
-            <TextBlock>Manual fee entry.</TextBlock>
-            <ToggleSwitch IsChecked="{Binding CustomFee}" />
-          </WrapPanel>
-
-          <WrapPanel>
-            <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center">Custom change address.</TextBlock>
-            <ToggleSwitch IsChecked="{Binding CustomChangeAddress}" />
-          </WrapPanel>
-
-          <WrapPanel>
-            <TextBlock MinWidth="200" DockPanel.Dock="Left">Fee Display Format</TextBlock>
-            <Panel Width="200" HorizontalAlignment="Stretch" Background="Red">
-              <Button Content="Testing 123 ABC 123" />
-            </Panel>
-
-          </WrapPanel>
-
-          <StackPanel>
-            <TextBlock ToolTip.Tip="Coins under the dust threshold won't appear in the coin lists.">Dust Threshold (BTC)</TextBlock>
-            <TextBox Text="{Binding DustThreshold}" />
-          </StackPanel>
-        </StackPanel>
+        <v:GeneralSettingsView />
       </TabItem>
 
       <TabItem Header="Privacy">
@@ -88,15 +46,15 @@
         <StackPanel Orientation="Vertical" Spacing="5">
           <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
             <ToggleSwitch IsChecked="{Binding UseTor}" Margin="0 0 10 0" />
-            <TextBlock VerticalAlignment="Center">Tor can be turned off for debugging.</TextBlock>
+            <TextBlock VerticalAlignment="Center" Text= "Tor can be turned off for debugging." />
           </StackPanel>
           <StackPanel Margin="0 10" Spacing="5" IsVisible="{Binding UseTor}">
-            <TextBlock>Tor SOCKS5 Endpoint</TextBlock>
+            <TextBlock Text="Tor SOCKS5 Endpoint" />
             <TextBox Text="{Binding TorSocks5EndPoint}" />
           </StackPanel>
           <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5" IsVisible="{Binding UseTor}">
             <ToggleSwitch IsChecked="{Binding TerminateTorOnExit}" Margin="0 0 10 0" />
-            <TextBlock VerticalAlignment="Center">Terminate Tor process on exit.</TextBlock>
+            <TextBlock VerticalAlignment="Center" Text= "Terminate Tor process on exit." />
           </StackPanel>
         </StackPanel>
       </TabItem>
@@ -104,7 +62,7 @@
       <TabItem Header="Node">
         <StackPanel Orientation="Vertical" Spacing="5">
           <StackPanel Margin="0 10" Spacing="5">
-            <TextBlock>Network</TextBlock>
+            <TextBlock Text="Network" />
             <ComboBox Items="{Binding Networks}" SelectedItem="{Binding Network}">
               <!--<ComboBox.ItemTemplate>
                       <DataTemplate>
@@ -115,28 +73,28 @@
           </StackPanel>
           <Panel>
             <StackPanel Orientation="Vertical" Spacing="5">
-              <TextBlock Classes="warningMessage">Work in progress...</TextBlock>
-              <TextBlock>Use your own Bitcoin Core or Wasabi's built-in Bitcoin Knots.</TextBlock>
-              <TextBlock>Expect high CPU, network usage and 300+ GB disk space requirement.</TextBlock>
+              <TextBlock Classes="warningMessage" Text= "Work in progress..." />
+              <TextBlock Text="Use your own Bitcoin Core or Wasabi's built-in Bitcoin Knots." />
+              <TextBlock Text="Expect high CPU, network usage and 300+ GB disk space requirement." />
               <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5">
                 <ToggleSwitch IsChecked="{Binding StartLocalBitcoinCoreOnStartup}" Margin="0 0 10 0" />
-                <TextBlock VerticalAlignment="Center">Run Bitcoin Knots at Wasabi's startup.</TextBlock>
+                <TextBlock VerticalAlignment="Center" Text= "Run Bitcoin Knots at Wasabi's startup." />
               </StackPanel>
               <StackPanel Margin="0 10" Spacing="5" IsVisible="{Binding StartLocalBitcoinCoreOnStartup}">
-                <TextBlock>Bitcoin Core or Bitcoin Knots Data Folder</TextBlock>
+                <TextBlock Text="Bitcoin Core or Bitcoin Knots Data Folder" />
                 <TextBox Text="{Binding LocalBitcoinCoreDataDir}" />
               </StackPanel>
               <StackPanel Margin="0 10" Orientation="Horizontal" Spacing="5" IsVisible="{Binding StartLocalBitcoinCoreOnStartup}">
                 <ToggleSwitch IsChecked="{Binding StopLocalBitcoinCoreOnShutdown}" Margin="0 0 10 0" />
-                <TextBlock VerticalAlignment="Center">Stop Bitcoin Knots when Wasabi is shut down.</TextBlock>
+                <TextBlock VerticalAlignment="Center" Text= "Stop Bitcoin Knots when Wasabi is shut down." />
               </StackPanel>
             </StackPanel>
           </Panel>
           <Panel IsVisible="{Binding !StartLocalBitcoinCoreOnStartup}">
             <StackPanel Orientation="Vertical" Spacing="5">
-              <TextBlock>Set Wasabi to download blocks from a full node you control.</TextBlock>
+              <TextBlock Text="Set Wasabi to download blocks from a full node you control." />
               <StackPanel Margin="0 10" Spacing="5">
-                <TextBlock>Bitcoin P2P Endpoint</TextBlock>
+                <TextBlock Text="Bitcoin P2P Endpoint" />
                 <TextBox Text="{Binding BitcoinP2pEndPoint}" />
               </StackPanel>
             </StackPanel>
