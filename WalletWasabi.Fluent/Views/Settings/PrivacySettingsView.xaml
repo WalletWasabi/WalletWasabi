@@ -6,7 +6,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="settings:SettingsPageViewModel"
              x:Class="WalletWasabi.Fluent.Views.Settings.PrivacySettingsView">
-  <StackPanel Spacing="20" MaxWidth="650" HorizontalAlignment="Left" Orientation="Vertical">
+  <StackPanel Spacing="20" MinWidth="360" MaxWidth="650" HorizontalAlignment="Left" Orientation="Vertical">
     <StackPanel.Styles>
       <Style Selector="Slider">
         <Setter Property="IsSnapToTickEnabled" Value="True" />
@@ -20,9 +20,9 @@
       <DockPanel>
         <TextBlock Text="2" DockPanel.Dock="Left" VerticalAlignment="Center" />
         <TextBlock Text="100" DockPanel.Dock="Right" VerticalAlignment="Center" />
-        <Slider Minimum="2" Maximum="98" Value="{Binding SomePrivacyLevel}" Margin="10 0" />
+        <Slider Minimum="2" Maximum="98" Value="{Binding MinimalPrivacyLevel}" Margin="10 0" />
       </DockPanel>
-      <TextBlock Text="{Binding SomePrivacyLevel}" />
+      <TextBlock Text="{Binding MinimalPrivacyLevel}" />
     </StackPanel>
 
     <StackPanel>
@@ -30,9 +30,9 @@
       <DockPanel>
         <TextBlock Text="2" DockPanel.Dock="Left" VerticalAlignment="Center" />
         <TextBlock Text="100" DockPanel.Dock="Right" VerticalAlignment="Center" />
-        <Slider Minimum="3" Maximum="99" Value="{Binding FinePrivacyLevel}" Margin="10 0" />
+        <Slider Minimum="3" Maximum="99" Value="{Binding MediumPrivacyLevel}" Margin="10 0" />
       </DockPanel>
-      <TextBlock Text="{Binding FinePrivacyLevel}" />
+      <TextBlock Text="{Binding MediumPrivacyLevel}" />
     </StackPanel>
 
     <StackPanel>
