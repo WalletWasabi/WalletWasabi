@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			return await OnSendAsync(method, uri.AbsolutePath, parameters, body).ConfigureAwait(false);
 		}
 
-		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream = false, CancellationToken token = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default)
 		{
 			string body = (request.Content is { })
 				? await request.Content.ReadAsStringAsync(token).ConfigureAwait(false)

@@ -61,7 +61,7 @@ namespace WalletWasabi.Tor.Http
 		public Func<Uri> DestinationUriAction { get; }
 		public EndPoint? TorSocks5EndPoint { get; private set; }
 
-		/// <summary>Whether all HTTP(s) requests sent by this HTTP client must use different Tor circuits.</summary>
+		/// <inheritdoc/>
 		public bool DefaultIsolateStream { get; }
 
 		private TorSocks5Client? TorSocks5Client { get; set; }
