@@ -8,9 +8,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			base(navigationState, navigationTarget)
 		{
 			Content = content;
-		}
 
-		public ICommand NextCommand => BackCommand;
+			NextCommand = BackCommand;
+		}
 
 		public string Content { get; }
 	}
