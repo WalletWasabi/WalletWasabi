@@ -37,9 +37,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private bool _stopLocalBitcoinCoreOnShutdown;
 		private bool _isModified;
 		private bool _terminateTorOnExit;
-		private string _somePrivacyLevel;
-		private string _finePrivacyLevel;
-		private string _strongPrivacyLevel;
+		private int _somePrivacyLevel;
+		private int _finePrivacyLevel;
+		private int _strongPrivacyLevel;
 		private string _dustThreshold;
 		private FeeDisplayFormat _selectedFeeDisplayFormat;
 		private bool _darkModeEnabled;
@@ -52,9 +52,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			Global = Locator.Current.GetService<Global>();
 
-			this.ValidateProperty(x => x.SomePrivacyLevel, ValidateSomePrivacyLevel);
-			this.ValidateProperty(x => x.FinePrivacyLevel, ValidateFinePrivacyLevel);
-			this.ValidateProperty(x => x.StrongPrivacyLevel, ValidateStrongPrivacyLevel);
 			this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 			this.ValidateProperty(x => x.TorSocks5EndPoint, ValidateTorSocks5EndPoint);
 			this.ValidateProperty(x => x.BitcoinP2pEndPoint, ValidateBitcoinP2pEndPoint);
@@ -74,9 +71,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			StartLocalBitcoinCoreOnStartup = config.StartLocalBitcoinCoreOnStartup;
 			StopLocalBitcoinCoreOnShutdown = config.StopLocalBitcoinCoreOnShutdown;
 
-			_somePrivacyLevel = config.PrivacyLevelSome.ToString();
-			_finePrivacyLevel = config.PrivacyLevelFine.ToString();
-			_strongPrivacyLevel = config.PrivacyLevelStrong.ToString();
+			_somePrivacyLevel = config.PrivacyLevelSome;
+			_finePrivacyLevel = config.PrivacyLevelFine;
+			_strongPrivacyLevel = config.PrivacyLevelStrong;
 
 			_dustThreshold = config.DustThreshold.ToString();
 
@@ -141,6 +138,46 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 							};
 
 							Application.Current.Styles[themeIndex] = newTheme;
+						}
+					});
+
+			this.WhenAnyValue(x => x.SomePrivacyLevel)
+				.Subscribe(
+					x =>
+					{
+						if (x >= FinePrivacyLevel)
+						{
+							FinePrivacyLevel = x + 1;
+						}
+					});
+
+			this.WhenAnyValue(x => x.FinePrivacyLevel)
+				.Subscribe(
+					x =>
+					{
+						if (x >= StrongPrivacyLevel)
+						{
+							StrongPrivacyLevel = x + 1;
+						}
+
+						if (x <= SomePrivacyLevel)
+						{
+							SomePrivacyLevel = x - 1;
+						}
+					});
+
+			this.WhenAnyValue(x => x.StrongPrivacyLevel)
+				.Subscribe(
+					x =>
+					{
+						if (x <= SomePrivacyLevel)
+						{
+							SomePrivacyLevel = x - 1;
+						}
+
+						if (x <= FinePrivacyLevel)
+						{
+							FinePrivacyLevel = x - 1;
 						}
 					});
 		}
@@ -240,19 +277,19 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			set => this.RaiseAndSetIfChanged(ref _terminateTorOnExit, value);
 		}
 
-		public string SomePrivacyLevel
+		public int SomePrivacyLevel
 		{
 			get => _somePrivacyLevel;
 			set => this.RaiseAndSetIfChanged(ref _somePrivacyLevel, value);
 		}
 
-		public string FinePrivacyLevel
+		public int FinePrivacyLevel
 		{
 			get => _finePrivacyLevel;
 			set => this.RaiseAndSetIfChanged(ref _finePrivacyLevel, value);
 		}
 
-		public string StrongPrivacyLevel
+		public int StrongPrivacyLevel
 		{
 			get => _strongPrivacyLevel;
 			set => this.RaiseAndSetIfChanged(ref _strongPrivacyLevel, value);
@@ -317,9 +354,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 						config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
 						config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
 						config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
-						config.PrivacyLevelSome = int.TryParse(SomePrivacyLevel, out int level) ? level : Config.DefaultPrivacyLevelSome;
-						config.PrivacyLevelStrong = int.TryParse(StrongPrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelStrong;
-						config.PrivacyLevelFine = int.TryParse(FinePrivacyLevel, out level) ? level : Config.DefaultPrivacyLevelFine;
+						config.PrivacyLevelSome = SomePrivacyLevel;
+						config.PrivacyLevelStrong = StrongPrivacyLevel;
+						config.PrivacyLevelFine = FinePrivacyLevel;
 					}
 					else
 					{
@@ -337,15 +374,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			await FileHelpers.OpenFileInTextEditorAsync(Global.Config.FilePath);
 		}
 
-		private void ValidateSomePrivacyLevel(IValidationErrors errors)
-			=> ValidatePrivacyLevel(errors, SomePrivacyLevel, whiteSpaceOk: true);
-
-		private void ValidateFinePrivacyLevel(IValidationErrors errors)
-			=> ValidatePrivacyLevel(errors, FinePrivacyLevel, whiteSpaceOk: true);
-
-		private void ValidateStrongPrivacyLevel(IValidationErrors errors)
-			=> ValidatePrivacyLevel(errors, StrongPrivacyLevel, whiteSpaceOk: true);
-
 		private void ValidateDustThreshold(IValidationErrors errors)
 			=> ValidateDustThreshold(errors, DustThreshold, whiteSpaceOk: true);
 
@@ -354,17 +382,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		private void ValidateBitcoinP2pEndPoint(IValidationErrors errors)
 			=> ValidateEndPoint(errors, BitcoinP2pEndPoint, Network.DefaultPort, whiteSpaceOk: true);
-
-		private void ValidatePrivacyLevel(IValidationErrors errors, string value, bool whiteSpaceOk)
-		{
-			if (!whiteSpaceOk || !string.IsNullOrWhiteSpace(value))
-			{
-				if (!uint.TryParse(value, out _))
-				{
-					errors.Add(ErrorSeverity.Error, "Invalid privacy level.");
-				}
-			}
-		}
 
 		private void ValidateDustThreshold(IValidationErrors errors, string dustThreshold, bool whiteSpaceOk)
 		{
