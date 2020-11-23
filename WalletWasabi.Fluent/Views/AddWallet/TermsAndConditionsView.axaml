@@ -14,21 +14,27 @@
     <c:ContentArea Title="Welcome to Wasabi Wallet"
                    EnableCancel="True"
                    EnableNext="True" NextContent="Continue" FocusNext="True">
-      <DockPanel>
-          <CheckBox IsChecked="{Binding IsAgreed}" DockPanel.Dock="Bottom" Name="CheckBox_Agree">
-              <i:Interaction.Behaviors>
-                  <behaviors:FocusOnAttachedBehavior />
-              </i:Interaction.Behaviors>
-              <StackPanel Orientation="Horizontal">
-                  <Label Content="I _agree to the " Target="CheckBox_Agree" FontWeight="Normal" Margin="0" Padding="0" />
-                  <Button Classes="plain" Command="{Binding ViewTermsCommand}">
-                      <TextBlock Text="Terms and conditions" TextDecorations="Underline" Foreground="{DynamicResource SystemAccentColor}" />
-                  </Button>
-              </StackPanel>
-          </CheckBox>
-          <Border BorderThickness="1" BorderBrush="White" Opacity="0.2" CornerRadius="5" Margin="20 0 20 40">
-            <TextBlock Text="Insert Welcome Graphic here..." Margin="20" />
-          </Border>
-      </DockPanel>
-  </c:ContentArea>
+        <DockPanel>
+            <CheckBox IsChecked="{Binding IsAgreed}" DockPanel.Dock="Bottom" Name="CheckBox_Agree">
+                <i:Interaction.Behaviors>
+                    <behaviors:FocusOnAttachedBehavior />
+                </i:Interaction.Behaviors>
+                <StackPanel Orientation="Horizontal">
+                    <Label Content="I _agree to the " Target="CheckBox_Agree" FontWeight="Normal" Margin="0"
+                           Padding="0" />
+                    <Button Classes="plain" Command="{Binding ViewTermsCommand}">
+                        <TextBlock Text="Terms and conditions" TextDecorations="Underline"
+                                   Foreground="{DynamicResource SystemAccentColor}" />
+                    </Button>
+                </StackPanel>
+            </CheckBox>
+            <Viewbox>
+                <Image>
+                    <Image.Source>
+                        <DrawingImage Drawing="{StaticResource placeholder_graphics_legal}"/>
+                    </Image.Source>
+                </Image>
+            </Viewbox>
+        </DockPanel>
+    </c:ContentArea>
 </UserControl>
