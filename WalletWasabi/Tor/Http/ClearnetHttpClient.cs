@@ -32,6 +32,8 @@ namespace WalletWasabi.Tor.Http
 		/// <summary>Predefined HTTP client that handles HTTP requests when Tor is disabled.</summary>
 		private static HttpClient HttpClient { get; }
 
+		public bool DefaultIsolateStream => false;
+
 		/// <inheritdoc cref="HttpClient.SendAsync(HttpRequestMessage, CancellationToken)"/>
 		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
 		{

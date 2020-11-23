@@ -13,6 +13,13 @@ namespace WalletWasabi.Tor.Http
 	{
 		Func<Uri> DestinationUriAction { get; }
 
+		bool DefaultIsolateStream { get; }
+
+		Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
+		{
+			return SendAsync(request, DefaultIsolateStream, token);
+		}
+
 		async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
 		{
 			var requestUri = new Uri(DestinationUriAction.Invoke(), relativeUri);
@@ -23,7 +30,7 @@ namespace WalletWasabi.Tor.Http
 				httpRequestMessage.Content = content;
 			}
 
-			return await SendAsync(httpRequestMessage, cancel).ConfigureAwait(false);
+			return await SendAsync(httpRequestMessage, DefaultIsolateStream, cancel).ConfigureAwait(false);
 		}
 	}
 }
