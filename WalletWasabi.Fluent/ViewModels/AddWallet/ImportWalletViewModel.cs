@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -119,6 +120,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			{
 				AllowMultiple = false,
 				Title = "Import wallet file",
+				Directory = GetDefaultDirectory(),
 			};
 
 			var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
@@ -130,6 +132,21 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 
 			return null;
+		}
+
+		private string GetDefaultDirectory()
+		{
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			{
+				return Path.Combine("/media", Environment.UserName);
+			}
+
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				return Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+			}
+
+			return Environment.GetFolderPath(Environment.SpecialFolder.MyComputer);
 		}
 	}
 }
