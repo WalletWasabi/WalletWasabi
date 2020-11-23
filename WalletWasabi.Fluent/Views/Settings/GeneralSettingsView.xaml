@@ -17,6 +17,8 @@
             </Style>
             <Style Selector="DockPanel > ToggleSwitch">
               <Setter Property="HorizontalAlignment" Value="Right" />
+              <Setter Property="OnContent" Value="{x:Null}" />
+              <Setter Property="OffContent" Value="{x:Null}" />
             </Style>
           </StackPanel.Styles>
 
