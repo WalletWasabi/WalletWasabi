@@ -22,7 +22,6 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.WebClients.PayJoin;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets
 {
@@ -421,7 +420,7 @@ namespace WalletWasabi.Wallets
 			{
 				try
 				{
-					using var client = Synchronizer.WasabiClientFactory.NewBackendClient();
+					var client = Synchronizer.WasabiClientFactory.SharedWasabiClient;
 					var compactness = 10;
 
 					var mempoolHashes = await client.GetMempoolHashesAsync(compactness).ConfigureAwait(false);

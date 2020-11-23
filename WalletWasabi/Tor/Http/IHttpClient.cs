@@ -26,7 +26,7 @@ namespace WalletWasabi.Tor.Http
 				httpRequestMessage.Content = content;
 			}
 
-			return await SendAsync(httpRequestMessage).ConfigureAwait(false);
+			return await SendAsync(httpRequestMessage, token).ConfigureAwait(false);
 		}
 	}
 }
