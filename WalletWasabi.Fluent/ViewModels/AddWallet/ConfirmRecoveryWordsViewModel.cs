@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Connect()
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.WhenValueChanged(x => x.IsConfirmed)
-				.Select(x => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
+				.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
 
 			NextCommand = ReactiveCommand.Create(
 				() =>
