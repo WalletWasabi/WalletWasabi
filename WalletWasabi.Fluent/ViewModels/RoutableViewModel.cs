@@ -16,9 +16,9 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			NavigationTarget = navigationTarget;
 
-			BackCommand = ReactiveCommand.Create(() => GoBack());
+			BackCommand = ReactiveCommand.Create(GoBack);
 
-			CancelCommand = ReactiveCommand.Create(() => ClearNavigation());
+			CancelCommand = ReactiveCommand.Create(ClearNavigation);
 		}
 
 		public string UrlPathSegment { get; } = Guid.NewGuid().ToString().Substring(0, 5);
