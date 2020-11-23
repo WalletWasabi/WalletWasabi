@@ -15,10 +15,13 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private readonly ReadOnlyObservableCollection<SearchResult> _searchResults;
 		private string? _searchQuery;
+		private readonly bool _enableWallets;
 
 		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage, SettingsPageViewModel settingsPage, HomePageViewModel homePage) : base(navigationState, NavigationTarget.HomeScreen)
 		{
 			Title = "Search";
+
+			_enableWallets = false;
 
 			var itemsSource = new SourceList<SearchItemViewModel>();
 			var generalCategory = new SearchCategory("General", 0);
@@ -42,7 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Transform(x => CreateWalletSearchItem(walletCategory, 0, x))
 				.Sort(SortExpressionComparer<SearchItemViewModel>.Ascending(i => i.Title));
 
-			var searchItems = wallets.Merge(itemsSource.Connect());
+			var searchItems = _enableWallets ? wallets.Merge(itemsSource.Connect()) : itemsSource.Connect();
 
 			searchItems.Filter(queryFilter)
 				.GroupWithImmutableState(x => x.Category)
