@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
-using WalletWasabi.Tor.Http.Interfaces;
 using WalletWasabi.Tor.Socks5;
 
 namespace WalletWasabi.Tor.Http
@@ -42,7 +41,7 @@ namespace WalletWasabi.Tor.Http
 				{
 					TorSocks5ClientPool = new TorSocks5ClientPool(TorSocks5EndPoint, isolateStream);
 				}
-			}			
+			}
 		}
 
 		public static Exception? LatestTorException { get; private set; } = null;
@@ -57,7 +56,7 @@ namespace WalletWasabi.Tor.Http
 		private static TorSocks5ClientPool? TorSocks5ClientPool { get; set; }
 
 		/// <summary>All HTTP(s) requests sent by this HTTP client must use different Tor circuits.</summary>
-		private bool ForceIsolateStream { get; }		
+		private bool ForceIsolateStream { get; }
 
 		/// <remarks>All access to this object must be guarded by <see cref="PoolLock"/>.</remarks>
 		private static int InstanceCounter { get; set; }
@@ -97,6 +96,11 @@ namespace WalletWasabi.Tor.Http
 			}
 
 			return await SendAsync(request, token).ConfigureAwait(false);
+		}
+
+		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream = false, CancellationToken token = default)
+		{
+			throw new NotImplementedException();
 		}
 
 		private static void SetTorNotWorkingState(Exception ex)
