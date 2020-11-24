@@ -27,7 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 	{
 		private Network _network;
 		private string _torSocks5EndPoint;
-		private string _bitcoinP2pEndPoint;
+		private string _bitcoinP2PEndPoint;
 		private string _localBitcoinCoreDataDir;
 		private bool _autocopy;
 		private bool _customFee;
@@ -54,7 +54,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 			this.ValidateProperty(x => x.TorSocks5EndPoint, ValidateTorSocks5EndPoint);
-			this.ValidateProperty(x => x.BitcoinP2pEndPoint, ValidateBitcoinP2pEndPoint);
+			this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 
 			_darkModeEnabled = true;
 			Autocopy = Global.UiConfig.Autocopy;
@@ -77,7 +77,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			_dustThreshold = config.DustThreshold.ToString();
 
-			_bitcoinP2pEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
+			_bitcoinP2PEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
 			_localBitcoinCoreDataDir = config.LocalBitcoinCoreDataDir;
 
 			IsModified = !Global.Config.AreDeepEqual(config);
@@ -124,7 +124,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			this.WhenAnyValue(x => x.DarkModeEnabled)
 				.Skip(1)
 				.Subscribe(
-					x =>
+					_ =>
 					{
 						var currentTheme = Application.Current.Styles.Select(x => (StyleInclude)x).FirstOrDefault(x => x.Source is { } && x.Source.AbsolutePath.Contains("Themes"));
 
@@ -215,10 +215,10 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			set => this.RaiseAndSetIfChanged(ref _torSocks5EndPoint, value);
 		}
 
-		public string BitcoinP2pEndPoint
+		public string BitcoinP2PEndPoint
 		{
-			get => _bitcoinP2pEndPoint;
-			set => this.RaiseAndSetIfChanged(ref _bitcoinP2pEndPoint, value);
+			get => _bitcoinP2PEndPoint;
+			set => this.RaiseAndSetIfChanged(ref _bitcoinP2PEndPoint, value);
 		}
 
 		public string LocalBitcoinCoreDataDir
@@ -320,7 +320,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			var config = new Config(Global.Config.FilePath);
 
-			Dispatcher.UIThread.PostLogException(() =>
+			Dispatcher.UIThread.PostLogException(
+				() =>
 			{
 				lock (ConfigLock)
 				{
@@ -331,9 +332,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 						{
 							config.TorSocks5EndPoint = torEp;
 						}
-						if (EndPointParser.TryParse(BitcoinP2pEndPoint, network.DefaultPort, out EndPoint p2pEp))
+						if (EndPointParser.TryParse(BitcoinP2PEndPoint, network.DefaultPort, out EndPoint p2PEp))
 						{
-							config.SetP2PEndpoint(p2pEp);
+							config.SetP2PEndpoint(p2PEp);
 						}
 						config.UseTor = UseTor;
 						config.TerminateTorOnExit = TerminateTorOnExit;
@@ -348,7 +349,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					else
 					{
 						config.Network = Network;
-						BitcoinP2pEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
+						BitcoinP2PEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
 					}
 					config.ToFile();
 					IsModified = !Global.Config.AreDeepEqual(config);
@@ -367,8 +368,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private void ValidateTorSocks5EndPoint(IValidationErrors errors)
 			=> ValidateEndPoint(errors, TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: true);
 
-		private void ValidateBitcoinP2pEndPoint(IValidationErrors errors)
-			=> ValidateEndPoint(errors, BitcoinP2pEndPoint, Network.DefaultPort, whiteSpaceOk: true);
+		private void ValidateBitcoinP2PEndPoint(IValidationErrors errors)
+			=> ValidateEndPoint(errors, BitcoinP2PEndPoint, Network.DefaultPort, whiteSpaceOk: true);
 
 		private void ValidateDustThreshold(IValidationErrors errors, string dustThreshold, bool whiteSpaceOk)
 		{

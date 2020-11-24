@@ -51,7 +51,7 @@
     <DockPanel IsVisible="{Binding !StartLocalBitcoinCoreOnStartup}"
                ToolTip.Tip="Wasabi will download blocks from a full node you control.">
       <TextBlock Text="Bitcoin P2P Endpoint" />
-      <TextBox Text="{Binding BitcoinP2pEndPoint}" />
+      <TextBox Text="{Binding BitcoinP2PEndPoint}" />
     </DockPanel>
 
   </StackPanel>
