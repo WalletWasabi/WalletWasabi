@@ -39,7 +39,7 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				await Assert.ThrowsAsync<IOException>(async () =>
 				{
-					using (await asyncMutex2.LockAsync(cts.Token))
+					using (await asyncMutex2.LockAsync(cancellationToken: cts.Token))
 					{
 						throw new InvalidOperationException("Mutex should not be acquired here.");
 					};
@@ -138,7 +138,7 @@ namespace WalletWasabi.Tests.UnitTests
 				using var cts = new CancellationTokenSource(100);
 				await Assert.ThrowsAsync<IOException>(async () =>
 					{
-						using (await mutex.LockAsync(cts.Token))
+						using (await mutex.LockAsync(cancellationToken: cts.Token))
 						{
 						}
 					});
@@ -152,7 +152,7 @@ namespace WalletWasabi.Tests.UnitTests
 				var mutex2 = new AsyncMutex(mutexName2);
 				await Assert.ThrowsAsync<IOException>(async () =>
 				{
-					using (await mutex2.LockAsync(cts.Token))
+					using (await mutex2.LockAsync(cancellationToken: cts.Token))
 					{
 					}
 				});
