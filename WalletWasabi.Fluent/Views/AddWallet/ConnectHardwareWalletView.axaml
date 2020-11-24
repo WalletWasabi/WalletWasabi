@@ -35,7 +35,7 @@
                    EnableNext="True" NextContent="Connect" >
       <DockPanel>
 
-          <StackPanel Spacing="8" DockPanel.Dock="Bottom" Margin="0 15 0 40">
+          <StackPanel Spacing="8" DockPanel.Dock="Bottom" Margin="0 15 0 0">
               <StackPanel Classes="Delay">
                   <TextBlock Text="Device did not show up?" FontWeight="Bold" />
                   <TextBlock Text="- Be sure to set up and log into the device, usually with a PIN." TextWrapping="Wrap" />
