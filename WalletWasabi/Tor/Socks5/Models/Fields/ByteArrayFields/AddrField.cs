@@ -71,7 +71,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 				{
 					if (int.TryParse(parts[i], out int partInt))
 					{
-						if (partInt < 0 || partInt > 255)
+						if (partInt is < 0 or > 255)
 						{
 							throw new FormatException($"Every part of {nameof(dstAddr)} must be between 0 and 255. The {i}. part is invalid: {partInt}. Value of {nameof(dstAddr)}: {dstAddr}");
 						}

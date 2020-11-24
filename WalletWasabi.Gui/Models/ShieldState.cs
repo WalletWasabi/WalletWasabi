@@ -17,7 +17,7 @@ namespace WalletWasabi.Gui.Models
 		public bool IsPrivacyStrongVisible { get; }
 		public bool IsPrivacySaiyanVisible { get; }
 
-		public override bool Equals(object obj)
+		public override bool Equals(object? obj)
 		{
 			if (obj is ShieldState state)
 			{

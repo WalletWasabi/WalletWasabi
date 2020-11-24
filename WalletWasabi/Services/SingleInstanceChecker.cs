@@ -18,7 +18,7 @@ namespace WalletWasabi.Services
 		private bool _disposedValue;
 
 		/// <summary>
-		/// Creates a new instance of the object where lock name is based on <paramref name="network"/> name. 
+		/// Creates a new instance of the object where lock name is based on <paramref name="network"/> name.
 		/// </summary>
 		/// <param name="network">Bitcoin network selected when Wasabi Wallet was started.</param>
 		public SingleInstanceChecker(Network network) : this(network, network.ToString())
@@ -51,7 +51,7 @@ namespace WalletWasabi.Services
 			try
 			{
 				using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
-				SingleApplicationLockHolder = await mutex.LockAsync(cts.Token).ConfigureAwait(false);
+				SingleApplicationLockHolder = await mutex.LockAsync(cancellationToken: cts.Token).ConfigureAwait(false);
 			}
 			catch (IOException ex)
 			{

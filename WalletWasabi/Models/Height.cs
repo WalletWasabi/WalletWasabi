@@ -321,7 +321,7 @@ namespace WalletWasabi.Models
 		public static bool operator <=(Height x, int y) => x.Value <= y;
 
 		/// <inheritdoc/>
-		public override bool Equals(object obj) => obj is Height height && this == height;
+		public override bool Equals(object? obj) => obj is Height height && this == height;
 
 		/// <inheritdoc/>
 		public bool Equals(Height other) => this == other;

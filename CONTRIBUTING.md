@@ -127,6 +127,8 @@ Basically every async library method should use `ConfigureAwait(false)` except:
 await MyMethodAsync().ConfigureAwait(false);
 ```
 
+- [ConfigureAwait FAQ](https://devblogs.microsoft.com/dotnet/configureawait-faq/)
+
 ## Disposing Subscriptions in ReactiveObjects
 
 **DO** follow [ReactiveUI's Subscription Disposing Conventions](https://reactiveui.net/docs/guidelines/framework/dispose-your-subscriptions).
