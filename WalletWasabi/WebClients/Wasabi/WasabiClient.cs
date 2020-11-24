@@ -271,7 +271,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			}
 
 			using HttpContent content = response.Content;
-			string result = await content.ReadAsStringAsync().ConfigureAwait(false);
+			string result = await content.ReadAsStringAsync(cancel).ConfigureAwait(false);
 
 			return result;
 		}
