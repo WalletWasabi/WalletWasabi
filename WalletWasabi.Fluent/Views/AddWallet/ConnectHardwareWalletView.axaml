@@ -10,20 +10,25 @@
 
     <UserControl.Styles>
         <Style Selector="StackPanel.Delay">
+            <Setter Property="Opacity" Value="0"/>
             <Style.Animations>
                 <Animation Duration="0:0:30">
                     <KeyFrame Cue="0%">
                         <Setter Property="IsVisible" Value="False"/>
                     </KeyFrame>
-                    <KeyFrame Cue="95%">
-                        <Setter Property="Opacity" Value="0"/>
-                        <Setter Property="IsVisible" Value="True"/>
-                    </KeyFrame>
                     <KeyFrame Cue="100%">
-                        <Setter Property="Opacity" Value="1"/>
+                        <Setter Property="IsVisible" Value="True"/>
                     </KeyFrame>
                 </Animation>
             </Style.Animations>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.5" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="StackPanel.Delay[IsVisible=True]">
+            <Setter Property="Opacity" Value="1"/>
         </Style>
     </UserControl.Styles>
 
