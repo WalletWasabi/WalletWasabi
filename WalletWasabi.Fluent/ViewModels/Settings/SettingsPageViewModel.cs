@@ -44,24 +44,24 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private FeeDisplayFormat _selectedFeeDisplayFormat;
 		private bool _darkModeEnabled;
 
-		private Global Global;
+		private Global _global;
 
 		public SettingsPageViewModel(NavigationStateViewModel navigationState) : base(navigationState, NavigationTarget.HomeScreen)
 		{
 			Title = "Settings";
 
-			Global = Locator.Current.GetService<Global>();
+			_global = Locator.Current.GetService<Global>();
 
 			this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 			this.ValidateProperty(x => x.TorSocks5EndPoint, ValidateTorSocks5EndPoint);
 			this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 
 			_darkModeEnabled = true;
-			Autocopy = Global.UiConfig.Autocopy;
-			CustomFee = Global.UiConfig.IsCustomFee;
-			CustomChangeAddress = Global.UiConfig.IsCustomChangeAddress;
+			Autocopy = _global.UiConfig.Autocopy;
+			CustomFee = _global.UiConfig.IsCustomFee;
+			CustomChangeAddress = _global.UiConfig.IsCustomChangeAddress;
 
-			var config = new Config(Global.Config.FilePath);
+			var config = new Config(_global.Config.FilePath);
 			config.LoadOrCreateDefaultFile();
 
 			_network = config.Network;
@@ -80,7 +80,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_bitcoinP2PEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
 			_localBitcoinCoreDataDir = config.LocalBitcoinCoreDataDir;
 
-			IsModified = !Global.Config.AreDeepEqual(config);
+			IsModified = !_global.Config.AreDeepEqual(config);
 
 			this.WhenAnyValue(
 				x => x.Network,
@@ -93,15 +93,15 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			this.WhenAnyValue(x => x.Autocopy)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(x => Global.UiConfig.Autocopy = x);
+				.Subscribe(x => _global.UiConfig.Autocopy = x);
 
 			this.WhenAnyValue(x => x.CustomFee)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(x => Global.UiConfig.IsCustomFee = x);
+				.Subscribe(x => _global.UiConfig.IsCustomFee = x);
 
 			this.WhenAnyValue(x => x.CustomChangeAddress)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(x => Global.UiConfig.IsCustomChangeAddress = x);
+				.Subscribe(x => _global.UiConfig.IsCustomChangeAddress = x);
 
 			OpenConfigFileCommand = ReactiveCommand.CreateFromTask(OpenConfigFileAsync);
 
@@ -113,13 +113,13 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 
-			SelectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat)
-				? (FeeDisplayFormat)Global.UiConfig.FeeDisplayFormat
+			SelectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), _global.UiConfig.FeeDisplayFormat)
+				? (FeeDisplayFormat)_global.UiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
 
 			this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => Global.UiConfig.FeeDisplayFormat = (int)x);
+				.Subscribe(x => _global.UiConfig.FeeDisplayFormat = (int)x);
 
 			this.WhenAnyValue(x => x.DarkModeEnabled)
 				.Skip(1)
@@ -318,48 +318,48 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				return;
 			}
 
-			var config = new Config(Global.Config.FilePath);
+			var config = new Config(_global.Config.FilePath);
 
 			Dispatcher.UIThread.PostLogException(
 				() =>
-			{
-				lock (ConfigLock)
 				{
-					config.LoadFile();
-					if (Network == config.Network)
+					lock (ConfigLock)
 					{
-						if (EndPointParser.TryParse(TorSocks5EndPoint, Constants.DefaultTorSocksPort, out EndPoint torEp))
+						config.LoadFile();
+						if (Network == config.Network)
 						{
-							config.TorSocks5EndPoint = torEp;
+							if (EndPointParser.TryParse(TorSocks5EndPoint, Constants.DefaultTorSocksPort, out EndPoint torEp))
+							{
+								config.TorSocks5EndPoint = torEp;
+							}
+							if (EndPointParser.TryParse(BitcoinP2PEndPoint, network.DefaultPort, out EndPoint p2PEp))
+							{
+								config.SetP2PEndpoint(p2PEp);
+							}
+							config.UseTor = UseTor;
+							config.TerminateTorOnExit = TerminateTorOnExit;
+							config.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
+							config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
+							config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
+							config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
+							config.PrivacyLevelSome = MinimalPrivacyLevel;
+							config.PrivacyLevelStrong = StrongPrivacyLevel;
+							config.PrivacyLevelFine = MediumPrivacyLevel;
 						}
-						if (EndPointParser.TryParse(BitcoinP2PEndPoint, network.DefaultPort, out EndPoint p2PEp))
+						else
 						{
-							config.SetP2PEndpoint(p2PEp);
+							config.Network = Network;
+							BitcoinP2PEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
 						}
-						config.UseTor = UseTor;
-						config.TerminateTorOnExit = TerminateTorOnExit;
-						config.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
-						config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
-						config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
-						config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
-						config.PrivacyLevelSome = MinimalPrivacyLevel;
-						config.PrivacyLevelStrong = StrongPrivacyLevel;
-						config.PrivacyLevelFine = MediumPrivacyLevel;
+						config.ToFile();
+						IsModified = !_global.Config.AreDeepEqual(config);
 					}
-					else
-					{
-						config.Network = Network;
-						BitcoinP2PEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
-					}
-					config.ToFile();
-					IsModified = !Global.Config.AreDeepEqual(config);
-				}
-			});
+				});
 		}
 
 		private async Task OpenConfigFileAsync()
 		{
-			await FileHelpers.OpenFileInTextEditorAsync(Global.Config.FilePath);
+			await FileHelpers.OpenFileInTextEditorAsync(_global.Config.FilePath);
 		}
 
 		private void ValidateDustThreshold(IValidationErrors errors)
