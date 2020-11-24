@@ -115,8 +115,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 
-		public ICommand NextCommand { get; }
-
 		private KeyPath AccountKeyPath { get; set; } = KeyPath.Parse("m/84'/0'/0'");
 
 		private int MinGapLimit { get; set; } = 63;

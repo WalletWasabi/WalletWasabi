@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
@@ -47,11 +46,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Subscribe();
 
 			// Select 4 random words to confirm.
-			confirmationWordsSourceList.AddRange(mnemonicWords.OrderBy(x => new Random().NextDouble()).Take(4));
+			confirmationWordsSourceList.AddRange(mnemonicWords.OrderBy(_ => new Random().NextDouble()).Take(4));
 		}
 
 		public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
-
-		public ICommand NextCommand { get; }
 	}
 }

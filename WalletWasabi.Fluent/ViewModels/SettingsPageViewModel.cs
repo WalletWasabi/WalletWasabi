@@ -52,8 +52,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			});
 		}
 
-		public ICommand NextCommand { get; }
-
 		public ICommand OpenDialogCommand { get; }
 
 		public ICommand OpenDialogScreenCommand { get; }
