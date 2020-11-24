@@ -16,53 +16,54 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private readonly ReadOnlyObservableCollection<SearchResult> _searchResults;
 		private string? _searchQuery;
-		private readonly bool _enableWallets;
+		private readonly bool _showSettings;
+		private readonly bool _showWallets;
 
 		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage, SettingsPageViewModel settingsPage, HomePageViewModel homePage) : base(navigationState, NavigationTarget.HomeScreen)
 		{
 			Title = "Search";
 
-			_enableWallets = false;
+			_showSettings = true;
+			_showWallets = false;
 
-			var itemsSource = new SourceList<SearchItemViewModel>();
 			var generalCategory = new SearchCategory("General", 0);
-			var walletCategory = new SearchCategory("Wallets", 1);
-			var settingsCategory = new SearchCategory("Settings", 2);
+			var generalCategorySource = new SourceList<SearchItemViewModel>();
+			generalCategorySource.Add(CreateHomeSearchItem(generalCategory, 0, homePage));
+			generalCategorySource.Add(CreateSettingsSearchItem(generalCategory, 1, settingsPage));
+			generalCategorySource.Add(CreateAddWalletSearchItem(generalCategory, 2, addWalletPage));
 
-			itemsSource.Add(
-				CreateHomeSearchItem(generalCategory, 0, homePage));
+			var settingsCategory = new SearchCategory("Settings", 1);
+			var settingsCategorySource = new SourceList<SearchItemViewModel>();
+			settingsCategorySource.Add(CreateGeneralSettingsSearchItem(settingsCategory, 0, settingsPage));
+			settingsCategorySource.Add(CreatePrivacySettingsSearchItem(settingsCategory, 1, settingsPage));
+			settingsCategorySource.Add(CreateNetworkSettingsSearchItem(settingsCategory, 2, settingsPage));
+			settingsCategorySource.Add(CreateBitcoinSettingsSearchItem(settingsCategory, 3, settingsPage));
 
-			itemsSource.Add(
-				CreateSettingsSearchItem(generalCategory, 1, settingsPage));
+			var walletCategory = new SearchCategory("Wallets", 2);
+			var wallets = walletManager.Items
+				.ToObservableChangeSet()
+				.Transform(x => CreateWalletSearchItem(walletCategory, 0, x))
+				.Sort(SortExpressionComparer<SearchItemViewModel>.Ascending(i => i.Title));
 
-			itemsSource.Add(
-				CreateAddWalletSearchItem(generalCategory, 2, addWalletPage));
+			var searchItems = generalCategorySource.Connect();
 
-			itemsSource.Add(
-				CreateGeneralSettingsSearchItem(settingsCategory, 0, settingsPage));
+			if (_showSettings)
+			{
+				searchItems.Merge(settingsCategorySource.Connect());
+			}
 
-			itemsSource.Add(
-				CreatePrivacySettingsSearchItem(settingsCategory, 1, settingsPage));
-
-			itemsSource.Add(
-				CreateNetworkSettingsSearchItem(settingsCategory, 2, settingsPage));
-
-			itemsSource.Add(
-				CreateBitcoinSettingsSearchItem(settingsCategory, 3, settingsPage));
+			if (_showWallets)
+			{
+				searchItems.Merge(wallets);
+			}
 
 			var queryFilter = this.WhenValueChanged(t => t.SearchQuery)
 				.Throttle(TimeSpan.FromMilliseconds(100))
 				.Select(SearchQueryFilter)
 				.DistinctUntilChanged();
 
-			var wallets = walletManager.Items.ToObservableChangeSet()
-				.Transform(x => CreateWalletSearchItem(walletCategory, 0, x))
-				.Sort(SortExpressionComparer<SearchItemViewModel>.Ascending(i => i.Title));
-
-			var searchItems = _enableWallets ?
-				wallets.Merge(itemsSource.Connect()) : itemsSource.Connect();
-
-			searchItems.Filter(queryFilter)
+			searchItems
+				.Filter(queryFilter)
 				.GroupWithImmutableState(x => x.Category)
 				.Transform(grouping => new SearchResult(grouping.Key, grouping.Items.OrderBy(x => x.Order).ThenBy(x => x.Title)))
 				.Sort(SortExpressionComparer<SearchResult>.Ascending(i => i.Category.Order).ThenByAscending(i => i.Category.Title))
