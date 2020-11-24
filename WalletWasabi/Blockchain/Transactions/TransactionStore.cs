@@ -76,12 +76,12 @@ namespace WalletWasabi.Blockchain.Transactions
 				{
 					foreach (var tx in allTransactions)
 					{
-						var res = TryAddOrUpdateNoLockNoSerialization(tx);
-						if (res.isAdded)
+						var (isAdded, isUpdated) = TryAddOrUpdateNoLockNoSerialization(tx);
+						if (isAdded)
 						{
 							added = true;
 						}
-						if (res.isUpdated)
+						if (isUpdated)
 						{
 							updated = true;
 						}

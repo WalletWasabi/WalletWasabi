@@ -14,31 +14,6 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		[JsonConstructor]
 		public AllFeeEstimate(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
 		{
-			Create(type, estimations, isAccurate);
-		}
-
-		public AllFeeEstimate(AllFeeEstimate other, bool isAccurate)
-		{
-			Create(other.Type, other.Estimations, isAccurate);
-		}
-
-		[JsonProperty]
-		public EstimateSmartFeeMode Type { get; private set; }
-
-		/// <summary>
-		/// Gets a value indicating whether the fee has been fetched from a fully synced node.
-		/// </summary>
-		[JsonProperty]
-		public bool IsAccurate { get; private set; }
-
-		/// <summary>
-		/// Gets the fee estimations: int: fee target, int: satoshi/vByte
-		/// </summary>
-		[JsonProperty]
-		public Dictionary<int, int> Estimations { get; private set; }
-
-		private void Create(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
-		{
 			Type = type;
 			IsAccurate = isAccurate;
 			Guard.NotNullOrEmpty(nameof(estimations), estimations);
@@ -56,6 +31,26 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 				}
 			}
 		}
+
+		public AllFeeEstimate(AllFeeEstimate other, bool isAccurate)
+			: this(other.Type, other.Estimations, isAccurate)
+		{
+		}
+
+		[JsonProperty]
+		public EstimateSmartFeeMode Type { get; }
+
+		/// <summary>
+		/// Gets a value indicating whether the fee has been fetched from a fully synced node.
+		/// </summary>
+		[JsonProperty]
+		public bool IsAccurate { get; }
+
+		/// <summary>
+		/// Gets the fee estimations: int: fee target, int: satoshi/vByte
+		/// </summary>
+		[JsonProperty]
+		public Dictionary<int, int> Estimations { get; }
 
 		public FeeRate GetFeeRate(int feeTarget)
 		{

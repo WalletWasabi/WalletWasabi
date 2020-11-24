@@ -17,7 +17,7 @@
                  Caption="Type your wallet-specific recovery options and click Continue."
                  EnableCancel="True" CancelContent="Cancel"
                  EnableNext="True" NextContent="Continue">
-    <StackPanel HorizontalAlignment="Center" Spacing="40" MinWidth="380" Margin="30 0 0 0">
+    <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380" Margin="30 0 0 0">
 
       <DockPanel>
         <PathIcon Classes="checkMark" Margin="15 42 0 0" VerticalAlignment="Top" DockPanel.Dock="Right">

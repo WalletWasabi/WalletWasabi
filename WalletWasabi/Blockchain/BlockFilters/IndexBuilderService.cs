@@ -99,7 +99,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 					Interlocked.Increment(ref _workerCount);
 					while (Interlocked.Read(ref _workerCount) != 1)
 					{
-						await Task.Delay(100);
+						await Task.Delay(100).ConfigureAwait(false);
 					}
 
 					if (IsStopping)
@@ -133,7 +133,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									{
 										currentHash = StartingHeight == 0
 											? uint256.Zero
-											: await RpcClient.GetBlockHashAsync((int)StartingHeight - 1);
+											: await RpcClient.GetBlockHashAsync((int)StartingHeight - 1).ConfigureAwait(false);
 										currentHeight = StartingHeight - 1;
 									}
 								}
@@ -143,7 +143,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								var isTimeToRefresh = DateTimeOffset.UtcNow - syncInfo.BlockchainInfoUpdated > TimeSpan.FromMinutes(5);
 								if (coreNotSynced || tipReached || isTimeToRefresh)
 								{
-									syncInfo = await GetSyncInfoAsync();
+									syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
 								}
 
 								// If wasabi filter height is the same as core we may be done.
@@ -160,14 +160,14 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									else
 									{
 										// Knots is catching up give it a 10 seconds
-										await Task.Delay(10000);
+										await Task.Delay(10000).ConfigureAwait(false);
 										continue;
 									}
 								}
 
 								uint nextHeight = currentHeight + 1;
-								uint256 blockHash = await RpcClient.GetBlockHashAsync((int)nextHeight);
-								VerboseBlockInfo block = await RpcClient.GetVerboseBlockAsync(blockHash);
+								uint256 blockHash = await RpcClient.GetBlockHashAsync((int)nextHeight).ConfigureAwait(false);
+								VerboseBlockInfo block = await RpcClient.GetVerboseBlockAsync(blockHash).ConfigureAwait(false);
 
 								// Check if we are still on the best chain,
 								// if not rewind filters till we find the fork.
@@ -175,7 +175,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								{
 									Logger.LogWarning("Reorg observed on the network.");
 
-									await ReorgOneAsync();
+									await ReorgOneAsync().ConfigureAwait(false);
 
 									// Skip the current block.
 									continue;
@@ -203,7 +203,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
 								var filterModel = new FilterModel(smartHeader, filter);
 
-								await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() });
+								await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() }).ConfigureAwait(false);
 
 								using (await IndexLock.LockAsync())
 								{
@@ -276,13 +276,13 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			}
 
 			// 2. Serialize Index. (Remove last line.)
-			var lines = await File.ReadAllLinesAsync(IndexFilePath);
-			await File.WriteAllLinesAsync(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
+			var lines = await File.ReadAllLinesAsync(IndexFilePath).ConfigureAwait(false);
+			await File.WriteAllLinesAsync(IndexFilePath, lines.Take(lines.Length - 1).ToArray()).ConfigureAwait(false);
 		}
 
 		private async Task<SyncInfo> GetSyncInfoAsync()
 		{
-			var bcinfo = await RpcClient.GetBlockchainInfoAsync();
+			var bcinfo = await RpcClient.GetBlockchainInfoAsync().ConfigureAwait(false);
 			var pbcinfo = new SyncInfo(bcinfo);
 			return pbcinfo;
 		}
@@ -355,7 +355,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 			while (Interlocked.CompareExchange(ref _serviceStatus, Stopped, NotStarted) == 2)
 			{
-				await Task.Delay(50);
+				await Task.Delay(50).ConfigureAwait(false);
 			}
 		}
 	}

@@ -1,0 +1,38 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:settings="clr-namespace:WalletWasabi.Fluent.ViewModels.Settings"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="settings:SettingsPageViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Settings.NetworkSettingsView">
+  <StackPanel Spacing="20" MinWidth="360" MaxWidth="650" HorizontalAlignment="Left" Orientation="Vertical">
+    <StackPanel.Styles>
+      <Style Selector="DockPanel > TextBlock">
+        <Setter Property="Margin" Value="0 8 20 0" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="(DockPanel.Dock)"  Value="Left" />
+      </Style>
+      <Style Selector="DockPanel > ToggleSwitch">
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="OnContent" Value="{x:Null}" />
+        <Setter Property="OffContent" Value="{x:Null}" />
+      </Style>
+    </StackPanel.Styles>
+
+    <DockPanel>
+      <TextBlock Text="Network Encryption (Tor)"/>
+      <ToggleSwitch IsChecked="{Binding UseTor}" />
+    </DockPanel>
+
+    <DockPanel IsVisible="{Binding UseTor}">
+      <TextBlock Text="Terminate Tor when Wasabi is Shutdown"/>
+      <ToggleSwitch IsChecked="{Binding TerminateTorOnExit}" />
+    </DockPanel>
+
+    <StackPanel Spacing="10" IsVisible="{Binding UseTor}">
+      <TextBlock Text="Tor SOCKS5 Endpoint" />
+      <TextBox Text="{Binding TorSocks5EndPoint}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

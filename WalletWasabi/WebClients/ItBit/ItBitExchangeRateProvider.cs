@@ -12,11 +12,13 @@ namespace WalletWasabi.WebClients.ItBit
 	{
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync()
 		{
-			using var httpClient = new HttpClient();
-			httpClient.BaseAddress = new Uri("https://api.itbit.com");
-			using var response = await httpClient.GetAsync("v1/markets/XBTUSD/ticker");
+			using var httpClient = new HttpClient
+			{
+				BaseAddress = new Uri("https://api.itbit.com")
+			};
+			using var response = await httpClient.GetAsync("v1/markets/XBTUSD/ticker").ConfigureAwait(false);
 			using var content = response.Content;
-			var data = await content.ReadAsJsonAsync<ItBitExchangeRateInfo>();
+			var data = await content.ReadAsJsonAsync<ItBitExchangeRateInfo>().ConfigureAwait(false);
 
 			var exchangeRates = new List<ExchangeRate>
 				{
