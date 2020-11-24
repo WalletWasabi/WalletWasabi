@@ -65,12 +65,20 @@ namespace WalletWasabi.Services
 				Logger.LogDebug("Detected another Wasabi instance.");
 			}
 
-			// Signal to the other instance, that there was an attempt to start the software.
-			using TcpClient client = new TcpClient();
-			await client.ConnectAsync(IPAddress.Loopback, Port).ConfigureAwait(false);
+			try
+			{
+				// Signal to the other instance, that there was an attempt to start the software.
+				using TcpClient client = new TcpClient();
+				await client.ConnectAsync(IPAddress.Loopback, Port).ConfigureAwait(false);
+				// I was able to signal to the other instance successfully so just continue.
+			}
+			catch (Exception)
+			{
+				// Do not log anything here as the first instance is writing the Log at this time.
+				throw new InvalidOperationException($"Wasabi is already running.");
+			}
 
-			// Do not log anything here as the first instance is writing the Log at this time.
-			throw new InvalidOperationException($"Wasabi is already running.");
+			throw new OperationCanceledException($"Wasabi is already running, signalled the first instance.");
 		}
 
 		private static int NetworkToPort(Network network)
