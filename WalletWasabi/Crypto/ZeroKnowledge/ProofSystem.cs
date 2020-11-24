@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using NBitcoin.Secp256k1;
@@ -174,7 +175,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		// this is just a range proof with width=0
 		// equivalent to new Statement(ma, Generators.Gh)
 		public static Statement ZeroProofStatement(GroupElement ma)
-			=> RangeProofStatement(ma, new GroupElement[0]);
+			=> RangeProofStatement(ma, Array.Empty<GroupElement>());
 
 		public static Statement RangeProofStatement(GroupElement ma, IEnumerable<GroupElement> bitCommitments)
 		{
