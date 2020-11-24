@@ -1,5 +1,6 @@
 using System.IO;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -31,7 +32,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				{
 					NavigateTo(next, NavigationTarget.DialogScreen);
 				},
-				this.WhenAnyValue(x => x.IsAgreed));
+				this.WhenAnyValue(x => x.IsAgreed)
+					.ObserveOn(RxApp.MainThreadScheduler)
+				);
 		}
 
 		public bool IsAgreed
