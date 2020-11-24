@@ -18,23 +18,14 @@ namespace WalletWasabi.CoinJoin.Common.Models
 		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 BlindedOutput { get; set; }
 
-		public override bool Equals(object obj)
-		{
-			if (obj is BlindedOutputWithNonceIndex other)
-			{
-				return Equals(other);
-			}
-			return false;
-		}
+		public override bool Equals(object? obj) => Equals(obj as BlindedOutputWithNonceIndex);
 
-		public bool Equals(BlindedOutputWithNonceIndex other)
-		{
-			return other?.BlindedOutput == BlindedOutput;
-		}
+		public bool Equals(BlindedOutputWithNonceIndex? other) => this == other;
 
-		public override int GetHashCode()
-		{
-			return HashCode.Combine(BlindedOutput, N);
-		}
+		public override int GetHashCode() => (BlindedOutput, N).GetHashCode();
+
+		public static bool operator ==(BlindedOutputWithNonceIndex? x, BlindedOutputWithNonceIndex? y) => (x?.BlindedOutput, x?.N) == (y?.BlindedOutput, y?.N);
+
+		public static bool operator !=(BlindedOutputWithNonceIndex? x, BlindedOutputWithNonceIndex? y) => !(x == y);
 	}
 }
