@@ -8,6 +8,12 @@
              x:Class="WalletWasabi.Fluent.Views.Settings.PrivacySettingsView">
   <StackPanel Spacing="20" MinWidth="360" MaxWidth="650" HorizontalAlignment="Left" Orientation="Vertical">
     <StackPanel.Styles>
+      <Style Selector="PathIcon">
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Width" Value="32" />
+      </Style>
+    </StackPanel.Styles>
+    <StackPanel.Styles>
       <Style Selector="Slider">
         <Setter Property="IsSnapToTickEnabled" Value="True" />
         <Setter Property="TickFrequency" Value="1" />
@@ -15,35 +21,23 @@
     </StackPanel.Styles>
 
     <TextBlock Text="Anonymity Levels" FontSize="20" />
-    <StackPanel>
-      <TextBlock Text="Minimal" />
-      <DockPanel>
-        <TextBlock Text="2" DockPanel.Dock="Left" VerticalAlignment="Center" />
-        <TextBlock Text="100" DockPanel.Dock="Right" VerticalAlignment="Center" />
-        <Slider Minimum="2" Maximum="98" Value="{Binding MinimalPrivacyLevel}" Margin="10 0" />
-      </DockPanel>
-      <TextBlock Text="{Binding MinimalPrivacyLevel}" />
-    </StackPanel>
+    <DockPanel>
+      <PathIcon ToolTip.Tip="Minimal" DockPanel.Dock="Left" Foreground="#E06868" Data="{StaticResource privacy_minimal}" />
+      <TextBlock DockPanel.Dock="Right" Text="{Binding MinimalPrivacyLevel}" VerticalAlignment="Center" />
+      <Slider Minimum="2" Maximum="98" Value="{Binding MinimalPrivacyLevel}" Margin="10 0" />
+    </DockPanel>
 
-    <StackPanel>
-      <TextBlock Text="Medium" />
-      <DockPanel>
-        <TextBlock Text="2" DockPanel.Dock="Left" VerticalAlignment="Center" />
-        <TextBlock Text="100" DockPanel.Dock="Right" VerticalAlignment="Center" />
-        <Slider Minimum="3" Maximum="99" Value="{Binding MediumPrivacyLevel}" Margin="10 0" />
-      </DockPanel>
-      <TextBlock Text="{Binding MediumPrivacyLevel}" />
-    </StackPanel>
+    <DockPanel>
+      <PathIcon ToolTip.Tip="Medium" DockPanel.Dock="Left" Foreground="#DDA73E" Data="{StaticResource privacy_medium}" />
+      <TextBlock DockPanel.Dock="Right" Text="{Binding MediumPrivacyLevel}" VerticalAlignment="Center" />
+      <Slider Minimum="3" Maximum="99" Value="{Binding MediumPrivacyLevel}" Margin="10 0" />
+    </DockPanel>
 
-    <StackPanel>
-      <TextBlock Text="Strong" />
-      <DockPanel>
-        <TextBlock Text="2" DockPanel.Dock="Left" VerticalAlignment="Center" />
-        <TextBlock Text="100" DockPanel.Dock="Right" VerticalAlignment="Center" />
-        <Slider Minimum="4" Value="{Binding StrongPrivacyLevel}" Margin="10 0" />
-      </DockPanel>
-      <TextBlock Text="{Binding StrongPrivacyLevel}" />
-    </StackPanel>
+    <DockPanel>
+      <PathIcon ToolTip.Tip="Strong" DockPanel.Dock="Left" Foreground="#72BD81" Data="{StaticResource privacy_strong}" />
+      <TextBlock DockPanel.Dock="Right" Text="{Binding StrongPrivacyLevel}" VerticalAlignment="Center" />
+      <Slider Minimum="4" Value="{Binding StrongPrivacyLevel}" Margin="10 0" />
+    </DockPanel>
 
   </StackPanel>
 </UserControl>
