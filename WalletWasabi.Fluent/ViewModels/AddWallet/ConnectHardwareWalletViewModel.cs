@@ -191,7 +191,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					}
 				}
 
-				// Too fast enumeration causes the detected hardware wallets cannot provide the fingerprint.
+				// Too fast enumeration causes the detected hardware wallets to be unable to provide the fingerprint.
 				// Wait at least 5 seconds between two enumerations.
 				sw.Stop();
 				if (sw.Elapsed.Milliseconds < 5000)
