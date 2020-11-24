@@ -8,7 +8,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
@@ -101,8 +100,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		}
 
 		public ObservableCollection<HardwareWalletViewModel> HardwareWallets { get; }
-
-		public ICommand NextCommand { get; }
 
 		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
 
