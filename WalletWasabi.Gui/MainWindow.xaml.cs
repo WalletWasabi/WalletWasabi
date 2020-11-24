@@ -25,6 +25,8 @@ namespace WalletWasabi.Gui
 {
 	public class MainWindow : MetroWindow
 	{
+		private long _closingState;
+
 		public MainWindow()
 		{
 			Global = Locator.Current.GetService<Global>();
@@ -49,14 +51,14 @@ namespace WalletWasabi.Gui
 			SingleInstanceChecker.OtherInstanceStarted += SingleInstanceChecker_OtherInstanceStarted;
 		}
 
+		private Global Global { get; }
+
+		private SingleInstanceChecker SingleInstanceChecker { get; }
+
 		private void SingleInstanceChecker_OtherInstanceStarted(object? sender, EventArgs e)
 		{
 			Dispatcher.UIThread.PostLogException(() => Show());
 		}
-
-		private Global Global { get; }
-
-		private SingleInstanceChecker SingleInstanceChecker { get; }
 
 		private void InitializeComponent()
 		{
@@ -75,8 +77,6 @@ namespace WalletWasabi.Gui
 					return;
 			}
 		}
-
-		private long _closingState;
 
 		private async void MainWindow_ClosingAsync(object? sender, CancelEventArgs e)
 		{
