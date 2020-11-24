@@ -47,7 +47,7 @@ namespace System.IO
 					// Directory does not exist. So the operation is trivially done.
 					return true;
 				}
-				catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+				catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
 				{
 					await Task.Delay(millisecondsDelay).ConfigureAwait(false);
 				}

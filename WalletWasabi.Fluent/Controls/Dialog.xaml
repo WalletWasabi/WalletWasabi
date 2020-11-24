@@ -14,11 +14,14 @@
       <ControlTemplate>
         <Panel>
           <Panel Background="{DynamicResource DialogOverlayColor}" Name="PART_Overlay" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
-          <Panel Name="PART_DialogHost" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="40">
+          <Panel Name="PART_DialogHost"
+                 VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                 Margin="20">
             <Border CornerRadius="4" BoxShadow="{DynamicResource DialogBoxShadow}"
                     Background="{DynamicResource DialogBackground}"
                     MaxWidth="{TemplateBinding MaxContentWidth}" MaxHeight="{TemplateBinding MaxContentHeight}" Margin="40">
-              <ContentPresenter Name="PART_ContentPresenter" Margin="20 36 20 0"
+              <ContentPresenter Name="PART_ContentPresenter" Margin="16 28 16 16"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"

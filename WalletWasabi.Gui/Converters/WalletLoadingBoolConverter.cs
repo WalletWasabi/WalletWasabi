@@ -12,7 +12,7 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is WalletState state)
 			{
-				return state < WalletState.Started && state > WalletState.Uninitialized;
+				return state is < WalletState.Started and > WalletState.Uninitialized;
 			}
 			else
 			{

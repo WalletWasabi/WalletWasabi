@@ -8,7 +8,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 
 		internal static QRCodeVersion GetVersionByNum(int versionNum)
 		{
-			if (versionNum < QRCodeConstantVariable.MinVersion || versionNum > QRCodeConstantVariable.MaxVersion)
+			if (versionNum is < QRCodeConstantVariable.MinVersion or > QRCodeConstantVariable.MaxVersion)
 			{
 				throw new InvalidOperationException($"Unexpected version number: {versionNum}.");
 			}

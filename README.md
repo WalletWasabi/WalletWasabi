@@ -25,14 +25,9 @@
 
 Note that [Wasabi Wallet 2.0](https://blog.wasabiwallet.io/wasabi-wallet-2/) is in the works, which means some code you may want to work on is about to be obsolated. The most affected code is the UI and CoinJoin parts.
 
-For more information, please check out the [Wasabi Documentation](https://docs.wasabiwallet.io), an archive of knowledge about the nuances of Bitcoin privacy and how to properly use Wasabi.
-
+For more information, please check out the [Wasabi Documentation](https://docs.wasabiwallet.io), an archive of knowledge about the nuances of Bitcoin privacy and how to use Wasabi.
 
 # [Download Wasabi](https://github.com/zkSNACKs/WalletWasabi/releases)
-
-![](https://i.imgur.com/cAVJCeT.png)
-
-For step by step instructions of PGP verification and package installation, see the [documentation](https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html)
 
 # Build From Source Code
 

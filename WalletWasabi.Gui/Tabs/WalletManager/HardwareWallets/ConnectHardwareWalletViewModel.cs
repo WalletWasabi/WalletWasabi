@@ -254,8 +254,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 						using var ctsSetup = new CancellationTokenSource(TimeSpan.FromMinutes(21));
 
 						// Trezor T doesn't require interactive mode.
-						if (selectedWallet.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T
-							|| selectedWallet.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T_Simulator)
+						if (selectedWallet.HardwareWalletInfo.Model is HardwareWalletModels.Trezor_T
+							or HardwareWalletModels.Trezor_T_Simulator)
 						{
 							await client.SetupAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, false, ctsSetup.Token);
 						}

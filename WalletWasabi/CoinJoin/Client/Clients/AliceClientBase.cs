@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Logging;
-using WalletWasabi.Tor.Http.Bases;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.WebClients.Wasabi;
@@ -19,17 +19,19 @@ using UnblindedSignature = WalletWasabi.Crypto.UnblindedSignature;
 
 namespace WalletWasabi.CoinJoin.Client.Clients
 {
-	public abstract class AliceClientBase : TorDisposableBase
+	public abstract class AliceClientBase : IDisposable
 	{
-		/// <inheritdoc/>
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
 		protected AliceClientBase(
 			long roundId,
 			IEnumerable<BitcoinAddress> registeredAddresses,
 			IEnumerable<Requester> requesters,
 			Network network,
 			Func<Uri> baseUriAction,
-			EndPoint torSocks5EndPoint) : base(baseUriAction, torSocks5EndPoint)
+			EndPoint torSocks5EndPoint)
 		{
+			TorClient = new TorHttpClient(baseUriAction, torSocks5EndPoint, isolateStream: true);
 			RoundId = roundId;
 			RegisteredAddresses = registeredAddresses.ToArray();
 			Requesters = requesters.ToArray();
@@ -43,6 +45,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public BitcoinAddress[] RegisteredAddresses { get; }
 		public Requester[] Requesters { get; }
+
+		public IRelativeHttpClient TorClient { get; }
 
 		public static async Task<AliceClient4> CreateNewAsync(
 			long roundId,
@@ -160,7 +164,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				try
 				{
 					using HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{WasabiClient.ApiVersion}/btc/chaumiancoinjoin/unconfirmation?uniqueId={UniqueId}&roundId={RoundId}", cancel: cts.Token).ConfigureAwait(false);
-					if (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.Gone) // Otherwise maybe some internet connection issue there's. Let's consider that as timed out.
+					if (response.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Gone) // Otherwise maybe some internet connection issue there's. Let's consider that as timed out.
 					{
 						await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 					}
@@ -209,6 +213,26 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
 			Logger.LogInfo($"Round ({RoundId}), Alice ({UniqueId}): Posted {signatures.Count} signatures.");
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					(TorClient as IDisposable)?.Dispose();
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
 		}
 	}
 }
