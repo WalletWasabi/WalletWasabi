@@ -32,8 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				{
 					NavigateTo(next, NavigationTarget.DialogScreen);
 				},
-				this.WhenAnyValue(x => x.IsAgreed)
-					.ObserveOn(RxApp.MainThreadScheduler)
+				this.WhenAnyValue(x => x.IsAgreed).ObserveOn(RxApp.MainThreadScheduler)
 				);
 		}
 
