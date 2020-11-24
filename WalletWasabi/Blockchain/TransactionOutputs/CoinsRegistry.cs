@@ -256,11 +256,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public ICoinsView CreatedBy(uint256 txid) => AsCoinsView().CreatedBy(txid);
 
-		private ICoinsView CreatedByNoLock(uint256 txid) => AsCoinsViewNoLock().CreatedBy(txid);
-
 		public ICoinsView SpentBy(uint256 txid) => AsSpentCoinsView().SpentBy(txid);
-
-		private ICoinsView SpentByNoLock(uint256 txid) => AsSpentCoinsViewNoLock().SpentBy(txid);
 
 		public SmartCoin[] ToArray() => AsCoinsView().ToArray();
 
