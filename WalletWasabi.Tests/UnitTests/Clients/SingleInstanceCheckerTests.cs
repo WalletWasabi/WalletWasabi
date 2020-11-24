@@ -32,25 +32,25 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			// Disposal test.
 			await using (SingleInstanceChecker sic = new(mainNetPort))
 			{
-				await sic.CheckAsync();
+				await sic.EnsureSingleOrSignalAsync();
 			}
 
 			// Check different networks.
 			await using (SingleInstanceChecker sic = new(mainNetPort))
 			{
-				await sic.CheckAsync();
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic.CheckAsync());
+				await sic.EnsureSingleOrSignalAsync();
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic.EnsureSingleOrSignalAsync());
 
 				await using SingleInstanceChecker sicMainNet2 = new(mainNetPort);
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicMainNet2.CheckAsync());
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicMainNet2.EnsureSingleOrSignalAsync());
 
 				await using SingleInstanceChecker sicTestNet = new(testNetPort);
-				await sicTestNet.CheckAsync();
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicTestNet.CheckAsync());
+				await sicTestNet.EnsureSingleOrSignalAsync();
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicTestNet.EnsureSingleOrSignalAsync());
 
 				await using SingleInstanceChecker sicRegTest = new(regTestPort);
-				await sicRegTest.CheckAsync();
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicRegTest.CheckAsync());
+				await sicRegTest.EnsureSingleOrSignalAsync();
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicRegTest.EnsureSingleOrSignalAsync());
 			}
 		}
 
@@ -68,14 +68,14 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			try
 			{
 				// I am the first instance this should be fine.
-				await sic.CheckAsync();
+				await sic.EnsureSingleOrSignalAsync();
 
 				await using SingleInstanceChecker secondInstance = new(mainNetPort);
 
 				for (int i = 0; i < 3; i++)
 				{
 					// I am the second one.
-					await Assert.ThrowsAsync<InvalidOperationException>(async () => await secondInstance.CheckAsync());
+					await Assert.ThrowsAsync<InvalidOperationException>(async () => await secondInstance.EnsureSingleOrSignalAsync());
 				}
 
 				// There should be the same number of events as the number of tries from the second instance.

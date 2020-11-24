@@ -131,7 +131,7 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				await SingleInstanceChecker.CheckAsync().ConfigureAwait(false);
+				await SingleInstanceChecker.EnsureSingleOrSignalAsync().ConfigureAwait(false);
 
 				cancel.ThrowIfCancellationRequested();
 
