@@ -40,7 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			var walletManager = new WalletManagerViewModel(navigationState, global.WalletManager, global.UiConfig);
 
-			var addWalletPage = new AddWalletPageViewModel(navigationState, global.WalletManager, global.BitcoinStore, global.Network);
+			var addWalletPage = new AddWalletPageViewModel(navigationState, global.LegalDocuments, global.WalletManager, global.BitcoinStore, global.Network);
 
 			_navBar = new NavBarViewModel(navigationState, Router, walletManager, addWalletPage);
 

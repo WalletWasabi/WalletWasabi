@@ -14,6 +14,7 @@ using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Legal;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -22,10 +23,17 @@ namespace WalletWasabi.Fluent.ViewModels
 		private string _walletName = "";
 		private bool _optionsEnabled;
 
-		public AddWalletPageViewModel(NavigationStateViewModel navigationState, WalletManager walletManager,
+		public AddWalletPageViewModel(NavigationStateViewModel navigationState, LegalDocuments legalDocuments, WalletManager walletManager,
 			BitcoinStore store, Network network) : base(navigationState, NavigationTarget.DialogScreen)
 		{
 			Title = "Add Wallet";
+
+			OpenCommand = ReactiveCommand.Create(
+				() =>
+				{
+					var termsAndConditions = new TermsAndConditionsViewModel(navigationState, legalDocuments, this);
+					termsAndConditions.NavigateToSelf();
+				});
 
 			this.WhenAnyValue(x => x.WalletName)
 				.ObserveOn(RxApp.MainThreadScheduler)
