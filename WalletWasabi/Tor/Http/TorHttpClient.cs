@@ -195,6 +195,11 @@ namespace WalletWasabi.Tor.Http
 
 		private async Task<HttpResponseMessage> TorRequestCoreAsync(HttpRequestMessage request, bool isolateStream, CancellationToken cancel)
 		{
+			if (isolateStream != DefaultIsolateStream)
+			{
+				throw new NotSupportedException("This is not supported at the moment.");
+			}
+
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
 			// A sender MUST NOT generate an "http" URI with an empty host identifier.
 			string host = Guard.NotNullOrEmptyOrWhitespace($"{nameof(request)}.{nameof(request.RequestUri)}.{nameof(request.RequestUri.DnsSafeHost)}", request.RequestUri!.DnsSafeHost, trim: true);
