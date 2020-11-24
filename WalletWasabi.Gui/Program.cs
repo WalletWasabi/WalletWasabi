@@ -64,7 +64,7 @@ namespace WalletWasabi.Gui
 				}
 				else if (runGui)
 				{
-					SingleInstanceChecker.EnsureSingleOrSignalAsync().GetAwaiter().GetResult();
+					SingleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 
 					Logger.LogSoftwareStarted("Wasabi GUI");
 					BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
