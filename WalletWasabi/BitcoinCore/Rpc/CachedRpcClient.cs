@@ -216,7 +216,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 		public override async Task InvalidateBlockAsync(uint256 blockHash)
 		{
 			TipChangeCancellationTokenSource.Cancel();
-			await base.InvalidateBlockAsync(blockHash);
+			await base.InvalidateBlockAsync(blockHash).ConfigureAwait(false);
 		}
 	}
 }

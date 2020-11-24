@@ -32,7 +32,7 @@ namespace WalletWasabi.WebClients
 			{
 				try
 				{
-					return await provider.GetExchangeRateAsync();
+					return await provider.GetExchangeRateAsync().ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{

@@ -41,7 +41,7 @@ namespace WalletWasabi.Wabisabi
 		public CredentialPool Credentials { get; }
 
 		/// <summary>
-		/// Creates a <see cref="RegistrationRequestMessage">credential registration request messages</see> 
+		/// Creates a <see cref="RegistrationRequestMessage">credential registration request messages</see>
 		/// for requesting `k` zero-value credentials.
 		/// </summary>
 		/// <remarks>
@@ -58,11 +58,11 @@ namespace WalletWasabi.Wabisabi
 			for (var i = 0; i < NumberOfCredentials; i++)
 			{
 				var randomness = RandomNumberGenerator.GetScalar(allowZero: false);
-				var Ma = randomness * Generators.Gh;
+				var ma = randomness * Generators.Gh;
 
-				knowledge[i] = ProofSystem.ZeroProofKnowledge(Ma, randomness);
-				credentialsToRequest[i] = new IssuanceRequest(Ma, Enumerable.Empty<GroupElement>());
-				validationData[i] = new IssuanceValidationData(Money.Zero, randomness, Ma);
+				knowledge[i] = ProofSystem.ZeroProofKnowledge(ma, randomness);
+				credentialsToRequest[i] = new IssuanceRequest(ma, Enumerable.Empty<GroupElement>());
+				validationData[i] = new IssuanceValidationData(Money.Zero, randomness, ma);
 			}
 
 			var transcript = BuildTransnscript(isNullRequest: true);
@@ -80,14 +80,14 @@ namespace WalletWasabi.Wabisabi
 		}
 
 		/// <summary>
-		/// Creates a <see cref="RegistrationRequestMessage">credential registration request messages</see> 
+		/// Creates a <see cref="RegistrationRequestMessage">credential registration request messages</see>
 		/// for requesting `k` non-zero-value credentials.
 		/// </summary>
 		/// <param name="amountsToRequest">List of amounts requested in credentials.</param>
 		/// <param name="credentialsToPresent">List of credentials to be presented to the coordinator.</param>
 		/// <returns>
 		/// A tuple containing the registration request message instance and the registration validation data
-		/// to be used to validate the coordinator response message (the issued credentials).  
+		/// to be used to validate the coordinator response message (the issued credentials).
 		/// </returns>
 		public (RegistrationRequestMessage, RegistrationValidationData) CreateRequest(
 			IEnumerable<Money> amountsToRequest,
@@ -107,7 +107,7 @@ namespace WalletWasabi.Wabisabi
 			var alreadyPresentedZeroCredentials = credentialsToPresent.Where(x => x.Amount.IsZero);
 			var availableZeroCredentials = Credentials.ZeroValue.Except(alreadyPresentedZeroCredentials);
 
-			// This should not be possible 
+			// This should not be possible
 			var availableZeroCredentialCount = availableZeroCredentials.Count();
 			if (availableZeroCredentialCount < missingCredentialPresent)
 			{
@@ -144,14 +144,14 @@ namespace WalletWasabi.Wabisabi
 				var scalarAmount = new Scalar((ulong)amount.Satoshi);
 
 				var randomness = RandomNumberGenerator.GetScalar(allowZero: false);
-				var Ma = scalarAmount * Generators.Gg + randomness * Generators.Gh;
+				var ma = scalarAmount * Generators.Gg + randomness * Generators.Gh;
 
 				var (rangeKnowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(scalarAmount, randomness, Constants.RangeProofWidth, RandomNumberGenerator);
 				knowledgeToProve.Add(rangeKnowledge);
 
-				var credentialRequest = new IssuanceRequest(Ma, bitCommitments);
+				var credentialRequest = new IssuanceRequest(ma, bitCommitments);
 				credentialsToRequest[i] = credentialRequest;
-				validationData[i] = new IssuanceValidationData(amount, randomness, Ma);
+				validationData[i] = new IssuanceValidationData(amount, randomness, ma);
 			}
 
 			// Generate Balance Proof
@@ -181,8 +181,8 @@ namespace WalletWasabi.Wabisabi
 		/// </summary>
 		/// <remarks>
 		/// Verifies the registration response message proofs, creates the credentials based on the issued MACs and
-		/// finally updates the credentials pool by removing those credentials that were presented and by adding 
-		/// those that were issued. 
+		/// finally updates the credentials pool by removing those credentials that were presented and by adding
+		/// those that were issued.
 		/// </remarks>
 		/// <param name="registrationResponse">The registration response message received from the coordinator.</param>
 		/// <param name="registrationValidationData">The state data required to validate the issued credentials and the proofs.</param>

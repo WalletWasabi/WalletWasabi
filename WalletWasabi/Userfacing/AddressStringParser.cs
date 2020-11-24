@@ -18,7 +18,7 @@ namespace WalletWasabi.Userfacing
 
 			text = text.Trim();
 
-			if (text.Length > 100 || text.Length < 20)
+			if (text.Length is > 100 or < 20)
 			{
 				return false;
 			}
@@ -46,7 +46,7 @@ namespace WalletWasabi.Userfacing
 
 			text = text.Trim();
 
-			if (text.Length > 1000 || text.Length < 20)
+			if (text.Length is > 1000 or < 20)
 			{
 				return false;
 			}

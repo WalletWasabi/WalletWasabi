@@ -173,8 +173,8 @@ namespace WalletWasabi.Crypto.Groups
 			return bytes[0] switch
 			{
 				0 => Infinity,
-				GE.SECP256K1_TAG_PUBKEY_ODD => Parse(bytes[1..], isOdd: true),
-				GE.SECP256K1_TAG_PUBKEY_EVEN => Parse(bytes[1..], isOdd: false),
+				GE.SECP256K1_TAG_PUBKEY_ODD => Parse(bytes.AsSpan()[1..], isOdd: true),
+				GE.SECP256K1_TAG_PUBKEY_EVEN => Parse(bytes.AsSpan()[1..], isOdd: false),
 				_ => throw new ArgumentException($"Argument is not a well-formatted group element.", nameof(bytes))
 			};
 		}
