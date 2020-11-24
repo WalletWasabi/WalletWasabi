@@ -60,8 +60,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _minGapLimit, value);
 		}
 
-		public ICommand NextCommand { get; }
-
 		private void ValidateMinGapLimit(IValidationErrors errors)
 		{
 			if (!int.TryParse(MinGapLimit, out var minGapLimit) || minGapLimit < KeyManager.AbsoluteMinGapLimit ||

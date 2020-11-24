@@ -29,8 +29,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			CancelCommand = ReactiveCommand.Create(() => ClearNavigation(NavigationTarget.DialogScreen));
 		}
 
-		public ICommand NextCommand { get; }
-
 		public List<RecoveryWordViewModel> MnemonicWords { get; set; }
 	}
 }
