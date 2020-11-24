@@ -60,7 +60,7 @@ namespace WalletWasabi.Services
 			}
 			catch (SocketException ex) when (ex.ErrorCode is 10048 or 48 or 98)
 			{
-				// ErrorCodes are different on every OS: win, macOS, lin.
+				// ErrorCodes are different on every OS: win, macOS, linux.
 				// It is already used -> another Wasabi is running on this network.
 				Logger.LogDebug("Detected another Wasabi instance.");
 			}
@@ -99,10 +99,10 @@ namespace WalletWasabi.Services
 			var listener = new TcpListener(IPAddress.Loopback, Port);
 			try
 			{
-				// This can throw an exception if the port is already opened.
+				// This can throw an exception if the port is already open.
 				listener.Start();
 
-				// Indicate that the Listener created successfully.
+				// Indicate that the Listener is created successfully.
 				task.TrySetResult();
 
 				// Stop listener here to ensure thread-safety.
