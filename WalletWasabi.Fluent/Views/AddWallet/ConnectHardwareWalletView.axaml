@@ -4,18 +4,39 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:h="using:WalletWasabi.Fluent.Helpers"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.ConnectHardwareWalletView">
-  <c:ContentArea Title="Hardware wallet"
-                 Caption="The hardware wallet will automatically appear when connected to the computer. The detection may take some time."
-                 EnableCancel="True" CancelContent="Cancel"
-                 EnableBack="True"
-                 EnableNext="True" NextContent="Connect" >
+
+    <UserControl.Styles>
+        <Style Selector="StackPanel.Delay">
+            <Style.Animations>
+                <Animation Duration="0:0:30">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="IsVisible" Value="False"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="95%">
+                        <Setter Property="Opacity" Value="0"/>
+                        <Setter Property="IsVisible" Value="True"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="1"/>
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+    </UserControl.Styles>
+
+    <c:ContentArea Title="Hardware wallet"
+                   Caption="The hardware wallet will automatically appear when connected to the computer. The detection may take some time."
+                   EnableCancel="True" CancelContent="Cancel"
+                   EnableBack="True"
+                   EnableNext="True" NextContent="Connect" >
       <DockPanel>
 
           <StackPanel Spacing="8" DockPanel.Dock="Bottom" Margin="0 15 0 40">
-              <StackPanel>
+              <StackPanel Classes="Delay">
                   <TextBlock Text="Device did not show up?" FontWeight="Bold" />
                   <TextBlock Text="- Be sure to set up and log into the device, usually with a PIN." TextWrapping="Wrap" />
                   <TextBlock Text="- Hardware wallets are picky about their USB cables, so try out multiple ones." TextWrapping="Wrap" />
@@ -24,7 +45,7 @@
                       <Button Content="https://github.com/bitcoin-core/HWI/tree/master/hwilib/udev" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding $self.Content}" />
                   </StackPanel>
               </StackPanel>
-              <StackPanel>
+             <StackPanel>
                   <TextBlock Text="Limitations?" FontWeight="Bold" />
                   <TextBlock Text="- Currently all hardware wallets are incompatible with coinjoins." />
                   <TextBlock Text="- Only bech32 keypaths are supported, your legacy hardware wallet transactions won't show up." />
