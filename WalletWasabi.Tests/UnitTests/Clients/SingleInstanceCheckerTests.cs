@@ -32,25 +32,25 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			// Disposal test.
 			await using (SingleInstanceChecker sic = new(mainNetPort))
 			{
-				await sic.EnsureSingleOrSignalAsync();
+				await sic.EnsureSingleOrThrowAsync();
 			}
 
 			// Check different networks.
 			await using (SingleInstanceChecker sic = new(mainNetPort))
 			{
-				await sic.EnsureSingleOrSignalAsync();
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic.EnsureSingleOrSignalAsync());
+				await sic.EnsureSingleOrThrowAsync();
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic.EnsureSingleOrThrowAsync());
 
 				await using SingleInstanceChecker sicMainNet2 = new(mainNetPort);
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicMainNet2.EnsureSingleOrSignalAsync());
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicMainNet2.EnsureSingleOrThrowAsync());
 
 				await using SingleInstanceChecker sicTestNet = new(testNetPort);
-				await sicTestNet.EnsureSingleOrSignalAsync();
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicTestNet.EnsureSingleOrSignalAsync());
+				await sicTestNet.EnsureSingleOrThrowAsync();
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicTestNet.EnsureSingleOrThrowAsync());
 
 				await using SingleInstanceChecker sicRegTest = new(regTestPort);
-				await sicRegTest.EnsureSingleOrSignalAsync();
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicRegTest.EnsureSingleOrSignalAsync());
+				await sicRegTest.EnsureSingleOrThrowAsync();
+				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicRegTest.EnsureSingleOrThrowAsync());
 			}
 		}
 
@@ -60,30 +60,33 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			int mainNetPort = GenerateRandomPort();
 
 			// Disposal test.
-			await using SingleInstanceChecker sic = new(mainNetPort);
+			await using SingleInstanceChecker firstInstance = new(mainNetPort);
 			long eventCalled = 0;
 
-			sic.OtherInstanceStarted += SetCalled;
+			firstInstance.OtherInstanceStarted += SetCalled;
 
 			try
 			{
 				// I am the first instance this should be fine.
-				await sic.EnsureSingleOrSignalAsync();
+				await firstInstance.EnsureSingleOrThrowAsync();
 
 				await using SingleInstanceChecker secondInstance = new(mainNetPort);
 
 				for (int i = 0; i < 3; i++)
 				{
 					// I am the second one.
-					await Assert.ThrowsAsync<InvalidOperationException>(async () => await secondInstance.EnsureSingleOrSignalAsync());
+					await Assert.ThrowsAsync<InvalidOperationException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
 				}
+
+				// Wait for the OtherInstanceStarted event to finish.
+				await firstInstance.StopAsync(CancellationToken.None);
 
 				// There should be the same number of events as the number of tries from the second instance.
 				Assert.Equal(3, Interlocked.Read(ref eventCalled));
 			}
 			finally
 			{
-				sic.OtherInstanceStarted -= SetCalled;
+				firstInstance.OtherInstanceStarted -= SetCalled;
 			}
 
 			void SetCalled(object? sender, EventArgs args)

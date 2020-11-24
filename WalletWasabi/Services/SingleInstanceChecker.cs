@@ -38,7 +38,7 @@ namespace WalletWasabi.Services
 
 		public event EventHandler? OtherInstanceStarted;
 
-		public async Task EnsureSingleOrSignalAsync()
+		public async Task EnsureSingleOrThrowAsync()
 		{
 			if (DisposeCts.IsCancellationRequested)
 			{
