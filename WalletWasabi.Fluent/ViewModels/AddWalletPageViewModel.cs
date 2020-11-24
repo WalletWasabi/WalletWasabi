@@ -27,8 +27,8 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			Title = "Add Wallet";
 
-			OpenCommand = ReactiveCommand.CreateFromTask(
-				async () =>
+			OpenCommand = ReactiveCommand.Create(
+				() =>
 				{
 					var termsAndConditions = new TermsAndConditionsViewModel(navigationState, legalDocuments, this);
 					termsAndConditions.NavigateToSelf();

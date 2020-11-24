@@ -436,7 +436,7 @@ namespace Mono.Options
 			{
 				if (ShowHelp)
 				{
-					return await Help.InvokeAsync(extra);
+					return await Help.InvokeAsync(extra).ConfigureAwait(false);
 				}
 				if (arguments.All(x => !x.Contains("version")))
 				{
@@ -455,12 +455,12 @@ namespace Mono.Options
 				if (command.Options?.Contains("help") ?? true)
 				{
 					extra.Add("--help");
-					return await command.InvokeAsync(extra);
+					return await command.InvokeAsync(extra).ConfigureAwait(false);
 				}
 				command.Options.WriteOptionDescriptions(Out);
 				return 0;
 			}
-			return await command.InvokeAsync(extra);
+			return await command.InvokeAsync(extra).ConfigureAwait(false);
 		}
 
 		public Command GetCommand(List<string> extra)

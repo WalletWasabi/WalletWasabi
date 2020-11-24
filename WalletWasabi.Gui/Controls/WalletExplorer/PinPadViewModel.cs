@@ -92,8 +92,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					pinpad = new PinPadViewModel();
 					IoC.Get<IShell>().AddOrSelectDocument(pinpad);
 				}
-				var result = await pinpad.ShowDialogAsync();
-				if (result is false)
+				object? result = await pinpad.ShowDialogAsync();
+				if (result is not true)
 				{
 					throw new SecurityException("PIN was not provided.");
 				}

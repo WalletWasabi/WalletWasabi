@@ -12,11 +12,13 @@ namespace WalletWasabi.WebClients.Coinbase
 	{
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync()
 		{
-			using var httpClient = new HttpClient();
-			httpClient.BaseAddress = new Uri("https://api.coinbase.com");
-			using var response = await httpClient.GetAsync("/v2/exchange-rates?currency=BTC");
+			using var httpClient = new HttpClient
+			{
+				BaseAddress = new Uri("https://api.coinbase.com")
+			};
+			using var response = await httpClient.GetAsync("/v2/exchange-rates?currency=BTC").ConfigureAwait(false);
 			using var content = response.Content;
-			var wrapper = await content.ReadAsJsonAsync<DataWrapper>();
+			var wrapper = await content.ReadAsJsonAsync<DataWrapper>().ConfigureAwait(false);
 
 			var exchangeRates = new List<ExchangeRate>
 				{

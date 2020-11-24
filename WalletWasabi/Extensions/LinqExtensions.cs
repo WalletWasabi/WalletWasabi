@@ -10,7 +10,7 @@ namespace System.Linq
 		public static IEnumerable<IEnumerable<T>> Batch<T>(
 		   this IEnumerable<T> source, int size)
 		{
-			T[] bucket = null;
+			T[]? bucket = null;
 			var count = 0;
 
 			foreach (var item in source)
@@ -38,9 +38,9 @@ namespace System.Linq
 			}
 		}
 
-		public static T RandomElement<T>(this IEnumerable<T> source)
+		public static T? RandomElement<T>(this IEnumerable<T> source)
 		{
-			T current = default;
+			T? current = default;
 			int count = 0;
 			foreach (T element in source)
 			{
@@ -49,10 +49,6 @@ namespace System.Linq
 				{
 					current = element;
 				}
-			}
-			if (count == 0)
-			{
-				return default;
 			}
 			return current;
 		}
@@ -71,25 +67,6 @@ namespace System.Linq
 			}
 		}
 
-		// https://stackoverflow.com/a/2992364
-		public static void RemoveByValue<TKey, TValue>(this Dictionary<TKey, TValue> me, TValue value)
-		{
-			var itemsToRemove = new List<TKey>();
-
-			foreach (var pair in me)
-			{
-				if (pair.Value.Equals(value))
-				{
-					itemsToRemove.Add(pair.Key);
-				}
-			}
-
-			foreach (TKey item in itemsToRemove)
-			{
-				me.Remove(item);
-			}
-		}
-
 		public static void AddToValueList<TKey, TValue, TElem>(this Dictionary<TKey, TValue> myDic, TKey key, TElem elem) where TValue : List<TElem>
 		{
 			if (myDic.ContainsKey(key))
@@ -99,25 +76,6 @@ namespace System.Linq
 			else
 			{
 				myDic.Add(key, new List<TElem>() { elem } as TValue);
-			}
-		}
-
-		// https://stackoverflow.com/a/2992364
-		public static void RemoveByValue<TKey, TValue>(this SortedDictionary<TKey, TValue> me, TValue value)
-		{
-			var itemsToRemove = new List<TKey>();
-
-			foreach (var pair in me)
-			{
-				if (pair.Value.Equals(value))
-				{
-					itemsToRemove.Add(pair.Key);
-				}
-			}
-
-			foreach (TKey item in itemsToRemove)
-			{
-				me.Remove(item);
 			}
 		}
 

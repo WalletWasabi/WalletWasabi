@@ -4,8 +4,6 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 {
 	public class RpcStatus : IEquatable<RpcStatus>
 	{
-		public static RpcStatus Unresponsive = new RpcStatus(false, 0, 0, 0);
-
 		private RpcStatus(bool success, ulong headers, ulong blocks, int peersCount)
 		{
 			Synchronized = false;
@@ -36,6 +34,8 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 			Blocks = blocks;
 			PeersCount = peersCount;
 		}
+
+		public static RpcStatus Unresponsive { get; } = new RpcStatus(false, 0, 0, 0);
 
 		public string Status { get; }
 		public bool Success { get; }
