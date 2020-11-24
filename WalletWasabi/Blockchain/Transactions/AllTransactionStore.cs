@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
@@ -12,7 +13,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Blockchain.Transactions
 {
-	public class AllTransactionStore
+	public class AllTransactionStore : IAsyncDisposable
 	{
 		public AllTransactionStore(string workFolderPath, Network network)
 		{
@@ -20,32 +21,31 @@ namespace WalletWasabi.Blockchain.Transactions
 			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
 			Network = Guard.NotNull(nameof(network), network);
+
+			MempoolStore = new TransactionStore();
+			ConfirmedStore = new TransactionStore();
 		}
 
 		#region Initializers
 
-		private string WorkFolderPath { get; set; }
+		private string WorkFolderPath { get; }
 		private Network Network { get; }
 
-		public TransactionStore MempoolStore { get; private set; }
-		public TransactionStore ConfirmedStore { get; private set; }
-		private object Lock { get; set; }
+		public TransactionStore MempoolStore { get; }
+		public TransactionStore ConfirmedStore { get; }
+		private object Lock { get; } = new object();
 
-		public async Task InitializeAsync(bool ensureBackwardsCompatibility = true)
+		public async Task InitializeAsync(CancellationToken cancel = default, bool ensureBackwardsCompatibility = true)
 		{
 			using (BenchmarkLogger.Measure())
 			{
-				MempoolStore = new TransactionStore();
-				ConfirmedStore = new TransactionStore();
-				Lock = new object();
-
 				var mempoolWorkFolder = Path.Combine(WorkFolderPath, "Mempool");
 				var confirmedWorkFolder = Path.Combine(WorkFolderPath, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion);
 
 				var initTasks = new[]
 				{
-					MempoolStore.InitializeAsync(mempoolWorkFolder, Network, $"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}"),
-					ConfirmedStore.InitializeAsync(confirmedWorkFolder, Network, $"{nameof(ConfirmedStore)}.{nameof(ConfirmedStore.InitializeAsync)}")
+					MempoolStore.InitializeAsync(mempoolWorkFolder, Network, $"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}", cancel),
+					ConfirmedStore.InitializeAsync(confirmedWorkFolder, Network, $"{nameof(ConfirmedStore)}.{nameof(ConfirmedStore.InitializeAsync)}", cancel)
 				};
 
 				await Task.WhenAll(initTasks).ConfigureAwait(false);
@@ -53,6 +53,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				if (ensureBackwardsCompatibility)
 				{
+					cancel.ThrowIfCancellationRequested();
 					EnsureBackwardsCompatibility();
 				}
 			}
@@ -262,5 +263,11 @@ namespace WalletWasabi.Blockchain.Transactions
 		public IEnumerable<SmartLabel> GetLabels() => GetTransactions().Select(x => x.Label);
 
 		#endregion Accessors
+
+		public async ValueTask DisposeAsync()
+		{
+			await MempoolStore.DisposeAsync();
+			await ConfirmedStore.DisposeAsync();
+		}
 	}
 }

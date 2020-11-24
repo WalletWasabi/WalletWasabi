@@ -45,10 +45,12 @@ namespace WalletWasabi.Tests.RegressionTests
 		{
 			RegTestFixture = regTestFixture;
 			BaseUri = new Uri(RegTestFixture.BackendEndPoint);
+			BackendClearnetHttpClient = new ClearnetHttpClient(() => RegTestFixture.BackendEndPointUri);
 		}
 
 		private RegTestFixture RegTestFixture { get; }
 		public Uri BaseUri { get; }
+		public ClearnetHttpClient BackendClearnetHttpClient { get; }
 
 		[Fact]
 		public async Task CoordinatorCtorTestsAsync()
@@ -610,9 +612,9 @@ namespace WalletWasabi.Tests.RegressionTests
 					throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
 				}
 
-				using (var bobClient1 = new BobClient(BaseUri, null))
-				using (var bobClient2 = new BobClient(BaseUri, null))
 				{
+					var bobClient1 = new BobClient(BackendClearnetHttpClient);
+					var bobClient2 = new BobClient(BackendClearnetHttpClient);
 					await bobClient1.PostOutputAsync(aliceClient1.RoundId, new ActiveOutput(outputAddress1, connConfResp.activeOutputs.First().Signature, 0));
 					await bobClient2.PostOutputAsync(aliceClient2.RoundId, new ActiveOutput(outputAddress2, connConfResp2.activeOutputs.First().Signature, 0));
 				}
@@ -683,7 +685,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 				Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
 
-				var wasabiClient = new WasabiClient(BaseUri, null);
+				var wasabiClient = new WasabiClient(BackendClearnetHttpClient);
 				var syncInfo = await wasabiClient.GetSynchronizeAsync(blockHashed[0], 1);
 				Assert.Contains(unsignedCoinJoin.GetHash(), syncInfo.UnconfirmedCoinJoins);
 				var txs = await wasabiClient.GetTransactionsAsync(network, new[] { unsignedCoinJoin.GetHash() }, CancellationToken.None);
@@ -792,16 +794,15 @@ namespace WalletWasabi.Tests.RegressionTests
 			Assert.Equal(RoundPhase.OutputRegistration, roundState.Phase);
 
 			var l = 0;
+			var bobClient = new BobClient(BackendClearnetHttpClient);
+
 			foreach (var (aliceClient, outputs, _) in participants)
 			{
-				using (var bobClient = new BobClient(baseUri, null))
+				var i = 0;
+				foreach (var output in outputs.Take(activeOutputs[l].Count()))
 				{
-					var i = 0;
-					foreach (var output in outputs.Take(activeOutputs[l].Count()))
-					{
-						await bobClient.PostOutputAsync(aliceClient.RoundId, new ActiveOutput(output.outputAddress, activeOutputs[l].ElementAt(i).Signature, i));
-						i++;
-					}
+					await bobClient.PostOutputAsync(aliceClient.RoundId, new ActiveOutput(output.outputAddress, activeOutputs[l].ElementAt(i).Signature, i));
+					i++;
 				}
 				l++;
 			}
@@ -986,17 +987,16 @@ namespace WalletWasabi.Tests.RegressionTests
 				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, user.aliceClient, resp.Item2.First().Signature));
 			}
 
-			var outputRequests = new List<(BobClient, Task)>();
+			var outputRequests = new List<Task>();
 			foreach (var user in users)
 			{
-				var bobClient = new BobClient(baseUri, null);
-				outputRequests.Add((bobClient, bobClient.PostOutputAsync(roundId, new ActiveOutput(user.activeOutputAddress, user.unblindedSignature, 0))));
+				var bobClient = new BobClient(BackendClearnetHttpClient);
+				outputRequests.Add(bobClient.PostOutputAsync(roundId, new ActiveOutput(user.activeOutputAddress, user.unblindedSignature, 0)));
 			}
 
-			foreach (var request in outputRequests)
+			foreach (Task task in outputRequests)
 			{
-				await request.Item2;
-				request.Item1?.Dispose();
+				await task;
 			}
 
 			var coinjoinRequests = new List<Task<Transaction>>();

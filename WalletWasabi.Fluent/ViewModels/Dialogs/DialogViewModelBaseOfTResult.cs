@@ -1,5 +1,6 @@
 using ReactiveUI;
 using System;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
@@ -24,6 +25,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 							  .Skip(1) // Skip the initial value change (which is false).
 							  .DistinctUntilChanged()
 							  .Subscribe(OnIsDialogOpenChanged);
+
+			CancelCommand = ReactiveCommand.Create(() => Close());
+
+			this.WhenNavigatedTo(() => Disposable.Create(() => Close()));
 		}
 
 		private void OnIsDialogOpenChanged(bool dialogState)
@@ -44,7 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		{
 			if (_currentTaskCompletionSource.Task.IsCompleted)
 			{
-				throw new InvalidOperationException("Dialog is already closed.");
+				return;
 			}
 
 			_currentTaskCompletionSource.SetResult(value);

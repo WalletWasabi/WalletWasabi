@@ -10,16 +10,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Tor.Exceptions;
 using WalletWasabi.Tor.Http.Extensions;
-using WalletWasabi.Tor.Http.Interfaces;
 using WalletWasabi.Tor.Http.Models;
 using WalletWasabi.Tor.Socks5;
+using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 
 namespace WalletWasabi.Tor.Http
 {
-	public class TorHttpClient : ITorHttpClient, IDisposable
+	public class TorHttpClient : IRelativeHttpClient, IDisposable
 	{
 		private static DateTimeOffset? TorDoesntWorkSinceBacking = null;
 
@@ -126,7 +125,7 @@ namespace WalletWasabi.Tor.Http
 							return ret2;
 						}
 						// If we get ttlexpired then wait and retry again linux often do this.
-						catch (TorSocks5FailureResponseException ex2) when (ex2.RepField == RepField.TtlExpired)
+						catch (TorConnectCommandFailedException ex2) when (ex2.RepField == RepField.TtlExpired)
 						{
 							Logger.LogTrace(ex);
 
@@ -144,7 +143,7 @@ namespace WalletWasabi.Tor.Http
 						}
 						catch (SocketException ex3) when (ex3.ErrorCode == (int)SocketError.ConnectionRefused)
 						{
-							throw new ConnectionException("Connection was refused.", ex3);
+							throw new TorConnectionException("Connection was refused.", ex3);
 						}
 
 						cancel.ThrowIfCancellationRequested();
@@ -158,7 +157,7 @@ namespace WalletWasabi.Tor.Http
 			catch (TaskCanceledException ex)
 			{
 				SetTorNotWorkingState(ex);
-				throw new OperationCanceledException(ex.Message, ex, cancel);
+				throw;
 			}
 			catch (Exception ex)
 			{

@@ -22,6 +22,7 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.Services;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.WebClients.Wasabi;
@@ -75,7 +76,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			var lastResponse = Synchronizer.LastResponse;
 			if (lastResponse is { })
 			{
-				_ = TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates);
+				AbandonedTasks.AddAndClearCompleted(TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates));
 			}
 		}
 
@@ -84,6 +85,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		public event EventHandler<SmartCoin>? CoinQueued;
 
 		public event EventHandler<DequeueResult>? OnDequeue;
+
+		private AbandonedTasks AbandonedTasks { get; } = new AbandonedTasks();
 
 		public Network Network { get; private set; }
 		public KeyManager KeyManager { get; }
@@ -424,11 +427,14 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			shuffledOutputs.Shuffle();
 			foreach (var activeOutput in shuffledOutputs)
 			{
-				using var bobClient = new BobClient(CcjHostUriAction, TorSocks5EndPoint);
-				if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput).ConfigureAwait(false))
+				using (TorHttpClient torHttpClient = Synchronizer.WasabiClientFactory.NewBackendTorHttpClient(isolateStream: true))
 				{
-					Logger.LogWarning($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.");
-					break;
+					var bobClient = new BobClient(torHttpClient);
+					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput).ConfigureAwait(false))
+					{
+						Logger.LogWarning($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.");
+						break;
+					}
 				}
 
 				// Unblind our exposed links.
@@ -1051,6 +1057,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					}
 				}
 			}
+			await AbandonedTasks.WhenAllAsync().ConfigureAwait(false);
 		}
 
 		public async Task DequeueAllCoinsFromMixGracefullyAsync(DequeueReason reason, CancellationToken cancel)

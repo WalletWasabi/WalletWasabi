@@ -11,7 +11,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public async Task CanInitializeAsync()
 		{
-			var txStore = new TransactionStoreMock();
+			await using var txStore = new TransactionStoreMock();
 			var network = Network.Main;
 			await txStore.InitializeAsync(network);
 
@@ -28,7 +28,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public async Task CanDoOperationsAsync()
 		{
-			var txStore = new TransactionStoreMock();
+			await using var txStore = new TransactionStoreMock();
 			var network = Network.Main;
 			await txStore.InitializeAsync(network);
 
