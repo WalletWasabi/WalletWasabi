@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Services;
@@ -39,18 +40,18 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			await using (SingleInstanceChecker sic = new(mainNetPort))
 			{
 				await sic.EnsureSingleOrThrowAsync();
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic.EnsureSingleOrThrowAsync());
+				await Assert.ThrowsAsync<OperationCanceledException>(async () => await sic.EnsureSingleOrThrowAsync());
 
 				await using SingleInstanceChecker sicMainNet2 = new(mainNetPort);
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicMainNet2.EnsureSingleOrThrowAsync());
+				await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicMainNet2.EnsureSingleOrThrowAsync());
 
 				await using SingleInstanceChecker sicTestNet = new(testNetPort);
 				await sicTestNet.EnsureSingleOrThrowAsync();
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicTestNet.EnsureSingleOrThrowAsync());
+				await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicTestNet.EnsureSingleOrThrowAsync());
 
 				await using SingleInstanceChecker sicRegTest = new(regTestPort);
 				await sicRegTest.EnsureSingleOrThrowAsync();
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicRegTest.EnsureSingleOrThrowAsync());
+				await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicRegTest.EnsureSingleOrThrowAsync());
 			}
 		}
 
@@ -75,11 +76,18 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 				for (int i = 0; i < 3; i++)
 				{
 					// I am the second one.
-					await Assert.ThrowsAsync<InvalidOperationException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
+					await Assert.ThrowsAsync<OperationCanceledException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
 				}
 
 				// Wait for the OtherInstanceStarted event to finish.
-				await firstInstance.StopAsync(CancellationToken.None);
+				using CancellationTokenSource cts = new(TimeSpan.FromSeconds(5));
+				while (!cts.IsCancellationRequested)
+				{
+					while (Interlocked.Read(ref eventCalled) != 3)
+					{
+						cts.Token.ThrowIfCancellationRequested();
+					}
+				}
 
 				// There should be the same number of events as the number of tries from the second instance.
 				Assert.Equal(3, Interlocked.Read(ref eventCalled));
