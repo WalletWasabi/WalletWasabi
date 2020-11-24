@@ -212,7 +212,7 @@ namespace Nito.AsyncEx
 		/// <summary>
 		/// Standard procedure to send command to the mutex thread.
 		/// </summary>
-		private async Task SetCommandAsync(int command, CancellationToken cancellationToken, int pollInterval)
+		private async Task SetCommandAsync(int command, int pollInterval, CancellationToken cancellationToken)
 		{
 			if (!IsAlive)
 			{
@@ -270,7 +270,7 @@ namespace Nito.AsyncEx
 		/// </summary>
 		/// <param name="pollInterval">The frequency of polling the termination of the mutex-thread.</param>
 		/// <returns>The IDisposable await-able Task.</returns>
-		public async Task<IDisposable> LockAsync(CancellationToken cancellationToken = default, int pollInterval = 100)
+		public async Task<IDisposable> LockAsync(int pollInterval = 100, CancellationToken cancellationToken = default)
 		{
 			Exception inner = null;
 
@@ -300,7 +300,7 @@ namespace Nito.AsyncEx
 				try
 				{
 					// Create the mutex and acquire it.
-					await SetCommandAsync(1, cancellationToken, pollInterval).ConfigureAwait(false);
+					await SetCommandAsync(1, pollInterval, cancellationToken).ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{

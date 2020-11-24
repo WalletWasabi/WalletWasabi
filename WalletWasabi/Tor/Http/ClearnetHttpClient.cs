@@ -47,7 +47,7 @@ namespace WalletWasabi.Tor.Http
 
 		/// <param name="isolateStream">Clearnet HTTP client does not support this option.</param>
 		/// <inheritdoc/>
-		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream = false, CancellationToken token = default)
+		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default)
 		{
 			return HttpClient.SendAsync(request, token);
 		}

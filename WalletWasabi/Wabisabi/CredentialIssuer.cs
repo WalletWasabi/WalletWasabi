@@ -17,24 +17,24 @@ namespace WalletWasabi.Wabisabi
 	/// Issues anonymous credentials using the coordinator's secret key.
 	/// </summary>
 	/// <remarks>
-	/// CredentialIssuer is the coordinator's component used to issue anonymous credentials 
-	/// requested by a WabiSabi client. This means this component abstracts receives  
+	/// CredentialIssuer is the coordinator's component used to issue anonymous credentials
+	/// requested by a WabiSabi client. This means this component abstracts receives
 	/// <see cref="RegistrationRequestMessage">RegistrationRequests</see>, validates the requested
 	/// amounts are in the valid range, serial numbers are not duplicated nor reused,
 	/// and finally issues the credentials using the coordinator's secret key (and also
-	/// proving to the WabiSabi client that the credentials were issued with the right 
+	/// proving to the WabiSabi client that the credentials were issued with the right
 	/// key).
 	///
-	/// Note that this is a stateful component because it needs to keep track of the 
+	/// Note that this is a stateful component because it needs to keep track of the
 	/// presented credentials' serial numbers in order to prevent credential reuse.
-	/// Additionally it keeps also track of the `balance` in order to make sure it never 
+	/// Additionally it keeps also track of the `balance` in order to make sure it never
 	/// issues credentials for more money than the total presented amount. All this means
 	/// that the same instance has to be used for a given round (the coordinator needs to
 	/// maintain only one instance of this class per round)
-	/// 
+	///
 	/// About replay requests: a replay request is a <see cref="RegistrationRequestMessage">request</see>
 	/// that has already been seen before. These kind of requests can be the result of misbehaving
-	/// clients or simply clients using a retry communication mechanism. 
+	/// clients or simply clients using a retry communication mechanism.
 	/// Reply requests are not handled by this component and they have to be handled by a different
 	/// component. A good solution is to use a caching feature where the request fingerprint is
 	/// used as a key, in this way using a standard solution it is possible to respond with the exact
@@ -56,7 +56,7 @@ namespace WalletWasabi.Wabisabi
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 		}
 
-		// Keeps track of the used serial numbers. This is part of 
+		// Keeps track of the used serial numbers. This is part of
 		// the double-spending prevention mechanism.
 		private HashSet<GroupElement> SerialNumbers { get; } = new HashSet<GroupElement>();
 
@@ -106,7 +106,7 @@ namespace WalletWasabi.Wabisabi
 					$"{requiredNumberOfPresentations} credential presentations were expected but {presentedCount} were received.");
 			}
 
-			// Don't allow balance to go negative. In case this goes below zero 
+			// Don't allow balance to go negative. In case this goes below zero
 			// then there is a problem somewhere because this should not be possible.
 			if (Balance + registrationRequest.DeltaAmount < Money.Zero)
 			{
@@ -133,10 +133,10 @@ namespace WalletWasabi.Wabisabi
 			foreach (var presentation in presented)
 			{
 				// Calculate Z using coordinator secret.
-				var Z = presentation.ComputeZ(CoordinatorSecretKey);
+				var z = presentation.ComputeZ(CoordinatorSecretKey);
 
 				// Add the credential presentation to the statements to be verified.
-				statements.Add(ProofSystem.ShowCredentialStatement(presentation, Z, CoordinatorParameters));
+				statements.Add(ProofSystem.ShowCredentialStatement(presentation, z, CoordinatorParameters));
 
 				// Check if the serial numbers have been used before. Note that
 				// the serial numbers have not yet been verified at this point, but a

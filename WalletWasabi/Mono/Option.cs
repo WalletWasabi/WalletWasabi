@@ -190,7 +190,7 @@ namespace Mono.Options
 				? new[] { prototype + GetHashCode() }
 				: prototype.Split('|');
 
-			if (this is OptionSet.Category || this is CommandOption)
+			if (this is OptionSet.Category or CommandOption)
 			{
 				return;
 			}

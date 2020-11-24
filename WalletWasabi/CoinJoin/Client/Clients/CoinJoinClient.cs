@@ -307,10 +307,10 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				{
 					if (!ongoingRound.Registration.IsPhaseActionsComleted(RoundPhase.ConnectionConfirmation)) // If we did not already confirm connection in connection confirmation phase confirm it.
 					{
-						var res = await ongoingRound.Registration.AliceClient.PostConfirmationAsync().ConfigureAwait(false);
-						if (res.activeOutputs.Any())
+						var (currentPhase, activeOutputs) = await ongoingRound.Registration.AliceClient.PostConfirmationAsync().ConfigureAwait(false);
+						if (activeOutputs.Any())
 						{
-							ongoingRound.Registration.ActiveOutputs = res.activeOutputs;
+							ongoingRound.Registration.ActiveOutputs = activeOutputs;
 						}
 						ongoingRound.Registration.SetPhaseCompleted(RoundPhase.ConnectionConfirmation);
 					}
@@ -361,12 +361,12 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			minAmountBack -= networkFees; // Minus miner fee.
 
 			IOrderedEnumerable<(Money value, int count)> indistinguishableOutputs = unsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count);
-			foreach ((Money value, int count) denomPair in indistinguishableOutputs)
+			foreach ((Money value, int count) in indistinguishableOutputs)
 			{
-				var mineCount = myOutputs.Count(x => x.Value == denomPair.value);
+				var mineCount = myOutputs.Count(x => x.Value == value);
 
-				Money denomination = denomPair.value;
-				int anonset = Math.Min(110, denomPair.count); // https://github.com/zkSNACKs/WalletWasabi/issues/1379
+				Money denomination = value;
+				int anonset = Math.Min(110, count); // https://github.com/zkSNACKs/WalletWasabi/issues/1379
 				Money expectedCoordinatorFee = denomination.Percentage(ongoingRound.State.CoordinatorFeePercent * anonset);
 				for (int i = 0; i < mineCount; i++)
 				{
@@ -464,17 +464,17 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		{
 			try
 			{
-				var res = await inputRegistrableRound.Registration.AliceClient.PostConfirmationAsync().ConfigureAwait(false);
+				var (currentPhase, activeOutputs) = await inputRegistrableRound.Registration.AliceClient.PostConfirmationAsync().ConfigureAwait(false);
 
-				if (res.activeOutputs.Any())
+				if (activeOutputs.Any())
 				{
-					inputRegistrableRound.Registration.ActiveOutputs = res.activeOutputs;
+					inputRegistrableRound.Registration.ActiveOutputs = activeOutputs;
 				}
 
-				if (res.currentPhase > RoundPhase.InputRegistration) // Then the phase went to connection confirmation (probably).
+				if (currentPhase > RoundPhase.InputRegistration) // Then the phase went to connection confirmation (probably).
 				{
 					inputRegistrableRound.Registration.SetPhaseCompleted(RoundPhase.ConnectionConfirmation);
-					inputRegistrableRound.State.Phase = res.currentPhase;
+					inputRegistrableRound.State.Phase = currentPhase;
 				}
 			}
 			catch (Exception ex)

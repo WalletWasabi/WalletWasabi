@@ -82,7 +82,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} wipe"))
 			{
-				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Trezor_1)
+				if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_1)
 				{
 					response = SuccessTrueResponse;
 				}
@@ -97,7 +97,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} setup"))
 			{
-				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Trezor_1)
+				if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_1)
 				{
 					response = "{\"error\": \"setup requires interactive mode\", \"code\": -9}";
 				}
@@ -112,7 +112,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} --interactive setup"))
 			{
-				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Trezor_1)
+				if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_1)
 				{
 					response = SuccessTrueResponse;
 				}
@@ -127,7 +127,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} --interactive restore"))
 			{
-				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Trezor_1)
+				if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_1)
 				{
 					response = SuccessTrueResponse;
 				}
@@ -142,7 +142,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} promptpin"))
 			{
-				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Trezor_1)
+				if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_1)
 				{
 					response = "{\"error\": \"The PIN has already been sent to this device\", \"code\": -11}\r\n";
 				}
@@ -157,7 +157,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} sendpin", true))
 			{
-				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Trezor_1)
+				if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_1)
 				{
 					response = "{\"error\": \"The PIN has already been sent to this device\", \"code\": -11}";
 				}
@@ -172,14 +172,14 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			}
 			else if (CompareGetXbpubArguments(arguments, out string? xpub))
 			{
-				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Coldcard || Model == HardwareWalletModels.Trezor_1 || Model == HardwareWalletModels.Ledger_Nano_S)
+				if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Coldcard or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Ledger_Nano_S)
 				{
 					response = $"{{\"xpub\": \"{xpub}\"}}\r\n";
 				}
 			}
 			else if (CompareArguments(out bool t1, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h --wpkh", false))
 			{
-				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Coldcard || Model == HardwareWalletModels.Trezor_1 || Model == HardwareWalletModels.Ledger_Nano_S)
+				if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Coldcard or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Ledger_Nano_S)
 				{
 					response = t1
 						? "{\"address\": \"tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy\"}\r\n"
@@ -188,7 +188,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			}
 			else if (CompareArguments(out bool t2, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h/1 --wpkh", false))
 			{
-				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Coldcard || Model == HardwareWalletModels.Trezor_1 || Model == HardwareWalletModels.Ledger_Nano_S)
+				if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Coldcard or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Ledger_Nano_S)
 				{
 					response = t2
 						? "{\"address\": \"tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6\"}\r\n"
