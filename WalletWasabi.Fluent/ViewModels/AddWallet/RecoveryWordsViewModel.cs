@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
