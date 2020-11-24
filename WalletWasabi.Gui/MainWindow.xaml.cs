@@ -11,6 +11,7 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.WalletExplorer;
@@ -85,11 +86,9 @@ namespace WalletWasabi.Gui
 
 				if (Interlocked.Read(ref _closingState) == 0)
 				{
-					var hideOnClose = true;
-
-					if (hideOnClose)
+					if (Global.UiConfig.HideWindowOnClose)
 					{
-						Hide();
+						HideWindow();
 						return;
 					}
 				}
@@ -114,6 +113,19 @@ namespace WalletWasabi.Gui
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
+			}
+		}
+
+		public void HideWindow()
+		{
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				// On OSX, just minimize the window https://github.com/zkSNACKs/WalletWasabi/pull/4772.
+				WindowState = Avalonia.Controls.WindowState.Minimized;
+			}
+			else
+			{
+				Hide();
 			}
 		}
 

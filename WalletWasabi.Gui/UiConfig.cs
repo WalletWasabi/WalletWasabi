@@ -17,6 +17,7 @@ namespace WalletWasabi.Gui
 		private bool _isCustomChangeAddress;
 		private bool _autocopy;
 		private int _feeDisplayFormat;
+		private bool _hideWindowOnClose;
 
 		public UiConfig() : base()
 		{
@@ -105,5 +106,13 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "HistoryTabViewSortingPreference")]
 		[JsonConverter(typeof(SortingPreferenceJsonConverter))]
 		public SortingPreference HistoryTabViewSortingPreference { get; internal set; } = new SortingPreference(SortOrder.Decreasing, "Date");
+
+		[DefaultValue(true)]
+		[JsonProperty(PropertyName = "HideWindowOnClose", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool HideWindowOnClose
+		{
+			get => _hideWindowOnClose;
+			set => RaiseAndSetIfChanged(ref _hideWindowOnClose, value);
+		}
 	}
 }
