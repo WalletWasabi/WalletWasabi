@@ -71,20 +71,20 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 					batch.SendBatchAsync().GetAwaiter().GetResult();
 
-					foreach (var task in getTxTasks)
+					foreach (var (txTask, line) in getTxTasks)
 					{
 						try
 						{
-							var tx = task.txTask.GetAwaiter().GetResult();
+							var tx = txTask.GetAwaiter().GetResult();
 							CoinJoins.Add(tx.GetHash());
 						}
 						catch (Exception ex)
 						{
-							toRemove.Add(task.line);
+							toRemove.Add(line);
 
 							var logEntry = ex is RPCException rpce && rpce.RPCCode == RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY
-								? $"CoinJoins file contains invalid transaction ID {task.line}"
-								: $"CoinJoins file got corrupted. Deleting offending line \"{task.line.Substring(0, 20)}\".";
+								? $"CoinJoins file contains invalid transaction ID {line}"
+								: $"CoinJoins file got corrupted. Deleting offending line \"{line.Substring(0, 20)}\".";
 
 							Logger.LogWarning($"{logEntry}. {ex.GetType()}: {ex.Message}");
 						}

@@ -240,10 +240,10 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		public async Task<UpdateStatus> CheckUpdatesAsync(CancellationToken cancel)
 		{
-			var versions = await GetVersionsAsync(cancel).ConfigureAwait(false);
-			var clientUpToDate = Helpers.Constants.ClientVersion >= versions.ClientVersion; // If the client version locally is greater than or equal to the backend's reported client version, then good.
-			var backendCompatible = int.Parse(Helpers.Constants.ClientSupportBackendVersionMax) >= versions.BackendMajorVersion && versions.BackendMajorVersion >= int.Parse(Helpers.Constants.ClientSupportBackendVersionMin); // If ClientSupportBackendVersionMin <= backend major <= ClientSupportBackendVersionMax, then our software is compatible.
-			var currentBackendMajorVersion = versions.BackendMajorVersion;
+			var (ClientVersion, BackendMajorVersion, LegalDocumentsVersion) = await GetVersionsAsync(cancel).ConfigureAwait(false);
+			var clientUpToDate = Helpers.Constants.ClientVersion >= ClientVersion; // If the client version locally is greater than or equal to the backend's reported client version, then good.
+			var backendCompatible = int.Parse(Helpers.Constants.ClientSupportBackendVersionMax) >= BackendMajorVersion && BackendMajorVersion >= int.Parse(Helpers.Constants.ClientSupportBackendVersionMin); // If ClientSupportBackendVersionMin <= backend major <= ClientSupportBackendVersionMax, then our software is compatible.
+			var currentBackendMajorVersion = BackendMajorVersion;
 
 			if (backendCompatible)
 			{
@@ -251,7 +251,7 @@ namespace WalletWasabi.WebClients.Wasabi
 				ApiVersion = currentBackendMajorVersion;
 			}
 
-			return new UpdateStatus(backendCompatible, clientUpToDate, versions.LegalDocumentsVersion, currentBackendMajorVersion);
+			return new UpdateStatus(backendCompatible, clientUpToDate, LegalDocumentsVersion, currentBackendMajorVersion);
 		}
 
 		#endregion software
