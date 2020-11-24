@@ -39,18 +39,18 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			await using (SingleInstanceChecker sic = new(mainNetPort))
 			{
 				await sic.EnsureSingleOrSignalAsync();
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sic.EnsureSingleOrSignalAsync());
+				await Assert.ThrowsAsync<OperationCanceledException>(async () => await sic.EnsureSingleOrSignalAsync());
 
 				await using SingleInstanceChecker sicMainNet2 = new(mainNetPort);
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicMainNet2.EnsureSingleOrSignalAsync());
+				await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicMainNet2.EnsureSingleOrSignalAsync());
 
 				await using SingleInstanceChecker sicTestNet = new(testNetPort);
 				await sicTestNet.EnsureSingleOrSignalAsync();
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicTestNet.EnsureSingleOrSignalAsync());
+				await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicTestNet.EnsureSingleOrSignalAsync());
 
 				await using SingleInstanceChecker sicRegTest = new(regTestPort);
 				await sicRegTest.EnsureSingleOrSignalAsync();
-				await Assert.ThrowsAsync<InvalidOperationException>(async () => await sicRegTest.EnsureSingleOrSignalAsync());
+				await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicRegTest.EnsureSingleOrSignalAsync());
 			}
 		}
 
@@ -75,7 +75,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 				for (int i = 0; i < 3; i++)
 				{
 					// I am the second one.
-					await Assert.ThrowsAsync<InvalidOperationException>(async () => await secondInstance.EnsureSingleOrSignalAsync());
+					await Assert.ThrowsAsync<OperationCanceledException>(async () => await secondInstance.EnsureSingleOrSignalAsync());
 				}
 
 				// There should be the same number of events as the number of tries from the second instance.
