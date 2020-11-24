@@ -43,13 +43,13 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		/// <returns>A randomized credential ready to be presented to the coordinator.</returns>
 		internal CredentialPresentation Present(Scalar z)
 		{
-			GroupElement Randomize(GroupElement G, GroupElement M) => M + z * G;
+			GroupElement Randomize(GroupElement g, GroupElement m) => m + z * g;
 			return new CredentialPresentation(
-				Ca: Randomize(Generators.Ga, Amount * Generators.Gg + Randomness * Generators.Gh),
-				Cx0: Randomize(Generators.Gx0, Mac.U),
-				Cx1: Randomize(Generators.Gx1, Mac.T * Mac.U),
-				CV: Randomize(Generators.GV, Mac.V),
-				S: Randomness * Generators.Gs);
+				ca: Randomize(Generators.Ga, Amount * Generators.Gg + Randomness * Generators.Gh),
+				cx0: Randomize(Generators.Gx0, Mac.U),
+				cx1: Randomize(Generators.Gx1, Mac.T * Mac.U),
+				cV: Randomize(Generators.GV, Mac.V),
+				s: Randomness * Generators.Gs);
 		}
 	}
 }
