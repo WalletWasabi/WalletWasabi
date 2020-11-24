@@ -132,7 +132,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				order: order,
 				category: category,
 				keywords: "Settings, General, Dark Mode, Bitcoin Addresses, Manual Entry Free, Custom Change Address, Fee Display Format, Dust Threshold, BTC",
-				iconName: "settings_regular",
+				iconName: "settings_general_regular",
 				navigationState: NavigationState,
 				navigationTarget: NavigationTarget.HomeScreen,
 				createTargetView: () =>
@@ -150,7 +150,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				order: order,
 				category: category,
 				keywords: "Settings, Privacy, Minimal, Medium, Strong, Anonymity Level",
-				iconName: "settings_regular",
+				iconName: "settings_privacy_regular",
 				navigationState: NavigationState,
 				navigationTarget: NavigationTarget.HomeScreen,
 				createTargetView: () =>
@@ -168,7 +168,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				order: order,
 				category: category,
 				keywords: "Settings, Network, Encryption, Tor, Terminate, Wasabi, Shutdown, SOCKS5, Endpoint",
-				iconName: "settings_regular",
+				iconName: "settings_network_regular",
 				navigationState: NavigationState,
 				navigationTarget: NavigationTarget.HomeScreen,
 				createTargetView: () =>
@@ -186,7 +186,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				order: order,
 				category: category,
 				keywords: "Settings, Bitcoin, Network, Main, TestNet, RegTest, Run, Knots, Startup, P2P, Endpoint",
-				iconName: "settings_regular",
+				iconName: "settings_bitcoin_regular",
 				navigationState: NavigationState,
 				navigationTarget: NavigationTarget.HomeScreen,
 				createTargetView: () =>
