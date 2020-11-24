@@ -104,12 +104,12 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				ShowCredentialStatement(presentation, z * iparams.I, iparams),
 				new ScalarVector(z, (credential.Mac.T * z).Negate(), credential.Mac.T, credential.Amount, credential.Randomness));
 
-		public static Statement ShowCredentialStatement(CredentialPresentation c, GroupElement Z, CoordinatorParameters iparams)
+		public static Statement ShowCredentialStatement(CredentialPresentation c, GroupElement z, CoordinatorParameters iparams)
 			=> new Statement(new GroupElement[,]
 			{
 				// public                     Witness terms:
 				// point      z               z0              t               a               r
-				{ Z,          iparams.I,      O,              O,              O,              O },
+				{ z,          iparams.I,      O,              O,              O,              O },
 				{ c.Cx1,      Generators.Gx1, Generators.Gx0, c.Cx0,          O,              O },
 				{ c.Ca,       Generators.Ga,  O,              O,              Generators.Gg,  Generators.Gh },
 				{ c.S,        O,              O,              O,              O,              Generators.Gs }
@@ -193,7 +193,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			// Ma, proven by showing that the public input is a commitment to 0 (only
 			// Gh term required to represent it). The per-bit witness terms of this
 			// equation are added in the loop below.
-			var bitsTotal = bitCommitments.Select((B, i) => Scalar.Zero.CAddBit((uint)i, 1) * B).Sum();
+			var bitsTotal = bitCommitments.Select((b, i) => Scalar.Zero.CAddBit((uint)i, 1) * b).Sum();
 			equations[0, 0] = ma - bitsTotal;
 			equations[0, 1] = Generators.Gh; // first witness term is r in Ma = a*Gg + r*Gh
 
@@ -210,7 +210,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			static int BitSquaredRow(int i) => BitRepresentationRow(i) + 1; // row for [ b*(B_i-Gg) - rb*Gh <=> b = b*b ] proof
 
 			// For each bit, add two equations and one term to the first equation.
-			var B = bitCommitments.ToArray();
+			var b = bitCommitments.ToArray();
 			for (int i = 0; i < bitCommitments.Count(); i++)
 			{
 				// Add [ -r_i * 2^i * Gh ] term to first equation.
@@ -218,7 +218,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 				// Add equation proving B is a Pedersen commitment to b:
 				//   [ B = b*Gg + r*Gh ]
-				equations[BitRepresentationRow(i), 0] = B[i];
+				equations[BitRepresentationRow(i), 0] = b[i];
 				equations[BitRepresentationRow(i), BitColumn(i)] = Generators.Gg;
 				equations[BitRepresentationRow(i), RndColumn(i)] = Generators.Gh;
 
@@ -234,7 +234,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				//
 				// in the verification equation we require that the following terms
 				// cancel out (public input point is O):
-				equations[BitSquaredRow(i), BitColumn(i)] = B[i] - Generators.Gg;
+				equations[BitSquaredRow(i), BitColumn(i)] = b[i] - Generators.Gg;
 				equations[BitSquaredRow(i), ProductColumn(i)] = Generators.Gh.Negate();
 			}
 

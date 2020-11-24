@@ -10,13 +10,13 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 	public class CredentialPresentation
 	{
 		[JsonConstructor]
-		internal CredentialPresentation(GroupElement Ca, GroupElement Cx0, GroupElement Cx1, GroupElement CV, GroupElement S)
+		internal CredentialPresentation(GroupElement ca, GroupElement cx0, GroupElement cx1, GroupElement cV, GroupElement s)
 		{
-			this.Ca = Ca;
-			this.Cx0 = Cx0;
-			this.Cx1 = Cx1;
-			this.CV = CV;
-			this.S = S;
+			Ca = ca;
+			Cx0 = cx0;
+			Cx1 = cx1;
+			CV = cV;
+			S = s;
 		}
 
 		/// <summary>
