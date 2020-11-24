@@ -29,8 +29,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _message, value);
 		}
 
-		public ICommand NextCommand { get; }
-
 		protected override void OnDialogClosed()
 		{
 			// TODO: Disable when using Dialog inside DialogScreenViewModel / Settings

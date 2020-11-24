@@ -52,7 +52,5 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		}
 
 		public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
-
-		public ICommand NextCommand { get; }
 	}
 }

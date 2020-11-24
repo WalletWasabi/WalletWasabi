@@ -7,40 +7,7 @@
     <Thickness x:Key="TextControlThemePadding">15,10,15,8</Thickness>
     <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
     <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
-  </Styles.Resources>
-
-  <Style Selector="DataValidationErrors">
-    <Setter Property="Template">
-      <ControlTemplate>
-        <DockPanel LastChildFill="True">
-          <ContentControl
-            DockPanel.Dock="Top"
-            ContentTemplate="{TemplateBinding ErrorTemplate}"
-            DataContext="{TemplateBinding Owner}"
-            Content="{Binding (DataValidationErrors.Errors)}"
-            IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
-          <ContentPresenter
-            Name="PART_ContentPresenter"
-            Background="{TemplateBinding Background}"
-            BorderThickness="{TemplateBinding BorderThickness}"
-            ContentTemplate="{TemplateBinding ContentTemplate}"
-            Content="{TemplateBinding Content}"
-            Padding="{TemplateBinding Padding}" />
-        </DockPanel>
-      </ControlTemplate>
-    </Setter>
-    <Setter Property="ErrorTemplate">
-      <DataTemplate>
-        <ItemsControl Items="{Binding}">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding Message}" Foreground="{Binding Severity, Converter={StaticResource ErrorSeverityColorConverter}}" TextWrapping="Wrap" />
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-      </DataTemplate>
-    </Setter>
-  </Style>
+  </Styles.Resources>  
 
   <Style Selector="TextBox">
     <Setter Property="Template">

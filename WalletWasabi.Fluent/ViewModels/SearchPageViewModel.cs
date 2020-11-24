@@ -7,6 +7,7 @@ using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Search;
+using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels

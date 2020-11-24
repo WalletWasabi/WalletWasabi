@@ -38,7 +38,8 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
-			RecoverWalletCommand = ReactiveCommand.CreateFromTask(async () =>
+			RecoverWalletCommand = ReactiveCommand.Create(
+				() =>
 			{
 				NavigateTo(new RecoverWalletViewModel(navigationState, WalletName, network, walletManager), NavigationTarget.DialogScreen);
 			});
