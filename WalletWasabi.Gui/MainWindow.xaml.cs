@@ -41,6 +41,36 @@ namespace WalletWasabi.Gui
 			Locator.CurrentMutable.RegisterConstant<INotificationManager>(notificationManager);
 
 			Closing += MainWindow_ClosingAsync;
+			Activated += MainWindow_Activated;
+			GotFocus += MainWindow_GotFocus;
+			Opened += MainWindow_Opened;
+			Initialized += MainWindow_Initialized;
+			LayoutUpdated += MainWindow_LayoutUpdated;
+		}
+
+		private void MainWindow_LayoutUpdated(object? sender, EventArgs e)
+		{
+			Logger.LogInfo("MainWindow_LayoutUpdated");
+		}
+
+		private void MainWindow_Initialized(object? sender, EventArgs e)
+		{
+			Logger.LogInfo("MainWindow_Initialized");
+		}
+
+		private void MainWindow_Opened(object? sender, EventArgs e)
+		{
+			Logger.LogInfo("MainWindow_Opened");
+		}
+
+		private void MainWindow_GotFocus(object? sender, Avalonia.Input.GotFocusEventArgs e)
+		{
+			Logger.LogInfo("MainWindow_GotFocus");
+		}
+
+		private void MainWindow_Activated(object? sender, EventArgs e)
+		{
+			Logger.LogInfo("MainWindow_Activated");
 		}
 
 		private Global Global { get; }
@@ -54,28 +84,8 @@ namespace WalletWasabi.Gui
 
 		private async void MainWindow_ClosingAsync(object? sender, CancelEventArgs e)
 		{
-			try
-			{
-				e.Cancel = true;
-				switch (Interlocked.CompareExchange(ref _closingState, 1, 0))
-				{
-					case 0:
-						await ClosingAsync();
-						break;
-
-					case 1:
-						// still closing cancel the progress
-						return;
-
-					case 2:
-						e.Cancel = false;
-						return; //can close the window
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
+			e.Cancel = true;
+			Hide();
 		}
 
 		private async Task ClosingAsync()
