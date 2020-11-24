@@ -237,7 +237,7 @@ namespace WalletWasabi.BitcoinCore
 			var blocks = await RpcClient.GenerateAsync(blockCount).ConfigureAwait(false);
 			var rpc = RpcClient.PrepareBatch();
 			var tasks = blocks.Select(b => rpc.GetBlockAsync(b));
-			await rpc.SendBatchAsync();
+			await rpc.SendBatchAsync().ConfigureAwait(false);
 			return await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
 

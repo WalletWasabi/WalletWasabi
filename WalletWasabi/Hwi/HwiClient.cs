@@ -68,7 +68,7 @@ namespace WalletWasabi.Hwi
 					throw;
 				}
 
-				IEnumerable<HwiEnumerateEntry> hwiEntries = await EnumerateAsync(cancel, isRecursion: true);
+				IEnumerable<HwiEnumerateEntry> hwiEntries = await EnumerateAsync(cancel, isRecursion: true).ConfigureAwait(false);
 
 				// Trezor T won't give Fingerprint info so we'll assume that the first device that doesn't give fingerprint is what we need.
 				HwiEnumerateEntry firstNoFingerprintEntry = hwiEntries.Where(x => x.Fingerprint is null).FirstOrDefault();
@@ -79,7 +79,7 @@ namespace WalletWasabi.Hwi
 
 				// Build options without fingerprint with device model and device path.
 				var newOptions = BuildOptions(firstNoFingerprintEntry.Model, firstNoFingerprintEntry.Path, fingerprint: null, options.Where(x => x.Type != HwiOptions.Fingerprint).ToArray());
-				return await SendCommandAsync(newOptions, command, commandArguments, openConsole, cancel, isRecursion: true);
+				return await SendCommandAsync(newOptions, command, commandArguments, openConsole, cancel, isRecursion: true).ConfigureAwait(false);
 			}
 			catch (HwiException ex) when (Network != Network.Main && ex.ErrorCode == HwiErrorCode.UnknownError && ex.Message?.Contains("DataError: Forbidden key path") is true)
 			{
@@ -94,10 +94,10 @@ namespace WalletWasabi.Hwi
 		}
 
 		public async Task PromptPinAsync(HardwareWalletModels deviceType, string devicePath, CancellationToken cancel)
-			=> await PromptPinImplAsync(deviceType, devicePath, null, cancel);
+			=> await PromptPinImplAsync(deviceType, devicePath, null, cancel).ConfigureAwait(false);
 
 		public async Task PromptPinAsync(HDFingerprint fingerprint, CancellationToken cancel)
-			=> await PromptPinImplAsync(null, null, fingerprint, cancel);
+			=> await PromptPinImplAsync(null, null, fingerprint, cancel).ConfigureAwait(false);
 
 		private async Task PromptPinImplAsync(HardwareWalletModels? deviceType, string devicePath, HDFingerprint? fingerprint, CancellationToken cancel)
 		{
@@ -110,10 +110,10 @@ namespace WalletWasabi.Hwi
 		}
 
 		public async Task SendPinAsync(HardwareWalletModels deviceType, string devicePath, int pin, CancellationToken cancel)
-			=> await SendPinImplAsync(deviceType, devicePath, null, pin, cancel);
+			=> await SendPinImplAsync(deviceType, devicePath, null, pin, cancel).ConfigureAwait(false);
 
 		public async Task SendPinAsync(HDFingerprint fingerprint, int pin, CancellationToken cancel)
-			=> await SendPinImplAsync(null, null, fingerprint, pin, cancel);
+			=> await SendPinImplAsync(null, null, fingerprint, pin, cancel).ConfigureAwait(false);
 
 		private async Task SendPinImplAsync(HardwareWalletModels? deviceType, string devicePath, HDFingerprint? fingerprint, int pin, CancellationToken cancel)
 		{
@@ -126,10 +126,10 @@ namespace WalletWasabi.Hwi
 		}
 
 		public async Task<ExtPubKey> GetXpubAsync(HardwareWalletModels deviceType, string devicePath, KeyPath keyPath, CancellationToken cancel)
-			=> await GetXpubImplAsync(deviceType, devicePath, null, keyPath, cancel);
+			=> await GetXpubImplAsync(deviceType, devicePath, null, keyPath, cancel).ConfigureAwait(false);
 
 		public async Task<ExtPubKey> GetXpubAsync(HDFingerprint fingerprint, KeyPath keyPath, CancellationToken cancel)
-			=> await GetXpubImplAsync(null, null, fingerprint, keyPath, cancel);
+			=> await GetXpubImplAsync(null, null, fingerprint, keyPath, cancel).ConfigureAwait(false);
 
 		private async Task<ExtPubKey> GetXpubImplAsync(HardwareWalletModels? deviceType, string devicePath, HDFingerprint? fingerprint, KeyPath keyPath, CancellationToken cancel)
 		{
@@ -147,10 +147,10 @@ namespace WalletWasabi.Hwi
 		}
 
 		public async Task<BitcoinWitPubKeyAddress> DisplayAddressAsync(HardwareWalletModels deviceType, string devicePath, KeyPath keyPath, CancellationToken cancel)
-			=> await DisplayAddressImplAsync(deviceType, devicePath, null, keyPath, cancel);
+			=> await DisplayAddressImplAsync(deviceType, devicePath, null, keyPath, cancel).ConfigureAwait(false);
 
 		public async Task<BitcoinWitPubKeyAddress> DisplayAddressAsync(HDFingerprint fingerprint, KeyPath keyPath, CancellationToken cancel)
-			=> await DisplayAddressImplAsync(null, null, fingerprint, keyPath, cancel);
+			=> await DisplayAddressImplAsync(null, null, fingerprint, keyPath, cancel).ConfigureAwait(false);
 
 		private async Task<BitcoinWitPubKeyAddress> DisplayAddressImplAsync(HardwareWalletModels? deviceType, string devicePath, HDFingerprint? fingerprint, KeyPath keyPath, CancellationToken cancel)
 		{
@@ -169,10 +169,10 @@ namespace WalletWasabi.Hwi
 		}
 
 		public async Task<PSBT> SignTxAsync(HardwareWalletModels deviceType, string devicePath, PSBT psbt, CancellationToken cancel)
-			=> await SignTxImplAsync(deviceType, devicePath, null, psbt, cancel);
+			=> await SignTxImplAsync(deviceType, devicePath, null, psbt, cancel).ConfigureAwait(false);
 
 		public async Task<PSBT> SignTxAsync(HDFingerprint fingerprint, PSBT psbt, CancellationToken cancel)
-			=> await SignTxImplAsync(null, null, fingerprint, psbt, cancel);
+			=> await SignTxImplAsync(null, null, fingerprint, psbt, cancel).ConfigureAwait(false);
 
 		private async Task<PSBT> SignTxImplAsync(HardwareWalletModels? deviceType, string devicePath, HDFingerprint? fingerprint, PSBT psbt, CancellationToken cancel)
 		{
