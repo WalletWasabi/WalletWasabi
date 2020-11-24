@@ -387,7 +387,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				}
 
 				// If finished start a new round.
-				if (status == CoordinatorRoundStatus.Aborted || status == CoordinatorRoundStatus.Succeded)
+				if (status is CoordinatorRoundStatus.Aborted or CoordinatorRoundStatus.Succeded)
 				{
 					round.StatusChanged -= Round_StatusChangedAsync;
 					round.CoinJoinBroadcasted -= Round_CoinJoinBroadcasted;
