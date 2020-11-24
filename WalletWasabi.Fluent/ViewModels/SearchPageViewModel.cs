@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
@@ -34,10 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			var settingsCategory = new SearchCategory("Settings", 1);
 			var settingsCategorySource = new SourceList<SearchItemViewModel>();
-			settingsCategorySource.Add(CreateGeneralSettingsSearchItem(settingsCategory, 0, settingsPage));
-			settingsCategorySource.Add(CreatePrivacySettingsSearchItem(settingsCategory, 1, settingsPage));
-			settingsCategorySource.Add(CreateNetworkSettingsSearchItem(settingsCategory, 2, settingsPage));
-			settingsCategorySource.Add(CreateBitcoinSettingsSearchItem(settingsCategory, 3, settingsPage));
+			settingsCategorySource.AddRange(CreateSettingsSearchItems(settingsCategory, settingsPage));
 
 			var walletCategory = new SearchCategory("Wallets", 2);
 			var wallets = walletManager.Items
@@ -124,12 +122,12 @@ namespace WalletWasabi.Fluent.ViewModels
 				createTargetView: () => settingsPage);
 		}
 
-		private SearchItemViewModel CreateGeneralSettingsSearchItem(SearchCategory category, int order, SettingsPageViewModel settingsPage)
+		private IEnumerable<SearchItemViewModel> CreateSettingsSearchItems(SearchCategory category, SettingsPageViewModel settingsPage)
 		{
-			return new(
+			yield return new (
 				title: "General",
 				caption: "Manage general settings",
-				order: order,
+				order: 0,
 				category: category,
 				keywords: "Settings, General, Dark Mode, Bitcoin Addresses, Manual Entry Free, Custom Change Address, Fee Display Format, Dust Threshold, BTC",
 				iconName: "settings_general_regular",
@@ -140,14 +138,11 @@ namespace WalletWasabi.Fluent.ViewModels
 					settingsPage.SelectedTab = 0;
 					return settingsPage;
 				});
-		}
 
-		private SearchItemViewModel CreatePrivacySettingsSearchItem(SearchCategory category, int order, SettingsPageViewModel settingsPage)
-		{
-			return new(
+			yield return new(
 				title: "Privacy",
 				caption: "Manage privacy settings",
-				order: order,
+				order: 1,
 				category: category,
 				keywords: "Settings, Privacy, Minimal, Medium, Strong, Anonymity Level",
 				iconName: "settings_privacy_regular",
@@ -158,14 +153,11 @@ namespace WalletWasabi.Fluent.ViewModels
 					settingsPage.SelectedTab = 1;
 					return settingsPage;
 				});
-		}
 
-		private SearchItemViewModel CreateNetworkSettingsSearchItem(SearchCategory category, int order, SettingsPageViewModel settingsPage)
-		{
-			return new(
+			yield return new(
 				title: "Network",
 				caption: "Manage network settings",
-				order: order,
+				order: 2,
 				category: category,
 				keywords: "Settings, Network, Encryption, Tor, Terminate, Wasabi, Shutdown, SOCKS5, Endpoint",
 				iconName: "settings_network_regular",
@@ -176,14 +168,11 @@ namespace WalletWasabi.Fluent.ViewModels
 					settingsPage.SelectedTab = 2;
 					return settingsPage;
 				});
-		}
 
-		private SearchItemViewModel CreateBitcoinSettingsSearchItem(SearchCategory category, int order, SettingsPageViewModel settingsPage)
-		{
-			return new(
+			yield return new(
 				title: "Bitcoin",
 				caption: "Manage Bitcoin settings",
-				order: order,
+				order: 3,
 				category: category,
 				keywords: "Settings, Bitcoin, Network, Main, TestNet, RegTest, Run, Knots, Startup, P2P, Endpoint",
 				iconName: "settings_bitcoin_regular",
