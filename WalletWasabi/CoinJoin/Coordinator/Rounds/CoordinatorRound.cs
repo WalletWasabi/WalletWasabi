@@ -1156,9 +1156,9 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						Logger.LogInfo($"Round ({RoundId}): Number of outputs: {CoinJoin.Outputs.Count}.");
 						Logger.LogInfo($"Round ({RoundId}): Serialized Size: {CoinJoin.GetSerializedSize() / 1024} KB.");
 						Logger.LogInfo($"Round ({RoundId}): VSize: {CoinJoin.GetVirtualSize() / 1024} KB.");
-						foreach (var o in CoinJoin.GetIndistinguishableOutputs(includeSingle: false))
+						foreach (var (value, count) in CoinJoin.GetIndistinguishableOutputs(includeSingle: false))
 						{
-							Logger.LogInfo($"Round ({RoundId}): There are {o.count} occurrences of {o.value.ToString(true, false)} BTC output.");
+							Logger.LogInfo($"Round ({RoundId}): There are {count} occurrences of {value.ToString(true, false)} BTC output.");
 						}
 
 						await RpcClient.SendRawTransactionAsync(CoinJoin).ConfigureAwait(false);
@@ -1335,10 +1335,10 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 				await batch.SendBatchAsync().ConfigureAwait(false);
 
-				foreach (var t in checkingTasks)
+				foreach (var (alice, task) in checkingTasks)
 				{
-					var resp = await t.task.ConfigureAwait(false);
-					responses.Add((t.alice, resp));
+					var resp = await task.ConfigureAwait(false);
+					responses.Add((alice, resp));
 				}
 			}
 
