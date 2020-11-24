@@ -75,14 +75,18 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 				for (int i = 0; i < 3; i++)
 				{
 					// I am the second one.
-					await Assert.ThrowsAsync<InvalidOperationException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
+					await Assert.ThrowsAsync<OperationCanceledException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
 				}
 
 				// Wait for the OtherInstanceStarted event to finish.
-				await firstInstance.StopAsync(CancellationToken.None);
-
-				// There should be the same number of events as the number of tries from the second instance.
-				Assert.Equal(3, Interlocked.Read(ref eventCalled));
+				using CancellationTokenSource cts = new(TimeSpan.FromSeconds(5));
+				while (!cts.IsCancellationRequested)
+				{
+					while (Interlocked.Read(ref eventCalled) != 3)
+					{
+						cts.Token.ThrowIfCancellationRequested();
+					}
+				}
 			}
 			finally
 			{
