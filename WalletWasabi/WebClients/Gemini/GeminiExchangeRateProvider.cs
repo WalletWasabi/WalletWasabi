@@ -12,8 +12,10 @@ namespace WalletWasabi.WebClients.Gemini
 	{
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync()
 		{
-			using var httpClient = new HttpClient();
-			httpClient.BaseAddress = new Uri("https://api.gemini.com");
+			using var httpClient = new HttpClient
+			{
+				BaseAddress = new Uri("https://api.gemini.com")
+			};
 			using var response = await httpClient.GetAsync("/v1/pubticker/btcusd").ConfigureAwait(false);
 			using var content = response.Content;
 			var data = await content.ReadAsJsonAsync<GeminiExchangeRateInfo>().ConfigureAwait(false);

@@ -297,8 +297,10 @@ namespace WalletWasabi.WebClients.PayJoin
 			}
 
 			// Remove query from endpoint.
-			var builder = new UriBuilder(endpoint);
-			builder.Query = "";
+			var builder = new UriBuilder(endpoint)
+			{
+				Query = ""
+			};
 
 			// Construct final URI.
 			return new Uri(QueryHelpers.AddQueryString(builder.Uri.AbsoluteUri, parameters));

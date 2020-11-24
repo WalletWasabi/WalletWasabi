@@ -44,11 +44,13 @@ namespace WalletWasabi.BitcoinCore
 			Guard.NotNull(nameof(coreNodeParams), coreNodeParams);
 			using (BenchmarkLogger.Measure())
 			{
-				var coreNode = new CoreNode();
-				coreNode.HostedServices = coreNodeParams.HostedServices;
-				coreNode.DataDir = coreNodeParams.DataDir;
-				coreNode.Network = coreNodeParams.Network;
-				coreNode.MempoolService = coreNodeParams.MempoolService;
+				var coreNode = new CoreNode
+				{
+					HostedServices = coreNodeParams.HostedServices,
+					DataDir = coreNodeParams.DataDir,
+					Network = coreNodeParams.Network,
+					MempoolService = coreNodeParams.MempoolService
+				};
 
 				var configPath = Path.Combine(coreNode.DataDir, "bitcoin.conf");
 				coreNode.Config = new CoreConfig();
