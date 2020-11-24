@@ -71,30 +71,30 @@ namespace WalletWasabi.Fluent.ViewModels
 		private void NavigateToHomeScreen(RoutableViewModel viewModel, bool resetNavigation)
 		{
 			var command = resetNavigation ?
-				NavigationState.HomeScreen?.Invoke().Router.NavigateAndReset :
-				NavigationState.HomeScreen?.Invoke().Router.Navigate;
-			command?.Execute(viewModel);
+				NavigationState.HomeScreen().Router.NavigateAndReset :
+				NavigationState.HomeScreen().Router.Navigate;
+			command.Execute(viewModel);
 		}
 
 		private void NavigateToDialogScreen(RoutableViewModel viewModel, bool resetNavigation)
 		{
 			var command = resetNavigation ?
-				NavigationState.DialogScreen?.Invoke().Router.NavigateAndReset :
-				NavigationState.DialogScreen?.Invoke().Router.Navigate;
-			command?.Execute(viewModel);
+				NavigationState.DialogScreen().Router.NavigateAndReset :
+				NavigationState.DialogScreen().Router.Navigate;
+			command.Execute(viewModel);
 		}
 
 		private void NavigateToDialogHost(DialogViewModelBase dialog)
 		{
-			if (NavigationState.DialogHost?.Invoke() is IDialogHost dialogHost)
+			if (NavigationState.DialogHost() is IDialogHost dialogHost)
 			{
 				dialogHost.CurrentDialog = dialog;
 			}
 		}
 
-		public void NavigateToSelf() => NavigateTo(this, NavigationTarget, false);
+		public void NavigateToSelf() => NavigateTo(this, NavigationTarget, resetNavigation: false);
 
-		public void NavigateToSelfAndReset() => NavigateTo(this, NavigationTarget, true);
+		public void NavigateToSelfAndReset() => NavigateTo(this, NavigationTarget, resetNavigation: true);
 
 		private RoutingState? GetRouter(NavigationTarget navigationTarget)
 		{
