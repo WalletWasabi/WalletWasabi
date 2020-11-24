@@ -6,7 +6,7 @@
   </Styles.Resources>
   <Style Selector="c|ProgressRing">
     <Setter Property="Foreground" Value="{StaticResource ProgressRingForeground}"/>
-    <Setter Property="Background" Value="{StaticResource TextControlBackground}"/>
+    <Setter Property="Background" Value="{DynamicResource TextControlBackground}"/>
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>

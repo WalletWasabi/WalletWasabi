@@ -41,9 +41,23 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Subscribe(AddMnemonic);
 
 			this.WhenAnyValue(x => x.CurrentMnemonics)
-				.Subscribe(x => this.RaisePropertyChanged(nameof(Mnemonics)));
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(Mnemonics)));
 
 			this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
+
+			FinishCommandCanExecute =
+				this.WhenAnyValue(x => x.CurrentMnemonics)
+					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
+
+			NextCommand = ReactiveCommand.CreateFromTask(
+				async () => await OnNext(navigationState, walletManager, network, walletName),
+				FinishCommandCanExecute);
+
+			AdvancedOptionsInteraction = new Interaction<(KeyPath, int), (KeyPath?, int?)>();
+			AdvancedOptionsInteraction.RegisterHandler(
+				async interaction =>
+					interaction.SetOutput(
+						await new AdvancedRecoveryOptionsViewModel(navigationState, NavigationTarget.DialogHost, interaction.Input).ShowDialogAsync()));
 
 			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -57,21 +71,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						MinGapLimit = (int)minGapLimitIn;
 					}
 				});
-
-			FinishCommandCanExecute =
-				this.WhenAnyValue(x => x.CurrentMnemonics)
-					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
-
-			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNext(navigationState, walletManager, network, walletName),
-				FinishCommandCanExecute);
-
-			AdvancedOptionsInteraction = new Interaction<(KeyPath, int), (KeyPath?, int?)>();
-
-			AdvancedOptionsInteraction.RegisterHandler(
-				async interaction =>
-					interaction.SetOutput(
-						await new AdvancedRecoveryOptionsViewModel(navigationState, NavigationTarget.DialogHost, interaction.Input).ShowDialogAsync()));
 		}
 
 		private async Task OnNext(NavigationStateViewModel navigationState, WalletManager walletManager, Network network, string? walletName)
@@ -115,8 +114,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		public IObservable<bool> FinishCommandCanExecute { get; }
 
 		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
-
-		public ICommand NextCommand { get; }
 
 		private KeyPath AccountKeyPath { get; set; } = KeyPath.Parse("m/84'/0'/0'");
 

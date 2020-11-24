@@ -54,7 +54,7 @@
             </StackPanel>
           </Button>
 
-          <Button Classes="option">
+          <Button Classes="option" Command="{Binding ImportWalletCommand}">
             <StackPanel Orientation="Horizontal">
               <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource import_regular}"
                         Width="16"
