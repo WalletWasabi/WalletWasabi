@@ -58,8 +58,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _confirmPassword, value);
 		}
 
-		public ICommand NextCommand { get; }
-
 		public string Subtitle { get; }
 
 		protected override void OnDialogClosed()

@@ -72,7 +72,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 		public virtual async Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, bool allowHighFees = false)
 		{
-			return await Rpc.TestMempoolAcceptAsync(transaction, allowHighFees);
+			return await Rpc.TestMempoolAcceptAsync(transaction, allowHighFees).ConfigureAwait(false);
 		}
 
 		public virtual async Task StopAsync()

@@ -7,7 +7,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 	{
 		private MoneyRequest(Money amount, MoneyRequestType type, bool subtractFee)
 		{
-			if (type == MoneyRequestType.AllRemaining || type == MoneyRequestType.Change)
+			if (type is MoneyRequestType.AllRemaining or MoneyRequestType.Change)
 			{
 				if (amount is { })
 				{

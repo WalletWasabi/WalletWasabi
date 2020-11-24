@@ -88,7 +88,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ResponseCache(Duration = 3, Location = ResponseCacheLocation.Client)]
 		public async Task<IActionResult> GetMempoolHashesAsync([FromQuery] int compactness = 64)
 		{
-			if (compactness < 1 || compactness > 64)
+			if (compactness is < 1 or > 64)
 			{
 				return BadRequest("Invalid compactness parameter is provided.");
 			}

@@ -19,8 +19,10 @@ namespace WalletWasabi.BitcoinCore.Configuration.Whitening
 			{
 				if (EndPointParser.TryParse(parts.LastOrDefault(), network.DefaultPort, out EndPoint endPoint))
 				{
-					whiteEntry = new T();
-					whiteEntry.EndPoint = endPoint;
+					whiteEntry = new T
+					{
+						EndPoint = endPoint
+					};
 					if (parts.Length > 1)
 					{
 						whiteEntry.Permissions = parts.First();
