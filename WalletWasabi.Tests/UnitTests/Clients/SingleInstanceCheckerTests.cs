@@ -81,12 +81,10 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 
 				// Wait for the OtherInstanceStarted event to finish.
 				using CancellationTokenSource cts = new(TimeSpan.FromSeconds(5));
-				while (!cts.IsCancellationRequested)
+
+				while (Interlocked.Read(ref eventCalled) != 3)
 				{
-					while (Interlocked.Read(ref eventCalled) != 3)
-					{
-						cts.Token.ThrowIfCancellationRequested();
-					}
+					cts.Token.ThrowIfCancellationRequested();
 				}
 
 				// There should be the same number of events as the number of tries from the second instance.
