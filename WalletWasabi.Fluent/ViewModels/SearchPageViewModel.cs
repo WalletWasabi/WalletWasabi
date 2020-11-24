@@ -49,12 +49,12 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (_showSettings)
 			{
-				searchItems.Merge(settingsCategorySource.Connect());
+				searchItems = searchItems.Merge(settingsCategorySource.Connect());
 			}
 
 			if (_showWallets)
 			{
-				searchItems.Merge(wallets);
+				searchItems = searchItems.Merge(wallets);
 			}
 
 			var queryFilter = this.WhenValueChanged(t => t.SearchQuery)
