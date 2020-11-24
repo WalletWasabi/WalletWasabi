@@ -6,7 +6,6 @@ using NBitcoin.Secp256k1;
 
 namespace WalletWasabi.Crypto
 {
-	[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Crypto naming")]
 	public class SchnorrBlinding
 	{
 		public class Requester
@@ -43,7 +42,7 @@ namespace WalletWasabi.Crypto
 				var R = rECPubKey.Q.ToGroupElementJacobian();
 				var t = FE.Zero;
 
-			retry:
+				retry:
 
 				RandomUtils.GetBytes(tmp);
 				_v = new Scalar(tmp, out int overflow);

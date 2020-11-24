@@ -60,15 +60,15 @@ namespace WalletWasabi.Io
 				ContinueBuildHash(byteArrayBuilder, line);
 			}
 
-			var res = await WorkWithHashAsync(byteArrayBuilder, cancellationToken).ConfigureAwait(false);
-			if (res.same)
+			var (same, hash) = await WorkWithHashAsync(byteArrayBuilder, cancellationToken).ConfigureAwait(false);
+			if (same)
 			{
 				return;
 			}
 
 			await base.WriteAllLinesAsync(lines, cancellationToken).ConfigureAwait(false);
 
-			await WriteOutHashAsync(res.hash).ConfigureAwait(false);
+			await WriteOutHashAsync(hash).ConfigureAwait(false);
 		}
 
 		public new async Task AppendAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
@@ -137,14 +137,14 @@ namespace WalletWasabi.Io
 				await sw.FlushAsync().ConfigureAwait(false);
 			}
 
-			var res = await WorkWithHashAsync(byteArrayBuilder, cancellationToken).ConfigureAwait(false);
-			if (res.same)
+			var (same, hash) = await WorkWithHashAsync(byteArrayBuilder, cancellationToken).ConfigureAwait(false);
+			if (same)
 			{
 				return;
 			}
 
 			SafeMoveNewToOriginal();
-			await WriteOutHashAsync(res.hash).ConfigureAwait(false);
+			await WriteOutHashAsync(hash).ConfigureAwait(false);
 		}
 
 		#endregion IoOperations
