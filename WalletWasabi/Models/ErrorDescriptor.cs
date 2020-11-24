@@ -15,7 +15,7 @@ namespace WalletWasabi.Models
 
 		#region Equality
 
-		public override bool Equals(object? obj) => obj is { } && Equals((ErrorDescriptor)obj);
+		public override bool Equals(object? obj) => obj is ErrorDescriptor desc && this == desc;
 
 		public bool Equals(ErrorDescriptor other) => this == other;
 
