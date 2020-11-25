@@ -61,6 +61,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 					if (result is { } password)
 					{
+						GoBack();
 						IsBusy = true;
 
 						var (km, mnemonic) = await Task.Run(
