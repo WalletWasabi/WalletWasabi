@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -47,6 +48,18 @@ namespace WalletWasabi.Fluent.ViewModels
 		public ICommand BackCommand { get; protected set; }
 
 		public ICommand CancelCommand { get; protected set; }
+
+		public async Task<TResult> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog)
+		{
+			TResult result;
+
+			using (NavigateTo(dialog, NavigationTarget.DialogScreen))
+			{
+				result = await dialog.GetDialogResultAsync();
+			}
+
+			return result;
+		}
 
 		public IDisposable NavigateTo(RoutableViewModel viewModel, NavigationTarget navigationTarget, bool resetNavigation = false)
 		{

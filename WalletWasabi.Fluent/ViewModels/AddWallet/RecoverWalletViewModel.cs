@@ -80,7 +80,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			try
 			{
-				var result = await this.NavigateDialog(
+				var result = await NavigateDialog(
 					new EnterPasswordViewModel(
 						navigationState,
 						NavigationTarget.DialogScreen,
