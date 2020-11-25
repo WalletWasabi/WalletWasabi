@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -47,7 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public ICommand CancelCommand { get; protected set; }
 
-		public void NavigateTo(RoutableViewModel viewModel, NavigationTarget navigationTarget, bool resetNavigation = false)
+		public IDisposable NavigateTo(RoutableViewModel viewModel, NavigationTarget navigationTarget, bool resetNavigation = false)
 		{
 			switch (navigationTarget)
 			{
@@ -74,6 +75,8 @@ namespace WalletWasabi.Fluent.ViewModels
 				default:
 					break;
 			}
+
+			return Disposable.Create(()=>GoBack());
 		}
 
 		private void NavigateToHomeScreen(RoutableViewModel viewModel, bool resetNavigation)

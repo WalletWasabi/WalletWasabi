@@ -55,13 +55,16 @@ namespace WalletWasabi.Fluent.ViewModels
 						NavigationTarget.DialogScreen,
 						"Type the password of the wallet and click Continue.");
 
-					NavigateTo(enterPassword, NavigationTarget.DialogScreen);
 
-					var result = await enterPassword.GetDialogResultAsync();
+					string? result = null;
+
+					using (NavigateTo(enterPassword, NavigationTarget.DialogScreen))
+					{
+						result = await enterPassword.GetDialogResultAsync();
+					}
 
 					if (result is { } password)
 					{
-						GoBack();
 						IsBusy = true;
 
 						var (km, mnemonic) = await Task.Run(
@@ -79,10 +82,6 @@ namespace WalletWasabi.Fluent.ViewModels
 						NavigateTo(new RecoveryWordsViewModel(navigationState, km, mnemonic, walletManager), NavigationTarget.DialogScreen, true);
 
 						IsBusy = false;
-					}
-					else
-					{
-						GoBack();
 					}
 				});
 
