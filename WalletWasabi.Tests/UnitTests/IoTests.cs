@@ -29,27 +29,22 @@ namespace WalletWasabi.Tests.UnitTests
 			}
 
 			// Single thread file operations.
-
 			DigestableSafeIoManager ioman1 = new DigestableSafeIoManager(file);
 
 			// Delete the file if Exist.
-
 			ioman1.DeleteMe();
 			Assert.False(ioman1.Exists());
 
 			Assert.False(File.Exists(ioman1.DigestFilePath));
 
 			// Write the data to the file.
-
 			await ioman1.WriteAllLinesAsync(lines);
 			Assert.True(ioman1.Exists());
 
 			// Check if the digest file is created.
-
 			Assert.True(File.Exists(ioman1.DigestFilePath));
 
 			// Read back the content and check.
-
 			static bool IsStringArraysEqual(string[] lines1, string[] lines2)
 			{
 				if (lines1.Length != lines2.Length)
@@ -75,7 +70,6 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.True(IsStringArraysEqual(readLines, lines.ToArray()));
 
 			// Check digest file, and write only differ logic.
-
 			// Write the same content, file should not be written.
 			var currentDate = File.GetLastWriteTimeUtc(ioman1.FilePath);
 			await Task.Delay(500);
@@ -94,13 +88,11 @@ namespace WalletWasabi.Tests.UnitTests
 			await ioman1.WriteAllLinesAsync(lines);
 
 			// Simulate file write error and recovery logic.
-
 			// We have only *.new and *.old files.
 			File.Copy(ioman1.FilePath, ioman1.OldFilePath);
 			File.Move(ioman1.FilePath, ioman1.NewFilePath);
 
 			// At this point there is now OriginalFile.
-
 			var newFile = await ioman1.ReadAllLinesAsync();
 
 			Assert.True(IsStringArraysEqual(newFile, lines.ToArray()));
@@ -111,7 +103,6 @@ namespace WalletWasabi.Tests.UnitTests
 			await ioman1.WriteAllLinesAsync(lines);
 
 			// Check recovery mechanism.
-
 			Assert.True(
 				File.Exists(ioman1.FilePath) &&
 				!File.Exists(ioman1.OldFilePath) &&
@@ -122,7 +113,6 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.False(ioman1.Exists());
 
 			// Check if directory is empty.
-
 			var fileCount = Directory.EnumerateFiles(Path.GetDirectoryName(ioman1.FilePath)).Count();
 			Assert.Equal(0, fileCount);
 
