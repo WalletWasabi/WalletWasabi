@@ -111,7 +111,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						keyManager.SetNetwork(network);
 
 						walletManager.AddWallet(keyManager);
-
 					});
 
 					ClearNavigation(NavigationTarget.DialogScreen);
