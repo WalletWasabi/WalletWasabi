@@ -31,7 +31,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			Network network,
 			WalletManager walletManager) : base(navigationState, NavigationTarget.DialogScreen)
 		{
-
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
 			Mnemonics.ToObservableChangeSet().ToCollection()
