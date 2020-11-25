@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			var nextCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
 
-			BackCommand = ReactiveCommand.Create(() => GoBack(), backCommandCanExecute);
+			BackCommand = ReactiveCommand.Create(GoBack, backCommandCanExecute);
 			CancelCommand = ReactiveCommand.Create(() => Close(false), cancelCommandCanExecute);
 			NextCommand = ReactiveCommand.Create(() => Close(true), nextCommandCanExecute);
 		}
@@ -28,8 +28,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			get => _message;
 			set => this.RaiseAndSetIfChanged(ref _message, value);
 		}
-
-		public ICommand NextCommand { get; }
 
 		protected override void OnDialogClosed()
 		{

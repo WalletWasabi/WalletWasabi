@@ -4,9 +4,9 @@ using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Views
 {
-	public class SettingsPageView : ReactiveUserControl<SettingsPageViewModel>
+	public class SearchPageView : ReactiveUserControl<SearchPageViewModel>
 	{
-		public SettingsPageView()
+		public SearchPageView()
 		{
 			InitializeComponent();
 		}

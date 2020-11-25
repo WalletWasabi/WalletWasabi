@@ -1,6 +1,7 @@
 using ReactiveUI;
 using System;
 using System.IO;
+using System.Reactive.Disposables;
 using System.Windows.Input;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
@@ -35,13 +36,16 @@ namespace WalletWasabi.Fluent.ViewModels
 				});
 
 			this.WhenAnyValue(x => x.WalletName)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
-			RecoverWalletCommand = ReactiveCommand.CreateFromTask(async () =>
+			RecoverWalletCommand = ReactiveCommand.Create(() =>
 			{
 				NavigateTo(new RecoverWalletViewModel(navigationState, WalletName, network, walletManager), NavigationTarget.DialogScreen);
 			});
+
+			ImportWalletCommand = ReactiveCommand.Create(() => new ImportWalletViewModel(navigationState, WalletName, walletManager));
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -78,6 +82,12 @@ namespace WalletWasabi.Fluent.ViewModels
 				});
 
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
+
+			this.WhenNavigatedTo(() =>
+			{
+				this.RaisePropertyChanged(WalletName);
+				return Disposable.Empty;
+			});
 		}
 
 		private void ValidateWalletName(IValidationErrors errors, WalletManager walletManager, string walletName)
@@ -124,5 +134,6 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public ICommand CreateWalletCommand { get; }
 		public ICommand RecoverWalletCommand { get; }
+		public ICommand ImportWalletCommand { get; }
 	}
 }
