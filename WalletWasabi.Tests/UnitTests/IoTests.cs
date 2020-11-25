@@ -19,9 +19,7 @@ namespace WalletWasabi.Tests.UnitTests
 		public async Task IoManagerTestsAsync()
 		{
 			var file1 = Path.Combine(Common.GetWorkDir(), $"file1.dat");
-			var file2 = Path.Combine(Common.GetWorkDir(), $"file2.dat");
 
-			Random random = new Random();
 			List<string> lines = new List<string>();
 			for (int i = 0; i < 1000; i++)
 			{
