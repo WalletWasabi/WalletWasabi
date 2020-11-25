@@ -50,12 +50,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					var enterPassword = new EnterPasswordViewModel(
+					var result = await this.NavigateDialog(new EnterPasswordViewModel(
 						navigationState,
 						NavigationTarget.DialogScreen,
-						"Type the password of the wallet and click Continue.");
-
-					var result = await this.NavigateDialog(enterPassword);
+						"Type the password of the wallet and click Continue."));
 
 					if (result is { } password)
 					{
