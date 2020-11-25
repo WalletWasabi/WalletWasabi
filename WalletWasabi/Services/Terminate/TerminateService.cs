@@ -1,6 +1,7 @@
 using Microsoft.Win32;
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -20,21 +21,37 @@ namespace WalletWasabi.Services.Terminate
 			_terminateApplicationAsync = terminateApplicationAsync;
 			AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 			Console.CancelKeyPress += Console_CancelKeyPress;
+			AssemblyLoadContext.Default.Unloading += Default_Unloading;
+			AppDomain.CurrentDomain.DomainUnload += CurrentDomain_DomainUnload;
 
-			if (IsSubscribeToSessionEnding)
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				SystemEvents.SessionEnding += Windows_SystemEvents_SessionEnding;
 			}
 		}
 
-		private static bool IsSubscribeToSessionEnding => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 		public bool IsTerminateRequested => Interlocked.Read(ref _terminateStatus) > TerminateStatusNotStarted;
+
+		private void CurrentDomain_DomainUnload(object? sender, EventArgs e)
+		{
+			Logger.LogInfo($"Process domain unloading requested by the OS.");
+			Terminate();
+		}
+
+		private void Default_Unloading(AssemblyLoadContext obj)
+		{
+			Logger.LogInfo($"Process context unloading requested by the OS.");
+			Terminate();
+		}
 
 		private void Windows_SystemEvents_SessionEnding(object sender, SessionEndingEventArgs e)
 		{
-			// This event will only be triggered if you run Wasabi from the published package. Use the packager with the --onlybinaries option.
-			Logger.LogInfo($"Process termination was requested by the OS, reason '{e.Reason}'.");
-			e.Cancel = true;
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				// This event will only be triggered if you run Wasabi from the published package. Use the packager with the --onlybinaries option.
+				Logger.LogInfo($"Process termination was requested by the OS, reason '{e.Reason}'.");
+				e.Cancel = true;
+			}
 
 			// This must be a blocking call because after this the OS will terminate the Wasabi process if it exists.
 			// The process will be killed by the OS after ~7 seconds, even with e.Cancel = true.
@@ -95,8 +112,10 @@ namespace WalletWasabi.Services.Terminate
 
 			AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;
 			Console.CancelKeyPress -= Console_CancelKeyPress;
+			AssemblyLoadContext.Default.Unloading -= Default_Unloading;
+			AppDomain.CurrentDomain.DomainUnload -= CurrentDomain_DomainUnload;
 
-			if (IsSubscribeToSessionEnding)
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				SystemEvents.SessionEnding -= Windows_SystemEvents_SessionEnding;
 			}

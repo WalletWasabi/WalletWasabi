@@ -8,9 +8,6 @@ using Avalonia.Utilities;
 
 namespace WalletWasabi.Fluent.Controls
 {
-	// Note: Most of this class is a copy paste from Avalonia. So the code style and standard should
-	// be kept as is to allow for future maintenance.
-
 	/// <summary>
 	/// Works like a wrap panel.. but concatenates the Items in ConcatenatedChildren.
 	/// Also the very last child in ConcatenatedChildren will fill the remaining space.
@@ -308,12 +305,32 @@ namespace WalletWasabi.Fluent.Controls
 			internal double Width
 			{
 				get { return _orientation == Orientation.Horizontal ? U : V; }
-				set { if (_orientation == Orientation.Horizontal) U = value; else V = value; }
+				set
+				{
+					if (_orientation == Orientation.Horizontal)
+					{
+						U = value;
+					}
+					else
+					{
+						V = value;
+					}
+				}
 			}
 			internal double Height
 			{
 				get { return _orientation == Orientation.Horizontal ? V : U; }
-				set { if (_orientation == Orientation.Horizontal) V = value; else U = value; }
+				set
+				{
+					if (_orientation == Orientation.Horizontal)
+					{
+						V = value;
+					}
+					else
+					{
+						U = value;
+					}
+				}
 			}
 		}
 	}

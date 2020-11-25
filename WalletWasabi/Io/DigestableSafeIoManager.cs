@@ -14,13 +14,12 @@ namespace WalletWasabi.Io
 	/// <summary>
 	/// Safely manager file operations.
 	/// </summary>
-	public class DigestableSafeMutexIoManager : SafeMutexIoManager
+	public class DigestableSafeIoManager : SafeIoManager
 	{
 		private const string DigestExtension = ".dig";
 
 		/// <param name="digestRandomIndex">Use the random index of the line to create digest faster. -1 is special value, it means the last character. If null then hash whole file.</param>
-		public DigestableSafeMutexIoManager(string filePath, int? digestRandomIndex = null) : base(filePath)
-
+		public DigestableSafeIoManager(string filePath, int? digestRandomIndex = null) : base(filePath)
 		{
 			DigestRandomIndex = digestRandomIndex;
 
@@ -61,15 +60,15 @@ namespace WalletWasabi.Io
 				ContinueBuildHash(byteArrayBuilder, line);
 			}
 
-			var res = await WorkWithHashAsync(byteArrayBuilder, cancellationToken).ConfigureAwait(false);
-			if (res.same)
+			var (same, hash) = await WorkWithHashAsync(byteArrayBuilder, cancellationToken).ConfigureAwait(false);
+			if (same)
 			{
 				return;
 			}
 
 			await base.WriteAllLinesAsync(lines, cancellationToken).ConfigureAwait(false);
 
-			await WriteOutHashAsync(res.hash).ConfigureAwait(false);
+			await WriteOutHashAsync(hash).ConfigureAwait(false);
 		}
 
 		public new async Task AppendAllLinesAsync(IEnumerable<string> lines, CancellationToken cancellationToken = default)
@@ -138,14 +137,14 @@ namespace WalletWasabi.Io
 				await sw.FlushAsync().ConfigureAwait(false);
 			}
 
-			var res = await WorkWithHashAsync(byteArrayBuilder, cancellationToken).ConfigureAwait(false);
-			if (res.same)
+			var (same, hash) = await WorkWithHashAsync(byteArrayBuilder, cancellationToken).ConfigureAwait(false);
+			if (same)
 			{
 				return;
 			}
 
 			SafeMoveNewToOriginal();
-			await WriteOutHashAsync(res.hash).ConfigureAwait(false);
+			await WriteOutHashAsync(hash).ConfigureAwait(false);
 		}
 
 		#endregion IoOperations

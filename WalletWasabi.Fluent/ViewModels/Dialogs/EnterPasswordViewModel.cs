@@ -29,13 +29,13 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				x => x.IsDialogOpen,
 				x => x.Password,
 				x => x.ConfirmPassword,
-				(isDialogOpen, password, confirmPassword) =>
+				delegate
 				{
 					// This will fire validations before return canExecute value.
 					this.RaisePropertyChanged(nameof(Password));
 					this.RaisePropertyChanged(nameof(ConfirmPassword));
 
-					return isDialogOpen && ((string.IsNullOrEmpty(password) && string.IsNullOrEmpty(confirmPassword)) || (!string.IsNullOrEmpty(password) && !string.IsNullOrEmpty(confirmPassword) && !Validations.Any));
+					return IsDialogOpen && ((string.IsNullOrEmpty(Password) && string.IsNullOrEmpty(ConfirmPassword)) || (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) && !Validations.Any));
 				})
 				.ObserveOn(RxApp.MainThreadScheduler);
 
@@ -57,8 +57,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			get => _confirmPassword;
 			set => this.RaiseAndSetIfChanged(ref _confirmPassword, value);
 		}
-
-		public ICommand NextCommand { get; }
 
 		public string Subtitle { get; }
 

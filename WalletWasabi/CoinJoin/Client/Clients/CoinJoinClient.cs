@@ -22,7 +22,9 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.Services;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.WebClients.Wasabi;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
@@ -74,7 +76,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			var lastResponse = Synchronizer.LastResponse;
 			if (lastResponse is { })
 			{
-				_ = TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates);
+				AbandonedTasks.AddAndClearCompleted(TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates));
 			}
 		}
 
@@ -83,6 +85,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		public event EventHandler<SmartCoin>? CoinQueued;
 
 		public event EventHandler<DequeueResult>? OnDequeue;
+
+		private AbandonedTasks AbandonedTasks { get; } = new AbandonedTasks();
 
 		public Network Network { get; private set; }
 		public KeyManager KeyManager { get; }
@@ -303,10 +307,10 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				{
 					if (!ongoingRound.Registration.IsPhaseActionsComleted(RoundPhase.ConnectionConfirmation)) // If we did not already confirm connection in connection confirmation phase confirm it.
 					{
-						var res = await ongoingRound.Registration.AliceClient.PostConfirmationAsync().ConfigureAwait(false);
-						if (res.activeOutputs.Any())
+						var (currentPhase, activeOutputs) = await ongoingRound.Registration.AliceClient.PostConfirmationAsync().ConfigureAwait(false);
+						if (activeOutputs.Any())
 						{
-							ongoingRound.Registration.ActiveOutputs = res.activeOutputs;
+							ongoingRound.Registration.ActiveOutputs = activeOutputs;
 						}
 						ongoingRound.Registration.SetPhaseCompleted(RoundPhase.ConnectionConfirmation);
 					}
@@ -357,12 +361,12 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			minAmountBack -= networkFees; // Minus miner fee.
 
 			IOrderedEnumerable<(Money value, int count)> indistinguishableOutputs = unsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count);
-			foreach ((Money value, int count) denomPair in indistinguishableOutputs)
+			foreach ((Money value, int count) in indistinguishableOutputs)
 			{
-				var mineCount = myOutputs.Count(x => x.Value == denomPair.value);
+				var mineCount = myOutputs.Count(x => x.Value == value);
 
-				Money denomination = denomPair.value;
-				int anonset = Math.Min(110, denomPair.count); // https://github.com/zkSNACKs/WalletWasabi/issues/1379
+				Money denomination = value;
+				int anonset = Math.Min(110, count); // https://github.com/zkSNACKs/WalletWasabi/issues/1379
 				Money expectedCoordinatorFee = denomination.Percentage(ongoingRound.State.CoordinatorFeePercent * anonset);
 				for (int i = 0; i < mineCount; i++)
 				{
@@ -423,11 +427,14 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			shuffledOutputs.Shuffle();
 			foreach (var activeOutput in shuffledOutputs)
 			{
-				using var bobClient = new BobClient(CcjHostUriAction, TorSocks5EndPoint);
-				if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput).ConfigureAwait(false))
+				using (TorHttpClient torHttpClient = Synchronizer.WasabiClientFactory.NewBackendTorHttpClient(isolateStream: true))
 				{
-					Logger.LogWarning($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.");
-					break;
+					var bobClient = new BobClient(torHttpClient);
+					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput).ConfigureAwait(false))
+					{
+						Logger.LogWarning($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.");
+						break;
+					}
 				}
 
 				// Unblind our exposed links.
@@ -457,17 +464,17 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		{
 			try
 			{
-				var res = await inputRegistrableRound.Registration.AliceClient.PostConfirmationAsync().ConfigureAwait(false);
+				var (currentPhase, activeOutputs) = await inputRegistrableRound.Registration.AliceClient.PostConfirmationAsync().ConfigureAwait(false);
 
-				if (res.activeOutputs.Any())
+				if (activeOutputs.Any())
 				{
-					inputRegistrableRound.Registration.ActiveOutputs = res.activeOutputs;
+					inputRegistrableRound.Registration.ActiveOutputs = activeOutputs;
 				}
 
-				if (res.currentPhase > RoundPhase.InputRegistration) // Then the phase went to connection confirmation (probably).
+				if (currentPhase > RoundPhase.InputRegistration) // Then the phase went to connection confirmation (probably).
 				{
 					inputRegistrableRound.Registration.SetPhaseCompleted(RoundPhase.ConnectionConfirmation);
-					inputRegistrableRound.State.Phase = res.currentPhase;
+					inputRegistrableRound.State.Phase = currentPhase;
 				}
 			}
 			catch (Exception ex)
@@ -1050,6 +1057,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					}
 				}
 			}
+			await AbandonedTasks.WhenAllAsync().ConfigureAwait(false);
 		}
 
 		public async Task DequeueAllCoinsFromMixGracefullyAsync(DequeueReason reason, CancellationToken cancel)
@@ -1075,8 +1083,9 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			RoundStateResponse4 state;
 			WasabiClientFactory factory = Synchronizer.WasabiClientFactory;
 
-			using (var satoshiClient = new SatoshiClient(factory.BackendUriGetter, factory.TorEndpoint))
+			using (TorHttpClient torHttpClient = factory.NewBackendTorHttpClient(isolateStream: true))
 			{
+				var satoshiClient = new SatoshiClient(torHttpClient);
 				state = (RoundStateResponse4)await satoshiClient.GetRoundStateAsync(roundId).ConfigureAwait(false);
 			}
 

@@ -12,6 +12,7 @@ using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.XunitConfiguration;
+using WalletWasabi.Tor.Http;
 using Xunit;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 using UnblindedSignature = WalletWasabi.Crypto.UnblindedSignature;
@@ -24,15 +25,18 @@ namespace WalletWasabi.Tests.RegressionTests
 		public DosTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
+
+			var httpClient = new ClearnetHttpClient(() => new Uri(RegTestFixture.BackendEndPoint));
+			SatoshiClient = new SatoshiClient(httpClient);
 		}
 
 		private RegTestFixture RegTestFixture { get; }
+		public SatoshiClient SatoshiClient { get; }
 
-		private static async Task WaitForTimeoutAsync(Uri baseUri)
+		private async Task WaitForTimeoutAsync()
 		{
-			using var satoshiClient = new SatoshiClient(baseUri, null);
 			var times = 0;
-			while (!(await satoshiClient.GetAllRoundStatesAsync()).All(x => x.Phase == RoundPhase.InputRegistration))
+			while (!(await SatoshiClient.GetAllRoundStatesAsync()).All(x => x.Phase == RoundPhase.InputRegistration))
 			{
 				await Task.Delay(100);
 				if (times > 50) // 5 sec, 3 should be enough
@@ -99,6 +103,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					inputProofModels.Add(inputProof);
 
 					GetTxOutResponse getTxOutResponse = await rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
+
 					// Check if inputs are unspent.
 					Assert.NotNull(getTxOutResponse);
 
@@ -140,6 +145,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				{
 					Assert.Equal(roundId, aliceClient.RoundId);
 				}
+
 				// Because it's valuetuple.
 				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, null));
 			}
@@ -171,10 +177,9 @@ namespace WalletWasabi.Tests.RegressionTests
 				user.unblindedSignature = resp.Item2.First().Signature;
 			}
 
-			using (var satoshiClient = new SatoshiClient(baseUri, null))
 			{
 				var times = 0;
-				while (!(await satoshiClient.GetAllRoundStatesAsync()).All(x => x.Phase == RoundPhase.InputRegistration))
+				while (!(await SatoshiClient.GetAllRoundStatesAsync()).All(x => x.Phase == RoundPhase.InputRegistration))
 				{
 					await Task.Delay(100);
 					if (times > 50) // 5 sec, 3 should be enough
@@ -211,6 +216,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				{
 					Assert.Equal(roundId, aliceClient.RoundId);
 				}
+
 				// Because it's valuetuple.
 				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, null));
 			}
@@ -224,10 +230,9 @@ namespace WalletWasabi.Tests.RegressionTests
 				confirmationRequests.Add(user.aliceClient.PostConfirmationAsync());
 			}
 
-			using (var satoshiClient = new SatoshiClient(baseUri, null))
 			{
 				var times = 0;
-				while (!(await satoshiClient.GetAllRoundStatesAsync()).All(x => x.Phase == RoundPhase.InputRegistration))
+				while (!(await SatoshiClient.GetAllRoundStatesAsync()).All(x => x.Phase == RoundPhase.InputRegistration))
 				{
 					await Task.Delay(100);
 					if (times > 50) // 5 sec, 3 should be enough
@@ -291,7 +296,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				aliceClientBackup = await AliceClientBase.CreateNewAsync(round.RoundId, new[] { activeOutputAddress }, new[] { round.MixingLevels.GetBaseLevel().SignerKey.PubKey }, new[] { requester }, network, changeOutputAddress, new[] { blinded }, inputsProofs, () => baseUri, null);
 			}
 
-			await WaitForTimeoutAsync(baseUri);
+			await WaitForTimeoutAsync();
 
 			int bannedCount = coordinator.UtxoReferee.CountBanned(false);
 			Assert.Equal(0, bannedCount);
@@ -305,7 +310,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				await AliceClientBase.CreateNewAsync(round.RoundId, aliceClientBackup.RegisteredAddresses, round.MixingLevels.GetAllLevels().Select(x => x.SignerKey.PubKey), aliceClientBackup.Requesters, network, registerRequest.changeOutputAddress, new[] { registerRequest.blindedData }, registerRequest.inputsProofs, () => baseUri, null);
 			}
 
-			await WaitForTimeoutAsync(baseUri);
+			await WaitForTimeoutAsync();
 
 			bannedCount = coordinator.UtxoReferee.CountBanned(false);
 			Assert.Equal(anonymitySet, bannedCount);

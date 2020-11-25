@@ -17,19 +17,8 @@ using WalletWasabi.Tor.Http.Extensions;
 
 namespace WalletWasabi.WebClients.Wasabi
 {
-	public class WasabiClient : IDisposable
+	public class WasabiClient
 	{
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		private WasabiClient(Func<Uri> baseUriAction, EndPoint? torSocks5EndPoint)
-		{
-			HttpClient = new TorHttpClient(baseUriAction, torSocks5EndPoint, isolateStream: true);
-		}
-
-		public WasabiClient(Uri baseUri, EndPoint? torSocks5EndPoint) : this(() => baseUri, torSocks5EndPoint)
-		{
-		}
-
 		public WasabiClient(IRelativeHttpClient httpClient)
 		{
 			HttpClient = httpClient;
@@ -251,10 +240,10 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		public async Task<UpdateStatus> CheckUpdatesAsync(CancellationToken cancel)
 		{
-			var versions = await GetVersionsAsync(cancel).ConfigureAwait(false);
-			var clientUpToDate = Helpers.Constants.ClientVersion >= versions.ClientVersion; // If the client version locally is greater than or equal to the backend's reported client version, then good.
-			var backendCompatible = int.Parse(Helpers.Constants.ClientSupportBackendVersionMax) >= versions.BackendMajorVersion && versions.BackendMajorVersion >= int.Parse(Helpers.Constants.ClientSupportBackendVersionMin); // If ClientSupportBackendVersionMin <= backend major <= ClientSupportBackendVersionMax, then our software is compatible.
-			var currentBackendMajorVersion = versions.BackendMajorVersion;
+			var (ClientVersion, BackendMajorVersion, LegalDocumentsVersion) = await GetVersionsAsync(cancel).ConfigureAwait(false);
+			var clientUpToDate = Helpers.Constants.ClientVersion >= ClientVersion; // If the client version locally is greater than or equal to the backend's reported client version, then good.
+			var backendCompatible = int.Parse(Helpers.Constants.ClientSupportBackendVersionMax) >= BackendMajorVersion && BackendMajorVersion >= int.Parse(Helpers.Constants.ClientSupportBackendVersionMin); // If ClientSupportBackendVersionMin <= backend major <= ClientSupportBackendVersionMax, then our software is compatible.
+			var currentBackendMajorVersion = BackendMajorVersion;
 
 			if (backendCompatible)
 			{
@@ -262,7 +251,7 @@ namespace WalletWasabi.WebClients.Wasabi
 				ApiVersion = currentBackendMajorVersion;
 			}
 
-			return new UpdateStatus(backendCompatible, clientUpToDate, versions.LegalDocumentsVersion, currentBackendMajorVersion);
+			return new UpdateStatus(backendCompatible, clientUpToDate, LegalDocumentsVersion, currentBackendMajorVersion);
 		}
 
 		#endregion software
@@ -282,31 +271,11 @@ namespace WalletWasabi.WebClients.Wasabi
 			}
 
 			using HttpContent content = response.Content;
-			string result = await content.ReadAsStringAsync().ConfigureAwait(false);
+			string result = await content.ReadAsStringAsync(cancel).ConfigureAwait(false);
 
 			return result;
 		}
 
 		#endregion wasabi
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					(HttpClient as IDisposable)?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
 	}
 }

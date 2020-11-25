@@ -194,7 +194,7 @@ namespace Mono.Options
 					{
 						char c = line[i];
 
-						if (c == '"' || c == '\'')
+						if (c is '"' or '\'')
 						{
 							char end = c;
 

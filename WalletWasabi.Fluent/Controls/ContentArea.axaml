@@ -20,10 +20,10 @@
   <Style Selector="c|ContentArea">
     <Setter Property="Template">
       <ControlTemplate>
-        <DockPanel Margin="40,0,40,0">
-          <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 40">
+        <DockPanel Margin="20,0,10,0">
+          <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 20">
             <DockPanel>
-              <Button Margin="-40,0,0,0" Classes="plain" Command="{Binding BackCommand}" IsVisible="{TemplateBinding EnableBack}">
+              <Button Margin="-20,0,0,0" Classes="plain" Command="{Binding BackCommand}" IsVisible="{TemplateBinding EnableBack}">
                 <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
               </Button>
               <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
@@ -42,15 +42,17 @@
               </i:Interaction.Behaviors>
             </Button>
           </Panel>
-          <ContentPresenter Name="PART_ContentPresenter"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                ContentTemplate="{TemplateBinding ContentTemplate}"
-                                Content="{TemplateBinding Content}"
-                                Padding="{TemplateBinding Padding}"
-                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled" Margin="0 0 0 32" Padding="0 0 10 0">
+            <ContentPresenter Name="PART_ContentPresenter"
+                              Background="{TemplateBinding Background}"
+                              BorderBrush="{TemplateBinding BorderBrush}"
+                              BorderThickness="{TemplateBinding BorderThickness}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                              Content="{TemplateBinding Content}"
+                              Padding="{TemplateBinding Padding}"
+                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+          </ScrollViewer>
         </DockPanel>
       </ControlTemplate>
     </Setter>

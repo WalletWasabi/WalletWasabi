@@ -12,8 +12,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWalletPageView">
 
-  <c:ContentArea Title="Add Wallet" Caption="Type in your wallet's name and select an option:"
-                    EnableBack="True">
+  <c:ContentArea Title="Add Wallet" Caption="Type in your wallet's name and select an option:">
     <DockPanel>
       <StackPanel DockPanel.Dock="Top" Margin="0 0 0 20">
         <Label Content="Wallet _Name:" Target="walletNameTb" />
@@ -55,7 +54,7 @@
             </StackPanel>
           </Button>
 
-          <Button Classes="option">
+          <Button Classes="option" Command="{Binding ImportWalletCommand}">
             <StackPanel Orientation="Horizontal">
               <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource import_regular}"
                         Width="16"

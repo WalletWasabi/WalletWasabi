@@ -135,7 +135,7 @@ namespace WalletWasabi.Blockchain.Blocks
 				return;
 			}
 
-			await HandleMissedBlocksAsync(arrivedBlock);
+			await HandleMissedBlocksAsync(arrivedBlock).ConfigureAwait(false);
 
 			BestBlockHash = bestBlockHash;
 			return;

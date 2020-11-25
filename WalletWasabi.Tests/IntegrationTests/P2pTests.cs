@@ -54,10 +54,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var dataDir = Common.GetWorkDir();
 
 			var indexStore = new IndexStore(Path.Combine(dataDir, "indexStore"), network, new SmartHeaderChain());
-			var transactionStore = new AllTransactionStore(Path.Combine(dataDir, "transactionStore"), network);
+			await using var transactionStore = new AllTransactionStore(Path.Combine(dataDir, "transactionStore"), network);
 			var mempoolService = new MempoolService();
 			var blocks = new FileSystemBlockRepository(Path.Combine(dataDir, "blocks"), network);
-			BitcoinStore bitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
+			await using BitcoinStore bitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
 			await bitcoinStore.InitializeAsync();
 
 			var addressManagerFolderPath = Path.Combine(dataDir, "AddressManager");
@@ -168,6 +168,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 				Logger.LogInfo($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
 
 				await syncer?.StopAsync();
+
+				await bitcoinStore.DisposeAsync();
 			}
 		}
 	}

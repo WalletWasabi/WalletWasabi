@@ -433,21 +433,6 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			}
 		}
 
-		public void AddOrReplaceRound(ClientRound round)
-		{
-			lock (StateLock)
-			{
-				foreach (var r in Rounds.Where(x => x.State.RoundId == round.State.RoundId))
-				{
-					r?.Registration?.AliceClient?.Dispose();
-					Logger.LogInfo($"Round ({round.State.RoundId}) removed. Reason: It's being replaced.");
-				}
-				Rounds.RemoveAll(x => x.State.RoundId == round.State.RoundId);
-				Rounds.Add(round);
-				Logger.LogInfo($"Round ({round.State.RoundId}) added.");
-			}
-		}
-
 		public void ClearRoundRegistration(long roundId)
 		{
 			lock (StateLock)

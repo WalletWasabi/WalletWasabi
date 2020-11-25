@@ -1,5 +1,6 @@
 using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -15,9 +16,9 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			NavigationTarget = navigationTarget;
 
-			BackCommand = ReactiveCommand.Create(() => GoBack());
+			BackCommand = ReactiveCommand.Create(GoBack);
 
-			CancelCommand = ReactiveCommand.Create(() => ClearNavigation());
+			CancelCommand = ReactiveCommand.Create(ClearNavigation);
 		}
 
 		public string UrlPathSegment { get; } = Guid.NewGuid().ToString().Substring(0, 5);
@@ -31,6 +32,8 @@ namespace WalletWasabi.Fluent.ViewModels
 		public NavigationStateViewModel NavigationState { get; }
 
 		public NavigationTarget NavigationTarget { get; }
+
+		public ICommand? NextCommand { get; protected set; }
 
 		public ICommand BackCommand { get; protected set; }
 
@@ -68,43 +71,78 @@ namespace WalletWasabi.Fluent.ViewModels
 		private void NavigateToHomeScreen(RoutableViewModel viewModel, bool resetNavigation)
 		{
 			var command = resetNavigation ?
-				NavigationState.HomeScreen?.Invoke().Router.NavigateAndReset :
-				NavigationState.HomeScreen?.Invoke().Router.Navigate;
-			command?.Execute(viewModel);
+				NavigationState.HomeScreen().Router.NavigateAndReset :
+				NavigationState.HomeScreen().Router.Navigate;
+			command.Execute(viewModel);
 		}
 
 		private void NavigateToDialogScreen(RoutableViewModel viewModel, bool resetNavigation)
 		{
 			var command = resetNavigation ?
-				NavigationState.DialogScreen?.Invoke().Router.NavigateAndReset :
-				NavigationState.DialogScreen?.Invoke().Router.Navigate;
-			command?.Execute(viewModel);
+				NavigationState.DialogScreen().Router.NavigateAndReset :
+				NavigationState.DialogScreen().Router.Navigate;
+			command.Execute(viewModel);
 		}
 
 		private void NavigateToDialogHost(DialogViewModelBase dialog)
 		{
-			if (NavigationState.DialogHost?.Invoke() is IDialogHost dialogHost)
+			if (NavigationState.DialogHost() is IDialogHost dialogHost)
 			{
 				dialogHost.CurrentDialog = dialog;
 			}
 		}
 
-		public void NavigateToSelf() => NavigateTo(this, NavigationTarget, false);
+		public void NavigateToSelf() => NavigateTo(this, NavigationTarget, resetNavigation: false);
 
-		public void NavigateToSelfAndReset() => NavigateTo(this, NavigationTarget, true);
+		public void NavigateToSelfAndReset() => NavigateTo(this, NavigationTarget, resetNavigation: true);
 
-		public void GoBack(NavigationTarget navigationTarget)
+		private RoutingState? GetRouter(NavigationTarget navigationTarget)
 		{
+			var router = default(RoutingState);
+
 			switch (navigationTarget)
 			{
 				case NavigationTarget.Default:
 				case NavigationTarget.HomeScreen:
-					NavigationState.HomeScreen.Invoke().Router.NavigateBack.Execute();
+					router = NavigationState.HomeScreen.Invoke().Router;
 					break;
 
 				case NavigationTarget.DialogScreen:
-					NavigationState.DialogScreen.Invoke().Router.NavigateBack.Execute();
+					router = NavigationState.DialogScreen.Invoke().Router;
 					break;
+			}
+
+			return router;
+		}
+
+		private void CloseDialogs(IEnumerable<IRoutableViewModel> navigationStack)
+		{
+			foreach (var routable in navigationStack)
+			{
+				// Close all dialogs so the awaited tasks can complete.
+				// - DialogViewModelBase.ShowDialogAsync()
+				// - DialogViewModelBase.GetDialogResultAsync()
+				if (routable is DialogViewModelBase dialog)
+				{
+					dialog.IsDialogOpen = false;
+				}
+			}
+		}
+
+		public void GoBack(NavigationTarget navigationTarget)
+		{
+			var router = GetRouter(navigationTarget);
+			if (router is not null && router.NavigationStack.Count >= 1)
+			{
+				// Close all dialogs so the awaited tasks can complete.
+				// - DialogViewModelBase.ShowDialogAsync()
+				// - DialogViewModelBase.GetDialogResultAsync()
+				if (router.NavigationStack.LastOrDefault() is DialogViewModelBase dialog)
+				{
+					dialog.IsDialogOpen = false;
+				}
+
+				router.NavigateBack.Execute();
 			}
 		}
 
@@ -112,16 +150,17 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public void ClearNavigation(NavigationTarget navigationTarget)
 		{
-			switch (navigationTarget)
+			var router = GetRouter(navigationTarget);
+			if (router is not null)
 			{
-				case NavigationTarget.Default:
-				case NavigationTarget.HomeScreen:
-					NavigationState.HomeScreen.Invoke().Router.NavigationStack.Clear();
-					break;
+				if (router.NavigationStack.Count >= 1)
+				{
+					var navigationStack = router.NavigationStack.ToList();
 
-				case NavigationTarget.DialogScreen:
-					NavigationState.DialogScreen.Invoke().Router.NavigationStack.Clear();
-					break;
+					router.NavigationStack.Clear();
+
+					CloseDialogs(navigationStack);
+				}
 			}
 		}
 

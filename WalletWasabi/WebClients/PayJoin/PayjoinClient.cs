@@ -14,7 +14,6 @@ using Newtonsoft.Json.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Http.Interfaces;
 
 namespace WalletWasabi.WebClients.PayJoin
 {
@@ -29,7 +28,7 @@ namespace WalletWasabi.WebClients.PayJoin
 		}
 
 		// For testing only
-		internal PayjoinClient(Uri paymentUrl, ITorHttpClient httpClient)
+		internal PayjoinClient(Uri paymentUrl, IRelativeHttpClient httpClient)
 		{
 			PaymentUrl = paymentUrl;
 			TorHttpClient = Guard.NotNull(nameof(httpClient), httpClient);
@@ -37,7 +36,7 @@ namespace WalletWasabi.WebClients.PayJoin
 
 		public Uri PaymentUrl { get; }
 		private EndPoint TorSocks5EndPoint { get; }
-		private ITorHttpClient TorHttpClient { get; }
+		private IRelativeHttpClient TorHttpClient { get; }
 
 		public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey changeHdPubKey, CancellationToken cancellationToken)
 		{
@@ -298,8 +297,10 @@ namespace WalletWasabi.WebClients.PayJoin
 			}
 
 			// Remove query from endpoint.
-			var builder = new UriBuilder(endpoint);
-			builder.Query = "";
+			var builder = new UriBuilder(endpoint)
+			{
+				Query = ""
+			};
 
 			// Construct final URI.
 			return new Uri(QueryHelpers.AddQueryString(builder.Uri.AbsoluteUri, parameters));

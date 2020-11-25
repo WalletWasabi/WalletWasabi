@@ -37,7 +37,7 @@ namespace WalletWasabi.Tor.Http.Extensions
 
 			string headers = await HttpMessageHelper.ReadHeadersAsync(responseStream).ConfigureAwait(false);
 
-			var headerSection = await HeaderSection.CreateNewAsync(headers);
+			var headerSection = await HeaderSection.CreateNewAsync(headers).ConfigureAwait(false);
 			var headerStruct = headerSection.ToHttpResponseHeaders();
 
 			HttpMessageHelper.AssertValidHeaders(headerStruct.ResponseHeaders, headerStruct.ContentHeaders);
