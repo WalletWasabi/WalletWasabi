@@ -113,7 +113,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						walletManager.AddWallet(keyManager);
 					});
 
-					ClearNavigation(NavigationTarget.DialogScreen);
 				}
 			}
 			catch (Exception ex)
@@ -122,6 +121,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 			finally
 			{
+				ClearNavigation(NavigationTarget.DialogScreen);
 				IsBusy = false;
 			}
 		}
