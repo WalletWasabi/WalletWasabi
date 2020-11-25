@@ -48,8 +48,8 @@
   <Style Selector="c|Dialog /template/ Panel#PART_DialogHost">
     <Setter Property="Transitions">
       <Transitions>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.35" Easing="{StaticResource FluentDefaultEasing}" />
-        <DoubleTransition Property="Opacity" Duration="0:0:0.50" Easing="{StaticResource FluentDefaultEasing}" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.35" Easing="{StaticResource FluentEasing}" />
+        <DoubleTransition Property="Opacity" Duration="0:0:0.50" Easing="{StaticResource FluentEasing}" />
       </Transitions>
     </Setter>
     <Setter Property="Opacity" Value="0"/>

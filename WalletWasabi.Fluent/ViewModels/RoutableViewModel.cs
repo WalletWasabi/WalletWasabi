@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -10,15 +12,17 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public abstract class RoutableViewModel : ViewModelBase, IRoutableViewModel
 	{
+		private bool _isBusy;
+
 		protected RoutableViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget)
 		{
 			NavigationState = navigationState;
 
 			NavigationTarget = navigationTarget;
 
-			BackCommand = ReactiveCommand.Create(() => GoBack());
+			BackCommand = ReactiveCommand.Create(GoBack);
 
-			CancelCommand = ReactiveCommand.Create(() => ClearNavigation());
+			CancelCommand = ReactiveCommand.Create(ClearNavigation);
 		}
 
 		public string UrlPathSegment { get; } = Guid.NewGuid().ToString().Substring(0, 5);
@@ -29,17 +33,35 @@ namespace WalletWasabi.Fluent.ViewModels
 			_ => NavigationState.HomeScreen.Invoke(),
 		};
 
+		public bool IsBusy
+		{
+			get => _isBusy;
+			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
+		}
+
 		public NavigationStateViewModel NavigationState { get; }
 
 		public NavigationTarget NavigationTarget { get; }
 
-		public ICommand NextCommand { get; protected set; }
+		public ICommand? NextCommand { get; protected set; }
 
 		public ICommand BackCommand { get; protected set; }
 
 		public ICommand CancelCommand { get; protected set; }
 
-		public void NavigateTo(RoutableViewModel viewModel, NavigationTarget navigationTarget, bool resetNavigation = false)
+		public async Task<TResult> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog)
+		{
+			TResult result;
+
+			using (NavigateTo(dialog, NavigationTarget.DialogScreen))
+			{
+				result = await dialog.GetDialogResultAsync();
+			}
+
+			return result;
+		}
+
+		public IDisposable NavigateTo(RoutableViewModel viewModel, NavigationTarget navigationTarget, bool resetNavigation = false)
 		{
 			switch (navigationTarget)
 			{
@@ -66,35 +88,37 @@ namespace WalletWasabi.Fluent.ViewModels
 				default:
 					break;
 			}
+
+			return Disposable.Create(()=>GoBack());
 		}
 
 		private void NavigateToHomeScreen(RoutableViewModel viewModel, bool resetNavigation)
 		{
 			var command = resetNavigation ?
-				NavigationState.HomeScreen?.Invoke().Router.NavigateAndReset :
-				NavigationState.HomeScreen?.Invoke().Router.Navigate;
-			command?.Execute(viewModel);
+				NavigationState.HomeScreen().Router.NavigateAndReset :
+				NavigationState.HomeScreen().Router.Navigate;
+			command.Execute(viewModel);
 		}
 
 		private void NavigateToDialogScreen(RoutableViewModel viewModel, bool resetNavigation)
 		{
 			var command = resetNavigation ?
-				NavigationState.DialogScreen?.Invoke().Router.NavigateAndReset :
-				NavigationState.DialogScreen?.Invoke().Router.Navigate;
-			command?.Execute(viewModel);
+				NavigationState.DialogScreen().Router.NavigateAndReset :
+				NavigationState.DialogScreen().Router.Navigate;
+			command.Execute(viewModel);
 		}
 
 		private void NavigateToDialogHost(DialogViewModelBase dialog)
 		{
-			if (NavigationState.DialogHost?.Invoke() is IDialogHost dialogHost)
+			if (NavigationState.DialogHost() is IDialogHost dialogHost)
 			{
 				dialogHost.CurrentDialog = dialog;
 			}
 		}
 
-		public void NavigateToSelf() => NavigateTo(this, NavigationTarget, false);
+		public void NavigateToSelf() => NavigateTo(this, NavigationTarget, resetNavigation: false);
 
-		public void NavigateToSelfAndReset() => NavigateTo(this, NavigationTarget, true);
+		public void NavigateToSelfAndReset() => NavigateTo(this, NavigationTarget, resetNavigation: true);
 
 		private RoutingState? GetRouter(NavigationTarget navigationTarget)
 		{

@@ -1,6 +1,7 @@
 using ReactiveUI;
 using System;
 using System.IO;
+using System.Reactive.Disposables;
 using System.Windows.Input;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
@@ -35,28 +36,29 @@ namespace WalletWasabi.Fluent.ViewModels
 				});
 
 			this.WhenAnyValue(x => x.WalletName)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
-			RecoverWalletCommand = ReactiveCommand.CreateFromTask(async () =>
+			RecoverWalletCommand = ReactiveCommand.Create(() =>
 			{
 				NavigateTo(new RecoverWalletViewModel(navigationState, WalletName, network, walletManager), NavigationTarget.DialogScreen);
 			});
 
+			ImportWalletCommand = ReactiveCommand.Create(() => new ImportWalletViewModel(navigationState, WalletName, walletManager));
+
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					var enterPassword = new EnterPasswordViewModel(
+					var result = await NavigateDialog(new EnterPasswordViewModel(
 						navigationState,
 						NavigationTarget.DialogScreen,
-						"Type the password of the wallet and click Continue.");
-
-					NavigateTo(enterPassword, NavigationTarget.DialogScreen);
-
-					var result = await enterPassword.GetDialogResultAsync();
+						"Type the password of the wallet and click Continue."));
 
 					if (result is { } password)
 					{
+						IsBusy = true;
+
 						var (km, mnemonic) = await Task.Run(
 							() =>
 							{
@@ -70,14 +72,18 @@ namespace WalletWasabi.Fluent.ViewModels
 							});
 
 						NavigateTo(new RecoveryWordsViewModel(navigationState, km, mnemonic, walletManager), NavigationTarget.DialogScreen, true);
-					}
-					else
-					{
-						GoBack();
+
+						IsBusy = false;
 					}
 				});
 
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
+
+			this.WhenNavigatedTo(() =>
+			{
+				this.RaisePropertyChanged(WalletName);
+				return Disposable.Empty;
+			});
 		}
 
 		private void ValidateWalletName(IValidationErrors errors, WalletManager walletManager, string walletName)
@@ -124,5 +130,6 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public ICommand CreateWalletCommand { get; }
 		public ICommand RecoverWalletCommand { get; }
+		public ICommand ImportWalletCommand { get; }
 	}
 }
