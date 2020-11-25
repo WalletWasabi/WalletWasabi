@@ -31,6 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			Network network,
 			WalletManager walletManager) : base(navigationState, NavigationTarget.DialogScreen)
 		{
+
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
 			Mnemonics.ToObservableChangeSet().ToCollection()
@@ -58,8 +59,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			AdvancedOptionsInteraction.RegisterHandler(
 				async interaction =>
 					interaction.SetOutput(
-						await new AdvancedRecoveryOptionsViewModel(navigationState, NavigationTarget.DialogHost,
-							interaction.Input).ShowDialogAsync()));
+						await new AdvancedRecoveryOptionsViewModel(navigationState, NavigationTarget.DialogHost, interaction.Input).ShowDialogAsync()));
 
 			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -70,10 +70,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					if (accountKeyPathIn is { } && minGapLimitIn is { })
 					{
 						AccountKeyPath = accountKeyPathIn;
-						MinGapLimit = (int) minGapLimitIn;
+						MinGapLimit = (int)minGapLimitIn;
 					}
 				});
-
 		}
 
 		private async Task OnNext(NavigationStateViewModel navigationState, WalletManager walletManager,
