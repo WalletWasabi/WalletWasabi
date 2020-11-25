@@ -118,15 +118,7 @@ namespace WalletWasabi.Gui
 
 		public void HideWindow()
 		{
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			{
-				// On OSX, just minimize the window https://github.com/zkSNACKs/WalletWasabi/pull/4772.
-				WindowState = Avalonia.Controls.WindowState.Minimized;
-			}
-			else
-			{
-				Hide();
-			}
+			Hide();
 		}
 
 		private async Task ClosingAsync()
