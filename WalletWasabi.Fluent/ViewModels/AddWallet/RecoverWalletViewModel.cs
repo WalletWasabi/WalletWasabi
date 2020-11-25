@@ -112,7 +112,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 						walletManager.AddWallet(keyManager);
 					});
-
 				}
 			}
 			catch (Exception ex)
