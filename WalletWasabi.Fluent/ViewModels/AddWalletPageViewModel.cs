@@ -55,13 +55,7 @@ namespace WalletWasabi.Fluent.ViewModels
 						NavigationTarget.DialogScreen,
 						"Type the password of the wallet and click Continue.");
 
-
-					string? result = null;
-
-					using (NavigateTo(enterPassword, NavigationTarget.DialogScreen))
-					{
-						result = await enterPassword.GetDialogResultAsync();
-					}
+					var result = await this.NavigateDialog(enterPassword);
 
 					if (result is { } password)
 					{
