@@ -61,6 +61,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 					if (result is { } password)
 					{
+						IsBusy = true;
+
 						var (km, mnemonic) = await Task.Run(
 							() =>
 							{
@@ -74,6 +76,8 @@ namespace WalletWasabi.Fluent.ViewModels
 							});
 
 						NavigateTo(new RecoveryWordsViewModel(navigationState, km, mnemonic, walletManager), NavigationTarget.DialogScreen, true);
+
+						IsBusy = false;
 					}
 					else
 					{
