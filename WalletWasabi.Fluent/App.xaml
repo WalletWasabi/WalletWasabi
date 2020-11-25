@@ -8,6 +8,8 @@
 
   <Application.Resources>
     <x:Double x:Key="ToggleSwitchThemeMinWidth">0</x:Double>
+    <KeySpline x:Key="FluentKeySpline">0.4,0,0.6,1</KeySpline>
+    <SplineEasing x:Key="FluentEasing" X1="0.4" X2="0" Y1="0.6" Y2="1"/>
   </Application.Resources>
 
   <Application.Styles>
