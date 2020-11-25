@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -10,6 +12,8 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public abstract class RoutableViewModel : ViewModelBase, IRoutableViewModel
 	{
+		private bool _isBusy;
+
 		protected RoutableViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget)
 		{
 			NavigationState = navigationState;
@@ -29,6 +33,12 @@ namespace WalletWasabi.Fluent.ViewModels
 			_ => NavigationState.HomeScreen.Invoke(),
 		};
 
+		public bool IsBusy
+		{
+			get => _isBusy;
+			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
+		}
+
 		public NavigationStateViewModel NavigationState { get; }
 
 		public NavigationTarget NavigationTarget { get; }
@@ -39,7 +49,19 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public ICommand CancelCommand { get; protected set; }
 
-		public void NavigateTo(RoutableViewModel viewModel, NavigationTarget navigationTarget, bool resetNavigation = false)
+		public async Task<TResult> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog)
+		{
+			TResult result;
+
+			using (NavigateTo(dialog, NavigationTarget.DialogScreen))
+			{
+				result = await dialog.GetDialogResultAsync();
+			}
+
+			return result;
+		}
+
+		public IDisposable NavigateTo(RoutableViewModel viewModel, NavigationTarget navigationTarget, bool resetNavigation = false)
 		{
 			switch (navigationTarget)
 			{
@@ -66,6 +88,8 @@ namespace WalletWasabi.Fluent.ViewModels
 				default:
 					break;
 			}
+
+			return Disposable.Create(()=>GoBack());
 		}
 
 		private void NavigateToHomeScreen(RoutableViewModel viewModel, bool resetNavigation)
