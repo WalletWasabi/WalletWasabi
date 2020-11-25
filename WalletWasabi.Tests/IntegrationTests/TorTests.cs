@@ -63,17 +63,20 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Logger.SetMinimumLevel(Logging.LogLevel.Trace);
 			using var client = new TorHttpClient(new Uri("http://api.qbit.ninja"), Common.TorSocks5Endpoint);
 
+			using HttpRequestMessage httpRequest = new(HttpMethod.Get, new Uri("http://api.qbit.ninja"));
 			var tasks = new List<Task<HttpResponseMessage>>
 			{
-				client.SendAsync(HttpMethod.Get, "/"),
-				client.SendAsync(HttpMethod.Get, "/"),
-				client.SendAsync(HttpMethod.Get, "/"),
-				client.SendAsync(HttpMethod.Get, "/"),
-				client.SendAsync(HttpMethod.Get, "/"),
-				client.SendAsync(HttpMethod.Get, "/"),
-				client.SendAsync(HttpMethod.Get, "/"),
-				client.SendAsync(HttpMethod.Get, "/"),
-				client.SendAsync(HttpMethod.Get, "/")
+				//client.SendAsync(httpRequest, isolateStream: false),
+				client.SendAsync(httpRequest, isolateStream: true),
+				client.SendAsync(httpRequest, isolateStream: true),
+				client.SendAsync(httpRequest, isolateStream: true),
+				//client.SendAsync(httpRequest, isolateStream: false),
+				//client.SendAsync(httpRequest, isolateStream: false),
+				//client.SendAsync(httpRequest, isolateStream: false),
+				//client.SendAsync(httpRequest, isolateStream: false),
+				//client.SendAsync(httpRequest, isolateStream: false),
+				//client.SendAsync(httpRequest, isolateStream: false),
+				//client.SendAsync(httpRequest, isolateStream: false)
 			};
 
 			HttpResponseMessage[] httpResponseMessages = await Task.WhenAll(tasks);

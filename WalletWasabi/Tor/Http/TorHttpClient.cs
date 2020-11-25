@@ -39,7 +39,7 @@ namespace WalletWasabi.Tor.Http
 
 				if (TorSocks5EndPoint is { } && TorSocks5ClientPool is null)
 				{
-					TorSocks5ClientPool = new TorSocks5ClientPool(TorSocks5EndPoint, isolateStream);
+					TorSocks5ClientPool = new TorSocks5ClientPool(TorSocks5EndPoint);
 				}
 			}
 		}
@@ -122,7 +122,7 @@ namespace WalletWasabi.Tor.Http
 			{
 				try
 				{
-					HttpResponseMessage httpResponseMessage = await TorSocks5ClientPool!.SendAsync(request, token).ConfigureAwait(false);
+					HttpResponseMessage httpResponseMessage = await TorSocks5ClientPool!.SendAsync(request, isolateStream, token).ConfigureAwait(false);
 					TorDoesntWorkSince = null;
 
 					return httpResponseMessage;
