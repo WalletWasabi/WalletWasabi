@@ -25,6 +25,10 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			_global = global;
 
+			AppViewModel.PrivacyMode = global.UiConfig
+				.WhenAnyValue(x => x.PrivacyMode)
+				.ObserveOn(RxApp.MainThreadScheduler);
+
 			_dialogScreen = new DialogScreenViewModel();
 
 			var navigationState = new NavigationStateViewModel(() => this, () => _dialogScreen, () => this);
