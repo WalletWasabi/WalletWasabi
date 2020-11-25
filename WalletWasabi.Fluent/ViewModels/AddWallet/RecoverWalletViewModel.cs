@@ -85,11 +85,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					NavigationTarget.DialogScreen,
 					"Type the password of the wallet to be able to recover and click Continue.");
 
-				NavigateTo(enterPassword, NavigationTarget.DialogScreen);
+				string? result = null;
 
-				var result = await enterPassword.GetDialogResultAsync();
-
-				NavigateToSelf();
+				using (NavigateTo(enterPassword, NavigationTarget.DialogScreen))
+				{
+					result = await enterPassword.GetDialogResultAsync();
+				}
 
 				if (result is { } password)
 				{
