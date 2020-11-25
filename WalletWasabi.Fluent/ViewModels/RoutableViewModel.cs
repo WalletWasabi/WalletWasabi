@@ -10,6 +10,8 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public abstract class RoutableViewModel : ViewModelBase, IRoutableViewModel
 	{
+		private bool _isBusy;
+
 		protected RoutableViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget)
 		{
 			NavigationState = navigationState;
@@ -28,6 +30,12 @@ namespace WalletWasabi.Fluent.ViewModels
 			NavigationTarget.DialogScreen => NavigationState.DialogScreen.Invoke(),
 			_ => NavigationState.HomeScreen.Invoke(),
 		};
+
+		public bool IsBusy
+		{
+			get => _isBusy;
+			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
+		}
 
 		public NavigationStateViewModel NavigationState { get; }
 

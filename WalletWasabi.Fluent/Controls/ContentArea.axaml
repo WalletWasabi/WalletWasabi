@@ -22,8 +22,8 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
-          <c:ProgressRing Name="LoadingRing" IsIndeterminate="True"/>
-          <DockPanel Name="MainDockPanel" Margin="20,0,10,0">
+          <c:ProgressRing Name="LoadingRing" IsIndeterminate="True" IsVisible="{TemplateBinding IsBusy}" />
+          <DockPanel Name="MainDockPanel" Margin="20,0,10,0" IsVisible="{Binding !#LoadingRing.IsVisible}">
             <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 20">
               <DockPanel>
                 <Button Margin="-20,0,0,0" Classes="plain" Command="{Binding BackCommand}" IsVisible="{TemplateBinding EnableBack}">
@@ -74,42 +74,7 @@
     <Setter Property="Opacity" Value="0.6" />
   </Style>
 
-  <Style Selector="c|ContentArea /template/ DockPanel#MainDockPanel">
-    <Setter Property="Transitions">
-      <Transitions>
-        <DoubleTransition Property="Opacity" Duration="0.27" Easing="{StaticResource FluentEasing}"/>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0.27" Easing="{StaticResource FluentEasing}"/>
-      </Transitions>
-    </Setter>
-  </Style>
-
-  <Style Selector="c|ContentArea[IsBusy=True] /template/ DockPanel#MainDockPanel">
-    <Setter Property="Opacity" Value="0"/>
-    <Setter Property="RenderTransform" Value="scale(0.98)"/>
-  </Style>
-
-  <Style Selector="c|ContentArea[IsBusy=False] /template/ DockPanel#MainDockPanel">
-    <Setter Property="Opacity" Value="1"/>
-    <Setter Property="RenderTransform" Value="scale(1)"/>
-  </Style>
-
-  <Style Selector="c|ContentArea[IsBusy=True] /template/ c|ProgressRing#LoadingRing">
-    <Setter Property="Opacity" Value="1"/>
-    <Setter Property="RenderTransform" Value="scale(1)"/>
-  </Style>
-
-  <Style Selector="c|ContentArea[IsBusy=False] /template/ c|ProgressRing#LoadingRing">
-    <Setter Property="Opacity" Value="0"/>
-    <Setter Property="RenderTransform" Value="scale(0.98)"/>
-  </Style>
-
   <Style Selector="c|ContentArea /template/ c|ProgressRing#LoadingRing">
-     <Setter Property="Transitions">
-       <Transitions>
-         <DoubleTransition Property="Opacity" Duration="0.27" Easing="{StaticResource FluentEasing}"/>
-         <TransformOperationsTransition Property="RenderTransform" Duration="0.27" Easing="{StaticResource FluentEasing}" />
-       </Transitions>
-     </Setter>
     <Setter Property="Width" Value="100"/>
     <Setter Property="Height" Value="100"/>
   </Style>

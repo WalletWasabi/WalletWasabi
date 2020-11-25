@@ -23,7 +23,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private string? _selectedTag;
 		private IEnumerable<string>? _suggestions;
 		private Mnemonic? _currentMnemonics;
-		private bool _isBusy;
 
 		public RecoverWalletViewModel(
 			NavigationStateViewModel navigationState,
@@ -153,12 +152,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			get => _currentMnemonics;
 			set => this.RaiseAndSetIfChanged(ref _currentMnemonics, value);
-		}
-
-		private bool IsBusy
-		{
-			get => _isBusy;
-			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
 		}
 
 		private void ValidateMnemonics(IValidationErrors errors)
