@@ -58,7 +58,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			AdvancedOptionsInteraction.RegisterHandler(
 				async interaction =>
 					interaction.SetOutput(
-						await new AdvancedRecoveryOptionsViewModel(navigationState, NavigationTarget.DialogHost, interaction.Input).ShowDialogAsync()));
+						await new AdvancedRecoveryOptionsViewModel(navigationState, NavigationTarget.DialogHost,
+							interaction.Input).ShowDialogAsync()));
 
 			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -69,47 +70,49 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					if (accountKeyPathIn is { } && minGapLimitIn is { })
 					{
 						AccountKeyPath = accountKeyPathIn;
-						MinGapLimit = (int)minGapLimitIn;
+						MinGapLimit = (int) minGapLimitIn;
 					}
 				});
 
-			IsBusyObservable = this
-				.WhenAnyValue(x => x.IsBusy)
-				.Select(x=>x)
-				.ObserveOn(RxApp.MainThreadScheduler);
 		}
 
-		private async Task OnNext(NavigationStateViewModel navigationState, WalletManager walletManager, Network network, string? walletName)
+		private async Task OnNext(NavigationStateViewModel navigationState, WalletManager walletManager,
+			Network network, string? walletName)
 		{
+			IsBusy = true;
+
 			try
 			{
-				IsBusy = true;
 				var enterPassword = new EnterPasswordViewModel(
 					navigationState,
 					NavigationTarget.DialogScreen,
 					"Type the password of the wallet to be able to recover and click Continue.");
-				await Task.Delay(15_000);
-				IsBusy = false;
 
 				NavigateTo(enterPassword, NavigationTarget.DialogScreen);
 
 				var result = await enterPassword.GetDialogResultAsync();
 
+				NavigateToSelf();
+
 				if (result is { } password)
 				{
-					var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName!)
-						.walletFilePath;
+					await Task.Run(() =>
+					{
+						var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName!)
+							.walletFilePath;
 
-					var keyManager = KeyManager.Recover(
-						CurrentMnemonics!,
-						password!,
-						walletFilePath,
-						AccountKeyPath,
-						MinGapLimit);
+						var keyManager = KeyManager.Recover(
+							CurrentMnemonics!,
+							password!,
+							walletFilePath,
+							AccountKeyPath,
+							MinGapLimit);
 
-					keyManager.SetNetwork(network);
+						keyManager.SetNetwork(network);
 
-					walletManager.AddWallet(keyManager);
+						walletManager.AddWallet(keyManager);
+
+					});
 
 					ClearNavigation(NavigationTarget.DialogScreen);
 				}
@@ -118,11 +121,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			{
 				Logger.LogError(ex);
 			}
+			finally
+			{
+				IsBusy = false;
+			}
 		}
 
 		public IObservable<bool> FinishCommandCanExecute { get; }
-
-		public IObservable<bool> IsBusyObservable { get; }
 
 		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 

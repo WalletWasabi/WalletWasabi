@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Markup.Xaml.Styling;
@@ -107,7 +106,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			OpenConfigFileCommand = ReactiveCommand.CreateFromTask(OpenConfigFileAsync);
 
 			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
-			LoadingTestCommand = ReactiveCommand.CreateFromTask(LoadingTest);
+
 			Observable
 				.Merge(OpenConfigFileCommand.ThrownExceptions)
 				.Merge(TextBoxLostFocusCommand.ThrownExceptions)
@@ -181,21 +180,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 							MediumPrivacyLevel = x - 1;
 						}
 					});
-			isbusy = new Subject<bool>();
-			IsBusyObservable = isbusy.ObserveOn(RxApp.MainThreadScheduler).Select(x => x);
-
 		}
-
-		public IObservable<bool> IsBusyObservable { get;  }
-		private Subject<bool> isbusy;
-		private async Task LoadingTest()
-		{
-			isbusy.OnNext(true);
-			await Task.Delay(5_000);
-			isbusy.OnNext(false);
-		}
-
-		public ReactiveCommand<Unit, Unit> LoadingTestCommand { get; set; }
 
 		private object ConfigLock { get; } = new object();
 

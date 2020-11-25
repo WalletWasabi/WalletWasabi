@@ -8,7 +8,6 @@
              xmlns:settings="clr-namespace:WalletWasabi.Fluent.ViewModels.Settings"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="settings:SettingsPageViewModel"
-             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Settings.SettingsPageView">
   <UserControl.Styles>
     <Style Selector="TabItem">
@@ -23,26 +22,23 @@
       <Setter Property="Padding" Value="0" />
     </Style>
   </UserControl.Styles>
-  <c:ContentArea Title="Settings" Caption="Manage appearance, privacy and other settings" IsBusy="{Binding IsBusyObservable^}">
-    <StackPanel>
-      <TabControl>
-        <TabItem Header="General">
-          <v:GeneralSettingsView />
-        </TabItem>
+  <c:ContentArea Title="Settings" Caption="Manage appearance, privacy and other settings">
+    <TabControl>
+      <TabItem Header="General">
+        <v:GeneralSettingsView />
+      </TabItem>
 
-        <TabItem Header="Privacy">
-           <v:PrivacySettingsView />
-        </TabItem>
+      <TabItem Header="Privacy">
+         <v:PrivacySettingsView />
+      </TabItem>
 
-        <TabItem Header="Network">
-          <v:NetworkSettingsView />
-        </TabItem>
+      <TabItem Header="Network">
+        <v:NetworkSettingsView />
+      </TabItem>
 
-        <TabItem Header="Bitcoin">
-          <v:BitCoinSettingsView />
-        </TabItem>
-      </TabControl>
-      <Button Command="{Binding LoadingTestCommand}">Activate Loading Animation</Button>
-    </StackPanel>
+      <TabItem Header="Bitcoin">
+        <v:BitCoinSettingsView />
+      </TabItem>
+    </TabControl>
   </c:ContentArea>
 </UserControl>
