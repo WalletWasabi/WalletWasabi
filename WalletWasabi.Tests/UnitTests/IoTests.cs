@@ -18,7 +18,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task IoManagerTestsAsync()
 		{
-			var file1 = Path.Combine(Common.GetWorkDir(), $"file1.dat");
+			var file = Path.Combine(Common.GetWorkDir(), $"file1.dat");
 
 			List<string> lines = new List<string>();
 			for (int i = 0; i < 1000; i++)
@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// Single thread file operations.
 
-			DigestableSafeIoManager ioman1 = new DigestableSafeIoManager(file1);
+			DigestableSafeIoManager ioman1 = new DigestableSafeIoManager(file);
 
 			// Delete the file if Exist.
 
