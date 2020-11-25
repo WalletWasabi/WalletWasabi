@@ -14,7 +14,8 @@
                    Title="Enter recovery words" Caption="Type in your 12 recovery words and click Continue."
                    EnableBack="True"
                    EnableCancel="True" CancelContent="Cancel"
-                   EnableNext="True" NextContent="Finish">
+                   EnableNext="True" NextContent="Finish"
+                   x:CompileBindings="False" IsBusy="{Binding IsBusyObservable^}">
         <StackPanel>
             <DockPanel>
                 <PathIcon Name="IconCheckmark" Classes="checkMark" Margin="15 42 0 0" VerticalAlignment="Top"

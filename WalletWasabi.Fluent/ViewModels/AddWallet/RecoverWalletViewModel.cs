@@ -23,6 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private string? _selectedTag;
 		private IEnumerable<string>? _suggestions;
 		private Mnemonic? _currentMnemonics;
+		private bool _isBusy;
 
 		public RecoverWalletViewModel(
 			NavigationStateViewModel navigationState,
@@ -71,16 +72,24 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						MinGapLimit = (int)minGapLimitIn;
 					}
 				});
+
+			IsBusyObservable = this
+				.WhenAnyValue(x => x.IsBusy)
+				.Select(x=>x)
+				.ObserveOn(RxApp.MainThreadScheduler);
 		}
 
 		private async Task OnNext(NavigationStateViewModel navigationState, WalletManager walletManager, Network network, string? walletName)
 		{
 			try
 			{
+				IsBusy = true;
 				var enterPassword = new EnterPasswordViewModel(
 					navigationState,
 					NavigationTarget.DialogScreen,
 					"Type the password of the wallet to be able to recover and click Continue.");
+				await Task.Delay(15_000);
+				IsBusy = false;
 
 				NavigateTo(enterPassword, NavigationTarget.DialogScreen);
 
@@ -113,6 +122,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public IObservable<bool> FinishCommandCanExecute { get; }
 
+		public IObservable<bool> IsBusyObservable { get; }
+
 		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 
 		private KeyPath AccountKeyPath { get; set; } = KeyPath.Parse("m/84'/0'/0'");
@@ -139,6 +150,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			get => _currentMnemonics;
 			set => this.RaiseAndSetIfChanged(ref _currentMnemonics, value);
+		}
+
+		private bool IsBusy
+		{
+			get => _isBusy;
+			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
 		}
 
 		private void ValidateMnemonics(IValidationErrors errors)
