@@ -195,7 +195,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void InputMergePunishmentNoInheritance()
 		{
-			// Input merging results in worse inherited anonset, but not in worse anonset if there's nothing to inherit.
+			// Input merging results in worse inherited anonset, but does not punish gains from output indistinguishability
+``
 			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
 			var tx = BitcoinFactory.CreateSmartTransaction(
 				9,
