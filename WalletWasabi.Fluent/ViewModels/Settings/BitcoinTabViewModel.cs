@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 
@@ -27,6 +29,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			StopLocalBitcoinCoreOnShutdown = config.StopLocalBitcoinCoreOnShutdown;
 			_bitcoinP2PEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
 		}
+
+		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
 
 		public Network Network
 		{

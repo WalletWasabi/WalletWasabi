@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Gui;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar
 {
@@ -25,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private Action? _toggleAction;
 		private Action? _collapseOnClickAction;
 
-		public NavBarViewModel(NavigationStateViewModel navigationState, RoutingState router, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage)
+		public NavBarViewModel(NavigationStateViewModel navigationState, RoutingState router, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage, Global global)
 		{
 			Router = router;
 			_walletManager = walletManager;
@@ -33,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 
 			var homePage = new HomePageViewModel(navigationState, walletManager, addWalletPage);
-			var settingsPage = new SettingsPageViewModel(navigationState);
+			var settingsPage = new SettingsPageViewModel(navigationState, global);
 			var searchPage = new SearchPageViewModel(navigationState, walletManager, addWalletPage, settingsPage, homePage);
 
 			SelectedItem = homePage;

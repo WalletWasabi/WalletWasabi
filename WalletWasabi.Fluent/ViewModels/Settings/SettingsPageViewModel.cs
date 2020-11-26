@@ -24,21 +24,18 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private bool _isModified;
 		private int _selectedTab;
 
-		private Global Global;
-
-		public SettingsPageViewModel(NavigationStateViewModel navigationState) : base(navigationState, NavigationTarget.HomeScreen)
+		public SettingsPageViewModel(NavigationStateViewModel navigationState, Global global) : base(navigationState, NavigationTarget.HomeScreen)
 		{
+			Global = global;
 			Title = "Settings";
 
-			Global = Locator.Current.GetService<Global>();
-			var config = new Config(Global.Config.FilePath);
+			var config = new Config(global.Config.FilePath);
 			config.LoadOrCreateDefaultFile();
 
 			GeneralTab = new GeneralTabViewModel(Global, config);
 			PrivacyTab = new PrivacyTabViewModel(config);
 			NetworkTab = new NetworkTabViewModel(config);
 			BitcoinTab = new BitcoinTabViewModel(config);
-
 
 			_selectedTab = 0;
 
@@ -54,16 +51,15 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			// 	.ObserveOn(RxApp.TaskpoolScheduler)
 			// 	.Subscribe(_ => Save());
 
-			OpenConfigFileCommand = ReactiveCommand.CreateFromTask(OpenConfigFileAsync);
-
 			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
 
 			Observable
-				.Merge(OpenConfigFileCommand.ThrownExceptions)
 				.Merge(TextBoxLostFocusCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
+
+		public Global Global { get; }
 
 		public GeneralTabViewModel GeneralTab { get; }
 		public PrivacyTabViewModel PrivacyTab { get; }
@@ -72,11 +68,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		private object ConfigLock { get; } = new object();
 
-		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
-
 		public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
-
-		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
 
 		public bool IsModified
 		{
@@ -138,11 +130,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					IsModified = !Global.Config.AreDeepEqual(config);
 				}
 			});
-		}
-
-		private async Task OpenConfigFileAsync()
-		{
-			await FileHelpers.OpenFileInTextEditorAsync(Global.Config.FilePath);
 		}
 	}
 }
