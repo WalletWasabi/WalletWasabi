@@ -39,6 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			_selectedTab = 0;
 
+			// TODO: Restart wasabi message
 			IsModified = !Global.Config.AreDeepEqual(config);
 
 			// TODO: trigger save
