@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.Tor.Http.Models;
 using WalletWasabi.Tor.Socks5.Exceptions;
@@ -42,11 +43,14 @@ namespace WalletWasabi.Tor.Socks5
 		/// </summary>
 		public TorSocks5ClientPool(EndPoint endpoint)
 		{
+			ClearnetHttpClient = new ClearnetHttpClient();
 			TorSocks5ClientFactory = new TorSocks5ClientFactory(endpoint);
 			Clients = new Dictionary<string, List<PoolItem>>();
 		}
 
+		public ClearnetHttpClient ClearnetHttpClient { get; }
 		private TorSocks5ClientFactory TorSocks5ClientFactory { get; }
+
 		private bool _disposedValue;
 
 		/// <remarks>Lock object to guard all access to <see cref="Clients"/>.</remarks>
@@ -64,6 +68,12 @@ namespace WalletWasabi.Tor.Socks5
 		/// <param name="token">TODO.</param>
 		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default)
 		{
+			// Connecting to loopback's URIs cannot be done via Tor.
+			if (request.RequestUri!.IsLoopback)
+			{
+				return await ClearnetHttpClient.SendAsync(request, token).ConfigureAwait(false);
+			}
+
 			int i = 0;
 			int attemptsNo = 3;
 

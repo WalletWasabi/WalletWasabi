@@ -31,6 +31,7 @@ using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
+using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
@@ -46,11 +47,13 @@ namespace WalletWasabi.Tests.RegressionTests
 			RegTestFixture = regTestFixture;
 			BaseUri = new Uri(RegTestFixture.BackendEndPoint);
 			BackendClearnetHttpClient = new ClearnetHttpClient(() => RegTestFixture.BackendEndPointUri);
+			TorSocks5ClientPool = new TorSocks5ClientPool(Tests.Common.TorSocks5Endpoint);
 		}
 
 		private RegTestFixture RegTestFixture { get; }
-		public Uri BaseUri { get; }
-		public ClearnetHttpClient BackendClearnetHttpClient { get; }
+		private Uri BaseUri { get; }
+		private ClearnetHttpClient BackendClearnetHttpClient { get; }
+		private TorSocks5ClientPool TorSocks5ClientPool { get; }
 
 		[Fact]
 		public async Task CoordinatorCtorTestsAsync()
@@ -108,7 +111,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
 
-			using var torClient = new TorHttpClient(BaseUri, Tests.Common.TorSocks5Endpoint);
+			var torClient = new TorHttpClient(TorSocks5ClientPool, BaseUri);
 			var satoshiClient = new SatoshiClient(new ClearnetHttpClient(() => BaseUri));
 
 			#region PostInputsGetStates
@@ -709,7 +712,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			coordinator.AbortAllRoundsInInputRegistration("");
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
-			using var torClient = new TorHttpClient(baseUri, Tests.Common.TorSocks5Endpoint);
+			var torClient = new TorHttpClient(TorSocks5ClientPool, baseUri);
 			var satoshiClient = new SatoshiClient(new ClearnetHttpClient(() => BaseUri));
 			var round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 			var roundId = round.RoundId;

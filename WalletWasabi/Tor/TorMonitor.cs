@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 
@@ -21,17 +22,17 @@ namespace WalletWasabi.Tor
 		/// <summary>
 		/// Creates a new instance of the object.
 		/// </summary>
-		public TorMonitor(TimeSpan period, Uri fallBackTestRequestUri, EndPoint torSocks5EndPoint, TorProcessManager torProcessManager) : base(period)
+		public TorMonitor(TimeSpan period, Uri fallBackTestRequestUri, TorProcessManager torProcessManager, TorSocks5ClientPool pool) : base(period)
 		{
 			FallBackTestRequestUri = fallBackTestRequestUri;
-			TorSocks5EndPoint = torSocks5EndPoint;
 			TorProcessManager = torProcessManager;
+			Pool = pool;
 		}
 
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
 		private Uri FallBackTestRequestUri { get; }
-		private EndPoint TorSocks5EndPoint { get; }
 		private TorProcessManager TorProcessManager { get; }
+		private TorSocks5ClientPool Pool { get; }
 
 		/// <inheritdoc/>
 		protected override async Task ActionAsync(CancellationToken token)
@@ -47,8 +48,8 @@ namespace WalletWasabi.Tor
 						if (torEx.RepField == RepField.HostUnreachable)
 						{
 							Uri baseUri = new Uri($"{FallBackTestRequestUri.Scheme}://{FallBackTestRequestUri.DnsSafeHost}");
-							using (var client = new TorHttpClient(baseUri, TorSocks5EndPoint))
 							{
+								var client = new TorHttpClient(Pool, baseUri);
 								var message = new HttpRequestMessage(HttpMethod.Get, FallBackTestRequestUri);
 								await client.SendAsync(message, token).ConfigureAwait(false);
 							}

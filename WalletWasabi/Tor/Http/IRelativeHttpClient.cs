@@ -11,7 +11,9 @@ namespace WalletWasabi.Tor.Http
 	/// </summary>
 	public interface IRelativeHttpClient : IHttpClient
 	{
-		Func<Uri> DestinationUriAction { get; }
+		/// <summary>Optional base URI.</summary>
+		/// <remarks>It is not permitted to call <see cref="SendAsync(HttpMethod, string, HttpContent?, CancellationToken)"/> without setting this property.</remarks>
+		Func<Uri>? DestinationUriAction { get; }
 
 		/// <summary>
 		/// Whether each HTTP(s) request should use a separate Tor circuit by default or not to increase privacy.
@@ -25,9 +27,13 @@ namespace WalletWasabi.Tor.Http
 			return SendAsync(request, DefaultIsolateStream, token);
 		}
 
+		/// <summary>
+		/// Sends an HTTP(s) request.
+		/// <para>The method can be used only when <see cref="DestinationUriAction"/> is set.</para>
+		/// </summary>
 		async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
 		{
-			var requestUri = new Uri(DestinationUriAction.Invoke(), relativeUri);
+			var requestUri = new Uri(DestinationUriAction!.Invoke(), relativeUri);
 			using var httpRequestMessage = new HttpRequestMessage(method, requestUri);
 
 			if (content is { })

@@ -22,12 +22,12 @@ namespace WalletWasabi.Tor.Http
 			});
 		}
 
-		public ClearnetHttpClient(Func<Uri> destinationUriAction)
+		public ClearnetHttpClient(Func<Uri>? destinationUriAction = null)
 		{
 			DestinationUriAction = destinationUriAction;
 		}
 
-		public Func<Uri> DestinationUriAction { get; }
+		public Func<Uri>? DestinationUriAction { get; }
 
 		/// <summary>Predefined HTTP client that handles HTTP requests when Tor is disabled.</summary>
 		private static HttpClient HttpClient { get; }
