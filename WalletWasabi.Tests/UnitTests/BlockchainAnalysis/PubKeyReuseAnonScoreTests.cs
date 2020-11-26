@@ -58,6 +58,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void InputSideAddressReuseHaveNoConsolidationPunishmentInSelfSpend()
 		{
+			// Consolidation can't hurt any more than reuse already has.
 			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
 			var km = ServiceFactory.CreateKeyManager();
 			var key = BitcoinFactory.CreateHdPubKey(km);
