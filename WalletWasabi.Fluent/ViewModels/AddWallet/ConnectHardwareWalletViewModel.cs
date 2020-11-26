@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -23,6 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	public class ConnectHardwareWalletViewModel : RoutableViewModel
 	{
 		private HardwareWalletViewModel? _selectedHardwareWallet;
+		private bool _walletListVisible;
 
 		public ConnectHardwareWalletViewModel(NavigationStateViewModel navigationState, string walletName, Network network, WalletManager walletManager)
 			: base(navigationState, NavigationTarget.DialogScreen)
@@ -79,6 +80,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					NavigatedToCts.Dispose();
 				});
 			});
+
+			this.WhenAnyValue(x => x.HardwareWallets.Count)
+				.Subscribe(x =>
+				{
+					WalletListVisible = x > 0;
+				});
 		}
 
 		private string WalletName  { get; }
@@ -97,6 +104,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			get => _selectedHardwareWallet;
 			set => this.RaiseAndSetIfChanged(ref _selectedHardwareWallet, value);
+		}		
+
+		public bool WalletListVisible
+		{
+			get => _walletListVisible;
+			set => this.RaiseAndSetIfChanged(ref _walletListVisible, value);
 		}
 
 		public ObservableCollection<HardwareWalletViewModel> HardwareWallets { get; }

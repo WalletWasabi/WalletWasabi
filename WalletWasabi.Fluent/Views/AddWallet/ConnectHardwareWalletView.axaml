@@ -32,37 +32,23 @@
         </Style>
     </UserControl.Styles>
 
-    <c:ContentArea Title="Hardware wallet"
-                   Caption="The hardware wallet will automatically appear when connected to the computer. The detection may take some time."
+    <c:ContentArea Title="Connect Hardware Wallet"
                    EnableCancel="True" CancelContent="Cancel"
                    EnableBack="True"
                    EnableNext="True" NextContent="Connect" >
-      <DockPanel>
-
-          <StackPanel Spacing="8" DockPanel.Dock="Bottom" Margin="0 15 0 0">
-              <StackPanel Classes="Delay">
-                  <TextBlock Text="Device did not show up?" FontWeight="Bold" />
-                  <TextBlock Text="- Be sure to set up and log into the device, usually with a PIN." TextWrapping="Wrap" />
-                  <TextBlock Text="- Hardware wallets are picky about their USB cables, so try out multiple ones." TextWrapping="Wrap" />
-                  <StackPanel IsVisible="{h:Platform {x:Static h:Const.False}, Linux={x:Static h:Const.True}}">
-                      <TextBlock Text="- Make sure that you properly applied udev rules. These are necessary for the devices to be reachable on Linux environments:" TextWrapping="Wrap" />
-                      <Button Content="https://github.com/bitcoin-core/HWI/tree/master/hwilib/udev" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding $self.Content}" />
-                  </StackPanel>
+      
+        <DockPanel>
+          <Button DockPanel.Dock="Bottom" HorizontalAlignment="Center" Classes="h8 plain activeHyperLink"  Foreground="{DynamicResource SystemAccentColor}" Content="More information and help with Hardware Wallets"  />
+          <Panel>
+            <ListBox IsVisible="{Binding WalletListVisible}" Background="Transparent" Items="{Binding HardwareWallets}" SelectedItem="{Binding SelectedHardwareWallet}"/>
+            <DockPanel IsVisible="{Binding !WalletListVisible}">
+              <StackPanel VerticalAlignment="Top" Spacing="20" DockPanel.Dock="Top">
+                <PathIcon Height="100" Width="150" Data="{StaticResource usb_logo}" Foreground="{DynamicResource SystemAccentColor}" />
+                <TextBlock Text="Connect your Wallet to the USB Port on your PC and Login / Enter the PIN on the Wallet" HorizontalAlignment="Center" />
               </StackPanel>
-             <StackPanel>
-                  <TextBlock Text="Limitations?" FontWeight="Bold" />
-                  <TextBlock Text="- Currently all hardware wallets are incompatible with coinjoins." />
-                  <TextBlock Text="- Only bech32 keypaths are supported, your legacy hardware wallet transactions won't show up." />
-              </StackPanel>
-              <StackPanel>
-                  <TextBlock Text="Which hardware wallets are supported?" FontWeight="Bold" />
-                  <TextBlock Text="- Coldcard, Ledger Nano S and Trezor T." TextWrapping="Wrap" />
-                  <TextBlock Text="- While other hardware wallets may work, they were not tested by Wasabi developers." TextWrapping="Wrap" />
-              </StackPanel>
-          </StackPanel>
-
-          <ListBox Items="{Binding HardwareWallets}" SelectedItem="{Binding SelectedHardwareWallet}"/>
-
-      </DockPanel>
+              <c:ProgressRing IsIndeterminate="True" VerticalAlignment="Center" Height="100" Width="100" />
+            </DockPanel>
+          </Panel>
+        </DockPanel>        
   </c:ContentArea>
 </UserControl>

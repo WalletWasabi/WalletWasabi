@@ -7,6 +7,10 @@
     <Setter Property="Background" Value="Transparent" />
   </Style>
 
+  <Style Selector="Button.activeHyperLink TextBlock">
+    <Setter Property="TextDecorations" Value="Underline" />    
+  </Style>
+
   <Style Selector="Button.activeHyperLink:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource HyperLinkForeground}" />
