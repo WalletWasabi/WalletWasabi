@@ -27,7 +27,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task CanDoRequestManyDifferentAsync()
 		{
-			using var client = new TorHttpClient(new Uri("http://api.qbit.ninja"), Common.TorSocks5Endpoint);
+			using var client = MakeTorHttpClient(new Uri("http://api.qbit.ninja"));
 			await QBitTestAsync(client, 10, alterRequests: true);
 		}
 

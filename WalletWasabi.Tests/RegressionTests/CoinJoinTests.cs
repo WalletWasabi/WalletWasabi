@@ -1557,8 +1557,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				request.ChangeOutputAddress,
 				request.BlindedOutputScripts,
 				request.Inputs,
-				() => BaseUri,
-				null);
+				BackendClearnetHttpClient);
 		}
 	}
 }
