@@ -2,12 +2,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
              xmlns:settings="clr-namespace:WalletWasabi.Fluent.ViewModels.Settings"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="settings:SettingsPageViewModel"
-             x:Class="WalletWasabi.Fluent.Views.Settings.GeneralSettingsView">
+             x:Class="WalletWasabi.Fluent.Views.Settings.GeneralSettingsView"
+             DataContext="{Binding GeneralTab}">
+             <!-- x:DataType="settings:SettingsPageViewModel" -->
   <StackPanel Spacing="20" MinWidth="360" MaxWidth="650" HorizontalAlignment="Left" Orientation="Vertical">
           <StackPanel.Styles>
             <Style Selector="DockPanel > TextBlock">

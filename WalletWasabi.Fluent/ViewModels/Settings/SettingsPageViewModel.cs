@@ -29,9 +29,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private string _torSocks5EndPoint;
 		private string _bitcoinP2PEndPoint;
 		private string _localBitcoinCoreDataDir;
-		private bool _autocopy;
-		private bool _customFee;
-		private bool _customChangeAddress;
 		private bool _useTor;
 		private bool _startLocalBitcoinCoreOnStartup;
 		private bool _stopLocalBitcoinCoreOnShutdown;
@@ -40,10 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private int _minimalPrivacyLevel;
 		private int _mediumPrivacyLevel;
 		private int _strongPrivacyLevel;
-		private string _dustThreshold;
-		private FeeDisplayFormat _selectedFeeDisplayFormat;
 		private int _selectedTab;
-		private bool _darkModeEnabled;
 
 		private Global Global;
 
@@ -52,19 +46,15 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			Title = "Settings";
 
 			Global = Locator.Current.GetService<Global>();
+			var config = new Config(Global.Config.FilePath);
+			config.LoadOrCreateDefaultFile();
 
-			this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
+			GeneralTab = new GeneralTabViewModel(Global, config);
+
 			this.ValidateProperty(x => x.TorSocks5EndPoint, ValidateTorSocks5EndPoint);
 			this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 
-			_darkModeEnabled = true;
 			_selectedTab = 0;
-			Autocopy = Global.UiConfig.Autocopy;
-			CustomFee = Global.UiConfig.IsCustomFee;
-			CustomChangeAddress = Global.UiConfig.IsCustomChangeAddress;
-
-			var config = new Config(Global.Config.FilePath);
-			config.LoadOrCreateDefaultFile();
 
 			_network = config.Network;
 			_torSocks5EndPoint = config.TorSocks5EndPoint.ToString(-1);
@@ -77,7 +67,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_mediumPrivacyLevel = config.PrivacyLevelFine;
 			_strongPrivacyLevel = config.PrivacyLevelStrong;
 
-			_dustThreshold = config.DustThreshold.ToString();
 
 			_bitcoinP2PEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
 			_localBitcoinCoreDataDir = config.LocalBitcoinCoreDataDir;
@@ -93,18 +82,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(_ => Save());
 
-			this.WhenAnyValue(x => x.Autocopy)
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(x => Global.UiConfig.Autocopy = x);
-
-			this.WhenAnyValue(x => x.CustomFee)
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(x => Global.UiConfig.IsCustomFee = x);
-
-			this.WhenAnyValue(x => x.CustomChangeAddress)
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(x => Global.UiConfig.IsCustomChangeAddress = x);
-
 			OpenConfigFileCommand = ReactiveCommand.CreateFromTask(OpenConfigFileAsync);
 
 			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
@@ -115,33 +92,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 
-			SelectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat)
-				? (FeeDisplayFormat)Global.UiConfig.FeeDisplayFormat
-				: FeeDisplayFormat.SatoshiPerByte;
 
-			this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => Global.UiConfig.FeeDisplayFormat = (int)x);
-
-			this.WhenAnyValue(x => x.DarkModeEnabled)
-				.Skip(1)
-				.Subscribe(
-					_ =>
-					{
-						var currentTheme = Application.Current.Styles.Select(x => (StyleInclude)x).FirstOrDefault(x => x.Source is { } && x.Source.AbsolutePath.Contains("Themes"));
-
-						if (currentTheme?.Source is { } src)
-						{
-							var themeIndex = Application.Current.Styles.IndexOf(currentTheme);
-
-							var newTheme = new StyleInclude(new Uri("avares://WalletWasabi.Fluent/App.xaml"))
-							{
-								Source = new Uri($"avares://WalletWasabi.Fluent/Styles/Themes/{(src.AbsolutePath.Contains("Light") ? "BaseDark" : "BaseLight")}.xaml")
-							};
-
-							Application.Current.Styles[themeIndex] = newTheme;
-						}
-					});
 
 			this.WhenAnyValue(x => x.MinimalPrivacyLevel)
 				.Subscribe(
@@ -184,6 +135,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					});
 		}
 
+		public GeneralTabViewModel GeneralTab { get; }
+
 		private object ConfigLock { get; } = new object();
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
@@ -198,12 +151,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			Network.TestNet,
 			Network.RegTest
 		};
-
-		public bool DarkModeEnabled
-		{
-			get => _darkModeEnabled;
-			set => this.RaiseAndSetIfChanged(ref _darkModeEnabled, value);
-		}
 
 		public Network Network
 		{
@@ -233,24 +180,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		{
 			get => _isModified;
 			set => this.RaiseAndSetIfChanged(ref _isModified, value);
-		}
-
-		public bool Autocopy
-		{
-			get => _autocopy;
-			set => this.RaiseAndSetIfChanged(ref _autocopy, value);
-		}
-
-		public bool CustomFee
-		{
-			get => _customFee;
-			set => this.RaiseAndSetIfChanged(ref _customFee, value);
-		}
-
-		public bool CustomChangeAddress
-		{
-			get => _customChangeAddress;
-			set => this.RaiseAndSetIfChanged(ref _customChangeAddress, value);
 		}
 
 		public bool StartLocalBitcoinCoreOnStartup
@@ -295,19 +224,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			set => this.RaiseAndSetIfChanged(ref _strongPrivacyLevel, value);
 		}
 
-		public string DustThreshold
-		{
-			get => _dustThreshold;
-			set => this.RaiseAndSetIfChanged(ref _dustThreshold, value);
-		}
-
-		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats => Enum.GetValues(typeof(FeeDisplayFormat)).Cast<FeeDisplayFormat>();
-
-		public FeeDisplayFormat SelectedFeeDisplayFormat
-		{
-			get => _selectedFeeDisplayFormat;
-			set => this.RaiseAndSetIfChanged(ref _selectedFeeDisplayFormat, value);
-		}
 
 		public int SelectedTab
 		{
@@ -349,7 +265,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 						config.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
 						config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
 						config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
-						config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
+						config.DustThreshold = decimal.TryParse(GeneralTab.DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
 						config.PrivacyLevelSome = MinimalPrivacyLevel;
 						config.PrivacyLevelStrong = StrongPrivacyLevel;
 						config.PrivacyLevelFine = MediumPrivacyLevel;
@@ -370,30 +286,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			await FileHelpers.OpenFileInTextEditorAsync(Global.Config.FilePath);
 		}
 
-		private void ValidateDustThreshold(IValidationErrors errors)
-			=> ValidateDustThreshold(errors, DustThreshold, whiteSpaceOk: true);
-
 		private void ValidateTorSocks5EndPoint(IValidationErrors errors)
 			=> ValidateEndPoint(errors, TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: true);
 
 		private void ValidateBitcoinP2PEndPoint(IValidationErrors errors)
 			=> ValidateEndPoint(errors, BitcoinP2PEndPoint, Network.DefaultPort, whiteSpaceOk: true);
-
-		private void ValidateDustThreshold(IValidationErrors errors, string dustThreshold, bool whiteSpaceOk)
-		{
-			if (!whiteSpaceOk || !string.IsNullOrWhiteSpace(dustThreshold))
-			{
-				if (!string.IsNullOrEmpty(dustThreshold) && dustThreshold.Contains(',', StringComparison.InvariantCultureIgnoreCase))
-				{
-					errors.Add(ErrorSeverity.Error, "Use decimal point instead of comma.");
-				}
-
-				if (!decimal.TryParse(dustThreshold, out var dust) || dust < 0)
-				{
-					errors.Add(ErrorSeverity.Error, "Invalid dust threshold.");
-				}
-			}
-		}
 
 		private void ValidateEndPoint(IValidationErrors errors, string endPoint, int defaultPort, bool whiteSpaceOk)
 		{
