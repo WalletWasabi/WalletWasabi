@@ -63,13 +63,13 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			get => _minimalPrivacyLevel;
 			set => this.RaiseAndSetIfChanged(ref _minimalPrivacyLevel, value);
 		}
-		
+
 		public int MediumPrivacyLevel
 		{
 			get => _mediumPrivacyLevel;
 			set => this.RaiseAndSetIfChanged(ref _mediumPrivacyLevel, value);
 		}
-		
+
 		public int StrongPrivacyLevel
 		{
 			get => _strongPrivacyLevel;

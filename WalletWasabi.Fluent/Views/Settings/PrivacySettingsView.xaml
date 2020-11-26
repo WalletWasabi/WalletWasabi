@@ -5,6 +5,7 @@
              xmlns:settings="clr-namespace:WalletWasabi.Fluent.ViewModels.Settings"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Settings.PrivacySettingsView"
+             x:DataType="settings:SettingsPageViewModel"
              DataContext="{Binding PrivacyTab}">
   <StackPanel Spacing="20" MinWidth="360" MaxWidth="650" HorizontalAlignment="Left" Orientation="Vertical">
     <StackPanel.Styles>
