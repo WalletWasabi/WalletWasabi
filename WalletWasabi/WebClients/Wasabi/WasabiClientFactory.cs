@@ -74,7 +74,6 @@ namespace WalletWasabi.WebClients.Wasabi
 			return new TorHttpClient(BackendUriGetter, TorEndpoint, isolateStream);
 		}
 
-
 		// Protected implementation of Dispose pattern.
 		protected virtual void Dispose(bool disposing)
 		{
