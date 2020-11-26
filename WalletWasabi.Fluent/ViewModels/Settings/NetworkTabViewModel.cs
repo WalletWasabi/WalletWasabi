@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					x => x.UseTor,
 					x => x.TerminateTorOnExit)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(_ => Save());
+				.Subscribe(_ => RequestSave());
 		}
 
 		public bool UseTor

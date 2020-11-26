@@ -35,13 +35,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			// TODO: Restart wasabi message
 			IsModified = !Global.Config.AreDeepEqual(config);
-
-			// TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
-
-			// Observable
-			// 	.Merge(TextBoxLostFocusCommand.ThrownExceptions)
-			// 	.ObserveOn(RxApp.TaskpoolScheduler)
-			// 	.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public Global Global { get; }
@@ -50,8 +43,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		public PrivacyTabViewModel PrivacyTab { get; }
 		public NetworkTabViewModel NetworkTab { get; }
 		public BitcoinTabViewModel BitcoinTab { get; }
-
-		public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
 
 		public bool IsModified
 		{

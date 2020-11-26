@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Net;
+using System.Timers;
 using Avalonia.Threading;
-using NBitcoin;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Helpers;
-using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
@@ -14,14 +11,32 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		protected SettingsViewModelBase(Global global)
 		{
 			Global = global;
+
+			SaveTimer = new Timer(1000);
+			SaveTimer.Elapsed += Save;
+			SaveTimer.AutoReset = false;
 		}
 
 		public Global Global { get; }
 
+		public Timer SaveTimer { get; }
+
 		private static object ConfigLock { get; } = new object();
 
-		protected void Save()
+		protected void RequestSave()
 		{
+			// This will prevent multiple save in a moment
+			SaveTimer.Stop();
+			SaveTimer.Start();
+		}
+
+		private void Save(object sender, ElapsedEventArgs e)
+		{
+			if (Validations.Any)
+			{
+				return;
+			}
+
 			var config = new Config(Global.Config.FilePath);
 
 			Dispatcher.UIThread.PostLogException(
@@ -31,7 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					{
 						config.LoadFile();
 						EditConfigOnSave(config);
-						// config.ToFile();
+						config.ToFile();
 
 						// IsModified = !Global.Config.AreDeepEqual(config);
 					}

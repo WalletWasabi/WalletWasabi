@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					x => x.StartLocalBitcoinCoreOnStartup,
 					x => x.StopLocalBitcoinCoreOnShutdown)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(_ => Save());
+				.Subscribe(_ => RequestSave());
 		}
 
 		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
