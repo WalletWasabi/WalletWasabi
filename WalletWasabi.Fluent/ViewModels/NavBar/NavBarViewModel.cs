@@ -132,11 +132,8 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			}
 
 			_selectedItem = null;
-
 			this.RaisePropertyChanged();
-
 			_selectedItem = value;
-
 			this.RaisePropertyChanged();
 
 			if (_selectedItem is { })
