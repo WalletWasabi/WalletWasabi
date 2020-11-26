@@ -67,7 +67,10 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 					if (!_isNavigating)
 					{
 						_isNavigating = true;
-						x.NavigateToSelfAndReset();
+						if (x.OpenCommand.CanExecute(default))
+						{
+							x.OpenCommand.Execute(default);
+						}
 						CollapseOnClickAction?.Invoke();
 
 						_isNavigating = false;
