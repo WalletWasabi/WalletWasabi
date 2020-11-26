@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Avalonia;
-using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
@@ -14,7 +11,6 @@ using Splat;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Helpers;
-using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -34,9 +30,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private bool _stopLocalBitcoinCoreOnShutdown;
 		private bool _isModified;
 		private bool _terminateTorOnExit;
-		private int _minimalPrivacyLevel;
-		private int _mediumPrivacyLevel;
-		private int _strongPrivacyLevel;
 		private int _selectedTab;
 
 		private Global Global;
@@ -50,6 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			config.LoadOrCreateDefaultFile();
 
 			GeneralTab = new GeneralTabViewModel(Global, config);
+			PrivacyTab = new PrivacyTabViewModel(config);
 
 			this.ValidateProperty(x => x.TorSocks5EndPoint, ValidateTorSocks5EndPoint);
 			this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
@@ -62,11 +56,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			TerminateTorOnExit = config.TerminateTorOnExit;
 			StartLocalBitcoinCoreOnStartup = config.StartLocalBitcoinCoreOnStartup;
 			StopLocalBitcoinCoreOnShutdown = config.StopLocalBitcoinCoreOnShutdown;
-
-			_minimalPrivacyLevel = config.PrivacyLevelSome;
-			_mediumPrivacyLevel = config.PrivacyLevelFine;
-			_strongPrivacyLevel = config.PrivacyLevelStrong;
-
 
 			_bitcoinP2PEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
 			_localBitcoinCoreDataDir = config.LocalBitcoinCoreDataDir;
@@ -91,52 +80,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Merge(TextBoxLostFocusCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
-
-
-
-			this.WhenAnyValue(x => x.MinimalPrivacyLevel)
-				.Subscribe(
-					x =>
-					{
-						if (x >= MediumPrivacyLevel)
-						{
-							MediumPrivacyLevel = x + 1;
-						}
-					});
-
-			this.WhenAnyValue(x => x.MediumPrivacyLevel)
-				.Subscribe(
-					x =>
-					{
-						if (x >= StrongPrivacyLevel)
-						{
-							StrongPrivacyLevel = x + 1;
-						}
-
-						if (x <= MinimalPrivacyLevel)
-						{
-							MinimalPrivacyLevel = x - 1;
-						}
-					});
-
-			this.WhenAnyValue(x => x.StrongPrivacyLevel)
-				.Subscribe(
-					x =>
-					{
-						if (x <= MinimalPrivacyLevel)
-						{
-							MinimalPrivacyLevel = x - 1;
-						}
-
-						if (x <= MediumPrivacyLevel)
-						{
-							MediumPrivacyLevel = x - 1;
-						}
-					});
 		}
 
 		public GeneralTabViewModel GeneralTab { get; }
 
+		public PrivacyTabViewModel PrivacyTab { get; }
 		private object ConfigLock { get; } = new object();
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
@@ -206,25 +154,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			set => this.RaiseAndSetIfChanged(ref _terminateTorOnExit, value);
 		}
 
-		public int MinimalPrivacyLevel
-		{
-			get => _minimalPrivacyLevel;
-			set => this.RaiseAndSetIfChanged(ref _minimalPrivacyLevel, value);
-		}
-
-		public int MediumPrivacyLevel
-		{
-			get => _mediumPrivacyLevel;
-			set => this.RaiseAndSetIfChanged(ref _mediumPrivacyLevel, value);
-		}
-
-		public int StrongPrivacyLevel
-		{
-			get => _strongPrivacyLevel;
-			set => this.RaiseAndSetIfChanged(ref _strongPrivacyLevel, value);
-		}
-
-
 		public int SelectedTab
 		{
 			get => _selectedTab;
@@ -266,9 +195,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 						config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
 						config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
 						config.DustThreshold = decimal.TryParse(GeneralTab.DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
-						config.PrivacyLevelSome = MinimalPrivacyLevel;
-						config.PrivacyLevelStrong = StrongPrivacyLevel;
-						config.PrivacyLevelFine = MediumPrivacyLevel;
+						config.PrivacyLevelSome = PrivacyTab.MinimalPrivacyLevel;
+						config.PrivacyLevelStrong = PrivacyTab.StrongPrivacyLevel;
+						config.PrivacyLevelFine = PrivacyTab.MediumPrivacyLevel;
 					}
 					else
 					{
