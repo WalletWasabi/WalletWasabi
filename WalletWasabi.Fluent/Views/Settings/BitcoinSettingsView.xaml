@@ -21,6 +21,7 @@
         <Setter Property="OffContent" Value="{x:Null}" />
       </Style>
       <Style Selector="DockPanel > Label">
+        <Setter Property="Margin" Value="0 8 0 0" />
         <Setter Property="HorizontalAlignment" Value="Right" />
       </Style>
     </StackPanel.Styles>
