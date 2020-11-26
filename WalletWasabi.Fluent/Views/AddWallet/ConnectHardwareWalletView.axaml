@@ -33,6 +33,7 @@
     </UserControl.Styles>
 
     <c:ContentArea Title="Connect Hardware Wallet"
+                   IsBusy="{Binding IsBusy}"
                    EnableCancel="True" CancelContent="Cancel"
                    EnableBack="True"
                    EnableNext="True" NextContent="Connect" >

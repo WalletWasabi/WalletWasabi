@@ -125,15 +125,20 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			try
 			{
-				// TODO: Progress ring
+				IsBusy = true;
 				await StopDetection();
 
-				var fingerPrint = (HDFingerprint)SelectedHardwareWallet.HardwareWalletInfo.Fingerprint;
-				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-				var extPubKey = await HwiClient.GetXpubAsync(SelectedHardwareWallet.HardwareWalletInfo.Model, SelectedHardwareWallet.HardwareWalletInfo.Path, KeyManager.DefaultAccountKeyPath, cts.Token);
-				var path = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
+				var newWallet = await Task.Run(async () =>
+				{
+					var fingerPrint = (HDFingerprint)SelectedHardwareWallet.HardwareWalletInfo.Fingerprint;
+					using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+					var extPubKey = await HwiClient.GetXpubAsync(SelectedHardwareWallet.HardwareWalletInfo.Model, SelectedHardwareWallet.HardwareWalletInfo.Path, KeyManager.DefaultAccountKeyPath, cts.Token);
+					var path = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
 
-				WalletManager.AddWallet(KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, path));
+					return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, path);
+				});
+
+				WalletManager.AddWallet(newWallet);
 
 				// Close dialog
 				ClearNavigation();
@@ -145,6 +150,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 				// Restart detection
 				StartDetection();
+			}
+			finally
+			{
+				IsBusy = false;
 			}
 		}
 
