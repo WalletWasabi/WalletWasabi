@@ -159,12 +159,14 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				return;
 			}
 
-			if (!_isNavigating)
+			if (_isNavigating)
 			{
-				_isNavigating = true;
-				SelectedItem = item;
-				_isNavigating = false;
+				return;
 			}
+
+			_isNavigating = true;
+			SelectedItem = item;
+			_isNavigating = false;
 		}
 
 		private void NavigateItem(NavBarItemViewModel item)
@@ -179,9 +181,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			{
 				item.OpenCommand.Execute(default);
 			}
-
 			CollapseOnClickAction?.Invoke();
-
 			_isNavigating = false;
 		}
 	}
