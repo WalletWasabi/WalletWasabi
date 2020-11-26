@@ -185,7 +185,7 @@ namespace WalletWasabi.Blockchain.Analysis
 			var intersectPenalty = Math.Pow(2, anonsets.Count() - 1);
 			var intersectionAnonset = smallestAnon / Math.Max(1, intersectPenalty * coefficient);
 
-			// Sanity check.
+			// The minimum anonymity set size is 1, enforce it when the punishment is very large.
 			var normalizedIntersectionAnonset = Math.Max(1, (int)intersectionAnonset);
 			return normalizedIntersectionAnonset;
 		}
