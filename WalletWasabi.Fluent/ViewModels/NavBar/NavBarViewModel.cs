@@ -154,14 +154,16 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 		private void SelectItem(NavBarItemViewModel item, WalletManagerViewModel walletManager)
 		{
-			if (walletManager.Items.Contains(item) || _topItems.Contains(item) || _bottomItems.Contains(item))
+			if (!walletManager.Items.Contains(item) && !_topItems.Contains(item) && !_bottomItems.Contains(item))
 			{
-				if (!_isNavigating)
-				{
-					_isNavigating = true;
-					SelectedItem = item;
-					_isNavigating = false;
-				}
+				return;
+			}
+
+			if (!_isNavigating)
+			{
+				_isNavigating = true;
+				SelectedItem = item;
+				_isNavigating = false;
 			}
 		}
 
