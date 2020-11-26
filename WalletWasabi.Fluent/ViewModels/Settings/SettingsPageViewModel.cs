@@ -1,15 +1,6 @@
-using System;
-using System.Net;
-using System.Reactive;
-using System.Reactive.Linq;
-using Avalonia.Threading;
-using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
-using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {

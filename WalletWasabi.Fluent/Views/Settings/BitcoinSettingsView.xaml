@@ -15,9 +15,13 @@
         <Setter Property="(DockPanel.Dock)"  Value="Left" />
       </Style>
       <Style Selector="DockPanel > ToggleSwitch">
+        <Setter Property="Margin" Value="0 0 -12 0" />
         <Setter Property="HorizontalAlignment" Value="Right" />
         <Setter Property="OnContent" Value="{x:Null}" />
         <Setter Property="OffContent" Value="{x:Null}" />
+      </Style>
+      <Style Selector="DockPanel > Label">
+        <Setter Property="HorizontalAlignment" Value="Right" />
       </Style>
     </StackPanel.Styles>
 
@@ -43,6 +47,11 @@
       <TextBlock Text="Bitcoin Core/Knots Data Folder" />
       <TextBox Text="{Binding LocalBitcoinCoreDataDir}" />
     </StackPanel>
+
+    <DockPanel>
+      <TextBlock VerticalAlignment="Center" Text= "Local Bitcoin Core/Knots version" />
+      <Label Content="{Binding BitcoinCoreVersion}" />
+    </DockPanel>
 
     <DockPanel IsVisible="{Binding StartLocalBitcoinCoreOnStartup}">
       <TextBlock Text= "Stop Bitcoin Knots on shutdown" />

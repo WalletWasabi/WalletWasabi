@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		public Timer SaveTimer { get; }
 
-		private static object ConfigLock { get; } = new object();
+		private static object ConfigLock { get; } = new();
 
 		protected void RequestSave()
 		{
