@@ -20,13 +20,14 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		{
 			this.ValidateProperty(x => x.TorSocks5EndPoint, ValidateTorSocks5EndPoint);
 
-			UseTor = config.UseTor;
-			TerminateTorOnExit = config.TerminateTorOnExit;
+			_useTor = config.UseTor;
+			_terminateTorOnExit = config.TerminateTorOnExit;
 			_torSocks5EndPoint = config.TorSocks5EndPoint.ToString(-1);
 
 			this.WhenAnyValue(
 					x => x.UseTor,
-					x => x.TerminateTorOnExit)
+					x => x.UseTor,
+					x => x.TorSocks5EndPoint)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(_ => RequestSave());
 		}

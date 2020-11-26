@@ -28,13 +28,17 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
 			_darkModeEnabled = true; // TODO: Get from config file.
-			Autocopy = global.UiConfig.Autocopy;
-			CustomFee = global.UiConfig.IsCustomFee;
-			CustomChangeAddress = global.UiConfig.IsCustomChangeAddress;
-			SelectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), global.UiConfig.FeeDisplayFormat)
+			_autocopy = global.UiConfig.Autocopy;
+			_customFee = global.UiConfig.IsCustomFee;
+			_customChangeAddress = global.UiConfig.IsCustomChangeAddress;
+			_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), global.UiConfig.FeeDisplayFormat)
 				? (FeeDisplayFormat)global.UiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
 			_dustThreshold = config.DustThreshold.ToString();
+
+			this.WhenAnyValue(x => x.DustThreshold)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(_ => RequestSave());
 
 			this.WhenAnyValue(x => x.DarkModeEnabled)
 				.Skip(1)

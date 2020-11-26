@@ -6,7 +6,6 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Validation;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
@@ -26,15 +25,17 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 
 			_network = config.Network;
-			StartLocalBitcoinCoreOnStartup = config.StartLocalBitcoinCoreOnStartup;
+			_startLocalBitcoinCoreOnStartup = config.StartLocalBitcoinCoreOnStartup;
 			_localBitcoinCoreDataDir = config.LocalBitcoinCoreDataDir;
-			StopLocalBitcoinCoreOnShutdown = config.StopLocalBitcoinCoreOnShutdown;
+			_stopLocalBitcoinCoreOnShutdown = config.StopLocalBitcoinCoreOnShutdown;
 			_bitcoinP2PEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
 
 			this.WhenAnyValue(
 					x => x.Network,
 					x => x.StartLocalBitcoinCoreOnStartup,
-					x => x.StopLocalBitcoinCoreOnShutdown)
+					x => x.StopLocalBitcoinCoreOnShutdown,
+					x => x.BitcoinP2PEndPoint,
+					x => x.LocalBitcoinCoreDataDir)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(_ => RequestSave());
 		}
