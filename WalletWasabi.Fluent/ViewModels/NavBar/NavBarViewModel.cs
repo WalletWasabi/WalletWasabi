@@ -169,18 +169,20 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 		private void NavigateItem(NavBarItemViewModel item)
 		{
-			if (!_isNavigating)
+			if (_isNavigating)
 			{
-				_isNavigating = true;
-				if (item.OpenCommand.CanExecute(default))
-				{
-					item.OpenCommand.Execute(default);
-				}
-
-				CollapseOnClickAction?.Invoke();
-
-				_isNavigating = false;
+				return;
 			}
+
+			_isNavigating = true;
+			if (item.OpenCommand.CanExecute(default))
+			{
+				item.OpenCommand.Execute(default);
+			}
+
+			CollapseOnClickAction?.Invoke();
+
+			_isNavigating = false;
 		}
 	}
 }
