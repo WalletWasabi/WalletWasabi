@@ -78,7 +78,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		public NavBarItemViewModel? SelectedItem
 		{
 			get => _selectedItem;
-			set { SetSelectedItem(value); }
+			set => SetSelectedItem(value);
 		}
 
 		public Action? ToggleAction
