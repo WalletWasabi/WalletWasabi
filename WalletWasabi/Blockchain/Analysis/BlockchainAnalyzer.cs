@@ -165,6 +165,9 @@ namespace WalletWasabi.Blockchain.Analysis
 			}
 		}
 
+		/// <summary>
+		/// Estimate input cluster anonymity set size, penalizing input consolidations to accounting for intersection attacks.
+		/// </summary>
 		/// <param name="coefficient">If larger than 1, then penalty is larger, if smaller than 1 then penalty is smaller.</param>
 		private int Intersect(IEnumerable<int> anonsets, double coefficient)
 		{
