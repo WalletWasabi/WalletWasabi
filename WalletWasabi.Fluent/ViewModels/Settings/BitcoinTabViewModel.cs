@@ -38,12 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			set => this.RaiseAndSetIfChanged(ref _network, value);
 		}
 
-		public IEnumerable<Network> Networks => new[]
-		{
-			Network.Main,
-			Network.TestNet,
-			Network.RegTest
-		};
+		public IEnumerable<Network> Networks => Network.GetNetworks();
 
 		public bool StartLocalBitcoinCoreOnStartup
 		{

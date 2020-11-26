@@ -1,20 +1,14 @@
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
-using Splat;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui;
-using WalletWasabi.Gui.Helpers;
-using WalletWasabi.Gui.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
