@@ -51,6 +51,30 @@ namespace WalletWasabi.WebClients.Wasabi
 			return new TorHttpClient(BackendUriGetter.Invoke(), TorEndpoint, isolateStream: isolateStream);
 		}
 
+		/// <summary>
+		/// Creates new <see cref="TorHttpClient"/> or <see cref="ClearnetHttpClient"/> based on user settings.
+		/// </summary>
+		public IRelativeHttpClient NewHttpClient(Func<Uri> baseUriFn, bool isolateStream)
+		{
+			if (TorEndpoint is { })
+			{
+				return new TorHttpClient(baseUriFn, TorEndpoint, isolateStream);
+			}
+			else
+			{
+				return new ClearnetHttpClient(baseUriFn);
+			}
+		}
+
+		/// <summary>
+		/// Creates new <see cref="TorHttpClient"/> instance with correctly set backend URL.
+		/// </summary>
+		public TorHttpClient NewBackendTorHttpClient(bool isolateStream)
+		{
+			return new TorHttpClient(BackendUriGetter, TorEndpoint, isolateStream);
+		}
+
+
 		// Protected implementation of Dispose pattern.
 		protected virtual void Dispose(bool disposing)
 		{
@@ -75,14 +99,6 @@ namespace WalletWasabi.WebClients.Wasabi
 
 			// Suppress finalization.
 			GC.SuppressFinalize(this);
-		}
-
-		/// <summary>
-		/// Creates new <see cref="TorHttpClient"/>.
-		/// </summary>
-		public TorHttpClient NewBackendTorHttpClient(bool isolateStream)
-		{
-			return new TorHttpClient(BackendUriGetter, TorEndpoint, isolateStream);
 		}
 	}
 }
