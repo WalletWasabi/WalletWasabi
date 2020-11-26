@@ -64,7 +64,7 @@ namespace WalletWasabi.Blockchain.Analysis
 				// Get the anonymity set of i-th output in the transaction.
 				var anonset = tx.Transaction.GetAnonymitySet(newCoin.Index);
 
-				// Don't create many anonset if we've provided a lot of equal outputs.
+				// Don't count our own equivalent outputs in the anonset.
 				anonset -= indistinguishableWalletOutputs[newCoin.Amount] - 1;
 
 				// We should only consider ourselves once in the anonset.
