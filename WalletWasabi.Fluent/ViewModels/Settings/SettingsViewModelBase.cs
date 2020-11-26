@@ -11,12 +11,12 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 {
 	public abstract class SettingsViewModelBase : ViewModelBase
 	{
-		public Global Global { get; }
-
 		protected SettingsViewModelBase(Global global)
 		{
 			Global = global;
 		}
+
+		public Global Global { get; }
 
 		private static object ConfigLock { get; } = new object();
 
@@ -31,7 +31,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					{
 						config.LoadFile();
 						EditConfigOnSave(config);
-						config.ToFile();
+						// config.ToFile();
+
 						// IsModified = !Global.Config.AreDeepEqual(config);
 					}
 				});

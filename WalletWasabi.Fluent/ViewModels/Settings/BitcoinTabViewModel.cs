@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Gui;
@@ -29,6 +30,13 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_localBitcoinCoreDataDir = config.LocalBitcoinCoreDataDir;
 			StopLocalBitcoinCoreOnShutdown = config.StopLocalBitcoinCoreOnShutdown;
 			_bitcoinP2PEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
+
+			this.WhenAnyValue(
+					x => x.Network,
+					x => x.StartLocalBitcoinCoreOnStartup,
+					x => x.StopLocalBitcoinCoreOnShutdown)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(_ => Save());
 		}
 
 		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;

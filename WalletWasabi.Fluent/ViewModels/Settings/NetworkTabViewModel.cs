@@ -1,8 +1,9 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
+using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Validation;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
@@ -22,6 +23,12 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			UseTor = config.UseTor;
 			TerminateTorOnExit = config.TerminateTorOnExit;
 			_torSocks5EndPoint = config.TorSocks5EndPoint.ToString(-1);
+
+			this.WhenAnyValue(
+					x => x.UseTor,
+					x => x.TerminateTorOnExit)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(_ => Save());
 		}
 
 		public bool UseTor

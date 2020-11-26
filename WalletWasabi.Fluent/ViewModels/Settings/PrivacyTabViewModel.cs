@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Gui;
-using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
@@ -16,6 +16,13 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_minimalPrivacyLevel = config.PrivacyLevelSome;
 			_mediumPrivacyLevel = config.PrivacyLevelFine;
 			_strongPrivacyLevel = config.PrivacyLevelStrong;
+
+			this.WhenAnyValue(
+					x => x.MinimalPrivacyLevel,
+					x => x.MediumPrivacyLevel,
+					x => x.StrongPrivacyLevel)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(_ => Save());
 
 			this.WhenAnyValue(x => x.MinimalPrivacyLevel)
 				.Subscribe(
