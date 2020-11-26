@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
@@ -16,40 +17,51 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private readonly ReadOnlyObservableCollection<SearchResult> _searchResults;
 		private string? _searchQuery;
-		private readonly bool _enableWallets;
+		private readonly bool _showSettings;
+		private readonly bool _showWallets;
 
 		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage, SettingsPageViewModel settingsPage, HomePageViewModel homePage) : base(navigationState, NavigationTarget.HomeScreen)
 		{
 			Title = "Search";
 
-			_enableWallets = false;
+			_showSettings = true;
+			_showWallets = false;
 
-			var itemsSource = new SourceList<SearchItemViewModel>();
 			var generalCategory = new SearchCategory("General", 0);
-			var walletCategory = new SearchCategory("Wallets", 1);
+			var generalCategorySource = new SourceList<SearchItemViewModel>();
+			generalCategorySource.Add(CreateHomeSearchItem(generalCategory, 0, homePage));
+			generalCategorySource.Add(CreateSettingsSearchItem(generalCategory, 1, settingsPage));
+			generalCategorySource.Add(CreateAddWalletSearchItem(generalCategory, 2, addWalletPage));
 
-			itemsSource.Add(
-				CreateHomeSearchItem(generalCategory, 0, homePage));
+			var settingsCategory = new SearchCategory("Settings", 1);
+			var settingsCategorySource = new SourceList<SearchItemViewModel>();
+			settingsCategorySource.AddRange(CreateSettingsSearchItems(settingsCategory, settingsPage));
 
-			itemsSource.Add(
-				CreateSettingsSearchItem(generalCategory, 1, settingsPage));
+			var walletCategory = new SearchCategory("Wallets", 2);
+			var wallets = walletManager.Items
+				.ToObservableChangeSet()
+				.Transform(x => CreateWalletSearchItem(walletCategory, 0, x))
+				.Sort(SortExpressionComparer<SearchItemViewModel>.Ascending(i => i.Title));
 
-			itemsSource.Add(
-				CreateAddWalletSearchItem(generalCategory, 2, addWalletPage));
+			var searchItems = generalCategorySource.Connect();
+
+			if (_showSettings)
+			{
+				searchItems = searchItems.Merge(settingsCategorySource.Connect());
+			}
+
+			if (_showWallets)
+			{
+				searchItems = searchItems.Merge(wallets);
+			}
 
 			var queryFilter = this.WhenValueChanged(t => t.SearchQuery)
 				.Throttle(TimeSpan.FromMilliseconds(100))
 				.Select(SearchQueryFilter)
 				.DistinctUntilChanged();
 
-			var wallets = walletManager.Items.ToObservableChangeSet()
-				.Transform(x => CreateWalletSearchItem(walletCategory, 0, x))
-				.Sort(SortExpressionComparer<SearchItemViewModel>.Ascending(i => i.Title));
-
-			var searchItems = _enableWallets ?
-				wallets.Merge(itemsSource.Connect()) : itemsSource.Connect();
-
-			searchItems.Filter(queryFilter)
+			searchItems
+				.Filter(queryFilter)
 				.GroupWithImmutableState(x => x.Category)
 				.Transform(grouping => new SearchResult(grouping.Key, grouping.Items.OrderBy(x => x.Order).ThenBy(x => x.Title)))
 				.Sort(SortExpressionComparer<SearchResult>.Ascending(i => i.Category.Order).ThenByAscending(i => i.Category.Title))
@@ -108,6 +120,69 @@ namespace WalletWasabi.Fluent.ViewModels
 				navigationState: NavigationState,
 				navigationTarget: NavigationTarget.HomeScreen,
 				createTargetView: () => settingsPage);
+		}
+
+		private IEnumerable<SearchItemViewModel> CreateSettingsSearchItems(SearchCategory category, SettingsPageViewModel settingsPage)
+		{
+			yield return new (
+				title: "General",
+				caption: "Manage general settings",
+				order: 0,
+				category: category,
+				keywords: "Settings, General, Dark Mode, Bitcoin Addresses, Manual Entry Free, Custom Change Address, Fee Display Format, Dust Threshold, BTC",
+				iconName: "settings_general_regular",
+				navigationState: NavigationState,
+				navigationTarget: NavigationTarget.HomeScreen,
+				createTargetView: () =>
+				{
+					settingsPage.SelectedTab = 0;
+					return settingsPage;
+				});
+
+			yield return new(
+				title: "Privacy",
+				caption: "Manage privacy settings",
+				order: 1,
+				category: category,
+				keywords: "Settings, Privacy, Minimal, Medium, Strong, Anonymity Level",
+				iconName: "settings_privacy_regular",
+				navigationState: NavigationState,
+				navigationTarget: NavigationTarget.HomeScreen,
+				createTargetView: () =>
+				{
+					settingsPage.SelectedTab = 1;
+					return settingsPage;
+				});
+
+			yield return new(
+				title: "Network",
+				caption: "Manage network settings",
+				order: 2,
+				category: category,
+				keywords: "Settings, Network, Encryption, Tor, Terminate, Wasabi, Shutdown, SOCKS5, Endpoint",
+				iconName: "settings_network_regular",
+				navigationState: NavigationState,
+				navigationTarget: NavigationTarget.HomeScreen,
+				createTargetView: () =>
+				{
+					settingsPage.SelectedTab = 2;
+					return settingsPage;
+				});
+
+			yield return new(
+				title: "Bitcoin",
+				caption: "Manage Bitcoin settings",
+				order: 3,
+				category: category,
+				keywords: "Settings, Bitcoin, Network, Main, TestNet, RegTest, Run, Knots, Startup, P2P, Endpoint",
+				iconName: "settings_bitcoin_regular",
+				navigationState: NavigationState,
+				navigationTarget: NavigationTarget.HomeScreen,
+				createTargetView: () =>
+				{
+					settingsPage.SelectedTab = 3;
+					return settingsPage;
+				});
 		}
 
 		private SearchItemViewModel CreateAddWalletSearchItem(SearchCategory category, int order, AddWalletPageViewModel addWalletPage)

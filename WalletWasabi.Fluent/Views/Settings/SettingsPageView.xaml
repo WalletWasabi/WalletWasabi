@@ -8,6 +8,7 @@
              xmlns:settings="clr-namespace:WalletWasabi.Fluent.ViewModels.Settings"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="settings:SettingsPageViewModel"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Settings.SettingsPageView">
   <UserControl.Styles>
     <Style Selector="TabItem">
@@ -23,7 +24,7 @@
     </Style>
   </UserControl.Styles>
   <c:ContentArea Title="Settings" Caption="Manage appearance, privacy and other settings">
-    <TabControl>
+    <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}">
       <TabItem Header="General">
         <v:GeneralSettingsView />
       </TabItem>
