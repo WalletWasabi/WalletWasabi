@@ -97,8 +97,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task CanDoRequestManyDifferentAsync()
 		{
-			Logger.SetMinimumLevel(Logging.LogLevel.Trace);
-			using var client = new TorHttpClient(new Uri("http://api.qbit.ninja"), Common.TorSocks5Endpoint);
+			using var client = MakeTorHttpClient(new Uri("http://api.qbit.ninja"));
 			await QBitTestAsync(client, 10, alterRequests: true);
 		}
 

@@ -23,15 +23,15 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 	{
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
+		/// <param name="httpClient">This class is responsible for disposal of the HTTP client.</param>
 		protected AliceClientBase(
 			long roundId,
 			IEnumerable<BitcoinAddress> registeredAddresses,
 			IEnumerable<Requester> requesters,
 			Network network,
-			Func<Uri> baseUriAction,
-			EndPoint torSocks5EndPoint)
+			IRelativeHttpClient httpClient)
 		{
-			TorClient = new TorHttpClient(baseUriAction, torSocks5EndPoint, isolateStream: true);
+			TorClient = httpClient;
 			RoundId = roundId;
 			RegisteredAddresses = registeredAddresses.ToArray();
 			Requesters = requesters.ToArray();
@@ -57,8 +57,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			BitcoinAddress changeOutput,
 			IEnumerable<BlindedOutputWithNonceIndex> blindedOutputScriptHashes,
 			IEnumerable<InputProofModel> inputs,
-			Func<Uri> baseUriAction,
-			EndPoint torSocks5EndPoint)
+			IRelativeHttpClient httpClient)
 		{
 			var request = new InputsRequest4
 			{
@@ -67,7 +66,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				ChangeOutputAddress = changeOutput,
 				Inputs = inputs
 			};
-			var client = new AliceClient4(roundId, registeredAddresses, signerPubKeys, requesters, network, baseUriAction, torSocks5EndPoint);
+			var client = new AliceClient4(roundId, registeredAddresses, signerPubKeys, requesters, network, httpClient);
 			try
 			{
 				// Correct it if forgot to set.
