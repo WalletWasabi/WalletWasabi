@@ -23,15 +23,15 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			Global = global;
 			Title = "Settings";
 
+			_selectedTab = 0;
+
 			var config = new Config(global.Config.FilePath);
 			config.LoadOrCreateDefaultFile();
 
 			GeneralTab = new GeneralTabViewModel(Global, config);
-			PrivacyTab = new PrivacyTabViewModel(config);
-			NetworkTab = new NetworkTabViewModel(config);
-			BitcoinTab = new BitcoinTabViewModel(config);
-
-			_selectedTab = 0;
+			PrivacyTab = new PrivacyTabViewModel(Global, config);
+			NetworkTab = new NetworkTabViewModel(Global, config);
+			BitcoinTab = new BitcoinTabViewModel(Global, config);
 
 			// TODO: Restart wasabi message
 			IsModified = !Global.Config.AreDeepEqual(config);
@@ -46,12 +46,12 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			// 	.ObserveOn(RxApp.TaskpoolScheduler)
 			// 	.Subscribe(_ => Save());
 
-			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
+			// TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
 
-			Observable
-				.Merge(TextBoxLostFocusCommand.ThrownExceptions)
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex));
+			// Observable
+			// 	.Merge(TextBoxLostFocusCommand.ThrownExceptions)
+			// 	.ObserveOn(RxApp.TaskpoolScheduler)
+			// 	.Subscribe(ex => Logger.LogError(ex));
 		}
 
 		public Global Global { get; }
@@ -61,7 +61,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		public NetworkTabViewModel NetworkTab { get; }
 		public BitcoinTabViewModel BitcoinTab { get; }
 
-		private object ConfigLock { get; } = new object();
 
 		public ReactiveCommand<Unit, Unit> TextBoxLostFocusCommand { get; }
 
@@ -78,53 +77,5 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		}
 
 		public override string IconName => "settings_regular";
-
-		private void Save()
-		{
-			var network = BitcoinTab.Network;
-
-			if (Validations.Any)
-			{
-				return;
-			}
-
-			var config = new Config(Global.Config.FilePath);
-
-			Dispatcher.UIThread.PostLogException(
-				() =>
-			{
-				lock (ConfigLock)
-				{
-					config.LoadFile();
-					if (BitcoinTab.Network == config.Network)
-					{
-						if (EndPointParser.TryParse(NetworkTab.TorSocks5EndPoint, Constants.DefaultTorSocksPort, out EndPoint torEp))
-						{
-							config.TorSocks5EndPoint = torEp;
-						}
-						if (EndPointParser.TryParse(BitcoinTab.BitcoinP2PEndPoint, network.DefaultPort, out EndPoint p2PEp))
-						{
-							config.SetP2PEndpoint(p2PEp);
-						}
-						config.UseTor = NetworkTab.UseTor;
-						config.TerminateTorOnExit = NetworkTab.TerminateTorOnExit;
-						config.StartLocalBitcoinCoreOnStartup = BitcoinTab.StartLocalBitcoinCoreOnStartup;
-						config.StopLocalBitcoinCoreOnShutdown = BitcoinTab.StopLocalBitcoinCoreOnShutdown;
-						config.LocalBitcoinCoreDataDir = Guard.Correct(BitcoinTab.LocalBitcoinCoreDataDir);
-						config.DustThreshold = decimal.TryParse(GeneralTab.DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
-						config.PrivacyLevelSome = PrivacyTab.MinimalPrivacyLevel;
-						config.PrivacyLevelStrong = PrivacyTab.StrongPrivacyLevel;
-						config.PrivacyLevelFine = PrivacyTab.MediumPrivacyLevel;
-					}
-					else
-					{
-						config.Network = BitcoinTab.Network;
-						BitcoinTab.BitcoinP2PEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
-					}
-					config.ToFile();
-					IsModified = !Global.Config.AreDeepEqual(config);
-				}
-			});
-		}
 	}
 }

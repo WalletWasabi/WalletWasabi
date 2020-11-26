@@ -1,4 +1,5 @@
-﻿using ReactiveUI;
+﻿using System.Net;
+using ReactiveUI;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
@@ -8,13 +9,13 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public class NetworkTabViewModel : ViewModelBase
+	public class NetworkTabViewModel : SettingsViewModelBase
 	{
 		private bool _useTor;
 		private bool _terminateTorOnExit;
 		private string _torSocks5EndPoint;
 
-		public NetworkTabViewModel(Config config)
+		public NetworkTabViewModel(Global global, Config config) : base(global)
 		{
 			this.ValidateProperty(x => x.TorSocks5EndPoint, ValidateTorSocks5EndPoint);
 
@@ -53,6 +54,16 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					errors.Add(ErrorSeverity.Error, "Invalid endpoint.");
 				}
 			}
+		}
+
+		protected override void EditConfigOnSave(Config config)
+		{
+			if (EndPointParser.TryParse(TorSocks5EndPoint, Constants.DefaultTorSocksPort, out EndPoint torEp))
+			{
+				config.TorSocks5EndPoint = torEp;
+			}
+			config.UseTor = UseTor;
+			config.TerminateTorOnExit = TerminateTorOnExit;
 		}
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Gui;
@@ -11,7 +12,7 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public class BitcoinTabViewModel : ViewModelBase
+	public class BitcoinTabViewModel : SettingsViewModelBase
 	{
 		private Network _network;
 		private bool _startLocalBitcoinCoreOnStartup;
@@ -19,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private bool _stopLocalBitcoinCoreOnShutdown;
 		private string _bitcoinP2PEndPoint;
 
-		public BitcoinTabViewModel(Config config)
+		public BitcoinTabViewModel(Global global, Config config) : base(global)
 		{
 			this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 
@@ -75,6 +76,25 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				{
 					errors.Add(ErrorSeverity.Error, "Invalid endpoint.");
 				}
+			}
+		}
+
+		protected override void EditConfigOnSave(Config config)
+		{
+			if (Network == config.Network)
+			{
+				if (EndPointParser.TryParse(BitcoinP2PEndPoint, Network.DefaultPort, out EndPoint p2PEp))
+				{
+					config.SetP2PEndpoint(p2PEp);
+				}
+				config.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
+				config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
+				config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
+			}
+			else
+			{
+				config.Network = Network;
+				BitcoinP2PEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
 			}
 		}
 	}

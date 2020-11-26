@@ -5,13 +5,13 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public class PrivacyTabViewModel : ViewModelBase
+	public class PrivacyTabViewModel : SettingsViewModelBase
 	{
 		private int _minimalPrivacyLevel;
 		private int _mediumPrivacyLevel;
 		private int _strongPrivacyLevel;
 
-		public PrivacyTabViewModel(Config config)
+		public PrivacyTabViewModel(Global global, Config config) : base(global)
 		{
 			_minimalPrivacyLevel = config.PrivacyLevelSome;
 			_mediumPrivacyLevel = config.PrivacyLevelFine;
@@ -74,6 +74,13 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		{
 			get => _strongPrivacyLevel;
 			set => this.RaiseAndSetIfChanged(ref _strongPrivacyLevel, value);
+		}
+
+		protected override void EditConfigOnSave(Config config)
+		{
+			config.PrivacyLevelSome = MinimalPrivacyLevel;
+			config.PrivacyLevelFine = MediumPrivacyLevel;
+			config.PrivacyLevelStrong = StrongPrivacyLevel;
 		}
 	}
 }

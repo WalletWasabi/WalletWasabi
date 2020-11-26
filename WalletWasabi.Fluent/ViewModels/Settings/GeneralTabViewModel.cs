@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Markup.Xaml.Styling;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Models;
@@ -13,7 +14,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public class GeneralTabViewModel : ViewModelBase
+	public class GeneralTabViewModel : SettingsViewModelBase
 	{
 		private bool _darkModeEnabled;
 		private bool _autocopy;
@@ -22,7 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private FeeDisplayFormat _selectedFeeDisplayFormat;
 		private string _dustThreshold;
 
-		public GeneralTabViewModel(Global global, Config config)
+		public GeneralTabViewModel(Global global, Config config) : base(global)
 		{
 			this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
@@ -126,6 +127,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					errors.Add(ErrorSeverity.Error, "Invalid dust threshold.");
 				}
 			}
+		}
+
+		protected override void EditConfigOnSave(Config config)
+		{
+			config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
 		}
 	}
 }
