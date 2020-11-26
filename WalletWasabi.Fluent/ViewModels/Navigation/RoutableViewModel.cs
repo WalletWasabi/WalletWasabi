@@ -8,7 +8,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Gui.ViewModels;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
 	public abstract class RoutableViewModel : ViewModelBase, IRoutableViewModel
 	{

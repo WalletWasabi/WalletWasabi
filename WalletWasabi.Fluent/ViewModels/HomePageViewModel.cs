@@ -5,7 +5,9 @@ using DynamicData;
 using DynamicData.Binding;
 using System.Reactive;
 using System.IO;
+using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
