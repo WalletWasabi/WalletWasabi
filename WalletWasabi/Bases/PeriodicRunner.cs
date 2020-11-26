@@ -42,6 +42,7 @@ namespace WalletWasabi.Bases
 		/// <summary>
 		/// Abstract method that is called every <see cref="Period"/> or sooner when <see cref="TriggerRound"/> is called.
 		/// </summary>
+		/// <remarks>Exceptions are handled in <see cref="ExecuteAsync(CancellationToken)"/>.</remarks>
 		protected abstract Task ActionAsync(CancellationToken cancel);
 
 		/// <inheritdoc />
@@ -67,7 +68,7 @@ namespace WalletWasabi.Bases
 						ExceptionTracker.Reset();
 					}
 				}
-				catch (Exception ex) when (ex is TaskCanceledException || ex is TimeoutException)
+				catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 				{
 					Logger.LogTrace(ex);
 				}

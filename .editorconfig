@@ -1,6 +1,4 @@
-# Rules in this file were initially inferred by Visual Studio IntelliCode from the C:\Users\user\Desktop\WalletWasabi codebase based on best match to current usage at 2019-04-22
-# You can modify the rules from these initially generated values to suit your own policies
-# You can learn more about editorconfig here: https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-code-style-settings-reference
+# You can learn more about .editorconfig here: https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-code-style-settings-reference
 root = true
 
 # For all files.
@@ -15,6 +13,7 @@ trim_trailing_whitespace = true
 
 # use hard tabs for indentation
 indent_style = tab
+indent_size = 4
 
 # Formatting - set preferred newline characters
 end_of_line = lf
@@ -141,14 +140,6 @@ dotnet_naming_symbols.constant_or_static_fields.required_modifiers = const
 dotnet_naming_symbols.constant_or_static_fields.required_modifiers = static
 
 dotnet_naming_style.pascal_case_style.capitalization = pascal_case
-
-# name all readonly fields using PascalCase
-dotnet_naming_rule.readonly_fields_should_be_pascal_case.severity = error
-dotnet_naming_rule.readonly_fields_should_be_pascal_case.symbols  = readonly_fields
-dotnet_naming_rule.readonly_fields_should_be_pascal_case.style    = pascal_case_style
-
-dotnet_naming_symbols.readonly_fields.applicable_kinds   = field
-dotnet_naming_symbols.readonly_fields.required_modifiers = readonly
 
 # private fields should be _camelCase
 dotnet_naming_rule.camel_case_for_private_fields.severity = error

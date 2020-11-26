@@ -1,0 +1,79 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:dialogs="using:WalletWasabi.Fluent.ViewModels.Dialogs">
+  <Design.PreviewWith>
+    <c:Dialog IsDialogOpen="True">
+      <dialogs:TestDialogViewModel/>
+    </c:Dialog>
+  </Design.PreviewWith>
+  <Styles.Resources>
+  </Styles.Resources>
+  <Style Selector="c|Dialog">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Panel>
+          <Panel Background="{DynamicResource DialogOverlayColor}" Name="PART_Overlay" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+          <Panel Name="PART_DialogHost"
+                 VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                 Margin="20">
+            <Border CornerRadius="4" BoxShadow="{DynamicResource DialogBoxShadow}"
+                    Background="{DynamicResource DialogBackground}"
+                    MaxWidth="{TemplateBinding MaxContentWidth}" MaxHeight="{TemplateBinding MaxContentHeight}" Margin="40">
+              <ContentPresenter Name="PART_ContentPresenter" Margin="16 28 16 16"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                Content="{TemplateBinding Content}"
+                                Padding="{TemplateBinding Padding}"
+                                VerticalContentAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch"/>
+            </Border>
+          </Panel>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.25" />
+      </Transitions>
+    </Setter>
+    <Setter Property="IsHitTestVisible" Value="False"/>
+    <Setter Property="Opacity" Value="0"/>
+  </Style>
+  <Style Selector="c|Dialog /template/ Panel#PART_DialogHost">
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.35" Easing="{StaticResource FluentEasing}" />
+        <DoubleTransition Property="Opacity" Duration="0:0:0.50" Easing="{StaticResource FluentEasing}" />
+      </Transitions>
+    </Setter>
+    <Setter Property="Opacity" Value="0"/>
+  </Style>
+
+  <!-- Dialog Opened State -->
+  <Style Selector="c|Dialog:open /template/ Panel#PART_DialogHost">
+    <Setter Property="RenderTransform" Value="scaleX(1) scaleY(1)" />
+    <Setter Property="Opacity" Value="1"/>
+    <Setter Property="IsHitTestVisible" Value="True"/>
+  </Style>
+  <Style Selector="c|Dialog:open /template/ Panel#PART_Overlay">
+    <Setter Property="IsHitTestVisible" Value="True"/>
+    <Setter Property="Opacity" Value="1"/>
+  </Style>
+
+  <!-- Dialog Unopened State -->
+  <Style Selector="c|Dialog:not(:open) /template/ Panel#PART_DialogHost">
+    <Setter Property="RenderTransform" Value="scaleX(0.9) scaleY(0.9)" />
+    <Setter Property="Opacity" Value="0"/>
+    <Setter Property="IsHitTestVisible" Value="False"/>
+  </Style>
+  <Style Selector="c|Dialog:not(:open) /template/ Panel#PART_Overlay">
+    <Setter Property="IsHitTestVisible" Value="False"/>
+    <Setter Property="Opacity" Value="0"/>
+  </Style>
+</Styles>

@@ -10,8 +10,19 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 	{
 		#region Constructors
 
-		public MethodsField()
+		public MethodsField(byte[] bytes)
 		{
+			Guard.NotNullOrEmpty(nameof(bytes), bytes);
+
+			foreach (var b in bytes)
+			{
+				if (b != MethodField.NoAuthenticationRequired && b != MethodField.UsernamePassword)
+				{
+					throw new FormatException($"Unrecognized authentication method: {ByteHelpers.ToHex(b)}.");
+				}
+			}
+
+			Bytes = bytes;
 		}
 
 		public MethodsField(params MethodField[] methods)
@@ -30,7 +41,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 
 		#region PropertiesAndMembers
 
-		private byte[] Bytes { get; set; }
+		private byte[] Bytes { get; }
 
 		public IEnumerable<MethodField> Methods
 		{
@@ -38,8 +49,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 			{
 				foreach (var b in Bytes)
 				{
-					var method = new MethodField();
-					method.FromByte(b);
+					var method = new MethodField(b);
 					yield return method;
 				}
 			}
@@ -48,21 +58,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 		#endregion PropertiesAndMembers
 
 		#region Serialization
-
-		public override void FromBytes(byte[] bytes)
-		{
-			Guard.NotNullOrEmpty(nameof(bytes), bytes);
-
-			foreach (var b in bytes)
-			{
-				if (b != MethodField.NoAuthenticationRequired && b != MethodField.UsernamePassword)
-				{
-					throw new FormatException($"Unrecognized authentication method: {ByteHelpers.ToHex(b)}.");
-				}
-			}
-
-			Bytes = bytes;
-		}
 
 		public override byte[] ToBytes() => Bytes;
 

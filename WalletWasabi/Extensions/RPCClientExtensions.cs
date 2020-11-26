@@ -8,20 +8,26 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 
 namespace NBitcoin.RPC
 {
 	public static class RPCClientExtensions
 	{
-		public static async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
+		public static async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, FeeRate sanityFeeRate, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
 		{
+			EstimateSmartFeeResponse result;
 			if (simulateIfRegTest && rpc.Network == Network.RegTest)
 			{
-				return SimulateRegTestFeeEstimation(confirmationTarget, estimateMode);
+				result = SimulateRegTestFeeEstimation(confirmationTarget, estimateMode);
+			}
+			else
+			{
+				result = await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode).ConfigureAwait(false);
 			}
 
-			return await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode);
+			result.FeeRate = FeeRate.Max(sanityFeeRate, result.FeeRate);
+
+			return result;
 		}
 
 		private static EstimateSmartFeeResponse SimulateRegTestFeeEstimation(int confirmationTarget, EstimateSmartFeeMode estimateMode)
@@ -56,7 +62,9 @@ namespace NBitcoin.RPC
 		public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this IRPCClient rpc, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
 		{
 			var rpcStatus = await rpc.GetRpcStatusAsync(CancellationToken.None).ConfigureAwait(false);
-			var estimations = await rpc.EstimateHalfFeesAsync(new Dictionary<int, int>(), 2, 0, Constants.SevenDaysConfirmationTarget, 0, estimateMode, simulateIfRegTest).ConfigureAwait(false);
+			var mempoolInfo = await rpc.GetMempoolInfoAsync().ConfigureAwait(false);
+			var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
+			var estimations = await rpc.EstimateHalfFeesAsync(new Dictionary<int, int>(), 2, 0, Constants.SevenDaysConfirmationTarget, 0, sanityFeeRate, estimateMode, simulateIfRegTest).ConfigureAwait(false);
 			var allFeeEstimate = new AllFeeEstimate(estimateMode, estimations, rpcStatus.Synchronized);
 			return allFeeEstimate;
 		}
@@ -71,14 +79,14 @@ namespace NBitcoin.RPC
 
 				return RpcStatus.Responsive(bci.Headers, bci.Blocks, pi.Length);
 			}
-			catch (Exception ex) when (!(ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException))
+			catch (Exception ex) when (ex is not OperationCanceledException and not TimeoutException)
 			{
 				Logger.LogTrace(ex);
 				return RpcStatus.Unresponsive;
 			}
 		}
 
-		private static async Task<Dictionary<int, int>> EstimateHalfFeesAsync(this IRPCClient rpc, IDictionary<int, int> estimations, int smallTarget, int smallTargetFee, int largeTarget, int largeTargetFee, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
+		private static async Task<Dictionary<int, int>> EstimateHalfFeesAsync(this IRPCClient rpc, IDictionary<int, int> estimations, int smallTarget, int smallTargetFee, int largeTarget, int largeTargetFee, FeeRate sanityFeeRate, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
 		{
 			var newEstimations = new Dictionary<int, int>();
 			foreach (var est in estimations)
@@ -93,14 +101,14 @@ namespace NBitcoin.RPC
 
 			if (smallTargetFee == 0)
 			{
-				var smallTargetFeeResult = await rpc.EstimateSmartFeeAsync(smallTarget, estimateMode, simulateIfRegTest);
+				var smallTargetFeeResult = await rpc.EstimateSmartFeeAsync(smallTarget, sanityFeeRate, estimateMode, simulateIfRegTest).ConfigureAwait(false);
 				smallTargetFee = (int)Math.Ceiling(smallTargetFeeResult.FeeRate.SatoshiPerByte);
 				newEstimations.TryAdd(smallTarget, smallTargetFee);
 			}
 
 			if (largeTargetFee == 0)
 			{
-				var largeTargetFeeResult = await rpc.EstimateSmartFeeAsync(largeTarget, estimateMode, simulateIfRegTest);
+				var largeTargetFeeResult = await rpc.EstimateSmartFeeAsync(largeTarget, sanityFeeRate, estimateMode, simulateIfRegTest).ConfigureAwait(false);
 				largeTargetFee = (int)Math.Ceiling(largeTargetFeeResult.FeeRate.SatoshiPerByte);
 
 				// Blocks should never be larger than the target that we asked for, so it's just a sanity check.
@@ -109,7 +117,7 @@ namespace NBitcoin.RPC
 			}
 
 			int halfTarget = (smallTarget + largeTarget) / 2;
-			var halfFeeResult = await rpc.EstimateSmartFeeAsync(halfTarget, estimateMode, simulateIfRegTest);
+			var halfFeeResult = await rpc.EstimateSmartFeeAsync(halfTarget, sanityFeeRate, estimateMode, simulateIfRegTest).ConfigureAwait(false);
 			int halfTargetFee = (int)Math.Ceiling(halfFeeResult.FeeRate.SatoshiPerByte);
 
 			// Blocks should never be larger than the target that we asked for, so it's just a sanity check.
@@ -118,7 +126,7 @@ namespace NBitcoin.RPC
 
 			if (smallTargetFee > halfTargetFee)
 			{
-				var smallEstimations = await rpc.EstimateHalfFeesAsync(newEstimations, smallTarget, smallTargetFee, halfTarget, halfTargetFee, estimateMode, simulateIfRegTest);
+				var smallEstimations = await rpc.EstimateHalfFeesAsync(newEstimations, smallTarget, smallTargetFee, halfTarget, halfTargetFee, sanityFeeRate, estimateMode, simulateIfRegTest).ConfigureAwait(false);
 				foreach (var est in smallEstimations)
 				{
 					newEstimations.TryAdd(est.Key, est.Value);
@@ -126,7 +134,7 @@ namespace NBitcoin.RPC
 			}
 			if (largeTargetFee < halfTargetFee)
 			{
-				var largeEstimations = await rpc.EstimateHalfFeesAsync(newEstimations, halfTarget, halfTargetFee, largeTarget, largeTargetFee, estimateMode, simulateIfRegTest);
+				var largeEstimations = await rpc.EstimateHalfFeesAsync(newEstimations, halfTarget, halfTargetFee, largeTarget, largeTargetFee, sanityFeeRate, estimateMode, simulateIfRegTest).ConfigureAwait(false);
 				foreach (var est in largeEstimations)
 				{
 					newEstimations.TryAdd(est.Key, est.Value);
@@ -156,7 +164,7 @@ namespace NBitcoin.RPC
 				var fakeOutputValue = totalFakeOutputsValue / fakeOutputCount;
 				fakeTransaction.Outputs.Add(fakeOutputValue, new Key());
 			}
-			MempoolAcceptResult testMempoolAcceptResult = await rpc.TestMempoolAcceptAsync(fakeTransaction, allowHighFees: true);
+			MempoolAcceptResult testMempoolAcceptResult = await rpc.TestMempoolAcceptAsync(fakeTransaction, allowHighFees: true).ConfigureAwait(false);
 
 			if (!testMempoolAcceptResult.IsAllowed)
 			{
@@ -177,7 +185,7 @@ namespace NBitcoin.RPC
 		/// </summary>
 		public static async Task<IEnumerable<uint256>> GetUnconfirmedAsync(this IRPCClient rpc, IEnumerable<uint256> transactionHashes)
 		{
-			uint256[] unconfirmedTransactionHashes = await rpc.GetRawMempoolAsync();
+			uint256[] unconfirmedTransactionHashes = await rpc.GetRawMempoolAsync().ConfigureAwait(false);
 
 			// If there are common elements, then there's unconfirmed.
 			return transactionHashes.Intersect(unconfirmedTransactionHashes);
@@ -193,14 +201,14 @@ namespace NBitcoin.RPC
 		public static async Task<ISet<uint256>> GetAllDependentsAsync(this IRPCClient rpc, IEnumerable<uint256> transactionHashes, bool includingProvided, bool likelyProvidedManyConfirmedOnes)
 		{
 			IEnumerable<uint256> workingTxHashes = likelyProvidedManyConfirmedOnes // If confirmed txIds are provided, then do a big check first.
-				? await rpc.GetUnconfirmedAsync(transactionHashes)
+				? await rpc.GetUnconfirmedAsync(transactionHashes).ConfigureAwait(false)
 				: transactionHashes;
 
 			var hashSet = new HashSet<uint256>();
 			foreach (var txId in workingTxHashes)
 			{
 				// Go through all the txIds provided and getmempoolentry to get the dependents and the confirmation status.
-				var entry = await rpc.GetMempoolEntryAsync(txId, throwIfNotFound: false);
+				var entry = await rpc.GetMempoolEntryAsync(txId, throwIfNotFound: false).ConfigureAwait(false);
 				if (entry is { })
 				{
 					// If we asked to include the provided transaction hashes into the result then check which ones are confirmed and do so.
@@ -211,7 +219,7 @@ namespace NBitcoin.RPC
 
 					// Get all the dependents of all the dependents except the ones we already know of.
 					var except = entry.Depends.Except(hashSet);
-					var dependentsOfDependents = await rpc.GetAllDependentsAsync(except, includingProvided: true, likelyProvidedManyConfirmedOnes: false);
+					var dependentsOfDependents = await rpc.GetAllDependentsAsync(except, includingProvided: true, likelyProvidedManyConfirmedOnes: false).ConfigureAwait(false);
 
 					// Add them to the hashset.
 					hashSet.UnionWith(dependentsOfDependents);

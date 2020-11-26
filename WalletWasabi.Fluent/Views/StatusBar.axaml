@@ -2,19 +2,28 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
+             xmlns:converters="using:WalletWasabi.Gui.Converters"
+             xmlns:vm="using:WalletWasabi.Gui.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="vm:StatusBarViewModel"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.StatusBar">
   <UserControl.Resources>
-    <converters:FilterLeftStatusConverter x:Key="FilterLeftStatusConverter" />    
+    <converters:FilterLeftStatusConverter x:Key="FilterLeftStatusConverter" />
     <converters:ShowCursorConverter x:Key="ShowCursorConverter" />
     <converters:ShouldDisplayValueConverter x:Key="ShouldDisplayValueConverter" />
     <converters:PascalToPhraseConverter x:Key="PascalToPhraseConverter" />
-    <converters:RpcStatusStringConverter x:Key="RpcStatusStringConverter" />    
+    <converters:RpcStatusStringConverter x:Key="RpcStatusStringConverter" />
   </UserControl.Resources>
-  <Panel Background="#191919" Cursor="{Binding UpdateAvailable, Converter={StaticResource ShowCursorConverter}}">
+
+  <Panel Background="{DynamicResource StatusBarControlBackground}" Cursor="{Binding UpdateAvailable, Converter={StaticResource ShowCursorConverter}}">
+    <Panel.Styles>
+      <Styles>
+        <Style Selector="TextBlock">
+          <Setter Property="Foreground" Value="{DynamicResource StatusBarControlForeground}"/>
+        </Style>
+      </Styles>
+    </Panel.Styles>
     <!--
     <i:Interaction.Behaviors>
       <behaviors:CommandOnClickBehavior Command="{Binding UpdateCommand}" />
@@ -25,9 +34,9 @@
 
     <DockPanel LastChildFill="True" Margin="20 0" VerticalAlignment="Center">
       <StackPanel Orientation="Horizontal" Spacing="20" DockPanel.Dock="Right" IsVisible="{Binding !CriticalUpdateAvailable}">
-        <StackPanel Orientation="Horizontal" Spacing="4">
-          <TextBlock Text="{Binding ShowNetwork}" />
-        </StackPanel>
+        <!-- <StackPanel Orientation="Horizontal" Spacing="4"> -->
+        <!--   <TextBlock Text="{Binding ShowNetwork}" /> -->
+        <!-- </StackPanel> -->
         <Panel IsVisible="{Binding DownloadingBlock}">
           <StackPanel Orientation="Horizontal" Spacing="4">
             <Panel Height="10" Width="10">
@@ -41,7 +50,7 @@
             <Panel Height="10" Width="10">
               <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_Filter}" />
             </Panel>
-            <TextBlock Text="{Binding FiltersLeft, Converter={StaticResource FilterLeftStatusConverter}}"  />
+            <TextBlock Text="{Binding FiltersLeft, Converter={StaticResource FilterLeftStatusConverter}}" />
           </StackPanel>
         </Panel>
         <StackPanel Orientation="Horizontal" Spacing="4">

@@ -5,5 +5,9 @@
 3. Make sure the Linux and the OSX binaries are executable:
 	`git update-index --chmod=+x hwi`
 	`git update-index --chmod=+x bitcoind`
+	`git update-index --chmod=+x .\lin64\Tor\tor`
+	`git update-index --chmod=+x .\win64\Tor\tor.exe`
+	`git update-index --chmod=+x .\osx64\Tor\tor`
+	`git update-index --chmod=+x .\osx64\Tor\tor.real`
 4. Commit, push.
 5. Make sure CI passes.

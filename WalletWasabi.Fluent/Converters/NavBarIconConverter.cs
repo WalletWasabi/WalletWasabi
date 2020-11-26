@@ -1,10 +1,8 @@
 using Avalonia;
 using Avalonia.Data.Converters;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
-using WalletWasabi.Fluent.ViewModels;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 
 namespace WalletWasabi.Fluent.Converters
 {
@@ -16,11 +14,11 @@ namespace WalletWasabi.Fluent.Converters
 		{
 		}
 
-		object IValueConverter.Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		object? IValueConverter.Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is NavBarItemViewModel nvivm)
 			{
-				if (Application.Current.Styles.TryGetResource(nvivm.IconName, out object resource))
+				if (Application.Current.Styles.TryGetResource(nvivm.IconName, out object? resource))
 				{
 					return resource;
 				}

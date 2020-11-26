@@ -56,6 +56,8 @@ namespace WalletWasabi.Tests.XunitConfiguration
 				.AddInMemoryCollection(new[] { new KeyValuePair<string, string>("datadir", testnetBackendDir) })
 				.Build();
 			BackendEndPoint = $"http://localhost:{new Random().Next(37130, 38000)}/";
+			BackendEndPointUri = new Uri(BackendEndPoint);
+			BackendEndPointApiUri = new Uri(BackendEndPointUri, $"/api/v{Constants.BackendMajorVersion}/");
 
 			BackendHost = Host.CreateDefaultBuilder()
 					.ConfigureWebHostDefaults(webBuilder => webBuilder
@@ -65,7 +67,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 							.UseUrls(BackendEndPoint))
 					.Build();
 
-			Global = (Backend.Global)BackendHost.Services.GetService(typeof(Backend.Global));
+			Global = (Global)BackendHost.Services.GetService(typeof(Global));
 			Global.HostedServices = hostedServices;
 			var hostInitializationTask = BackendHost.RunWithTasksAsync();
 			Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}");
@@ -74,10 +76,18 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
 		}
 
-		public string BackendEndPoint { get; internal set; }
+		/// <summary>String representation of backend URI: <c>http://localhost:RANDOM_PORT</c>.</summary>
+		public string BackendEndPoint { get; }
+
+		/// <summary>URI in form: <c>http://localhost:RANDOM_PORT</c>.</summary>
+		public Uri BackendEndPointUri { get; }
+
+		/// <summary>URI in form: <c>http://localhost:RANDOM_PORT/api/vAPI_VERSION</c>.</summary>
+		public Uri BackendEndPointApiUri { get; }
+
 		public IHost BackendHost { get; internal set; }
 		public CoreNode BackendRegTestNode { get; internal set; }
-		public Backend.Global Global { get; }
+		public Global Global { get; }
 
 		public static CoordinatorRoundConfig CreateRoundConfig(
 			Money denomination,

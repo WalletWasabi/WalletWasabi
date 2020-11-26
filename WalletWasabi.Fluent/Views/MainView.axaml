@@ -1,58 +1,72 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:sys="using:System"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vl="clr-namespace:WalletWasabi.Fluent"
-             xmlns:local="clr-namespace:WalletWasabi.Fluent.Views"
-             xmlns:rxui="clr-namespace:Avalonia.ReactiveUI;assembly=Avalonia.ReactiveUI"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
+             xmlns:vl="using:WalletWasabi.Fluent"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:local="using:WalletWasabi.Fluent.Views"
+             xmlns:navbar="using:WalletWasabi.Fluent.Views.NavBar"
+             xmlns:rxui="using:Avalonia.ReactiveUI"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Views.MainView" TextBlock.Foreground="#A3A3A3">
-  <SplitView IsPaneOpen="{Binding NavBar.IsOpen, Mode=TwoWay}">
-    <i:Interaction.Behaviors>
+             x:DataType="vm:MainViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.MainView">
+  <Panel>
+    <SplitView
+      IsEnabled="{Binding IsMainContentEnabled}" CompactPaneLength="68" OpenPaneLength="280"
+      IsPaneOpen="{Binding NavBar.IsOpen, Mode=TwoWay}">
+      <i:Interaction.Behaviors>
         <behaviors:SplitViewAutoBehavior ToggleAction="{Binding NavBar.ToggleAction, Mode=OneWayToSource}"
-                                         CollapseOnClickAction="{Binding NavBar.CollapseOnClickAction, Mode=OneWayToSource}"
-                                         CollapseThreshold="{StaticResource SplitViewCollapseThreshold}"/>
-    </i:Interaction.Behaviors>
-    <SplitView.Pane>
+                                        CollapseOnClickAction="{Binding NavBar.CollapseOnClickAction, Mode=OneWayToSource}"
+                                        CollapseThreshold="{StaticResource SplitViewCollapseThreshold}" />
+      </i:Interaction.Behaviors>
+      <SplitView.Pane>
+        <Panel>
+          <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+              <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+                                          TintColor="{DynamicResource SystemAltHighColor}"
+                                          TintOpacity="1"
+                                          FallbackColor="{DynamicResource AcrylicFallbackColor}"
+                                          MaterialOpacity="0.55" />
+            </ExperimentalAcrylicBorder.Material>
+          </ExperimentalAcrylicBorder>
+          <navbar:NavBar DataContext="{Binding NavBar}" />
+        </Panel>
+      </SplitView.Pane>
       <Panel>
-        <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False">
-          <ExperimentalAcrylicBorder.Material>
-            <ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                                         TintColor="Black"
-                                         TintOpacity="1"
-                                         FallbackColor="#1F1F1F"
-                                         MaterialOpacity="0.55" />
-          </ExperimentalAcrylicBorder.Material>          
-
-        </ExperimentalAcrylicBorder>
-        <local:NavBar DataContext="{Binding NavBar}" />
-      </Panel>
-    </SplitView.Pane>
-    <Panel>
-      <Border Background="#212121" BoxShadow="0 1 4 #131313" IsHitTestVisible="False" />
-      <DockPanel>
-        <local:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" TextBlock.FontSize="12" />
-        <Panel Margin="20 10 20 0">
-          <DockPanel>
-              <TextBlock Text="{Binding NavBar.SelectedItem.Title}" DockPanel.Dock="Top" FontSize="28" IsHitTestVisible="False" />            
-            <rxui:RoutedViewHost Router="{Binding Router}">
+        <DockPanel>
+          <local:StatusBar DockPanel.Dock="Bottom" Classes="h8" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" />
+          <Panel>
+            <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
+            <rxui:RoutedViewHost Router="{Binding Router}" PageTransition="{x:Null}" Margin="20 36 20 20">
               <rxui:RoutedViewHost.ViewLocator>
                 <vl:ScreenViewLocator />
               </rxui:RoutedViewHost.ViewLocator>
-              <rxui:RoutedViewHost.PageTransition>
-                <CrossFade Duration="0:0:0.25" />
-              </rxui:RoutedViewHost.PageTransition>
-              <rxui:RoutedViewHost.DefaultContent>
-                <TextBlock Text="Default content"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center" />
-              </rxui:RoutedViewHost.DefaultContent>
             </rxui:RoutedViewHost>
-          </DockPanel>          
-        </Panel>        
-      </DockPanel>
-    </Panel>    
-  </SplitView>
+          </Panel>
+        </DockPanel>
+      </Panel>
+    </SplitView>
+    <c:Dialog x:CompileBindings="False"
+              DataContext="{Binding DialogScreen}"
+              IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
+              IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+              MaxContentWidth="800" MaxContentHeight="700">
+      <rxui:RoutedViewHost Router="{Binding Router}" PageTransition="{x:Null}">
+        <rxui:RoutedViewHost.ViewLocator>
+          <vl:ScreenViewLocator />
+        </rxui:RoutedViewHost.ViewLocator>
+      </rxui:RoutedViewHost>
+    </c:Dialog>
+    <c:Dialog DataContext="{Binding CurrentDialog}"
+              IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
+              Content="{Binding }"
+              HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+  </Panel>
 </UserControl>

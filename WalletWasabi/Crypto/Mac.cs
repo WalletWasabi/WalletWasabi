@@ -1,5 +1,6 @@
 using System;
 using NBitcoin.Secp256k1;
+using Newtonsoft.Json;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Helpers;
 
@@ -7,25 +8,24 @@ namespace WalletWasabi.Crypto
 {
 	public class MAC : IEquatable<MAC>
 	{
+		[JsonConstructor]
 		private MAC(Scalar t, GroupElement v)
 		{
-			T = CryptoGuard.NotZero(nameof(t), t);
-			V = CryptoGuard.NotNullOrInfinity(nameof(v), v);
+			T = Guard.NotZero(nameof(t), t);
+			V = Guard.NotNullOrInfinity(nameof(v), v);
 		}
 
 		public Scalar T { get; }
 		public GroupElement V { get; }
-		public GroupElement U { get => GenerateU(T); }
+		internal GroupElement U => GenerateU(T);
 
-		public static bool operator ==(MAC a, MAC b) => a.Equals(b);
+		public static bool operator ==(MAC? a, MAC? b) => (a?.T, a?.V) == (b?.T, b?.V);
 
-		public static bool operator !=(MAC a, MAC b) => !a.Equals(b);
+		public static bool operator !=(MAC? a, MAC? b) => !(a == b);
 
-		public bool Equals(MAC? other) =>
-			(this?.T, this?.V) == (other?.T, other?.V);
+		public override bool Equals(object? obj) => Equals(obj as MAC);
 
-		public override bool Equals(object? obj) =>
-			Equals(obj as MAC);
+		public bool Equals(MAC? other) => this == other;
 
 		public override int GetHashCode() =>
 			HashCode.Combine(T, V).GetHashCode();
@@ -33,8 +33,8 @@ namespace WalletWasabi.Crypto
 		public static MAC ComputeMAC(CoordinatorSecretKey sk, GroupElement ma, Scalar t)
 		{
 			Guard.NotNull(nameof(sk), sk);
-			CryptoGuard.NotZero(nameof(t), t);
-			CryptoGuard.NotNullOrInfinity(nameof(ma), ma);
+			Guard.NotZero(nameof(t), t);
+			Guard.NotNullOrInfinity(nameof(ma), ma);
 
 			return ComputeAlgebraicMAC((sk.X0, sk.X1), (sk.W * Generators.Gw) + (sk.Ya * ma), t);
 		}

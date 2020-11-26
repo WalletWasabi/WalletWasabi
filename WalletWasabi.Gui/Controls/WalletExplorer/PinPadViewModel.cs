@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				DialogResult = true;
 				OnClose();
 			},
-				this.WhenAny(x => x.MaskedPin, (maskedPin) => !string.IsNullOrWhiteSpace(maskedPin.Value)));
+			this.WhenAny(x => x.MaskedPin, (maskedPin) => !string.IsNullOrWhiteSpace(maskedPin.Value)));
 
 			KeyPadCommand = ReactiveCommand.Create<string>((arg) => MaskedPin += arg);
 
@@ -92,8 +92,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					pinpad = new PinPadViewModel();
 					IoC.Get<IShell>().AddOrSelectDocument(pinpad);
 				}
-				var result = await pinpad.ShowDialogAsync();
-				if (!(result is true))
+				object? result = await pinpad.ShowDialogAsync();
+				if (result is not true)
 				{
 					throw new SecurityException("PIN was not provided.");
 				}

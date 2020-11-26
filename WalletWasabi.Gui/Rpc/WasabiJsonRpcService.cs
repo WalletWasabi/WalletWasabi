@@ -9,18 +9,21 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Rpc
 {
 	public partial class WasabiJsonRpcService
 	{
-		public WasabiJsonRpcService(Global global)
+		public WasabiJsonRpcService(Global global, TerminateService terminateService)
 		{
 			Global = global;
+			TerminateService = terminateService;
 		}
 
 		private Global Global { get; }
+		public TerminateService TerminateService { get; }
 		private Wallet ActiveWallet { get; set; }
 
 		[JsonRpcMethod("listunspentcoins")]
@@ -28,15 +31,15 @@ namespace WalletWasabi.Gui.Rpc
 		{
 			AssertWalletIsLoaded();
 			var serverTipHeight = ActiveWallet.BitcoinStore.SmartHeaderChain.ServerTipHeight;
-			return ActiveWallet.Coins.Where(x => x.Unspent).Select(x => new
+			return ActiveWallet.Coins.Where(x => !x.IsSpent()).Select(x => new
 			{
 				txid = x.TransactionId.ToString(),
 				index = x.Index,
 				amount = x.Amount.Satoshi,
-				anonymitySet = x.AnonymitySet,
+				anonymitySet = x.HdPubKey.AnonymitySet,
 				confirmed = x.Confirmed,
 				confirmations = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
-				label = x.Label.ToString(),
+				label = x.HdPubKey.Label.ToString(),
 				keyPath = x.HdPubKey.FullKeyPath.ToString(),
 				address = x.HdPubKey.GetP2wpkhAddress(Global.Network).ToString()
 			}).ToArray();
@@ -67,7 +70,7 @@ namespace WalletWasabi.Gui.Rpc
 				accountKeyPath = $"m/{km.AccountKeyPath}",
 				masterKeyFingerprint = km.MasterFingerprint?.ToString() ?? "",
 				balance = ActiveWallet.Coins
-							.Where(c => c.Unspent && !c.SpentAccordingToBackend)
+							.Where(c => !c.IsSpent() && !c.SpentAccordingToBackend)
 							.Sum(c => c.Amount.Satoshi)
 			};
 		}
@@ -245,7 +248,8 @@ namespace WalletWasabi.Gui.Rpc
 		[JsonRpcMethod("stop")]
 		public async Task StopAsync()
 		{
-			await Global.DisposeAsync().ConfigureAwait(false);
+			// RPC terminating itself so it should not block this call while the RPC interface is stopping.
+			await Task.Run(() => TerminateService.Terminate());
 		}
 
 		private void AssertWalletIsLoaded()

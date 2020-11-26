@@ -11,7 +11,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public async Task CanInitializeAsync()
 		{
-			var txStore = new TransactionStoreMock();
+			await using var txStore = new TransactionStoreMock();
 			var network = Network.Main;
 			await txStore.InitializeAsync(network);
 
@@ -28,13 +28,13 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public async Task CanDoOperationsAsync()
 		{
-			var txStore = new TransactionStoreMock();
+			await using var txStore = new TransactionStoreMock();
 			var network = Network.Main;
 			await txStore.InitializeAsync(network);
 
 			Assert.True(txStore.IsEmpty());
 
-			var stx = Common.GetRandomSmartTransaction();
+			var stx = Common.RandomSmartTransaction();
 			var operation = txStore.TryAddOrUpdate(stx);
 			Assert.True(operation.isAdded);
 			Assert.False(operation.isUpdated);

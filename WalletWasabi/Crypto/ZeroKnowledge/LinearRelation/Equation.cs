@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Helpers;
@@ -19,11 +21,10 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 	// Note that some of the generators for an equation can be the point at
 	// infinity when a term in the witness does not play a part in the
 	// representation of a specific point.
-	public class Equation
+	internal class Equation
 	{
-		public Equation(GroupElement publicPoint, GroupElementVector generators)
+		internal Equation(GroupElement publicPoint, GroupElementVector generators)
 		{
-			Guard.NotNullOrEmpty(nameof(generators), generators);
 			PublicPoint = Guard.NotNull(nameof(publicPoint), publicPoint);
 			Generators = generators;
 		}
@@ -61,7 +62,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 			// challenge is 0), so only respond if that is the case
 			foreach (var secretNonce in secretNonces)
 			{
-				CryptoGuard.NotZero(nameof(secretNonce), secretNonce);
+				Guard.NotZero(nameof(secretNonce), secretNonce);
 			}
 
 			// Taking the discrete logarithms of both sides of the verification
@@ -71,7 +72,13 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 			return secretNonces + challenge * witness;
 		}
 
-		internal bool VerifySolution(ScalarVector witness)
-			=> PublicPoint == witness * Generators;
+		[Conditional("DEBUG")]
+		internal void CheckSolution(ScalarVector witness)
+		{
+			if (PublicPoint != witness * Generators)
+			{
+				throw new ArgumentException($"{nameof(witness)} is not solution of the equation");
+			}
+		}
 	}
 }

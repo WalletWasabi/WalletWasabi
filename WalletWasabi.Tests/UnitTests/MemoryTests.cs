@@ -60,7 +60,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var result1 = await cache2.AtomicGetOrCreateAsync(
 				"the-same-other-key",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) },
-				() => Task.FromResult(ExpensiveComputation("Lurking Wife!")));
+				() => Task.FromResult(ExpensiveComputation("Loving Wife!")));
 
 			var result2 = await cache1.AtomicGetOrCreateAsync(
 				"the-same-key",
@@ -109,7 +109,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var result1 = await cache.AtomicGetOrCreateAsync(
 				"key2",
 				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) },
-				() => Task.FromResult(ExpensiveComputation("Lurking Wife!")));
+				() => Task.FromResult(ExpensiveComputation("Loving Wife!")));
 
 			var result2 = await cache.AtomicGetOrCreateAsync(
 				"key1",

@@ -56,11 +56,11 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(qr => QrCode = qr, onError: ex => Logger.LogError(ex)); // Catch the exceptions everywhere (e.g.: Select) except in Subscribe.
 
 			Global.UiConfig
-				.WhenAnyValue(x => x.LurkingWifeMode)
+				.WhenAnyValue(x => x.PrivacyMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
-					this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+					this.RaisePropertyChanged(nameof(IsPrivacyMode));
 					this.RaisePropertyChanged(nameof(Address));
 					this.RaisePropertyChanged(nameof(Label));
 				}).DisposeWith(Disposables);
@@ -156,7 +156,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public ReceiveTabViewModel Owner { get; }
 		public bool IsHardwareWallet { get; }
 
-		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
+		public bool IsPrivacyMode => Global.UiConfig.PrivacyMode;
 
 		public bool ClipboardNotificationVisible
 		{
@@ -181,7 +181,7 @@ namespace WalletWasabi.Gui.ViewModels
 			get => _label;
 			set
 			{
-				if (!IsLurkingWifeMode && !new SmartLabel(value).IsEmpty)
+				if (!IsPrivacyMode && !new SmartLabel(value).IsEmpty)
 				{
 					this.RaiseAndSetIfChanged(ref _label, value);
 				}
@@ -236,7 +236,7 @@ namespace WalletWasabi.Gui.ViewModels
 				await Task.Delay(1000, cancelToken);
 				ClipboardNotificationVisible = false;
 			}
-			catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
+			catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 			{
 				Logger.LogTrace(ex);
 			}

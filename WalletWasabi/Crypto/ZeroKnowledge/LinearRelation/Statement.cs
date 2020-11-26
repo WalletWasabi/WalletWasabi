@@ -1,39 +1,38 @@
 using NBitcoin.Secp256k1;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 {
-	public class Statement
+	internal class Statement
 	{
-		public Statement(GroupElement publicPoint, IEnumerable<GroupElement> generators)
+		private static GroupElement O = GroupElement.Infinity;
+
+		internal Statement(GroupElement publicPoint, IEnumerable<GroupElement> generators)
 			: this(ToTable(generators.Prepend(publicPoint)))
 		{
 		}
 
-		public Statement(params GroupElement[] equation)
+		internal Statement(params GroupElement[] equation)
 			: this(ToTable(equation))
 		{
 		}
 
-		public Statement(GroupElement[,] equations)
+		internal Statement(GroupElement[,] equations)
 		{
 			var terms = equations.GetLength(1);
 			Guard.True(nameof(terms), terms >= 2, $"Invalid {nameof(terms)}. It needs to have at least one generator and one public point.");
-			foreach (var generator in equations)
-			{
-				Guard.NotNull(nameof(generator), generator);
-			}
 
 			// make an equation out of each row taking the first element of each row as the public point
 			var rows = Enumerable.Range(0, equations.GetLength(0));
 			var cols = Enumerable.Range(1, terms - 1);
-			Equations = rows.Select(i => new Equation(equations[i, 0], new GroupElementVector(cols.Select(j => equations[i, j]))));
+			Equations = rows.Select(i => new Equation(equations[i, 0] ?? O, new GroupElementVector(cols.Select(j => equations[i, j] ?? O))));
 		}
 
-		public IEnumerable<Equation> Equations { get; }
+		internal IEnumerable<Equation> Equations { get; }
 
 		public IEnumerable<GroupElement> PublicPoints =>
 			Equations.Select(x => x.PublicPoint);

@@ -2,8 +2,10 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
@@ -32,11 +34,16 @@ namespace WalletWasabi.Blockchain.Transactions
 			FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
 
 			IsReplacement = isReplacement;
+			WalletInputs = new HashSet<SmartCoin>(Transaction.Inputs.Count);
+			WalletOutputs = new HashSet<SmartCoin>(Transaction.Outputs.Count);
 		}
 
 		#endregion Constructors
 
 		#region Members
+
+		public HashSet<SmartCoin> WalletInputs { get; }
+		public HashSet<SmartCoin> WalletOutputs { get; }
 
 		[JsonProperty]
 		[JsonConverter(typeof(TransactionJsonConverter))]
@@ -64,9 +71,8 @@ namespace WalletWasabi.Blockchain.Transactions
 		[JsonProperty(PropertyName = "FirstSeenIfMempoolTime")]
 		[JsonConverter(typeof(BlockCypherDateTimeOffsetJsonConverter))]
 		[Obsolete("This property exists only for json backwards compatibility. If someone tries to set it, it'll set the FirstSeen. https://stackoverflow.com/a/43715009/2061103", error: true)]
-#pragma warning disable IDE0051 // Remove unused private members
+		[SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "json backwards compatibility")]
 		private DateTimeOffset? FirstSeenCompatibility
-#pragma warning restore IDE0051 // Remove unused private members
 		{
 			set
 			{
@@ -255,15 +261,15 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => Equals(obj as SmartTransaction);
+		public override bool Equals(object? obj) => Equals(obj as SmartTransaction);
 
-		public bool Equals(SmartTransaction other) => this == other;
+		public bool Equals(SmartTransaction? other) => this == other;
 
 		public override int GetHashCode() => GetHash().GetHashCode();
 
-		public static bool operator ==(SmartTransaction x, SmartTransaction y) => y?.GetHash() == x?.GetHash();
+		public static bool operator ==(SmartTransaction? x, SmartTransaction? y) => y?.GetHash() == x?.GetHash();
 
-		public static bool operator !=(SmartTransaction x, SmartTransaction y) => !(x == y);
+		public static bool operator !=(SmartTransaction? x, SmartTransaction? y) => !(x == y);
 
 		#endregion EqualityAndComparison
 	}

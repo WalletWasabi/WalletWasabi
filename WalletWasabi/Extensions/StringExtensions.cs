@@ -44,7 +44,7 @@ namespace System
 		{
 			if (me.StartsWith(trimString, comparisonType))
 			{
-				return me.Substring(trimString.Length);
+				return me[trimString.Length..];
 			}
 			return me;
 		}
@@ -59,6 +59,19 @@ namespace System
 				return me.Substring(0, me.Length - trimString.Length);
 			}
 			return me;
+		}
+
+		/// <summary>
+		/// Returns true if the string contains leading or trailing whitespace, otherwise returns false.
+		/// </summary>
+		public static bool IsTrimmable(this string me)
+		{
+			if (me.Length == 0)
+			{
+				return false;
+			}
+
+			return char.IsWhiteSpace(me[0]) || char.IsWhiteSpace(me[^1]);
 		}
 	}
 }

@@ -18,8 +18,7 @@
 3. Clone WalletWasabi repository.
 4. Get files from zkSNACKs safe storage: macdevsign.p12 and macsignpassw.txt. Copy them to desktop.
 5. Run WalletWasabi.Packager/Content/Osx/addcert.sh => Go to terminal ./addcert.sh - might run chmod a+rx addcert.sh.
-6. Install `brew install create-dmg` https://github.com/andreyvit/create-dmg
-7. Install XCode*
+6. Install XCode*
 
 ## Procedure in a few words
 
@@ -42,4 +41,4 @@
 - https://developer.apple.com/library/archive/technotes/tn2206/_index.html
 - https://developer.apple.com/developer-id/
 
-(The altool and stapler command-line tools (included within Xcode) allow you to upload your software to the Apple notary service, and to staple the resulting ticket to your executable. altool is located at /Applications/Xcode.app/Contents/Developer/usr/bin/altool.)
+(The altool and stapler command-line tools (included within Xcode) allow you to upload your software to the Apple notary service, and to staple the resulting ticket to your executable. altool is located at /Applications/Xcode.app/Contents/Developer/usr/bin/altool.). Unfortunately it is not enough to intall Command Line Tool for XCode. 

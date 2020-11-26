@@ -11,8 +11,25 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 	{
 		#region Constructors
 
-		public AddrField()
+		public AddrField(byte[] bytes)
 		{
+			Bytes = Guard.NotNullOrEmpty(nameof(bytes), bytes);
+
+			AtypField atyp;
+			if (bytes.First() == bytes.Length - 1 && bytes.Length != 4)
+			{
+				atyp = AtypField.DomainName;
+			}
+			else if (bytes.Length == 4)
+			{
+				atyp = AtypField.IPv4;
+			}
+			else
+			{
+				throw new FormatException($"Could not read IPv4 or domain name from {nameof(bytes)}. Value: {bytes}.");
+			}
+
+			Atyp = atyp;
 		}
 
 		/// <param name="dstAddr">Domain or IPv4</param>
@@ -20,8 +37,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 		{
 			dstAddr = Guard.NotNullOrEmptyOrWhitespace(nameof(dstAddr), dstAddr, true);
 
-			var atyp = new AtypField();
-			atyp.FromDstAddr(dstAddr);
+			var atyp = new AtypField(dstAddr);
 
 			Atyp = atyp;
 
@@ -55,7 +71,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 				{
 					if (int.TryParse(parts[i], out int partInt))
 					{
-						if (partInt < 0 || partInt > 255)
+						if (partInt is < 0 or > 255)
 						{
 							throw new FormatException($"Every part of {nameof(dstAddr)} must be between 0 and 255. The {i}. part is invalid: {partInt}. Value of {nameof(dstAddr)}: {dstAddr}");
 						}
@@ -79,9 +95,9 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 
 		#region PropertiesAndMembers
 
-		private byte[] Bytes { get; set; }
+		private byte[] Bytes { get; }
 
-		public AtypField Atyp { get; set; }
+		public AtypField Atyp { get; }
 
 		public string DomainOrIPv4
 		{
@@ -109,27 +125,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 		#endregion PropertiesAndMembers
 
 		#region Serialization
-
-		public override void FromBytes(byte[] bytes)
-		{
-			Bytes = Guard.NotNullOrEmpty(nameof(bytes), bytes);
-
-			AtypField atyp;
-			if (bytes.First() == bytes.Length - 1 && bytes.Length != 4)
-			{
-				atyp = AtypField.DomainName;
-			}
-			else if (bytes.Length == 4)
-			{
-				atyp = AtypField.IPv4;
-			}
-			else
-			{
-				throw new FormatException($"Could not read IPv4 or domain name from {nameof(bytes)}. Value: {bytes}.");
-			}
-
-			Atyp = atyp;
-		}
 
 		public override byte[] ToBytes() => Bytes;
 

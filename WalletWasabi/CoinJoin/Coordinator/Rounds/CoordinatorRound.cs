@@ -82,11 +82,11 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 		}
 
-		public event EventHandler<RoundPhase> PhaseChanged;
+		public event EventHandler<RoundPhase>? PhaseChanged;
 
-		public event EventHandler<CoordinatorRoundStatus> StatusChanged;
+		public event EventHandler<CoordinatorRoundStatus>? StatusChanged;
 
-		public event EventHandler<Transaction> CoinJoinBroadcasted;
+		public event EventHandler<Transaction>? CoinJoinBroadcasted;
 
 		public long RoundId { get; }
 
@@ -521,7 +521,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					}
 				}
 
-				if (changeAmount > Money.Zero) // If the coordinator fee would make change amount to be negative or zero then no need to pay it.
+				if (changeAmount > Money.Zero)
 				{
 					Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
 					Money somePercentOfDenomination = newDenomination.Percentage(0.3m); // If the change is less than about 0.3% of the newDenomination then add it to the coordinator fee.
@@ -537,7 +537,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				}
 				else
 				{
-					// Alice has no money enough to pay the coordinator fee then allow her to pay what she can.
+					// If the coordinator fee would make change amount to be negative or zero,
+					// i.e. Alice has no money enough to pay the coordinator fee then allow her to pay what she can.
 					coordinatorFee += changeAmount;
 				}
 			}
@@ -783,7 +784,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			return acceptedBlindedOutputScriptsCount;
 		}
 
-		private async Task TryOptimizeFeesAsync(Transaction transaction, IEnumerable<Coin> spentCoins)
+		internal async Task TryOptimizeFeesAsync(Transaction transaction, IEnumerable<Coin> spentCoins)
 		{
 			try
 			{
@@ -810,7 +811,10 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				}
 
 				// 7.2. Get the most optimal FeeRate.
-				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false);
+				MemPoolInfo mempoolInfo = await RpcClient.GetMempoolInfoAsync().ConfigureAwait(false);
+				var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
+				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, sanityFeeRate, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false);
+
 				if (estimateSmartFeeResponse is null)
 				{
 					throw new InvalidOperationException($"{nameof(FeeRate)} is not yet initialized.");
@@ -818,38 +822,34 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 				FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
 
-				if (optimalFeeRate is { } && optimalFeeRate != FeeRate.Zero && currentFeeRate is { } && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
-				{
-					var sanityFeeRate = new FeeRate(2m); // 2 s/b
-					optimalFeeRate = optimalFeeRate < sanityFeeRate ? sanityFeeRate : optimalFeeRate;
-					if (optimalFeeRate < currentFeeRate)
-					{
-						// 7.2 If the fee can be lowered, lower it.
-						// 7.2.1. How much fee can we save?
-						Money feeShouldBePaid = Money.Satoshis(estimatedFinalTxSize * (int)optimalFeeRate.SatoshiPerByte);
-						Money toSave = fee - feeShouldBePaid;
-
-						// 7.2.2. Get the outputs to divide the savings between.
-						int maxMixCount = transaction.GetIndistinguishableOutputs(includeSingle: true).Max(x => x.count);
-						Money bestMixAmount = transaction.GetIndistinguishableOutputs(includeSingle: true).Where(x => x.count == maxMixCount).Max(x => x.value);
-						int bestMixCount = transaction.GetIndistinguishableOutputs(includeSingle: true).First(x => x.value == bestMixAmount).count;
-
-						// 7.2.3. Get the savings per best mix outputs.
-						long toSavePerBestMixOutputs = toSave.Satoshi / bestMixCount;
-
-						// 7.2.4. Modify the best mix outputs in the transaction.
-						if (toSavePerBestMixOutputs > 0)
-						{
-							foreach (TxOut output in transaction.Outputs.Where(x => x.Value == bestMixAmount))
-							{
-								output.Value += toSavePerBestMixOutputs;
-							}
-						}
-					}
-				}
-				else
+				if (optimalFeeRate is null || optimalFeeRate == FeeRate.Zero || currentFeeRate is null || currentFeeRate == FeeRate.Zero) // This would be really strange if it'd happen.
 				{
 					Logger.LogError($"Round ({RoundId}): This is impossible. {nameof(optimalFeeRate)}: {optimalFeeRate}, {nameof(currentFeeRate)}: {currentFeeRate}.");
+				}
+				else if (optimalFeeRate < currentFeeRate)
+				{
+					// 7.2 If the fee can be lowered, lower it.
+					// 7.2.1. How much fee can we save?
+					Money feeShouldBePaid = Money.Satoshis(estimatedFinalTxSize * (int)optimalFeeRate.SatoshiPerByte);
+					Money toSave = fee - feeShouldBePaid;
+
+					// 7.2.2. Get the outputs to divide the savings between.
+					var indistinguishableOutputs = transaction.GetIndistinguishableOutputs(includeSingle: true).ToArray();
+					int maxMixCount = indistinguishableOutputs.Max(x => x.count);
+					Money bestMixAmount = indistinguishableOutputs.Where(x => x.count == maxMixCount).Max(x => x.value);
+					int bestMixCount = indistinguishableOutputs.First(x => x.value == bestMixAmount).count;
+
+					// 7.2.3. Get the savings per best mix outputs.
+					long toSavePerBestMixOutputs = toSave.Satoshi / bestMixCount;
+
+					// 7.2.4. Modify the best mix outputs in the transaction.
+					if (toSavePerBestMixOutputs > 0)
+					{
+						foreach (TxOut output in transaction.Outputs.Where(x => x.Value == bestMixAmount))
+						{
+							output.Value += toSavePerBestMixOutputs;
+						}
+					}
 				}
 			}
 			catch (Exception ex)
@@ -893,14 +893,14 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			var outputSizeInBytes = Constants.OutputSizeInBytes;
 			try
 			{
-				var estimateSmartFeeResponse = await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false);
-
+				var mempoolInfo = await rpc.GetMempoolInfoAsync().ConfigureAwait(false);
+				var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
+				var estimateSmartFeeResponse = await rpc.EstimateSmartFeeAsync(confirmationTarget, sanityFeeRate, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false);
 				var feeRate = estimateSmartFeeResponse.FeeRate;
-				Money feePerBytes = feeRate.FeePerK / 1000;
 
 				// Make sure min relay fee (1000 sat) is hit.
-				feePerInputs = Math.Max(feePerBytes * inputSizeInBytes, Money.Satoshis(500));
-				feePerOutputs = Math.Max(feePerBytes * outputSizeInBytes, Money.Satoshis(250));
+				feePerInputs = Math.Max(feeRate.GetFee(inputSizeInBytes), Money.Satoshis(500));
+				feePerOutputs = Math.Max(feeRate.GetFee(outputSizeInBytes), Money.Satoshis(250));
 			}
 			catch (Exception ex)
 			{
@@ -1156,9 +1156,9 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						Logger.LogInfo($"Round ({RoundId}): Number of outputs: {CoinJoin.Outputs.Count}.");
 						Logger.LogInfo($"Round ({RoundId}): Serialized Size: {CoinJoin.GetSerializedSize() / 1024} KB.");
 						Logger.LogInfo($"Round ({RoundId}): VSize: {CoinJoin.GetVirtualSize() / 1024} KB.");
-						foreach (var o in CoinJoin.GetIndistinguishableOutputs(includeSingle: false))
+						foreach (var (value, count) in CoinJoin.GetIndistinguishableOutputs(includeSingle: false))
 						{
-							Logger.LogInfo($"Round ({RoundId}): There are {o.count} occurrences of {o.value.ToString(true, false)} BTC output.");
+							Logger.LogInfo($"Round ({RoundId}): There are {count} occurrences of {value.ToString(true, false)} BTC output.");
 						}
 
 						await RpcClient.SendRawTransactionAsync(CoinJoin).ConfigureAwait(false);
@@ -1335,10 +1335,10 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 				await batch.SendBatchAsync().ConfigureAwait(false);
 
-				foreach (var t in checkingTasks)
+				foreach (var (alice, task) in checkingTasks)
 				{
-					var resp = await t.task.ConfigureAwait(false);
-					responses.Add((t.alice, resp));
+					var resp = await task.ConfigureAwait(false);
+					responses.Add((alice, resp));
 				}
 			}
 

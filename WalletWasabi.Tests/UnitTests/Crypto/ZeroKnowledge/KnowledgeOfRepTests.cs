@@ -31,8 +31,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var statement = new Statement(publicPoint, generators);
 			var random = new MockRandom();
 			random.GetBytesResults.Add(new byte[32]);
-			var proof = ProofSystem.Prove(statement, secrets, random);
-			Assert.True(ProofSystem.Verify(statement, proof));
+			var proof = ProofSystemHelpers.Prove(statement, secrets, random);
+			Assert.True(ProofSystemHelpers.Verify(statement, proof));
 		}
 
 		[Fact]
@@ -47,8 +47,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 					var generators = new GroupElementVector(Generators.G, Generators.Ga);
 					var publicPoint = secrets * generators;
 					var statement = new Statement(publicPoint, generators);
-					var proof = ProofSystem.Prove(statement, secrets, new SecureRandom());
-					Assert.True(ProofSystem.Verify(statement, proof));
+					var proof = ProofSystemHelpers.Prove(statement, secrets, new SecureRandom());
+					Assert.True(ProofSystemHelpers.Verify(statement, proof));
 				}
 			}
 		}

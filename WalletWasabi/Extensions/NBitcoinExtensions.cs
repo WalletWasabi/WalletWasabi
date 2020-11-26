@@ -7,9 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
@@ -120,7 +122,7 @@ namespace NBitcoin
 				.Where(x => includeSingle || x.Value > 1);
 		}
 
-		public static int GetAnonymitySet(this Transaction me, int outputIndex)
+		public static int GetAnonymitySet(this Transaction me, uint outputIndex)
 		{
 			// 1. Get the output corresponting to the output index.
 			var output = me.Outputs[outputIndex];
@@ -132,7 +134,9 @@ namespace NBitcoin
 			return anonSet;
 		}
 
-		public static int GetAnonymitySet(this Transaction me, uint outputIndex) => GetAnonymitySet(me, (int)outputIndex);
+		public static bool IsLikelyCoinjoin(this Transaction me)
+		=> me.Inputs.Count > 1 // The tx must have more than one input in order to be a coinjoin.
+			&& me.HasIndistinguishableOutputs(); // The tx must have more than one equal output in order to be a coinjoin.
 
 		/// <summary>
 		/// Careful, if it's in a legacy block then this won't work.
@@ -386,20 +390,89 @@ namespace NBitcoin
 			NumberDecimalDigits = 0
 		};
 
-		private static string ToCurrency(this Money btc, string currency, decimal exchangeRate, bool lurkingWifeMode = false)
+		private static string ToCurrency(this Money btc, string currency, decimal exchangeRate, bool privacyMode = false)
 		{
 			var dollars = exchangeRate * btc.ToDecimal(MoneyUnit.BTC);
 
-			return lurkingWifeMode
+			return privacyMode
 				? $"### {currency}"
 				: exchangeRate == default
 					? $"??? {currency}"
 					: $"{dollars.ToString("N", CurrencyNumberFormat)} {currency}";
 		}
 
-		public static string ToUsdString(this Money btc, decimal usdExchangeRate, bool lurkingWifeMode = false)
+		public static string ToUsdString(this Money btc, decimal usdExchangeRate, bool privacyMode = false)
 		{
-			return ToCurrency(btc, "USD", usdExchangeRate, lurkingWifeMode);
+			return ToCurrency(btc, "USD", usdExchangeRate, privacyMode);
+		}
+
+		/// <summary>
+		/// Tries to equip the PSBT with input and output keypaths on best effort.
+		/// </summary>
+		public static void AddKeyPaths(this PSBT psbt, KeyManager keyManager)
+		{
+			if (keyManager.MasterFingerprint.HasValue)
+			{
+				var fp = keyManager.MasterFingerprint.Value;
+				// Add input keypaths.
+				foreach (var script in psbt.Inputs.Select(x => x.WitnessUtxo?.ScriptPubKey).ToArray())
+				{
+					if (script is { })
+					{
+						var hdPubKey = keyManager.GetKeyForScriptPubKey(script);
+						if (hdPubKey is { })
+						{
+							psbt.AddKeyPath(fp, hdPubKey, script);
+						}
+					}
+				}
+
+				// Add output keypaths.
+				foreach (var script in psbt.Outputs.Select(x => x.ScriptPubKey).ToArray())
+				{
+					var hdPubKey = keyManager.GetKeyForScriptPubKey(script);
+					if (hdPubKey is { })
+					{
+						psbt.AddKeyPath(fp, hdPubKey, script);
+					}
+				}
+			}
+		}
+
+		public static void AddKeyPath(this PSBT psbt, HDFingerprint fp, HdPubKey hdPubKey, Script script)
+		{
+			var rootKeyPath = new RootedKeyPath(fp, hdPubKey.FullKeyPath);
+			psbt.AddKeyPath(hdPubKey.PubKey, rootKeyPath, script);
+		}
+
+		/// <summary>
+		/// Tries to equip the PSBT with previous transactions with best effort.
+		/// </summary>
+		public static void AddPrevTxs(this PSBT psbt, AllTransactionStore transactionStore)
+		{
+			// Fill out previous transactions.
+			foreach (var psbtInput in psbt.Inputs)
+			{
+				if (transactionStore.TryGetTransaction(psbtInput.PrevOut.Hash, out var tx))
+				{
+					psbtInput.NonWitnessUtxo = tx.Transaction;
+				}
+				else
+				{
+					Logger.LogInfo($"Transaction id: {psbtInput.PrevOut.Hash} is missing from the {nameof(transactionStore)}. Ignoring...");
+				}
+			}
+		}
+
+		public static FeeRate GetSanityFeeRate(this MemPoolInfo me)
+		{
+			var mempoolMinFee = (decimal)me.MemPoolMinFee;
+
+			// Make sure to be prepared for mempool spikes.
+			var spikeSanity = mempoolMinFee * 1.5m;
+
+			var sanityFee = FeeRate.Max(new FeeRate(Money.Coins(spikeSanity)), new FeeRate(2m));
+			return sanityFee;
 		}
 	}
 }

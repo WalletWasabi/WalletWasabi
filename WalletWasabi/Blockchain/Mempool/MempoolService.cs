@@ -24,7 +24,7 @@ namespace WalletWasabi.Blockchain.Mempool
 			TrustedNodeMode = false;
 		}
 
-		public event EventHandler<SmartTransaction> TransactionReceived;
+		public event EventHandler<SmartTransaction>? TransactionReceived;
 
 		private HashSet<uint256> ProcessedTransactionHashes { get; }
 		private object ProcessedLock { get; }
@@ -95,7 +95,7 @@ namespace WalletWasabi.Blockchain.Mempool
 		/// <summary>
 		/// Tries to perform mempool cleanup with the help of the backend.
 		/// </summary>
-		public async Task<bool> TryPerformMempoolCleanupAsync(Func<Uri> destAction, EndPoint torSocks)
+		public async Task<bool> TryPerformMempoolCleanupAsync(WasabiClientFactory wasabiClientFactory)
 		{
 			// If already cleaning, then no need to run it that often.
 			if (Interlocked.CompareExchange(ref _cleanupInProcess, 1, 0) == 1)
@@ -114,10 +114,9 @@ namespace WalletWasabi.Blockchain.Mempool
 				}
 
 				Logger.LogInfo("Start cleaning out mempool...");
-				using (var client = new WasabiClient(destAction, torSocks))
 				{
 					var compactness = 10;
-					var allMempoolHashes = await client.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
+					var allMempoolHashes = await wasabiClientFactory.SharedWasabiClient.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
 
 					lock (ProcessedLock)
 					{
@@ -166,7 +165,8 @@ namespace WalletWasabi.Blockchain.Mempool
 
 		public void Process(Transaction tx)
 		{
-			SmartTransaction txAdded = null;
+			SmartTransaction? txAdded = null;
+
 			lock (ProcessedLock)
 			{
 				if (ProcessedTransactionHashes.Add(tx.GetHash()))
@@ -179,6 +179,7 @@ namespace WalletWasabi.Blockchain.Mempool
 				}
 				Interlocked.Increment(ref _totalReceives);
 			}
+
 			if (txAdded is { })
 			{
 				TransactionReceived?.Invoke(this, txAdded);

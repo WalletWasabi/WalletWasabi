@@ -71,20 +71,20 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 					batch.SendBatchAsync().GetAwaiter().GetResult();
 
-					foreach (var task in getTxTasks)
+					foreach (var (txTask, line) in getTxTasks)
 					{
 						try
 						{
-							var tx = task.txTask.GetAwaiter().GetResult();
+							var tx = txTask.GetAwaiter().GetResult();
 							CoinJoins.Add(tx.GetHash());
 						}
 						catch (Exception ex)
 						{
-							toRemove.Add(task.line);
+							toRemove.Add(line);
 
 							var logEntry = ex is RPCException rpce && rpce.RPCCode == RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY
-								? $"CoinJoins file contains invalid transaction ID {task.line}"
-								: $"CoinJoins file got corrupted. Deleting offending line \"{task.line.Substring(0, 20)}\".";
+								? $"CoinJoins file contains invalid transaction ID {line}"
+								: $"CoinJoins file got corrupted. Deleting offending line \"{line.Substring(0, 20)}\".";
 
 							Logger.LogWarning($"{logEntry}. {ex.GetType()}: {ex.Message}");
 						}
@@ -130,7 +130,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			BlockNotifier.OnBlock += BlockNotifier_OnBlockAsync;
 		}
 
-		public event EventHandler<Transaction> CoinJoinBroadcasted;
+		public event EventHandler<Transaction>? CoinJoinBroadcasted;
 
 		public DateTimeOffset LastSuccessfulCoinJoinTime { get; private set; }
 
@@ -155,7 +155,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 		public UtxoReferee UtxoReferee { get; }
 
-		private async void BlockNotifier_OnBlockAsync(object sender, Block block)
+		private async void BlockNotifier_OnBlockAsync(object? sender, Block block)
 		{
 			try
 			{
@@ -279,12 +279,12 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			}
 		}
 
-		private void Round_CoinJoinBroadcasted(object sender, Transaction transaction)
+		private void Round_CoinJoinBroadcasted(object? sender, Transaction transaction)
 		{
 			CoinJoinBroadcasted?.Invoke(sender, transaction);
 		}
 
-		private async void Round_StatusChangedAsync(object sender, CoordinatorRoundStatus status)
+		private async void Round_StatusChangedAsync(object? sender, CoordinatorRoundStatus status)
 		{
 			try
 			{
@@ -387,7 +387,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				}
 
 				// If finished start a new round.
-				if (status == CoordinatorRoundStatus.Aborted || status == CoordinatorRoundStatus.Succeded)
+				if (status is CoordinatorRoundStatus.Aborted or CoordinatorRoundStatus.Succeded)
 				{
 					round.StatusChanged -= Round_StatusChangedAsync;
 					round.CoinJoinBroadcasted -= Round_CoinJoinBroadcasted;

@@ -129,14 +129,13 @@ namespace WalletWasabi.Tests.UnitTests
 		private static void AssertEndPointParserOutputs(bool isSuccess, EndPoint endPoint, string expectedHost, int expectedPort)
 		{
 			Assert.True(isSuccess);
-			var actualPort = endPoint.GetPortOrDefault();
-			Assert.Equal(expectedPort, actualPort);
-			var actualHost = endPoint.GetHostOrDefault();
-			if (expectedHost == "localhost")
-			{
-				expectedHost = "127.0.0.1";
-			}
+			Assert.True(endPoint.TryGetHostAndPort(out string? actualHost, out int? actualPort));
+
+			expectedHost = (expectedHost == "localhost") ? "127.0.0.1" : expectedHost;
+
 			Assert.Equal(expectedHost, actualHost);
+			Assert.Equal(expectedPort, actualPort);
+
 			Assert.Equal($"{actualHost}:{actualPort}", endPoint.ToString(expectedPort));
 		}
 
@@ -187,7 +186,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			foreach (var test in tests)
 			{
-				Assert.False(AddressStringParser.TryParseBitcoinUrl(test.url.Substring(1), test.network, out _));
+				Assert.False(AddressStringParser.TryParseBitcoinUrl(test.url[1..], test.network, out _));
 				Assert.False(AddressStringParser.TryParseBitcoinUrl(test.url.Remove(5, 4), test.network, out _));
 				Assert.False(AddressStringParser.TryParseBitcoinUrl(test.url.Insert(1, "b"), test.network, out _));
 

@@ -17,7 +17,6 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
-using Splat;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -50,9 +49,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ShieldState _selectAllNonPrivateShieldState;
 		private bool _isCoinListLoading;
 
-		public CoinListViewModel(Wallet wallet, bool canDequeueCoins = false, bool displayCommonOwnershipWarning = false)
+		public CoinListViewModel(Wallet wallet, Config config, UiConfig uiConfig, bool canDequeueCoins = false, bool displayCommonOwnershipWarning = false)
 		{
-			Global = Locator.Current.GetService<Global>();
+			Config = config;
+			UiConfig = uiConfig;
 
 			AmountSortDirection = SortOrder.Decreasing;
 
@@ -129,7 +129,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (SelectPrivateCheckBoxState)
 				{
 					case true:
-						SelectCoins(x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySetValue);
+						SelectCoins(x => x.AnonymitySet >= Config.MixUntilAnonymitySetValue);
 						break;
 
 					case null:
@@ -145,7 +145,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (SelectNonPrivateCheckBoxState)
 				{
 					case true:
-						SelectCoins(x => x.AnonymitySet < Global.Config.MixUntilAnonymitySetValue);
+						SelectCoins(x => x.AnonymitySet < Config.MixUntilAnonymitySetValue);
 						break;
 
 					case false:
@@ -175,11 +175,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		public event EventHandler<SmartCoin> DequeueCoinsPressed;
+		public event EventHandler<SmartCoin>? DequeueCoinsPressed;
 
-		public event EventHandler CoinListShown;
+		public event EventHandler? CoinListShown;
 
-		public event EventHandler SelectionChanged;
+		public event EventHandler? SelectionChanged;
 
 		private CompositeDisposable Disposables { get; set; }
 
@@ -187,7 +187,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private object SelectionChangedLock { get; } = new object();
 		private object StateChangedLock { get; } = new object();
-		private Global Global { get; }
+		private Config Config { get; }
+		private UiConfig UiConfig { get; }
 		private Wallet Wallet { get; }
 		public ReactiveCommand<Unit, Unit> SelectAllCheckBoxCommand { get; }
 		public ReactiveCommand<Unit, Unit> SelectPrivateCheckBoxCommand { get; }
@@ -316,16 +317,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public SortingPreference SelectedColumnPreference
 		{
-			get => CanDequeueCoins ? Global.UiConfig.CoinJoinTabSortingPreference : Global.UiConfig.CoinListViewSortingPreference;
+			get => CanDequeueCoins ? UiConfig.CoinJoinTabSortingPreference : UiConfig.CoinListViewSortingPreference;
 			set
 			{
 				if (CanDequeueCoins)
 				{
-					Global.UiConfig.CoinJoinTabSortingPreference = value;
+					UiConfig.CoinJoinTabSortingPreference = value;
 				}
 				else
 				{
-					Global.UiConfig.CoinListViewSortingPreference = value;
+					UiConfig.CoinListViewSortingPreference = value;
 				}
 			}
 		}
@@ -422,8 +423,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void RefreshSelectionCheckBoxes(CoinViewModel[] coins)
 		{
 			SelectAllCheckBoxState = GetCheckBoxesSelectedState(coins, x => true);
-			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(coins, x => x.AnonymitySet >= Global.Config.MixUntilAnonymitySetValue);
-			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(coins, x => x.AnonymitySet < Global.Config.MixUntilAnonymitySetValue);
+			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(coins, x => x.AnonymitySet >= Config.MixUntilAnonymitySetValue);
+			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(coins, x => x.AnonymitySet < Config.MixUntilAnonymitySetValue);
 		}
 
 		private void RefreshStatusColumnWidth(CoinViewModel[] coins)
@@ -439,8 +440,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				? new CompositeDisposable()
 				: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Global.UiConfig
-				.WhenAnyValue(x => x.LurkingWifeMode)
+			UiConfig
+				.WhenAnyValue(x => x.PrivacyMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedAmount)))
 				.DisposeWith(Disposables);
@@ -490,14 +491,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				})
 				.DisposeWith(Disposables);
 
-			Global.Config
+			Config
 				.WhenAnyValue(x => x.MixUntilAnonymitySet)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
 					try
 					{
-						RefreshSelectCheckBoxesShields(Global.Config.GetAnonymitySet(x));
+						RefreshSelectCheckBoxesShields(Config.GetAnonymitySet(x));
 						RefreshSelectionCheckBoxes(RootList.Items.ToArray());
 					}
 					catch (Exception ex)
@@ -563,9 +564,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void RefreshSelectCheckBoxesShields(int anonymitySet)
 		{
 			var isCriticalPrivate = false;
-			var isSomePrivate = anonymitySet <= Global.Config.PrivacyLevelSome;
-			var isFinePrivate = anonymitySet <= Global.Config.PrivacyLevelFine;
-			var isStrongPrivate = anonymitySet <= Global.Config.PrivacyLevelStrong;
+			var isSomePrivate = anonymitySet <= Config.PrivacyLevelSome;
+			var isFinePrivate = anonymitySet <= Config.PrivacyLevelFine;
+			var isStrongPrivate = anonymitySet <= Config.PrivacyLevelStrong;
 
 			SelectAllNonPrivateShieldState = new ShieldState(
 					!isCriticalPrivate,

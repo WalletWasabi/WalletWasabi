@@ -16,7 +16,7 @@ namespace WalletWasabi.WebClients
 {
 	public class ExchangeRateProvider : IExchangeRateProvider
 	{
-		private readonly IExchangeRateProvider[] ExchangeRateProviders =
+		private readonly IExchangeRateProvider[] _exchangeRateProviders =
 		{
 			new BlockchainInfoExchangeRateProvider(),
 			new BitstampExchangeRateProvider(),
@@ -28,11 +28,11 @@ namespace WalletWasabi.WebClients
 
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync()
 		{
-			foreach (var provider in ExchangeRateProviders)
+			foreach (var provider in _exchangeRateProviders)
 			{
 				try
 				{
-					return await provider.GetExchangeRateAsync();
+					return await provider.GetExchangeRateAsync().ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{

@@ -53,14 +53,12 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 		public void CommitPublicNonces(IEnumerable<GroupElement> publicNonces)
 		{
-			CryptoGuard.NotNullOrInfinity(nameof(publicNonces), publicNonces);
+			Guard.NotNullOrInfinity(nameof(publicNonces), publicNonces);
 			AddMessages(PublicNonceTag, publicNonces.Select(x => x.ToBytes()));
 		}
 
-		public void CommitStatement(Statement statement)
+		internal void CommitStatement(Statement statement)
 		{
-			Guard.NotNull(nameof(statement.Generators), statement.Generators);
-			CryptoGuard.NotNullOrInfinity(nameof(statement.PublicPoints), statement.PublicPoints);
 			AddMessages(StatementTag, statement.PublicPoints.Select(x => x.ToBytes()).Concat(statement.Generators.Select(x => x.ToBytes())));
 		}
 

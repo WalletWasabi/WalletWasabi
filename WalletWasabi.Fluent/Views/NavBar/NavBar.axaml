@@ -1,0 +1,140 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             xmlns:h="using:WalletWasabi.Fluent.Helpers"
+             xmlns:navbar="using:WalletWasabi.Fluent.Views.NavBar"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False">
+  <UserControl.Styles>
+    <Style Selector=":is(ListBox)">
+      <Setter Property="ItemTemplate">
+        <Setter.Value>
+          <DataTemplate>
+            <Panel>
+              <Panel Width="45" HorizontalAlignment="Left">
+                <PathIcon HorizontalAlignment="Left">
+                  <PathIcon.Data>
+                    <Binding Path="." Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                  </PathIcon.Data>
+                </PathIcon>
+              </Panel>
+              <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
+            </Panel>
+          </DataTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style Selector=":is(ListBox).bottom">
+      <Setter Property="ItemsPanel">
+        <Setter.Value>
+          <ItemsPanelTemplate>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" />
+          </ItemsPanelTemplate>
+        </Setter.Value>
+      </Setter>
+      <Setter Property="ItemTemplate">
+        <Setter.Value>
+          <DataTemplate>
+              <Panel Width="45" HorizontalAlignment="Center" ToolTip.Tip="{Binding Title}">
+                <PathIcon HorizontalAlignment="Left">
+                  <PathIcon.Data>
+                    <Binding Path="." Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                  </PathIcon.Data>
+                </PathIcon>
+              </Panel>
+          </DataTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style Selector="PathIcon">
+      <Setter Property="Margin" Value="13 0 0 0" />
+      <Setter Property="Height" Value="18" />
+      <Setter Property="Width" Value="18" />
+    </Style>
+    <Style Selector="Separator">
+      <Setter Property="Background" Value="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="Margin" Value="{DynamicResource MenuFlyoutSeparatorThemePadding}" />
+      <Setter Property="Height" Value="{DynamicResource MenuFlyoutSeparatorThemeHeight}" />
+    </Style>
+    <Style Selector="ListBox">
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="c|NavBarTreeItem">
+      <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
+    </Style>
+    <Style Selector=":is(Button).NavButton">
+      <Setter Property="Width" Value="{StaticResource SplitViewCompactPaneLength}" />
+      <Setter Property="Padding" Value="12,9,12,12" />
+    </Style>
+    <Style Selector=":is(Button).NavButton:disabled > PathIcon">
+      <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+    </Style>
+    <Style Selector=":is(Button).NavButton /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector=":is(Button):checked.NavButton /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector=":is(Button):unchecked.NavButton /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector=":is(Button):disabled /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector=":is(Button):pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}" />
+    </Style>
+  </UserControl.Styles>
+  <DockPanel Margin="0 0 0 4">
+    <StackPanel DockPanel.Dock="Top" Spacing="5">
+      <Panel Height="30" />
+      <Border Padding="12" Margin="0 -10 0 0">
+        <Panel>
+          <Panel Width="45" HorizontalAlignment="Left">
+            <PathIcon Data="{StaticResource wasabi_logo}" HorizontalAlignment="Left" Height="20" Width="20" />
+          </Panel>
+          <TextBlock Text="Wasabi Wallet" Classes="h6" VerticalAlignment="Center" FontWeight="SemiBold" Margin="55 0 0 0" />
+        </Panel>
+      </Border>
+      <c:NavBarListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem}" />
+      <Separator />
+    </StackPanel>
+
+    <StackPanel DockPanel.Dock="Bottom">
+      <Separator />
+      <c:NavBarListBox Classes="bottom" Items="{Binding BottomItems}" SelectedItem="{Binding SelectedItem}" >
+        <c:NavBarListBox.Styles>
+          <Style Selector="c|NavBarItem">
+            <Setter Property="IndicatorOrientation" Value="Horizontal" />
+          </Style>
+        </c:NavBarListBox.Styles>
+      </c:NavBarListBox>
+    </StackPanel>
+
+    <c:NavBarTreeView Items="{Binding Items}" SelectedItem="{Binding SelectedItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+      <c:NavBarTreeView.ItemTemplate>
+        <TreeDataTemplate ItemsSource="{Binding Items}">
+          <Panel>
+            <Panel Width="45" HorizontalAlignment="Left">
+              <PathIcon HorizontalAlignment="Left">
+                <PathIcon.Data>
+                  <Binding Path="." Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                </PathIcon.Data>
+              </PathIcon>
+            </Panel>
+            <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
+          </Panel>
+        </TreeDataTemplate>
+      </c:NavBarTreeView.ItemTemplate>
+    </c:NavBarTreeView>
+  </DockPanel>
+</UserControl>

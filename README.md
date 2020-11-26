@@ -19,36 +19,22 @@
 [13]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.DeterministicBuild?branchName=master
 [14]: https://dev.azure.com/zkSNACKs/Wasabi/_build/latest?definitionId=13&branchName=master
 
-[Wasabi Wallet](https://wasabiwallet.io) is an open-source, non-custodial, privacy-focused Bitcoin wallet for desktop, that implements [Chaumian CoinJoin](https://github.com/nopara73/ZeroLink/#ii-chaumian-coinjoin).
+[Wasabi Wallet](https://wasabiwallet.io) is an open-source, non-custodial, privacy-focused Bitcoin wallet for desktop.
 
-The main privacy features on the network level:
-- Tor-only by default.
-- BIP 158 block filters for private light client.
-- Opt-in connection to user full node.
+![](https://i.imgur.com/4tazbiF.png)
 
-and on the blockchain level:
-- Intuitive ZeroLink CoinJoin integration.
-- Superb coin selection and labeling.
-- Opt-in PayJoin.
-- Dust attack protections.
-- Custom change address.
-- Anti wallet fingerprinting.
+Note that [Wasabi Wallet 2.0](https://blog.wasabiwallet.io/wasabi-wallet-2/) is in the works, which means some code you may want to work on is about to be obsolated. The most affected code is the UI and CoinJoin parts.
 
-For more information, please check out the [Wasabi Documentation](https://docs.wasabiwallet.io), an archive of knowledge about the nuances of Bitcoin privacy and how to properly use Wasabi.
-
+For more information, please check out the [Wasabi Documentation](https://docs.wasabiwallet.io), an archive of knowledge about the nuances of Bitcoin privacy and how to use Wasabi.
 
 # [Download Wasabi](https://github.com/zkSNACKs/WalletWasabi/releases)
-
-![](https://i.imgur.com/cAVJCeT.png)
-
-For step by step instructions of PGP verification and package installation, see the [documentation](https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html)
 
 # Build From Source Code
 
 ## Get The Requirements
 
 1. Get Git: https://git-scm.com/downloads
-2. Get .NET Core 3.1 SDK: https://www.microsoft.com/net/download
+2. Get .NET 5.0 SDK: https://www.microsoft.com/net/download
 3. Optionally disable .NET's telemetry by typing `export DOTNET_CLI_TELEMETRY_OPTOUT=1` on Linux and macOS or `setx DOTNET_CLI_TELEMETRY_OPTOUT 1` on Windows.
 
 ## Get Wasabi

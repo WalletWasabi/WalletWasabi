@@ -12,11 +12,13 @@ namespace WalletWasabi.WebClients.BlockchainInfo
 	{
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRateAsync()
 		{
-			using var httpClient = new HttpClient();
-			httpClient.BaseAddress = new Uri("https://blockchain.info");
-			using var response = await httpClient.GetAsync("/ticker");
+			using var httpClient = new HttpClient
+			{
+				BaseAddress = new Uri("https://blockchain.info")
+			};
+			using var response = await httpClient.GetAsync("/ticker").ConfigureAwait(false);
 			using var content = response.Content;
-			var rates = await content.ReadAsJsonAsync<BlockchainInfoExchangeRates>();
+			var rates = await content.ReadAsJsonAsync<BlockchainInfoExchangeRates>().ConfigureAwait(false);
 
 			var exchangeRates = new List<ExchangeRate>
 				{

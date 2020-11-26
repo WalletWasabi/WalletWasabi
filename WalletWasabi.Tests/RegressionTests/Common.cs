@@ -12,10 +12,10 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Coordinator;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
@@ -40,10 +40,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			}
 		}
 
-#pragma warning disable IDE0060 // Remove unused parameter
-
-		public static void Wallet_NewFilterProcessed(object sender, FilterModel e)
-#pragma warning restore IDE0060 // Remove unused parameter
+		public static void Wallet_NewFilterProcessed(object? sender, FilterModel e)
 		{
 			Interlocked.Increment(ref FiltersProcessedByWalletCount);
 		}
@@ -53,11 +50,11 @@ namespace WalletWasabi.Tests.RegressionTests
 			var firstHash = await global.RpcClient.GetBlockHashAsync(0);
 			while (true)
 			{
-				using var client = new WasabiClient(new Uri(regTestFixture.BackendEndPoint), null);
-				FiltersResponse filtersResponse = await client.GetFiltersAsync(firstHash, 1000);
+				var client = new WasabiClient(new ClearnetHttpClient(() => regTestFixture.BackendEndPointUri));
+				FiltersResponse? filtersResponse = await client.GetFiltersAsync(firstHash, 1000);
 				Assert.NotNull(filtersResponse);
 
-				var filterCount = filtersResponse.Filters.Count();
+				var filterCount = filtersResponse!.Filters.Count();
 				if (filterCount >= 101)
 				{
 					break;
@@ -84,7 +81,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			global.Coordinator.UtxoReferee.Clear();
 
 			var network = global.RpcClient.Network;
-			var serviceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelSome.ToString(), 2, 21, 50, regTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(Constants.DefaultDustThreshold));
+			var serviceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelSome.ToString(), 2, 21, 50, regTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
 
 			var dir = Tests.Common.GetWorkDir(callerFilePath, callerMemberName);
 			var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());

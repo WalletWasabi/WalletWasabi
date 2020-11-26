@@ -2,21 +2,23 @@
 // Licensed under the MIT license. See licence.md file in the project root for full license information.
 
 using System;
-using Avalonia.Controls;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent
 {
 	public class ScreenViewLocator : IViewLocator
 	{
-		public IViewFor ResolveView<T>(T viewModel, string contract = null)
+		public IViewFor? ResolveView<T>(T viewModel, string? contract = null)
 		{
-			var name = viewModel.GetType().FullName.Replace("ViewModel", "View");
-			var type = Type.GetType(name);
-
-			if (type != null)
+			if (viewModel is { })
 			{
-				return (IViewFor)Activator.CreateInstance(type);
+				var name = viewModel.GetType().FullName!.Replace("ViewModel", "View");
+				var type = Type.GetType(name);
+
+				if (type != null)
+				{
+					return Activator.CreateInstance(type) as IViewFor ?? null;
+				}
 			}
 
 			return null;

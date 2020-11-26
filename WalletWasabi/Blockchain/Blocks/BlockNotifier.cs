@@ -24,9 +24,9 @@ namespace WalletWasabi.Blockchain.Blocks
 			}
 		}
 
-		public event EventHandler<Block> OnBlock;
+		public event EventHandler<Block>? OnBlock;
 
-		public event EventHandler<uint256> OnReorg;
+		public event EventHandler<uint256>? OnReorg;
 
 		public IRPCClient RpcClient { get; set; }
 		public Network Network => RpcClient.Network;
@@ -39,7 +39,7 @@ namespace WalletWasabi.Blockchain.Blocks
 		private uint256 LastInv { get; set; } = null;
 		private object LastInvLock { get; } = new object();
 
-		private void P2pNode_BlockInv(object sender, uint256 blockHash)
+		private void P2pNode_BlockInv(object? sender, uint256 blockHash)
 		{
 			lock (LastInvLock)
 			{
@@ -135,7 +135,7 @@ namespace WalletWasabi.Blockchain.Blocks
 				return;
 			}
 
-			await HandleMissedBlocksAsync(arrivedBlock);
+			await HandleMissedBlocksAsync(arrivedBlock).ConfigureAwait(false);
 
 			BestBlockHash = bestBlockHash;
 			return;

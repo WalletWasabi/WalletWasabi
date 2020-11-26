@@ -56,16 +56,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 
-			Password = "";
+			_password = "";
 			TimeLeftTillRoundTimeout = TimeSpan.Zero;
 
-			CoinsList = new CoinListViewModel(Wallet, canDequeueCoins: true);
+			CoinsList = new CoinListViewModel(Wallet, Global.Config, Global.UiConfig, canDequeueCoins: true);
 
 			Observable
 				.FromEventPattern<SmartCoin>(CoinsList, nameof(CoinsList.DequeueCoinsPressed))
 				.Subscribe(async x => await DoDequeueAsync(x.EventArgs));
 
-			AmountQueued = Money.Zero; // Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
+			_amountQueued = Money.Zero;
 
 			EnqueueCommand = ReactiveCommand.CreateFromTask(async () => await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected).Select(c => c.Model)));
 
@@ -231,7 +231,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
 		public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
 
-		public bool IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
+		public bool IsPrivacyMode => Global.UiConfig.PrivacyMode;
 
 		public ReactiveCommand<Unit, Unit> EnqueueCommand { get; }
 
@@ -280,10 +280,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				PeersNeeded = 100;
 			}
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			Global.UiConfig.WhenAnyValue(x => x.PrivacyMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(AmountQueued));
-				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+				this.RaisePropertyChanged(nameof(IsPrivacyMode));
 			}).DisposeWith(disposables);
 
 			Observable.Interval(TimeSpan.FromSeconds(1))
@@ -390,7 +390,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			AmountQueued = chaumianClient.State.SumAllQueuedCoinAmounts();
-			MainWindowViewModel.Instance.CanClose = AmountQueued == Money.Zero;
 
 			var registrableRound = chaumianClient.State.GetRegistrableRoundOrDefault();
 			if (registrableRound is { })
@@ -442,7 +441,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					var available = coins.Confirmed().Available();
 					RequiredBTC = available.Any()
-						? registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray())
+						? registrableRound.State.CalculateRequiredAmount(available.Where(x => x.HdPubKey.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray())
 						: registrableRound.State.CalculateRequiredAmount();
 				}
 			}

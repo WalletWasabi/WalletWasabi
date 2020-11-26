@@ -4,7 +4,7 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using WalletWasabi.Fluent.ViewModels;
+using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent
 {
@@ -14,12 +14,19 @@ namespace WalletWasabi.Fluent
 
 		public IControl Build(object data)
 		{
-			var name = data.GetType().FullName.Replace("ViewModel", "View");
+			var name = data.GetType().FullName!.Replace("ViewModel", "View");
 			var type = Type.GetType(name);
 
 			if (type != null)
 			{
-				return (Control)Activator.CreateInstance(type);
+				var result = Activator.CreateInstance(type) as Control;
+
+				if (result is null)
+				{
+					throw new Exception($"Unable to activate type: {type}");
+				}
+
+				return result;
 			}
 			else
 			{

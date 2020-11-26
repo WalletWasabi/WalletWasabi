@@ -132,11 +132,11 @@ namespace WalletWasabi.Helpers
 			using (var fs = File.Open(filePath, FileMode.Open, FileAccess.Read))
 			{
 				data = new byte[fs.Length - 32];
-				await fs.ReadAsync(data, 0, data.Length);
+				await fs.ReadAsync(data, 0, data.Length).ConfigureAwait(false);
 				hash = new byte[32];
-				await fs.ReadAsync(hash, 0, 32);
+				await fs.ReadAsync(hash, 0, 32).ConfigureAwait(false);
 			}
-			var actual = Hashes.Hash256(data);
+			var actual = Hashes.DoubleSHA256(data);
 			var expected = new uint256(hash);
 			if (expected != actual)
 			{

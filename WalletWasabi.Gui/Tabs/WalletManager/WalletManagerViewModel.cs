@@ -59,24 +59,27 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			SelectedCategory = Categories.First(x => x is RecoverWalletViewModel);
 		}
 
-		public void SelectLoadWallet(KeyManager keymanager = null)
+		public void SelectLoadWallet(KeyManager keyManager = null)
 		{
 			SelectedCategory = LoadWalletDesktop;
-			LoadWalletDesktop.SelectWallet(keymanager);
+			LoadWalletDesktop.SelectWallet(keyManager);
 		}
 
-		public void SelectTestPassword(string walletname)
+		public void SelectTestPassword(string walletName)
 		{
 			SelectedCategory = LoadWalletPassword;
-			LoadWalletPassword.SelectWallet(walletname);
+			LoadWalletPassword.SelectWallet(walletName);
 		}
 
 		public override void OnOpen(CompositeDisposable disposables)
 		{
 			base.OnOpen(disposables);
 
-			LoadWalletDesktop = new LoadWalletViewModel(this, LoadWalletType.Desktop);
-			LoadWalletPassword = new LoadWalletViewModel(this, LoadWalletType.Password);
+			var global = Locator.Current.GetService<Global>();
+			var walletManager = global.WalletManager;
+
+			LoadWalletDesktop = new LoadWalletViewModel(this, LoadWalletType.Desktop, walletManager);
+			LoadWalletPassword = new LoadWalletViewModel(this, LoadWalletType.Password, walletManager);
 
 			Categories = new ObservableCollection<CategoryViewModel>
 			{
@@ -95,9 +98,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					category?.OnCategorySelected();
 					CurrentView = category;
 				});
-
-			var global = Locator.Current.GetService<Global>();
-			var walletManager = global.WalletManager;
 
 			if (!walletManager.GetWallets().Any(wallet => wallet.State == WalletState.Started))
 			{

@@ -6,25 +6,11 @@ namespace WalletWasabi.Tor.Socks5.Models.Bases
 {
 	public abstract class OctetSerializableBase : IByteSerializable, IEquatable<OctetSerializableBase>, IEquatable<byte>
 	{
-		#region ConstructorsAndInitializers
-
-		protected OctetSerializableBase()
-		{
-		}
-
-		#endregion ConstructorsAndInitializers
-
-		#region PropertiesAndMembers
-
 		protected byte ByteValue { get; set; }
-
-		#endregion PropertiesAndMembers
 
 		#region Serialization
 
 		public byte ToByte() => ByteValue;
-
-		public void FromByte(byte b) => ByteValue = b;
 
 		public string ToHex(bool xhhSyntax = false)
 		{
@@ -57,21 +43,21 @@ namespace WalletWasabi.Tor.Socks5.Models.Bases
 
 		#region EqualityAndComparison
 
-		public static bool operator ==(OctetSerializableBase x, OctetSerializableBase y) => x?.ByteValue == y?.ByteValue;
+		public static bool operator ==(OctetSerializableBase? x, OctetSerializableBase? y) => x?.ByteValue == y?.ByteValue;
 
-		public static bool operator !=(OctetSerializableBase x, OctetSerializableBase y) => !(x == y);
+		public static bool operator !=(OctetSerializableBase? x, OctetSerializableBase? y) => !(x == y);
 
-		public static bool operator ==(byte x, OctetSerializableBase y) => x == y?.ByteValue;
+		public static bool operator ==(byte x, OctetSerializableBase? y) => x == y?.ByteValue;
 
-		public static bool operator ==(OctetSerializableBase x, byte y) => x?.ByteValue == y;
+		public static bool operator ==(OctetSerializableBase? x, byte y) => x?.ByteValue == y;
 
-		public static bool operator !=(byte x, OctetSerializableBase y) => !(x == y);
+		public static bool operator !=(byte x, OctetSerializableBase? y) => !(x == y);
 
-		public static bool operator !=(OctetSerializableBase x, byte y) => !(x == y);
+		public static bool operator !=(OctetSerializableBase? x, byte y) => !(x == y);
 
-		public override bool Equals(object obj) => Equals(obj as OctetSerializableBase);
+		public override bool Equals(object? obj) => Equals(obj as OctetSerializableBase);
 
-		public bool Equals(OctetSerializableBase other) => this == other;
+		public bool Equals(OctetSerializableBase? other) => this == other;
 
 		public override int GetHashCode() => ByteValue;
 

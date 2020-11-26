@@ -62,7 +62,7 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 
 		public override int GetHashCode() => (Type, Percentage).GetHashCode();
 
-		public static bool operator ==(Status? x, Status? y) => y?.Type == x?.Type && y?.Percentage == x?.Percentage;
+		public static bool operator ==(Status? x, Status? y) => (x?.Type, x?.Percentage) == (y?.Type, y?.Percentage);
 
 		public static bool operator !=(Status? x, Status? y) => !(x == y);
 

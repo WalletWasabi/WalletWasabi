@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Rpc;
@@ -37,12 +38,9 @@ namespace WalletWasabi.Tests
 			await Task.FromResult((JsonRpcResponse)null);
 		}
 
-#pragma warning disable IDE0060 // unused parameter
-
+		[SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "")]
 		private void Unused(object item)
 		{
 		}
-
-#pragma warning restore IDE0060
 	}
 }

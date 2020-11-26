@@ -1,0 +1,33 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Styles.Resources>
+    <SolidColorBrush x:Key="TextControlBackground">#EFEFEF</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBackgroundFocused">#EFEFEF</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBackgroundPointerOver">#EFEFEF</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlForeground">#212121</SolidColorBrush>
+    <SolidColorBrush x:Key="TextForegroundColor">#212121</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBorderBrush">#33323232</SolidColorBrush>
+    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver">#33323232</SolidColorBrush>
+    <SolidColorBrush x:Key="StatusBarControlBackground">#ECECEC</SolidColorBrush>
+    <SolidColorBrush x:Key="StatusBarControlForeground">#777777</SolidColorBrush>
+    <SolidColorBrush x:Key="AcrylicFallbackColor">#E2E2E2</SolidColorBrush>
+    <SolidColorBrush x:Key="InvisibleButtonBackgroundColor">Transparent</SolidColorBrush>
+    <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor">#2F000000</SolidColorBrush>
+    <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor">#3F000000</SolidColorBrush>
+
+    <SolidColorBrush x:Key="OptionButtonBackground">#FFFFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="OptionButtonBorderBrush">#7F000000</SolidColorBrush>
+
+    <SolidColorBrush x:Key="DialogOverlayColor">#7F7A7A7A</SolidColorBrush>
+    <SolidColorBrush x:Key="DialogBackground">#FFFFFF</SolidColorBrush>
+    <BoxShadows x:Key="DialogBoxShadow">4 11 30 1 #3F000000</BoxShadows>
+
+    <StaticResource x:Key="TagsBoxControlForeground" ResourceKey="TextControlForeground" />
+
+    <Color x:Key="RegionColor">#FFFAFAFA</Color>
+    <BoxShadows x:Key="BoxShadow">0 1 4 #D1D1D1</BoxShadows>
+    <BoxShadows x:Key="OptionButtonShadow">0 2 2 #D1D1D1</BoxShadows>
+  </Styles.Resources>
+  <StyleInclude Source="avares://Avalonia.Themes.Fluent/Accents/FluentLight.xaml"/>
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.xaml" />
+</Styles>

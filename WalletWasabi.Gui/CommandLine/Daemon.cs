@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Logging;
+using WalletWasabi.Services.Terminate;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
@@ -11,13 +12,14 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public class Daemon
 	{
-		public Daemon(Global global)
+		public Daemon(Global global, TerminateService terminateService)
 		{
 			Global = global;
+			TerminateService = terminateService;
 		}
 
 		private Global Global { get; }
-
+		private TerminateService TerminateService { get; }
 		private Wallet Wallet { get; set; }
 
 		internal async Task RunAsync(string walletName, string destinationWalletName, bool keepMixAlive)
@@ -53,7 +55,7 @@ namespace WalletWasabi.Gui.CommandLine
 					{
 						Console.WriteLine(PasswordHelper.PasswordTooLongMessage);
 					}
-					if (PasswordHelper.IsTrimable(password, out password))
+					if (PasswordHelper.IsTrimmable(password, out password))
 					{
 						Console.WriteLine(PasswordHelper.TrimWarnMessage);
 					}
@@ -68,14 +70,14 @@ namespace WalletWasabi.Gui.CommandLine
 
 				Logger.LogInfo("Correct password.");
 
-				await Global.InitializeNoWalletAsync();
-				if (Global.KillRequested)
+				await Global.InitializeNoWalletAsync(TerminateService);
+				if (TerminateService.IsTerminateRequested)
 				{
 					return;
 				}
 
 				Wallet = await Global.WalletManager.StartWalletAsync(keyManager);
-				if (Global.KillRequested)
+				if (TerminateService.IsTerminateRequested)
 				{
 					return;
 				}
@@ -89,7 +91,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 				do
 				{
-					if (Global.KillRequested)
+					if (TerminateService.IsTerminateRequested)
 					{
 						break;
 					}
@@ -101,7 +103,7 @@ namespace WalletWasabi.Gui.CommandLine
 						await TryQueueCoinsToMixAsync(password, minAnonset: Wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue());
 					}
 
-					if (Global.KillRequested)
+					if (TerminateService.IsTerminateRequested)
 					{
 						break;
 					}
@@ -113,7 +115,7 @@ namespace WalletWasabi.Gui.CommandLine
 						await TryQueueCoinsToMixAsync(password, maxAnonset: Wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue() - 1);
 					}
 
-					if (Global.KillRequested)
+					if (TerminateService.IsTerminateRequested)
 					{
 						break;
 					}
@@ -126,14 +128,13 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			catch
 			{
-				if (!Global.KillRequested)
+				if (!TerminateService.IsTerminateRequested)
 				{
 					throw;
 				}
 			}
 			finally
 			{
-				await Global.DisposeAsync().ConfigureAwait(false);
 				Logger.LogInfo($"{nameof(Daemon)} stopped.");
 			}
 		}
@@ -144,13 +145,13 @@ namespace WalletWasabi.Gui.CommandLine
 		{
 			try
 			{
-				var coinsToMix = Wallet.Coins.Available().FilterBy(x => x.AnonymitySet <= maxAnonset && minAnonset <= x.AnonymitySet);
+				var coinsToMix = Wallet.Coins.Available().FilterBy(x => x.HdPubKey.AnonymitySet <= maxAnonset && minAnonset <= x.HdPubKey.AnonymitySet);
 
 				var enqueuedCoins = await Wallet.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray());
 
 				if (enqueuedCoins.Any())
 				{
-					Logger.LogInfo($"Enqueued {Money.Satoshis(enqueuedCoins.Sum(x => x.Amount)).ToString(false, true)} BTC, {enqueuedCoins.Count()} coins with smallest anonset {enqueuedCoins.Min(x => x.AnonymitySet)} and largest anonset {enqueuedCoins.Max(x => x.AnonymitySet)}.");
+					Logger.LogInfo($"Enqueued {Money.Satoshis(enqueuedCoins.Sum(x => x.Amount)).ToString(false, true)} BTC, {enqueuedCoins.Count()} coins with smallest anonset {enqueuedCoins.Min(x => x.HdPubKey.AnonymitySet)} and largest anonset {enqueuedCoins.Max(x => x.HdPubKey.AnonymitySet)}.");
 				}
 			}
 			catch (Exception ex)

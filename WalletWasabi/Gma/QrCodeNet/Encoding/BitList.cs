@@ -96,7 +96,7 @@ namespace Gma.QrCodeNet.Encoding
 
 		internal void Add(int value, int bitCount)
 		{
-			if (bitCount < 0 || bitCount > 32)
+			if (bitCount is < 0 or > 32)
 			{
 				throw new ArgumentOutOfRangeException(nameof(bitCount), $"{nameof(bitCount)} must be greater than or equal to 0");
 			}

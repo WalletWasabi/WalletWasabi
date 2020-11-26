@@ -6,7 +6,7 @@
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              x:Class="WalletWasabi.Gui.Controls.WalletExplorer.WalletInfoView">
   <UserControl.Resources>
-    <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
+    <converters:PrivacyModeStringConverter x:Key="PrivacyModeStringConverter" />
     <converters:BooleanStringConverter x:Key="BooleanStringConverter" />
   </UserControl.Resources>
   <UserControl.Styles>
@@ -63,7 +63,7 @@
 
             <StackPanel Spacing="4">
               <TextBlock Text="Extended Account Public Key: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedAccountPublicKey, ConverterParameter=60, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock keysTextBlock">
+              <controls:ExtendedTextBox Text="{Binding ExtendedAccountPublicKey, ConverterParameter=60, Converter={StaticResource PrivacyModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock keysTextBlock">
                 <ToolTip.Tip>
                   <TextBlock TextWrapping="Wrap" Width="400" Text="Your extended public key can get all your addresses and find out how many coins you have, do not share this with anyone you do not trust." />
                 </ToolTip.Tip>
@@ -72,7 +72,7 @@
 
             <StackPanel Spacing="4">
               <TextBlock Text="Extended Account zpub: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedAccountZpub, ConverterParameter=60, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock keysTextBlock">
+              <controls:ExtendedTextBox Text="{Binding ExtendedAccountZpub, ConverterParameter=60, Converter={StaticResource PrivacyModeStringConverter}, Mode=OneWay}" Classes="selectableTextBlock keysTextBlock">
                 <ToolTip.Tip>
                   <TextBlock TextWrapping="Wrap" Width="400" Text="Your zpub can get all your addresses and find out how many coins you have, do not share this with anyone you do not trust." />
                 </ToolTip.Tip>

@@ -3,7 +3,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +13,7 @@ namespace WalletWasabi.Helpers
 {
 	public static class EnvironmentHelpers
 	{
-		[FlagsAttribute]
+		[Flags]
 		private enum EXECUTION_STATE : uint
 		{
 			ES_AWAYMODE_REQUIRED = 0x00000040,

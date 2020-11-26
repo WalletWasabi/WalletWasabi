@@ -55,6 +55,11 @@ namespace WalletWasabi.BitcoinCore.Rpc
 			return await Rpc.GetMempoolEntryAsync(txid, throwIfNotFound).ConfigureAwait(false);
 		}
 
+		public virtual async Task<MemPoolInfo> GetMempoolInfoAsync()
+		{
+			return await Rpc.GetMemPoolAsync().ConfigureAwait(false);
+		}
+
 		public virtual async Task<uint256[]> GetRawMempoolAsync()
 		{
 			return await Rpc.GetRawMempoolAsync().ConfigureAwait(false);
@@ -67,7 +72,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 		public virtual async Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, bool allowHighFees = false)
 		{
-			return await Rpc.TestMempoolAcceptAsync(transaction, allowHighFees);
+			return await Rpc.TestMempoolAcceptAsync(transaction, allowHighFees).ConfigureAwait(false);
 		}
 
 		public virtual async Task StopAsync()
@@ -113,7 +118,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 		#region For Testing Only
 
-		public virtual async Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, string commentTx = null, string commentDest = null, bool subtractFeeFromAmount = false, bool replaceable = false)
+		public virtual async Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, string? commentTx = null, string? commentDest = null, bool subtractFeeFromAmount = false, bool replaceable = false)
 		{
 			return await Rpc.SendToAddressAsync(address, amount, commentTx, commentDest, subtractFeeFromAmount, replaceable).ConfigureAwait(false);
 		}

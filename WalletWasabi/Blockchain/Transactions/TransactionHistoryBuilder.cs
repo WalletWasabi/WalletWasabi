@@ -3,9 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Blockchain.Transactions
@@ -32,19 +30,15 @@ namespace WalletWasabi.Blockchain.Transactions
 			var allCoins = ((CoinsRegistry)wallet.Coins).AsAllCoinsView();
 			foreach (SmartCoin coin in allCoins)
 			{
-				var txId = coin.TransactionId;
-				if (txId is null || !wallet.BitcoinStore.TransactionStore.TryGetTransaction(txId, out SmartTransaction foundTransaction))
-				{
-					continue;
-				}
+				var containingTransaction = coin.Transaction;
 
-				var dateTime = foundTransaction.FirstSeen;
+				var dateTime = containingTransaction.FirstSeen;
 				var found = txRecordList.FirstOrDefault(x => x.TransactionId == coin.TransactionId);
 				if (found is { }) // if found then update
 				{
 					found.DateTime = found.DateTime < dateTime ? found.DateTime : dateTime;
 					found.Amount += coin.Amount;
-					found.Label = SmartLabel.Merge(found.Label, foundTransaction.Label);
+					found.Label = SmartLabel.Merge(found.Label, containingTransaction.Label);
 				}
 				else
 				{
@@ -53,22 +47,19 @@ namespace WalletWasabi.Blockchain.Transactions
 						DateTime = dateTime,
 						Height = coin.Height,
 						Amount = coin.Amount,
-						Label = foundTransaction.Label,
+						Label = containingTransaction.Label,
 						TransactionId = coin.TransactionId,
-						BlockIndex = foundTransaction.BlockIndex,
-						IsLikelyCoinJoinOutput = coin.IsLikelyCoinJoinOutput is true
+						BlockIndex = containingTransaction.BlockIndex,
+						IsLikelyCoinJoinOutput = containingTransaction.Transaction.IsLikelyCoinjoin()
 					});
 				}
 
-				if (!coin.Unspent)
+				var spenderTransaction = coin.SpenderTransaction;
+				if (spenderTransaction is { })
 				{
-					if (!wallet.BitcoinStore.TransactionStore.TryGetTransaction(coin.SpenderTransactionId, out SmartTransaction foundSpenderTransaction))
-					{
-						throw new InvalidOperationException($"Transaction {coin.SpenderTransactionId} not found.");
-					}
-
-					dateTime = foundSpenderTransaction.FirstSeen;
-					var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.TransactionId == coin.SpenderTransactionId);
+					var spenderTxId = spenderTransaction.GetHash();
+					dateTime = spenderTransaction.FirstSeen;
+					var foundSpenderCoin = txRecordList.FirstOrDefault(x => x.TransactionId == spenderTxId);
 					if (foundSpenderCoin is { }) // if found
 					{
 						foundSpenderCoin.DateTime = foundSpenderCoin.DateTime < dateTime ? foundSpenderCoin.DateTime : dateTime;
@@ -79,12 +70,12 @@ namespace WalletWasabi.Blockchain.Transactions
 						txRecordList.Add(new TransactionSummary
 						{
 							DateTime = dateTime,
-							Height = foundSpenderTransaction.Height,
+							Height = spenderTransaction.Height,
 							Amount = Money.Zero - coin.Amount,
-							Label = foundSpenderTransaction.Label,
-							TransactionId = coin.SpenderTransactionId,
-							BlockIndex = foundSpenderTransaction.BlockIndex,
-							IsLikelyCoinJoinOutput = coin.IsLikelyCoinJoinOutput is true
+							Label = spenderTransaction.Label,
+							TransactionId = spenderTxId,
+							BlockIndex = spenderTransaction.BlockIndex,
+							IsLikelyCoinJoinOutput = containingTransaction.Transaction.IsLikelyCoinjoin()
 						});
 					}
 				}

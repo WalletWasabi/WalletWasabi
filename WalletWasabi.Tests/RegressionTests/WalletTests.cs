@@ -10,13 +10,13 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
 namespace WalletWasabi.Tests.RegressionTests
@@ -24,8 +24,6 @@ namespace WalletWasabi.Tests.RegressionTests
 	[Collection("RegTest collection")]
 	public class WalletTests
 	{
-#pragma warning disable IDE0059 // Value assigned to symbol is never used
-
 		public WalletTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
@@ -52,9 +50,10 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task FilterDownloaderTestAsync()
 		{
-			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			(_, IRPCClient rpc, _, _, _, BitcoinStore bitcoinStore, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
-			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
+			var wasabiClientFactory = new WasabiClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, wasabiClientFactory);
 			try
 			{
 				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), 1000);
@@ -121,7 +120,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task ReorgTestAsync()
 		{
-			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			(string password, IRPCClient rpc, Network network, _, _, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			var keyManager = KeyManager.CreateNew(out _, password);
 
@@ -139,7 +138,8 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			var node = RegTestFixture.BackendRegTestNode;
 
-			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
+			var wasabiClientFactory = new WasabiClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, wasabiClientFactory);
 
 			try
 			{
@@ -232,7 +232,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task WalletTestsAsync()
 		{
-			(string password, IRPCClient rpc, Network network, Coordinator coordinator, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			(string password, IRPCClient rpc, Network network, _, ServiceConfiguration serviceConfiguration, BitcoinStore bitcoinStore, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			// Create the services.
 			// 1. Create connection service.
@@ -243,7 +243,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 2. Create wasabi synchronizer service.
-			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, new Uri(RegTestFixture.BackendEndPoint), null);
+			var wasabiClientFactory = new WasabiClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, wasabiClientFactory);
 
 			// 3. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -285,12 +286,10 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Equal(Money.Coins(0.1m), firstCoin.Amount);
 				Assert.Equal(new Height((int)bitcoinStore.SmartHeaderChain.TipHeight), firstCoin.Height);
 				Assert.InRange(firstCoin.Index, 0U, 1U);
-				Assert.False(firstCoin.Unavailable);
-				Assert.Equal("foo label", firstCoin.Label);
+				Assert.True(firstCoin.IsAvailable());
+				Assert.Equal("foo label", firstCoin.HdPubKey.Label);
 				Assert.Equal(key.P2wpkhScript, firstCoin.ScriptPubKey);
-				Assert.Null(firstCoin.SpenderTransactionId);
-				Assert.NotNull(firstCoin.SpentOutputs);
-				Assert.NotEmpty(firstCoin.SpentOutputs);
+				Assert.Null(firstCoin.SpenderTransaction);
 				Assert.Equal(txId, firstCoin.TransactionId);
 				Assert.Single(keyManager.GetKeys(KeyState.Used, false));
 				Assert.Equal("foo label", keyManager.GetKeys(KeyState.Used, false).Single().Label);
@@ -315,20 +314,14 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Equal(new Height(bitcoinStore.SmartHeaderChain.TipHeight).Value - 2, firstCoin.Height.Value);
 				Assert.Equal(new Height(bitcoinStore.SmartHeaderChain.TipHeight).Value - 1, secondCoin.Height.Value);
 				Assert.Equal(new Height(bitcoinStore.SmartHeaderChain.TipHeight), thirdCoin.Height);
-				Assert.False(thirdCoin.Unavailable);
-				Assert.Equal("foo label", firstCoin.Label);
-				Assert.Equal("bar label", secondCoin.Label);
-				Assert.Equal("bar label", thirdCoin.Label);
+				Assert.True(thirdCoin.IsAvailable());
+				Assert.Equal("foo label", firstCoin.HdPubKey.Label);
+				Assert.Equal("bar label", secondCoin.HdPubKey.Label);
+				Assert.Equal("bar label", thirdCoin.HdPubKey.Label);
 				Assert.Equal(key.P2wpkhScript, firstCoin.ScriptPubKey);
 				Assert.Equal(key2.P2wpkhScript, secondCoin.ScriptPubKey);
 				Assert.Equal(key2.P2wpkhScript, thirdCoin.ScriptPubKey);
-				Assert.Null(thirdCoin.SpenderTransactionId);
-				Assert.NotNull(firstCoin.SpentOutputs);
-				Assert.NotNull(secondCoin.SpentOutputs);
-				Assert.NotNull(thirdCoin.SpentOutputs);
-				Assert.NotEmpty(firstCoin.SpentOutputs);
-				Assert.NotEmpty(secondCoin.SpentOutputs);
-				Assert.NotEmpty(thirdCoin.SpentOutputs);
+				Assert.Null(thirdCoin.SpenderTransaction);
 				Assert.Equal(txId, firstCoin.TransactionId);
 				Assert.Equal(txId2, secondCoin.TransactionId);
 				Assert.Equal(txId3, thirdCoin.TransactionId);
@@ -371,12 +364,10 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				Assert.Equal(Money.Coins(0.03m), rbfCoin.Amount);
 				Assert.Equal(new Height(bitcoinStore.SmartHeaderChain.TipHeight).Value - 2, rbfCoin.Height.Value);
-				Assert.False(rbfCoin.Unavailable);
-				Assert.Equal("bar label", rbfCoin.Label);
+				Assert.True(rbfCoin.IsAvailable());
+				Assert.Equal("bar label", rbfCoin.HdPubKey.Label);
 				Assert.Equal(key2.P2wpkhScript, rbfCoin.ScriptPubKey);
-				Assert.Null(rbfCoin.SpenderTransactionId);
-				Assert.NotNull(rbfCoin.SpentOutputs);
-				Assert.NotEmpty(rbfCoin.SpentOutputs);
+				Assert.Null(rbfCoin.SpenderTransaction);
 				Assert.Equal(tx4bumpRes.TransactionId, rbfCoin.TransactionId);
 
 				Assert.Equal(2, keyManager.GetKeys(KeyState.Used, false).Count());
@@ -423,7 +414,5 @@ namespace WalletWasabi.Tests.RegressionTests
 				node?.Disconnect();
 			}
 		}
-
-#pragma warning restore IDE0059 // Value assigned to symbol is never used
 	}
 }

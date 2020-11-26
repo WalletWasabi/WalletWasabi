@@ -44,11 +44,13 @@ namespace WalletWasabi.BitcoinCore
 			Guard.NotNull(nameof(coreNodeParams), coreNodeParams);
 			using (BenchmarkLogger.Measure())
 			{
-				var coreNode = new CoreNode();
-				coreNode.HostedServices = coreNodeParams.HostedServices;
-				coreNode.DataDir = coreNodeParams.DataDir;
-				coreNode.Network = coreNodeParams.Network;
-				coreNode.MempoolService = coreNodeParams.MempoolService;
+				var coreNode = new CoreNode
+				{
+					HostedServices = coreNodeParams.HostedServices,
+					DataDir = coreNodeParams.DataDir,
+					Network = coreNodeParams.Network,
+					MempoolService = coreNodeParams.MempoolService
+				};
 
 				var configPath = Path.Combine(coreNode.DataDir, "bitcoin.conf");
 				coreNode.Config = new CoreConfig();
@@ -64,7 +66,7 @@ namespace WalletWasabi.BitcoinCore
 				string rpcUser = configTranslator.TryGetRpcUser();
 				string rpcPassword = configTranslator.TryGetRpcPassword();
 				string rpcCookieFilePath = configTranslator.TryGetRpcCookieFile();
-				string rpcHost = configTranslator.TryGetRpcBind();
+				string? rpcHost = configTranslator.TryGetRpcBind();
 				int? rpcPort = configTranslator.TryGetRpcPort();
 				WhiteBind whiteBind = configTranslator.TryGetWhiteBind();
 
@@ -82,8 +84,17 @@ namespace WalletWasabi.BitcoinCore
 				}
 
 				coreNode.P2pEndPoint = whiteBind?.EndPoint ?? coreNodeParams.P2pEndPointStrategy.EndPoint;
-				rpcHost ??= coreNodeParams.RpcEndPointStrategy.EndPoint.GetHostOrDefault();
-				rpcPort ??= coreNodeParams.RpcEndPointStrategy.EndPoint.GetPortOrDefault();
+
+				if (rpcHost is null)
+				{
+					coreNodeParams.RpcEndPointStrategy.EndPoint.TryGetHost(out rpcHost);
+				}
+
+				if (rpcPort is null)
+				{
+					coreNodeParams.RpcEndPointStrategy.EndPoint.TryGetPort(out rpcPort);
+				}
+
 				EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint rpce);
 				coreNode.RpcEndPoint = rpce;
 
@@ -109,14 +120,20 @@ namespace WalletWasabi.BitcoinCore
 
 				var configPrefix = NetworkTranslator.GetConfigPrefix(coreNode.Network);
 				var whiteBindPermissionsPart = !string.IsNullOrWhiteSpace(whiteBind?.Permissions) ? $"{whiteBind?.Permissions}@" : "";
+
+				if (!coreNode.RpcEndPoint.TryGetHost(out string? rpcBindParameter) || !coreNode.RpcEndPoint.TryGetPort(out int? rpcPortParameter))
+				{
+					throw new ArgumentException("Endpoint type is not supported.", nameof(coreNode.RpcEndPoint));
+				}
+
 				var desiredConfigLines = new List<string>()
 				{
 					$"{configPrefix}.server			= 1",
 					$"{configPrefix}.listen			= 1",
 					$"{configPrefix}.whitebind		= {whiteBindPermissionsPart}{coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
-					$"{configPrefix}.rpcbind		= {coreNode.RpcEndPoint.GetHostOrDefault()}",
+					$"{configPrefix}.rpcbind		= {rpcBindParameter}",
 					$"{configPrefix}.rpcallowip		= {IPAddress.Loopback}",
-					$"{configPrefix}.rpcport		= {coreNode.RpcEndPoint.GetPortOrDefault()}"
+					$"{configPrefix}.rpcport		= {rpcPortParameter}"
 				};
 
 				if (!cookieAuth)
@@ -222,7 +239,7 @@ namespace WalletWasabi.BitcoinCore
 			var blocks = await RpcClient.GenerateAsync(blockCount).ConfigureAwait(false);
 			var rpc = RpcClient.PrepareBatch();
 			var tasks = blocks.Select(b => rpc.GetBlockAsync(b));
-			await rpc.SendBatchAsync();
+			await rpc.SendBatchAsync().ConfigureAwait(false);
 			return await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
 

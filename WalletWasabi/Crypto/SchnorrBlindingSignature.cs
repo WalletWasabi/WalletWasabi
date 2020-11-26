@@ -6,7 +6,6 @@ using NBitcoin.Secp256k1;
 
 namespace WalletWasabi.Crypto
 {
-	[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Crypto naming")]
 	public class SchnorrBlinding
 	{
 		public class Requester
@@ -39,11 +38,11 @@ namespace WalletWasabi.Crypto
 					throw new FormatException("Invalid r pubkey.");
 				}
 
-				var P = signerECPubkey.Q;
-				var R = rECPubKey.Q.ToGroupElementJacobian();
+				var p = signerECPubkey.Q;
+				var r = rECPubKey.Q.ToGroupElementJacobian();
 				var t = FE.Zero;
 
-			retry:
+				retry:
 
 				RandomUtils.GetBytes(tmp);
 				_v = new Scalar(tmp, out int overflow);
@@ -59,10 +58,10 @@ namespace WalletWasabi.Crypto
 					goto retry;
 				}
 
-				var A1 = ctx.MultGen(_v);
-				var A2 = _w * P;
-				var A = R.AddVariable(A1, out _).AddVariable(A2, out _).ToGroupElement();
-				t = A.x.Normalize();
+				var a1 = ctx.MultGen(_v);
+				var a2 = _w * p;
+				var a = r.AddVariable(a1, out _).AddVariable(a2, out _).ToGroupElement();
+				t = a.x.Normalize();
 				if (t.IsZero)
 				{
 					goto retry;
@@ -171,12 +170,12 @@ namespace WalletWasabi.Crypto
 				throw new FormatException("Invalid signer pubkey.");
 			}
 
-			var P = signerECPubkey.Q;
+			var p = signerECPubkey.Q;
 
 			var sG = (signature.S * EC.G).ToGroupElement();
-			var cP = P * signature.C;
-			var R = cP + sG;
-			var t = R.ToGroupElement().x.Normalize();
+			var cP = p * signature.C;
+			var r = cP + sG;
+			var t = r.ToGroupElement().x.Normalize();
 
 			using var sha = new SHA256();
 			Span<byte> tmp = stackalloc byte[32];

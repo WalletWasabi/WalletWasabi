@@ -1,32 +1,23 @@
 using System;
 using System.Collections.Specialized;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using WalletWasabi.Tor.Http.Interfaces;
+using WalletWasabi.Tor.Http;
 
 namespace WalletWasabi.Tests.UnitTests.Clients
 {
-	public class MockTorHttpClient : ITorHttpClient
+	public class MockTorHttpClient : IRelativeHttpClient
 	{
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		public Uri DestinationUri => new Uri("https://payment.server.org/pj");
-
-		public Func<Uri> DestinationUriAction => () => DestinationUri;
-
-		public EndPoint TorSocks5EndPoint => IPEndPoint.Parse("127.0.0.1:9050");
-
-		public bool IsTorUsed => true;
+		public Func<Uri> DestinationUriAction => () => new Uri("https://payment.server.org/pj");
 
 		public Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> OnSendAsync { get; set; }
 
-		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent content = null, CancellationToken cancel = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
 		{
 			string body = (content is { })
-				? await content.ReadAsStringAsync()
+				? await content.ReadAsStringAsync().ConfigureAwait(false)
 				: "";
 
 			// It does not matter which URI is actually used here, we just need to construct absolute URI to be able to access `uri.Query`.
@@ -34,42 +25,19 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			Uri uri = new Uri(baseUri, relativeUri);
 			NameValueCollection parameters = HttpUtility.ParseQueryString(uri.Query);
 
-			return await OnSendAsync(method, uri.AbsolutePath, parameters, body);
+			return await OnSendAsync(method, uri.AbsolutePath, parameters, body).ConfigureAwait(false);
 		}
 
 		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
 		{
 			string body = (request.Content is { })
-				? await request.Content.ReadAsStringAsync()
+				? await request.Content.ReadAsStringAsync().ConfigureAwait(false)
 				: "";
 
-			Uri uri = request.RequestUri;
+			Uri uri = request.RequestUri!;
 			NameValueCollection parameters = HttpUtility.ParseQueryString(uri.Query);
 
-			return await OnSendAsync(request.Method, uri.AbsolutePath, parameters, body);
+			return await OnSendAsync(request.Method, uri.AbsolutePath, parameters, body).ConfigureAwait(false);
 		}
-
-		#region IDisposable Support
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

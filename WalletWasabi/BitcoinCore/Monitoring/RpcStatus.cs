@@ -4,8 +4,6 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 {
 	public class RpcStatus : IEquatable<RpcStatus>
 	{
-		public static RpcStatus Unresponsive = new RpcStatus(false, 0, 0, 0);
-
 		private RpcStatus(bool success, ulong headers, ulong blocks, int peersCount)
 		{
 			Synchronized = false;
@@ -37,6 +35,8 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 			PeersCount = peersCount;
 		}
 
+		public static RpcStatus Unresponsive { get; } = new RpcStatus(false, 0, 0, 0);
+
 		public string Status { get; }
 		public bool Success { get; }
 		public ulong Headers { get; }
@@ -50,15 +50,15 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => Equals(obj as RpcStatus);
+		public override bool Equals(object? obj) => Equals(obj as RpcStatus);
 
-		public bool Equals(RpcStatus other) => this == other;
+		public bool Equals(RpcStatus? other) => this == other;
 
 		public override int GetHashCode() => Status.GetHashCode();
 
-		public static bool operator ==(RpcStatus x, RpcStatus y) => y?.Status == x?.Status;
+		public static bool operator ==(RpcStatus? x, RpcStatus? y) => y?.Status == x?.Status;
 
-		public static bool operator !=(RpcStatus x, RpcStatus y) => !(x == y);
+		public static bool operator !=(RpcStatus? x, RpcStatus? y) => !(x == y);
 
 		#endregion EqualityAndComparison
 	}

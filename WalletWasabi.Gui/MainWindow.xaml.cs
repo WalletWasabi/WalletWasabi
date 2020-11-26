@@ -52,7 +52,7 @@ namespace WalletWasabi.Gui
 
 		private int _closingState;
 
-		private async void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
+		private async void MainWindow_ClosingAsync(object? sender, CancelEventArgs e)
 		{
 			try
 			{
@@ -86,7 +86,7 @@ namespace WalletWasabi.Gui
 				// Indicate -> do not add any more alices to the coinjoin.
 				Global.WalletManager.SignalQuitPending(true);
 
-				if (!MainWindowViewModel.Instance.CanClose)
+				if (Global.WalletManager.AnyCoinJoinInProgress())
 				{
 					var dialog = new CannotCloseDialogViewModel();
 
@@ -121,8 +121,6 @@ namespace WalletWasabi.Gui
 							wm.OnClose();
 							Logger.LogInfo($"{nameof(WalletManagerViewModel)} closed.");
 						}
-
-						await Global.DisposeAsync();
 					}
 					catch (Exception ex)
 					{

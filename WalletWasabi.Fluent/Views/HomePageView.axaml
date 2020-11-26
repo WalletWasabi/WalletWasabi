@@ -2,11 +2,47 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:conv="using:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="vm:HomePageViewModel"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.HomePageView">
-  <StackPanel HorizontalAlignment="Center"
-              VerticalAlignment="Center">
-    <TextBlock Text="Hi, I'm the first view!" />
-    <TextBlock Text="{Binding UrlPathSegment}" />
-  </StackPanel>
+  <c:ContentArea Title="Home">
+    <c:ContentArea.Caption>
+      <DockPanel>
+        <Button VerticalAlignment="Top" Padding="0" Classes="plain" DockPanel.Dock="Right" Command="{Binding OpenWalletsFolderCommand}" Margin="40 0 0 0">
+          <StackPanel Orientation="Horizontal" Spacing="20">
+            <PathIcon Data="{StaticResource open_regular}" />
+            <TextBlock Text="Open Wallets folder" />
+          </StackPanel>
+        </Button>
+        <TextBlock Text="Select a wallet below to continue or create a new one:" />
+      </DockPanel>
+    </c:ContentArea.Caption>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <ItemsControl HorizontalAlignment="Left" Items="{Binding Items}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel Orientation="Horizontal" Margin="-8 0" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Button Classes="option" Command="{Binding OpenCommand}" Height="150" Width="150" Margin="8">
+              <Panel>
+                  <TextBlock Text="{Binding Title}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0 0 0 15" />
+                  <PathIcon Width="28" Height="28" Opacity="0.8">
+                    <PathIcon.Data>
+                      <Binding Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                    </PathIcon.Data>
+                  </PathIcon>
+                </Panel>
+            </Button>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </c:ContentArea>
 </UserControl>

@@ -14,31 +14,6 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		[JsonConstructor]
 		public AllFeeEstimate(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
 		{
-			Create(type, estimations, isAccurate);
-		}
-
-		public AllFeeEstimate(AllFeeEstimate other, bool isAccurate)
-		{
-			Create(other.Type, other.Estimations, isAccurate);
-		}
-
-		[JsonProperty]
-		public EstimateSmartFeeMode Type { get; private set; }
-
-		/// <summary>
-		/// Gets a value indicating whether the fee has been fetched from a fully synced node.
-		/// </summary>
-		[JsonProperty]
-		public bool IsAccurate { get; private set; }
-
-		/// <summary>
-		/// Gets the fee estimations: int: fee target, int: satoshi/vByte
-		/// </summary>
-		[JsonProperty]
-		public Dictionary<int, int> Estimations { get; private set; }
-
-		private void Create(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
-		{
 			Type = type;
 			IsAccurate = isAccurate;
 			Guard.NotNullOrEmpty(nameof(estimations), estimations);
@@ -57,6 +32,26 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			}
 		}
 
+		public AllFeeEstimate(AllFeeEstimate other, bool isAccurate)
+			: this(other.Type, other.Estimations, isAccurate)
+		{
+		}
+
+		[JsonProperty]
+		public EstimateSmartFeeMode Type { get; }
+
+		/// <summary>
+		/// Gets a value indicating whether the fee has been fetched from a fully synced node.
+		/// </summary>
+		[JsonProperty]
+		public bool IsAccurate { get; }
+
+		/// <summary>
+		/// Gets the fee estimations: int: fee target, int: satoshi/vByte
+		/// </summary>
+		[JsonProperty]
+		public Dictionary<int, int> Estimations { get; }
+
 		public FeeRate GetFeeRate(int feeTarget)
 		{
 			// Where the target is still under or equal to the requested target.
@@ -69,9 +64,9 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 		#region Equality
 
-		public override bool Equals(object obj) => Equals(obj as AllFeeEstimate);
+		public override bool Equals(object? obj) => Equals(obj as AllFeeEstimate);
 
-		public bool Equals(AllFeeEstimate other) => this == other;
+		public bool Equals(AllFeeEstimate? other) => this == other;
 
 		public override int GetHashCode()
 		{
@@ -85,14 +80,14 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			return hash;
 		}
 
-		public static bool operator ==(AllFeeEstimate x, AllFeeEstimate y)
+		public static bool operator ==(AllFeeEstimate? x, AllFeeEstimate? y)
 		{
 			if (ReferenceEquals(x, y))
 			{
 				return true;
 			}
 
-			if (x is null ^ y is null)
+			if (x is null || y is null)
 			{
 				return false;
 			}
@@ -134,7 +129,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			return equal;
 		}
 
-		public static bool operator !=(AllFeeEstimate x, AllFeeEstimate y) => !(x == y);
+		public static bool operator !=(AllFeeEstimate? x, AllFeeEstimate? y) => !(x == y);
 
 		#endregion Equality
 	}

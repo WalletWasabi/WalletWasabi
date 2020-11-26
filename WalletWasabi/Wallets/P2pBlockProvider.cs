@@ -31,7 +31,7 @@ namespace WalletWasabi.Wallets
 			Network = network;
 		}
 
-		public static event EventHandler<bool> DownloadingBlockChanged;
+		public static event EventHandler<bool>? DownloadingBlockChanged;
 
 		public NodesGroup Nodes { get; }
 		public CoreNode CoreNode { get; }
@@ -116,7 +116,7 @@ namespace WalletWasabi.Wallets
 
 							await NodeTimeoutsAsync(false).ConfigureAwait(false);
 						}
-						catch (Exception ex) when (ex is OperationCanceledException || ex is TaskCanceledException || ex is TimeoutException)
+						catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 						{
 							await NodeTimeoutsAsync(true).ConfigureAwait(false);
 
@@ -168,9 +168,9 @@ namespace WalletWasabi.Wallets
 
 						// If an onion was added must try to use Tor.
 						// onlyForOnionHosts should connect to it if it's an onion endpoint automatically and non-Tor endpoints through clearnet/localhost
-						if (Synchronizer.WasabiClient.TorClient.IsTorUsed)
+						if (Synchronizer.WasabiClientFactory.IsTorEnabled)
 						{
-							nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false));
+							nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Synchronizer.WasabiClientFactory.TorEndpoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false));
 						}
 
 						var localEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;

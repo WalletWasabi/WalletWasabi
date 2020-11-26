@@ -1,8 +1,10 @@
 using NBitcoin;
 using System;
+using System.Linq;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
@@ -13,72 +15,52 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 	/// </summary>
 	public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>
 	{
-		#region Fields
-
-		private Script _scriptPubKey;
-		private Money _amount;
 		private Height _height;
-		private SmartLabel _label;
-		private OutPoint[] _spentOutputs;
-		private bool _replaceable;
-		private int _anonymitySet;
-		private uint256 _spenderTransactionId;
+		private SmartTransaction? _spenderTransaction;
 		private bool _coinJoinInProgress;
 		private DateTimeOffset? _bannedUntilUtc;
 		private bool _spentAccordingToBackend;
-		private HdPubKey _hdPubKey;
 
-		private ISecret _secret;
-
-		private Cluster _cluster;
+		private ISecret? _secret;
 
 		private bool _confirmed;
-		private bool _unavailable;
-		private bool _unspent;
 		private bool _isBanned;
 
-		#endregion Fields
+		private Lazy<uint256> _transactionId;
+		private Lazy<OutPoint> _outPoint;
+		private Lazy<TxOut> _txOut;
+		private Lazy<Coin> _coin;
+		private Lazy<int> _hashCode;
 
-		#region Constructors
-
-		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, OutPoint[] spentOutputs, Height height, bool replaceable, int anonymitySet, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
+		public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey)
 		{
-			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, replaceable, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
+			Transaction = transaction;
+			Index = outputIndex;
+			_transactionId = new Lazy<uint256>(() => Transaction.GetHash(), true);
+
+			_outPoint = new Lazy<OutPoint>(() => new OutPoint(TransactionId, Index), true);
+			_txOut = new Lazy<TxOut>(() => Transaction.Transaction.Outputs[Index], true);
+			_coin = new Lazy<Coin>(() => new Coin(OutPoint, TxOut), true);
+
+			_hashCode = new Lazy<int>(() => OutPoint.GetHashCode(), true);
+
+			Height = transaction.Height;
+
+			HdPubKey = pubKey;
+
+			Transaction.WalletOutputs.Add(this);
 		}
 
-		public SmartCoin(Coin coin, OutPoint[] spentOutputs, Height height, bool replaceable, int anonymitySet, SmartLabel label = null, uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
-		{
-			OutPoint outpoint = Guard.NotNull($"{coin}.{coin?.Outpoint}", coin?.Outpoint);
-			uint256 transactionId = outpoint.Hash;
-			uint index = outpoint.N;
-			Script scriptPubKey = Guard.NotNull($"{coin}.{coin?.ScriptPubKey}", coin?.ScriptPubKey);
-			Money amount = Guard.NotNull($"{coin}.{coin?.Amount}", coin?.Amount);
+		public SmartTransaction Transaction { get; }
+		public uint Index { get; }
+		public uint256 TransactionId => _transactionId.Value;
 
-			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, replaceable, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
-		}
+		public OutPoint OutPoint => _outPoint.Value;
+		public TxOut TxOut => _txOut.Value;
+		public Coin Coin => _coin.Value;
 
-		#endregion Constructors
-
-		#region Properties
-
-		public uint256 TransactionId => OutPoint.Hash;
-
-		public uint Index => OutPoint.N;
-		private int HashCode { get; set; }
-
-		public OutPoint OutPoint { get; private set; }
-
-		public Script ScriptPubKey
-		{
-			get => _scriptPubKey;
-			private set => RaiseAndSetIfChanged(ref _scriptPubKey, value);
-		}
-
-		public Money Amount
-		{
-			get => _amount;
-			private set => RaiseAndSetIfChanged(ref _amount, value);
-		}
+		public Script ScriptPubKey => TxOut.ScriptPubKey;
+		public Money Amount => TxOut.Value;
 
 		public Height Height
 		{
@@ -87,60 +69,33 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			{
 				if (RaiseAndSetIfChanged(ref _height, value))
 				{
-					SetConfirmed();
+					Confirmed = _height.Type == HeightType.Chain;
 				}
 			}
 		}
 
-		/// <summary>
-		/// Always set it before the Amount!
-		/// </summary>
-		public SmartLabel Label
+		public SmartTransaction? SpenderTransaction
 		{
-			get => _label;
-			set => RaiseAndSetIfChanged(ref _label, value);
-		}
-
-		public OutPoint[] SpentOutputs
-		{
-			get => _spentOutputs;
-			private set => RaiseAndSetIfChanged(ref _spentOutputs, value);
-		}
-
-		public bool IsReplaceable
-		{
-			get => _replaceable && !Confirmed;
-			private set => RaiseAndSetIfChanged(ref _replaceable, value);
-		}
-
-		public int AnonymitySet
-		{
-			get => _anonymitySet;
-			private set => RaiseAndSetIfChanged(ref _anonymitySet, value);
-		}
-
-		public uint256 SpenderTransactionId
-		{
-			get => _spenderTransactionId;
+			get => _spenderTransaction;
 			set
 			{
-				if (RaiseAndSetIfChanged(ref _spenderTransactionId, value))
+				if (RaiseAndSetIfChanged(ref _spenderTransaction, value))
 				{
-					SetUnspent();
+					value?.WalletInputs.Add(this);
 				}
 			}
 		}
+
+		public bool RegisterToHdPubKey()
+			=> HdPubKey.Coins.Add(this);
+
+		public bool UnregisterFromHdPubKey()
+			=> HdPubKey.Coins.Remove(this);
 
 		public bool CoinJoinInProgress
 		{
 			get => _coinJoinInProgress;
-			set
-			{
-				if (RaiseAndSetIfChanged(ref _coinJoinInProgress, value))
-				{
-					SetUnavailable();
-				}
-			}
+			set => RaiseAndSetIfChanged(ref _coinJoinInProgress, value);
 		}
 
 		public DateTimeOffset? BannedUntilUtc
@@ -162,66 +117,25 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public bool SpentAccordingToBackend
 		{
 			get => _spentAccordingToBackend;
-			set
-			{
-				if (RaiseAndSetIfChanged(ref _spentAccordingToBackend, value))
-				{
-					SetUnavailable();
-				}
-			}
+			set => RaiseAndSetIfChanged(ref _spentAccordingToBackend, value);
 		}
 
-		public HdPubKey HdPubKey
-		{
-			get => _hdPubKey;
-			private set => RaiseAndSetIfChanged(ref _hdPubKey, value);
-		}
-
-		public bool? IsLikelyCoinJoinOutput { get; set; }
+		public HdPubKey HdPubKey { get; }
 
 		/// <summary>
 		/// It's a secret, so it's usually going to be null. Do not use it.
 		/// This will not get serialized, because that's a security risk.
 		/// </summary>
-		public ISecret Secret
+		public ISecret? Secret
 		{
 			get => _secret;
 			set => RaiseAndSetIfChanged(ref _secret, value);
 		}
 
-		public Cluster Cluster
-		{
-			get => _cluster;
-			set => RaiseAndSetIfChanged(ref _cluster, value);
-		}
-
-		#region DependentProperties
-
 		public bool Confirmed
 		{
 			get => _confirmed;
 			private set => RaiseAndSetIfChanged(ref _confirmed, value);
-		}
-
-		/// <summary>
-		/// Spent || SpentAccordingToBackend || CoinJoinInProgress || IsDust;
-		/// </summary>
-		public bool Unavailable
-		{
-			get => _unavailable;
-			private set => RaiseAndSetIfChanged(ref _unavailable, value);
-		}
-
-		public bool Unspent
-		{
-			get => _unspent;
-			private set
-			{
-				if (RaiseAndSetIfChanged(ref _unspent, value))
-				{
-					SetUnavailable();
-				}
-			}
 		}
 
 		public bool IsBanned
@@ -230,84 +144,29 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			private set => RaiseAndSetIfChanged(ref _isBanned, value);
 		}
 
-		#endregion DependentProperties
-
-		#region PropertySetters
-
-		private void SetConfirmed()
-		{
-			Confirmed = Height != Height.Mempool && Height != Height.Unknown;
-		}
-
-		private void SetUnspent()
-		{
-			Unspent = SpenderTransactionId is null;
-		}
-
 		public void SetIsBanned()
 		{
 			IsBanned = BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow;
 		}
 
-		private void SetUnavailable()
-		{
-			Unavailable = !Unspent || SpentAccordingToBackend || CoinJoinInProgress;
-		}
+		public bool IsSpent() => SpenderTransaction is { };
 
-		#endregion PropertySetters
+		/// <summary>
+		/// IsUnspent() AND !SpentAccordingToBackend AND !CoinJoinInProgress
+		/// </summary>
+		public bool IsAvailable() => SpenderTransaction is null && !SpentAccordingToBackend && !CoinJoinInProgress;
 
-		#endregion Properties
-
-		#region Methods
-
-		private void Create(uint256 transactionId, uint index, Script scriptPubKey, Money amount, OutPoint[] spentOutputs, Height height, bool replaceable, int anonymitySet, SmartLabel label, uint256 spenderTransactionId, bool coinJoinInProgress, DateTimeOffset? bannedUntilUtc, bool spentAccordingToBackend, HdPubKey pubKey)
-		{
-			Guard.NotNull(nameof(transactionId), transactionId);
-			Guard.NotNull(nameof(index), index);
-			OutPoint = new OutPoint(transactionId, index);
-			HashCode = (TransactionId, Index).GetHashCode();
-			ScriptPubKey = Guard.NotNull(nameof(scriptPubKey), scriptPubKey);
-			Amount = Guard.NotNull(nameof(amount), amount);
-			Height = height;
-			SpentOutputs = Guard.NotNullOrEmpty(nameof(spentOutputs), spentOutputs);
-			IsReplaceable = replaceable;
-			AnonymitySet = Guard.InRangeAndNotNull(nameof(anonymitySet), anonymitySet, 1, int.MaxValue);
-			IsLikelyCoinJoinOutput = null;
-
-			SpenderTransactionId = spenderTransactionId;
-
-			CoinJoinInProgress = coinJoinInProgress;
-			BannedUntilUtc = bannedUntilUtc;
-			SpentAccordingToBackend = spentAccordingToBackend;
-
-			HdPubKey = pubKey;
-
-			Label = SmartLabel.Merge(HdPubKey?.Label, label);
-
-			Cluster = new Cluster(this);
-
-			SetConfirmed();
-			SetUnspent();
-			SetIsBanned();
-			SetUnavailable();
-		}
-
-		public Coin GetCoin()
-		{
-			return new Coin(TransactionId, Index, Amount, ScriptPubKey);
-		}
-
-		#endregion Methods
+		public bool IsReplaceable() => Transaction.IsRBF;
 
 		#region EqualityAndComparison
 
-		public override bool Equals(object obj) => Equals(obj as SmartCoin);
+		public override bool Equals(object? obj) => Equals(obj as SmartCoin);
 
-		public bool Equals(SmartCoin other) => this == other;
+		public bool Equals(SmartCoin? other) => this == other;
 
-		public override int GetHashCode() => HashCode;
+		public override int GetHashCode() => _hashCode.Value;
 
-		public static bool operator ==(SmartCoin x, SmartCoin y)
+		public static bool operator ==(SmartCoin? x, SmartCoin? y)
 		{
 			if (ReferenceEquals(x, y))
 			{
@@ -319,12 +178,12 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			}
 			else
 			{
-				var hashEquals = x.HashCode == y.HashCode;
+				var hashEquals = x.GetHashCode() == y.GetHashCode();
 				return hashEquals && y.TransactionId == x.TransactionId && y.Index == x.Index;
 			}
 		}
 
-		public static bool operator !=(SmartCoin x, SmartCoin y) => !(x == y);
+		public static bool operator !=(SmartCoin? x, SmartCoin? y) => !(x == y);
 
 		#endregion EqualityAndComparison
 	}

@@ -71,6 +71,10 @@ namespace WalletWasabi.Gui
 		public bool UseTor { get; internal set; }
 
 		[DefaultValue(false)]
+		[JsonProperty(PropertyName = "TerminateTorOnExit", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool TerminateTorOnExit { get; internal set; }
+
+		[DefaultValue(false)]
 		[JsonProperty(PropertyName = "StartLocalBitcoinCoreOnStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool StartLocalBitcoinCoreOnStartup { get; internal set; }
 
@@ -197,7 +201,7 @@ namespace WalletWasabi.Gui
 
 		public Uri GetCurrentBackendUri()
 		{
-			if (TorProcessManager.RequestFallbackAddressUsage)
+			if (TorMonitor.RequestFallbackAddressUsage)
 			{
 				return GetFallbackBackendUri();
 			}

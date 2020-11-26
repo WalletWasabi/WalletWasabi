@@ -43,7 +43,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			Global = Locator.Current.GetService<Global>();
 			WalletManager = Global.WalletManager;
 			Owner = owner;
-			Wallets = new ObservableCollection<HardwareWalletViewModel>();
+			_wallets = new ObservableCollection<HardwareWalletViewModel>();
 			IsHwWalletSearchTextVisible = false;
 
 			this.WhenAnyValue(x => x.SelectedWallet)
@@ -85,7 +85,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					ofd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 				}
 
-				var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime).MainWindow;
+				var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
 				var selected = await ofd.ShowAsync(window, fallBack: true);
 				if (selected is { } && selected.Any())
 				{
@@ -122,9 +122,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					Logger.LogInfo("Creating a new wallet file.");
 					var walletName = WalletManager.WalletDirectories.GetNextWalletName("Coldcard");
 					var walletFullPath = WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
-					var keymanager = KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
-					WalletManager.AddWallet(keymanager);
-					owner.SelectLoadWallet(keymanager);
+					var keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
+					WalletManager.AddWallet(keyManager);
+					owner.SelectLoadWallet(keyManager);
 				}
 			});
 			EnumerateHardwareWalletsCommand = ReactiveCommand.CreateFromTask(async () => await EnumerateIfHardwareWalletsAsync());
@@ -254,8 +254,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 						using var ctsSetup = new CancellationTokenSource(TimeSpan.FromMinutes(21));
 
 						// Trezor T doesn't require interactive mode.
-						if (selectedWallet.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T
-							|| selectedWallet.HardwareWalletInfo.Model == HardwareWalletModels.Trezor_T_Simulator)
+						if (selectedWallet.HardwareWalletInfo.Model is HardwareWalletModels.Trezor_T
+							or HardwareWalletModels.Trezor_T_Simulator)
 						{
 							await client.SetupAsync(selectedWallet.HardwareWalletInfo.Model, selectedWallet.HardwareWalletInfo.Path, false, ctsSetup.Token);
 						}

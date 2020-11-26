@@ -46,7 +46,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Where(x => !x.Unspent).Select(x => x.OutPoint).ToArray();
+				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Where(x => x.IsSpent()).Select(x => x.OutPoint).ToArray();
 			}
 		}
 
@@ -178,126 +178,99 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 				}
 
 				Money amountNeededExceptInputFees = denomination + (feePerOutputs * 2);
-				var confirmedResult = GetRegistrableCoinsNoLock(maximumInputCountPerPeer, feePerInputs, amountNeededExceptInputFees, allowUnconfirmedZeroLink: false);
-				if (confirmedResult.Any())
+
+				var coins = WaitingList
+					.Where(x => x.Value <= DateTimeOffset.UtcNow)
+					.Select(x => x.Key) // Only if registering coins is already allowed.
+					.Where(x => x.Confirmed)
+					.ToList(); // So to not redo it in every cycle.
+
+				bool lazyMode = false;
+
+				for (int i = 1; i <= maximumInputCountPerPeer; i++) // The smallest number of coins we can register the better it is.
 				{
-					return confirmedResult;
-				}
-				else
-				{
-					return GetRegistrableCoinsNoLock(maximumInputCountPerPeer, feePerInputs, amountNeededExceptInputFees, allowUnconfirmedZeroLink: true);
-				}
-			}
-		}
+					List<IEnumerable<SmartCoin>> coinGroups;
+					Money amountNeeded = amountNeededExceptInputFees + (feePerInputs * i); // If the sum reaches the minimum amount.
 
-		private IEnumerable<OutPoint> GetRegistrableCoinsNoLock(int maximumInputCountPerPeer, Money feePerInputs, Money amountNeededExceptInputFees, bool allowUnconfirmedZeroLink)
-		{
-			if (!WaitingList.Any()) // To avoid computations.
-			{
-				return Enumerable.Empty<OutPoint>();
-			}
-
-			Func<SmartCoin, bool> confirmationPredicate;
-			if (allowUnconfirmedZeroLink)
-			{
-				confirmationPredicate = x => x.Confirmed || x.IsLikelyCoinJoinOutput is true;
-			}
-			else
-			{
-				confirmationPredicate = x => x.Confirmed;
-			}
-
-			var coins = WaitingList
-				.Where(x => x.Value <= DateTimeOffset.UtcNow)
-				.Select(x => x.Key) // Only if registering coins is already allowed.
-				.Where(confirmationPredicate)
-				.ToList(); // So to not redo it in every cycle.
-
-			bool lazyMode = false;
-
-			for (int i = 1; i <= maximumInputCountPerPeer; i++) // The smallest number of coins we can register the better it is.
-			{
-				List<IEnumerable<SmartCoin>> coinGroups;
-				Money amountNeeded = amountNeededExceptInputFees + (feePerInputs * i); // If the sum reaches the minimum amount.
-
-				if (lazyMode) // Do the largest valid combination.
-				{
-					IEnumerable<SmartCoin> highestValueEnumeration = coins.OrderByDescending(x => x.Amount).Take(i);
-					coinGroups = highestValueEnumeration.Sum(x => x.Amount) >= amountNeeded
-						? new List<IEnumerable<SmartCoin>> { highestValueEnumeration }
-						: new List<IEnumerable<SmartCoin>>();
-				}
-				else
-				{
-					DateTimeOffset start = DateTimeOffset.UtcNow;
-
-					coinGroups = coins.GetPermutations(i, amountNeeded).ToList();
-
-					if (DateTimeOffset.UtcNow - start > TimeSpan.FromMilliseconds(10)) // If the permutations took long then then if there's a nextTime, calculating permutations would be too CPU intensive.
+					if (lazyMode) // Do the largest valid combination.
 					{
-						lazyMode = true;
+						IEnumerable<SmartCoin> highestValueEnumeration = coins.OrderByDescending(x => x.Amount).Take(i);
+						coinGroups = highestValueEnumeration.Sum(x => x.Amount) >= amountNeeded
+							? new List<IEnumerable<SmartCoin>> { highestValueEnumeration }
+							: new List<IEnumerable<SmartCoin>>();
 					}
-				}
-
-				if (i == 1) // If only one coin is to be registered.
-				{
-					// Prefer the largest one, so more mixing volume is more likely.
-					coinGroups = coinGroups.OrderByDescending(x => x.Sum(y => y.Amount)).ToList();
-
-					// Try to register with the smallest anonymity set, so new unmixed coins come to the mix.
-					coinGroups = coinGroups.OrderBy(x => x.Sum(y => y.AnonymitySet)).ToList();
-				}
-				else // Else coin merging will happen.
-				{
-					// Prefer the lowest amount sum, so perfect mix should be more likely.
-					coinGroups = coinGroups.OrderBy(x => x.Sum(y => y.Amount)).ToList();
-
-					// Try to register the largest anonymity set, so red and green coins input merging should be less likely.
-					coinGroups = coinGroups.OrderByDescending(x => x.Sum(y => y.AnonymitySet)).ToList();
-				}
-
-				coinGroups = coinGroups.OrderBy(x => x.Count(y => y.Confirmed == false)).ToList(); // Where the lowest amount of unconfirmed coins there are.
-
-				IEnumerable<SmartCoin> best = coinGroups.FirstOrDefault();
-
-				if (best is { })
-				{
-					var bestSet = best.ToHashSet();
-
-					// -- OPPORTUNISTIC CONSOLIDATION --
-					// https://github.com/zkSNACKs/WalletWasabi/issues/1651
-					if (bestSet.Count < maximumInputCountPerPeer) // Ensure limits.
+					else
 					{
-						// Generating toxic change leads to mass merging so it's better to merge sooner in coinjoin than the user do it himself in a non-CJ.
-						// The best selection's anonset should not be lowered by this merge.
-						int bestMinAnonset = bestSet.Min(x => x.AnonymitySet);
-						var bestSum = Money.Satoshis(bestSet.Sum(x => x.Amount));
+						DateTimeOffset start = DateTimeOffset.UtcNow;
 
-						if (!bestSum.Almost(amountNeeded, Money.Coins(0.0001m)) // Otherwise it wouldn't generate change so consolidation would make no sense.
-							&& bestMinAnonset > 1) // Red coins should never be merged.
+						coinGroups = coins.GetPermutations(i, amountNeeded).ToList();
+
+						if (DateTimeOffset.UtcNow - start > TimeSpan.FromMilliseconds(10)) // If the permutations took long then then if there's a nextTime, calculating permutations would be too CPU intensive.
 						{
-							IEnumerable<SmartCoin> coinsThatCanBeConsolidated = coins
-								.Except(bestSet) // Get all the registrable coins, except the already chosen ones.
-								.Where(x =>
-									x.AnonymitySet >= bestMinAnonset // The anonset must be at least equal to the bestSet's anonset so we do not ruin the change's after mix anonset.
-									&& x.AnonymitySet > 1 // Red coins should never be merged.
-									&& x.Amount < amountNeeded // The amount needs to be smaller than the amountNeeded (so to make sure this is toxic change.)
-									&& bestSum + x.Amount > amountNeeded) // Sanity check that the amount added do not ruin the registration.
-								.OrderBy(x => x.Amount); // Choose the smallest ones.
-
-							if (coinsThatCanBeConsolidated.Count() > 1) // Because the last one change should not be circulating, ruining privacy.
-							{
-								var bestCoinToAdd = coinsThatCanBeConsolidated.First();
-								bestSet.Add(bestCoinToAdd);
-							}
+							lazyMode = true;
 						}
 					}
 
-					return bestSet.Select(x => x.OutPoint).ToArray();
-				}
-			}
+					if (i == 1) // If only one coin is to be registered.
+					{
+						// Prefer the largest one, so more mixing volume is more likely.
+						coinGroups = coinGroups.OrderByDescending(x => x.Sum(y => y.Amount)).ToList();
 
-			return Enumerable.Empty<OutPoint>(); // Inputs are too small, max input to be registered is reached.
+						// Try to register with the smallest anonymity set, so new unmixed coins come to the mix.
+						coinGroups = coinGroups.OrderBy(x => x.Sum(y => y.HdPubKey.AnonymitySet)).ToList();
+					}
+					else // Else coin merging will happen.
+					{
+						// Prefer the lowest amount sum, so perfect mix should be more likely.
+						coinGroups = coinGroups.OrderBy(x => x.Sum(y => y.Amount)).ToList();
+
+						// Try to register the largest anonymity set, so red and green coins input merging should be less likely.
+						coinGroups = coinGroups.OrderByDescending(x => x.Sum(y => y.HdPubKey.AnonymitySet)).ToList();
+					}
+
+					coinGroups = coinGroups.OrderBy(x => x.Count(y => y.Confirmed == false)).ToList(); // Where the lowest amount of unconfirmed coins there are.
+
+					IEnumerable<SmartCoin> best = coinGroups.FirstOrDefault();
+
+					if (best is { })
+					{
+						var bestSet = best.ToHashSet();
+
+						// -- OPPORTUNISTIC CONSOLIDATION --
+						// https://github.com/zkSNACKs/WalletWasabi/issues/1651
+						if (bestSet.Count < maximumInputCountPerPeer) // Ensure limits.
+						{
+							// Generating toxic change leads to mass merging so it's better to merge sooner in coinjoin than the user do it himself in a non-CJ.
+							// The best selection's anonset should not be lowered by this merge.
+							int bestMinAnonset = bestSet.Min(x => x.HdPubKey.AnonymitySet);
+							var bestSum = Money.Satoshis(bestSet.Sum(x => x.Amount));
+
+							if (!bestSum.Almost(amountNeeded, Money.Coins(0.0001m)) // Otherwise it wouldn't generate change so consolidation would make no sense.
+								&& bestMinAnonset > 1) // Red coins should never be merged.
+							{
+								IEnumerable<SmartCoin> coinsThatCanBeConsolidated = coins
+									.Except(bestSet) // Get all the registrable coins, except the already chosen ones.
+									.Where(x =>
+										x.HdPubKey.AnonymitySet >= bestMinAnonset // The anonset must be at least equal to the bestSet's anonset so we do not ruin the change's after mix anonset.
+										&& x.HdPubKey.AnonymitySet > 1 // Red coins should never be merged.
+										&& x.Amount < amountNeeded // The amount needs to be smaller than the amountNeeded (so to make sure this is toxic change.)
+										&& bestSum + x.Amount > amountNeeded) // Sanity check that the amount added do not ruin the registration.
+									.OrderBy(x => x.Amount); // Choose the smallest ones.
+
+								if (coinsThatCanBeConsolidated.Count() > 1) // Because the last one change should not be circulating, ruining privacy.
+								{
+									var bestCoinToAdd = coinsThatCanBeConsolidated.First();
+									bestSet.Add(bestCoinToAdd);
+								}
+							}
+						}
+
+						return bestSet.Select(x => x.OutPoint).ToArray();
+					}
+				}
+
+				return Enumerable.Empty<OutPoint>(); // Inputs are too small, max input to be registered is reached.
+			}
 		}
 
 		public bool AnyCoinsQueued()
@@ -457,21 +430,6 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 						Logger.LogInfo($"Round ({r.State.RoundId}) added.");
 					}
 				}
-			}
-		}
-
-		public void AddOrReplaceRound(ClientRound round)
-		{
-			lock (StateLock)
-			{
-				foreach (var r in Rounds.Where(x => x.State.RoundId == round.State.RoundId))
-				{
-					r?.Registration?.AliceClient?.Dispose();
-					Logger.LogInfo($"Round ({round.State.RoundId}) removed. Reason: It's being replaced.");
-				}
-				Rounds.RemoveAll(x => x.State.RoundId == round.State.RoundId);
-				Rounds.Add(round);
-				Logger.LogInfo($"Round ({round.State.RoundId}) added.");
 			}
 		}
 
