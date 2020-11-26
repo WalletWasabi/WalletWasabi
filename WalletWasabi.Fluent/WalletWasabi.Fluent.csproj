@@ -21,6 +21,7 @@
 		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.0-preview6" />
 		<PackageReference Include="Avalonia.Xaml.Interactions.Custom" Version="0.10.0-preview6" />
 		<PackageReference Include="Avalonia.Xaml.Interactivity" Version="0.10.0-preview6" />
+		<PackageReference Include="Svg.Skia.Avalonia" Version="0.10.0-preview7" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj" />

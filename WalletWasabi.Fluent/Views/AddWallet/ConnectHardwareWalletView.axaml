@@ -4,11 +4,17 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:h="using:WalletWasabi.Fluent.Helpers"
+             xmlns:svg="clr-namespace:Svg.Skia.Avalonia;assembly=Svg.Skia.Avalonia"
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.ConnectHardwareWalletView">
+  <UserControl.Resources>
+    <svg:SvgImage x:Key="coldcard" Source="/Assets/HardwareIcons/coldcard.svg" />
+    <svg:SvgImage x:Key="ledger" Source="/Assets/HardwareIcons/ledger.svg" />
+    <svg:SvgImage x:Key="trezor" Source="/Assets/HardwareIcons/trezor.svg" />
+  </UserControl.Resources>
 
-    <UserControl.Styles>
+  <UserControl.Styles>
         <Style Selector="StackPanel.Delay">
             <Setter Property="Opacity" Value="0"/>
             <Style.Animations>
@@ -44,10 +50,14 @@
             <ListBox IsVisible="{Binding WalletListVisible}" Background="Transparent" Items="{Binding HardwareWallets}" SelectedItem="{Binding SelectedHardwareWallet}"/>
             <DockPanel IsVisible="{Binding !WalletListVisible}">
               <StackPanel VerticalAlignment="Top" Spacing="20" DockPanel.Dock="Top">
-                <PathIcon Height="100" Width="150" Data="{StaticResource usb_logo}" Foreground="{DynamicResource SystemAccentColor}" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="20">
+                  <Image Height="100" Source="{DynamicResource coldcard}" />
+                  <Image Height="100" Source="{DynamicResource trezor}" />
+                  <Image Height="100" Source="{DynamicResource ledger}" />
+                </StackPanel>          
                 <TextBlock Text="Connect your Wallet to the USB Port on your PC and Login / Enter the PIN on the Wallet" HorizontalAlignment="Center" />
               </StackPanel>
-              <c:ProgressRing IsIndeterminate="True" VerticalAlignment="Center" Height="100" Width="100" />
+              <c:ProgressRing IsIndeterminate="True" VerticalAlignment="Center" Height="100" Width="100" />                          
             </DockPanel>
           </Panel>
         </DockPanel>        
