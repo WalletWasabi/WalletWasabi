@@ -49,7 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<NavBarItemViewModel>()
-				.Subscribe(NavigateToItem);
+				.Subscribe(NavigateItem);
 
 			Observable.FromEventPattern(Router.NavigationStack, nameof(Router.NavigationStack.CollectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -165,7 +165,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			}
 		}
 
-		private void NavigateToItem(NavBarItemViewModel item)
+		private void NavigateItem(NavBarItemViewModel item)
 		{
 			if (!_isNavigating)
 			{
