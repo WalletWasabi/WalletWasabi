@@ -47,7 +47,6 @@ namespace WalletWasabi.Tor.Http
 		public static Exception? LatestTorException { get; private set; } = null;
 		public Func<Uri> DestinationUriAction { get; }
 		private EndPoint? TorSocks5EndPoint { get; }
-		public bool IsTorUsed => TorSocks5EndPoint is { };
 
 		/// <summary>Lock object to protect access to <see cref="TorSocks5ClientPool"/>.</summary>
 		private static object PoolLock { get; } = new object();
