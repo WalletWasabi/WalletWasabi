@@ -12,7 +12,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWalletPageView">
 
-  <c:ContentArea Title="Add Wallet" Caption="Type in your wallet's name and select an option:">
+  <c:ContentArea Title="Add Wallet" Caption="Type in your wallet's name and select an option:" IsBusy="{Binding IsBusy}">
     <DockPanel>
       <StackPanel DockPanel.Dock="Top" Margin="0 0 0 20">
         <Label Content="Wallet _Name:" Target="walletNameTb" />
