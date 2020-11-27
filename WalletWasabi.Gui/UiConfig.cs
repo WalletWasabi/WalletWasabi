@@ -20,6 +20,7 @@ namespace WalletWasabi.Gui
 		private bool _isCustomChangeAddress;
 		private bool _autocopy;
 		private int _feeDisplayFormat;
+		private bool _darkModeEnabled;
 
 		public UiConfig() : base()
 		{
@@ -31,7 +32,8 @@ namespace WalletWasabi.Gui
 					x => x.LockScreenPinHash,
 					x => x.Autocopy,
 					x => x.IsCustomFee,
-					x => x.IsCustomChangeAddress)
+					x => x.IsCustomChangeAddress,
+					x => x.DarkModeEnabled)
 				.Throttle(TimeSpan.FromSeconds(1))
 				.Skip(1) // Won't save on UiConfig creation.
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -104,6 +106,14 @@ namespace WalletWasabi.Gui
 		{
 			get => _lockScreenPinHash;
 			set => RaiseAndSetIfChanged(ref _lockScreenPinHash, value);
+		}
+
+		[DefaultValue(true)]
+		[JsonProperty(PropertyName = "DarkModeEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool DarkModeEnabled
+		{
+			get => _darkModeEnabled;
+			set => RaiseAndSetIfChanged(ref _darkModeEnabled, value);
 		}
 
 		[JsonProperty(PropertyName = "CoinListViewSortingPreference")]

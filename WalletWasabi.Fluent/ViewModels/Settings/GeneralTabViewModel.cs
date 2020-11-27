@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
-using Avalonia;
-using Avalonia.Markup.Xaml.Styling;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Validation;
@@ -26,7 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		{
 			this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
-			_darkModeEnabled = true; // TODO: Get from config file.
+			_darkModeEnabled = global.UiConfig.DarkModeEnabled;
 			_autocopy = global.UiConfig.Autocopy;
 			_customFee = global.UiConfig.IsCustomFee;
 			_customChangeAddress = global.UiConfig.IsCustomChangeAddress;
@@ -42,21 +41,10 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			this.WhenAnyValue(x => x.DarkModeEnabled)
 				.Skip(1)
 				.Subscribe(
-					_ =>
+					x =>
 					{
-						var currentTheme = Application.Current.Styles.Select(x => (StyleInclude)x).FirstOrDefault(x => x.Source is { } && x.Source.AbsolutePath.Contains("Themes"));
-
-						if (currentTheme?.Source is { } src)
-						{
-							var themeIndex = Application.Current.Styles.IndexOf(currentTheme);
-
-							var newTheme = new StyleInclude(new Uri("avares://WalletWasabi.Fluent/App.xaml"))
-							{
-								Source = new Uri($"avares://WalletWasabi.Fluent/Styles/Themes/{(src.AbsolutePath.Contains("Light") ? "BaseDark" : "BaseLight")}.xaml")
-							};
-
-							Application.Current.Styles[themeIndex] = newTheme;
-						}
+						global.UiConfig.DarkModeEnabled = x;
+						ThemeHelper.ApplyTheme(x);
 					});
 
 			this.WhenAnyValue(x => x.Autocopy)
