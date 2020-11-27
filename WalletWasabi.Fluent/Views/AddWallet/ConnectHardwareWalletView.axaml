@@ -39,7 +39,7 @@
                    EnableCancel="True" CancelContent="Cancel"
                    EnableBack="True"
                    EnableNext="True" NextContent="Connect" >
-      
+
         <DockPanel>
           <Button DockPanel.Dock="Bottom" HorizontalAlignment="Center" Classes="h8 plain activeHyperLink"  Foreground="{DynamicResource SystemAccentColor}" Content="More information and help with Hardware Wallets"  />
           <Panel>
@@ -70,9 +70,9 @@
                 </StackPanel>          
                 <TextBlock Text="Connect your Wallet to the USB Port on your PC and Login / Enter the PIN on the Wallet" HorizontalAlignment="Center" />
               </StackPanel>
-              <c:ProgressRing IsIndeterminate="True" VerticalAlignment="Center" Height="100" Width="100" />                          
+              <c:ProgressRing IsIndeterminate="True" VerticalAlignment="Center" Height="100" Width="100" />
             </DockPanel>
           </Panel>
-        </DockPanel>        
+        </DockPanel>
   </c:ContentArea>
 </UserControl>
