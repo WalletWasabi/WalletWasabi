@@ -123,51 +123,58 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			this.RaisePropertyChanged(nameof(SelectedItem));
 		}
 
+		private void Select(NavBarItemViewModel? value)
+		{
+			if (_selectedItem == value)
+			{
+				return;
+			}
+
+			if (_selectedItem is { })
+			{
+				_selectedItem.IsSelected = false;
+				_selectedItem.IsExpanded = false;
+
+				if (_selectedItem.Parent is { })
+				{
+					_selectedItem.Parent.IsSelected = false;
+					_selectedItem.Parent.IsExpanded = false;
+				}
+			}
+
+			RaiseAndChangeSelectedItem(value);
+
+			if (_selectedItem is { })
+			{
+				_selectedItem.IsSelected = true;
+				_selectedItem.IsExpanded = IsOpen;
+
+				if (_selectedItem.Parent is { })
+				{
+					_selectedItem.Parent.IsSelected = true;
+					_selectedItem.Parent.IsExpanded = true;
+				}
+			}
+		}
+
 		private void SetSelectedItem(NavBarItemViewModel? value)
 		{
 			if (value is null || value.Mode == NavBarItemSelectionMode.Selected)
 			{
-				if (_selectedItem == value)
-				{
-					return;
-				}
-
-				if (_selectedItem is { })
-				{
-					_selectedItem.IsSelected = false;
-					_selectedItem.IsExpanded = false;
-
-					if (_selectedItem.Parent is { })
-					{
-						_selectedItem.Parent.IsSelected = false;
-						_selectedItem.Parent.IsExpanded = false;
-					}
-				}
-
-				RaiseAndChangeSelectedItem(value);
-
-				if (_selectedItem is { })
-				{
-					_selectedItem.IsSelected = true;
-					_selectedItem.IsExpanded = IsOpen;
-
-					if (_selectedItem.Parent is { })
-					{
-						_selectedItem.Parent.IsSelected = true;
-						_selectedItem.Parent.IsExpanded = true;
-					}
-				}
+				Select(value);
+				return;
 			}
 
-			if (value is not null && value.Mode == NavBarItemSelectionMode.Button)
+			if (value.Mode == NavBarItemSelectionMode.Button)
 			{
 				_isNavigating = true;
 				RaiseAndChangeSelectedItem(_selectedItem);
 				_isNavigating = false;
 				NavigateItem(value);
+				return;
 			}
 
-			if (value is not null && value.Mode == NavBarItemSelectionMode.Toggle)
+			if (value.Mode == NavBarItemSelectionMode.Toggle)
 			{
 				_isNavigating = true;
 				RaiseAndChangeSelectedItem(_selectedItem);
