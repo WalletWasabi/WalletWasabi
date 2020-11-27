@@ -59,7 +59,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			DestinationKeyManager = KeyManager;
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
 			CcjHostUriAction = Synchronizer.WasabiClientFactory.BackendUriGetter;
-			TorSocks5EndPoint = Synchronizer.WasabiClientFactory.TorEndpoint;
 			CoordinatorFeepercentToCheck = null;
 
 			ExposedLinks = new ConcurrentDictionary<OutPoint, IEnumerable<HdPubKeyBlindedPair>>();
@@ -97,7 +96,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public Func<Uri> CcjHostUriAction { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
-		protected EndPoint? TorSocks5EndPoint { get; set; }
 
 		private decimal? CoordinatorFeepercentToCheck { get; set; }
 

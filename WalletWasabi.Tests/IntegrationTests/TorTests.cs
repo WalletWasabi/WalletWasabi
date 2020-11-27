@@ -285,7 +285,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 		private TorHttpClient MakeTorHttpClient(Uri uri, bool isolateStream = false)
 		{
-			return new TorHttpClient(TorSocks5ClientPool, uri, isolateStream);
+			return new TorHttpClient(TorSocks5ClientPool, () => uri, isolateStream);
 		}
 	}
 }

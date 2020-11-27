@@ -48,11 +48,10 @@ namespace WalletWasabi.Tor
 						if (torEx.RepField == RepField.HostUnreachable)
 						{
 							Uri baseUri = new Uri($"{FallBackTestRequestUri.Scheme}://{FallBackTestRequestUri.DnsSafeHost}");
-							{
-								var client = new TorHttpClient(Pool, baseUri);
-								var message = new HttpRequestMessage(HttpMethod.Get, FallBackTestRequestUri);
-								await client.SendAsync(message, token).ConfigureAwait(false);
-							}
+
+							var client = new TorHttpClient(Pool, () => baseUri);
+							var message = new HttpRequestMessage(HttpMethod.Get, FallBackTestRequestUri);
+							await client.SendAsync(message, token).ConfigureAwait(false);
 
 							// Check if it changed in the meantime...
 							if (TorHttpClient.LatestTorException is TorConnectCommandFailedException torEx2 && torEx2.RepField == RepField.HostUnreachable)

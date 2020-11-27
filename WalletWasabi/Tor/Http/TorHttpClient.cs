@@ -12,15 +12,9 @@ namespace WalletWasabi.Tor.Http
 	{
 		private static DateTimeOffset? TorDoesntWorkSinceBacking = null;
 
-		public TorHttpClient(TorSocks5ClientPool pool, Uri baseUri, bool isolateStream = false) :
-			this(pool, () => baseUri, isolateStream)
-		{
-			baseUri = Guard.NotNull(nameof(baseUri), baseUri);
-		}
-
 		public TorHttpClient(TorSocks5ClientPool pool, Func<Uri> baseUriAction, bool isolateStream = false)
 		{
-			DestinationUriAction = Guard.NotNull(nameof(baseUriAction), baseUriAction);
+			DestinationUriAction = baseUriAction;
 			DefaultIsolateStream = isolateStream;
 			TorSocks5ClientPool = pool;
 		}
