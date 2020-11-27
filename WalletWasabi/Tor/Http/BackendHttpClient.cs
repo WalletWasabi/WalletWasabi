@@ -35,7 +35,7 @@ namespace WalletWasabi.Tor.Http
 				throw new ArgumentException("Forward slash would lead to http://backend:port/<relativeUri> URI instead of http://backend:port/api/v<version>/<relativeUri>.", nameof(apiQuery));
 			}
 
-			return HttpClient.SendAsync(method, new Uri(HttpClient.DestinationUriAction.Invoke(), apiQuery), content, token);
+			return HttpClient.SendAsync(method, apiQuery, content, token);
 		}
 	}
 }
