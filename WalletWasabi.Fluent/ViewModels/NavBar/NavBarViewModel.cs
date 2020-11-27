@@ -184,9 +184,13 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				_isNavigating = true;
 				var previous = _selectedItem;
 				RaiseAndChangeSelectedItem(null);
-				RaiseAndChangeSelectedItem(previous);
+				RaiseAndChangeSelectedItem(value);
 				_isNavigating = false;
 				value.Toggle();
+				_isNavigating = true;
+				RaiseAndChangeSelectedItem(null);
+				RaiseAndChangeSelectedItem(previous);
+				_isNavigating = false;
 			}
 		}
 
