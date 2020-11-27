@@ -1,3 +1,4 @@
+using System;
 using System.Reactive.Disposables;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
@@ -30,7 +31,13 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				NetworkTab = new NetworkTabViewModel(global);
 				BitcoinTab = new BitcoinTabViewModel(global);
 
-				return Disposable.Empty;
+				return Disposable.Create(() =>
+				{
+					GeneralTab = null;
+					PrivacyTab = null;
+					NetworkTab = null;
+					BitcoinTab = null;
+				});
 			});
 		}
 
