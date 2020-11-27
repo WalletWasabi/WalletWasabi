@@ -1,6 +1,9 @@
+using System;
 using Avalonia.Controls;
 using Newtonsoft.Json;
 using System.ComponentModel;
+using System.Reactive.Linq;
+using ReactiveUI;
 using WalletWasabi.Bases;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Gui.Models.Sorting;
@@ -24,6 +27,15 @@ namespace WalletWasabi.Gui
 
 		public UiConfig(string filePath) : base(filePath)
 		{
+			this.WhenAnyValue(
+					x => x.LockScreenPinHash,
+					x => x.Autocopy,
+					x => x.IsCustomFee,
+					x => x.IsCustomChangeAddress)
+				.Throttle(TimeSpan.FromSeconds(1))
+				.Skip(1) // Won't save on UiConfig creation.
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(_ => ToFile());
 		}
 
 		[JsonProperty(PropertyName = "WindowState")]

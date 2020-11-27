@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Timers;
 using Avalonia.Threading;
 using WalletWasabi.Gui;
@@ -6,18 +9,18 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public abstract class SettingsViewModelBase : ViewModelBase
+	public abstract class SettingsViewModelBase : ViewModelBase, IDisposable
 	{
+		private readonly string _configFilePath;
+
 		protected SettingsViewModelBase(Global global)
 		{
-			Global = global;
+			_configFilePath = global.Config.FilePath;
 
 			SaveTimer = new Timer(1000);
 			SaveTimer.Elapsed += Save;
 			SaveTimer.AutoReset = false;
 		}
-
-		public Global Global { get; }
 
 		public Timer SaveTimer { get; }
 
@@ -37,8 +40,14 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				return;
 			}
 
-			var config = new Config(Global.Config.FilePath);
+			var config = new Config(_configFilePath);
 
+			// var subject = new Subject<Config>();
+			// subject
+			// 	.Throttle(TimeSpan.FromMilliseconds(1000))
+			// 	.Subscribe(x => x.ToFile());
+			//
+			// subject.OnNext(config);
 			Dispatcher.UIThread.PostLogException(
 				() =>
 				{
@@ -54,5 +63,10 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		}
 
 		protected abstract void EditConfigOnSave(Config config);
+
+		public virtual void Dispose()
+		{
+			SaveTimer.Dispose();
+		}
 	}
 }

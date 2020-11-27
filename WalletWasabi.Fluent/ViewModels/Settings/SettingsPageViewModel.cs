@@ -1,3 +1,4 @@
+using System.Reactive.Disposables;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui;
@@ -16,24 +17,32 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			_selectedTab = 0;
 
-			var config = new Config(global.Config.FilePath);
-			config.LoadOrCreateDefaultFile();
-
-			GeneralTab = new GeneralTabViewModel(Global, config);
-			PrivacyTab = new PrivacyTabViewModel(Global, config);
-			NetworkTab = new NetworkTabViewModel(Global, config);
-			BitcoinTab = new BitcoinTabViewModel(Global, config);
-
 			// TODO: Restart wasabi message
-			IsModified = !Global.Config.AreDeepEqual(config);
+			// IsModified = !Global.Config.AreDeepEqual(config);
+
+			this.WhenNavigatedTo(() =>
+			{
+				var config = new Config(global.Config.FilePath);
+				config.LoadOrCreateDefaultFile();
+
+				GeneralTab = new GeneralTabViewModel(Global, config);
+				PrivacyTab = new PrivacyTabViewModel(Global, config);
+				NetworkTab = new NetworkTabViewModel(Global, config);
+				BitcoinTab = new BitcoinTabViewModel(Global, config);
+
+				return Disposable.Create(() =>
+				{
+					GeneralTab.Dispose();
+				});
+			});
 		}
 
 		public Global Global { get; }
 
-		public GeneralTabViewModel GeneralTab { get; }
-		public PrivacyTabViewModel PrivacyTab { get; }
-		public NetworkTabViewModel NetworkTab { get; }
-		public BitcoinTabViewModel BitcoinTab { get; }
+		public GeneralTabViewModel? GeneralTab { get; set; }
+		public PrivacyTabViewModel? PrivacyTab { get; set; }
+		public NetworkTabViewModel? NetworkTab { get; set; }
+		public BitcoinTabViewModel? BitcoinTab { get; set; }
 
 		public bool IsModified
 		{

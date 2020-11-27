@@ -9,7 +9,6 @@ using ReactiveUI;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Validation;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
