@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			SaveSubject = new Subject<Config>();
 			SaveSubject
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Throttle(TimeSpan.FromMilliseconds(1000))
+				.Throttle(TimeSpan.FromSeconds(1))
 				.Where(x => !global.Config.AreDeepEqual(x))
 				.Subscribe(x => x.ToFile());
 		}
