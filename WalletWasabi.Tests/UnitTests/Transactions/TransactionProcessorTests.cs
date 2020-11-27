@@ -712,8 +712,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			tx.Version = 1;
 			tx.LockTime = LockTime.Zero;
 			tx.Outputs.Add(amount, keys.Skip(1).First().P2wpkhScript);
-			var txOut = new TxOut(Money.Coins(0.1m), BitcoinFactory.CreateScript());
-			tx.Outputs.AddRange(Enumerable.Repeat(txOut, 5)); // 6 indistinguishable txouts
+			tx.Outputs.AddRange(Common.Repeat(() => new TxOut(Money.Coins(0.1m), BitcoinFactory.CreateScript()), 5)); // 6 indistinguishable txouts
 			tx.Inputs.Add(createdCoin.Outpoint, Script.Empty, WitScript.Empty);
 			tx.Inputs.AddRange(Enumerable.Repeat(new TxIn(GetRandomOutPoint(), Script.Empty), 4));
 

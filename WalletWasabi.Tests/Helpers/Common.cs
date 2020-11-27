@@ -37,5 +37,13 @@ namespace WalletWasabi.Tests.Helpers
 		{
 			return Path.Combine(DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
 		}
+
+		public static IEnumerable<TResult> Repeat<TResult>(Func<TResult> action, int count)
+		{
+			for (int i = 0; i < count; i++)
+			{
+				yield return action();
+			}
+		}
 	}
 }

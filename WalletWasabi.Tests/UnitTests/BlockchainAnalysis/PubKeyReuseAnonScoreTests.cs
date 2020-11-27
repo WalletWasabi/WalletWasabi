@@ -183,7 +183,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var reusedTxOut = new TxOut(equalOutputAmount, new Key());
 			var tx = BitcoinFactory.CreateSmartTransaction(
 				9,
-				Repeat(() => new TxOut(equalOutputAmount, new Key()), 7).Concat(new[] { reusedTxOut, reusedTxOut }),
+				Common.Repeat(() => new TxOut(equalOutputAmount, new Key()), 7).Concat(new[] { reusedTxOut, reusedTxOut }),
 				new[] { (Money.Coins(1.1m), 1, BitcoinFactory.CreateHdPubKey(km)) },
 				new[] { (equalOutputAmount, HdPubKey.DefaultHighAnonymitySet, BitcoinFactory.CreateHdPubKey(km)) });
 
@@ -193,14 +193,6 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 
 			// Normally it'd be 10, but because of reuse it should be only 8.
 			Assert.Equal(8, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
-		}
-
-		public IEnumerable<TResult> Repeat<TResult>(Func<TResult> action, int count)
-		{
-			for (int i = 0; i < count; i++)
-			{
-				yield return action();
-			}
 		}
 	}
 }
