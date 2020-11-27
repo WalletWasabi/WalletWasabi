@@ -24,7 +24,6 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 
 		public void ClearRegistration()
 		{
-			Registration?.Dispose();
 			Registration = null;
 		}
 	}

@@ -531,7 +531,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					Logger.LogWarning(ex.Message.Split('\n')[1]);
 
 					await DequeueCoinsFromMixNoLockAsync(coinReference, DequeueReason.Banned).ConfigureAwait(false);
-					aliceClient?.Dispose();
 					return;
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("Provided input is not unspent", StringComparison.InvariantCultureIgnoreCase))
@@ -551,19 +550,16 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					Logger.LogWarning(ex.Message.Split('\n')[1]);
 
 					await DequeueCoinsFromMixNoLockAsync(coinReference, DequeueReason.Spent).ConfigureAwait(false);
-					aliceClient?.Dispose();
 					return;
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("No such running round in InputRegistration", StringComparison.InvariantCultureIgnoreCase))
 				{
 					Logger.LogInfo("Client tried to register a round that is not in InputRegistration anymore. Trying again later.");
-					aliceClient?.Dispose();
 					return;
 				}
 				catch (HttpRequestException ex) when (RpcErrorTools.IsTooLongMempoolChainError(ex.Message))
 				{
 					Logger.LogInfo("Coordinator failed because too much unconfirmed parent transactions. Trying again later.");
-					aliceClient?.Dispose();
 					return;
 				}
 
@@ -586,7 +582,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				if (roundRegistered is null)
 				{
 					// If our SatoshiClient does not yet know about the round, because of delay, then delay the round registration.
-					DelayedRoundRegistration?.Dispose();
 					DelayedRoundRegistration = registration;
 				}
 
@@ -1026,8 +1021,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 			using (await MixLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				State.DisposeAllAliceClients();
-
 				IEnumerable<OutPoint> allCoins = State.GetAllQueuedCoins();
 				foreach (var coinReference in allCoins)
 				{

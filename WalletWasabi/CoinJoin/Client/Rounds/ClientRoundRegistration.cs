@@ -9,10 +9,8 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.CoinJoin.Client.Rounds
 {
-	public class ClientRoundRegistration : IDisposable
+	public class ClientRoundRegistration
 	{
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
 		public ClientRoundRegistration(AliceClientBase aliceClient, IEnumerable<SmartCoin> coinsRegistereds, BitcoinAddress changeAddress)
 		{
 			AliceClient = Guard.NotNull(nameof(aliceClient), aliceClient);
@@ -44,29 +42,5 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 				CompletedPhase = phase;
 			}
 		}
-
-		#region IDisposable Support
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					AliceClient?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

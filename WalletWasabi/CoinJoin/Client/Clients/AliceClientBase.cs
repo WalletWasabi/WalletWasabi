@@ -19,11 +19,8 @@ using UnblindedSignature = WalletWasabi.Crypto.UnblindedSignature;
 
 namespace WalletWasabi.CoinJoin.Client.Clients
 {
-	public abstract class AliceClientBase : IDisposable
+	public abstract class AliceClientBase
 	{
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		/// <param name="httpClient">This class is responsible for disposal of the HTTP client.</param>
 		protected AliceClientBase(
 			long roundId,
 			IEnumerable<BitcoinAddress> registeredAddresses,
@@ -101,7 +98,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 			catch
 			{
-				client?.Dispose();
 				throw;
 			}
 		}
@@ -212,26 +208,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
 			Logger.LogInfo($"Round ({RoundId}), Alice ({UniqueId}): Posted {signatures.Count} signatures.");
-		}
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					(TorClient as IDisposable)?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
 		}
 	}
 }
