@@ -133,11 +133,11 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 				_selectedItem = null;
 
-				this.RaisePropertyChanged();
+				this.RaisePropertyChanged(nameof(SelectedItem));
 
 				_selectedItem = value;
 
-				this.RaisePropertyChanged();
+				this.RaisePropertyChanged(nameof(SelectedItem));
 
 				if (_selectedItem is { })
 				{
