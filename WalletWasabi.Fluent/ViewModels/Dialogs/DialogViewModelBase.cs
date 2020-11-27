@@ -1,7 +1,5 @@
-using System.Reactive;
-using System.Windows.Input;
 using ReactiveUI;
-using System;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {

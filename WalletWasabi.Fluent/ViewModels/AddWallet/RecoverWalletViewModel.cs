@@ -11,6 +11,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -73,41 +74,47 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				});
 		}
 
-		private async Task OnNext(NavigationStateViewModel navigationState, WalletManager walletManager, Network network, string? walletName)
+		private async Task OnNext(NavigationStateViewModel navigationState, WalletManager walletManager,
+			Network network, string? walletName)
 		{
+			IsBusy = true;
+
 			try
 			{
-				var enterPassword = new EnterPasswordViewModel(
-					navigationState,
-					NavigationTarget.DialogScreen,
-					"Type the password of the wallet to be able to recover and click Continue.");
-
-				NavigateTo(enterPassword, NavigationTarget.DialogScreen);
-
-				var result = await enterPassword.GetDialogResultAsync();
+				var result = await NavigateDialog(
+					new EnterPasswordViewModel(
+						navigationState,
+						NavigationTarget.DialogScreen,
+						"Type the password of the wallet to be able to recover and click Continue."));
 
 				if (result is { } password)
 				{
-					var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName!)
-						.walletFilePath;
+					await Task.Run(() =>
+					{
+						var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName!)
+							.walletFilePath;
 
-					var keyManager = KeyManager.Recover(
-						CurrentMnemonics!,
-						password!,
-						walletFilePath,
-						AccountKeyPath,
-						MinGapLimit);
+						var keyManager = KeyManager.Recover(
+							CurrentMnemonics!,
+							password!,
+							walletFilePath,
+							AccountKeyPath,
+							MinGapLimit);
 
-					keyManager.SetNetwork(network);
+						keyManager.SetNetwork(network);
 
-					walletManager.AddWallet(keyManager);
-
-					ClearNavigation(NavigationTarget.DialogScreen);
+						walletManager.AddWallet(keyManager);
+					});
 				}
 			}
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
+			}
+			finally
+			{
+				ClearNavigation(NavigationTarget.DialogScreen);
+				IsBusy = false;
 			}
 		}
 

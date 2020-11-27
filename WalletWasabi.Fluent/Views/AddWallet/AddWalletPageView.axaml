@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
@@ -10,9 +10,8 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:AddWalletPageViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.AddWalletPageView">
-
-  <c:ContentArea Title="Add Wallet" Caption="Type in your wallet's name and select an option:">
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.AddWalletPageView">
+  <c:ContentArea Title="Add Wallet" Caption="Type in your wallet's name and select an option:" IsBusy="{Binding IsBusy}">
     <DockPanel>
       <StackPanel DockPanel.Dock="Top" Margin="0 0 0 20">
         <Label Content="Wallet _Name:" Target="walletNameTb" />

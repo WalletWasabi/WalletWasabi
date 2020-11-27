@@ -12,6 +12,7 @@ using NBitcoin;
 using ReactiveUI;
 using Splat;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
@@ -42,6 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private int _strongPrivacyLevel;
 		private string _dustThreshold;
 		private FeeDisplayFormat _selectedFeeDisplayFormat;
+		private int _selectedTab;
 		private bool _darkModeEnabled;
 
 		private Global Global;
@@ -57,6 +59,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 
 			_darkModeEnabled = true;
+			_selectedTab = 0;
 			Autocopy = Global.UiConfig.Autocopy;
 			CustomFee = Global.UiConfig.IsCustomFee;
 			CustomChangeAddress = Global.UiConfig.IsCustomChangeAddress;
@@ -305,6 +308,12 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		{
 			get => _selectedFeeDisplayFormat;
 			set => this.RaiseAndSetIfChanged(ref _selectedFeeDisplayFormat, value);
+		}
+
+		public int SelectedTab
+		{
+			get => _selectedTab;
+			set => this.RaiseAndSetIfChanged(ref _selectedTab, value);
 		}
 
 		public override string IconName => "settings_regular";

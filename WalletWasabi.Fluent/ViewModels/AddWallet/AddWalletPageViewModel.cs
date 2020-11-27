@@ -10,13 +10,13 @@ using WalletWasabi.Stores;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using System.Threading.Tasks;
-using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Legal;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public class AddWalletPageViewModel : NavBarItemViewModel
 	{
@@ -50,17 +50,15 @@ namespace WalletWasabi.Fluent.ViewModels
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					var enterPassword = new EnterPasswordViewModel(
+					var result = await NavigateDialog(new EnterPasswordViewModel(
 						navigationState,
 						NavigationTarget.DialogScreen,
-						"Type the password of the wallet and click Continue.");
-
-					NavigateTo(enterPassword, NavigationTarget.DialogScreen);
-
-					var result = await enterPassword.GetDialogResultAsync();
+						"Type the password of the wallet and click Continue."));
 
 					if (result is { } password)
 					{
+						IsBusy = true;
+
 						var (km, mnemonic) = await Task.Run(
 							() =>
 							{
@@ -74,10 +72,8 @@ namespace WalletWasabi.Fluent.ViewModels
 							});
 
 						NavigateTo(new RecoveryWordsViewModel(navigationState, km, mnemonic, walletManager), NavigationTarget.DialogScreen, true);
-					}
-					else
-					{
-						GoBack();
+
+						IsBusy = false;
 					}
 				});
 

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
