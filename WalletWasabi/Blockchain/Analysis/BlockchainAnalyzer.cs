@@ -59,10 +59,12 @@ namespace WalletWasabi.Blockchain.Analysis
 				.WalletOutputs.GroupBy(x => x.Amount)
 				.ToDictionary(x => x.Key, y => y.Count());
 
+			var anonsets = tx.Transaction.GetAnonymitySets(tx.WalletOutputs.Select(x => x.Index));
+
 			foreach (var newCoin in tx.WalletOutputs.ToArray())
 			{
 				// Get the anonymity set of i-th output in the transaction.
-				int anonset = tx.Transaction.GetAnonymitySet(newCoin.Index);
+				int anonset = anonsets[newCoin.Index];
 
 				// Don't count our own equivalent outputs in the anonset.
 				anonset -= indistinguishableWalletOutputs[newCoin.Amount] - 1;
