@@ -37,7 +37,7 @@ namespace WalletWasabi.Fluent.Converters
 						break;
 
 					case WalletType.Normal:
-						// todo normal wallet image.
+						uri = new("avares://WalletWasabi.Fluent/Assets/HardwareIcons/normal.png");
 						break;
 				}
 

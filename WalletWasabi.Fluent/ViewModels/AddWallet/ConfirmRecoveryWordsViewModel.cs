@@ -32,7 +32,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				() =>
 				{
 					walletManager.AddWallet(keyManager);
-					ClearNavigation(NavigationTarget.DialogScreen);
+
+					NavigateTo(new AddedWalletPageViewModel(navigationState, keyManager.WalletName, WalletType.Normal), NavigationTarget.DialogScreen);					
 				},
 				finishCommandCanExecute);
 
