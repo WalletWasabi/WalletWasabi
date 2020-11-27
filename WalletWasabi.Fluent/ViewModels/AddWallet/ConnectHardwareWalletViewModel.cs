@@ -16,6 +16,7 @@ using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using HardwareWalletViewModel = WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets.HardwareWalletViewModel;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
@@ -39,7 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				this.WhenAnyValue(x => x.SelectedHardwareWallet)
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Select(x => x?.HardwareWalletInfo.Fingerprint is { } && x.HardwareWalletInfo.IsInitialized());
-			NextCommand = ReactiveCommand.Create(ConnectSelectedHardwareWallet,nextCommandIsExecute);
+			NextCommand = ReactiveCommand.CreateFromTask(ConnectSelectedHardwareWalletAsync, nextCommandIsExecute);
 
 			this.WhenAnyValue(x => x.SelectedHardwareWallet)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -104,7 +105,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			get => _selectedHardwareWallet;
 			set => this.RaiseAndSetIfChanged(ref _selectedHardwareWallet, value);
-		}		
+		}
 
 		public bool WalletListVisible
 		{
@@ -116,7 +117,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
 
-		private async void ConnectSelectedHardwareWallet()
+		private async Task ConnectSelectedHardwareWalletAsync()
 		{
 			if (SelectedHardwareWallet?.HardwareWalletInfo.Fingerprint is null)
 			{
@@ -126,7 +127,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			try
 			{
 				IsBusy = true;
-				await StopDetection();
+				await StopDetectionAsync();
 
 				var newWallet = await Task.Run(async () =>
 				{
@@ -157,7 +158,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
-		private async Task StopDetection()
+		private async Task StopDetectionAsync()
 		{
 			if (DetectionTask is { } task && DetectionCts is { } cts)
 			{
@@ -202,6 +203,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						HardwareWallets.RemoveMany(toRemove);
 						// Add newly detected hardware wallets
 						HardwareWallets.AddRange(toAdd);
+
+						if(SelectedHardwareWallet is null)
+						{
+							SelectedHardwareWallet = HardwareWallets.FirstOrDefault();
+						}
 					}, RxApp.MainThreadScheduler);
 
 				}
