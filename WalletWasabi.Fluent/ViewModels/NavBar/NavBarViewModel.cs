@@ -4,6 +4,10 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using WalletWasabi.Fluent.ViewModels.AddWallet;
+using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Search;
+using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -31,11 +35,16 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 
+			var homePage = new HomePageViewModel(navigationState, walletManager, addWalletPage);
+			var settingsPage = new SettingsPageViewModel(navigationState);
+			var searchPage = new SearchPageViewModel(navigationState, walletManager, addWalletPage, settingsPage, homePage);
 
-			SelectedItem = new HomePageViewModel(navigationState, walletManager, addWalletPage);
+			SelectedItem = homePage;
+
 			_topItems.Add(SelectedItem);
+			_bottomItems.Add(searchPage);
+			_bottomItems.Add(settingsPage);
 			_bottomItems.Add(addWalletPage);
-			_bottomItems.Add(new SettingsPageViewModel(navigationState));
 
 			Router.CurrentViewModel
 				.OfType<NavBarItemViewModel>()

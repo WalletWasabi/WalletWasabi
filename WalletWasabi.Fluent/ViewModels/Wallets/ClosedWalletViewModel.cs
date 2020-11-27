@@ -1,11 +1,12 @@
 using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;

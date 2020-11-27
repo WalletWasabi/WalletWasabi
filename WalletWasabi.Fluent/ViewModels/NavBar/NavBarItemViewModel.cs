@@ -1,5 +1,6 @@
 using ReactiveUI;
 using System.Windows.Input;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar
 {
@@ -12,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		protected NavBarItemViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
 		{
 			_title = "";
-			OpenCommand = ReactiveCommand.Create(() => NavigateToSelf());
+			OpenCommand = ReactiveCommand.Create(NavigateToSelf);
 		}
 
 		public NavBarItemViewModel? Parent { get; set; }

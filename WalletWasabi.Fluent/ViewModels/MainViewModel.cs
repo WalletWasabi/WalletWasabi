@@ -2,10 +2,13 @@ using System;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive;
+using System.Reactive.Linq;
+using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using Global = WalletWasabi.Gui.Global;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -44,9 +47,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			_navBar = new NavBarViewModel(navigationState, Router, walletManager, addWalletPage);
 
 			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsMainContentEnabled = !x);
 
 			this.WhenAnyValue(x => x.CurrentDialog!.IsDialogOpen)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsDialogScreenEnabled = !x);
 		}
 

@@ -1,4 +1,4 @@
-using System.Windows.Input;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {

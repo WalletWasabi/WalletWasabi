@@ -1,8 +1,8 @@
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
-using WalletWasabi.Fluent.ViewModels;
+using WalletWasabi.Fluent.ViewModels.Settings;
 
-namespace WalletWasabi.Fluent.Views
+namespace WalletWasabi.Fluent.Views.Settings
 {
 	public class SettingsPageView : ReactiveUserControl<SettingsPageViewModel>
 	{

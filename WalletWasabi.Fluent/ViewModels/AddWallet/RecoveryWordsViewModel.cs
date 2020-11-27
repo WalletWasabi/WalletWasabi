@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
@@ -28,8 +28,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			CancelCommand = ReactiveCommand.Create(() => ClearNavigation(NavigationTarget.DialogScreen));
 		}
-
-		public ICommand NextCommand { get; }
 
 		public List<RecoveryWordViewModel> MnemonicWords { get; set; }
 	}

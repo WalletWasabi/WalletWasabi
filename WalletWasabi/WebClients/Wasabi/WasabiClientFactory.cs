@@ -60,6 +60,21 @@ namespace WalletWasabi.WebClients.Wasabi
 		}
 
 		/// <summary>
+		/// Creates new <see cref="TorHttpClient"/> or <see cref="ClearnetHttpClient"/> based on user settings.
+		/// </summary>
+		public IRelativeHttpClient NewHttpClient(Func<Uri> baseUriFn, bool isolateStream)
+		{
+			if (TorEndpoint is { })
+			{
+				return new TorHttpClient(baseUriFn, TorEndpoint, isolateStream);
+			}
+			else
+			{
+				return new ClearnetHttpClient(baseUriFn);
+			}
+		}
+
+		/// <summary>
 		/// Creates new <see cref="TorHttpClient"/>.
 		/// </summary>
 		public TorHttpClient NewBackendTorHttpClient(bool isolateStream)
