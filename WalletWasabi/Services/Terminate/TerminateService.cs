@@ -24,10 +24,12 @@ namespace WalletWasabi.Services.Terminate
 			AssemblyLoadContext.Default.Unloading += Default_Unloading;
 			AppDomain.CurrentDomain.DomainUnload += CurrentDomain_DomainUnload;
 
+#if (!DEBUG)
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				SystemEvents.SessionEnding += Windows_SystemEvents_SessionEnding;
 			}
+#endif
 		}
 
 		public bool IsTerminateRequested => Interlocked.Read(ref _terminateStatus) > TerminateStatusNotStarted;
