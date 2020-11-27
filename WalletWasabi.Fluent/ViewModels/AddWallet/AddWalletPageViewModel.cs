@@ -23,8 +23,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private string _walletName = "";
 		private bool _optionsEnabled;
 
-		public AddWalletPageViewModel(NavigationStateViewModel navigationState, LegalDocuments legalDocuments, WalletManager walletManager,
-			BitcoinStore store, Network network) : base(navigationState, NavigationTarget.DialogScreen)
+		public AddWalletPageViewModel(NavigationStateViewModel navigationState, LegalDocuments legalDocuments, WalletManager walletManager, BitcoinStore store, Network network)
+			: base(navigationState, NavigationTarget.DialogScreen, NavBarItemSelectionMode.Button)
 		{
 			Title = "Add Wallet";
 

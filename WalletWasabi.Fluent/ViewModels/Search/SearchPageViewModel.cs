@@ -21,7 +21,8 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 		private readonly bool _showSettings;
 		private readonly bool _showWallets;
 
-		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage, SettingsPageViewModel settingsPage, HomePageViewModel homePage) : base(navigationState, NavigationTarget.HomeScreen)
+		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage, SettingsPageViewModel settingsPage, HomePageViewModel homePage)
+			: base(navigationState, NavigationTarget.HomeScreen, NavBarItemSelectionMode.Selected)
 		{
 			Title = "Search";
 

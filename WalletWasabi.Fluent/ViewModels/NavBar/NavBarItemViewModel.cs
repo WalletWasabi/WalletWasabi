@@ -4,21 +4,31 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar
 {
+	public enum NavBarItemSelectionMode
+	{
+		Selected = 0,
+		Button = 1,
+		Toggle = 2
+	}
+
 	public abstract class NavBarItemViewModel : RoutableViewModel
 	{
 		private bool _isSelected;
 		private bool _isExpanded;
 		private string _title;
 
-		protected NavBarItemViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
+		protected NavBarItemViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, NavBarItemSelectionMode mode) : base(navigationState, navigationTarget)
 		{
 			_title = "";
+			Mode = mode;
 			OpenCommand = ReactiveCommand.Create(NavigateToSelf);
 		}
 
 		public NavBarItemViewModel? Parent { get; set; }
 
 		public abstract string IconName { get; }
+
+		public NavBarItemSelectionMode Mode { get; }
 
 		public bool IsExpanded
 		{
@@ -44,6 +54,10 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		{
 			get => _isSelected;
 			set => this.RaiseAndSetIfChanged(ref _isSelected, value);
+		}
+
+		public virtual void Toggle()
+		{
 		}
 
 		public ICommand OpenCommand { get; protected set; }

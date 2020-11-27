@@ -16,7 +16,8 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			string iconName,
 			NavigationStateViewModel navigationState,
 			NavigationTarget navigationTarget,
-			Func<RoutableViewModel> createTargetView) : base(navigationState, navigationTarget)
+			Func<RoutableViewModel> createTargetView)
+			: base(navigationState, navigationTarget, NavBarItemSelectionMode.Button)
 		{
 			Title = title;
 			Caption = caption;

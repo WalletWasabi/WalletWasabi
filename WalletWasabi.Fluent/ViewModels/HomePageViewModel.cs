@@ -15,7 +15,8 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private readonly ReadOnlyObservableCollection<NavBarItemViewModel> _items;
 
-		public HomePageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage) : base(navigationState, NavigationTarget.HomeScreen)
+		public HomePageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage)
+			: base(navigationState, NavigationTarget.HomeScreen, NavBarItemSelectionMode.Selected)
 		{
 			Title = "Home";
 
