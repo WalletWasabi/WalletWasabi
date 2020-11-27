@@ -117,72 +117,68 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 		private void SetSelectedItem(NavBarItemViewModel? value)
 		{
-			if (_selectedItem == value)
+			if (_selectedItem != value)
 			{
-				return;
-			}
-
-			if (_selectedItem is { })
-			{
-				_selectedItem.IsSelected = false;
-				_selectedItem.IsExpanded = false;
-
-				if (_selectedItem.Parent is { })
+				if (_selectedItem is { })
 				{
-					_selectedItem.Parent.IsSelected = false;
-					_selectedItem.Parent.IsExpanded = false;
+					_selectedItem.IsSelected = false;
+					_selectedItem.IsExpanded = false;
+
+					if (_selectedItem.Parent is { })
+					{
+						_selectedItem.Parent.IsSelected = false;
+						_selectedItem.Parent.IsExpanded = false;
+					}
 				}
-			}
 
-			_selectedItem = null;
-			this.RaisePropertyChanged();
-			_selectedItem = value;
-			this.RaisePropertyChanged();
+				_selectedItem = null;
 
-			if (_selectedItem is { })
-			{
-				_selectedItem.IsSelected = true;
-				_selectedItem.IsExpanded = IsOpen;
+				this.RaisePropertyChanged();
 
-				if (_selectedItem.Parent is { })
+				_selectedItem = value;
+
+				this.RaisePropertyChanged();
+
+				if (_selectedItem is { })
 				{
-					_selectedItem.Parent.IsSelected = true;
-					_selectedItem.Parent.IsExpanded = true;
+					_selectedItem.IsSelected = true;
+					_selectedItem.IsExpanded = IsOpen;
+
+					if (_selectedItem.Parent is { })
+					{
+						_selectedItem.Parent.IsSelected = true;
+						_selectedItem.Parent.IsExpanded = true;
+					}
 				}
 			}
 		}
 
-		private void SelectItem(NavBarItemViewModel item, WalletManagerViewModel walletManager)
+		private void SelectItem(NavBarItemViewModel x, WalletManagerViewModel walletManager)
 		{
-			if (!walletManager.Items.Contains(item) && !_topItems.Contains(item) && !_bottomItems.Contains(item))
+			if (walletManager.Items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
 			{
-				return;
+				if (!_isNavigating)
+				{
+					_isNavigating = true;
+					SelectedItem = x;
+					_isNavigating = false;
+				}
 			}
-
-			if (_isNavigating)
-			{
-				return;
-			}
-
-			_isNavigating = true;
-			SelectedItem = item;
-			_isNavigating = false;
 		}
 
-		private void NavigateItem(NavBarItemViewModel item)
+		private void NavigateItem(NavBarItemViewModel x)
 		{
-			if (_isNavigating)
+			if (!_isNavigating)
 			{
-				return;
-			}
+				_isNavigating = true;
+				if (x.OpenCommand.CanExecute(default))
+				{
+					x.OpenCommand.Execute(default);
+				}
+				CollapseOnClickAction?.Invoke();
 
-			_isNavigating = true;
-			if (item.OpenCommand.CanExecute(default))
-			{
-				item.OpenCommand.Execute(default);
+				_isNavigating = false;
 			}
-			CollapseOnClickAction?.Invoke();
-			_isNavigating = false;
 		}
 	}
 }
