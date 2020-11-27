@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -24,8 +24,9 @@ namespace WalletWasabi.Fluent.Converters
 				switch (hwwvm.HardwareWalletInfo.Model)
 				{
 					case Hwi.Models.HardwareWalletModels.Coldcard:
-					case Hwi.Models.HardwareWalletModels.Coldcard_Simulator:						
-						uri = new ("avares://WalletWasabi.Fluent/Assets/HardwareIcons/coldcard.png");
+					case Hwi.Models.HardwareWalletModels.Coldcard_Simulator:
+						//uri = new ("avares://WalletWasabi.Fluent/Assets/HardwareIcons/coldcard.png");
+						uri = new("avares://WalletWasabi.Fluent/Assets/HardwareIcons/ledger.png");
 						break;
 
 					case Hwi.Models.HardwareWalletModels.Trezor_1:
