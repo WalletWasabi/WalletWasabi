@@ -48,10 +48,10 @@ namespace WalletWasabi.Tor.Socks5
 			Clients = new Dictionary<string, List<PoolItem>>();
 		}
 
-		public ClearnetHttpClient ClearnetHttpClient { get; }
-		private TorSocks5ClientFactory TorSocks5ClientFactory { get; }
-
 		private bool _disposedValue;
+
+		private ClearnetHttpClient ClearnetHttpClient { get; }
+		private TorSocks5ClientFactory TorSocks5ClientFactory { get; }
 
 		/// <remarks>Lock object to guard all access to <see cref="Clients"/>.</remarks>
 		private AsyncLock ClientsAsyncLock { get; } = new AsyncLock();
@@ -60,30 +60,25 @@ namespace WalletWasabi.Tor.Socks5
 		/// <remarks>All access to this object must be guarded by <see cref="ClientsAsyncLock"/>.</remarks>
 		private Dictionary<string, List<PoolItem>> Clients { get; }
 
-		private DateTimeOffset? _torDoesntWorkSinceBacking = null;
+		/// <summary>TODO: Add locking and wrap in a class.</summary>
+		public DateTimeOffset? TorDoesntWorkSince { get; private set; }
 
-		public DateTimeOffset? TorDoesntWorkSince
-		{
-			get => _torDoesntWorkSinceBacking;
-			private set
-			{
-				if (value != _torDoesntWorkSinceBacking)
-				{
-					_torDoesntWorkSinceBacking = value;
-					if (value is null)
-					{
-						LatestTorException = null;
-					}
-				}
-			}
-		}
-
+		/// <summary>TODO: Add locking.</summary>
 		public Exception? LatestTorException { get; private set; } = null;
 
-		private void SetTorNotWorkingState(Exception ex)
+		/// <summary>
+		/// This method is called when an HTTP(s) request fails for some reason.
+		/// <para>The information is stored to allow <see cref="TorMonitor"/> to restart Tor as deemed fit.</para>
+		/// </summary>
+		/// <param name="e">Tor exception.</param>
+		private void OnTorRequestFailed(Exception e)
 		{
-			TorDoesntWorkSince ??= DateTimeOffset.UtcNow;
-			LatestTorException = ex;
+			if (TorDoesntWorkSince is null)
+			{
+				TorDoesntWorkSince = DateTimeOffset.UtcNow;
+			}
+
+			LatestTorException = e;
 		}
 
 		/// <summary>
@@ -143,6 +138,7 @@ namespace WalletWasabi.Tor.Socks5
 						Logger.LogTrace($"['{poolItem}'] Un-reserve. State is: '{state}'.");
 
 						TorDoesntWorkSince = null;
+						LatestTorException = null;
 
 						return response;
 					}
@@ -172,7 +168,7 @@ namespace WalletWasabi.Tor.Socks5
 			}
 			catch (Exception ex)
 			{
-				SetTorNotWorkingState(ex);
+				OnTorRequestFailed(ex);
 				throw;
 			}
 
