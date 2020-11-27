@@ -34,13 +34,13 @@ namespace WalletWasabi.Blockchain.Analysis
 			}
 			else if (inputCount == ownInputCount)
 			{
-				if (outputCount == ownOutputCount)
+				if (outputCount != ownOutputCount)
 				{
-					AnalyzeSelfSpend(tx);
+					AnalyzeNormalSpend(tx);
 				}
 				else
 				{
-					AnalyzeNormalSpend(tx);
+					AnalyzeSelfSpend(tx);
 				}
 			}
 			else
