@@ -32,29 +32,29 @@ namespace WalletWasabi.Blockchain.Analysis
 			{
 				AnalyzeReceive(tx);
 			}
-			else if (inputCount == ownInputCount)
+			else if (inputCount == ownInputCount && outputCount != ownOutputCount)
 			{
-				if (outputCount != ownOutputCount)
-				{
-					AnalyzeNormalSpend(tx);
-				}
-				else
-				{
-					AnalyzeSelfSpend(tx);
-				}
+				AnalyzeNormalSpend(tx);
 			}
 			else
 			{
-				AnalyzeCoinjoin(tx);
+				AnalyzeWalletInputs(tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int newInputAnonset);
+
+				if (inputCount == ownInputCount)
+				{
+					AnalyzeSelfSpend(tx, newInputAnonset);
+				}
+				else
+				{
+					AnalyzeCoinjoin(tx, newInputAnonset, distinctWalletInputPubKeys);
+				}
 			}
 
 			AnalyzeClusters(tx);
 		}
 
-		private void AnalyzeCoinjoin(SmartTransaction tx)
+		private void AnalyzeCoinjoin(SmartTransaction tx, int newInputAnonset, ISet<HdPubKey> distinctWalletInputPubKeys)
 		{
-			AnalyzeWalletInputs(tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int newInputAnonset);
-
 			var indistinguishableWalletOutputs = tx
 				.WalletOutputs.GroupBy(x => x.Amount)
 				.ToDictionary(x => x.Key, y => y.Count());
@@ -141,12 +141,11 @@ namespace WalletWasabi.Blockchain.Analysis
 			}
 		}
 
-		private void AnalyzeSelfSpend(SmartTransaction tx)
+		private void AnalyzeSelfSpend(SmartTransaction tx, int newInputAnonset)
 		{
-			AnalyzeWalletInputs(tx, out _, out int inheritedAnonset);
 			foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
 			{
-				key.AnonymitySet = inheritedAnonset;
+				key.AnonymitySet = newInputAnonset;
 			}
 		}
 
