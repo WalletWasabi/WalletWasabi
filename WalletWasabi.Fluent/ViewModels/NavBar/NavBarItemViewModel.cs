@@ -56,10 +56,10 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			set => this.RaiseAndSetIfChanged(ref _isSelected, value);
 		}
 
+		public ICommand OpenCommand { get; protected set; }
+
 		public virtual void Toggle()
 		{
 		}
-
-		public ICommand OpenCommand { get; protected set; }
 	}
 }
