@@ -12,7 +12,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		public SettingsPageViewModel(NavigationStateViewModel navigationState, Global global) : base(navigationState, NavigationTarget.HomeScreen)
 		{
-			Global = global;
 			Title = "Settings";
 
 			_selectedTab = 0;
@@ -22,19 +21,18 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			this.WhenNavigatedTo(() =>
 			{
-				var config = new Config(global.Config.FilePath);
-				config.LoadOrCreateDefaultFile();
+				// TODO: Is it possible to Global.Config is not up to date?
+				// var config = new Config(global.Config.FilePath);
+				// config.LoadOrCreateDefaultFile();
 
-				GeneralTab = new GeneralTabViewModel(Global, config);
-				PrivacyTab = new PrivacyTabViewModel(Global, config);
-				NetworkTab = new NetworkTabViewModel(Global, config);
-				BitcoinTab = new BitcoinTabViewModel(Global, config);
+				GeneralTab = new GeneralTabViewModel(global);
+				PrivacyTab = new PrivacyTabViewModel(global);
+				NetworkTab = new NetworkTabViewModel(global);
+				BitcoinTab = new BitcoinTabViewModel(global);
 
 				return Disposable.Empty;
 			});
 		}
-
-		public Global Global { get; }
 
 		public GeneralTabViewModel? GeneralTab { get; set; }
 		public PrivacyTabViewModel? PrivacyTab { get; set; }

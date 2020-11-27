@@ -11,11 +11,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private int _mediumPrivacyLevel;
 		private int _strongPrivacyLevel;
 
-		public PrivacyTabViewModel(Global global, Config config) : base(global)
+		public PrivacyTabViewModel(Global global) : base(global)
 		{
-			_minimalPrivacyLevel = config.PrivacyLevelSome;
-			_mediumPrivacyLevel = config.PrivacyLevelFine;
-			_strongPrivacyLevel = config.PrivacyLevelStrong;
+			_minimalPrivacyLevel = global.Config.PrivacyLevelSome;
+			_mediumPrivacyLevel = global.Config.PrivacyLevelFine;
+			_strongPrivacyLevel = global.Config.PrivacyLevelStrong;
 
 			this.WhenAnyValue(
 					x => x.MinimalPrivacyLevel,

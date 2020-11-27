@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private FeeDisplayFormat _selectedFeeDisplayFormat;
 		private string _dustThreshold;
 
-		public GeneralTabViewModel(Global global, Config config) : base(global)
+		public GeneralTabViewModel(Global global) : base(global)
 		{
 			this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), global.UiConfig.FeeDisplayFormat)
 				? (FeeDisplayFormat)global.UiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
-			_dustThreshold = config.DustThreshold.ToString();
+			_dustThreshold = global.Config.DustThreshold.ToString();
 
 			this.WhenAnyValue(x => x.DustThreshold)
 				.ObserveOn(RxApp.TaskpoolScheduler)
