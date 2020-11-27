@@ -43,23 +43,23 @@
                    EnableCancel="True" CancelContent="Cancel"
                    EnableBack="True"
                    EnableNext="True" NextContent="Connect" >
-      
+
         <DockPanel>
           <Button DockPanel.Dock="Bottom" HorizontalAlignment="Center" Classes="h8 plain activeHyperLink"  Foreground="{DynamicResource SystemAccentColor}" Content="More information and help with Hardware Wallets"  />
           <Panel>
-            <ListBox IsVisible="{Binding WalletListVisible}" Background="Transparent" Items="{Binding HardwareWallets}" SelectedItem="{Binding SelectedHardwareWallet}"/>
-            <DockPanel IsVisible="{Binding !WalletListVisible}">
+            <ListBox IsVisible="{Binding HardwareWallets.Count}" Background="Transparent" Items="{Binding HardwareWallets}" SelectedItem="{Binding SelectedHardwareWallet}"/>
+            <DockPanel IsVisible="{Binding !HardwareWallets.Count}">
               <StackPanel VerticalAlignment="Top" Spacing="20" DockPanel.Dock="Top">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="20">
                   <Image Height="100" Source="{DynamicResource coldcard}" />
                   <Image Height="100" Source="{DynamicResource trezor}" />
                   <Image Height="100" Source="{DynamicResource ledger}" />
-                </StackPanel>          
+                </StackPanel>
                 <TextBlock Text="Connect your Wallet to the USB Port on your PC and Login / Enter the PIN on the Wallet" HorizontalAlignment="Center" />
               </StackPanel>
-              <c:ProgressRing IsIndeterminate="True" VerticalAlignment="Center" Height="100" Width="100" />                          
+              <c:ProgressRing IsIndeterminate="True" VerticalAlignment="Center" Height="100" Width="100" />
             </DockPanel>
           </Panel>
-        </DockPanel>        
+        </DockPanel>
   </c:ContentArea>
 </UserControl>
