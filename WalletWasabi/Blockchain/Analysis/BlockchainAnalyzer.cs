@@ -69,8 +69,16 @@ namespace WalletWasabi.Blockchain.Analysis
 				// Don't count our own equivalent outputs in the anonset.
 				anonset -= indistinguishableWalletOutputs[newCoin.Amount] - 1;
 
-				// We should only consider ourselves once in the anonset.
-				anonset += newInputAnonset - 1;
+				// Account for the inherited anonymity set size from the inputs in the
+				// anonymity set size estimate.
+				// 
+				// The anonymity set size estimated for the input cluster is corrected
+				// by -1 to avoid double counting ourselves in the anonset.
+				// 
+				// Stated differently, the right value to use for the calculation is not the
+				// anonymity set size, but the subset of only the other participants, since
+				// every output must belong to a member of the set.
+				anonset += inheritedAnonSet - 1;
 
 				HdPubKey hdPubKey = newCoin.HdPubKey;
 				if (hdPubKey.AnonymitySet == HdPubKey.DefaultHighAnonymitySet)
