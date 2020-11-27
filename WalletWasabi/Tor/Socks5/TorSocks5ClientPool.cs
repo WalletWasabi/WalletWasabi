@@ -60,6 +60,32 @@ namespace WalletWasabi.Tor.Socks5
 		/// <remarks>All access to this object must be guarded by <see cref="ClientsAsyncLock"/>.</remarks>
 		private Dictionary<string, List<PoolItem>> Clients { get; }
 
+		private DateTimeOffset? _torDoesntWorkSinceBacking = null;
+
+		public DateTimeOffset? TorDoesntWorkSince
+		{
+			get => _torDoesntWorkSinceBacking;
+			private set
+			{
+				if (value != _torDoesntWorkSinceBacking)
+				{
+					_torDoesntWorkSinceBacking = value;
+					if (value is null)
+					{
+						LatestTorException = null;
+					}
+				}
+			}
+		}
+
+		public Exception? LatestTorException { get; private set; } = null;
+
+		private void SetTorNotWorkingState(Exception ex)
+		{
+			TorDoesntWorkSince ??= DateTimeOffset.UtcNow;
+			LatestTorException = ex;
+		}
+
 		/// <summary>
 		/// Robust sending algorithm. TODO.
 		/// </summary>
@@ -77,68 +103,78 @@ namespace WalletWasabi.Tor.Socks5
 			int i = 0;
 			int attemptsNo = 3;
 
-			do
+			try
 			{
-				i++;
-				PoolItem? poolItem;
-				TorConnection? client = null;
-
 				do
 				{
-					using (await ClientsAsyncLock.LockAsync(token).ConfigureAwait(false))
-					{
-						poolItem = await GetClientLockedAsync(request, isolateStream, token).ConfigureAwait(false);
+					i++;
+					PoolItem? poolItem;
+					TorConnection? client = null;
 
-						if (poolItem is { })
+					do
+					{
+						using (await ClientsAsyncLock.LockAsync(token).ConfigureAwait(false))
 						{
-							client = poolItem.Client;
-							break;
+							poolItem = await GetClientLockedAsync(request, isolateStream, token).ConfigureAwait(false);
+
+							if (poolItem is { })
+							{
+								client = poolItem.Client;
+								break;
+							}
+						}
+
+						Logger.LogTrace("Wait 1s for a free pool item.");
+						await Task.Delay(1000, token).ConfigureAwait(false);
+					} while (poolItem is null);
+
+					PoolItem? itemToDispose = poolItem;
+
+					try
+					{
+						Logger.LogTrace($"['{poolItem}'] About to send request.");
+						HttpResponseMessage response = await SendCoreAsync(client!, request, token).ConfigureAwait(false);
+
+						// Client works OK, no need to dispose.
+						itemToDispose = null;
+
+						// Let others use the client.
+						var state = poolItem.Unreserve();
+						Logger.LogTrace($"['{poolItem}'] Un-reserve. State is: '{state}'.");
+
+						TorDoesntWorkSince = null;
+
+						return response;
+					}
+					catch (TorConnectCommandFailedException ex) when (ex.RepField == RepField.TtlExpired)
+					{
+						// If we get TTL Expired error then wait and retry again linux often does this.
+						Logger.LogTrace(ex);
+
+						await Task.Delay(1000, token).ConfigureAwait(false);
+
+						if (i == attemptsNo)
+						{
+							Logger.LogDebug($"All {attemptsNo} attempts failed."); // TODO: Improve message.
+							throw;
 						}
 					}
-
-					Logger.LogTrace("Wait 1s for a free pool item.");
-					await Task.Delay(1000, token).ConfigureAwait(false);
-				} while (poolItem is null);
-
-				PoolItem? itemToDispose = poolItem;
-
-				try
-				{
-					Logger.LogTrace($"['{poolItem}'] About to send request.");
-					HttpResponseMessage response = await SendCoreAsync(client!, request, token).ConfigureAwait(false);
-
-					// Client works OK, no need to dispose.
-					itemToDispose = null;
-
-					// Let others use the client.
-					var state = poolItem.Unreserve();
-					Logger.LogTrace($"['{poolItem}'] Un-reserve. State is: '{state}'.");
-
-					return response;
-				}
-				catch (TorConnectCommandFailedException ex) when (ex.RepField == RepField.TtlExpired)
-				{
-					// If we get TTL Expired error then wait and retry again linux often does this.
-					Logger.LogTrace(ex);
-
-					await Task.Delay(1000, token).ConfigureAwait(false);
-
-					if (i == attemptsNo)
+					catch (SocketException ex) when (ex.ErrorCode == (int)SocketError.ConnectionRefused)
 					{
-						Logger.LogDebug($"All {attemptsNo} attempts failed."); // TODO: Improve message.
-						throw;
+						Logger.LogTrace(ex);
+						throw new TorConnectionException("Connection was refused.", ex);
 					}
-				}
-				catch (SocketException ex) when (ex.ErrorCode == (int)SocketError.ConnectionRefused)
-				{
-					Logger.LogTrace(ex);
-					throw new TorConnectionException("Connection was refused.", ex);
-				}
-				finally
-				{
-					itemToDispose?.Dispose();
-				}
-			} while (i < attemptsNo);
+					finally
+					{
+						itemToDispose?.Dispose();
+					}
+				} while (i < attemptsNo);
+			}
+			catch (Exception ex)
+			{
+				SetTorNotWorkingState(ex);
+				throw;
+			}
 
 			throw new NotImplementedException("This should never happen.");
 		}

@@ -9,8 +9,6 @@ namespace WalletWasabi.Tor.Http
 {
 	public class TorHttpClient : IRelativeHttpClient
 	{
-		private static DateTimeOffset? TorDoesntWorkSinceBacking = null;
-
 		public TorHttpClient(TorSocks5ClientPool pool, Func<Uri> baseUriAction, bool isolateStream = false)
 		{
 			DestinationUriAction = baseUriAction;
@@ -18,7 +16,6 @@ namespace WalletWasabi.Tor.Http
 			TorSocks5ClientPool = pool;
 		}
 
-		public static Exception? LatestTorException { get; private set; } = null;
 		public Func<Uri> DestinationUriAction { get; }
 		private EndPoint? TorSocks5EndPoint { get; }
 
@@ -26,22 +23,6 @@ namespace WalletWasabi.Tor.Http
 
 		/// <inheritdoc/>
 		public bool DefaultIsolateStream { get; }
-
-		public static DateTimeOffset? TorDoesntWorkSince
-		{
-			get => TorDoesntWorkSinceBacking;
-			private set
-			{
-				if (value != TorDoesntWorkSinceBacking)
-				{
-					TorDoesntWorkSinceBacking = value;
-					if (value is null)
-					{
-						LatestTorException = null;
-					}
-				}
-			}
-		}
 
 		private Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
 		{
@@ -64,12 +45,6 @@ namespace WalletWasabi.Tor.Http
 			return await SendAsync(request, DefaultIsolateStream, token).ConfigureAwait(false);
 		}
 
-		private static void SetTorNotWorkingState(Exception ex)
-		{
-			TorDoesntWorkSince ??= DateTimeOffset.UtcNow;
-			LatestTorException = ex;
-		}
-
 		/// <exception cref="OperationCanceledException">If <paramref name="cancel"/> is set.</exception>
 		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
 		{
@@ -86,23 +61,7 @@ namespace WalletWasabi.Tor.Http
 			}
 			else
 			{
-				try
-				{
-					HttpResponseMessage httpResponseMessage = await TorSocks5ClientPool!.SendAsync(request, isolateStream, token).ConfigureAwait(false);
-					TorDoesntWorkSince = null;
-
-					return httpResponseMessage;
-				}
-				catch (OperationCanceledException ex)
-				{
-					SetTorNotWorkingState(ex);
-					throw;
-				}
-				catch (Exception ex)
-				{
-					SetTorNotWorkingState(ex);
-					throw;
-				}
+				return await TorSocks5ClientPool!.SendAsync(request, isolateStream, token).ConfigureAwait(false);
 			}
 		}
 	}

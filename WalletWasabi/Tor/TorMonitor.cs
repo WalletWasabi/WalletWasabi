@@ -36,13 +36,13 @@ namespace WalletWasabi.Tor
 		/// <inheritdoc/>
 		protected override async Task ActionAsync(CancellationToken token)
 		{
-			if (TorHttpClient.TorDoesntWorkSince is { }) // If Tor misbehaves.
+			if (Pool.TorDoesntWorkSince is { }) // If Tor misbehaves.
 			{
-				TimeSpan torMisbehavedFor = DateTimeOffset.UtcNow - TorHttpClient.TorDoesntWorkSince ?? TimeSpan.Zero;
+				TimeSpan torMisbehavedFor = DateTimeOffset.UtcNow - Pool.TorDoesntWorkSince ?? TimeSpan.Zero;
 
 				if (torMisbehavedFor > CheckIfRunningAfterTorMisbehavedFor)
 				{
-					if (TorHttpClient.LatestTorException is TorConnectCommandFailedException torEx)
+					if (Pool.LatestTorException is TorConnectCommandFailedException torEx)
 					{
 						if (torEx.RepField == RepField.HostUnreachable)
 						{
@@ -53,7 +53,7 @@ namespace WalletWasabi.Tor
 							await client.SendAsync(message, token).ConfigureAwait(false);
 
 							// Check if it changed in the meantime...
-							if (TorHttpClient.LatestTorException is TorConnectCommandFailedException torEx2 && torEx2.RepField == RepField.HostUnreachable)
+							if (Pool.LatestTorException is TorConnectCommandFailedException torEx2 && torEx2.RepField == RepField.HostUnreachable)
 							{
 								// Fallback here...
 								RequestFallbackAddressUsage = true;
