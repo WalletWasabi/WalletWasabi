@@ -1,3 +1,4 @@
+using System;
 using ReactiveUI;
 using System.Windows.Input;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -53,7 +54,18 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		public bool IsSelected
 		{
 			get => _isSelected;
-			set => this.RaiseAndSetIfChanged(ref _isSelected, value);
+			set
+			{
+				switch ( Mode)
+				{
+					case NavBarItemSelectionMode.Selected:
+						this.RaiseAndSetIfChanged(ref _isSelected, value);
+						break;
+					case NavBarItemSelectionMode.Button:
+					case NavBarItemSelectionMode.Toggle:
+						break;
+				}
+			}
 		}
 
 		public ICommand OpenCommand { get; protected set; }
