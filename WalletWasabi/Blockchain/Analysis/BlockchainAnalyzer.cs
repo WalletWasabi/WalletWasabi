@@ -48,9 +48,26 @@ namespace WalletWasabi.Blockchain.Analysis
 				{
 					AnalyzeCoinjoin(tx, newInputAnonset, distinctWalletInputPubKeys);
 				}
+
+				AdjustWalletInputs(tx, distinctWalletInputPubKeys, newInputAnonset);
 			}
 
 			AnalyzeClusters(tx);
+		}
+
+		/// <summary>
+		/// Adjusts the anonset of the inputs to the newly calculated output anonsets.
+		/// </summary>
+		private static void AdjustWalletInputs(SmartTransaction tx, HashSet<HdPubKey> distinctWalletInputPubKeys, int newInputAnonset)
+		{
+			var smallestOutputAnonset = tx.WalletOutputs.Min(x => x.HdPubKey.AnonymitySet);
+			if (smallestOutputAnonset < newInputAnonset)
+			{
+				foreach (var key in distinctWalletInputPubKeys)
+				{
+					key.AnonymitySet = smallestOutputAnonset;
+				}
+			}
 		}
 
 		private void AnalyzeCoinjoin(SmartTransaction tx, int newInputAnonset, ISet<HdPubKey> distinctWalletInputPubKeys)

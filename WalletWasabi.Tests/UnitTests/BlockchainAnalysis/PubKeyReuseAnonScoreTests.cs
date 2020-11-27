@@ -111,6 +111,26 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		}
 
 		[Fact]
+		public void InputOutputSidePreviouslyUsedAddress()
+		{
+			// If there's reuse in input and output side, then output side didn't gain, nor lose anonymity.
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var reuse = BitcoinFactory.CreateHdPubKey(ServiceFactory.CreateKeyManager());
+			var tx = BitcoinFactory.CreateSmartTransaction(
+				9,
+				Enumerable.Repeat(Money.Coins(1m), 9),
+				new[] { (Money.Coins(1.1m), 100, BitcoinFactory.CreateHdPubKey(ServiceFactory.CreateKeyManager())) },
+				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, reuse) });
+
+			reuse.AnonymitySet = 30;
+
+			analyser.Analyze(tx);
+
+			Assert.True(tx.WalletOutputs.First().HdPubKey.AnonymitySet < 30);
+			Assert.All(tx.WalletInputs, x => Assert.True(x.HdPubKey.AnonymitySet < 30));
+		}
+
+		[Fact]
 		public void OutputSideAddressReusePunished()
 		{
 			// If there's reuse in input and output side, then output side didn't gain, nor lose anonymity.
