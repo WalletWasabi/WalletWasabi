@@ -77,7 +77,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void MultiDenomination()
 		{
-			// Multiple standard denomination outputs results in correct calculation.
+			// Multiple standard denomination outputs should be accounted separately.
 			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
 			var othersOutputs = new[] { 1, 1, 1, 2, 2 };
 			var tx = BitcoinFactory.CreateSmartTransaction(
