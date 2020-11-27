@@ -2,7 +2,7 @@ using ReactiveUI;
 using System;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
 	public enum NavigationTarget
 	{
