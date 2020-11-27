@@ -12,23 +12,14 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 {
 	public abstract class SettingsViewModelBase : ViewModelBase
 	{
-		private static string _configFilePath = "";
-
 		protected SettingsViewModelBase(Global global)
 		{
-			_configFilePath = global.Config.FilePath;
-
-			SaveSubject = new Subject<Config>();
-			SaveSubject
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Throttle(TimeSpan.FromSeconds(1))
-				.Where(x => !global.Config.AreDeepEqual(x))
-				.Subscribe(x => x.ToFile());
+			Global = global;
 		}
 
-		private static object ConfigLock { get; } = new ();
+		public Global Global { get; }
 
-		private Subject<Config> SaveSubject { get; }
+		private static object ConfigLock { get; } = new ();
 
 		protected void Save()
 		{
@@ -37,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				return;
 			}
 
-			var config = new Config(_configFilePath);
+			var config = new Config(Global.Config.FilePath);
 
 			Dispatcher.UIThread.PostLogException(
 				() =>
@@ -46,7 +37,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					{
 						config.LoadFile();
 						EditConfigOnSave(config);
-						SaveSubject.OnNext(config);
+
+						if (!Global.Config.AreDeepEqual(config))
+						{
+							config.ToFile();
+						}
 
 						// IsModified = !Global.Config.AreDeepEqual(config);
 					}

@@ -36,31 +36,32 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			this.WhenAnyValue(x => x.DustThreshold)
 				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Throttle(TimeSpan.FromSeconds(1))
+				.Skip(1)
 				.Subscribe(_ => Save());
 
 			this.WhenAnyValue(x => x.DarkModeEnabled)
 				.Skip(1)
-				.Subscribe(
-					x =>
-					{
-						global.UiConfig.DarkModeEnabled = x;
-						ThemeHelper.ApplyTheme(x);
-					});
+				.Subscribe(x => global.UiConfig.DarkModeEnabled = x);
 
 			this.WhenAnyValue(x => x.Autocopy)
 				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Skip(1)
 				.Subscribe(x => global.UiConfig.Autocopy = x);
 
 			this.WhenAnyValue(x => x.CustomFee)
 				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Skip(1)
 				.Subscribe(x => global.UiConfig.IsCustomFee = x);
 
 			this.WhenAnyValue(x => x.CustomChangeAddress)
 				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Skip(1)
 				.Subscribe(x => global.UiConfig.IsCustomChangeAddress = x);
 
 			this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
 				.ObserveOn(RxApp.MainThreadScheduler)
+				.Skip(1)
 				.Subscribe(x => global.UiConfig.FeeDisplayFormat = (int)x);
 		}
 
