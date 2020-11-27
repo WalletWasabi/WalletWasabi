@@ -24,6 +24,9 @@ namespace WalletWasabi.Tests.Helpers
 		}
 
 		public static SmartTransaction CreateSmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownInputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownOutputs)
+			=> CreateSmartTransaction(othersInputCount, othersOutputs.Select(x => new TxOut(x, new Key())), ownInputs, ownOutputs);
+
+		public static SmartTransaction CreateSmartTransaction(int othersInputCount, IEnumerable<TxOut> othersOutputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownInputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownOutputs)
 		{
 			var tx = Transaction.Create(Network.Main);
 			var walletInputs = new HashSet<SmartCoin>();
@@ -34,17 +37,17 @@ namespace WalletWasabi.Tests.Helpers
 				tx.Inputs.Add(CreateOutPoint());
 			}
 			var idx = (uint)othersInputCount - 1;
-			foreach (var txo in ownInputs)
+			foreach (var (value, anonset, hdpk) in ownInputs)
 			{
 				idx++;
-				var sc = CreateSmartCoin(txo.hdpk, txo.value, idx, anonymitySet: txo.anonset);
+				var sc = CreateSmartCoin(hdpk, value, idx, anonymitySet: anonset);
 				tx.Inputs.Add(sc.OutPoint);
 				walletInputs.Add(sc);
 			}
 
-			foreach (var val in othersOutputs)
+			foreach (var output in othersOutputs)
 			{
-				tx.Outputs.Add(new TxOut(val, new Key()));
+				tx.Outputs.Add(output);
 			}
 			idx = (uint)othersOutputs.Count() - 1;
 			foreach (var txo in ownOutputs)

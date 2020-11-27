@@ -131,6 +131,8 @@ namespace NBitcoin
 			var inputCount = me.Inputs.Count;
 
 			var indistinguishableOutputs = me.Outputs
+				.GroupBy(x => x.ScriptPubKey)
+				.ToDictionary(x => x.Key, y => y.Sum(z => z.Value))
 				.GroupBy(x => x.Value)
 				.ToDictionary(x => x.Key, y => y.Count());
 
