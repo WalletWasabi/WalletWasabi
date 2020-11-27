@@ -113,7 +113,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void InputOutputSidePreviouslyUsedAddress()
 		{
-			// If there's reuse in input and output side, then output side didn't gain, nor lose anonymity.
+			// If there's reuse in output side, input anonsets should be adjusted down, too.
 			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
 			var reuse = BitcoinFactory.CreateHdPubKey(ServiceFactory.CreateKeyManager());
 			var tx = BitcoinFactory.CreateSmartTransaction(
