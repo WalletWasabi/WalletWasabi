@@ -37,7 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					x => x.BitcoinP2PEndPoint,
 					x => x.LocalBitcoinCoreDataDir)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(_ => RequestSave());
+				.Subscribe(_ => Save());
 		}
 
 		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;

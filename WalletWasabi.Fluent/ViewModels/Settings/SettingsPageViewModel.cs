@@ -30,10 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				NetworkTab = new NetworkTabViewModel(Global, config);
 				BitcoinTab = new BitcoinTabViewModel(Global, config);
 
-				return Disposable.Create(() =>
-				{
-					GeneralTab.Dispose();
-				});
+				return Disposable.Empty;
 			});
 		}
 

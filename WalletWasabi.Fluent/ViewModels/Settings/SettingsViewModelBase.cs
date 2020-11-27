@@ -4,36 +4,33 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Timers;
 using Avalonia.Threading;
+using ReactiveUI;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public abstract class SettingsViewModelBase : ViewModelBase, IDisposable
+	public abstract class SettingsViewModelBase : ViewModelBase
 	{
-		private readonly string _configFilePath;
+		private static string _configFilePath = "";
 
 		protected SettingsViewModelBase(Global global)
 		{
 			_configFilePath = global.Config.FilePath;
 
-			SaveTimer = new Timer(1000);
-			SaveTimer.Elapsed += Save;
-			SaveTimer.AutoReset = false;
+			SaveSubject = new Subject<Config>();
+			SaveSubject
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Throttle(TimeSpan.FromMilliseconds(1000))
+				.Where(x => !global.Config.AreDeepEqual(x))
+				.Subscribe(x => x.ToFile());
 		}
 
-		public Timer SaveTimer { get; }
+		private static object ConfigLock { get; } = new ();
 
-		private static object ConfigLock { get; } = new();
+		private Subject<Config> SaveSubject { get; }
 
-		protected void RequestSave()
-		{
-			// This will prevent multiple save in a moment
-			SaveTimer.Stop();
-			SaveTimer.Start();
-		}
-
-		private void Save(object sender, ElapsedEventArgs e)
+		protected void Save()
 		{
 			if (Validations.Any)
 			{
@@ -42,12 +39,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			var config = new Config(_configFilePath);
 
-			// var subject = new Subject<Config>();
-			// subject
-			// 	.Throttle(TimeSpan.FromMilliseconds(1000))
-			// 	.Subscribe(x => x.ToFile());
-			//
-			// subject.OnNext(config);
 			Dispatcher.UIThread.PostLogException(
 				() =>
 				{
@@ -55,7 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					{
 						config.LoadFile();
 						EditConfigOnSave(config);
-						config.ToFile();
+						SaveSubject.OnNext(config);
 
 						// IsModified = !Global.Config.AreDeepEqual(config);
 					}
@@ -63,10 +54,5 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		}
 
 		protected abstract void EditConfigOnSave(Config config);
-
-		public virtual void Dispose()
-		{
-			SaveTimer.Dispose();
-		}
 	}
 }

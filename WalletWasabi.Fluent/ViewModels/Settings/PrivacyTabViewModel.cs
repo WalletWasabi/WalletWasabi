@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					x => x.MediumPrivacyLevel,
 					x => x.StrongPrivacyLevel)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(_ => RequestSave());
+				.Subscribe(_ => Save());
 
 			this.WhenAnyValue(x => x.MinimalPrivacyLevel)
 				.Subscribe(

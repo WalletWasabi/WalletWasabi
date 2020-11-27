@@ -37,7 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			this.WhenAnyValue(x => x.DustThreshold)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(_ => RequestSave());
+				.Subscribe(_ => Save());
 
 			this.WhenAnyValue(x => x.DarkModeEnabled)
 				.Skip(1)
