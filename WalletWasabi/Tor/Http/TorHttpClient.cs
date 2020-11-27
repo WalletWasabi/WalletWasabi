@@ -1,5 +1,4 @@
 using System;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,18 +15,13 @@ namespace WalletWasabi.Tor.Http
 			TorSocks5ClientPool = pool;
 		}
 
+		/// <inheritdoc/>
 		public Func<Uri> DestinationUriAction { get; }
-		private EndPoint? TorSocks5EndPoint { get; }
-
-		private TorSocks5ClientPool? TorSocks5ClientPool { get; }
 
 		/// <inheritdoc/>
 		public bool DefaultIsolateStream { get; }
 
-		private Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
-		{
-			return new ClearnetHttpClient(DestinationUriAction).SendAsync(request, cancellationToken);
-		}
+		private TorSocks5ClientPool TorSocks5ClientPool { get; }
 
 		/// <remarks>
 		/// Throws <see cref="OperationCanceledException"/> if <paramref name="token"/> is set.
@@ -54,15 +48,7 @@ namespace WalletWasabi.Tor.Http
 		/// <exception cref="OperationCanceledException">If <paramref name="token"/> is set.</exception>
 		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default)
 		{
-			// Use clearnet HTTP client when Tor is disabled.
-			if (TorSocks5EndPoint is null)
-			{
-				return await ClearnetRequestAsync(request, token).ConfigureAwait(false);
-			}
-			else
-			{
-				return await TorSocks5ClientPool!.SendAsync(request, isolateStream, token).ConfigureAwait(false);
-			}
+			return await TorSocks5ClientPool!.SendAsync(request, isolateStream, token).ConfigureAwait(false);
 		}
 	}
 }
