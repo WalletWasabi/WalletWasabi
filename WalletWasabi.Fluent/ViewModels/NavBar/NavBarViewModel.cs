@@ -117,13 +117,13 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 		private void SetSelectedItem(NavBarItemViewModel? value)
 		{
-			if (_selectedItem == value)
-			{
-				return;
-			}
-
 			if (value is null || value.Mode == NavBarItemSelectionMode.Selected)
 			{
+				if (_selectedItem == value)
+				{
+					return;
+				}
+
 				if (_selectedItem is { })
 				{
 					_selectedItem.IsSelected = false;
