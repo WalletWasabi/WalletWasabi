@@ -1047,7 +1047,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			}
 			for (var i = 0; i < 100; i++)
 			{
-				cjtx.Outputs.Add(Money.Coins(0.1m), Script.Empty);
+				cjtx.Outputs.Add(Money.Coins(0.1m), new Key());
 			}
 			cjtx.Inputs.Add(receivedCoin.OutPoint, Script.Empty, WitScript.Empty);
 			cjtx.Outputs.Add(Money.Coins(0.1m), transactionProcessor.NewKey("").P2wpkhScript);
