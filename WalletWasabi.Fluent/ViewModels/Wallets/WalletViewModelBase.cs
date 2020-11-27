@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 
