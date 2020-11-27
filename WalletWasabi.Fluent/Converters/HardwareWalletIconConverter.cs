@@ -25,8 +25,7 @@ namespace WalletWasabi.Fluent.Converters
 				{
 					case Hwi.Models.HardwareWalletModels.Coldcard:
 					case Hwi.Models.HardwareWalletModels.Coldcard_Simulator:
-						//uri = new ("avares://WalletWasabi.Fluent/Assets/HardwareIcons/coldcard.png");
-						uri = new("avares://WalletWasabi.Fluent/Assets/HardwareIcons/ledger.png");
+						uri = new ("avares://WalletWasabi.Fluent/Assets/HardwareIcons/coldcard.png");						
 						break;
 
 					case Hwi.Models.HardwareWalletModels.Trezor_1:

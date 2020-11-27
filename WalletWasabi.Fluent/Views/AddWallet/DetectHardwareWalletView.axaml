@@ -42,37 +42,18 @@
 
     <DockPanel>
       <Button DockPanel.Dock="Bottom" HorizontalAlignment="Center" Classes="h8 plain activeHyperLink"  Foreground="{DynamicResource SystemAccentColor}" Content="More information and help with Hardware Wallets"  />
-      <Panel>
-        <ListBox IsVisible="{Binding WalletListVisible}" Background="Transparent" Items="{Binding HardwareWallets}" SelectedItem="{Binding SelectedHardwareWallet}">
-          <ListBox.ItemsPanel>
-            <ItemsPanelTemplate>
-              <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" />
-            </ItemsPanelTemplate>
-          </ListBox.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <Button Classes="plain" Command="{Binding OpenCommand}" Height="200" Width="150" Margin="8">
-                <StackPanel>
-                  <Image Source="{Binding Path='.' Converter={x:Static conv:HardwareWalletIconConverter.Instance}}" />
-                  <TextBlock Text="{Binding WalletName}" HorizontalAlignment="Center" />
-                </StackPanel>
-              </Button>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ListBox>
-        <DockPanel IsVisible="{Binding !WalletListVisible}">
-          <StackPanel VerticalAlignment="Top" Spacing="40" DockPanel.Dock="Top" Margin="0 20 0 0">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="40">
-              <Image Height="100" Source="/Assets/HardwareIcons/ledger.png" />
-              <Image Height="100" Source="/Assets/HardwareIcons/coldcard.png" />
-              <Image Height="100" Source="/Assets/HardwareIcons/trezor.png" />
-              <Image Height="100" Source="/Assets/HardwareIcons/generic.png" />
-            </StackPanel>
-            <TextBlock Text="Connect your Wallet to the USB Port on your PC and Login / Enter the PIN on the Wallet" HorizontalAlignment="Center" />
+      <DockPanel IsVisible="{Binding !WalletListVisible}">
+        <StackPanel VerticalAlignment="Top" Spacing="40" DockPanel.Dock="Top" Margin="0 20 0 0">
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="40">
+            <Image Height="100" Source="/Assets/HardwareIcons/ledger.png" />
+            <Image Height="100" Source="/Assets/HardwareIcons/coldcard.png" />
+            <Image Height="100" Source="/Assets/HardwareIcons/trezor.png" />
+            <Image Height="100" Source="/Assets/HardwareIcons/generic.png" />
           </StackPanel>
-          <c:ProgressRing IsIndeterminate="True" VerticalAlignment="Center" Height="100" Width="100" />
-        </DockPanel>
-      </Panel>
+          <TextBlock Text="Connect your Wallet to the USB Port on your PC and Login / Enter the PIN on the Wallet" HorizontalAlignment="Center" />
+        </StackPanel>
+        <c:ProgressRing IsIndeterminate="True" VerticalAlignment="Center" Height="100" Width="100" />
+      </DockPanel>
     </DockPanel>
   </c:ContentArea>
 </UserControl>
