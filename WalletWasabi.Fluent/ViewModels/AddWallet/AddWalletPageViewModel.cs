@@ -10,13 +10,13 @@ using WalletWasabi.Stores;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using System.Threading.Tasks;
-using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Legal;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public class AddWalletPageViewModel : NavBarItemViewModel
 	{

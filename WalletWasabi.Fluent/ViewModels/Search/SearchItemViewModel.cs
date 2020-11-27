@@ -1,7 +1,7 @@
 using System;
-using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Search
 {
