@@ -175,7 +175,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					var detectedHardwareWallets = (await HwiClient.EnumerateAsync(timeoutCts.Token).ConfigureAwait(false)).Select(x => new HardwareWalletViewModel(x)).ToArray();
 					detectionCts.Token.ThrowIfCancellationRequested();
 
-					// The wallets that are already exists in the wallets.
+					// The wallets that already exist in the software.
 					var alreadyExistingWalletsToRemove = detectedHardwareWallets.Where(wallet => WalletManager.GetWallets().Any(x => x.KeyManager.MasterFingerprint == wallet.HardwareWalletInfo.Fingerprint));
 					// The wallets that are not detectable since the last enumeration.
 					var disconnectedWalletsToRemove = HardwareWallets.Except(detectedHardwareWallets);
