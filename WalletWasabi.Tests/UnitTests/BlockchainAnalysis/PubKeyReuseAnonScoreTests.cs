@@ -29,7 +29,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 
 			analyser.Analyze(tx);
 
-			Assert.All(tx.WalletInputs, x => Assert.Equal(100, x.HdPubKey.AnonymitySet));
+			Assert.All(tx.WalletInputs, x => Assert.True(x.HdPubKey.AnonymitySet < 30));
 
 			// It should be smaller than 30, because reuse also gets punishment.
 			Assert.True(tx.WalletOutputs.First().HdPubKey.AnonymitySet < 30);
