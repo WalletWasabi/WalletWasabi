@@ -218,8 +218,8 @@ namespace WalletWasabi.Blockchain.Transactions
 			Logger.LogInfo("Signing transaction...");
 			// It must be watch only, too, because if we have the key and also hardware wallet, we do not care we can sign.
 
-			psbt.AddPrevTxs(TransactionStore);
 			psbt.AddKeyPaths(KeyManager);
+			psbt.AddPrevTxs(TransactionStore);
 
 			Transaction tx;
 			if (KeyManager.IsWatchOnly)
@@ -238,8 +238,8 @@ namespace WalletWasabi.Blockchain.Transactions
 				{
 					psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
 					isPayjoin = true;
-					psbt.AddPrevTxs(TransactionStore);
 					psbt.AddKeyPaths(KeyManager);
+					psbt.AddPrevTxs(TransactionStore);
 				}
 
 				psbt.Finalize();
