@@ -13,6 +13,8 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class AboutViewModel : RoutableViewModel
 	{
+		private string _currentBackendMajorVersion;
+
 		public AboutViewModel(NavigationStateViewModel navigationState) : base(navigationState,
 			NavigationTarget.HomeScreen)
 		{
@@ -27,7 +29,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
 		public Version ClientVersion { get; } = Constants.ClientVersion;
 		public string BackendCompatibleVersions { get; } = Constants.ClientSupportBackendVersionText;
-		private string _currentBackendMajorVersion;
 
 		public string CurrentBackendMajorVersion
 		{
