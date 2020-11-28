@@ -22,18 +22,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		private string _walletName = "";
 		private bool _optionsEnabled;
+		protected LegalDocuments _legalDocuments;
 
 		public AddWalletPageViewModel(NavigationStateViewModel navigationState, LegalDocuments legalDocuments, WalletManager walletManager,
-			BitcoinStore store, Network network) : base(navigationState, NavigationTarget.DialogScreen)
+			BitcoinStore store, Network network) : base(navigationState)
 		{
 			Title = "Add Wallet";
-
-			OpenCommand = ReactiveCommand.Create(
-				() =>
-				{
-					var termsAndConditions = new TermsAndConditionsViewModel(navigationState, legalDocuments, this);
-					termsAndConditions.NavigateToSelf();
-				});
+			_legalDocuments = legalDocuments;
 
 			this.WhenAnyValue(x => x.WalletName)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -42,7 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			RecoverWalletCommand = ReactiveCommand.Create(() =>
 			{
-				NavigateTo(new RecoverWalletViewModel(navigationState, WalletName, network, walletManager), NavigationTarget.DialogScreen);
+				NavigateTo(new RecoverWalletViewModel(navigationState, WalletName, network, walletManager));
 			});
 
 			ImportWalletCommand = ReactiveCommand.Create(() => new ImportWalletViewModel(navigationState, WalletName, walletManager));
@@ -57,7 +52,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				{
 					var result = await NavigateDialog(new EnterPasswordViewModel(
 						navigationState,
-						NavigationTarget.DialogScreen,
 						"Type the password of the wallet and click Continue."));
 
 					if (result is { } password)
@@ -83,12 +77,22 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				});
 
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
+		}
 
-			this.WhenNavigatedTo(() =>
+		public override NavigationTarget DefaultTarget => NavigationTarget.DialogScreen;
+
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		{
+			base.OnNavigatedTo(inStack, disposable);
+
+			this.RaisePropertyChanged(WalletName);
+
+			if (!inStack)
 			{
-				this.RaisePropertyChanged(WalletName);
-				return Disposable.Empty;
-			});
+				var termsAndConditions = new TermsAndConditionsViewModel(NavigationState, _legalDocuments, this);
+
+				NavigateTo(termsAndConditions);
+			}
 		}
 
 		private void ValidateWalletName(IValidationErrors errors, WalletManager walletManager, string walletName)

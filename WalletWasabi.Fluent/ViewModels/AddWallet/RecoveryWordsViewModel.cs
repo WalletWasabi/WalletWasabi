@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			KeyManager keyManager,
 			Mnemonic mnemonic,
 			WalletManager walletManager)
-			: base(navigationState, NavigationTarget.DialogScreen)
+			: base(navigationState)
 		{
 			MnemonicWords = new List<RecoveryWordViewModel>();
 
@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			NextCommand = ReactiveCommand.Create(
 				() => NavigateTo(new ConfirmRecoveryWordsViewModel(navigationState, MnemonicWords, keyManager, walletManager), NavigationTarget.DialogScreen));
 
-			CancelCommand = ReactiveCommand.Create(() => ClearNavigation(NavigationTarget.DialogScreen));
+			CancelCommand = ReactiveCommand.Create(() => ClearNavigation());
 		}
 
 		public List<RecoveryWordViewModel> MnemonicWords { get; set; }
