@@ -58,7 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			AdvancedOptionsInteraction.RegisterHandler(
 				async interaction =>
 					interaction.SetOutput(
-						await new AdvancedRecoveryOptionsViewModel(navigationState, NavigationTarget.DialogHost, interaction.Input).ShowDialogAsync()));
+						await new AdvancedRecoveryOptionsViewModel(navigationState, interaction.Input).ShowDialogAsync()));
 
 			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -84,7 +84,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				var result = await NavigateDialog(
 					new EnterPasswordViewModel(
 						navigationState,
-						NavigationTarget.DialogScreen,
 						"Type the password of the wallet to be able to recover and click Continue."));
 
 				if (result is { } password)
@@ -113,7 +112,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 			finally
 			{
-				ClearNavigation(NavigationTarget.DialogScreen);
+				ClearNavigation();
 				IsBusy = false;
 			}
 		}

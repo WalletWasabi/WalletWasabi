@@ -55,10 +55,13 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		}
 
 		public async Task<TResult> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog)
+			=> await NavigateDialog(dialog, CurrentTarget);
+
+		public async Task<TResult> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target)
 		{
 			TResult result;
 
-			using (NavigateTo(dialog, NavigationTarget.DialogScreen))
+			using (NavigateTo(dialog, target))
 			{
 				result = await dialog.GetDialogResultAsync();
 			}
@@ -217,7 +220,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			}
 		}
 
-		public void ClearNavigation(NavigationTarget navigationTarget)
+		private void ClearNavigation(NavigationTarget navigationTarget)
 		{
 			var router = GetRouter();
 			if (router is not null)
@@ -233,6 +236,6 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			}
 		}
 
-		public void ClearNavigation() => ClearNavigation();
+		public void ClearNavigation() => ClearNavigation(CurrentTarget);
 	}
 }

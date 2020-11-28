@@ -47,7 +47,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				{
 					var result = await NavigateDialog(new EnterPasswordViewModel(
 						navigationState,
-						NavigationTarget.DialogScreen,
 						"Type the password of the wallet and click Continue."));
 
 					if (result is { } password)
