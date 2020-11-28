@@ -30,13 +30,7 @@
       <TextBlock Text="Network" />
       <ComboBox HorizontalAlignment="Stretch"
                 Items="{Binding Networks}"
-                SelectedItem="{Binding Network}">
-        <!--<ComboBox.ItemTemplate>
-                      <DataTemplate>
-                        <TextBlock Text="{Binding Converter={StaticResource NetworkStringConverter}}" />
-                      </DataTemplate>
-                    </ComboBox.ItemTemplate>-->
-      </ComboBox>
+                SelectedItem="{Binding Network}"/>
     </StackPanel>
 
     <DockPanel>
