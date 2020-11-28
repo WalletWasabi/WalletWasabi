@@ -1,5 +1,3 @@
-using System;
-using System.Reactive;
 using System.Reactive.Disposables;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;

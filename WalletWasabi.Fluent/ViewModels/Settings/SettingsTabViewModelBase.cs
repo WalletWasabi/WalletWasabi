@@ -5,11 +5,6 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public class RestartNeededEventArgs : EventArgs
-	{
-		public bool IsRestartNeeded { get; init; }
-	}
-
 	public abstract class SettingsTabViewModelBase : ViewModelBase
 	{
 		protected const int ThrottleTime = 500;
