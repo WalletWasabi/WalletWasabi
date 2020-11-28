@@ -13,10 +13,15 @@ namespace WalletWasabi.Tor
 {
 	/// <summary>
 	/// Monitors Tor process.
+	/// <para>
+	/// Monitor checks periodically (every 3 seconds) whether Tor reported an error or not.
+	/// Recovery process is simply an attempt to restart Tor process again. This is no-op when Tor is running.
+	/// </para>
 	/// </summary>
 	public class TorMonitor : PeriodicRunner
 	{
-		public static readonly TimeSpan CheckIfRunningAfterTorMisbehavedFor = TimeSpan.FromSeconds(7);
+		/// <summary></summary>
+		private static readonly TimeSpan MisbehaviorCheckPeriod = TimeSpan.FromSeconds(7);
 
 		/// <summary>
 		/// Creates a new instance of the object.
@@ -40,7 +45,7 @@ namespace WalletWasabi.Tor
 			{
 				TimeSpan torMisbehavedFor = DateTimeOffset.UtcNow - Pool.TorDoesntWorkSince ?? TimeSpan.Zero;
 
-				if (torMisbehavedFor > CheckIfRunningAfterTorMisbehavedFor)
+				if (torMisbehavedFor > MisbehaviorCheckPeriod)
 				{
 					if (Pool.LatestTorException is TorConnectCommandFailedException torEx)
 					{
