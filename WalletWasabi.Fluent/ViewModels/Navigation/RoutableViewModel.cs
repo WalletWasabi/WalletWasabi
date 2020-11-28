@@ -45,7 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		public ICommand CancelCommand { get; protected set; }
 
-		private void NavigateTo(bool inStack)
+		private void DoNavigateTo(bool inStack)
 		{
 			if (_currentDisposable is { })
 			{
@@ -61,7 +61,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		{
 		}
 
-		private void NavigateFrom()
+		private void DoNavigateFrom()
 		{
 			OnNavigatedFrom();
 
@@ -137,7 +137,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 			if (NavigationState.HomeScreen().Router.GetCurrentViewModel() is RoutableViewModel rvm)
 			{
-				rvm.NavigateFrom();
+				rvm.DoNavigateFrom();
 			}
 
 			var command = resetNavigation ?
@@ -148,7 +148,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 			command.Execute(viewModel);
 
-			viewModel.NavigateTo(inStack);
+			viewModel.DoNavigateTo(inStack);
 		}
 
 		private void NavigateToDialogScreen(RoutableViewModel viewModel, bool resetNavigation)
@@ -157,7 +157,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 			if (NavigationState.DialogScreen().Router.GetCurrentViewModel() is RoutableViewModel rvm)
 			{
-				rvm.NavigateFrom();
+				rvm.DoNavigateFrom();
 			}
 
 			var command = resetNavigation ?
@@ -168,7 +168,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 			command.Execute(viewModel);
 
-			viewModel.NavigateTo(inStack);
+			viewModel.DoNavigateTo(inStack);
 		}
 
 		private void NavigateToDialogHost(DialogViewModelBase dialog)
@@ -179,12 +179,12 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			{
 				if (dialogHost.CurrentDialog is RoutableViewModel rvm)
 				{
-					rvm.NavigateFrom();
+					rvm.DoNavigateFrom();
 				}
 
 				dialogHost.CurrentDialog = dialog;
 
-				dialog.NavigateTo(false);
+				dialog.DoNavigateTo(false);
 			}
 		}
 
@@ -212,7 +212,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			return router;
 		}
 
-		private void CloseDialogs(IEnumerable<IRoutableViewModel> navigationStack)
+		private void ClearStack(IEnumerable<IRoutableViewModel> navigationStack)
 		{
 			foreach (var routable in navigationStack)
 			{
@@ -222,6 +222,11 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 				if (routable is DialogViewModelBase dialog)
 				{
 					dialog.IsDialogOpen = false;
+				}
+
+				if (routable is RoutableViewModel rvm)
+				{
+					rvm.DoNavigateFrom();
 				}
 			}
 		}
@@ -239,7 +244,17 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 					dialog.IsDialogOpen = false;
 				}
 
+				if (router.NavigationStack.LastOrDefault() is RoutableViewModel rvmFrom)
+				{
+					rvmFrom.DoNavigateFrom();
+				}
+
 				router.NavigateBack.Execute();
+
+				if (router.NavigationStack.LastOrDefault() is RoutableViewModel rvmTo)
+				{
+					rvmTo.DoNavigateTo(true);
+				}
 			}
 		}
 
@@ -254,7 +269,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 					router.NavigationStack.Clear();
 
-					CloseDialogs(navigationStack);
+					ClearStack(navigationStack);
 				}
 			}
 		}
