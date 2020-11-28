@@ -130,7 +130,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 		{
 			return new(
 				title: "About Wasabi",
-				caption: "Displays all the current & relevant info about the app.",
+				caption: "Displays all the current info about the app.",
 				order: order,
 				category: category,
 				keywords: "About, Software, Version",
