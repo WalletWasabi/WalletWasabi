@@ -5,6 +5,7 @@
              xmlns:v="using:WalletWasabi.Fluent.Views.Settings"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:settings="clr-namespace:WalletWasabi.Fluent.ViewModels.Settings"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="settings:SettingsPageViewModel"
              x:CompileBindings="True"
@@ -22,31 +23,33 @@
       <Setter Property="Padding" Value="0" />
     </Style>
   </UserControl.Styles>
-  <c:ContentArea Title="Settings" Caption="Manage appearance, privacy and other settings">
-    <DockPanel LastChildFill="True">
+  <DockPanel LastChildFill="True">
+    <c:InfoMessage Content="Changes will be applied after restarting the application."
+                   Foreground="{StaticResource WarningMessageForeground}"
+                   Opacity="{Binding IsModified, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"
+                   DockPanel.Dock="Bottom" />
 
-      <c:InfoMessage Content="Changes will be applied after restarting the application."
-                     Foreground="{StaticResource WarningMessageForeground}"
-                     IsVisible="{Binding IsModified}"
-                     DockPanel.Dock="Bottom" />
+    <c:ContentArea Title="Settings" Caption="Manage appearance, privacy and other settings">
+      <DockPanel LastChildFill="True">
 
-      <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}">
-        <TabItem Header="General">
-          <v:GeneralSettingsView />
-        </TabItem>
+        <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}">
+          <TabItem Header="General">
+            <v:GeneralSettingsView />
+          </TabItem>
 
-        <TabItem Header="Privacy">
-           <v:PrivacySettingsView />
-        </TabItem>
+          <TabItem Header="Privacy">
+             <v:PrivacySettingsView />
+          </TabItem>
 
-        <TabItem Header="Network">
-          <v:NetworkSettingsView />
-        </TabItem>
+          <TabItem Header="Network">
+            <v:NetworkSettingsView />
+          </TabItem>
 
-        <TabItem Header="Bitcoin">
-          <v:BitCoinSettingsView />
-        </TabItem>
-      </TabControl>
-    </DockPanel>
-  </c:ContentArea>
+          <TabItem Header="Bitcoin">
+            <v:BitCoinSettingsView />
+          </TabItem>
+        </TabControl>
+      </DockPanel>
+    </c:ContentArea>
+  </DockPanel>
 </UserControl>

@@ -1,8 +1,10 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters">
 
   <Style Selector="c|InfoMessage">
+    <Setter Property="IsVisible" x:CompileBindings="False" Value="{Binding $self.Opacity, Converter={x:Static conv:BoolOpacityConverters.OpacityToBool}}" />
     <Setter Property="Template">
       <ControlTemplate>
         <DockPanel Background="{TemplateBinding Background}">
@@ -21,6 +23,19 @@
         </DockPanel>
       </ControlTemplate>
     </Setter>
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="c|InfoMessage[IsVisible=True]">
+    <Setter Property="Opacity" Value="1"/>
+  </Style>
+
+  <Style Selector="c|InfoMessage[IsVisible=True]">
+    <Setter Property="Opacity" Value="1"/>
   </Style>
 
   <Style Selector="c|InfoMessage :is(TextBlock)">
