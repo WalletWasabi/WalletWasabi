@@ -25,11 +25,10 @@
   <c:ContentArea Title="Settings" Caption="Manage appearance, privacy and other settings">
     <DockPanel LastChildFill="True">
 
-      <!-- <StackPanel IsVisible="{Binding IsModified}" DockPanel.Dock="Bottom" Orientation="Horizontal"> -->
-      <DockPanel DockPanel.Dock="Bottom">
-        <PathIcon Data="{StaticResource info_regular}" Foreground="{StaticResource WarningMessageForeground}" DockPanel.Dock="Left" VerticalAlignment="Top" Width="20" Height="20"/>
-        <TextBlock Text="Changes will be applied after restarting the application." TextWrapping="Wrap" Foreground="{StaticResource WarningMessageForeground}" Margin="10 2 0 0"/>
-      </DockPanel>
+      <c:InfoMessage Content="Changes will be applied after restarting the application."
+                     Foreground="{StaticResource WarningMessageForeground}"
+                     IsVisible="{Binding IsModified}"
+                     DockPanel.Dock="Bottom" />
 
       <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}">
         <TabItem Header="General">

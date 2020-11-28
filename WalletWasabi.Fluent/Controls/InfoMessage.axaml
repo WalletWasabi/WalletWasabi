@@ -1,0 +1,29 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:WalletWasabi.Fluent.Controls">
+
+  <Style Selector="c|InfoMessage">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DockPanel Background="{TemplateBinding Background}">
+
+          <PathIcon Data="{StaticResource info_regular}"
+                    Foreground="{TemplateBinding Foreground}"
+                    DockPanel.Dock="Left"
+                    VerticalAlignment="Top"
+                    Width="{TemplateBinding IconSize}"
+                    Height="{TemplateBinding IconSize}"/>
+
+          <ContentPresenter Name="PART_ContentPresenter"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Content="{TemplateBinding Content}"
+                            Margin="10 2 0 0"/>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+  <Style Selector="c|InfoMessage :is(TextBlock)">
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+</Styles>
