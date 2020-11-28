@@ -1,34 +1,37 @@
 ﻿using System;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Timers;
 using Avalonia.Threading;
-using ReactiveUI;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
+	public class RestartNeedEventArgs : EventArgs
+	{
+		public bool IsRestartNeeded { get; set; }
+	}
+
 	public abstract class SettingsViewModelBase : ViewModelBase
 	{
+		public static event EventHandler<RestartNeedEventArgs>? RestartNeeded;
+
 		protected SettingsViewModelBase(Global global)
 		{
-			Global = global;
+			ConfigOnOpen = new Config(global.Config.FilePath);
+			ConfigOnOpen.LoadFile();
 		}
 
-		public Global Global { get; }
+		public static Config? ConfigOnOpen { get; set; }
 
 		private static object ConfigLock { get; } = new ();
 
 		protected void Save()
 		{
-			if (Validations.Any)
+			if (Validations.Any || ConfigOnOpen is null)
 			{
 				return;
 			}
 
-			var config = new Config(Global.Config.FilePath);
+			var config = new Config(ConfigOnOpen.FilePath);
 
 			Dispatcher.UIThread.PostLogException(
 				() =>
@@ -38,12 +41,14 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 						config.LoadFile();
 						EditConfigOnSave(config);
 
-						if (!Global.Config.AreDeepEqual(config))
+						var isRestartNeeded = !ConfigOnOpen.AreDeepEqual(config);
+
+						if (isRestartNeeded)
 						{
 							config.ToFile();
 						}
 
-						// IsModified = !Global.Config.AreDeepEqual(config);
+						RestartNeeded?.Invoke(this, new RestartNeedEventArgs{IsRestartNeeded = isRestartNeeded});
 					}
 				});
 		}

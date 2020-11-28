@@ -1,4 +1,5 @@
 using System;
+using System.Reactive;
 using System.Reactive.Disposables;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
@@ -17,19 +18,14 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			_selectedTab = 0;
 
-			// TODO: Restart wasabi message
-			// IsModified = !Global.Config.AreDeepEqual(config);
-
 			this.WhenNavigatedTo(() =>
 			{
-				// TODO: Is it possible to Global.Config is not up to date?
-				// var config = new Config(global.Config.FilePath);
-				// config.LoadOrCreateDefaultFile();
-
 				GeneralTab = new GeneralTabViewModel(global);
 				PrivacyTab = new PrivacyTabViewModel(global);
 				NetworkTab = new NetworkTabViewModel(global);
 				BitcoinTab = new BitcoinTabViewModel(global);
+
+				SettingsViewModelBase.RestartNeeded += OnRestartNeeded;
 
 				return Disposable.Create(() =>
 				{
@@ -37,6 +33,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					PrivacyTab = null;
 					NetworkTab = null;
 					BitcoinTab = null;
+
+					SettingsViewModelBase.RestartNeeded -= OnRestartNeeded;
 				});
 			});
 		}
@@ -59,5 +57,10 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		}
 
 		public override string IconName => "settings_regular";
+
+		private void OnRestartNeeded(object? sender, RestartNeedEventArgs e)
+		{
+			IsModified = e.IsRestartNeeded;
+		}
 	}
 }

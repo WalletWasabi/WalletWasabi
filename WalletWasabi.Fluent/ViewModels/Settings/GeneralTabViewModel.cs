@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Validation;
