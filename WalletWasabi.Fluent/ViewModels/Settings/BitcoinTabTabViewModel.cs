@@ -12,7 +12,7 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public class BitcoinTabViewModel : SettingsViewModelBase
+	public class BitcoinTabTabViewModel : SettingsTabViewModelBase
 	{
 		private Network _network;
 		private bool _startLocalBitcoinCoreOnStartup;
@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private bool _stopLocalBitcoinCoreOnShutdown;
 		private string _bitcoinP2PEndPoint;
 
-		public BitcoinTabViewModel(Global global) : base(global)
+		public BitcoinTabTabViewModel(Global global) : base(global)
 		{
 			this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 

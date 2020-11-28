@@ -5,16 +5,16 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public class RestartNeedEventArgs : EventArgs
+	public class RestartNeededEventArgs : EventArgs
 	{
 		public bool IsRestartNeeded { get; init; }
 	}
 
-	public abstract class SettingsViewModelBase : ViewModelBase
+	public abstract class SettingsTabViewModelBase : ViewModelBase
 	{
-		public static event EventHandler<RestartNeedEventArgs>? RestartNeeded;
+		public static event EventHandler<RestartNeededEventArgs>? RestartNeeded;
 
-		protected SettingsViewModelBase(Global global)
+		protected SettingsTabViewModelBase(Global global)
 		{
 			ConfigOnOpen = new Config(global.Config.FilePath);
 			ConfigOnOpen.LoadFile();
@@ -81,7 +81,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			var configChanged = !ConfigOnOpen.AreDeepEqual(currentConfig);
 
-			RestartNeeded?.Invoke(typeof(SettingsViewModelBase), new RestartNeedEventArgs{IsRestartNeeded = uiConfigChanged || configChanged});
+			RestartNeeded?.Invoke(typeof(SettingsTabViewModelBase), new RestartNeededEventArgs{IsRestartNeeded = uiConfigChanged || configChanged});
 		}
 	}
 }

@@ -10,13 +10,13 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public class NetworkTabViewModel : SettingsViewModelBase
+	public class NetworkTabTabViewModel : SettingsTabViewModelBase
 	{
 		private bool _useTor;
 		private bool _terminateTorOnExit;
 		private string _torSocks5EndPoint;
 
-		public NetworkTabViewModel(Global global) : base(global)
+		public NetworkTabTabViewModel(Global global) : base(global)
 		{
 			this.ValidateProperty(x => x.TorSocks5EndPoint, ValidateTorSocks5EndPoint);
 

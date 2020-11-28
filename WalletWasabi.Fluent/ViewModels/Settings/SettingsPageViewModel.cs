@@ -20,12 +20,12 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			this.WhenNavigatedTo(() =>
 			{
-				GeneralTab = new GeneralTabViewModel(global);
-				PrivacyTab = new PrivacyTabViewModel(global);
-				NetworkTab = new NetworkTabViewModel(global);
-				BitcoinTab = new BitcoinTabViewModel(global);
+				GeneralTab = new GeneralTabTabViewModel(global);
+				PrivacyTab = new PrivacyTabTabViewModel(global);
+				NetworkTab = new NetworkTabTabViewModel(global);
+				BitcoinTab = new BitcoinTabTabViewModel(global);
 
-				SettingsViewModelBase.RestartNeeded += OnRestartNeeded;
+				SettingsTabViewModelBase.RestartNeeded += OnRestartNeeded;
 
 				return Disposable.Create(() =>
 				{
@@ -34,15 +34,15 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					NetworkTab = null;
 					BitcoinTab = null;
 
-					SettingsViewModelBase.RestartNeeded -= OnRestartNeeded;
+					SettingsTabViewModelBase.RestartNeeded -= OnRestartNeeded;
 				});
 			});
 		}
 
-		public GeneralTabViewModel? GeneralTab { get; set; }
-		public PrivacyTabViewModel? PrivacyTab { get; set; }
-		public NetworkTabViewModel? NetworkTab { get; set; }
-		public BitcoinTabViewModel? BitcoinTab { get; set; }
+		public GeneralTabTabViewModel? GeneralTab { get; set; }
+		public PrivacyTabTabViewModel? PrivacyTab { get; set; }
+		public NetworkTabTabViewModel? NetworkTab { get; set; }
+		public BitcoinTabTabViewModel? BitcoinTab { get; set; }
 
 		public bool IsModified
 		{
@@ -58,7 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		public override string IconName => "settings_regular";
 
-		private void OnRestartNeeded(object? sender, RestartNeedEventArgs e)
+		private void OnRestartNeeded(object? sender, RestartNeededEventArgs e)
 		{
 			IsModified = e.IsRestartNeeded;
 		}
