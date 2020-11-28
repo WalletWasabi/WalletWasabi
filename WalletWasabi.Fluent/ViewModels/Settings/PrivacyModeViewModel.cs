@@ -1,0 +1,61 @@
+﻿using System;
+using System.Reactive.Linq;
+using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Gui;
+
+namespace WalletWasabi.Fluent.ViewModels.Settings
+{
+	public class PrivacyModeViewModel : NavBarItemViewModel
+	{
+		private bool _privacyMode;
+
+		public PrivacyModeViewModel(NavigationStateViewModel navigationState, Global global)
+			: base(navigationState, NavigationTarget.HomeScreen, NavBarItemSelectionMode.Toggle)
+		{
+			_privacyMode = global.UiConfig.PrivacyMode;
+
+			ToggleTitle();
+
+			this.WhenAnyValue(x => x.PrivacyMode)
+				.Skip(1)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(x =>
+				{
+					ToggleTitle();
+					this.RaisePropertyChanged(nameof(IconName));
+					global.UiConfig.PrivacyMode = x;
+				});
+
+			this.WhenAnyValue(x => x.PrivacyMode)
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Throttle(TimeSpan.FromSeconds(1))
+				.Skip(1)
+				.Subscribe(_ => Save());
+		}
+
+		public override string IconName => _privacyMode ? "privacy_mode_on" : "privacy_mode_off";
+
+		public bool PrivacyMode
+		{
+			get => _privacyMode;
+			set => this.RaiseAndSetIfChanged(ref _privacyMode, value);
+		}
+
+		public override void Toggle()
+		{
+			PrivacyMode = !PrivacyMode;
+		}
+
+		private void ToggleTitle()
+		{
+			Title = $"Privacy Mode {(_privacyMode ? "(On)" : "(Off)")}";
+		}
+
+		private void Save()
+		{
+			// TODO:
+		}
+	}
+}
