@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 {
 	public class RestartNeedEventArgs : EventArgs
 	{
-		public bool IsRestartNeeded { get; set; }
+		public bool IsRestartNeeded { get; init; }
 	}
 
 	public abstract class SettingsViewModelBase : ViewModelBase
@@ -18,13 +18,16 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		{
 			ConfigOnOpen = new Config(global.Config.FilePath);
 			ConfigOnOpen.LoadFile();
+
+			UiConfigOnOpen = new UiConfig(global.UiConfig.FilePath);
+			UiConfigOnOpen.LoadFile();
 		}
 
 		public static Config? ConfigOnOpen { get; set; }
-
+		public static UiConfig? UiConfigOnOpen { get; set; }
 		private static object ConfigLock { get; } = new ();
 
-		protected void Save()
+		protected void Save(object darkMode = null!)
 		{
 			if (Validations.Any || ConfigOnOpen is null)
 			{
@@ -40,19 +43,45 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					{
 						config.LoadFile();
 						EditConfigOnSave(config);
+						config.ToFile();
 
-						var isRestartNeeded = !ConfigOnOpen.AreDeepEqual(config);
-
-						if (isRestartNeeded)
-						{
-							config.ToFile();
-						}
-
-						RestartNeeded?.Invoke(this, new RestartNeedEventArgs{IsRestartNeeded = isRestartNeeded});
+						IsRestartNeeded();
 					}
 				});
 		}
 
 		protected abstract void EditConfigOnSave(Config config);
+
+		protected static void IsRestartNeeded(object? darkMode = null)
+		{
+			// When Avalonia improved the theme switching no need to check for UI Config changes,
+			// because we can switch runtime, and it will be unnecessary to show the restart message.
+			// TODO: Is theme switching without UI freeze working?
+
+			if (UiConfigOnOpen is null || ConfigOnOpen is null)
+			{
+				return;
+			}
+
+			var currentConfig = new Config(ConfigOnOpen.FilePath);
+			currentConfig.LoadFile();
+
+			var currentUiConfig = new UiConfig(UiConfigOnOpen.FilePath);
+			currentUiConfig.LoadFile();
+
+			bool uiConfigChanged;
+			if (darkMode is not null)
+			{
+				uiConfigChanged = UiConfigOnOpen.DarkModeEnabled != (bool)darkMode;
+			}
+			else
+			{
+				uiConfigChanged = !UiConfigOnOpen.AreDeepEqual(currentUiConfig);
+			}
+
+			var configChanged = !ConfigOnOpen.AreDeepEqual(currentConfig);
+
+			RestartNeeded?.Invoke(typeof(SettingsViewModelBase), new RestartNeedEventArgs{IsRestartNeeded = uiConfigChanged || configChanged});
+		}
 	}
 }

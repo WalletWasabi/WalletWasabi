@@ -41,7 +41,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			this.WhenAnyValue(x => x.DarkModeEnabled)
 				.Skip(1)
-				.Subscribe(x => global.UiConfig.DarkModeEnabled = x);
+				.Subscribe(x =>
+				{
+					global.UiConfig.DarkModeEnabled = x;
+					IsRestartNeeded(x);
+				});
 
 			this.WhenAnyValue(x => x.Autocopy)
 				.ObserveOn(RxApp.TaskpoolScheduler)
