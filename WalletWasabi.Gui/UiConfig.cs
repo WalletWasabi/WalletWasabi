@@ -33,7 +33,8 @@ namespace WalletWasabi.Gui
 					x => x.Autocopy,
 					x => x.IsCustomFee,
 					x => x.IsCustomChangeAddress,
-					x => x.DarkModeEnabled)
+					x => x.DarkModeEnabled,
+					x => x.FeeDisplayFormat)
 				.Throttle(TimeSpan.FromSeconds(1))
 				.Skip(1) // Won't save on UiConfig creation.
 				.ObserveOn(RxApp.TaskpoolScheduler)
