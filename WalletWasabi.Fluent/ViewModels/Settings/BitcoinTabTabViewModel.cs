@@ -37,7 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					x => x.BitcoinP2PEndPoint,
 					x => x.LocalBitcoinCoreDataDir)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Throttle(TimeSpan.FromSeconds(1))
+				.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 				.Skip(1)
 				.Subscribe(_ => Save());
 		}

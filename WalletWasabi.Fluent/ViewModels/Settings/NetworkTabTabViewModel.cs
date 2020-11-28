@@ -29,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					x => x.UseTor,
 					x => x.TorSocks5EndPoint)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Throttle(TimeSpan.FromSeconds(1))
+				.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 				.Skip(1)
 				.Subscribe(_ => Save());
 		}

@@ -12,6 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 	public abstract class SettingsTabViewModelBase : ViewModelBase
 	{
+		protected const int ThrottleTime = 500;
 		public static event EventHandler<RestartNeededEventArgs>? RestartNeeded;
 
 		protected SettingsTabViewModelBase(Global global)
