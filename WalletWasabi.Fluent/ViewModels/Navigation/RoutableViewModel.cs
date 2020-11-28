@@ -13,6 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 	public abstract class RoutableViewModel : ViewModelBase, IRoutableViewModel
 	{
 		private bool _isBusy;
+		private CompositeDisposable? _currentDisposable;
 		public NavigationTarget CurrentTarget { get; private set; }
 
 		public virtual NavigationTarget DefaultTarget => NavigationTarget.HomeScreen;
@@ -44,14 +45,36 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		public ICommand CancelCommand { get; protected set; }
 
+		private void NavigateTo(bool inStack)
+		{
+			if (_currentDisposable is { })
+			{
+				throw new Exception("Cant navigate to something that has already been navigated to.");
+			}
+
+			_currentDisposable = new CompositeDisposable();
+
+			OnNavigatedTo(inStack, _currentDisposable);
+		}
+
 		protected virtual void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{
+		}
 
+		private void NavigateFrom()
+		{
+			OnNavigatedFrom();
+
+			if (_currentDisposable is null)
+			{
+				throw new Exception("Cant navigate from something that hasnt been navigated to.");
+			}
+			_currentDisposable?.Dispose();
+			_currentDisposable = null;
 		}
 
 		protected virtual void OnNavigatedFrom()
 		{
-
 		}
 
 		public async Task<TResult> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog)
@@ -114,7 +137,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 			if (NavigationState.HomeScreen().Router.GetCurrentViewModel() is RoutableViewModel rvm)
 			{
-				rvm.OnNavigatedFrom();
+				rvm.NavigateFrom();
 			}
 
 			var command = resetNavigation ?
@@ -125,7 +148,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 			command.Execute(viewModel);
 
-			viewModel.OnNavigatedTo(inStack, null);
+			viewModel.NavigateTo(inStack);
 		}
 
 		private void NavigateToDialogScreen(RoutableViewModel viewModel, bool resetNavigation)
@@ -134,7 +157,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 			if (NavigationState.DialogScreen().Router.GetCurrentViewModel() is RoutableViewModel rvm)
 			{
-				rvm.OnNavigatedFrom();
+				rvm.NavigateFrom();
 			}
 
 			var command = resetNavigation ?
@@ -145,7 +168,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 			command.Execute(viewModel);
 
-			viewModel.OnNavigatedTo(inStack, null);
+			viewModel.NavigateTo(inStack);
 		}
 
 		private void NavigateToDialogHost(DialogViewModelBase dialog)
@@ -156,12 +179,12 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			{
 				if (dialogHost.CurrentDialog is RoutableViewModel rvm)
 				{
-					rvm.OnNavigatedFrom();
+					rvm.NavigateFrom();
 				}
 
 				dialogHost.CurrentDialog = dialog;
 
-				dialog.OnNavigatedTo(false, null);
+				dialog.NavigateTo(false);
 			}
 		}
 
