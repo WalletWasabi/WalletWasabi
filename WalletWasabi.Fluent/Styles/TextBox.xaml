@@ -31,49 +31,48 @@
               BorderBrush="{TemplateBinding BorderBrush}"
               BorderThickness="{TemplateBinding BorderThickness}"
               MinWidth="{TemplateBinding MinWidth}"
-              MinHeight="{TemplateBinding MinHeight}" />
+              MinHeight="{TemplateBinding MinHeight}">
+            </Border>
 
             <Border
               Margin="{TemplateBinding BorderThickness}">
               <Grid ColumnDefinitions="Auto,*,Auto">
                 <ContentPresenter Grid.Column="0" Grid.ColumnSpan="1" Content="{TemplateBinding InnerLeftContent}" />
-                <DockPanel x:Name="PART_InnerDockPanel" Grid.Column="1" Grid.ColumnSpan="1"
-                           Margin="{TemplateBinding Padding}">
+                <DockPanel x:Name="PART_InnerDockPanel" Grid.Column="1" Grid.ColumnSpan="1" Margin="{TemplateBinding Padding}">
                   <TextBlock Name="PART_FloatingWatermark"
                              Foreground="{DynamicResource SystemAccentColor}"
                              FontSize="{TemplateBinding FontSize}"
                              Text="{TemplateBinding Watermark}"
                              DockPanel.Dock="Top" />
-                  <ScrollViewer
-                    HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
-                    VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
-                    <Panel>
-                      <TextBlock Name="PART_Watermark"
-                                 Opacity="0.5"
-                                 Text="{TemplateBinding Watermark}"
-                                 TextAlignment="{TemplateBinding TextAlignment}"
-                                 TextWrapping="{TemplateBinding TextWrapping}"
-                                 IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
-                                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                 VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                      <!-- TODO eliminate this margin... text layout issue? -->
-                      <TextPresenter Name="PART_TextPresenter"
-                                     Margin="0 1 0 0"
-                                     Text="{TemplateBinding Text, Mode=TwoWay}"
-                                     CaretIndex="{TemplateBinding CaretIndex}"
-                                     SelectionStart="{TemplateBinding SelectionStart}"
-                                     SelectionEnd="{TemplateBinding SelectionEnd}"
-                                     TextAlignment="{TemplateBinding TextAlignment}"
-                                     TextWrapping="{TemplateBinding TextWrapping}"
-                                     PasswordChar="{TemplateBinding PasswordChar}"
-                                     RevealPassword="{TemplateBinding RevealPassword}"
-                                     SelectionBrush="{TemplateBinding SelectionBrush}"
-                                     SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
-                                     CaretBrush="{TemplateBinding CaretBrush}"
-                                     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                    </Panel>
-                  </ScrollViewer>
+                  <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                                VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
+                      <Panel>
+                        <TextBlock Name="PART_Watermark"
+                                Opacity="0.5"
+                                Text="{TemplateBinding Watermark}"
+                                TextAlignment="{TemplateBinding TextAlignment}"
+                                TextWrapping="{TemplateBinding TextWrapping}"
+                                IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        <!-- TODO eliminate this margin... text layout issue? -->
+                        <TextPresenter Name="PART_TextPresenter"
+                                      Margin="0 1 0 0"
+                                      Text="{TemplateBinding Text, Mode=TwoWay}"
+                                      CaretIndex="{TemplateBinding CaretIndex}"
+                                      SelectionStart="{TemplateBinding SelectionStart}"
+                                      SelectionEnd="{TemplateBinding SelectionEnd}"
+                                      TextAlignment="{TemplateBinding TextAlignment}"
+                                      TextWrapping="{TemplateBinding TextWrapping}"
+                                      PasswordChar="{TemplateBinding PasswordChar}"
+                                      RevealPassword="{TemplateBinding RevealPassword}"
+                                      SelectionBrush="{TemplateBinding SelectionBrush}"
+                                      SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                                      CaretBrush="{TemplateBinding CaretBrush}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                      </Panel>
+                    </ScrollViewer>
                 </DockPanel>
                 <ContentPresenter Grid.Column="2" Grid.ColumnSpan="1" Content="{TemplateBinding InnerRightContent}" />
               </Grid>
@@ -126,6 +125,4 @@
       </ControlTemplate>
     </Setter>
   </Style>
-
-
 </Styles>
