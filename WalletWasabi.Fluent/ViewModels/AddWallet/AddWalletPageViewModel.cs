@@ -75,6 +75,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
 		}
 
+		public override NavigationTarget DefaultTarget => NavigationTarget.DialogScreen;
+
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{
 			base.OnNavigatedTo(inStack, disposable);

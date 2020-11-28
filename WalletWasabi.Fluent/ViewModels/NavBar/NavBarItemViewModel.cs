@@ -13,7 +13,11 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		protected NavBarItemViewModel(NavigationStateViewModel navigationState) : base(navigationState)
 		{
 			_title = "";
-			OpenCommand = ReactiveCommand.Create(NavigateToSelf);
+			OpenCommand = ReactiveCommand.Create(
+				() =>
+				{
+					NavigateToSelf();
+				});
 		}
 
 		public NavBarItemViewModel? Parent { get; set; }

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Microsoft.AspNetCore.Routing;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Gui.ViewModels;
@@ -15,6 +14,8 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 	{
 		private bool _isBusy;
 		public NavigationTarget CurrentTarget { get; private set; }
+
+		public virtual NavigationTarget DefaultTarget => NavigationTarget.HomeScreen;
 
 		protected RoutableViewModel(NavigationStateViewModel navigationState)
 		{
@@ -70,6 +71,11 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		public IDisposable NavigateTo(RoutableViewModel viewModel, NavigationTarget navigationTarget, bool resetNavigation = false)
 		{
+			if (navigationTarget == NavigationTarget.Default)
+			{
+				navigationTarget = DefaultTarget;
+			}
+
 			switch (navigationTarget)
 			{
 				case NavigationTarget.Default:
@@ -156,6 +162,8 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			}
 		}
 
+		public void NavigateToSelf() => NavigateToSelf(NavigationTarget.Default);
+
 		public void NavigateToSelf(NavigationTarget target) => NavigateTo(this, target, resetNavigation: false);
 
 		public void NavigateToSelfAndReset(NavigationTarget target) => NavigateTo(this, target, resetNavigation: true);
@@ -166,7 +174,6 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 			switch (CurrentTarget)
 			{
-				case NavigationTarget.Default:
 				case NavigationTarget.HomeScreen:
 					router = NavigationState.HomeScreen.Invoke().Router;
 					break;
