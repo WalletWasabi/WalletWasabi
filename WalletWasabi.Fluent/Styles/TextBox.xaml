@@ -95,6 +95,8 @@
 
   <Style Selector="TextBox.selectable_text_block">
     <Setter Property="IsReadOnly" Value="True" />
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="Padding" Value="0" />
     <Setter Property="ContextMenu">
       <ContextMenu>
         <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}" IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}"/>

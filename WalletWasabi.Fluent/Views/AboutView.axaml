@@ -1,5 +1,4 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:sys="using:System"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -8,69 +7,75 @@
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:AboutViewModel"
-             x:CompileBindings="False"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AboutView">
     <UserControl.Resources>
         <converters:VersionStringConverter x:Key="VersionStringConverter" />
     </UserControl.Resources>
+    <UserControl.Styles>
+        <Style Selector="TextBlock#LogoText1">
+            <Style.Animations>
+                <Animation Delay="0.3" Duration="0.37" Easing="{StaticResource FluentEasing}">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Opacity" Value="0" />
+                        <Setter Property="(TranslateTransform.Y)" Value="12" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="1" />
+                        <Setter Property="(TranslateTransform.Y)" Value="0" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+        <Style Selector="TextBlock#LogoText2">
+            <Style.Animations>
+                <Animation Delay="0.32" Duration="0.37" Easing="{StaticResource FluentEasing}">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Opacity" Value="0" />
+                        <Setter Property="(TranslateTransform.Y)" Value="-12" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="1" />
+                        <Setter Property="(TranslateTransform.Y)" Value="0" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+        <Style Selector="TextBlock#LogoText3">
+            <Setter Property="Foreground" Value="{StaticResource VersionHighlightRadialBrush}" />
+            <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+            <Style.Animations>
+                <Animation Delay="0.34" Duration="0.37" Easing="{StaticResource FluentEasing}">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Opacity" Value="0" />
+                        <Setter Property="(ScaleTransform.ScaleX)" Value="0.98" />
+                        <Setter Property="(ScaleTransform.ScaleY)" Value="0.98" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="1" />
+                        <Setter Property="(ScaleTransform.ScaleX)" Value="1" />
+                        <Setter Property="(ScaleTransform.ScaleY)" Value="1" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+        <Style Selector="TextBlock.OnePxPadding">
+            <Setter Property="Margin" Value="0 0 0 1" />
+        </Style>
+        <Style Selector="TextBlock.LinkSeparatorPadding">
+            <Setter Property="Margin" Value="5 1" />
+        </Style>
+        <Style Selector="TextBlock.Header">
+            <Setter Property="Margin" Value="0 4 0 0" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        <Style Selector="TextBox.Content">
+            <Setter Property="Margin" Value="0 4 0 0" />
+        </Style>
+    </UserControl.Styles>
     <Panel>
-        <Panel.Styles>
-            <Style Selector="TextBlock#LogoText1">
-                <Style.Animations>
-                    <Animation Delay="0.3" Duration="0.37" Easing="{StaticResource FluentEasing}">
-                        <KeyFrame Cue="0%">
-                            <Setter Property="Opacity" Value="0" />
-                            <Setter Property="(TranslateTransform.Y)" Value="12" />
-                        </KeyFrame>
-                        <KeyFrame Cue="100%">
-                            <Setter Property="Opacity" Value="1" />
-                            <Setter Property="(TranslateTransform.Y)" Value="0" />
-                        </KeyFrame>
-                    </Animation>
-                </Style.Animations>
-            </Style>
-            <Style Selector="TextBlock#LogoText2">
-                <Style.Animations>
-                    <Animation Delay="0.32" Duration="0.37" Easing="{StaticResource FluentEasing}">
-                        <KeyFrame Cue="0%">
-                            <Setter Property="Opacity" Value="0" />
-                            <Setter Property="(TranslateTransform.Y)" Value="-12" />
-                        </KeyFrame>
-                        <KeyFrame Cue="100%">
-                            <Setter Property="Opacity" Value="1" />
-                            <Setter Property="(TranslateTransform.Y)" Value="0" />
-                        </KeyFrame>
-                    </Animation>
-                </Style.Animations>
-            </Style>
-            <Style Selector="TextBlock#LogoText3">
-                <Setter Property="Foreground" Value="{StaticResource VersionHighlightRadialBrush}" />
-                <Setter Property="RenderTransformOrigin" Value="50%,50%" />
-                <Style.Animations>
-                    <Animation Delay="0.34" Duration="0.37" Easing="{StaticResource FluentEasing}">
-                        <KeyFrame Cue="0%">
-                            <Setter Property="Opacity" Value="0" />
-                            <Setter Property="(ScaleTransform.ScaleX)" Value="0.98" />
-                            <Setter Property="(ScaleTransform.ScaleY)" Value="0.98" />
-                        </KeyFrame>
-                        <KeyFrame Cue="100%">
-                            <Setter Property="Opacity" Value="1" />
-                            <Setter Property="(ScaleTransform.ScaleX)" Value="1" />
-                            <Setter Property="(ScaleTransform.ScaleY)" Value="1" />
-                        </KeyFrame>
-                    </Animation>
-                </Style.Animations>
-            </Style>
-            <Style Selector="TextBlock.Header">
-                <Setter Property="Margin" Value="0 8 0 0" />
-                <Setter Property="FontWeight" Value="Bold" />
-            </Style>
-            <Style Selector="TextBox.Content">
-                <Setter Property="Margin" Value="0 4 0 0" />
-            </Style>
-        </Panel.Styles>
         <controls:ContentArea Title="About" Caption="Displays current and relevant information about the app.">
-            <StackPanel Spacing="10" MinWidth="360" MaxWidth="650" HorizontalAlignment="Left" Orientation="Vertical">
+            <StackPanel MinWidth="360" MaxWidth="650" HorizontalAlignment="Left" Orientation="Vertical">
                 <StackPanel Orientation="Horizontal" Margin="0,25">
                     <TextBlock Name="LogoText1" Classes="h1 semibold">Wasabi</TextBlock>
                     <Panel Width="5" Height="5" />
@@ -78,6 +83,53 @@
                     <Panel Width="10" Height="10" />
                     <TextBlock Name="LogoText3" Classes="h1 ultrabold">2.0</TextBlock>
                 </StackPanel>
+                <WrapPanel Margin="0 0 0 25">
+                    <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
+                            CommandParameter="{Binding DocsLink}">
+                        <TextBlock Text="Documentation" TextDecorations="Underline"
+                                   Foreground="{DynamicResource SystemAccentColor}" />
+                    </Button>
+                    <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+                    <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
+                            CommandParameter="{Binding SourceCodeLink}">
+                        <TextBlock Text="Source Code (Github)" TextDecorations="Underline"
+                                   Foreground="{DynamicResource SystemAccentColor}" />
+                    </Button>
+                    <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+                    <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
+                            CommandParameter="{Binding ClearnetLink}">
+                        <TextBlock Text="Website (Clearnet)" TextDecorations="Underline"
+                                   Foreground="{DynamicResource SystemAccentColor}" />
+                    </Button>
+                    <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+                    <Button Classes="plain" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding TorLink}">
+                        <TextBlock Text="Website (Tor)" TextDecorations="Underline"
+                                   Foreground="{DynamicResource SystemAccentColor}" />
+                    </Button>
+                    <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+                    <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
+                            CommandParameter="{Binding StatusPageLink}">
+                        <TextBlock Text="Coordinator Status Page" TextDecorations="Underline"
+                                   Foreground="{DynamicResource SystemAccentColor}" />
+                    </Button>
+                    <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+                    <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
+                            CommandParameter="{Binding UserSupportLink}">
+                        <TextBlock Text="User Support" TextDecorations="Underline"
+                                   Foreground="{DynamicResource SystemAccentColor}" />
+                    </Button>
+                    <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+                    <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
+                            CommandParameter="{Binding BugReportLink}">
+                        <TextBlock Text="Bug Reporting" TextDecorations="Underline"
+                                   Foreground="{DynamicResource SystemAccentColor}" />
+                    </Button>
+                    <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+                    <Button Classes="plain" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding FAQLink}">
+                        <TextBlock Text="FAQs" TextDecorations="Underline"
+                                   Foreground="{DynamicResource SystemAccentColor}" />
+                    </Button>
+                </WrapPanel>
                 <StackPanel>
                     <TextBlock Classes="Header" Text="Current Version: " />
                     <TextBox Classes="Content selectable_text_block"

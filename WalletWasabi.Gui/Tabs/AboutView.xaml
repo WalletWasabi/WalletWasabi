@@ -30,13 +30,16 @@
             <TextBlock Text="Compatible Hardware Wallet Interface Version: " />
             <controls:ExtendedTextBox Text="{Binding HwiVersion, Converter={StaticResource VersionStringConverter}}" Classes="selectableTextBlock" />
           </StackPanel>
-          <StackPanel Margin="0,3" Orientation="Horizontal">
-            <TextBlock Text="Clearnet Website: " />
-            <Button Content="{Binding ClearnetLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding ClearnetLink}" />
-          </StackPanel>
+
+
           <StackPanel Margin="0,3" Orientation="Horizontal">
             <TextBlock Text=".onion Website: " />
             <controls:ExtendedTextBox Text="{Binding TorLink}" Classes="selectableTextBlock hyperLink" />
+          </StackPanel>
+
+          <StackPanel Margin="0,3" Orientation="Horizontal">
+            <TextBlock Text="Clearnet Website: " />
+            <Button Content="{Binding ClearnetLink}" Classes="activeHyperLink" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding ClearnetLink}" />
           </StackPanel>
           <StackPanel Margin="0,3" Orientation="Horizontal">
             <TextBlock Text="Source Code: " />
