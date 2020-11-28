@@ -15,8 +15,8 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private string _currentBackendMajorVersion;
 
-		public AboutViewModel(NavigationStateViewModel navigationState) : base(navigationState,
-			NavigationTarget.HomeScreen)
+		public AboutViewModel(NavigationStateViewModel navigationState)
+			: base(navigationState, NavigationTarget.HomeScreen)
 		{
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
