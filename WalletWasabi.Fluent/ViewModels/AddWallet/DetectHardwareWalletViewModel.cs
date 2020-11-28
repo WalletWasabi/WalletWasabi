@@ -27,14 +27,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private HardwareDetectionState _detectionState;
 
 		public DetectHardwareWalletViewModel(NavigationStateViewModel navigationState, HardwareDetectionState detectionState)
-			: base(navigationState, NavigationTarget.DialogScreen)
+			: base(navigationState)
 		{
 			HardwareWallets = new ObservableCollection<HardwareWalletViewModel>();
 			_detectionState = detectionState;
 
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
-			
+
 				this.WhenAnyValue(x => x.SelectedHardwareWallet)
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Select(x => x?.HardwareWalletInfo.Fingerprint is { } && x.HardwareWalletInfo.IsInitialized())
@@ -73,19 +73,21 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						Logger.LogError(ex);
 					}
 				});
+		}
 
-			this.WhenNavigatedTo(() =>
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		{
+			base.OnNavigatedTo(inStack, disposable);
+
+			DisposeCts = new CancellationTokenSource();
+
+			StartDetection();
+
+			disposable.Add(Disposable.Create(() =>
 			{
-				DisposeCts = new CancellationTokenSource();
-
-				StartDetection();
-
-				return Disposable.Create(() =>
-				{
-					DisposeCts.Cancel();
-					DisposeCts.Dispose();
-				});
-			});
+				DisposeCts.Cancel();
+				DisposeCts.Dispose();
+			}));
 		}
 
 		private Task? DetectionTask { get; set; }

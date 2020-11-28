@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	public class DetectedHardwareWalletViewModel : RoutableViewModel
 	{
 		public DetectedHardwareWalletViewModel(NavigationStateViewModel navigationState, HardwareDetectionState detectionState)
-			: base(navigationState, NavigationTarget.DialogScreen)
+			: base(navigationState)
 		{
 			var type = WalletType.Hardware;
 
