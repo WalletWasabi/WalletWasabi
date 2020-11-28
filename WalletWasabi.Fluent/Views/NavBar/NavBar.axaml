@@ -17,7 +17,7 @@
               <Panel Width="45" HorizontalAlignment="Left">
                 <PathIcon HorizontalAlignment="Left">
                   <PathIcon.Data>
-                    <Binding Path="." Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                    <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
                   </PathIcon.Data>
                 </PathIcon>
               </Panel>
@@ -41,7 +41,7 @@
               <Panel Width="45" HorizontalAlignment="Center" ToolTip.Tip="{Binding Title}">
                 <PathIcon HorizontalAlignment="Left">
                   <PathIcon.Data>
-                    <Binding Path="." Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                    <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
                   </PathIcon.Data>
                 </PathIcon>
               </Panel>
@@ -139,7 +139,7 @@
             <Panel Width="45" HorizontalAlignment="Left">
               <PathIcon HorizontalAlignment="Left">
                 <PathIcon.Data>
-                  <Binding Path="." Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                  <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
                 </PathIcon.Data>
               </PathIcon>
             </Panel>
