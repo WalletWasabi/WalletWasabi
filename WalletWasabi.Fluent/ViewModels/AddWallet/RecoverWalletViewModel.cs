@@ -29,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			NavigationStateViewModel navigationState,
 			string walletName,
 			Network network,
-			WalletManager walletManager) : base(navigationState, NavigationTarget.DialogScreen)
+			WalletManager walletManager) : base(navigationState)
 		{
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 

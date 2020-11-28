@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			KeyManager keyManager,
 			Mnemonic mnemonic,
 			WalletManager walletManager)
-			: base(navigationState, NavigationTarget.DialogScreen)
+			: base(navigationState)
 		{
 			MnemonicWords = new List<RecoveryWordViewModel>();
 
