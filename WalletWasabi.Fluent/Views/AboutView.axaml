@@ -3,19 +3,105 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vl="using:WalletWasabi.Fluent"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:local="using:WalletWasabi.Fluent.Views"
-             xmlns:navbar="using:WalletWasabi.Fluent.Views.NavBar"
-             xmlns:rxui="using:Avalonia.ReactiveUI"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             xmlns:converters="using:WalletWasabi.Fluent.Converters"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:AboutViewModel"
-             x:CompileBindings="True"
+             x:CompileBindings="False"
              x:Class="WalletWasabi.Fluent.Views.AboutView">
-  <Panel>
-    <TextBlock> About Wasabi </TextBlock>
-  </Panel>
+    <UserControl.Resources>
+        <converters:VersionStringConverter x:Key="VersionStringConverter" />
+    </UserControl.Resources>
+    <Panel>
+        <Panel.Styles>
+            <Style Selector="TextBlock#LogoText1">
+                <Style.Animations>
+                    <Animation Delay="0.3" Duration="0.37" Easing="{StaticResource FluentEasing}">
+                        <KeyFrame Cue="0%">
+                            <Setter Property="Opacity" Value="0" />
+                            <Setter Property="(TranslateTransform.Y)" Value="12" />
+                        </KeyFrame>
+                        <KeyFrame Cue="100%">
+                            <Setter Property="Opacity" Value="1" />
+                            <Setter Property="(TranslateTransform.Y)" Value="0" />
+                        </KeyFrame>
+                    </Animation>
+                </Style.Animations>
+            </Style>
+            <Style Selector="TextBlock#LogoText2">
+                <Style.Animations>
+                    <Animation Delay="0.32" Duration="0.37" Easing="{StaticResource FluentEasing}">
+                        <KeyFrame Cue="0%">
+                            <Setter Property="Opacity" Value="0" />
+                            <Setter Property="(TranslateTransform.Y)" Value="-12" />
+                        </KeyFrame>
+                        <KeyFrame Cue="100%">
+                            <Setter Property="Opacity" Value="1" />
+                            <Setter Property="(TranslateTransform.Y)" Value="0" />
+                        </KeyFrame>
+                    </Animation>
+                </Style.Animations>
+            </Style>
+            <Style Selector="TextBlock#LogoText3">
+                <Setter Property="Foreground" Value="{StaticResource VersionHighlightRadialBrush}" />
+                <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+                <Style.Animations>
+                    <Animation Delay="0.34" Duration="0.37" Easing="{StaticResource FluentEasing}">
+                        <KeyFrame Cue="0%">
+                            <Setter Property="Opacity" Value="0" />
+                            <Setter Property="(ScaleTransform.ScaleX)" Value="0.98" />
+                            <Setter Property="(ScaleTransform.ScaleY)" Value="0.98" />
+                        </KeyFrame>
+                        <KeyFrame Cue="100%">
+                            <Setter Property="Opacity" Value="1" />
+                            <Setter Property="(ScaleTransform.ScaleX)" Value="1" />
+                            <Setter Property="(ScaleTransform.ScaleY)" Value="1" />
+                        </KeyFrame>
+                    </Animation>
+                </Style.Animations>
+            </Style>
+            <Style Selector="TextBlock.Header">
+                <Setter Property="Margin" Value="0 8 0 0" />
+                <Setter Property="FontWeight" Value="Bold" />
+            </Style>
+            <Style Selector="TextBox.Content">
+                <Setter Property="Margin" Value="0 4 0 0" />
+            </Style>
+        </Panel.Styles>
+        <controls:ContentArea Title="About" Caption="Displays current and relevant information about the app.">
+            <StackPanel Spacing="10" MinWidth="360" MaxWidth="650" HorizontalAlignment="Left" Orientation="Vertical">
+                <StackPanel Orientation="Horizontal" Margin="0,25">
+                    <TextBlock Name="LogoText1" Classes="h1 semibold">Wasabi</TextBlock>
+                    <Panel Width="5" Height="5" />
+                    <TextBlock Name="LogoText2" Classes="h1 light">Wallet</TextBlock>
+                    <Panel Width="10" Height="10" />
+                    <TextBlock Name="LogoText3" Classes="h1 ultrabold">2.0</TextBlock>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Classes="Header" Text="Current Version: " />
+                    <TextBox Classes="Content selectable_text_block"
+                             Text="{Binding ClientVersion, Converter={StaticResource VersionStringConverter}}" />
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Classes="Header" Text="Compatible Coordinator Versions: " />
+                    <TextBox Classes="Content selectable_text_block" Text="{Binding BackendCompatibleVersions}" />
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Classes="Header" Text="Current Coordinator Version: " />
+                    <TextBox Classes="Content selectable_text_block" Text="{Binding CurrentBackendMajorVersion}" />
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Classes="Header" Text="Compatible Bitcoin Core and Bitcoin Knots Versions: " />
+                    <TextBox Classes="Content selectable_text_block"
+                             Text="{Binding BitcoinCoreVersion, Converter={StaticResource VersionStringConverter}}" />
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Classes="Header" Text="Compatible Hardware Wallet Interface Version: " />
+                    <TextBox Classes="Content selectable_text_block"
+                             Text="{Binding HwiVersion, Converter={StaticResource VersionStringConverter}}" />
+                </StackPanel>
+            </StackPanel>
+        </controls:ContentArea>
+    </Panel>
 </UserControl>

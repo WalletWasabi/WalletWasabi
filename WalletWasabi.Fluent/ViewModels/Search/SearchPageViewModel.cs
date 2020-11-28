@@ -21,7 +21,9 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 		private readonly bool _showSettings;
 		private readonly bool _showWallets;
 
-		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage, SettingsPageViewModel settingsPage, HomePageViewModel homePage) : base(navigationState, NavigationTarget.HomeScreen)
+		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager,
+			AddWalletPageViewModel addWalletPage, SettingsPageViewModel settingsPage, AboutViewModel aboutViewModel,
+			HomePageViewModel homePage) : base(navigationState, NavigationTarget.HomeScreen)
 		{
 			Title = "Search";
 
@@ -33,6 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			generalCategorySource.Add(CreateHomeSearchItem(generalCategory, 0, homePage));
 			generalCategorySource.Add(CreateSettingsSearchItem(generalCategory, 1, settingsPage));
 			generalCategorySource.Add(CreateAddWalletSearchItem(generalCategory, 2, addWalletPage));
+			generalCategorySource.Add(CreateAboutSearchItem(generalCategory, 3, aboutViewModel));
 
 			var settingsCategory = new SearchCategory("Settings", 1);
 			var settingsCategorySource = new SourceList<SearchItemViewModel>();
@@ -121,6 +124,20 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				navigationState: NavigationState,
 				navigationTarget: NavigationTarget.HomeScreen,
 				createTargetView: () => settingsPage);
+		}
+
+		private SearchItemViewModel CreateAboutSearchItem(SearchCategory category, int order, AboutViewModel aboutPage)
+		{
+			return new(
+				title: "About Wasabi",
+				caption: "Displays all the current & relevant info about the app.",
+				order: order,
+				category: category,
+				keywords: "About, Software, Version",
+				iconName: "info_regular",
+				navigationState: NavigationState,
+				navigationTarget: NavigationTarget.HomeScreen,
+				createTargetView: () => aboutPage);
 		}
 
 		private IEnumerable<SearchItemViewModel> CreateSettingsSearchItems(SearchCategory category, SettingsPageViewModel settingsPage)
