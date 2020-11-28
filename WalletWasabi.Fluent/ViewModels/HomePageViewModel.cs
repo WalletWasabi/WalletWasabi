@@ -30,6 +30,11 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Bind(out _items)
 				.AsObservableList();
 
+			if (!walletManager.Model.AnyWallet(_ => true))
+			{
+				addWalletPage.OpenCommand.Execute(null);
+			}
+
 			OpenWalletsFolderCommand = ReactiveCommand.Create(() => IoHelpers.OpenFolderInFileExplorer(walletManager.Model.WalletDirectories.WalletsDir));
 		}
 
