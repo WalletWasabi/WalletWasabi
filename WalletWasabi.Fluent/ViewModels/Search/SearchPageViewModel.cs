@@ -16,14 +16,14 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 {
 	public class SearchPageViewModel : NavBarItemViewModel
 	{
-		private ReadOnlyObservableCollection<SearchResult>? _searchResults;
-		private readonly Dictionary<string, SearchCategory> _categories;
-		private readonly Dictionary<SearchCategory, SourceList<SearchItemViewModel>> _categorySources;
-		private IObservable<IChangeSet<SearchItemViewModel>>? _sourceObservable;
-		private string? _searchQuery;
 		private readonly bool _showWallets = false;
 		private readonly WalletManagerViewModel _walletManager;
-
+		private readonly Dictionary<string, SearchCategory> _categories;
+		private readonly Dictionary<SearchCategory, SourceList<SearchItemViewModel>> _categorySources;
+		private ReadOnlyObservableCollection<SearchResult>? _searchResults;
+		private IObservable<IChangeSet<SearchItemViewModel>>? _sourceObservable;
+		private string? _searchQuery;
+		
 		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage, SettingsPageViewModel settingsPage, HomePageViewModel homePage) : base(navigationState)
 		{
 			Title = "Search";
