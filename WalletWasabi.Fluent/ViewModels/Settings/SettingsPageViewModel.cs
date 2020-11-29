@@ -21,10 +21,10 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			_selectedTab = 0;
 
-			GeneralTab = new GeneralTabTabViewModel(global);
-			PrivacyTab = new PrivacyTabTabViewModel(global);
-			NetworkTab = new NetworkTabTabViewModel(global);
-			BitcoinTab = new BitcoinTabTabViewModel(global);
+			GeneralTab = new GeneralTabViewModel(global);
+			PrivacyTab = new PrivacyTabViewModel(global);
+			NetworkTab = new NetworkTabViewModel(global);
+			BitcoinTab = new BitcoinTabViewModel(global);
 		}
 
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
@@ -39,10 +39,10 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			}));
 		}
 
-		public GeneralTabTabViewModel GeneralTab { get; }
-		public PrivacyTabTabViewModel PrivacyTab { get; }
-		public NetworkTabTabViewModel NetworkTab { get; }
-		public BitcoinTabTabViewModel BitcoinTab { get; }
+		public GeneralTabViewModel GeneralTab { get; }
+		public PrivacyTabViewModel PrivacyTab { get; }
+		public NetworkTabViewModel NetworkTab { get; }
+		public BitcoinTabViewModel BitcoinTab { get; }
 
 		public bool IsModified
 		{

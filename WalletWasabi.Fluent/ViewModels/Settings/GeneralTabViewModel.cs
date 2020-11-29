@@ -11,7 +11,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public class GeneralTabTabViewModel : SettingsTabViewModelBase
+	public class GeneralTabViewModel : SettingsTabViewModelBase
 	{
 		private bool _darkModeEnabled;
 		private bool _autocopy;
@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private FeeDisplayFormat _selectedFeeDisplayFormat;
 		private string _dustThreshold;
 
-		public GeneralTabTabViewModel(Global global) : base(global)
+		public GeneralTabViewModel(Global global) : base(global)
 		{
 			this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
