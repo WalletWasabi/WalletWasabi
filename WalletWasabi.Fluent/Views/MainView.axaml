@@ -43,11 +43,7 @@
           <local:StatusBar DockPanel.Dock="Bottom" Classes="h8" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" />
           <Panel>
             <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
-            <rxui:RoutedViewHost Router="{Binding Router}" PageTransition="{x:Null}" Margin="20 36 20 20">
-              <rxui:RoutedViewHost.ViewLocator>
-                <vl:ScreenViewLocator />
-              </rxui:RoutedViewHost.ViewLocator>
-            </rxui:RoutedViewHost>
+            <ContentControl Content="{Binding MainScreen.CurrentPage}" Margin="20 36 20 20" />
           </Panel>
         </DockPanel>
       </Panel>
@@ -58,11 +54,7 @@
               IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
               MaxContentWidth="800" MaxContentHeight="700">
-      <rxui:RoutedViewHost Router="{Binding Router}" PageTransition="{x:Null}">
-        <rxui:RoutedViewHost.ViewLocator>
-          <vl:ScreenViewLocator />
-        </rxui:RoutedViewHost.ViewLocator>
-      </rxui:RoutedViewHost>
+      <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
     <c:Dialog DataContext="{Binding CurrentDialog}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"

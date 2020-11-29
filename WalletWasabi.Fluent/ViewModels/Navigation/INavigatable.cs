@@ -2,8 +2,8 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
 	public interface INavigatable
 	{
-		void OnNavigatedTo();
+		void OnNavigatedTo(bool isInHistory);
 
-		void OnNavigatedFrom();
+		void OnNavigatedFrom(bool isInHistory);
 	}
 }

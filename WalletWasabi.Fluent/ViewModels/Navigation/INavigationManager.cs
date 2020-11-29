@@ -2,27 +2,24 @@ using System;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
-	public interface INavigationManager
+	public interface INavigationManager<T> where T : INavigatable
 	{
 		/// <summary>
 		/// The Current Page.
 		/// </summary>
-		INavigatable CurrentPage { get; }
-
-		/// <summary>
-		/// The Previous Page.
-		/// </summary>
-		INavigatable PreviousPage { get; }
+		T? CurrentPage { get; }
 
 		/// <summary>
 		/// True if you can navigate back, else false.
 		/// </summary>
 		bool CanNavigateBack { get; }
 
-		void Navigate(INavigatable viewmodel, NavigationMode mode = NavigationMode.Normal);
+		void To(T viewmodel, NavigationMode mode = NavigationMode.Normal);
 
 		void Back();
 
-		void Back(Type pageType);
+		void BackTo(T viewmodel);
+
+		void Clear();
 	}
 }

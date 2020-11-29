@@ -110,7 +110,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 			finally
 			{
-				ClearNavigation();
+				Navigate().Clear();
 				IsBusy = false;
 			}
 		}

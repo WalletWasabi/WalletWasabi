@@ -30,13 +30,12 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private Action? _collapseOnClickAction;
 
 		public NavBarViewModel(
-			RoutingState router,
+			TargettedNavigationStack mainScreen,
 			WalletManagerViewModel walletManager,
 			AddWalletPageViewModel addWalletPage,
 			SettingsPageViewModel settingsPage,
 			PrivacyModeViewModel privacyMode)
 		{
-			Router = router;
 			_walletManager = walletManager;
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
@@ -66,15 +65,11 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				.OfType<NavBarItemViewModel>()
 				.Subscribe(NavigateItem);
 
-			Observable.FromEventPattern(Router.NavigationStack, nameof(Router.NavigationStack.CollectionChanged))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => IsBackButtonVisible = Router.NavigationStack.Count > 1);
-
 			this.WhenAnyValue(x => x.IsOpen)
 				.Subscribe(x => SelectedItem.IsExpanded = x);
-		}
 
-		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
+			mainScreen.To(homePage);
+		}
 
 		public ObservableCollection<NavBarItemViewModel> TopItems
 		{
@@ -119,8 +114,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			get => _isOpen;
 			set => this.RaiseAndSetIfChanged(ref _isOpen, value);
 		}
-
-		public RoutingState Router { get; }
 
 		public void DoToggleAction()
 		{
@@ -221,7 +214,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 		private void NavigateItem(NavBarItemViewModel x)
 		{
-			if (!_isNavigating)
+			/*if (!_isNavigating)
 			{
 				_isNavigating = true;
 				if (x.OpenCommand.CanExecute(default))
@@ -231,7 +224,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 				CollapseOnClickAction?.Invoke();
 				_isNavigating = false;
-			}
+			}*/
 		}
 
 		private static void RegisterCategories(SearchPageViewModel searchPage)

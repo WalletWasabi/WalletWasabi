@@ -38,7 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			RecoverWalletCommand = ReactiveCommand.Create(() =>
 			{
-				NavigateTo(new RecoverWalletViewModel(WalletName, network, walletManager));
+				Navigate().To(new RecoverWalletViewModel(WalletName, network, walletManager));
 			});
 
 			ImportWalletCommand = ReactiveCommand.Create(() => new ImportWalletViewModel(WalletName, walletManager));
@@ -65,7 +65,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 								return walletGenerator.GenerateWallet(WalletName, password);
 							});
 
-						NavigateTo(new RecoveryWordsViewModel(km, mnemonic, walletManager), true);
+						Navigate().To(new RecoveryWordsViewModel(km, mnemonic, walletManager), NavigationMode.Clear);
 
 						IsBusy = false;
 					}
@@ -88,7 +88,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 				var termsAndConditions = new TermsAndConditionsViewModel(_legalDocuments, this);
 
-				NavigateTo(termsAndConditions);
+				Navigate().To(termsAndConditions);
 			}
 		}
 
