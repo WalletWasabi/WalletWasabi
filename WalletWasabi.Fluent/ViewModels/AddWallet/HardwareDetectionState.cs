@@ -2,7 +2,6 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
@@ -56,7 +55,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			Devices = (await Client.EnumerateAsync(token).ConfigureAwait(false))
 				.Where(wallet => WalletManager.GetWallets()
-				.Any(x=>x.KeyManager.MasterFingerprint == wallet.Fingerprint) == false);			
+				.Any(x=>x.KeyManager.MasterFingerprint == wallet.Fingerprint) == false);
 		}
 	}
 }

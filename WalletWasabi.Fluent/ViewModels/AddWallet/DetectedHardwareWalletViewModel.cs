@@ -1,5 +1,4 @@
 using ReactiveUI;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using WalletWasabi.Extensions;
