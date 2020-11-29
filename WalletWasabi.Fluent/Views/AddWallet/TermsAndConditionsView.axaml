@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             mc:Ignorable="d"
+             d:DesignWidth="600" d:DesignHeight="500"
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.TermsAndConditionsView">
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="Enter" Command="{Binding NextCommand}" />
+    </UserControl.KeyBindings>
+    <c:ContentArea Title="Welcome to Wasabi Wallet"
+                   EnableCancel="False"
+                   EnableNext="True" NextContent="Continue" FocusNext="True">
+        <DockPanel>
+            <CheckBox Margin="0 10 0 0" IsChecked="{Binding IsAgreed}"
+                      DockPanel.Dock="Bottom" Name="CheckBox_Agree"
+                      HorizontalAlignment="Center">
+                <i:Interaction.Behaviors>
+                    <behaviors:FocusOnAttachedBehavior />
+                </i:Interaction.Behaviors>
+                <StackPanel Orientation="Horizontal">
+                    <Label Content="I _agree to the " Target="CheckBox_Agree" FontWeight="Normal" Margin="0"
+                           Padding="0" />
+                    <Button Classes="plain" Command="{Binding ViewTermsCommand}">
+                        <TextBlock Text="Terms and conditions" TextDecorations="Underline"
+                                   Foreground="{DynamicResource SystemAccentColor}" />
+                    </Button>
+                </StackPanel>
+            </CheckBox>
+            <Viewbox Height="300">
+                <Image>
+                    <Image.Source>
+                        <DrawingImage Drawing="{StaticResource placeholder_graphics_legal}"/>
+                    </Image.Source>
+                </Image>
+            </Viewbox>
+        </DockPanel>
+    </c:ContentArea>
+</UserControl>

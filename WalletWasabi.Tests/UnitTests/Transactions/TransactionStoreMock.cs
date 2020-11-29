@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
 
@@ -21,7 +22,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		public async Task InitializeAsync(Network network, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
 		{
 			var dir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName));
-			await InitializeAsync(dir, network, $"{nameof(TransactionStoreMock)}.{nameof(TransactionStoreMock.InitializeAsync)}");
+			await InitializeAsync(dir, network, $"{nameof(TransactionStoreMock)}.{nameof(TransactionStoreMock.InitializeAsync)}", CancellationToken.None);
 		}
 	}
 }

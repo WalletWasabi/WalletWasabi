@@ -2,19 +2,20 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
-             xmlns:recoverWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:recoverWallet="using:WalletWasabi.Fluent.ViewModels.AddWallet"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="recoverWallet:RecoverWalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoverWalletView">
     <c:ContentArea x:Name="RecoveryPageRoot"
-                   Title="Enter recovery words" Caption="Type in your 12 recovery words and click continue"
+                   Title="Enter recovery words" Caption="Type in your 12 recovery words and click Continue."
                    EnableBack="True"
                    EnableCancel="True" CancelContent="Cancel"
-                   EnableNext="True" NextContent="Finish">
+                   EnableNext="True" NextContent="Finish"
+                   IsBusy="{Binding IsBusy}">
         <StackPanel>
             <DockPanel>
                 <PathIcon Name="IconCheckmark" Classes="checkMark" Margin="15 42 0 0" VerticalAlignment="Top"
@@ -35,16 +36,13 @@
                 </c:TagsBox>
             </DockPanel>
 
-            <StackPanel HorizontalAlignment="Right" Margin="0,20,0,0" Orientation="Horizontal">
-                <Button Classes="plain obscured"
-                        Command="{Binding AdvancedRecoveryOptionsDialogCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="20">
-                        <PathIcon Data="{StaticResource options_regular}" />
-                        <TextBlock Text="Advanced Recovery Options..." />
-                    </StackPanel>
-                </Button>
-                <Panel Margin="15,0,0,0" Width="{Binding #IconCheckmark.Bounds.Width}" Height="1" />
-            </StackPanel>
+            <Button Classes="plain obscured"
+                    Command="{Binding AdvancedRecoveryOptionsDialogCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <PathIcon Data="{StaticResource options_regular}" />
+                    <TextBlock Text="Advanced Recovery Options..." />
+                </StackPanel>
+            </Button>
         </StackPanel>
     </c:ContentArea>
 </UserControl>

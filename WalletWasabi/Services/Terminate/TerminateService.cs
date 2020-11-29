@@ -1,4 +1,7 @@
+using Microsoft.Win32;
 using System;
+using System.Runtime.InteropServices;
+using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -7,12 +10,10 @@ namespace WalletWasabi.Services.Terminate
 {
 	public class TerminateService
 	{
-		private readonly Func<Task> _terminateApplicationAsync;
-
 		private const long TerminateStatusNotStarted = 0;
 		private const long TerminateStatusInProgress = 1;
 		private const long TerminateStatusFinished = 2;
-
+		private readonly Func<Task> _terminateApplicationAsync;
 		private long _terminateStatus;
 
 		public TerminateService(Func<Task> terminateApplicationAsync)
@@ -20,6 +21,41 @@ namespace WalletWasabi.Services.Terminate
 			_terminateApplicationAsync = terminateApplicationAsync;
 			AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 			Console.CancelKeyPress += Console_CancelKeyPress;
+			AssemblyLoadContext.Default.Unloading += Default_Unloading;
+			AppDomain.CurrentDomain.DomainUnload += CurrentDomain_DomainUnload;
+
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				SystemEvents.SessionEnding += Windows_SystemEvents_SessionEnding;
+			}
+		}
+
+		public bool IsTerminateRequested => Interlocked.Read(ref _terminateStatus) > TerminateStatusNotStarted;
+
+		private void CurrentDomain_DomainUnload(object? sender, EventArgs e)
+		{
+			Logger.LogInfo($"Process domain unloading requested by the OS.");
+			Terminate();
+		}
+
+		private void Default_Unloading(AssemblyLoadContext obj)
+		{
+			Logger.LogInfo($"Process context unloading requested by the OS.");
+			Terminate();
+		}
+
+		private void Windows_SystemEvents_SessionEnding(object sender, SessionEndingEventArgs e)
+		{
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				// This event will only be triggered if you run Wasabi from the published package. Use the packager with the --onlybinaries option.
+				Logger.LogInfo($"Process termination was requested by the OS, reason '{e.Reason}'.");
+				e.Cancel = true;
+			}
+
+			// This must be a blocking call because after this the OS will terminate the Wasabi process if it exists.
+			// The process will be killed by the OS after ~7 seconds, even with e.Cancel = true.
+			Terminate();
 		}
 
 		private void CurrentDomain_ProcessExit(object? sender, EventArgs e)
@@ -33,6 +69,7 @@ namespace WalletWasabi.Services.Terminate
 		private void Console_CancelKeyPress(object? sender, ConsoleCancelEventArgs e)
 		{
 			Logger.LogWarning($"Process termination was requested using '{e.SpecialKey}' keyboard shortcut.");
+
 			// This must be a blocking call because after this the OS will terminate Wasabi process if it exists.
 			// In some cases CurrentDomain_ProcessExit is called after this by the OS.
 			Terminate();
@@ -42,7 +79,6 @@ namespace WalletWasabi.Services.Terminate
 		/// Terminates the application.
 		/// </summary>
 		/// <remark>This is a blocking method. Note that program execution ends at the end of this method due to <see cref="Environment.Exit(int)"/> call.</remark>
-
 		public void Terminate(int exitCode = 0)
 		{
 			var prevValue = Interlocked.CompareExchange(ref _terminateStatus, TerminateStatusInProgress, TerminateStatusNotStarted);
@@ -61,8 +97,7 @@ namespace WalletWasabi.Services.Terminate
 			Logger.LogDebug("Start shutting down the application.");
 
 			// Async termination has to be started on another thread otherwise there is a possibility of deadlock.
-			// We still need to block the caller so ManualResetEvent applied.
-			using ManualResetEvent resetEvent = new ManualResetEvent(false);
+			// We still need to block the caller so Wait applied.
 			Task.Run(async () =>
 			{
 				try
@@ -73,21 +108,24 @@ namespace WalletWasabi.Services.Terminate
 				{
 					Logger.LogWarning(ex.ToTypeMessageString());
 				}
-
-				resetEvent.Set();
-			});
-
-			resetEvent.WaitOne();
+			}).Wait();
 
 			AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;
 			Console.CancelKeyPress -= Console_CancelKeyPress;
+			AssemblyLoadContext.Default.Unloading -= Default_Unloading;
+			AppDomain.CurrentDomain.DomainUnload -= CurrentDomain_DomainUnload;
+
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				SystemEvents.SessionEnding -= Windows_SystemEvents_SessionEnding;
+			}
 
 			// Indicate that the termination procedure finished. So other callers can return.
 			Interlocked.Exchange(ref _terminateStatus, TerminateStatusFinished);
 
+			Logger.LogSoftwareStopped("Wasabi");
+
 			Environment.Exit(exitCode);
 		}
-
-		public bool IsTerminateRequested => Interlocked.Read(ref _terminateStatus) > TerminateStatusNotStarted;
 	}
 }

@@ -11,6 +11,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -85,8 +86,10 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		private async Task BroadcastTransactionToBackendAsync(SmartTransaction transaction)
 		{
 			Logger.LogInfo("Broadcasting with backend...");
-			using (WasabiClient client = Synchronizer.WasabiClientFactory.NewBackendClient(true))
+			using (TorHttpClient torHttpClient = Synchronizer.WasabiClientFactory.NewBackendTorHttpClient(isolateStream: true))
 			{
+				var client = new WasabiClient(torHttpClient);
+
 				try
 				{
 					await client.BroadcastAsync(transaction).ConfigureAwait(false);

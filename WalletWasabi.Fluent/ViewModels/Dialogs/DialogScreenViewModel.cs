@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
@@ -8,27 +10,65 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class DialogScreenViewModel : ViewModelBase, IScreen
 	{
-		private bool _isDialogVisible;
+		private bool _isDialogOpen;
 
 		public DialogScreenViewModel()
 		{
 			Observable.FromEventPattern(Router.NavigationStack, nameof(Router.NavigationStack.CollectionChanged))
-				.Subscribe(_ => IsDialogVisible = Router.NavigationStack.Count >= 1);
+				.Subscribe(_ =>
+				{
+					IsDialogOpen = Router.NavigationStack.Count >= 1;
+				});
+
+			this.WhenAnyValue(x => x.IsDialogOpen)
+				.Skip(1) // Skip the initial value change (which is false).
+				.DistinctUntilChanged()
+				.Subscribe(x =>
+				{
+					if (!x)
+					{
+						CloseScreen();
+					}
+				});
 		}
 
 		public RoutingState Router { get; } = new RoutingState();
 
 		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
 
-		public bool IsDialogVisible
+		public bool IsDialogOpen
 		{
-			get => _isDialogVisible;
-			set => this.RaiseAndSetIfChanged(ref _isDialogVisible, value);
+			get => _isDialogOpen;
+			set => this.RaiseAndSetIfChanged(ref _isDialogOpen, value);
 		}
 
-		public void Close()
+		private void CloseDialogs(IEnumerable<IRoutableViewModel> navigationStack)
 		{
-			Router.NavigationStack.Clear();
+			// Close all dialogs so the awaited tasks can complete.
+			// - DialogViewModelBase.ShowDialogAsync()
+			// - DialogViewModelBase.GetDialogResultAsync()
+
+			foreach (var routable in navigationStack)
+			{
+				if (routable is DialogViewModelBase dialog)
+				{
+					dialog.IsDialogOpen = false;
+				}
+			}
+		}
+
+		private void CloseScreen()
+		{
+			// Reset navigation when Dialog is using IScreen for navigation instead of the default IDialogHost.
+			if (Router.NavigationStack.Count > 0)
+			{
+				// Save Router.NavigationStack as it can be modified when closing Dialog.
+				var navigationStack = Router.NavigationStack.ToList();
+
+				Router.NavigationStack.Clear();
+
+				CloseDialogs(navigationStack);
+			}
 		}
 	}
 }

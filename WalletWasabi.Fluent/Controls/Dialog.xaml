@@ -1,7 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-        xmlns:dialogs="clr-namespace:WalletWasabi.Fluent.ViewModels.Dialogs">
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:dialogs="using:WalletWasabi.Fluent.ViewModels.Dialogs">
   <Design.PreviewWith>
     <c:Dialog IsDialogOpen="True">
       <dialogs:TestDialogViewModel/>
@@ -14,11 +14,14 @@
       <ControlTemplate>
         <Panel>
           <Panel Background="{DynamicResource DialogOverlayColor}" Name="PART_Overlay" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
-          <Panel Name="PART_DialogHost" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="40">
+          <Panel Name="PART_DialogHost"
+                 VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                 Margin="20">
             <Border CornerRadius="4" BoxShadow="{DynamicResource DialogBoxShadow}"
                     Background="{DynamicResource DialogBackground}"
                     MaxWidth="{TemplateBinding MaxContentWidth}" MaxHeight="{TemplateBinding MaxContentHeight}" Margin="40">
-              <ContentPresenter Name="PART_ContentPresenter" Margin="20 36 20 0"
+              <ContentPresenter Name="PART_ContentPresenter" Margin="16 28 16 16"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
@@ -45,8 +48,8 @@
   <Style Selector="c|Dialog /template/ Panel#PART_DialogHost">
     <Setter Property="Transitions">
       <Transitions>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.35" Easing="{StaticResource FluentDefaultEasing}" />
-        <DoubleTransition Property="Opacity" Duration="0:0:0.50" Easing="{StaticResource FluentDefaultEasing}" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.35" Easing="{StaticResource FluentEasing}" />
+        <DoubleTransition Property="Opacity" Duration="0:0:0.50" Easing="{StaticResource FluentEasing}" />
       </Transitions>
     </Setter>
     <Setter Property="Opacity" Value="0"/>

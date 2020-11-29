@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
@@ -10,6 +11,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -24,10 +26,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private Mnemonic? _currentMnemonics;
 
 		public RecoverWalletViewModel(
-			NavigationStateViewModel navigationState,
 			string walletName,
 			Network network,
-			WalletManager walletManager) : base(navigationState, NavigationTarget.Dialog)
+			WalletManager walletManager)
 		{
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
@@ -40,94 +41,89 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Subscribe(AddMnemonic);
 
 			this.WhenAnyValue(x => x.CurrentMnemonics)
-				.Subscribe(x => this.RaisePropertyChanged(nameof(Mnemonics)));
+				.Subscribe(_ => this.RaisePropertyChanged(nameof(Mnemonics)));
 
 			this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 
-			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
-				async () =>
-				{
-					var (accountKeyPathIn, minGapLimitIn) = await AdvancedOptionsInteraction
-						.Handle((AccountKeyPath!, (int) MinGapLimit!)).ToTask();
-
-					if (accountKeyPathIn is { })
-					{
-						AccountKeyPath = accountKeyPathIn;
-					}
-
-					if (minGapLimitIn is { })
-					{
-						MinGapLimit = minGapLimitIn;
-					}
-				});
-
-			FinishCommandCanExecute = this.WhenAnyValue(
-				x => x.CurrentMnemonics,
-				x => x.AccountKeyPath,
-				x => x.MinGapLimit,
-				(_, __, ___) =>
-					AccountKeyPath is { } &&
-					MinGapLimit is { } &&
-					CurrentMnemonics is { } &&
-					(CurrentMnemonics?.IsValidChecksum ?? false) &&
-					!Validations.Any);
+			FinishCommandCanExecute =
+				this.WhenAnyValue(x => x.CurrentMnemonics)
+					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () =>
-				{
-					try
-					{
-						var password = await PasswordInteraction
-							.Handle("Type the password of the wallet to be to recover and click Continue.").ToTask() ?? "";
-
-						var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName)
-							.walletFilePath;
-
-						var keyManager = KeyManager.Recover(
-							CurrentMnemonics!,
-							password,
-							walletFilePath,
-							AccountKeyPath!,
-							(int) MinGapLimit!);
-						keyManager.SetNetwork(network);
-						walletManager.AddWallet(keyManager);
-
-						navigationState.DialogScreen?.Invoke().Router.NavigationStack.Clear();
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-					}
-				},
+				async () => await OnNext(walletManager, network, walletName),
 				FinishCommandCanExecute);
 
 			AdvancedOptionsInteraction = new Interaction<(KeyPath, int), (KeyPath?, int?)>();
-
 			AdvancedOptionsInteraction.RegisterHandler(
 				async interaction =>
 					interaction.SetOutput(
 						await new AdvancedRecoveryOptionsViewModel(interaction.Input).ShowDialogAsync()));
 
-			PasswordInteraction = new Interaction<string, string?>();
+			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
+				async () =>
+				{
+					var (accountKeyPathIn, minGapLimitIn) = await AdvancedOptionsInteraction
+						.Handle((AccountKeyPath, MinGapLimit)).ToTask();
 
-			PasswordInteraction.RegisterHandler(
-				async interaction =>
-					interaction.SetOutput(await new EnterPasswordViewModel(interaction.Input).ShowDialogAsync()));
+					if (accountKeyPathIn is { } && minGapLimitIn is { })
+					{
+						AccountKeyPath = accountKeyPathIn;
+						MinGapLimit = (int)minGapLimitIn;
+					}
+				});
+		}
+
+		private async Task OnNext(WalletManager walletManager,
+			Network network, string? walletName)
+		{
+			IsBusy = true;
+
+			try
+			{
+				var result = await NavigateDialog(
+					new EnterPasswordViewModel(
+						"Type the password of the wallet to be able to recover and click Continue."));
+
+				if (result is { } password)
+				{
+					await Task.Run(() =>
+					{
+						var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName!)
+							.walletFilePath;
+
+						var keyManager = KeyManager.Recover(
+							CurrentMnemonics!,
+							password!,
+							walletFilePath,
+							AccountKeyPath,
+							MinGapLimit);
+
+						keyManager.SetNetwork(network);
+
+						walletManager.AddWallet(keyManager);
+					});
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
+			finally
+			{
+				ClearNavigation();
+				IsBusy = false;
+			}
 		}
 
 		public IObservable<bool> FinishCommandCanExecute { get; }
 
 		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 
-		public ICommand NextCommand { get; }
+		private KeyPath AccountKeyPath { get; set; } = KeyPath.Parse("m/84'/0'/0'");
 
-		private KeyPath? AccountKeyPath { get; set; } = KeyPath.Parse("m/84'/0'/0'");
-
-		private int? MinGapLimit { get; set; } = 63;
+		private int MinGapLimit { get; set; } = 63;
 
 		private Interaction<(KeyPath, int), (KeyPath?, int?)> AdvancedOptionsInteraction { get; }
-
-		private Interaction<string, string?> PasswordInteraction { get; }
 
 		public ObservableCollection<string> Mnemonics { get; } = new ObservableCollection<string>();
 

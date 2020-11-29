@@ -68,7 +68,7 @@ namespace WalletWasabi.Bases
 						ExceptionTracker.Reset();
 					}
 				}
-				catch (Exception ex) when (ex is OperationCanceledException || ex is TimeoutException)
+				catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 				{
 					Logger.LogTrace(ex);
 				}

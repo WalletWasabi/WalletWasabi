@@ -13,7 +13,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Tor.Exceptions;
+using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Blockchain.Transactions
@@ -62,7 +62,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			lockTimeSelector ??= () => LockTime.Zero;
 
 			long totalAmount = payments.TotalAmount.Satoshi;
-			if (totalAmount < 0 || totalAmount > Constants.MaximumNumberOfSatoshis)
+			if (totalAmount is < 0 or > Constants.MaximumNumberOfSatoshis)
 			{
 				throw new ArgumentOutOfRangeException($"{nameof(payments)}.{nameof(payments.TotalAmount)} sum cannot be smaller than 0 or greater than {Constants.MaximumNumberOfSatoshis}.");
 			}
@@ -218,8 +218,8 @@ namespace WalletWasabi.Blockchain.Transactions
 			Logger.LogInfo("Signing transaction...");
 			// It must be watch only, too, because if we have the key and also hardware wallet, we do not care we can sign.
 
-			psbt.AddPrevTxs(TransactionStore);
 			psbt.AddKeyPaths(KeyManager);
+			psbt.AddPrevTxs(TransactionStore);
 
 			Transaction tx;
 			if (KeyManager.IsWatchOnly)
@@ -238,8 +238,8 @@ namespace WalletWasabi.Blockchain.Transactions
 				{
 					psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
 					isPayjoin = true;
-					psbt.AddPrevTxs(TransactionStore);
 					psbt.AddKeyPaths(KeyManager);
+					psbt.AddPrevTxs(TransactionStore);
 				}
 
 				psbt.Finalize();
@@ -281,8 +281,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 				if (foundKey is { })
 				{
-					var anonset = tx.GetAnonymitySet(i) + smartTransaction.WalletInputs.Min(x => x.AnonymitySet) - 1; // Minus 1, because count own only once.
-					var smartCoin = new SmartCoin(smartTransaction, i, foundKey, anonset);
+					var smartCoin = new SmartCoin(smartTransaction, i, foundKey);
 					label = SmartLabel.Merge(label, smartCoin.HdPubKey.Label); // foundKey's label is already added to the coinlabel.
 					smartTransaction.WalletOutputs.Add(smartCoin);
 				}
@@ -324,7 +323,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				Logger.LogInfo($"Payjoin payment was negotiated successfully.");
 			}
-			catch (TorSocks5FailureResponseException e)
+			catch (TorConnectCommandFailedException e)
 			{
 				if (e.Message.Contains("HostUnreachable"))
 				{

@@ -1,0 +1,34 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:WalletWasabi.Fluent.Controls">
+  <Style Selector="c|ProgressRingArc">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DataValidationErrors>
+          <Panel>
+            <Path
+              Stroke="{TemplateBinding SegmentColor}"
+              Margin="{TemplateBinding PathFigureMargin}"
+              StrokeLineCap="Round"
+              Width="{TemplateBinding PathFigureWidth}"
+              Height="{TemplateBinding PathFigureHeight}"
+              StrokeThickness="{TemplateBinding StrokeThickness}"
+              RenderTransformOrigin="25,25">
+              <Path.Data>
+                <PathGeometry>
+                  <PathFigure IsClosed="False"
+                              StartPoint="{Binding PathFigureStartPoint, RelativeSource={RelativeSource TemplatedParent}}">
+                    <ArcSegment Size="{Binding ArcSegmentSize, RelativeSource={RelativeSource TemplatedParent}}"
+                                IsLargeArc="{Binding ArcSegmentIsLargeArc, RelativeSource={RelativeSource TemplatedParent}}"
+                                SweepDirection="Clockwise"
+                                Point="{Binding ArcSegmentPoint, RelativeSource={RelativeSource TemplatedParent}}" />
+                  </PathFigure>
+                </PathGeometry>
+              </Path.Data>
+            </Path>
+          </Panel>
+        </DataValidationErrors>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

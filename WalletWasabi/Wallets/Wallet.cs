@@ -22,7 +22,6 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.WebClients.PayJoin;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets
 {
@@ -290,7 +289,7 @@ namespace WalletWasabi.Wallets
 						{
 							// If it's being mixed and anonset is not sufficient, then queue it.
 							if (!newCoin.IsSpent() && ChaumianClient.HasIngredients
-								&& newCoin.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue())
+								&& newCoin.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue())
 							{
 								coinsToQueue.Add(newCoin);
 							}
@@ -393,7 +392,10 @@ namespace WalletWasabi.Wallets
 			KeyManager.AssertNetworkOrClearBlockState(Network);
 			Height bestKeyManagerHeight = KeyManager.GetBestHeight();
 
-			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
+			using (BenchmarkLogger.Measure(LogLevel.Info, "Initial Transaction Processing"))
+			{
+				TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
+			}
 
 			// Go through the filters and queue to download the matches.
 			await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
@@ -418,7 +420,7 @@ namespace WalletWasabi.Wallets
 			{
 				try
 				{
-					using var client = Synchronizer.WasabiClientFactory.NewBackendClient();
+					var client = Synchronizer.WasabiClientFactory.SharedWasabiClient;
 					var compactness = 10;
 
 					var mempoolHashes = await client.GetMempoolHashesAsync(compactness).ConfigureAwait(false);

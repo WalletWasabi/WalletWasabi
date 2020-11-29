@@ -1,6 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui">
+        xmlns:converters="using:WalletWasabi.Gui.Converters">
   <Styles.Resources>
     <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
     <Thickness x:Key="TextControlBorderThemeThicknessFocused">0,0,0,2</Thickness>
@@ -8,39 +8,6 @@
     <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
     <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
   </Styles.Resources>
-
-  <Style Selector="DataValidationErrors">
-    <Setter Property="Template">
-      <ControlTemplate>
-        <DockPanel LastChildFill="True">
-          <ContentControl
-            DockPanel.Dock="Top"
-            ContentTemplate="{TemplateBinding ErrorTemplate}"
-            DataContext="{TemplateBinding Owner}"
-            Content="{Binding (DataValidationErrors.Errors)}"
-            IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
-          <ContentPresenter
-            Name="PART_ContentPresenter"
-            Background="{TemplateBinding Background}"
-            BorderThickness="{TemplateBinding BorderThickness}"
-            ContentTemplate="{TemplateBinding ContentTemplate}"
-            Content="{TemplateBinding Content}"
-            Padding="{TemplateBinding Padding}" />
-        </DockPanel>
-      </ControlTemplate>
-    </Setter>
-    <Setter Property="ErrorTemplate">
-      <DataTemplate>
-        <ItemsControl Items="{Binding}">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding Message}" Foreground="{Binding Severity, Converter={StaticResource ErrorSeverityColorConverter}}" TextWrapping="Wrap" />
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-      </DataTemplate>
-    </Setter>
-  </Style>
 
   <Style Selector="TextBox">
     <Setter Property="Template">
@@ -78,7 +45,7 @@
                              Text="{TemplateBinding Watermark}"
                              DockPanel.Dock="Top" />
                   <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
-                                  VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
+                                VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
                       <Panel>
                         <TextBlock Name="PART_Watermark"
                                 Opacity="0.5"
@@ -125,4 +92,37 @@
     <Setter Property="MinHeight" Value="20" />
   </Style>
 
+  <Style Selector="TextBox.selectable_text_block">
+    <Setter Property="IsReadOnly" Value="True" />
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="ContextMenu">
+      <ContextMenu>
+        <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}" IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}"/>
+      </ContextMenu>
+    </Setter>
+    <Setter Property="Template">
+      <ControlTemplate>
+        <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                      VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
+          <Panel>
+            <TextPresenter Name="PART_TextPresenter"
+                           Text="{TemplateBinding Text, Mode=TwoWay}"
+                           CaretIndex="{TemplateBinding CaretIndex}"
+                           SelectionStart="{TemplateBinding SelectionStart}"
+                           SelectionEnd="{TemplateBinding SelectionEnd}"
+                           TextAlignment="{TemplateBinding TextAlignment}"
+                           TextWrapping="{TemplateBinding TextWrapping}"
+                           PasswordChar="{TemplateBinding PasswordChar}"
+                           RevealPassword="{TemplateBinding RevealPassword}"
+                           SelectionBrush="{TemplateBinding SelectionBrush}"
+                           SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                           CaretBrush="{TemplateBinding CaretBrush}"
+                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+          </Panel>
+        </ScrollViewer>
+      </ControlTemplate>
+    </Setter>
+  </Style>
 </Styles>

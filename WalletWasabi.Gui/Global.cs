@@ -64,7 +64,6 @@ namespace WalletWasabi.Gui
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
 		public Node RegTestMempoolServingNode { get; private set; }
-		public EndPoint? TorSocks5EndPoint { get; private set; }
 		private TorProcessManager? TorManager { get; set; }
 		public CoreNode BitcoinCoreNode { get; private set; }
 
@@ -116,7 +115,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private bool InitializationCompleted { get; set; } = false;
+		private TaskCompletionSource<bool> InitializationCompleted { get; } = new();
 
 		private bool InitializationStarted { get; set; } = false;
 
@@ -127,21 +126,24 @@ namespace WalletWasabi.Gui
 		public async Task InitializeNoWalletAsync(TerminateService terminateService)
 		{
 			InitializationStarted = true;
-			AddressManager = null;
 			var cancel = StoppingCts.Token;
 
 			try
 			{
 				await SingleInstanceChecker.CheckAsync().ConfigureAwait(false);
 
+				cancel.ThrowIfCancellationRequested();
+
 				Cache = new MemoryCache(new MemoryCacheOptions
 				{
 					SizeLimit = 1_000,
 					ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 				});
-				var bstoreInitTask = BitcoinStore.InitializeAsync();
-				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
+				var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
+				cancel.ThrowIfCancellationRequested();
+
+				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 				AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 				var addrManTask = InitializeAddressManagerBehaviorAsync();
 
@@ -167,10 +169,6 @@ namespace WalletWasabi.Gui
 					var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
 
 					HostedServices.Register(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackRequestTestUri, Config.TorSocks5EndPoint, TorManager), nameof(TorMonitor));
-				}
-				else
-				{
-					TorSocks5EndPoint = null;
 				}
 
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
@@ -341,6 +339,8 @@ namespace WalletWasabi.Gui
 
 				#endregion JsonRpcServerInitialization
 
+				cancel.ThrowIfCancellationRequested();
+
 				#region Blocks provider
 
 				var blockProvider = new CachedBlockProvider(
@@ -351,11 +351,13 @@ namespace WalletWasabi.Gui
 
 				#endregion Blocks provider
 
+				cancel.ThrowIfCancellationRequested();
+
 				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Nodes, Config.ServiceConfiguration, FeeProviders, blockProvider);
 			}
 			finally
 			{
-				InitializationCompleted = true;
+				InitializationCompleted.TrySetResult(true);
 			}
 		}
 
@@ -579,17 +581,6 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		/// <returns>If initialization is successful, otherwise it was interrupted which means stopping was requested.</returns>
-		public async Task<bool> WaitForInitializationCompletedAsync(CancellationToken cancellationToken)
-		{
-			while (!InitializationCompleted)
-			{
-				await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-			}
-
-			return !StoppingCts.IsCancellationRequested;
-		}
-
 		private void NotifyAndLog(string message, string title, NotificationType notificationType, ProcessedResult e, object? sender)
 		{
 			message = Guard.Correct(message);
@@ -615,12 +606,12 @@ namespace WalletWasabi.Gui
 
 				try
 				{
-					using var initCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
-					await WaitForInitializationCompletedAsync(initCts.Token).ConfigureAwait(false);
+					using var initCompletitionWaitCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
+					await InitializationCompleted.Task.WithAwaitCancellationAsync(initCompletitionWaitCts.Token, 100).ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError($"Error during {nameof(WaitForInitializationCompletedAsync)}: {ex}");
+					Logger.LogError($"Error during wait for initialization to be completed: {ex}");
 				}
 
 				Logger.LogDebug($"Step: {nameof(WalletManager)}.", nameof(Global));
@@ -748,6 +739,17 @@ namespace WalletWasabi.Gui
 				if (Cache is { } cache)
 				{
 					cache.Dispose();
+				}
+
+				Logger.LogDebug($"Step: {nameof(BitcoinStore)}.", nameof(Global));
+
+				try
+				{
+					await BitcoinStore.DisposeAsync().ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError($"Error during the disposal of {nameof(BitcoinStore)}: {ex}");
 				}
 
 				Logger.LogDebug($"Step: {nameof(SingleInstanceChecker)}.", nameof(Global));

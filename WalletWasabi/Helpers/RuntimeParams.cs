@@ -63,7 +63,7 @@ namespace WalletWasabi.Helpers
 					await File.WriteAllTextAsync(
 						FilePath,
 						jsonString,
-						Encoding.UTF8);
+						Encoding.UTF8).ConfigureAwait(false);
 				}
 			}
 			catch (Exception ex)
@@ -79,10 +79,10 @@ namespace WalletWasabi.Helpers
 				if (!File.Exists(FilePath))
 				{
 					var file = new RuntimeParams();
-					await file.SaveAsync();
+					await file.SaveAsync().ConfigureAwait(false);
 				}
 
-				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
+				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8).ConfigureAwait(false);
 				InternalInstance = JsonConvert.DeserializeObject<RuntimeParams>(jsonString);
 				return;
 			}

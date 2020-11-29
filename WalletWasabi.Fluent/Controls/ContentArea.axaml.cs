@@ -33,6 +33,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<object> NextContentProperty =
 			AvaloniaProperty.Register<ContentArea, object>(nameof(NextContent), "Next");
 
+		public static readonly StyledProperty<bool> IsBusyProperty =
+			AvaloniaProperty.Register<ContentArea, bool>(nameof(IsBusy));
+
 		private IContentPresenter? _titlePresenter;
 		private IContentPresenter? _captionPresenter;
 
@@ -90,6 +93,12 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(NextContentProperty, value);
 		}
 
+		public bool IsBusy
+		{
+			get => GetValue(IsBusyProperty);
+			set => SetValue(IsBusyProperty, value);
+		}
+
 		protected override bool RegisterContentPresenter(IContentPresenter presenter)
 		{
 			var result = base.RegisterContentPresenter(presenter);
@@ -115,6 +124,7 @@ namespace WalletWasabi.Fluent.Controls
 
 					_captionPresenter = presenter;
 					_captionPresenter.PropertyChanged += PresenterOnPropertyChanged;
+					_captionPresenter.IsVisible = Caption is { };
 					result = true;
 					break;
 			}
@@ -137,6 +147,10 @@ namespace WalletWasabi.Fluent.Controls
 				{
 					newValue.Classes.Add(className);
 				}
+			}
+			else if (e.Property == CaptionProperty && _captionPresenter is { })
+			{
+				_captionPresenter.IsVisible = e.NewValue is { };
 			}
 		}
 	}

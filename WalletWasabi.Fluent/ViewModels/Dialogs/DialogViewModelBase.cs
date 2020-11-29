@@ -1,12 +1,12 @@
 using ReactiveUI;
-using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	/// <summary>
 	/// CommonBase class.
 	/// </summary>
-	public abstract class DialogViewModelBase : ViewModelBase
+	public abstract class DialogViewModelBase : RoutableViewModel
 	{
 		private bool _isDialogOpen;
 

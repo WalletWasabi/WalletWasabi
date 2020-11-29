@@ -1,5 +1,5 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:sys="clr-namespace:System;assembly=netstandard"
+        xmlns:sys="using:System"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
     <sys:Double x:Key="FontSizeH1">36</sys:Double>
@@ -11,7 +11,7 @@
     <sys:Double x:Key="FontSizeH7">14</sys:Double>
     <sys:Double x:Key="FontSizeH8">12</sys:Double>
   </Styles.Resources>
-  
+
   <Style Selector=":is(Control).h1">
     <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH1}" />
   </Style>
@@ -41,5 +41,14 @@
   </Style>
   <Style Selector=":is(Control).italic">
     <Setter Property="(TextBlock.FontStyle)" Value="Italic" />
+  </Style>
+  <Style Selector=":is(Control).light">
+    <Setter Property="(TextBlock.FontWeight)" Value="Light" />
+  </Style>
+  <Style Selector=":is(Control).semibold">
+    <Setter Property="(TextBlock.FontWeight)" Value="SemiBold" />
+  </Style>
+  <Style Selector=":is(Control).ultrabold">
+    <Setter Property="(TextBlock.FontWeight)" Value="UltraBold" />
   </Style>
 </Styles>

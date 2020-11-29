@@ -47,7 +47,8 @@ namespace WalletWasabi.Tests
 			var tx = Transaction.Create(Network.Main);
 			tx.Outputs.Add(new TxOut(Money.Coins(amount), pubKey.P2wpkhScript));
 			var stx = new SmartTransaction(tx, height);
-			return new SmartCoin(stx, 0, pubKey, anonymitySet);
+			pubKey.AnonymitySet = anonymitySet;
+			return new SmartCoin(stx, 0, pubKey);
 		}
 
 		public static TransactionFactory CreateTransactionFactory(
@@ -63,8 +64,8 @@ namespace WalletWasabi.Tests
 			var keys = keyManager.GetKeys().Take(coinArray.Length).ToArray();
 			for (int i = 0; i < coinArray.Length; i++)
 			{
-				var k = keys[i];
 				var c = coinArray[i];
+				var k = keys[c.KeyIndex];
 				k.SetLabel(c.Label);
 			}
 
@@ -73,7 +74,7 @@ namespace WalletWasabi.Tests
 			{
 				foreach (var sameLabelCoin in scoins.Where(c => !c.HdPubKey.Label.IsEmpty && c.HdPubKey.Label == coin.HdPubKey.Label))
 				{
-					sameLabelCoin.Cluster = coin.Cluster;
+					sameLabelCoin.HdPubKey.Cluster = coin.HdPubKey.Cluster;
 				}
 			}
 			var coinsView = new CoinsView(scoins);

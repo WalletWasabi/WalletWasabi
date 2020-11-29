@@ -138,7 +138,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void OnTextInput(object? sender, TextInputEventArgs e)
 		{
-			if (!(sender is AutoCompleteBox autoCompleteBox))
+			if (sender is not AutoCompleteBox autoCompleteBox)
 			{
 				return;
 			}
@@ -192,7 +192,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void OnDropDownClosed(object? sender, EventArgs e)
 		{
-			if (!(sender is AutoCompleteBox autoCompleteBox))
+			if (sender is not AutoCompleteBox autoCompleteBox)
 			{
 				return;
 			}
@@ -200,9 +200,9 @@ namespace WalletWasabi.Fluent.Controls
 			var currentText = (autoCompleteBox.Text ?? "").Trim();
 
 			if (currentText.Length == 0 ||
-				!(autoCompleteBox.SelectedItem is string selItem) ||
-				selItem.Length == 0 ||
-				currentText != selItem)
+			    autoCompleteBox.SelectedItem is not string selItem ||
+			    selItem.Length == 0 ||
+			    currentText != selItem)
 			{
 				return;
 			}
@@ -221,7 +221,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void OnTextChanged(object? sender, EventArgs e)
 		{
-			if (!(sender is AutoCompleteBox autoCompleteBox))
+			if (sender is not AutoCompleteBox autoCompleteBox)
 			{
 				return;
 			}
@@ -284,7 +284,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void OnKeyUp(object? sender, KeyEventArgs e)
 		{
-			if (!(sender is AutoCompleteBox autoCompleteBox))
+			if (sender is not AutoCompleteBox autoCompleteBox)
 			{
 				return;
 			}

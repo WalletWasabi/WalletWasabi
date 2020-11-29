@@ -2,6 +2,7 @@ using ReactiveUI;
 using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
@@ -24,6 +25,15 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 							  .Skip(1) // Skip the initial value change (which is false).
 							  .DistinctUntilChanged()
 							  .Subscribe(OnIsDialogOpenChanged);
+
+			CancelCommand = ReactiveCommand.Create(() => Close());
+		}
+
+		protected override void OnNavigatedFrom()
+		{
+			Close();
+
+			base.OnNavigatedFrom();
 		}
 
 		private void OnIsDialogOpenChanged(bool dialogState)
@@ -44,7 +54,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		{
 			if (_currentTaskCompletionSource.Task.IsCompleted)
 			{
-				throw new InvalidOperationException("Dialog is already closed.");
+				return;
 			}
 
 			_currentTaskCompletionSource.SetResult(value);
@@ -72,6 +82,17 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				host.CurrentDialog = this;
 			}
 
+			IsDialogOpen = true;
+
+			return _currentTaskCompletionSource.Task;
+		}
+
+		/// <summary>
+		/// Gets the dialog result.
+		/// </summary>
+		/// <returns>The value to be returned when the dialog is finished.</returns>
+		public Task<TResult> GetDialogResultAsync()
+		{
 			IsDialogOpen = true;
 
 			return _currentTaskCompletionSource.Task;

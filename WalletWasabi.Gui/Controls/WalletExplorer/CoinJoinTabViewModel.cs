@@ -441,7 +441,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					var available = coins.Confirmed().Available();
 					RequiredBTC = available.Any()
-						? registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray())
+						? registrableRound.State.CalculateRequiredAmount(available.Where(x => x.HdPubKey.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray())
 						: registrableRound.State.CalculateRequiredAmount();
 				}
 			}

@@ -2,10 +2,14 @@ using System;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive;
+using System.Reactive.Linq;
+using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using Global = WalletWasabi.Gui.Global;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Settings;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -18,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private DialogScreenViewModel? _dialogScreen;
 		private NavBarViewModel _navBar;
 		private bool _isMainContentEnabled;
-		private bool _isDialogEnabled;
+		private bool _isDialogScreenEnabled;
 
 		public MainViewModel(Global global)
 		{
@@ -26,28 +30,34 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			_dialogScreen = new DialogScreenViewModel();
 
-			var navigationState = new NavigationStateViewModel(() => this, () => _dialogScreen, () => this);
+			NavigationState.Register(() => this, () => _dialogScreen, () => this);
 
 			Network = global.Network;
 
 			_currentDialog = null;
 
 			_isMainContentEnabled = true;
-			_isDialogEnabled = true;
+			_isDialogScreenEnabled = true;
 
 			_statusBar = new StatusBarViewModel(global.DataDir, global.Network, global.Config, global.HostedServices, global.BitcoinStore.SmartHeaderChain, global.Synchronizer, global.LegalDocuments);
 
-			var walletManager = new WalletManagerViewModel(navigationState, global.WalletManager, global.UiConfig);
+			var walletManager = new WalletManagerViewModel(global.WalletManager, global.UiConfig);
 
-			var addWalletPage = new AddWalletPageViewModel(navigationState, global.WalletManager, global.BitcoinStore, global.Network);
+			var addWalletPage = new AddWalletPageViewModel(global.LegalDocuments, global.WalletManager, global.BitcoinStore, global.Network);
 
-			_navBar = new NavBarViewModel(navigationState, Router, walletManager, addWalletPage);
+			var settingsPage = new SettingsPageViewModel(global.Config, global.UiConfig);
 
-			this.WhenAnyValue(x => x.DialogScreen!.IsDialogVisible)
+			var privacyMode = new PrivacyModeViewModel(global.UiConfig);
+
+			_navBar = new NavBarViewModel(Router, walletManager, addWalletPage, settingsPage, privacyMode);
+
+			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsMainContentEnabled = !x);
 
 			this.WhenAnyValue(x => x.CurrentDialog!.IsDialogOpen)
-				.Subscribe(x => IsDialogEnabled = !x);
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => IsDialogScreenEnabled = !x);
 		}
 
 		public bool IsMainContentEnabled
@@ -56,10 +66,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _isMainContentEnabled, value);
 		}
 
-		public bool IsDialogEnabled
+		public bool IsDialogScreenEnabled
 		{
-			get => _isDialogEnabled;
-			set => this.RaiseAndSetIfChanged(ref _isDialogEnabled, value);
+			get => _isDialogScreenEnabled;
+			set => this.RaiseAndSetIfChanged(ref _isDialogScreenEnabled, value);
 		}
 
 		public static MainViewModel? Instance { get; internal set; }

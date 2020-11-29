@@ -2,57 +2,48 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors;assembly=WalletWasabi.Fluent"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:dialogs="clr-namespace:WalletWasabi.Fluent.ViewModels.Dialogs"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:dialogs="using:WalletWasabi.Fluent.ViewModels.Dialogs"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.AdvancedRecoveryOptionsView"
              x:DataType="dialogs:AdvancedRecoveryOptionsViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500">
-    <UserControl.KeyBindings>
-        <KeyBinding Gesture="Enter" Command="{Binding ContinueCommand}" />
-    </UserControl.KeyBindings>
-    <DockPanel Margin="0 0 0 20">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Enter" Command="{Binding NextCommand}" />
+  </UserControl.KeyBindings>
+  <c:ContentArea Title="Advanced Recovery Options"
+                 Caption="Type your wallet-specific recovery options and click Continue."
+                 EnableCancel="True" CancelContent="Cancel"
+                 EnableNext="True" NextContent="Continue">
+    <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380" Margin="30 0 0 0">
 
-        <DockPanel DockPanel.Dock="Bottom" Margin="0 40 0 0">
-            <Button DockPanel.Dock="Left" Content="Cancel" Command="{Binding CancelCommand}" Classes="invisible"
-                    HorizontalAlignment="Left" VerticalAlignment="Bottom" />
-            <Button DockPanel.Dock="Right" Content="Continue" Command="{Binding ContinueCommand}" Classes="action"
-                    HorizontalAlignment="Right" VerticalAlignment="Bottom" />
-        </DockPanel>
+      <DockPanel>
+        <PathIcon Classes="checkMark" Margin="15 42 0 0" VerticalAlignment="Top" DockPanel.Dock="Right">
+          <i:Interaction.Behaviors>
+            <behaviors:CheckMarkVisibilityBehavior OwnerTextBox="TbKeyPath" />
+          </i:Interaction.Behaviors>
+        </PathIcon>
+        <Label Content="Type the Account Key _Derivation Path:" Target="TbKeyPath" DockPanel.Dock="Top" />
+        <TextBox Name="TbKeyPath" Watermark="e.g., m/84'/0'/0'" Text="{Binding AccountKeyPath}"
+                 DockPanel.Dock="Top" Width="350">
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior />
+          </i:Interaction.Behaviors>
+        </TextBox>
+      </DockPanel>
 
-        <c:ContentArea Title="Advanced Recovery Options"
-                       Caption="Type your wallet-specific recovery options and click Continue.">
-            <StackPanel HorizontalAlignment="Center" Spacing="40" MinWidth="380" Margin="30 0 0 0">
-
-                <DockPanel>
-                    <PathIcon Classes="checkMark" Margin="15 42 0 0" VerticalAlignment="Top" DockPanel.Dock="Right">
-                        <i:Interaction.Behaviors>
-                            <behaviors:CheckMarkVisibilityBehavior OwnerTextBox="TbKeyPath" />
-                        </i:Interaction.Behaviors>
-                    </PathIcon>
-                    <Label Content="Type the Account Key _Derivation Path:" Target="TbKeyPath" DockPanel.Dock="Top" />
-                    <TextBox Name="TbKeyPath" Watermark="e.g., m/84'/0'/0'" Text="{Binding AccountKeyPath}"
-                             DockPanel.Dock="Top" Width="350">
-                        <i:Interaction.Behaviors>
-                            <behaviors:FocusOnAttachedBehavior />
-                        </i:Interaction.Behaviors>
-                    </TextBox>
-                </DockPanel>
-
-                <DockPanel>
-                    <PathIcon Classes="checkMark" Margin="15 42 0 0" VerticalAlignment="Top" DockPanel.Dock="Right">
-                        <i:Interaction.Behaviors>
-                            <behaviors:CheckMarkVisibilityBehavior OwnerTextBox="TbGapLimit" />
-                        </i:Interaction.Behaviors>
-                    </PathIcon>
-                    <Label Content="Type the Minimum _Gap Limit:" Target="TbGapLimit" DockPanel.Dock="Top" />
-                    <TextBox Name="TbGapLimit" Watermark="e.g., 63" Text="{Binding MinGapLimit}"
-                             DockPanel.Dock="Top" Width="350" />
-                </DockPanel>
-
-            </StackPanel>
-        </c:ContentArea>
-    </DockPanel>
+      <DockPanel>
+        <PathIcon Classes="checkMark" Margin="15 42 0 0" VerticalAlignment="Top" DockPanel.Dock="Right">
+          <i:Interaction.Behaviors>
+            <behaviors:CheckMarkVisibilityBehavior OwnerTextBox="TbGapLimit" />
+          </i:Interaction.Behaviors>
+        </PathIcon>
+        <Label Content="Type the Minimum _Gap Limit:" Target="TbGapLimit" DockPanel.Dock="Top" />
+        <TextBox Name="TbGapLimit" Watermark="e.g., 63" Text="{Binding MinGapLimit}"
+                 DockPanel.Dock="Top" Width="350" />
+      </DockPanel>
+    </StackPanel>
+  </c:ContentArea>
 </UserControl>

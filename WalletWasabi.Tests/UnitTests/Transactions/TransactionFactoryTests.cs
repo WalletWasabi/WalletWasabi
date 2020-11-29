@@ -72,7 +72,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.True(result.Signed);
 			var spentCoin = Assert.Single(result.SpentCoins);
 			Assert.Equal(Money.Coins(0.16m), spentCoin.Amount);
-			Assert.Equal(200, spentCoin.AnonymitySet);
+			Assert.Equal(200, spentCoin.HdPubKey.AnonymitySet);
 			Assert.False(result.SpendsUnconfirmed);
 			var tx = result.Transaction.Transaction;
 			Assert.Equal(2, tx.Outputs.Count());
@@ -100,7 +100,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.True(result.Signed);
 			var spentCoin = Assert.Single(result.SpentCoins);
 			Assert.Equal(Money.Coins(0.16m), spentCoin.Amount);
-			Assert.Equal(200, spentCoin.AnonymitySet);
+			Assert.Equal(200, spentCoin.HdPubKey.AnonymitySet);
 			Assert.False(result.SpendsUnconfirmed);
 			var tx = result.Transaction.Transaction;
 			Assert.Equal(2, tx.Outputs.Count());
@@ -129,8 +129,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			Assert.True(result.Signed);
 			Assert.Equal(2, result.SpentCoins.Count());
-			var spentCoin200 = Assert.Single(result.SpentCoins, x => x.AnonymitySet == 200);
-			var spentCoin100 = Assert.Single(result.SpentCoins, x => x.AnonymitySet == 100);
+			var spentCoin200 = Assert.Single(result.SpentCoins, x => x.HdPubKey.AnonymitySet == 200);
+			var spentCoin100 = Assert.Single(result.SpentCoins, x => x.HdPubKey.AnonymitySet == 100);
 
 			Assert.Equal(Money.Coins(0.16m), spentCoin200.Amount);
 			Assert.Equal(Money.Coins(0.04m), spentCoin100.Amount);
@@ -197,18 +197,18 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// cluster 1 is known by 7 people: Pablo, Daniel, Adolf, Maria, Ding, Joseph and Eve
 			var coinsCluster1 = new[] { scoins[0], scoins[1], scoins[2], scoins[3], scoins[4], scoins[5], scoins[6] };
-			var cluster1 = new Cluster(coinsCluster1);
+			var cluster1 = new Cluster(coinsCluster1.Select(x => x.HdPubKey));
 			foreach (var coin in coinsCluster1)
 			{
-				coin.Cluster = cluster1;
+				coin.HdPubKey.Cluster = cluster1;
 			}
 
 			// cluster 2 is known by 6 people: Julio, Lee, Jean, Donald, Onur and Satoshi
 			var coinsCluster2 = new[] { scoins[7], scoins[8], scoins[9] };
-			var cluster2 = new Cluster(coinsCluster2);
+			var cluster2 = new Cluster(coinsCluster2.Select(x => x.HdPubKey));
 			foreach (var coin in coinsCluster2)
 			{
-				coin.Cluster = cluster2;
+				coin.HdPubKey.Cluster = cluster2;
 			}
 
 			var coinsView = new CoinsView(scoins.ToArray());
@@ -221,7 +221,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
 
 			Assert.Equal(2, result.SpentCoins.Count());
-			Assert.All(result.SpentCoins, c => Assert.Equal(c.Cluster, cluster2));
+			Assert.All(result.SpentCoins, c => Assert.Equal(c.HdPubKey.Cluster, cluster2));
 			Assert.Contains(coinsByLabel["Julio"], result.SpentCoins);
 			Assert.Contains(coinsByLabel["Donald, Jean, Lee, Onur"], result.SpentCoins);
 
@@ -231,7 +231,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			result = transactionFactory.BuildTransaction(payment, feeRate);
 
 			Assert.Equal(3, result.SpentCoins.Count());
-			Assert.All(result.SpentCoins, c => Assert.Equal(c.Cluster, cluster2));
+			Assert.All(result.SpentCoins, c => Assert.Equal(c.HdPubKey.Cluster, cluster2));
 			Assert.Contains(coinsByLabel["Julio"], result.SpentCoins);
 			Assert.Contains(coinsByLabel["Donald, Jean, Lee, Onur"], result.SpentCoins);
 			Assert.Contains(coinsByLabel["Satoshi"], result.SpentCoins);
@@ -243,7 +243,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			result = transactionFactory.BuildTransaction(payment, feeRate);
 
 			Assert.Equal(4, result.SpentCoins.Count());
-			Assert.All(result.SpentCoins, c => Assert.Equal(c.Cluster, cluster1));
+			Assert.All(result.SpentCoins, c => Assert.Equal(c.HdPubKey.Cluster, cluster1));
 			Assert.Contains(coinsByLabel["Pablo"], result.SpentCoins);
 			Assert.Contains(coinsByLabel["Daniel"], result.SpentCoins);
 			Assert.Contains(coinsByLabel["Adolf"], result.SpentCoins);
