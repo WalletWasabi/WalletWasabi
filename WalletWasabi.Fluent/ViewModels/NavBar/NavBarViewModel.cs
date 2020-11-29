@@ -174,12 +174,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 		private void SetSelectedItem(NavBarItemViewModel? value)
 		{
-			if (value is null)
-			{
-				return;
-			}
-
-			if (value.SelectionMode == NavBarItemSelectionMode.Selected)
+			if (value is null || value.SelectionMode == NavBarItemSelectionMode.Selected)
 			{
 				Select(value);
 				return;
@@ -219,7 +214,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		{
 			if (walletManager.Items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
 			{
-				if (!_isNavigating)
+				if (!_isNavigating && x.SelectionMode == NavBarItemSelectionMode.Selected)
 				{
 					_isNavigating = true;
 					SetSelectedItem(x);
