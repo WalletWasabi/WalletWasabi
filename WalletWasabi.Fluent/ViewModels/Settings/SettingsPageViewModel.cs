@@ -25,18 +25,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			BitcoinTab = new BitcoinTabViewModel(config, uiConfig);
 		}
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
-		{
-			base.OnNavigatedTo(inStack, disposable);
-
-			SettingsTabViewModelBase.RestartNeeded += OnRestartNeeded;
-
-			disposable.Add(Disposable.Create(() =>
-			{
-				SettingsTabViewModelBase.RestartNeeded -= OnRestartNeeded;
-			}));
-		}
-
 		public GeneralTabViewModel GeneralTab { get; }
 		public PrivacyTabViewModel PrivacyTab { get; }
 		public NetworkTabViewModel NetworkTab { get; }
@@ -59,6 +47,18 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private void OnRestartNeeded(object? sender, RestartNeededEventArgs e)
 		{
 			IsModified = e.IsRestartNeeded;
+		}
+
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		{
+			base.OnNavigatedTo(inStack, disposable);
+
+			SettingsTabViewModelBase.RestartNeeded += OnRestartNeeded;
+
+			disposable.Add(Disposable.Create(() =>
+			{
+				SettingsTabViewModelBase.RestartNeeded -= OnRestartNeeded;
+			}));
 		}
 	}
 }
