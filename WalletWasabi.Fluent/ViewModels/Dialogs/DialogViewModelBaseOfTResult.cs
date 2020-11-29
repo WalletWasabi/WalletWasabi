@@ -28,8 +28,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 							  .Subscribe(OnIsDialogOpenChanged);
 
 			CancelCommand = ReactiveCommand.Create(() => Close());
-
-//			this.WhenNavigatedTo(() => Disposable.Create(() => Close()));
 		}
 
 		protected override void OnNavigatedFrom()
