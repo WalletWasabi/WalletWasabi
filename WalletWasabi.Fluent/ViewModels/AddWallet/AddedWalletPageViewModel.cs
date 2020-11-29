@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 	public class AddedWalletPageViewModel : RoutableViewModel
 	{
-		public AddedWalletPageViewModel(NavigationStateViewModel navigationState, string walletName, WalletType type) : base(navigationState)
+		public AddedWalletPageViewModel(string walletName, WalletType type)
 		{
 			WalletName = walletName;
 			Type = type;

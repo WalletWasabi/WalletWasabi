@@ -10,8 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 	public class DetectedHardwareWalletViewModel : RoutableViewModel
 	{
-		public DetectedHardwareWalletViewModel(NavigationStateViewModel navigationState, HardwareDetectionState detectionState)
-			: base(navigationState)
+		public DetectedHardwareWalletViewModel(HardwareDetectionState detectionState)
 		{
 			var type = WalletType.Hardware;
 
@@ -48,14 +47,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 				detectionState.WalletManager.AddWallet(newWallet);
 
-				NavigateTo(new AddedWalletPageViewModel(navigationState, detectionState.WalletName, Type));
+				NavigateTo(new AddedWalletPageViewModel(detectionState.WalletName, Type));
 
 				IsBusy = false;
 			});
 
 			NoCommand = ReactiveCommand.Create(() =>
 			{
-				NavigateTo(new ConnectHardwareWalletViewModel(navigationState, detectionState.WalletName, detectionState.Network, detectionState.WalletManager, false));
+				NavigateTo(new ConnectHardwareWalletViewModel(detectionState.WalletName, detectionState.Network, detectionState.WalletManager, false));
 			});
 		}
 

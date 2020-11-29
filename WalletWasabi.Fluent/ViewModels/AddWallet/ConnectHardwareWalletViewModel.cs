@@ -16,8 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private readonly bool _trySkipPage;
 		private readonly HardwareDetectionState _detectionState;
 
-		public ConnectHardwareWalletViewModel(NavigationStateViewModel navigationState, string walletName, Network network, WalletManager walletManager, bool trySkipPage = true)
-			: base(navigationState)
+		public ConnectHardwareWalletViewModel(string walletName, Network network, WalletManager walletManager, bool trySkipPage = true)
 		{
 			_detectionState = new HardwareDetectionState(walletName, walletManager, network);
 
@@ -30,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			NextCommand = ReactiveCommand.Create(() =>
 			{
-				NavigateTo(new DetectHardwareWalletViewModel(navigationState, _detectionState));
+				NavigateTo(new DetectHardwareWalletViewModel(_detectionState));
 			});
 		}
 
@@ -51,14 +50,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					if (deviceCount == 0)
 					{
 						// navigate to detecting page.
-						NavigateTo(new DetectHardwareWalletViewModel(NavigationState, _detectionState));
+						NavigateTo(new DetectHardwareWalletViewModel(_detectionState));
 					}
 					else if (deviceCount == 1)
 					{
 						// navigate to detected hw wallet page.
 						_detectionState.SelectedDevice = _detectionState.Devices.First();
 
-						NavigateTo(new DetectedHardwareWalletViewModel(NavigationState, _detectionState));
+						NavigateTo(new DetectedHardwareWalletViewModel(_detectionState));
 					}
 					else
 					{

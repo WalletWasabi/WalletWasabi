@@ -26,12 +26,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private HardwareWalletViewModel? _selectedHardwareWallet;
 		private HardwareDetectionState _detectionState;
 
-		public DetectHardwareWalletViewModel(NavigationStateViewModel navigationState, HardwareDetectionState detectionState)
-			: base(navigationState)
+		public DetectHardwareWalletViewModel(HardwareDetectionState detectionState)
 		{
 			HardwareWallets = new ObservableCollection<HardwareWalletViewModel>();
 			_detectionState = detectionState;
-
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
@@ -120,7 +118,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 				_detectionState.SelectedDevice = SelectedHardwareWallet.HardwareWalletInfo;
 
-				NavigateTo(new DetectedHardwareWalletViewModel(NavigationState, _detectionState));
+				NavigateTo(new DetectedHardwareWalletViewModel(_detectionState));
 			}
 			catch (Exception ex)
 			{

@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private bool _isExpanded;
 		private string _title;
 
-		protected NavBarItemViewModel(NavigationStateViewModel navigationState) : base(navigationState)
+		protected NavBarItemViewModel()
 		{
 			_title = "";
 			OpenCommand = ReactiveCommand.Create(
