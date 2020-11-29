@@ -39,37 +39,12 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			var settingsPage = new SettingsPageViewModel(navigationState);
 			var searchPage = new SearchPageViewModel(navigationState, walletManager);
 
-			// Register categories and entries here.
-			searchPage.RegisterCategory("General", 0);
+			RegisterCategories(searchPage);
 
-			searchPage.RegisterSearchEntry(
-				"Home",
-				"Manage existing wallets",
-				0,
-				"General",
-				"Home",
-				"home_regular",
-				() => homePage);
+			RegisterRootEntries(searchPage, homePage, settingsPage, addWalletPage);
 
-			searchPage.RegisterSearchEntry(
-				title: "Settings",
-				caption: "Manage appearance, privacy and other settings",
-				order: 1,
-				category: "General",
-				keywords: "Settings, General, User Interface, Privacy, Advanced",
-				iconName: "settings_regular",
-				createTargetView: () => settingsPage);
+			RegisterEntries(searchPage);
 
-			searchPage.RegisterSearchEntry(
-				title: "Add Wallet",
-				caption: "Create, recover or import wallet",
-				order: 2,
-				category: "General",
-				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
-				iconName: "add_circle_regular",
-				createTargetView: () => addWalletPage);
-
-			searchPage.RegisterCategory("Settings", 1);
 			RegisterSettingsSearchItems(searchPage, settingsPage);
 
 			searchPage.Initialise();
@@ -207,6 +182,51 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		public void DoToggleAction()
 		{
 			ToggleAction?.Invoke();
+		}
+
+		private static void RegisterCategories(SearchPageViewModel searchPage)
+		{
+			searchPage.RegisterCategory("General", 0);
+			searchPage.RegisterCategory("Settings", 1);
+		}
+
+		private static void RegisterEntries(SearchPageViewModel searchPage)
+		{
+			// TODO Register entries here.
+		}
+
+		private static void RegisterRootEntries(
+			SearchPageViewModel searchPage,
+			HomePageViewModel homePage,
+			SettingsPageViewModel settingsPage,
+			AddWalletPageViewModel addWalletPage)
+		{
+			searchPage.RegisterSearchEntry(
+				"Home",
+				"Manage existing wallets",
+				0,
+				"General",
+				"Home",
+				"home_regular",
+				() => homePage);
+
+			searchPage.RegisterSearchEntry(
+				title: "Settings",
+				caption: "Manage appearance, privacy and other settings",
+				order: 1,
+				category: "General",
+				keywords: "Settings, General, User Interface, Privacy, Advanced",
+				iconName: "settings_regular",
+				createTargetView: () => settingsPage);
+
+			searchPage.RegisterSearchEntry(
+				title: "Add Wallet",
+				caption: "Create, recover or import wallet",
+				order: 2,
+				category: "General",
+				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
+				iconName: "add_circle_regular",
+				createTargetView: () => addWalletPage);
 		}
 
 		private static void RegisterSettingsSearchItems(SearchPageViewModel searchPage, SettingsPageViewModel settingsPage)
