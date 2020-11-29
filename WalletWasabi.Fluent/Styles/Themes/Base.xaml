@@ -24,6 +24,7 @@
     <SolidColorBrush x:Key="PrivacyLevelExtremeAltBrush" Color="#5B92D2" />
 
 
+    <SolidColorBrush x:Key="WarningMessageForeground">#FFDD00</SolidColorBrush>
     <StaticResource x:Key="SystemControlErrorTextForegroundBrush" ResourceKey="SystemErrorTextColor" />
   </Styles.Resources>
 </Styles>

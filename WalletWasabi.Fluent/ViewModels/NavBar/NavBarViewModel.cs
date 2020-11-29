@@ -10,6 +10,7 @@ using WalletWasabi.Fluent.ViewModels.Search;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Gui;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar
 {
@@ -28,7 +29,11 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private Action? _toggleAction;
 		private Action? _collapseOnClickAction;
 
-		public NavBarViewModel(RoutingState router, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage)
+		public NavBarViewModel(
+			RoutingState router,
+			WalletManagerViewModel walletManager,
+			AddWalletPageViewModel addWalletPage,
+			SettingsPageViewModel settingsPage)
 		{
 			Router = router;
 			_walletManager = walletManager;
@@ -36,7 +41,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 
 			var homePage = new HomePageViewModel(walletManager, addWalletPage);
-			var settingsPage = new SettingsPageViewModel();
 			var searchPage = new SearchPageViewModel(walletManager);
 
 			RegisterCategories(searchPage);
