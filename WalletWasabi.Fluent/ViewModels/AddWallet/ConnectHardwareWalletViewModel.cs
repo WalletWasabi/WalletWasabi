@@ -34,6 +34,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			});
 		}
 
+		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
+
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{
 			base.OnNavigatedTo(inStack, disposable);
@@ -67,7 +69,5 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				});
 			}
 		}
-
-		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
 	}
 }
