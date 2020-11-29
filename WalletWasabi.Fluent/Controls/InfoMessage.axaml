@@ -34,10 +34,6 @@
     <Setter Property="Opacity" Value="1"/>
   </Style>
 
-  <Style Selector="c|InfoMessage[IsVisible=True]">
-    <Setter Property="Opacity" Value="1"/>
-  </Style>
-
   <Style Selector="c|InfoMessage :is(TextBlock)">
     <Setter Property="TextWrapping" Value="Wrap" />
   </Style>
