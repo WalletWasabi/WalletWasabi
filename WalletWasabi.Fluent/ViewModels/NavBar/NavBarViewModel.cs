@@ -64,7 +64,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 			Router.CurrentViewModel
 				.OfType<NavBarItemViewModel>()
-				.Subscribe(x => SelectItem(x, walletManager));
+				.Subscribe(x => CurrentViewModelChanged(x, walletManager));
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<NavBarItemViewModel>()
@@ -210,7 +210,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			}
 		}
 
-		private void SelectItem(NavBarItemViewModel x, WalletManagerViewModel walletManager)
+		private void CurrentViewModelChanged(NavBarItemViewModel x, WalletManagerViewModel walletManager)
 		{
 			if (walletManager.Items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
 			{
