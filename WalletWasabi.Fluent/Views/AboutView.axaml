@@ -67,12 +67,10 @@
         </Style>
         <Style Selector="TextBlock.Header">
             <Setter Property="Margin" Value="0 4 0 0" />
-            <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH8}" />
             <Setter Property="FontWeight" Value="Bold" />
         </Style>
         <Style Selector="TextBox.Content">
             <Setter Property="Margin" Value="0 4 0 0" />
-            <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH8}" />
         </Style>
     </UserControl.Styles>
     <Panel>
@@ -137,24 +135,13 @@
                     <TextBox Classes="Content selectable_text_block"
                              Text="{Binding ClientVersion, Converter={StaticResource VersionStringConverter}}" />
                 </StackPanel>
-                <StackPanel>
-                    <TextBlock Classes="Header" Text="Compatible Coordinator Versions" />
-                    <TextBox Classes="Content selectable_text_block" Text="{Binding BackendCompatibleVersions}" />
-                </StackPanel>
-                <StackPanel>
-                    <TextBlock Classes="Header" Text="Current Coordinator Version" />
-                    <TextBox Classes="Content selectable_text_block" Text="{Binding CurrentBackendMajorVersion}" />
-                </StackPanel>
-                <StackPanel>
-                    <TextBlock Classes="Header" Text="Compatible Bitcoin Core and Bitcoin Knots Versions " />
-                    <TextBox Classes="Content selectable_text_block"
-                             Text="{Binding BitcoinCoreVersion, Converter={StaticResource VersionStringConverter}}" />
-                </StackPanel>
-                <StackPanel>
-                    <TextBlock Classes="Header" Text="Compatible Hardware Wallet Interface Version " />
-                    <TextBox Classes="Content selectable_text_block"
-                             Text="{Binding HwiVersion, Converter={StaticResource VersionStringConverter}}" />
-                </StackPanel>
+                <Button Classes="plain obscured"
+                        Command="{Binding AboutAdvancedInfoDialogCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="20">
+                        <PathIcon Data="{StaticResource info_regular}" />
+                        <TextBlock Text="Advanced Information..." />
+                    </StackPanel>
+                </Button>
             </StackPanel>
         </controls:ContentArea>
     </Panel>
