@@ -70,7 +70,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 								return walletGenerator.GenerateWallet(WalletName, password);
 							});
 
-						NavigateTo(new RecoveryWordsViewModel(navigationState, km, mnemonic, walletManager), NavigationTarget.DialogScreen, true);
+						NavigateTo(new RecoveryWordsViewModel(navigationState, km, mnemonic, walletManager), true);
 
 						IsBusy = false;
 					}

@@ -13,6 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 	public abstract class RoutableViewModel : ViewModelBase, IRoutableViewModel
 	{
 		private bool _isBusy;
+		private CompositeDisposable? _currentDisposable;
 		public NavigationTarget CurrentTarget { get; private set; }
 
 		public virtual NavigationTarget DefaultTarget => NavigationTarget.HomeScreen;
@@ -44,14 +45,32 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		public ICommand CancelCommand { get; protected set; }
 
+		private void DoNavigateTo(bool inStack)
+		{
+			if (_currentDisposable is { })
+			{
+				throw new Exception("Cant navigate to something that has already been navigated to.");
+			}
+
+			_currentDisposable = new CompositeDisposable();
+
+			OnNavigatedTo(inStack, _currentDisposable);
+		}
+
 		protected virtual void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{
+		}
 
+		private void DoNavigateFrom()
+		{
+			OnNavigatedFrom();
+
+			_currentDisposable?.Dispose();
+			_currentDisposable = null;
 		}
 
 		protected virtual void OnNavigatedFrom()
 		{
-
 		}
 
 		public async Task<TResult> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog)
@@ -112,9 +131,16 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		{
 			viewModel.CurrentTarget = NavigationTarget.HomeScreen;
 
-			if (NavigationState.HomeScreen().Router.GetCurrentViewModel() is RoutableViewModel rvm)
+			if (resetNavigation)
 			{
-				rvm.OnNavigatedFrom();
+				ClearStack(NavigationState.HomeScreen().Router.NavigationStack.ToList());
+			}
+			else
+			{
+				if (NavigationState.HomeScreen().Router.GetCurrentViewModel() is RoutableViewModel rvm)
+				{
+					rvm.DoNavigateFrom();
+				}
 			}
 
 			var command = resetNavigation ?
@@ -125,16 +151,23 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 			command.Execute(viewModel);
 
-			viewModel.OnNavigatedTo(inStack, null);
+			viewModel.DoNavigateTo(inStack);
 		}
 
 		private void NavigateToDialogScreen(RoutableViewModel viewModel, bool resetNavigation)
 		{
 			viewModel.CurrentTarget = NavigationTarget.DialogScreen;
 
-			if (NavigationState.DialogScreen().Router.GetCurrentViewModel() is RoutableViewModel rvm)
+			if (resetNavigation)
 			{
-				rvm.OnNavigatedFrom();
+				ClearStack(NavigationState.DialogScreen().Router.NavigationStack.ToList());
+			}
+			else
+			{
+				if (NavigationState.DialogScreen().Router.GetCurrentViewModel() is RoutableViewModel rvm)
+				{
+					rvm.DoNavigateFrom();
+				}
 			}
 
 			var command = resetNavigation ?
@@ -145,7 +178,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 			command.Execute(viewModel);
 
-			viewModel.OnNavigatedTo(inStack, null);
+			viewModel.DoNavigateTo(inStack);
 		}
 
 		private void NavigateToDialogHost(DialogViewModelBase dialog)
@@ -156,12 +189,12 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			{
 				if (dialogHost.CurrentDialog is RoutableViewModel rvm)
 				{
-					rvm.OnNavigatedFrom();
+					rvm.DoNavigateFrom();
 				}
 
 				dialogHost.CurrentDialog = dialog;
 
-				dialog.OnNavigatedTo(false, null);
+				dialog.DoNavigateTo(false);
 			}
 		}
 
@@ -189,8 +222,13 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			return router;
 		}
 
-		private void CloseDialogs(IEnumerable<IRoutableViewModel> navigationStack)
+		private void ClearStack(IEnumerable<IRoutableViewModel> navigationStack)
 		{
+			if (navigationStack.LastOrDefault() is RoutableViewModel rvm)
+			{
+				rvm.DoNavigateFrom();
+			}
+
 			foreach (var routable in navigationStack)
 			{
 				// Close all dialogs so the awaited tasks can complete.
@@ -216,7 +254,17 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 					dialog.IsDialogOpen = false;
 				}
 
+				if (router.NavigationStack.LastOrDefault() is RoutableViewModel rvmFrom)
+				{
+					rvmFrom.DoNavigateFrom();
+				}
+
 				router.NavigateBack.Execute();
+
+				if (router.NavigationStack.LastOrDefault() is RoutableViewModel rvmTo)
+				{
+					rvmTo.DoNavigateTo(true);
+				}
 			}
 		}
 
@@ -231,7 +279,16 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 					router.NavigationStack.Clear();
 
-					CloseDialogs(navigationStack);
+					ClearStack(navigationStack);
+
+					if (navigationTarget == NavigationTarget.HomeScreen ||
+					    (navigationTarget == NavigationTarget.Default && DefaultTarget == NavigationTarget.HomeScreen))
+					{
+						if (navigationStack.FirstOrDefault() is RoutableViewModel rvm)
+						{
+							NavigateTo(rvm);
+						}
+					}
 				}
 			}
 		}

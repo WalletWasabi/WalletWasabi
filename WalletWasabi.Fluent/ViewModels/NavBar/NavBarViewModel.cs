@@ -39,7 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			var settingsPage = new SettingsPageViewModel(navigationState);
 			var searchPage = new SearchPageViewModel(navigationState, walletManager, addWalletPage, settingsPage, homePage);
 
-			SelectedItem = homePage;
+			_selectedItem = homePage;
 
 			_topItems.Add(SelectedItem);
 			_bottomItems.Add(searchPage);
