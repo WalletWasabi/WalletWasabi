@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class AboutAdvancedInfoViewModel : DialogViewModelBase<object>
 	{
-		public AboutAdvancedInfoViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
+		public AboutAdvancedInfoViewModel(NavigationStateViewModel navigationState) : base(navigationState)
 		{
 		}
 

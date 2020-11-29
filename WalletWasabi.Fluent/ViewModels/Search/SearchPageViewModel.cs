@@ -133,7 +133,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				          "Docs, Documentation, Clearnet, Link, Links, Help",
 				iconName: "info_regular",
 				navigationState: NavigationState,
-				navigationTarget: NavigationTarget.HomeScreen,
 				createTargetView: () => aboutPage);
 		}
 
