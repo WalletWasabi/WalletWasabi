@@ -21,7 +21,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		}
 
 		public static Config? ConfigOnOpen { get; set; }
+
 		public static UiConfig? UiConfigOnOpen { get; set; }
+
 		private static object ConfigLock { get; } = new ();
 
 		protected void Save()
@@ -69,7 +71,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			bool uiConfigChanged;
 			if (darkMode is not null)
 			{
-				uiConfigChanged = UiConfigOnOpen.DarkModeEnabled != (bool)darkMode;
+				uiConfigChanged = UiConfigOnOpen.DarkModeEnabled != (bool) darkMode;
 			}
 			else
 			{
@@ -78,7 +80,12 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			var configChanged = !ConfigOnOpen.AreDeepEqual(currentConfig);
 
-			RestartNeeded?.Invoke(typeof(SettingsTabViewModelBase), new RestartNeededEventArgs{IsRestartNeeded = uiConfigChanged || configChanged});
+			RestartNeeded?.Invoke(
+				typeof(SettingsTabViewModelBase),
+				new RestartNeededEventArgs
+				{
+					IsRestartNeeded = uiConfigChanged || configChanged
+				});
 		}
 	}
 }
