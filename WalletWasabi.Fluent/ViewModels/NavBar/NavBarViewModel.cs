@@ -39,7 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			var homePage = new HomePageViewModel(walletManager, addWalletPage);
 			var settingsPage = new SettingsPageViewModel();
 			var searchPage = new SearchPageViewModel(walletManager);
-			var privacyMode = new PrivacyModeViewModel(navigationState, global);
+			var privacyMode = new PrivacyModeViewModel(global);
 
 			RegisterCategories(searchPage);
 
@@ -229,9 +229,11 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				{
 					x.OpenCommand.Execute(default);
 				}
+
 				CollapseOnClickAction?.Invoke();
 				_isNavigating = false;
 			}
+		}
 
 		private static void RegisterCategories(SearchPageViewModel searchPage)
 		{
