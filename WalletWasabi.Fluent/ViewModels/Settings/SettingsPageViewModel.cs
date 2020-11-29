@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private bool _isModified;
 		private int _selectedTab;
 
-		public SettingsPageViewModel(NavigationStateViewModel navigationState) : base(navigationState)
+		public SettingsPageViewModel()
 		{
 			var global = Locator.Current.GetService<Global>();
 

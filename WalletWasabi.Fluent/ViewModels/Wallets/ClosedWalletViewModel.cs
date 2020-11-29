@@ -17,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	{
 		private ObservableCollection<NavBarItemViewModel> _items;
 
-		protected ClosedWalletViewModel(NavigationStateViewModel navigationState, WalletManager walletManager, Wallet wallet) : base(navigationState, wallet)
+		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet) : base(wallet)
 		{
 			_items = new ObservableCollection<NavBarItemViewModel>
 			{
@@ -58,13 +58,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		public override string IconName => "web_asset_regular";
 
-		public static WalletViewModelBase Create(NavigationStateViewModel navigationState, WalletManager walletManager, Wallet wallet)
+		public static WalletViewModelBase Create(WalletManager walletManager, Wallet wallet)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new ClosedHardwareWalletViewModel(navigationState, walletManager, wallet)
+				? new ClosedHardwareWalletViewModel(walletManager, wallet)
 				: wallet.KeyManager.IsWatchOnly
-					? new ClosedWatchOnlyWalletViewModel(navigationState, walletManager, wallet)
-					: new ClosedWalletViewModel(navigationState, walletManager, wallet);
+					? new ClosedWatchOnlyWalletViewModel(walletManager, wallet)
+					: new ClosedWalletViewModel(walletManager, wallet);
 		}
 	}
 }
