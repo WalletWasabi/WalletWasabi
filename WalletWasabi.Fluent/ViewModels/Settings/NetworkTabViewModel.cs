@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private bool _terminateTorOnExit;
 		private string _torSocks5EndPoint;
 
-		public NetworkTabTabViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
+		public NetworkTabViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
 		{
 			this.ValidateProperty(x => x.TorSocks5EndPoint, ValidateTorSocks5EndPoint);
 

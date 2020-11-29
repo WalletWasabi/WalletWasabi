@@ -19,10 +19,10 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			_selectedTab = 0;
 
-			GeneralTab = new GeneralTabTabViewModel(config, uiConfig);
-			PrivacyTab = new PrivacyTabTabViewModel(config, uiConfig);
-			NetworkTab = new NetworkTabTabViewModel(config, uiConfig);
-			BitcoinTab = new BitcoinTabTabViewModel(config, uiConfig);
+			GeneralTab = new GeneralTabViewModel(config, uiConfig);
+			PrivacyTab = new PrivacyTabViewModel(config, uiConfig);
+			NetworkTab = new NetworkTabViewModel(config, uiConfig);
+			BitcoinTab = new BitcoinTabViewModel(config, uiConfig);
 		}
 
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
