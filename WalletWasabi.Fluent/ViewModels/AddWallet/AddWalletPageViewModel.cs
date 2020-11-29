@@ -89,6 +89,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			if (!inStack)
 			{
+				WalletName = "";
+
 				var termsAndConditions = new TermsAndConditionsViewModel(NavigationState, _legalDocuments, this);
 
 				NavigateTo(termsAndConditions);
