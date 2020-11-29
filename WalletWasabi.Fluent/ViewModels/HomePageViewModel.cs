@@ -50,7 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (!_walletManager.Model.AnyWallet(_ => true))
 			{
-				NavigateTo(_addWalletPage, NavigationTarget.DialogScreen);
+				NavigateTo(_addWalletPage, NavigationTarget.HomeScreen);
 			}
 		}
 	}
