@@ -214,7 +214,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 		private void NavigateItem(NavBarItemViewModel x)
 		{
-			/*if (!_isNavigating)
+			if (!_isNavigating)
 			{
 				_isNavigating = true;
 				if (x.OpenCommand.CanExecute(default))
@@ -224,7 +224,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 				CollapseOnClickAction?.Invoke();
 				_isNavigating = false;
-			}*/
+			}
 		}
 
 		private static void RegisterCategories(SearchPageViewModel searchPage)
