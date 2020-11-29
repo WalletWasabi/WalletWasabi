@@ -23,7 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			Category = category;
 			Keywords = keywords;
 			IconName = iconName;
-			//OpenCommand = ReactiveCommand.Create(() => NavigateTo(createTargetView(), CurrentTarget));
+			OpenCommand = ReactiveCommand.Create(() => NavigateTo(createTargetView(), CurrentTarget));
 		}
 
 		public override string IconName { get; }
