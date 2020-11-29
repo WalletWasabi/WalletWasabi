@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private bool _isModified;
 		private int _selectedTab;
 
-		public SettingsPageViewModel(NavigationStateViewModel navigationState, Global global) : base(navigationState, NavigationTarget.HomeScreen)
+		public SettingsPageViewModel(NavigationStateViewModel navigationState, Global global) : base(navigationState)
 		{
 			Title = "Settings";
 

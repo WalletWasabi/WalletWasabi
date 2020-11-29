@@ -1,7 +1,5 @@
-using System.Reactive;
-using System.Windows.Input;
 using ReactiveUI;
-using System;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
@@ -12,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	{
 		private bool _isDialogOpen;
 
-		public DialogViewModelBase(NavigationStateViewModel navigationState, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
+		public DialogViewModelBase(NavigationStateViewModel navigationState) : base(navigationState)
 		{
 		}
 

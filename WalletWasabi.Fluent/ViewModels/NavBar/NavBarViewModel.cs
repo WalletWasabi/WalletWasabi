@@ -4,6 +4,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using WalletWasabi.Fluent.ViewModels.AddWallet;
+using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Search;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -37,7 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			var settingsPage = new SettingsPageViewModel(navigationState, global);
 			var searchPage = new SearchPageViewModel(navigationState, walletManager, addWalletPage, settingsPage, homePage);
 
-			SelectedItem = homePage;
+			_selectedItem = homePage;
 
 			_topItems.Add(SelectedItem);
 			_bottomItems.Add(searchPage);
@@ -68,7 +71,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 					if (!_isNavigating)
 					{
 						_isNavigating = true;
-						x.NavigateToSelfAndReset();
+						x.NavigateToSelfAndReset(x.CurrentTarget);
 						CollapseOnClickAction?.Invoke();
 
 						_isNavigating = false;

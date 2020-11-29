@@ -3,10 +3,12 @@ using NBitcoin;
 using ReactiveUI;
 using System.Reactive;
 using System.Reactive.Linq;
+using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using Global = WalletWasabi.Gui.Global;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
