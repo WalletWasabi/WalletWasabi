@@ -84,7 +84,7 @@
       </controls:ContentArea.Title>
       <controls:ContentArea.Caption>
         <StackPanel Orientation="Horizontal">
-          <TextBlock Classes="Header" Text="Current Version" />
+          <TextBlock Classes="Header" Text="Current Version: " />
           <TextBox Classes="Content selectable_text_block"
                    Text="{Binding ClientVersion}" />          
         </StackPanel>
