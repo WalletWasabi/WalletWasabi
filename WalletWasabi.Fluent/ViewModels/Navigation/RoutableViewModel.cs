@@ -149,6 +149,11 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 			var inStack = screen.Router.NavigationStack.Contains(viewModel);
 
+			if (resetNavigation)
+			{
+				inStack = false;
+			}
+
 			command.Execute(viewModel);
 
 			viewModel.DoNavigateTo(inStack);
