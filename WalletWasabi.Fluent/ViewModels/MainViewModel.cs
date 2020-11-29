@@ -47,7 +47,9 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			var settingsPage = new SettingsPageViewModel(global.Config, global.UiConfig);
 
-			_navBar = new NavBarViewModel(Router, walletManager, addWalletPage, settingsPage, _global);
+			var privacyMode = new PrivacyModeViewModel(global.UiConfig);
+
+			_navBar = new NavBarViewModel(Router, walletManager, addWalletPage, settingsPage, privacyMode);
 
 			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)

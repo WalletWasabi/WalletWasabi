@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			WalletManagerViewModel walletManager,
 			AddWalletPageViewModel addWalletPage,
 			SettingsPageViewModel settingsPage,
-			Global global)
+			PrivacyModeViewModel privacyMode)
 		{
 			Router = router;
 			_walletManager = walletManager;
@@ -43,7 +43,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 			var homePage = new HomePageViewModel(walletManager, addWalletPage);
 			var searchPage = new SearchPageViewModel(walletManager);
-			var privacyMode = new PrivacyModeViewModel(global);
 
 			RegisterCategories(searchPage);
 
