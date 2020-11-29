@@ -63,6 +63,10 @@
             <Setter Property="Margin" Value="0 4 0 0" />
             <Setter Property="FontWeight" Value="Bold" />
         </Style>
+        <Style Selector="TextBlock.Hyperlink">
+            <Setter Property="TextDecorations" Value="Underline" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+        </Style>
         <Style Selector="TextBox.Content">
             <Setter Property="Margin" Value="0 4 0 0" />
         </Style>
@@ -86,56 +90,47 @@
                     <TextBlock Margin=" 0 0 0 -0.5" Text="This open source software is licensed with " />
                     <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
                             CommandParameter="{Binding License}">
-                        <TextBlock Text="MIT License" TextDecorations="Underline"
-                                   Foreground="{DynamicResource SystemAccentColor}" />
+                        <TextBlock Text="MIT License" Classes="Hyperlink" />
                     </Button>
                     <TextBlock Margin=" 0 0 0 -0.5" Text="." />
                 </WrapPanel>
                 <WrapPanel Margin="0 0 0 25">
                     <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
                             CommandParameter="{Binding DocsLink}">
-                        <TextBlock Text="Documentation" TextDecorations="Underline"
-                                   Foreground="{DynamicResource SystemAccentColor}" />
+                        <TextBlock Text="Documentation" Classes="Hyperlink" />
                     </Button>
                     <TextBlock Classes="LinkSeparatorPadding" Text="-" />
                     <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
                             CommandParameter="{Binding SourceCodeLink}">
-                        <TextBlock Text="Source Code (Github)" TextDecorations="Underline"
-                                   Foreground="{DynamicResource SystemAccentColor}" />
+                        <TextBlock Text="Source Code (Github)" Classes="Hyperlink" />
                     </Button>
                     <TextBlock Classes="LinkSeparatorPadding" Text="-" />
                     <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
                             CommandParameter="{Binding ClearnetLink}">
-                        <TextBlock Text="Website (Clearnet)" TextDecorations="Underline"
-                                   Foreground="{DynamicResource SystemAccentColor}" />
+                        <TextBlock Text="Website (Clearnet)" Classes="Hyperlink" />
                     </Button>
                     <TextBlock Classes="LinkSeparatorPadding" Text="-" />
                     <Button Classes="plain" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding TorLink}">
-                        <TextBlock Text="Website (Tor)" TextDecorations="Underline"
-                                   Foreground="{DynamicResource SystemAccentColor}" />
+                        <TextBlock Text="Website (Tor)" Classes="Hyperlink" />
                     </Button>
                     <TextBlock Classes="LinkSeparatorPadding" Text="-" />
                     <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
                             CommandParameter="{Binding StatusPageLink}">
-                        <TextBlock Text="Coordinator Status Page" TextDecorations="Underline"
-                                   Foreground="{DynamicResource SystemAccentColor}" />
+                        <TextBlock Text="Coordinator Status Page" Classes="Hyperlink" />
                     </Button>
                     <TextBlock Classes="LinkSeparatorPadding" Text="-" />
                     <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
                             CommandParameter="{Binding UserSupportLink}">
-                        <TextBlock Text="User Support" TextDecorations="Underline"
-                                   Foreground="{DynamicResource SystemAccentColor}" />
+                        <TextBlock Text="User Support" Classes="Hyperlink" />
                     </Button>
                     <TextBlock Classes="LinkSeparatorPadding" Text="-" />
                     <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
                             CommandParameter="{Binding BugReportLink}">
-                        <TextBlock Text="Bug Reporting" TextDecorations="Underline"
-                                   Foreground="{DynamicResource SystemAccentColor}" />
+                        <TextBlock Text="Bug Reporting" Classes="Hyperlink" />
                     </Button>
                     <TextBlock Classes="LinkSeparatorPadding" Text="-" />
                     <Button Classes="plain" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding FAQLink}">
-                        <TextBlock Text="FAQs" TextDecorations="Underline"
-                                   Foreground="{DynamicResource SystemAccentColor}" />
+                        <TextBlock Text="FAQs" Classes="Hyperlink" />
                     </Button>
                 </WrapPanel>
                 <Button Classes="plain obscured"
@@ -143,8 +138,7 @@
                         Command="{Binding AboutAdvancedInfoDialogCommand}">
                     <StackPanel Orientation="Horizontal" Spacing="20">
                         <PathIcon Data="{StaticResource info_regular}" />
-                        <TextBlock Text="Advanced Information..." TextDecorations="Underline"
-                                   Foreground="{DynamicResource SystemAccentColor}"/>
+                        <TextBlock Text="Advanced Information..." Classes="Hyperlink" />
                     </StackPanel>
                 </Button>
             </StackPanel>
