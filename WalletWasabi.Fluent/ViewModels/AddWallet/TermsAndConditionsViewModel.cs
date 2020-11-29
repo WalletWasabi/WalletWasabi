@@ -11,16 +11,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		private bool _isAgreed;
 
-		public TermsAndConditionsViewModel(NavigationStateViewModel navigationState, LegalDocuments legalDocuments, RoutableViewModel next) : base(navigationState)
+		public TermsAndConditionsViewModel(LegalDocuments legalDocuments, RoutableViewModel next)
 		{
 			ViewTermsCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
 					var content = await File.ReadAllTextAsync(legalDocuments.FilePath);
 
-					var legalDocs = new LegalDocumentsViewModel(
-						navigationState,
-						content);
+					var legalDocs = new LegalDocumentsViewModel(content);
 
 					legalDocs.NavigateToSelf(CurrentTarget);
 				});
