@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -19,23 +18,13 @@ namespace WalletWasabi.WebClients.PayJoin
 {
 	public class PayjoinClient : IPayjoinClient
 	{
-		public PayjoinClient(Uri paymentUrl, EndPoint torSocks5EndPoint)
-		{
-			// This can be null if Tor is turned off - and it is OK.
-			TorSocks5EndPoint = torSocks5EndPoint;
-			PaymentUrl = Guard.NotNull(nameof(paymentUrl), paymentUrl);
-			TorHttpClient = new TorHttpClient(PaymentUrl, TorSocks5EndPoint);
-		}
-
-		// For testing only
-		internal PayjoinClient(Uri paymentUrl, IRelativeHttpClient httpClient)
+		public PayjoinClient(Uri paymentUrl, IRelativeHttpClient httpClient)
 		{
 			PaymentUrl = paymentUrl;
-			TorHttpClient = Guard.NotNull(nameof(httpClient), httpClient);
+			TorHttpClient = httpClient;
 		}
 
 		public Uri PaymentUrl { get; }
-		private EndPoint TorSocks5EndPoint { get; }
 		private IRelativeHttpClient TorHttpClient { get; }
 
 		public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey changeHdPubKey, CancellationToken cancellationToken)

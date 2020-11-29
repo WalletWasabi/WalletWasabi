@@ -12,6 +12,7 @@ using NBitcoin;
 using ReactiveUI;
 using Splat;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
@@ -47,7 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		private Global Global;
 
-		public SettingsPageViewModel(NavigationStateViewModel navigationState) : base(navigationState, NavigationTarget.HomeScreen)
+		public SettingsPageViewModel()
 		{
 			Title = "Settings";
 

@@ -1,8 +1,8 @@
 using ReactiveUI;
 using System;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
@@ -17,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		private readonly IDisposable _disposable;
 		private readonly TaskCompletionSource<TResult> _currentTaskCompletionSource;
 
-		protected DialogViewModelBase(NavigationStateViewModel navigationState, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
+		protected DialogViewModelBase()
 		{
 			_currentTaskCompletionSource = new TaskCompletionSource<TResult>();
 
@@ -27,8 +27,13 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 							  .Subscribe(OnIsDialogOpenChanged);
 
 			CancelCommand = ReactiveCommand.Create(() => Close());
+		}
 
-			this.WhenNavigatedTo(() => Disposable.Create(() => Close()));
+		protected override void OnNavigatedFrom()
+		{
+			Close();
+
+			base.OnNavigatedFrom();
 		}
 
 		private void OnIsDialogOpenChanged(bool dialogState)

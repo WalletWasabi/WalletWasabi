@@ -1,6 +1,6 @@
 using System.Reactive.Linq;
-using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	{
 		private string _message;
 
-		public TestDialogViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, string message) : base(navigationState, navigationTarget)
+		public TestDialogViewModel(string message)
 		{
 			_message = message;
 

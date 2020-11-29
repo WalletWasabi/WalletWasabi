@@ -1,6 +1,6 @@
 using System.Reactive.Linq;
-using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		private string? _confirmPassword;
 		private string? _password;
 
-		public EnterPasswordViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, string subtitle) : base(navigationState, navigationTarget)
+		public EnterPasswordViewModel(string subtitle)
 		{
 			Subtitle = subtitle;
 

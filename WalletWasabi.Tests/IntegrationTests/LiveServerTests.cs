@@ -175,7 +175,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		private TorHttpClient MakeTorHttpClient(NetworkType networkType)
 		{
 			Uri baseUri = LiveServerTestsFixture.UriMappings[networkType];
-			return new TorHttpClient(baseUri, Common.TorSocks5Endpoint, isolateStream: false);
+			return new TorHttpClient(baseUri, Common.TorSocks5Endpoint);
 		}
 	}
 }

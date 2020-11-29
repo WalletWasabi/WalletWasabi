@@ -9,6 +9,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using NBitcoin;
 using Newtonsoft.Json.Linq;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -19,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		private const string _walletExistsErrorMessage = "Wallet with the same fingerprint already exists!";
 
-		public ImportWalletViewModel(NavigationStateViewModel navigationState, string walletName, WalletManager walletManager) : base(navigationState, NavigationTarget.DialogScreen)
+		public ImportWalletViewModel(string walletName, WalletManager walletManager)
 		{
 			WalletName = walletName;
 			WalletManager = walletManager;
