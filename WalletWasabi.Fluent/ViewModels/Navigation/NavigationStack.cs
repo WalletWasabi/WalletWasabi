@@ -55,6 +55,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		private T _currentPage;
 		private T _previousPage;
 		private bool _canNavigateBack;
+		private bool _operationsEnabled = true;
 
 		public NavigationStack()
 		{
@@ -85,7 +86,10 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		private void NavigationOperation(T? oldPage, bool oldInStack, T? newPage, bool newInStack)
 		{
-			oldPage?.OnNavigatedFrom(oldInStack);
+			if (_operationsEnabled)
+			{
+				oldPage?.OnNavigatedFrom(oldInStack);
+			}
 
 			CurrentPage = newPage;
 
@@ -94,9 +98,12 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 				OnPopped(oldPage);
 			}
 
-			OnNavigated(oldPage, oldInStack, newPage, newInStack);
+			if (_operationsEnabled)
+			{
+				OnNavigated(oldPage, oldInStack, newPage, newInStack);
+			}
 
-			if (newPage is { })
+			if (_operationsEnabled && newPage is { })
 			{
 				newPage.OnNavigatedTo(newInStack);
 			}
@@ -168,7 +175,8 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		{
 			var oldPage = CurrentPage;
 
-			bool isInHistory = true;
+			bool oldInStack = true;
+			bool newInStack = false;
 
 			switch (mode)
 			{
@@ -180,16 +188,14 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 					break;
 
 				case NavigationMode.Clear:
-					break;
-
-				case NavigationMode.Skip:
-					break;
-
-				case NavigationMode.Swap:
+					oldInStack = false;
+					_operationsEnabled = false;
+					Clear();
+					_operationsEnabled = true;
 					break;
 			}
 
-			NavigationOperation(oldPage, true, viewmodel, false);
+			NavigationOperation(oldPage, oldInStack, viewmodel, newInStack);
 		}
 
 		public void Back()
