@@ -32,6 +32,8 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
+		public override NavigationTarget DefaultTarget => NavigationTarget.DialogScreen;
+
 		public ICommand AboutAdvancedInfoDialogCommand { get; }
 
 		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
