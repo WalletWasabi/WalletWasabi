@@ -120,7 +120,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 				_detectionState.SelectedDevice = SelectedHardwareWallet.HardwareWalletInfo;
 
-				NavigateTo(new DetectedHardwareWalletViewModel(NavigationState, _detectionState), NavigationTarget.DialogScreen);
+				NavigateTo(new DetectedHardwareWalletViewModel(NavigationState, _detectionState));
 			}
 			catch (Exception ex)
 			{

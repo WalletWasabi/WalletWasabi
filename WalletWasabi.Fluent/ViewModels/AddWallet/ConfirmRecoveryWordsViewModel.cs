@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				{
 					walletManager.AddWallet(keyManager);
 
-					NavigateTo(new AddedWalletPageViewModel(navigationState, keyManager.WalletName, WalletType.Normal), NavigationTarget.DialogScreen);					
+					NavigateTo(new AddedWalletPageViewModel(navigationState, keyManager.WalletName, WalletType.Normal));
 				},
 				finishCommandCanExecute);
 

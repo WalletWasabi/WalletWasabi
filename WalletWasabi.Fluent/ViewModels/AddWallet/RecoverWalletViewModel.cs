@@ -112,7 +112,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 			finally
 			{
-				NavigateTo(new AddedWalletPageViewModel(navigationState, walletName!, WalletType.Normal), NavigationTarget.DialogScreen);
+				NavigateTo(new AddedWalletPageViewModel(navigationState, walletName!, WalletType.Normal));
 			}
 		}
 
