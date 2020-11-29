@@ -103,13 +103,13 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 				case NavigationTarget.Default:
 				case NavigationTarget.HomeScreen:
 					{
-						NavigateToScreen(NavigationState.HomeScreen(), viewModel, resetNavigation);
+						NavigateToScreen(NavigationState.HomeScreen(), NavigationTarget.HomeScreen, viewModel, resetNavigation);
 					}
 					break;
 
 				case NavigationTarget.DialogScreen:
 					{
-						NavigateToScreen(NavigationState.DialogScreen(), viewModel, resetNavigation);
+						NavigateToScreen(NavigationState.DialogScreen(), navigationTarget, viewModel, resetNavigation);
 					}
 					break;
 
@@ -127,9 +127,9 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			return Disposable.Create(()=>GoBack());
 		}
 
-		private void NavigateToScreen(IScreen screen, RoutableViewModel viewModel, bool resetNavigation)
+		private void NavigateToScreen(IScreen screen, NavigationTarget target, RoutableViewModel viewModel, bool resetNavigation)
 		{
-			viewModel.CurrentTarget = NavigationTarget.HomeScreen;
+			viewModel.CurrentTarget = target;
 
 			if (resetNavigation)
 			{
