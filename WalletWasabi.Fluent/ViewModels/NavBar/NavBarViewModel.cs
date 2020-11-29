@@ -248,7 +248,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		{
 			searchPage.RegisterSearchEntry(
 				title: "About Wasabi",
-				caption: "Displays all the current info about the app.",
+				caption: "Displays all the current info about the app",
 				order: 3,
 				category: "General",
 				keywords: "About, Software, Version, Source Code, Github, Status, Stats, Tor, Onion, Bug, Report, FAQ, Questions," +

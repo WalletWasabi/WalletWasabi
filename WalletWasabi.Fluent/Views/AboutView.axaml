@@ -86,12 +86,12 @@
         <StackPanel Orientation="Horizontal">
           <TextBlock Classes="Header" Text="Current Version: " />
           <TextBox Classes="Content selectable_text_block"
-                   Text="{Binding ClientVersion}" />          
+                   Text="{Binding ClientVersion}" />
         </StackPanel>
       </controls:ContentArea.Caption>
 
       <DockPanel>
-        <StackPanel Spacing="10" DockPanel.Dock="Bottom" MinWidth="360" MaxWidth="650" HorizontalAlignment="Left" Orientation="Vertical">
+        <StackPanel Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Left" Orientation="Vertical">
           <WrapPanel Margin="0 0 0 25">
             <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
                     CommandParameter="{Binding DocsLink}">
@@ -132,14 +132,14 @@
             </Button>
           </WrapPanel>
 
-          <Button HorizontalAlignment="Center" Classes="plain obscured"                  
+          <Button HorizontalAlignment="Center" Classes="plain obscured"
                   Command="{Binding AboutAdvancedInfoDialogCommand}">
             <StackPanel Orientation="Horizontal" Spacing="5">
               <PathIcon Data="{StaticResource info_regular}" />
               <TextBlock Text="Advanced Information..." Classes="Hyperlink" />
             </StackPanel>
           </Button>
-         
+
           <WrapPanel HorizontalAlignment="Center">
             <TextBlock Margin=" 0 0 0 -0.5" Text="This open source software is licensed with " />
             <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
@@ -149,7 +149,7 @@
             <TextBlock Margin=" 0 0 0 -0.5" Text="." />
           </WrapPanel>
         </StackPanel>
-        <Panel Height="150" />        
+        <Panel Height="150" />
       </DockPanel>
     </controls:ContentArea>
   </Panel>
