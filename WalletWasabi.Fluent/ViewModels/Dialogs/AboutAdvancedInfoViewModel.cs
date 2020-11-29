@@ -1,4 +1,5 @@
 using System;
+using System.Reactive;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
@@ -6,7 +7,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
-	public class AboutAdvancedInfoViewModel : DialogViewModelBase<object>
+	public class AboutAdvancedInfoViewModel : DialogViewModelBase<Unit>
 	{
 		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
 

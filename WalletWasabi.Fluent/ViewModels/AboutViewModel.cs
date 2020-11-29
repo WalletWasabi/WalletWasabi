@@ -7,7 +7,6 @@ using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -19,18 +18,14 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
-			var interaction = new Interaction<object, object>();
+			var interaction = new Interaction<Unit, Unit>();
 			interaction.RegisterHandler(
 				async x =>
 					x.SetOutput(
 						await new AboutAdvancedInfoViewModel().ShowDialogAsync()));
 
 			AboutAdvancedInfoDialogCommand = ReactiveCommand.CreateFromTask(
-				async () =>
-				{
-					var h = await interaction
-						.Handle(null).ToTask();
-				});
+				execute: async () => await interaction.Handle(Unit.Default).ToTask());
 
 			OpenBrowserCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
