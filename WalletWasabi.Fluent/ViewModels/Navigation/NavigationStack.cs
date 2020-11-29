@@ -96,7 +96,10 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 			OnNavigated(oldPage, oldInStack, newPage, newInStack);
 
-			newPage.OnNavigatedTo(newInStack);
+			if (newPage is { })
+			{
+				newPage.OnNavigatedTo(newInStack);
+			}
 
 			UpdateCanNavigateBack();
 		}

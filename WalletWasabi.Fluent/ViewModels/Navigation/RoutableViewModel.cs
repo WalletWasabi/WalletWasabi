@@ -21,9 +21,9 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		protected RoutableViewModel()
 		{
-			BackCommand = ReactiveCommand.Create(()=>Navigate().Back());
+			BackCommand = ReactiveCommand.Create(() => Navigate().Back());
 
-			//CancelCommand = ReactiveCommand.Create(Clear);
+			CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 		}
 
 		public bool IsBusy
