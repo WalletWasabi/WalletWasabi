@@ -11,9 +11,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 	{
 		private bool _privacyMode;
 
-		public PrivacyModeViewModel(Global global)
+		public PrivacyModeViewModel(UiConfig uiConfig)
 		{
-			_privacyMode = global.UiConfig.PrivacyMode;
+			_privacyMode = uiConfig.PrivacyMode;
 
 			SelectionMode = NavBarItemSelectionMode.Toggle;
 
@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				{
 					ToggleTitle();
 					this.RaisePropertyChanged(nameof(IconName));
-					global.UiConfig.PrivacyMode = x;
+					uiConfig.PrivacyMode = x;
 				});
 
 			this.WhenAnyValue(x => x.PrivacyMode)
