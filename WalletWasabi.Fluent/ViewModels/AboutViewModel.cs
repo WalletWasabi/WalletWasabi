@@ -59,5 +59,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		public string FAQLink => "https://docs.wasabiwallet.io/FAQ/";
 
 		public string DocsLink => "https://docs.wasabiwallet.io/";
+
+		public string License => "https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md";
 	}
 }

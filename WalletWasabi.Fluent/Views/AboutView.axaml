@@ -83,6 +83,20 @@
                     <Panel Width="10" Height="10" />
                     <TextBlock Name="LogoText3" Classes="h1 ultrabold">2.0</TextBlock>
                 </StackPanel>
+                <StackPanel Margin="0 10 0 0">
+                    <TextBlock Classes="Header" Text="Current Version" />
+                    <TextBox Classes="Content selectable_text_block"
+                             Text="{Binding ClientVersion, Converter={StaticResource VersionStringConverter}}" />
+                </StackPanel>
+                <WrapPanel Margin="0 15 0 25">
+                    <TextBlock Margin=" 0 0 0 -0.5" Text="This open source software is licensed with " />
+                    <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
+                            CommandParameter="{Binding License}">
+                        <TextBlock Text="MIT License" TextDecorations="Underline"
+                                   Foreground="{DynamicResource SystemAccentColor}" />
+                    </Button>
+                    <TextBlock Margin=" 0 0 0 -0.5" Text="." />
+                </WrapPanel>
                 <WrapPanel Margin="0 0 0 25">
                     <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
                             CommandParameter="{Binding DocsLink}">
@@ -130,12 +144,8 @@
                                    Foreground="{DynamicResource SystemAccentColor}" />
                     </Button>
                 </WrapPanel>
-                <StackPanel>
-                    <TextBlock Classes="Header" Text="Current Version" />
-                    <TextBox Classes="Content selectable_text_block"
-                             Text="{Binding ClientVersion, Converter={StaticResource VersionStringConverter}}" />
-                </StackPanel>
                 <Button Classes="plain obscured"
+                        Margin="0 15 0 0 "
                         Command="{Binding AboutAdvancedInfoDialogCommand}">
                     <StackPanel Orientation="Horizontal" Spacing="20">
                         <PathIcon Data="{StaticResource info_regular}" />
