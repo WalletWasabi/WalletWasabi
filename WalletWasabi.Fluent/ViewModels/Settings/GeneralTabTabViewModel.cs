@@ -20,18 +20,18 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private FeeDisplayFormat _selectedFeeDisplayFormat;
 		private string _dustThreshold;
 
-		public GeneralTabTabViewModel(Global global) : base(global)
+		public GeneralTabTabViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
 		{
 			this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
-			_darkModeEnabled = global.UiConfig.DarkModeEnabled;
-			_autocopy = global.UiConfig.Autocopy;
-			_customFee = global.UiConfig.IsCustomFee;
-			_customChangeAddress = global.UiConfig.IsCustomChangeAddress;
-			_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), global.UiConfig.FeeDisplayFormat)
-				? (FeeDisplayFormat)global.UiConfig.FeeDisplayFormat
+			_darkModeEnabled = uiConfig.DarkModeEnabled;
+			_autocopy = uiConfig.Autocopy;
+			_customFee = uiConfig.IsCustomFee;
+			_customChangeAddress = uiConfig.IsCustomChangeAddress;
+			_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), uiConfig.FeeDisplayFormat)
+				? (FeeDisplayFormat)uiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
-			_dustThreshold = global.Config.DustThreshold.ToString();
+			_dustThreshold = config.DustThreshold.ToString();
 
 			this.WhenAnyValue(x => x.DustThreshold)
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -43,29 +43,29 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Skip(1)
 				.Subscribe(x =>
 				{
-					global.UiConfig.DarkModeEnabled = x;
+					uiConfig.DarkModeEnabled = x;
 					IsRestartNeeded(x);
 				});
 
 			this.WhenAnyValue(x => x.Autocopy)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
-				.Subscribe(x => global.UiConfig.Autocopy = x);
+				.Subscribe(x => uiConfig.Autocopy = x);
 
 			this.WhenAnyValue(x => x.CustomFee)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
-				.Subscribe(x => global.UiConfig.IsCustomFee = x);
+				.Subscribe(x => uiConfig.IsCustomFee = x);
 
 			this.WhenAnyValue(x => x.CustomChangeAddress)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
-				.Subscribe(x => global.UiConfig.IsCustomChangeAddress = x);
+				.Subscribe(x => uiConfig.IsCustomChangeAddress = x);
 
 			this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Skip(1)
-				.Subscribe(x => global.UiConfig.FeeDisplayFormat = (int)x);
+				.Subscribe(x => uiConfig.FeeDisplayFormat = (int)x);
 		}
 
 		public bool DarkModeEnabled

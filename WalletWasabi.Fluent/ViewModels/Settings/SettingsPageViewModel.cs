@@ -13,18 +13,16 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private bool _isModified;
 		private int _selectedTab;
 
-		public SettingsPageViewModel()
+		public SettingsPageViewModel(Config config, UiConfig uiConfig)
 		{
-			var global = Locator.Current.GetService<Global>();
-
 			Title = "Settings";
 
 			_selectedTab = 0;
 
-			GeneralTab = new GeneralTabTabViewModel(global);
-			PrivacyTab = new PrivacyTabTabViewModel(global);
-			NetworkTab = new NetworkTabTabViewModel(global);
-			BitcoinTab = new BitcoinTabTabViewModel(global);
+			GeneralTab = new GeneralTabTabViewModel(config, uiConfig);
+			PrivacyTab = new PrivacyTabTabViewModel(config, uiConfig);
+			NetworkTab = new NetworkTabTabViewModel(config, uiConfig);
+			BitcoinTab = new BitcoinTabTabViewModel(config, uiConfig);
 		}
 
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)

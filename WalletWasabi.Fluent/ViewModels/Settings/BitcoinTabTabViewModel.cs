@@ -20,15 +20,15 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private bool _stopLocalBitcoinCoreOnShutdown;
 		private string _bitcoinP2PEndPoint;
 
-		public BitcoinTabTabViewModel(Global global) : base(global)
+		public BitcoinTabTabViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
 		{
 			this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 
-			_network = global.Config.Network;
-			_startLocalBitcoinCoreOnStartup = global.Config.StartLocalBitcoinCoreOnStartup;
-			_localBitcoinCoreDataDir = global.Config.LocalBitcoinCoreDataDir;
-			_stopLocalBitcoinCoreOnShutdown = global.Config.StopLocalBitcoinCoreOnShutdown;
-			_bitcoinP2PEndPoint = global.Config.GetP2PEndpoint().ToString(defaultPort: -1);
+			_network = config.Network;
+			_startLocalBitcoinCoreOnStartup = config.StartLocalBitcoinCoreOnStartup;
+			_localBitcoinCoreDataDir = config.LocalBitcoinCoreDataDir;
+			_stopLocalBitcoinCoreOnShutdown = config.StopLocalBitcoinCoreOnShutdown;
+			_bitcoinP2PEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
 
 			this.WhenAnyValue(
 					x => x.Network,

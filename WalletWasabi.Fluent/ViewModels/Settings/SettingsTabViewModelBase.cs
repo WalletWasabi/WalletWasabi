@@ -11,12 +11,12 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		protected const int ThrottleTime = 500;
 		public static event EventHandler<RestartNeededEventArgs>? RestartNeeded;
 
-		protected SettingsTabViewModelBase(Global global)
+		protected SettingsTabViewModelBase(Config config, UiConfig uiConfig)
 		{
-			ConfigOnOpen = new Config(global.Config.FilePath);
+			ConfigOnOpen = new Config(config.FilePath);
 			ConfigOnOpen.LoadFile();
 
-			UiConfigOnOpen = new UiConfig(global.UiConfig.FilePath);
+			UiConfigOnOpen = new UiConfig(uiConfig.FilePath);
 			UiConfigOnOpen.LoadFile();
 		}
 
