@@ -76,9 +76,9 @@ namespace WalletWasabi.Stores
 		{
 			using (BenchmarkLogger.Measure())
 			{
-				using (await IndexLock.LockAsync().ConfigureAwait(false))
-				using (await MatureIndexAsyncLock.LockAsync().ConfigureAwait(false))
-				using (await ImmatureIndexAsyncLock.LockAsync().ConfigureAwait(false))
+				using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
+				using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
+				using (await ImmatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 				{
 					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 
@@ -95,7 +95,7 @@ namespace WalletWasabi.Stores
 
 					if (!MatureIndexFileManager.Exists())
 					{
-						await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToLine() }).ConfigureAwait(false);
+						await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToLine() }, cancel).ConfigureAwait(false);
 					}
 					cancel.ThrowIfCancellationRequested();
 
@@ -179,7 +179,7 @@ namespace WalletWasabi.Stores
 			{
 				if (ImmatureIndexFileManager.Exists())
 				{
-					foreach (var line in await ImmatureIndexFileManager.ReadAllLinesAsync().ConfigureAwait(false)) // We can load ImmatureIndexFileManager to the memory, no problem.
+					foreach (var line in await ImmatureIndexFileManager.ReadAllLinesAsync(cancel).ConfigureAwait(false)) // We can load ImmatureIndexFileManager to the memory, no problem.
 					{
 						ProcessLine(line, enqueue: true);
 						cancel.ThrowIfCancellationRequested();
@@ -318,7 +318,7 @@ namespace WalletWasabi.Stores
 		{
 			FilterModel? filter = null;
 
-			using (await IndexLock.LockAsync().ConfigureAwait(false))
+			using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
 			{
 				filter = ImmatureFilters.Last();
 				ImmatureFilters.RemoveLast();
@@ -413,7 +413,7 @@ namespace WalletWasabi.Stores
 					var currentImmatureLines = ImmatureFilters.Select(x => x.ToLine()).ToArray(); // So we do not read on ImmatureFilters while removing them.
 					var matureLinesToAppend = currentImmatureLines.SkipLast(100);
 					var immatureLines = currentImmatureLines.TakeLast(100);
-					var tasks = new Task[] { MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend), ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines) };
+					var tasks = new Task[] { MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend, cancel), ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines, cancel) };
 					while (ImmatureFilters.Count > 100)
 					{
 						ImmatureFilters.RemoveFirst();
