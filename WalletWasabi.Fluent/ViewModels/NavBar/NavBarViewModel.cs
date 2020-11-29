@@ -28,18 +28,16 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private Action? _toggleAction;
 		private Action? _collapseOnClickAction;
 
-		public NavBarViewModel(NavigationStateViewModel navigationState, RoutingState router,
-			WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage)
+		public NavBarViewModel(RoutingState router, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage)
 		{
 			Router = router;
 			_walletManager = walletManager;
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 
-			var homePage = new HomePageViewModel(navigationState, walletManager, addWalletPage);
-			var settingsPage = new SettingsPageViewModel(navigationState);
-			var searchPage = new SearchPageViewModel(navigationState, walletManager);
-			var aboutPage = new AboutViewModel(navigationState);
+			var homePage = new HomePageViewModel(walletManager, addWalletPage);
+			var settingsPage = new SettingsPageViewModel();
+			var searchPage = new SearchPageViewModel(walletManager);
 
 			RegisterCategories(searchPage);
 

@@ -26,10 +26,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private Mnemonic? _currentMnemonics;
 
 		public RecoverWalletViewModel(
-			NavigationStateViewModel navigationState,
 			string walletName,
 			Network network,
-			WalletManager walletManager) : base(navigationState)
+			WalletManager walletManager)
 		{
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
@@ -51,14 +50,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNext(navigationState, walletManager, network, walletName),
+				async () => await OnNext(walletManager, network, walletName),
 				FinishCommandCanExecute);
 
 			AdvancedOptionsInteraction = new Interaction<(KeyPath, int), (KeyPath?, int?)>();
 			AdvancedOptionsInteraction.RegisterHandler(
 				async interaction =>
 					interaction.SetOutput(
-						await new AdvancedRecoveryOptionsViewModel(navigationState, interaction.Input).ShowDialogAsync()));
+						await new AdvancedRecoveryOptionsViewModel(interaction.Input).ShowDialogAsync()));
 
 			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -74,7 +73,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				});
 		}
 
-		private async Task OnNext(NavigationStateViewModel navigationState, WalletManager walletManager,
+		private async Task OnNext(WalletManager walletManager,
 			Network network, string? walletName)
 		{
 			IsBusy = true;
@@ -83,7 +82,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			{
 				var result = await NavigateDialog(
 					new EnterPasswordViewModel(
-						navigationState,
 						"Type the password of the wallet to be able to recover and click Continue."));
 
 				if (result is { } password)
