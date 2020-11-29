@@ -40,7 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			var settingsPage = new SettingsPageViewModel(navigationState);
 			var searchPage = new SearchPageViewModel(navigationState, walletManager, addWalletPage, settingsPage, aboutPage, homePage);
 
-			SelectedItem = homePage;
+			_selectedItem = homePage;
 
 			_topItems.Add(SelectedItem);
 			_bottomItems.Add(searchPage);
@@ -71,7 +71,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 					if (!_isNavigating)
 					{
 						_isNavigating = true;
-						x.NavigateToSelfAndReset();
+						x.NavigateToSelfAndReset(x.CurrentTarget);
 						CollapseOnClickAction?.Invoke();
 
 						_isNavigating = false;

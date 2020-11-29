@@ -21,10 +21,8 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 		private readonly bool _showSettings;
 		private readonly bool _showWallets;
 
-		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager,
-			AddWalletPageViewModel addWalletPage, SettingsPageViewModel settingsPage, AboutViewModel aboutViewModel,
-			HomePageViewModel homePage) : base(navigationState, NavigationTarget.HomeScreen)
-		{
+		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage, SettingsPageViewModel settingsPage, AboutViewModel aboutViewModel, HomePageViewModel homePage) : base(navigationState)
+ 		{
 			Title = "Search";
 
 			_showSettings = true;
@@ -108,7 +106,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				keywords: "Home",
 				iconName: "home_regular",
 				navigationState: NavigationState,
-				navigationTarget: NavigationTarget.HomeScreen,
 				createTargetView: () => homePage);
 		}
 
@@ -122,7 +119,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				keywords: "Settings, General, User Interface, Privacy, Advanced",
 				iconName: "settings_regular",
 				navigationState: NavigationState,
-				navigationTarget: NavigationTarget.HomeScreen,
 				createTargetView: () => settingsPage);
 		}
 
@@ -151,7 +147,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				keywords: "Settings, General, Dark Mode, Bitcoin Addresses, Manual Entry Free, Custom Change Address, Fee Display Format, Dust Threshold, BTC",
 				iconName: "settings_general_regular",
 				navigationState: NavigationState,
-				navigationTarget: NavigationTarget.HomeScreen,
 				createTargetView: () =>
 				{
 					settingsPage.SelectedTab = 0;
@@ -166,7 +161,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				keywords: "Settings, Privacy, Minimal, Medium, Strong, Anonymity Level",
 				iconName: "settings_privacy_regular",
 				navigationState: NavigationState,
-				navigationTarget: NavigationTarget.HomeScreen,
 				createTargetView: () =>
 				{
 					settingsPage.SelectedTab = 1;
@@ -181,7 +175,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				keywords: "Settings, Network, Encryption, Tor, Terminate, Wasabi, Shutdown, SOCKS5, Endpoint",
 				iconName: "settings_network_regular",
 				navigationState: NavigationState,
-				navigationTarget: NavigationTarget.HomeScreen,
 				createTargetView: () =>
 				{
 					settingsPage.SelectedTab = 2;
@@ -196,7 +189,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				keywords: "Settings, Bitcoin, Network, Main, TestNet, RegTest, Run, Knots, Startup, P2P, Endpoint",
 				iconName: "settings_bitcoin_regular",
 				navigationState: NavigationState,
-				navigationTarget: NavigationTarget.HomeScreen,
 				createTargetView: () =>
 				{
 					settingsPage.SelectedTab = 3;
@@ -214,7 +206,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
 				iconName: "add_circle_regular",
 				navigationState: NavigationState,
-				navigationTarget: NavigationTarget.DialogScreen,
 				createTargetView: () => addWalletPage);
 		}
 
@@ -228,7 +219,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				keywords: $"Wallet, {wallet.WalletName}",
 				iconName: "web_asset_regular",
 				navigationState: NavigationState,
-				navigationTarget: NavigationTarget.HomeScreen,
 				createTargetView: () => wallet);
 		}
 	}
