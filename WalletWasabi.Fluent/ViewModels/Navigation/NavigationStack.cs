@@ -34,11 +34,18 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			page.CurrentTarget = NavigationTarget.Default;
 		}
 
-		protected override void OnNavigated(RoutableViewModel? oldPage, bool oldInStack, RoutableViewModel newPage, bool newInStack)
+		protected override void OnNavigated(
+			RoutableViewModel? oldPage,
+			bool oldInStack,
+			RoutableViewModel? newPage,
+			bool newInStack)
 		{
 			base.OnNavigated(oldPage, oldInStack, newPage, newInStack);
 
-			newPage.CurrentTarget = _target;
+			if (newPage is { })
+			{
+				newPage.CurrentTarget = _target;
+			}
 		}
 	}
 
@@ -66,7 +73,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			set => this.RaiseAndSetIfChanged(ref _canNavigateBack, value);
 		}
 
-		protected virtual void OnNavigated(T? oldPage, bool oldInStack, T newPage, bool newInStack)
+		protected virtual void OnNavigated(T? oldPage, bool oldInStack, T? newPage, bool newInStack)
 		{
 
 		}
@@ -76,7 +83,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		}
 
-		private void NavigationOperation(T? oldPage, bool oldInStack, T newPage, bool newInStack)
+		private void NavigationOperation(T? oldPage, bool oldInStack, T? newPage, bool newInStack)
 		{
 			oldPage?.OnNavigatedFrom(oldInStack);
 
@@ -132,7 +139,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 				CurrentPage = null;
 			}
 
-			oldPage?.OnNavigatedFrom(false);
+			NavigationOperation(oldPage, false, CurrentPage, CurrentPage is { });
 		}
 
 		public void BackTo(T viewmodel)
