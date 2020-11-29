@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		private string? _confirmPassword;
 		private string? _password;
 
-		public EnterPasswordViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, string subtitle) : base(navigationState, navigationTarget)
+		public EnterPasswordViewModel(string subtitle)
 		{
 			Subtitle = subtitle;
 

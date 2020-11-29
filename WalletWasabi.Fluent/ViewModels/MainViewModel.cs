@@ -29,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			_dialogScreen = new DialogScreenViewModel();
 
-			var navigationState = new NavigationStateViewModel(() => this, () => _dialogScreen, () => this);
+			NavigationState.Register(() => this, () => _dialogScreen, () => this);
 
 			Network = global.Network;
 
@@ -40,11 +40,11 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			_statusBar = new StatusBarViewModel(global.DataDir, global.Network, global.Config, global.HostedServices, global.BitcoinStore.SmartHeaderChain, global.Synchronizer, global.LegalDocuments);
 
-			var walletManager = new WalletManagerViewModel(navigationState, global.WalletManager, global.UiConfig);
+			var walletManager = new WalletManagerViewModel(global.WalletManager, global.UiConfig);
 
-			var addWalletPage = new AddWalletPageViewModel(navigationState, global.LegalDocuments, global.WalletManager, global.BitcoinStore, global.Network);
+			var addWalletPage = new AddWalletPageViewModel(global.LegalDocuments, global.WalletManager, global.BitcoinStore, global.Network);
 
-			_navBar = new NavBarViewModel(navigationState, Router, walletManager, addWalletPage, _global);
+			_navBar = new NavBarViewModel(Router, walletManager, addWalletPage, _global);
 
 			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)

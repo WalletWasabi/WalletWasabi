@@ -13,13 +13,13 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 	public abstract class RoutableViewModel : ViewModelBase, IRoutableViewModel
 	{
 		private bool _isBusy;
+		private CompositeDisposable? _currentDisposable;
+		public NavigationTarget CurrentTarget { get; private set; }
 
-		protected RoutableViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget)
+		public virtual NavigationTarget DefaultTarget => NavigationTarget.HomeScreen;
+
+		protected RoutableViewModel()
 		{
-			NavigationState = navigationState;
-
-			NavigationTarget = navigationTarget;
-
 			BackCommand = ReactiveCommand.Create(GoBack);
 
 			CancelCommand = ReactiveCommand.Create(ClearNavigation);
@@ -27,11 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		public string UrlPathSegment { get; } = Guid.NewGuid().ToString().Substring(0, 5);
 
-		public IScreen HostScreen => NavigationTarget switch
-		{
-			NavigationTarget.DialogScreen => NavigationState.DialogScreen.Invoke(),
-			_ => NavigationState.HomeScreen.Invoke(),
-		};
+		public IScreen HostScreen { get; set; }
 
 		public bool IsBusy
 		{
@@ -39,21 +35,48 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
 		}
 
-		public NavigationStateViewModel NavigationState { get; }
-
-		public NavigationTarget NavigationTarget { get; }
-
 		public ICommand? NextCommand { get; protected set; }
 
 		public ICommand BackCommand { get; protected set; }
 
 		public ICommand CancelCommand { get; protected set; }
 
+		private void DoNavigateTo(bool inStack)
+		{
+			if (_currentDisposable is { })
+			{
+				throw new Exception("Cant navigate to something that has already been navigated to.");
+			}
+
+			_currentDisposable = new CompositeDisposable();
+
+			OnNavigatedTo(inStack, _currentDisposable);
+		}
+
+		protected virtual void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		{
+		}
+
+		private void DoNavigateFrom()
+		{
+			OnNavigatedFrom();
+
+			_currentDisposable?.Dispose();
+			_currentDisposable = null;
+		}
+
+		protected virtual void OnNavigatedFrom()
+		{
+		}
+
 		public async Task<TResult> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog)
+			=> await NavigateDialog(dialog, CurrentTarget);
+
+		public async Task<TResult> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target)
 		{
 			TResult result;
 
-			using (NavigateTo(dialog, NavigationTarget.DialogScreen))
+			using (NavigateTo(dialog, target))
 			{
 				result = await dialog.GetDialogResultAsync();
 			}
@@ -61,20 +84,28 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			return result;
 		}
 
+		public IDisposable NavigateTo(RoutableViewModel viewModel, bool resetNavigation = false) =>
+			NavigateTo(viewModel, CurrentTarget, resetNavigation);
+
 		public IDisposable NavigateTo(RoutableViewModel viewModel, NavigationTarget navigationTarget, bool resetNavigation = false)
 		{
+			if (navigationTarget == NavigationTarget.Default)
+			{
+				navigationTarget = DefaultTarget;
+			}
+
 			switch (navigationTarget)
 			{
 				case NavigationTarget.Default:
 				case NavigationTarget.HomeScreen:
 					{
-						NavigateToHomeScreen(viewModel, resetNavigation);
+						NavigateToScreen(NavigationState.Instance.HomeScreen(), NavigationTarget.HomeScreen, viewModel, resetNavigation);
 					}
 					break;
 
 				case NavigationTarget.DialogScreen:
 					{
-						NavigateToDialogScreen(viewModel, resetNavigation);
+						NavigateToScreen(NavigationState.Instance.DialogScreen(), navigationTarget, viewModel, resetNavigation);
 					}
 					break;
 
@@ -92,55 +123,86 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			return Disposable.Create(()=>GoBack());
 		}
 
-		private void NavigateToHomeScreen(RoutableViewModel viewModel, bool resetNavigation)
+		private void NavigateToScreen(IScreen screen, NavigationTarget target, RoutableViewModel viewModel, bool resetNavigation)
 		{
-			var command = resetNavigation ?
-				NavigationState.HomeScreen().Router.NavigateAndReset :
-				NavigationState.HomeScreen().Router.Navigate;
-			command.Execute(viewModel);
-		}
+			viewModel.CurrentTarget = target;
 
-		private void NavigateToDialogScreen(RoutableViewModel viewModel, bool resetNavigation)
-		{
+			if (resetNavigation)
+			{
+				ClearStack(screen.Router.NavigationStack.ToList());
+			}
+			else
+			{
+				if (screen.Router.GetCurrentViewModel() is RoutableViewModel rvm)
+				{
+					rvm.DoNavigateFrom();
+				}
+			}
+
 			var command = resetNavigation ?
-				NavigationState.DialogScreen().Router.NavigateAndReset :
-				NavigationState.DialogScreen().Router.Navigate;
+				screen.Router.NavigateAndReset :
+				screen.Router.Navigate;
+
+			var inStack = screen.Router.NavigationStack.Contains(viewModel);
+
+			if (resetNavigation)
+			{
+				inStack = false;
+			}
+
 			command.Execute(viewModel);
+
+			viewModel.DoNavigateTo(inStack);
 		}
 
 		private void NavigateToDialogHost(DialogViewModelBase dialog)
 		{
-			if (NavigationState.DialogHost() is IDialogHost dialogHost)
+			dialog.CurrentTarget = NavigationTarget.DialogHost;
+
+			if (NavigationState.Instance.DialogHost() is IDialogHost dialogHost)
 			{
+				if (dialogHost.CurrentDialog is RoutableViewModel rvm)
+				{
+					rvm.DoNavigateFrom();
+				}
+
 				dialogHost.CurrentDialog = dialog;
+
+				dialog.DoNavigateTo(false);
 			}
 		}
 
-		public void NavigateToSelf() => NavigateTo(this, NavigationTarget, resetNavigation: false);
+		public void NavigateToSelf() => NavigateToSelf(NavigationTarget.Default);
 
-		public void NavigateToSelfAndReset() => NavigateTo(this, NavigationTarget, resetNavigation: true);
+		public void NavigateToSelf(NavigationTarget target) => NavigateTo(this, target, resetNavigation: false);
 
-		private RoutingState? GetRouter(NavigationTarget navigationTarget)
+		public void NavigateToSelfAndReset(NavigationTarget target) => NavigateTo(this, target, resetNavigation: true);
+
+		private RoutingState? GetRouter()
 		{
 			var router = default(RoutingState);
 
-			switch (navigationTarget)
+			switch (CurrentTarget)
 			{
-				case NavigationTarget.Default:
 				case NavigationTarget.HomeScreen:
-					router = NavigationState.HomeScreen.Invoke().Router;
+					router = NavigationState.Instance.HomeScreen.Invoke().Router;
 					break;
 
 				case NavigationTarget.DialogScreen:
-					router = NavigationState.DialogScreen.Invoke().Router;
+					router = NavigationState.Instance.DialogScreen.Invoke().Router;
 					break;
 			}
 
 			return router;
 		}
 
-		private void CloseDialogs(IEnumerable<IRoutableViewModel> navigationStack)
+		private void ClearStack(IEnumerable<IRoutableViewModel> navigationStack)
 		{
+			if (navigationStack.LastOrDefault() is RoutableViewModel rvm)
+			{
+				rvm.DoNavigateFrom();
+			}
+
 			foreach (var routable in navigationStack)
 			{
 				// Close all dialogs so the awaited tasks can complete.
@@ -153,9 +215,9 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			}
 		}
 
-		public void GoBack(NavigationTarget navigationTarget)
+		public void GoBack()
 		{
-			var router = GetRouter(navigationTarget);
+			var router = GetRouter();
 			if (router is not null && router.NavigationStack.Count >= 1)
 			{
 				// Close all dialogs so the awaited tasks can complete.
@@ -166,28 +228,43 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 					dialog.IsDialogOpen = false;
 				}
 
-				router.NavigateBack.Execute();
-			}
-		}
-
-		public void GoBack() => GoBack(NavigationTarget);
-
-		public void ClearNavigation(NavigationTarget navigationTarget)
-		{
-			var router = GetRouter(navigationTarget);
-			if (router is not null)
-			{
-				if (router.NavigationStack.Count >= 1)
+				if (router.NavigationStack.LastOrDefault() is RoutableViewModel rvmFrom)
 				{
-					var navigationStack = router.NavigationStack.ToList();
+					rvmFrom.DoNavigateFrom();
+				}
 
-					router.NavigationStack.Clear();
+				router.NavigateBack.Execute();
 
-					CloseDialogs(navigationStack);
+				if (router.NavigationStack.LastOrDefault() is RoutableViewModel rvmTo)
+				{
+					rvmTo.DoNavigateTo(true);
 				}
 			}
 		}
 
-		public void ClearNavigation() => ClearNavigation(NavigationTarget);
+		private void ClearNavigation(NavigationTarget navigationTarget)
+		{
+			var router = GetRouter();
+			if (router is not null && router.NavigationStack.Count >= 1)
+			{
+				var navigationStack = router.NavigationStack.ToList();
+
+				router.NavigationStack.Clear();
+
+				ClearStack(navigationStack);
+
+				if (navigationTarget == NavigationTarget.HomeScreen ||
+				    (navigationTarget == NavigationTarget.Default &&
+				     DefaultTarget == NavigationTarget.HomeScreen))
+				{
+					if (navigationStack.FirstOrDefault() is RoutableViewModel rvm)
+					{
+						NavigateTo(rvm);
+					}
+				}
+			}
+		}
+
+		public void ClearNavigation() => ClearNavigation(CurrentTarget);
 	}
 }

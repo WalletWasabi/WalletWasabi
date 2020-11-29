@@ -446,7 +446,7 @@ namespace NBitcoin
 		}
 
 		/// <summary>
-		/// Tries to equip the PSBT with previous transactions with best effort.
+		/// Tries to equip the PSBT with previous transactions with best effort. Always <see cref="AddKeyPaths"/> first otherwise the prev tx won't be added.
 		/// </summary>
 		public static void AddPrevTxs(this PSBT psbt, AllTransactionStore transactionStore)
 		{

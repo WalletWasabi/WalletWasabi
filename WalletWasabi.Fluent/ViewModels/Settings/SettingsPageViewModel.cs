@@ -48,8 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		private Global Global;
 
-		public SettingsPageViewModel(NavigationStateViewModel navigationState)
-			: base(navigationState, NavigationTarget.HomeScreen, NavBarItemSelectionMode.Selected)
+		public SettingsPageViewModel(): base(NavBarItemSelectionMode.Selected)
 		{
 			Title = "Settings";
 

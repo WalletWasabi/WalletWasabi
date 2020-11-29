@@ -10,10 +10,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	{
 		private bool _isDialogOpen;
 
-		public DialogViewModelBase(NavigationStateViewModel navigationState, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
-		{
-		}
-
 		/// <summary>
 		/// Gets or sets if the dialog is opened/closed.
 		/// </summary>

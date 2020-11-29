@@ -17,12 +17,16 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private bool _isSelected;
 		private bool _isExpanded;
 		private string _title;
-
-		protected NavBarItemViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, NavBarItemSelectionMode mode) : base(navigationState, navigationTarget)
+	
+		protected NavBarItemViewModel(NavBarItemSelectionMode mode)
 		{
 			_title = "";
 			Mode = mode;
-			OpenCommand = ReactiveCommand.Create(NavigateToSelf);
+			OpenCommand = ReactiveCommand.Create(
+				() =>
+				{
+					NavigateToSelf();
+				});
 		}
 
 		public NavBarItemViewModel? Parent { get; set; }
