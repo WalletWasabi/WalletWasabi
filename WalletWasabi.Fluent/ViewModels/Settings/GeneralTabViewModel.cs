@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private FeeDisplayFormat _selectedFeeDisplayFormat;
 		private string _dustThreshold;
 
-		public GeneralTabTabViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
+		public GeneralTabViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
 		{
 			this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 

@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private bool _stopLocalBitcoinCoreOnShutdown;
 		private string _bitcoinP2PEndPoint;
 
-		public BitcoinTabTabViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
+		public BitcoinTabViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
 		{
 			this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 
