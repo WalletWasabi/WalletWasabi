@@ -48,8 +48,8 @@
                 <Animation Delay="0.34" Duration="0.37" Easing="{StaticResource FluentEasing}">
                     <KeyFrame Cue="0%">
                         <Setter Property="Opacity" Value="0" />
-                        <Setter Property="(ScaleTransform.ScaleX)" Value="0.98" />
-                        <Setter Property="(ScaleTransform.ScaleY)" Value="0.98" />
+                        <Setter Property="(ScaleTransform.ScaleX)" Value="0.80" />
+                        <Setter Property="(ScaleTransform.ScaleY)" Value="0.80" />
                     </KeyFrame>
                     <KeyFrame Cue="100%">
                         <Setter Property="Opacity" Value="1" />
@@ -67,10 +67,12 @@
         </Style>
         <Style Selector="TextBlock.Header">
             <Setter Property="Margin" Value="0 4 0 0" />
+            <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH8}" />
             <Setter Property="FontWeight" Value="Bold" />
         </Style>
         <Style Selector="TextBox.Content">
             <Setter Property="Margin" Value="0 4 0 0" />
+            <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH8}" />
         </Style>
     </UserControl.Styles>
     <Panel>
