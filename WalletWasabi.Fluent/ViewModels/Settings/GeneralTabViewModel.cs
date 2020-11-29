@@ -11,7 +11,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public class GeneralTabTabViewModel : SettingsTabViewModelBase
+	public class GeneralTabViewModel : SettingsTabViewModelBase
 	{
 		private bool _darkModeEnabled;
 		private bool _autocopy;

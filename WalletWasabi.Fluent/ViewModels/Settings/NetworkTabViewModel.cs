@@ -10,7 +10,7 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public class NetworkTabTabViewModel : SettingsTabViewModelBase
+	public class NetworkTabViewModel : SettingsTabViewModelBase
 	{
 		private bool _useTor;
 		private bool _terminateTorOnExit;

@@ -12,7 +12,7 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public class BitcoinTabTabViewModel : SettingsTabViewModelBase
+	public class BitcoinTabViewModel : SettingsTabViewModelBase
 	{
 		private Network _network;
 		private bool _startLocalBitcoinCoreOnStartup;

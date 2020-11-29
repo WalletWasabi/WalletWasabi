@@ -37,10 +37,10 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			}));
 		}
 
-		public GeneralTabTabViewModel GeneralTab { get; }
-		public PrivacyTabTabViewModel PrivacyTab { get; }
-		public NetworkTabTabViewModel NetworkTab { get; }
-		public BitcoinTabTabViewModel BitcoinTab { get; }
+		public GeneralTabViewModel GeneralTab { get; }
+		public PrivacyTabViewModel PrivacyTab { get; }
+		public NetworkTabViewModel NetworkTab { get; }
+		public BitcoinTabViewModel BitcoinTab { get; }
 
 		public bool IsModified
 		{
