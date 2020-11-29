@@ -29,7 +29,12 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private Action? _toggleAction;
 		private Action? _collapseOnClickAction;
 
-		public NavBarViewModel(RoutingState router, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage, Global global)
+		public NavBarViewModel(
+			RoutingState router,
+			WalletManagerViewModel walletManager,
+			AddWalletPageViewModel addWalletPage,
+			SettingsPageViewModel settingsPage,
+			Global global)
 		{
 			Router = router;
 			_walletManager = walletManager;
@@ -37,7 +42,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 
 			var homePage = new HomePageViewModel(walletManager, addWalletPage);
-			var settingsPage = new SettingsPageViewModel();
 			var searchPage = new SearchPageViewModel(walletManager);
 			var privacyMode = new PrivacyModeViewModel(global);
 

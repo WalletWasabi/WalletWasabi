@@ -308,12 +308,6 @@ namespace WalletWasabi.Gui.Tabs
 					.DisposeWith(disposables);
 				this.RaisePropertyChanged(nameof(IsPinSet)); // Fire now otherwise the button won't update for restart.
 
-				Global.UiConfig.WhenAnyValue(x => x.LockScreenPinHash, x => x.Autocopy, x => x.IsCustomFee, x => x.IsCustomChangeAddress)
-					.Throttle(TimeSpan.FromSeconds(1))
-					.ObserveOn(RxApp.TaskpoolScheduler)
-					.Subscribe(_ => Global.UiConfig.ToFile())
-					.DisposeWith(disposables);
-
 				Global.UiConfig.WhenAnyValue(x => x.FeeDisplayFormat)
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Subscribe(x => SelectedFeeDisplayFormat = (FeeDisplayFormat)x)
