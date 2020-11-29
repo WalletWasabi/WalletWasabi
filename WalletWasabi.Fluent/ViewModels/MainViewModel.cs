@@ -9,6 +9,7 @@ using WalletWasabi.Fluent.ViewModels.Dialogs;
 using Global = WalletWasabi.Gui.Global;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Settings;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -44,7 +45,11 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			var addWalletPage = new AddWalletPageViewModel(global.LegalDocuments, global.WalletManager, global.BitcoinStore, global.Network);
 
-			_navBar = new NavBarViewModel(Router, walletManager, addWalletPage);
+			var settingsPage = new SettingsPageViewModel(global.Config, global.UiConfig);
+
+			var privacyMode = new PrivacyModeViewModel(global.UiConfig);
+
+			_navBar = new NavBarViewModel(Router, walletManager, addWalletPage, settingsPage, privacyMode);
 
 			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)

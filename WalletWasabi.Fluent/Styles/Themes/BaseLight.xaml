@@ -27,6 +27,13 @@
     <Color x:Key="RegionColor">#FFFAFAFA</Color>
     <BoxShadows x:Key="BoxShadow">0 1 4 #D1D1D1</BoxShadows>
     <BoxShadows x:Key="OptionButtonShadow">0 2 2 #D1D1D1</BoxShadows>
+
+    <RadialGradientBrush x:Key="VersionHighlightRadialBrush" Radius="0.5" GradientOrigin="50%,15%" Center="50%,50%">
+      <RadialGradientBrush.GradientStops>
+        <GradientStop Color="#E2E84F" Offset="0"/>
+        <GradientStop Color="#55A94E" Offset="1"/>
+      </RadialGradientBrush.GradientStops>
+    </RadialGradientBrush>
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/Accents/FluentLight.xaml"/>
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.xaml" />
