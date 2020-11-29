@@ -38,6 +38,12 @@ namespace WalletWasabi.Fluent.ViewModels
 			OpenWalletsFolderCommand = ReactiveCommand.Create(() => IoHelpers.OpenFolderInFileExplorer(walletManager.Model.WalletDirectories.WalletsDir));
 		}
 
+		public override string IconName => "home_regular";
+
+		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _items;
+
+		public ReactiveCommand<Unit, Unit> OpenWalletsFolderCommand { get; }
+
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{
 			base.OnNavigatedTo(inStack, disposable);
@@ -47,11 +53,5 @@ namespace WalletWasabi.Fluent.ViewModels
 				NavigateTo(_addWalletPage, NavigationTarget.HomeScreen);
 			}
 		}
-
-		public override string IconName => "home_regular";
-
-		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _items;
-
-		public ReactiveCommand<Unit, Unit> OpenWalletsFolderCommand { get; }
 	}
 }
