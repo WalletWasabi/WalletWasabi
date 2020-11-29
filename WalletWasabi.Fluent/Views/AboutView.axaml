@@ -72,7 +72,7 @@
         </Style>
     </UserControl.Styles>
     <Panel>
-        <controls:ContentArea Title="About" Caption="Displays current and relevant information about the app.">
+        <controls:ContentArea Title="About">
             <StackPanel MinWidth="360" MaxWidth="650" HorizontalAlignment="Left" Orientation="Vertical">
                 <StackPanel Orientation="Horizontal" Margin="0,25">
                     <TextBlock Name="LogoText1" Classes="h1 semibold">Wasabi</TextBlock>

@@ -29,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private Action? _collapseOnClickAction;
 
 		public NavBarViewModel(NavigationStateViewModel navigationState, RoutingState router,
-			WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage, AboutViewModel aboutPage)
+			WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage)
 		{
 			Router = router;
 			_walletManager = walletManager;
@@ -39,17 +39,18 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			var homePage = new HomePageViewModel(navigationState, walletManager, addWalletPage);
 			var settingsPage = new SettingsPageViewModel(navigationState);
 			var searchPage = new SearchPageViewModel(navigationState, walletManager);
+			var aboutPage = new AboutViewModel(navigationState);
 
 			RegisterCategories(searchPage);
 
-			RegisterRootEntries(searchPage, homePage, settingsPage, addWalletPage);
+			RegisterRootEntries(searchPage, homePage, settingsPage, addWalletPage, aboutPage);
 
 			RegisterEntries(searchPage);
 
 			RegisterSettingsSearchItems(searchPage, settingsPage);
 
 			searchPage.Initialise();
-      
+
 			_selectedItem = homePage;
 
 			_topItems.Add(SelectedItem);
@@ -200,7 +201,8 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			SearchPageViewModel searchPage,
 			HomePageViewModel homePage,
 			SettingsPageViewModel settingsPage,
-			AddWalletPageViewModel addWalletPage)
+			AddWalletPageViewModel addWalletPage,
+			AboutViewModel aboutPage)
 		{
 			searchPage.RegisterSearchEntry(
 				"Home",
@@ -228,6 +230,16 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
 				iconName: "add_circle_regular",
 				createTargetView: () => addWalletPage);
+
+			searchPage.RegisterSearchEntry(
+				title: "About Wasabi",
+				caption: "Displays all the current info about the app.",
+				order: 3,
+				category: "General",
+				keywords: "About, Software, Version, Source Code, Github, Status, Stats, Tor, Onion, Bug, Report, FAQ, Questions," +
+				          "Docs, Documentation, Link, Links, Help",
+				iconName: "info_regular",
+				createTargetView: () => aboutPage);
 		}
 
 		private static void RegisterSettingsSearchItems(SearchPageViewModel searchPage, SettingsPageViewModel settingsPage)

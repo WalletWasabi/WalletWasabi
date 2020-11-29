@@ -44,9 +44,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			var addWalletPage = new AddWalletPageViewModel(navigationState, global.LegalDocuments, global.WalletManager, global.BitcoinStore, global.Network);
 
-			var aboutPage = new AboutViewModel(navigationState);
-
-			_navBar = new NavBarViewModel(navigationState, Router, walletManager, addWalletPage, aboutPage);
+			_navBar = new NavBarViewModel(navigationState, Router, walletManager, addWalletPage);
 
 			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
