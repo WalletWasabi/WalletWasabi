@@ -18,10 +18,8 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		public virtual NavigationTarget DefaultTarget => NavigationTarget.HomeScreen;
 
-		protected RoutableViewModel(NavigationStateViewModel navigationState)
+		protected RoutableViewModel()
 		{
-			NavigationState = navigationState;
-
 			BackCommand = ReactiveCommand.Create(GoBack);
 
 			CancelCommand = ReactiveCommand.Create(ClearNavigation);
@@ -36,8 +34,6 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			get => _isBusy;
 			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
 		}
-
-		public NavigationStateViewModel NavigationState { get; }
 
 		public ICommand? NextCommand { get; protected set; }
 
@@ -103,13 +99,13 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 				case NavigationTarget.Default:
 				case NavigationTarget.HomeScreen:
 					{
-						NavigateToScreen(NavigationState.HomeScreen(), NavigationTarget.HomeScreen, viewModel, resetNavigation);
+						NavigateToScreen(NavigationState.Instance.HomeScreen(), NavigationTarget.HomeScreen, viewModel, resetNavigation);
 					}
 					break;
 
 				case NavigationTarget.DialogScreen:
 					{
-						NavigateToScreen(NavigationState.DialogScreen(), navigationTarget, viewModel, resetNavigation);
+						NavigateToScreen(NavigationState.Instance.DialogScreen(), navigationTarget, viewModel, resetNavigation);
 					}
 					break;
 
@@ -163,7 +159,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		{
 			dialog.CurrentTarget = NavigationTarget.DialogHost;
 
-			if (NavigationState.DialogHost() is IDialogHost dialogHost)
+			if (NavigationState.Instance.DialogHost() is IDialogHost dialogHost)
 			{
 				if (dialogHost.CurrentDialog is RoutableViewModel rvm)
 				{
@@ -189,11 +185,11 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			switch (CurrentTarget)
 			{
 				case NavigationTarget.HomeScreen:
-					router = NavigationState.HomeScreen.Invoke().Router;
+					router = NavigationState.Instance.HomeScreen.Invoke().Router;
 					break;
 
 				case NavigationTarget.DialogScreen:
-					router = NavigationState.DialogScreen.Invoke().Router;
+					router = NavigationState.Instance.DialogScreen.Invoke().Router;
 					break;
 			}
 

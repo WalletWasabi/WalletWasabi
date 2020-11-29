@@ -4,8 +4,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public class LegalDocumentsViewModel : RoutableViewModel
 	{
-		public LegalDocumentsViewModel(NavigationStateViewModel navigationState, string content) :
-			base(navigationState)
+		public LegalDocumentsViewModel(string content)
 		{
 			Content = content;
 

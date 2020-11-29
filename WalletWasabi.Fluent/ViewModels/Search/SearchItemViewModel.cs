@@ -14,8 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			SearchCategory category,
 			string keywords,
 			string iconName,
-			NavigationStateViewModel navigationState,
-			Func<RoutableViewModel> createTargetView) : base(navigationState)
+			Func<RoutableViewModel> createTargetView)
 		{
 			Title = title;
 			Caption = caption;

@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	{
 		private string _message;
 
-		public TestDialogViewModel(NavigationStateViewModel navigationState, string message) : base(navigationState)
+		public TestDialogViewModel(string message)
 		{
 			_message = message;
 
