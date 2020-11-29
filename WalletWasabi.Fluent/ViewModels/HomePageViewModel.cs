@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private readonly WalletManagerViewModel _walletManager;
 		private readonly AddWalletPageViewModel _addWalletPage;
 
-		public HomePageViewModel(WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage) : base(NavBarItemSelectionMode.Selected)
+		public HomePageViewModel(WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage)
 		{
 			Title = "Home";
 			_walletManager = walletManager;

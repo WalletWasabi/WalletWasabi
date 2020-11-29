@@ -11,10 +11,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 	{
 		private bool _privacyMode;
 
-		public PrivacyModeViewModel(NavigationStateViewModel navigationState, Global global)
-			: base(navigationState, NavigationTarget.HomeScreen, NavBarItemSelectionMode.Toggle)
+		public PrivacyModeViewModel(Global global)
 		{
 			_privacyMode = global.UiConfig.PrivacyMode;
+
+			SelectionMode = NavBarItemSelectionMode.Toggle;
 
 			ToggleTitle();
 

@@ -25,9 +25,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		protected LegalDocuments _legalDocuments;
 
 		public AddWalletPageViewModel(LegalDocuments legalDocuments, WalletManager walletManager,
-			BitcoinStore store, Network network, NavBarItemSelectionMode.Button)
+			BitcoinStore store, Network network)
 		{
 			Title = "Add Wallet";
+			SelectionMode = NavBarItemSelectionMode.Button;
 			_legalDocuments = legalDocuments;
 
 			this.WhenAnyValue(x => x.WalletName)

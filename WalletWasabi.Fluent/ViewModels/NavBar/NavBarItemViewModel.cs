@@ -17,11 +17,11 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private bool _isSelected;
 		private bool _isExpanded;
 		private string _title;
-	
-		protected NavBarItemViewModel(NavBarItemSelectionMode mode)
+
+		protected NavBarItemViewModel()
 		{
 			_title = "";
-			Mode = mode;
+			SelectionMode = NavBarItemSelectionMode.Selected;
 			OpenCommand = ReactiveCommand.Create(
 				() =>
 				{
@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 		public abstract string IconName { get; }
 
-		public NavBarItemSelectionMode Mode { get; }
+		public NavBarItemSelectionMode SelectionMode { get; protected set; }
 
 		public bool IsExpanded
 		{
@@ -60,7 +60,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			get => _isSelected;
 			set
 			{
-				switch ( Mode)
+				switch (SelectionMode)
 				{
 					case NavBarItemSelectionMode.Selected:
 						this.RaiseAndSetIfChanged(ref _isSelected, value);

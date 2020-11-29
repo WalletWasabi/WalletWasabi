@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 		private IObservable<IChangeSet<SearchItemViewModel>>? _sourceObservable;
 		private string? _searchQuery;
 
-		public SearchPageViewModel(WalletManagerViewModel walletManager) : base(NavBarItemSelectionMode.Selected)
+		public SearchPageViewModel(WalletManagerViewModel walletManager)
 		{
 			Title = "Search";
 			_categories = new Dictionary<string, SearchCategory>();
