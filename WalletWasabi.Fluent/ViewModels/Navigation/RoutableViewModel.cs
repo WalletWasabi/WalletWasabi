@@ -103,13 +103,13 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 				case NavigationTarget.Default:
 				case NavigationTarget.HomeScreen:
 					{
-						NavigateToHomeScreen(viewModel, resetNavigation);
+						NavigateToScreen(NavigationState.HomeScreen(), viewModel, resetNavigation);
 					}
 					break;
 
 				case NavigationTarget.DialogScreen:
 					{
-						NavigateToDialogScreen(viewModel, resetNavigation);
+						NavigateToScreen(NavigationState.DialogScreen(), viewModel, resetNavigation);
 					}
 					break;
 
@@ -127,54 +127,27 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			return Disposable.Create(()=>GoBack());
 		}
 
-		private void NavigateToHomeScreen(RoutableViewModel viewModel, bool resetNavigation)
+		private void NavigateToScreen(IScreen screen, RoutableViewModel viewModel, bool resetNavigation)
 		{
 			viewModel.CurrentTarget = NavigationTarget.HomeScreen;
 
 			if (resetNavigation)
 			{
-				ClearStack(NavigationState.HomeScreen().Router.NavigationStack.ToList());
+				ClearStack(screen.Router.NavigationStack.ToList());
 			}
 			else
 			{
-				if (NavigationState.HomeScreen().Router.GetCurrentViewModel() is RoutableViewModel rvm)
+				if (screen.Router.GetCurrentViewModel() is RoutableViewModel rvm)
 				{
 					rvm.DoNavigateFrom();
 				}
 			}
 
 			var command = resetNavigation ?
-				NavigationState.HomeScreen().Router.NavigateAndReset :
-				NavigationState.HomeScreen().Router.Navigate;
+				screen.Router.NavigateAndReset :
+				screen.Router.Navigate;
 
-			var inStack = NavigationState.HomeScreen().Router.NavigationStack.Contains(viewModel);
-
-			command.Execute(viewModel);
-
-			viewModel.DoNavigateTo(inStack);
-		}
-
-		private void NavigateToDialogScreen(RoutableViewModel viewModel, bool resetNavigation)
-		{
-			viewModel.CurrentTarget = NavigationTarget.DialogScreen;
-
-			if (resetNavigation)
-			{
-				ClearStack(NavigationState.DialogScreen().Router.NavigationStack.ToList());
-			}
-			else
-			{
-				if (NavigationState.DialogScreen().Router.GetCurrentViewModel() is RoutableViewModel rvm)
-				{
-					rvm.DoNavigateFrom();
-				}
-			}
-
-			var command = resetNavigation ?
-				NavigationState.DialogScreen().Router.NavigateAndReset :
-				NavigationState.DialogScreen().Router.Navigate;
-
-			var inStack = NavigationState.DialogScreen().Router.NavigationStack.Contains(viewModel);
+			var inStack = screen.Router.NavigationStack.Contains(viewModel);
 
 			command.Execute(viewModel);
 
