@@ -1,5 +1,6 @@
 using System.Reactive.Disposables;
 using ReactiveUI;
+using Splat;
 using WalletWasabi.Fluent.Model;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -12,37 +13,36 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private bool _isModified;
 		private int _selectedTab;
 
-		public SettingsPageViewModel(NavigationStateViewModel navigationState, Global global) : base(navigationState)
+		public SettingsPageViewModel(NavigationStateViewModel navigationState) : base(navigationState)
 		{
+			var global = Locator.Current.GetService<Global>();
+
 			Title = "Settings";
 
 			_selectedTab = 0;
 
-			this.WhenNavigatedTo(() =>
-			{
-				GeneralTab = new GeneralTabTabViewModel(global);
-				PrivacyTab = new PrivacyTabTabViewModel(global);
-				NetworkTab = new NetworkTabTabViewModel(global);
-				BitcoinTab = new BitcoinTabTabViewModel(global);
-
-				SettingsTabViewModelBase.RestartNeeded += OnRestartNeeded;
-
-				return Disposable.Create(() =>
-				{
-					GeneralTab = null;
-					PrivacyTab = null;
-					NetworkTab = null;
-					BitcoinTab = null;
-
-					SettingsTabViewModelBase.RestartNeeded -= OnRestartNeeded;
-				});
-			});
+			GeneralTab = new GeneralTabTabViewModel(global);
+			PrivacyTab = new PrivacyTabTabViewModel(global);
+			NetworkTab = new NetworkTabTabViewModel(global);
+			BitcoinTab = new BitcoinTabTabViewModel(global);
 		}
 
-		public GeneralTabTabViewModel? GeneralTab { get; set; }
-		public PrivacyTabTabViewModel? PrivacyTab { get; set; }
-		public NetworkTabTabViewModel? NetworkTab { get; set; }
-		public BitcoinTabTabViewModel? BitcoinTab { get; set; }
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		{
+			base.OnNavigatedTo(inStack, disposable);
+
+			SettingsTabViewModelBase.RestartNeeded += OnRestartNeeded;
+
+			disposable.Add(Disposable.Create(() =>
+			{
+				SettingsTabViewModelBase.RestartNeeded -= OnRestartNeeded;
+			}));
+		}
+
+		public GeneralTabTabViewModel GeneralTab { get; }
+		public PrivacyTabTabViewModel PrivacyTab { get; }
+		public NetworkTabTabViewModel NetworkTab { get; }
+		public BitcoinTabTabViewModel BitcoinTab { get; }
 
 		public bool IsModified
 		{
