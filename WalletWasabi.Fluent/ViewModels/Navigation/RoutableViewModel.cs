@@ -249,23 +249,21 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		private void ClearNavigation(NavigationTarget navigationTarget)
 		{
 			var router = GetRouter();
-			if (router is not null)
+			if (router is not null && router.NavigationStack.Count >= 1)
 			{
-				if (router.NavigationStack.Count >= 1)
+				var navigationStack = router.NavigationStack.ToList();
+
+				router.NavigationStack.Clear();
+
+				ClearStack(navigationStack);
+
+				if (navigationTarget == NavigationTarget.HomeScreen ||
+				    (navigationTarget == NavigationTarget.Default &&
+				     DefaultTarget == NavigationTarget.HomeScreen))
 				{
-					var navigationStack = router.NavigationStack.ToList();
-
-					router.NavigationStack.Clear();
-
-					ClearStack(navigationStack);
-
-					if (navigationTarget == NavigationTarget.HomeScreen ||
-					    (navigationTarget == NavigationTarget.Default && DefaultTarget == NavigationTarget.HomeScreen))
+					if (navigationStack.FirstOrDefault() is RoutableViewModel rvm)
 					{
-						if (navigationStack.FirstOrDefault() is RoutableViewModel rvm)
-						{
-							NavigateTo(rvm);
-						}
+						NavigateTo(rvm);
 					}
 				}
 			}
