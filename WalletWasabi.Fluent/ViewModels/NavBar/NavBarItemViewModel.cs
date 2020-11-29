@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			OpenCommand = ReactiveCommand.Create(
 				() =>
 				{
-					Navigate().To(this);
+					Navigate().To(this, NavigationMode.Clear);
 				});
 		}
 
