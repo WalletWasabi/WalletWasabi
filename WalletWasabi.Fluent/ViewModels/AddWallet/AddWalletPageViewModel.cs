@@ -90,6 +90,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
+		protected override void OnNavigatedFrom()
+		{
+			base.OnNavigatedFrom();
+
+			WalletName = "";
+		}
+
 		private void ValidateWalletName(IValidationErrors errors, WalletManager walletManager, string walletName)
 		{
 			string walletFilePath = Path.Combine(walletManager.WalletDirectories.WalletsDir, $"{walletName}.json");
