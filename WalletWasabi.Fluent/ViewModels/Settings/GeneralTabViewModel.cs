@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 	public class GeneralTabViewModel : SettingsTabViewModelBase
 	{
 		private bool _darkModeEnabled;
-		private bool _autocopy;
+		private bool _autoCopy;
 		private bool _customFee;
 		private bool _customChangeAddress;
 		private FeeDisplayFormat _selectedFeeDisplayFormat;
@@ -25,7 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
 			_darkModeEnabled = uiConfig.DarkModeEnabled;
-			_autocopy = uiConfig.Autocopy;
+			_autoCopy = uiConfig.Autocopy;
 			_customFee = uiConfig.IsCustomFee;
 			_customChangeAddress = uiConfig.IsCustomChangeAddress;
 			_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), uiConfig.FeeDisplayFormat)
@@ -76,8 +76,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		public bool Autocopy
 		{
-			get => _autocopy;
-			set => this.RaiseAndSetIfChanged(ref _autocopy, value);
+			get => _autoCopy;
+			set => this.RaiseAndSetIfChanged(ref _autoCopy, value);
 		}
 
 		public bool CustomFee
