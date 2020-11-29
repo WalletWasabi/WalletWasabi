@@ -8,10 +8,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class AboutAdvancedInfoViewModel : DialogViewModelBase<object>
 	{
-		public AboutAdvancedInfoViewModel(NavigationStateViewModel navigationState) : base(navigationState)
-		{
-		}
-
 		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
 
 		public Version HwiVersion => Constants.HwiVersion;

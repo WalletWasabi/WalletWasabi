@@ -41,7 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 			RegisterCategories(searchPage);
 
-			RegisterRootEntries(searchPage, homePage, settingsPage, addWalletPage, aboutPage);
+			RegisterRootEntries(searchPage, homePage, settingsPage, addWalletPage);
 
 			RegisterEntries(searchPage);
 
@@ -192,15 +192,22 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 		private static void RegisterEntries(SearchPageViewModel searchPage)
 		{
-			// TODO Register entries here.
+			searchPage.RegisterSearchEntry(
+				title: "About Wasabi",
+				caption: "Displays all the current info about the app.",
+				order: 3,
+				category: "General",
+				keywords: "About, Software, Version, Source Code, Github, Status, Stats, Tor, Onion, Bug, Report, FAQ, Questions," +
+				          "Docs, Documentation, Link, Links, Help",
+				iconName: "info_regular",
+				createTargetView: () => new AboutViewModel());
 		}
 
 		private static void RegisterRootEntries(
 			SearchPageViewModel searchPage,
 			HomePageViewModel homePage,
 			SettingsPageViewModel settingsPage,
-			AddWalletPageViewModel addWalletPage,
-			AboutViewModel aboutPage)
+			AddWalletPageViewModel addWalletPage)
 		{
 			searchPage.RegisterSearchEntry(
 				"Home",
@@ -228,16 +235,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
 				iconName: "add_circle_regular",
 				createTargetView: () => addWalletPage);
-
-			searchPage.RegisterSearchEntry(
-				title: "About Wasabi",
-				caption: "Displays all the current info about the app.",
-				order: 3,
-				category: "General",
-				keywords: "About, Software, Version, Source Code, Github, Status, Stats, Tor, Onion, Bug, Report, FAQ, Questions," +
-				          "Docs, Documentation, Link, Links, Help",
-				iconName: "info_regular",
-				createTargetView: () => aboutPage);
 		}
 
 		private static void RegisterSettingsSearchItems(SearchPageViewModel searchPage, SettingsPageViewModel settingsPage)

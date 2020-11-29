@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public class AboutViewModel : RoutableViewModel
 	{
-		public AboutViewModel(NavigationStateViewModel navigationState) : base(navigationState)
+		public AboutViewModel()
 		{
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
@@ -23,7 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			interaction.RegisterHandler(
 				async x =>
 					x.SetOutput(
-						await new AboutAdvancedInfoViewModel(navigationState).ShowDialogAsync()));
+						await new AboutAdvancedInfoViewModel().ShowDialogAsync()));
 
 			AboutAdvancedInfoDialogCommand = ReactiveCommand.CreateFromTask(
 				async () =>
