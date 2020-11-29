@@ -28,12 +28,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					this.RaisePropertyChanged(nameof(IconName));
 					global.UiConfig.PrivacyMode = x;
 				});
-
-			this.WhenAnyValue(x => x.PrivacyMode)
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Throttle(TimeSpan.FromSeconds(1))
-				.Skip(1)
-				.Subscribe(_ => Save());
 		}
 
 		public override string IconName => _privacyMode ? "privacy_mode_on" : "privacy_mode_off";
@@ -52,11 +46,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private void ToggleTitle()
 		{
 			Title = $"Privacy Mode {(_privacyMode ? "(On)" : "(Off)")}";
-		}
-
-		private void Save()
-		{
-			// TODO:
 		}
 	}
 }
