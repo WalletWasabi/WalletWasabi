@@ -16,10 +16,10 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 {
 	public class SearchPageViewModel : NavBarItemViewModel
 	{
-		private ReadOnlyObservableCollection<SearchResult> _searchResults;
+		private ReadOnlyObservableCollection<SearchResult>? _searchResults;
 		private readonly Dictionary<string, SearchCategory> _categories;
 		private readonly Dictionary<SearchCategory, SourceList<SearchItemViewModel>> _categorySources;
-		private IObservable<IChangeSet<SearchItemViewModel>> _sourceObservable;
+		private IObservable<IChangeSet<SearchItemViewModel>>? _sourceObservable;
 		private string? _searchQuery;
 		private readonly bool _showWallets = false;
 		private readonly WalletManagerViewModel _walletManager;
@@ -51,7 +51,8 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				iconName: "settings_regular",
 				createTargetView: () => settingsPage);
 
-			RegisterSearchEntry(title: "Add Wallet",
+			RegisterSearchEntry(
+				title: "Add Wallet",
 				caption: "Create, recover or import wallet",
 				order: 2,
 				category: "General",
@@ -65,6 +66,16 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			RegisterCategory("Wallets", 2);
 		}
 
+		public override string IconName => "search_regular";
+
+		public string? SearchQuery
+		{
+			get => _searchQuery;
+			set => this.RaiseAndSetIfChanged(ref _searchQuery, value);
+		}
+
+		public ReadOnlyObservableCollection<SearchResult> SearchResults => _searchResults;
+
 		public void Initialise()
 		{
 			if (_showWallets)
@@ -72,7 +83,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				_walletManager.Items
 					.ToObservableChangeSet()
 					.OnItemAdded(x => RegisterWalletSearchItem(0, x))
-					.OnItemRemoved(x => { })
 					.Subscribe();
 			}
 
@@ -118,7 +128,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			throw new Exception("Category already exists.");
 		}
 
-
 		public SearchItemViewModel RegisterSearchEntry(
 			string title,
 			string caption,
@@ -147,16 +156,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 
 			throw new Exception("Category doesnt exist.");
 		}
-
-		public override string IconName => "search_regular";
-
-		public string? SearchQuery
-		{
-			get => _searchQuery;
-			set => this.RaiseAndSetIfChanged(ref _searchQuery, value);
-		}
-
-		public ReadOnlyObservableCollection<SearchResult> SearchResults => _searchResults;
 
 		private Func<SearchItemViewModel, bool> SearchQueryFilter(string? searchQuery)
 		{
