@@ -42,15 +42,9 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			base.OnNavigatedTo(inStack, disposable);
 
-			if (!inStack)
+			if (!_walletManager.Model.AnyWallet(_ => true))
 			{
-				if (!_walletManager.Model.AnyWallet(_ => true))
-				{
-					NavigateTo(_addWalletPage, NavigationTarget.HomeScreen);
-
-					//addWalletPage.NavigateTo(NavigationTarget.HomeScreen);
-					//addWalletPage.OpenCommand.Execute(null);
-				}
+				NavigateTo(_addWalletPage, NavigationTarget.HomeScreen);
 			}
 		}
 

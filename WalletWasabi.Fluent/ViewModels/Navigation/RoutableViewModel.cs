@@ -65,10 +65,6 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		{
 			OnNavigatedFrom();
 
-			if (_currentDisposable is null)
-			{
-				throw new Exception("Cant navigate from something that hasnt been navigated to.");
-			}
 			_currentDisposable?.Dispose();
 			_currentDisposable = null;
 		}
@@ -135,9 +131,16 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		{
 			viewModel.CurrentTarget = NavigationTarget.HomeScreen;
 
-			if (NavigationState.HomeScreen().Router.GetCurrentViewModel() is RoutableViewModel rvm)
+			if (resetNavigation)
 			{
-				rvm.DoNavigateFrom();
+				ClearStack(NavigationState.HomeScreen().Router.NavigationStack.ToList());
+			}
+			else
+			{
+				if (NavigationState.HomeScreen().Router.GetCurrentViewModel() is RoutableViewModel rvm)
+				{
+					rvm.DoNavigateFrom();
+				}
 			}
 
 			var command = resetNavigation ?
@@ -155,9 +158,16 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		{
 			viewModel.CurrentTarget = NavigationTarget.DialogScreen;
 
-			if (NavigationState.DialogScreen().Router.GetCurrentViewModel() is RoutableViewModel rvm)
+			if (resetNavigation)
 			{
-				rvm.DoNavigateFrom();
+				ClearStack(NavigationState.DialogScreen().Router.NavigationStack.ToList());
+			}
+			else
+			{
+				if (NavigationState.DialogScreen().Router.GetCurrentViewModel() is RoutableViewModel rvm)
+				{
+					rvm.DoNavigateFrom();
+				}
 			}
 
 			var command = resetNavigation ?
@@ -214,6 +224,11 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		private void ClearStack(IEnumerable<IRoutableViewModel> navigationStack)
 		{
+			if (navigationStack.LastOrDefault() is RoutableViewModel rvm)
+			{
+				rvm.DoNavigateFrom();
+			}
+
 			foreach (var routable in navigationStack)
 			{
 				// Close all dialogs so the awaited tasks can complete.
@@ -222,11 +237,6 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 				if (routable is DialogViewModelBase dialog)
 				{
 					dialog.IsDialogOpen = false;
-				}
-
-				if (routable is RoutableViewModel rvm)
-				{
-					rvm.DoNavigateFrom();
 				}
 			}
 		}
@@ -270,6 +280,15 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 					router.NavigationStack.Clear();
 
 					ClearStack(navigationStack);
+
+					if (navigationTarget == NavigationTarget.HomeScreen ||
+					    (navigationTarget == NavigationTarget.Default && DefaultTarget == NavigationTarget.HomeScreen))
+					{
+						if (navigationStack.FirstOrDefault() is RoutableViewModel rvm)
+						{
+							NavigateTo(rvm);
+						}
+					}
 				}
 			}
 		}
