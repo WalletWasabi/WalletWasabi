@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using ReactiveUI;
@@ -6,54 +5,10 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
-	public class TargettedNavigationStack : NavigationStack<RoutableViewModel>
-	{
-		private readonly NavigationTarget _target;
-
-		public TargettedNavigationStack(NavigationTarget target)
-		{
-			_target = target;
-		}
-
-		public override void Clear()
-		{
-			if (_target == NavigationTarget.HomeScreen)
-			{
-				base.Clear(true);
-			}
-			else
-			{
-				base.Clear();
-			}
-		}
-
-		protected override void OnPopped(RoutableViewModel page)
-		{
-			base.OnPopped(page);
-
-			page.CurrentTarget = NavigationTarget.Default;
-		}
-
-		protected override void OnNavigated(
-			RoutableViewModel? oldPage,
-			bool oldInStack,
-			RoutableViewModel? newPage,
-			bool newInStack)
-		{
-			base.OnNavigated(oldPage, oldInStack, newPage, newInStack);
-
-			if (newPage is { })
-			{
-				newPage.CurrentTarget = _target;
-			}
-		}
-	}
-
 	public class NavigationStack<T> : ViewModelBase, INavigationManager<T> where T : class, INavigatable
 	{
 		private readonly Stack<T> _backStack;
-		private T _currentPage;
-		private T _previousPage;
+		private T? _currentPage;
 		private bool _canNavigateBack;
 		private bool _operationsEnabled = true;
 
@@ -76,12 +31,10 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		protected virtual void OnNavigated(T? oldPage, bool oldInStack, T? newPage, bool newInStack)
 		{
-
 		}
 
 		protected virtual void OnPopped(T page)
 		{
-
 		}
 
 		private void NavigationOperation(T? oldPage, bool oldInStack, T? newPage, bool newInStack)
@@ -118,9 +71,14 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			Clear(false);
 		}
 
-		protected virtual void Clear(bool keepRoot = false)
+		protected virtual void Clear(bool keepRoot)
 		{
 			var root = _backStack.Count > 0 ? _backStack.Last() : CurrentPage;
+
+			if (CurrentPage == root || (!keepRoot && _backStack.Count == 0 && CurrentPage is null))
+			{
+				return;
+			}
 
 			var oldPage = CurrentPage;
 
@@ -200,17 +158,18 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		public void Back()
 		{
-			if (CanNavigateBack)
+			if (_backStack.Count > 0)
 			{
 				var oldPage = CurrentPage;
 
 				CurrentPage = _backStack.Pop();
-			}
-		}
 
-		public void Back(Type pageType)
-		{
-			throw new NotImplementedException();
+				NavigationOperation(oldPage, false, CurrentPage, true);
+			}
+			else
+			{
+				Clear(); // in this case only CurrentPage might be set and Clear will provide correct behavior.
+			}
 		}
 
 		private void UpdateCanNavigateBack()

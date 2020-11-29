@@ -1,5 +1,3 @@
-using System;
-
 namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
 	public interface INavigationManager<T> where T : INavigatable
