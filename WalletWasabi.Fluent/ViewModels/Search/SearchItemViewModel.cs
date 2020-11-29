@@ -22,6 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			Category = category;
 			Keywords = keywords;
 			IconName = iconName;
+			SelectionMode = NavBarItemSelectionMode.Button;
 			OpenCommand = ReactiveCommand.Create(() => NavigateTo(createTargetView(), CurrentTarget));
 		}
 
