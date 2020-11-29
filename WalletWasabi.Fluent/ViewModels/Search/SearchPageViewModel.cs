@@ -6,10 +6,8 @@ using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Search
@@ -23,45 +21,13 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 		private ReadOnlyObservableCollection<SearchResult>? _searchResults;
 		private IObservable<IChangeSet<SearchItemViewModel>>? _sourceObservable;
 		private string? _searchQuery;
-		
-		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage, SettingsPageViewModel settingsPage, HomePageViewModel homePage) : base(navigationState)
+
+		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager) : base(navigationState)
 		{
 			Title = "Search";
 			_categories = new Dictionary<string, SearchCategory>();
 			_categorySources = new Dictionary<SearchCategory, SourceList<SearchItemViewModel>>();
 			_walletManager = walletManager;
-
-			RegisterCategory("General", 0);
-
-			RegisterSearchEntry(
-				"Home",
-				"Manage existing wallets",
-				0,
-				"General",
-				"Home",
-				"home_regular",
-				() => homePage);
-
-			RegisterSearchEntry(
-				title: "Settings",
-				caption: "Manage appearance, privacy and other settings",
-				order: 1,
-				category: "General",
-				keywords: "Settings, General, User Interface, Privacy, Advanced",
-				iconName: "settings_regular",
-				createTargetView: () => settingsPage);
-
-			RegisterSearchEntry(
-				title: "Add Wallet",
-				caption: "Create, recover or import wallet",
-				order: 2,
-				category: "General",
-				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
-				iconName: "add_circle_regular",
-				createTargetView: () => addWalletPage);
-
-			RegisterCategory("Settings", 1);
-			RegisterSettingsSearchItems(settingsPage);
 
 			RegisterCategory("Wallets", 2);
 		}
@@ -169,61 +135,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				}
 				return true;
 			};
-		}
-
-		private void RegisterSettingsSearchItems(SettingsPageViewModel settingsPage)
-		{
-			RegisterSearchEntry(
-				title: "General",
-				caption: "Manage general settings",
-				order: 0,
-				category: "Settings",
-				keywords: "Settings, General, Dark Mode, Bitcoin Addresses, Manual Entry Free, Custom Change Address, Fee Display Format, Dust Threshold, BTC",
-				iconName: "settings_general_regular",
-				createTargetView: () =>
-				{
-					settingsPage.SelectedTab = 0;
-					return settingsPage;
-				});
-
-			RegisterSearchEntry(
-				title: "Privacy",
-				caption: "Manage privacy settings",
-				order: 1,
-				category: "Settings",
-				keywords: "Settings, Privacy, Minimal, Medium, Strong, Anonymity Level",
-				iconName: "settings_privacy_regular",
-				createTargetView: () =>
-				{
-					settingsPage.SelectedTab = 1;
-					return settingsPage;
-				});
-
-			RegisterSearchEntry(
-				title: "Network",
-				caption: "Manage network settings",
-				order: 2,
-				category: "Settings",
-				keywords: "Settings, Network, Encryption, Tor, Terminate, Wasabi, Shutdown, SOCKS5, Endpoint",
-				iconName: "settings_network_regular",
-				createTargetView: () =>
-				{
-					settingsPage.SelectedTab = 2;
-					return settingsPage;
-				});
-
-			RegisterSearchEntry(
-				title: "Bitcoin",
-				caption: "Manage Bitcoin settings",
-				order: 3,
-				category: "Settings",
-				keywords: "Settings, Bitcoin, Network, Main, TestNet, RegTest, Run, Knots, Startup, P2P, Endpoint",
-				iconName: "settings_bitcoin_regular",
-				createTargetView: () =>
-				{
-					settingsPage.SelectedTab = 3;
-					return settingsPage;
-				});
 		}
 
 		private void RegisterWalletSearchItem(int order, WalletViewModelBase wallet)

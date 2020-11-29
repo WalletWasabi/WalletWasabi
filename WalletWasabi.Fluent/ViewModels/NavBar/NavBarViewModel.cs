@@ -37,9 +37,40 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 			var homePage = new HomePageViewModel(navigationState, walletManager, addWalletPage);
 			var settingsPage = new SettingsPageViewModel(navigationState);
-			var searchPage = new SearchPageViewModel(navigationState, walletManager, addWalletPage, settingsPage, homePage);
+			var searchPage = new SearchPageViewModel(navigationState, walletManager);
 
 			// Register categories and entries here.
+			searchPage.RegisterCategory("General", 0);
+
+			searchPage.RegisterSearchEntry(
+				"Home",
+				"Manage existing wallets",
+				0,
+				"General",
+				"Home",
+				"home_regular",
+				() => homePage);
+
+			searchPage.RegisterSearchEntry(
+				title: "Settings",
+				caption: "Manage appearance, privacy and other settings",
+				order: 1,
+				category: "General",
+				keywords: "Settings, General, User Interface, Privacy, Advanced",
+				iconName: "settings_regular",
+				createTargetView: () => settingsPage);
+
+			searchPage.RegisterSearchEntry(
+				title: "Add Wallet",
+				caption: "Create, recover or import wallet",
+				order: 2,
+				category: "General",
+				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
+				iconName: "add_circle_regular",
+				createTargetView: () => addWalletPage);
+
+			searchPage.RegisterCategory("Settings", 1);
+			RegisterSettingsSearchItems(searchPage, settingsPage);
 
 			searchPage.Initialise();
 
@@ -176,6 +207,61 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		public void DoToggleAction()
 		{
 			ToggleAction?.Invoke();
+		}
+
+		private static void RegisterSettingsSearchItems(SearchPageViewModel searchPage, SettingsPageViewModel settingsPage)
+		{
+			searchPage.RegisterSearchEntry(
+				title: "General",
+				caption: "Manage general settings",
+				order: 0,
+				category: "Settings",
+				keywords: "Settings, General, Dark Mode, Bitcoin Addresses, Manual Entry Free, Custom Change Address, Fee Display Format, Dust Threshold, BTC",
+				iconName: "settings_general_regular",
+				createTargetView: () =>
+				{
+					settingsPage.SelectedTab = 0;
+					return settingsPage;
+				});
+
+			searchPage.RegisterSearchEntry(
+				title: "Privacy",
+				caption: "Manage privacy settings",
+				order: 1,
+				category: "Settings",
+				keywords: "Settings, Privacy, Minimal, Medium, Strong, Anonymity Level",
+				iconName: "settings_privacy_regular",
+				createTargetView: () =>
+				{
+					settingsPage.SelectedTab = 1;
+					return settingsPage;
+				});
+
+			searchPage.RegisterSearchEntry(
+				title: "Network",
+				caption: "Manage network settings",
+				order: 2,
+				category: "Settings",
+				keywords: "Settings, Network, Encryption, Tor, Terminate, Wasabi, Shutdown, SOCKS5, Endpoint",
+				iconName: "settings_network_regular",
+				createTargetView: () =>
+				{
+					settingsPage.SelectedTab = 2;
+					return settingsPage;
+				});
+
+			searchPage.RegisterSearchEntry(
+				title: "Bitcoin",
+				caption: "Manage Bitcoin settings",
+				order: 3,
+				category: "Settings",
+				keywords: "Settings, Bitcoin, Network, Main, TestNet, RegTest, Run, Knots, Startup, P2P, Endpoint",
+				iconName: "settings_bitcoin_regular",
+				createTargetView: () =>
+				{
+					settingsPage.SelectedTab = 3;
+					return settingsPage;
+				});
 		}
 	}
 }
