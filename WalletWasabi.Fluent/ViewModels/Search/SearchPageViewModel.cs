@@ -133,7 +133,8 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				caption: "Displays all the current info about the app.",
 				order: order,
 				category: category,
-				keywords: "About, Software, Version",
+				keywords: "About, Software, Version, Source Code, Github, Status, Stats, Tor, Onion, Bug, Report, FAQ, Questions," +
+				          "Docs, Documentation, Clearnet, Link, Links, Help",
 				iconName: "info_regular",
 				navigationState: NavigationState,
 				navigationTarget: NavigationTarget.HomeScreen,
