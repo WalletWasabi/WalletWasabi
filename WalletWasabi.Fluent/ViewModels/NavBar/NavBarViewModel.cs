@@ -56,7 +56,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 			_selectedItem = homePage;
 
-			_topItems.Add(SelectedItem);
+			_topItems.Add(_selectedItem);
 			_bottomItems.Add(searchPage);
 			_bottomItems.Add(settingsPage);
 			_bottomItems.Add(privacyMode);
