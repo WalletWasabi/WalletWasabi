@@ -62,6 +62,10 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			_bottomItems.Add(addWalletPage);
 			_bottomItems.Add(settingsPage);
 
+			Router.CurrentViewModel
+				.OfType<NavBarItemViewModel>()
+				.Subscribe(x => SelectItem(x, walletManager));
+
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<NavBarItemViewModel>()
 				.Subscribe(NavigateItem);
