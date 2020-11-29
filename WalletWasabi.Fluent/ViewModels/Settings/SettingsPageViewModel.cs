@@ -2,6 +2,7 @@ using System.Reactive.Disposables;
 using ReactiveUI;
 using WalletWasabi.Fluent.Model;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings

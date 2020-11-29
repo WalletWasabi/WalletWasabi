@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		public static UiConfig? UiConfigOnOpen { get; set; }
 		private static object ConfigLock { get; } = new ();
 
-		protected void Save(object darkMode = null!)
+		protected void Save()
 		{
 			if (Validations.Any || ConfigOnOpen is null)
 			{
