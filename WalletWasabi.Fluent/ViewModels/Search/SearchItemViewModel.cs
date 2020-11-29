@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			{
 				var view = createTargetView();
 
-				return NavigateTo(view, view.DefaultTarget);
+				Navigate(view.DefaultTarget).To(view);
 			});
 		}
 

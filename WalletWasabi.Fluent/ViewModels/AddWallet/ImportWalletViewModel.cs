@@ -60,7 +60,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				Logger.LogError(ex);
 			}
 
-			ClearNavigation();
+			Navigate().Clear();
 		}
 
 		private bool IsWalletExists(HDFingerprint? fingerprint) => WalletManager.GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);

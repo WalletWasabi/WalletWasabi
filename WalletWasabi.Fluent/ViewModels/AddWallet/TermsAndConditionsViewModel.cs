@@ -20,13 +20,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 					var legalDocs = new LegalDocumentsViewModel(content);
 
-					legalDocs.NavigateToSelf(CurrentTarget);
+					Navigate().To(legalDocs);
 				});
 
 			NextCommand = ReactiveCommand.Create(
 				() =>
 				{
-					NavigateTo(next);
+					Navigate().BackTo(next);
 				},
 				this.WhenAnyValue(x => x.IsAgreed).ObserveOn(RxApp.MainThreadScheduler));
 		}
