@@ -45,6 +45,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnExit()
 		{
+			// This is not called on macOS. On Quit it closes the window directly.
 			if (((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow is MainWindow window)
 			{
 				window.CloseFromMenuAsync();
