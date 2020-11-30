@@ -1,8 +1,8 @@
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
-using WalletWasabi.Fluent.ViewModels;
+using WalletWasabi.Fluent.ViewModels.TransactionBroadcaster;
 
-namespace WalletWasabi.Fluent.Views
+namespace WalletWasabi.Fluent.Views.TransactionBroadcaster
 {
 	public class TransactionBroadcasterView : ReactiveUserControl<TransactionBroadcasterViewModel>
 	{

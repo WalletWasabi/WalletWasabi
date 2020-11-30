@@ -1,6 +1,6 @@
 ﻿using WalletWasabi.Fluent.ViewModels.Navigation;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcaster
 {
 	public class TransactionBroadcasterViewModel : RoutableViewModel
 	{
