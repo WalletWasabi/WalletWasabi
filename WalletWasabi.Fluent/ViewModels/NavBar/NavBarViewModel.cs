@@ -248,6 +248,15 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				          "Docs, Documentation, Link, Links, Help",
 				iconName: "info_regular",
 				createTargetView: () => new AboutViewModel());
+
+			searchPage.RegisterSearchEntry(
+				title: "Broadcaster",
+				caption: "Broadcast your transactions here.",
+				order: 4,
+				category: "General",
+				keywords: "Transaction Id, Input, Output, Amount, Network, Fee, Count, BTC, Signed, Paste, Import, Broadcast, Transaction",
+				iconName: "live_regular",
+				createTargetView: () => new AboutViewModel());
 		}
 
 		private static void RegisterRootEntries(
