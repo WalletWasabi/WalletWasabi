@@ -4,15 +4,19 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public class LegalDocumentsViewModel : RoutableViewModel
 	{
-		public LegalDocumentsViewModel(string content, bool backOnNext)
+		public LegalDocumentsViewModel(string content, bool isNextEnabled)
 		{
 			Content = content;
 
-			NextCommand = backOnNext ? BackCommand : CancelCommand;
+			NextCommand = BackCommand;
+
+			IsNextEnabled = isNextEnabled;
 		}
 
 		public override NavigationTarget DefaultTarget => NavigationTarget.DialogScreen;
 
 		public string Content { get; }
+
+		public bool IsNextEnabled { get; }
 	}
 }
