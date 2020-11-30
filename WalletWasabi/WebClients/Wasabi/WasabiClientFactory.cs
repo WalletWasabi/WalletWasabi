@@ -25,9 +25,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			BackendUriGetter = backendUriGetter;
 
 			TorSocks5ClientPool = torEndPoint is null ? null : new TorSocks5ClientPool(torEndPoint);
-
-			SharedBackendHttpClient = NewBackendTorHttpClient(false);
-			SharedWasabiClient = new WasabiClient(SharedBackendHttpClient);
+			SharedWasabiClient = new WasabiClient(NewBackendTorHttpClient(false));
 		}
 
 		/// <summary>Tor SOCKS5 endpoint.</summary>
@@ -40,9 +38,6 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		/// <summary>Whether Tor is enabled or disabled.</summary>
 		public bool IsTorEnabled => TorEndpoint is { };
-
-		/// <summary>Shared instance of <see cref="TorHttpClient"/>.</summary>
-		private IRelativeHttpClient SharedBackendHttpClient { get; }
 
 		/// <summary>Shared instance of <see cref="WasabiClient"/>.</summary>
 		public WasabiClient SharedWasabiClient { get; }
