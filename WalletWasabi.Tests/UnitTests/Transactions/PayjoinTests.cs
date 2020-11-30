@@ -17,6 +17,7 @@ using System.Text;
 using WalletWasabi.Models;
 using System.Collections.Specialized;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.Tests.Helpers;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
 {
@@ -29,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				Network.Main.CreateTransactionBuilder()
 				.AddCoins(Coin(0.5m, key.PubKey.WitHash.ScriptPubKey))
 				.AddKeys(key)
-				.Send(new Key().PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m))
+				.Send(BitcoinFactory.CreateScript(), Money.Coins(0.5m))
 				.BuildPSBT(true);
 			tx.Finalize();
 			return tx;
@@ -45,7 +46,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			return new OutPoint(RandomUtils.GetUInt256(), 0);
 		}
 
-		private static Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> PayjoinServerOk(Func<PSBT, PSBT> transformPsbt = null, HttpStatusCode statusCode = HttpStatusCode.OK)
+		private static Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> PayjoinServerOk(Func<PSBT, PSBT> transformPsbt, HttpStatusCode statusCode = HttpStatusCode.OK)
 			=> new Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>>((method, path, parameters, requestBody) =>
 			{
 				var psbt = PSBT.Parse(requestBody, Network.Main);
@@ -88,7 +89,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				OnSendAsync = PayjoinServerOk(psbt => psbt)
 			};
 			var payjoinClient = NewPayjoinClient(httpClient);
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
 			{
 				("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
 			});
@@ -135,14 +136,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				})
 			};
 			var payjoinClient = NewPayjoinClient(httpClient);
-			var transactionFactory = Common.CreateTransactionFactory(new[]
+			var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
 			{
 				("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
 			});
 
 			var allowedCoins = transactionFactory.Coins.ToArray();
 
-			var payment = new PaymentIntent(new Key().PubKey.WitHash.ScriptPubKey, amountToPay);
+			var payment = new PaymentIntent(BitcoinFactory.CreateScript(), amountToPay);
 
 			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.OutPoint), payjoinClient);
 
@@ -155,7 +156,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(0.346m, outerOutput.Amount.ToUnit(MoneyUnit.BTC));
 			Assert.Equal(0.09899718m, innerOutput.Amount.ToUnit(MoneyUnit.BTC));
 
-			transactionFactory = Common.CreateTransactionFactory(
+			transactionFactory = ServiceFactory.CreateTransactionFactory(
 				new[]
 				{
 					("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
@@ -181,7 +182,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// The server knows one of our utxos and tries to fool the wallet to make it sign the utxo
 			var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
 			var amountToPay = Money.Coins(0.001m);
-			var payment = new PaymentIntent(new Key().PubKey.WitHash.ScriptPubKey, amountToPay);
+			var payment = new PaymentIntent(BitcoinFactory.CreateScript(), amountToPay);
 
 			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
 			var httpClient = new MockTorHttpClient
@@ -189,19 +190,22 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				OnSendAsync = PayjoinServerOk(psbt =>
 				{
 					var newCoin = psbt.Inputs[0].GetCoin();
-					newCoin.Outpoint.N = newCoin.Outpoint.N + 1;
-					psbt.AddCoins(newCoin);
+					if (newCoin is { })
+					{
+						newCoin.Outpoint.N = newCoin.Outpoint.N + 1;
+						psbt.AddCoins(newCoin);
+					}
 					return psbt;
 				})
 			};
 
-			var transactionFactory = Common.CreateTransactionFactory(walletCoins);
+			var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
 			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			///////
 
 			// The server tries to pay more to itself by taking from the change output
-			var destination = new Key().PubKey.WitHash.ScriptPubKey;
+			var destination = BitcoinFactory.CreateScript();
 			payment = new PaymentIntent(destination, amountToPay);
 
 			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
@@ -229,7 +233,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		{
 			var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
 			var amountToPay = Money.Coins(0.001m);
-			var payment = new PaymentIntent(new Key().PubKey.WitHash.ScriptPubKey, amountToPay);
+			var payment = new PaymentIntent(BitcoinFactory.CreateScript(), amountToPay);
 
 			// This tests the scenario where the payjoin server does not clean GloablXPubs.
 			var httpClient = new MockTorHttpClient
@@ -242,7 +246,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				})
 			};
 
-			var transactionFactory = Common.CreateTransactionFactory(walletCoins);
+			var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
 			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
@@ -374,7 +378,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// The server wants to make us sign a transaction that pays too much fee
 			var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
 			var amountToPay = Money.Coins(0.001m);
-			var destination = new Key().PubKey.WitHash.ScriptPubKey;
+			var destination = BitcoinFactory.CreateScript();
 			var payment = new PaymentIntent(destination, amountToPay);
 
 			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
@@ -389,7 +393,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				})
 			};
 
-			var transactionFactory = Common.CreateTransactionFactory(walletCoins);
+			var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
 			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 		}
@@ -400,8 +404,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// The server wants to make us sign a transaction that pays too much fee.
 			var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
 			var amountToPay = Money.Coins(0.001m);
-			var destination = new Key().PubKey.WitHash.ScriptPubKey;
-			var payment = new PaymentIntent(destination, amountToPay);
+			var payment = new PaymentIntent(BitcoinFactory.CreateScript(), amountToPay);
 
 			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
 			var httpClient = new MockTorHttpClient
@@ -409,14 +412,12 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				OnSendAsync = PayjoinServerError(statusCode: HttpStatusCode.InternalServerError, "Internal Server Error")
 			};
 
-			var transactionFactory = Common.CreateTransactionFactory(walletCoins);
+			var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
 			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(httpClient));
 			Assert.Single(tx.Transaction.Transaction.Inputs);
 		}
 
 		private static PayjoinClient NewPayjoinClient(MockTorHttpClient client)
-		{
-			return new PayjoinClient(client.DestinationUriAction.Invoke(), client);
-		}
+			=> new PayjoinClient(client.DestinationUriAction.Invoke(), client);
 	}
 }

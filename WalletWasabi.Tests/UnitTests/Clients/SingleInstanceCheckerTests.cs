@@ -2,6 +2,7 @@ using NBitcoin;
 using System;
 using System.Threading.Tasks;
 using WalletWasabi.Services;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Clients
@@ -48,7 +49,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		/// </summary>
 		private static string GenerateLockName(Network network)
 		{
-			return $"{network}-{new Random().Next(1_000_000)}";
+			return $"{network}-{CryptoHelpers.RandomInt(0, 1_000_000)}";
 		}
 	}
 }
