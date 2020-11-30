@@ -10,6 +10,8 @@ using WalletWasabi.Stores;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.ViewModels.AddWallet.Create;
+using WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.NavBar;

@@ -1,10 +1,10 @@
-using ReactiveUI;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using ReactiveUI;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
-namespace WalletWasabi.Fluent.ViewModels.AddWallet
+namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
 	public class DetectedHardwareWalletViewModel : RoutableViewModel
 	{

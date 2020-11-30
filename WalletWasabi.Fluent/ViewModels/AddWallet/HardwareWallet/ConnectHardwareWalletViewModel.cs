@@ -1,14 +1,14 @@
-using NBitcoin;
-using ReactiveUI;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Threading;
+using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.AddWallet
+namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
 	public class ConnectHardwareWalletViewModel : RoutableViewModel
 	{

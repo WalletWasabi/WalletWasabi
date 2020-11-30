@@ -8,7 +8,7 @@
              xmlns:svg="clr-namespace:Svg.Skia.Avalonia;assembly=Svg.Skia.Avalonia"
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
-             x:Class="WalletWasabi.Fluent.Views.AddWallet.ConnectHardwareWalletView">
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.HardwareWallet.ConnectHardwareWalletView">
 
   <c:ContentArea Title="Hardware Wallet"
                  Caption="Ensure your device is not connected. Press continue when ready."

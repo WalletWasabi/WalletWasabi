@@ -1,14 +1,14 @@
-using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Hwi;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.AddWallet
+namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
 	public class HardwareDetectionState
 	{

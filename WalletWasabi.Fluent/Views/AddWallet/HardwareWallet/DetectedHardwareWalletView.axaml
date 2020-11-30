@@ -5,11 +5,12 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             xmlns:hardwareWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet"
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
-             x:DataType="vm:DetectedHardwareWalletViewModel"
+             x:DataType="hardwareWallet:DetectedHardwareWalletViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.AddWallet.DetectedHardwareWalletView">
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.HardwareWallet.DetectedHardwareWalletView">
   <c:ContentArea Title="Hardware Wallet"
                  IsBusy="{Binding IsBusy}"
                  EnableCancel="False"

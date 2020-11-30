@@ -8,7 +8,7 @@
              xmlns:svg="clr-namespace:Svg.Skia.Avalonia;assembly=Svg.Skia.Avalonia"
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
-             x:Class="WalletWasabi.Fluent.Views.AddWallet.DetectHardwareWalletView">
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.HardwareWallet.DetectHardwareWalletView">
 
   <UserControl.Styles>
     <Style Selector="StackPanel.Delay">

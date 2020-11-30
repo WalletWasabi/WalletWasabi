@@ -15,7 +15,7 @@ using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using HardwareWalletViewModel = WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets.HardwareWalletViewModel;
 
-namespace WalletWasabi.Fluent.ViewModels.AddWallet
+namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
 	public class DetectHardwareWalletViewModel : RoutableViewModel
 	{
