@@ -1,10 +1,9 @@
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using Avalonia.ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
 
 namespace WalletWasabi.Fluent.Views.Dialogs
 {
-	public class AboutAdvancedInfoView : ReactiveUserControl<AboutAdvancedInfoViewModel>
+	public class AboutAdvancedInfoView : UserControl
 	{
 		public AboutAdvancedInfoView()
 		{

@@ -1,10 +1,9 @@
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using Avalonia.ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
 
 namespace WalletWasabi.Fluent.Views.Dialogs
 {
-	public class EnterPasswordView : ReactiveUserControl<EnterPasswordViewModel>
+	public class EnterPasswordView : UserControl
 	{
 		public EnterPasswordView()
 		{
