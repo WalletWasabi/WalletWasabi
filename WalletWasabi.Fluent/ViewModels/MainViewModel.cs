@@ -24,8 +24,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		private DialogViewModelBase? _currentDialog;
 		private DialogScreenViewModel _dialogScreen;
 		private NavBarViewModel _navBar;
-		private readonly HomePageViewModel _homePage;
-		private readonly SearchPageViewModel _searchPage;
 		private bool _isMainContentEnabled;
 		private bool _isDialogScreenEnabled;
 
@@ -56,21 +54,26 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			var privacyMode = new PrivacyModeViewModel(global.UiConfig);
 
-			_homePage = new HomePageViewModel(walletManager, addWalletPage);
+			var homePage = new HomePageViewModel(walletManager, addWalletPage);
 
-			_searchPage = new SearchPageViewModel(walletManager);
+			var searchPage = new SearchPageViewModel(walletManager);
 
-			_navBar = new NavBarViewModel(MainScreen, _homePage, _searchPage, walletManager, addWalletPage, settingsPage, privacyMode);
+			_navBar = new NavBarViewModel(MainScreen, walletManager);
 
-			RegisterCategories(_searchPage);
+			_navBar.RegisterTopItem(homePage);
+			_navBar.RegisterBottomItem(searchPage);
+			_navBar.RegisterBottomItem(privacyMode);
+			_navBar.RegisterBottomItem(addWalletPage);
+			_navBar.RegisterBottomItem(settingsPage);
 
-			RegisterRootEntries(_searchPage, _homePage, settingsPage, addWalletPage);
+			RegisterCategories(searchPage);
+			RegisterRootEntries(searchPage, homePage, settingsPage, addWalletPage);
+			RegisterEntries(searchPage, global.LegalDocuments);
+			RegisterSettingsSearchItems(searchPage, settingsPage);
 
-			RegisterEntries(_searchPage, global.LegalDocuments);
+			searchPage.Initialise();
 
-			RegisterSettingsSearchItems(_searchPage, settingsPage);
-
-			_searchPage.Initialise();
+			MainScreen.To(homePage);
 
 			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -161,7 +164,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				{
 					var content = await File.ReadAllTextAsync(legalDocuments.FilePath);
 
-					var legalDocs = new LegalDocumentsViewModel(content, backOnNext: true);
+					var legalDocs = new LegalDocumentsViewModel(content, backOnNext: false);
 
 					return legalDocs;
 				});

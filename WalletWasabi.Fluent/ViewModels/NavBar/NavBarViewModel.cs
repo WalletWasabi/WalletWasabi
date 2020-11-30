@@ -30,27 +30,11 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private Action? _toggleAction;
 		private Action? _collapseOnClickAction;
 
-		public NavBarViewModel(
-			TargettedNavigationStack mainScreen,
-			HomePageViewModel homePage,
-			SearchPageViewModel searchPage,
-			WalletManagerViewModel walletManager,
-			AddWalletPageViewModel addWalletPage,
-			SettingsPageViewModel settingsPage,
-			PrivacyModeViewModel privacyMode)
+		public NavBarViewModel(TargettedNavigationStack mainScreen, WalletManagerViewModel walletManager)
 		{
 			_walletManager = walletManager;
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
-
-			_selectedItem = homePage;
-
-			_topItems.Add(_selectedItem);
-
-			_bottomItems.Add(searchPage);
-			_bottomItems.Add(privacyMode);
-			_bottomItems.Add(addWalletPage);
-			_bottomItems.Add(settingsPage);
 
 			mainScreen.WhenAnyValue(x => x.CurrentPage)
 				.OfType<NavBarItemViewModel>()
@@ -68,8 +52,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 						SelectedItem.IsExpanded = x;
 					}
 				});
-
-			mainScreen.To(homePage);
 		}
 
 		public ObservableCollection<NavBarItemViewModel> TopItems
@@ -114,6 +96,26 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		{
 			get => _isOpen;
 			set => this.RaiseAndSetIfChanged(ref _isOpen, value);
+		}
+
+		public void RegisterTopItem(NavBarItemViewModel item, bool isSelected = false)
+		{
+			_topItems.Add(item);
+
+			if (isSelected)
+			{
+				_selectedItem = item;
+			}
+		}
+
+		public void RegisterBottomItem(NavBarItemViewModel item, bool isSelected = false)
+		{
+			_bottomItems.Add(item);
+
+			if (isSelected)
+			{
+				_selectedItem = item;
+			}
 		}
 
 		public void DoToggleAction()
