@@ -38,6 +38,13 @@ namespace WalletWasabi.Services
 
 		public event EventHandler? OtherInstanceStarted;
 
+		/// <summary>
+		/// This function ensures this is the first instance running on this machine or throws an exception if we are not. In case of secondary start
+		/// we are trying signal the first instance before throwing the exception.
+		/// On macOS this funtion will never throw if you run Wasabi as a macApp, because mac prevents running the same app multiple time on OS level.
+		/// </summary>
+		/// <exception cref="InvalidOperationException">Wasabi is already running, signalling the first instance failed.</exception>
+		/// <exception cref="OperationCanceledException">Wasabi is already running and signalled.</exception>
 		public async Task EnsureSingleOrThrowAsync()
 		{
 			if (DisposeCts.IsCancellationRequested)
@@ -74,10 +81,10 @@ namespace WalletWasabi.Services
 			}
 			catch (Exception)
 			{
-				// Do not log anything here as the first instance is writing the Log at this time.
 				throw new InvalidOperationException($"Wasabi is already running.");
 			}
 
+			// Do not log anything here as the first instance is writing the Log at this time.
 			throw new OperationCanceledException($"Wasabi is already running, signalled the first instance.");
 		}
 
