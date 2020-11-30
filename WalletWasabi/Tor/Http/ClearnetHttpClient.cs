@@ -17,7 +17,8 @@ namespace WalletWasabi.Tor.Http
 		{
 			var socketHandler = new SocketsHttpHandler()
 			{
-				AutomaticDecompression = DecompressionMethods.All,
+				// Only GZip is currently used by Wasabi Backend.
+				AutomaticDecompression = DecompressionMethods.GZip,
 				PooledConnectionLifetime = TimeSpan.FromMinutes(5)
 			};
 
