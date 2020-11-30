@@ -29,7 +29,7 @@
         </c:ContentArea.Styles>
             <StackPanel Orientation="Horizontal" Spacing="50" HorizontalAlignment="Center" VerticalAlignment="Center">
 
-                <Button Classes="option">
+                <Button Classes="option" Command="{Binding ImportTransactionCommand}">
                     <Panel>
                         <TextBlock Text="Import transaction" />
                         <PathIcon Data="{StaticResource folder_move_regular}" />
