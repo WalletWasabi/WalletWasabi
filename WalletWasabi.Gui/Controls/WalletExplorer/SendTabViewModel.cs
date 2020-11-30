@@ -3,7 +3,6 @@ using NBitcoin.Payment;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -52,24 +51,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					PSBT signedPsbt = null;
 					try
 					{
-						try
-						{
-							signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
-						}
-						catch (PSBTException ex) when (ex.Message.Contains("NullFail"))
-						{
-							NotificationHelpers.Warning("Fall back to Unverified Inputs Mode, trying to sign again.");
-
-							// Ledger Nano S hackfix https://github.com/MetacoSA/NBitcoin/pull/888
-
-							var noinputtx = result.Psbt.Clone();
-							foreach (var input in noinputtx.Inputs)
-							{
-								input.NonWitnessUtxo = null;
-							}
-
-							signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, noinputtx, cts.Token);
-						}
+						signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 					}
 					catch (HwiException)
 					{
@@ -107,13 +89,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 					{
-						Logger.LogWarning("Payjoin server is a hidden service but Tor is disabled. Ignoring...");
+						Logger.LogWarning("Payjoin server is an onion service but Tor is disabled. Ignoring...");
 						return null;
 					}
 
 					if (Global.Config.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
 					{
-						Logger.LogWarning("Payjoin server is not exposed as onion hidden service nor https. Ignoring...");
+						Logger.LogWarning("Payjoin server is not exposed as an onion service nor https. Ignoring...");
 						return null;
 					}
 				}

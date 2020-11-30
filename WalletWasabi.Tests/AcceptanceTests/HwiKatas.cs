@@ -1,8 +1,6 @@
 using NBitcoin;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
@@ -24,7 +22,10 @@ namespace WalletWasabi.Tests.AcceptanceTests
 		#region SharedVariables
 
 		// Bottleneck: user action on device.
-		public TimeSpan ReasonableRequestTimeout { get; } = TimeSpan.FromMinutes(3);
+		public TimeSpan ReasonableRequestTimeout { get; } = TimeSpan.FromMinutes(10);
+
+		// Consolidating tx with 10 inputs and 1 output.
+		public PSBT Psbt => PSBT.Parse("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", Network.TestNet);
 
 		#endregion SharedVariables
 
@@ -33,12 +34,14 @@ namespace WalletWasabi.Tests.AcceptanceTests
 		{
 			// --- USER INTERACTIONS ---
 			//
-			// Connect an already initialized device and unlock it.
+			// Connect and initialize your Trezor T with the following seed phrase:
+			// more maid moon upgrade layer alter marine screen benefit way cover alcohol
 			// Run this test.
-			// displayaddress request: refuse
-			// displayaddress request: confirm
-			// displayaddress request: confirm
-			// signtx request: confirm
+			// displayaddress request: refuse 1 time
+			// displayaddress request: confirm 2 times
+			// displayaddress request: confirm 1 time
+			// signtx request: refuse 1 time
+			// signtx request: Hold to confirm
 			//
 			// --- USER INTERACTIONS ---
 
@@ -50,7 +53,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			HwiEnumerateEntry entry = enumerate.Single();
 			Assert.NotNull(entry.Path);
 			Assert.Equal(HardwareWalletModels.Trezor_T, entry.Model);
-			Assert.True(entry.Fingerprint.HasValue);
+			Assert.NotNull(entry.Fingerprint);
 
 			string devicePath = entry.Path;
 			HardwareWalletModels deviceType = entry.Model;
@@ -88,12 +91,15 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			Assert.Equal(expectedAddress1, address1);
 			Assert.Equal(expectedAddress2, address2);
 
-			// USER: CONFIRM
-			PSBT psbt = BuildPsbt(network, fingerprint, xpub1, keyPath1);
-			PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token);
+			// USER SHOULD REFUSE ACTION
+			var result = await Assert.ThrowsAsync<HwiException>(async () => await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token));
+			Assert.Equal(HwiErrorCode.ActionCanceled, result.ErrorCode);
+
+			// USER: Hold to confirm
+			PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
 
 			Transaction signedTx = signedPsbt.GetOriginalTransaction();
-			Assert.Equal(psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
+			Assert.Equal(Psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
 
 			var checkResult = signedTx.Check();
 			Assert.Equal(TransactionCheckResult.Success, checkResult);
@@ -129,41 +135,13 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, false, cts.Token));
 		}
 
-		private static PSBT BuildPsbt(Network network, HDFingerprint fingerprint, ExtPubKey xpub, KeyPath xpubKeyPath)
-		{
-			var deriveSendFromKeyPath = new KeyPath("1/0");
-			var deriveSendToKeyPath = new KeyPath("0/0");
-
-			KeyPath sendFromKeyPath = xpubKeyPath.Derive(deriveSendFromKeyPath);
-			KeyPath sendToKeyPath = xpubKeyPath.Derive(deriveSendToKeyPath);
-
-			PubKey sendFromPubKey = xpub.Derive(deriveSendFromKeyPath).PubKey;
-			PubKey sendToPubKey = xpub.Derive(deriveSendToKeyPath).PubKey;
-
-			BitcoinAddress sendFromAddress = sendFromPubKey.GetAddress(ScriptPubKeyType.Segwit, network);
-			BitcoinAddress sendToAddress = sendToPubKey.GetAddress(ScriptPubKeyType.Segwit, network);
-
-			TransactionBuilder builder = network.CreateTransactionBuilder();
-			builder = builder.AddCoins(new Coin(uint256.One, 0, Money.Coins(1), sendFromAddress.ScriptPubKey));
-			builder.Send(sendToAddress.ScriptPubKey, Money.Coins(0.99999m));
-			PSBT psbt = builder
-				.SendFees(Money.Coins(0.00001m))
-				.BuildPSBT(false);
-
-			var rootKeyPath1 = new RootedKeyPath(fingerprint, sendFromKeyPath);
-			var rootKeyPath2 = new RootedKeyPath(fingerprint, sendToKeyPath);
-
-			psbt.AddKeyPath(sendFromPubKey, rootKeyPath1, sendFromAddress.ScriptPubKey);
-			psbt.AddKeyPath(sendToPubKey, rootKeyPath2, sendToAddress.ScriptPubKey);
-			return psbt;
-		}
-
 		[Fact]
 		public async Task ColdCardKataAsync()
 		{
 			// --- USER INTERACTIONS ---
 			//
-			// Connect an already initialized device and unlock it.
+			// Connect and initialize your Coldcard with the following seed phrase:
+			// more maid moon upgrade layer alter marine screen benefit way cover alcohol
 			// Run this test.
 			// signtx request: refuse
 			// signtx request: confirm
@@ -178,7 +156,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			HwiEnumerateEntry entry = enumerate.Single();
 			Assert.NotNull(entry.Path);
 			Assert.Equal(HardwareWalletModels.Coldcard, entry.Model);
-			Assert.True(entry.Fingerprint.HasValue);
+			Assert.NotNull(entry.Fingerprint);
 
 			string devicePath = entry.Path;
 			HardwareWalletModels deviceType = entry.Model;
@@ -206,17 +184,15 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			Assert.NotNull(xpub2);
 			Assert.NotEqual(xpub1, xpub2);
 
-			PSBT psbt = BuildPsbt(network, fingerprint, xpub1, keyPath1);
-
 			// USER: REFUSE
-			var ex = await Assert.ThrowsAsync<HwiException>(async () => await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token));
+			var ex = await Assert.ThrowsAsync<HwiException>(async () => await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token));
 			Assert.Equal(HwiErrorCode.ActionCanceled, ex.ErrorCode);
 
 			// USER: CONFIRM
-			PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token);
+			PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
 
 			Transaction signedTx = signedPsbt.GetOriginalTransaction();
-			Assert.Equal(psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
+			Assert.Equal(Psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
 
 			var checkResult = signedTx.Check();
 			Assert.Equal(TransactionCheckResult.Success, checkResult);
@@ -239,13 +215,18 @@ namespace WalletWasabi.Tests.AcceptanceTests
 		{
 			// --- USER INTERACTIONS ---
 			//
-			// Connect an already initialized device and unlock it and enter to Bitcoin App.
+			// Connect and initialize your Nano S with the following seed phrase:
+			// more maid moon upgrade layer alter marine screen benefit way cover alcohol
 			// Run this test.
-			// displayaddress request: refuse (accept Warning messages)
-			// displayaddress request: confirm
-			// displayaddress request: confirm
-			// signtx request: refuse
-			// signtx request: confirm
+			// displayaddress request(derivation path): approve
+			// displayaddress request: reject
+			// displayaddress request(derivation path): approve
+			// displayaddress request: approve
+			// displayaddress request(derivation path): approve
+			// displayaddress request: approve
+			// signtx request: reject
+			// signtx request: accept
+			// confirm transaction: accept and send
 			//
 			// --- USER INTERACTIONS ---
 
@@ -256,7 +237,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			HwiEnumerateEntry entry = Assert.Single(enumerate);
 			Assert.NotNull(entry.Path);
 			Assert.Equal(HardwareWalletModels.Ledger_Nano_S, entry.Model);
-			Assert.True(entry.Fingerprint.HasValue);
+			Assert.NotNull(entry.Fingerprint);
 			Assert.Null(entry.Code);
 			Assert.Null(entry.Error);
 			Assert.Null(entry.SerialNumber);
@@ -299,15 +280,14 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			Assert.Equal(expectedAddress2, address2);
 
 			// USER: REFUSE
-			PSBT psbt = BuildPsbt(network, fingerprint, xpub1, keyPath1);
-			var ex = await Assert.ThrowsAsync<HwiException>(async () => await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token));
+			var ex = await Assert.ThrowsAsync<HwiException>(async () => await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token));
 			Assert.Equal(HwiErrorCode.BadArgument, ex.ErrorCode);
 
 			// USER: CONFIRM
-			PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, psbt, cts.Token);
+			PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
 
 			Transaction signedTx = signedPsbt.GetOriginalTransaction();
-			Assert.Equal(psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
+			Assert.Equal(Psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
 
 			var checkResult = signedTx.Check();
 			Assert.Equal(TransactionCheckResult.Success, checkResult);
