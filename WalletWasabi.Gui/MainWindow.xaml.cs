@@ -18,6 +18,7 @@ using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 
@@ -88,7 +89,7 @@ namespace WalletWasabi.Gui
 				{
 					if (Global.UiConfig.HideWindowOnClose)
 					{
-						HideWindow();
+						await HideWindowAsync();
 						return;
 					}
 				}
@@ -116,9 +117,18 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		public void HideWindow()
+		public async Task HideWindowAsync()
 		{
-			Hide();
+			if (OperatingSystem.IsMacOS())
+			{
+				
+				string shellCommand = $"osascript -e 'tell application \"System Events\" to set visible of process \"Wasabi Wallet\" to false'";
+				await EnvironmentHelpers.ShellExecAsync(shellCommand, waitForExit: true).ConfigureAwait(false);
+			}
+			else
+			{
+				Hide();
+			}
 		}
 
 		private async Task ClosingAsync()
