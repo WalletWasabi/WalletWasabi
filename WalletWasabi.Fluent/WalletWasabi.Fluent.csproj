@@ -18,8 +18,12 @@
 		  <DependentUpon>InfoMessage.axaml</DependentUpon>
 		  <SubType>Code</SubType>
 		</Compile>
-		<Compile Update="Views\TransactionBroadcaster\TransactionBroadcasterView.axaml.cs">
+		<Compile Update="Views\TransactionBroadcaster\LoadTransactionView.axaml.cs">
 		  <DependentUpon>TransactionBroadcasterView.axaml</DependentUpon>
+		  <SubType>Code</SubType>
+		</Compile>
+		<Compile Update="Views\TransactionBroadcaster\BroadcastTransactionView.axaml.cs">
+		  <DependentUpon>BroadcastTransactionView.axaml</DependentUpon>
 		  <SubType>Code</SubType>
 		</Compile>
 	</ItemGroup>

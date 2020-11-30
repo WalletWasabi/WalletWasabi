@@ -5,9 +5,9 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:tB="clr-namespace:WalletWasabi.Fluent.ViewModels.TransactionBroadcaster"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="tB:TransactionBroadcasterViewModel"
+             x:DataType="tB:LoadTransactionViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.TransactionBroadcaster.TransactionBroadcasterView">
+             x:Class="WalletWasabi.Fluent.Views.TransactionBroadcaster.LoadTransactionView">
     <c:ContentArea Title="Transaction Broadcaster"
                    Caption="Paste or import the transaction and broadcast it to the network."
                    EnableCancel="True">

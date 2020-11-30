@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:tB="clr-namespace:WalletWasabi.Fluent.ViewModels.TransactionBroadcaster"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="tB:BroadcastTransactionViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.TransactionBroadcaster.BroadcastTransactionView">
+    <c:ContentArea Title="Transaction ID"
+                   Caption="{Binding TransactionId}"
+                   EnableCancel="True"
+                   EnableNext="True" NextContent="Broadcast"
+                   IsBusy="{Binding IsBusy}">
+
+
+    </c:ContentArea>
+</UserControl>

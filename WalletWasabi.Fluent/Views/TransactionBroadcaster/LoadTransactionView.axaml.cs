@@ -4,9 +4,9 @@ using WalletWasabi.Fluent.ViewModels.TransactionBroadcaster;
 
 namespace WalletWasabi.Fluent.Views.TransactionBroadcaster
 {
-	public class TransactionBroadcasterView : ReactiveUserControl<TransactionBroadcasterViewModel>
+	public class LoadTransactionView : ReactiveUserControl<LoadTransactionViewModel>
 	{
-		public TransactionBroadcasterView()
+		public LoadTransactionView()
 		{
 			InitializeComponent();
 		}

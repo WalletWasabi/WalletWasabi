@@ -18,11 +18,11 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcaster
 {
-	public class TransactionBroadcasterViewModel : RoutableViewModel
+	public class LoadTransactionViewModel : RoutableViewModel
 	{
 		private SmartTransaction? _finalTransaction;
 
-		public TransactionBroadcasterViewModel()
+		public LoadTransactionViewModel()
 		{
 			var global = Locator.Current.GetService<Global>();
 
@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcaster
 				{
 					try
 					{
-						var res =  TransactionDetailsViewModel.FromBuildTxnResult(BitcoinStore, PSBT.FromTransaction(x!.Transaction, Network));
+						Navigate().To(new BroadcastTransactionViewModel(BitcoinStore, x!, Network, global.TransactionBroadcaster));
 					}
 					catch (Exception ex)
 					{
@@ -116,8 +116,9 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcaster
 		private async Task<SmartTransaction> ParseTransactionAsync(string path)
 		{
 			var psbtBytes = await File.ReadAllBytesAsync(path);
-			PSBT psbt = null;
-			Transaction transaction = null;
+			PSBT? psbt = null;
+			Transaction? transaction = null;
+
 			try
 			{
 				psbt = PSBT.Load(psbtBytes, Network);
@@ -145,10 +146,8 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcaster
 
 				return psbt.ExtractSmartTransaction();
 			}
-			else
-			{
-				return new SmartTransaction(transaction, Models.Height.Unknown);
-			}
+
+			return new SmartTransaction(transaction, Models.Height.Unknown);
 		}
 	}
 }
