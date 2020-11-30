@@ -50,7 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			var privacyMode = new PrivacyModeViewModel(global.UiConfig);
 
-			_navBar = new NavBarViewModel(MainScreen, walletManager, addWalletPage, settingsPage, privacyMode);
+			_navBar = new NavBarViewModel(global.LegalDocuments, MainScreen, walletManager, addWalletPage, settingsPage, privacyMode);
 
 			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)

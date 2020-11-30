@@ -9,6 +9,7 @@ using WalletWasabi.Fluent.ViewModels.Search;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Legal;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar
 {
@@ -28,6 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private Action? _collapseOnClickAction;
 
 		public NavBarViewModel(
+			LegalDocuments legalDocuments,
 			TargettedNavigationStack mainScreen,
 			WalletManagerViewModel walletManager,
 			AddWalletPageViewModel addWalletPage,
@@ -45,7 +47,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 			RegisterRootEntries(searchPage, homePage, settingsPage, addWalletPage);
 
-			RegisterEntries(searchPage);
+			RegisterEntries(searchPage, legalDocuments);
 
 			RegisterSettingsSearchItems(searchPage, settingsPage);
 
@@ -241,12 +243,21 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			searchPage.RegisterCategory("Settings", 1);
 		}
 
-		private static void RegisterEntries(SearchPageViewModel searchPage)
+		private static void RegisterEntries(SearchPageViewModel searchPage, LegalDocuments legalDocuments)
 		{
+			searchPage.RegisterSearchEntry(
+				title: "Legal Docs",
+				caption: "Displays terms and conditions",
+				order: 3,
+				category: "General",
+				keywords: "View, Legal, Docs, Documentation, Terms, Conditions, Help",
+				iconName: "info_regular",
+				createTargetView: () => new TermsAndConditionsViewModel(legalDocuments, searchPage));
+
 			searchPage.RegisterSearchEntry(
 				title: "About Wasabi",
 				caption: "Displays all the current info about the app",
-				order: 3,
+				order: 4,
 				category: "General",
 				keywords: "About, Software, Version, Source Code, Github, Status, Stats, Tor, Onion, Bug, Report, FAQ, Questions," +
 				          "Docs, Documentation, Link, Links, Help",
