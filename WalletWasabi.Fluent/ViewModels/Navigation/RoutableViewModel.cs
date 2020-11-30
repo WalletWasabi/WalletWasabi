@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -10,28 +8,21 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
-	public abstract class RoutableViewModel : ViewModelBase, IRoutableViewModel
+	public abstract class RoutableViewModel : ViewModelBase, INavigatable
 	{
 		private bool _isBusy;
+		private CompositeDisposable? _currentDisposable;
 
-		protected RoutableViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget)
+		public NavigationTarget CurrentTarget { get; internal set; }
+
+		public virtual NavigationTarget DefaultTarget => NavigationTarget.HomeScreen;
+
+		protected RoutableViewModel()
 		{
-			NavigationState = navigationState;
+			BackCommand = ReactiveCommand.Create(() => Navigate().Back());
 
-			NavigationTarget = navigationTarget;
-
-			BackCommand = ReactiveCommand.Create(GoBack);
-
-			CancelCommand = ReactiveCommand.Create(ClearNavigation);
+			CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 		}
-
-		public string UrlPathSegment { get; } = Guid.NewGuid().ToString().Substring(0, 5);
-
-		public IScreen HostScreen => NavigationTarget switch
-		{
-			NavigationTarget.DialogScreen => NavigationState.DialogScreen.Invoke(),
-			_ => NavigationState.HomeScreen.Invoke(),
-		};
 
 		public bool IsBusy
 		{
@@ -39,155 +30,83 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
 		}
 
-		public NavigationStateViewModel NavigationState { get; }
-
-		public NavigationTarget NavigationTarget { get; }
-
 		public ICommand? NextCommand { get; protected set; }
 
 		public ICommand BackCommand { get; protected set; }
 
 		public ICommand CancelCommand { get; protected set; }
 
-		public async Task<TResult> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog)
+		private void DoNavigateTo(bool inStack)
 		{
-			TResult result;
-
-			using (NavigateTo(dialog, NavigationTarget.DialogScreen))
+			if (_currentDisposable is { })
 			{
-				result = await dialog.GetDialogResultAsync();
+				throw new Exception("Cant navigate to something that has already been navigated to.");
 			}
+
+			_currentDisposable = new CompositeDisposable();
+
+			OnNavigatedTo(inStack, _currentDisposable);
+		}
+
+		protected virtual void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		{
+		}
+
+		private void DoNavigateFrom()
+		{
+			OnNavigatedFrom();
+
+			_currentDisposable?.Dispose();
+			_currentDisposable = null;
+		}
+
+		public INavigationManager<RoutableViewModel> Navigate()
+		{
+			var currentTarget = CurrentTarget == NavigationTarget.Default ? DefaultTarget : CurrentTarget;
+
+			return Navigate(currentTarget);
+		}
+
+		public INavigationManager<RoutableViewModel> Navigate(NavigationTarget currentTarget)
+		{
+			switch (currentTarget)
+			{
+				case NavigationTarget.HomeScreen:
+					return NavigationState.Instance.HomeScreenNavigation;
+
+				case NavigationTarget.DialogScreen:
+					return NavigationState.Instance.DialogScreenNavigation;
+			}
+
+			throw new NotSupportedException();
+		}
+
+		public void OnNavigatedTo(bool isInHistory)
+		{
+			DoNavigateTo(isInHistory);
+		}
+
+		void INavigatable.OnNavigatedFrom(bool isInHistory)
+		{
+			DoNavigateFrom();
+		}
+
+		protected virtual void OnNavigatedFrom()
+		{
+		}
+
+		public async Task<TResult> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog)
+			=> await NavigateDialog(dialog, CurrentTarget);
+
+		public async Task<TResult> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target)
+		{
+			Navigate(target).To(dialog);
+
+			var result = await dialog.GetDialogResultAsync();
+
+			Navigate(target).Back();
 
 			return result;
 		}
-
-		public IDisposable NavigateTo(RoutableViewModel viewModel, NavigationTarget navigationTarget, bool resetNavigation = false)
-		{
-			switch (navigationTarget)
-			{
-				case NavigationTarget.Default:
-				case NavigationTarget.HomeScreen:
-					{
-						NavigateToHomeScreen(viewModel, resetNavigation);
-					}
-					break;
-
-				case NavigationTarget.DialogScreen:
-					{
-						NavigateToDialogScreen(viewModel, resetNavigation);
-					}
-					break;
-
-				case NavigationTarget.DialogHost:
-					if (viewModel is DialogViewModelBase dialog)
-					{
-						NavigateToDialogHost(dialog);
-					}
-					break;
-
-				default:
-					break;
-			}
-
-			return Disposable.Create(()=>GoBack());
-		}
-
-		private void NavigateToHomeScreen(RoutableViewModel viewModel, bool resetNavigation)
-		{
-			var command = resetNavigation ?
-				NavigationState.HomeScreen().Router.NavigateAndReset :
-				NavigationState.HomeScreen().Router.Navigate;
-			command.Execute(viewModel);
-		}
-
-		private void NavigateToDialogScreen(RoutableViewModel viewModel, bool resetNavigation)
-		{
-			var command = resetNavigation ?
-				NavigationState.DialogScreen().Router.NavigateAndReset :
-				NavigationState.DialogScreen().Router.Navigate;
-			command.Execute(viewModel);
-		}
-
-		private void NavigateToDialogHost(DialogViewModelBase dialog)
-		{
-			if (NavigationState.DialogHost() is IDialogHost dialogHost)
-			{
-				dialogHost.CurrentDialog = dialog;
-			}
-		}
-
-		public void NavigateToSelf() => NavigateTo(this, NavigationTarget, resetNavigation: false);
-
-		public void NavigateToSelfAndReset() => NavigateTo(this, NavigationTarget, resetNavigation: true);
-
-		private RoutingState? GetRouter(NavigationTarget navigationTarget)
-		{
-			var router = default(RoutingState);
-
-			switch (navigationTarget)
-			{
-				case NavigationTarget.Default:
-				case NavigationTarget.HomeScreen:
-					router = NavigationState.HomeScreen.Invoke().Router;
-					break;
-
-				case NavigationTarget.DialogScreen:
-					router = NavigationState.DialogScreen.Invoke().Router;
-					break;
-			}
-
-			return router;
-		}
-
-		private void CloseDialogs(IEnumerable<IRoutableViewModel> navigationStack)
-		{
-			foreach (var routable in navigationStack)
-			{
-				// Close all dialogs so the awaited tasks can complete.
-				// - DialogViewModelBase.ShowDialogAsync()
-				// - DialogViewModelBase.GetDialogResultAsync()
-				if (routable is DialogViewModelBase dialog)
-				{
-					dialog.IsDialogOpen = false;
-				}
-			}
-		}
-
-		public void GoBack(NavigationTarget navigationTarget)
-		{
-			var router = GetRouter(navigationTarget);
-			if (router is not null && router.NavigationStack.Count >= 1)
-			{
-				// Close all dialogs so the awaited tasks can complete.
-				// - DialogViewModelBase.ShowDialogAsync()
-				// - DialogViewModelBase.GetDialogResultAsync()
-				if (router.NavigationStack.LastOrDefault() is DialogViewModelBase dialog)
-				{
-					dialog.IsDialogOpen = false;
-				}
-
-				router.NavigateBack.Execute();
-			}
-		}
-
-		public void GoBack() => GoBack(NavigationTarget);
-
-		public void ClearNavigation(NavigationTarget navigationTarget)
-		{
-			var router = GetRouter(navigationTarget);
-			if (router is not null)
-			{
-				if (router.NavigationStack.Count >= 1)
-				{
-					var navigationStack = router.NavigationStack.ToList();
-
-					router.NavigationStack.Clear();
-
-					CloseDialogs(navigationStack);
-				}
-			}
-		}
-
-		public void ClearNavigation() => ClearNavigation(NavigationTarget);
 	}
 }

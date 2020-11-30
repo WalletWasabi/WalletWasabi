@@ -14,9 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			SearchCategory category,
 			string keywords,
 			string iconName,
-			NavigationStateViewModel navigationState,
-			NavigationTarget navigationTarget,
-			Func<RoutableViewModel> createTargetView) : base(navigationState, navigationTarget)
+			Func<RoutableViewModel> createTargetView)
 		{
 			Title = title;
 			Caption = caption;
@@ -24,7 +22,15 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			Category = category;
 			Keywords = keywords;
 			IconName = iconName;
-			OpenCommand = ReactiveCommand.Create(() => NavigateTo(createTargetView(), navigationTarget));
+			SelectionMode = NavBarItemSelectionMode.Button;
+
+			OpenCommand = ReactiveCommand.Create(
+				() =>
+			{
+				var view = createTargetView();
+
+				Navigate(view.DefaultTarget).To(view);
+			});
 		}
 
 		public override string IconName { get; }

@@ -22,37 +22,36 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		private string _walletName = "";
 		private bool _optionsEnabled;
+		private readonly LegalDocuments _legalDocuments;
 
-		public AddWalletPageViewModel(NavigationStateViewModel navigationState, LegalDocuments legalDocuments, WalletManager walletManager,
-			BitcoinStore store, Network network) : base(navigationState, NavigationTarget.DialogScreen)
+		public AddWalletPageViewModel(
+			LegalDocuments legalDocuments,
+			WalletManager walletManager,
+			BitcoinStore store,
+			Network network)
 		{
 			Title = "Add Wallet";
-
-			OpenCommand = ReactiveCommand.Create(
-				() =>
-				{
-					var termsAndConditions = new TermsAndConditionsViewModel(navigationState, legalDocuments, this);
-					termsAndConditions.NavigateToSelf();
-				});
+			SelectionMode = NavBarItemSelectionMode.Button;
+			_legalDocuments = legalDocuments;
 
 			this.WhenAnyValue(x => x.WalletName)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
-			RecoverWalletCommand = ReactiveCommand.Create(() =>
+			RecoverWalletCommand = ReactiveCommand.Create(
+				() =>
 			{
-				NavigateTo(new RecoverWalletViewModel(navigationState, WalletName, network, walletManager), NavigationTarget.DialogScreen);
+				Navigate().To(new RecoverWalletViewModel(WalletName, network, walletManager));
 			});
 
-			ImportWalletCommand = ReactiveCommand.Create(() => new ImportWalletViewModel(navigationState, WalletName, walletManager));
+			ImportWalletCommand = ReactiveCommand.Create(() => new ImportWalletViewModel(WalletName, walletManager));
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					var result = await NavigateDialog(new EnterPasswordViewModel(
-						navigationState,
-						NavigationTarget.DialogScreen,
+					var result = await NavigateDialog(
+						new EnterPasswordViewModel(
 						"Type the password of the wallet and click Continue."));
 
 					if (result is { } password)
@@ -71,19 +70,31 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 								return walletGenerator.GenerateWallet(WalletName, password);
 							});
 
-						NavigateTo(new RecoveryWordsViewModel(navigationState, km, mnemonic, walletManager), NavigationTarget.DialogScreen, true);
+						Navigate().To(new RecoveryWordsViewModel(km, mnemonic, walletManager), NavigationMode.Clear);
 
 						IsBusy = false;
 					}
 				});
 
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
+		}
 
-			this.WhenNavigatedTo(() =>
+		public override NavigationTarget DefaultTarget => NavigationTarget.DialogScreen;
+
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		{
+			base.OnNavigatedTo(inStack, disposable);
+
+			this.RaisePropertyChanged(WalletName);
+
+			if (!inStack)
 			{
-				this.RaisePropertyChanged(WalletName);
-				return Disposable.Empty;
-			});
+				WalletName = "";
+
+				var termsAndConditions = new TermsAndConditionsViewModel(_legalDocuments, this);
+
+				Navigate().To(termsAndConditions);
+			}
 		}
 
 		private void ValidateWalletName(IValidationErrors errors, WalletManager walletManager, string walletName)
@@ -103,7 +114,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			if (File.Exists(walletFilePath))
 			{
-				errors.Add(ErrorSeverity.Error,
+				errors.Add(
+					ErrorSeverity.Error,
 					$"A wallet named {walletName} already exists. Please try a different name.");
 				return;
 			}
