@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -102,109 +100,13 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		public async Task<TResult> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target)
 		{
-			TResult result = default;
-
 			Navigate(target).To(dialog);
 
-			result = await dialog.GetDialogResultAsync();
+			var result = await dialog.GetDialogResultAsync();
 
 			Navigate(target).Back();
 
 			return result;
 		}
-
-		//public IDisposable NavigateTo(RoutableViewModel viewModel, bool resetNavigation = false) =>
-		//	NavigateTo(viewModel, CurrentTarget, resetNavigation);
-
-		/*public IDisposable NavigateTo(RoutableViewModel viewModel, NavigationTarget navigationTarget, bool resetNavigation = false)
-		{
-			if (navigationTarget == NavigationTarget.Default)
-			{
-				navigationTarget = DefaultTarget;
-			}
-
-			switch (navigationTarget)
-			{
-				case NavigationTarget.Default:
-				case NavigationTarget.HomeScreen:
-					{
-						NavigateToScreen(NavigationState.Instance.HomeScreen(), NavigationTarget.HomeScreen, viewModel, resetNavigation);
-					}
-					break;
-
-				case NavigationTarget.DialogScreen:
-					{
-						NavigateToScreen(NavigationState.Instance.DialogScreen(), navigationTarget, viewModel, resetNavigation);
-					}
-					break;
-
-				case NavigationTarget.DialogHost:
-					if (viewModel is DialogViewModelBase dialog)
-					{
-						NavigateToDialogHost(dialog);
-					}
-					break;
-
-				default:
-					break;
-			}
-
-			return Disposable.Create(()=>GoBack());
-		}
-
-		private void NavigateToScreen(IScreen screen, NavigationTarget target, RoutableViewModel viewModel, bool resetNavigation)
-		{
-			viewModel.CurrentTarget = target;
-
-			if (resetNavigation)
-			{
-				ClearStack(screen.Router.NavigationStack.ToList());
-			}
-			else
-			{
-				if (screen.Router.GetCurrentViewModel() is RoutableViewModel rvm)
-				{
-					rvm.DoNavigateFrom();
-				}
-			}
-
-			var command = resetNavigation ?
-				screen.Router.NavigateAndReset :
-				screen.Router.Navigate;
-
-			var inStack = screen.Router.NavigationStack.Contains(viewModel);
-
-			if (resetNavigation)
-			{
-				inStack = false;
-			}
-
-			command.Execute(viewModel);
-
-			viewModel.DoNavigateTo(inStack);
-		}*/
-
-		private void NavigateToDialogHost(DialogViewModelBase dialog)
-		{
-			dialog.CurrentTarget = NavigationTarget.DialogHost;
-
-			if (NavigationState.Instance.DialogHost() is IDialogHost dialogHost)
-			{
-				if (dialogHost.CurrentDialog is RoutableViewModel rvm)
-				{
-					rvm.DoNavigateFrom();
-				}
-
-				dialogHost.CurrentDialog = dialog;
-
-				dialog.DoNavigateTo(false);
-			}
-		}
-
-		//public void NavigateToSelf() => NavigateToSelf(NavigationTarget.Default);
-
-		//public void NavigateToSelf(NavigationTarget target) => NavigateTo(this, target, resetNavigation: false);
-
-		//public void NavigateToSelfAndReset(NavigationTarget target) => NavigateTo(this, target, resetNavigation: true);
 	}
 }

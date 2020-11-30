@@ -20,7 +20,8 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			DialogHost = dialogHost;
 		}
 
-		public static NavigationState Instance { get; private set; }
+		public static NavigationState Instance { get; private set; } = null!;
+
 		public Func<IDialogHost> DialogHost { get; }
 
 		public INavigationManager<RoutableViewModel> HomeScreenNavigation { get; }

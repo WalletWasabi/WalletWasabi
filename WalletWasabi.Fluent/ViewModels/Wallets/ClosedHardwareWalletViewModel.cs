@@ -1,8 +1,6 @@
-using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public class ClosedHardwareWalletViewModel : ClosedWalletViewModel
 	{

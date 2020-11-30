@@ -5,8 +5,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -19,9 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet) : base(wallet)
 		{
-			_items = new ObservableCollection<NavBarItemViewModel>
-			{
-			};
+			_items = new ObservableCollection<NavBarItemViewModel>();
 
 			OpenWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>

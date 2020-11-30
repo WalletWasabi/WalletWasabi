@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reactive.Linq;
 using Avalonia.Threading;
 using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
@@ -46,13 +45,12 @@ namespace WalletWasabi.Fluent.ViewModels
 						}
 					}
 
-					AnyWalletStarted = Items.OfType<WalletViewModelBase>().Any(x => x.WalletState == WalletState.Started);
+					AnyWalletStarted = Items.Any(y => y.WalletState == WalletState.Started);
 				});
 
 			Observable
 				.FromEventPattern<Wallet>(walletManager, nameof(WalletManager.WalletAdded))
 				.Select(x => x.EventArgs)
-				.Where(x => x is { })
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(
 					wallet =>
