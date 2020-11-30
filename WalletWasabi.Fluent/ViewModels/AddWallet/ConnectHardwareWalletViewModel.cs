@@ -26,7 +26,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				IsBusy = true;
 			}
 
-			NextCommand = ReactiveCommand.Create(() =>
+			NextCommand = ReactiveCommand.Create(
+				() =>
 			{
 				Navigate().To(new DetectHardwareWalletViewModel(_detectionState));
 			});
@@ -40,7 +41,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			if (!inStack && _trySkipPage)
 			{
-				RxApp.MainThreadScheduler.Schedule(async () =>
+				RxApp.MainThreadScheduler.Schedule(
+					async () =>
 				{
 					await _detectionState.EnumerateHardwareWalletsAsync(CancellationToken.None);
 

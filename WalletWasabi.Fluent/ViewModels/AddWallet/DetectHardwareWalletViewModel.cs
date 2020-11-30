@@ -32,15 +32,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				this.WhenAnyValue(x => x.SelectedHardwareWallet)
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Select(x => x?.HardwareWalletInfo.Fingerprint is { } && x.HardwareWalletInfo.IsInitialized())
-					.Subscribe(async x=>
-					{
-						await ConnectSelectedHardwareWalletAsync();
-					});
+					.Subscribe(async _ => await ConnectSelectedHardwareWalletAsync());
 
 			this.WhenAnyValue(x => x.SelectedHardwareWallet)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Where(x => x is { } && !x.HardwareWalletInfo.IsInitialized() && x.HardwareWalletInfo.Model != HardwareWalletModels.Coldcard)
-				.Subscribe(async x =>
+				.Subscribe(
+					async x =>
 				{
 					if (DisposeCts is null)
 					{
@@ -77,11 +75,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			StartDetection();
 
-			disposable.Add(Disposable.Create(() =>
-			{
-				DisposeCts.Cancel();
-				DisposeCts.Dispose();
-			}));
+			Disposable.Create(
+				() =>
+				{
+					DisposeCts.Cancel();
+					DisposeCts.Dispose();
+				}).DisposeWith(disposable);
 		}
 
 		private Task? DetectionTask { get; set; }
@@ -158,30 +157,34 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				{
 					using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
-					var detectedHardwareWallets = (await _detectionState.Client.EnumerateAsync(timeoutCts.Token).ConfigureAwait(false)).Select(x => new HardwareWalletViewModel(x)).ToArray();
+					var detectedHardwareWallets =
+						(await _detectionState.Client.EnumerateAsync(timeoutCts.Token).ConfigureAwait(false))
+						.Select(x => new HardwareWalletViewModel(x)).ToArray();
 					detectionCts.Token.ThrowIfCancellationRequested();
 
 					// The wallets that already exist in the software.
-					var alreadyExistingWalletsToRemove = detectedHardwareWallets.Where(wallet => _detectionState.WalletManager.GetWallets().Any(x => x.KeyManager.MasterFingerprint == wallet.HardwareWalletInfo.Fingerprint));
+					var alreadyExistingWalletsToRemove = detectedHardwareWallets.Where(
+						wallet => _detectionState.WalletManager.GetWallets().Any(
+							x => x.KeyManager.MasterFingerprint == wallet.HardwareWalletInfo.Fingerprint));
+
 					// The wallets that are not detectable since the last enumeration.
 					var disconnectedWalletsToRemove = HardwareWallets.Except(detectedHardwareWallets);
 
 					var toRemove = alreadyExistingWalletsToRemove.Union(disconnectedWalletsToRemove).ToArray();
 					var toAdd = detectedHardwareWallets.Except(toRemove).Except(HardwareWallets);
 
-					await Observable.Start(() =>
-					{
-						// Remove disconnected hardware wallets from the list
-						HardwareWallets.RemoveMany(toRemove);
-						// Add newly detected hardware wallets
-						HardwareWallets.AddRange(toAdd);
-
-						if (SelectedHardwareWallet is null)
+					await Observable.Start(
+						() =>
 						{
-							SelectedHardwareWallet = HardwareWallets.FirstOrDefault();
-						}
-					}, RxApp.MainThreadScheduler);
+							// Remove disconnected hardware wallets from the list
+							HardwareWallets.RemoveMany(toRemove);
 
+							// Add newly detected hardware wallets
+							HardwareWallets.AddRange(toAdd);
+
+							SelectedHardwareWallet ??= HardwareWallets.FirstOrDefault();
+						},
+						RxApp.MainThreadScheduler);
 				}
 				catch (Exception ex)
 				{

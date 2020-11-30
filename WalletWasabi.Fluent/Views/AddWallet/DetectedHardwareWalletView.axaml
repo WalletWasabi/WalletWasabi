@@ -3,15 +3,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:h="using:WalletWasabi.Fluent.Helpers"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
-             xmlns:svg="clr-namespace:Svg.Skia.Avalonia;assembly=Svg.Skia.Avalonia"
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
+             x:DataType="vm:DetectedHardwareWalletViewModel"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.DetectedHardwareWalletView">
-
-  
-
   <c:ContentArea Title="Hardware Wallet"
                  IsBusy="{Binding IsBusy}"
                  EnableCancel="False"
@@ -23,12 +21,12 @@
         <Button Content="Yes" Classes="action" HorizontalAlignment="Right" IsDefault="True" Command="{Binding NextCommand}" />
       </Panel>
       <StackPanel VerticalAlignment="Center" Spacing="40">
-        <Image Height="180" Source="{Binding Path='Type' Converter={x:Static conv:WalletTypeImageConverter.Instance}}" />
+        <Image Height="180" Source="{Binding Path='Type', Converter={x:Static conv:WalletTypeImageConverter.Instance}}" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
           <TextBlock Text="{Binding TypeName}" HorizontalAlignment="Center" />
           <TextBlock Text=" was detected. Is this correct?" />
         </StackPanel>
       </StackPanel>
-    </DockPanel>    
+    </DockPanel>
   </c:ContentArea>
 </UserControl>

@@ -38,14 +38,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			var selectedDevice = SelectedDevice;
 
-			if(selectedDevice is null)
+			if (selectedDevice?.Fingerprint is null)
 			{
 				throw new Exception("Cannot be null.");
 			}
 
-			var fingerPrint = (HDFingerprint)selectedDevice.Fingerprint;
+			var fingerPrint = (HDFingerprint) selectedDevice.Fingerprint;
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-			var extPubKey = await Client.GetXpubAsync(selectedDevice.Model, selectedDevice.Path, KeyManager.DefaultAccountKeyPath, cts.Token).ConfigureAwait(false);
+			var extPubKey = await Client.GetXpubAsync(
+				selectedDevice.Model,
+				selectedDevice.Path,
+				KeyManager.DefaultAccountKeyPath,
+				cts.Token).ConfigureAwait(false);
 			var path = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
 
 			return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, path);
@@ -54,8 +58,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		public async Task EnumerateHardwareWalletsAsync(CancellationToken token)
 		{
 			Devices = (await Client.EnumerateAsync(token).ConfigureAwait(false))
-				.Where(wallet => WalletManager.GetWallets()
-				.Any(x=>x.KeyManager.MasterFingerprint == wallet.Fingerprint) == false);
+				.Where(
+					wallet => WalletManager.GetWallets()
+				.Any(x => x.KeyManager.MasterFingerprint == wallet.Fingerprint) == false);
 		}
 	}
 }

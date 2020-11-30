@@ -6,7 +6,6 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
-
 	public class DetectedHardwareWalletViewModel : RoutableViewModel
 	{
 		public DetectedHardwareWalletViewModel(HardwareDetectionState detectionState)
@@ -35,11 +34,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			Type = type;
 			TypeName = detectionState.SelectedDevice.Model.FriendlyName();
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () =>
+			NextCommand = ReactiveCommand.CreateFromTask(
+				async () =>
 			{
 				IsBusy = true;
 
-				var newWallet = await Task.Run(async () =>
+				var newWallet = await Task.Run(
+					async () =>
 				{
 					return await detectionState.GenerateWalletAsync();
 				});
@@ -51,7 +52,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				IsBusy = false;
 			});
 
-			NoCommand = ReactiveCommand.Create(() =>
+			NoCommand = ReactiveCommand.Create(
+				() =>
 			{
 				Navigate().To(new ConnectHardwareWalletViewModel(detectionState.WalletName, detectionState.Network, detectionState.WalletManager, false));
 			});
