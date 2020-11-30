@@ -14,8 +14,10 @@ namespace WalletWasabi.Blockchain.Keys
 	[JsonObject(MemberSerialization.OptIn)]
 	public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	{
+		public const int DefaultHighAnonymitySet = int.MaxValue;
+
+		private int _anonymitySet = DefaultHighAnonymitySet;
 		private Cluster _cluster;
-		private int _anonymitySet = int.MaxValue;
 
 		public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, SmartLabel label, KeyState keyState)
 		{

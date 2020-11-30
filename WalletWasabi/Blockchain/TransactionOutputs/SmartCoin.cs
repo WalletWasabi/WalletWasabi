@@ -158,6 +158,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 		public bool IsReplaceable() => Transaction.IsRBF;
 
+		public override string ToString() => $"{TransactionId.ToString().Substring(0, 7)}.. - {Index}, {ScriptPubKey.ToString().Substring(0, 7)}.. - {Amount} BTC";
+
 		#region EqualityAndComparison
 
 		public override bool Equals(object? obj) => Equals(obj as SmartCoin);
