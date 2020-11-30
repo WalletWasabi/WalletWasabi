@@ -46,14 +46,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 				detectionState.WalletManager.AddWallet(newWallet);
 
-				NavigateTo(new AddedWalletPageViewModel(detectionState.WalletName, Type));
+				Navigate().To(new AddedWalletPageViewModel(detectionState.WalletName, Type));
 
 				IsBusy = false;
 			});
 
 			NoCommand = ReactiveCommand.Create(() =>
 			{
-				NavigateTo(new ConnectHardwareWalletViewModel(detectionState.WalletName, detectionState.Network, detectionState.WalletManager, false));
+				Navigate().To(new ConnectHardwareWalletViewModel(detectionState.WalletName, detectionState.Network, detectionState.WalletManager, false));
 			});
 		}
 

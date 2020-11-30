@@ -40,7 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			set => this.RaiseAndSetIfChanged(ref _searchQuery, value);
 		}
 
-		public ReadOnlyObservableCollection<SearchResult> SearchResults => _searchResults;
+		public ReadOnlyObservableCollection<SearchResult> SearchResults => _searchResults!;
 
 		public void Initialise()
 		{

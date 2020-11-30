@@ -1,7 +1,6 @@
 using System;
 using NBitcoin;
 using ReactiveUI;
-using System.Reactive;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.ViewModels;
@@ -13,13 +12,13 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-	public class MainViewModel : ViewModelBase, IScreen, IDialogHost
+	public class MainViewModel : ViewModelBase, IDialogHost
 	{
 		private readonly Global _global;
 		private StatusBarViewModel _statusBar;
 		private string _title = "Wasabi Wallet";
 		private DialogViewModelBase? _currentDialog;
-		private DialogScreenViewModel? _dialogScreen;
+		private DialogScreenViewModel _dialogScreen;
 		private NavBarViewModel _navBar;
 		private bool _isMainContentEnabled;
 		private bool _isDialogScreenEnabled;
@@ -30,7 +29,9 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			_dialogScreen = new DialogScreenViewModel();
 
-			NavigationState.Register(() => this, () => _dialogScreen, () => this);
+			MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
+
+			NavigationState.Register(MainScreen, DialogScreen, () => this);
 
 			Network = global.Network;
 
@@ -49,7 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			var privacyMode = new PrivacyModeViewModel(global.UiConfig);
 
-			_navBar = new NavBarViewModel(Router, walletManager, addWalletPage, settingsPage, privacyMode);
+			_navBar = new NavBarViewModel(MainScreen, walletManager, addWalletPage, settingsPage, privacyMode);
 
 			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -72,15 +73,13 @@ namespace WalletWasabi.Fluent.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _isDialogScreenEnabled, value);
 		}
 
+		public TargettedNavigationStack MainScreen { get; }
+
 		public static MainViewModel? Instance { get; internal set; }
-
-		public RoutingState Router { get; } = new RoutingState();
-
-		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
 
 		private Network Network { get; }
 
-		public DialogScreenViewModel? DialogScreen
+		public DialogScreenViewModel DialogScreen
 		{
 			get => _dialogScreen;
 			set => this.RaiseAndSetIfChanged(ref _dialogScreen, value);

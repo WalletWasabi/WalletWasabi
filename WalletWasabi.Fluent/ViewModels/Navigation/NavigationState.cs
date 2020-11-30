@@ -1,4 +1,3 @@
-using ReactiveUI;
 using System;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 
@@ -14,22 +13,24 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 	public class NavigationState
 	{
-		private NavigationState(Func<IScreen> homeScreen, Func<IScreen> dialogScreen, Func<IDialogHost> dialogHost)
+		private NavigationState(INavigationManager<RoutableViewModel> homeScreenNavigation, INavigationManager<RoutableViewModel> dialogScreenNavigation, Func<IDialogHost> dialogHost)
 		{
-			HomeScreen = homeScreen;
-			DialogScreen = dialogScreen;
+			HomeScreenNavigation = homeScreenNavigation;
+			DialogScreenNavigation = dialogScreenNavigation;
 			DialogHost = dialogHost;
 		}
 
-		public static NavigationState Instance { get; private set; }
+		public static NavigationState Instance { get; private set; } = null!;
 
-		public Func<IScreen> HomeScreen { get; }
-		public Func<IScreen> DialogScreen { get; }
 		public Func<IDialogHost> DialogHost { get; }
 
-		public static void Register(Func<IScreen> homeScreen, Func<IScreen> dialogScreen, Func<IDialogHost> dialogHost)
+		public INavigationManager<RoutableViewModel> HomeScreenNavigation { get; }
+
+		public INavigationManager<RoutableViewModel> DialogScreenNavigation { get; }
+
+		public static void Register(INavigationManager<RoutableViewModel> homeScreenNavigation, INavigationManager<RoutableViewModel> dialogScreenNavigation, Func<IDialogHost> dialogHost)
 		{
-			Instance = new NavigationState(homeScreen, dialogScreen, dialogHost);
+			Instance = new NavigationState(homeScreenNavigation, dialogScreenNavigation, dialogHost);
 		}
 	}
 }

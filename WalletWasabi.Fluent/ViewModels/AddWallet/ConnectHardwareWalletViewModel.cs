@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			NextCommand = ReactiveCommand.Create(() =>
 			{
-				NavigateTo(new DetectHardwareWalletViewModel(_detectionState));
+				Navigate().To(new DetectHardwareWalletViewModel(_detectionState));
 			});
 		}
 
@@ -49,14 +49,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					if (deviceCount == 0)
 					{
 						// navigate to detecting page.
-						NavigateTo(new DetectHardwareWalletViewModel(_detectionState));
+						Navigate().To(new DetectHardwareWalletViewModel(_detectionState));
 					}
 					else if (deviceCount == 1)
 					{
 						// navigate to detected hw wallet page.
 						_detectionState.SelectedDevice = _detectionState.Devices.First();
 
-						NavigateTo(new DetectedHardwareWalletViewModel(_detectionState));
+						Navigate().To(new DetectedHardwareWalletViewModel(_detectionState));
 					}
 					else
 					{

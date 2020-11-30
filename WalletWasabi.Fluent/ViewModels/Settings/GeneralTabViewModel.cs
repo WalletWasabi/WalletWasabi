@@ -41,7 +41,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			this.WhenAnyValue(x => x.DarkModeEnabled)
 				.Skip(1)
-				.Subscribe(x =>
+				.Subscribe(
+					x =>
 				{
 					uiConfig.DarkModeEnabled = x;
 					IsRestartNeeded(x);

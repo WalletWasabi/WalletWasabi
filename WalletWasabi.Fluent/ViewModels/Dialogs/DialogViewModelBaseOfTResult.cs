@@ -2,7 +2,6 @@ using ReactiveUI;
 using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
