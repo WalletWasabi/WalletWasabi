@@ -1,8 +1,10 @@
 using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Search;
@@ -252,7 +254,14 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				category: "General",
 				keywords: "View, Legal, Docs, Documentation, Terms, Conditions, Help",
 				iconName: "info_regular",
-				createTargetView: () => new TermsAndConditionsViewModel(legalDocuments, searchPage));
+				createTargetView: async () =>
+				{
+					var content = await File.ReadAllTextAsync(legalDocuments.FilePath);
+
+					var legalDocs = new LegalDocumentsViewModel(content, backOnNext: true);
+
+					return legalDocs;
+				});
 
 			searchPage.RegisterSearchEntry(
 				title: "About Wasabi",
@@ -262,7 +271,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				keywords: "About, Software, Version, Source Code, Github, Status, Stats, Tor, Onion, Bug, Report, FAQ, Questions," +
 				          "Docs, Documentation, Link, Links, Help",
 				iconName: "info_regular",
-				createTargetView: () => new AboutViewModel());
+				createTargetView: async () =>  await Task.FromResult(new AboutViewModel()));
 		}
 
 		private static void RegisterRootEntries(
@@ -278,7 +287,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				"General",
 				"Home",
 				"home_regular",
-				() => homePage);
+				async () =>  await Task.FromResult(homePage));
 
 			searchPage.RegisterSearchEntry(
 				title: "Settings",
@@ -287,7 +296,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				category: "General",
 				keywords: "Settings, General, User Interface, Privacy, Advanced",
 				iconName: "settings_regular",
-				createTargetView: () => settingsPage);
+				createTargetView: async () =>  await Task.FromResult(settingsPage));
 
 			searchPage.RegisterSearchEntry(
 				title: "Add Wallet",
@@ -296,7 +305,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				category: "General",
 				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
 				iconName: "add_circle_regular",
-				createTargetView: () => addWalletPage);
+				createTargetView: async () =>  await Task.FromResult(addWalletPage));
 		}
 
 		private static void RegisterSettingsSearchItems(SearchPageViewModel searchPage, SettingsPageViewModel settingsPage)
@@ -308,10 +317,10 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				category: "Settings",
 				keywords: "Settings, General, Dark Mode, Bitcoin Addresses, Manual Entry Free, Custom Change Address, Fee Display Format, Dust Threshold, BTC",
 				iconName: "settings_general_regular",
-				createTargetView: () =>
+				createTargetView: async () =>
 				{
 					settingsPage.SelectedTab = 0;
-					return settingsPage;
+					return await Task.FromResult(settingsPage);
 				});
 
 			searchPage.RegisterSearchEntry(
@@ -321,10 +330,10 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				category: "Settings",
 				keywords: "Settings, Privacy, Minimal, Medium, Strong, Anonymity Level",
 				iconName: "settings_privacy_regular",
-				createTargetView: () =>
+				createTargetView: async () =>
 				{
 					settingsPage.SelectedTab = 1;
-					return settingsPage;
+					return await Task.FromResult(settingsPage);
 				});
 
 			searchPage.RegisterSearchEntry(
@@ -334,10 +343,10 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				category: "Settings",
 				keywords: "Settings, Network, Encryption, Tor, Terminate, Wasabi, Shutdown, SOCKS5, Endpoint",
 				iconName: "settings_network_regular",
-				createTargetView: () =>
+				createTargetView: async () =>
 				{
 					settingsPage.SelectedTab = 2;
-					return settingsPage;
+					return await Task.FromResult(settingsPage);
 				});
 
 			searchPage.RegisterSearchEntry(
@@ -347,10 +356,10 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				category: "Settings",
 				keywords: "Settings, Bitcoin, Network, Main, TestNet, RegTest, Run, Knots, Startup, P2P, Endpoint",
 				iconName: "settings_bitcoin_regular",
-				createTargetView: () =>
+				createTargetView: async () =>
 				{
 					settingsPage.SelectedTab = 3;
-					return settingsPage;
+					return await Task.FromResult(settingsPage);
 				});
 		}
 	}

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
@@ -101,7 +102,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			string category,
 			string keywords,
 			string iconName,
-			Func<RoutableViewModel> createTargetView)
+			Func<Task<RoutableViewModel>> createTargetView)
 		{
 			if (_categories.TryGetValue(category, out var searchCategory))
 			{
@@ -145,7 +146,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				category: "Wallets",
 				keywords: $"Wallet, {wallet.WalletName}",
 				iconName: "web_asset_regular",
-				createTargetView: () => wallet);
+				createTargetView: async () => await Task.FromResult(wallet));
 		}
 	}
 }
