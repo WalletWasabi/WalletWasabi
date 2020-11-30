@@ -53,34 +53,6 @@
             <TextBlock Text="{Binding FiltersLeft, Converter={StaticResource FilterLeftStatusConverter}}" />
           </StackPanel>
         </Panel>
-        <StackPanel Orientation="Horizontal" Spacing="4">
-          <Panel Height="10" Width="10">
-            <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_GlobeCheckedShield}" />
-          </Panel>
-          <TextBlock Text="{Binding Tor, StringFormat=Tor is \{0\}, Converter={StaticResource PascalToPhraseConverter}}" />
-        </StackPanel>
-        <Panel IsVisible="{Binding UseBitcoinCore}">
-          <StackPanel Orientation="Horizontal" Spacing="4">
-            <Panel Height="10" Width="10">
-              <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_ServerGlobe}" />
-            </Panel>
-            <TextBlock Text="{Binding BitcoinCoreStatus, Converter={StaticResource RpcStatusStringConverter}}" />
-          </StackPanel>
-        </Panel>
-        <StackPanel Orientation="Horizontal" Spacing="4">
-          <Panel Height="10" Width="10">
-            <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_ServerGlobe}" />
-          </Panel>
-          <TextBlock Text="{Binding Backend, StringFormat=Backend is \{0\}, Converter={StaticResource PascalToPhraseConverter}}" />
-        </StackPanel>
-        <Panel IsVisible="{Binding !UseBitcoinCore}">
-          <StackPanel Orientation="Horizontal" Spacing="4">
-            <Panel Height="10" Width="10">
-              <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Drawing="{DynamicResource StatusBar_Peer}" />
-            </Panel>
-            <TextBlock Text="{Binding Peers, StringFormat=Peers: \{0\}}" />
-          </StackPanel>
-        </Panel>
         <StackPanel IsVisible="{Binding IsExchangeRateAvailable}" Orientation="Horizontal" Spacing="0">
           <TextBlock Text="BTC/USD: " />
           <TextBlock Text="{Binding ExchangeRate}" />

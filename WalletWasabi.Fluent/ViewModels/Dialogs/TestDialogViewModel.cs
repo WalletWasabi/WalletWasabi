@@ -1,5 +1,4 @@
 using System.Reactive.Linq;
-using System.Windows.Input;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
@@ -8,7 +7,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	{
 		private string _message;
 
-		public TestDialogViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, string message) : base(navigationState, navigationTarget)
+		public TestDialogViewModel(string message)
 		{
 			_message = message;
 
@@ -18,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			var nextCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
 
-			BackCommand = ReactiveCommand.Create(() => GoBack(), backCommandCanExecute);
+			BackCommand = ReactiveCommand.Create(() => Navigate().Back(), backCommandCanExecute);
 			CancelCommand = ReactiveCommand.Create(() => Close(false), cancelCommandCanExecute);
 			NextCommand = ReactiveCommand.Create(() => Close(true), nextCommandCanExecute);
 		}
@@ -28,8 +27,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			get => _message;
 			set => this.RaiseAndSetIfChanged(ref _message, value);
 		}
-
-		public ICommand NextCommand { get; }
 
 		protected override void OnDialogClosed()
 		{

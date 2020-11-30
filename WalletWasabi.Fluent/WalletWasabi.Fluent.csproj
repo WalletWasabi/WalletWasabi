@@ -14,13 +14,14 @@
 			<SubType>Designer</SubType>
 		</AvaloniaResource>
 		<AvaloniaResource Include="Assets\**" />
-		<Compile Update="Controls\ProgressRingArc.xaml.cs">
-		  <DependentUpon>ProgressRingArc.xaml</DependentUpon>
+		<Compile Update="Controls\InfoMessage.axaml.cs">
+		  <DependentUpon>InfoMessage.axaml</DependentUpon>
+		  <SubType>Code</SubType>
 		</Compile>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0012021-beta" />
-		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.999-cibuild0012021-beta" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0012072-beta" />
+		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.999-cibuild0012072-beta" />
 		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.0-preview6" />
 		<PackageReference Include="Avalonia.Xaml.Interactions.Custom" Version="0.10.0-preview6" />
 		<PackageReference Include="Avalonia.Xaml.Interactivity" Version="0.10.0-preview6" />

@@ -8,6 +8,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.CommandLine;
@@ -60,7 +61,11 @@ namespace WalletWasabi.Fluent.Desktop
 					Logger.LogSoftwareStarted("Wasabi GUI");
 
 					BuildAvaloniaApp()
-						.AfterSetup(_ => AppMainAsync(args))
+						.AfterSetup(_ =>
+						{
+							ThemeHelper.ApplyTheme(Global!.UiConfig.DarkModeEnabled);
+							AppMainAsync(args);
+						})
 						.StartWithClassicDesktopLifetime(args);
 				}
 			}

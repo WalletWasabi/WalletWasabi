@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
@@ -10,11 +10,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	public class RecoveryWordsViewModel : RoutableViewModel
 	{
 		public RecoveryWordsViewModel(
-			NavigationStateViewModel navigationState,
 			KeyManager keyManager,
 			Mnemonic mnemonic,
 			WalletManager walletManager)
-			: base(navigationState, NavigationTarget.DialogScreen)
 		{
 			MnemonicWords = new List<RecoveryWordViewModel>();
 
@@ -24,12 +22,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 
 			NextCommand = ReactiveCommand.Create(
-				() => NavigateTo(new ConfirmRecoveryWordsViewModel(navigationState, MnemonicWords, keyManager, walletManager), NavigationTarget.DialogScreen));
+				() => Navigate().To(new ConfirmRecoveryWordsViewModel(MnemonicWords, keyManager, walletManager)));
 
-			CancelCommand = ReactiveCommand.Create(() => ClearNavigation(NavigationTarget.DialogScreen));
+			CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 		}
-
-		public ICommand NextCommand { get; }
 
 		public List<RecoveryWordViewModel> MnemonicWords { get; set; }
 	}

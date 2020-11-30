@@ -1,7 +1,5 @@
-using System.Reactive;
-using System.Windows.Input;
 using ReactiveUI;
-using System;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
@@ -11,10 +9,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	public abstract class DialogViewModelBase : RoutableViewModel
 	{
 		private bool _isDialogOpen;
-
-		public DialogViewModelBase(NavigationStateViewModel navigationState, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
-		{
-		}
 
 		/// <summary>
 		/// Gets or sets if the dialog is opened/closed.
