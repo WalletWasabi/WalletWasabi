@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
@@ -18,16 +16,17 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			this.WhenAnyValue(x => x.IsDialogOpen)
 				.Skip(1) // Skip the initial value change (which is false).
 				.DistinctUntilChanged()
-				.Subscribe(x =>
-				{
-					if (!x)
+				.Subscribe(
+					x =>
 					{
-						CloseScreen();
-					}
-				});
+						if (!x)
+						{
+							CloseScreen();
+						}
+					});
 		}
 
-		protected override void OnNavigated(RoutableViewModel? oldPage, bool oldInStack, RoutableViewModel newPage, bool newInStack)
+		protected override void OnNavigated(RoutableViewModel? oldPage, bool oldInStack, RoutableViewModel? newPage, bool newInStack)
 		{
 			base.OnNavigated(oldPage, oldInStack, newPage, newInStack);
 

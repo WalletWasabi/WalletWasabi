@@ -53,10 +53,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			SettingsTabViewModelBase.RestartNeeded += OnRestartNeeded;
 
-			disposable.Add(Disposable.Create(() =>
+			Disposable.Create(
+				() =>
 			{
 				SettingsTabViewModelBase.RestartNeeded -= OnRestartNeeded;
-			}));
+			}).DisposeWith(disposable);
 		}
 	}
 }

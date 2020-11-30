@@ -22,10 +22,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		private string _walletName = "";
 		private bool _optionsEnabled;
-		protected LegalDocuments _legalDocuments;
+		private readonly LegalDocuments _legalDocuments;
 
-		public AddWalletPageViewModel(LegalDocuments legalDocuments, WalletManager walletManager,
-			BitcoinStore store, Network network)
+		public AddWalletPageViewModel(
+			LegalDocuments legalDocuments,
+			WalletManager walletManager,
+			BitcoinStore store,
+			Network network)
 		{
 			Title = "Add Wallet";
 			SelectionMode = NavBarItemSelectionMode.Button;
@@ -36,7 +39,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
-			RecoverWalletCommand = ReactiveCommand.Create(() =>
+			RecoverWalletCommand = ReactiveCommand.Create(
+				() =>
 			{
 				Navigate().To(new RecoverWalletViewModel(WalletName, network, walletManager));
 			});
@@ -46,7 +50,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					var result = await NavigateDialog(new EnterPasswordViewModel(
+					var result = await NavigateDialog(
+						new EnterPasswordViewModel(
 						"Type the password of the wallet and click Continue."));
 
 					if (result is { } password)
@@ -109,7 +114,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			if (File.Exists(walletFilePath))
 			{
-				errors.Add(ErrorSeverity.Error,
+				errors.Add(
+					ErrorSeverity.Error,
 					$"A wallet named {walletName} already exists. Please try a different name.");
 				return;
 			}

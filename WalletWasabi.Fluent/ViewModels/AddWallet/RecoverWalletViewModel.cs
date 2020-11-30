@@ -73,8 +73,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				});
 		}
 
-		private async Task OnNext(WalletManager walletManager,
-			Network network, string? walletName)
+		private async Task OnNext(
+			WalletManager walletManager,
+			Network network,
+			string? walletName)
 		{
 			IsBusy = true;
 
@@ -86,7 +88,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 				if (result is { } password)
 				{
-					await Task.Run(() =>
+					await Task.Run(
+						() =>
 					{
 						var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName!)
 							.walletFilePath;

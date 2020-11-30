@@ -1,7 +1,6 @@
 using System;
 using NBitcoin;
 using ReactiveUI;
-using System.Reactive;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.ViewModels;

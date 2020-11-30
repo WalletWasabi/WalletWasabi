@@ -24,7 +24,8 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			IconName = iconName;
 			SelectionMode = NavBarItemSelectionMode.Button;
 
-			OpenCommand = ReactiveCommand.Create(() =>
+			OpenCommand = ReactiveCommand.Create(
+				() =>
 			{
 				var view = createTargetView();
 

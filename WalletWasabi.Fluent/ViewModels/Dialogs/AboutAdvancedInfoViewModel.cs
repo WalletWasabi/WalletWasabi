@@ -1,7 +1,5 @@
 using System;
 using System.Reactive;
-using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.WebClients.Wasabi;
 
