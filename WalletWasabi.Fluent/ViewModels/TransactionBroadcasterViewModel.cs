@@ -8,5 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 
 		}
+
+		public override NavigationTarget DefaultTarget => NavigationTarget.DialogScreen;
 	}
 }
