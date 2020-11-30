@@ -1,4 +1,3 @@
-using System;
 using ReactiveUI;
 using System.Windows.Input;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -25,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			OpenCommand = ReactiveCommand.Create(
 				() =>
 				{
-					NavigateToSelf();
+					Navigate().To(this, NavigationMode.Clear);
 				});
 		}
 

@@ -2,7 +2,6 @@ using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 
@@ -39,7 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			_accountKeyPath = interactionInput.keyPath.ToString();
 			_minGapLimit = interactionInput.minGapLimit.ToString();
 
-			BackCommand = ReactiveCommand.Create(GoBack, backCommandCanExecute);
+			BackCommand = ReactiveCommand.Create(() => Navigate().Back(), backCommandCanExecute);
 
 			NextCommand = ReactiveCommand.Create(
 				() => Close((KeyPath.Parse(AccountKeyPath), int.Parse(MinGapLimit))),

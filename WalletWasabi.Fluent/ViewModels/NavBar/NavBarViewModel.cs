@@ -2,7 +2,6 @@ using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -10,7 +9,6 @@ using WalletWasabi.Fluent.ViewModels.Search;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Gui;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar
 {
@@ -30,13 +28,12 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private Action? _collapseOnClickAction;
 
 		public NavBarViewModel(
-			RoutingState router,
+			TargettedNavigationStack mainScreen,
 			WalletManagerViewModel walletManager,
 			AddWalletPageViewModel addWalletPage,
 			SettingsPageViewModel settingsPage,
 			PrivacyModeViewModel privacyMode)
 		{
-			Router = router;
 			_walletManager = walletManager;
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
@@ -70,15 +67,17 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				.OfType<NavBarItemViewModel>()
 				.Subscribe(NavigateItem);
 
-			Observable.FromEventPattern(Router.NavigationStack, nameof(Router.NavigationStack.CollectionChanged))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => IsBackButtonVisible = Router.NavigationStack.Count > 1);
-
 			this.WhenAnyValue(x => x.IsOpen)
-				.Subscribe(x => SelectedItem.IsExpanded = x);
-		}
+				.Subscribe(x =>
+				{
+					if (SelectedItem is { })
+					{
+						SelectedItem.IsExpanded = x;
+					}
+				});
 
-		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
+			mainScreen.To(homePage);
+		}
 
 		public ObservableCollection<NavBarItemViewModel> TopItems
 		{
@@ -123,8 +122,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			get => _isOpen;
 			set => this.RaiseAndSetIfChanged(ref _isOpen, value);
 		}
-
-		public RoutingState Router { get; }
 
 		public void DoToggleAction()
 		{

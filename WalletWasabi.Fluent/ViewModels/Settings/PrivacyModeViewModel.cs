@@ -2,7 +2,6 @@
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
@@ -22,7 +21,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			this.WhenAnyValue(x => x.PrivacyMode)
 				.Skip(1)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(x =>
+				.Subscribe(
+					x =>
 				{
 					ToggleTitle();
 					this.RaisePropertyChanged(nameof(IconName));

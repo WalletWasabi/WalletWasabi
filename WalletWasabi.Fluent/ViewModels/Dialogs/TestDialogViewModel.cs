@@ -1,6 +1,5 @@
 using System.Reactive.Linq;
 using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
@@ -18,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			var nextCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
 
-			BackCommand = ReactiveCommand.Create(GoBack, backCommandCanExecute);
+			BackCommand = ReactiveCommand.Create(() => Navigate().Back(), backCommandCanExecute);
 			CancelCommand = ReactiveCommand.Create(() => Close(false), cancelCommandCanExecute);
 			NextCommand = ReactiveCommand.Create(() => Close(true), nextCommandCanExecute);
 		}
