@@ -20,11 +20,11 @@
 		</Compile>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0012072-beta" />
-		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.999-cibuild0012072-beta" />
-		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.0-preview6" />
-		<PackageReference Include="Avalonia.Xaml.Interactions.Custom" Version="0.10.0-preview6" />
-		<PackageReference Include="Avalonia.Xaml.Interactivity" Version="0.10.0-preview6" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0012147-beta" />
+		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.999-cibuild0012147-beta" />
+		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.0-build20201130-02" />
+		<PackageReference Include="Avalonia.Xaml.Interactions.Custom" Version="0.10.0-build20201130-02" />
+		<PackageReference Include="Avalonia.Xaml.Interactivity" Version="0.10.0-build20201130-02" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj" />
