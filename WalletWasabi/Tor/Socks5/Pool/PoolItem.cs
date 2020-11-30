@@ -1,15 +1,9 @@
 using System;
+using System.IO;
 using System.Threading;
 
 namespace WalletWasabi.Tor.Socks5.Pool
 {
-	public enum PoolItemState
-	{
-		InUse,
-		FreeToUse,
-		ToDispose
-	}
-
 	/// <summary>
 	/// Pool item represents a single TCP connection to Tor SOCKS5 endpoint.
 	/// <para>Once a pool item is created, it is in <see cref="PoolItemState.InUse"/> state and the internal TCP connection is used immediately
@@ -17,7 +11,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 	/// <para>Then it is decided whether the pool item can be re-used for a next HTTP(s) request or not.</para>
 	/// </summary>
 	/// <remarks>Currently we re-use TCP connection to Tor SOCKS5 endpoint for HTTP requests but not for HTTPS requests.</remarks>
-	public class PoolItem
+	public class PoolItem: IPoolItem
 	{
 		private static long Counter;
 
@@ -46,6 +40,14 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		public TorConnection Client { get; }
 		private bool AllowRecycling { get; }
 		private long Id { get; }
+
+		public Stream GetTransportStream()
+		{
+			lock (StateLock)
+			{
+				return Client.GetTransportStream();
+			}
+		}
 
 		/// <summary>
 		/// Gets whether internal <see cref="TorConnection"/> can be re-used for a new HTTP(s) request.
