@@ -75,8 +75,6 @@ namespace WalletWasabi.Packager
 
 			ZipFile.ExtractToDirectory(zipPath, appMacOsPath); // Copy the binaries.
 
-			File.Copy(Path.Combine(contentsPath, "wassabee.sh"), appMacOsPath);
-
 			IoHelpers.CopyFilesRecursively(new DirectoryInfo(Path.Combine(contentsPath, "App")), new DirectoryInfo(appPath));
 
 			Console.WriteLine("Update the plist file with current information for example with version.");
@@ -138,8 +136,7 @@ namespace WalletWasabi.Packager
 
 			// The main executable needs to be signed last.
 			var filesToSignInOrder = Directory.GetFiles(appPath, "*.*", SearchOption.AllDirectories)
-				.OrderBy(file => new FileInfo(file).Name == "wassabee.sh")
-				.ThenBy(file => new FileInfo(file).Name == "wassabee")
+				.OrderBy(file => new FileInfo(file).Name == "wassabee")
 				.ThenBy(file => executables.Contains(file))
 				.ToArray();
 
