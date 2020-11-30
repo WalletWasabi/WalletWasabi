@@ -11,8 +11,7 @@
              x:Class="WalletWasabi.Fluent.Views.AddWallet.LegalDocumentsView">
   <c:ContentArea Title="Terms and Conditions"
                  Caption="Please read the small print."
-                 EnableCancel="{Binding !IsNextEnabled}"
-                 EnableNext="{Binding IsNextEnabled}" NextContent="Continue" FocusNext="{Binding IsNextEnabled}">
+                 EnableNext="True" NextContent="Continue" FocusNext="True">
       <TextBlock TextWrapping="Wrap" Text="{Binding Content}" />
   </c:ContentArea>
 </UserControl>

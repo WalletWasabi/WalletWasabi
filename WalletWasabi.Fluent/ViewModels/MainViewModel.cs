@@ -164,7 +164,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				{
 					var content = await File.ReadAllTextAsync(legalDocuments.FilePath);
 
-					var legalDocs = new LegalDocumentsViewModel(content, false);
+					var legalDocs = new LegalDocumentsViewModel(content);
 
 					return legalDocs;
 				});
