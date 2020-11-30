@@ -15,7 +15,7 @@
     <key>CFBundleVersion</key>
     <string>?</string>
     <key>CFBundleExecutable</key>
-    <string>wassabee.sh</string>
+    <string>wassabee</string>
     <key>CFBundleName</key>
     <string>Wasabi Wallet</string>
     <key>CFBundleIdentifier</key>
@@ -28,7 +28,5 @@
     <string>public.app-category.finance</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
-    <key>LSMultipleInstancesProhibited</key>
-    <false />
   </dict>
 </plist>
