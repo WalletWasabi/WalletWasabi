@@ -256,7 +256,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				category: "General",
 				keywords: "Transaction Id, Input, Output, Amount, Network, Fee, Count, BTC, Signed, Paste, Import, Broadcast, Transaction",
 				iconName: "live_regular",
-				createTargetView: () => new AboutViewModel());
+				createTargetView: () => new TransactionBroadcasterViewModel());
 		}
 
 		private static void RegisterRootEntries(

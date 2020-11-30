@@ -18,6 +18,10 @@
 		  <DependentUpon>InfoMessage.axaml</DependentUpon>
 		  <SubType>Code</SubType>
 		</Compile>
+		<Compile Update="Views\TransactionBroadcasterView.axaml.cs">
+		  <DependentUpon>TransactionBroadcaster.axaml</DependentUpon>
+		  <SubType>Code</SubType>
+		</Compile>
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0012072-beta" />
