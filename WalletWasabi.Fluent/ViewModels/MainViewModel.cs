@@ -1,14 +1,18 @@
 using System;
+using System.IO;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using Global = WalletWasabi.Gui.Global;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Search;
 using WalletWasabi.Fluent.ViewModels.Settings;
+using WalletWasabi.Legal;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -20,6 +24,8 @@ namespace WalletWasabi.Fluent.ViewModels
 		private DialogViewModelBase? _currentDialog;
 		private DialogScreenViewModel _dialogScreen;
 		private NavBarViewModel _navBar;
+		private readonly HomePageViewModel _homePage;
+		private readonly SearchPageViewModel _searchPage;
 		private bool _isMainContentEnabled;
 		private bool _isDialogScreenEnabled;
 
@@ -50,7 +56,21 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			var privacyMode = new PrivacyModeViewModel(global.UiConfig);
 
-			_navBar = new NavBarViewModel(global.LegalDocuments, MainScreen, walletManager, addWalletPage, settingsPage, privacyMode);
+			_homePage = new HomePageViewModel(walletManager, addWalletPage);
+
+			_searchPage = new SearchPageViewModel(walletManager);
+
+			_navBar = new NavBarViewModel(MainScreen, _homePage, _searchPage, walletManager, addWalletPage, settingsPage, privacyMode);
+
+			RegisterCategories(_searchPage);
+
+			RegisterRootEntries(_searchPage, _homePage, settingsPage, addWalletPage);
+
+			RegisterEntries(_searchPage, global.LegalDocuments);
+
+			RegisterSettingsSearchItems(_searchPage, settingsPage);
+
+			_searchPage.Initialise();
 
 			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -120,6 +140,130 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				Title += $" - {Network}";
 			}
+		}
+
+		private static void RegisterCategories(SearchPageViewModel searchPage)
+		{
+			searchPage.RegisterCategory("General", 0);
+			searchPage.RegisterCategory("Settings", 1);
+		}
+
+		private static void RegisterEntries(SearchPageViewModel searchPage, LegalDocuments legalDocuments)
+		{
+			searchPage.RegisterSearchEntry(
+				title: "Legal Docs",
+				caption: "Displays terms and conditions",
+				order: 3,
+				category: "General",
+				keywords: "View, Legal, Docs, Documentation, Terms, Conditions, Help",
+				iconName: "info_regular",
+				createTargetView: async () =>
+				{
+					var content = await File.ReadAllTextAsync(legalDocuments.FilePath);
+
+					var legalDocs = new LegalDocumentsViewModel(content, backOnNext: true);
+
+					return legalDocs;
+				});
+
+			searchPage.RegisterSearchEntry(
+				title: "About Wasabi",
+				caption: "Displays all the current info about the app",
+				order: 4,
+				category: "General",
+				keywords: "About, Software, Version, Source Code, Github, Status, Stats, Tor, Onion, Bug, Report, FAQ, Questions," +
+				          "Docs, Documentation, Link, Links, Help",
+				iconName: "info_regular",
+				createTargetView: async () =>  await Task.FromResult(new AboutViewModel()));
+		}
+
+		private static void RegisterRootEntries(
+			SearchPageViewModel searchPage,
+			HomePageViewModel homePage,
+			SettingsPageViewModel settingsPage,
+			AddWalletPageViewModel addWalletPage)
+		{
+			searchPage.RegisterSearchEntry(
+				"Home",
+				"Manage existing wallets",
+				0,
+				"General",
+				"Home",
+				"home_regular",
+				async () =>  await Task.FromResult(homePage));
+
+			searchPage.RegisterSearchEntry(
+				title: "Settings",
+				caption: "Manage appearance, privacy and other settings",
+				order: 1,
+				category: "General",
+				keywords: "Settings, General, User Interface, Privacy, Advanced",
+				iconName: "settings_regular",
+				createTargetView: async () =>  await Task.FromResult(settingsPage));
+
+			searchPage.RegisterSearchEntry(
+				title: "Add Wallet",
+				caption: "Create, recover or import wallet",
+				order: 2,
+				category: "General",
+				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
+				iconName: "add_circle_regular",
+				createTargetView: async () =>  await Task.FromResult(addWalletPage));
+		}
+
+		private static void RegisterSettingsSearchItems(SearchPageViewModel searchPage, SettingsPageViewModel settingsPage)
+		{
+			searchPage.RegisterSearchEntry(
+				title: "General",
+				caption: "Manage general settings",
+				order: 0,
+				category: "Settings",
+				keywords: "Settings, General, Dark Mode, Bitcoin Addresses, Manual Entry Free, Custom Change Address, Fee Display Format, Dust Threshold, BTC",
+				iconName: "settings_general_regular",
+				createTargetView: async () =>
+				{
+					settingsPage.SelectedTab = 0;
+					return await Task.FromResult(settingsPage);
+				});
+
+			searchPage.RegisterSearchEntry(
+				title: "Privacy",
+				caption: "Manage privacy settings",
+				order: 1,
+				category: "Settings",
+				keywords: "Settings, Privacy, Minimal, Medium, Strong, Anonymity Level",
+				iconName: "settings_privacy_regular",
+				createTargetView: async () =>
+				{
+					settingsPage.SelectedTab = 1;
+					return await Task.FromResult(settingsPage);
+				});
+
+			searchPage.RegisterSearchEntry(
+				title: "Network",
+				caption: "Manage network settings",
+				order: 2,
+				category: "Settings",
+				keywords: "Settings, Network, Encryption, Tor, Terminate, Wasabi, Shutdown, SOCKS5, Endpoint",
+				iconName: "settings_network_regular",
+				createTargetView: async () =>
+				{
+					settingsPage.SelectedTab = 2;
+					return await Task.FromResult(settingsPage);
+				});
+
+			searchPage.RegisterSearchEntry(
+				title: "Bitcoin",
+				caption: "Manage Bitcoin settings",
+				order: 3,
+				category: "Settings",
+				keywords: "Settings, Bitcoin, Network, Main, TestNet, RegTest, Run, Knots, Startup, P2P, Endpoint",
+				iconName: "settings_bitcoin_regular",
+				createTargetView: async () =>
+				{
+					settingsPage.SelectedTab = 3;
+					return await Task.FromResult(settingsPage);
+				});
 		}
 	}
 }
