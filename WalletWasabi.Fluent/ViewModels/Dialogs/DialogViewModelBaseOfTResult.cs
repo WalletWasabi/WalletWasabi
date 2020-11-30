@@ -2,7 +2,6 @@ using ReactiveUI;
 using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
@@ -17,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		private readonly IDisposable _disposable;
 		private readonly TaskCompletionSource<TResult> _currentTaskCompletionSource;
 
-		protected DialogViewModelBase(NavigationStateViewModel navigationState) : base(navigationState)
+		protected DialogViewModelBase()
 		{
 			_currentTaskCompletionSource = new TaskCompletionSource<TResult>();
 

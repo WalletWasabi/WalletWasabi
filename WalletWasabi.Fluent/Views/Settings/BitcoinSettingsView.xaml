@@ -4,8 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:settings="clr-namespace:WalletWasabi.Fluent.ViewModels.Settings"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="settings:SettingsPageViewModel"
-             x:Class="WalletWasabi.Fluent.Views.Settings.BitCoinSettingsView">
+             x:DataType="settings:BitcoinTabViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Settings.BitCoinSettingsView"
+             x:CompileBindings="True">
   <StackPanel Spacing="20" MinWidth="360" MaxWidth="650" HorizontalAlignment="Left" Orientation="Vertical">
     <StackPanel.Styles>
       <Style Selector="DockPanel > TextBlock">
@@ -14,9 +15,14 @@
         <Setter Property="(DockPanel.Dock)"  Value="Left" />
       </Style>
       <Style Selector="DockPanel > ToggleSwitch">
+        <Setter Property="Margin" Value="0 0 -12 0" />
         <Setter Property="HorizontalAlignment" Value="Right" />
         <Setter Property="OnContent" Value="{x:Null}" />
         <Setter Property="OffContent" Value="{x:Null}" />
+      </Style>
+      <Style Selector="DockPanel > Label">
+        <Setter Property="Margin" Value="0 8 0 0" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
       </Style>
     </StackPanel.Styles>
 
@@ -24,13 +30,7 @@
       <TextBlock Text="Network" />
       <ComboBox HorizontalAlignment="Stretch"
                 Items="{Binding Networks}"
-                SelectedItem="{Binding Network}">
-        <!--<ComboBox.ItemTemplate>
-                      <DataTemplate>
-                        <TextBlock Text="{Binding Converter={StaticResource NetworkStringConverter}}" />
-                      </DataTemplate>
-                    </ComboBox.ItemTemplate>-->
-      </ComboBox>
+                SelectedItem="{Binding Network}"/>
     </StackPanel>
 
     <DockPanel>
@@ -42,6 +42,11 @@
       <TextBlock Text="Bitcoin Core/Knots Data Folder" />
       <TextBox Text="{Binding LocalBitcoinCoreDataDir}" />
     </StackPanel>
+
+    <DockPanel>
+      <TextBlock VerticalAlignment="Center" Text= "Local Bitcoin Core/Knots version" />
+      <Label Content="{Binding BitcoinCoreVersion}" />
+    </DockPanel>
 
     <DockPanel IsVisible="{Binding StartLocalBitcoinCoreOnStartup}">
       <TextBlock Text= "Stop Bitcoin Knots on shutdown" />

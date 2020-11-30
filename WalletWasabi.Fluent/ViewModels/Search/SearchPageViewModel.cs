@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 		private IObservable<IChangeSet<SearchItemViewModel>>? _sourceObservable;
 		private string? _searchQuery;
 
-		public SearchPageViewModel(NavigationStateViewModel navigationState, WalletManagerViewModel walletManager) : base(navigationState)
+		public SearchPageViewModel(WalletManagerViewModel walletManager)
 		{
 			Title = "Search";
 			_categories = new Dictionary<string, SearchCategory>();
@@ -40,7 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			set => this.RaiseAndSetIfChanged(ref _searchQuery, value);
 		}
 
-		public ReadOnlyObservableCollection<SearchResult> SearchResults => _searchResults;
+		public ReadOnlyObservableCollection<SearchResult> SearchResults => _searchResults!;
 
 		public void Initialise()
 		{
@@ -112,7 +112,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 					searchCategory,
 					keywords,
 					iconName,
-					NavigationState,
 					createTargetView);
 
 				_categorySources[searchCategory].Add(result);

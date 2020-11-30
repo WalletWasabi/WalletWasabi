@@ -2,7 +2,6 @@ using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -28,16 +27,19 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private Action? _toggleAction;
 		private Action? _collapseOnClickAction;
 
-		public NavBarViewModel(NavigationStateViewModel navigationState, RoutingState router, WalletManagerViewModel walletManager, AddWalletPageViewModel addWalletPage)
+		public NavBarViewModel(
+			TargettedNavigationStack mainScreen,
+			WalletManagerViewModel walletManager,
+			AddWalletPageViewModel addWalletPage,
+			SettingsPageViewModel settingsPage,
+			PrivacyModeViewModel privacyMode)
 		{
-			Router = router;
 			_walletManager = walletManager;
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 
-			var homePage = new HomePageViewModel(navigationState, walletManager, addWalletPage);
-			var settingsPage = new SettingsPageViewModel(navigationState);
-			var searchPage = new SearchPageViewModel(navigationState, walletManager);
+			var homePage = new HomePageViewModel(walletManager, addWalletPage);
+			var searchPage = new SearchPageViewModel(walletManager);
 
 			RegisterCategories(searchPage);
 
@@ -51,51 +53,27 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 			_selectedItem = homePage;
 
-			_topItems.Add(SelectedItem);
+			_topItems.Add(_selectedItem);
 			_bottomItems.Add(searchPage);
-			_bottomItems.Add(settingsPage);
+			_bottomItems.Add(privacyMode);
 			_bottomItems.Add(addWalletPage);
-
-			Router.CurrentViewModel
-				.OfType<NavBarItemViewModel>()
-				.Subscribe(
-					x =>
-				{
-					if (walletManager.Items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
-					{
-						if (!_isNavigating)
-						{
-							_isNavigating = true;
-							SelectedItem = x;
-							_isNavigating = false;
-						}
-					}
-				});
+			_bottomItems.Add(settingsPage);
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<NavBarItemViewModel>()
-				.Subscribe(
-					x =>
-				{
-					if (!_isNavigating)
-					{
-						_isNavigating = true;
-						x.NavigateToSelfAndReset(x.CurrentTarget);
-						CollapseOnClickAction?.Invoke();
+				.Subscribe(NavigateItem);
 
-						_isNavigating = false;
+			this.WhenAnyValue(x => x.IsOpen)
+				.Subscribe(x =>
+				{
+					if (SelectedItem is { })
+					{
+						SelectedItem.IsExpanded = x;
 					}
 				});
 
-			Observable.FromEventPattern(Router.NavigationStack, nameof(Router.NavigationStack.CollectionChanged))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => IsBackButtonVisible = Router.NavigationStack.Count > 1);
-
-			this.WhenAnyValue(x => x.IsOpen)
-				.Subscribe(x => SelectedItem.IsExpanded = x);
+			mainScreen.To(homePage);
 		}
-
-		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
 
 		public ObservableCollection<NavBarItemViewModel> TopItems
 		{
@@ -114,43 +92,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		public NavBarItemViewModel? SelectedItem
 		{
 			get => _selectedItem;
-			set
-			{
-				if (_selectedItem != value)
-				{
-					if (_selectedItem is { })
-					{
-						_selectedItem.IsSelected = false;
-						_selectedItem.IsExpanded = false;
-
-						if (_selectedItem.Parent is { })
-						{
-							_selectedItem.Parent.IsSelected = false;
-							_selectedItem.Parent.IsExpanded = false;
-						}
-					}
-
-					_selectedItem = null;
-
-					this.RaisePropertyChanged();
-
-					_selectedItem = value;
-
-					this.RaisePropertyChanged();
-
-					if (_selectedItem is { })
-					{
-						_selectedItem.IsSelected = true;
-						_selectedItem.IsExpanded = IsOpen;
-
-						if (_selectedItem.Parent is { })
-						{
-							_selectedItem.Parent.IsSelected = true;
-							_selectedItem.Parent.IsExpanded = true;
-						}
-					}
-				}
-			}
+			set => SetSelectedItem(value);
 		}
 
 		public Action? ToggleAction
@@ -177,11 +119,116 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			set => this.RaiseAndSetIfChanged(ref _isOpen, value);
 		}
 
-		public RoutingState Router { get; }
-
 		public void DoToggleAction()
 		{
 			ToggleAction?.Invoke();
+		}
+
+		private void RaiseAndChangeSelectedItem(NavBarItemViewModel? value)
+		{
+			_selectedItem = value;
+			this.RaisePropertyChanged(nameof(SelectedItem));
+		}
+
+		private void Select(NavBarItemViewModel? value)
+		{
+			if (_selectedItem == value)
+			{
+				return;
+			}
+
+			if (_selectedItem is { })
+			{
+				_selectedItem.IsSelected = false;
+				_selectedItem.IsExpanded = false;
+
+				if (_selectedItem.Parent is { })
+				{
+					_selectedItem.Parent.IsSelected = false;
+					_selectedItem.Parent.IsExpanded = false;
+				}
+			}
+
+			RaiseAndChangeSelectedItem(null);
+			RaiseAndChangeSelectedItem(value);
+
+			if (_selectedItem is { })
+			{
+				_selectedItem.IsSelected = true;
+				_selectedItem.IsExpanded = IsOpen;
+
+				if (_selectedItem.Parent is { })
+				{
+					_selectedItem.Parent.IsSelected = true;
+					_selectedItem.Parent.IsExpanded = true;
+				}
+			}
+		}
+
+		private void SetSelectedItem(NavBarItemViewModel? value)
+		{
+			if (value is null || value.SelectionMode == NavBarItemSelectionMode.Selected)
+			{
+				Select(value);
+				return;
+			}
+
+			if (value.SelectionMode == NavBarItemSelectionMode.Button)
+			{
+				_isNavigating = true;
+				var previous = _selectedItem;
+				RaiseAndChangeSelectedItem(null);
+				RaiseAndChangeSelectedItem(value);
+				_isNavigating = false;
+				NavigateItem(value);
+				_isNavigating = true;
+				RaiseAndChangeSelectedItem(null);
+				RaiseAndChangeSelectedItem(previous);
+				_isNavigating = false;
+				return;
+			}
+
+			if (value.SelectionMode == NavBarItemSelectionMode.Toggle)
+			{
+				_isNavigating = true;
+				var previous = _selectedItem;
+				RaiseAndChangeSelectedItem(null);
+				RaiseAndChangeSelectedItem(value);
+				_isNavigating = false;
+				value.Toggle();
+				_isNavigating = true;
+				RaiseAndChangeSelectedItem(null);
+				RaiseAndChangeSelectedItem(previous);
+				_isNavigating = false;
+			}
+		}
+
+		private void SelectItem(NavBarItemViewModel x, WalletManagerViewModel walletManager)
+		{
+			if (walletManager.Items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
+			{
+				if (!_isNavigating)
+				{
+					_isNavigating = true;
+					SetSelectedItem(x);
+					_isNavigating = false;
+				}
+			}
+		}
+
+		private void NavigateItem(NavBarItemViewModel x)
+		{
+			if (!_isNavigating)
+			{
+				_isNavigating = true;
+				if (x.OpenCommand.CanExecute(default))
+				{
+					x.OpenCommand.Execute(default);
+				}
+
+				CollapseOnClickAction?.Invoke();
+				_isNavigating = false;
+			}
 		}
 
 		private static void RegisterCategories(SearchPageViewModel searchPage)
@@ -192,7 +239,15 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 		private static void RegisterEntries(SearchPageViewModel searchPage)
 		{
-			// TODO Register entries here.
+			searchPage.RegisterSearchEntry(
+				title: "About Wasabi",
+				caption: "Displays all the current info about the app",
+				order: 3,
+				category: "General",
+				keywords: "About, Software, Version, Source Code, Github, Status, Stats, Tor, Onion, Bug, Report, FAQ, Questions," +
+				          "Docs, Documentation, Link, Links, Help",
+				iconName: "info_regular",
+				createTargetView: () => new AboutViewModel());
 		}
 
 		private static void RegisterRootEntries(

@@ -16,8 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		private readonly ReadOnlyObservableCollection<RecoveryWordViewModel> _confirmationWords;
 
-		public ConfirmRecoveryWordsViewModel(NavigationStateViewModel navigationState, List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
-			: base(navigationState)
+		public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
 		{
 			var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 
@@ -32,11 +31,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				() =>
 				{
 					walletManager.AddWallet(keyManager);
-					ClearNavigation();
+					Navigate().Clear();
 				},
 				finishCommandCanExecute);
 
-			CancelCommand = ReactiveCommand.Create(() => ClearNavigation());
+			CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 
 			confirmationWordsSourceList
 				.Connect()
