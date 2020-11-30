@@ -119,7 +119,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				return result;
 			}
 
-			throw new Exception("Category doesnt exist.");
+			throw new Exception("Category doesn't exist.");
 		}
 
 		private Func<SearchItemViewModel, bool> SearchQueryFilter(string? searchQuery)
