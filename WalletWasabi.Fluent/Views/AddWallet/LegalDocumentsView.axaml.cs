@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.AddWallet
 {
-	public class LegalDocumentsView :  UserControl
+	public class LegalDocumentsView : UserControl
 	{
 		public LegalDocumentsView()
 		{
