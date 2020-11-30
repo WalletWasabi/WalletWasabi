@@ -59,9 +59,9 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			_bottomItems.Add(addWalletPage);
 			_bottomItems.Add(settingsPage);
 
-			Router.CurrentViewModel
+			mainScreen.WhenAnyValue(x => x.CurrentPage)
 				.OfType<NavBarItemViewModel>()
-				.Subscribe(x => CurrentViewModelChanged(x, walletManager));
+				.Subscribe(x => CurrentPageChanged(x, walletManager));
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<NavBarItemViewModel>()
@@ -207,7 +207,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			}
 		}
 
-		private void CurrentViewModelChanged(NavBarItemViewModel x, WalletManagerViewModel walletManager)
+		private void CurrentPageChanged(NavBarItemViewModel x, WalletManagerViewModel walletManager)
 		{
 			if (walletManager.Items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
 			{
