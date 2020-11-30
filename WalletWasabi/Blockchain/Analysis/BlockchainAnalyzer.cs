@@ -55,19 +55,50 @@ namespace WalletWasabi.Blockchain.Analysis
 			AnalyzeClusters(tx);
 		}
 
-		/// <summary>
-		/// Adjusts the anonset of the inputs to the newly calculated output anonsets.
-		/// </summary>
-		private static void AdjustWalletInputs(SmartTransaction tx, HashSet<HdPubKey> distinctWalletInputPubKeys, int newInputAnonset)
+		/// <param name="newInputAnonset">The new anonymity set of the inputs.</param>
+		private void AnalyzeWalletInputs(SmartTransaction tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int newInputAnonset)
 		{
-			var smallestOutputAnonset = tx.WalletOutputs.Min(x => x.HdPubKey.AnonymitySet);
-			if (smallestOutputAnonset < newInputAnonset)
+			// We want to weaken the punishment if the input merge happens in coinjoins.
+			// Our strategy would be is to set the coefficient in proportion to our own inputs compared to the total inputs of the transaction.
+			// However the accuracy can be increased if we consider every input with the same pubkey as a single input entity.
+			// This we can only do for our own inputs as we don't know the pubkeys - nor the scripts - of other inputs.
+			// Another way to think about this is: reusing pubkey on the input side is good, the punishment happened already.
+			distinctWalletInputPubKeys = tx.WalletInputs.Select(x => x.HdPubKey).ToHashSet();
+			var distinctWalletInputPubKeyCount = distinctWalletInputPubKeys.Count;
+			var pubKeyReuseCount = tx.WalletInputs.Count - distinctWalletInputPubKeyCount;
+			double coefficient = (double)distinctWalletInputPubKeyCount / (tx.Transaction.Inputs.Count - pubKeyReuseCount);
+
+			newInputAnonset = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet), coefficient);
+
+			foreach (var key in distinctWalletInputPubKeys)
 			{
-				foreach (var key in distinctWalletInputPubKeys)
-				{
-					key.AnonymitySet = smallestOutputAnonset;
-				}
+				key.AnonymitySet = newInputAnonset;
 			}
+		}
+
+		/// <summary>
+		/// Estimate input cluster anonymity set size, penalizing input consolidations to accounting for intersection attacks.
+		/// </summary>
+		/// <param name="coefficient">If larger than 1, then penalty is larger, if smaller than 1 then penalty is smaller.</param>
+		private int Intersect(IEnumerable<int> anonsets, double coefficient)
+		{
+			// Sanity check.
+			if (!anonsets.Any())
+			{
+				return 1;
+			}
+
+			// Our smallest anonset is the relevant here, because anonsets cannot grow by intersection punishments.
+			var smallestAnon = anonsets.Min();
+
+			// Punish intersection exponentially.
+			// If there is only a single anonset then the exponent should be zero to divide by 1 thus retain the input coin anonset.
+			var intersectPenalty = Math.Pow(2, anonsets.Count() - 1);
+			var intersectionAnonset = smallestAnon / Math.Max(1, intersectPenalty * coefficient);
+
+			// The minimum anonymity set size is 1, enforce it when the punishment is very large.
+			var normalizedIntersectionAnonset = Math.Max(1, (int)intersectionAnonset);
+			return normalizedIntersectionAnonset;
 		}
 
 		private void AnalyzeCoinjoin(SmartTransaction tx, int newInputAnonset, ISet<HdPubKey> distinctWalletInputPubKeys)
@@ -122,22 +153,24 @@ namespace WalletWasabi.Blockchain.Analysis
 			}
 		}
 
-		/// <param name="newInputAnonset">The new anonymity set of the inputs.</param>
-		private void AnalyzeWalletInputs(SmartTransaction tx, out HashSet<HdPubKey> distinctWalletInputPubKeys, out int newInputAnonset)
+		/// <summary>
+		/// Adjusts the anonset of the inputs to the newly calculated output anonsets.
+		/// </summary>
+		private static void AdjustWalletInputs(SmartTransaction tx, HashSet<HdPubKey> distinctWalletInputPubKeys, int newInputAnonset)
 		{
-			// We want to weaken the punishment if the input merge happens in coinjoins.
-			// Our strategy would be is to set the coefficient in proportion to our own inputs compared to the total inputs of the transaction.
-			// However the accuracy can be increased if we consider every input with the same pubkey as a single input entity.
-			// This we can only do for our own inputs as we don't know the pubkeys - nor the scripts - of other inputs.
-			// Another way to think about this is: reusing pubkey on the input side is good, the punishment happened already.
-			distinctWalletInputPubKeys = tx.WalletInputs.Select(x => x.HdPubKey).ToHashSet();
-			var distinctWalletInputPubKeyCount = distinctWalletInputPubKeys.Count;
-			var pubKeyReuseCount = tx.WalletInputs.Count - distinctWalletInputPubKeyCount;
-			double coefficient = (double)distinctWalletInputPubKeyCount / (tx.Transaction.Inputs.Count - pubKeyReuseCount);
+			var smallestOutputAnonset = tx.WalletOutputs.Min(x => x.HdPubKey.AnonymitySet);
+			if (smallestOutputAnonset < newInputAnonset)
+			{
+				foreach (var key in distinctWalletInputPubKeys)
+				{
+					key.AnonymitySet = smallestOutputAnonset;
+				}
+			}
+		}
 
-			newInputAnonset = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet), coefficient);
-
-			foreach (var key in distinctWalletInputPubKeys)
+		private void AnalyzeSelfSpend(SmartTransaction tx, int newInputAnonset)
+		{
+			foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
 			{
 				key.AnonymitySet = newInputAnonset;
 			}
@@ -167,14 +200,6 @@ namespace WalletWasabi.Blockchain.Analysis
 			}
 		}
 
-		private void AnalyzeSelfSpend(SmartTransaction tx, int newInputAnonset)
-		{
-			foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
-			{
-				key.AnonymitySet = newInputAnonset;
-			}
-		}
-
 		private void AnalyzeClusters(SmartTransaction tx)
 		{
 			foreach (var newCoin in tx.WalletOutputs)
@@ -188,31 +213,6 @@ namespace WalletWasabi.Blockchain.Analysis
 					}
 				}
 			}
-		}
-
-		/// <summary>
-		/// Estimate input cluster anonymity set size, penalizing input consolidations to accounting for intersection attacks.
-		/// </summary>
-		/// <param name="coefficient">If larger than 1, then penalty is larger, if smaller than 1 then penalty is smaller.</param>
-		private int Intersect(IEnumerable<int> anonsets, double coefficient)
-		{
-			// Sanity check.
-			if (!anonsets.Any())
-			{
-				return 1;
-			}
-
-			// Our smallest anonset is the relevant here, because anonsets cannot grow by intersection punishments.
-			var smallestAnon = anonsets.Min();
-
-			// Punish intersection exponentially.
-			// If there is only a single anonset then the exponent should be zero to divide by 1 thus retain the input coin anonset.
-			var intersectPenalty = Math.Pow(2, anonsets.Count() - 1);
-			var intersectionAnonset = smallestAnon / Math.Max(1, intersectPenalty * coefficient);
-
-			// The minimum anonymity set size is 1, enforce it when the punishment is very large.
-			var normalizedIntersectionAnonset = Math.Max(1, (int)intersectionAnonset);
-			return normalizedIntersectionAnonset;
 		}
 	}
 }
