@@ -41,6 +41,8 @@ namespace WalletWasabi.Tor.Socks5.Pool
 
 		/// <remarks>All access to this property must be guarded by <see cref="StateLock"/>.</remarks>
 		public PoolItemState State { get; private set; }
+
+		/// <summary>Tor SOCKS5 connection associated with this pool item.</summary>
 		public TorConnection Client { get; }
 		private bool AllowRecycling { get; }
 		private long Id { get; }

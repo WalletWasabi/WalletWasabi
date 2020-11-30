@@ -103,32 +103,13 @@ namespace WalletWasabi.Tor.Socks5
 				do
 				{
 					i++;
-					PoolItem? poolItem;
-					TorConnection? client = null;
-
-					do
-					{
-						using (await ClientsAsyncLock.LockAsync(token).ConfigureAwait(false))
-						{
-							poolItem = await GetClientLockedAsync(request, isolateStream, token).ConfigureAwait(false);
-
-							if (poolItem is { })
-							{
-								client = poolItem.Client;
-								break;
-							}
-						}
-
-						Logger.LogTrace("Wait 1s for a free pool item.");
-						await Task.Delay(1000, token).ConfigureAwait(false);
-					} while (poolItem is null);
-
+					PoolItem poolItem = await ObtainFreePoolItemAsync(request, isolateStream, token).ConfigureAwait(false);
 					PoolItem? itemToDispose = poolItem;
 
 					try
 					{
 						Logger.LogTrace($"['{poolItem}'] About to send request.");
-						HttpResponseMessage response = await SendCoreAsync(client!, request, token).ConfigureAwait(false);
+						HttpResponseMessage response = await SendCoreAsync(poolItem.Client, request, token).ConfigureAwait(false);
 
 						// Client works OK, no need to dispose.
 						itemToDispose = null;
@@ -175,11 +156,30 @@ namespace WalletWasabi.Tor.Socks5
 			throw new NotImplementedException("This should never happen.");
 		}
 
+		private async Task<PoolItem> ObtainFreePoolItemAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token)
+		{
+			do
+			{
+				using (await ClientsAsyncLock.LockAsync(token).ConfigureAwait(false))
+				{
+					PoolItem? poolItem = await GetClientLockedAsync(request, isolateStream, token).ConfigureAwait(false);
+
+					if (poolItem is { })
+					{
+						return poolItem;
+					}
+				}
+
+				Logger.LogTrace("Wait 1s for a free pool item.");
+				await Task.Delay(1000, token).ConfigureAwait(false);
+			} while (true);
+		}
+
 		/// <remarks>Caller is responsible for acquiring <see cref="ClientsAsyncLock"/>.</remarks>
 		private async Task<PoolItem?> GetClientLockedAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token)
 		{
 			string host = GetRequestHost(request);
-			Logger.LogTrace($"> host='{host}', isolateStream={isolateStream}");
+			Logger.LogTrace($"> request='{request.RequestUri}', isolateStream={isolateStream}");
 
 			PoolItem? reservedItem = null;
 
@@ -251,7 +251,7 @@ namespace WalletWasabi.Tor.Socks5
 			return reservedItem;
 		}
 
-		private async Task<HttpResponseMessage> SendCoreAsync(TorConnection client, HttpRequestMessage request, CancellationToken token = default)
+		private async static Task<HttpResponseMessage> SendCoreAsync(TorConnection client, HttpRequestMessage request, CancellationToken token = default)
 		{
 			request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
@@ -293,7 +293,7 @@ namespace WalletWasabi.Tor.Socks5
 		}
 
 		/// <inheritdoc cref="TorSocks5ClientFactory.MakeAsync(bool, string, int, bool, CancellationToken)"/>
-		public Task<TorConnection> NewSocks5ClientAsync(HttpRequestMessage request, bool useSsl, bool isolateStream, CancellationToken token = default)
+		private Task<TorConnection> NewSocks5ClientAsync(HttpRequestMessage request, bool useSsl, bool isolateStream, CancellationToken token = default)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
 			// A sender MUST NOT generate an "http" URI with an empty host identifier.
