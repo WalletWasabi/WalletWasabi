@@ -59,6 +59,10 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			_bottomItems.Add(addWalletPage);
 			_bottomItems.Add(settingsPage);
 
+			mainScreen.WhenAnyValue(x => x.CurrentPage)
+				.OfType<NavBarItemViewModel>()
+				.Subscribe(x => CurrentPageChanged(x, walletManager));
+
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<NavBarItemViewModel>()
 				.Subscribe(NavigateItem);
@@ -203,11 +207,11 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			}
 		}
 
-		private void SelectItem(NavBarItemViewModel x, WalletManagerViewModel walletManager)
+		private void CurrentPageChanged(NavBarItemViewModel x, WalletManagerViewModel walletManager)
 		{
 			if (walletManager.Items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
 			{
-				if (!_isNavigating)
+				if (!_isNavigating && x.SelectionMode == NavBarItemSelectionMode.Selected)
 				{
 					_isNavigating = true;
 					SetSelectedItem(x);
