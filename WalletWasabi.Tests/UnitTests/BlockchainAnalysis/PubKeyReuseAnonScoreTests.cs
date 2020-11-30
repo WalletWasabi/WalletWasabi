@@ -36,6 +36,28 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		}
 
 		[Fact]
+		public void SelfSpendReuse()
+		{
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var km = ServiceFactory.CreateKeyManager();
+			var reuse = BitcoinFactory.CreateHdPubKey(km);
+			var tx = BitcoinFactory.CreateSmartTransaction(
+				0,
+				Enumerable.Empty<Money>(),
+				new[] { (Money.Coins(1.1m), 100, BitcoinFactory.CreateHdPubKey(km)) },
+				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, reuse) });
+
+			reuse.AnonymitySet = 30;
+
+			analyser.Analyze(tx);
+
+			Assert.All(tx.WalletInputs, x => Assert.True(x.HdPubKey.AnonymitySet < 30));
+
+			// It should be smaller than 30, because reuse also gets punishment.
+			Assert.True(tx.WalletOutputs.First().HdPubKey.AnonymitySet < 30);
+		}
+
+		[Fact]
 		public void AddressReuseIrrelevantInNormalSpend()
 		{
 			// In normal transactions we expose to someone that we own the inputs and the changes

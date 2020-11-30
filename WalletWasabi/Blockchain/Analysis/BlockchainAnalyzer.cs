@@ -172,7 +172,14 @@ namespace WalletWasabi.Blockchain.Analysis
 		{
 			foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
 			{
-				key.AnonymitySet = newInputAnonset;
+				if (key.AnonymitySet == HdPubKey.DefaultHighAnonymitySet)
+				{
+					key.AnonymitySet = newInputAnonset;
+				}
+				else
+				{
+					key.AnonymitySet = Intersect(new[] { newInputAnonset, key.AnonymitySet }, 1);
+				}
 			}
 		}
 
