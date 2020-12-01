@@ -2,6 +2,7 @@ using NBitcoin;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -95,7 +96,7 @@ namespace WalletWasabi.Stores
 
 					if (!MatureIndexFileManager.Exists())
 					{
-						await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToLine() }, cancel).ConfigureAwait(false);
+						await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToLine() }, CancellationToken.None).ConfigureAwait(false);
 					}
 					cancel.ThrowIfCancellationRequested();
 
@@ -377,6 +378,7 @@ namespace WalletWasabi.Stores
 		/// It'll LogError the exceptions.
 		/// If cancelled, it'll LogTrace the exception.
 		/// </summary>
+		[SuppressMessage("Reliability", "CA2016:Forward the 'CancellationToken' parameter to methods that take one", Justification = "TryCommitToFileAsync must finish running for safety")]
 		private async Task TryCommitToFileAsync(TimeSpan throttle, CancellationToken cancel)
 		{
 			try
@@ -413,7 +415,7 @@ namespace WalletWasabi.Stores
 					var currentImmatureLines = ImmatureFilters.Select(x => x.ToLine()).ToArray(); // So we do not read on ImmatureFilters while removing them.
 					var matureLinesToAppend = currentImmatureLines.SkipLast(100);
 					var immatureLines = currentImmatureLines.TakeLast(100);
-					var tasks = new Task[] { MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend, cancel), ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines, cancel) };
+					var tasks = new Task[] { MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend), ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines) };
 					while (ImmatureFilters.Count > 100)
 					{
 						ImmatureFilters.RemoveFirst();

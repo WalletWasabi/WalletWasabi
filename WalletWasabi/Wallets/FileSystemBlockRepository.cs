@@ -253,7 +253,7 @@ namespace WalletWasabi.Wallets
 				{
 					if (!File.Exists(path))
 					{
-						await File.WriteAllBytesAsync(path, block.ToBytes(), cancellationToken).ConfigureAwait(false);
+						await File.WriteAllBytesAsync(path, block.ToBytes(), CancellationToken.None).ConfigureAwait(false);
 					}
 				}
 			}

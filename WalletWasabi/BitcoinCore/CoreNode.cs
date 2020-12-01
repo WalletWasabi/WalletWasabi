@@ -177,7 +177,7 @@ namespace WalletWasabi.BitcoinCore
 					|| !File.Exists(configPath))
 				{
 					IoHelpers.EnsureContainingDirectoryExists(configPath);
-					await File.WriteAllTextAsync(configPath, coreNode.Config.ToString(), cancel).ConfigureAwait(false);
+					await File.WriteAllTextAsync(configPath, coreNode.Config.ToString(), CancellationToken.None).ConfigureAwait(false);
 				}
 				cancel.ThrowIfCancellationRequested();
 
