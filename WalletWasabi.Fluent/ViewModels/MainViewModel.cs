@@ -93,6 +93,12 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private Network Network { get; }
 
+		public string Title
+		{
+			get => _title;
+			internal set => this.RaiseAndSetIfChanged(ref _title, value);
+		}
+
 		public void Initialize()
 		{
 			// Temporary to keep things running without VM modifications.
