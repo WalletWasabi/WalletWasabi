@@ -158,6 +158,11 @@ namespace WalletWasabi.Blockchain.Analysis
 		/// </summary>
 		private static void AdjustWalletInputs(SmartTransaction tx, HashSet<HdPubKey> distinctWalletInputPubKeys, int newInputAnonset)
 		{
+			// Sanity check.
+			if (!tx.WalletOutputs.Any())
+			{
+			}
+
 			var smallestOutputAnonset = tx.WalletOutputs.Min(x => x.HdPubKey.AnonymitySet);
 			if (smallestOutputAnonset < newInputAnonset)
 			{
