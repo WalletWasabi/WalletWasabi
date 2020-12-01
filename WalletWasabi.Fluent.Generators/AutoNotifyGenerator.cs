@@ -40,7 +40,6 @@ namespace WalletWasabi.Fluent
 				return;
 			}
 
-			// TODO: we should allow source generators to provide source during initialize, so that this step isn't required.
 			CSharpParseOptions options = (context.Compilation as CSharpCompilation).SyntaxTrees[0].Options as CSharpParseOptions;
             Compilation compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(SourceText.From(AttributeText, Encoding.UTF8), options));
 
