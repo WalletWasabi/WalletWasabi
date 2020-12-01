@@ -3,6 +3,7 @@ using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -27,6 +28,11 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify]
 		private bool _test;
 
+		public static void Register(Func<Task<RoutableViewModel>> createInstance)
+		{
+			NavigationManager.RegisterRoutable<AboutViewModel>(MetaData, createInstance);
+		}
+
 		public AboutViewModel()
 		{
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
@@ -37,8 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			var interaction = new Interaction<Unit, Unit>();
 			interaction.RegisterHandler(
 				async x =>
-					x.SetOutput(
-						await new AboutAdvancedInfoViewModel().ShowDialogAsync()));
+					x.SetOutput(await new AboutAdvancedInfoViewModel().ShowDialogAsync()));
 
 			AboutAdvancedInfoDialogCommand = ReactiveCommand.CreateFromTask(
 				execute: async () => await interaction.Handle(Unit.Default).ToTask());

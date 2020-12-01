@@ -153,31 +153,18 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private static void RegisterEntries(SearchPageViewModel searchPage, LegalDocuments legalDocuments)
 		{
-			searchPage.RegisterSearchEntry(
-				title: "Legal Docs",
-				caption: "Displays terms and conditions",
-				order: 3,
-				category: "General",
-				keywords: "View, Legal, Docs, Documentation, Terms, Conditions, Help",
-				iconName: "info_regular",
-				createTargetView: async () =>
-				{
-					var content = await File.ReadAllTextAsync(legalDocuments.FilePath);
+			/*NavigationManager.RegisterRoutable<LegalDocumentsViewModel>(
+				LegalDocumentsViewModel.MetaData,
+				async () =>
+					{
+						var content = await File.ReadAllTextAsync(legalDocuments.FilePath);
 
-					var legalDocs = new LegalDocumentsViewModel(content);
+						var legalDocs = new LegalDocumentsViewModel(content);
 
-					return legalDocs;
-				});
+						return legalDocs;
+					});*/
 
-			searchPage.RegisterSearchEntry(
-				title: "About Wasabi",
-				caption: "Displays all the current info about the app",
-				order: 4,
-				category: "General",
-				keywords: "About, Software, Version, Source Code, Github, Status, Stats, Tor, Onion, Bug, Report, FAQ, Questions," +
-				          "Docs, Documentation, Link, Links, Help",
-				iconName: "info_regular",
-				createTargetView: async () =>  await Task.FromResult(new AboutViewModel()));
+			AboutViewModel.Register(async () => await Task.FromResult(new AboutViewModel()));
 		}
 
 		private static void RegisterRootEntries(
