@@ -161,6 +161,7 @@ namespace WalletWasabi.Blockchain.Analysis
 			// Sanity check.
 			if (!tx.WalletOutputs.Any())
 			{
+				return;
 			}
 
 			var smallestOutputAnonset = tx.WalletOutputs.Min(x => x.HdPubKey.AnonymitySet);
