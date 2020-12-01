@@ -23,6 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		NavBarPosition = NavBarPosition.None)]
 	public partial class AboutViewModel : RoutableViewModel
 	{
+		// TODO: for testing only
 		[AutoNotify]
 		private bool _test;
 
