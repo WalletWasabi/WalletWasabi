@@ -1,6 +1,5 @@
 using Nito.AsyncEx;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -22,20 +21,20 @@ using WalletWasabi.Tor.Socks5.Pool;
 namespace WalletWasabi.Tor.Socks5
 {
 	/// <summary>
-	/// The pool represents a set of multiple TCP connections to Tor SOCKS5 endpoint that are stored in <see cref="PoolItem"/>s.
+	/// The pool represents a set of multiple TCP connections to Tor SOCKS5 endpoint that are stored in <see cref="TorPoolItem"/>s.
 	/// <para>
-	/// When a new HTTP(s) request comes, <see cref="PoolItem"/> (or rather the TCP connection wrapped inside) is selected using these rules:
+	/// When a new HTTP(s) request comes, <see cref="TorPoolItem"/> (or rather the TCP connection wrapped inside) is selected using these rules:
 	/// <list type="number">
-	/// <item>An unused <see cref="PoolItem"/> is selected, if it exists.</item>
-	/// <item>A new <see cref="PoolItem"/> is added to the pool, if it would not exceed the maximum limit on the number of connections to Tor SOCKS5 endpoint.</item>
+	/// <item>An unused <see cref="TorPoolItem"/> is selected, if it exists.</item>
+	/// <item>A new <see cref="TorPoolItem"/> is added to the pool, if it would not exceed the maximum limit on the number of connections to Tor SOCKS5 endpoint.</item>
 	/// <item>Keep waiting 1 second until any of the previous rules cannot be used.</item>
 	/// </list>
 	/// </para>
-	/// <para><see cref="ClientsAsyncLock"/> is acquired only for <see cref="PoolItem"/> selection.</para>
+	/// <para><see cref="ClientsAsyncLock"/> is acquired only for <see cref="TorPoolItem"/> selection.</para>
 	/// </summary>
 	public class TorSocks5ClientPool : IDisposable
 	{
-		/// <summary>Maximum number of <see cref="PoolItem"/>s per URI host.</summary>
+		/// <summary>Maximum number of <see cref="TorPoolItem"/>s per URI host.</summary>
 		public const int MaxPoolItemsPerHost = 3;
 
 		/// <summary>
@@ -45,7 +44,7 @@ namespace WalletWasabi.Tor.Socks5
 		{
 			ClearnetHttpClient = new ClearnetHttpClient();
 			TorSocks5ClientFactory = new TorSocks5ClientFactory(endpoint);
-			ClientsManager = new ClientsManager(MaxPoolItemsPerHost);
+			ClientsManager = new TorPoolItemManager(MaxPoolItemsPerHost);
 		}
 
 		private bool _disposedValue;
@@ -53,7 +52,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// <remarks>Lock object to guard all access to <see cref="Clients"/>.</remarks>
 		private AsyncLock ClientsAsyncLock { get; } = new AsyncLock();
 
-		private ClientsManager ClientsManager { get; }
+		private TorPoolItemManager ClientsManager { get; }
 
 		private ClearnetHttpClient ClearnetHttpClient { get; }
 		private TorSocks5ClientFactory TorSocks5ClientFactory { get; }
@@ -160,7 +159,7 @@ namespace WalletWasabi.Tor.Socks5
 			{
 				using (await ClientsAsyncLock.LockAsync(token).ConfigureAwait(false))
 				{
-					IPoolItem? poolItem = await GetClientLockedAsync(request, isolateStream, token).ConfigureAwait(false);
+					IPoolItem? poolItem = await GetClientNoLockAsync(request, isolateStream, token).ConfigureAwait(false);
 
 					if (poolItem is { })
 					{
@@ -174,7 +173,7 @@ namespace WalletWasabi.Tor.Socks5
 		}
 
 		/// <remarks>Caller is responsible for acquiring <see cref="ClientsAsyncLock"/>.</remarks>
-		private async Task<IPoolItem?> GetClientLockedAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token)
+		private async Task<IPoolItem?> GetClientNoLockAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token)
 		{
 			string host = GetRequestHost(request);
 			Logger.LogTrace($"> request='{request.RequestUri}', isolateStream={isolateStream}");
@@ -195,7 +194,7 @@ namespace WalletWasabi.Tor.Socks5
 						bool allowRecycling = !useSsl && !isolateStream;
 
 						TorConnection newClient = await NewSocks5ClientAsync(request, useSsl, isolateStream, token).ConfigureAwait(false);
-						reservedItem = new PoolItem(newClient, allowRecycling);
+						reservedItem = new TorPoolItem(newClient, allowRecycling);
 
 						Logger.LogTrace($"[NEW {reservedItem}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
 

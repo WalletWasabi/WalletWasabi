@@ -11,7 +11,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 	/// <para>Then it is decided whether the pool item can be re-used for a next HTTP(s) request or not.</para>
 	/// </summary>
 	/// <remarks>Currently we re-use TCP connection to Tor SOCKS5 endpoint for HTTP requests but not for HTTPS requests.</remarks>
-	public class PoolItem: IPoolItem
+	public class TorPoolItem : IPoolItem
 	{
 		private static long Counter;
 
@@ -22,7 +22,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		/// </summary>
 		/// <param name="client">TCP client connected to Tor SOCKS5 endpoint.</param>
 		/// <param name="allowRecycling">Whether it is allowed to re-use this Tor pool item.</param>
-		public PoolItem(TorConnection client, bool allowRecycling)
+		public TorPoolItem(TorConnection client, bool allowRecycling)
 		{
 			Id = Interlocked.Increment(ref Counter);
 			State = PoolItemState.InUse;
@@ -38,8 +38,13 @@ namespace WalletWasabi.Tor.Socks5.Pool
 
 		/// <summary>Tor SOCKS5 connection associated with this pool item.</summary>
 		public TorConnection Client { get; }
+
+		/// <summary>Gets whether this pool item can be potentially re-used.</summary>
 		private bool AllowRecycling { get; }
+
+		/// <summary>Unique identifier of the pool item for logging purposes.</summary>
 		private long Id { get; }
+
 
 		public Stream GetTransportStream()
 		{
@@ -52,12 +57,15 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		/// <summary>
 		/// Gets whether internal <see cref="TorConnection"/> can be re-used for a new HTTP(s) request.
 		/// </summary>
-		/// <returns><c>true</c> when <see cref="PoolItem"/> must be disposed, <c>false</c> otherwise.</returns>
-		public bool NeedRecycling()
+		/// <returns><c>true</c> when <see cref="TorPoolItem"/> must be disposed, <c>false</c> otherwise.</returns>
+		public bool NeedRecycling
 		{
-			lock (StateLock)
+			get
 			{
-				return (State == PoolItemState.ToDispose) || (AllowRecycling && (State == PoolItemState.FreeToUse) && !Client.IsConnected);
+				lock (StateLock)
+				{
+					return (State == PoolItemState.ToDispose) || (AllowRecycling && (State == PoolItemState.FreeToUse) && !Client.IsConnected);
+				}
 			}
 		}
 
@@ -76,7 +84,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		}
 
 		/// <summary>
-		/// After the <see cref="PoolItem"/> is used to send an HTTP(s) request, it needs to be unreserved
+		/// After the <see cref="TorPoolItem"/> is used to send an HTTP(s) request, it needs to be unreserved
 		/// so that the pool item can be used again.
 		/// </summary>
 		/// <returns>Pool item state after unreserve operation.</returns>
@@ -110,7 +118,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			{
 				if (disposing)
 				{
-					Client?.Dispose();
+					Client.Dispose();
 					lock (StateLock)
 					{
 						State = PoolItemState.ToDispose;

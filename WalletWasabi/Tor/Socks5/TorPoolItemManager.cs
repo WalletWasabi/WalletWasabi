@@ -9,9 +9,10 @@ namespace WalletWasabi.Tor.Socks5
 	/// <summary>
 	/// TODO.
 	/// </summary>
-	public class ClientsManager
+	/// <remarks>The class is thread-safe.</remarks>
+	public class TorPoolItemManager
 	{
-		public ClientsManager(int maxPoolItemsPerHost)
+		public TorPoolItemManager(int maxPoolItemsPerHost)
 		{
 			Clients = new Dictionary<string, List<IPoolItem>>();
 			MaxPoolItemsPerHost = maxPoolItemsPerHost;
@@ -23,6 +24,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// <summary>Key is always a URI host. Value is a list of pool items that can connect to the URI host.</summary>
 		/// <remarks>All access to this object must be guarded by <see cref="ClientsLock"/>.</remarks>
 		private Dictionary<string, List<IPoolItem>> Clients { get; }
+
 		public int MaxPoolItemsPerHost { get; }
 
 		private bool _disposedValue;
@@ -53,9 +55,9 @@ namespace WalletWasabi.Tor.Socks5
 		}
 
 		/// <summary>
-		/// TODO.
+		/// Gets all <see cref="IPoolItem"/>s which are related to URI <paramref name="host"/>.
 		/// </summary>
-		/// <param name="host">TODO.</param>
+		/// <param name="host">A <see cref="Uri.Host"/> value is expected.</param>
 		public List<IPoolItem> GetItemsCopy(string host)
 		{
 			lock (ClientsLock)
@@ -73,8 +75,8 @@ namespace WalletWasabi.Tor.Socks5
 
 				IPoolItem? reservedItem = null;
 
-				// Find first free connection, if it exists.a
-				List<IPoolItem> disposeList = hostItems.FindAll(item => item.NeedRecycling()).ToList();
+				// Find first free connection, if it exists.
+				List<IPoolItem> disposeList = hostItems.FindAll(item => item.NeedRecycling).ToList();
 
 				// Remove items for disposal from the list.
 				disposeList.ForEach(item => hostItems.Remove(item));
