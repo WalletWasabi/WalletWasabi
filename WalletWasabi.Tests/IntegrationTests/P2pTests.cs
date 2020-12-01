@@ -17,6 +17,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;

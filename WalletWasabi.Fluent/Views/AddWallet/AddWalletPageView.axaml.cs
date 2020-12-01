@@ -1,10 +1,9 @@
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using Avalonia.ReactiveUI;
-using WalletWasabi.Fluent.ViewModels;
 
-namespace WalletWasabi.Fluent.Views
+namespace WalletWasabi.Fluent.Views.AddWallet
 {
-	public class AddWalletPageView : ReactiveUserControl<AddWalletPageViewModel>
+	public class AddWalletPageView : UserControl
 	{
 		public AddWalletPageView()
 		{

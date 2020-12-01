@@ -1,0 +1,40 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters">
+
+  <Style Selector="c|InfoMessage">
+    <Setter Property="IsVisible" x:CompileBindings="False" Value="{Binding $self.Opacity, Converter={x:Static conv:BoolOpacityConverters.OpacityToBool}}" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DockPanel Background="{TemplateBinding Background}">
+
+          <PathIcon Data="{StaticResource info_regular}"
+                    Foreground="{TemplateBinding Foreground}"
+                    DockPanel.Dock="Left"
+                    VerticalAlignment="Top"
+                    Width="{TemplateBinding IconSize}"
+                    Height="{TemplateBinding IconSize}"/>
+
+          <ContentPresenter Name="PART_ContentPresenter"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Content="{TemplateBinding Content}"
+                            Margin="10 2 0 0"/>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="c|InfoMessage[IsVisible=True]">
+    <Setter Property="Opacity" Value="1"/>
+  </Style>
+
+  <Style Selector="c|InfoMessage :is(TextBlock)">
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+</Styles>

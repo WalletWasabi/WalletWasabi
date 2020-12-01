@@ -17,6 +17,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Logging;
+using WalletWasabi.Tor.Http;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -111,18 +112,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 					{
-						Logger.LogWarning("Payjoin server is an onion service but Tor is disabled. Ignoring...");
+						Logger.LogWarning("PayJoin server is an onion service but Tor is disabled. Ignoring...");
 						return null;
 					}
 
 					if (Global.Config.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
 					{
-						Logger.LogWarning("Payjoin server is not exposed as an onion service nor https. Ignoring...");
+						Logger.LogWarning("PayJoin server is not exposed as an onion service nor https. Ignoring...");
 						return null;
 					}
 				}
 
-				return new PayjoinClient(payjoinEndPointUri, Global.Config.TorSocks5EndPoint);
+				IRelativeHttpClient httpClient = Global.Synchronizer.WasabiClientFactory.NewHttpClient(() => payjoinEndPointUri, isolateStream: false);
+				return new PayjoinClient(payjoinEndPointUri, httpClient);
 			}
 
 			return null;
@@ -147,7 +149,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					PayjoinEndPoint = endPoint;
 					return;
 				}
-				NotificationHelpers.Warning("Payjoin is not allowed here.");
+				NotificationHelpers.Warning("PayJoin is not allowed here.");
 			}
 			PayjoinEndPoint = null;
 		}

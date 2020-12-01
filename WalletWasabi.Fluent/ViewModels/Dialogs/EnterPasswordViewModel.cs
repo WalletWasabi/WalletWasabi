@@ -1,5 +1,4 @@
 using System.Reactive.Linq;
-using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
@@ -12,7 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		private string? _confirmPassword;
 		private string? _password;
 
-		public EnterPasswordViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, string subtitle) : base(navigationState, navigationTarget)
+		public EnterPasswordViewModel(string subtitle)
 		{
 			Subtitle = subtitle;
 
@@ -29,13 +28,13 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				x => x.IsDialogOpen,
 				x => x.Password,
 				x => x.ConfirmPassword,
-				(isDialogOpen, password, confirmPassword) =>
+				delegate
 				{
 					// This will fire validations before return canExecute value.
 					this.RaisePropertyChanged(nameof(Password));
 					this.RaisePropertyChanged(nameof(ConfirmPassword));
 
-					return isDialogOpen && ((string.IsNullOrEmpty(password) && string.IsNullOrEmpty(confirmPassword)) || (!string.IsNullOrEmpty(password) && !string.IsNullOrEmpty(confirmPassword) && !Validations.Any));
+					return IsDialogOpen && ((string.IsNullOrEmpty(Password) && string.IsNullOrEmpty(ConfirmPassword)) || (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) && !Validations.Any));
 				})
 				.ObserveOn(RxApp.MainThreadScheduler);
 

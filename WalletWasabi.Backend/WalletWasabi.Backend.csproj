@@ -5,7 +5,7 @@
 		<TargetFramework>net5.0</TargetFramework>
 		<AnalysisLevel>latest</AnalysisLevel>
 		<LangVersion>latest</LangVersion>
-		<NoWarn>1701;1702;1705;1591;1573;CA1031</NoWarn>
+		<NoWarn>1701;1702;1705;1591;1573;CA1031;CA1822</NoWarn>
 		<Product>WalletWasabiApi</Product>
 		<Copyright>MIT</Copyright>
 		<PackageTags>walletwasabi, wasabiwallet, wasabi, hiddenwallet, wallet, bitcoin, hbitcoin, nbitcoin, magicalcryptowallet, magicalwallet, tor, chaum, chaumian, zerolink, coinjoin, fungibility, privacy, anonymity</PackageTags>

@@ -1,13 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:sys="using:System"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vl="using:WalletWasabi.Fluent"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:local="using:WalletWasabi.Fluent.Views"
              xmlns:navbar="using:WalletWasabi.Fluent.Views.NavBar"
-             xmlns:rxui="using:Avalonia.ReactiveUI"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
@@ -43,11 +40,7 @@
           <local:StatusBar DockPanel.Dock="Bottom" Classes="h8" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" />
           <Panel>
             <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
-            <rxui:RoutedViewHost Router="{Binding Router}" PageTransition="{x:Null}" Margin="20 36 20 20">
-              <rxui:RoutedViewHost.ViewLocator>
-                <vl:ScreenViewLocator />
-              </rxui:RoutedViewHost.ViewLocator>
-            </rxui:RoutedViewHost>
+            <ContentControl Content="{Binding MainScreen.CurrentPage}" Margin="20 36 20 20" />
           </Panel>
         </DockPanel>
       </Panel>
@@ -58,11 +51,7 @@
               IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
               MaxContentWidth="800" MaxContentHeight="700">
-      <rxui:RoutedViewHost Router="{Binding Router}" PageTransition="{x:Null}">
-        <rxui:RoutedViewHost.ViewLocator>
-          <vl:ScreenViewLocator />
-        </rxui:RoutedViewHost.ViewLocator>
-      </rxui:RoutedViewHost>
+      <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
     <c:Dialog DataContext="{Binding CurrentDialog}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"

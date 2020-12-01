@@ -123,15 +123,34 @@ namespace NBitcoin
 		}
 
 		public static int GetAnonymitySet(this Transaction me, uint outputIndex)
+			=> me.GetAnonymitySets(new[] { outputIndex }).First().Value;
+
+		public static IDictionary<uint, int> GetAnonymitySets(this Transaction me, IEnumerable<uint> outputIndices)
 		{
-			// 1. Get the output corresponting to the output index.
-			var output = me.Outputs[outputIndex];
-			// 2. Get the number of equal outputs.
-			int equalOutputs = me.GetIndistinguishableOutputs(includeSingle: true).Single(x => x.value == output.Value).count;
-			// 3. Anonymity set cannot be larger than the number of inputs.
+			var anonsets = new Dictionary<uint, int>();
 			var inputCount = me.Inputs.Count;
-			var anonSet = Math.Min(equalOutputs, inputCount);
-			return anonSet;
+
+			var indistinguishableOutputs = me.Outputs
+				.GroupBy(x => x.ScriptPubKey)
+				.ToDictionary(x => x.Key, y => y.Sum(z => z.Value))
+				.GroupBy(x => x.Value)
+				.ToDictionary(x => x.Key, y => y.Count());
+
+			foreach (var outputIndex in outputIndices)
+			{
+				// 1. Get the output corresponting to the output index.
+				var output = me.Outputs[outputIndex];
+
+				// 2. Get the number of equal outputs.
+				int equalOutputs = indistinguishableOutputs[output.Value];
+
+				// 3. Anonymity set cannot be larger than the number of inputs.
+				var anonSet = Math.Min(equalOutputs, inputCount);
+
+				anonsets.Add(outputIndex, anonSet);
+			}
+
+			return anonsets;
 		}
 
 		public static bool IsLikelyCoinjoin(this Transaction me)
@@ -446,7 +465,7 @@ namespace NBitcoin
 		}
 
 		/// <summary>
-		/// Tries to equip the PSBT with previous transactions with best effort.
+		/// Tries to equip the PSBT with previous transactions with best effort. Always <see cref="AddKeyPaths"/> first otherwise the prev tx won't be added.
 		/// </summary>
 		public static void AddPrevTxs(this PSBT psbt, AllTransactionStore transactionStore)
 		{
