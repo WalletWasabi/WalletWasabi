@@ -14,7 +14,7 @@ using WalletWasabi.Gui;
 using WalletWasabi.Logging;
 using WalletWasabi.Stores;
 
-namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcaster
+namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 {
 	public class LoadTransactionViewModel : RoutableViewModel
 	{

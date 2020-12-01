@@ -12,7 +12,7 @@ using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Search;
 using WalletWasabi.Fluent.ViewModels.Settings;
-using WalletWasabi.Fluent.ViewModels.TransactionBroadcaster;
+using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Legal;
 
 namespace WalletWasabi.Fluent.ViewModels

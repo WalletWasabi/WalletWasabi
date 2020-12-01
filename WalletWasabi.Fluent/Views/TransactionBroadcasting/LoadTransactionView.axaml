@@ -3,11 +3,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:tB="clr-namespace:WalletWasabi.Fluent.ViewModels.TransactionBroadcaster"
+             xmlns:transactionBroadcasting="clr-namespace:WalletWasabi.Fluent.ViewModels.TransactionBroadcasting"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="tB:LoadTransactionViewModel"
+             x:DataType="transactionBroadcasting:LoadTransactionViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.TransactionBroadcaster.LoadTransactionView">
+             x:Class="WalletWasabi.Fluent.Views.TransactionBroadcasting.LoadTransactionView">
     <c:ContentArea Title="Transaction Broadcaster"
                    Caption="Paste or import the transaction and broadcast it to the network."
                    EnableCancel="True">

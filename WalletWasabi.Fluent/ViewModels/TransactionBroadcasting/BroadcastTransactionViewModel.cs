@@ -1,11 +1,13 @@
 ﻿using System.Linq;
+using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Stores;
 
-namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcaster
+namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 {
 	public class BroadcastTransactionViewModel : RoutableViewModel
 	{
@@ -19,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcaster
 			BitcoinStore store,
 			SmartTransaction finalTransaction,
 			Network network,
-			Blockchain.TransactionBroadcasting.TransactionBroadcaster transactionBroadcaster)
+			TransactionBroadcaster? transactionBroadcaster)
 		{
 			var psbt = PSBT.FromTransaction(finalTransaction.Transaction, network);
 			var nullMoney = new Money(-1L);
@@ -49,8 +51,15 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcaster
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
+				// Transaction broadcaster is not ready while backend it not connected.
+				if (transactionBroadcaster is null)
+				{
+					return;
+				}
+
 				IsBusy = true;
 				await transactionBroadcaster.SendTransactionAsync(finalTransaction);
+				Navigate().Clear();
 				IsBusy = false;
 			});
 		}
