@@ -4,16 +4,78 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:tB="clr-namespace:WalletWasabi.Fluent.ViewModels.TransactionBroadcaster"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="tB:BroadcastTransactionViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.TransactionBroadcaster.BroadcastTransactionView">
-    <c:ContentArea Title="Transaction ID"
+    <c:ContentArea Title="Transaction"
                    Caption="{Binding TransactionId}"
                    EnableCancel="True"
                    EnableNext="True" NextContent="Broadcast"
                    IsBusy="{Binding IsBusy}">
 
+        <StackPanel Spacing="50" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+            <StackPanel.Styles>
+                <Style Selector="StackPanel > TextBlock">
+                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                </Style>
 
+                <Style Selector="StackPanel > TextBlock.btc">
+                    <Setter Property="VerticalAlignment" Value="Bottom"/>
+                    <Setter Property="Margin" Value="3 0 0 5"/>
+                    <Setter Property="FontSize" Value="12"/>
+                </Style>
+
+                <Style Selector="StackPanel > TextBlock.amountTitle">
+                    <Setter Property="FontSize" Value="50"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                </Style>
+
+                <Style Selector="StackPanel.amountValue">
+                    <Setter Property="Orientation" Value="Horizontal"/>
+                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                    <Setter Property="TextBlock.FontSize" Value="30"/>
+                </Style>
+            </StackPanel.Styles>
+
+            <Grid ColumnDefinitions="*,*,*">
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Input" Classes="amountTitle"/>
+                    <StackPanel Classes="amountValue">
+                        <TextBlock Text="{Binding TotalInputValue, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
+                        <TextBlock Text="BTC" Classes="btc" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Output" Classes="amountTitle"/>
+                    <StackPanel Classes="amountValue">
+                        <TextBlock Text="{Binding TotalOutputValue, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
+                        <TextBlock Text="BTC" Classes="btc" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Fee" Classes="amountTitle"/>
+                    <StackPanel Classes="amountValue">
+                        <TextBlock Text="{Binding NetworkFee, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
+                        <TextBlock Text="BTC" Classes="btc" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+
+            <Grid ColumnDefinitions="*,*">
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Input(s)" FontSize="20" Classes="bold" />
+                    <TextBlock Text="{Binding InputCount}" FontSize="50" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Output(s)" FontSize="20" Classes="bold" />
+                    <TextBlock Text="{Binding OutputCount}" FontSize="50" />
+                </StackPanel>
+            </Grid>
+        </StackPanel>
     </c:ContentArea>
 </UserControl>
