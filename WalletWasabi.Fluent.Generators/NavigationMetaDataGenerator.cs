@@ -123,7 +123,7 @@ namespace WalletWasabi.Fluent
 
             string namespaceName = namedTypeSymbol.ContainingNamespace.ToDisplayString();
 
-            StringBuilder source = new StringBuilder($@"
+            var source = new StringBuilder($@"
 namespace {namespaceName}
 {{
     public partial class {namedTypeSymbol.Name} : {metadataItemSymbol.ToDisplayString()}
