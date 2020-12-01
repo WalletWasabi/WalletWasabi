@@ -15,31 +15,31 @@
                    EnableNext="True" NextContent="Broadcast"
                    IsBusy="{Binding IsBusy}">
 
-        <StackPanel Spacing="50" HorizontalAlignment="Stretch" VerticalAlignment="Center">
-            <StackPanel.Styles>
+        <Panel>
+            <Panel.Styles>
                 <Style Selector="StackPanel > TextBlock">
                     <Setter Property="HorizontalAlignment" Value="Center"/>
                 </Style>
 
                 <Style Selector="StackPanel > TextBlock.btc">
                     <Setter Property="VerticalAlignment" Value="Bottom"/>
-                    <Setter Property="Margin" Value="3 0 0 5"/>
+                    <Setter Property="Margin" Value="3 0 0 3"/>
                     <Setter Property="FontSize" Value="12"/>
                 </Style>
 
                 <Style Selector="StackPanel > TextBlock.amountTitle">
                     <Setter Property="FontSize" Value="50"/>
-                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="FontWeight" Value="UltraBold"/>
                 </Style>
 
                 <Style Selector="StackPanel.amountValue">
                     <Setter Property="Orientation" Value="Horizontal"/>
                     <Setter Property="HorizontalAlignment" Value="Center"/>
-                    <Setter Property="TextBlock.FontSize" Value="30"/>
+                    <Setter Property="TextBlock.FontSize" Value="25"/>
                 </Style>
-            </StackPanel.Styles>
+            </Panel.Styles>
 
-            <Grid ColumnDefinitions="*,*,*">
+            <Grid ColumnDefinitions="*,*,*" HorizontalAlignment="Stretch" VerticalAlignment="Center">
                 <StackPanel Grid.Column="0">
                     <TextBlock Text="Input" Classes="amountTitle"/>
                     <StackPanel Classes="amountValue">
@@ -65,17 +65,24 @@
                 </StackPanel>
             </Grid>
 
-            <Grid ColumnDefinitions="*,*">
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="Input(s)" FontSize="20" Classes="bold" />
-                    <TextBlock Text="{Binding InputCount}" FontSize="50" />
-                </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0 0 0 20">
+                <StackPanel.Styles>
+                    <Style Selector="TextBlock">
+                        <Setter Property="VerticalAlignment" Value="Bottom"/>
+                    </Style>
+                    <Style Selector="TextBlock.countValue">
+                        <Setter Property="FontSize" Value="30"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Setter Property="Margin" Value="0 0 0 -4"/>
+                    </Style>
+                </StackPanel.Styles>
+                <TextBlock Text="The transaction has "/>
+                <TextBlock Text="{Binding InputCount}" Classes="countValue"/>
+                <TextBlock Text=" input(s) and "/>
+                <TextBlock Text="{Binding OutputCount}" Classes="countValue"/>
+                <TextBlock Text=" output(s)."/>
+            </StackPanel>
 
-                <StackPanel Grid.Column="1">
-                    <TextBlock Text="Output(s)" FontSize="20" Classes="bold" />
-                    <TextBlock Text="{Binding OutputCount}" FontSize="50" />
-                </StackPanel>
-            </Grid>
-        </StackPanel>
+        </Panel>
     </c:ContentArea>
 </UserControl>
