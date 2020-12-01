@@ -52,7 +52,7 @@ namespace WalletWasabi.Fluent.Desktop
 
 				if (CrashReporter.IsReport)
 				{
-					StartCrashReporter(args);
+					Console.WriteLine("TODO Implement crash reporting.");
 					return;
 				}
 
@@ -191,30 +191,6 @@ namespace WalletWasabi.Fluent.Desktop
 			{
 				Logger.LogWarning(ex);
 			}
-		}
-
-		private static void StartCrashReporter(string[] args)
-		{
-			var result = AppBuilder.Configure<CrashReportApp>().UseReactiveUI();
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				result
-					.UseWin32()
-					.UseSkia();
-			}
-			else
-			{
-				result.UsePlatformDetect();
-			}
-
-			result
-				.With(new Win32PlatformOptions { AllowEglInitialization = false, UseDeferredRendering = true })
-				.With(new X11PlatformOptions { UseGpu = false, WmClass = "Wasabi Wallet Crash Reporting" })
-				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = false })
-				.With(new MacOSPlatformOptions { ShowInDock = true });
-
-			result.StartWithClassicDesktopLifetime(args);
 		}
 
 		// Avalonia configuration, don't remove; also used by visual designer.

@@ -1,5 +1,6 @@
 using System.Linq;
 using WalletWasabi.Blockchain.Transactions.Operations;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
@@ -9,7 +10,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void CanMergeSingleOperations()
 		{
-			var tx = Common.RandomSmartTransaction();
+			var tx = BitcoinFactory.CreateSmartTransaction();
 
 			var append = new Append(tx);
 			var unmergedAppendOperations = new[] { append };
@@ -39,14 +40,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public void CanMergeComplexOperations()
 		{
-			var tx1 = Common.RandomSmartTransaction();
-			var tx2 = Common.RandomSmartTransaction();
-			var tx3 = Common.RandomSmartTransaction();
-			var tx4 = Common.RandomSmartTransaction();
-			var tx5 = Common.RandomSmartTransaction();
-			var tx6 = Common.RandomSmartTransaction();
-			var tx7 = Common.RandomSmartTransaction();
-			var tx8 = Common.RandomSmartTransaction();
+			var tx1 = BitcoinFactory.CreateSmartTransaction();
+			var tx2 = BitcoinFactory.CreateSmartTransaction();
+			var tx3 = BitcoinFactory.CreateSmartTransaction();
+			var tx4 = BitcoinFactory.CreateSmartTransaction();
+			var tx5 = BitcoinFactory.CreateSmartTransaction();
+			var tx6 = BitcoinFactory.CreateSmartTransaction();
+			var tx7 = BitcoinFactory.CreateSmartTransaction();
+			var tx8 = BitcoinFactory.CreateSmartTransaction();
 
 			var a1 = new Append(tx1, tx2);
 			var a2 = new Append(tx3, tx4, tx5);

@@ -75,7 +75,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		{
 			var root = _backStack.Count > 0 ? _backStack.Last() : CurrentPage;
 
-			if (CurrentPage == root || (!keepRoot && _backStack.Count == 0 && CurrentPage is null))
+			if ((keepRoot && CurrentPage == root) || (!keepRoot && _backStack.Count == 0 && CurrentPage is null))
 			{
 				return;
 			}

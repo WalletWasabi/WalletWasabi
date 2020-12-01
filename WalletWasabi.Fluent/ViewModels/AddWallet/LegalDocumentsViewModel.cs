@@ -11,6 +11,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			NextCommand = BackCommand;
 		}
 
+		public override NavigationTarget DefaultTarget => NavigationTarget.DialogScreen;
+
 		public string Content { get; }
 	}
 }

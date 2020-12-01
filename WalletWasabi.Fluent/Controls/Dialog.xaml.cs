@@ -26,14 +26,14 @@ namespace WalletWasabi.Fluent.Controls
 
 		public double MaxContentHeight
 		{
-			get { return GetValue(MaxContentHeightProperty); }
-			set { SetValue(MaxContentHeightProperty, value); }
+			get => GetValue(MaxContentHeightProperty);
+			set => SetValue(MaxContentHeightProperty, value);
 		}
 
 		public double MaxContentWidth
 		{
-			get { return GetValue(MaxContentWidthProperty); }
-			set { SetValue(MaxContentWidthProperty, value); }
+			get => GetValue(MaxContentWidthProperty);
+			set => SetValue(MaxContentWidthProperty, value);
 		}
 
 		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)

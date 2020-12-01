@@ -108,7 +108,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		{
 			(_, IRPCClient rpc, _, _, _, _, Backend.Global global) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
-			var indexBuilderServiceDir = Tests.Common.GetWorkDir();
+			var indexBuilderServiceDir = Helpers.Common.GetWorkDir();
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
 
 			var indexBuilderService = new IndexBuilderService(rpc, global.HostedServices.FirstOrDefault<BlockNotifier>(), indexFilePath);

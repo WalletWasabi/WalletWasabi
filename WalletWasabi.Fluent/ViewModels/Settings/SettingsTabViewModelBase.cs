@@ -1,8 +1,10 @@
 ﻿using System;
-using Avalonia.Threading;
+using System.Reactive.Concurrency;
+using ReactiveUI;
 using WalletWasabi.Fluent.Model;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
@@ -35,16 +37,23 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			var config = new Config(ConfigOnOpen.FilePath);
 
-			Dispatcher.UIThread.PostLogException(
+			RxApp.MainThreadScheduler.Schedule(
 				() =>
 				{
-					lock (ConfigLock)
+					try
 					{
-						config.LoadFile();
-						EditConfigOnSave(config);
-						config.ToFile();
+						lock (ConfigLock)
+						{
+							config.LoadFile();
+							EditConfigOnSave(config);
+							config.ToFile();
 
-						IsRestartNeeded();
+							IsRestartNeeded();
+						}
+					}
+					catch (Exception ex)
+					{
+						Logger.LogDebug(ex);
 					}
 				});
 		}

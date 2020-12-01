@@ -4,15 +4,16 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
-             xmlns:h="using:WalletWasabi.Fluent.Helpers"
-             xmlns:navbar="using:WalletWasabi.Fluent.Views.NavBar"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.NavBar"
+             x:DataType="vm:NavBarViewModel"
+             x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False">
   <UserControl.Styles>
     <Style Selector=":is(ListBox)">
       <Setter Property="ItemTemplate">
         <Setter.Value>
-          <DataTemplate>
+          <DataTemplate x:DataType="vm:NavBarItemViewModel">
             <Panel>
               <Panel Width="45" HorizontalAlignment="Left">
                 <PathIcon HorizontalAlignment="Left">
@@ -37,7 +38,7 @@
       </Setter>
       <Setter Property="ItemTemplate">
         <Setter.Value>
-          <DataTemplate>
+          <DataTemplate x:DataType="vm:NavBarItemViewModel">
               <Panel Width="45" HorizontalAlignment="Center" ToolTip.Tip="{Binding Title}">
                 <PathIcon HorizontalAlignment="Left">
                   <PathIcon.Data>
@@ -66,10 +67,10 @@
       <Setter Property="Padding" Value="0" />
     </Style>
     <Style Selector="c|NavBarTreeItem">
-      <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
+      <Setter Property="IsExpanded" Value="{Binding IsExpanded}" x:CompileBindings="False" />
     </Style>
     <Style Selector=":is(Button).NavButton">
-      <Setter Property="Width" Value="{StaticResource SplitViewCompactPaneLength}" />
+      <Setter Property="Width" Value="{DynamicResource SplitViewCompactPaneLength}" />
       <Setter Property="Padding" Value="12,9,12,12" />
     </Style>
     <Style Selector=":is(Button).NavButton:disabled > PathIcon">
@@ -108,7 +109,7 @@
       <c:NavBarListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
         <c:NavBarListBox.Styles>
           <Style Selector="c|NavBarItem">
-            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
           </Style>
         </c:NavBarListBox.Styles>
       </c:NavBarListBox>
@@ -121,7 +122,7 @@
         <c:NavBarListBox.Styles>
           <Style Selector="c|NavBarItem">
             <Setter Property="IndicatorOrientation" Value="Horizontal" />
-            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
           </Style>
         </c:NavBarListBox.Styles>
       </c:NavBarListBox>
@@ -130,11 +131,11 @@
     <c:NavBarTreeView Items="{Binding Items}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
       <c:NavBarTreeView.Styles>
         <Style Selector="c|NavBarTreeItem">
-          <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+          <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
         </Style>
       </c:NavBarTreeView.Styles>
       <c:NavBarTreeView.ItemTemplate>
-        <TreeDataTemplate ItemsSource="{Binding Items}">
+        <TreeDataTemplate ItemsSource="{Binding Items}" x:CompileBindings="False">
           <Panel>
             <Panel Width="45" HorizontalAlignment="Left">
               <PathIcon HorizontalAlignment="Left">

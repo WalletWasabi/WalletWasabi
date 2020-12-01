@@ -1,10 +1,9 @@
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using Avalonia.ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.Search;
 
 namespace WalletWasabi.Fluent.Views.Search
 {
-	public class SearchPageView : ReactiveUserControl<SearchPageViewModel>
+	public class SearchPageView : UserControl
 	{
 		public SearchPageView()
 		{

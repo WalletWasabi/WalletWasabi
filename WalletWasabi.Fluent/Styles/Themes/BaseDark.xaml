@@ -35,6 +35,6 @@
       </RadialGradientBrush.GradientStops>
     </RadialGradientBrush>
   </Styles.Resources>
-  <StyleInclude Source="avares://Avalonia.Themes.Fluent/Accents/FluentDark.xaml"/>
+  <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentDark.xaml"/>
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.xaml" />
 </Styles>
