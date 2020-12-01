@@ -11,8 +11,6 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui;
-using WalletWasabi.Gui.Controls.TransactionDetails.ViewModels;
-using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Stores;
 
@@ -24,6 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcaster
 
 		public LoadTransactionViewModel()
 		{
+			// TODO: Remove global
 			var global = Locator.Current.GetService<Global>();
 
 			Network = global.Network;
