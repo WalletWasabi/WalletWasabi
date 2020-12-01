@@ -36,5 +36,8 @@ namespace WalletWasabi.Tests.Helpers
 
 			return scalars.Where(predicate);
 		}
+
+		public static int RandomInt(int minInclusive, int maxInclusive)
+			=> new Random().Next(minInclusive, maxInclusive + 1);
 	}
 }

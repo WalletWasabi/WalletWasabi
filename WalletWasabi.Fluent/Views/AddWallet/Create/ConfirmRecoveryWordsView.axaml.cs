@@ -1,11 +1,8 @@
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using Avalonia.ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.AddWallet;
-using WalletWasabi.Fluent.ViewModels.AddWallet.Create;
-
-namespace WalletWasabi.Fluent.Views.AddWallet.Create
+namespace WalletWasabi.Fluent.Views.AddWallet
 {
-	public class ConfirmRecoveryWordsView : ReactiveUserControl<ConfirmRecoveryWordsViewModel>
+	public class ConfirmRecoveryWordsView : UserControl
 	{
 		public ConfirmRecoveryWordsView()
 		{
