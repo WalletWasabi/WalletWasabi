@@ -17,6 +17,7 @@ using WalletWasabi.Tor.Http.Models;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Pool;
+using WalletWasabi.Tor.Socks5.Utils;
 
 namespace WalletWasabi.Tor.Socks5
 {
@@ -113,7 +114,7 @@ namespace WalletWasabi.Tor.Socks5
 
 						// Let others use the client.
 						var state = poolItem.Unreserve();
-						Logger.LogTrace($"['{poolItem}'] Un-reserve. State is: '{state}'.");
+						Logger.LogTrace($"['{poolItem}'] Unreserve. State is: '{state}'.");
 
 						TorDoesntWorkSince = null;
 						LatestTorException = null;
@@ -155,15 +156,31 @@ namespace WalletWasabi.Tor.Socks5
 
 		private async Task<IPoolItem> ObtainFreePoolItemAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token)
 		{
+			Logger.LogTrace($"> request='{request.RequestUri}', isolateStream={isolateStream}");
+
+			string host = GetRequestHost(request);
+
 			do
 			{
 				using (await ClientsAsyncLock.LockAsync(token).ConfigureAwait(false))
 				{
-					IPoolItem? poolItem = await GetClientNoLockAsync(request, isolateStream, token).ConfigureAwait(false);
+					(bool canBeAdded, IPoolItem? poolItem) = ClientsManager.GetPoolItem(host, isolateStream);
 
 					if (poolItem is { })
 					{
+						Logger.LogTrace($"[OLD {poolItem}]['{request.RequestUri}'] Re-use existing Tor SOCKS5 connection.");
 						return poolItem;
+					}
+
+					if (canBeAdded)
+					{
+						poolItem = await CreateNewPoolItemNoLockAsync(request, isolateStream, token).ConfigureAwait(false);
+
+						if (poolItem is { })
+						{
+							Logger.LogTrace($"[NEW {poolItem}]['{request.RequestUri}'] Using new Tor SOCKS5 connection.");
+							return poolItem;
+						}
 					}
 				}
 
@@ -173,52 +190,38 @@ namespace WalletWasabi.Tor.Socks5
 		}
 
 		/// <remarks>Caller is responsible for acquiring <see cref="ClientsAsyncLock"/>.</remarks>
-		private async Task<IPoolItem?> GetClientNoLockAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token)
+		private async Task<IPoolItem?> CreateNewPoolItemNoLockAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token)
 		{
 			string host = GetRequestHost(request);
-			Logger.LogTrace($"> request='{request.RequestUri}', isolateStream={isolateStream}");
 
-			(bool canBeAdded, IPoolItem? reservedItem) = ClientsManager.GetPoolItem(host, isolateStream);
+			TorPoolItem? poolItem = null;
 
-			if (reservedItem is null)
+			try
 			{
-				if (!canBeAdded)
-				{
-					Logger.LogTrace($"['{host}'][NONE] No free pool item.");
-				}
-				else
-				{
-					try
-					{
-						bool useSsl = request.RequestUri!.Scheme == Uri.UriSchemeHttps;
-						bool allowRecycling = !useSsl && !isolateStream;
+				bool useSsl = request.RequestUri!.Scheme == Uri.UriSchemeHttps;
+				bool allowRecycling = !useSsl && !isolateStream;
 
-						TorConnection newClient = await NewSocks5ClientAsync(request, useSsl, isolateStream, token).ConfigureAwait(false);
-						reservedItem = new TorPoolItem(newClient, allowRecycling);
+				TorConnection newClient = await NewSocks5ClientAsync(request, useSsl, isolateStream, token).ConfigureAwait(false);
+				poolItem = new TorPoolItem(newClient, allowRecycling);
 
-						Logger.LogTrace($"[NEW {reservedItem}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
+				Logger.LogTrace($"[NEW {poolItem}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
 
-						ClientsManager.AddPoolItem(host, reservedItem);
-					}
-					catch (TorException e)
-					{
-						Logger.LogDebug($"['{host}'][ERROR] Failed to create a new pool item.");
-						Logger.LogError(e);
-					}
-					catch (Exception e)
-					{
-						Logger.LogTrace($"['{host}'][EXCEPTION] {e}");
-						throw;
-					}
-				}
+				ClientsManager.AddPoolItem(host, poolItem);
 			}
-			else
+			catch (TorException e)
 			{
-				Logger.LogTrace($"[OLD {reservedItem}]['{request.RequestUri}'] Re-use existing Tor SOCKS5 connection.");
+				Logger.LogDebug($"['{host}'][ERROR] Failed to create a new pool item.");
+				Logger.LogError(e);
+				throw;
+			}
+			catch (Exception e)
+			{
+				Logger.LogTrace($"['{host}'][EXCEPTION] {e}");
+				throw;
 			}
 
-			Logger.LogTrace($"< reservedItem='{reservedItem}'; Context: existing hostItems = {string.Join(',', ClientsManager.GetItemsCopy(host).Select(x => x.ToString()).ToArray())}.");
-			return reservedItem;
+			Logger.LogTrace($"< poolItem='{poolItem}'; Context: existing hostItems = {string.Join(',', ClientsManager.GetItemsCopy(host).Select(x => x.ToString()).ToArray())}.");
+			return poolItem;
 		}
 
 		/// <inheritdoc cref="TorSocks5ClientFactory.MakeAsync(bool, string, int, bool, CancellationToken)"/>
@@ -235,7 +238,7 @@ namespace WalletWasabi.Tor.Socks5
 		private async static Task<HttpResponseMessage> SendCoreAsync(Stream transportStream, HttpRequestMessage request, CancellationToken token = default)
 		{
 			await TorHttpRequestPreprocessor.PreprocessAsync(request, token).ConfigureAwait(false);
-			string requestString = await TorHttpRequestMessageSerializer.ToStringAsync(request).ConfigureAwait(false);
+			string requestString = await TorHttpRequestMessageSerializer.ToStringAsync(request, token).ConfigureAwait(false);
 			byte[] bytes = Encoding.UTF8.GetBytes(requestString);
 
 			await transportStream.WriteAsync(bytes.AsMemory(0, bytes.Length), token).ConfigureAwait(false);

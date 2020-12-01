@@ -32,8 +32,8 @@ namespace WalletWasabi.Tor.Socks5
 		/// <summary>
 		/// TODO.
 		/// </summary>
-		/// <param name="host"></param>
-		/// <param name="poolItem"></param>
+		/// <param name="host">TODO.</param>
+		/// <param name="poolItem">TODO.</param>
 		/// <returns><c>true</c> when the new item was added, <c>false</c> otherwise.</returns>
 		public bool AddPoolItem(string host, IPoolItem poolItem)
 		{
@@ -66,6 +66,12 @@ namespace WalletWasabi.Tor.Socks5
 			}
 		}
 
+		/// <summary>
+		/// Gets reserved pool item to use, if any.
+		/// </summary>
+		/// <param name="host">URI's host value.</param>
+		/// <param name="isolateStream">TODO.</param>
+		/// <returns>Whether a new pool item can be added to <see cref="TorPoolItemManager"/> and reserved pool item to use, if any.</returns>
 		public (bool canBeAdded, IPoolItem? poolItem) GetPoolItem(string host, bool isolateStream)
 		{
 			lock (ClientsLock)
