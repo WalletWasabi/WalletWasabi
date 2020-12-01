@@ -1,10 +1,9 @@
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using Avalonia.ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 
 namespace WalletWasabi.Fluent.Views.AddWallet.HardwareWallet
 {
-	public class DetectedHardwareWalletView : ReactiveUserControl<DetectedHardwareWalletViewModel>
+	public class DetectedHardwareWalletView : UserControl
 	{
 		public DetectedHardwareWalletView()
 		{

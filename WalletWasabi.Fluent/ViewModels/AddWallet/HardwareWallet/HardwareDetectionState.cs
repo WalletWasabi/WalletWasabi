@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
@@ -19,12 +20,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			Network = network;
 			Client = new HwiClient(network);
 
-			Devices = Enumerable.Empty<Hwi.Models.HwiEnumerateEntry>();
+			Devices = Enumerable.Empty<HwiEnumerateEntry>();
 		}
 
-		public IEnumerable<Hwi.Models.HwiEnumerateEntry> Devices { get; private set; }
+		public IEnumerable<HwiEnumerateEntry> Devices { get; private set; }
 
-		public Hwi.Models.HwiEnumerateEntry? SelectedDevice { get; set; }
+		public HwiEnumerateEntry? SelectedDevice { get; set; }
 
 		public WalletManager WalletManager { get; }
 

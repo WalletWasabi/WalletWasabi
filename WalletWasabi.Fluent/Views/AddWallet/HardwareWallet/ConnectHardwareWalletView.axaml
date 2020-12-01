@@ -3,11 +3,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:h="using:WalletWasabi.Fluent.Helpers"
-             xmlns:conv="using:WalletWasabi.Fluent.Converters"
-             xmlns:svg="clr-namespace:Svg.Skia.Avalonia;assembly=Svg.Skia.Avalonia"
+             xmlns:hardwareWallets="clr-namespace:WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets;assembly=WalletWasabi.Gui"
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
+             x:DataType="hardwareWallets:ConnectHardwareWalletViewModel"
+             x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.HardwareWallet.ConnectHardwareWalletView">
 
   <c:ContentArea Title="Hardware Wallet"
