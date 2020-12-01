@@ -13,7 +13,15 @@ using AutoNotify;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-	[NavigationMetaData(Searchable = true)]
+	[NavigationMetaData(
+		Searchable = true,
+		Title = "About Wasabi",
+		Caption = "Displays all the current info about the app",
+		IconName = "info_regular",
+		Order = 4,
+		Category = "General",
+		Keywords = new [] { "About", "Software","Version", "Source", "Code", "Github", "Status", "Stats", "Tor", "Onion", "Bug", "Report", "FAQ","Questions,", "Docs","Documentation", "Link", "Links"," Help" },
+		NavBarPosition = NavBarPosition.None)]
 	public partial class AboutViewModel : RoutableViewModel
 	{
 		[AutoNotify]
