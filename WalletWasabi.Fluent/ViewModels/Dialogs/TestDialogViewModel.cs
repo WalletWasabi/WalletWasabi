@@ -11,15 +11,15 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		{
 			_message = message;
 
-			var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
-
-			var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
-
-			var nextCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
-
-			BackCommand = ReactiveCommand.Create(() => Navigate().Back(), backCommandCanExecute);
-			CancelCommand = ReactiveCommand.Create(() => Close(false), cancelCommandCanExecute);
-			NextCommand = ReactiveCommand.Create(() => Close(true), nextCommandCanExecute);
+			BackCommand = ReactiveCommand.Create(
+				() => Navigate().Back(),
+				this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler));
+			CancelCommand = ReactiveCommand.Create(
+				() => Close(false),
+				this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler));
+			NextCommand = ReactiveCommand.Create(
+				() => Close(true),
+				this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler));
 		}
 
 		public string Message
@@ -30,13 +30,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		protected override void OnDialogClosed()
 		{
-			// TODO: Disable when using Dialog inside DialogScreenViewModel / Settings
-			// NavigateTo(new SettingsPageViewModel(NavigationState), NavigationTarget.HomeScreen, true);
 		}
 
 		public void Close()
 		{
-			// TODO: Dialog.xaml back Button binding to Close() method on base class which is protected so exception is thrown.
 			Close(false);
 		}
 	}
