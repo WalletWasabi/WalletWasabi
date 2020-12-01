@@ -9,7 +9,6 @@ using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using AutoNotify;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
