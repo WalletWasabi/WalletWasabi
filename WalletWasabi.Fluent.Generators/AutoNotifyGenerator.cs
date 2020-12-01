@@ -77,8 +77,7 @@ namespace WalletWasabi.Fluent
 
             string namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
 
-            var source = new StringBuilder($@"
-namespace {namespaceName}
+            var source = new StringBuilder($@"namespace {namespaceName}
 {{
     public partial class {classSymbol.Name} : {notifySymbol.ToDisplayString()}
     {{
