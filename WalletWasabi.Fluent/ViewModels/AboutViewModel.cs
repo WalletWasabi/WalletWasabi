@@ -9,11 +9,15 @@ using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using AutoNotify;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-	public class AboutViewModel : RoutableViewModel
+	public partial class AboutViewModel : RoutableViewModel
 	{
+		[AutoNotify]
+		private bool _test;
+
 		public AboutViewModel()
 		{
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
