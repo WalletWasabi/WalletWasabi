@@ -221,45 +221,6 @@ namespace WalletWasabi.Tor.Socks5
 			return reservedItem;
 		}
 
-		private async static Task<HttpResponseMessage> SendCoreAsync(Stream transportStream, HttpRequestMessage request, CancellationToken token = default)
-		{
-			request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
-
-			// https://tools.ietf.org/html/rfc7230#section-3.3.2
-			// A user agent SHOULD send a Content - Length in a request message when
-			// no Transfer-Encoding is sent and the request method defines a meaning
-			// for an enclosed payload body. For example, a Content - Length header
-			// field is normally sent in a POST request even when the value is 0
-			// (indicating an empty payload body). A user agent SHOULD NOT send a
-			// Content - Length header field when the request message does not contain
-			// a payload body and the method semantics do not anticipate such a
-			// body.
-			if (request.Method == HttpMethod.Post)
-			{
-				if (request.Headers.TransferEncoding.Count == 0)
-				{
-					if (request.Content is null)
-					{
-						request.Content = new ByteArrayContent(Array.Empty<byte>()); // dummy empty content
-						request.Content.Headers.ContentLength = 0;
-					}
-					else
-					{
-						request.Content.Headers.ContentLength ??= (await request.Content.ReadAsStringAsync(token).ConfigureAwait(false)).Length;
-					}
-				}
-			}
-
-			string requestString = await request.ToHttpStringAsync().ConfigureAwait(false);
-
-			var bytes = Encoding.UTF8.GetBytes(requestString);
-
-			await transportStream.WriteAsync(bytes.AsMemory(0, bytes.Length), token).ConfigureAwait(false);
-			await transportStream.FlushAsync(token).ConfigureAwait(false);
-
-			return await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method).ConfigureAwait(false);
-		}
-
 		/// <inheritdoc cref="TorSocks5ClientFactory.MakeAsync(bool, string, int, bool, CancellationToken)"/>
 		private Task<TorConnection> NewSocks5ClientAsync(HttpRequestMessage request, bool useSsl, bool isolateStream, CancellationToken token = default)
 		{
@@ -268,13 +229,19 @@ namespace WalletWasabi.Tor.Socks5
 			string host = GetRequestHost(request);
 			int port = request.RequestUri!.Port;
 
-			// https://tools.ietf.org/html/rfc7230#section-2.6
-			// Intermediaries that process HTTP messages (i.e., all intermediaries
-			// other than those acting as tunnels) MUST send their own HTTP - version
-			// in forwarded messages.
-			request.Version = HttpProtocol.HTTP11.Version;
-
 			return TorSocks5ClientFactory.MakeAsync(isolateStream, host, port, useSsl, token);
+		}
+
+		private async static Task<HttpResponseMessage> SendCoreAsync(Stream transportStream, HttpRequestMessage request, CancellationToken token = default)
+		{
+			await TorHttpRequestPreprocessor.PreprocessAsync(request, token).ConfigureAwait(false);
+			string requestString = await TorHttpRequestMessageSerializer.ToStringAsync(request).ConfigureAwait(false);
+			byte[] bytes = Encoding.UTF8.GetBytes(requestString);
+
+			await transportStream.WriteAsync(bytes.AsMemory(0, bytes.Length), token).ConfigureAwait(false);
+			await transportStream.FlushAsync(token).ConfigureAwait(false);
+
+			return await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method).ConfigureAwait(false);
 		}
 
 		private static string GetRequestHost(HttpRequestMessage request)
