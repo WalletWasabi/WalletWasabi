@@ -73,7 +73,10 @@ namespace WalletWasabi.Services
 			{
 				// Signal to the other instance, that there was an attempt to start the software.
 				using TcpClient client = new TcpClient();
-				await client.ConnectAsync(IPAddress.Loopback, Port, DisposeCts.Token).ConfigureAwait(false);
+				using CancellationTokenSource timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+				using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(DisposeCts.Token, timeoutCts.Token);
+
+				await client.ConnectAsync(IPAddress.Loopback, Port, cts.Token).ConfigureAwait(false);
 				// I was able to signal to the other instance successfully so just continue.
 			}
 			catch (Exception)
