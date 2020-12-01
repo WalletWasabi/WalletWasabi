@@ -1,10 +1,9 @@
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using Avalonia.ReactiveUI;
-using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Views
 {
-	public class HomePageView : ReactiveUserControl<HomePageViewModel>
+	public class HomePageView : UserControl
 	{
 		public HomePageView()
 		{

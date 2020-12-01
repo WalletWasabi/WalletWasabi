@@ -35,7 +35,7 @@
                   <TextBlock Text="{Binding Title}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0 0 0 15" />
                   <PathIcon Width="28" Height="28" Opacity="0.8">
                     <PathIcon.Data>
-                      <Binding Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                      <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
                     </PathIcon.Data>
                   </PathIcon>
                 </Panel>

@@ -17,15 +17,13 @@ namespace WalletWasabi.Fluent.ViewModels
 		private WalletViewModelBase? _selectedItem;
 		private ObservableCollection<WalletViewModelBase> _items;
 		private readonly Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
-		private readonly NavigationStateViewModel _navigationState;
 		private bool _anyWalletStarted;
 
-		public WalletManagerViewModel(NavigationStateViewModel navigationState, WalletManager walletManager, UiConfig uiConfig)
+		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig)
 		{
 			Model = walletManager;
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 			_items = new ObservableCollection<WalletViewModelBase>();
-			_navigationState = navigationState;
 
 			Observable
 				.FromEventPattern<WalletState>(walletManager, nameof(WalletManager.WalletStateChanged))
@@ -47,20 +45,19 @@ namespace WalletWasabi.Fluent.ViewModels
 						}
 					}
 
-					AnyWalletStarted = Items.OfType<WalletViewModelBase>().Any(x => x.WalletState == WalletState.Started);
+					AnyWalletStarted = Items.Any(y => y.WalletState == WalletState.Started);
 				});
 
 			Observable
 				.FromEventPattern<Wallet>(walletManager, nameof(WalletManager.WalletAdded))
 				.Select(x => x.EventArgs)
-				.Where(x => x is { })
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(
 					wallet =>
 				{
 					WalletViewModelBase vm = (wallet.State <= WalletState.Starting)
-						? ClosedWalletViewModel.Create(_navigationState, walletManager, wallet)
-						: WalletViewModel.Create(_navigationState, uiConfig, wallet);
+						? ClosedWalletViewModel.Create(walletManager, wallet)
+						: WalletViewModel.Create(uiConfig, wallet);
 
 					InsertWallet(vm);
 				});
@@ -109,7 +106,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				throw new Exception("Wallet already opened.");
 			}
 
-			var walletViewModel = WalletViewModel.Create(_navigationState, uiConfig, wallet);
+			var walletViewModel = WalletViewModel.Create(uiConfig, wallet);
 
 			InsertWallet(walletViewModel);
 
@@ -141,7 +138,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			foreach (var wallet in walletManager.GetWallets())
 			{
-				InsertWallet(ClosedWalletViewModel.Create(_navigationState, walletManager, wallet));
+				InsertWallet(ClosedWalletViewModel.Create(walletManager, wallet));
 			}
 		}
 	}

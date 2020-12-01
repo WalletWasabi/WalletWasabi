@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Search"
              xmlns:search="using:WalletWasabi.Fluent.ViewModels.Search"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
@@ -11,7 +11,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:SearchPageViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.SearchPageView">
+             x:Class="WalletWasabi.Fluent.Views.Search.SearchPageView">
   <c:ContentArea Title="Search" Caption="You can search for settings or other options present in Wasabi Wallet">
     <DockPanel>
       <Panel DockPanel.Dock="Top" Margin="0 0 0 0">
@@ -28,8 +28,7 @@
           </TextBox.InnerLeftContent>
         </TextBox>
       </Panel>
-      <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-        <Panel>
+      <Panel>
           <ItemsControl HorizontalAlignment="Left" Items="{Binding SearchResults}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
@@ -38,8 +37,8 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="search:SearchResult">
-                <DockPanel Margin="0,0,0,8">
-                  <Panel Margin="8,0,8,0"  DockPanel.Dock="Top">
+                <DockPanel Margin="0,0,0,30">
+                  <Panel Margin="8 0"  DockPanel.Dock="Top">
                     <Label Classes="h6 bold" DataContext="{Binding Category}" Content="{Binding Title}" />
                   </Panel>
                   <ItemsControl HorizontalAlignment="Left" Items="{Binding Items}">
@@ -50,11 +49,11 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
-                        <Button Classes="option" Command="{Binding OpenCommand}" Height="100" Width="190" Margin="8">
+                        <Button Classes="option" Command="{Binding OpenCommand}" Height="115" Width="188" Margin="4">
                           <Panel>
                             <PathIcon Width="20" Height="20" Opacity="0.8" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="12,12,0,0">
                               <PathIcon.Data>
-                                <Binding Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                                <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
                               </PathIcon.Data>
                             </PathIcon>
                             <TextBlock Text="{Binding Title}" Classes="h7 bold" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="48 14 0 0" />
@@ -75,7 +74,6 @@
                      VerticalAlignment="Center"
                      HorizontalAlignment="Center"/>
         </Panel>
-      </ScrollViewer>
     </DockPanel>
   </c:ContentArea>
 </UserControl>

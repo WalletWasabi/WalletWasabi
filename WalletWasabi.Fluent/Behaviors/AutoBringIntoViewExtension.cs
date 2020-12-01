@@ -20,25 +20,25 @@ namespace WalletWasabi.Fluent.Behaviors
 				.OfType<IControl>()
 				.Subscribe(
 					x =>
-				{
-					static void BringParentToView(IInputElement ie)
 					{
-						if (ie.VisualParent is IInputElement parent && parent.IsKeyboardFocusWithin)
+						static void BringParentToView(IInputElement ie)
 						{
-							BringParentToView(parent);
+							if (ie.VisualParent is IInputElement parent && parent.IsKeyboardFocusWithin)
+							{
+								BringParentToView(parent);
+							}
+
+							if (ie is IControl ic)
+							{
+								ic.BringIntoView();
+							}
 						}
 
-						if (ie is IControl ic)
+						if (x is IInputElement ie)
 						{
-							ic.BringIntoView();
+							BringParentToView(ie);
 						}
-					}
-
-					if (x is IInputElement ie)
-					{
-						BringParentToView(ie);
-					}
-				});
+					});
 			}
 		}
 	}

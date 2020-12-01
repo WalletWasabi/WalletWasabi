@@ -1,12 +1,11 @@
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using Avalonia.ReactiveUI;
-using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Views
 {
-	public class SearchPageView : ReactiveUserControl<SearchPageViewModel>
+	public class AboutView : UserControl
 	{
-		public SearchPageView()
+		public AboutView()
 		{
 			InitializeComponent();
 		}

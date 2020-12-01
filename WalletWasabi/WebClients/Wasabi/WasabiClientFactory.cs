@@ -23,8 +23,16 @@ namespace WalletWasabi.WebClients.Wasabi
 			TorEndpoint = torEndPoint;
 			BackendUriGetter = backendUriGetter;
 
-			SharedTorHttpClient = new TorHttpClient(BackendUriGetter.Invoke(), TorEndpoint, isolateStream: false);
-			SharedWasabiClient = new WasabiClient(SharedTorHttpClient);
+			if (torEndPoint is { })
+			{
+				BackendHttpClient = new TorHttpClient(BackendUriGetter, TorEndpoint, isolateStream: false);
+			}
+			else
+			{
+				BackendHttpClient = new ClearnetHttpClient(BackendUriGetter);
+			}
+
+			SharedWasabiClient = new WasabiClient(BackendHttpClient);
 		}
 
 		/// <summary>Tor SOCKS5 endpoint.</summary>
@@ -37,8 +45,8 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <summary>Whether Tor is enabled or disabled.</summary>
 		public bool IsTorEnabled => TorEndpoint is { };
 
-		/// <summary>Shared instance of <see cref="TorHttpClient"/>.</summary>
-		public TorHttpClient SharedTorHttpClient { get; }
+		/// <summary>Backend HTTP client, shared instance.</summary>
+		private IRelativeHttpClient BackendHttpClient { get; }
 
 		/// <summary>Shared instance of <see cref="WasabiClient"/>.</summary>
 		public WasabiClient SharedWasabiClient { get; }
@@ -49,6 +57,29 @@ namespace WalletWasabi.WebClients.Wasabi
 		public TorHttpClient NewTorHttpClient(bool isolateStream = true)
 		{
 			return new TorHttpClient(BackendUriGetter.Invoke(), TorEndpoint, isolateStream: isolateStream);
+		}
+
+		/// <summary>
+		/// Creates new <see cref="TorHttpClient"/> or <see cref="ClearnetHttpClient"/> based on user settings.
+		/// </summary>
+		public IRelativeHttpClient NewHttpClient(Func<Uri> baseUriFn, bool isolateStream)
+		{
+			if (TorEndpoint is { })
+			{
+				return new TorHttpClient(baseUriFn, TorEndpoint, isolateStream);
+			}
+			else
+			{
+				return new ClearnetHttpClient(baseUriFn);
+			}
+		}
+
+		/// <summary>
+		/// Creates new <see cref="TorHttpClient"/>.
+		/// </summary>
+		public TorHttpClient NewBackendTorHttpClient(bool isolateStream)
+		{
+			return new TorHttpClient(BackendUriGetter, TorEndpoint, isolateStream);
 		}
 
 		// Protected implementation of Dispose pattern.
@@ -62,7 +93,10 @@ namespace WalletWasabi.WebClients.Wasabi
 			if (disposing)
 			{
 				// Dispose managed state (managed objects).
-				SharedTorHttpClient.Dispose();
+				if (BackendHttpClient is IDisposable httpClient)
+				{
+					httpClient.Dispose();
+				}
 			}
 
 			_disposed = true;
@@ -75,14 +109,6 @@ namespace WalletWasabi.WebClients.Wasabi
 
 			// Suppress finalization.
 			GC.SuppressFinalize(this);
-		}
-
-		/// <summary>
-		/// Creates new <see cref="TorHttpClient"/>.
-		/// </summary>
-		public TorHttpClient NewBackendTorHttpClient(bool isolateStream)
-		{
-			return new TorHttpClient(BackendUriGetter, TorEndpoint, isolateStream);
 		}
 	}
 }

@@ -83,7 +83,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var network = global.RpcClient.Network;
 			var serviceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelSome.ToString(), 2, 21, 50, regTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
 
-			var dir = Tests.Common.GetWorkDir(callerFilePath, callerMemberName);
+			var dir = Helpers.Common.GetWorkDir(callerFilePath, callerMemberName);
 			var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
 			var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
 			var mempoolService = new MempoolService();

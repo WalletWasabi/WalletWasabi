@@ -1,7 +1,8 @@
 using System;
-using System.Windows.Input;
+using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Search
 {
@@ -14,9 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			SearchCategory category,
 			string keywords,
 			string iconName,
-			NavigationStateViewModel navigationState,
-			NavigationTarget navigationTarget,
-			Func<RoutableViewModel> createTargetView) : base(navigationState, navigationTarget)
+			Func<Task<RoutableViewModel>> createTargetView)
 		{
 			Title = title;
 			Caption = caption;
@@ -24,7 +23,15 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			Category = category;
 			Keywords = keywords;
 			IconName = iconName;
-			OpenCommand = ReactiveCommand.Create(() => NavigateTo(createTargetView(), navigationTarget));
+			SelectionMode = NavBarItemSelectionMode.Button;
+
+			OpenCommand = ReactiveCommand.CreateFromTask(
+				async () =>
+			{
+				var view = await createTargetView();
+
+				Navigate(view.DefaultTarget).To(view);
+			});
 		}
 
 		public override string IconName { get; }

@@ -56,7 +56,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create wallet service.
-			var workDir = Tests.Common.GetWorkDir();
+			var workDir = Helpers.Common.GetWorkDir();
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
@@ -536,7 +536,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create wallet service.
-			var workDir = Tests.Common.GetWorkDir();
+			var workDir = Helpers.Common.GetWorkDir();
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
@@ -710,7 +710,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create wallet service.
-			var workDir = Tests.Common.GetWorkDir();
+			var workDir = Helpers.Common.GetWorkDir();
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
