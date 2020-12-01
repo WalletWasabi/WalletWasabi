@@ -51,7 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				// Transaction broadcaster is not ready while backend it not connected.
+				// Transaction broadcaster is not ready while backend is not connected.
 				if (transactionBroadcaster is null)
 				{
 					return;
