@@ -13,6 +13,7 @@ using AutoNotify;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
+	[NavigationMetaData(Searchable = true)]
 	public partial class AboutViewModel : RoutableViewModel
 	{
 		[AutoNotify]
