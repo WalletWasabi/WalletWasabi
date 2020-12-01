@@ -73,7 +73,7 @@ namespace WalletWasabi.Services
 			{
 				// Signal to the other instance, that there was an attempt to start the software.
 				using TcpClient client = new TcpClient();
-				await client.ConnectAsync(IPAddress.Loopback, Port).ConfigureAwait(false);
+				await client.ConnectAsync(IPAddress.Loopback, Port, DisposeCts.Token).ConfigureAwait(false);
 				// I was able to signal to the other instance successfully so just continue.
 			}
 			catch (Exception)
@@ -104,13 +104,14 @@ namespace WalletWasabi.Services
 			var task = TaskStartTcpListener;
 			if (task is null)
 			{
-				Logger.LogError("This is impossible!");
-				return;
+				throw new InvalidOperationException("This is impossible!");
 			}
 
-			var listener = new TcpListener(IPAddress.Loopback, Port);
+			TcpListener? listener = null;
 			try
 			{
+				listener = new(IPAddress.Loopback, Port);
+
 				// This can throw an exception if the port is already open.
 				listener.Start();
 
@@ -122,6 +123,7 @@ namespace WalletWasabi.Services
 
 				while (!stoppingToken.IsCancellationRequested)
 				{
+					// In case of cancellation, listener.Stop will cause AcceptTcpClientAsync to throw, thus cancelling it.
 					await listener.AcceptTcpClientAsync().ConfigureAwait(false);
 					Logger.LogInfo($"Detected another Wasabi instance.");
 					OtherInstanceStarted?.Invoke(this, EventArgs.Empty);
@@ -135,7 +137,7 @@ namespace WalletWasabi.Services
 			}
 			finally
 			{
-				listener.Stop();
+				listener?.Stop();
 			}
 		}
 
