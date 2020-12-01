@@ -24,6 +24,30 @@ namespace WalletWasabi.Fluent
 		Bottom
 	}
 
+	public sealed class NavigationMetaData
+	{
+		public bool Searchable { get; init; }
+
+		public string Title { get; init; }
+
+		public string Caption { get; init; }
+
+		public string IconName { get; init; }
+
+		public int Order { get; init; }
+
+		public string Category { get; init; }
+
+		public string[] Keywords { get; init; }
+
+		public NavBarPosition NavBarPosition {get; init; }
+	}
+
+	public interface INavigationMetaDataItem
+	{
+		public NavigationMetaData MetaData { get; }
+	}
+
 	[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
 	public sealed class NavigationMetaDataAttribute : Attribute
 	{
@@ -64,152 +88,81 @@ namespace WalletWasabi.Fluent
 				return;
 			}
 
-
-
-
-			// we're going to create a new compilation that contains the attribute.
-			// TODO: we should allow source generators to provide source during initialize, so that this step isn't required.
 			CSharpParseOptions options = (context.Compilation as CSharpCompilation).SyntaxTrees[0].Options as CSharpParseOptions;
             Compilation compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(SourceText.From(AttributeText, Encoding.UTF8), options));
+            INamedTypeSymbol attributeSymbol = compilation.GetTypeByMetadataName("WalletWasabi.Fluent.NavigationMetaDataAttribute");
+            INamedTypeSymbol metadataItemSymbol = compilation.GetTypeByMetadataName("WalletWasabi.Fluent.INavigationMetaDataItem");
+            INamedTypeSymbol metadataSymbol = compilation.GetTypeByMetadataName("WalletWasabi.Fluent.NavigationMetaData");
 
-            // get the newly bound attribute, and INotifyPropertyChanged
-            INamedTypeSymbol attributeSymbol = compilation.GetTypeByMetadataName("AutoNotify.AutoNotifyAttribute");
-            INamedTypeSymbol notifySymbol = compilation.GetTypeByMetadataName("System.ComponentModel.INotifyPropertyChanged");
+            List<INamedTypeSymbol> namedTypeSymbols = new();
 
-            // loop over the candidate fields, and keep the ones that are actually annotated
-            List<IFieldSymbol> fieldSymbols = new List<IFieldSymbol>();
-            foreach (FieldDeclarationSyntax field in receiver.CandidateFields)
+            foreach (var candidateClass in receiver.CandidateClasses)
             {
-                SemanticModel model = compilation.GetSemanticModel(field.SyntaxTree);
-                foreach (VariableDeclaratorSyntax variable in field.Declaration.Variables)
+                SemanticModel model = compilation.GetSemanticModel(candidateClass.SyntaxTree);
+                var namedTypeSymbol = model.GetDeclaredSymbol(candidateClass);
+
+                if (namedTypeSymbol.GetAttributes().Any(ad => ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default)))
                 {
-                    // Get the symbol being decleared by the field, and keep it if its annotated
-                    IFieldSymbol fieldSymbol = model.GetDeclaredSymbol(variable) as IFieldSymbol;
-                    if (fieldSymbol.GetAttributes().Any(ad => ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default)))
-                    {
-                        fieldSymbols.Add(fieldSymbol);
-                    }
+	                namedTypeSymbols.Add(namedTypeSymbol);
                 }
             }
 
-            // group the fields by class, and generate the source
-            foreach (IGrouping<INamedTypeSymbol, IFieldSymbol> group in fieldSymbols.GroupBy(f => f.ContainingType))
+            foreach (var namedTypeSymbol in namedTypeSymbols)
             {
-                string classSource = ProcessClass(group.Key, group.ToList(), attributeSymbol, notifySymbol, context);
-               context.AddSource($"{group.Key.Name}_NavigationMetaData.cs", SourceText.From(classSource, Encoding.UTF8));
+                string classSource = ProcessClass(namedTypeSymbol, attributeSymbol, metadataItemSymbol, metadataSymbol, context);
+                context.AddSource($"{namedTypeSymbol.Name}_NavigationMetaData.cs", SourceText.From(classSource, Encoding.UTF8));
             }
-
-
-            
         }
 
-        private string ProcessClass(INamedTypeSymbol classSymbol, List<IFieldSymbol> fields, ISymbol attributeSymbol, ISymbol notifySymbol, GeneratorExecutionContext context)
+        private string ProcessClass(INamedTypeSymbol namedTypeSymbol, ISymbol attributeSymbol, ISymbol metadataItemSymbol, ISymbol metadataSymbol, GeneratorExecutionContext context)
         {
-            if (!classSymbol.ContainingSymbol.Equals(classSymbol.ContainingNamespace, SymbolEqualityComparer.Default))
+            if (!namedTypeSymbol.ContainingSymbol.Equals(namedTypeSymbol.ContainingNamespace, SymbolEqualityComparer.Default))
             {
-                return null; //TODO: issue a diagnostic that it must be top level
+                return null; // TODO: issue a diagnostic that it must be top level
             }
 
-            string namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
+            string namespaceName = namedTypeSymbol.ContainingNamespace.ToDisplayString();
 
-            // begin building the generated source
             StringBuilder source = new StringBuilder($@"
 namespace {namespaceName}
 {{
-    public partial class {classSymbol.Name} : {notifySymbol.ToDisplayString()}
+    public partial class {namedTypeSymbol.Name} : {metadataItemSymbol.ToDisplayString()}
     {{
 ");
 
-            // if the class doesn't implement INotifyPropertyChanged already, add it
-            if (!classSymbol.Interfaces.Contains(notifySymbol))
-            {
-                source.Append("public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;");
-            }
+            AttributeData attributeData = namedTypeSymbol.GetAttributes().Single(ad => ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default));
 
-            // create properties for each field
-            foreach (IFieldSymbol fieldSymbol in fields)
+            source.Append($@"        public {metadataSymbol.ToDisplayString()} MetaData {{ get; }} = new()
+        {{
+");
+            var length = attributeData.NamedArguments.Length;
+            for (int i = 0; i < length; i++)
             {
-                ProcessField(source, fieldSymbol, attributeSymbol);
-            }
+	            var namedArgument = attributeData.NamedArguments[i];
 
-            source.Append("} }");
+	            source.AppendLine($"            {namedArgument.Key} = " +
+	                              $"{(namedArgument.Value.Kind == TypedConstantKind.Array ? "new [] " : "")}" +
+	                              $"{namedArgument.Value.ToCSharpString()}{(i < length - 1 ? "," : "")}");
+            }
+			source.Append($@"        }};
+");
+
+			source.Append($@"    }}
+}}");
+
             return source.ToString();
         }
 
-        private void ProcessField(StringBuilder source, IFieldSymbol fieldSymbol, ISymbol attributeSymbol)
+        private class SyntaxReceiver : ISyntaxReceiver
         {
-            // get the name and type of the field
-            string fieldName = fieldSymbol.Name;
-            ITypeSymbol fieldType = fieldSymbol.Type;
+            public List<ClassDeclarationSyntax> CandidateClasses { get; } = new();
 
-            // get the AutoNotify attribute from the field, and any associated data
-            AttributeData attributeData = fieldSymbol.GetAttributes().Single(ad => ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default));
-            TypedConstant overridenNameOpt = attributeData.NamedArguments.SingleOrDefault(kvp => kvp.Key == "PropertyName").Value;
-
-            string propertyName = ChooseName(fieldName, overridenNameOpt);
-            if (propertyName.Length == 0 || propertyName == fieldName)
-            {
-                //TODO: issue a diagnostic that we can't process this field
-                return;
-            }
-
-            source.Append($@"
-public {fieldType} {propertyName}
-{{
-    get
-    {{
-        return this.{fieldName};
-    }}
-    set
-    {{
-        this.{fieldName} = value;
-        this.PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof({propertyName})));
-    }}
-}}
-");
-
-			static string ChooseName(string fieldName, TypedConstant overridenNameOpt)
-            {
-                if (!overridenNameOpt.IsNull)
-                {
-                    return overridenNameOpt.Value.ToString();
-                }
-
-                fieldName = fieldName.TrimStart('_');
-                if (fieldName.Length == 0)
-				{
-					return string.Empty;
-				}
-
-				if (fieldName.Length == 1)
-				{
-					return fieldName.ToUpper();
-				}
-
-#pragma warning disable IDE0057 // Use range operator
-				return fieldName.Substring(0, 1).ToUpper() + fieldName.Substring(1);
-#pragma warning restore IDE0057 // Use range operator
-			}
-
-        }
-
-        /// <summary>
-        /// Created on demand before each generation pass
-        /// </summary>
-        class SyntaxReceiver : ISyntaxReceiver
-        {
-            public List<FieldDeclarationSyntax> CandidateFields { get; } = new List<FieldDeclarationSyntax>();
-
-            /// <summary>
-            /// Called for every syntax node in the compilation, we can inspect the nodes and save any information useful for generation
-            /// </summary>
             public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
             {
-                // any field with at least one attribute is a candidate for property generation
-                if (syntaxNode is FieldDeclarationSyntax fieldDeclarationSyntax
-                    && fieldDeclarationSyntax.AttributeLists.Count > 0)
+                if (syntaxNode is ClassDeclarationSyntax classDeclarationSyntax
+                    && classDeclarationSyntax.AttributeLists.Count > 0)
                 {
-                    CandidateFields.Add(fieldDeclarationSyntax);
+                    CandidateClasses.Add(classDeclarationSyntax);
                 }
             }
         }
