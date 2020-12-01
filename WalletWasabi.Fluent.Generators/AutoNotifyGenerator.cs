@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,7 +13,7 @@ namespace  WalletWasabi.Fluent.Generators
     {
         private const string AttributeText = @"
 using System;
-namespace AutoNotify
+namespace WalletWasabi.Fluent
 {
     [AttributeUsage(AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
     sealed class AutoNotifyAttribute : Attribute
@@ -24,45 +23,36 @@ namespace AutoNotify
         }
         public string PropertyName { get; set; }
     }
-}
-";
+}";
 
         public void Initialize(GeneratorInitializationContext context)
         {
 			// System.Diagnostics.Debugger.Launch();
-
-			// Register a syntax receiver that will be created for each generation pass
 			context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
         }
 
         public void Execute(GeneratorExecutionContext context)
         {
-            // add the attribute text
             context.AddSource("AutoNotifyAttribute", SourceText.From(AttributeText, Encoding.UTF8));
 
-            // retreive the populated receiver
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver))
 			{
 				return;
 			}
 
-			// we're going to create a new compilation that contains the attribute.
 			// TODO: we should allow source generators to provide source during initialize, so that this step isn't required.
 			CSharpParseOptions options = (context.Compilation as CSharpCompilation).SyntaxTrees[0].Options as CSharpParseOptions;
             Compilation compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(SourceText.From(AttributeText, Encoding.UTF8), options));
 
-            // get the newly bound attribute, and INotifyPropertyChanged
-            INamedTypeSymbol attributeSymbol = compilation.GetTypeByMetadataName("AutoNotify.AutoNotifyAttribute");
+            INamedTypeSymbol attributeSymbol = compilation.GetTypeByMetadataName("WalletWasabi.Fluent.AutoNotifyAttribute");
             INamedTypeSymbol notifySymbol = compilation.GetTypeByMetadataName("System.ComponentModel.INotifyPropertyChanged");
 
-            // loop over the candidate fields, and keep the ones that are actually annotated
             List<IFieldSymbol> fieldSymbols = new List<IFieldSymbol>();
             foreach (FieldDeclarationSyntax field in receiver.CandidateFields)
             {
                 SemanticModel model = compilation.GetSemanticModel(field.SyntaxTree);
                 foreach (VariableDeclaratorSyntax variable in field.Declaration.Variables)
                 {
-                    // Get the symbol being decleared by the field, and keep it if its annotated
                     IFieldSymbol fieldSymbol = model.GetDeclaredSymbol(variable) as IFieldSymbol;
                     if (fieldSymbol.GetAttributes().Any(ad => ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default)))
                     {
@@ -71,7 +61,6 @@ namespace AutoNotify
                 }
             }
 
-            // group the fields by class, and generate the source
             foreach (IGrouping<INamedTypeSymbol, IFieldSymbol> group in fieldSymbols.GroupBy(f => f.ContainingType))
             {
                 string classSource = ProcessClass(group.Key, group.ToList(), attributeSymbol, notifySymbol, context);
@@ -83,26 +72,22 @@ namespace AutoNotify
         {
             if (!classSymbol.ContainingSymbol.Equals(classSymbol.ContainingNamespace, SymbolEqualityComparer.Default))
             {
-                return null; //TODO: issue a diagnostic that it must be top level
+                return null;
             }
 
             string namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
 
-            // begin building the generated source
-            StringBuilder source = new StringBuilder($@"
-namespace {namespaceName}
+            var source = new StringBuilder($@"namespace {namespaceName}
 {{
     public partial class {classSymbol.Name} : {notifySymbol.ToDisplayString()}
     {{
 ");
 
-            // if the class doesn't implement INotifyPropertyChanged already, add it
             if (!classSymbol.Interfaces.Contains(notifySymbol))
             {
                 source.Append("        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;");
             }
 
-            // create properties for each field
             foreach (IFieldSymbol fieldSymbol in fields)
             {
                 ProcessField(source, fieldSymbol, attributeSymbol);
@@ -117,11 +102,8 @@ namespace {namespaceName}
 
         private void ProcessField(StringBuilder source, IFieldSymbol fieldSymbol, ISymbol attributeSymbol)
         {
-            // get the name and type of the field
             string fieldName = fieldSymbol.Name;
             ITypeSymbol fieldType = fieldSymbol.Type;
-
-            // get the AutoNotify attribute from the field, and any associated data
             AttributeData attributeData = fieldSymbol.GetAttributes().Single(ad => ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default));
             TypedConstant overridenNameOpt = attributeData.NamedArguments.SingleOrDefault(kvp => kvp.Key == "PropertyName").Value;
 
@@ -135,14 +117,14 @@ namespace {namespaceName}
             source.Append($@"
         public {fieldType} {propertyName}
         {{
-            get
-            {{
-                return this.{fieldName};
-            }}
+            get => {fieldName};
             set
-            {{
-                this.{fieldName} = value;
-                this.PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof({propertyName})));
+			{{
+				if (Equals({fieldName}, value))
+				{{
+					{fieldName} = value;
+					PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof({propertyName})));
+				}}
             }}
         }}");
 
@@ -171,21 +153,14 @@ namespace {namespaceName}
 
         }
 
-        /// <summary>
-        /// Created on demand before each generation pass
-        /// </summary>
         class SyntaxReceiver : ISyntaxReceiver
         {
             public List<FieldDeclarationSyntax> CandidateFields { get; } = new List<FieldDeclarationSyntax>();
 
-            /// <summary>
-            /// Called for every syntax node in the compilation, we can inspect the nodes and save any information useful for generation
-            /// </summary>
             public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
             {
-                // any field with at least one attribute is a candidate for property generation
-                if (syntaxNode is FieldDeclarationSyntax fieldDeclarationSyntax
-                    && fieldDeclarationSyntax.AttributeLists.Count > 0)
+	            if (syntaxNode is FieldDeclarationSyntax fieldDeclarationSyntax
+	                && fieldDeclarationSyntax.AttributeLists.Count > 0)
                 {
                     CandidateFields.Add(fieldDeclarationSyntax);
                 }

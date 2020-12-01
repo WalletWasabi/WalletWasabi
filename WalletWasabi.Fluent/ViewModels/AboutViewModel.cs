@@ -10,7 +10,6 @@ using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using AutoNotify;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -25,6 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		NavBarPosition = NavBarPosition.None)]
 	public partial class AboutViewModel : RoutableViewModel
 	{
+		// TODO: for testing only
 		[AutoNotify]
 		private bool _test;
 
