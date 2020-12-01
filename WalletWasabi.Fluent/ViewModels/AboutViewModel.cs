@@ -31,6 +31,9 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
+			// TODO: for testing only
+			var metadata = MetaData;
+
 			var interaction = new Interaction<Unit, Unit>();
 			interaction.RegisterHandler(
 				async x =>
