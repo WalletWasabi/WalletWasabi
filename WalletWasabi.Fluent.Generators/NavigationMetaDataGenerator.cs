@@ -118,6 +118,9 @@ namespace WalletWasabi.Fluent
             string namespaceName = namedTypeSymbol.ContainingNamespace.ToDisplayString();
 
             var source = new StringBuilder($@"
+using System;
+using System.Threading.Tasks;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 namespace {namespaceName}
 {{
     public partial class {namedTypeSymbol.Name}
@@ -141,10 +144,12 @@ namespace {namespaceName}
 			source.Append($@"        }};
 ");
 
+			source.Append($@"        public static void Register(Func<Task<RoutableViewModel>> createInstance) => NavigationManager.RegisterRoutable<{namedTypeSymbol.Name}>(MetaData, createInstance);");
+
 			source.Append($@"    }}
 }}");
 
-            return source.ToString();
+			return source.ToString();
         }
 
         private class SyntaxReceiver : ISyntaxReceiver

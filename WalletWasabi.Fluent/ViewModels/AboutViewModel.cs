@@ -28,11 +28,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify]
 		private bool _test;
 
-		public static void Register(Func<Task<RoutableViewModel>> createInstance)
-		{
-			NavigationManager.RegisterRoutable<AboutViewModel>(MetaData, createInstance);
-		}
-
 		public AboutViewModel()
 		{
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
