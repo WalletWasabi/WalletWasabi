@@ -144,7 +144,7 @@ namespace {namespaceName}
 			source.Append($@"        }};
 ");
 
-			source.Append($@"        public static void Register(Func<Task<RoutableViewModel>> createInstance) => NavigationManager.RegisterRoutable<{namedTypeSymbol.Name}>(MetaData, createInstance);");
+			source.AppendLine($@"        public static void Register(Func<Task<RoutableViewModel>> createInstance) => NavigationManager.RegisterRoutable<{namedTypeSymbol.Name}>(MetaData, createInstance);");
 
 			source.Append($@"    }}
 }}");
