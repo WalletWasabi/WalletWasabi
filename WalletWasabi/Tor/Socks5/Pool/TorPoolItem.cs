@@ -45,7 +45,6 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		/// <summary>Unique identifier of the pool item for logging purposes.</summary>
 		private long Id { get; }
 
-
 		public Stream GetTransportStream()
 		{
 			lock (StateLock)
