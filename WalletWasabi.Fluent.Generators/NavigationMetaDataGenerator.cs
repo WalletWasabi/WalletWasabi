@@ -51,22 +51,21 @@ namespace WalletWasabi.Fluent
 
         public void Initialize(GeneratorInitializationContext context)
         {
-			//System.Diagnostics.Debugger.Launch();
-
-			// Register a syntax receiver that will be created for each generation pass
+			// System.Diagnostics.Debugger.Launch();
 			context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
         }
 
         public void Execute(GeneratorExecutionContext context)
         {
-            // add the attribute text
             context.AddSource("NavigationMetaDataAttribute", SourceText.From(AttributeText, Encoding.UTF8));
 
-            // retreive the populated receiver
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver))
 			{
 				return;
 			}
+
+
+
 
 			// we're going to create a new compilation that contains the attribute.
 			// TODO: we should allow source generators to provide source during initialize, so that this step isn't required.
@@ -99,6 +98,9 @@ namespace WalletWasabi.Fluent
                 string classSource = ProcessClass(group.Key, group.ToList(), attributeSymbol, notifySymbol, context);
                context.AddSource($"{group.Key.Name}_NavigationMetaData.cs", SourceText.From(classSource, Encoding.UTF8));
             }
+
+
+            
         }
 
         private string ProcessClass(INamedTypeSymbol classSymbol, List<IFieldSymbol> fields, ISymbol attributeSymbol, ISymbol notifySymbol, GeneratorExecutionContext context)
