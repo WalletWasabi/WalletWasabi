@@ -26,7 +26,7 @@
 15. Upload the files to the pre-release.
 16. Check `This is a pre-release` and press Publish Release.
 17. Add the pre-release link to the Final Test issue.
-18. Share the Final Test issue link with developers an test it for 24 hour.
+18. Share the Final Test issue link with developers an test it for 24 hours.
 19. Every PR which is contained in the release must be at least 24 hours old.
 
 # 3. Packaging
