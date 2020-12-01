@@ -75,7 +75,7 @@ namespace AutoNotify
             foreach (IGrouping<INamedTypeSymbol, IFieldSymbol> group in fieldSymbols.GroupBy(f => f.ContainingType))
             {
                 string classSource = ProcessClass(group.Key, group.ToList(), attributeSymbol, notifySymbol, context);
-               context.AddSource($"{group.Key.Name}_autoNotify.cs", SourceText.From(classSource, Encoding.UTF8));
+               context.AddSource($"{group.Key.Name}_AutoNotify.cs", SourceText.From(classSource, Encoding.UTF8));
             }
         }
 
@@ -99,7 +99,7 @@ namespace {namespaceName}
             // if the class doesn't implement INotifyPropertyChanged already, add it
             if (!classSymbol.Interfaces.Contains(notifySymbol))
             {
-                source.Append("public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;");
+                source.Append("        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;");
             }
 
             // create properties for each field
@@ -108,7 +108,10 @@ namespace {namespaceName}
                 ProcessField(source, fieldSymbol, attributeSymbol);
             }
 
-            source.Append("} }");
+            source.Append($@"
+    }}
+}}");
+
             return source.ToString();
         }
 
@@ -130,19 +133,18 @@ namespace {namespaceName}
             }
 
             source.Append($@"
-public {fieldType} {propertyName}
-{{
-    get
-    {{
-        return this.{fieldName};
-    }}
-    set
-    {{
-        this.{fieldName} = value;
-        this.PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof({propertyName})));
-    }}
-}}
-");
+        public {fieldType} {propertyName}
+        {{
+            get
+            {{
+                return this.{fieldName};
+            }}
+            set
+            {{
+                this.{fieldName} = value;
+                this.PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof({propertyName})));
+            }}
+        }}");
 
 			static string ChooseName(string fieldName, TypedConstant overridenNameOpt)
             {
