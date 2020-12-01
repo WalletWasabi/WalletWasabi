@@ -12,6 +12,7 @@ using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Search;
 using WalletWasabi.Fluent.ViewModels.Settings;
+using WalletWasabi.Fluent.ViewModels.TransactionBroadcaster;
 using WalletWasabi.Legal;
 
 namespace WalletWasabi.Fluent.ViewModels
@@ -178,6 +179,15 @@ namespace WalletWasabi.Fluent.ViewModels
 				          "Docs, Documentation, Link, Links, Help",
 				iconName: "info_regular",
 				createTargetView: async () =>  await Task.FromResult(new AboutViewModel()));
+
+			searchPage.RegisterSearchEntry(
+				title: "Broadcaster",
+				caption: "Broadcast your transactions here",
+				order: 5,
+				category: "General",
+				keywords: "Transaction Id, Input, Output, Amount, Network, Fee, Count, BTC, Signed, Paste, Import, Broadcast, Transaction",
+				iconName: "live_regular",
+				createTargetView: async () =>  await Task.FromResult(new LoadTransactionViewModel()));
 		}
 
 		private static void RegisterRootEntries(
