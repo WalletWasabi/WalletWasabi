@@ -29,7 +29,7 @@ namespace AutoNotify
 
         public void Initialize(GeneratorInitializationContext context)
         {
-			//System.Diagnostics.Debugger.Launch();
+			// System.Diagnostics.Debugger.Launch();
 
 			// Register a syntax receiver that will be created for each generation pass
 			context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
