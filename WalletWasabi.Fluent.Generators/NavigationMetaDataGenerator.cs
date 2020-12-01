@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -112,7 +111,7 @@ namespace WalletWasabi.Fluent
         {
             if (!namedTypeSymbol.ContainingSymbol.Equals(namedTypeSymbol.ContainingNamespace, SymbolEqualityComparer.Default))
             {
-                return null; // TODO: issue a diagnostic that it must be top level
+                return null;
             }
 
             string namespaceName = namedTypeSymbol.ContainingNamespace.ToDisplayString();
