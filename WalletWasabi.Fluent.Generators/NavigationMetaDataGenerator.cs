@@ -43,11 +43,6 @@ namespace WalletWasabi.Fluent
 		public NavBarPosition NavBarPosition {get; init; }
 	}
 
-	public interface INavigationMetaDataItem
-	{
-		public NavigationMetaData MetaData { get; }
-	}
-
 	[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
 	public sealed class NavigationMetaDataAttribute : Attribute
 	{
@@ -91,7 +86,6 @@ namespace WalletWasabi.Fluent
 			CSharpParseOptions options = (context.Compilation as CSharpCompilation).SyntaxTrees[0].Options as CSharpParseOptions;
             Compilation compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(SourceText.From(AttributeText, Encoding.UTF8), options));
             INamedTypeSymbol attributeSymbol = compilation.GetTypeByMetadataName("WalletWasabi.Fluent.NavigationMetaDataAttribute");
-            INamedTypeSymbol metadataItemSymbol = compilation.GetTypeByMetadataName("WalletWasabi.Fluent.INavigationMetaDataItem");
             INamedTypeSymbol metadataSymbol = compilation.GetTypeByMetadataName("WalletWasabi.Fluent.NavigationMetaData");
 
             List<INamedTypeSymbol> namedTypeSymbols = new();
@@ -109,12 +103,12 @@ namespace WalletWasabi.Fluent
 
             foreach (var namedTypeSymbol in namedTypeSymbols)
             {
-                string classSource = ProcessClass(namedTypeSymbol, attributeSymbol, metadataItemSymbol, metadataSymbol, context);
+                string classSource = ProcessClass(namedTypeSymbol, attributeSymbol, metadataSymbol, context);
                 context.AddSource($"{namedTypeSymbol.Name}_NavigationMetaData.cs", SourceText.From(classSource, Encoding.UTF8));
             }
         }
 
-        private string ProcessClass(INamedTypeSymbol namedTypeSymbol, ISymbol attributeSymbol, ISymbol metadataItemSymbol, ISymbol metadataSymbol, GeneratorExecutionContext context)
+        private string ProcessClass(INamedTypeSymbol namedTypeSymbol, ISymbol attributeSymbol, ISymbol metadataSymbol, GeneratorExecutionContext context)
         {
             if (!namedTypeSymbol.ContainingSymbol.Equals(namedTypeSymbol.ContainingNamespace, SymbolEqualityComparer.Default))
             {
@@ -126,13 +120,13 @@ namespace WalletWasabi.Fluent
             var source = new StringBuilder($@"
 namespace {namespaceName}
 {{
-    public partial class {namedTypeSymbol.Name} : {metadataItemSymbol.ToDisplayString()}
+    public partial class {namedTypeSymbol.Name}
     {{
 ");
 
             AttributeData attributeData = namedTypeSymbol.GetAttributes().Single(ad => ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default));
 
-            source.Append($@"        public {metadataSymbol.ToDisplayString()} MetaData {{ get; }} = new()
+            source.Append($@"        public static {metadataSymbol.ToDisplayString()} MetaData {{ get; }} = new()
         {{
 ");
             var length = attributeData.NamedArguments.Length;
