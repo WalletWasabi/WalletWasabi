@@ -6,7 +6,6 @@
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:v="using:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:create="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
