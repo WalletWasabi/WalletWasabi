@@ -16,16 +16,16 @@ using WalletWasabi.Legal;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-	public class MainViewModel : ViewModelBase, IDialogHost
+	public partial class MainViewModel : ViewModelBase, IDialogHost
 	{
 		private readonly Global _global;
-		private StatusBarViewModel _statusBar;
-		private string _title = "Wasabi Wallet";
-		private DialogViewModelBase? _currentDialog;
-		private DialogScreenViewModel _dialogScreen;
-		private NavBarViewModel _navBar;
-		private bool _isMainContentEnabled;
-		private bool _isDialogScreenEnabled;
+		[AutoNotify] private bool _isMainContentEnabled;
+		[AutoNotify] private bool _isDialogScreenEnabled;
+		[AutoNotify] private DialogViewModelBase? _currentDialog;
+		[AutoNotify] private DialogScreenViewModel _dialogScreen;
+		[AutoNotify] private NavBarViewModel _navBar;
+		[AutoNotify] private StatusBarViewModel _statusBar;
+		[AutoNotify] private string _title = "Wasabi Wallet";
 
 		public MainViewModel(Global global)
 		{
@@ -87,53 +87,11 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Subscribe(x => _navBar.IsHidden = x == 0);
 		}
 
-		public bool IsMainContentEnabled
-		{
-			get => _isMainContentEnabled;
-			set => this.RaiseAndSetIfChanged(ref _isMainContentEnabled, value);
-		}
-
-		public bool IsDialogScreenEnabled
-		{
-			get => _isDialogScreenEnabled;
-			set => this.RaiseAndSetIfChanged(ref _isDialogScreenEnabled, value);
-		}
-
 		public TargettedNavigationStack MainScreen { get; }
 
 		public static MainViewModel? Instance { get; internal set; }
 
 		private Network Network { get; }
-
-		public DialogScreenViewModel DialogScreen
-		{
-			get => _dialogScreen;
-			set => this.RaiseAndSetIfChanged(ref _dialogScreen, value);
-		}
-
-		public DialogViewModelBase? CurrentDialog
-		{
-			get => _currentDialog;
-			set => this.RaiseAndSetIfChanged(ref _currentDialog, value);
-		}
-
-		public NavBarViewModel NavBar
-		{
-			get => _navBar;
-			set => this.RaiseAndSetIfChanged(ref _navBar, value);
-		}
-
-		public StatusBarViewModel StatusBar
-		{
-			get => _statusBar;
-			set => this.RaiseAndSetIfChanged(ref _statusBar, value);
-		}
-
-		public string Title
-		{
-			get => _title;
-			internal set => this.RaiseAndSetIfChanged(ref _title, value);
-		}
 
 		public void Initialize()
 		{
@@ -156,31 +114,20 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private static void RegisterEntries(SearchPageViewModel searchPage, LegalDocuments legalDocuments)
 		{
-			searchPage.RegisterSearchEntry(
-				title: "Legal Docs",
-				caption: "Displays terms and conditions",
-				order: 3,
-				category: "General",
-				keywords: "View, Legal, Docs, Documentation, Terms, Conditions, Help",
-				iconName: "info_regular",
-				createTargetView: async () =>
-				{
-					var content = await File.ReadAllTextAsync(legalDocuments.FilePath);
+			// TODO:
+			/*
+			NavigationManager.RegisterRoutable<LegalDocumentsViewModel>(
+				LegalDocumentsViewModel.MetaData,
+				async () =>
+					{
+						var content = await File.ReadAllTextAsync(legalDocuments.FilePath);
 
-					var legalDocs = new LegalDocumentsViewModel(content);
+						var legalDocs = new LegalDocumentsViewModel(content);
 
-					return legalDocs;
-				});
-
-			searchPage.RegisterSearchEntry(
-				title: "About Wasabi",
-				caption: "Displays all the current info about the app",
-				order: 4,
-				category: "General",
-				keywords: "About, Software, Version, Source Code, Github, Status, Stats, Tor, Onion, Bug, Report, FAQ, Questions," +
-				          "Docs, Documentation, Link, Links, Help",
-				iconName: "info_regular",
-				createTargetView: async () =>  await Task.FromResult(new AboutViewModel()));
+						return legalDocs;
+					});
+			*/
+			AboutViewModel.Register(async () => await Task.FromResult(new AboutViewModel()));
 		}
 
 		private static void RegisterRootEntries(

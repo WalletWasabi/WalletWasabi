@@ -60,14 +60,14 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			_currentDisposable = null;
 		}
 
-		public INavigationManager<RoutableViewModel> Navigate()
+		public INavigationStack<RoutableViewModel> Navigate()
 		{
 			var currentTarget = CurrentTarget == NavigationTarget.Default ? DefaultTarget : CurrentTarget;
 
 			return Navigate(currentTarget);
 		}
 
-		public INavigationManager<RoutableViewModel> Navigate(NavigationTarget currentTarget)
+		public INavigationStack<RoutableViewModel> Navigate(NavigationTarget currentTarget)
 		{
 			switch (currentTarget)
 			{
