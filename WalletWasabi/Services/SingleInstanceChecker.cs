@@ -100,16 +100,13 @@ namespace WalletWasabi.Services
 
 		private static int NetworkToPort(Network network)
 		{
-			if (network == Network.Main)
+			return network switch
 			{
-				return 37129;
-			}
-			else if (network == Network.TestNet)
-			{
-				return 37130;
-			}
-
-			return 37131;
+				_ when network == Network.Main => 37129,
+				_ when network == Network.TestNet => 37130,
+				_ when network == Network.RegTest => 37131,
+				_ => throw new Exception($"Network {network} is unknown")
+			};
 		}
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
