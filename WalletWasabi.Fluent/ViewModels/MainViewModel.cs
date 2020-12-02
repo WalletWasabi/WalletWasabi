@@ -82,6 +82,9 @@ namespace WalletWasabi.Fluent.ViewModels
 			this.WhenAnyValue(x => x.CurrentDialog!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsDialogScreenEnabled = !x);
+
+			walletManager.WhenAnyValue(x => x.Items.Count)
+				.Subscribe(x => _navBar.IsHidden = x == 0);
 		}
 
 		public TargettedNavigationStack MainScreen { get; }
