@@ -58,6 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		private void OnPassphraseNeeded(object sender, ElapsedEventArgs e)
 		{
+			NothingShowUpMessageVisibility = false;
 			Message = "Check your device and enter your passphrase.";
 		}
 
