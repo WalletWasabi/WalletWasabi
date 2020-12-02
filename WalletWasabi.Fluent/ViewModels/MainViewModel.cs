@@ -25,8 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private DialogScreenViewModel _dialogScreen;
 		[AutoNotify] private NavBarViewModel _navBar;
 		[AutoNotify] private StatusBarViewModel _statusBar;
-
-		[AutoNotify (SetterModifier = PropertyModifier.Internal)] private string _title = "Wasabi Wallet";
+		[AutoNotify] private string _title = "Wasabi Wallet";
 
 		public MainViewModel(Global global)
 		{
