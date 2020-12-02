@@ -24,7 +24,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public LiveServerTests(LiveServerTestsFixture liveServerTestsFixture)
 		{
 			LiveServerTestsFixture = liveServerTestsFixture;
-			TorSocks5ClientPool = new TorSocks5ClientPool(Common.TorSocks5Endpoint);
+			TorSocks5ClientPool = TorSocks5ClientPool.Create(Common.TorSocks5Endpoint);
 		}
 
 		public async Task InitializeAsync()

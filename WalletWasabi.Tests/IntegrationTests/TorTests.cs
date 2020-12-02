@@ -17,7 +17,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public TorTests()
 		{
 			Logger.SetMinimumLevel(Logging.LogLevel.Trace);
-			TorSocks5ClientPool = new TorSocks5ClientPool(Common.TorSocks5Endpoint);
+			TorSocks5ClientPool = TorSocks5ClientPool.Create(Common.TorSocks5Endpoint);
 		}
 
 		private TorSocks5ClientPool TorSocks5ClientPool { get; }

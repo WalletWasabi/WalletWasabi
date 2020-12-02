@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
@@ -14,6 +15,7 @@ using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Models.Messages;
+using WalletWasabi.Tor.Socks5.Pool;
 
 namespace WalletWasabi.Tor.Socks5
 {
@@ -56,6 +58,24 @@ namespace WalletWasabi.Tor.Socks5
 			{
 				return false;
 			}
+		}
+
+		/// <summary>
+		/// TODO.
+		/// </summary>
+		/// <param name="request"></param>
+		/// <param name="isolateStream"></param>
+		/// <param name="token"></param>
+		/// <returns></returns>
+		public async Task<IPoolItem> MakeAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default)
+		{
+			bool useSsl = request.RequestUri!.Scheme == Uri.UriSchemeHttps;
+			string host = request.RequestUri.DnsSafeHost;
+			bool allowRecycling = !useSsl && !isolateStream;
+			int port = request.RequestUri!.Port;
+
+			TorConnection newClient = await MakeAsync(host, port, useSsl, isolateStream, token).ConfigureAwait(false);
+			return new TorPoolItem(newClient, allowRecycling);
 		}
 
 		/// <summary>

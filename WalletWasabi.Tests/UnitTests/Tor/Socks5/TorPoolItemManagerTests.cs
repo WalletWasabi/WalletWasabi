@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Pool;
 using Xunit;
@@ -49,46 +48,6 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			Assert.NotNull(result2.poolItem);
 			Assert.Equal(item1, result2.poolItem);
 			Assert.Equal(PoolItemState.InUse, ((TestPoolItem)result2.poolItem!).State);
-		}
-	}
-
-	public class TestPoolItem : IPoolItem
-	{
-		public TestPoolItem(PoolItemState state, bool allowRecycling)
-		{
-			State = state;
-			AllowRecycling = allowRecycling;
-		}
-
-		public PoolItemState State { get; set; }
-		public bool AllowRecycling { get; }
-
-		/// <inheritdoc/>
-		public bool NeedRecycling => State == PoolItemState.ToDispose;
-
-		/// <inheritdoc/>
-		public Stream GetTransportStream()
-		{
-			throw new NotImplementedException();
-		}
-
-		/// <inheritdoc/>
-		public bool TryReserve()
-		{
-			if (State == PoolItemState.FreeToUse)
-			{
-				State = PoolItemState.InUse;
-				return true;
-			}
-
-			return false;
-		}
-
-		/// <inheritdoc/>
-		public PoolItemState Unreserve()
-		{
-			State = NeedRecycling ? PoolItemState.FreeToUse : PoolItemState.ToDispose;
-			return State;
 		}
 	}
 }

@@ -48,7 +48,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			RegTestFixture = regTestFixture;
 			BaseUri = new Uri(RegTestFixture.BackendEndPoint);
 			BackendClearnetHttpClient = new ClearnetHttpClient(() => RegTestFixture.BackendEndPointUri);
-			TorSocks5ClientPool = new TorSocks5ClientPool(Helpers.Common.TorSocks5Endpoint);
+			TorSocks5ClientPool = TorSocks5ClientPool.Create(Helpers.Common.TorSocks5Endpoint);
 		}
 
 		private RegTestFixture RegTestFixture { get; }

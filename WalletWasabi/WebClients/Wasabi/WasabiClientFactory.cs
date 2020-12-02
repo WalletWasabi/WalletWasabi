@@ -24,7 +24,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			TorEndpoint = torEndPoint;
 			BackendUriGetter = backendUriGetter;
 
-			TorSocks5ClientPool = torEndPoint is null ? null : new TorSocks5ClientPool(torEndPoint);
+			TorSocks5ClientPool = torEndPoint is null ? null : TorSocks5ClientPool.Create(torEndPoint);
 			SharedWasabiClient = new WasabiClient(NewBackendTorHttpClient(false));
 		}
 
