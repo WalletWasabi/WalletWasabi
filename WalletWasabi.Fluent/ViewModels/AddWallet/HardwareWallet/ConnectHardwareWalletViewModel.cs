@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Disposables;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Timers;
 using NBitcoin;
 using ReactiveUI;
@@ -11,7 +7,6 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Wallets;
-using Timer = System.Timers.Timer;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
@@ -67,11 +62,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				return;
 			}
 
-			var device = devices.First();
+			var device = devices[0];
 
 			if (!device.IsInitialized())
 			{
-				Message = "Check your device and finish the initialization";
+				Message = "Check your device and finish the initialization.";
 				// TODO: execute init if possible
 				return;
 			}

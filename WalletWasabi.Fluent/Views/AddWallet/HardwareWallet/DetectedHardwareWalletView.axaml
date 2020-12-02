@@ -15,19 +15,30 @@
                  IsBusy="{Binding IsBusy}"
                  EnableCancel="False"
                  EnableBack="False"
-                 EnableNext="False"  >
+                 EnableNext="False">
     <DockPanel>
-      <Panel DockPanel.Dock="Bottom">
-        <Button Content="No" Classes="plain" HorizontalAlignment="Left" Command="{Binding NoCommand}" />
-        <Button Content="Yes" Classes="action" HorizontalAlignment="Right" IsDefault="True" Command="{Binding NextCommand}" />
-      </Panel>
+      <DockPanel.Styles>
+        <Style Selector="Button.yesNo">
+          <Setter Property="Width" Value="150"/>
+          <Setter Property="Height" Value="40"/>
+          <Setter Property="HorizontalAlignment" Value="Center"/>
+          <Setter Property="HorizontalContentAlignment" Value="Center"/>
+          <Setter Property="VerticalContentAlignment" Value="Center"/>
+          <Setter Property="FontSize" Value="{StaticResource FontSizeH6}"/>
+          <Setter Property="Padding" Value="0"/>
+        </Style>
+      </DockPanel.Styles>
+
+      <StackPanel Spacing="200" HorizontalAlignment="Center" Orientation="Horizontal" DockPanel.Dock="Bottom" Margin="0 0 0 30">
+        <Button Content="No" Classes="yesNo" Command="{Binding NoCommand}" />
+        <Button Content="Yes" Classes="action yesNo" IsDefault="True" Command="{Binding NextCommand}" />
+      </StackPanel>
+
       <StackPanel VerticalAlignment="Center" Spacing="40">
         <Image Height="180" Source="{Binding Path='Type', Converter={x:Static conv:WalletTypeImageConverter.Instance}}" />
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-          <TextBlock Text="{Binding TypeName}" HorizontalAlignment="Center" />
-          <TextBlock Text=" was detected. Is this correct?" />
-        </StackPanel>
+        <TextBlock Text="{Binding TypeName, StringFormat={}{0}  was detected. Is this correct?}" HorizontalAlignment="Center" />
       </StackPanel>
+
     </DockPanel>
   </c:ContentArea>
 </UserControl>
