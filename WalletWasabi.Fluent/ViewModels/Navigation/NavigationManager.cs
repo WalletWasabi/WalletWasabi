@@ -23,6 +23,11 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		public static void RegisterRoutable(NavigationMetaData metaData, Func<Task<RoutableViewModel>> generator)
 		{
+			if (metaData.Searchable && (metaData.Category is null || metaData.Title is null))
+			{
+				throw new Exception("Searchable entries must have both a Category and a Title");
+			}
+
 			if (!_navigationEntries.ContainsKey(metaData))
 			{
 				_navigationEntries.Add(metaData, generator);

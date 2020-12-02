@@ -16,7 +16,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 	[NavigationMetaData(Title = "Search", NavBarPosition = NavBarPosition.Bottom)]
 	public partial class SearchPageViewModel : NavBarItemViewModel
 	{
-		private readonly bool _showWallets = false;
 		private readonly WalletManagerViewModel _walletManager;
 		private readonly Dictionary<string, SearchCategory> _categories;
 		private readonly Dictionary<SearchCategory, SourceList<SearchItemViewModel>> _categorySources;
@@ -40,12 +39,9 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 
 		public void Initialise()
 		{
-			if (_showWallets)
+			foreach (var metaData in NavigationManager.MetaData.Where(x => x.Searchable))
 			{
-				_walletManager.Items
-					.ToObservableChangeSet()
-					.OnItemAdded(x => RegisterWalletSearchItem(0, x))
-					.Subscribe();
+				RegisterSearchEntry(metaData);
 			}
 
 			var queryFilter = this.WhenValueChanged(t => t.SearchQuery)
@@ -90,25 +86,11 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			throw new Exception("Category already exists.");
 		}
 
-		public SearchItemViewModel RegisterSearchEntry(
-			string title,
-			string caption,
-			int order,
-			string category,
-			string keywords,
-			string iconName,
-			Func<Task<RoutableViewModel>> createTargetView)
+		private SearchItemViewModel RegisterSearchEntry(NavigationMetaData metaData)
 		{
-			if (_categories.TryGetValue(category, out var searchCategory))
+			if (_categories.TryGetValue(metaData.Category, out var searchCategory))
 			{
-				var result = new SearchItemViewModel(
-					title,
-					caption,
-					order,
-					searchCategory,
-					keywords,
-					iconName,
-					createTargetView);
+				var result = new SearchItemViewModel(metaData, searchCategory);
 
 				_categorySources[searchCategory].Add(result);
 
@@ -130,18 +112,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				}
 				return true;
 			};
-		}
-
-		private void RegisterWalletSearchItem(int order, WalletViewModelBase wallet)
-		{
-			RegisterSearchEntry(
-				title: wallet.WalletName,
-				caption: "",
-				order: order,
-				category: "Wallets",
-				keywords: $"Wallet, {wallet.WalletName}",
-				iconName: "web_asset_regular",
-				createTargetView: async () => await Task.FromResult(wallet));
 		}
 	}
 }

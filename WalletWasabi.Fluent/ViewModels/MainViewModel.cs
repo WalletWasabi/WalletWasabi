@@ -60,13 +60,11 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			_navBar = new NavBarViewModel(MainScreen, walletManager);
 
-
-
 			RegisterCategories(searchPage);
 
 			HomePageViewModel.Register(async () => await Task.FromResult(homePage));
 
-			SearchPageViewModel.Register(async () => searchPage);
+			SearchPageViewModel.Register(async () => await Task.FromResult(searchPage));
 			PrivacyModeViewModel.Register(async ()=> await Task.FromResult(privacyMode));
 			AddWalletPageViewModel.Register(async () => await Task.FromResult(addWalletPage));
 
