@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:hardwareWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet"
-             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
              x:DataType="hardwareWallet:ConnectHardwareWalletViewModel"
