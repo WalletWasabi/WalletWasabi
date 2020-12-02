@@ -17,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		Category = "General",
 		Keywords = new [] { "Test", "ViewModel" },
 		NavBarPosition = NavBarPosition.None)]
-	public partial class TestViewModel
+	public partial class TestViewModel : RoutableViewModel
 	{
 		// [AutoNotify] private bool _test;
 	}
