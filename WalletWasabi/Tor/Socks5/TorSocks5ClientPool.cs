@@ -200,7 +200,7 @@ namespace WalletWasabi.Tor.Socks5
 				bool allowRecycling = !useSsl && !isolateStream;
 				int port = request.RequestUri!.Port;
 
-				TorConnection newClient = await TorSocks5ClientFactory.MakeAsync(isolateStream, host, port, useSsl, token).ConfigureAwait(false);
+				TorConnection newClient = await TorSocks5ClientFactory.MakeAsync(host, port, useSsl, isolateStream, token).ConfigureAwait(false);
 				poolItem = new TorPoolItem(newClient, allowRecycling);
 
 				Logger.LogTrace($"[NEW {poolItem}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");

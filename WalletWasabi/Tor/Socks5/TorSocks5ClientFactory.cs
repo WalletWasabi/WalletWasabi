@@ -61,16 +61,16 @@ namespace WalletWasabi.Tor.Socks5
 		/// <summary>
 		/// Creates a new connected TCP client connected to Tor SOCKS5 endpoint.
 		/// </summary>
-		/// <param name="isolateStream"></param>
 		/// <param name="host">Tor SOCKS5 host.</param>
 		/// <param name="port">Tor SOCKS5 port.</param>
 		/// <param name="useSsl">Whether to use SSL to send the HTTP request over Tor.</param>
+		/// <param name="isolateStream"><c>true</c> if a new Tor circuit is required for this HTTP request.</param>
 		/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
 		/// <returns>New <see cref="TorConnection"/> instance.</returns>
 		/// <exception cref="TorConnection"/>
 		/// <exception cref="TorAuthenticationException"/>
 		/// <exception cref="TorHttpException"/>
-		public async Task<TorConnection> MakeAsync(bool isolateStream, string host, int port, bool useSsl, CancellationToken cancellationToken = default)
+		public async Task<TorConnection> MakeAsync(string host, int port, bool useSsl, bool isolateStream, CancellationToken cancellationToken = default)
 		{
 			TcpClient? tcpClient = null;
 			Stream? transportStream = null;
