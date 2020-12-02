@@ -378,7 +378,6 @@ namespace WalletWasabi.Stores
 		/// It'll LogError the exceptions.
 		/// If cancelled, it'll LogTrace the exception.
 		/// </summary>
-		[SuppressMessage("Reliability", "CA2016:Forward the 'CancellationToken' parameter to methods that take one", Justification = "TryCommitToFileAsync must finish running for safety")]
 		private async Task TryCommitToFileAsync(TimeSpan throttle, CancellationToken cancel)
 		{
 			try
@@ -415,7 +414,7 @@ namespace WalletWasabi.Stores
 					var currentImmatureLines = ImmatureFilters.Select(x => x.ToLine()).ToArray(); // So we do not read on ImmatureFilters while removing them.
 					var matureLinesToAppend = currentImmatureLines.SkipLast(100);
 					var immatureLines = currentImmatureLines.TakeLast(100);
-					var tasks = new Task[] { MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend), ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines) };
+					var tasks = new Task[] { MatureIndexFileManager.AppendAllLinesAsync(matureLinesToAppend, CancellationToken.None), ImmatureIndexFileManager.WriteAllLinesAsync(immatureLines, CancellationToken.None) };
 					while (ImmatureFilters.Count > 100)
 					{
 						ImmatureFilters.RemoveFirst();
