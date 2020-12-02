@@ -98,16 +98,13 @@ namespace WalletWasabi.Services
 			throw new OperationCanceledException($"Wasabi is already running, signalled the first instance.");
 		}
 
-		private static int NetworkToPort(Network network)
+		private static int NetworkToPort(Network network) => network switch
 		{
-			return network switch
-			{
-				_ when network == Network.Main => 37129,
-				_ when network == Network.TestNet => 37130,
-				_ when network == Network.RegTest => 37131,
-				_ => throw new Exception($"Network {network} is unknown")
-			};
-		}
+			_ when network == Network.Main => 37129,
+			_ when network == Network.TestNet => 37130,
+			_ when network == Network.RegTest => 37131,
+			_ => throw new Exception($"Network {network} is unknown")
+		};
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
