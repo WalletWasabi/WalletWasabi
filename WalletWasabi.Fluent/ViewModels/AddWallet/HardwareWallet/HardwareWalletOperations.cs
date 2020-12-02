@@ -84,10 +84,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				var km = KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, path);
 				WalletManager.AddWallet(km);
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
-				Logger.LogError(ex);
 				StartDetection();
+				throw;
 			}
 		}
 

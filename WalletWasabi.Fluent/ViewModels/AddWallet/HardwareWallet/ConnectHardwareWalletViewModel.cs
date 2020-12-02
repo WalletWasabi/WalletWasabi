@@ -115,6 +115,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			base.OnNavigatedTo(inStack, disposable);
 
+			Message = "";
+
 			HardwareWalletOperations.HardwareWalletsFound += OnHardwareWalletsFound;
 			HardwareWalletOperations.SearchingHasNoResult += OnSearchingHasNoResult;
 			HardwareWalletOperations.PassphraseTimer.Elapsed += OnPassphraseNeeded;

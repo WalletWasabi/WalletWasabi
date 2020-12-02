@@ -1,9 +1,10 @@
-using System.Threading.Tasks;
+using System;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
@@ -41,9 +42,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			{
 				IsBusy = true;
 
-				await Task.Run(async () => await hardwareWalletOperations.GenerateWalletAsync(WalletName));
+				try
+				{
+					await hardwareWalletOperations.GenerateWalletAsync(WalletName);
 
-				Navigate().To(new AddedWalletPageViewModel(WalletName, Type));
+					Navigate().To(new AddedWalletPageViewModel(WalletName, Type));
+				}
+				catch(Exception ex)
+				{
+					// TODO: Notify the user
+					Logger.LogError(ex);
+					Navigate().Back();
+				}
 
 				IsBusy = false;
 			});
