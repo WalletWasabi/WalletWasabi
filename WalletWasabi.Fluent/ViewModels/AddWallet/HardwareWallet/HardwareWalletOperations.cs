@@ -91,6 +91,24 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			}
 		}
 
+		public async Task InitHardwareWalletAsync(HwiEnumerateEntry device)
+		{
+			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(21));
+			using var initCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, DisposeCts.Token);
+
+			// Trezor T doesn't require interactive mode.
+			var interactiveMode = !(device.Model == HardwareWalletModels.Trezor_T || device.Model == HardwareWalletModels.Trezor_T_Simulator);
+
+			try
+			{
+				await Client.SetupAsync(device.Model, device.Path, interactiveMode, initCts.Token);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
+		}
+
 		private async Task StopDetectionAsync()
 		{
 			if (DetectionTask is { } task && DetectionCts is { } cts)

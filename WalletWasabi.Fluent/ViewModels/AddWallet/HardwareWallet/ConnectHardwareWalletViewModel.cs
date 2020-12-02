@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Threading.Tasks;
 using System.Timers;
 using NBitcoin;
 using ReactiveUI;
@@ -62,68 +63,39 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			var device = devices[0];
 
-			if (!device.IsInitialized())
+			if (device.Code is { })
 			{
-				Message = "Check your device and finish the initialization.";
-				// TODO: execute init if possible
+				Message = "Something happened with your device, please reconnect it to the PC.";
 				return;
 			}
 
-			if (device.Code is { } errorCode)
+			if (device.NeedsPassphraseSent == true)
 			{
-				ShowErrorMessage(errorCode);
+				Message = "Enter your passphrase on your device.";
+			}
+
+			if (device.NeedsPinSent == true)
+			{
+				Message = "Enter your PIN on your device.";
+			}
+
+			if (!device.IsInitialized())
+			{
+				if (device.Model == HardwareWalletModels.Coldcard)
+				{
+					Message = "Initialize your device first.";
+				}
+				else
+				{
+					Message = "Check your device and finish the initialization.";
+					Task.Run(() => HardwareWalletOperations.InitHardwareWalletAsync(device));
+				}
+
 				return;
 			}
 
 			HardwareWalletOperations.SelectedDevice = device;
 			Navigate().To(new DetectedHardwareWalletViewModel(HardwareWalletOperations, WalletName));
-		}
-
-		private void ShowErrorMessage(HwiErrorCode errorCode)
-		{
-			// TODO: Show message that helps the user
-
-			switch (errorCode)
-			{
-				case HwiErrorCode.NoDeviceType:
-					break;
-				case HwiErrorCode.MissingArguments:
-					break;
-				case HwiErrorCode.DeviceConnError:
-					break;
-				case HwiErrorCode.UnknownDeviceType:
-					break;
-				case HwiErrorCode.InvalidTx:
-					break;
-				case HwiErrorCode.NoPassword:
-					break;
-				case HwiErrorCode.BadArgument:
-					break;
-				case HwiErrorCode.NotImplemented:
-					break;
-				case HwiErrorCode.UnavailableAction:
-					break;
-				case HwiErrorCode.DeviceAlreadyInit:
-					break;
-				case HwiErrorCode.DeviceAlreadyUnlocked:
-					break;
-				case HwiErrorCode.DeviceNotReady:
-					break;
-				case HwiErrorCode.UnknownError:
-					break;
-				case HwiErrorCode.ActionCanceled:
-					break;
-				case HwiErrorCode.DeviceBusy:
-					break;
-				case HwiErrorCode.NeedToBeRoot:
-					break;
-				case HwiErrorCode.HelpText:
-					break;
-				case HwiErrorCode.DeviceNotInitialized:
-					break;
-				default:
-					throw new ArgumentOutOfRangeException(nameof(errorCode), errorCode, null);
-			}
 		}
 
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
