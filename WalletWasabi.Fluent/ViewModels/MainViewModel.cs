@@ -25,6 +25,11 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private NavBarViewModel _navBar;
 		[AutoNotify] private StatusBarViewModel _statusBar;
 		[AutoNotify] private string _title = "Wasabi Wallet";
+		private readonly HomePageViewModel _homePage;
+		private readonly SettingsPageViewModel _settingsPage;
+		private readonly SearchPageViewModel _searchPage;
+		private readonly PrivacyModeViewModel _privacyMode;
+		private readonly AddWalletPageViewModel _addWalletPage;
 
 		public MainViewModel(Global global)
 		{
@@ -54,73 +59,27 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			var walletManager = new WalletManagerViewModel(global.WalletManager, global.UiConfig);
 
-			var addWalletPage = new AddWalletPageViewModel(
+			_addWalletPage = new AddWalletPageViewModel(
 				global.LegalDocuments,
 				global.WalletManager,
 				global.BitcoinStore,
 				global.Network);
 
-			var settingsPage = new SettingsPageViewModel(global.Config, global.UiConfig);
-			var privacyMode = new PrivacyModeViewModel(global.UiConfig);
-			var homePage = new HomePageViewModel(walletManager, addWalletPage);
-			var searchPage = new SearchPageViewModel();
+			_settingsPage = new SettingsPageViewModel(global.Config, global.UiConfig);
+			_privacyMode = new PrivacyModeViewModel(global.UiConfig);
+			_homePage = new HomePageViewModel(walletManager, _addWalletPage);
+			_searchPage = new SearchPageViewModel();
 
 			_navBar = new NavBarViewModel(MainScreen, walletManager);
 
-			RegisterCategories(searchPage);
-
-			HomePageViewModel.Register(homePage);
-
-			SearchPageViewModel.Register(searchPage);
-			PrivacyModeViewModel.Register(privacyMode);
-			AddWalletPageViewModel.Register(addWalletPage);
-			SettingsPageViewModel.Register(settingsPage);
-
-			GeneralSettingsTabViewModel.RegisterLazy(
-				() =>
-				{
-					settingsPage.SelectedTab = 0;
-					return settingsPage;
-				});
-
-			PrivacySettingsTabViewModel.RegisterLazy(
-				() =>
-				{
-					settingsPage.SelectedTab = 1;
-					return settingsPage;
-				});
-
-			NetworkSettingsTabViewModel.RegisterLazy(
-				() =>
-				{
-					settingsPage.SelectedTab = 2;
-					return settingsPage;
-				});
-
-			BitcoinTabViewModel.RegisterLazy(
-				() =>
-				{
-					settingsPage.SelectedTab = 3;
-					return settingsPage;
-				});
-
-			AboutViewModel.RegisterLazy(() => new AboutViewModel());
-
-			LegalDocumentsViewModel.RegisterAsyncLazy(
-				async () =>
-			{
-				var content = await File.ReadAllTextAsync(global.LegalDocuments.FilePath);
-
-				var legalDocs = new LegalDocumentsViewModel(content);
-
-				return legalDocs;
-			});
+			RegisterCategories(_searchPage);
+			RegisterViewModels();
 
 			RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
 
-			searchPage.Initialise();
+			_searchPage.Initialise();
 
-			MainScreen.To(homePage);
+			MainScreen.To(_homePage);
 
 			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -157,6 +116,56 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				Title += $" - {Network}";
 			}
+		}
+
+		private void RegisterViewModels()
+		{
+			HomePageViewModel.Register(_homePage);
+
+			SearchPageViewModel.Register(_searchPage);
+			PrivacyModeViewModel.Register(_privacyMode);
+			AddWalletPageViewModel.Register(_addWalletPage);
+			SettingsPageViewModel.Register(_settingsPage);
+
+			GeneralSettingsTabViewModel.RegisterLazy(
+				() =>
+				{
+					_settingsPage.SelectedTab = 0;
+					return _settingsPage;
+				});
+
+			PrivacySettingsTabViewModel.RegisterLazy(
+				() =>
+				{
+					_settingsPage.SelectedTab = 1;
+					return _settingsPage;
+				});
+
+			NetworkSettingsTabViewModel.RegisterLazy(
+				() =>
+				{
+					_settingsPage.SelectedTab = 2;
+					return _settingsPage;
+				});
+
+			BitcoinTabViewModel.RegisterLazy(
+				() =>
+				{
+					_settingsPage.SelectedTab = 3;
+					return _settingsPage;
+				});
+
+			AboutViewModel.RegisterLazy(() => new AboutViewModel());
+
+			LegalDocumentsViewModel.RegisterAsyncLazy(
+				async () =>
+				{
+					var content = await File.ReadAllTextAsync(_global.LegalDocuments.FilePath);
+
+					var legalDocs = new LegalDocumentsViewModel(content);
+
+					return legalDocs;
+				});
 		}
 
 		private static void RegisterCategories(SearchPageViewModel searchPage)
