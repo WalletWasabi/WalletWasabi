@@ -1,5 +1,9 @@
 using NBitcoin;
 using System;
+using System.IO;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Services;
@@ -72,14 +76,44 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 
 				await using SingleInstanceChecker secondInstance = new(mainNetPort);
 
-				for (int i = 0; i < 3; i++)
+				for (int i = 0; i < 2; i++)
 				{
 					// I am the second one.
 					await Assert.ThrowsAsync<OperationCanceledException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
 				}
 
-				// Wait for the OtherInstanceStarted event to finish.
-				using CancellationTokenSource cts = new(TimeSpan.FromSeconds(5));
+				// Overall Timeout.
+				using CancellationTokenSource cts = new(TimeSpan.FromSeconds(20));
+
+				// Simulate a portscan operation.
+				using (TcpClient client = new TcpClient())
+				{
+					// This should not be counted.
+					await client.ConnectAsync(IPAddress.Loopback, mainNetPort, cts.Token);
+					using NetworkStream networkStream = client.GetStream();
+					networkStream.WriteTimeout = (int)SingleInstanceChecker.ClientTimeOut.TotalMilliseconds;
+					using var writer = new StreamWriter(networkStream, Encoding.UTF8);
+					await writer.WriteAsync("fake message");
+				}
+
+				// Simulate a portscan operation.
+				using (TcpClient client = new TcpClient())
+				{
+					// This should not be counted.
+					await client.ConnectAsync(IPAddress.Loopback, mainNetPort, cts.Token);
+					await using NetworkStream networkStream = client.GetStream();
+
+					// This should throw as the first instance should disconnect the clients after the timeout.
+					await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
+					await Task.Delay(SingleInstanceChecker.ClientTimeOut + TimeSpan.FromMilliseconds(500), cts.Token);
+					await writer.WriteAsync("late message");
+
+					// The stream must be flushed to be able to detect conneciton loss.
+					Assert.Throws<IOException>(() => writer.Flush());
+				}
+
+				// One more to check of the first instance was able to recover from the portscan operation
+				await Assert.ThrowsAsync<OperationCanceledException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
 
 				while (Interlocked.Read(ref eventCalled) != 3)
 				{

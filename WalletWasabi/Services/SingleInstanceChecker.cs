@@ -1,8 +1,10 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -11,6 +13,9 @@ namespace WalletWasabi.Services
 {
 	public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 	{
+		private const string WasabiMagicString = "InCryptoWeTrust";
+		public static readonly TimeSpan ClientTimeOut = TimeSpan.FromSeconds(1);
+
 		/// <summary>
 		/// Creates an object to ensure mutual exclusion of Wasabi instances per Network <paramref name="network"/>.
 		/// The solution based on TCP socket.
@@ -77,12 +82,17 @@ namespace WalletWasabi.Services
 				using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(DisposeCts.Token, timeoutCts.Token);
 
 				await client.ConnectAsync(IPAddress.Loopback, Port, cts.Token).ConfigureAwait(false);
+
+				await using NetworkStream networkStream = client.GetStream();
+				networkStream.WriteTimeout = (int)ClientTimeOut.TotalMilliseconds;
+				await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
+				await writer.WriteAsync(WasabiMagicString).ConfigureAwait(false);
 				// I was able to signal to the other instance successfully so just continue.
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
 				// Do not log anything here as the first instance is writing the Log at this time.
-				throw new InvalidOperationException($"Wasabi is already running.");
+				throw new InvalidOperationException($"Wasabi is already running, but cannot be signalled, reason: '{ex}'");
 			}
 
 			throw new OperationCanceledException($"Wasabi is already running, signalled the first instance.");
@@ -127,9 +137,29 @@ namespace WalletWasabi.Services
 				while (!stoppingToken.IsCancellationRequested)
 				{
 					// In case of cancellation, listener.Stop will cause AcceptTcpClientAsync to throw, thus cancelling it.
-					await listener.AcceptTcpClientAsync().ConfigureAwait(false);
-					Logger.LogInfo($"Detected another Wasabi instance.");
-					OtherInstanceStarted?.Invoke(this, EventArgs.Empty);
+					using var client = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
+					try
+					{
+						await using NetworkStream networkStream = client.GetStream();
+						networkStream.ReadTimeout = (int)ClientTimeOut.TotalMilliseconds;
+						using var reader = new StreamReader(networkStream, Encoding.UTF8);
+						using CancellationTokenSource timeOutCts = new(ClientTimeOut);
+						using var cts = CancellationTokenSource.CreateLinkedTokenSource(timeOutCts.Token, stoppingToken);
+
+						// The read operation cancellation will happen on reader disposal.
+						string answer = await reader.ReadToEndAsync().WithAwaitCancellationAsync(cts.Token).ConfigureAwait(false);
+						if (answer == WasabiMagicString)
+						{
+							Logger.LogInfo($"Detected another Wasabi instance.");
+							OtherInstanceStarted?.Invoke(this, EventArgs.Empty);
+						}
+					}
+					catch (Exception ex)
+					{
+						// Somebody connected but it was not another Wasabi instance.
+						Logger.LogDebug(ex);
+					}
+					client.Close();
 				}
 			}
 			catch (Exception ex)
