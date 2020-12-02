@@ -8,8 +8,9 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
-	public abstract class RoutableViewModel : ViewModelBase, INavigatable
+	public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	{
+		[AutoNotify]
 		private bool _isBusy;
 		private CompositeDisposable? _currentDisposable;
 
@@ -22,12 +23,6 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			BackCommand = ReactiveCommand.Create(() => Navigate().Back());
 
 			CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
-		}
-
-		public bool IsBusy
-		{
-			get => _isBusy;
-			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
 		}
 
 		public ICommand? NextCommand { get; protected set; }
