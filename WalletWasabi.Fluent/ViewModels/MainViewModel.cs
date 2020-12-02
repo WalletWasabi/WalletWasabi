@@ -62,7 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			var settingsPage = new SettingsPageViewModel(global.Config, global.UiConfig);
 			var privacyMode = new PrivacyModeViewModel(global.UiConfig);
 			var homePage = new HomePageViewModel(walletManager, addWalletPage);
-			var searchPage = new SearchPageViewModel(walletManager);
+			var searchPage = new SearchPageViewModel();
 
 			_navBar = new NavBarViewModel(MainScreen, walletManager);
 

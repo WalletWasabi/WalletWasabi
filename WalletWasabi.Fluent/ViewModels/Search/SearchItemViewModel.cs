@@ -1,10 +1,6 @@
-using System;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Search
 {
@@ -35,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 
 		public SearchCategory Category { get; }
 
-		public string Keywords => _metaData.Keywords.ToString();
+		public string[] Keywords => _metaData.Keywords;
 
 		public ICommand OpenCommand { get; }
 

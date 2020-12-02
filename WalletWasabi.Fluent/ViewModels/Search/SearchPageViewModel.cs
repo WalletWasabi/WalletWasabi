@@ -17,19 +17,17 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 		NavBarPosition = NavBarPosition.Bottom)]
 	public partial class SearchPageViewModel : NavBarItemViewModel
 	{
-		private readonly WalletManagerViewModel _walletManager;
 		private readonly Dictionary<string, SearchCategory> _categories;
 		private readonly Dictionary<SearchCategory, SourceList<SearchItemViewModel>> _categorySources;
 		private ReadOnlyObservableCollection<SearchResult>? _searchResults;
 		private IObservable<IChangeSet<SearchItemViewModel>>? _sourceObservable;
 		[AutoNotify] private string? _searchQuery;
 
-		public SearchPageViewModel(WalletManagerViewModel walletManager)
+		public SearchPageViewModel()
 		{
 			Title = "Search";
 			_categories = new Dictionary<string, SearchCategory>();
 			_categorySources = new Dictionary<SearchCategory, SourceList<SearchItemViewModel>>();
-			_walletManager = walletManager;
 
 			RegisterCategory("Wallets", 2);
 		}
@@ -108,7 +106,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				if (!string.IsNullOrWhiteSpace(searchQuery)
 				    && !searchQuery.Contains(',', StringComparison.OrdinalIgnoreCase))
 				{
-					return item.Keywords.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+					return item.Keywords.Any(x => x.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
 					       item.Caption.Contains(searchQuery, StringComparison.OrdinalIgnoreCase);
 				}
 				return true;
