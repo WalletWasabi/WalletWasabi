@@ -143,6 +143,8 @@ namespace WalletWasabi.Services
 						await using NetworkStream networkStream = client.GetStream();
 						networkStream.ReadTimeout = (int)ClientTimeOut.TotalMilliseconds;
 						using var reader = new StreamReader(networkStream, Encoding.UTF8);
+
+						// Make sure the client will be disconnected.
 						using CancellationTokenSource timeOutCts = new(ClientTimeOut);
 						using var cts = CancellationTokenSource.CreateLinkedTokenSource(timeOutCts.Token, stoppingToken);
 
@@ -159,7 +161,6 @@ namespace WalletWasabi.Services
 						// Somebody connected but it was not another Wasabi instance.
 						Logger.LogDebug(ex);
 					}
-					client.Close();
 				}
 			}
 			catch (Exception ex)
