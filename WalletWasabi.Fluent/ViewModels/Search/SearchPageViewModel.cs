@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Search
 {
-	[NavigationMetaData(Title = "Search", NavBarPosition = NavBarPosition.Bottom)]
+	[NavigationMetaData(
+		Title = "Search",
+		Searchable = false,
+		NavBarPosition = NavBarPosition.Bottom)]
 	public partial class SearchPageViewModel : NavBarItemViewModel
 	{
 		private readonly WalletManagerViewModel _walletManager;

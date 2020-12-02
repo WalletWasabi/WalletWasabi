@@ -25,7 +25,7 @@ namespace WalletWasabi.Fluent
 
 	public sealed class NavigationMetaData
 	{
-		public bool Searchable { get; init; }
+		public bool Searchable { get; init; } = true;
 
 		public string Title { get; init; }
 
@@ -49,7 +49,7 @@ namespace WalletWasabi.Fluent
 		{
 		}
 
-		public bool Searchable { get; set; } = true;
+		public bool Searchable { get; set; }
 
 		public string Title { get; set; }
 

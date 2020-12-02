@@ -6,7 +6,7 @@ using WalletWasabi.Gui;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	[NavigationMetaData(Title = "Privacy Mode", NavBarPosition = NavBarPosition.Bottom)]
+	[NavigationMetaData(Title = "Privacy Mode", Searchable = false, NavBarPosition = NavBarPosition.Bottom)]
 	public partial class PrivacyModeViewModel : NavBarItemViewModel
 	{
 		[AutoNotify] private bool _privacyMode;
