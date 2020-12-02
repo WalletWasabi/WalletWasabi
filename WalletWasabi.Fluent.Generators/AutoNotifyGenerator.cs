@@ -98,7 +98,10 @@ namespace WalletWasabi.Fluent
 				}
 			}
 
+			// TODO: https://github.com/dotnet/roslyn/issues/49385
+#pragma warning disable RS1024
 			var groupedFields = fieldSymbols.GroupBy(f => f.ContainingType);
+#pragma warning restore RS1024
 
 			foreach (var group in groupedFields)
 			{
