@@ -1,9 +1,8 @@
 using System;
-using System.IO;
+using System.Reactive.Concurrency;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -12,7 +11,6 @@ using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Search;
 using WalletWasabi.Fluent.ViewModels.Settings;
-using WalletWasabi.Legal;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -44,63 +42,70 @@ namespace WalletWasabi.Fluent.ViewModels
 			_isMainContentEnabled = true;
 			_isDialogScreenEnabled = true;
 
-			_statusBar = new StatusBarViewModel(global.DataDir, global.Network, global.Config, global.HostedServices, global.BitcoinStore.SmartHeaderChain, global.Synchronizer, global.LegalDocuments);
+			_statusBar = new StatusBarViewModel(
+				global.DataDir,
+				global.Network,
+				global.Config,
+				global.HostedServices,
+				global.BitcoinStore.SmartHeaderChain,
+				global.Synchronizer,
+				global.LegalDocuments);
 
 			var walletManager = new WalletManagerViewModel(global.WalletManager, global.UiConfig);
 
-			var addWalletPage = new AddWalletPageViewModel(global.LegalDocuments, global.WalletManager, global.BitcoinStore, global.Network);
+			var addWalletPage = new AddWalletPageViewModel(
+				global.LegalDocuments,
+				global.WalletManager,
+				global.BitcoinStore,
+				global.Network);
 
 			var settingsPage = new SettingsPageViewModel(global.Config, global.UiConfig);
-
 			var privacyMode = new PrivacyModeViewModel(global.UiConfig);
-
 			var homePage = new HomePageViewModel(walletManager, addWalletPage);
-
 			var searchPage = new SearchPageViewModel(walletManager);
 
 			_navBar = new NavBarViewModel(MainScreen, walletManager);
 
 			RegisterCategories(searchPage);
 
-			HomePageViewModel.Register(async () => await Task.FromResult(homePage));
+			HomePageViewModel.Register(homePage);
 
-			SearchPageViewModel.Register(async () => await Task.FromResult(searchPage));
-			PrivacyModeViewModel.Register(async ()=> await Task.FromResult(privacyMode));
-			AddWalletPageViewModel.Register(async () => await Task.FromResult(addWalletPage));
+			SearchPageViewModel.Register(searchPage);
+			PrivacyModeViewModel.Register(privacyMode);
+			AddWalletPageViewModel.Register(addWalletPage);
+			SettingsPageViewModel.Register(settingsPage);
 
-			SettingsPageViewModel.Register(async () =>
-			{
-				settingsPage.SelectedTab = 0;
-				return await Task.FromResult(settingsPage);
-			});
+			GeneralSettingsTabViewModel.RegisterLazy(
+				() =>
+				{
+					settingsPage.SelectedTab = 0;
+					return settingsPage;
+				});
 
-			GeneralSettingsTabViewModel.Register(async () =>
-			{
-				settingsPage.SelectedTab = 0;
-				return await Task.FromResult(settingsPage);
-			});
+			PrivacySettingsTabViewModel.RegisterLazy(
+				() =>
+				{
+					settingsPage.SelectedTab = 1;
+					return settingsPage;
+				});
 
-			PrivacySettingsTabViewModel.Register(async () =>
-			{
-				settingsPage.SelectedTab = 1;
-				return await Task.FromResult(settingsPage);
-			});
+			NetworkSettingsTabViewModel.RegisterLazy(
+				() =>
+				{
+					settingsPage.SelectedTab = 2;
+					return settingsPage;
+				});
 
-			NetworkSettingsTabViewModel.Register(async () =>
-			{
-				settingsPage.SelectedTab = 2;
-				return await Task.FromResult(settingsPage);
-			});
+			BitcoinTabViewModel.RegisterLazy(
+				() =>
+				{
+					settingsPage.SelectedTab = 3;
+					return settingsPage;
+				});
 
-			BitcoinTabViewModel.Register(async () =>
-			{
-				settingsPage.SelectedTab = 3;
-				return await Task.FromResult(settingsPage);
-			});
+			AboutViewModel.RegisterLazy(() => new AboutViewModel());
 
-			AboutViewModel.Register(async () => await Task.FromResult(new AboutViewModel()));
-
-			_navBar.InitialiseAsync();
+			RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
 
 			searchPage.Initialise();
 
@@ -127,7 +132,13 @@ namespace WalletWasabi.Fluent.ViewModels
 		public void Initialize()
 		{
 			// Temporary to keep things running without VM modifications.
-			MainWindowViewModel.Instance = new MainWindowViewModel(_global.Network, _global.UiConfig, _global.WalletManager, null!, null!, false);
+			MainWindowViewModel.Instance = new MainWindowViewModel(
+				_global.Network,
+				_global.UiConfig,
+				_global.WalletManager,
+				null!,
+				null!,
+				false);
 
 			StatusBar.Initialize(_global.Nodes.ConnectedNodes);
 

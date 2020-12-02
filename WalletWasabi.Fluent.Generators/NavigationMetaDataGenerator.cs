@@ -167,8 +167,9 @@ namespace {namespaceName}
 			source.Append($@"        }};
 ");
 
-			source.AppendLine(
-				$@"        public static void Register(Func<Task<RoutableViewModel>> createInstance) => NavigationManager.RegisterRoutable(MetaData, createInstance);");
+			source.AppendLine($@"        public static void RegisterAsyncLazy(Func<Task<RoutableViewModel>> createInstance) => NavigationManager.RegisterAsyncLazy(MetaData, createInstance);");
+			source.AppendLine($@"        public static void RegisterLazy(Func<RoutableViewModel> createInstance) => NavigationManager.RegisterLazy(MetaData, createInstance);");
+			source.AppendLine($@"        public static void Register(RoutableViewModel createInstance) => NavigationManager.Register(MetaData, createInstance);");
 
 			source.Append($@"    }}
 }}");
