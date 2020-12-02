@@ -13,7 +13,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Search
 {
-	public class SearchPageViewModel : NavBarItemViewModel
+	public partial class SearchPageViewModel : NavBarItemViewModel
 	{
 		private readonly bool _showWallets = false;
 		private readonly WalletManagerViewModel _walletManager;
@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 		private readonly Dictionary<SearchCategory, SourceList<SearchItemViewModel>> _categorySources;
 		private ReadOnlyObservableCollection<SearchResult>? _searchResults;
 		private IObservable<IChangeSet<SearchItemViewModel>>? _sourceObservable;
-		private string? _searchQuery;
+		[AutoNotify] private string? _searchQuery;
 
 		public SearchPageViewModel(WalletManagerViewModel walletManager)
 		{
@@ -34,12 +34,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 		}
 
 		public override string IconName => "search_regular";
-
-		public string? SearchQuery
-		{
-			get => _searchQuery;
-			set => this.RaiseAndSetIfChanged(ref _searchQuery, value);
-		}
 
 		public ReadOnlyObservableCollection<SearchResult> SearchResults => _searchResults!;
 

@@ -11,14 +11,14 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public class GeneralTabViewModel : SettingsTabViewModelBase
+	public partial class GeneralTabViewModel : SettingsTabViewModelBase
 	{
-		private bool _darkModeEnabled;
-		private bool _autoCopy;
-		private bool _customFee;
-		private bool _customChangeAddress;
-		private FeeDisplayFormat _selectedFeeDisplayFormat;
-		private string _dustThreshold;
+		[AutoNotify] private bool _darkModeEnabled;
+		[AutoNotify] private bool _autoCopy;
+		[AutoNotify] private bool _customFee;
+		[AutoNotify] private bool _customChangeAddress;
+		[AutoNotify] private FeeDisplayFormat _selectedFeeDisplayFormat;
+		[AutoNotify] private string _dustThreshold;
 
 		public GeneralTabViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
 		{
@@ -48,7 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					IsRestartNeeded(x);
 				});
 
-			this.WhenAnyValue(x => x.Autocopy)
+			this.WhenAnyValue(x => x.AutoCopy)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
 				.Subscribe(x => uiConfig.Autocopy = x);
@@ -67,42 +67,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Skip(1)
 				.Subscribe(x => uiConfig.FeeDisplayFormat = (int)x);
-		}
-
-		public bool DarkModeEnabled
-		{
-			get => _darkModeEnabled;
-			set => this.RaiseAndSetIfChanged(ref _darkModeEnabled, value);
-		}
-
-		public bool Autocopy
-		{
-			get => _autoCopy;
-			set => this.RaiseAndSetIfChanged(ref _autoCopy, value);
-		}
-
-		public bool CustomFee
-		{
-			get => _customFee;
-			set => this.RaiseAndSetIfChanged(ref _customFee, value);
-		}
-
-		public bool CustomChangeAddress
-		{
-			get => _customChangeAddress;
-			set => this.RaiseAndSetIfChanged(ref _customChangeAddress, value);
-		}
-
-		public FeeDisplayFormat SelectedFeeDisplayFormat
-		{
-			get => _selectedFeeDisplayFormat;
-			set => this.RaiseAndSetIfChanged(ref _selectedFeeDisplayFormat, value);
-		}
-
-		public string DustThreshold
-		{
-			get => _dustThreshold;
-			set => this.RaiseAndSetIfChanged(ref _dustThreshold, value);
 		}
 
 		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats => Enum.GetValues(typeof(FeeDisplayFormat)).Cast<FeeDisplayFormat>();

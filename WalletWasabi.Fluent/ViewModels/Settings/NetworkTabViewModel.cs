@@ -10,11 +10,11 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public class NetworkTabViewModel : SettingsTabViewModelBase
+	public partial class NetworkTabViewModel : SettingsTabViewModelBase
 	{
-		private bool _useTor;
-		private bool _terminateTorOnExit;
-		private string _torSocks5EndPoint;
+		[AutoNotify] private bool _useTor;
+		[AutoNotify] private bool _terminateTorOnExit;
+		[AutoNotify] private string _torSocks5EndPoint;
 
 		public NetworkTabViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
 		{
@@ -32,24 +32,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 				.Skip(1)
 				.Subscribe(_ => Save());
-		}
-
-		public bool UseTor
-		{
-			get => _useTor;
-			set => this.RaiseAndSetIfChanged(ref _useTor, value);
-		}
-
-		public bool TerminateTorOnExit
-		{
-			get => _terminateTorOnExit;
-			set => this.RaiseAndSetIfChanged(ref _terminateTorOnExit, value);
-		}
-
-		public string TorSocks5EndPoint
-		{
-			get => _torSocks5EndPoint;
-			set => this.RaiseAndSetIfChanged(ref _torSocks5EndPoint, value);
 		}
 
 		private void ValidateTorSocks5EndPoint(IValidationErrors errors)

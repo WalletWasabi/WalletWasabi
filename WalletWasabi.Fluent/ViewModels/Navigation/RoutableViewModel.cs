@@ -10,8 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
 	public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	{
-		[AutoNotify]
-		private bool _isBusy;
+		[AutoNotify] private bool _isBusy;
 		private CompositeDisposable? _currentDisposable;
 
 		public NavigationTarget CurrentTarget { get; internal set; }

@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 	/// <summary>
 	/// The ViewModel that represents the structure of the sidebar.
 	/// </summary>
-	public class NavBarViewModel : ViewModelBase
+	public partial class NavBarViewModel : ViewModelBase
 	{
 		private const double NormalCompactPaneLength = 68;
 		private const double NormalOpenPaneLength = 280;
@@ -62,19 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				});
 		}
 
-		public ObservableCollection<NavBarItemViewModel> TopItems
-		{
-			get => _topItems;
-			set => this.RaiseAndSetIfChanged(ref _topItems, value);
-		}
-
 		public ObservableCollection<WalletViewModelBase> Items => _walletManager.Items;
-
-		public ObservableCollection<NavBarItemViewModel> BottomItems
-		{
-			get => _bottomItems;
-			set => this.RaiseAndSetIfChanged(ref _bottomItems, value);
-		}
 
 		public NavBarItemViewModel? SelectedItem
 		{

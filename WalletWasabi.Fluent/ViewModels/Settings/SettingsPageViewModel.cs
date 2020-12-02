@@ -6,10 +6,10 @@ using WalletWasabi.Gui;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public class SettingsPageViewModel : NavBarItemViewModel
+	public partial class SettingsPageViewModel : NavBarItemViewModel
 	{
-		private bool _isModified;
-		private int _selectedTab;
+		[AutoNotify] private bool _isModified;
+		[AutoNotify] private int _selectedTab;
 
 		public SettingsPageViewModel(Config config, UiConfig uiConfig)
 		{
@@ -28,18 +28,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		public NetworkTabViewModel NetworkTab { get; }
 		public BitcoinTabViewModel BitcoinTab { get; }
 
-		public bool IsModified
-		{
-			get => _isModified;
-			set => this.RaiseAndSetIfChanged(ref _isModified, value);
-		}
-
-		public int SelectedTab
-		{
-			get => _selectedTab;
-			set => this.RaiseAndSetIfChanged(ref _selectedTab, value);
-		}
-
 		public override string IconName => "settings_regular";
 
 		private void OnRestartNeeded(object? sender, RestartNeededEventArgs e)
@@ -53,11 +41,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			SettingsTabViewModelBase.RestartNeeded += OnRestartNeeded;
 
-			Disposable.Create(
-				() =>
-			{
-				SettingsTabViewModelBase.RestartNeeded -= OnRestartNeeded;
-			}).DisposeWith(disposable);
+			Disposable.Create(() => { SettingsTabViewModelBase.RestartNeeded -= OnRestartNeeded; })
+				.DisposeWith(disposable);
 		}
 	}
 }

@@ -18,10 +18,11 @@ using WalletWasabi.Legal;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
-	public class AddWalletPageViewModel : NavBarItemViewModel
+	public partial class AddWalletPageViewModel : NavBarItemViewModel
 	{
-		private string _walletName = "";
-		private bool _optionsEnabled;
+		[AutoNotify] private string _walletName = "";
+		[AutoNotify] private bool _optionsEnabled;
+
 		private readonly LegalDocuments _legalDocuments;
 
 		public AddWalletPageViewModel(
@@ -127,18 +128,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		}
 
 		public override string IconName => "add_circle_regular";
-
-		public string WalletName
-		{
-			get => _walletName;
-			set => this.RaiseAndSetIfChanged(ref _walletName, value);
-		}
-
-		public bool OptionsEnabled
-		{
-			get => _optionsEnabled;
-			set => this.RaiseAndSetIfChanged(ref _optionsEnabled, value);
-		}
 
 		public ICommand CreateWalletCommand { get; }
 		public ICommand RecoverWalletCommand { get; }
