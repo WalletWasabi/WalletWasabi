@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -8,8 +7,9 @@ namespace WalletWasabi.Fluent.ViewModels
 	[Property("Title", typeof(string), false, PropertyModifier.None, PropertyModifier.Internal)]
 	[Property("Items", typeof(List<string>), false, PropertyModifier.None, PropertyModifier.Private)]
 	[Property("Count", typeof(int), isReadOnly: true)]
-	public partial class TestViewModel
+	public partial class TestViewModel1
 	{
 		// [AutoNotify] private bool _test;
 	}
+	// TODO: For testing only.
 }
