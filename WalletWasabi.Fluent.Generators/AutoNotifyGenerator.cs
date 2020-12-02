@@ -82,7 +82,7 @@ namespace WalletWasabi.Fluent
 
 			foreach (var group in groupedFields)
 			{
-				var classSource = ProcessClass(group.Key, group.ToList(), attributeSymbol, notifySymbol, context);
+				var classSource = ProcessClass(group.Key, group.ToList(), attributeSymbol, notifySymbol);
 				if (classSource is null)
 				{
 					continue;
@@ -91,7 +91,7 @@ namespace WalletWasabi.Fluent
 			}
 		}
 
-		private string? ProcessClass(INamedTypeSymbol classSymbol, List<IFieldSymbol> fields, ISymbol attributeSymbol, INamedTypeSymbol notifySymbol, GeneratorExecutionContext context)
+		private string? ProcessClass(INamedTypeSymbol classSymbol, List<IFieldSymbol> fields, ISymbol attributeSymbol, INamedTypeSymbol notifySymbol)
 		{
 			if (!classSymbol.ContainingSymbol.Equals(classSymbol.ContainingNamespace, SymbolEqualityComparer.Default))
 			{
