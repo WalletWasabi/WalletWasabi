@@ -22,10 +22,6 @@
 		  <DependentUpon>DetectedHardwareWalletView.axaml</DependentUpon>
 		  <SubType>Code</SubType>
 		</Compile>
-		<Compile Update="Views\AddWallet\HardwareWallet\DetectHardwareWalletView.axaml.cs">
-		  <DependentUpon>DetectHardwareWalletView.axaml</DependentUpon>
-		  <SubType>Code</SubType>
-		</Compile>
 		<Compile Update="Views\AddWallet\HardwareWallet\ConnectHardwareWalletView.axaml.cs">
 		  <DependentUpon>ConnectHardwareWalletView.axaml</DependentUpon>
 		  <SubType>Code</SubType>

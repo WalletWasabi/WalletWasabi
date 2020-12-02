@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Timers;
 using NBitcoin;
 using ReactiveUI;
@@ -19,9 +20,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			WalletName = walletName;
 			HardwareWalletOperations = new HardwareWalletOperations(walletManager, network);
-			HardwareWalletOperations.HardwareWalletsFound += OnHardwareWalletsFound;
-			HardwareWalletOperations.SearchingHasNoResult += OnSearchingHasNoResult;
-			HardwareWalletOperations.PassphraseTimer.Elapsed += OnPassphraseNeeded;
 
 			_message = "";
 		}
@@ -126,6 +124,22 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				default:
 					throw new ArgumentOutOfRangeException(nameof(errorCode), errorCode, null);
 			}
+		}
+
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		{
+			base.OnNavigatedTo(inStack, disposable);
+
+			HardwareWalletOperations.HardwareWalletsFound += OnHardwareWalletsFound;
+			HardwareWalletOperations.SearchingHasNoResult += OnSearchingHasNoResult;
+			HardwareWalletOperations.PassphraseTimer.Elapsed += OnPassphraseNeeded;
+
+			disposable.Add(Disposable.Create(() =>
+			{
+				HardwareWalletOperations.HardwareWalletsFound -= OnHardwareWalletsFound;
+				HardwareWalletOperations.SearchingHasNoResult -= OnSearchingHasNoResult;
+				HardwareWalletOperations.PassphraseTimer.Elapsed -= OnPassphraseNeeded;
+			}));
 		}
 	}
 }
