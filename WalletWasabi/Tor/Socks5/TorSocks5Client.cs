@@ -345,7 +345,7 @@ namespace WalletWasabi.Tor.Socks5
 			{
 				await AssertConnectedAsync(cancellationToken).ConfigureAwait(false);
 
-				using (await AsyncLock.LockAsync().ConfigureAwait(false))
+				using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 				{
 					var stream = TcpClient.GetStream();
 

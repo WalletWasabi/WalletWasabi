@@ -252,7 +252,7 @@ namespace WalletWasabi.Tor.Http
 					}
 					else
 					{
-						request.Content.Headers.ContentLength ??= (await request.Content.ReadAsStringAsync().ConfigureAwait(false)).Length;
+						request.Content.Headers.ContentLength ??= (await request.Content.ReadAsStringAsync(cancel).ConfigureAwait(false)).Length;
 					}
 				}
 			}
