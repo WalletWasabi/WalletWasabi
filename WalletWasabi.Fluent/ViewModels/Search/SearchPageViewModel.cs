@@ -28,8 +28,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			Title = "Search";
 			_categories = new Dictionary<string, SearchCategory>();
 			_categorySources = new Dictionary<SearchCategory, SourceList<SearchItemViewModel>>();
-
-			RegisterCategory("Wallets", 2);
 		}
 
 		public override string IconName => "search_regular";
@@ -38,7 +36,8 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 
 		public void Initialise()
 		{
-			foreach (var metaData in NavigationManager.MetaData.Where(x => x.Searchable))
+			foreach (var metaData in NavigationManager.MetaData.Where(
+				x => x.Searchable))
 			{
 				RegisterSearchEntry(metaData);
 			}
@@ -58,7 +57,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				.AsObservableList();
 		}
 
-		public SearchCategory RegisterCategory(string title, int order)
+		public void RegisterCategory(string title, int order)
 		{
 			if (!_categories.ContainsKey(title))
 			{
@@ -78,14 +77,13 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				{
 					_sourceObservable = _sourceObservable.Merge(sourceList.Connect());
 				}
-
-				return category;
+				return;
 			}
 
 			throw new Exception("Category already exists.");
 		}
 
-		private SearchItemViewModel RegisterSearchEntry(NavigationMetaData metaData)
+		private void RegisterSearchEntry(NavigationMetaData metaData)
 		{
 			if (_categories.TryGetValue(metaData.Category, out var searchCategory))
 			{
@@ -93,7 +91,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 
 				_categorySources[searchCategory].Add(result);
 
-				return result;
+				return;
 			}
 
 			throw new Exception("Category doesn't exist.");
