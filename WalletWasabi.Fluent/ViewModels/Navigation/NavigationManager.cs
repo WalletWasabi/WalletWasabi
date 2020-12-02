@@ -7,21 +7,23 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
 	public static class NavigationManager
 	{
-		private static readonly Dictionary<NavigationMetaData, InstanceGeneratorBase> _navigationEntries = new();
+		private static readonly Dictionary<NavigationMetaData, InstanceGeneratorBase> NavigationEntries = new ();
+
+		public static IEnumerable<NavigationMetaData> MetaData => NavigationEntries.Keys.Select(x => x);
 
 		public static async Task<RoutableViewModel> MaterialiseViewModel(NavigationMetaData metaData)
 		{
-			if (_navigationEntries.ContainsKey(metaData))
+			if (NavigationEntries.ContainsKey(metaData))
 			{
-				if (_navigationEntries[metaData] is InstanceGenerator instanceGenerator)
+				if (NavigationEntries[metaData] is InstanceGenerator instanceGenerator)
 				{
 					return instanceGenerator.Generate;
 				}
-				else if (_navigationEntries[metaData] is SynchronousInstanceGenerator synchronousInstanceGenerator)
+				else if (NavigationEntries[metaData] is SynchronousInstanceGenerator synchronousInstanceGenerator)
 				{
 					return synchronousInstanceGenerator.Generate();
 				}
-				else if (_navigationEntries[metaData] is AsyncInstanceGenerator asyncInstanceGenerator)
+				else if (NavigationEntries[metaData] is AsyncInstanceGenerator asyncInstanceGenerator)
 				{
 					return await asyncInstanceGenerator.Generate();
 				}
@@ -30,8 +32,6 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			throw new Exception("ViewModel metadata not registered.");
 		}
 
-		public static IEnumerable<NavigationMetaData> MetaData => _navigationEntries.Keys.Select(x => x);
-
 		public static void RegisterAsyncLazy(NavigationMetaData metaData, Func<Task<RoutableViewModel>> generator)
 		{
 			if (metaData.Searchable && (metaData.Category is null || metaData.Title is null))
@@ -39,9 +39,9 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 				throw new Exception("Searchable entries must have both a Category and a Title");
 			}
 
-			if (!_navigationEntries.ContainsKey(metaData))
+			if (!NavigationEntries.ContainsKey(metaData))
 			{
-				_navigationEntries.Add(metaData, new AsyncInstanceGenerator(generator));
+				NavigationEntries.Add(metaData, new AsyncInstanceGenerator(generator));
 			}
 		}
 
@@ -52,9 +52,9 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 				throw new Exception("Searchable entries must have both a Category and a Title");
 			}
 
-			if (!_navigationEntries.ContainsKey(metaData))
+			if (!NavigationEntries.ContainsKey(metaData))
 			{
-				_navigationEntries.Add(metaData, new SynchronousInstanceGenerator(generator));
+				NavigationEntries.Add(metaData, new SynchronousInstanceGenerator(generator));
 			}
 		}
 
@@ -65,9 +65,9 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 				throw new Exception("Searchable entries must have both a Category and a Title");
 			}
 
-			if (!_navigationEntries.ContainsKey(metaData))
+			if (!NavigationEntries.ContainsKey(metaData))
 			{
-				_navigationEntries.Add(metaData, new InstanceGenerator(instance));
+				NavigationEntries.Add(metaData, new InstanceGenerator(instance));
 			}
 		}
 
