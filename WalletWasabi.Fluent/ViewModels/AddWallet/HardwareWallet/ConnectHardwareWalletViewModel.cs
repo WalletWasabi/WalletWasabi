@@ -65,7 +65,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			if (device.Code is { })
 			{
-				Message = "Something happened with your device, please reconnect it to the PC.";
+				Message = "Something happened with your device, unlock it with your PIN/Passphrase or reconnect to the PC.";
 				return;
 			}
 
