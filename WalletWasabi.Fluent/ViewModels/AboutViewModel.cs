@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -12,6 +13,15 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
+	// TODO: for testing only
+	[Property("IsVisible", typeof(bool))]
+	[Property("Title", typeof(string), false, PropertyModifier.Public, PropertyModifier.Internal)]
+	[Property("Items", typeof(List<string>), false, PropertyModifier.Public, PropertyModifier.Private)]
+	[Property("Count", typeof(int), isReadOnly: true)]
+	public partial class TestViewModel
+	{
+	}
+
 	[NavigationMetaData(
 		Searchable = true,
 		Title = "About Wasabi",
