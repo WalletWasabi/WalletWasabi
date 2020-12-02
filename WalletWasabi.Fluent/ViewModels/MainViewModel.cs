@@ -105,7 +105,9 @@ namespace WalletWasabi.Fluent.ViewModels
 				});
 
 			AboutViewModel.RegisterLazy(() => new AboutViewModel());
-			LegalDocumentsViewModel.RegisterAsyncLazy(async () =>
+
+			LegalDocumentsViewModel.RegisterAsyncLazy(
+				async () =>
 			{
 				var content = await File.ReadAllTextAsync(global.LegalDocuments.FilePath);
 

@@ -7,40 +7,6 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
 	public static class NavigationManager
 	{
-		private class InstanceGeneratorBase
-		{
-		}
-
-		private class AsyncInstanceGenerator : InstanceGeneratorBase
-		{
-			public AsyncInstanceGenerator(Func<Task<RoutableViewModel>> generate)
-			{
-				Generate = generate;
-			}
-
-			public Func<Task<RoutableViewModel>> Generate { get; }
-		}
-
-		private class SynchronousInstanceGenerator : InstanceGeneratorBase
-		{
-			public SynchronousInstanceGenerator(Func<RoutableViewModel> generate)
-			{
-				Generate = generate;
-			}
-
-			public Func<RoutableViewModel> Generate { get; }
-		}
-
-		private class InstanceGenerator : InstanceGeneratorBase
-		{
-			public InstanceGenerator(RoutableViewModel generate)
-			{
-				Generate = generate;
-			}
-
-			public RoutableViewModel Generate { get; }
-		}
-
 		private static readonly Dictionary<NavigationMetaData, InstanceGeneratorBase> _navigationEntries = new();
 
 		public static async Task<RoutableViewModel> MaterialiseViewModel(NavigationMetaData metaData)
@@ -103,6 +69,40 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			{
 				_navigationEntries.Add(metaData, new InstanceGenerator(instance));
 			}
+		}
+
+		private class InstanceGeneratorBase
+		{
+		}
+
+		private class AsyncInstanceGenerator : InstanceGeneratorBase
+		{
+			public AsyncInstanceGenerator(Func<Task<RoutableViewModel>> generate)
+			{
+				Generate = generate;
+			}
+
+			public Func<Task<RoutableViewModel>> Generate { get; }
+		}
+
+		private class SynchronousInstanceGenerator : InstanceGeneratorBase
+		{
+			public SynchronousInstanceGenerator(Func<RoutableViewModel> generate)
+			{
+				Generate = generate;
+			}
+
+			public Func<RoutableViewModel> Generate { get; }
+		}
+
+		private class InstanceGenerator : InstanceGeneratorBase
+		{
+			public InstanceGenerator(RoutableViewModel generate)
+			{
+				Generate = generate;
+			}
+
+			public RoutableViewModel Generate { get; }
 		}
 	}
 }
