@@ -5,20 +5,18 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:AddedWalletPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.AddedWalletPageView">
   <c:ContentArea Title="Success" NextContent="Done" EnableNext="True" EnableCancel="False" EnableBack="False">
     <StackPanel VerticalAlignment="Center" Spacing="40">
-      <Image Height="180" Source="{Binding Path='Type' Converter={x:Static conv:WalletTypeImageConverter.Instance}}" />
+      <Image Height="180" Source="{Binding Path='Type', Converter={x:Static conv:WalletTypeImageConverter.Instance}}" />
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-        <TextBlock Text="Your wallet '" />
-        <TextBlock Text="{Binding WalletName}" HorizontalAlignment="Center" />
-        <TextBlock Text="' was added to Wasabi." />
-      </StackPanel>      
-    </StackPanel>    
+        <TextBlock Text="Your wallet " />
+        <TextBlock Text="{Binding WalletName}" FontWeight="Bold"/>
+        <TextBlock Text=" was added to Wasabi." />
+      </StackPanel>
+    </StackPanel>
   </c:ContentArea>
 </UserControl>
