@@ -198,8 +198,9 @@ namespace WalletWasabi.Tor.Socks5
 			{
 				bool useSsl = request.RequestUri!.Scheme == Uri.UriSchemeHttps;
 				bool allowRecycling = !useSsl && !isolateStream;
+				int port = request.RequestUri!.Port;
 
-				TorConnection newClient = await NewSocks5ClientAsync(request, useSsl, isolateStream, token).ConfigureAwait(false);
+				TorConnection newClient = await TorSocks5ClientFactory.MakeAsync(isolateStream, host, port, useSsl, token).ConfigureAwait(false);
 				poolItem = new TorPoolItem(newClient, allowRecycling);
 
 				Logger.LogTrace($"[NEW {poolItem}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
@@ -220,17 +221,6 @@ namespace WalletWasabi.Tor.Socks5
 
 			Logger.LogTrace($"< poolItem='{poolItem}'; Context: existing hostItems = {string.Join(',', ClientsManager.GetItemsCopy(host).Select(x => x.ToString()).ToArray())}.");
 			return poolItem;
-		}
-
-		/// <inheritdoc cref="TorSocks5ClientFactory.MakeAsync(bool, string, int, bool, CancellationToken)"/>
-		private Task<TorConnection> NewSocks5ClientAsync(HttpRequestMessage request, bool useSsl, bool isolateStream, CancellationToken token = default)
-		{
-			// https://tools.ietf.org/html/rfc7230#section-2.7.1
-			// A sender MUST NOT generate an "http" URI with an empty host identifier.
-			string host = GetRequestHost(request);
-			int port = request.RequestUri!.Port;
-
-			return TorSocks5ClientFactory.MakeAsync(isolateStream, host, port, useSsl, token);
 		}
 
 		private async static Task<HttpResponseMessage> SendCoreAsync(Stream transportStream, HttpRequestMessage request, CancellationToken token = default)
