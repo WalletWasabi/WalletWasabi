@@ -49,7 +49,7 @@ namespace WalletWasabi.Fluent
 		{
 		}
 
-		public bool Searchable { get; set; }
+		public bool Searchable { get; set; } = true;
 
 		public string Title { get; set; }
 
@@ -168,7 +168,7 @@ namespace {namespaceName}
 ");
 
 			source.AppendLine(
-				$@"        public static void Register(Func<Task<RoutableViewModel>> createInstance) => NavigationManager.RegisterRoutable<{namedTypeSymbol.Name}>(MetaData, createInstance);");
+				$@"        public static void Register(Func<Task<RoutableViewModel>> createInstance) => NavigationManager.RegisterRoutable(MetaData, createInstance);");
 
 			source.Append($@"    }}
 }}");

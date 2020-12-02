@@ -2,41 +2,30 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Fluent.ViewModels.AddWallet;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
-	public enum NavBarPosition
+	public static class NavigationManager
 	{
-		None,
-		Top,
-		Bottom
-	}
+		private static Dictionary<NavigationMetaData, Func<Task<RoutableViewModel>>> _navigationEntries = new();
 
-	public class NavigationManager
-	{
-		struct NavigationEntry
+		public static async Task<RoutableViewModel> MaterialiseViewModel(NavigationMetaData metaData)
 		{
-			public NavigationMetaData MetaData { get; set; }
-			public Func<Task<RoutableViewModel>> GenerateViewModel { get; set; }
+			if (_navigationEntries.ContainsKey(metaData))
+			{
+				return await _navigationEntries[metaData]();
+			}
+
+			throw new Exception("ViewModel metadata not registered.");
 		}
 
-		private static Dictionary<Type, NavigationEntry> _navigationTypes = new();
+		public static IEnumerable<NavigationMetaData> MetaData => _navigationEntries.Keys.Select(x => x);
 
-		public static IEnumerable<NavigationMetaData> MetaData => _navigationTypes.Values.Select(x => x.MetaData);
-
-		public static void RegisterRoutable<T>(NavigationMetaData metaData, Func<Task<RoutableViewModel>> generator)
-			where T : RoutableViewModel
+		public static void RegisterRoutable(NavigationMetaData metaData, Func<Task<RoutableViewModel>> generator)
 		{
-			if (!_navigationTypes.ContainsKey(typeof(T)))
+			if (!_navigationEntries.ContainsKey(metaData))
 			{
-				_navigationTypes.Add(
-					typeof(T),
-					new NavigationEntry
-					{
-						GenerateViewModel = generator,
-						MetaData = metaData
-					});
+				_navigationEntries.Add(metaData, generator);
 			}
 		}
 	}

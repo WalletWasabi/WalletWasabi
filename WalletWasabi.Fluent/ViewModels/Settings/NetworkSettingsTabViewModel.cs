@@ -10,13 +10,23 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public partial class NetworkTabViewModel : SettingsTabViewModelBase
+	[NavigationMetaData(
+		Title = "Network",
+		Caption = "Manage network settings",
+		Order = 2,
+		Category = "Settings",
+		Keywords = new[]
+		{
+			"Settings", "Network", "Encryption", "Tor", "Terminate", "Wasabi", "Shutdown", "SOCKS5", "Endpoint"
+		},
+		IconName = "settings_network_regular")]
+	public partial class NetworkSettingsTabViewModel : SettingsTabViewModelBase
 	{
 		[AutoNotify] private bool _useTor;
 		[AutoNotify] private bool _terminateTorOnExit;
 		[AutoNotify] private string _torSocks5EndPoint;
 
-		public NetworkTabViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
+		public NetworkSettingsTabViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
 		{
 			this.ValidateProperty(x => x.TorSocks5EndPoint, ValidateTorSocks5EndPoint);
 
@@ -54,6 +64,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			{
 				config.TorSocks5EndPoint = torEp;
 			}
+
 			config.UseTor = UseTor;
 			config.TerminateTorOnExit = TerminateTorOnExit;
 		}

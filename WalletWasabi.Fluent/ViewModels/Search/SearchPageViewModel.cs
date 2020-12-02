@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Search
 {
+	[NavigationMetaData(Title = "Search", NavBarPosition = NavBarPosition.Bottom)]
 	public partial class SearchPageViewModel : NavBarItemViewModel
 	{
 		private readonly bool _showWallets = false;

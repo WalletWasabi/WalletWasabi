@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -70,23 +71,30 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			set => SetSelectedItem(value);
 		}
 
-		public void RegisterTopItem(NavBarItemViewModel item, bool isSelected = false)
+		public async Task InitialiseAsync()
 		{
-			_topItems.Add(item);
+			var topItems = NavigationManager.MetaData.Where(x => x.NavBarPosition == NavBarPosition.Top);
 
-			if (isSelected)
+			var bottomItems = NavigationManager.MetaData.Where(x => x.NavBarPosition == NavBarPosition.Bottom);
+
+			foreach (var item in topItems)
 			{
-				_selectedItem = item;
+				var viewModel = await NavigationManager.MaterialiseViewModel(item);
+
+				if (viewModel is NavBarItemViewModel navBarItem)
+				{
+					_topItems.Add(navBarItem);
+				}
 			}
-		}
 
-		public void RegisterBottomItem(NavBarItemViewModel item, bool isSelected = false)
-		{
-			_bottomItems.Add(item);
-
-			if (isSelected)
+			foreach (var item in bottomItems)
 			{
-				_selectedItem = item;
+				var viewModel = await NavigationManager.MaterialiseViewModel(item);
+
+				if (viewModel is NavBarItemViewModel navBarItem)
+				{
+					_bottomItems.Add(navBarItem);
+				}
 			}
 		}
 

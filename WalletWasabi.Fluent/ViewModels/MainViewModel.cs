@@ -60,16 +60,49 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			_navBar = new NavBarViewModel(MainScreen, walletManager);
 
-			_navBar.RegisterTopItem(homePage);
-			_navBar.RegisterBottomItem(searchPage);
-			_navBar.RegisterBottomItem(privacyMode);
-			_navBar.RegisterBottomItem(addWalletPage);
-			_navBar.RegisterBottomItem(settingsPage);
+
 
 			RegisterCategories(searchPage);
-			RegisterRootEntries(searchPage, homePage, settingsPage, addWalletPage);
-			RegisterEntries(searchPage, global.LegalDocuments);
-			RegisterSettingsSearchItems(searchPage, settingsPage);
+
+			HomePageViewModel.Register(async () => await Task.FromResult(homePage));
+
+			SearchPageViewModel.Register(async () => searchPage);
+			PrivacyModeViewModel.Register(async ()=> await Task.FromResult(privacyMode));
+			AddWalletPageViewModel.Register(async () => await Task.FromResult(addWalletPage));
+
+			SettingsPageViewModel.Register(async () =>
+			{
+				settingsPage.SelectedTab = 0;
+				return await Task.FromResult(settingsPage);
+			});
+
+			GeneralSettingsTabViewModel.Register(async () =>
+			{
+				settingsPage.SelectedTab = 0;
+				return await Task.FromResult(settingsPage);
+			});
+
+			PrivacySettingsTabViewModel.Register(async () =>
+			{
+				settingsPage.SelectedTab = 1;
+				return await Task.FromResult(settingsPage);
+			});
+
+			NetworkSettingsTabViewModel.Register(async () =>
+			{
+				settingsPage.SelectedTab = 2;
+				return await Task.FromResult(settingsPage);
+			});
+
+			BitcoinTabViewModel.Register(async () =>
+			{
+				settingsPage.SelectedTab = 3;
+				return await Task.FromResult(settingsPage);
+			});
+
+			AboutViewModel.Register(async () => await Task.FromResult(new AboutViewModel()));
+
+			_navBar.InitialiseAsync();
 
 			searchPage.Initialise();
 
@@ -110,113 +143,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			searchPage.RegisterCategory("General", 0);
 			searchPage.RegisterCategory("Settings", 1);
-		}
-
-		private static void RegisterEntries(SearchPageViewModel searchPage, LegalDocuments legalDocuments)
-		{
-			// TODO:
-			/*
-			NavigationManager.RegisterRoutable<LegalDocumentsViewModel>(
-				LegalDocumentsViewModel.MetaData,
-				async () =>
-					{
-						var content = await File.ReadAllTextAsync(legalDocuments.FilePath);
-
-						var legalDocs = new LegalDocumentsViewModel(content);
-
-						return legalDocs;
-					});
-			*/
-			AboutViewModel.Register(async () => await Task.FromResult(new AboutViewModel()));
-		}
-
-		private static void RegisterRootEntries(
-			SearchPageViewModel searchPage,
-			HomePageViewModel homePage,
-			SettingsPageViewModel settingsPage,
-			AddWalletPageViewModel addWalletPage)
-		{
-			searchPage.RegisterSearchEntry(
-				"Home",
-				"Manage existing wallets",
-				0,
-				"General",
-				"Home",
-				"home_regular",
-				async () =>  await Task.FromResult(homePage));
-
-			searchPage.RegisterSearchEntry(
-				title: "Settings",
-				caption: "Manage appearance, privacy and other settings",
-				order: 1,
-				category: "General",
-				keywords: "Settings, General, User Interface, Privacy, Advanced",
-				iconName: "settings_regular",
-				createTargetView: async () =>  await Task.FromResult(settingsPage));
-
-			searchPage.RegisterSearchEntry(
-				title: "Add Wallet",
-				caption: "Create, recover or import wallet",
-				order: 2,
-				category: "General",
-				keywords: "Wallet, Add Wallet, Create Wallet, Recover Wallet, Import Wallet, Connect Hardware Wallet",
-				iconName: "add_circle_regular",
-				createTargetView: async () =>  await Task.FromResult(addWalletPage));
-		}
-
-		private static void RegisterSettingsSearchItems(SearchPageViewModel searchPage, SettingsPageViewModel settingsPage)
-		{
-			searchPage.RegisterSearchEntry(
-				title: "General",
-				caption: "Manage general settings",
-				order: 0,
-				category: "Settings",
-				keywords: "Settings, General, Dark Mode, Bitcoin Addresses, Manual Entry Free, Custom Change Address, Fee Display Format, Dust Threshold, BTC",
-				iconName: "settings_general_regular",
-				createTargetView: async () =>
-				{
-					settingsPage.SelectedTab = 0;
-					return await Task.FromResult(settingsPage);
-				});
-
-			searchPage.RegisterSearchEntry(
-				title: "Privacy",
-				caption: "Manage privacy settings",
-				order: 1,
-				category: "Settings",
-				keywords: "Settings, Privacy, Minimal, Medium, Strong, Anonymity Level",
-				iconName: "settings_privacy_regular",
-				createTargetView: async () =>
-				{
-					settingsPage.SelectedTab = 1;
-					return await Task.FromResult(settingsPage);
-				});
-
-			searchPage.RegisterSearchEntry(
-				title: "Network",
-				caption: "Manage network settings",
-				order: 2,
-				category: "Settings",
-				keywords: "Settings, Network, Encryption, Tor, Terminate, Wasabi, Shutdown, SOCKS5, Endpoint",
-				iconName: "settings_network_regular",
-				createTargetView: async () =>
-				{
-					settingsPage.SelectedTab = 2;
-					return await Task.FromResult(settingsPage);
-				});
-
-			searchPage.RegisterSearchEntry(
-				title: "Bitcoin",
-				caption: "Manage Bitcoin settings",
-				order: 3,
-				category: "Settings",
-				keywords: "Settings, Bitcoin, Network, Main, TestNet, RegTest, Run, Knots, Startup, P2P, Endpoint",
-				iconName: "settings_bitcoin_regular",
-				createTargetView: async () =>
-				{
-					settingsPage.SelectedTab = 3;
-					return await Task.FromResult(settingsPage);
-				});
 		}
 	}
 }

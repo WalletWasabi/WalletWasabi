@@ -18,6 +18,14 @@ using WalletWasabi.Legal;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
+	[NavigationMetaData(
+		Title = "Add Wallet",
+		Caption = "Create, recover or import wallet",
+		Order = 2,
+		Category = "General",
+		Keywords = new[] { "Wallet", "Add", "Create", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger" },
+		IconName = "add_circle_regular",
+		NavBarPosition = NavBarPosition.Bottom)]
 	public partial class AddWalletPageViewModel : NavBarItemViewModel
 	{
 		[AutoNotify] private string _walletName = "";
@@ -41,10 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
 			RecoverWalletCommand = ReactiveCommand.Create(
-				() =>
-			{
-				Navigate().To(new RecoverWalletViewModel(WalletName, network, walletManager));
-			});
+				() => { Navigate().To(new RecoverWalletViewModel(WalletName, network, walletManager)); });
 
 			ImportWalletCommand = ReactiveCommand.Create(() => new ImportWalletViewModel(WalletName, walletManager));
 
@@ -52,8 +57,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				async () =>
 				{
 					var result = await NavigateDialog(
-						new EnterPasswordViewModel(
-						"Type the password of the wallet and click Continue."));
+						new EnterPasswordViewModel("Type the password of the wallet and click Continue."));
 
 					if (result is { } password)
 					{

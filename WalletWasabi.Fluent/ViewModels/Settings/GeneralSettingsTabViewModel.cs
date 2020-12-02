@@ -11,7 +11,18 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public partial class GeneralTabViewModel : SettingsTabViewModelBase
+	[NavigationMetaData(
+		Title = "General",
+		Caption = "Manage general settings",
+		Order = 0,
+		Category = "Settings",
+		Keywords = new[]
+		{
+			"Settings", "General", "Dark", "Mode", "Bitcoin", "Addresses", "Manual", "Entry", "Fee", "Custom", "Change",
+			"Address", "Display", "Format", "Dust", "Threshold", "BTC"
+		},
+		IconName = "settings_general_regular")]
+	public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	{
 		[AutoNotify] private bool _darkModeEnabled;
 		[AutoNotify] private bool _autoCopy;
@@ -20,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private FeeDisplayFormat _selectedFeeDisplayFormat;
 		[AutoNotify] private string _dustThreshold;
 
-		public GeneralTabViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
+		public GeneralSettingsTabViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
 		{
 			this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
@@ -29,7 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_customFee = uiConfig.IsCustomFee;
 			_customChangeAddress = uiConfig.IsCustomChangeAddress;
 			_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), uiConfig.FeeDisplayFormat)
-				? (FeeDisplayFormat)uiConfig.FeeDisplayFormat
+				? (FeeDisplayFormat) uiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
 			_dustThreshold = config.DustThreshold.ToString();
 
@@ -43,10 +54,10 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Skip(1)
 				.Subscribe(
 					x =>
-				{
-					uiConfig.DarkModeEnabled = x;
-					IsRestartNeeded(x);
-				});
+					{
+						uiConfig.DarkModeEnabled = x;
+						IsRestartNeeded(x);
+					});
 
 			this.WhenAnyValue(x => x.AutoCopy)
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -66,18 +77,22 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Skip(1)
-				.Subscribe(x => uiConfig.FeeDisplayFormat = (int)x);
+				.Subscribe(x => uiConfig.FeeDisplayFormat = (int) x);
 		}
 
-		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats => Enum.GetValues(typeof(FeeDisplayFormat)).Cast<FeeDisplayFormat>();
+		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats =>
+			Enum.GetValues(typeof(FeeDisplayFormat)).Cast<FeeDisplayFormat>();
 
-		private void ValidateDustThreshold(IValidationErrors errors) => ValidateDustThreshold(errors, DustThreshold, whiteSpaceOk: true);
+		private void ValidateDustThreshold(IValidationErrors errors) =>
+			ValidateDustThreshold(errors, DustThreshold, whiteSpaceOk: true);
 
 		private void ValidateDustThreshold(IValidationErrors errors, string dustThreshold, bool whiteSpaceOk)
 		{
 			if (!whiteSpaceOk || !string.IsNullOrWhiteSpace(dustThreshold))
 			{
-				if (!string.IsNullOrEmpty(dustThreshold) && dustThreshold.Contains(',', StringComparison.InvariantCultureIgnoreCase))
+				if (!string.IsNullOrEmpty(dustThreshold) && dustThreshold.Contains(
+					',',
+					StringComparison.InvariantCultureIgnoreCase))
 				{
 					errors.Add(ErrorSeverity.Error, "Use decimal point instead of comma.");
 				}
@@ -91,7 +106,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		protected override void EditConfigOnSave(Config config)
 		{
-			config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ? Money.Coins(threshold) : Config.DefaultDustThreshold;
+			config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold)
+				? Money.Coins(threshold)
+				: Config.DefaultDustThreshold;
 		}
 	}
 }

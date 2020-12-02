@@ -13,7 +13,6 @@ using WalletWasabi.Logging;
 namespace WalletWasabi.Fluent.ViewModels
 {
 	[NavigationMetaData(
-		Searchable = true,
 		Title = "About Wasabi",
 		Caption = "Displays all the current info about the app",
 		IconName = "info_regular",

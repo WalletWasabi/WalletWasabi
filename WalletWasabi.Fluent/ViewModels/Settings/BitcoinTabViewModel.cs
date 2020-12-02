@@ -12,6 +12,16 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
+	[NavigationMetaData(
+		Title = "Bitcoin",
+		Caption = "Manage Bitcoin settings",
+		Order = 3,
+		Category = "Settings",
+		Keywords = new[]
+		{
+			"Settings", "Bitcoin", "Network", "Main", "TestNet", "RegTest", "Run", "Knots", "Startup", "P2P", "Endpoint"
+		},
+		IconName = "settings_bitcoin_regular")]
 	public partial class BitcoinTabViewModel : SettingsTabViewModelBase
 	{
 		[AutoNotify] private Network _network;
@@ -68,6 +78,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				{
 					config.SetP2PEndpoint(p2PEp);
 				}
+
 				config.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
 				config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
 				config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
