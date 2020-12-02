@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		IconName = "info_regular",
 		Order = 4,
 		Category = "General",
-		Keywords = new [] { "About", "Software","Version", "Source", "Code", "Github", "Status", "Stats", "Tor", "Onion", "Bug", "Report", "FAQ", "Questions,", "Docs", "Documentation", "Link", "Links", "Help" },
+		Keywords = new[] { "About", "Software", "Version", "Source", "Code", "Github", "Status", "Stats", "Tor", "Onion", "Bug", "Report", "FAQ", "Questions,", "Docs", "Documentation", "Link", "Links", "Help" },
 		NavBarPosition = NavBarPosition.None)]
 	public partial class AboutViewModel : RoutableViewModel
 	{
