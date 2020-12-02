@@ -48,7 +48,7 @@ namespace WalletWasabi.Tor.Http
 		/// <exception cref="OperationCanceledException">If <paramref name="token"/> is set.</exception>
 		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default)
 		{
-			return await TorSocks5ClientPool!.SendAsync(request, isolateStream, token).ConfigureAwait(false);
+			return await TorSocks5ClientPool.SendAsync(request, isolateStream, token).ConfigureAwait(false);
 		}
 	}
 }
