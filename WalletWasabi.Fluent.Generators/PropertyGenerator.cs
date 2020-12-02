@@ -216,7 +216,7 @@ namespace {namespaceName}
 				var fieldName = $"_{propertyName.Substring(0, 1).ToLower() + propertyName.Substring(1)}";
 
 				source.Append($@"
-        private  {propertyType} {fieldName};");
+        private {propertyType} {fieldName};");
 
 				source.Append($@"
         public {propertyType} {propertyName}
