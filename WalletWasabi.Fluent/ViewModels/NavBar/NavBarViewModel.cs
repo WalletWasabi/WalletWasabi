@@ -3,8 +3,6 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
-using DynamicData;
-using DynamicData.Binding;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -56,7 +54,8 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				});
 
 			this.WhenAnyValue(x => x.IsHidden)
-				.Subscribe(x =>
+				.Subscribe(
+					x =>
 				{
 					CurrentCompactPaneLength = x ? 0 : NormalCompactPaneLength;
 					CurrentOpenPaneLength = x ? 0 : NormalOpenPaneLength;
