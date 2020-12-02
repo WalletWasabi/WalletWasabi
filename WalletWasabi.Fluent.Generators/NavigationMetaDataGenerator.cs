@@ -82,25 +82,34 @@ namespace WalletWasabi.Fluent
 				return;
 			}
 
-			CSharpParseOptions options =
-				(context.Compilation as CSharpCompilation).SyntaxTrees[0].Options as CSharpParseOptions;
-			Compilation compilation =
-				context.Compilation.AddSyntaxTrees(
-					CSharpSyntaxTree.ParseText(SourceText.From(AttributeText, Encoding.UTF8), options));
-			INamedTypeSymbol attributeSymbol =
-				compilation.GetTypeByMetadataName("WalletWasabi.Fluent.NavigationMetaDataAttribute");
-			INamedTypeSymbol metadataSymbol =
-				compilation.GetTypeByMetadataName("WalletWasabi.Fluent.NavigationMetaData");
+			var options = (context.Compilation as CSharpCompilation)?.SyntaxTrees[0].Options as CSharpParseOptions;
+			var compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(SourceText.From(AttributeText, Encoding.UTF8), options));
+
+			var attributeSymbol = compilation.GetTypeByMetadataName("WalletWasabi.Fluent.NavigationMetaDataAttribute");
+			if (attributeSymbol is null)
+			{
+				return;
+			}
+
+			var metadataSymbol = compilation.GetTypeByMetadataName("WalletWasabi.Fluent.NavigationMetaData");
+			if (metadataSymbol is null)
+			{
+				return;
+			}
 
 			List<INamedTypeSymbol> namedTypeSymbols = new();
 
 			foreach (var candidateClass in receiver.CandidateClasses)
 			{
-				SemanticModel model = compilation.GetSemanticModel(candidateClass.SyntaxTree);
-				var namedTypeSymbol = model.GetDeclaredSymbol(candidateClass);
+				var semanticModel = compilation.GetSemanticModel(candidateClass.SyntaxTree);
+				var namedTypeSymbol = semanticModel.GetDeclaredSymbol(candidateClass);
+				if (namedTypeSymbol is null)
+				{
+					continue;
+				}
 
-				if (namedTypeSymbol.GetAttributes().Any(ad =>
-					ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default)))
+				var attributes = namedTypeSymbol.GetAttributes();
+				if (attributes.Any(ad => ad?.AttributeClass?.Equals(attributeSymbol, SymbolEqualityComparer.Default) ?? false))
 				{
 					namedTypeSymbols.Add(namedTypeSymbol);
 				}
@@ -108,14 +117,15 @@ namespace WalletWasabi.Fluent
 
 			foreach (var namedTypeSymbol in namedTypeSymbols)
 			{
-				string classSource = ProcessClass(namedTypeSymbol, attributeSymbol, metadataSymbol, context);
-				context.AddSource($"{namedTypeSymbol.Name}_NavigationMetaData.cs",
-					SourceText.From(classSource, Encoding.UTF8));
+				var classSource = ProcessClass(namedTypeSymbol, attributeSymbol, metadataSymbol);
+				if (classSource is not null)
+				{
+					context.AddSource($"{namedTypeSymbol.Name}_NavigationMetaData.cs", SourceText.From(classSource, Encoding.UTF8));
+				}
 			}
 		}
 
-		private string ProcessClass(INamedTypeSymbol namedTypeSymbol, ISymbol attributeSymbol, ISymbol metadataSymbol,
-			GeneratorExecutionContext context)
+		private static string? ProcessClass(INamedTypeSymbol namedTypeSymbol, ISymbol attributeSymbol, ISymbol metadataSymbol)
 		{
 			if (!namedTypeSymbol.ContainingSymbol.Equals(namedTypeSymbol.ContainingNamespace,
 				SymbolEqualityComparer.Default))
@@ -136,8 +146,9 @@ namespace {namespaceName}
     {{
 ");
 
-			AttributeData attributeData = namedTypeSymbol.GetAttributes().Single(ad =>
-				ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default));
+			var attributeData = namedTypeSymbol
+				.GetAttributes()
+				.Single(ad => ad?.AttributeClass?.Equals(attributeSymbol, SymbolEqualityComparer.Default) ?? false);
 
 			source.Append($@"        public static {metadataSymbol.ToDisplayString()} MetaData {{ get; }} = new()
         {{

@@ -13,7 +13,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-	// TODO: for testing only
+	// TODO: For testing only.
 	[Property("IsVisible", typeof(bool))]
 	[Property("Title", typeof(string), false, PropertyModifier.Public, PropertyModifier.Internal)]
 	[Property("Items", typeof(List<string>), false, PropertyModifier.Public, PropertyModifier.Private)]
@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		NavBarPosition = NavBarPosition.None)]
 	public partial class AboutViewModel : RoutableViewModel
 	{
-		// TODO: for testing only
+		// TODO: For testing only.
 		[AutoNotify]
 		private bool _test;
 

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -62,25 +61,34 @@ namespace WalletWasabi.Fluent
 				return;
 			}
 
-			CSharpParseOptions options =
-				(context.Compilation as CSharpCompilation).SyntaxTrees[0].Options as CSharpParseOptions;
-			Compilation compilation =
-				context.Compilation.AddSyntaxTrees(
-					CSharpSyntaxTree.ParseText(SourceText.From(AttributeText, Encoding.UTF8), options));
-			INamedTypeSymbol attributeSymbol =
-				compilation.GetTypeByMetadataName("WalletWasabi.Fluent.PropertyAttribute");
-			INamedTypeSymbol notifySymbol =
-				compilation.GetTypeByMetadataName("System.ComponentModel.INotifyPropertyChanged");
+			var options = (context.Compilation as CSharpCompilation)?.SyntaxTrees[0].Options as CSharpParseOptions;
+			var compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(SourceText.From(AttributeText, Encoding.UTF8), options));
+
+			var attributeSymbol = compilation.GetTypeByMetadataName("WalletWasabi.Fluent.PropertyAttribute");
+			if (attributeSymbol is null)
+			{
+				return;
+			}
+
+			var notifySymbol = compilation.GetTypeByMetadataName("System.ComponentModel.INotifyPropertyChanged");
+			if (notifySymbol is null)
+			{
+				return;
+			}
 
 			List<INamedTypeSymbol> namedTypeSymbols = new();
 
 			foreach (var candidateClass in receiver.CandidateClasses)
 			{
-				SemanticModel model = compilation.GetSemanticModel(candidateClass.SyntaxTree);
-				var namedTypeSymbol = model.GetDeclaredSymbol(candidateClass);
+				var semanticModel = compilation.GetSemanticModel(candidateClass.SyntaxTree);
+				var namedTypeSymbol = semanticModel.GetDeclaredSymbol(candidateClass);
+				if (namedTypeSymbol is null)
+				{
+					continue;
+				}
 
-				if (namedTypeSymbol.GetAttributes().Any(ad =>
-					ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default)))
+				var attributes = namedTypeSymbol.GetAttributes();
+				if (attributes.Any(ad => ad?.AttributeClass?.Equals(attributeSymbol, SymbolEqualityComparer.Default) ?? false))
 				{
 					namedTypeSymbols.Add(namedTypeSymbol);
 				}
@@ -88,13 +96,15 @@ namespace WalletWasabi.Fluent
 
 			foreach (var namedTypeSymbol in namedTypeSymbols)
 			{
-				string classSource = ProcessClass(namedTypeSymbol, attributeSymbol, notifySymbol, context);
-				context.AddSource($"{namedTypeSymbol.Name}_Properties.cs", SourceText.From(classSource, Encoding.UTF8));
+				var classSource = ProcessClass(namedTypeSymbol, attributeSymbol, notifySymbol);
+				if (classSource is not null)
+				{
+					context.AddSource($"{namedTypeSymbol.Name}_Properties.cs", SourceText.From(classSource, Encoding.UTF8));
+				}
 			}
 		}
 
-		private string ProcessClass(INamedTypeSymbol classSymbol, ISymbol attributeSymbol,
-			INamedTypeSymbol notifySymbol, GeneratorExecutionContext context)
+		private static string? ProcessClass(INamedTypeSymbol classSymbol, ISymbol attributeSymbol, INamedTypeSymbol notifySymbol)
 		{
 			if (!classSymbol.ContainingSymbol.Equals(classSymbol.ContainingNamespace, SymbolEqualityComparer.Default))
 			{
@@ -127,8 +137,9 @@ namespace {namespaceName}
 ");
 			}
 
-			var attributes = classSymbol.GetAttributes()
-				.Where(ad => ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default));
+			var attributes = classSymbol
+				.GetAttributes()
+				.Where(ad => ad?.AttributeClass?.Equals(attributeSymbol, SymbolEqualityComparer.Default) ?? false);
 
 			static string ToModifier(int value)
 			{
@@ -149,8 +160,13 @@ namespace {namespaceName}
 
 			foreach (var attributeData in attributes)
 			{
+				if (attributeData is null)
+				{
+					continue;
+				}
+
+				// TODO: Debug
 				source.AppendLine($@"// NamedArguments.Length={attributeData.NamedArguments.Length}");
-				// continue;
 
 				var propertyName = (string) attributeData.ConstructorArguments[0].Value;
 				var propertyType = attributeData.ConstructorArguments[1].Value;
@@ -159,7 +175,6 @@ namespace {namespaceName}
 				var setterModifier = (int) attributeData.ConstructorArguments[4].Value;
 
 				var fieldName = $"_{propertyName.Substring(0, 1).ToLower() + propertyName.Substring(1)}";
-
 
 				source.Append($@"
 private  {propertyType} {fieldName};");

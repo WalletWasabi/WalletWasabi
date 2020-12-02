@@ -153,7 +153,9 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private static void RegisterEntries(SearchPageViewModel searchPage, LegalDocuments legalDocuments)
 		{
-			/*NavigationManager.RegisterRoutable<LegalDocumentsViewModel>(
+			// TODO:
+			/*
+			NavigationManager.RegisterRoutable<LegalDocumentsViewModel>(
 				LegalDocumentsViewModel.MetaData,
 				async () =>
 					{
@@ -162,8 +164,8 @@ namespace WalletWasabi.Fluent.ViewModels
 						var legalDocs = new LegalDocumentsViewModel(content);
 
 						return legalDocs;
-					});*/
-
+					});
+			*/
 			AboutViewModel.Register(async () => await Task.FromResult(new AboutViewModel()));
 		}
 

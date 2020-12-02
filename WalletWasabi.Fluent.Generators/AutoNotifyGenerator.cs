@@ -41,34 +41,57 @@ namespace WalletWasabi.Fluent
 				return;
 			}
 
-			CSharpParseOptions options = (context.Compilation as CSharpCompilation).SyntaxTrees[0].Options as CSharpParseOptions;
-			Compilation compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(SourceText.From(AttributeText, Encoding.UTF8), options));
+			var options = (context.Compilation as CSharpCompilation)?.SyntaxTrees[0].Options as CSharpParseOptions;
+			var compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(SourceText.From(AttributeText, Encoding.UTF8), options));
 
-			INamedTypeSymbol attributeSymbol = compilation.GetTypeByMetadataName("WalletWasabi.Fluent.AutoNotifyAttribute");
-			INamedTypeSymbol notifySymbol = compilation.GetTypeByMetadataName("System.ComponentModel.INotifyPropertyChanged");
+			var attributeSymbol = compilation.GetTypeByMetadataName("WalletWasabi.Fluent.AutoNotifyAttribute");
+			if (attributeSymbol is null)
+			{
+				return;
+			}
 
-			List<IFieldSymbol> fieldSymbols = new List<IFieldSymbol>();
+			var notifySymbol = compilation.GetTypeByMetadataName("System.ComponentModel.INotifyPropertyChanged");
+			if (notifySymbol is null)
+			{
+				return;
+			}
+
+			List<IFieldSymbol> fieldSymbols = new ();
+
 			foreach (FieldDeclarationSyntax field in receiver.CandidateFields)
 			{
-				SemanticModel model = compilation.GetSemanticModel(field.SyntaxTree);
+				var semanticModel = compilation.GetSemanticModel(field.SyntaxTree);
+
 				foreach (VariableDeclaratorSyntax variable in field.Declaration.Variables)
 				{
-					IFieldSymbol fieldSymbol = model.GetDeclaredSymbol(variable) as IFieldSymbol;
-					if (fieldSymbol.GetAttributes().Any(ad => ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default)))
+					var fieldSymbol = semanticModel.GetDeclaredSymbol(variable) as IFieldSymbol;
+					if (fieldSymbol is null)
+					{
+						continue;
+					}
+
+					var attributes = fieldSymbol.GetAttributes();
+					if (attributes.Any(ad => ad?.AttributeClass?.Equals(attributeSymbol, SymbolEqualityComparer.Default) ?? false))
 					{
 						fieldSymbols.Add(fieldSymbol);
 					}
 				}
 			}
 
-			foreach (IGrouping<INamedTypeSymbol, IFieldSymbol> group in fieldSymbols.GroupBy(f => f.ContainingType))
+			var groupedFields = fieldSymbols.GroupBy(f => f.ContainingType);
+
+			foreach (var group in groupedFields)
 			{
-				string classSource = ProcessClass(group.Key, group.ToList(), attributeSymbol, notifySymbol, context);
+				var classSource = ProcessClass(group.Key, group.ToList(), attributeSymbol, notifySymbol, context);
+				if (classSource is null)
+				{
+					continue;
+				}
 				context.AddSource($"{group.Key.Name}_AutoNotify.cs", SourceText.From(classSource, Encoding.UTF8));
 			}
 		}
 
-		private string ProcessClass(INamedTypeSymbol classSymbol, List<IFieldSymbol> fields, ISymbol attributeSymbol, ISymbol notifySymbol, GeneratorExecutionContext context)
+		private string? ProcessClass(INamedTypeSymbol classSymbol, List<IFieldSymbol> fields, ISymbol attributeSymbol, INamedTypeSymbol notifySymbol, GeneratorExecutionContext context)
 		{
 			if (!classSymbol.ContainingSymbol.Equals(classSymbol.ContainingNamespace, SymbolEqualityComparer.Default))
 			{
@@ -115,15 +138,15 @@ namespace {namespaceName}
 
 		private void ProcessField(StringBuilder source, IFieldSymbol fieldSymbol, ISymbol attributeSymbol)
 		{
-			string fieldName = fieldSymbol.Name;
-			ITypeSymbol fieldType = fieldSymbol.Type;
-			AttributeData attributeData = fieldSymbol.GetAttributes().Single(ad => ad.AttributeClass.Equals(attributeSymbol, SymbolEqualityComparer.Default));
-			TypedConstant overridenNameOpt = attributeData.NamedArguments.SingleOrDefault(kvp => kvp.Key == "PropertyName").Value;
+			var fieldName = fieldSymbol.Name;
+			var fieldType = fieldSymbol.Type;
+			var attributeData = fieldSymbol.GetAttributes().Single(ad => ad?.AttributeClass?.Equals(attributeSymbol, SymbolEqualityComparer.Default) ?? false);
+			var overridenNameOpt = attributeData.NamedArguments.SingleOrDefault(kvp => kvp.Key == "PropertyName").Value;
+			var propertyName = ChooseName(fieldName, overridenNameOpt);
 
-			string propertyName = ChooseName(fieldName, overridenNameOpt);
-			if (propertyName.Length == 0 || propertyName == fieldName)
+			if (propertyName is null || propertyName.Length == 0 || propertyName == fieldName)
 			{
-				//TODO: issue a diagnostic that we can't process this field
+				// Issue a diagnostic that we can't process this field.
 				return;
 			}
 
@@ -141,11 +164,11 @@ namespace {namespaceName}
             }}
         }}");
 
-			static string ChooseName(string fieldName, TypedConstant overridenNameOpt)
+			static string? ChooseName(string fieldName, TypedConstant overridenNameOpt)
 			{
 				if (!overridenNameOpt.IsNull)
 				{
-					return overridenNameOpt.Value.ToString();
+					return overridenNameOpt.Value?.ToString();
 				}
 
 				fieldName = fieldName.TrimStart('_');
