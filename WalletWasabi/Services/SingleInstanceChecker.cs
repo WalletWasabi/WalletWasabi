@@ -116,7 +116,7 @@ namespace WalletWasabi.Services
 				listener = new(IPAddress.Loopback, Port);
 
 				// This can throw an exception if the port is already open.
-				listener.Start();
+				listener.Start(0);
 
 				// Indicate that the Listener is created successfully.
 				task.TrySetResult();
