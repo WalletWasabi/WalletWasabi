@@ -3,6 +3,8 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
+using DynamicData;
+using DynamicData.Binding;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -23,6 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private bool _isOpen;
 		private Action? _toggleAction;
 		private Action? _collapseOnClickAction;
+		private double _currentOpenPaneLength;
 
 		public NavBarViewModel(TargettedNavigationStack mainScreen, WalletManagerViewModel walletManager)
 		{
@@ -45,6 +48,14 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 					{
 						SelectedItem.IsExpanded = x;
 					}
+				});
+
+			walletManager.WhenAnyValue(x => x.Items)
+				.Subscribe(x =>
+				{
+					x.ObserveCollectionChanges()
+						.ToObservableChangeSet()
+						.Subscribe(y => CurrentOpenPaneLength = y.Count > 0 ? 280 : 0);
 				});
 		}
 
@@ -78,6 +89,12 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		{
 			get => _collapseOnClickAction;
 			set => this.RaiseAndSetIfChanged(ref _collapseOnClickAction, value);
+		}
+
+		public double CurrentOpenPaneLength
+		{
+			get => _currentOpenPaneLength;
+			set => this.RaiseAndSetIfChanged(ref _currentOpenPaneLength, value);
 		}
 
 		public bool IsBackButtonVisible
