@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent
 
         public string? PropertyName { get; set; }
 
-		public AccessModifier Modifier { get; set; } = AccessModifier.Public;
+		public AccessModifier SetterModifier { get; set; } = AccessModifier.Public;
     }
 }";
 
@@ -192,10 +192,9 @@ namespace {namespaceName}
 				return;
 			}
 
-			var overridenModifierOpt = attributeData.NamedArguments.SingleOrDefault(kvp => kvp.Key == "Modifier").Value;
-			var modifier = ChooseModifier(overridenModifierOpt);
-
-			if (modifier is null)
+			var overridenSetterModifierOpt = attributeData.NamedArguments.SingleOrDefault(kvp => kvp.Key == "SetterModifier").Value;
+			var setterModifier = ChooseSetterModifier(overridenSetterModifierOpt);
+			if (setterModifier is null)
 			{
 				source.Append($@"
         public {fieldType} {propertyName}
@@ -206,38 +205,37 @@ namespace {namespaceName}
 			else
 			{
 				source.Append($@"
-        {modifier} {fieldType} {propertyName}
+        public {fieldType} {propertyName}
         {{
             get => {fieldName};
-            set => this.RaiseAndSetIfChanged(ref {fieldName}, value);
+            {setterModifier}set => this.RaiseAndSetIfChanged(ref {fieldName}, value);
         }}");
 			}
 
-
-			static string? ChooseModifier(TypedConstant overridenModifierOpt)
+			static string? ChooseSetterModifier(TypedConstant overridenSetterModifierOpt)
 			{
-				if (!overridenModifierOpt.IsNull && overridenModifierOpt.Value is not null)
+				if (!overridenSetterModifierOpt.IsNull && overridenSetterModifierOpt.Value is not null)
 				{
-					var value = (int)overridenModifierOpt.Value;
+					var value = (int)overridenSetterModifierOpt.Value;
 					return value switch
 					{
 						// None
 						0 => null,
 						// Public
-						1 => "public",
+						1 => "",
 						// Protected
-						2 => "protected",
+						2 => "protected ",
 						// Private
-						3 => "private",
+						3 => "private ",
 						// Internal
-						4 => "internal",
+						4 => "internal ",
 						// Default
-						_ => "public"
+						_ => ""
 					};
 				}
 				else
 				{
-					return "public";
+					return "";
 				}
 			}
 
