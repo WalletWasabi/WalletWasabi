@@ -13,10 +13,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 	public class ConnectHardwareWalletViewModel : RoutableViewModel
 	{
 		private string _message;
-		private bool _nothingShowUpMessageVisibility;
+		private bool _continueButtonEnable;
 
 		public ConnectHardwareWalletViewModel(string walletName, Network network, WalletManager walletManager)
 		{
+			IsBusy = true;
+
 			WalletName = walletName;
 			HardwareWalletOperations = new HardwareWalletOperations(walletManager, network);
 
@@ -32,13 +34,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				Navigate().Clear();
 			});
 
-			_message = "";
-		}
+			NextCommand = ReactiveCommand.Create(() =>
+			{
+				HardwareWalletOperations.StartDetection();
+				ContinueButtonEnable = false;
+				Message = "";
+			});
 
-		public bool NothingShowUpMessageVisibility
-		{
-			get => _nothingShowUpMessageVisibility;
-			set => this.RaiseAndSetIfChanged(ref _nothingShowUpMessageVisibility, value);
+			_message = "";
 		}
 
 		public string WalletName { get; }
@@ -49,22 +52,32 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			set => this.RaiseAndSetIfChanged(ref _message, value);
 		}
 
+		public bool ContinueButtonEnable
+		{
+			get => _continueButtonEnable;
+			set => this.RaiseAndSetIfChanged(ref _continueButtonEnable, value);
+		}
+
 		public HardwareWalletOperations HardwareWalletOperations { get; }
 
-		private void OnSearchingHasNoResult(object? sender, EventArgs e)
+		private void OnNoHardwareWalletFound(object? sender, EventArgs e)
 		{
-			NothingShowUpMessageVisibility = true;
+			IsBusy = false;
+			ContinueButtonEnable = true;
+			Message = "Make sure your device is unlocked with PIN and plugged in then press Continue.";
+			Task.Run(() => HardwareWalletOperations.StopDetectionAsync());
+			HardwareWalletOperations.NoHardwareWalletFound -= OnNoHardwareWalletFound;
 		}
 
 		private void OnPassphraseNeeded(object sender, ElapsedEventArgs e)
 		{
-			NothingShowUpMessageVisibility = false;
+			IsBusy = false;
 			Message = "Check your device and enter your passphrase.";
 		}
 
 		private void OnHardwareWalletsFound(object? sender, HwiEnumerateEntry[] devices)
 		{
-			NothingShowUpMessageVisibility = false;
+			IsBusy = false;
 
 			if (devices.Length > 1)
 			{
@@ -118,15 +131,16 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			Message = "";
 
 			HardwareWalletOperations.HardwareWalletsFound += OnHardwareWalletsFound;
-			HardwareWalletOperations.SearchingHasNoResult += OnSearchingHasNoResult;
+			HardwareWalletOperations.NoHardwareWalletFound += OnNoHardwareWalletFound;
 			HardwareWalletOperations.PassphraseTimer.Elapsed += OnPassphraseNeeded;
 
-			disposable.Add(Disposable.Create(() =>
+			Disposable.Create(() =>
 			{
 				HardwareWalletOperations.HardwareWalletsFound -= OnHardwareWalletsFound;
-				HardwareWalletOperations.SearchingHasNoResult -= OnSearchingHasNoResult;
+				HardwareWalletOperations.NoHardwareWalletFound -= OnNoHardwareWalletFound;
 				HardwareWalletOperations.PassphraseTimer.Elapsed -= OnPassphraseNeeded;
-			}));
+			})
+			.DisposeWith(disposable);
 		}
 	}
 }

@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 	public class HardwareWalletOperations : IDisposable
 	{
 		public event EventHandler<HwiEnumerateEntry[]>? HardwareWalletsFound;
-		public event EventHandler? SearchingHasNoResult;
+		public event EventHandler? NoHardwareWalletFound;
 
 		public HardwareWalletOperations(WalletManager walletManager, Network network)
 		{
@@ -53,7 +53,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			if (wallets.Length == 0)
 			{
-				SearchingHasNoResult?.Invoke(this, EventArgs.Empty);
+				NoHardwareWalletFound?.Invoke(this, EventArgs.Empty);
 			}
 			else
 			{
@@ -111,7 +111,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			}
 		}
 
-		private async Task StopDetectionAsync()
+		public async Task StopDetectionAsync()
 		{
 			if (DetectionTask is { } task && DetectionCts is { } cts)
 			{
@@ -120,7 +120,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			}
 		}
 
-		private void StartDetection()
+		public void StartDetection()
 		{
 			if (DisposeCts is { } cts)
 			{

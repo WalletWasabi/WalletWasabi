@@ -14,7 +14,9 @@
   <c:ContentArea Title="Hardware Wallet"
                  Caption="Connect your hardware wallet to the PC"
                  EnableCancel="True" CancelContent="Cancel"
-                 EnableBack="True">
+                 EnableBack="True"
+                 EnableNext="{Binding ContinueButtonEnable}" NextContent="Continue"
+                 IsBusy="{Binding IsBusy}">
     <DockPanel LastChildFill="True">
 
       <StackPanel DockPanel.Dock="Top" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0 20 0 0" Spacing="40" Orientation="Horizontal">
@@ -25,19 +27,9 @@
       </StackPanel>
 
       <Panel DockPanel.Dock="Bottom">
-
-        <TextBlock Text="{Binding Message}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 0 0 200"/>
-
-        <c:ProgressRing IsIndeterminate="True" VerticalAlignment="Center" HorizontalAlignment="Center" Height="100" Width="100" />
-
-        <c:InfoMessage Classes="h8" Opacity="{Binding NothingShowUpMessageVisibility, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}" VerticalAlignment="Bottom" HorizontalAlignment="Left">
-            <StackPanel>
-              <TextBlock Text="Nothing showed up?"/>
-              <TextBlock Text="Click on the link for more help."/>
-            </StackPanel>
-          </c:InfoMessage>
-
-          <Button Content="More information and help with Hardware Wallets" Classes="h8 plain activeHyperLink" HorizontalAlignment="Center" VerticalAlignment="Bottom" Foreground="{DynamicResource SystemAccentColor}" />
+        <TextBlock Text="{Binding Message}" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0 0 0 200"/>
+        <c:ProgressRing IsVisible="{Binding !ContinueButtonEnable}" IsIndeterminate="True" VerticalAlignment="Center" HorizontalAlignment="Center" Height="100" Width="100" />
+        <Button Content="More information and help with Hardware Wallets" Classes="h8 plain activeHyperLink" HorizontalAlignment="Center" VerticalAlignment="Bottom" Foreground="{DynamicResource SystemAccentColor}" />
       </Panel>
 
     </DockPanel>
