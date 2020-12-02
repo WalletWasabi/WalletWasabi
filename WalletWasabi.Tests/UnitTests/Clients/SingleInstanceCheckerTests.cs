@@ -60,17 +60,6 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		}
 
 		[Fact]
-		public void SocketErrorAddressAlreadyInUseTest()
-		{
-			var errorCode = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? 98
-				: RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? 48
-				: RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 10048
-				: -1;
-
-			Assert.Equal((int)SocketError.AddressAlreadyInUse, errorCode);
-		}
-
-		[Fact]
 		public async Task OtherInstanceStartedTestsAsync()
 		{
 			int mainNetPort = GenerateRandomPort();
