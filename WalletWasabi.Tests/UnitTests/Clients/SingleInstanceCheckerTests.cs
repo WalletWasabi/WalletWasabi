@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,6 +57,17 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 				await sicRegTest.EnsureSingleOrThrowAsync();
 				await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicRegTest.EnsureSingleOrThrowAsync());
 			}
+		}
+
+		[Fact]
+		public void SocketErrorAddressAlreadyInUseTest()
+		{
+			var errorCode = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? 98
+				: RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? 48
+				: RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 10048
+				: -1;
+
+			Assert.Equal((int)SocketError.AddressAlreadyInUse, errorCode);
 		}
 
 		[Fact]
