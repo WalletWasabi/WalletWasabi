@@ -101,7 +101,7 @@ namespace WalletWasabi.BitcoinCore.Processes
 					}
 
 					// Wait a moment before the next check.
-					await Task.Delay(100).ConfigureAwait(false);
+					await Task.Delay(100, cancel).ConfigureAwait(false);
 				}
 			}
 			catch (Exception)

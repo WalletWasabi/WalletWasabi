@@ -159,7 +159,7 @@ namespace WalletWasabi.Wallets
 
 				while (!BitcoinStore.IsInitialized)
 				{
-					await Task.Delay(100).ConfigureAwait(false);
+					await Task.Delay(100, cancel).ConfigureAwait(false);
 
 					cancel.ThrowIfCancellationRequested();
 				}
@@ -170,7 +170,7 @@ namespace WalletWasabi.Wallets
 
 					ChaumianClient.Start();
 
-					using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
+					using (await HandleFiltersLock.LockAsync(cancel).ConfigureAwait(false))
 					{
 						await LoadWalletStateAsync(cancel).ConfigureAwait(false);
 						await LoadDummyMempoolAsync().ConfigureAwait(false);

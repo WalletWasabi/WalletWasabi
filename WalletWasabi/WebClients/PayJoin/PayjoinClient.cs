@@ -88,7 +88,7 @@ namespace WalletWasabi.WebClients.PayJoin
 
 			if (!bpuResponse.IsSuccessStatusCode)
 			{
-				var errorStr = await bpuResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+				var errorStr = await bpuResponse.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 				try
 				{
 					var error = JObject.Parse(errorStr);
@@ -104,7 +104,7 @@ namespace WalletWasabi.WebClients.PayJoin
 				}
 			}
 
-			var hexOrBase64 = await bpuResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+			var hexOrBase64 = await bpuResponse.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 			var newPSBT = PSBT.Parse(hexOrBase64, originalTx.Network);
 
 			// Checking that the PSBT of the receiver is clean
