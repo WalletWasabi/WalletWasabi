@@ -112,7 +112,24 @@ namespace WalletWasabi.Fluent
 			}
 
 			string namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
-			bool addNotifyInterface = !classSymbol.Interfaces.Contains(notifySymbol);
+
+			var addNotifyInterface = !classSymbol.Interfaces.Contains(notifySymbol);
+			var baseType = classSymbol.BaseType;
+			while (true)
+			{
+				if (baseType is null)
+				{
+					break;
+				}
+
+				if (baseType.Interfaces.Contains(notifySymbol))
+				{
+					addNotifyInterface = false;
+					break;
+				}
+
+				baseType = baseType.BaseType;
+			}
 
 			var source = new StringBuilder();
 
