@@ -1,31 +1,32 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
+using Timer = System.Timers.Timer;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
 	public class HardwareWalletOperations : IDisposable
 	{
 		public event EventHandler<HwiEnumerateEntry[]>? HardwareWalletsFound;
+		public event EventHandler? SearchingHasNoResult;
 
 		public HardwareWalletOperations(WalletManager walletManager, Network network)
 		{
 			WalletManager = walletManager;
 			Network = network;
 			Client = new HwiClient(network);
-
 			DisposeCts = new CancellationTokenSource();
+			Stopwatch = new Stopwatch();
+
+			PassphraseTimer = new Timer(8000) {AutoReset = false};
 
 			StartDetection();
 		}
@@ -44,9 +45,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public Task? DetectionTask { get; set; }
 
+		public Stopwatch Stopwatch { get; }
+
+		public Timer PassphraseTimer { get; }
+
 		private void OnHardwareWalletsFound(HwiEnumerateEntry[] wallet)
 		{
 			HardwareWalletsFound?.Invoke(this,wallet);
+		}
+
+		private void OnSearchingHasNoResult()
+		{
+			SearchingHasNoResult?.Invoke(this,EventArgs.Empty);
 		}
 
 		public async Task GenerateWalletAsync(string walletName)
@@ -101,14 +111,17 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		protected async Task HardwareWalletDetectionAsync(CancellationTokenSource detectionCts)
 		{
+			int nothingFoundCounter = 0;
+
 			while (!detectionCts.IsCancellationRequested)
 			{
-				var sw = Stopwatch.StartNew();
+				Stopwatch.Start();
 
 				try
 				{
 					using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
+					PassphraseTimer.Start();
 					var detectedHardwareWallets =
 						(await Client.EnumerateAsync(timeoutCts.Token)
 							.ConfigureAwait(false))
@@ -122,6 +135,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 					{
 						OnHardwareWalletsFound(detectedHardwareWallets);
 					}
+					else
+					{
+						nothingFoundCounter++;
+					}
 				}
 				catch (Exception ex)
 				{
@@ -130,13 +147,23 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 						Logger.LogError(ex);
 					}
 				}
+				finally
+				{
+					PassphraseTimer.Stop();
+
+					if (nothingFoundCounter >= 3)
+					{
+						OnSearchingHasNoResult();
+						nothingFoundCounter = 0;
+					}
+				}
 
 				// Too fast enumeration causes the detected hardware wallets to be unable to provide the fingerprint.
 				// Wait at least 5 seconds between two enumerations.
-				sw.Stop();
-				if (sw.Elapsed.Milliseconds < 5000)
+				Stopwatch.Stop();
+				if (Stopwatch.Elapsed.Milliseconds < 5000)
 				{
-					await Task.Delay(5000 - sw.Elapsed.Milliseconds).ConfigureAwait(false);
+					await Task.Delay(5000 - Stopwatch.Elapsed.Milliseconds).ConfigureAwait(false);
 				}
 			}
 		}
@@ -150,6 +177,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				DisposeCts.Dispose();
 				DetectionCts?.Dispose();
 				DetectionTask?.Dispose();
+				PassphraseTimer.Dispose();
 			});
 		}
 	}
