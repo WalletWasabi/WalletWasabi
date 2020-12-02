@@ -11,5 +11,4 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		// [AutoNotify] private bool _test;
 	}
-	// TODO: For testing only.
 }

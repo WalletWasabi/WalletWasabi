@@ -1,5 +1,6 @@
 ﻿namespace WalletWasabi.Fluent.ViewModels
 {
+	// TODO: For testing only.
 	public partial class TestViewModel2
 	{
 		[AutoNotify(PropertyName = "TestName")] private bool _prop1;
