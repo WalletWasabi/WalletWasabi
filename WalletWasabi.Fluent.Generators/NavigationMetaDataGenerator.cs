@@ -159,7 +159,7 @@ namespace {namespaceName}
 				var namedArgument = attributeData.NamedArguments[i];
 
 				source.AppendLine($"            {namedArgument.Key} = " +
-				                  $"{(namedArgument.Value.Kind == TypedConstantKind.Array ? "new [] " : "")}" +
+				                  $"{(namedArgument.Value.Kind == TypedConstantKind.Array ? "new[] " : "")}" +
 				                  $"{namedArgument.Value.ToCSharpString()}{(i < length - 1 ? "," : "")}");
 			}
 
