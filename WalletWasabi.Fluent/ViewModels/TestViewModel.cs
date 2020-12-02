@@ -19,7 +19,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		NavBarPosition = NavBarPosition.None)]
 	public partial class TestViewModel
 	{
-		[AutoNotify]
-		private bool _test;
+		// [AutoNotify] private bool _test;
 	}
 }
