@@ -42,7 +42,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				TransactionsFileManager = new IoManager(transactionsFilePath);
 
 				cancel.ThrowIfCancellationRequested();
-				using (await TransactionsFileAsyncLock.LockAsync().ConfigureAwait(false))
+				using (await TransactionsFileAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 				{
 					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 					cancel.ThrowIfCancellationRequested();

@@ -210,7 +210,7 @@ namespace WalletWasabi.Wallets
 		{
 			// Try get the block.
 			Block? block = null;
-			using (await BlockFolderLock.LockAsync().ConfigureAwait(false))
+			using (await BlockFolderLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				var encoder = new HexEncoder();
 				var filePath = Path.Combine(BlocksFolderPath, hash.ToString());
@@ -249,11 +249,11 @@ namespace WalletWasabi.Wallets
 			var path = Path.Combine(BlocksFolderPath, block.GetHash().ToString());
 			if (!File.Exists(path))
 			{
-				using (await BlockFolderLock.LockAsync().ConfigureAwait(false))
+				using (await BlockFolderLock.LockAsync(cancellationToken).ConfigureAwait(false))
 				{
 					if (!File.Exists(path))
 					{
-						await File.WriteAllBytesAsync(path, block.ToBytes()).ConfigureAwait(false);
+						await File.WriteAllBytesAsync(path, block.ToBytes(), CancellationToken.None).ConfigureAwait(false);
 					}
 				}
 			}
@@ -268,7 +268,7 @@ namespace WalletWasabi.Wallets
 		{
 			try
 			{
-				using (await BlockFolderLock.LockAsync().ConfigureAwait(false))
+				using (await BlockFolderLock.LockAsync(cancellationToken).ConfigureAwait(false))
 				{
 					var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
 					var fileNames = filePaths.Select(Path.GetFileName);
@@ -293,7 +293,7 @@ namespace WalletWasabi.Wallets
 		/// <returns>The requested bitcoin block.</returns>
 		public async Task<int> CountAsync(CancellationToken cancellationToken)
 		{
-			using (await BlockFolderLock.LockAsync().ConfigureAwait(false))
+			using (await BlockFolderLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
 				return Directory.EnumerateFiles(BlocksFolderPath).Count();
 			}

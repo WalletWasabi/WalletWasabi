@@ -91,7 +91,7 @@ namespace WalletWasabi.Bases
 					}
 					else
 					{
-						linkedTcs.TrySetCanceled(); // Ensure that the tcs.Task is cleaned up.
+						linkedTcs.TrySetCanceled(stoppingToken); // Ensure that the tcs.Task is cleaned up.
 					}
 				}
 				catch (TaskCanceledException ex)
