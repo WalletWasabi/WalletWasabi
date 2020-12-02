@@ -12,7 +12,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5.Utils
 	public class TorHttpRequestMessageSerializerTests
 	{
 		[Fact]
-		public async Task BasicSerializeTestAsync()
+		public async Task BasicTestAsync()
 		{
 			using HttpRequestMessage request = new(HttpMethod.Get, "https://postman-echo.com");
 			string plaintext = await TorHttpRequestMessageSerializer.ToStringAsync(request, CancellationToken.None);

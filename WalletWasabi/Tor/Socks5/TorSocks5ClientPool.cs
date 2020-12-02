@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -13,7 +12,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
-using WalletWasabi.Tor.Http.Models;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Pool;
@@ -237,7 +235,7 @@ namespace WalletWasabi.Tor.Socks5
 
 		private async static Task<HttpResponseMessage> SendCoreAsync(Stream transportStream, HttpRequestMessage request, CancellationToken token = default)
 		{
-			await TorHttpRequestPreprocessor.PreprocessAsync(request, token).ConfigureAwait(false);
+			TorHttpRequestPreprocessor.Preprocess(request);
 			string requestString = await TorHttpRequestMessageSerializer.ToStringAsync(request, token).ConfigureAwait(false);
 			byte[] bytes = Encoding.UTF8.GetBytes(requestString);
 
