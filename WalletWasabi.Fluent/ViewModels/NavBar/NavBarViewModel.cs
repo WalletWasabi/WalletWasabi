@@ -26,6 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private Action? _toggleAction;
 		private Action? _collapseOnClickAction;
 		private double _currentOpenPaneLength;
+		private double _currentCompactPaneLength;
 
 		public NavBarViewModel(TargettedNavigationStack mainScreen, WalletManagerViewModel walletManager)
 		{
@@ -55,7 +56,11 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				{
 					x.ObserveCollectionChanges()
 						.ToObservableChangeSet()
-						.Subscribe(y => CurrentOpenPaneLength = y.Count > 0 ? 280 : 0);
+						.Subscribe(y =>
+						{
+							CurrentCompactPaneLength = y.Count > 0 ? 68 : 0;
+							CurrentOpenPaneLength = y.Count > 0 ? 280 : 0;
+						});
 				});
 		}
 
@@ -89,6 +94,12 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		{
 			get => _collapseOnClickAction;
 			set => this.RaiseAndSetIfChanged(ref _collapseOnClickAction, value);
+		}
+
+		public double CurrentCompactPaneLength
+		{
+			get => _currentCompactPaneLength;
+			set => this.RaiseAndSetIfChanged(ref _currentCompactPaneLength, value);
 		}
 
 		public double CurrentOpenPaneLength
