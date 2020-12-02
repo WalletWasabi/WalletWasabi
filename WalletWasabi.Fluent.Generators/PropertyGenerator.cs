@@ -160,19 +160,21 @@ namespace {namespaceName}
 
 			foreach (var attributeData in attributes)
 			{
-				if (attributeData is null)
+				if (attributeData is null || attributeData.ConstructorArguments.Length != 5)
 				{
 					continue;
 				}
 
-				// TODO: Debug
-				source.AppendLine($@"// NamedArguments.Length={attributeData.NamedArguments.Length}");
-
-				var propertyName = (string) attributeData.ConstructorArguments[0].Value;
+				var propertyName = (string?) attributeData.ConstructorArguments[0].Value;
 				var propertyType = attributeData.ConstructorArguments[1].Value;
-				var isReadOnly = (bool) attributeData.ConstructorArguments[2].Value;
-				var getterModifier = (int) attributeData.ConstructorArguments[3].Value;
-				var setterModifier = (int) attributeData.ConstructorArguments[4].Value;
+				var isReadOnly = (bool?) attributeData.ConstructorArguments[2].Value;
+				var getterModifier = (int?) attributeData.ConstructorArguments[3].Value;
+				var setterModifier = (int?) attributeData.ConstructorArguments[4].Value;
+
+				if (propertyName is null || propertyType is null || isReadOnly is null || getterModifier is null || setterModifier is null)
+				{
+					continue;
+				}
 
 				var fieldName = $"_{propertyName.Substring(0, 1).ToLower() + propertyName.Substring(1)}";
 
@@ -182,15 +184,15 @@ private  {propertyType} {fieldName};");
 				source.Append($@"
 public {propertyType} {propertyName}
 {{
-    {ToModifier(getterModifier)}get
+    {ToModifier(getterModifier.Value)}get
     {{
         return this.{fieldName};
     }}");
 
-				if (!isReadOnly)
+				if (!isReadOnly.Value)
 				{
 					source.Append($@"
-    {ToModifier(setterModifier)}set
+    {ToModifier(setterModifier.Value)}set
     {{
         if (!Equals({fieldName}, value))
         {{
