@@ -39,11 +39,20 @@ namespace WalletWasabi.Tor.Socks5
 		/// <summary>
 		/// Creates a new instance of the object.
 		/// </summary>
-		public TorSocks5ClientPool(EndPoint endpoint)
+		public TorSocks5ClientPool(EndPoint endpoint):
+			this(new ClearnetHttpClient(), new TorSocks5ClientFactory(endpoint), new TorPoolItemManager(MaxPoolItemsPerHost))
 		{
-			ClearnetHttpClient = new ClearnetHttpClient();
-			TorSocks5ClientFactory = new TorSocks5ClientFactory(endpoint);
-			ClientsManager = new TorPoolItemManager(MaxPoolItemsPerHost);
+		}
+
+		/// <summary>
+		/// Creates a new instance of the object.
+		/// </summary>
+		/// <remarks>Use this constructor for tests.</remarks>
+		public TorSocks5ClientPool(IRelativeHttpClient httpClient, TorSocks5ClientFactory torSocks5ClientFactory, TorPoolItemManager poolItemManager)
+		{
+			ClearnetHttpClient = httpClient;
+			TorSocks5ClientFactory = torSocks5ClientFactory;
+			PoolItemManager = poolItemManager;
 		}
 
 		private bool _disposedValue;
@@ -51,9 +60,9 @@ namespace WalletWasabi.Tor.Socks5
 		/// <remarks>Lock object to guard all access to <see cref="Clients"/>.</remarks>
 		private AsyncLock ClientsAsyncLock { get; } = new AsyncLock();
 
-		private TorPoolItemManager ClientsManager { get; }
+		private TorPoolItemManager PoolItemManager { get; }
 
-		private ClearnetHttpClient ClearnetHttpClient { get; }
+		private IRelativeHttpClient ClearnetHttpClient { get; }
 		private TorSocks5ClientFactory TorSocks5ClientFactory { get; }
 
 		/// <summary>TODO: Add locking and wrap in a class.</summary>
@@ -162,7 +171,7 @@ namespace WalletWasabi.Tor.Socks5
 			{
 				using (await ClientsAsyncLock.LockAsync(token).ConfigureAwait(false))
 				{
-					(bool canBeAdded, IPoolItem? poolItem) = ClientsManager.GetPoolItem(host, isolateStream);
+					(bool canBeAdded, IPoolItem? poolItem) = PoolItemManager.GetPoolItem(host, isolateStream);
 
 					if (poolItem is { })
 					{
@@ -205,7 +214,7 @@ namespace WalletWasabi.Tor.Socks5
 
 				Logger.LogTrace($"[NEW {poolItem}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
 
-				ClientsManager.AddPoolItem(host, poolItem);
+				PoolItemManager.AddPoolItem(host, poolItem);
 			}
 			catch (TorException e)
 			{
@@ -219,7 +228,7 @@ namespace WalletWasabi.Tor.Socks5
 				throw;
 			}
 
-			Logger.LogTrace($"< poolItem='{poolItem}'; Context: existing hostItems = {string.Join(',', ClientsManager.GetItemsCopy(host).Select(x => x.ToString()).ToArray())}.");
+			Logger.LogTrace($"< poolItem='{poolItem}'; Context: existing hostItems = {string.Join(',', PoolItemManager.GetItemsCopy(host).Select(x => x.ToString()).ToArray())}.");
 			return poolItem;
 		}
 
@@ -256,7 +265,7 @@ namespace WalletWasabi.Tor.Socks5
 			{
 				if (disposing)
 				{
-					ClientsManager.Dispose();
+					PoolItemManager.Dispose();
 				}
 				_disposedValue = true;
 			}
