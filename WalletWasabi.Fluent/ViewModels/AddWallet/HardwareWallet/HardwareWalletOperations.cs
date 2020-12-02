@@ -49,14 +49,16 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public Timer PassphraseTimer { get; }
 
-		private void OnHardwareWalletsFound(HwiEnumerateEntry[] wallet)
+		private void OnDetectionCompleted(HwiEnumerateEntry[] wallets)
 		{
-			HardwareWalletsFound?.Invoke(this,wallet);
-		}
-
-		private void OnSearchingHasNoResult()
-		{
-			SearchingHasNoResult?.Invoke(this,EventArgs.Empty);
+			if (wallets.Length == 0)
+			{
+				SearchingHasNoResult?.Invoke(this, EventArgs.Empty);
+			}
+			else
+			{
+				HardwareWalletsFound?.Invoke(this,wallets);
+			}
 		}
 
 		public async Task GenerateWalletAsync(string walletName)
@@ -129,8 +131,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		protected async Task HardwareWalletDetectionAsync(CancellationTokenSource detectionCts)
 		{
-			int nothingFoundCounter = 0;
-
 			while (!detectionCts.IsCancellationRequested)
 			{
 				Stopwatch.Start();
@@ -149,14 +149,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 					detectionCts.Token.ThrowIfCancellationRequested();
 
-					if (detectedHardwareWallets.Length > 0)
-					{
-						OnHardwareWalletsFound(detectedHardwareWallets);
-					}
-					else
-					{
-						nothingFoundCounter++;
-					}
+					OnDetectionCompleted(detectedHardwareWallets);
 				}
 				catch (Exception ex)
 				{
@@ -168,12 +161,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				finally
 				{
 					PassphraseTimer.Stop();
-
-					if (nothingFoundCounter >= 3)
-					{
-						OnSearchingHasNoResult();
-						nothingFoundCounter = 0;
-					}
 				}
 
 				// Too fast enumeration causes the detected hardware wallets to be unable to provide the fingerprint.
