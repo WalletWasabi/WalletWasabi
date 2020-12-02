@@ -5,19 +5,10 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	// TODO: For testing only.
 	[Property("IsVisible", typeof(bool))]
-	[Property("Title", typeof(string), false, PropertyModifier.Public, PropertyModifier.Internal)]
-	[Property("Items", typeof(List<string>), false, PropertyModifier.Public, PropertyModifier.Private)]
+	[Property("Title", typeof(string), false, PropertyModifier.None, PropertyModifier.Internal)]
+	[Property("Items", typeof(List<string>), false, PropertyModifier.None, PropertyModifier.Private)]
 	[Property("Count", typeof(int), isReadOnly: true)]
-	[NavigationMetaData(
-		Searchable = true,
-		Title = "Test",
-		Caption = "Test caption",
-		IconName = "info_regular",
-		Order = 0,
-		Category = "General",
-		Keywords = new[] { "Test", "ViewModel" },
-		NavBarPosition = NavBarPosition.None)]
-	public partial class TestViewModel : RoutableViewModel
+	public partial class TestViewModel
 	{
 		// [AutoNotify] private bool _test;
 	}
