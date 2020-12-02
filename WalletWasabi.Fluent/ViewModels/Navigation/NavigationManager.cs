@@ -2,42 +2,107 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Fluent.ViewModels.AddWallet;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
-	public enum NavBarPosition
+	public static class NavigationManager
 	{
-		None,
-		Top,
-		Bottom
-	}
+		private static readonly Dictionary<NavigationMetaData, InstanceGeneratorBase> NavigationEntries = new ();
 
-	public class NavigationManager
-	{
-		struct NavigationEntry
+		public static IEnumerable<NavigationMetaData> MetaData => NavigationEntries.Keys.Select(x => x);
+
+		public static async Task<RoutableViewModel> MaterialiseViewModel(NavigationMetaData metaData)
 		{
-			public NavigationMetaData MetaData { get; set; }
-			public Func<Task<RoutableViewModel>> GenerateViewModel { get; set; }
+			if (NavigationEntries.ContainsKey(metaData))
+			{
+				if (NavigationEntries[metaData] is InstanceGenerator instanceGenerator)
+				{
+					return instanceGenerator.Generate;
+				}
+				else if (NavigationEntries[metaData] is SynchronousInstanceGenerator synchronousInstanceGenerator)
+				{
+					return synchronousInstanceGenerator.Generate();
+				}
+				else if (NavigationEntries[metaData] is AsyncInstanceGenerator asyncInstanceGenerator)
+				{
+					return await asyncInstanceGenerator.Generate();
+				}
+			}
+
+			throw new Exception("ViewModel metadata not registered.");
 		}
 
-		private static Dictionary<Type, NavigationEntry> _navigationTypes = new();
-
-		public static IEnumerable<NavigationMetaData> MetaData => _navigationTypes.Values.Select(x => x.MetaData);
-
-		public static void RegisterRoutable<T>(NavigationMetaData metaData, Func<Task<RoutableViewModel>> generator)
-			where T : RoutableViewModel
+		public static void RegisterAsyncLazy(NavigationMetaData metaData, Func<Task<RoutableViewModel>> generator)
 		{
-			if (!_navigationTypes.ContainsKey(typeof(T)))
+			if (metaData.Searchable && (metaData.Category is null || metaData.Title is null))
 			{
-				_navigationTypes.Add(
-					typeof(T),
-					new NavigationEntry
-					{
-						GenerateViewModel = generator,
-						MetaData = metaData
-					});
+				throw new Exception("Searchable entries must have both a Category and a Title");
 			}
+
+			if (!NavigationEntries.ContainsKey(metaData))
+			{
+				NavigationEntries.Add(metaData, new AsyncInstanceGenerator(generator));
+			}
+		}
+
+		public static void RegisterLazy(NavigationMetaData metaData, Func<RoutableViewModel> generator)
+		{
+			if (metaData.Searchable && (metaData.Category is null || metaData.Title is null))
+			{
+				throw new Exception("Searchable entries must have both a Category and a Title");
+			}
+
+			if (!NavigationEntries.ContainsKey(metaData))
+			{
+				NavigationEntries.Add(metaData, new SynchronousInstanceGenerator(generator));
+			}
+		}
+
+		public static void Register(NavigationMetaData metaData, RoutableViewModel instance)
+		{
+			if (metaData.Searchable && (metaData.Category is null || metaData.Title is null))
+			{
+				throw new Exception("Searchable entries must have both a Category and a Title");
+			}
+
+			if (!NavigationEntries.ContainsKey(metaData))
+			{
+				NavigationEntries.Add(metaData, new InstanceGenerator(instance));
+			}
+		}
+
+		private class InstanceGeneratorBase
+		{
+		}
+
+		private class AsyncInstanceGenerator : InstanceGeneratorBase
+		{
+			public AsyncInstanceGenerator(Func<Task<RoutableViewModel>> generate)
+			{
+				Generate = generate;
+			}
+
+			public Func<Task<RoutableViewModel>> Generate { get; }
+		}
+
+		private class SynchronousInstanceGenerator : InstanceGeneratorBase
+		{
+			public SynchronousInstanceGenerator(Func<RoutableViewModel> generate)
+			{
+				Generate = generate;
+			}
+
+			public Func<RoutableViewModel> Generate { get; }
+		}
+
+		private class InstanceGenerator : InstanceGeneratorBase
+		{
+			public InstanceGenerator(RoutableViewModel generate)
+			{
+				Generate = generate;
+			}
+
+			public RoutableViewModel Generate { get; }
 		}
 	}
 }

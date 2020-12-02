@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -12,23 +13,23 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 	/// <summary>
 	/// The ViewModel that represents the structure of the sidebar.
 	/// </summary>
-	public class NavBarViewModel : ViewModelBase
+	public partial class NavBarViewModel : ViewModelBase
 	{
 		private const double NormalCompactPaneLength = 68;
 		private const double NormalOpenPaneLength = 280;
 
-		private ObservableCollection<NavBarItemViewModel> _topItems;
-		private ObservableCollection<NavBarItemViewModel> _bottomItems;
+		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _topItems;
+		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _bottomItems;
 		private NavBarItemViewModel? _selectedItem;
 		private readonly WalletManagerViewModel _walletManager;
-		private bool _isBackButtonVisible;
+		[AutoNotify] private bool _isBackButtonVisible;
 		private bool _isNavigating;
-		private bool _isOpen;
-		private Action? _toggleAction;
-		private Action? _collapseOnClickAction;
-		private double _currentOpenPaneLength;
-		private double _currentCompactPaneLength;
-		private bool _isHidden;
+		[AutoNotify] private bool _isOpen;
+		[AutoNotify] private Action? _toggleAction;
+		[AutoNotify] private Action? _collapseOnClickAction;
+		[AutoNotify] private double _currentOpenPaneLength;
+		[AutoNotify] private double _currentCompactPaneLength;
+		[AutoNotify] private bool _isHidden;
 
 		public NavBarViewModel(TargettedNavigationStack mainScreen, WalletManagerViewModel walletManager)
 		{
@@ -62,19 +63,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				});
 		}
 
-		public ObservableCollection<NavBarItemViewModel> TopItems
-		{
-			get => _topItems;
-			set => this.RaiseAndSetIfChanged(ref _topItems, value);
-		}
-
 		public ObservableCollection<WalletViewModelBase> Items => _walletManager.Items;
-
-		public ObservableCollection<NavBarItemViewModel> BottomItems
-		{
-			get => _bottomItems;
-			set => this.RaiseAndSetIfChanged(ref _bottomItems, value);
-		}
 
 		public NavBarItemViewModel? SelectedItem
 		{
@@ -82,65 +71,30 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			set => SetSelectedItem(value);
 		}
 
-		public Action? ToggleAction
+		public async Task InitialiseAsync()
 		{
-			get => _toggleAction;
-			set => this.RaiseAndSetIfChanged(ref _toggleAction, value);
-		}
+			var topItems = NavigationManager.MetaData.Where(x => x.NavBarPosition == NavBarPosition.Top);
 
-		public Action? CollapseOnClickAction
-		{
-			get => _collapseOnClickAction;
-			set => this.RaiseAndSetIfChanged(ref _collapseOnClickAction, value);
-		}
+			var bottomItems = NavigationManager.MetaData.Where(x => x.NavBarPosition == NavBarPosition.Bottom);
 
-		public double CurrentCompactPaneLength
-		{
-			get => _currentCompactPaneLength;
-			set => this.RaiseAndSetIfChanged(ref _currentCompactPaneLength, value);
-		}
-
-		public double CurrentOpenPaneLength
-		{
-			get => _currentOpenPaneLength;
-			set => this.RaiseAndSetIfChanged(ref _currentOpenPaneLength, value);
-		}
-
-		public bool IsHidden
-		{
-			get => _isHidden;
-			set => this.RaiseAndSetIfChanged(ref _isHidden, value);
-		}
-
-		public bool IsBackButtonVisible
-		{
-			get => _isBackButtonVisible;
-			set => this.RaiseAndSetIfChanged(ref _isBackButtonVisible, value);
-		}
-
-		public bool IsOpen
-		{
-			get => _isOpen;
-			set => this.RaiseAndSetIfChanged(ref _isOpen, value);
-		}
-
-		public void RegisterTopItem(NavBarItemViewModel item, bool isSelected = false)
-		{
-			_topItems.Add(item);
-
-			if (isSelected)
+			foreach (var item in topItems)
 			{
-				_selectedItem = item;
+				var viewModel = await NavigationManager.MaterialiseViewModel(item);
+
+				if (viewModel is NavBarItemViewModel navBarItem)
+				{
+					_topItems.Add(navBarItem);
+				}
 			}
-		}
 
-		public void RegisterBottomItem(NavBarItemViewModel item, bool isSelected = false)
-		{
-			_bottomItems.Add(item);
-
-			if (isSelected)
+			foreach (var item in bottomItems)
 			{
-				_selectedItem = item;
+				var viewModel = await NavigationManager.MaterialiseViewModel(item);
+
+				if (viewModel is NavBarItemViewModel navBarItem)
+				{
+					_bottomItems.Add(navBarItem);
+				}
 			}
 		}
 
