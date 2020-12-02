@@ -132,6 +132,7 @@ namespace WalletWasabi.Services
 				{
 					// In case of cancellation, listener.Stop will cause AcceptTcpClientAsync to throw, thus cancelling it.
 					using var client = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
+					client.ReceiveBufferSize = 1000;
 					try
 					{
 						await using NetworkStream networkStream = client.GetStream();
