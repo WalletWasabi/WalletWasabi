@@ -32,7 +32,7 @@
 
         <c:InfoMessage Classes="h8" Opacity="{Binding NothingShowUpMessageVisibility, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}" VerticalAlignment="Bottom" HorizontalAlignment="Left">
             <StackPanel>
-              <TextBlock Text="Nothing show up?"/>
+              <TextBlock Text="Nothing showed up?"/>
               <TextBlock Text="Click on the link for more help."/>
             </StackPanel>
           </c:InfoMessage>
