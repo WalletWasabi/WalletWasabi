@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
 		<AnalysisLevel>latest</AnalysisLevel>
-		<Nullable>disable</Nullable>
+		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
     </PropertyGroup>
 
