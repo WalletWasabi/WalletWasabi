@@ -16,16 +16,16 @@ using WalletWasabi.Legal;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-	public class MainViewModel : ViewModelBase, IDialogHost
+	public partial class MainViewModel : ViewModelBase, IDialogHost
 	{
 		private readonly Global _global;
-		private StatusBarViewModel _statusBar;
-		private string _title = "Wasabi Wallet";
-		private DialogViewModelBase? _currentDialog;
-		private DialogScreenViewModel _dialogScreen;
-		private NavBarViewModel _navBar;
-		private bool _isMainContentEnabled;
-		private bool _isDialogScreenEnabled;
+		[AutoNotify] private bool _isMainContentEnabled;
+		[AutoNotify] private bool _isDialogScreenEnabled;
+		[AutoNotify] private DialogViewModelBase? _currentDialog;
+		[AutoNotify] private DialogScreenViewModel _dialogScreen;
+		[AutoNotify] private NavBarViewModel _navBar;
+		[AutoNotify] private StatusBarViewModel _statusBar;
+		[AutoNotify] private string _title = "Wasabi Wallet";
 
 		public MainViewModel(Global global)
 		{
@@ -84,53 +84,11 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Subscribe(x => IsDialogScreenEnabled = !x);
 		}
 
-		public bool IsMainContentEnabled
-		{
-			get => _isMainContentEnabled;
-			set => this.RaiseAndSetIfChanged(ref _isMainContentEnabled, value);
-		}
-
-		public bool IsDialogScreenEnabled
-		{
-			get => _isDialogScreenEnabled;
-			set => this.RaiseAndSetIfChanged(ref _isDialogScreenEnabled, value);
-		}
-
 		public TargettedNavigationStack MainScreen { get; }
 
 		public static MainViewModel? Instance { get; internal set; }
 
 		private Network Network { get; }
-
-		public DialogScreenViewModel DialogScreen
-		{
-			get => _dialogScreen;
-			set => this.RaiseAndSetIfChanged(ref _dialogScreen, value);
-		}
-
-		public DialogViewModelBase? CurrentDialog
-		{
-			get => _currentDialog;
-			set => this.RaiseAndSetIfChanged(ref _currentDialog, value);
-		}
-
-		public NavBarViewModel NavBar
-		{
-			get => _navBar;
-			set => this.RaiseAndSetIfChanged(ref _navBar, value);
-		}
-
-		public StatusBarViewModel StatusBar
-		{
-			get => _statusBar;
-			set => this.RaiseAndSetIfChanged(ref _statusBar, value);
-		}
-
-		public string Title
-		{
-			get => _title;
-			internal set => this.RaiseAndSetIfChanged(ref _title, value);
-		}
 
 		public void Initialize()
 		{
