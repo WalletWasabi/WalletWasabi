@@ -1,12 +1,10 @@
 using System;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Timers;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Wallets;
 
@@ -21,6 +19,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			WalletName = walletName;
 			HardwareWalletOperations = new HardwareWalletOperations(walletManager, network);
+
+			BackCommand = ReactiveCommand.Create(() =>
+			{
+				HardwareWalletOperations.Dispose();
+				Navigate().Back();
+			});
+
+			CancelCommand = ReactiveCommand.Create(() =>
+			{
+				HardwareWalletOperations.Dispose();
+				Navigate().Clear();
+			});
 
 			_message = "";
 		}
@@ -72,11 +82,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			if (device.NeedsPassphraseSent == true)
 			{
 				Message = "Enter your passphrase on your device.";
+				return;
 			}
 
 			if (device.NeedsPinSent == true)
 			{
 				Message = "Enter your PIN on your device.";
+				return;
 			}
 
 			if (!device.IsInitialized())

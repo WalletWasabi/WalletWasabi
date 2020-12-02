@@ -27,6 +27,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public WalletType Type { get; }
 
-		public string WalletName { get; } = "";
+		public string WalletName { get; }
 	}
 }

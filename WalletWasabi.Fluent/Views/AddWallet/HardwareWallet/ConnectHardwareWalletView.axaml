@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:hardwareWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
              x:DataType="hardwareWallet:ConnectHardwareWalletViewModel"
@@ -29,7 +30,7 @@
 
         <c:ProgressRing IsIndeterminate="True" VerticalAlignment="Center" HorizontalAlignment="Center" Height="100" Width="100" />
 
-        <c:InfoMessage Classes="h8" IsVisible="{Binding NothingShowUpMessageVisibility}" VerticalAlignment="Bottom" HorizontalAlignment="Left">
+        <c:InfoMessage Classes="h8" Opacity="{Binding NothingShowUpMessageVisibility, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}" VerticalAlignment="Bottom" HorizontalAlignment="Left">
             <StackPanel>
               <TextBlock Text="Nothing show up?"/>
               <TextBlock Text="Click on the link for more help."/>
