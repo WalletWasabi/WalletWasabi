@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Reactive.Concurrency;
 using NBitcoin;
 using ReactiveUI;
@@ -104,6 +105,14 @@ namespace WalletWasabi.Fluent.ViewModels
 				});
 
 			AboutViewModel.RegisterLazy(() => new AboutViewModel());
+			LegalDocumentsViewModel.RegisterAsyncLazy(async () =>
+			{
+				var content = await File.ReadAllTextAsync(global.LegalDocuments.FilePath);
+
+				var legalDocs = new LegalDocumentsViewModel(content);
+
+				return legalDocs;
+			});
 
 			RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
 
