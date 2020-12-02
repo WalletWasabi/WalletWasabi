@@ -16,6 +16,9 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 	/// </summary>
 	public class NavBarViewModel : ViewModelBase
 	{
+		private const double NormalCompactPaneLength = 68;
+		private const double NormalOpenPaneLength = 280;
+
 		private ObservableCollection<NavBarItemViewModel> _topItems;
 		private ObservableCollection<NavBarItemViewModel> _bottomItems;
 		private NavBarItemViewModel? _selectedItem;
@@ -27,6 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private Action? _collapseOnClickAction;
 		private double _currentOpenPaneLength;
 		private double _currentCompactPaneLength;
+		private bool _isHidden;
 
 		public NavBarViewModel(TargettedNavigationStack mainScreen, WalletManagerViewModel walletManager)
 		{
@@ -51,16 +55,11 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 					}
 				});
 
-			walletManager.WhenAnyValue(x => x.Items)
+			this.WhenAnyValue(x => x.IsHidden)
 				.Subscribe(x =>
 				{
-					x.ObserveCollectionChanges()
-						.ToObservableChangeSet()
-						.Subscribe(y =>
-						{
-							CurrentCompactPaneLength = y.Count > 0 ? 68 : 0;
-							CurrentOpenPaneLength = y.Count > 0 ? 280 : 0;
-						});
+					CurrentCompactPaneLength = x ? 0 : NormalCompactPaneLength;
+					CurrentOpenPaneLength = x ? 0 : NormalOpenPaneLength;
 				});
 		}
 
@@ -106,6 +105,12 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		{
 			get => _currentOpenPaneLength;
 			set => this.RaiseAndSetIfChanged(ref _currentOpenPaneLength, value);
+		}
+
+		public bool IsHidden
+		{
+			get => _isHidden;
+			set => this.RaiseAndSetIfChanged(ref _isHidden, value);
 		}
 
 		public bool IsBackButtonVisible
