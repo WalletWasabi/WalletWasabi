@@ -42,7 +42,7 @@
 
     <DockPanel>
       <Button DockPanel.Dock="Bottom" HorizontalAlignment="Center" Classes="h8 plain activeHyperLink"  Foreground="{DynamicResource SystemAccentColor}" Content="More information and help with Hardware Wallets"  />
-      <DockPanel IsVisible="{Binding !WalletListVisible}">
+      <DockPanel>
         <StackPanel VerticalAlignment="Top" Spacing="40" DockPanel.Dock="Top" Margin="0 20 0 0">
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="40">
             <Image Height="100" Source="/Assets/HardwareIcons/ledger.png" />

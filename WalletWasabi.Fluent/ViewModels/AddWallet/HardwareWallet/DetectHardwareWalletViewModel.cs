@@ -20,12 +20,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 	public class DetectHardwareWalletViewModel : RoutableViewModel
 	{
 		private HardwareWalletViewModel? _selectedHardwareWallet;
-		private HardwareDetectionState _detectionState;
+		private HardwareWalletOperations _walletOperations;
 
-		public DetectHardwareWalletViewModel(HardwareDetectionState detectionState)
+		public DetectHardwareWalletViewModel(HardwareWalletOperations walletOperations)
 		{
 			HardwareWallets = new ObservableCollection<HardwareWalletViewModel>();
-			_detectionState = detectionState;
+			_walletOperations = walletOperations;
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
@@ -55,7 +55,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 					{
 						// TODO: Notify the user to check the device
 
-						await _detectionState.Client.SetupAsync(x.HardwareWalletInfo.Model, x.HardwareWalletInfo.Path, interactiveMode, initCts.Token);
+						await _walletOperations.Client.SetupAsync(x.HardwareWalletInfo.Model, x.HardwareWalletInfo.Path, interactiveMode, initCts.Token);
 
 						// todo... check this doesnt trigger the other navigage to.
 						await ConnectSelectedHardwareWalletAsync();
@@ -111,9 +111,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				IsBusy = true;
 				await StopDetectionAsync();
 
-				_detectionState.SelectedDevice = SelectedHardwareWallet.HardwareWalletInfo;
+				_walletOperations.SelectedDevice = SelectedHardwareWallet.HardwareWalletInfo;
 
-				Navigate().To(new DetectedHardwareWalletViewModel(_detectionState));
+				// Navigate().To(new DetectedHardwareWalletViewModel(_walletOperations));
 			}
 			catch (Exception ex)
 			{
@@ -158,13 +158,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 					using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
 					var detectedHardwareWallets =
-						(await _detectionState.Client.EnumerateAsync(timeoutCts.Token).ConfigureAwait(false))
+						(await _walletOperations.Client.EnumerateAsync(timeoutCts.Token).ConfigureAwait(false))
 						.Select(x => new HardwareWalletViewModel(x)).ToArray();
 					detectionCts.Token.ThrowIfCancellationRequested();
 
 					// The wallets that already exist in the software.
 					var alreadyExistingWalletsToRemove = detectedHardwareWallets.Where(
-						wallet => _detectionState.WalletManager.GetWallets().Any(
+						wallet => _walletOperations.WalletManager.GetWallets().Any(
 							x => x.KeyManager.MasterFingerprint == wallet.HardwareWalletInfo.Fingerprint));
 
 					// The wallets that are not detectable since the last enumeration.

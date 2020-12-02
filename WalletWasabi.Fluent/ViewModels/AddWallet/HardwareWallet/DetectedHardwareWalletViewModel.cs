@@ -1,53 +1,52 @@
+using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Hwi.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
 	public class DetectedHardwareWalletViewModel : RoutableViewModel
 	{
-		public DetectedHardwareWalletViewModel(HardwareDetectionState detectionState)
+
+		public DetectedHardwareWalletViewModel(HardwareWalletOperations walletOperations, string walletName)
 		{
+			WalletName = walletName;
 			var type = WalletType.Hardware;
 
-			switch (detectionState.SelectedDevice!.Model)
+			switch (walletOperations.SelectedDevice!.Model)
 			{
-				case Hwi.Models.HardwareWalletModels.Coldcard:
-				case Hwi.Models.HardwareWalletModels.Coldcard_Simulator:
+				case HardwareWalletModels.Coldcard:
+				case HardwareWalletModels.Coldcard_Simulator:
 					type = WalletType.Coldcard;
 					break;
 
-				case Hwi.Models.HardwareWalletModels.Ledger_Nano_S:
+				case HardwareWalletModels.Ledger_Nano_S:
 					type = WalletType.Ledger;
 					break;
 
-				case Hwi.Models.HardwareWalletModels.Trezor_1:
-				case Hwi.Models.HardwareWalletModels.Trezor_1_Simulator:
-				case Hwi.Models.HardwareWalletModels.Trezor_T:
-				case Hwi.Models.HardwareWalletModels.Trezor_T_Simulator:
+				case HardwareWalletModels.Trezor_1:
+				case HardwareWalletModels.Trezor_1_Simulator:
+				case HardwareWalletModels.Trezor_T:
+				case HardwareWalletModels.Trezor_T_Simulator:
 					type = WalletType.Trezor;
 					break;
 			}
 
 			Type = type;
-			TypeName = detectionState.SelectedDevice.Model.FriendlyName();
+			TypeName = walletOperations.SelectedDevice.Model.FriendlyName();
 
 			NextCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 			{
 				IsBusy = true;
 
-				var newWallet = await Task.Run(
-					async () =>
-				{
-					return await detectionState.GenerateWalletAsync();
-				});
+				await Task.Run(async () => await walletOperations.GenerateWalletAsync(WalletName));
 
-				detectionState.WalletManager.AddWallet(newWallet);
-
-				Navigate().To(new AddedWalletPageViewModel(detectionState.WalletName, Type));
+				Navigate().To(new AddedWalletPageViewModel(WalletName, Type));
 
 				IsBusy = false;
 			});
@@ -55,9 +54,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			NoCommand = ReactiveCommand.Create(
 				() =>
 			{
-				Navigate().To(new ConnectHardwareWalletViewModel(detectionState.WalletName, detectionState.Network, detectionState.WalletManager, false));
+				Navigate().Back();
 			});
 		}
+
+		public string WalletName { get; }
 
 		public WalletType Type { get; }
 

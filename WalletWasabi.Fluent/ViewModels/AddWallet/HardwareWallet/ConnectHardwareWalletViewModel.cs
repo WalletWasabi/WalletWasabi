@@ -1,72 +1,112 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
-using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Threading;
+using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Hwi.Exceptions;
+using WalletWasabi.Hwi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
 	public class ConnectHardwareWalletViewModel : RoutableViewModel
 	{
-		private readonly bool _trySkipPage;
-		private readonly HardwareDetectionState _detectionState;
+		private string _message;
 
-		public ConnectHardwareWalletViewModel(string walletName, Network network, WalletManager walletManager, bool trySkipPage = true)
+		public ConnectHardwareWalletViewModel(string walletName, Network network, WalletManager walletManager)
 		{
-			_detectionState = new HardwareDetectionState(walletName, walletManager, network);
+			WalletName = walletName;
+			HardwareWalletOperations = new HardwareWalletOperations(walletManager, network); // TODO: call dispose
+			HardwareWalletOperations.HardwareWalletsFound += OnHardwareWalletsFound;
 
-			_trySkipPage = trySkipPage;
-
-			if (trySkipPage)
-			{
-				IsBusy = true;
-			}
-
-			NextCommand = ReactiveCommand.Create(
-				() =>
-			{
-				Navigate().To(new DetectHardwareWalletViewModel(_detectionState));
-			});
+			_message = "";
 		}
 
-		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
+		public string WalletName { get; }
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		public string Message
 		{
-			base.OnNavigatedTo(inStack, disposable);
+			get => _message;
+			set => this.RaiseAndSetIfChanged(ref _message, value);
+		}
 
-			if (!inStack && _trySkipPage)
+		public HardwareWalletOperations HardwareWalletOperations { get; }
+
+		private void OnHardwareWalletsFound(object? sender, HwiEnumerateEntry[] devices)
+		{
+			if (devices.Length > 1)
 			{
-				RxApp.MainThreadScheduler.Schedule(
-					async () =>
-				{
-					await _detectionState.EnumerateHardwareWalletsAsync(CancellationToken.None);
+				Message = "Make sure you have only one hardware wallet connected to the PC.";
+				return;
+			}
 
-					var deviceCount = _detectionState.Devices.Count();
+			var device = devices.First();
 
-					if (deviceCount == 0)
-					{
-						// navigate to detecting page.
-						Navigate().To(new DetectHardwareWalletViewModel(_detectionState));
-					}
-					else if (deviceCount == 1)
-					{
-						// navigate to detected hw wallet page.
-						_detectionState.SelectedDevice = _detectionState.Devices.First();
+			if (!device.IsInitialized())
+			{
+				Message = "Check your device and finish the initialization";
+				// TODO: execute init if possible
+				return;
+			}
 
-						Navigate().To(new DetectedHardwareWalletViewModel(_detectionState));
-					}
-					else
-					{
-						// Do nothing... stay on this page.
-					}
+			if (device.Code is { } errorCode)
+			{
+				ShowErrorMessage(errorCode);
+				return;
+			}
 
-					IsBusy = false;
-				});
+			HardwareWalletOperations.SelectedDevice = device;
+			Navigate().To(new DetectedHardwareWalletViewModel(HardwareWalletOperations, WalletName));
+		}
+
+		private void ShowErrorMessage(HwiErrorCode errorCode)
+		{
+			// TODO: Show message that helps the user
+
+			switch (errorCode)
+			{
+				case HwiErrorCode.NoDeviceType:
+					break;
+				case HwiErrorCode.MissingArguments:
+					break;
+				case HwiErrorCode.DeviceConnError:
+					break;
+				case HwiErrorCode.UnknownDeviceType:
+					break;
+				case HwiErrorCode.InvalidTx:
+					break;
+				case HwiErrorCode.NoPassword:
+					break;
+				case HwiErrorCode.BadArgument:
+					break;
+				case HwiErrorCode.NotImplemented:
+					break;
+				case HwiErrorCode.UnavailableAction:
+					break;
+				case HwiErrorCode.DeviceAlreadyInit:
+					break;
+				case HwiErrorCode.DeviceAlreadyUnlocked:
+					break;
+				case HwiErrorCode.DeviceNotReady:
+					break;
+				case HwiErrorCode.UnknownError:
+					break;
+				case HwiErrorCode.ActionCanceled:
+					break;
+				case HwiErrorCode.DeviceBusy:
+					break;
+				case HwiErrorCode.NeedToBeRoot:
+					break;
+				case HwiErrorCode.HelpText:
+					break;
+				case HwiErrorCode.DeviceNotInitialized:
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(errorCode), errorCode, null);
 			}
 		}
 	}

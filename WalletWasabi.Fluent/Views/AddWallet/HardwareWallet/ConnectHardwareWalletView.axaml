@@ -3,28 +3,46 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:hardwareWallets="clr-namespace:WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets;assembly=WalletWasabi.Gui"
+             xmlns:hardwareWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet"
              mc:Ignorable="d"
              d:DesignWidth="600" d:DesignHeight="500"
-             x:DataType="hardwareWallets:ConnectHardwareWalletViewModel"
+             x:DataType="hardwareWallet:ConnectHardwareWalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.HardwareWallet.ConnectHardwareWalletView">
 
   <c:ContentArea Title="Hardware Wallet"
-                 Caption="Ensure your device is not connected. Press continue when ready."
-                 IsBusy="{Binding IsBusy}"
+                 Caption="Connect your hardware wallet to the PC"
                  EnableCancel="True" CancelContent="Cancel"
-                 EnableBack="True"
-                 EnableNext="True" NextContent="Continue" >
+                 EnableBack="True">
 
     <DockPanel>
-      <Button DockPanel.Dock="Bottom" HorizontalAlignment="Center" Classes="h8 plain activeHyperLink"  Foreground="{DynamicResource SystemAccentColor}" Content="More information and help with Hardware Wallets"  />
-      <StackPanel  Orientation="Horizontal" HorizontalAlignment="Center" Spacing="40">
-        <Image Height="100" Source="/Assets/HardwareIcons/ledger.png" />
-        <Image Height="100" Source="/Assets/HardwareIcons/coldcard.png" />
-        <Image Height="100" Source="/Assets/HardwareIcons/trezor.png" />
-        <Image Height="100" Source="/Assets/HardwareIcons/generic.png" />
-      </StackPanel>
+
+      <c:InfoMessage DockPanel.Dock="Bottom" Classes="h8" IsVisible="False">
+        <StackPanel>
+          <TextBlock Text="Nothing showing up?"/>
+          <StackPanel Orientation="Horizontal">
+            <Button Content="Click here" Classes="h8 plain activeHyperLink" Foreground="{DynamicResource SystemAccentColor}" />
+            <TextBlock Text=" for more help."/>
+          </StackPanel>
+        </StackPanel>
+      </c:InfoMessage>
+
+      <DockPanel>
+
+        <StackPanel VerticalAlignment="Top" DockPanel.Dock="Top" Margin="0 20 0 0">
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="40">
+            <Image Height="100" Source="/Assets/HardwareIcons/ledger.png" />
+            <Image Height="100" Source="/Assets/HardwareIcons/coldcard.png" />
+            <Image Height="100" Source="/Assets/HardwareIcons/trezor.png" />
+            <Image Height="100" Source="/Assets/HardwareIcons/generic.png" />
+          </StackPanel>
+          <TextBlock Text="{Binding Message}" HorizontalAlignment="Center" Margin="0 100 0 0"/>
+        </StackPanel>
+
+        <c:ProgressRing IsIndeterminate="True" VerticalAlignment="Center" Height="100" Width="100" />
+
+      </DockPanel>
     </DockPanel>
+
   </c:ContentArea>
 </UserControl>
