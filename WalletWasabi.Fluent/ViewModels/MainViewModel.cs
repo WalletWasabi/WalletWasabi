@@ -25,7 +25,8 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private DialogScreenViewModel _dialogScreen;
 		[AutoNotify] private NavBarViewModel _navBar;
 		[AutoNotify] private StatusBarViewModel _statusBar;
-		[AutoNotify] private string _title = "Wasabi Wallet";
+
+		[AutoNotify (SetterModifier = PropertyModifier.Internal)] private string _title = "Wasabi Wallet";
 
 		public MainViewModel(Global global)
 		{
@@ -92,12 +93,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		public static MainViewModel? Instance { get; internal set; }
 
 		private Network Network { get; }
-
-		public string Title
-		{
-			get => _title;
-			internal set => this.RaiseAndSetIfChanged(ref _title, value);
-		}
 
 		public void Initialize()
 		{

@@ -17,18 +17,18 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private const double NormalCompactPaneLength = 68;
 		private const double NormalOpenPaneLength = 280;
 
-		private ObservableCollection<NavBarItemViewModel> _topItems;
-		private ObservableCollection<NavBarItemViewModel> _bottomItems;
+		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _topItems;
+		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _bottomItems;
 		private NavBarItemViewModel? _selectedItem;
 		private readonly WalletManagerViewModel _walletManager;
-		private bool _isBackButtonVisible;
+		[AutoNotify] private bool _isBackButtonVisible;
 		private bool _isNavigating;
-		private bool _isOpen;
-		private Action? _toggleAction;
-		private Action? _collapseOnClickAction;
-		private double _currentOpenPaneLength;
-		private double _currentCompactPaneLength;
-		private bool _isHidden;
+		[AutoNotify] private bool _isOpen;
+		[AutoNotify] private Action? _toggleAction;
+		[AutoNotify] private Action? _collapseOnClickAction;
+		[AutoNotify] private double _currentOpenPaneLength;
+		[AutoNotify] private double _currentCompactPaneLength;
+		[AutoNotify] private bool _isHidden;
 
 		public NavBarViewModel(TargettedNavigationStack mainScreen, WalletManagerViewModel walletManager)
 		{
@@ -68,48 +68,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		{
 			get => _selectedItem;
 			set => SetSelectedItem(value);
-		}
-
-		public Action? ToggleAction
-		{
-			get => _toggleAction;
-			set => this.RaiseAndSetIfChanged(ref _toggleAction, value);
-		}
-
-		public Action? CollapseOnClickAction
-		{
-			get => _collapseOnClickAction;
-			set => this.RaiseAndSetIfChanged(ref _collapseOnClickAction, value);
-		}
-
-		public double CurrentCompactPaneLength
-		{
-			get => _currentCompactPaneLength;
-			set => this.RaiseAndSetIfChanged(ref _currentCompactPaneLength, value);
-		}
-
-		public double CurrentOpenPaneLength
-		{
-			get => _currentOpenPaneLength;
-			set => this.RaiseAndSetIfChanged(ref _currentOpenPaneLength, value);
-		}
-
-		public bool IsHidden
-		{
-			get => _isHidden;
-			set => this.RaiseAndSetIfChanged(ref _isHidden, value);
-		}
-
-		public bool IsBackButtonVisible
-		{
-			get => _isBackButtonVisible;
-			set => this.RaiseAndSetIfChanged(ref _isBackButtonVisible, value);
-		}
-
-		public bool IsOpen
-		{
-			get => _isOpen;
-			set => this.RaiseAndSetIfChanged(ref _isOpen, value);
 		}
 
 		public void RegisterTopItem(NavBarItemViewModel item, bool isSelected = false)
