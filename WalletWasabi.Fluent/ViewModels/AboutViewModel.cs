@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -13,15 +12,6 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-	// TODO: For testing only.
-	[Property("IsVisible", typeof(bool))]
-	[Property("Title", typeof(string), false, PropertyModifier.Public, PropertyModifier.Internal)]
-	[Property("Items", typeof(List<string>), false, PropertyModifier.Public, PropertyModifier.Private)]
-	[Property("Count", typeof(int), isReadOnly: true)]
-	public partial class TestViewModel
-	{
-	}
-
 	[NavigationMetaData(
 		Searchable = true,
 		Title = "About Wasabi",
@@ -33,16 +23,9 @@ namespace WalletWasabi.Fluent.ViewModels
 		NavBarPosition = NavBarPosition.None)]
 	public partial class AboutViewModel : RoutableViewModel
 	{
-		// TODO: For testing only.
-		[AutoNotify]
-		private bool _test;
-
 		public AboutViewModel()
 		{
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
-
-			// TODO: for testing only
-			var metadata = MetaData;
 
 			var interaction = new Interaction<Unit, Unit>();
 			interaction.RegisterHandler(
