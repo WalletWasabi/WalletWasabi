@@ -16,7 +16,15 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 {
-	public class LoadTransactionViewModel : RoutableViewModel
+	[NavigationMetaData(
+		Title = "Broadcaster",
+		Caption = "Broadcast your transactions here",
+		IconName = "live_regular",
+		Order = 5,
+		Category = "General",
+		Keywords = new[] { "Transaction Id", "Input", "Output", "Amount", "Network", "Fee", "Count", "BTC", "Signed", "Paste", "Import", "Broadcast", "Transaction", },
+		NavBarPosition = NavBarPosition.None)]
+	public partial class LoadTransactionViewModel : RoutableViewModel
 	{
 		private SmartTransaction? _finalTransaction;
 

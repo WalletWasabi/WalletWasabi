@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Search;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
+
 namespace WalletWasabi.Fluent.ViewModels
 {
 	public partial class MainViewModel : ViewModelBase, IDialogHost
@@ -156,6 +157,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				});
 
 			AboutViewModel.RegisterLazy(() => new AboutViewModel());
+			AboutViewModel.RegisterLazy(() => new LoadTransactionViewModel());
 
 			LegalDocumentsViewModel.RegisterAsyncLazy(
 				async () =>
@@ -173,5 +175,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			searchPage.RegisterCategory("General", 0);
 			searchPage.RegisterCategory("Settings", 1);
 		}
+
 	}
 }
