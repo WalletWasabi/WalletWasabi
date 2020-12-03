@@ -7,6 +7,7 @@ using Avalonia;
 using NBitcoin;
 using ReactiveUI;
 using Splat;
+using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -39,11 +40,11 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 			this.WhenAnyValue(x => x.FinalTransaction)
 				.Where(x => x is { })
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				.Subscribe(finalTransaction =>
 				{
 					try
 					{
-						Navigate().To(new BroadcastTransactionViewModel(BitcoinStore, x!, Network, global.TransactionBroadcaster));
+						Navigate().To(new BroadcastTransactionViewModel(global, finalTransaction!));
 					}
 					catch (Exception ex)
 					{
