@@ -76,7 +76,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(200, spentCoin.HdPubKey.AnonymitySet);
 			Assert.False(result.SpendsUnconfirmed);
 			var tx = result.Transaction.Transaction;
-			Assert.Equal(2, tx.Outputs.Count());
+			Assert.Equal(2, tx.Outputs.Count);
 
 			var changeCoin = Assert.Single(result.InnerWalletOutputs);
 			Assert.True(changeCoin.HdPubKey.IsInternal);
@@ -104,7 +104,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(200, spentCoin.HdPubKey.AnonymitySet);
 			Assert.False(result.SpendsUnconfirmed);
 			var tx = result.Transaction.Transaction;
-			Assert.Equal(2, tx.Outputs.Count());
+			Assert.Equal(2, tx.Outputs.Count);
 
 			var changeCoin = Assert.Single(result.InnerWalletOutputs);
 			Assert.True(changeCoin.HdPubKey.IsInternal);
@@ -139,7 +139,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.False(result.SpendsUnconfirmed);
 
 			var tx = result.Transaction.Transaction;
-			Assert.Equal(2, tx.Outputs.Count());
+			Assert.Equal(2, tx.Outputs.Count);
 		}
 
 		[Fact]
@@ -170,7 +170,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// it must select the unconfirm coin even when the anonymity set is lower
 			Assert.True(result.SpendsUnconfirmed);
-			Assert.Equal(2, tx.Outputs.Count());
+			Assert.Equal(2, tx.Outputs.Count);
 		}
 
 		[Fact]
@@ -283,7 +283,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(Money.Coins(1m), result.SpentCoins.Select(x => x.Amount).Sum());
 
 			var tx = result.Transaction.Transaction;
-			Assert.Equal(2, tx.Outputs.Count());
+			Assert.Equal(2, tx.Outputs.Count);
 
 			var changeOutput = Assert.Single(tx.Outputs, x => x.ScriptPubKey == changeDestination);
 			Assert.Null(transactionFactory.KeyManager.GetKeyForScriptPubKey(changeOutput.ScriptPubKey));
@@ -315,7 +315,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(Money.Coins(1m), spentCoin.Amount);
 
 			var tx = result.Transaction.Transaction;
-			Assert.Equal(4, tx.Outputs.Count());
+			Assert.Equal(4, tx.Outputs.Count);
 
 			var destination2Output = Assert.Single(tx.Outputs, x => x.ScriptPubKey == destination2);
 			Assert.Equal(Money.Coins(0.3m), destination2Output.Value + result.Fee);
@@ -370,7 +370,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(Money.Coins(1m), spentCoin.Amount);
 
 			var tx = result.Transaction.Transaction;
-			Assert.Equal(2, tx.Outputs.Count()); // consolidates same address payment
+			Assert.Equal(2, tx.Outputs.Count); // consolidates same address payment
 
 			var destinationOutput = Assert.Single(result.OuterWalletOutputs);
 			Assert.Equal(destination, destinationOutput.ScriptPubKey);

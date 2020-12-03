@@ -51,7 +51,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 
 				Assert.False(credentialRequest.IsNullRequest);
 				var credentialRequested = credentialRequest.Requested.ToArray();
-				Assert.Equal(numberOfCredentials, credentialRequested.Count());
+				Assert.Equal(numberOfCredentials, credentialRequested.Length);
 				Assert.NotEmpty(credentialRequested[0].BitCommitments);
 				Assert.NotEmpty(credentialRequested[1].BitCommitments);
 
@@ -74,7 +74,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 
 				Assert.False(credentialRequest.IsNullRequest);
 				var requested = credentialRequest.Requested.ToArray();
-				Assert.Equal(numberOfCredentials, requested.Count());
+				Assert.Equal(numberOfCredentials, requested.Length);
 				Assert.NotEmpty(requested[0].BitCommitments);
 				Assert.NotEmpty(requested[1].BitCommitments);
 				Assert.Equal(Money.Zero, credentialRequest.DeltaAmount);
@@ -86,7 +86,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				client.HandleResponse(credentialResponse, validationData);
 				var credentials = client.Credentials.All.ToArray();
 				Assert.NotEmpty(credentials);
-				Assert.Equal(3, credentials.Count());
+				Assert.Equal(3, credentials.Length);
 
 				var valuableCredentials = client.Credentials.Valuable.ToArray();
 				Assert.Equal(new Scalar(50_000_000), valuableCredentials[0].Amount);

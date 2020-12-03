@@ -358,7 +358,7 @@ namespace NBitcoin
 			{
 				if (!parentCounter.ContainsKey(node))
 				{
-					parentCounter.Add(node, node.Parents.Count());
+					parentCounter.Add(node, node.Parents.Count);
 					foreach (var child in node.Children)
 					{
 						Walk(child);
