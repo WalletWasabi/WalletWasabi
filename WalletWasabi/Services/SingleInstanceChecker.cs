@@ -43,10 +43,10 @@ namespace WalletWasabi.Services
 		/// <summary>
 		/// This function ensures that this is the first instance running on this machine or throws an exception if it is not. In case of secondary start
 		/// we try to signal the first instance before throwing the exception.
-		/// On macOS this function will never throw if you run Wasabi as a macApp, because mac prevents running the same app multiple times on OS level.
+		/// On macOS this function will never throw if you run Wasabi as a macApp, because mac prevents running the same APP multiple times on OS level.
 		/// </summary>
-		/// <exception cref="InvalidOperationException">Wasabi is already running, signalling the first instance failed.</exception>
-		/// <exception cref="OperationCanceledException">Wasabi is already running and signalled.</exception>
+		/// <exception cref="InvalidOperationException">Wasabi is already running, signaling the first instance failed.</exception>
+		/// <exception cref="OperationCanceledException">Wasabi is already running and signaled.</exception>
 		public async Task EnsureSingleOrThrowAsync()
 		{
 			if (DisposeCts.IsCancellationRequested)
@@ -69,7 +69,7 @@ namespace WalletWasabi.Services
 			}
 			catch (SocketException ex) when (ex.ErrorCode is 10048 or 48 or 98)
 			{
-				// ErrorCodes are different on every OS: win, macOS, linux.
+				// ErrorCodes are different on every OS: win, macOS, Linux.
 				// It is already used -> another Wasabi is running on this network.
 				Logger.LogDebug("Detected another Wasabi instance.");
 			}
@@ -92,10 +92,10 @@ namespace WalletWasabi.Services
 			catch (Exception ex)
 			{
 				// Do not log anything here as the first instance is writing the Log at this time.
-				throw new InvalidOperationException($"Wasabi is already running, but cannot be signalled, reason: '{ex}'");
+				throw new InvalidOperationException($"Wasabi is already running, but cannot be signaled, reason: '{ex}'");
 			}
 
-			throw new OperationCanceledException($"Wasabi is already running, signalled the first instance.");
+			throw new OperationCanceledException($"Wasabi is already running, signaled the first instance.");
 		}
 
 		private static int NetworkToPort(Network network) => network switch
@@ -130,7 +130,7 @@ namespace WalletWasabi.Services
 
 				while (!stoppingToken.IsCancellationRequested)
 				{
-					// In case of cancellation, listener.Stop will cause AcceptTcpClientAsync to throw, thus cancelling it.
+					// In case of cancellation, listener.Stop will cause AcceptTcpClientAsync to throw, thus canceling it.
 					using var client = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
 					client.ReceiveBufferSize = 1000;
 					try

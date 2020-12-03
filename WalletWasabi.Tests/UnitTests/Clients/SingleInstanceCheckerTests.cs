@@ -1,9 +1,7 @@
-using NBitcoin;
 using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -86,7 +84,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 				// Overall Timeout.
 				using CancellationTokenSource cts = new(TimeSpan.FromSeconds(20));
 
-				// Simulate a portscan operation.
+				// Simulate a port scan operation.
 				using (TcpClient client = new TcpClient())
 				{
 					// This should not be counted.
@@ -97,7 +95,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 					await writer.WriteAsync("fake message");
 				}
 
-				// Simulate a portscan operation.
+				// Simulate a port scan operation.
 				try
 				{
 					using TcpClient client = new TcpClient();
@@ -121,7 +119,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 					// If the underlying connection lost and there is something in the send buffer NetworkStream dispose will throw.
 				}
 
-				// One more to check of the first instance was able to recover from the portscan operation
+				// One more to check of the first instance was able to recover from the port scan operation
 				await Assert.ThrowsAsync<OperationCanceledException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
 
 				while (Interlocked.Read(ref eventCalled) != 3)
