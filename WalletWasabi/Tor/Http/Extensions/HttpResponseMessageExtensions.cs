@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -30,12 +31,16 @@ namespace WalletWasabi.Tor.Http.Extensions
 			//					CRLF
 			//					[message - body]
 
+			Debug.WriteLine("[client] About to read start line.");
 			string startLine = await HttpMessageHelper.ReadStartLineAsync(responseStream).ConfigureAwait(false);
+			Debug.WriteLine($"[client] startLine: '{startLine}'");
 
 			var statusLine = StatusLine.Parse(startLine);
 			var response = new HttpResponseMessage(statusLine.StatusCode);
 
+			Debug.WriteLine("[client] About to read headers.");
 			string headers = await HttpMessageHelper.ReadHeadersAsync(responseStream).ConfigureAwait(false);
+			Debug.WriteLine("[client] headers: '{0}'", headers);
 
 			var headerSection = await HeaderSection.CreateNewAsync(headers).ConfigureAwait(false);
 			var headerStruct = headerSection.ToHttpResponseHeaders();
