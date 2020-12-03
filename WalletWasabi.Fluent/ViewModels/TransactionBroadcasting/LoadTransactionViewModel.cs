@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 {
 	public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransaction?>
 	{
-		 [AutoNotify] private SmartTransaction? _finalTransaction;
+		[AutoNotify] private SmartTransaction? _finalTransaction;
 
 		public LoadTransactionViewModel(Network network)
 		{

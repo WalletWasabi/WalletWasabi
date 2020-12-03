@@ -27,6 +27,8 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		[AutoNotify] private int _inputCount;
 		[AutoNotify] private int _outputCount;
 		[AutoNotify] private SmartTransaction? _transaction;
+		[AutoNotify] private Money _networkFee;
+
 		private readonly Network _network;
 		private readonly BitcoinStore _store;
 
@@ -56,6 +58,8 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				},
 				nextCommandCanExecute);
 		}
+
+		public override NavigationTarget DefaultTarget => NavigationTarget.DialogScreen;
 
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{
@@ -102,6 +106,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 							TotalOutputValue = outputAddressAmount.Any(x => x.Value == nullMoney)
 								? null
 								: outputAddressAmount.Select(x => x.Value).Sum();
+							NetworkFee = TotalInputValue - TotalOutputValue;
 							Transaction = result;
 						}
 						else
@@ -114,6 +119,5 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 			}
 		}
 
-		public Money NetworkFee => TotalInputValue - TotalOutputValue;
 	}
 }
