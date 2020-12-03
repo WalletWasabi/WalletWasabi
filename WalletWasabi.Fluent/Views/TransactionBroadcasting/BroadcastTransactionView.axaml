@@ -26,7 +26,7 @@
                 <Style Selector="TextBlock.amountTitle">
                     <Setter Property="FontSize" Value="24"/>
                     <Setter Property="HorizontalAlignment" Value="Left"/>
-                    <Setter Property="FontWeight" Value="UltraBold"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
                     <Setter Property="Margin" Value="0 0 0 -5"/>
                 </Style>
 
@@ -34,6 +34,7 @@
                     <Setter Property="Orientation" Value="Horizontal"/>
                     <Setter Property="HorizontalAlignment" Value="Center"/>
                     <Setter Property="TextBlock.FontSize" Value="35"/>
+                    <Setter Property="TextBlock.FontWeight" Value="UltraLight"/>
                 </Style>
             </DockPanel.Styles>
 
@@ -41,6 +42,7 @@
                 <StackPanel.Styles>
                     <Style Selector="TextBlock">
                         <Setter Property="VerticalAlignment" Value="Bottom"/>
+                        <Setter Property="FontWeight" Value="UltraLight"/>
                     </Style>
                     <Style Selector="TextBlock.countValue">
                         <Setter Property="FontSize" Value="30"/>
@@ -65,7 +67,7 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-                    <TextBlock Text="Output" Classes="amountTitle"/>
+                    <TextBlock Text="Output" Classes="amountTitle" FontWeight="UltraBold"/>
                     <StackPanel Classes="amountValue">
                         <TextBlock Text="{Binding TotalOutputValue, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
                         <TextBlock Text="BTC" Classes="unit" />
@@ -88,7 +90,6 @@
                 <Viewbox.Styles>
                     <Style Selector="PathIcon.broadcasting">
                         <Setter Property="Opacity" Value="0.6"/>
-                        <Setter Property="Foreground" Value="{StaticResource SystemAccentSolidColorBrush}"/>
                         <Style.Animations>
                             <Animation Duration="0:0:0.5" IterationCount="INFINITE" PlaybackDirection="Alternate">
                                 <KeyFrame Cue="0%">
@@ -102,7 +103,7 @@
                     </Style>
                 </Viewbox.Styles>
 
-                <PathIcon Data="{StaticResource live_regular}" Opacity="0.6"/>
+                <PathIcon Data="{StaticResource live_regular}" Opacity="0.6" Foreground="{StaticResource SystemAccentSolidColorBrush}"/>
             </Viewbox>
 
         </DockPanel>
