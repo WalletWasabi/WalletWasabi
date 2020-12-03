@@ -39,22 +39,20 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			}
 
 			// Check different networks.
-			await using (SingleInstanceChecker sic = new(mainNetPort))
-			{
-				await sic.EnsureSingleOrThrowAsync();
-				await Assert.ThrowsAsync<OperationCanceledException>(async () => await sic.EnsureSingleOrThrowAsync());
+			await using SingleInstanceChecker sicMainNet = new(mainNetPort);
+			await sicMainNet.EnsureSingleOrThrowAsync();
+			await using SingleInstanceChecker sicMainNet2 = new(mainNetPort);
+			await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicMainNet2.EnsureSingleOrThrowAsync());
 
-				await using SingleInstanceChecker sicMainNet2 = new(mainNetPort);
-				await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicMainNet2.EnsureSingleOrThrowAsync());
+			await using SingleInstanceChecker sicTestNet = new(testNetPort);
+			await sicTestNet.EnsureSingleOrThrowAsync();
+			await using SingleInstanceChecker sicTestNet2 = new(testNetPort);
+			await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicTestNet2.EnsureSingleOrThrowAsync());
 
-				await using SingleInstanceChecker sicTestNet = new(testNetPort);
-				await sicTestNet.EnsureSingleOrThrowAsync();
-				await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicTestNet.EnsureSingleOrThrowAsync());
-
-				await using SingleInstanceChecker sicRegTest = new(regTestPort);
-				await sicRegTest.EnsureSingleOrThrowAsync();
-				await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicRegTest.EnsureSingleOrThrowAsync());
-			}
+			await using SingleInstanceChecker sicRegTest = new(regTestPort);
+			await sicRegTest.EnsureSingleOrThrowAsync();
+			await using SingleInstanceChecker sicRegTest2 = new(regTestPort);
+			await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicRegTest2.EnsureSingleOrThrowAsync());
 		}
 
 		[Fact]
@@ -82,29 +80,38 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 				}
 
 				// Overall Timeout.
-				using CancellationTokenSource cts = new(TimeSpan.FromSeconds(20));
+				using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
 
 				// Simulate a port scan operation.
-				using (TcpClient client = new TcpClient())
+				using (TcpClient client = new TcpClient()
 				{
+					NoDelay = true
+				})
+				{
+					// Make sure non cancel-able operations are aborted.
+					using var _ = cts.Token.Register(() => client.Dispose());
 					// This should not be counted.
 					await client.ConnectAsync(IPAddress.Loopback, mainNetPort, cts.Token);
 					await using NetworkStream networkStream = client.GetStream();
 					networkStream.WriteTimeout = (int)SingleInstanceChecker.ClientTimeOut.TotalMilliseconds;
 					await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
-					await writer.WriteAsync("fake message");
+					await writer.WriteAsync(new StringBuilder("fake message"), cts.Token);
 				}
 
 				// Simulate a port scan operation.
 				try
 				{
-					using TcpClient client = new TcpClient();
+					using TcpClient client = new TcpClient()
+					{
+						NoDelay = true
+					};
+
+					// Make sure non cancel-able operations are aborted.
+					using var _ = cts.Token.Register(() => client.Dispose());
 					// This should not be counted.
 					await client.ConnectAsync(IPAddress.Loopback, mainNetPort, cts.Token);
 					await using NetworkStream networkStream = client.GetStream();
 
-					// Fail quickly.
-					networkStream.WriteTimeout = 100;
 					// This should throw as the first instance should disconnect the clients after the timeout.
 					await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
 
@@ -112,7 +119,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 					await Task.Delay(SingleInstanceChecker.ClientTimeOut + TimeSpan.FromMilliseconds(500), cts.Token);
 
 					// This won't throw if the connection lost, just continues.
-					await writer.WriteAsync("late message");
+					await writer.WriteAsync(new StringBuilder("late message"), cts.Token);
 				}
 				catch (IOException)
 				{

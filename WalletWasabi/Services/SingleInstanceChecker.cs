@@ -77,20 +77,24 @@ namespace WalletWasabi.Services
 			try
 			{
 				// Signal to the other instance, that there was an attempt to start the software.
-				using TcpClient client = new TcpClient();
+				using TcpClient client = new TcpClient()
+				{
+					NoDelay = true
+				};
+
 				using CancellationTokenSource timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 				using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(DisposeCts.Token, timeoutCts.Token);
+
+				// Make sure non cancel-able operations are aborted.
+				using var _ = cts.Token.Register(() => client.Dispose());
 
 				await client.ConnectAsync(IPAddress.Loopback, Port, cts.Token).ConfigureAwait(false);
 
 				await using NetworkStream networkStream = client.GetStream();
 				networkStream.WriteTimeout = (int)ClientTimeOut.TotalMilliseconds * 2;
 				await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
-				await writer.WriteAsync(WasabiMagicString).ConfigureAwait(false);
+				await writer.WriteAsync(new StringBuilder(WasabiMagicString), cts.Token).ConfigureAwait(false);
 
-				// Send the data immediately.
-				await writer.FlushAsync().ConfigureAwait(false);
-				await networkStream.FlushAsync().ConfigureAwait(false);
 				// I was able to signal to the other instance successfully so just continue.
 			}
 			catch (Exception ex)
