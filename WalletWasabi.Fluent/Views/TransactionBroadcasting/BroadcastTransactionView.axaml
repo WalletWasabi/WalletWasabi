@@ -62,7 +62,7 @@
                     <TextBlock Text="Input" Classes="amountTitle"/>
                     <StackPanel Classes="amountValue">
                         <TextBlock Text="{Binding TotalInputValue, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
-                        <TextBlock Text="BTC" Classes="unit" />
+                        <TextBlock Text="BTC" Classes="unit" IsVisible="{Binding !!TotalInputValue}"/>
                     </StackPanel>
                 </StackPanel>
 
@@ -70,7 +70,7 @@
                     <TextBlock Text="Output" Classes="amountTitle" FontWeight="UltraBold"/>
                     <StackPanel Classes="amountValue">
                         <TextBlock Text="{Binding TotalOutputValue, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
-                        <TextBlock Text="BTC" Classes="unit" />
+                        <TextBlock Text="BTC" Classes="unit" IsVisible="{Binding !!TotalOutputValue}"/>
                     </StackPanel>
                 </StackPanel>
 
@@ -78,7 +78,7 @@
                     <TextBlock Text="Fee" Classes="amountTitle"/>
                     <StackPanel Classes="amountValue">
                         <TextBlock Text="{Binding NetworkFee, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
-                        <TextBlock Text="BTC" Classes="unit" />
+                        <TextBlock Text="BTC" Classes="unit" IsVisible="{Binding !!NetworkFee}"/>
                     </StackPanel>
                 </StackPanel>
             </Grid>

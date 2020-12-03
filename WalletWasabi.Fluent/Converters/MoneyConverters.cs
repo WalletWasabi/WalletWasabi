@@ -17,6 +17,6 @@ namespace WalletWasabi.Fluent.Converters
 			});
 
 		public static readonly IValueConverter MoneyToBrush =
-			new FuncValueConverter<Money, ISolidColorBrush>(x => x.ToDecimal(MoneyUnit.BTC) < 0 ? Brushes.IndianRed : Brushes.MediumSeaGreen);
+			new FuncValueConverter<Money?, ISolidColorBrush>(x => x?.ToDecimal(MoneyUnit.BTC) > 0 ? Brushes.MediumSeaGreen : Brushes.IndianRed);
 	}
 }
