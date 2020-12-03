@@ -11,19 +11,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi", "..\WalletWa
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6611C6DA-01B6-4C7D-ACD9-F212DD5D66BD}"
 	ProjectSection(SolutionItems) = preProject
-		.coverage.sh = ../.coverage.sh
-		.editorconfig = ../.editorconfig
-		.gitattributes = ../.gitattributes
-		.gitignore = ../.gitignore
-		.gitmodules = ../.gitmodules
-		azure-pipelines-linux.yml = ../azure-pipelines-linux.yml
-		azure-pipelines-osx.yml = ../azure-pipelines-osx.yml
-		azure-pipelines-quality.yml = ../azure-pipelines-quality.yml
-		azure-pipelines-windows.yml = ../azure-pipelines-windows.yml
-		CONTRIBUTING.md = ../CONTRIBUTING.md
-		Directory.Build.props = ../Directory.Build.props
-		README.md = ../README.md
-		Settings.StyleCop = ../Settings.StyleCop
+		..\.editorconfig = ..\.editorconfig
+		..\.gitattributes = ..\.gitattributes
+		..\.gitignore = ..\.gitignore
+		..\azure-pipelines-linux.yml = ..\azure-pipelines-linux.yml
+		..\azure-pipelines-osx.yml = ..\azure-pipelines-osx.yml
+		..\azure-pipelines-windows.yml = ..\azure-pipelines-windows.yml
+		..\CONTRIBUTING.md = ..\CONTRIBUTING.md
+		..\Directory.Build.props = ..\Directory.Build.props
+		..\README.md = ..\README.md
+		..\Settings.StyleCop = ..\Settings.StyleCop
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Gui", "..\WalletWasabi.Gui\WalletWasabi.Gui.csproj", "{B007DC0F-8C86-439D-BE3C-283218D8308B}"
@@ -35,6 +32,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Fluent", "..\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj", "{F82339B4-DADE-4C95-9FD1-C4EB53623B5E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Fluent.Desktop", "WalletWasabi.Fluent.Desktop.csproj", "{9E31DD9E-2E33-4FE7-991E-7A4054460E14}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WalletWasabi.Fluent.Generators", "..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj", "{F9C06F4D-2517-4DBC-8F07-CAAEC0AD5B59}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -105,6 +104,14 @@ Global
 		{9E31DD9E-2E33-4FE7-991E-7A4054460E14}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9E31DD9E-2E33-4FE7-991E-7A4054460E14}.Release|x64.ActiveCfg = Release|Any CPU
 		{9E31DD9E-2E33-4FE7-991E-7A4054460E14}.Release|x64.Build.0 = Release|Any CPU
+		{F9C06F4D-2517-4DBC-8F07-CAAEC0AD5B59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9C06F4D-2517-4DBC-8F07-CAAEC0AD5B59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9C06F4D-2517-4DBC-8F07-CAAEC0AD5B59}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F9C06F4D-2517-4DBC-8F07-CAAEC0AD5B59}.Debug|x64.Build.0 = Debug|Any CPU
+		{F9C06F4D-2517-4DBC-8F07-CAAEC0AD5B59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9C06F4D-2517-4DBC-8F07-CAAEC0AD5B59}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9C06F4D-2517-4DBC-8F07-CAAEC0AD5B59}.Release|x64.ActiveCfg = Release|Any CPU
+		{F9C06F4D-2517-4DBC-8F07-CAAEC0AD5B59}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

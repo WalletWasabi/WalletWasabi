@@ -216,5 +216,15 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			// Normally it'd be 10, but because of reuse it should be only 8.
 			Assert.Equal(8, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
 		}
+
+		[Fact]
+		public void CoinJoinSend()
+		{
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var tx = BitcoinFactory.CreateSmartTransaction(2, 2, 40, 0);
+
+			// Make sure that Analyze won't throw in case of no own outputs.
+			analyser.Analyze(tx);
+		}
 	}
 }

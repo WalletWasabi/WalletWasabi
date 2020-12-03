@@ -52,16 +52,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					PSBT signedPsbt = null;
 					try
 					{
-						try
-						{
-							signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
-						}
-						catch (PSBTException ex) when (ex.Message.Contains("NullFail"))
-						{
-							NotificationHelpers.Warning("Fall back to Unverified Inputs Mode, trying to sign again.");
-
-							signedPsbt = await SignPsbtWithoutInputTxsAsync(client, Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
-						}
+						signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 					}
 					catch (HwiException)
 					{
@@ -81,19 +72,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(signedTransaction));
 
 			ResetUi();
-		}
-
-		public static async Task<PSBT> SignPsbtWithoutInputTxsAsync(HwiClient client, HDFingerprint value, PSBT psbt, CancellationToken token)
-		{
-			// Ledger Nano S hackfix https://github.com/MetacoSA/NBitcoin/pull/888
-
-			var noinputtx = psbt.Clone();
-			foreach (var input in noinputtx.Inputs)
-			{
-				input.NonWitnessUtxo = null;
-			}
-
-			return await client.SignTxAsync(value, noinputtx, token).ConfigureAwait(false);
 		}
 
 		public string PayjoinEndPoint

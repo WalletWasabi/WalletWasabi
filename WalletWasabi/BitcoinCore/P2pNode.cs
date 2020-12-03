@@ -60,7 +60,7 @@ namespace WalletWasabi.BitcoinCore
 			parameters.TemplateBehaviors.Add(new TrustedP2pBehavior(MempoolService));
 
 			Node = await Node.ConnectAsync(Network, EndPoint, parameters).ConfigureAwait(false);
-			Node.VersionHandshake();
+			Node.VersionHandshake(cancel);
 
 			if (!Node.PeerVersion.Services.HasFlag(NodeServices.Network))
 			{
