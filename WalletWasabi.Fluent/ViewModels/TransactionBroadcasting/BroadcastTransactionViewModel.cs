@@ -16,7 +16,8 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		Order = 5,
 		Category = "General",
 		Keywords = new[] { "Transaction Id", "Input", "Output", "Amount", "Network", "Fee", "Count", "BTC", "Signed", "Paste", "Import", "Broadcast", "Transaction", },
-		NavBarPosition = NavBarPosition.None)]
+		NavBarPosition = NavBarPosition.None,
+		NavigationTarget = NavigationTarget.DialogScreen)]
 	public partial class BroadcastTransactionViewModel : RoutableViewModel
 	{
 		[AutoNotify] private string? _transactionId;
@@ -81,7 +82,5 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				},
 				nextCommandCanExecute);
 		}
-
-		public override NavigationTarget DefaultTarget => NavigationTarget.DialogScreen;
 	}
 }

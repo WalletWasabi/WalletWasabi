@@ -150,7 +150,7 @@ namespace WalletWasabi.Fluent.ViewModels
 					return _settingsPage;
 				});
 
-			BitcoinTabViewModel.RegisterLazy(
+			BitcoinTabSettingsViewModel.RegisterLazy(
 				() =>
 				{
 					_settingsPage.SelectedTab = 3;
