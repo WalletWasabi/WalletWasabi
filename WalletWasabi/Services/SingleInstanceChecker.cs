@@ -124,7 +124,10 @@ namespace WalletWasabi.Services
 			TcpListener? listener = null;
 			try
 			{
-				listener = new(IPAddress.Loopback, Port);
+				listener = new(IPAddress.Loopback, Port)
+				{
+					ExclusiveAddressUse = true
+				};
 
 				// This can throw an exception if the port is already open.
 				listener.Start(0);
