@@ -27,7 +27,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		Category = "General",
 		Keywords = new[] { "Wallet", "Add", "Create", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger" },
 		IconName = "add_circle_regular",
-		NavBarPosition = NavBarPosition.Bottom)]
+		NavBarPosition = NavBarPosition.Bottom,
+		NavigationTarget = NavigationTarget.DialogScreen)]
 	public partial class AddWalletPageViewModel : NavBarItemViewModel
 	{
 		[AutoNotify] private string _walletName = "";
@@ -91,8 +92,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
 		}
 
-		public override NavigationTarget DefaultTarget => NavigationTarget.DialogScreen;
-
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{
 			base.OnNavigatedTo(inStack, disposable);
@@ -137,8 +136,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				errors.Add(ErrorSeverity.Error, "Selected Wallet is not valid. Please try a different name.");
 			}
 		}
-
-		public override string IconName => "add_circle_regular";
 
 		public ICommand CreateWalletCommand { get; }
 		public ICommand RecoverWalletCommand { get; }
