@@ -10,10 +10,10 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
-	public class ConnectHardwareWalletViewModel : RoutableViewModel
+	public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 	{
-		private string _message;
-		private bool _continueButtonEnable;
+		[AutoNotify] private string _message;
+		[AutoNotify] private bool _continueButtonEnable;
 
 		public ConnectHardwareWalletViewModel(string walletName, Network network, WalletManager walletManager)
 		{
@@ -46,18 +46,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		}
 
 		public string WalletName { get; }
-
-		public string Message
-		{
-			get => _message;
-			set => this.RaiseAndSetIfChanged(ref _message, value);
-		}
-
-		public bool ContinueButtonEnable
-		{
-			get => _continueButtonEnable;
-			set => this.RaiseAndSetIfChanged(ref _continueButtonEnable, value);
-		}
 
 		public HardwareWalletOperations HardwareWalletOperations { get; }
 
