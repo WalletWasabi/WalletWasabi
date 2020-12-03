@@ -91,9 +91,9 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 				{
 					// This should not be counted.
 					await client.ConnectAsync(IPAddress.Loopback, mainNetPort, cts.Token);
-					using NetworkStream networkStream = client.GetStream();
+					await using NetworkStream networkStream = client.GetStream();
 					networkStream.WriteTimeout = (int)SingleInstanceChecker.ClientTimeOut.TotalMilliseconds;
-					using var writer = new StreamWriter(networkStream, Encoding.UTF8);
+					await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
 					await writer.WriteAsync("fake message");
 				}
 
@@ -104,9 +104,13 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 					// This should not be counted.
 					await client.ConnectAsync(IPAddress.Loopback, mainNetPort, cts.Token);
 					await using NetworkStream networkStream = client.GetStream();
+
+					// Fail quickly.
 					networkStream.WriteTimeout = 100;
 					// This should throw as the first instance should disconnect the clients after the timeout.
 					await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
+
+					// Wait until timeout on Server side, so the client will be disconnected.
 					await Task.Delay(SingleInstanceChecker.ClientTimeOut + TimeSpan.FromMilliseconds(500), cts.Token);
 
 					// This won't throw if the connection lost, just continues.
