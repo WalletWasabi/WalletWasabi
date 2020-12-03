@@ -88,14 +88,14 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 					NoDelay = true
 				})
 				{
-					// Make sure non cancel-able operations are aborted.
-					using var _ = cts.Token.Register(() => client.Dispose());
 					// This should not be counted.
 					await client.ConnectAsync(IPAddress.Loopback, mainNetPort, cts.Token);
 					await using NetworkStream networkStream = client.GetStream();
 					networkStream.WriteTimeout = (int)SingleInstanceChecker.ClientTimeOut.TotalMilliseconds;
 					await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
 					await writer.WriteAsync(new StringBuilder("fake message"), cts.Token);
+					await writer.FlushAsync().WithAwaitCancellationAsync(cts.Token);
+					await networkStream.FlushAsync(cts.Token);
 				}
 
 				// Simulate a port scan operation.
@@ -106,8 +106,6 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 						NoDelay = true
 					};
 
-					// Make sure non cancel-able operations are aborted.
-					using var _ = cts.Token.Register(() => client.Dispose());
 					// This should not be counted.
 					await client.ConnectAsync(IPAddress.Loopback, mainNetPort, cts.Token);
 					await using NetworkStream networkStream = client.GetStream();
@@ -120,6 +118,8 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 
 					// This won't throw if the connection lost, just continues.
 					await writer.WriteAsync(new StringBuilder("late message"), cts.Token);
+					await writer.FlushAsync().WithAwaitCancellationAsync(cts.Token);
+					await networkStream.FlushAsync(cts.Token);
 				}
 				catch (IOException)
 				{
