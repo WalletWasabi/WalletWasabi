@@ -41,8 +41,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 		public NavBarItemViewModel? Parent { get; set; }
 
-		public abstract string IconName { get; }
-
 		public NavBarItemSelectionMode SelectionMode { get; protected set; }
 
 		public bool IsSelected
