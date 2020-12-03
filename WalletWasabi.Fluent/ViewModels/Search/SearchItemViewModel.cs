@@ -21,7 +21,12 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				{
 					owner.IsBusy = true;
 					var view = await NavigationManager.MaterialiseViewModel(metaData);
-					Navigate(view.DefaultTarget).To(view);
+
+					if (view is { })
+					{
+						Navigate(view.DefaultTarget).To(view);
+					}
+
 					owner.IsBusy = false;
 				});
 		}
@@ -38,6 +43,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 
 		public ICommand OpenCommand { get; }
 
-		public string IconName => _metaData.IconName;
+		public override string IconName => _metaData.IconName;
 	}
 }
