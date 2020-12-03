@@ -6,15 +6,10 @@ using System.Windows.Input;
 using Avalonia;
 using NBitcoin;
 using ReactiveUI;
-using Splat;
-using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Gui;
 using WalletWasabi.Logging;
-using WalletWasabi.Stores;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 {
@@ -39,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				{
 					try
 					{
-						var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction");
+						var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", filterExtTypes: new[] {"psbt", "*"});
 						if (path is { })
 						{
 							FinalTransaction = await ParseTransactionAsync(path);
