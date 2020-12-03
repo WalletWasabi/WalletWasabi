@@ -125,15 +125,15 @@ namespace WalletWasabi.Fluent
 			}
 		}
 
-		private static string? ProcessClass(INamedTypeSymbol namedTypeSymbol, ISymbol attributeSymbol, ISymbol metadataSymbol)
+		private static string? ProcessClass(INamedTypeSymbol classSymbol, ISymbol attributeSymbol, ISymbol metadataSymbol)
 		{
-			if (!namedTypeSymbol.ContainingSymbol.Equals(namedTypeSymbol.ContainingNamespace,
+			if (!classSymbol.ContainingSymbol.Equals(classSymbol.ContainingNamespace,
 				SymbolEqualityComparer.Default))
 			{
 				return null;
 			}
 
-			string namespaceName = namedTypeSymbol.ContainingNamespace.ToDisplayString();
+			string namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
 
             var format = new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
@@ -148,11 +148,11 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace {namespaceName}
 {{
-    public partial class {namedTypeSymbol.ToDisplayString(format)}
+    public partial class {classSymbol.ToDisplayString(format)}
     {{
 ");
 
-			var attributeData = namedTypeSymbol
+			var attributeData = classSymbol
 				.GetAttributes()
 				.Single(ad => ad?.AttributeClass?.Equals(attributeSymbol, SymbolEqualityComparer.Default) ?? false);
 
