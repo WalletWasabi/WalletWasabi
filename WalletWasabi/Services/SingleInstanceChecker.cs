@@ -71,7 +71,7 @@ namespace WalletWasabi.Services
 			{
 				// ErrorCodes are different on every OS: win, macOS, Linux.
 				// It is already used -> another Wasabi is running on this network.
-				Logger.LogDebug("Detected another Wasabi instance.");
+				Logger.LogDebug("Another Wasabi instance already running.");
 			}
 
 			try
@@ -91,10 +91,15 @@ namespace WalletWasabi.Services
 				await client.ConnectAsync(IPAddress.Loopback, Port, cts.Token).ConfigureAwait(false);
 
 				await using NetworkStream networkStream = client.GetStream();
+
 				networkStream.WriteTimeout = (int)ClientTimeOut.TotalMilliseconds * 2;
-				await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
+				await using var writer = new StreamWriter(networkStream, Encoding.UTF8)
+				{
+					AutoFlush = true
+				};
 				await writer.WriteAsync(new StringBuilder(WasabiMagicString), cts.Token).ConfigureAwait(false);
 
+				await networkStream.FlushAsync(cts.Token).ConfigureAwait(false);
 				// I was able to signal to the other instance successfully so just continue.
 			}
 			catch (Exception ex)
@@ -133,13 +138,10 @@ namespace WalletWasabi.Services
 				// Indicate that the Listener is created successfully.
 				task.TrySetResult();
 
-				// Stop listener here to ensure thread-safety.
-				using var _ = stoppingToken.Register(() => listener.Stop());
-
 				while (!stoppingToken.IsCancellationRequested)
 				{
 					// In case of cancellation, listener.Stop will cause AcceptTcpClientAsync to throw, thus canceling it.
-					using var client = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
+					using var client = await listener.AcceptTcpClientAsync().WithAwaitCancellationAsync(stoppingToken).ConfigureAwait(false);
 					client.ReceiveBufferSize = 1000;
 					try
 					{

@@ -29,8 +29,8 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		public async Task SingleInstanceTestsAsync()
 		{
 			int mainNetPort = GenerateRandomPort();
-			int testNetPort = GenerateRandomPort();
-			int regTestPort = GenerateRandomPort();
+			int testNetPort = mainNetPort + 1;
+			int regTestPort = testNetPort + 1;
 
 			// Disposal test.
 			await using (SingleInstanceChecker sic = new(mainNetPort))
