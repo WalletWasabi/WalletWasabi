@@ -14,7 +14,7 @@ namespace WalletWasabi.Services
 	public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 	{
 		private const string WasabiMagicString = "InCryptoWeTrust";
-		public static readonly TimeSpan ClientTimeOut = TimeSpan.FromSeconds(1);
+		public static readonly TimeSpan ClientTimeOut = TimeSpan.FromSeconds(2);
 
 		/// <summary>
 		/// Creates an object to ensure mutual exclusion of Wasabi instances per Network <paramref name="network"/>.
@@ -84,9 +84,13 @@ namespace WalletWasabi.Services
 				await client.ConnectAsync(IPAddress.Loopback, Port, cts.Token).ConfigureAwait(false);
 
 				await using NetworkStream networkStream = client.GetStream();
-				networkStream.WriteTimeout = (int)ClientTimeOut.TotalMilliseconds;
+				networkStream.WriteTimeout = (int)ClientTimeOut.TotalMilliseconds * 2;
 				await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
 				await writer.WriteAsync(WasabiMagicString).ConfigureAwait(false);
+
+				// Send the data immediately.
+				await writer.FlushAsync().ConfigureAwait(false);
+				await networkStream.FlushAsync().ConfigureAwait(false);
 				// I was able to signal to the other instance successfully so just continue.
 			}
 			catch (Exception ex)
@@ -138,7 +142,6 @@ namespace WalletWasabi.Services
 						await using NetworkStream networkStream = client.GetStream();
 						networkStream.ReadTimeout = (int)ClientTimeOut.TotalMilliseconds;
 						using var reader = new StreamReader(networkStream, Encoding.UTF8);
-
 						// Make sure the client will be disconnected.
 						using CancellationTokenSource timeOutCts = new(ClientTimeOut);
 						using var cts = CancellationTokenSource.CreateLinkedTokenSource(timeOutCts.Token, stoppingToken);
