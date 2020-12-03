@@ -303,6 +303,15 @@ namespace WalletWasabi.Logging
 		/// <example>For example: <c>Credentials: {"User":"SomeUser", "Password":"P@ssword"}</c></example>
 		public static void LogDebug(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(exception, LogLevel.Debug, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
+		/// <summary>
+		/// Logs <paramref name="message"/> with <paramref name="exception"/> using <see cref="Exception.ToString()"/> concatenated to it at <see cref="LogLevel.Debug"/> level.
+		///
+		/// <para>For information that has short-term usefulness during development and debugging.</para>
+		/// </summary>
+		/// <remarks>You typically would not enable <see cref="LogLevel.Debug"/> level in production unless you are troubleshooting, due to the high volume of generated logs.</remarks>
+		public static void LogDebug(string message, Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+			=> Log(message, exception, LogLevel.Debug, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+
 		#endregion DebugLoggingMethods
 
 		#region InfoLoggingMethods
