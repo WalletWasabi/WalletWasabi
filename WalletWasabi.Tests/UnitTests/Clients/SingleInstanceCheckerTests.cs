@@ -126,7 +126,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 					// If the underlying connection is lost and there is something in the send buffer NetworkStream dispose will throw.
 				}
 
-				// One more to check of the first instance was able to recover from the port scan operation
+				// One more to check if the first instance was able to recover from the port scan operation.
 				await Assert.ThrowsAsync<OperationCanceledException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
 
 				while (Interlocked.Read(ref eventCalled) != 3)
