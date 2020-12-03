@@ -11,7 +11,7 @@
              x:Class="WalletWasabi.Fluent.Views.TransactionBroadcasting.BroadcastTransactionView">
     <c:ContentArea Title="Transaction"
                    Caption="{Binding TransactionId}"
-                   EnableCancel="True"
+                   EnableCancel="{Binding !IsBusy}"
                    EnableNext="True" NextContent="Broadcast">
 
         <DockPanel LastChildFill="True">
@@ -88,12 +88,16 @@
                     <SolidColorBrush x:Key="SystemAccentSolidColorBrush" Color="{StaticResource SystemAccentColor}"/>
                 </Viewbox.Resources>
                 <Viewbox.Styles>
+                    <Style Selector="PathIcon">
+                        <Setter Property="Foreground" Value="{StaticResource SystemAccentSolidColorBrush}"/>
+                        <Setter Property="Opacity" Value="0.6"/>
+                    </Style>
                     <Style Selector="PathIcon.broadcasting">
                         <Setter Property="Opacity" Value="0.6"/>
                         <Style.Animations>
                             <Animation Duration="0:0:0.5" IterationCount="INFINITE" PlaybackDirection="Alternate">
                                 <KeyFrame Cue="0%">
-                                    <Setter Property="Opacity" Value="0.4"/>
+                                    <Setter Property="Opacity" Value="0.2"/>
                                 </KeyFrame>
                                 <KeyFrame Cue="100%">
                                     <Setter Property="Opacity" Value="1.0"/>
@@ -103,7 +107,10 @@
                     </Style>
                 </Viewbox.Styles>
 
-                <PathIcon Data="{StaticResource live_regular}" Opacity="0.6" Foreground="{StaticResource SystemAccentSolidColorBrush}"/>
+                <Panel>
+                    <PathIcon IsVisible="{Binding IsBusy}" Data="{StaticResource live_regular}" Classes="broadcasting" />
+                    <PathIcon IsVisible="{Binding !IsBusy}" Data="{StaticResource live_regular}" />
+                </Panel>
             </Viewbox>
 
         </DockPanel>
