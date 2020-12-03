@@ -21,6 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			WalletName = walletName;
 			HardwareWalletOperations = new HardwareWalletOperations(walletManager, network);
+			HardwareWalletOperations.NoHardwareWalletFound += OnNoHardwareWalletFound;
 
 			BackCommand = ReactiveCommand.Create(() =>
 			{
@@ -131,7 +132,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			Message = "";
 
 			HardwareWalletOperations.HardwareWalletsFound += OnHardwareWalletsFound;
-			HardwareWalletOperations.NoHardwareWalletFound += OnNoHardwareWalletFound;
 			HardwareWalletOperations.PassphraseTimer.Elapsed += OnPassphraseNeeded;
 
 			Disposable.Create(() =>
