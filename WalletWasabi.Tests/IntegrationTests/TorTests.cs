@@ -122,6 +122,18 @@ namespace WalletWasabi.Tests.IntegrationTests
 		}
 
 		[Fact]
+		public async Task CanDoBasicPostHttpRequestAsync()
+		{
+			var client = MakeTorHttpClient(new Uri("http://postman-echo.com"));
+			HttpContent content = new StringContent("This is expected to be sent back as part of response body.");
+
+			HttpResponseMessage message = await client.SendAsync(HttpMethod.Post, "post", content);
+			var responseContentString = await message.Content.ReadAsStringAsync();
+
+			Assert.Contains("{\"args\":{},\"data\":\"This is expected to be sent back as part of response body.\"", responseContentString);
+		}
+
+		[Fact]
 		public async Task CanDoBasicPostHttpsRequestAsync()
 		{
 			var client = MakeTorHttpClient(new Uri("https://postman-echo.com"));
