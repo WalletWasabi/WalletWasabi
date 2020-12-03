@@ -62,8 +62,8 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 					await global.TransactionBroadcaster.SendTransactionAsync(finalTransaction);
 					Navigate().Clear();
 					IsBusy = false;
-				}
-				, nextCommandCanExecute);
+				},
+				nextCommandCanExecute);
 		}
 
 		public Money NetworkFee => TotalInputValue - TotalOutputValue;
