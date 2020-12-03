@@ -58,7 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				{
 					try
 					{
-						var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction");
+						var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", filterExtTypes: new[] {"psbt", "*"});
 						if (path is { })
 						{
 							FinalTransaction = await ParseTransactionAsync(path);
