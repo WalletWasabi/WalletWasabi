@@ -13,17 +13,16 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			NavigationMetaData metaData,
 			SearchCategory category)
 		{
-			SearchPageViewModel owner1 = owner;
 			_metaData = metaData;
 			Category = category;
 
 			OpenCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					owner1.IsBusy = true;
+					owner.IsBusy = true;
 					var view = await NavigationManager.MaterialiseViewModel(metaData);
 					Navigate(view.DefaultTarget).To(view);
-					owner1.IsBusy = false;
+					owner.IsBusy = false;
 				});
 		}
 
