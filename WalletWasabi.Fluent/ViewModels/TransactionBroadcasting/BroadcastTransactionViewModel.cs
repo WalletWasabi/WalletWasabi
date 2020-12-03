@@ -61,8 +61,9 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 			TotalOutputValue = outputAddressAmount.Any(x => x.Value == nullMoney)
 				? null
 				: outputAddressAmount.Select(x => x.Value).Sum();
-			_networkFee = TotalInputValue - TotalOutputValue;
-
+			_networkFee = TotalInputValue is null || TotalOutputValue is null
+				? null
+				: TotalInputValue - TotalOutputValue;
 
 			var nextCommandCanExecute = this.WhenAnyValue(x => x.IsBusy)
 				.Select(x => !x);
