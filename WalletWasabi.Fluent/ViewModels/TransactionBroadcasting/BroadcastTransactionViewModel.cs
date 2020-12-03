@@ -48,20 +48,22 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 			_totalOutputValue = outputAddressAmount.Any(x => x.Value == nullMoney) ? null : outputAddressAmount.Select(x => x.Value).Sum();
 
 			var nextCommandCanExecute = this.WhenAnyValue(x => x.IsBusy).Select(x => !x);
-			NextCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				IsBusy = true;
-
-				// Wait until broadcaster is not available
-				while (global.TransactionBroadcaster is null)
+			NextCommand = ReactiveCommand.CreateFromTask(
+				async () =>
 				{
-					await Task.Delay(100);
-				}
+					IsBusy = true;
 
-				await global.TransactionBroadcaster.SendTransactionAsync(finalTransaction);
-				Navigate().Clear();
-				IsBusy = false;
-			},nextCommandCanExecute);
+					// Wait until broadcaster is not available
+					while (global.TransactionBroadcaster is null)
+					{
+						await Task.Delay(100);
+					}
+
+					await global.TransactionBroadcaster.SendTransactionAsync(finalTransaction);
+					Navigate().Clear();
+					IsBusy = false;
+				}
+				, nextCommandCanExecute);
 		}
 
 		public Money NetworkFee => TotalInputValue - TotalOutputValue;
