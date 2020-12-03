@@ -34,7 +34,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			{
 				read = await stream.ReadByteAsync(ctsToken).ConfigureAwait(false);
 				bab.Append((byte)read);
-				if (Encoding.ASCII.GetBytes(LF)[0] == (byte)read)
+				if ((byte)read == LF)
 				{
 					break;
 				}
@@ -86,7 +86,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 					firstRead = false;
 				}
 
-				builder.Append(header + CRLF); // CRLF is part of the headerstring
+				builder.Append(header + CRLF); // CRLF is part of the header string
 			}
 
 			headers = builder.ToString();
