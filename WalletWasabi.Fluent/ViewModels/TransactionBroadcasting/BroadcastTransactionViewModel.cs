@@ -1,67 +1,117 @@
 ﻿using System.Linq;
+using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Gui;
 using WalletWasabi.Stores;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 {
+	[NavigationMetaData(
+		Title = "Broadcaster",
+		Caption = "Broadcast your transactions here",
+		IconName = "live_regular",
+		Order = 5,
+		Category = "General",
+		Keywords = new[] { "Transaction Id", "Input", "Output", "Amount", "Network", "Fee", "Count", "BTC", "Signed", "Paste", "Import", "Broadcast", "Transaction", },
+		NavBarPosition = NavBarPosition.None)]
 	public partial class BroadcastTransactionViewModel : RoutableViewModel
 	{
-		[AutoNotify] private string _transactionId;
+		[AutoNotify] private string? _transactionId;
 		[AutoNotify] private Money? _totalInputValue;
 		[AutoNotify] private Money? _totalOutputValue;
 		[AutoNotify] private int _inputCount;
 		[AutoNotify] private int _outputCount;
+		[AutoNotify] private SmartTransaction? _transaction;
+		private readonly Network _network;
+		private readonly BitcoinStore _store;
 
-		public BroadcastTransactionViewModel(Global global, SmartTransaction finalTransaction)
+		public BroadcastTransactionViewModel(BitcoinStore store, Network network, TransactionBroadcaster broadcaster)
 		{
-			var psbt = PSBT.FromTransaction(finalTransaction.Transaction, global.Network);
-			var nullMoney = new Money(-1L);
-			var nullOutput = new TxOut(nullMoney, Script.Empty);
+			_network = network;
+			_store = store;
 
-			TxOut GetOutput(OutPoint outpoint) =>
-				global.BitcoinStore.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
-					? prevTxn.Transaction.Outputs[outpoint.N]
-					: nullOutput;
+			var nextCommandCanExecute = this.WhenAnyValue(
+					x => x.IsBusy,
+					x => x.Transaction)
+				.Select(x => !x.Item1 && x.Item2 is { });
 
-			var inputAddressAmount = psbt.Inputs
-				.Select(x => x.PrevOut)
-				.Select(GetOutput)
-				.ToArray();
+			NextCommand = ReactiveCommand.CreateFromTask(
+				async () =>
+				{
+					if (Transaction is { })
+					{
+						IsBusy = true;
 
-			var outputAddressAmount = psbt.Outputs
-				.Select(x => x.GetCoin().TxOut)
-				.ToArray();
+						await broadcaster.SendTransactionAsync(Transaction);
 
-			var psbtTxn = psbt.GetOriginalTransaction();
+						Navigate().Back();
 
-			_transactionId = psbtTxn.GetHash().ToString();
-			_inputCount = inputAddressAmount.Length;
-			_outputCount = outputAddressAmount.Length;
-			_totalInputValue = inputAddressAmount.Any(x => x.Value == nullMoney) ? null : inputAddressAmount.Select(x => x.Value).Sum();
-			_totalOutputValue = outputAddressAmount.Any(x => x.Value == nullMoney) ? null : outputAddressAmount.Select(x => x.Value).Sum();
+						IsBusy = false;
+					}
+				},
+				nextCommandCanExecute);
+		}
 
-			var nextCommandCanExecute = this.WhenAnyValue(x => x.IsBusy).Select(x => !x);
-			NextCommand = ReactiveCommand.CreateFromTask(async () =>
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		{
+			base.OnNavigatedTo(inStack, disposable);
+
+			if (!inStack)
 			{
 				IsBusy = true;
 
-				// Wait until broadcaster is not available
-				while (global.TransactionBroadcaster is null)
-				{
-					await Task.Delay(100);
-				}
+				RxApp.MainThreadScheduler.Schedule(
+					async () =>
+					{
+						var result = await NavigateDialog(new LoadTransactionViewModel(_network));
 
-				await global.TransactionBroadcaster.SendTransactionAsync(finalTransaction);
-				Navigate().Clear();
-				IsBusy = false;
-			},nextCommandCanExecute);
+						if (result is { })
+						{
+							var nullMoney = new Money(-1L);
+							var nullOutput = new TxOut(nullMoney, Script.Empty);
+
+							var psbt = PSBT.FromTransaction(result.Transaction, _network);
+
+							TxOut GetOutput(OutPoint outpoint) =>
+								_store.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
+									? prevTxn.Transaction.Outputs[outpoint.N]
+									: nullOutput;
+
+							var inputAddressAmount = psbt.Inputs
+								.Select(x => x.PrevOut)
+								.Select(GetOutput)
+								.ToArray();
+
+							var outputAddressAmount = psbt.Outputs
+								.Select(x => x.GetCoin().TxOut)
+								.ToArray();
+
+							var psbtTxn = psbt.GetOriginalTransaction();
+
+							TransactionId = psbtTxn.GetHash().ToString();
+							InputCount = inputAddressAmount.Length;
+							OutputCount = outputAddressAmount.Length;
+							TotalInputValue = inputAddressAmount.Any(x => x.Value == nullMoney)
+								? null
+								: inputAddressAmount.Select(x => x.Value).Sum();
+							TotalOutputValue = outputAddressAmount.Any(x => x.Value == nullMoney)
+								? null
+								: outputAddressAmount.Select(x => x.Value).Sum();
+							Transaction = result;
+						}
+						else
+						{
+							Navigate().Back();
+						}
+
+						IsBusy = false;
+					});
+			}
 		}
 
 		public Money NetworkFee => TotalInputValue - TotalOutputValue;

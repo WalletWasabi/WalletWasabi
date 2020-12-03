@@ -10,6 +10,7 @@ using Splat;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui;
 using WalletWasabi.Logging;
@@ -17,40 +18,20 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 {
-	[NavigationMetaData(
-		Title = "Broadcaster",
-		Caption = "Broadcast your transactions here",
-		IconName = "live_regular",
-		Order = 5,
-		Category = "General",
-		Keywords = new[] { "Transaction Id", "Input", "Output", "Amount", "Network", "Fee", "Count", "BTC", "Signed", "Paste", "Import", "Broadcast", "Transaction", },
-		NavBarPosition = NavBarPosition.None)]
-	public partial class LoadTransactionViewModel : RoutableViewModel
+	public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransaction?>
 	{
 		 [AutoNotify] private SmartTransaction? _finalTransaction;
 
-		public LoadTransactionViewModel()
+		public LoadTransactionViewModel(Network network)
 		{
-			// TODO: Remove global
-			var global = Locator.Current.GetService<Global>();
-
-			Network = global.Network;
-			BitcoinStore = global.BitcoinStore;
+			Network = network;
 
 			this.WhenAnyValue(x => x.FinalTransaction)
 				.Where(x => x is { })
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(finalTransaction =>
 				{
-					try
-					{
-						Navigate().To(new BroadcastTransactionViewModel(global, finalTransaction!));
-					}
-					catch (Exception ex)
-					{
-						// TODO: Notify the user
-						Logger.LogError(ex);
-					}
+					Close(finalTransaction);
 				});
 
 			ImportTransactionCommand = ReactiveCommand.CreateFromTask(
@@ -105,11 +86,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 			});
 		}
 
-		public BitcoinStore BitcoinStore { get; }
-
 		private Network Network { get; }
-
-		public override NavigationTarget DefaultTarget => NavigationTarget.DialogScreen;
 
 		public ICommand PasteCommand { get; }
 

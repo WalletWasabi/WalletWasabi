@@ -4,6 +4,7 @@ using System.Reactive.Concurrency;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -158,7 +159,19 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			AboutViewModel.RegisterLazy(() => new AboutViewModel());
 
-			LoadTransactionViewModel.RegisterLazy(() => new LoadTransactionViewModel());
+			BroadcastTransactionViewModel.RegisterAsyncLazy(
+				async () =>
+				{
+					while (_global.TransactionBroadcaster is null)
+					{
+						await Task.Delay(100);
+					}
+
+					return new BroadcastTransactionViewModel(
+						_global.BitcoinStore,
+						_global.Network,
+						_global.TransactionBroadcaster);
+				});
 
 			LegalDocumentsViewModel.RegisterAsyncLazy(
 				async () =>
