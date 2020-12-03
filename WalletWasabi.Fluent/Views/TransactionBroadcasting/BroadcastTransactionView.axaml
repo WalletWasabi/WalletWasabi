@@ -17,50 +17,48 @@
 
         <Panel>
             <Panel.Styles>
-                <Style Selector="StackPanel > TextBlock">
-                    <Setter Property="HorizontalAlignment" Value="Center"/>
-                </Style>
-
-                <Style Selector="StackPanel > TextBlock.btc">
+                <Style Selector="TextBlock.unit">
                     <Setter Property="VerticalAlignment" Value="Bottom"/>
-                    <Setter Property="Margin" Value="3 0 0 3"/>
+                    <Setter Property="Margin" Value="3 0 0 6"/>
                     <Setter Property="FontSize" Value="12"/>
                 </Style>
 
-                <Style Selector="StackPanel > TextBlock.amountTitle">
-                    <Setter Property="FontSize" Value="50"/>
+                <Style Selector="TextBlock.amountTitle">
+                    <Setter Property="FontSize" Value="24"/>
+                    <Setter Property="HorizontalAlignment" Value="Left"/>
                     <Setter Property="FontWeight" Value="UltraBold"/>
+                    <Setter Property="Margin" Value="0 0 0 -5"/>
                 </Style>
 
                 <Style Selector="StackPanel.amountValue">
                     <Setter Property="Orientation" Value="Horizontal"/>
                     <Setter Property="HorizontalAlignment" Value="Center"/>
-                    <Setter Property="TextBlock.FontSize" Value="25"/>
+                    <Setter Property="TextBlock.FontSize" Value="35"/>
                 </Style>
             </Panel.Styles>
 
-            <Grid ColumnDefinitions="*,*,*" HorizontalAlignment="Stretch" VerticalAlignment="Center">
-                <StackPanel Grid.Column="0">
+            <Grid ColumnDefinitions="*,*,*" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="20 0">
+                <StackPanel Grid.Column="0" HorizontalAlignment="Left">
                     <TextBlock Text="Input" Classes="amountTitle"/>
                     <StackPanel Classes="amountValue">
                         <TextBlock Text="{Binding TotalInputValue, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
-                        <TextBlock Text="BTC" Classes="btc" />
+                        <TextBlock Text="BTC" Classes="unit" />
                     </StackPanel>
                 </StackPanel>
 
-                <StackPanel Grid.Column="1">
+                <StackPanel Grid.Column="1" HorizontalAlignment="Center">
                     <TextBlock Text="Output" Classes="amountTitle"/>
                     <StackPanel Classes="amountValue">
                         <TextBlock Text="{Binding TotalOutputValue, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
-                        <TextBlock Text="BTC" Classes="btc" />
+                        <TextBlock Text="BTC" Classes="unit" />
                     </StackPanel>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2">
+                <StackPanel Grid.Column="2" HorizontalAlignment="Right">
                     <TextBlock Text="Fee" Classes="amountTitle"/>
                     <StackPanel Classes="amountValue">
                         <TextBlock Text="{Binding NetworkFee, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
-                        <TextBlock Text="BTC" Classes="btc" />
+                        <TextBlock Text="BTC" Classes="unit" />
                     </StackPanel>
                 </StackPanel>
             </Grid>
