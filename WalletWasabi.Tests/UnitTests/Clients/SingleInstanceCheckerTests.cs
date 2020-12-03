@@ -18,7 +18,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 
 		/// <summary>
 		/// Global port may collide when several PRs are being tested on CI at the same time,
-		/// so we need some sort of non-determinism here (e.g. random numbers).
+		/// so we need some sort of non-determinism here (i.e. random numbers).
 		/// </summary>
 		private static int GenerateRandomPort()
 		{
