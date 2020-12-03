@@ -41,7 +41,7 @@ namespace WalletWasabi.Services
 		public event EventHandler? OtherInstanceStarted;
 
 		/// <summary>
-		/// This function ensures that this is the first instance running on this machine or throws an exception if it is not. In case of secondary start
+		/// This function ensures that this is the only instance running on this machine or throws an exception if it is not. In case of secondary start
 		/// we try to signal the first instance before throwing the exception.
 		/// On macOS this function will never throw if you run Wasabi as a macApp, because mac prevents running the same APP multiple times on OS level.
 		/// </summary>
