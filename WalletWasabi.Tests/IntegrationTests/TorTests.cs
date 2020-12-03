@@ -56,7 +56,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				string message = await response.Content.ReadAsStringAsync();
 				string excerpt = message.Substring(0, Math.Min(100, message.Length));
 
-				Logger.LogDebug($"#{i}: {excerpt}");
+				Logger.LogDebug($"Attempt #{i}: {excerpt}");
 			}
 
 			Assert.True(true);

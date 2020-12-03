@@ -323,7 +323,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				Logger.LogInfo($"Payjoin payment was negotiated successfully.");
 			}
-			catch (TorConnectCommandFailedException e)
+			catch (TorConnectCommandException e)
 			{
 				if (e.Message.Contains("HostUnreachable"))
 				{

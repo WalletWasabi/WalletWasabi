@@ -194,7 +194,7 @@ namespace WalletWasabi.Services
 								HandleIfGenSocksServFail(ex);
 								throw;
 							}
-							catch (TorConnectCommandFailedException ex)
+							catch (TorConnectCommandException ex)
 							{
 								TorStatus = TorStatus.Running;
 								BackendStatus = BackendStatus.NotConnected;

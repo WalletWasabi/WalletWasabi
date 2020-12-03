@@ -110,6 +110,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// <param name="request">TODO.</param>
 		/// <param name="isolateStream">TODO.</param>
 		/// <param name="token">TODO.</param>
+		/// <see cref="HttpRequestException">Caller is supposed to catch this exception so that handling of different <see cref="IHttpClient"/> implementations is correct.</see>
 		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default)
 		{
 			// Connecting to loopback's URIs cannot be done via Tor.
@@ -146,7 +147,7 @@ namespace WalletWasabi.Tor.Socks5
 
 						return response;
 					}
-					catch (TorConnectCommandFailedException e) when (e.RepField == RepField.TtlExpired)
+					catch (TorConnectCommandException e) when (e.RepField == RepField.TtlExpired)
 					{
 						// If we get TTL Expired error then wait and retry again linux often does this.
 						Logger.LogTrace(e);
@@ -233,8 +234,7 @@ namespace WalletWasabi.Tor.Socks5
 			}
 			catch (TorException e)
 			{
-				Logger.LogDebug($"['{host}'][ERROR] Failed to create a new pool item.");
-				Logger.LogError(e);
+				Logger.LogDebug($"['{host}'][ERROR] Failed to create a new pool item.", e);
 				throw;
 			}
 			catch (Exception e)

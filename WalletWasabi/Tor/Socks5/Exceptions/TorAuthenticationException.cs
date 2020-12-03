@@ -3,8 +3,9 @@ using System;
 namespace WalletWasabi.Tor.Socks5.Exceptions
 {
 	/// <summary>
-	/// TCP connection with Tor SOCKS5 was established but SOCKS5 authentication failed.
+	/// Thrown when SOCKS5 authentication fails for any reason.
 	/// </summary>
+	/// <remarks>For example, invalid credentials were provided or we do not support some SOCKS5 authentication method.</remarks>
 	public class TorAuthenticationException : TorException
 	{
 		public TorAuthenticationException(string message) : base(message)
