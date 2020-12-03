@@ -20,7 +20,7 @@ namespace WalletWasabi.Services
 		/// Creates an object to ensure mutual exclusion of Wasabi instances per Network <paramref name="network"/>.
 		/// The solution based on TCP socket.
 		/// </summary>
-		/// <param name="network">Bitcoin network selected when Wasabi Wallet was started. It will use the port 37129,37130,37131 according to network main,test,reg.</param>
+		/// <param name="network">Bitcoin network selected when Wasabi Wallet was started. It will use the port 37129, 37130, 37131 according to network main, test, reg.</param>
 		public SingleInstanceChecker(Network network) : this(NetworkToPort(network))
 		{
 		}
@@ -71,7 +71,7 @@ namespace WalletWasabi.Services
 			{
 				// ErrorCodes are different on every OS: win, macOS, Linux.
 				// It is already used -> another Wasabi is running on this network.
-				Logger.LogDebug("Another Wasabi instance already running.");
+				Logger.LogDebug("Another Wasabi instance is already running.");
 			}
 
 			try

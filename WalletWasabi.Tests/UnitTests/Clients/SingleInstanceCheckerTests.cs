@@ -116,14 +116,14 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 					// Wait until timeout on Server side, so the client will be disconnected.
 					await Task.Delay(SingleInstanceChecker.ClientTimeOut + TimeSpan.FromMilliseconds(500), cts.Token);
 
-					// This won't throw if the connection lost, just continues.
+					// This won't throw if the connection is lost, just continues.
 					await writer.WriteAsync(new StringBuilder("late message"), cts.Token);
 					await writer.FlushAsync().WithAwaitCancellationAsync(cts.Token);
 					await networkStream.FlushAsync(cts.Token);
 				}
 				catch (IOException)
 				{
-					// If the underlying connection lost and there is something in the send buffer NetworkStream dispose will throw.
+					// If the underlying connection is lost and there is something in the send buffer NetworkStream dispose will throw.
 				}
 
 				// One more to check of the first instance was able to recover from the port scan operation
