@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -9,13 +8,13 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 {
-	public class BroadcastTransactionViewModel : RoutableViewModel
+	public partial class BroadcastTransactionViewModel : RoutableViewModel
 	{
-		private string _transactionId;
-		private Money? _totalInputValue;
-		private Money? _totalOutputValue;
-		private int _inputCount;
-		private int _outputCount;
+		[AutoNotify] private string _transactionId;
+		[AutoNotify] private Money? _totalInputValue;
+		[AutoNotify] private Money? _totalOutputValue;
+		[AutoNotify] private int _inputCount;
+		[AutoNotify] private int _outputCount;
 
 		public BroadcastTransactionViewModel(
 			BitcoinStore store,
@@ -62,36 +61,6 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				Navigate().Clear();
 				IsBusy = false;
 			});
-		}
-
-		public string TransactionId
-		{
-			get => _transactionId;
-			set => this.RaiseAndSetIfChanged(ref _transactionId, value);
-		}
-
-		public Money? TotalInputValue
-		{
-			get => _totalInputValue;
-			set => this.RaiseAndSetIfChanged(ref _totalInputValue, value);
-		}
-
-		public Money? TotalOutputValue
-		{
-			get => _totalOutputValue;
-			set => this.RaiseAndSetIfChanged(ref _totalOutputValue, value);
-		}
-
-		public int InputCount
-		{
-			get => _inputCount;
-			set => this.RaiseAndSetIfChanged(ref _inputCount, value);
-		}
-
-		public int OutputCount
-		{
-			get => _outputCount;
-			set => this.RaiseAndSetIfChanged(ref _outputCount, value);
 		}
 
 		public Money NetworkFee => TotalInputValue - TotalOutputValue;

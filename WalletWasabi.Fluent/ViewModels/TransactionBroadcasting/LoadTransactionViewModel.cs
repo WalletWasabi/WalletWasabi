@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		NavBarPosition = NavBarPosition.None)]
 	public partial class LoadTransactionViewModel : RoutableViewModel
 	{
-		private SmartTransaction? _finalTransaction;
+		 [AutoNotify] private SmartTransaction? _finalTransaction;
 
 		public LoadTransactionViewModel()
 		{
@@ -105,12 +105,6 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		}
 
 		public BitcoinStore BitcoinStore { get; }
-
-		public SmartTransaction? FinalTransaction
-		{
-			get => _finalTransaction;
-			set => this.RaiseAndSetIfChanged(ref _finalTransaction, value);
-		}
 
 		private Network Network { get; }
 
