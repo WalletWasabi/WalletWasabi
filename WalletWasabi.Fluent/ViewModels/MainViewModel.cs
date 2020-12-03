@@ -157,7 +157,8 @@ namespace WalletWasabi.Fluent.ViewModels
 				});
 
 			AboutViewModel.RegisterLazy(() => new AboutViewModel());
-			AboutViewModel.RegisterLazy(() => new LoadTransactionViewModel());
+
+			LoadTransactionViewModel.RegisterLazy(() => new LoadTransactionViewModel());
 
 			LegalDocumentsViewModel.RegisterAsyncLazy(
 				async () =>
