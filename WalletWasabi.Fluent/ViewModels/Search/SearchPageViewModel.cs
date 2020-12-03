@@ -87,7 +87,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 		{
 			if (_categories.TryGetValue(metaData.Category, out var searchCategory))
 			{
-				var result = new SearchItemViewModel(metaData, searchCategory);
+				var result = new SearchItemViewModel(this, metaData, searchCategory);
 
 				_categorySources[searchCategory].Add(result);
 

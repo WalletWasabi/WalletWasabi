@@ -1,6 +1,4 @@
 ﻿using System.Linq;
-using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -26,98 +24,63 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		[AutoNotify] private Money? _totalOutputValue;
 		[AutoNotify] private int _inputCount;
 		[AutoNotify] private int _outputCount;
-		[AutoNotify] private SmartTransaction? _transaction;
 		[AutoNotify] private Money _networkFee;
-
-		private readonly Network _network;
-		private readonly BitcoinStore _store;
-
-		public BroadcastTransactionViewModel(BitcoinStore store, Network network, TransactionBroadcaster broadcaster)
+		public BroadcastTransactionViewModel(
+			BitcoinStore store,
+			Network network,
+			TransactionBroadcaster broadcaster,
+			SmartTransaction transaction)
 		{
-			_network = network;
-			_store = store;
+			var nullMoney = new Money(-1L);
+			var nullOutput = new TxOut(nullMoney, Script.Empty);
 
-			var nextCommandCanExecute = this.WhenAnyValue(
-					x => x.IsBusy,
-					x => x.Transaction)
-				.Select(x => !x.Item1 && x.Item2 is { });
+			var psbt = PSBT.FromTransaction(transaction.Transaction, network);
+
+			TxOut GetOutput(OutPoint outpoint) =>
+				store.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
+					? prevTxn.Transaction.Outputs[outpoint.N]
+					: nullOutput;
+
+			var inputAddressAmount = psbt.Inputs
+				.Select(x => x.PrevOut)
+				.Select(GetOutput)
+				.ToArray();
+
+			var outputAddressAmount = psbt.Outputs
+				.Select(x => x.GetCoin().TxOut)
+				.ToArray();
+
+			var psbtTxn = psbt.GetOriginalTransaction();
+
+			TransactionId = psbtTxn.GetHash().ToString();
+			InputCount = inputAddressAmount.Length;
+			OutputCount = outputAddressAmount.Length;
+			TotalInputValue = inputAddressAmount.Any(x => x.Value == nullMoney)
+				? null
+				: inputAddressAmount.Select(x => x.Value).Sum();
+			TotalOutputValue = outputAddressAmount.Any(x => x.Value == nullMoney)
+				? null
+				: outputAddressAmount.Select(x => x.Value).Sum();
+			_networkFee = TotalInputValue - TotalOutputValue;
+
+
+			var nextCommandCanExecute = this.WhenAnyValue(x => x.IsBusy)
+				.Select(x => !x);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					if (Transaction is { })
-					{
-						IsBusy = true;
+					IsBusy = true;
 
-						await broadcaster.SendTransactionAsync(Transaction);
+					await broadcaster.SendTransactionAsync(transaction);
 
-						Navigate().Back();
+					Navigate().Back();
 
-						IsBusy = false;
-					}
+					IsBusy = false;
 				},
 				nextCommandCanExecute);
 		}
 
 		public override NavigationTarget DefaultTarget => NavigationTarget.DialogScreen;
-
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
-		{
-			base.OnNavigatedTo(inStack, disposable);
-
-			if (!inStack)
-			{
-				IsBusy = true;
-
-				RxApp.MainThreadScheduler.Schedule(
-					async () =>
-					{
-						var result = await NavigateDialog(new LoadTransactionViewModel(_network));
-
-						if (result is { })
-						{
-							var nullMoney = new Money(-1L);
-							var nullOutput = new TxOut(nullMoney, Script.Empty);
-
-							var psbt = PSBT.FromTransaction(result.Transaction, _network);
-
-							TxOut GetOutput(OutPoint outpoint) =>
-								_store.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
-									? prevTxn.Transaction.Outputs[outpoint.N]
-									: nullOutput;
-
-							var inputAddressAmount = psbt.Inputs
-								.Select(x => x.PrevOut)
-								.Select(GetOutput)
-								.ToArray();
-
-							var outputAddressAmount = psbt.Outputs
-								.Select(x => x.GetCoin().TxOut)
-								.ToArray();
-
-							var psbtTxn = psbt.GetOriginalTransaction();
-
-							TransactionId = psbtTxn.GetHash().ToString();
-							InputCount = inputAddressAmount.Length;
-							OutputCount = outputAddressAmount.Length;
-							TotalInputValue = inputAddressAmount.Any(x => x.Value == nullMoney)
-								? null
-								: inputAddressAmount.Select(x => x.Value).Sum();
-							TotalOutputValue = outputAddressAmount.Any(x => x.Value == nullMoney)
-								? null
-								: outputAddressAmount.Select(x => x.Value).Sum();
-							NetworkFee = TotalInputValue - TotalOutputValue;
-							Transaction = result;
-						}
-						else
-						{
-							Navigate().Back();
-						}
-
-						IsBusy = false;
-					});
-			}
-		}
-
 	}
 }
