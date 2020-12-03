@@ -23,6 +23,14 @@ namespace WalletWasabi.Fluent
 		Bottom
 	}
 
+	public enum NavigationTarget
+	{
+		Default = 0,
+		HomeScreen = 1,
+		DialogScreen = 2,
+		DialogHost = 3
+	}
+
 	public sealed class NavigationMetaData
 	{
 		public bool Searchable { get; init; } = true;
@@ -39,7 +47,9 @@ namespace WalletWasabi.Fluent
 
 		public string[] Keywords { get; init; }
 
-		public NavBarPosition NavBarPosition {get; init; }
+		public NavBarPosition NavBarPosition { get; init; }
+
+		public NavigationTarget NavigationTarget { get; init; }
 	}
 
 	[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
@@ -64,6 +74,8 @@ namespace WalletWasabi.Fluent
 		public string[] Keywords { get; set; }
 
 		public NavBarPosition NavBarPosition {get; set; }
+
+		public NavigationTarget NavigationTarget { get; set; }
 	}
 }";
 
@@ -117,7 +129,7 @@ namespace WalletWasabi.Fluent
 
 			foreach (var namedTypeSymbol in namedTypeSymbols)
 			{
-				var classSource = ProcessClass(namedTypeSymbol, attributeSymbol, metadataSymbol);
+				var classSource = ProcessClass(compilation, namedTypeSymbol, attributeSymbol, metadataSymbol);
 				if (classSource is not null)
 				{
 					context.AddSource($"{namedTypeSymbol.Name}_NavigationMetaData.cs", SourceText.From(classSource, Encoding.UTF8));
@@ -125,7 +137,7 @@ namespace WalletWasabi.Fluent
 			}
 		}
 
-		private static string? ProcessClass(INamedTypeSymbol classSymbol, ISymbol attributeSymbol, ISymbol metadataSymbol)
+		private static string? ProcessClass(Compilation compilation, INamedTypeSymbol classSymbol, ISymbol attributeSymbol, ISymbol metadataSymbol)
 		{
 			if (!classSymbol.ContainingSymbol.Equals(classSymbol.ContainingNamespace,
 				SymbolEqualityComparer.Default))
@@ -175,6 +187,43 @@ namespace {namespaceName}
 			source.AppendLine($@"        public static void RegisterAsyncLazy(Func<Task<RoutableViewModel>> createInstance) => NavigationManager.RegisterAsyncLazy(MetaData, createInstance);");
 			source.AppendLine($@"        public static void RegisterLazy(Func<RoutableViewModel> createInstance) => NavigationManager.RegisterLazy(MetaData, createInstance);");
 			source.AppendLine($@"        public static void Register(RoutableViewModel createInstance) => NavigationManager.Register(MetaData, createInstance);");
+
+			var routeableClass = compilation.GetTypeByMetadataName("WalletWasabi.Fluent.ViewModels.Navigation.RoutableViewModel");
+
+			if (routeableClass is { })
+			{
+				bool addRouteableMetaData = false;
+				var baseType = classSymbol.BaseType;
+				while (true)
+				{
+					if (baseType is null)
+					{
+						break;
+					}
+
+					if (SymbolEqualityComparer.Default.Equals(baseType, routeableClass))
+					{
+						addRouteableMetaData = true;
+						break;
+					}
+
+					baseType = baseType.BaseType;
+				}
+
+				if (addRouteableMetaData)
+				{
+					if (attributeData.NamedArguments.Any(x => x.Key == "NavigationTarget"))
+					{
+						source.AppendLine(
+							$@"        public override NavigationTarget DefaultTarget => MetaData.NavigationTarget;");
+					}
+
+					if (attributeData.NamedArguments.Any(x => x.Key == "IconName"))
+					{
+						source.AppendLine($@"        public override string IconName => MetaData.IconName;");
+					}
+				}
+			}
 
 			source.Append($@"    }}
 }}");
