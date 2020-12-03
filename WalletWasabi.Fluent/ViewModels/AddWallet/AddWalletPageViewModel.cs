@@ -10,6 +10,8 @@ using WalletWasabi.Stores;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.ViewModels.AddWallet.Create;
+using WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.NavBar;
@@ -52,6 +54,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				() => { Navigate().To(new RecoverWalletViewModel(WalletName, network, walletManager)); });
 
 			ImportWalletCommand = ReactiveCommand.Create(() => new ImportWalletViewModel(WalletName, walletManager));
+
+			ConnectHardwareWalletCommand = ReactiveCommand.Create(() =>
+			{
+				Navigate().To(new ConnectHardwareWalletViewModel(WalletName, network, walletManager));
+			});
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -136,5 +143,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		public ICommand CreateWalletCommand { get; }
 		public ICommand RecoverWalletCommand { get; }
 		public ICommand ImportWalletCommand { get; }
+		public ICommand ConnectHardwareWalletCommand { get; }
 	}
 }
