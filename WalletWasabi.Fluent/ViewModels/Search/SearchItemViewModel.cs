@@ -33,6 +33,8 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 
 		public string[] Keywords => _metaData.Keywords;
 
+		public string[] XamlKeywords => _metaData.XamlKeywords;
+
 		public ICommand OpenCommand { get; }
 
 		public string IconName => _metaData.IconName;

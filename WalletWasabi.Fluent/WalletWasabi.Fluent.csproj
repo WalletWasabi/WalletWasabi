@@ -7,6 +7,8 @@
 		<NoWarn>1701;1702;1705;1591;1573;CA1031</NoWarn>
 	</PropertyGroup>
 	<ItemGroup>
+		<AdditionalFiles Include="**\*.axaml" />
+		<AdditionalFiles Include="**\*.xaml" />
 		<Compile Update="**\*.xaml.cs">
 			<DependentUpon>%(Filename)</DependentUpon>
 		</Compile>
