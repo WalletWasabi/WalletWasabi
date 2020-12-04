@@ -25,7 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		[AutoNotify] private Money? _totalOutputValue;
 		[AutoNotify] private int _inputCount;
 		[AutoNotify] private int _outputCount;
-		[AutoNotify] private Money _networkFee;
+		[AutoNotify] private Money? _networkFee;
 		public BroadcastTransactionViewModel(
 			BitcoinStore store,
 			Network network,
