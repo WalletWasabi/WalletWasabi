@@ -1,7 +1,8 @@
 {
   "profiles": {
     "WalletWasabi.Gui": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "crashreport -attempt=\"1\" -exception=\"eyJFeGNlcHRpb25UeXBlIjoiU3lzdGVtLkV4Y2VwdGlvbiIsIk1lc3NhZ2UiOiJNeSBkdW1teSBleGNlcHRpb24iLCJTdGFja1RyYWNlIjoiICAgYXQgV2FsbGV0V2FzYWJpLkd1aS5Qcm9ncmFtLk1haW4oU3RyaW5nW10gYXJncykgaW4gQzpcXHdvcmtcXFdhbGxldFdhc2FiaVxcV2FsbGV0V2FzYWJpLkd1aVxcUHJvZ3JhbS5jczpsaW5lIDUwIiwiSW5uZXJFeGNlcHRpb24iOm51bGx9\""
     }
   }
 }

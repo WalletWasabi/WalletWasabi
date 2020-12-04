@@ -31,13 +31,13 @@ namespace WalletWasabi.Gui.CommandLine
 				Options.Parse(args);
 
 				CrashReporter.SetShowCrashReport(ExceptionString, int.Parse(Attempts));
+
+				return Task.FromResult(1);
 			}
 			catch (Exception ex)
 			{
 				return Task.FromException<int>(ex);
 			}
-
-			return Task.FromResult(0);
 		}
 	}
 }
