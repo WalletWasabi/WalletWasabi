@@ -14,13 +14,13 @@ namespace WalletWasabi.Services
 	public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 	{
 		private const string WasabiMagicString = "InCryptoWeTrust";
-		public static readonly TimeSpan ClientTimeOut = TimeSpan.FromSeconds(1);
+		public static readonly TimeSpan ClientTimeOut = TimeSpan.FromSeconds(2);
 
 		/// <summary>
 		/// Creates an object to ensure mutual exclusion of Wasabi instances per Network <paramref name="network"/>.
 		/// The solution based on TCP socket.
 		/// </summary>
-		/// <param name="network">Bitcoin network selected when Wasabi Wallet was started. It will use the port 37129,37130,37131 according to network main,test,reg.</param>
+		/// <param name="network">Bitcoin network selected when Wasabi Wallet was started. It will use the port 37129, 37130, 37131 according to network main, test, reg.</param>
 		public SingleInstanceChecker(Network network) : this(NetworkToPort(network))
 		{
 		}
@@ -41,7 +41,7 @@ namespace WalletWasabi.Services
 		public event EventHandler? OtherInstanceStarted;
 
 		/// <summary>
-		/// This function ensures that this is the first instance running on this machine or throws an exception if it is not. In case of secondary start
+		/// This function ensures that this is the only instance running on this machine or throws an exception if it is not. In case of secondary start
 		/// we try to signal the first instance before throwing the exception.
 		/// On macOS this function will never throw if you run Wasabi as a macApp, because mac prevents running the same APP multiple times on OS level.
 		/// </summary>
@@ -71,22 +71,29 @@ namespace WalletWasabi.Services
 			{
 				// ErrorCodes are different on every OS: win, macOS, Linux.
 				// It is already used -> another Wasabi is running on this network.
-				Logger.LogDebug("Detected another Wasabi instance.");
+				Logger.LogDebug("Another Wasabi instance is already running.");
 			}
 
 			try
 			{
 				// Signal to the other instance, that there was an attempt to start the software.
-				using TcpClient client = new TcpClient();
+				using TcpClient client = new TcpClient()
+				{
+					NoDelay = true
+				};
+
 				using CancellationTokenSource timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 				using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(DisposeCts.Token, timeoutCts.Token);
 
 				await client.ConnectAsync(IPAddress.Loopback, Port, cts.Token).ConfigureAwait(false);
 
 				await using NetworkStream networkStream = client.GetStream();
-				networkStream.WriteTimeout = (int)ClientTimeOut.TotalMilliseconds;
+
+				networkStream.WriteTimeout = (int)ClientTimeOut.TotalMilliseconds * 2;
 				await using var writer = new StreamWriter(networkStream, Encoding.UTF8);
-				await writer.WriteAsync(WasabiMagicString).ConfigureAwait(false);
+				await writer.WriteAsync(new StringBuilder(WasabiMagicString), cts.Token).ConfigureAwait(false);
+				await writer.FlushAsync().ConfigureAwait(false);
+				await networkStream.FlushAsync(cts.Token).ConfigureAwait(false);
 				// I was able to signal to the other instance successfully so just continue.
 			}
 			catch (Exception ex)
@@ -117,7 +124,10 @@ namespace WalletWasabi.Services
 			TcpListener? listener = null;
 			try
 			{
-				listener = new(IPAddress.Loopback, Port);
+				listener = new(IPAddress.Loopback, Port)
+				{
+					ExclusiveAddressUse = true
+				};
 
 				// This can throw an exception if the port is already open.
 				listener.Start(0);
@@ -125,20 +135,16 @@ namespace WalletWasabi.Services
 				// Indicate that the Listener is created successfully.
 				task.TrySetResult();
 
-				// Stop listener here to ensure thread-safety.
-				using var _ = stoppingToken.Register(() => listener.Stop());
-
 				while (!stoppingToken.IsCancellationRequested)
 				{
 					// In case of cancellation, listener.Stop will cause AcceptTcpClientAsync to throw, thus canceling it.
-					using var client = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
+					using var client = await listener.AcceptTcpClientAsync().WithAwaitCancellationAsync(stoppingToken).ConfigureAwait(false);
 					client.ReceiveBufferSize = 1000;
 					try
 					{
 						await using NetworkStream networkStream = client.GetStream();
 						networkStream.ReadTimeout = (int)ClientTimeOut.TotalMilliseconds;
 						using var reader = new StreamReader(networkStream, Encoding.UTF8);
-
 						// Make sure the client will be disconnected.
 						using CancellationTokenSource timeOutCts = new(ClientTimeOut);
 						using var cts = CancellationTokenSource.CreateLinkedTokenSource(timeOutCts.Token, stoppingToken);

@@ -12,7 +12,16 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-	public class AboutViewModel : RoutableViewModel
+	[NavigationMetaData(
+		Title = "About Wasabi",
+		Caption = "Displays all the current info about the app",
+		IconName = "info_regular",
+		Order = 4,
+		Category = "General",
+		Keywords = new[] { "About", "Software", "Version", "Source", "Code", "Github", "Status", "Stats", "Tor", "Onion", "Bug", "Report", "FAQ", "Questions,", "Docs", "Documentation", "Link", "Links", "Help" },
+		NavBarPosition = NavBarPosition.None,
+		NavigationTarget = NavigationTarget.DialogScreen)]
+	public partial class AboutViewModel : RoutableViewModel
 	{
 		public AboutViewModel()
 		{
@@ -21,8 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			var interaction = new Interaction<Unit, Unit>();
 			interaction.RegisterHandler(
 				async x =>
-					x.SetOutput(
-						await new AboutAdvancedInfoViewModel().ShowDialogAsync()));
+					x.SetOutput(await new AboutAdvancedInfoViewModel().ShowDialogAsync()));
 
 			AboutAdvancedInfoDialogCommand = ReactiveCommand.CreateFromTask(
 				execute: async () => await interaction.Handle(Unit.Default).ToTask());
@@ -31,8 +39,6 @@ namespace WalletWasabi.Fluent.ViewModels
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
-
-		public override NavigationTarget DefaultTarget => NavigationTarget.DialogScreen;
 
 		public ICommand AboutAdvancedInfoDialogCommand { get; }
 
