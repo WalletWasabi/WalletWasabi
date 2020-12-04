@@ -1,10 +1,12 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Logging;
 using WalletWasabi.Stores;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
@@ -79,7 +81,15 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				{
 					IsBusy = true;
 
-					await broadcaster.SendTransactionAsync(transaction);
+					try
+					{
+						await broadcaster.SendTransactionAsync(transaction);
+					}
+					catch (Exception ex)
+					{
+						// TODO: Notify the user
+						Logger.LogError(ex);
+					}
 
 					Navigate().Back();
 
