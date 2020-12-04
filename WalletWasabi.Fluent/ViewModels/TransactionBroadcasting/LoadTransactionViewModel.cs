@@ -24,10 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 			this.WhenAnyValue(x => x.FinalTransaction)
 				.Where(x => x is { })
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(finalTransaction =>
-				{
-					Close(finalTransaction);
-				});
+				.Subscribe(finalTransaction => Close(finalTransaction));
 
 			ImportTransactionCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -55,8 +52,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 
 					if (string.IsNullOrWhiteSpace(textToPaste))
 					{
-						// TODO: Clipboard is empty message
-						return;
+						throw new InvalidDataException("The clipboard is empty!");
 					}
 
 					if (PSBT.TryParse(textToPaste, Network, out var signedPsbt))
@@ -75,7 +71,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				}
 				catch (Exception ex)
 				{
-					// TODO: Notify the user about the error
+					// TODO: Notify the user
 					Logger.LogError(ex);
 				}
 			});
@@ -90,8 +86,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		private async Task<SmartTransaction> ParseTransactionAsync(string path)
 		{
 			var psbtBytes = await File.ReadAllBytesAsync(path);
-			PSBT? psbt = null;
-			Transaction? transaction = null;
+			PSBT psbt;
 
 			try
 			{
@@ -107,21 +102,16 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				}
 				catch
 				{
-					transaction = Transaction.Parse(text, Network);
+					return new SmartTransaction(Transaction.Parse(text, Network), Models.Height.Unknown);
 				}
 			}
 
-			if (psbt is { })
+			if (!psbt.IsAllFinalized())
 			{
-				if (!psbt.IsAllFinalized())
-				{
-					psbt.Finalize();
-				}
-
-				return psbt.ExtractSmartTransaction();
+				psbt.Finalize();
 			}
 
-			return new SmartTransaction(transaction, Models.Height.Unknown);
+			return psbt.ExtractSmartTransaction();
 		}
 	}
 }

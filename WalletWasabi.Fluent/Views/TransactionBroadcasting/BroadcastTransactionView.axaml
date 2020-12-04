@@ -16,7 +16,6 @@
 
         <DockPanel LastChildFill="True">
             <DockPanel.Styles>
-
                 <Style Selector="TextBlock.unit">
                     <Setter Property="VerticalAlignment" Value="Bottom"/>
                     <Setter Property="Margin" Value="3 0 0 6"/>
