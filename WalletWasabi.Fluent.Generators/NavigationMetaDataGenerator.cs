@@ -275,17 +275,16 @@ namespace {namespaceName}
 			var doc = XDocument.Parse(xaml);
 
 			var textBlocks = doc.Descendants().Where(x => x.Name.LocalName == "TextBlock");
-			if (textBlocks is not null)
+			
+			foreach (var textBlock in textBlocks)
 			{
-				foreach (var textBlock in textBlocks)
+				var text = textBlock.Attributes().FirstOrDefault(x => x.Name.LocalName == "Text");
+				if (text?.Value is { } value)
 				{
-					var text = textBlock.Attributes().FirstOrDefault(x => x.Name.LocalName == "Text");
-					if (text?.Value is { } value)
+					var trimmed = value.Trim();
+					if (!trimmed.StartsWith("{"))
 					{
-						if (!value.Trim().StartsWith("{"))
-						{
-							yield return value;
-						}
+						yield return value;
 					}
 				}
 			}
