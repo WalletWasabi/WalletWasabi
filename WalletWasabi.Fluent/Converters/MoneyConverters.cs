@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.Converters
 	public static class MoneyConverters
 	{
 		public static readonly IValueConverter MoneyToString =
-			new FuncValueConverter<Money, string>(x =>
+			new FuncValueConverter<Money?, string>(x =>
 			{
 				return x switch
 				{
@@ -15,8 +15,5 @@ namespace WalletWasabi.Fluent.Converters
 					{ } => x.ToString(fplus: false, trimExcessZero: true),
 				};
 			});
-
-		public static readonly IValueConverter MoneyToBrush =
-			new FuncValueConverter<Money?, ISolidColorBrush>(x => x?.ToDecimal(MoneyUnit.BTC) > 0 ? Brushes.MediumSeaGreen : Brushes.IndianRed);
 	}
 }
