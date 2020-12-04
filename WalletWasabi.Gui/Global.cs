@@ -130,7 +130,7 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				await SingleInstanceChecker.CheckAsync().ConfigureAwait(false);
+				await SingleInstanceChecker.EnsureSingleOrThrowAsync().ConfigureAwait(false);
 
 				cancel.ThrowIfCancellationRequested();
 
@@ -756,7 +756,7 @@ namespace WalletWasabi.Gui
 
 				try
 				{
-					SingleInstanceChecker?.Dispose();
+					await SingleInstanceChecker.DisposeAsync().ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{
