@@ -12,7 +12,28 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class FileDialogHelper
 	{
-		public static async Task<string?> ShowOpenFileDialogAsync(string title, string[]? filterExtTypes = null)
+		public static async Task<string?> ShowOpenFileDialogAsync(string title)
+		{
+			var ofd = CreateOpenFileDialog(title);
+			return await GetDialogResult(ofd);
+		}
+
+		public static async Task<string?> ShowOpenFileDialogAsync(string title, string[] filterExtTypes)
+		{
+			var ofd = CreateOpenFileDialog(title);
+			ofd.Filters = GenerateFilters(filterExtTypes);
+			return await GetDialogResult(ofd);
+		}
+
+		private static async Task<string?> GetDialogResult(OpenFileDialog ofd)
+		{
+			var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
+			var selected = await ofd.ShowAsync(window);
+
+			return selected.FirstOrDefault();
+		}
+
+		private static OpenFileDialog CreateOpenFileDialog(string title)
 		{
 			var ofd = new OpenFileDialog
 			{
@@ -22,15 +43,7 @@ namespace WalletWasabi.Fluent.Helpers
 
 			SetDefaultDirectory(ofd);
 
-			if (filterExtTypes is { })
-			{
-				ofd.Filters = GenerateFilters(filterExtTypes);
-			}
-
-			var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
-			var selected = await ofd.ShowAsync(window);
-
-			return selected.FirstOrDefault();
+			return ofd;
 		}
 
 		private static List<FileDialogFilter> GenerateFilters(string[] filterExtTypes)
@@ -61,16 +74,16 @@ namespace WalletWasabi.Fluent.Helpers
 			return filters;
 		}
 
-		private static void SetDefaultDirectory(OpenFileDialog ofd)
+		private static void SetDefaultDirectory(FileSystemDialog sfd)
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				ofd.Directory = Path.Combine("/media", Environment.UserName);
+				sfd.Directory = Path.Combine("/media", Environment.UserName);
 			}
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				ofd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+				sfd.Directory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 			}
 		}
 	}
