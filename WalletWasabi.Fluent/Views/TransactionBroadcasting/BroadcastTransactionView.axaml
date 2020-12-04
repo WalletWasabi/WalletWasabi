@@ -9,7 +9,7 @@
              x:DataType="transactionBroadcasting:BroadcastTransactionViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.TransactionBroadcasting.BroadcastTransactionView">
-    <c:ContentArea Title="Transaction"
+    <c:ContentArea Title="Broadcast Transaction"
                    Caption="{Binding TransactionId}"
                    EnableCancel="{Binding !IsBusy}"
                    EnableNext="True" NextContent="Broadcast">
@@ -44,9 +44,9 @@
                         <Setter Property="FontWeight" Value="UltraLight"/>
                     </Style>
                     <Style Selector="TextBlock.countValue">
-                        <Setter Property="FontSize" Value="30"/>
+                        <Setter Property="FontSize" Value="20"/>
                         <Setter Property="FontWeight" Value="Bold"/>
-                        <Setter Property="Margin" Value="0 0 0 -4"/>
+                        <Setter Property="Margin" Value="0 0 0 -2"/>
                     </Style>
                 </StackPanel.Styles>
                 <TextBlock Text="The transaction has " />
