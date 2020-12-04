@@ -31,10 +31,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// Stream to transport HTTP(s) request.
 		/// </summary>
 		/// <remarks>Either <see cref="TcpClient.GetStream"/> or <see cref="SslStream"/> over <see cref="TcpClient.GetStream"/>.</remarks>
-		public Stream GetTransportStream()
-		{
-			return TransportStream;
-		}
+		public Stream GetTransportStream() => TransportStream;
 
 		/// <summary>
 		/// <list type="bullet">

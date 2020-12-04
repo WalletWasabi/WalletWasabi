@@ -17,18 +17,19 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 	/// <summary>
 	/// Tests for <see cref="TorSocks5ClientPool"/>
 	/// </summary>
+	/// <seealso cref="XunitConfiguration.SerialCollectionDefinition"/>
+	[Collection("Serial unit tests collection")]
 	public class TorSocks5ClientPoolTests
 	{
 		/// <summary>
 		/// Tests <see cref="TorSocks5ClientPool.SendAsync(HttpRequestMessage, bool, CancellationToken)"/> method.
-		/// <para></para>
 		/// <summary>
 		/// <seealso href="https://stackoverflow.com/questions/9114053/sample-on-namedpipeserverstream-vs-namedpipeserverclient-having-pipedirection-in"/>
 		[Fact]
 		public async Task TestSendingAsync()
 		{
 			// Maximum time the test can run.
-			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
+			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(2));
 			CancellationToken timeoutToken = timeoutCts.Token;
 
 			// Set up FAKE transport stream, so Tor is not in play.
@@ -39,7 +40,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			using StreamWriter serverWriter = new(transportStream.Server);
 
 			// Create tested class.
-			TorSocks5ClientPool pool = MakePool(transportStream.Client);
+			using TorSocks5ClientPool pool = MakePool(transportStream.Client);
 
 			// Client part.
 			Task sendTask = Task.Run(async () =>
