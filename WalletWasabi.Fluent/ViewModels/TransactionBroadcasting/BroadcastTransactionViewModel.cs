@@ -20,12 +20,15 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		NavigationTarget = NavigationTarget.DialogScreen)]
 	public partial class BroadcastTransactionViewModel : RoutableViewModel
 	{
-		[AutoNotify] private string? _transactionId;
+		[AutoNotify] private string _transactionId;
 		[AutoNotify] private Money? _totalInputValue;
 		[AutoNotify] private Money? _totalOutputValue;
 		[AutoNotify] private int _inputCount;
 		[AutoNotify] private int _outputCount;
 		[AutoNotify] private Money? _networkFee;
+		[AutoNotify] private string _inputCountString;
+		[AutoNotify] private string _outputCountString;
+
 		public BroadcastTransactionViewModel(
 			BitcoinStore store,
 			Network network,
@@ -53,13 +56,15 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 
 			var psbtTxn = psbt.GetOriginalTransaction();
 
-			TransactionId = psbtTxn.GetHash().ToString();
-			InputCount = inputAddressAmount.Length;
-			OutputCount = outputAddressAmount.Length;
-			TotalInputValue = inputAddressAmount.Any(x => x.Value == nullMoney)
+			_transactionId = psbtTxn.GetHash().ToString();
+			_inputCount = inputAddressAmount.Length;
+			_inputCountString = $" input{(_inputCount > 1 ? 's' : "")} and ";
+			_outputCount = outputAddressAmount.Length;
+			_outputCountString = $" output{(_outputCount > 1 ? 's' : "")}.";
+			_totalInputValue = inputAddressAmount.Any(x => x.Value == nullMoney)
 				? null
 				: inputAddressAmount.Select(x => x.Value).Sum();
-			TotalOutputValue = outputAddressAmount.Any(x => x.Value == nullMoney)
+			_totalOutputValue = outputAddressAmount.Any(x => x.Value == nullMoney)
 				? null
 				: outputAddressAmount.Select(x => x.Value).Sum();
 			_networkFee = TotalInputValue is null || TotalOutputValue is null

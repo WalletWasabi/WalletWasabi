@@ -51,9 +51,9 @@
                 </StackPanel.Styles>
                 <TextBlock Text="The transaction has " />
                 <TextBlock Text="{Binding InputCount}" Classes="countValue"/>
-                <TextBlock Text=" input(s) and " />
+                <TextBlock Text="{Binding InputCountString}" />
                 <TextBlock Text="{Binding OutputCount}" Classes="countValue"/>
-                <TextBlock Text=" output(s)." />
+                <TextBlock Text="{Binding OutputCountString}" />
             </StackPanel>
 
             <Grid ColumnDefinitions="*,*,*" DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Margin="20">
