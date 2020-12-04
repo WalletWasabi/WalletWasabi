@@ -66,10 +66,10 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-                    <TextBlock Text="Output" Classes="amountTitle" FontWeight="UltraBold"/>
+                    <TextBlock Text="Output" Classes="amountTitle" />
                     <StackPanel Classes="amountValue">
                         <TextBlock Text="{Binding TotalOutputValue, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
-                        <TextBlock Text="BTC" Classes="unit" IsVisible="{Binding !!TotalOutputValue}"/>
+                        <TextBlock Text="BTC" Classes="unit" IsVisible="{Binding !!TotalOutputValue}" />
                     </StackPanel>
                 </StackPanel>
 
@@ -77,7 +77,7 @@
                     <TextBlock Text="Fee" Classes="amountTitle"/>
                     <StackPanel Classes="amountValue">
                         <TextBlock Text="{Binding NetworkFee, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
-                        <TextBlock Text="BTC" Classes="unit" IsVisible="{Binding !!NetworkFee}"/>
+                        <TextBlock Text="BTC" Classes="unit" IsVisible="{Binding !!NetworkFee}" />
                     </StackPanel>
                 </StackPanel>
             </Grid>
