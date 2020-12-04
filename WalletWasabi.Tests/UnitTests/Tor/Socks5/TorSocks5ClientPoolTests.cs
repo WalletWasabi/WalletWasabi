@@ -10,6 +10,7 @@ using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Pool;
 using Xunit;
+using System.Net.Sockets;
 
 namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 {
@@ -19,47 +20,54 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 	public class TorSocks5ClientPoolTests
 	{
 		/// <summary>
-		/// TODO.
+		/// Tests <see cref="TorSocks5ClientPool.SendAsync(HttpRequestMessage, bool, CancellationToken)"/> method.
+		/// <para></para>
 		/// <summary>
 		/// <seealso href="https://stackoverflow.com/questions/9114053/sample-on-namedpipeserverstream-vs-namedpipeserverclient-having-pipedirection-in"/>
-		[Fact(Skip = "Seems to fail sometimes.")]
+		[Fact]
 		public async Task TestSendingAsync()
 		{
-			using CancellationTokenSource timeoutCts = new(millisecondsDelay: 10_000);
+			// Maximum time the test can run.
+			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
+			CancellationToken timeoutToken = timeoutCts.Token;
 
-			ClearnetHttpClient httpClient = new();
-			TorPoolItemManager poolItemManager = new(maxPoolItemsPerHost: 2);
+			// Set up FAKE transport stream, so Tor is not in play.
+			await using TransportStream transportStream = new(nameof(TestSendingAsync));
+			await transportStream.ConnectAsync(timeoutToken);
 
-			using var pipeServer = new NamedPipeServerStream("testpipe", PipeDirection.InOut, 4);
-			using var pipeClient = new NamedPipeClientStream(".", "testpipe", PipeDirection.InOut, PipeOptions.None);
+			using StreamReader serverReader = new(transportStream.Server);
+			using StreamWriter serverWriter = new(transportStream.Server);
 
-			Task connectClientTask = pipeServer.WaitForConnectionAsync(timeoutCts.Token);
-			await pipeClient.ConnectAsync(timeoutCts.Token);
-			await connectClientTask;
+			// Create tested class.
+			TorSocks5ClientPool pool = MakePool(transportStream.Client);
 
-			TestPoolItemFactory testPoolItemFactory = new(pipeClient);
-
-			TorSocks5ClientPool pool = new(httpClient, poolItemManager, testPoolItemFactory.CreateNewAsync);
-
-			// Client sending HTTP request.
+			// Client part.
 			Task sendTask = Task.Run(async () =>
 			{
 				Debug.WriteLine("[client] About send HTTP request.");
 				using HttpRequestMessage requestMessage = new(HttpMethod.Get, "http://postman-echo.com");
-				using HttpResponseMessage httpResponseMessage = await pool.SendAsync(requestMessage, isolateStream: true, timeoutCts.Token);
+				using HttpResponseMessage httpResponseMessage = await pool.SendAsync(requestMessage, isolateStream: true, timeoutToken);
 				Debug.WriteLine("[client] Done sending HTTP request.");
 			});
 
-			using StreamReader serverReader = new(pipeServer);
-			using StreamWriter serverWriter = new(pipeServer);
+			// Server part follows.
 			Debug.WriteLine("[server] About to read data.");
 
-			Assert.Equal("GET / HTTP/1.1", await serverReader.ReadLineAsync());
-			Assert.Equal("Accept-Encoding:gzip", await serverReader.ReadLineAsync());
-			Assert.Equal("Host:postman-echo.com", await serverReader.ReadLineAsync());
-			string? actual = await serverReader.ReadLineAsync();
-			Assert.Equal("", actual);
+			// We expect to get this plaintext HTTP request headers from the client.
+			string[] expectedResponse = new[] {
+				"GET / HTTP/1.1",
+				"Accept-Encoding:gzip",
+				"Host:postman-echo.com",
+				""
+			};
 
+			// Assert replies line by line.
+			foreach (string expectedLine in expectedResponse)
+			{
+				Assert.Equal(expectedLine, await serverReader.ReadLineAsync().WithAwaitCancellationAsync(timeoutToken));
+			}
+
+			// We respond to the client with the following content.
 			Debug.WriteLine("[server] Send response for the request.");
 			await serverWriter.WriteAsync(string.Join("\r\n",
 				"HTTP/1.1 200 OK",
@@ -73,15 +81,68 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				"",
 				"{\"args\":{},\"data\":\"This is expected to be sent back as part of response body.\",\"files\":{},\"form\":{},\"headers\":{\"x-forwarded-proto\":\"http\",\"x-forwarded-port\":\"80\",\"host\":\"postman-echo.com\",\"x-amzn-trace-id\":\"Root=1-5fc7db06-24adc2a91c86c14f2d63ea61\",\"content-length\":\"58\",\"accept-encoding\":\"gzip\",\"content-type\":\"text/plain; charset=utf-8\"},\"json\":null,\"url\":\"http://postman-echo.com/post\"}"
 				).AsMemory(),
-				timeoutCts.Token);
-			serverWriter.Flush();
+				timeoutToken).WithAwaitCancellationAsync(timeoutToken);
+			await serverWriter.FlushAsync().WithAwaitCancellationAsync(timeoutToken);
 
 			Debug.WriteLine("[server] Wait for the sendTask to finish.");
 			await sendTask;
 			Debug.WriteLine("[server] Send task finished.");
 		}
+
+		/// <summary>
+		/// Sets up <see cref="TorSocks5ClientPool"/> instance with a custom transport stream.
+		/// </summary>
+		/// <param name="transportStream"></param>
+		/// <returns></returns>
+		private static TorSocks5ClientPool MakePool(Stream transportStream)
+		{
+			ClearnetHttpClient httpClient = new();
+			TorPoolItemManager poolItemManager = new(maxPoolItemsPerHost: 2);
+			TestPoolItemFactory testPoolItemFactory = new(transportStream);
+			TorSocks5ClientPool pool = new(httpClient, poolItemManager, testPoolItemFactory.CreateNewAsync);
+			return pool;
+		}
 	}
 
+	/// <summary>
+	/// Transport stream implementation that behaves similarly to <see cref="NetworkStream"/>.
+	/// <para>Writer can write to the stream multiple times, reader can read the written data.</para>
+	/// </summary>
+	/// <remarks>
+	/// <see cref="MemoryStream"/> is not easy to use as a replacement for <see cref="NetworkStream"/> as we would need to use seek operation.
+	/// </remarks>
+	public class TransportStream : IAsyncDisposable
+	{
+		public TransportStream(string testName)
+		{
+			// Construct unique pipe name.
+			int n = new Random().Next(0, 1_000_000);
+			string pipeName = $"{testName}.Pipe.{n}";
+
+			Server = new NamedPipeServerStream(pipeName, PipeDirection.InOut, maxNumberOfServerInstances: 4, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+			Client = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+		}
+
+		public async Task ConnectAsync(CancellationToken cancellationToken)
+		{
+			Task connectClientTask = Server.WaitForConnectionAsync(cancellationToken);
+			await Client.ConnectAsync(cancellationToken);
+			await connectClientTask;
+		}
+
+		public NamedPipeServerStream Server { get; }
+		public NamedPipeClientStream Client { get; }
+
+		public async ValueTask DisposeAsync()
+		{
+			await Server.DisposeAsync();
+			await Client.DisposeAsync();
+		}
+	}
+
+	/// <summary>
+	/// Factory for <see cref="IPoolItem"/>s where each new pool item gets a transport stream of our choosing.
+	/// </summary>
 	public class TestPoolItemFactory
 	{
 		public TestPoolItemFactory(Stream transportStream)
