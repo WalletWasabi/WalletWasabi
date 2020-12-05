@@ -142,7 +142,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.False(result.SpendsUnconfirmed);
 
 			var tx = result.Transaction.Transaction;
-			Assert.Equal(2, tx.Outputs.Count());
+			Assert.Equal(2, tx.Outputs.Count);
 		}
 
 		[Fact]
@@ -382,7 +382,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(Money.Coins(1m), spentCoin.Amount);
 
 			var tx = result.Transaction.Transaction;
-			Assert.Equal(2, tx.Outputs.Count()); // consolidates same address payment
+			Assert.Equal(2, tx.Outputs.Count); // consolidates same address payment
 
 			var destinationOutput = Assert.Single(result.OuterWalletOutputs);
 			Assert.Equal(destination, destinationOutput.ScriptPubKey);
