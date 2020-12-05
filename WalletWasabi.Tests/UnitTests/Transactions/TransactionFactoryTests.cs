@@ -276,8 +276,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
 			});
 
-			using Key key = new Key();
-			using Key changeKey = new Key();
+			using Key key = new();
+			using Key changeKey = new();
 
 			var payment = new PaymentIntent(new[]
 			{
@@ -403,7 +403,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				("Julio",  3, 0.2m, confirmed: true, anonymitySet: 100)
 			});
 
-			using var key = new Key();
+			using Key key = new();
 			var destination = key.ScriptPubKey;
 			var payment = new PaymentIntent(new[]
 			{
@@ -430,7 +430,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				("Maria",  3, 0.08m, confirmed: true, anonymitySet: 100)
 			});
 
-			using Key key = new Key();
+			using Key key = new();
 			var payment = new PaymentIntent(key.ScriptPubKey, Money.Coins(0.095m));
 			var feeRate = new FeeRate(2m);
 			var coins = transactionFactory.Coins;
@@ -459,7 +459,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				("Maria",  3, 0.08m, confirmed: true, anonymitySet: 100)
 			});
 
-			using Key key = new Key();
+			using Key key = new();
 			var destination = key.ScriptPubKey;
 			var payment = new PaymentIntent(destination, MoneyRequest.CreateAllRemaining(subtractFee: true));
 			var feeRate = new FeeRate(2m);
@@ -500,7 +500,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			}.ToArray();
 
 			var amount = Money.Coins(0.5m); // it is not enough
-			using Key key = new Key();
+			using Key key = new();
 			var payment = new PaymentIntent(key.ScriptPubKey, amount);
 
 			var ex = Assert.Throws<InsufficientBalanceException>(() =>
@@ -522,7 +522,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			});
 
 			// Selecting 0.08 + 0.02 should be enough but it has to select 0.02 too because it is the same address
-			using Key key = new Key();
+			using Key key = new();
 			var payment = new PaymentIntent(key.ScriptPubKey, Money.Coins(0.095m));
 			var feeRate = new FeeRate(2m);
 			var coins = transactionFactory.Coins;
@@ -554,7 +554,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				},
 				watchOnly: true);
 
-			using Key key = new Key();
+			using Key key = new();
 			var payment = new PaymentIntent(key.ScriptPubKey, MoneyRequest.CreateAllRemaining(subtractFee: true));
 
 			var result = transactionFactory.BuildTransaction(payment, new FeeRate(44.25m));
