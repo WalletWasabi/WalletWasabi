@@ -217,10 +217,10 @@ namespace WalletWasabi.Gui
 			}
 
 			result
-				.With(new Win32PlatformOptions {AllowEglInitialization = false, UseDeferredRendering = true})
-				.With(new X11PlatformOptions {UseGpu = false, WmClass = "Wasabi Wallet Crash Reporting"})
-				.With(new AvaloniaNativePlatformOptions {UseDeferredRendering = true, UseGpu = false})
-				.With(new MacOSPlatformOptions {ShowInDock = true})
+				.With(new Win32PlatformOptions { AllowEglInitialization = false, UseDeferredRendering = true })
+				.With(new X11PlatformOptions { UseGpu = false, WmClass = "Wasabi Wallet Crash Reporting" })
+				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = false })
+				.With(new MacOSPlatformOptions { ShowInDock = true })
 				.UseReactiveUI().AfterSetup(_ =>
 				{
 					// Manually launch so it bypasses the extensions loading from the
