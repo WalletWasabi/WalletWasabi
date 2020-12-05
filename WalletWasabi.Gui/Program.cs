@@ -11,6 +11,8 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Avalonia.Controls;
+using AvalonStudio;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.CrashReport;
 using WalletWasabi.Gui.ViewModels;
@@ -39,8 +41,8 @@ namespace WalletWasabi.Gui
 		private static void Main(string[] args)
 		{
 			bool runGui = false;
-
 			Exception? appException = null;
+
 			try
 			{
 				runGui = ProcessCliCrashReportArgs(args);
@@ -224,9 +226,15 @@ namespace WalletWasabi.Gui
 				.With(new Win32PlatformOptions {AllowEglInitialization = false, UseDeferredRendering = true})
 				.With(new X11PlatformOptions {UseGpu = false, WmClass = "Wasabi Wallet Crash Reporting"})
 				.With(new AvaloniaNativePlatformOptions {UseDeferredRendering = true, UseGpu = false})
-				.With(new MacOSPlatformOptions {ShowInDock = true});
-
-			result.StartShellApp("Wasabi Wallet", _ => SetTheme(), args);
+				.With(new MacOSPlatformOptions {ShowInDock = true})
+				.UseReactiveUI().AfterSetup(_ =>
+				{
+					// Manually launch so it bypasses the extensions loading from the
+					// main app.
+					Platform.AppName = "Wasabi Wallet Crash Reporter";
+					Platform.Initialise();
+					SetTheme();
+				}).StartWithClassicDesktopLifetime(args, ShutdownMode.OnMainWindowClose);
 		}
 
 		private static AppBuilder BuildAvaloniaApp()
