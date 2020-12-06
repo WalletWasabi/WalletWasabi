@@ -7,37 +7,37 @@ using WalletWasabi.Tor.Socks5.Pool;
 namespace WalletWasabi.Tor.Socks5
 {
 	/// <summary>
-	/// TODO.
+	/// Associates <see cref="IPoolItem"/> with <see cref="PoolItemState"/> and manages pool items re-usability.
 	/// </summary>
 	/// <remarks>The class is thread-safe.</remarks>
-	public class TorPoolItemManager
+	public class TorPoolItemManager: IDisposable
 	{
 		public TorPoolItemManager(int maxPoolItemsPerHost)
 		{
-			Clients = new Dictionary<string, List<IPoolItem>>();
+			HostBuckets = new Dictionary<string, List<IPoolItem>>();
 			MaxPoolItemsPerHost = maxPoolItemsPerHost;
 		}
 
-		/// <summary>Provider of exclusive access to <see cref="Clients"/>.</summary>
-		private object ClientsLock { get; } = new object();
+		/// <summary>Provider of exclusive access to <see cref="HostBuckets"/>.</summary>
+		private object HostBucketsLock { get; } = new object();
 
 		/// <summary>Key is always a URI host. Value is a list of pool items that can connect to the URI host.</summary>
-		/// <remarks>All access to this object must be guarded by <see cref="ClientsLock"/>.</remarks>
-		private Dictionary<string, List<IPoolItem>> Clients { get; }
+		/// <remarks>All access to this object must be guarded by <see cref="HostBucketsLock"/>.</remarks>
+		private Dictionary<string, List<IPoolItem>> HostBuckets { get; }
 
 		public int MaxPoolItemsPerHost { get; }
 
 		private bool _disposedValue;
 
 		/// <summary>
-		/// TODO.
+		/// Adds <paramref name="poolItem"/> to <see cref="HostBuckets"/>.
 		/// </summary>
-		/// <param name="host">TODO.</param>
-		/// <param name="poolItem">TODO.</param>
+		/// <param name="host">URI's host.</param>
+		/// <param name="poolItem">Pool item to add.</param>
 		/// <returns><c>true</c> when the new item was added, <c>false</c> otherwise.</returns>
 		public bool AddPoolItem(string host, IPoolItem poolItem)
 		{
-			lock (ClientsLock)
+			lock (HostBucketsLock)
 			{
 				// Get list of connections for given host.
 				List<IPoolItem> hostItems = GetHostListNoLock(host);
@@ -60,7 +60,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// <param name="host">A <see cref="Uri.Host"/> value is expected.</param>
 		public List<IPoolItem> GetItemsCopy(string host)
 		{
-			lock (ClientsLock)
+			lock (HostBucketsLock)
 			{
 				return new List<IPoolItem>(GetHostListNoLock(host));
 			}
@@ -70,11 +70,11 @@ namespace WalletWasabi.Tor.Socks5
 		/// Gets reserved pool item to use, if any.
 		/// </summary>
 		/// <param name="host">URI's host value.</param>
-		/// <param name="isolateStream">TODO.</param>
+		/// <param name="isolateStream"><c>true</c> if a new Tor circuit is required for this HTTP request.</param>
 		/// <returns>Whether a new pool item can be added to <see cref="TorPoolItemManager"/> and reserved pool item to use, if any.</returns>
 		public (bool canBeAdded, IPoolItem? poolItem) GetPoolItem(string host, bool isolateStream)
 		{
-			lock (ClientsLock)
+			lock (HostBucketsLock)
 			{
 				// Get list of connections for given host.
 				List<IPoolItem> hostItems = GetHostListNoLock(host);
@@ -103,16 +103,16 @@ namespace WalletWasabi.Tor.Socks5
 			}
 		}
 
-		/// <remarks>Requires access guarded by <see cref="ClientsLock"/>.</remarks>
+		/// <remarks>Requires access guarded by <see cref="HostBucketsLock"/>.</remarks>
 		private List<IPoolItem> GetHostListNoLock(string host)
 		{
 			// Make sure the list is present.
-			if (!Clients.ContainsKey(host))
+			if (!HostBuckets.ContainsKey(host))
 			{
-				Clients.Add(host, new List<IPoolItem>());
+				HostBuckets.Add(host, new List<IPoolItem>());
 			}
 
-			return Clients[host];
+			return HostBuckets[host];
 		}
 
 		/// <summary>
@@ -131,7 +131,7 @@ namespace WalletWasabi.Tor.Socks5
 			{
 				if (disposing)
 				{
-					foreach (List<IPoolItem> list in Clients.Values)
+					foreach (List<IPoolItem> list in HostBuckets.Values)
 					{
 						foreach (IPoolItem item in list)
 						{

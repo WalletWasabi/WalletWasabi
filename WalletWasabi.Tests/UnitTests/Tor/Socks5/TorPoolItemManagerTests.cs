@@ -13,7 +13,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 		[Fact]
 		public void BehaviorTest()
 		{
-			TorPoolItemManager clientsManager = new(maxPoolItemsPerHost: 2);
+			using TorPoolItemManager clientsManager = new(maxPoolItemsPerHost: 2);
 
 			// No items are stored.
 			Uri uri = new("https://postman-echo.com");

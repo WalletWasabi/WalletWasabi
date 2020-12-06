@@ -242,7 +242,7 @@ namespace WalletWasabi.Tor.Socks5
 				var connectionRequest = new TorSocks5Request(cmd: CmdField.Connect, new AddrField(host), new PortField(port));
 				var sendBuffer = connectionRequest.ToBytes();
 
-				var receiveBuffer = await SendAndReceiveAsync(tcpClient, sendBuffer, receiveBufferSize: null, cancellationToken).ConfigureAwait(false);
+				byte[] receiveBuffer = await SendAndReceiveAsync(tcpClient, sendBuffer, receiveBufferSize: null, cancellationToken).ConfigureAwait(false);
 
 				TorSocks5Response connectionResponse = new(receiveBuffer);
 

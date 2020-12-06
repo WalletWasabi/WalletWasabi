@@ -22,28 +22,20 @@ namespace WalletWasabi.Tor.Socks5
 {
 	/// <summary>
 	/// The pool represents a set of multiple TCP connections to Tor SOCKS5 endpoint that are stored in <see cref="TorPoolItem"/>s.
-	/// <para>
-	/// When a new HTTP(s) request comes, <see cref="TorPoolItem"/> (or rather the TCP connection wrapped inside) is selected using these rules:
-	/// <list type="number">
-	/// <item>An unused <see cref="TorPoolItem"/> is selected, if it exists.</item>
-	/// <item>A new <see cref="TorPoolItem"/> is added to the pool, if it would not exceed the maximum limit on the number of connections to Tor SOCKS5 endpoint.</item>
-	/// <item>Keep waiting 1 second until any of the previous rules cannot be used.</item>
-	/// </list>
-	/// </para>
-	/// <para><see cref="PoolItemManagerAsyncLock"/> is acquired only for <see cref="TorPoolItem"/> selection.</para>
 	/// </summary>
 	public class TorSocks5ClientPool : IDisposable
 	{
 		/// <summary>Maximum number of <see cref="TorPoolItem"/>s per URI host.</summary>
+		/// <remarks>This parameter affects maximum parallelization for given URI host.</remarks>
 		public const int MaxPoolItemsPerHost = 10;
 
 		/// <summary>
-		/// TODO.
+		/// Delegate method for creating a new pool item.
 		/// </summary>
 		/// <param name="request">HTTP request for which to create <see cref="IPoolItem"/> instance.</param>
 		/// <param name="isolateStream"><c>true</c> if a new Tor circuit is required for this HTTP request.</param>
 		/// <param name="token">Cancellation token to cancel the asynchronous operation.</param>
-		/// <returns></returns>
+		/// <returns>New pool item.</returns>
 		public delegate Task<IPoolItem> CreateNewPoolItemDelegateAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default);
 
 		/// <summary>
@@ -52,7 +44,7 @@ namespace WalletWasabi.Tor.Socks5
 		public static TorSocks5ClientPool Create(EndPoint endpoint)
 		{
 			ClearnetHttpClient httpClient = new();
-			TorPoolItemManager torPoolItemManager = new(MaxPoolItemsPerHost);
+			TorPoolItemManager torPoolItemManager = new(MaxPoolItemsPerHost); // Object ownership is transfered. Do not dispose here.
 			TorSocks5ClientFactory torSocks5ClientFactory = new(endpoint);
 
 			return new TorSocks5ClientPool(httpClient, torPoolItemManager, torSocks5ClientFactory.EstablishConnectionAsync);
@@ -61,7 +53,9 @@ namespace WalletWasabi.Tor.Socks5
 		/// <summary>
 		/// Creates a new instance of the object.
 		/// </summary>
-		/// <remarks>Use this constructor for tests.</remarks>
+		/// <remarks>
+		/// This object is responsible for disposing of <paramref name="poolItemManager"/>.
+		/// </remarks>
 		public TorSocks5ClientPool(
 			IRelativeHttpClient httpClient,
 			TorPoolItemManager poolItemManager,
@@ -74,8 +68,8 @@ namespace WalletWasabi.Tor.Socks5
 
 		private bool _disposedValue;
 
-		/// <remarks>Lock object to guard all access to <see cref="Clients"/>.</remarks>
-		private AsyncLock PoolItemManagerAsyncLock { get; } = new AsyncLock();
+		/// <remarks>Lock object required for the combination of <see cref="IPoolItem"/> selection or creation in <see cref="ObtainPoolItemAsync(HttpRequestMessage, bool, CancellationToken)"/>.</remarks>
+		private AsyncLock ObtainPoolItemAsyncLock { get; } = new AsyncLock();
 
 		private TorPoolItemManager PoolItemManager { get; }
 
@@ -105,18 +99,27 @@ namespace WalletWasabi.Tor.Socks5
 		}
 
 		/// <summary>
-		/// Robust sending algorithm. TODO.
+		/// Sends an HTTP(s) request.
+		/// <para>HTTP(s) requests with loopback destination after forwarded to <see cref="ClearnetHttpClient"/> and that's it.</para>
+		/// <para>When a new non-loopback HTTP(s) request comes, <see cref="TorPoolItem"/> (or rather the TCP connection wrapped inside) is selected using these rules:
+		/// <list type="number">
+		/// <item>An unused <see cref="TorPoolItem"/> is selected, if it exists.</item>
+		/// <item>A new <see cref="TorPoolItem"/> is added to the pool, if it would not exceed the maximum limit on the number of connections to Tor SOCKS5 endpoint.</item>
+		/// <item>Keep waiting 1 second until any of the previous rules cannot be used.</item>
+		/// </list>
+		/// </para>
+		/// <para><see cref="ObtainPoolItemAsyncLock"/> is acquired only for <see cref="TorPoolItem"/> selection.</para>
 		/// </summary>
-		/// <param name="request">TODO.</param>
-		/// <param name="isolateStream">TODO.</param>
-		/// <param name="token">TODO.</param>
+		/// <param name="request">HTTP request message to send.</param>
+		/// <param name="isolateStream"><c>true</c> value is only available for Tor HTTP client to use a new Tor circuit, <c>false</c> otherwise.</param>
+		/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
 		/// <see cref="HttpRequestException">Caller is supposed to catch this exception so that handling of different <see cref="IHttpClient"/> implementations is correct.</see>
-		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream, CancellationToken cancellationToken = default)
 		{
 			// Connecting to loopback's URIs cannot be done via Tor.
 			if (request.RequestUri!.IsLoopback)
 			{
-				return await ClearnetHttpClient.SendAsync(request, token).ConfigureAwait(false);
+				return await ClearnetHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 			}
 
 			int i = 0;
@@ -127,13 +130,13 @@ namespace WalletWasabi.Tor.Socks5
 				do
 				{
 					i++;
-					IPoolItem poolItem = await ObtainFreePoolItemAsync(request, isolateStream, token).ConfigureAwait(false);
+					IPoolItem poolItem = await ObtainPoolItemAsync(request, isolateStream, cancellationToken).ConfigureAwait(false);
 					IPoolItem? itemToDispose = poolItem;
 
 					try
 					{
 						Logger.LogTrace($"['{poolItem}'] About to send request.");
-						HttpResponseMessage response = await SendCoreAsync(poolItem.GetTransportStream(), request, token).ConfigureAwait(false);
+						HttpResponseMessage response = await SendCoreAsync(poolItem.GetTransportStream(), request, cancellationToken).ConfigureAwait(false);
 
 						// Client works OK, no need to dispose.
 						itemToDispose = null;
@@ -152,11 +155,11 @@ namespace WalletWasabi.Tor.Socks5
 						// If we get TTL Expired error then wait and retry again linux often does this.
 						Logger.LogTrace(e);
 
-						await Task.Delay(1000, token).ConfigureAwait(false);
+						await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
 
 						if (i == attemptsNo)
 						{
-							Logger.LogDebug($"All {attemptsNo} attempts failed."); // TODO: Improve message.
+							Logger.LogDebug($"All {attemptsNo} attempts failed.");
 							throw;
 						}
 					}
@@ -185,7 +188,7 @@ namespace WalletWasabi.Tor.Socks5
 			throw new NotImplementedException("This should never happen.");
 		}
 
-		private async Task<IPoolItem> ObtainFreePoolItemAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token)
+		private async Task<IPoolItem> ObtainPoolItemAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token)
 		{
 			Logger.LogTrace($"> request='{request.RequestUri}', isolateStream={isolateStream}");
 
@@ -193,7 +196,7 @@ namespace WalletWasabi.Tor.Socks5
 
 			do
 			{
-				using (await PoolItemManagerAsyncLock.LockAsync(token).ConfigureAwait(false))
+				using (await ObtainPoolItemAsyncLock.LockAsync(token).ConfigureAwait(false))
 				{
 					(bool canBeAdded, IPoolItem? poolItem) = PoolItemManager.GetPoolItem(host, isolateStream);
 
@@ -220,7 +223,7 @@ namespace WalletWasabi.Tor.Socks5
 			} while (true);
 		}
 
-		/// <remarks>Caller is responsible for acquiring <see cref="PoolItemManagerAsyncLock"/>.</remarks>
+		/// <remarks>Caller is responsible for acquiring <see cref="ObtainPoolItemAsyncLock"/>.</remarks>
 		private async Task<IPoolItem?> CreateNewPoolItemNoLockAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token)
 		{
 			IPoolItem? poolItem = null;

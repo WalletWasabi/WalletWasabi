@@ -40,7 +40,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 				}
 			}
 
-			var startLine = bab.ToString(Encoding.ASCII);
+			string? startLine = bab.ToString(Encoding.ASCII);
 			if (string.IsNullOrEmpty(startLine))
 			{
 				throw new FormatException($"{nameof(startLine)} cannot be null or empty.");
@@ -111,7 +111,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 
 				if (ch == '\r')
 				{
-					var ch2 = await stream.ReadByteAsync(ctsToken).ConfigureAwait(false);
+					int ch2 = await stream.ReadByteAsync(ctsToken).ConfigureAwait(false);
 					if (ch2 == '\n')
 					{
 						return bab.ToString(encoding);

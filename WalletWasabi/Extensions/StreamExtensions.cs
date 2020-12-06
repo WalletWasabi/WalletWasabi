@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using System;
 
 namespace System.IO
 {
@@ -8,7 +9,7 @@ namespace System.IO
 		public static async Task<int> ReadByteAsync(this Stream stream, CancellationToken ctsToken = default)
 		{
 			var buf = new byte[1];
-			var len = await stream.ReadAsync(buf, 0, 1, ctsToken).ConfigureAwait(false);
+			int len = await stream.ReadAsync(buf.AsMemory(0, 1), ctsToken).ConfigureAwait(false);
 			if (len == 0)
 			{
 				return -1;
@@ -19,10 +20,10 @@ namespace System.IO
 
 		public static async Task<int> ReadBlockAsync(this Stream stream, byte[] buffer, int count, CancellationToken ctsToken = default)
 		{
-			var left = count;
+			int left = count;
 			while (left != 0)
 			{
-				var read = await stream.ReadAsync(buffer, count - left, left, ctsToken).ConfigureAwait(false);
+				int read = await stream.ReadAsync(buffer.AsMemory(count - left, left), ctsToken).ConfigureAwait(false);
 				left -= read;
 			}
 			return count - left;

@@ -95,6 +95,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 		/// </summary>
 		/// <param name="transportStream"></param>
 		/// <returns></returns>
+		[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Ownership is transfered to the pool object.")]
 		private static TorSocks5ClientPool MakePool(Stream transportStream)
 		{
 			ClearnetHttpClient httpClient = new();
