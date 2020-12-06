@@ -48,6 +48,7 @@ namespace WalletWasabi.Services
 		{
 			Synchronizer.PropertyChanged -= Synchronizer_PropertyChanged;
 			base.Dispose();
+
 			// Suppress finalization.
 			GC.SuppressFinalize(this);
 		}
