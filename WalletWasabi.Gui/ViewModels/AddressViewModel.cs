@@ -275,6 +275,8 @@ namespace WalletWasabi.Gui.ViewModels
 		public void Dispose()
 		{
 			Dispose(true);
+			// Suppress finalization.
+			GC.SuppressFinalize(this);
 		}
 
 		#endregion IDisposable Support

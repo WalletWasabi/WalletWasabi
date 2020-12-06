@@ -40,7 +40,7 @@ namespace WalletWasabi.Tor.Socks5
 
 		private EndPoint TorSocks5EndPoint { get; }
 
-		/// <summary>Transport stream for sending  HTTP/HTTPS requests through Tor's SOCKS5 server.</summary>
+		/// <summary>Transport stream for sending HTTP/HTTPS requests through Tor's SOCKS5 server.</summary>
 		/// <remarks>This stream is not to be used to send commands to Tor's SOCKS5 server.</remarks>
 		private Stream Stream { get; set; }
 
@@ -425,7 +425,8 @@ namespace WalletWasabi.Tor.Socks5
 		{
 			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 			Dispose(true);
-			// GC.SuppressFinalize(this);
+			// Suppress finalization.
+			GC.SuppressFinalize(this);
 		}
 
 		private void DisposeTcpClient()

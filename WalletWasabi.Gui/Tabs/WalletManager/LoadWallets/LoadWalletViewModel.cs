@@ -251,6 +251,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 		public void Dispose()
 		{
 			Dispose(true);
+			// Suppress finalization.
+			GC.SuppressFinalize(this);
 		}
 
 		#endregion IDisposable Support

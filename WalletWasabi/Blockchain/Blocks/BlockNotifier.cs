@@ -225,6 +225,8 @@ namespace WalletWasabi.Blockchain.Blocks
 				P2pNode.BlockInv -= P2pNode_BlockInv;
 			}
 			base.Dispose();
+			// Suppress finalization.
+			GC.SuppressFinalize(this);
 		}
 	}
 }

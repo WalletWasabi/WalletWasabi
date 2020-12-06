@@ -19,6 +19,7 @@ namespace WalletWasabi.Services
 		}
 
 		public event EventHandler<UpdateStatus>? UpdateStatusChanged;
+
 		private WasabiSynchronizer Synchronizer { get; }
 		public UpdateStatus UpdateStatus { get; private set; }
 		public WasabiClient WasabiClient { get; }
@@ -47,6 +48,8 @@ namespace WalletWasabi.Services
 		{
 			Synchronizer.PropertyChanged -= Synchronizer_PropertyChanged;
 			base.Dispose();
+			// Suppress finalization.
+			GC.SuppressFinalize(this);
 		}
 	}
 }
