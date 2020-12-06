@@ -48,13 +48,13 @@ namespace WalletWasabi.Backend.Models
 		{
 			var builder = new StringBuilder();
 			builder.Append(Header.Height);
-			builder.Append(":");
+			builder.Append(':');
 			builder.Append(Header.BlockHash);
-			builder.Append(":");
+			builder.Append(':');
 			builder.Append(Filter);
-			builder.Append(":");
+			builder.Append(':');
 			builder.Append(Header.PrevHash);
-			builder.Append(":");
+			builder.Append(':');
 			builder.Append(Header.BlockTime.ToUnixTimeSeconds());
 
 			return builder.ToString();
