@@ -35,7 +35,7 @@ namespace WalletWasabi.Tor.Socks5
 	public class TorSocks5ClientPool : IDisposable
 	{
 		/// <summary>Maximum number of <see cref="TorPoolItem"/>s per URI host.</summary>
-		public const int MaxPoolItemsPerHost = 3;
+		public const int MaxPoolItemsPerHost = 10;
 
 		/// <summary>
 		/// TODO.
@@ -55,7 +55,7 @@ namespace WalletWasabi.Tor.Socks5
 			TorPoolItemManager torPoolItemManager = new(MaxPoolItemsPerHost);
 			TorSocks5ClientFactory torSocks5ClientFactory = new(endpoint);
 
-			return new TorSocks5ClientPool(httpClient, torPoolItemManager, torSocks5ClientFactory.MakeAsync);
+			return new TorSocks5ClientPool(httpClient, torPoolItemManager, torSocks5ClientFactory.EstablishConnectionAsync);
 		}
 
 		/// <summary>

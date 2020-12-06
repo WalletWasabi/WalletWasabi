@@ -23,7 +23,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.OctetFields
 		{
 			dstAddr = Guard.NotNullOrEmptyOrWhitespace(nameof(dstAddr), dstAddr, true);
 
-			if (IPAddress.TryParse(dstAddr, out IPAddress address))
+			if (IPAddress.TryParse(dstAddr, out IPAddress? address))
 			{
 				Guard.Same($"{nameof(address)}.{nameof(address.AddressFamily)}", AddressFamily.InterNetwork, address.AddressFamily);
 

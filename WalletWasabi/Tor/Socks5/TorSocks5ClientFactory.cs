@@ -57,20 +57,17 @@ namespace WalletWasabi.Tor.Socks5
 		}
 
 		/// <summary>
-		/// TODO.
+		/// Creates a new connected TCP client connected to Tor SOCKS5 endpoint.
 		/// </summary>
-		/// <param name="request"></param>
-		/// <param name="isolateStream"></param>
-		/// <param name="token"></param>
-		/// <returns></returns>
-		public async Task<IPoolItem> MakeAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default)
+		/// <inheritdoc cref="EstablishConnectionAsync(string, int, bool, bool, CancellationToken)"/>
+		public async Task<IPoolItem> EstablishConnectionAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default)
 		{
 			bool useSsl = request.RequestUri!.Scheme == Uri.UriSchemeHttps;
 			string host = request.RequestUri.DnsSafeHost;
 			bool allowRecycling = !useSsl && !isolateStream;
 			int port = request.RequestUri!.Port;
 
-			TorConnection newClient = await MakeAsync(host, port, useSsl, isolateStream, token).ConfigureAwait(false);
+			TorConnection newClient = await EstablishConnectionAsync(host, port, useSsl, isolateStream, token).ConfigureAwait(false);
 			return new TorPoolItem(newClient, allowRecycling);
 		}
 
@@ -84,7 +81,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
 		/// <returns>New <see cref="TorConnection"/> instance.</returns>
 		/// <exception cref="TorConnectionException">When <see cref="ConnectAsync(TcpClient)"/> fails.</exception>
-		public async Task<TorConnection> MakeAsync(string host, int port, bool useSsl, bool isolateStream, CancellationToken cancellationToken = default)
+		public async Task<TorConnection> EstablishConnectionAsync(string host, int port, bool useSsl, bool isolateStream, CancellationToken cancellationToken = default)
 		{
 			TcpClient? tcpClient = null;
 			Stream? transportStream = null;
@@ -174,7 +171,7 @@ namespace WalletWasabi.Tor.Socks5
 			var methods = new MethodsField(isolateStream ? MethodField.UsernamePassword : MethodField.NoAuthenticationRequired);
 
 			byte[] sendBuffer = new VersionMethodRequest(methods).ToBytes();
-			byte[] receiveBuffer = await SendAsync(tcpClient, sendBuffer, receiveBufferSize: 2, cancellationToken).ConfigureAwait(false);
+			byte[] receiveBuffer = await SendAndReceiveAsync(tcpClient, sendBuffer, receiveBufferSize: 2, cancellationToken).ConfigureAwait(false);
 
 			var methodSelection = new MethodSelectionResponse(receiveBuffer);
 
@@ -203,7 +200,7 @@ namespace WalletWasabi.Tor.Socks5
 				sendBuffer = usernamePasswordRequest.ToBytes();
 
 				Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
-				receiveBuffer = await SendAsync(tcpClient, sendBuffer, receiveBufferSize: 2, cancellationToken).ConfigureAwait(false);
+				receiveBuffer = await SendAndReceiveAsync(tcpClient, sendBuffer, receiveBufferSize: 2, cancellationToken).ConfigureAwait(false);
 
 				var userNamePasswordResponse = new UsernamePasswordResponse(receiveBuffer);
 
@@ -235,7 +232,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// <seealso href="https://tools.ietf.org/html/rfc1928">Section 3. Procedure for TCP-based clients</seealso>
 		private async Task ConnectToDestinationAsync(TcpClient tcpClient, string host, int port, CancellationToken cancellationToken = default)
 		{
-			Logger.LogDebug($"> {nameof(host)}='{host}', {nameof(port)}={port}");
+			Logger.LogTrace($"> {nameof(host)}='{host}', {nameof(port)}={port}");
 
 			host = Guard.NotNullOrEmptyOrWhitespace(nameof(host), host, trim: true);
 			Guard.MinimumAndNotNull(nameof(port), port, smallest: 0);
@@ -245,9 +242,9 @@ namespace WalletWasabi.Tor.Socks5
 				var connectionRequest = new TorSocks5Request(cmd: CmdField.Connect, new AddrField(host), new PortField(port));
 				var sendBuffer = connectionRequest.ToBytes();
 
-				var receiveBuffer = await SendAsync(tcpClient, sendBuffer, receiveBufferSize: null, cancellationToken).ConfigureAwait(false);
+				var receiveBuffer = await SendAndReceiveAsync(tcpClient, sendBuffer, receiveBufferSize: null, cancellationToken).ConfigureAwait(false);
 
-				var connectionResponse = new TorSocks5Response(receiveBuffer);
+				TorSocks5Response connectionResponse = new(receiveBuffer);
 
 				if (connectionResponse.Rep != RepField.Succeeded)
 				{
@@ -284,7 +281,7 @@ namespace WalletWasabi.Tor.Socks5
 			}
 			finally
 			{
-				Logger.LogDebug("<");
+				Logger.LogTrace("<");
 			}
 		}
 
@@ -326,14 +323,14 @@ namespace WalletWasabi.Tor.Socks5
 		}
 
 		/// <summary>
-		/// Sends bytes to the Tor Socks5 connection.
+		/// Sends a command to the Tor Socks5 connection and reads a response.
 		/// </summary>
 		/// <param name="sendBuffer">Sent data</param>
 		/// <param name="receiveBufferSize">Maximum number of bytes expected to be received in the reply.</param>
 		/// <param name="cancellationToken">Cancellation token to cancel sending.</param>
 		/// <returns>Reply</returns>
 		/// <exception cref="TorResponseException">When we receive no response from Tor or the response is invalid.</exception>
-		private async Task<byte[]> SendAsync(TcpClient tcpClient, byte[] sendBuffer, int? receiveBufferSize = null, CancellationToken cancellationToken = default)
+		private async Task<byte[]> SendAndReceiveAsync(TcpClient tcpClient, byte[] sendBuffer, int? receiveBufferSize = null, CancellationToken cancellationToken = default)
 		{
 			Guard.NotNullOrEmpty(nameof(sendBuffer), sendBuffer);
 
