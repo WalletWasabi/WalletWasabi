@@ -19,6 +19,8 @@
   <Styles.Resources>
   </Styles.Resources>
   <Style Selector="c|ContentArea">
+    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
@@ -45,8 +47,11 @@
                 </i:Interaction.Behaviors>
               </Button>
             </Panel>
-            <ScrollViewer HorizontalScrollBarVisibility="Disabled" Margin="0 0 0 32" Padding="0 0 10 0">
-              <ContentPresenter Name="PART_ContentPresenter"
+
+            <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                          VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}"
+                          Margin="0 0 0 32" Padding="0 0 10 0">
+              <ContentControl Name="PART_ContentPresenter"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
