@@ -16,7 +16,8 @@
     </UserControl.KeyBindings>
     <c:ContentArea Title="Welcome to Wasabi Wallet"
                    EnableCancel="False"
-                   EnableNext="True" NextContent="Continue" FocusNext="True">
+                   EnableNext="True" NextContent="Continue" FocusNext="True"
+                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DockPanel>
             <CheckBox Margin="0 10 0 0" IsChecked="{Binding IsAgreed}"
                       DockPanel.Dock="Bottom" Name="CheckBox_Agree"
@@ -33,7 +34,7 @@
                     </Button>
                 </StackPanel>
             </CheckBox>
-            <Viewbox Height="300">
+            <Viewbox MaxHeight="300">
                 <Image>
                     <Image.Source>
                         <DrawingImage Drawing="{StaticResource placeholder_graphics_legal}"/>
