@@ -9,10 +9,12 @@
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"             
              x:Class="WalletWasabi.Fluent.Views.Wallets.ClosedHardwareWalletView">
-  <c:ContentArea Title="Login" Caption="Enter your password to access your wallet">
-    <StackPanel Spacing="40" Margin="0 20 0 0" VerticalAlignment="Center">
-      <Image Height="200" Source="/Assets/HardwareIcons/ledger.png" />
-      <local:LoginView />
-    </StackPanel>    
+  <c:ContentArea Title="Login" Caption="Enter your password to access your wallet" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <DockPanel>
+      <local:LoginView DockPanel.Dock="Bottom" />
+      <Viewbox MaxHeight="200">
+        <Image Source="/Assets/HardwareIcons/ledger.png" />
+      </Viewbox>
+    </DockPanel>
   </c:ContentArea>
 </UserControl>
