@@ -1,6 +1,5 @@
 using Nito.AsyncEx;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -256,17 +255,10 @@ namespace WalletWasabi.Tor.Socks5
 			string requestString = await TorHttpRequestMessageSerializer.ToStringAsync(request, token).ConfigureAwait(false);
 			byte[] bytes = Encoding.UTF8.GetBytes(requestString);
 
-			Debug.WriteLine("[client] SendCoreAsync. WriteAsync.");
 			await transportStream.WriteAsync(bytes.AsMemory(0, bytes.Length), token).ConfigureAwait(false);
-
-			Debug.WriteLine("[client] SendCoreAsync.FlushAsync.");
 			await transportStream.FlushAsync(token).ConfigureAwait(false);
 
-			Debug.WriteLine("[client] About read from server.");
-			HttpResponseMessage httpResponseMessage = await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method).ConfigureAwait(false);
-
-			Debug.WriteLine("[client] Done reading.");
-			return httpResponseMessage;
+			return await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method).ConfigureAwait(false);
 		}
 
 		private static string GetRequestHost(HttpRequestMessage request)
