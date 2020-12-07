@@ -13,12 +13,12 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 	{
 		public static bool Verify(Statement statement, Proof proof)
 		{
-			return ProofSystem.Verify(new Transcript(new byte[0]), new[] { statement }, new[] { proof });
+			return ProofSystem.Verify(new Transcript(Array.Empty<byte>()), new[] { statement }, new[] { proof });
 		}
 
 		public static Proof Prove(Knowledge knowledge, WasabiRandom random)
 		{
-			return ProofSystem.Prove(new Transcript(new byte[0]), new[] { knowledge }, random).First();
+			return ProofSystem.Prove(new Transcript(Array.Empty<byte>()), new[] { knowledge }, random).First();
 		}
 
 		public static Proof Prove(Statement statement, Scalar witness, WasabiRandom random)

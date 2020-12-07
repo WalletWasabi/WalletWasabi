@@ -66,11 +66,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		public void EqualityTests()
 		{
 			var rnd = new SecureRandom();
-			var sk = new CoordinatorSecretKey(rnd);
-
-			var attribute = rnd.GetScalar() * Generators.G;  // any random point
-			var differentAttribute = rnd.GetScalar() * Generators.G;  // any other random point
-			var t = rnd.GetScalar();
 
 			var right = (attribute: rnd.GetScalar() * Generators.G, sk: new CoordinatorSecretKey(rnd), t: rnd.GetScalar());
 			var wrong = (attribute: rnd.GetScalar() * Generators.G, sk: new CoordinatorSecretKey(rnd), t: rnd.GetScalar());
