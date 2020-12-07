@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Settings
 {
-	public class PrivacySettingsView : UserControl
+	public class NetworkSettingsTabView : UserControl
 	{
-		public PrivacySettingsView()
+		public NetworkSettingsTabView()
 		{
 			InitializeComponent();
 		}

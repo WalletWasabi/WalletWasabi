@@ -1,5 +1,24 @@
+using System.Threading.Tasks;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
+
 namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
+	public static class NavigationExtensions
+	{
+		public static async Task<T> NavigateDialog<T>(
+			this TargettedNavigationStack stack,
+			DialogViewModelBase<T> dialog)
+		{
+			stack.To(dialog);
+
+			var result = await dialog.GetDialogResultAsync();
+
+			stack.Back();
+
+			return result;
+		}
+	}
+
 	public class TargettedNavigationStack : NavigationStack<RoutableViewModel>
 	{
 		private readonly NavigationTarget _target;
