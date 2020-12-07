@@ -235,7 +235,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 				ProofSystem.ZeroProofKnowledge(Ma1, r1)
 			};
 
-			var proofs = ProofSystem.Prove(new Transcript(new byte[0]), knowledge, rnd);
+			var proofs = ProofSystem.Prove(new Transcript(Array.Empty<byte>()), knowledge, rnd);
 
 			var statements = new[]
 			{
@@ -243,7 +243,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 				ProofSystem.ZeroProofStatement(Ma1)
 			};
 
-			Assert.True(ProofSystem.Verify(new Transcript(new byte[0]), statements, proofs));
+			Assert.True(ProofSystem.Verify(new Transcript(Array.Empty<byte>()), statements, proofs));
 		}
 	}
 }

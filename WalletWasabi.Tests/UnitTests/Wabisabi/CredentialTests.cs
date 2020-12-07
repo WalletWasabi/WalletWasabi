@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using NBitcoin;
 using NBitcoin.Secp256k1;
@@ -106,7 +107,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				credentialResponse = issuer.HandleRequest(credentialRequest);
 				client0.HandleResponse(credentialResponse, validationData);
 
-				(credentialRequest, validationData) = client0.CreateRequest(new Money[0], client0.Credentials.Valuable);
+				(credentialRequest, validationData) = client0.CreateRequest(Array.Empty<Money>(), client0.Credentials.Valuable);
 
 				credentialResponse = issuer.HandleRequest(credentialRequest);
 				client0.HandleResponse(credentialResponse, validationData);
@@ -133,7 +134,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				var credentialResponse = issuer.HandleRequest(credentialRequest);
 				client.HandleResponse(credentialResponse, validationData);
 
-				var (validCredentialRequest, _) = client.CreateRequest(new Money[0], client.Credentials.ZeroValue.Take(1));
+				var (validCredentialRequest, _) = client.CreateRequest(Array.Empty<Money>(), client.Credentials.ZeroValue.Take(1));
 
 				// Test incorrect number of presentations (one instead of 3)
 				var presented = validCredentialRequest.Presented.ToArray();
@@ -151,7 +152,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				presented = credentialRequest.Presented.ToArray();
 				invalidCredentialRequest = new RegistrationRequestMessage(
 					Money.Coins(2),
-					new CredentialPresentation[0], // Should present 3 credentials
+					Array.Empty<CredentialPresentation>(), // Should present 3 credentials
 					validCredentialRequest.Requested,
 					validCredentialRequest.Proofs);
 
@@ -159,7 +160,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				Assert.Equal(WabiSabiErrorCode.InvalidNumberOfPresentedCredentials, ex.ErrorCode);
 				Assert.Equal("3 credential presentations were expected but 0 were received.", ex.Message);
 
-				(validCredentialRequest, _) = client.CreateRequest(new Money[0], client.Credentials.All);
+				(validCredentialRequest, _) = client.CreateRequest(Array.Empty<Money>(), client.Credentials.All);
 
 				// Test incorrect number of credential requests
 				invalidCredentialRequest = new RegistrationRequestMessage(
@@ -175,7 +176,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				// Test incorrect number of credential requests
 				invalidCredentialRequest = new RegistrationRequestMessage(
 					Money.Coins(2),
-					new CredentialPresentation[0],
+					Array.Empty<CredentialPresentation>(),
 					validCredentialRequest.Requested.Take(1),
 					validCredentialRequest.Proofs);
 
