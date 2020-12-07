@@ -25,10 +25,10 @@
       <ControlTemplate>
         <Panel>
           <c:ProgressRing Name="LoadingRing" IsIndeterminate="True" IsVisible="{TemplateBinding IsBusy}" />
-          <DockPanel Name="MainDockPanel" Margin="20,0,10,0" IsVisible="{Binding !#LoadingRing.IsVisible}">
+          <DockPanel Name="MainDockPanel" Margin="31,0,21,0" IsVisible="{Binding !#LoadingRing.IsVisible}">
             <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 20">
               <DockPanel>
-                <Button Margin="-20,0,0,0" Classes="plain" Command="{Binding BackCommand}" IsVisible="{TemplateBinding EnableBack}">
+                <Button Margin="-31,0,0,0" Classes="plain" Command="{Binding BackCommand}" IsVisible="{TemplateBinding EnableBack}">
                   <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
                 </Button>
                 <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
