@@ -172,7 +172,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			var transcript = new Transcript(protocol);
 
-			Assert.ThrowsAny<ArgumentException>(() => transcript.CreateSyntheticSecretNonceProvider(new Scalar[0], rnd));
+			Assert.ThrowsAny<ArgumentException>(() => transcript.CreateSyntheticSecretNonceProvider(Array.Empty<Scalar>(), rnd));
 		}
 	}
 }
