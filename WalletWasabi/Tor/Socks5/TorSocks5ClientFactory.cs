@@ -351,6 +351,17 @@ namespace WalletWasabi.Tor.Socks5
 				// Receive the response.
 				var receiveBuffer = new byte[actualReceiveBufferSize];
 
+				// Read exactly "receiveBufferSize" bytes.
+				if (receiveBufferSize != null)
+				{
+					if (await stream.ReadExactlyAsync(receiveBuffer, receiveBufferSize.Value, cancellationToken).ConfigureAwait(false))
+					{
+						return receiveBuffer;
+					}
+
+					throw new TorResponseException($"Failed to read {receiveBufferSize.Value} bytes as expected from Tor SOCKS5.");
+				}
+
 				int receiveCount = await stream.ReadAsync(receiveBuffer.AsMemory(0, actualReceiveBufferSize), cancellationToken).ConfigureAwait(false);
 
 				if (receiveCount <= 0)

@@ -1,6 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using System;
 
 namespace System.IO
 {
@@ -27,6 +26,30 @@ namespace System.IO
 				left -= read;
 			}
 			return count - left;
+		}
+
+		/// <summary>
+		/// Reads exactly <paramref name="count"/> bytes from <paramref name="stream"/>.
+		/// </summary>
+		/// <param name="stream">Stream to read from.</param>
+		/// <param name="buffer">Buffer whose length must be at least <paramref name="count"/> elements.</param>
+		/// <param name="count">Number of bytes to read.</param>
+		/// <param name="cancellationToken"></param>
+		/// <returns><c>true</c> if we could read exactly <paramref name="count"/> bytes from stream (stream may contain more bytes though).</returns>
+		public static async Task<bool> ReadExactlyAsync(this Stream stream, byte[] buffer, int count, CancellationToken cancellationToken = default)
+		{
+			int offset = 0;
+			while (offset < count)
+			{
+				int read = await stream.ReadAsync(buffer.AsMemory(offset, count - offset), cancellationToken).ConfigureAwait(false);
+				if (read == 0)
+				{
+					return false;
+				}
+				offset += read;
+			}
+
+			return true;
 		}
 	}
 }
