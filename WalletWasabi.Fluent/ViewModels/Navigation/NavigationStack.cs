@@ -5,28 +5,16 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
-	public class NavigationStack<T> : ViewModelBase, INavigationStack<T> where T : class, INavigatable
+	public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> where T : class, INavigatable
 	{
 		private readonly Stack<T> _backStack;
-		private T? _currentPage;
-		private bool _canNavigateBack;
+		[AutoNotify] private T? _currentPage;
+		[AutoNotify] private bool _canNavigateBack;
 		private bool _operationsEnabled = true;
 
-		public NavigationStack()
+		protected NavigationStack()
 		{
 			_backStack = new Stack<T>();
-		}
-
-		public T? CurrentPage
-		{
-			get => _currentPage;
-			set => this.RaiseAndSetIfChanged(ref _currentPage, value);
-		}
-
-		public bool CanNavigateBack
-		{
-			get => _canNavigateBack;
-			set => this.RaiseAndSetIfChanged(ref _canNavigateBack, value);
 		}
 
 		protected virtual void OnNavigated(T? oldPage, bool oldInStack, T? newPage, bool newInStack)

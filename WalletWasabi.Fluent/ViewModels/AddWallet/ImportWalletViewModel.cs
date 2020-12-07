@@ -9,6 +9,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using NBitcoin;
 using Newtonsoft.Json.Linq;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -33,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		private async void ImportWallet()
 		{
-			var filePath = await GetFilePath();
+			var filePath = await FileDialogHelper.ShowOpenFileDialogAsync("Import wallet file");
 
 			// Dialog canceled.
 			if (filePath is null)
@@ -114,41 +115,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			ExtPubKey extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpubString);
 
 			return KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
-		}
-
-		private async Task<string?> GetFilePath()
-		{
-			var ofd = new OpenFileDialog
-			{
-				AllowMultiple = false,
-				Title = "Import wallet file",
-				Directory = GetDefaultDirectory(),
-			};
-
-			var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
-			var selected = await ofd.ShowAsync(window);
-
-			if (selected is { } && selected.Any())
-			{
-				return selected.First();
-			}
-
-			return null;
-		}
-
-		private string GetDefaultDirectory()
-		{
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-			{
-				return Path.Combine("/media", Environment.UserName);
-			}
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			{
-				return Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-			}
-
-			return Environment.GetFolderPath(Environment.SpecialFolder.MyComputer);
 		}
 	}
 }
