@@ -217,8 +217,8 @@ namespace WalletWasabi.Blockchain.Transactions
 			Logger.LogInfo("Signing transaction...");
 			// It must be watch only, too, because if we have the key and also hardware wallet, we do not care we can sign.
 
-			psbt.AddPrevTxs(TransactionStore);
 			psbt.AddKeyPaths(KeyManager);
+			psbt.AddPrevTxs(TransactionStore);
 
 			Transaction tx;
 			if (KeyManager.IsWatchOnly)
@@ -231,16 +231,14 @@ namespace WalletWasabi.Blockchain.Transactions
 				builder = builder.AddKeys(signingKeys.ToArray());
 				builder.SignPSBT(psbt);
 
-				UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
-
 				var isPayjoin = false;
 				// Try to pay using payjoin
 				if (payjoinClient is { })
 				{
 					psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
 					isPayjoin = true;
-					psbt.AddPrevTxs(TransactionStore);
 					psbt.AddKeyPaths(KeyManager);
+					psbt.AddPrevTxs(TransactionStore);
 				}
 
 				psbt.Finalize();
@@ -268,8 +266,6 @@ namespace WalletWasabi.Blockchain.Transactions
 					throw new InvalidTxException(tx, checkResults);
 				}
 			}
-
-			UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
 
 			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(spentCoins.Select(x => x.Label)));
 			var outerWalletOutputs = new List<SmartCoin>();
