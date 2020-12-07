@@ -217,7 +217,10 @@ namespace WalletWasabi.Blockchain.Transactions
 			Logger.LogInfo("Signing transaction...");
 			// It must be watch only, too, because if we have the key and also hardware wallet, we do not care we can sign.
 
-			Transaction tx = null;
+			psbt.AddPrevTxs(TransactionStore);
+			psbt.AddKeyPaths(KeyManager);
+
+			Transaction tx;
 			if (KeyManager.IsWatchOnly)
 			{
 				tx = psbt.GetGlobalTransaction();
@@ -231,15 +234,15 @@ namespace WalletWasabi.Blockchain.Transactions
 				UpdatePSBTInfo(psbt, spentCoins, changeHdPubKey);
 
 				var isPayjoin = false;
-				if (!KeyManager.IsWatchOnly)
+				// Try to pay using payjoin
+				if (payjoinClient is { })
 				{
-					// Try to pay using payjoin
-					if (payjoinClient is { })
-					{
-						psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
-						isPayjoin = true;
-					}
+					psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
+					isPayjoin = true;
+					psbt.AddPrevTxs(TransactionStore);
+					psbt.AddKeyPaths(KeyManager);
 				}
+
 				psbt.Finalize();
 				tx = psbt.ExtractTransaction();
 
@@ -347,41 +350,6 @@ namespace WalletWasabi.Blockchain.Transactions
 			}
 
 			return psbt;
-		}
-
-		private void UpdatePSBTInfo(PSBT psbt, SmartCoin[] spentCoins, HdPubKey changeHdPubKey)
-		{
-			if (KeyManager.MasterFingerprint is HDFingerprint fp)
-			{
-				foreach (var coin in spentCoins)
-				{
-					var rootKeyPath = new RootedKeyPath(fp, coin.HdPubKey.FullKeyPath);
-					psbt.AddKeyPath(coin.HdPubKey.PubKey, rootKeyPath, coin.ScriptPubKey);
-				}
-
-				if (changeHdPubKey is { })
-				{
-					var rootKeyPath = new RootedKeyPath(fp, changeHdPubKey.FullKeyPath);
-					psbt.AddKeyPath(changeHdPubKey.PubKey, rootKeyPath, changeHdPubKey.P2wpkhScript);
-				}
-			}
-
-			foreach (var input in spentCoins)
-			{
-				var coinInputTxID = input.TransactionId;
-				if (TransactionStore.TryGetTransaction(coinInputTxID, out var txn))
-				{
-					var psbtInputs = psbt.Inputs.Where(x => x.PrevOut.Hash == coinInputTxID);
-					foreach (var psbtInput in psbtInputs)
-					{
-						psbtInput.NonWitnessUtxo = txn.Transaction;
-					}
-				}
-				else
-				{
-					Logger.LogWarning($"Transaction id:{coinInputTxID} is missing from the TransactionStore. Ignoring...");
-				}
-			}
 		}
 	}
 }

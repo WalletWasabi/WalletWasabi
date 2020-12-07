@@ -9,10 +9,12 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
@@ -412,6 +414,64 @@ namespace NBitcoin
 		public static string ToUsdString(this Money btc, decimal usdExchangeRate, bool lurkingWifeMode = false)
 		{
 			return ToCurrency(btc, "USD", usdExchangeRate, lurkingWifeMode);
+		}
+
+		/// <summary>
+		/// Tries to equip the PSBT with input and output keypaths on best effort.
+		/// </summary>
+		public static void AddKeyPaths(this PSBT psbt, KeyManager keyManager)
+		{
+			if (keyManager.MasterFingerprint.HasValue)
+			{
+				var fp = keyManager.MasterFingerprint.Value;
+				// Add input keypaths.
+				foreach (var script in psbt.Inputs.Select(x => x.WitnessUtxo?.ScriptPubKey).ToArray())
+				{
+					if (script is { })
+					{
+						var hdPubKey = keyManager.GetKeyForScriptPubKey(script);
+						if (hdPubKey is { })
+						{
+							psbt.AddKeyPath(fp, hdPubKey, script);
+						}
+					}
+				}
+
+				// Add output keypaths.
+				foreach (var script in psbt.Outputs.Select(x => x.ScriptPubKey).ToArray())
+				{
+					var hdPubKey = keyManager.GetKeyForScriptPubKey(script);
+					if (hdPubKey is { })
+					{
+						psbt.AddKeyPath(fp, hdPubKey, script);
+					}
+				}
+			}
+		}
+
+		public static void AddKeyPath(this PSBT psbt, HDFingerprint fp, HdPubKey hdPubKey, Script script)
+		{
+			var rootKeyPath = new RootedKeyPath(fp, hdPubKey.FullKeyPath);
+			psbt.AddKeyPath(hdPubKey.PubKey, rootKeyPath, script);
+		}
+
+		/// <summary>
+		/// Tries to equip the PSBT with previous transactions with best effort.
+		/// </summary>
+		public static void AddPrevTxs(this PSBT psbt, AllTransactionStore transactionStore)
+		{
+			// Fill out previous transactions.
+			foreach (var psbtInput in psbt.Inputs)
+			{
+				if (transactionStore.TryGetTransaction(psbtInput.PrevOut.Hash, out var tx))
+				{
+					psbtInput.NonWitnessUtxo = tx.Transaction;
+				}
+				else
+				{
+					Logger.LogInfo($"Transaction id: {psbtInput.PrevOut.Hash} is missing from the {nameof(transactionStore)}. Ignoring...");
+				}
+			}
 		}
 	}
 }
