@@ -26,8 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private DialogScreenViewModel _dialogScreen;
 		[AutoNotify] private NavBarViewModel _navBar;
 		[AutoNotify] private StatusBarViewModel _statusBar;
-		[AutoNotify] private string _title = "Wasabi Wallet";
-		private readonly HomePageViewModel _homePage;
+		[AutoNotify] private string _title = "Wasabi Wallet";		
 		private readonly SettingsPageViewModel _settingsPage;
 		private readonly SearchPageViewModel _searchPage;
 		private readonly PrivacyModeViewModel _privacyMode;
@@ -68,8 +67,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				global.Network);
 
 			_settingsPage = new SettingsPageViewModel(global.Config, global.UiConfig);
-			_privacyMode = new PrivacyModeViewModel(global.UiConfig);
-			_homePage = new HomePageViewModel(walletManager, _addWalletPage);
+			_privacyMode = new PrivacyModeViewModel(global.UiConfig);			
 			_searchPage = new SearchPageViewModel();
 
 			_navBar = new NavBarViewModel(MainScreen, walletManager);
@@ -79,9 +77,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
 
-			_searchPage.Initialise();
-
-			MainScreen.To(_homePage);
+			_searchPage.Initialise();			
 
 			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -93,6 +89,11 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			walletManager.WhenAnyValue(x => x.Items.Count)
 				.Subscribe(x => _navBar.IsHidden = x == 0);
+
+			if (!walletManager.Model.AnyWallet(_ => true))
+			{
+				MainScreen.To(_addWalletPage);
+			}
 		}
 
 		public TargettedNavigationStack MainScreen { get; }
@@ -122,8 +123,6 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private void RegisterViewModels()
 		{
-			HomePageViewModel.Register(_homePage);
-
 			SearchPageViewModel.Register(_searchPage);
 			PrivacyModeViewModel.Register(_privacyMode);
 			AddWalletPageViewModel.Register(_addWalletPage);
