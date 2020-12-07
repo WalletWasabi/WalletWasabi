@@ -80,7 +80,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// <param name="isolateStream"><c>true</c> if a new Tor circuit is required for this HTTP request.</param>
 		/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
 		/// <returns>New <see cref="TorConnection"/> instance.</returns>
-		/// <exception cref="TorConnectionException">When <see cref="ConnectAsync(TcpClient)"/> fails.</exception>
+		/// <exception cref="TorConnectionException">When <see cref="ConnectAsync(TcpClient, CancellationToken)"/> fails.</exception>
 		public async Task<TorConnection> EstablishConnectionAsync(string host, int port, bool useSsl, bool isolateStream, CancellationToken cancellationToken = default)
 		{
 			TcpClient? tcpClient = null;
@@ -90,7 +90,7 @@ namespace WalletWasabi.Tor.Socks5
 			{
 				tcpClient = new TcpClient(TorSocks5EndPoint.AddressFamily);
 
-				transportStream = await ConnectAsync(tcpClient).ConfigureAwait(false);
+				transportStream = await ConnectAsync(tcpClient, cancellationToken).ConfigureAwait(false);
 				await HandshakeAsync(tcpClient, isolateStream, cancellationToken).ConfigureAwait(false);
 				await ConnectToDestinationAsync(tcpClient, host, port, cancellationToken).ConfigureAwait(false);
 
@@ -128,7 +128,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// </summary>
 		/// <exception cref="ArgumentException">This should never happen.</exception>
 		/// <exception cref="TorException">When connection to Tor SOCKS5 endpoint fails.</exception>
-		private async Task<NetworkStream> ConnectAsync(TcpClient tcpClient)
+		private async Task<NetworkStream> ConnectAsync(TcpClient tcpClient, CancellationToken cancellationToken = default)
 		{
 			if (!TorSocks5EndPoint.TryGetHostAndPort(out string? host, out int? port))
 			{
@@ -137,8 +137,7 @@ namespace WalletWasabi.Tor.Socks5
 
 			try
 			{
-				// Cancellation token for ConnectAsync will be available in .NET 5.
-				await tcpClient.ConnectAsync(host, port.Value).ConfigureAwait(false);
+				await tcpClient.ConnectAsync(host, port.Value, cancellationToken).ConfigureAwait(false);
 				return tcpClient.GetStream();
 			}
 			catch (Exception ex) when (IsConnectionRefused(ex))

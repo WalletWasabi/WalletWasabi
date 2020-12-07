@@ -19,7 +19,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 	[Collection("Serial unit tests collection")]
 	public class TorSocks5ClientFactoryTests
 	{
-		private static readonly TimeSpan TimeoutLimit = TimeSpan.FromMinutes(5);
+		private static readonly TimeSpan TimeoutLimit = TimeSpan.FromMinutes(3);
 
 		/// <summary>
 		/// <list type="bullet">
@@ -38,7 +38,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			TcpListener? listener = null;
 
 			Uri uri = new("http://postman-echo.com");
-			string httpRequestHost = uri.DnsSafeHost;
+			string httpRequestHost = uri.Host;
 			int httpRequestPort = 80;
 
 			try
@@ -47,21 +47,21 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				listener.Start();
 				int serverPort = ((IPEndPoint)listener.LocalEndpoint).Port;
 
-				Debug.WriteLine("[server] Wait for TCP client.");
+				Console.WriteLine("[server] Wait for TCP client.");
 				Task<TcpClient> acceptTask = listener.AcceptTcpClientAsync().WithAwaitCancellationAsync(timeoutToken);
 
 				Task clientTask = Task.Run(async () =>
 				{
 					TorSocks5ClientFactory factory = new(new IPEndPoint(IPAddress.Loopback, serverPort));
 
-					Debug.WriteLine("[client] About to make connection.");
+					Console.WriteLine("[client] About to make connection.");
 					using TorConnection torConnection = await factory.EstablishConnectionAsync(httpRequestHost, httpRequestPort, useSsl: false, isolateStream: false, timeoutToken).ConfigureAwait(false);
-					Debug.WriteLine("[client] Connection established.");
+					Console.WriteLine("[client] Connection established.");
 				});
 
 				using TcpClient client = await acceptTask;
 
-				Debug.WriteLine("[server] Connected!");
+				Console.WriteLine("[server] Connected!");
 				using NetworkStream stream = client.GetStream();
 				stream.ReadTimeout = (int)TimeoutLimit.TotalMilliseconds;
 
@@ -82,7 +82,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				stream.WriteByte(MethodField.NoAcceptableMethods.ToByte());
 				stream.Flush();
 
-				Debug.WriteLine("[server] Expecting exception.");
+				Console.WriteLine("[server] Expecting exception.");
 				await Assert.ThrowsAsync<TorAuthenticationException>(async () => await clientTask.WithAwaitCancellationAsync(timeoutToken));
 			}
 			finally
@@ -108,7 +108,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			TcpListener? listener = null;
 
 			Uri uri = new("http://postman-echo.com");
-			string httpRequestHost = uri.DnsSafeHost;
+			string httpRequestHost = uri.Host;
 			int httpRequestPort = 80;
 
 			try
@@ -117,21 +117,21 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				listener.Start();
 				int serverPort = ((IPEndPoint)listener.LocalEndpoint).Port;
 
-				Debug.WriteLine("[server] Wait for TCP client.");
+				Console.WriteLine("[server] Wait for TCP client.");
 				Task<TcpClient> acceptTask = listener.AcceptTcpClientAsync().WithAwaitCancellationAsync(timeoutToken);
 
 				Task clientTask = Task.Run(async () =>
 				{
 					TorSocks5ClientFactory factory = new(new IPEndPoint(IPAddress.Loopback, serverPort));
 
-					Debug.WriteLine("[client] About to make connection.");
+					Console.WriteLine("[client] About to make connection.");
 					using TorConnection torConnection = await factory.EstablishConnectionAsync(httpRequestHost, httpRequestPort, useSsl: false, isolateStream: false, timeoutToken).ConfigureAwait(false);
-					Debug.WriteLine("[client] Connection established.");
+					Console.WriteLine("[client] Connection established.");
 				});
 
 				using TcpClient client = await acceptTask;
 
-				Debug.WriteLine("[server] Connected!");
+				Console.WriteLine("[server] Connected!");
 				using NetworkStream stream = client.GetStream();
 				stream.ReadTimeout = stream.ReadTimeout = (int)TimeoutLimit.TotalMilliseconds;
 
@@ -158,7 +158,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				foreach (byte byteValue in expectedConnectionRequest.ToBytes())
 				{
 					i++;
-					Debug.WriteLine($"[server] Reading request byte #{i}.");
+					Console.WriteLine($"[server] Reading request byte #{i}.");
 					int readByte = stream.ReadByte();
 					Assert.Equal(byteValue, readByte);
 				}
@@ -171,11 +171,11 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 					0x00, 0x00 // BndPort
 				};
 
-				Debug.WriteLine("[server] Respond with RepField.TtlExpired result.");
+				Console.WriteLine("[server] Respond with RepField.TtlExpired result.");
 				await stream.WriteAsync(torSocks5Response, timeoutToken);
 				stream.Flush();
 
-				Debug.WriteLine("[server] Expecting exception.");
+				Console.WriteLine("[server] Expecting exception.");
 				await Assert.ThrowsAsync<TorConnectCommandException>(async () => await clientTask.WithAwaitCancellationAsync(timeoutToken));
 			}
 			finally
