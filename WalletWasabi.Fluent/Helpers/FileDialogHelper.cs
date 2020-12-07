@@ -57,7 +57,7 @@ namespace WalletWasabi.Fluent.Helpers
 						new FileDialogFilter
 						{
 							Name = $"{ext.ToUpper()} files",
-							Extensions = new List<string> {ext}
+							Extensions = new List<string> { ext }
 						});
 
 			filters.AddRange(generatedFilters);
@@ -67,7 +67,7 @@ namespace WalletWasabi.Fluent.Helpers
 				filters.Add(new FileDialogFilter()
 				{
 					Name = "All files",
-					Extensions = new List<string> {"*"}
+					Extensions = new List<string> { "*" }
 				});
 			}
 
