@@ -19,8 +19,8 @@
   <Styles.Resources>
   </Styles.Resources>
   <Style Selector="c|ContentArea">
-    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
-    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>"
+    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
