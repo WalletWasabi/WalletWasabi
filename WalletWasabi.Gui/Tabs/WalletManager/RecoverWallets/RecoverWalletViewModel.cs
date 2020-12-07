@@ -42,14 +42,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 
 			MnemonicWords = "";
 
-			RecoverCommand = ReactiveCommand.Create(() =>
-			{
-				RecoverWallet(owner);
-			},
-			Observable.FromEventPattern(this, nameof(ErrorsChanged))
+			var canExecute = Observable
+				.Merge(Observable.FromEventPattern(this, nameof(ErrorsChanged)).Select(_ => Unit.Default))
+				.Merge(this.WhenAnyValue(x => x.MnemonicWords).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Select(_ => !Validations.AnyErrors)
-			);
+				.Select(_ => !Validations.AnyErrors && MnemonicWords.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length == 12);
+
+			RecoverCommand = ReactiveCommand.Create(() => RecoverWallet(owner), canExecute);
 
 			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(UpdateSuggestions);
 
