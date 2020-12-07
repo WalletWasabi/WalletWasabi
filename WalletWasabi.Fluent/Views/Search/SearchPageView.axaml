@@ -17,7 +17,7 @@
       <DockPanel>
         
         <TextBlock DockPanel.Dock="Left" Text="Locate and discover features in Wasabi" />
-        <TextBox VerticalAlignment="Top" Margin="40 -20 0 0" HorizontalAlignment="Stretch" Text="{Binding SearchQuery}" Watermark="Type here to search">
+        <TextBox VerticalAlignment="Top" Margin="80 -20 0 0" HorizontalAlignment="Stretch" Text="{Binding SearchQuery}" Watermark="Type here to search">
           <TextBox.InnerLeftContent>
             <PathIcon Data="{StaticResource search_regular}"
                       Width="20" Height="20"
