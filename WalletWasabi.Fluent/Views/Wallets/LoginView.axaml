@@ -8,7 +8,7 @@
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"             
              x:Class="WalletWasabi.Fluent.Views.Wallets.LoginView">
-  <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="400">
+  <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" MaxWidth="400">
     <Label Content="_Password:" Target="passwordTb" />
     <TextBox x:Name="passwordTb" PasswordChar="•" Classes="revealPasswordButton">
       <i:Interaction.Behaviors>
