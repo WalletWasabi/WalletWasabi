@@ -54,7 +54,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			searchedTxIds = mempool.Select(x => x.GetHash());
 			txs = await client.GetTransactionsAsync(Network.Main, searchedTxIds, CancellationToken.None);
 			Assert.Equal(1_100, txs.Count());
-			Assert.Equal(1_000, WasabiClient.TransactionCache.Count());
+			Assert.Equal(1_000, WasabiClient.TransactionCache.Count);
 
 			Assert.Subset(WasabiClient.TransactionCache.Keys.ToHashSet(), txs.TakeLast(1_000).Select(x => x.GetHash()).ToHashSet());
 

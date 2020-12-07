@@ -31,7 +31,7 @@ namespace WalletWasabi.Backend.Models
 
 			if (parts.Length < 5)
 			{
-				throw new ArgumentException(nameof(line), line);
+				throw new ArgumentException(line, nameof(line));
 			}
 
 			var blockHeight = uint.Parse(parts[0]);

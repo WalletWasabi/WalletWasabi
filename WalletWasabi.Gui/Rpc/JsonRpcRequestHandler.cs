@@ -113,7 +113,7 @@ namespace WalletWasabi.Gui.Rpc
 						$"{methodParameters.Count} parameters were expected but {parameters.Count} were received.", jsonRpcRequest.Id);
 				}
 
-				var missingParameters = methodParameters.Count() - parameters.Count();
+				var missingParameters = methodParameters.Count - parameters.Count;
 				parameters.AddRange(methodParameters.TakeLast(missingParameters).Select(x => x.defaultValue));
 				var result = prodecureMetadata.MethodInfo.Invoke(Service, parameters.ToArray());
 
