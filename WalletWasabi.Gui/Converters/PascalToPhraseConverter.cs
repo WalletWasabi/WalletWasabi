@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.Converters
 				{
 					if (pos > 0)
 					{
-						builder.Append(" ");
+						builder.Append(' ');
 					}
 
 					builder.Append(char.ToLower(c));
