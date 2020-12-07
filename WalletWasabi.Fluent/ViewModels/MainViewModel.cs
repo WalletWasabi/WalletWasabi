@@ -32,6 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private readonly SearchPageViewModel _searchPage;
 		private readonly PrivacyModeViewModel _privacyMode;
 		private readonly AddWalletPageViewModel _addWalletPage;
+		private readonly WalletManagerViewModel _walletManager;
 
 		public MainViewModel(Global global)
 		{
@@ -59,7 +60,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				global.Synchronizer,
 				global.LegalDocuments);
 
-			var walletManager = new WalletManagerViewModel(global.WalletManager, global.UiConfig);
+			_walletManager = new WalletManagerViewModel(global.WalletManager, global.UiConfig);
 
 			_addWalletPage = new AddWalletPageViewModel(
 				global.LegalDocuments,
@@ -69,10 +70,10 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			_settingsPage = new SettingsPageViewModel(global.Config, global.UiConfig);
 			_privacyMode = new PrivacyModeViewModel(global.UiConfig);
-			_homePage = new HomePageViewModel(walletManager, _addWalletPage);
+			_homePage = new HomePageViewModel(_walletManager, _addWalletPage);
 			_searchPage = new SearchPageViewModel();
 
-			_navBar = new NavBarViewModel(MainScreen, walletManager);
+			_navBar = new NavBarViewModel(MainScreen, _walletManager);
 
 			RegisterCategories(_searchPage);
 			RegisterViewModels();
@@ -91,7 +92,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsDialogScreenEnabled = !x);
 
-			walletManager.WhenAnyValue(x => x.Items.Count)
+			_walletManager.WhenAnyValue(x => x.Items.Count)
 				.Subscribe(x => _navBar.IsHidden = x == 0);
 		}
 
@@ -194,6 +195,12 @@ namespace WalletWasabi.Fluent.ViewModels
 
 					return legalDocs;
 				});
+
+			OpenWalletsFolderViewModel.RegisterLazy(() =>
+			{
+				IoHelpers.OpenFolderInFileExplorer(_walletManager.Model.WalletDirectories.WalletsDir);
+				return null;
+			});
 		}
 
 		private static void RegisterCategories(SearchPageViewModel searchPage)
@@ -201,6 +208,5 @@ namespace WalletWasabi.Fluent.ViewModels
 			searchPage.RegisterCategory("General", 0);
 			searchPage.RegisterCategory("Settings", 1);
 		}
-
 	}
 }
