@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 {
 	[NavigationMetaData(
 		Title = "Action Center",
-		IconName = "glance_regular",
+		IconName = "officeapps_regular",
 		Searchable = false,
 		NavBarPosition = NavBarPosition.Bottom)]
 	public partial class SearchPageViewModel : NavBarItemViewModel
