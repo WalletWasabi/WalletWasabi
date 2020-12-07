@@ -172,7 +172,7 @@ namespace WalletWasabi.Tor.Socks5
 			byte[] sendBuffer = new VersionMethodRequest(methods).ToBytes();
 			byte[] receiveBuffer = await SendAndReceiveAsync(tcpClient, sendBuffer, receiveBufferSize: 2, cancellationToken).ConfigureAwait(false);
 
-			var methodSelection = new MethodSelectionResponse(receiveBuffer);
+			MethodSelectionResponse methodSelection = new(receiveBuffer);
 
 			if (methodSelection.Ver != VerField.Socks5)
 			{
@@ -325,7 +325,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// Sends a command to the Tor Socks5 connection and reads a response.
 		/// </summary>
 		/// <param name="sendBuffer">Sent data</param>
-		/// <param name="receiveBufferSize">Maximum number of bytes expected to be received in the reply.</param>
+		/// <param name="receiveBufferSize">Optionally, number of bytes expected to be received in the reply.</param>
 		/// <param name="cancellationToken">Cancellation token to cancel sending.</param>
 		/// <returns>Reply</returns>
 		/// <exception cref="TorResponseException">When we receive no response from Tor or the response is invalid.</exception>
@@ -335,7 +335,7 @@ namespace WalletWasabi.Tor.Socks5
 
 			try
 			{
-				var stream = tcpClient.GetStream();
+				NetworkStream stream = tcpClient.GetStream();
 
 				// Write data to the stream.
 				await stream.WriteAsync(sendBuffer.AsMemory(0, sendBuffer.Length), cancellationToken).ConfigureAwait(false);
@@ -387,9 +387,10 @@ namespace WalletWasabi.Tor.Socks5
 				Logger.LogTrace("Send operation was canceled.");
 				throw;
 			}
-			catch (IOException ex)
+			catch (IOException e)
 			{
-				throw new TorResponseException($"{nameof(TorConnection)} is not connected.", ex);
+				Logger.LogError("Exception was thrown.", e);
+				throw new TorResponseException($"{nameof(TorConnection)} is not connected.", e);
 			}
 		}
 	}

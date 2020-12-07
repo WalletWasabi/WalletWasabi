@@ -19,7 +19,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 	[Collection("Serial unit tests collection")]
 	public class TorSocks5ClientFactoryTests
 	{
-		private static readonly TimeSpan TimeoutLimit = TimeSpan.FromMinutes(3);
+		private static readonly TimeSpan TimeoutLimit = TimeSpan.FromMinutes(2);
 
 		/// <summary>
 		/// <list type="bullet">
@@ -133,7 +133,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 
 				Console.WriteLine($"[{nameof(TtlExpiredScenarioAsync)}][server] Connected!");
 				using NetworkStream stream = client.GetStream();
-				stream.ReadTimeout = stream.ReadTimeout = (int)TimeoutLimit.TotalMilliseconds;
+				stream.ReadTimeout = (int)TimeoutLimit.TotalMilliseconds;
 
 				// Read SOCKS version.
 				int versionByte = stream.ReadByte();
@@ -158,7 +158,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				foreach (byte byteValue in expectedConnectionRequest.ToBytes())
 				{
 					i++;
-					Console.WriteLine($"[server] Reading request byte #{i}.");
+					Console.WriteLine($"[{nameof(TtlExpiredScenarioAsync)}][server] Reading request byte #{i}.");
 					int readByte = stream.ReadByte();
 					Assert.Equal(byteValue, readByte);
 				}
