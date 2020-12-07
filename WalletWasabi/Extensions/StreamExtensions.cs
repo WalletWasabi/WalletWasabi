@@ -34,7 +34,7 @@ namespace System.IO
 		/// <param name="stream">Stream to read from.</param>
 		/// <param name="buffer">Buffer whose length must be at least <paramref name="count"/> elements.</param>
 		/// <param name="count">Number of bytes to read.</param>
-		/// <param name="cancellationToken"></param>
+		/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
 		/// <returns><c>true</c> if we could read exactly <paramref name="count"/> bytes from stream (stream may contain more bytes though).</returns>
 		public static async Task<bool> ReadExactlyAsync(this Stream stream, byte[] buffer, int count, CancellationToken cancellationToken = default)
 		{
