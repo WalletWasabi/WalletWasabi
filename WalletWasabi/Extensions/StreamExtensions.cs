@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,14 +8,22 @@ namespace System.IO
 	{
 		public static async Task<int> ReadByteAsync(this Stream stream, CancellationToken ctsToken = default)
 		{
-			var buf = new byte[1];
-			int len = await stream.ReadAsync(buf.AsMemory(0, 1), ctsToken).ConfigureAwait(false);
-			if (len == 0)
+			ArrayPool<byte> pool = ArrayPool<byte>.Shared;
+			byte[] buffer = pool.Rent(1);
+			try
 			{
-				return -1;
-			}
+				int len = await stream.ReadAsync(buffer.AsMemory(0, 1), ctsToken).ConfigureAwait(false);
+				if (len == 0)
+				{
+					return -1;
+				}
 
-			return buf[0];
+				return buffer[0];
+			}
+			finally
+			{
+				pool.Return(buffer);
+			}
 		}
 
 		public static async Task<int> ReadBlockAsync(this Stream stream, byte[] buffer, int count, CancellationToken ctsToken = default)
