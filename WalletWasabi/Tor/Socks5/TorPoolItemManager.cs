@@ -10,8 +10,10 @@ namespace WalletWasabi.Tor.Socks5
 	/// Associates <see cref="IPoolItem"/> with <see cref="PoolItemState"/> and manages pool items re-usability.
 	/// </summary>
 	/// <remarks>The class is thread-safe.</remarks>
-	public class TorPoolItemManager: IDisposable
+	public class TorPoolItemManager : IDisposable
 	{
+		private bool _disposedValue;
+
 		public TorPoolItemManager(int maxPoolItemsPerHost)
 		{
 			HostBuckets = new Dictionary<string, List<IPoolItem>>();
@@ -26,8 +28,6 @@ namespace WalletWasabi.Tor.Socks5
 		private Dictionary<string, List<IPoolItem>> HostBuckets { get; }
 
 		public int MaxPoolItemsPerHost { get; }
-
-		private bool _disposedValue;
 
 		/// <summary>
 		/// Adds <paramref name="poolItem"/> to <see cref="HostBuckets"/>.
