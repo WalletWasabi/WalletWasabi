@@ -114,6 +114,8 @@ namespace {namespaceNameLocator}
 		{{
 ");
 
+			var userControlViewSymbol = compilation.GetTypeByMetadataName("Avalonia.Controls.UserControl");
+
 			foreach (var namedTypeSymbolViewModel in namedTypeSymbolViewModels)
 			{
 				string namespaceNameViewModel = namedTypeSymbolViewModel.ContainingNamespace.ToDisplayString();
@@ -121,7 +123,7 @@ namespace {namespaceNameLocator}
 				string classNameView = classNameViewModel.Replace("ViewModel", "View");
 
 				var classNameViewSymbol = compilation.GetTypeByMetadataName(classNameView);
-				if (classNameViewSymbol is null)
+				if (classNameViewSymbol is null || !classNameViewSymbol.BaseType.Equals(userControlViewSymbol, SymbolEqualityComparer.Default))
 				{
 					source.AppendLine($@"			[typeof({classNameViewModel})] = () => new TextBlock() {{ Text = {("\"Not Found: " + classNameView + "\"")} }},");
 				}
