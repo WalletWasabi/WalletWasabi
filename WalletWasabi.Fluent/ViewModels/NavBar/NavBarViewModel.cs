@@ -45,6 +45,15 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				.OfType<NavBarItemViewModel>()
 				.Subscribe(NavigateItem);
 
+			this.WhenAnyValue(x => x.Items.Count)
+				.Subscribe(x =>
+				{
+					if (x > 0 && SelectedItem is null)
+					{
+						SelectedItem = Items.FirstOrDefault();
+					}
+				});
+
 			this.WhenAnyValue(x => x.IsOpen)
 				.Subscribe(x =>
 				{

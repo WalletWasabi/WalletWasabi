@@ -15,7 +15,6 @@ using WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Legal;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
@@ -26,9 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		Order = 2,
 		Category = "General",
 		Keywords = new[] { "Wallet", "Add", "Create", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger" },
-		IconName = "add_circle_regular",
-		NavBarPosition = NavBarPosition.Bottom,
-		NavigationTarget = NavigationTarget.DialogScreen)]
+		IconName = "add_circle_regular")]
 	public partial class AddWalletPageViewModel : NavBarItemViewModel
 	{
 		[AutoNotify] private string _walletName = "";
@@ -83,7 +80,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 								return walletGenerator.GenerateWallet(WalletName, password);
 							});
 
-						Navigate().To(new RecoveryWordsViewModel(km, mnemonic, walletManager), NavigationMode.Clear);
+						Navigate().To(new RecoveryWordsViewModel(km, mnemonic, walletManager));
 
 						IsBusy = false;
 					}

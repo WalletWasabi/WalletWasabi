@@ -14,7 +14,7 @@
                  EnableCancel="True" CancelContent="Cancel"
                  EnableBack="True"
                  EnableNext="True" NextContent="Continue" FocusNext="True">
-    <ItemsControl Items="{Binding MnemonicWords}" HorizontalAlignment="Stretch">
+    <ItemsControl Items="{Binding MnemonicWords}" VerticalAlignment="Center" HorizontalAlignment="Center">
       <ItemsControl.Styles>
         <Style Selector="TextBlock">
           <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />

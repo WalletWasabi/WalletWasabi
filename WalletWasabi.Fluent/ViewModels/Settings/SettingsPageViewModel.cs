@@ -12,8 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		Order = 1,
 		Category = "General",
 		Keywords = new[] { "Settings", "General", "User", "Interface", "Privacy", "Advanced" },
-		IconName = "settings_regular",
-		NavBarPosition = NavBarPosition.Bottom)]
+		IconName = "settings_regular")]
 	public partial class SettingsPageViewModel : NavBarItemViewModel
 	{
 		[AutoNotify] private bool _isModified;
