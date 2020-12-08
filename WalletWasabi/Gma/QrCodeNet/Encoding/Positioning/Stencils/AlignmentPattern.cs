@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -27,7 +28,7 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 			new[]
 			{
 				null,
-				System.Array.Empty<byte>(),
+				Array.Empty<byte>(),
 				new byte[] { 6, 18 },
 				new byte[] { 6, 22 },
 				new byte[] { 6, 26 },

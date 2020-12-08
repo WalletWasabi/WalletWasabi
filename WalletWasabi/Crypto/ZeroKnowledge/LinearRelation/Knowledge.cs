@@ -8,7 +8,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 	{
 		internal Knowledge(Statement statement, ScalarVector witness)
 		{
-			Guard.True(nameof(witness), witness.Count() == statement.Equations.First().Generators.Count(), $"{nameof(witness)} size does not match {nameof(statement)}.{nameof(statement.Equations)}");
+			Guard.True(nameof(witness), witness.Count == statement.Equations.First().Generators.Count, $"{nameof(witness)} size does not match {nameof(statement)}.{nameof(statement.Equations)}");
 
 			// don't try to prove something which isn't true
 			foreach (var equation in statement.Equations)

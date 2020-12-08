@@ -919,7 +919,7 @@ namespace Mono.Options
 							}
 
 							++i;
-							sb.Append("}");
+							sb.Append('}');
 						}
 						else
 						{

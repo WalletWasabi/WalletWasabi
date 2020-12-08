@@ -16,7 +16,7 @@ HiddenWallet's ports (3712x) are chosen within a long range of unassigned IANA p
 |37128 | Wallet Wasabi RPC Server |
 |37129 | Wallet Wasabi Local Client TCPListener on MainNet |
 |37130 | Wallet Wasabi Local Client TCPListener on TestNet |
-|37131 | Wallet Wasabi Local Client TCPListener on Others |
+|37131 | Wallet Wasabi Local Client TCPListener on RegTest |
 |9050  | Default Tor socks port |
 |9051  | Default Tor control port |
 |9150  | Tor socks port used by Tor Browser |

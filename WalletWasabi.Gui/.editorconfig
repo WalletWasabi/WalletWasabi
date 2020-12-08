@@ -1,8 +1,0 @@
-root = false
-
-# Code files
-[*.cs]
-
-# CA2007: Do not directly await a Task
-# https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca2007
-dotnet_diagnostic.CA2007.severity = none 

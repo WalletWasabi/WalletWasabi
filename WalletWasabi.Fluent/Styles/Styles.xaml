@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
     <sys:Double x:Key="IconElementThemeHeight">16</sys:Double>
-    <Easing x:Key="FluentDefaultEasing">0.1,0.9,0.2,1.0</Easing>
+    <Easing x:Key="FluentEasing">0.4,0,0.6,1</Easing>
+    <KeySpline x:Key="FluentKeySpline">0.4,0,0.6,1</KeySpline>
   </Styles.Resources>
 
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ActionButton.xaml" />
@@ -15,4 +16,5 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/PlainButton.xaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/SplitView.xaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/TextBox.xaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/HyperlinkButton.xaml" />
 </Styles>

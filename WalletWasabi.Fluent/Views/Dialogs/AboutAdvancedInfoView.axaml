@@ -1,0 +1,45 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:dialogs="clr-namespace:WalletWasabi.Fluent.ViewModels.Dialogs"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="dialogs:AboutAdvancedInfoViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Dialogs.AboutAdvancedInfoView">
+    <UserControl.Styles>
+        <Style Selector="TextBlock.Header">
+            <Setter Property="Margin" Value="0 4 0 0" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        <Style Selector="TextBox.Content">
+            <Setter Property="Margin" Value="0 4 0 0" />
+        </Style>
+    </UserControl.Styles>
+    <controls:ContentArea Title="Advanced Information"
+                          EnableCancel="False"
+                          EnableNext="False">
+        <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380" Margin="30 0 0 0">
+            <StackPanel>
+                <TextBlock Classes="Header" Text="Compatible Coordinator Versions" />
+                <TextBox Classes="Content selectable_text_block" Text="{Binding BackendCompatibleVersions}" />
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Classes="Header" Text="Current Coordinator Version" />
+                <TextBox Classes="Content selectable_text_block" Text="{Binding CurrentBackendMajorVersion}" />
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Classes="Header" Text="Compatible Bitcoin Core and Bitcoin Knots Versions " />
+                <TextBox Classes="Content selectable_text_block"
+                         Text="{Binding BitcoinCoreVersion}" />
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Classes="Header" Text="Compatible Hardware Wallet Interface Version " />
+                <TextBox Classes="Content selectable_text_block"
+                         Text="{Binding HwiVersion}" />
+            </StackPanel>
+        </StackPanel>
+    </controls:ContentArea>
+
+</UserControl>

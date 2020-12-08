@@ -240,9 +240,20 @@ dotnet_style_prefer_simplified_interpolation = true:error
 # IDE0004: Remove Unnecessary Cast
 dotnet_diagnostic.IDE0004.severity = error
 
-# CA2007: Do not directly await a Task
-# https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca2007
-dotnet_diagnostic.CA2007.severity = warning
-
 # IDE0019: Use pattern matching
 csharp_style_pattern_matching_over_as_with_null_check = true:error
+
+# CA2016: Forward the 'CancellationToken' parameter to methods that take one
+dotnet_diagnostic.CA2016.severity = warning
+
+# CA2000: Dispose objects before losing scope
+dotnet_diagnostic.CA2000.severity = warning
+
+# CA1825: Avoid zero-length array allocations
+dotnet_diagnostic.CA1825.severity = warning
+
+# CA1829: Use Length/Count property instead of Count() when available
+dotnet_diagnostic.CA1829.severity = warning
+
+# CA1816: Dispose methods should call SuppressFinalize
+dotnet_diagnostic.CA1816.severity = none

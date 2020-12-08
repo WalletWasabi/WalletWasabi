@@ -1,0 +1,155 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="vm:AboutViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.AboutView">
+  <UserControl.Styles>
+    <Style Selector="TextBlock#LogoText1">
+      <Style.Animations>
+        <Animation Delay="0.3" Duration="0.37" Easing="{StaticResource FluentEasing}">
+          <KeyFrame Cue="0%">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="(TranslateTransform.Y)" Value="12" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="(TranslateTransform.Y)" Value="0" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="TextBlock#LogoText2">
+      <Style.Animations>
+        <Animation Delay="0.32" Duration="0.37" Easing="{StaticResource FluentEasing}">
+          <KeyFrame Cue="0%">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="(TranslateTransform.Y)" Value="-12" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="(TranslateTransform.Y)" Value="0" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="TextBlock#LogoText3">
+      <Setter Property="Foreground" Value="{StaticResource VersionHighlightRadialBrush}" />
+      <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+      <Style.Animations>
+        <Animation Delay="0.34" Duration="0.37" Easing="{StaticResource FluentEasing}">
+          <KeyFrame Cue="0%">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="(ScaleTransform.ScaleX)" Value="0.80" />
+            <Setter Property="(ScaleTransform.ScaleY)" Value="0.80" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="(ScaleTransform.ScaleX)" Value="1" />
+            <Setter Property="(ScaleTransform.ScaleY)" Value="1" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="TextBlock.LinkSeparatorPadding">
+      <Setter Property="Margin" Value="5 -0.5" />
+    </Style>
+    <Style Selector="TextBlock.Header">
+      <Setter Property="Margin" Value="0 4 0 0" />
+      <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+    <Style Selector="TextBlock.Hyperlink">
+      <Setter Property="TextDecorations" Value="Underline" />
+      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+    </Style>
+    <Style Selector="TextBox.Content">
+      <Setter Property="Margin" Value="0 4 0 0" />
+    </Style>
+  </UserControl.Styles>
+  <Panel>
+    <controls:ContentArea>
+      <controls:ContentArea.Title>
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Name="LogoText1" Classes="h1 semibold">Wasabi</TextBlock>
+          <Panel Width="5" Height="5" />
+          <TextBlock Name="LogoText2" Classes="h1 light">Wallet</TextBlock>
+          <Panel Width="10" Height="10" />
+          <TextBlock Name="LogoText3" Classes="h1 ultrabold">2.0</TextBlock>
+        </StackPanel>
+      </controls:ContentArea.Title>
+      <controls:ContentArea.Caption>
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Classes="Header" Text="Current Version: " />
+          <TextBox Classes="Content selectable_text_block"
+                   Text="{Binding ClientVersion}" />
+        </StackPanel>
+      </controls:ContentArea.Caption>
+
+      <DockPanel>
+        <StackPanel Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Left" Orientation="Vertical">
+          <WrapPanel Margin="0 0 0 25">
+            <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
+                    CommandParameter="{Binding DocsLink}">
+              <TextBlock Text="Documentation" Classes="Hyperlink" />
+            </Button>
+            <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+            <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
+                    CommandParameter="{Binding SourceCodeLink}">
+              <TextBlock Text="Source Code (Github)" Classes="Hyperlink" />
+            </Button>
+            <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+            <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
+                    CommandParameter="{Binding ClearnetLink}">
+              <TextBlock Text="Website (Clearnet)" Classes="Hyperlink" />
+            </Button>
+            <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+            <Button Classes="plain" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding TorLink}">
+              <TextBlock Text="Website (Tor)" Classes="Hyperlink" />
+            </Button>
+            <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+            <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
+                    CommandParameter="{Binding StatusPageLink}">
+              <TextBlock Text="Coordinator Status Page" Classes="Hyperlink" />
+            </Button>
+            <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+            <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
+                    CommandParameter="{Binding UserSupportLink}">
+              <TextBlock Text="User Support" Classes="Hyperlink" />
+            </Button>
+            <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+            <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
+                    CommandParameter="{Binding BugReportLink}">
+              <TextBlock Text="Bug Reporting" Classes="Hyperlink" />
+            </Button>
+            <TextBlock Classes="LinkSeparatorPadding" Text="-" />
+            <Button Classes="plain" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding FAQLink}">
+              <TextBlock Text="FAQs" Classes="Hyperlink" />
+            </Button>
+          </WrapPanel>
+
+          <Button HorizontalAlignment="Center" Classes="plain obscured"
+                  Command="{Binding AboutAdvancedInfoDialogCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="5">
+              <PathIcon Data="{StaticResource info_regular}" />
+              <TextBlock Text="Advanced Information..." Classes="Hyperlink" />
+            </StackPanel>
+          </Button>
+
+          <WrapPanel HorizontalAlignment="Center">
+            <TextBlock Margin=" 0 0 0 -0.5" Text="This open source software is licensed with " />
+            <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
+                    CommandParameter="{Binding License}">
+              <TextBlock Text="MIT License" Classes="Hyperlink" />
+            </Button>
+            <TextBlock Margin=" 0 0 0 -0.5" Text="." />
+          </WrapPanel>
+        </StackPanel>
+        <Panel Height="150" />
+      </DockPanel>
+    </controls:ContentArea>
+  </Panel>
+</UserControl>

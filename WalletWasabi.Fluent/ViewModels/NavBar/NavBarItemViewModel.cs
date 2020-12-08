@@ -1,50 +1,69 @@
+using System;
 using ReactiveUI;
 using System.Windows.Input;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar
 {
-	public abstract class NavBarItemViewModel : RoutableViewModel
+	public enum NavBarItemSelectionMode
+	{
+		Selected = 0,
+		Button = 1,
+		Toggle = 2
+	}
+
+	public abstract partial class NavBarItemViewModel : RoutableViewModel
 	{
 		private bool _isSelected;
-		private bool _isExpanded;
-		private string _title;
 
-		protected NavBarItemViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget) : base(navigationState, navigationTarget)
+		[AutoNotify] private bool _isExpanded;
+		[AutoNotify] private string _title;
+
+		protected NavBarItemViewModel()
 		{
 			_title = "";
-			OpenCommand = ReactiveCommand.Create(() => NavigateToSelf());
+			SelectionMode = NavBarItemSelectionMode.Selected;
+			OpenCommand = ReactiveCommand.Create(
+				() =>
+				{
+					Navigate().To(this, NavigationMode.Clear);
+				});
+
+			this.WhenAnyValue(x => x.IsExpanded)
+				.Subscribe(x =>
+				{
+					if (Parent != null)
+					{
+						Parent.IsExpanded = x;
+					}
+				});
 		}
 
 		public NavBarItemViewModel? Parent { get; set; }
 
-		public abstract string IconName { get; }
-
-		public bool IsExpanded
-		{
-			get => _isExpanded;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _isExpanded, value);
-
-				if (Parent != null)
-				{
-					Parent.IsExpanded = value;
-				}
-			}
-		}
-
-		public string Title
-		{
-			get => _title;
-			set => this.RaiseAndSetIfChanged(ref _title, value);
-		}
+		public NavBarItemSelectionMode SelectionMode { get; protected set; }
 
 		public bool IsSelected
 		{
 			get => _isSelected;
-			set => this.RaiseAndSetIfChanged(ref _isSelected, value);
+			set
+			{
+				switch (SelectionMode)
+				{
+					case NavBarItemSelectionMode.Selected:
+						this.RaiseAndSetIfChanged(ref _isSelected, value);
+						break;
+					case NavBarItemSelectionMode.Button:
+					case NavBarItemSelectionMode.Toggle:
+						break;
+				}
+			}
 		}
 
 		public ICommand OpenCommand { get; protected set; }
+
+		public virtual void Toggle()
+		{
+		}
 	}
 }

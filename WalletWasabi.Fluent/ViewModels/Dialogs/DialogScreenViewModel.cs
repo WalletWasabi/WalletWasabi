@@ -1,48 +1,39 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
-using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
-	public class DialogScreenViewModel : ViewModelBase, IScreen
+	public partial class DialogScreenViewModel : TargettedNavigationStack
 	{
-		private bool _isDialogOpen;
+		[AutoNotify] private bool _isDialogOpen;
 
-		public DialogScreenViewModel()
+		public DialogScreenViewModel() : base(NavigationTarget.DialogScreen)
 		{
-			Observable.FromEventPattern(Router.NavigationStack, nameof(Router.NavigationStack.CollectionChanged))
-				.Subscribe(_ =>
-				{
-					IsDialogOpen = Router.NavigationStack.Count >= 1;
-				});
-
 			this.WhenAnyValue(x => x.IsDialogOpen)
 				.Skip(1) // Skip the initial value change (which is false).
 				.DistinctUntilChanged()
-				.Subscribe(x =>
-				{
-					if (!x)
+				.Subscribe(
+					x =>
 					{
-						CloseScreen();
-					}
-				});
+						if (!x)
+						{
+							CloseScreen();
+						}
+					});
 		}
 
-		public RoutingState Router { get; } = new RoutingState();
-
-		public ReactiveCommand<Unit, Unit> GoBack => Router.NavigateBack;
-
-		public bool IsDialogOpen
+		protected override void OnNavigated(RoutableViewModel? oldPage, bool oldInStack, RoutableViewModel? newPage, bool newInStack)
 		{
-			get => _isDialogOpen;
-			set => this.RaiseAndSetIfChanged(ref _isDialogOpen, value);
+			base.OnNavigated(oldPage, oldInStack, newPage, newInStack);
+
+			IsDialogOpen = CurrentPage is { };
 		}
 
-		private void CloseDialogs(IEnumerable<IRoutableViewModel> navigationStack)
+		private void CloseDialogs(IEnumerable<RoutableViewModel> navigationStack)
 		{
 			// Close all dialogs so the awaited tasks can complete.
 			// - DialogViewModelBase.ShowDialogAsync()
@@ -59,16 +50,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		private void CloseScreen()
 		{
-			// Reset navigation when Dialog is using IScreen for navigation instead of the default IDialogHost.
-			if (Router.NavigationStack.Count > 0)
-			{
-				// Save Router.NavigationStack as it can be modified when closing Dialog.
-				var navigationStack = Router.NavigationStack.ToList();
+			var navStack = Stack.ToList();
+			Clear();
 
-				Router.NavigationStack.Clear();
-
-				CloseDialogs(navigationStack);
-			}
+			CloseDialogs(navStack);
 		}
 	}
 }

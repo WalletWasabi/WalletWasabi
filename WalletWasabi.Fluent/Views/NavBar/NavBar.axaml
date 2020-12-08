@@ -4,24 +4,48 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
-             xmlns:h="using:WalletWasabi.Fluent.Helpers"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.NavBar"
+             x:DataType="vm:NavBarViewModel"
+             x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False">
   <UserControl.Styles>
     <Style Selector=":is(ListBox)">
       <Setter Property="ItemTemplate">
         <Setter.Value>
-          <DataTemplate>
+          <DataTemplate x:DataType="vm:NavBarItemViewModel">
             <Panel>
               <Panel Width="45" HorizontalAlignment="Left">
                 <PathIcon HorizontalAlignment="Left">
                   <PathIcon.Data>
-                    <Binding Path="." Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                    <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
                   </PathIcon.Data>
                 </PathIcon>
               </Panel>
               <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
             </Panel>
+          </DataTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style Selector=":is(ListBox).bottom">
+      <Setter Property="ItemsPanel">
+        <Setter.Value>
+          <ItemsPanelTemplate>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" />
+          </ItemsPanelTemplate>
+        </Setter.Value>
+      </Setter>
+      <Setter Property="ItemTemplate">
+        <Setter.Value>
+          <DataTemplate x:DataType="vm:NavBarItemViewModel">
+              <Panel Width="45" HorizontalAlignment="Center" ToolTip.Tip="{Binding Title}">
+                <PathIcon HorizontalAlignment="Left">
+                  <PathIcon.Data>
+                    <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                  </PathIcon.Data>
+                </PathIcon>
+              </Panel>
           </DataTemplate>
         </Setter.Value>
       </Setter>
@@ -43,10 +67,10 @@
       <Setter Property="Padding" Value="0" />
     </Style>
     <Style Selector="c|NavBarTreeItem">
-      <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
+      <Setter Property="IsExpanded" Value="{Binding IsExpanded}" x:CompileBindings="False" />
     </Style>
     <Style Selector=":is(Button).NavButton">
-      <Setter Property="Width" Value="{StaticResource SplitViewCompactPaneLength}" />
+      <Setter Property="Width" Value="{DynamicResource SplitViewCompactPaneLength}" />
       <Setter Property="Padding" Value="12,9,12,12" />
     </Style>
     <Style Selector=":is(Button).NavButton:disabled > PathIcon">
@@ -82,23 +106,41 @@
           <TextBlock Text="Wasabi Wallet" Classes="h6" VerticalAlignment="Center" FontWeight="SemiBold" Margin="55 0 0 0" />
         </Panel>
       </Border>
-      <c:NavBarListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem}" />
+      <c:NavBarListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+        <c:NavBarListBox.Styles>
+          <Style Selector="c|NavBarItem">
+            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
+          </Style>
+        </c:NavBarListBox.Styles>
+      </c:NavBarListBox>
       <Separator />
     </StackPanel>
 
     <StackPanel DockPanel.Dock="Bottom">
       <Separator />
-      <c:NavBarListBox Items="{Binding BottomItems}" SelectedItem="{Binding SelectedItem}" />
+      <c:NavBarListBox Classes="bottom" Items="{Binding BottomItems}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}" >
+        <c:NavBarListBox.Styles>
+          <Style Selector="c|NavBarItem">
+            <Setter Property="IndicatorOrientation" Value="Horizontal" />
+            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
+          </Style>
+        </c:NavBarListBox.Styles>
+      </c:NavBarListBox>
     </StackPanel>
 
-    <c:NavBarTreeView Items="{Binding Items}" SelectedItem="{Binding SelectedItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+    <c:NavBarTreeView Items="{Binding Items}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+      <c:NavBarTreeView.Styles>
+        <Style Selector="c|NavBarTreeItem">
+          <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
+        </Style>
+      </c:NavBarTreeView.Styles>
       <c:NavBarTreeView.ItemTemplate>
-        <TreeDataTemplate ItemsSource="{Binding Items}">
+        <TreeDataTemplate ItemsSource="{Binding Items}" x:CompileBindings="False">
           <Panel>
             <Panel Width="45" HorizontalAlignment="Left">
               <PathIcon HorizontalAlignment="Left">
                 <PathIcon.Data>
-                  <Binding Path="." Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                  <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
                 </PathIcon.Data>
               </PathIcon>
             </Panel>

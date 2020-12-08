@@ -6,6 +6,7 @@
   <Design.PreviewWith>
     <Panel Background="{DynamicResource RegionColor}">
       <c:ContentArea Width="500" Height="300"
+                     IsBusy="True"
                      Title="Add a Wallet"
                      EnableBack="True"
                      EnableCancel="True" CancelContent="Cancel" FocusCancel="False"
@@ -18,53 +19,69 @@
   <Styles.Resources>
   </Styles.Resources>
   <Style Selector="c|ContentArea">
+    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
     <Setter Property="Template">
       <ControlTemplate>
-        <DockPanel Margin="40,0,40,0">
-          <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 32">
-            <DockPanel>
-              <Button Margin="-40,0,0,0" Classes="plain" Command="{Binding BackCommand}" IsVisible="{TemplateBinding EnableBack}">
-                <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
+        <Panel>
+          <c:ProgressRing Name="LoadingRing" IsIndeterminate="True" IsVisible="{TemplateBinding IsBusy}" />
+          <DockPanel Name="MainDockPanel" Margin="31,0,21,0" IsVisible="{Binding !#LoadingRing.IsVisible}">
+            <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 20">
+              <DockPanel>
+                <Button Margin="-31,0,0,0" Classes="plain" Command="{Binding BackCommand}" IsVisible="{TemplateBinding EnableBack}">
+                  <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
+                </Button>
+                <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
+              </DockPanel>
+              <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
+            </StackPanel>
+            <Panel DockPanel.Dock="Bottom">
+              <Button Name="PART_CancelButton" Classes="invisible" IsVisible="{TemplateBinding EnableCancel}" Content="{TemplateBinding CancelContent}" Margin="0,10,10,10" HorizontalAlignment="Left" Command="{Binding CancelCommand}">
+                <i:Interaction.Behaviors>
+                  <behaviors:FocusOnAttachedBehavior IsEnabled="{Binding FocusCancel, RelativeSource={RelativeSource TemplatedParent}}" />
+                </i:Interaction.Behaviors>
               </Button>
-              <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
-            </DockPanel>
-            <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
-          </StackPanel>
-          <Panel DockPanel.Dock="Bottom">
-            <Button Name="PART_CancelButton" Classes="invisible" IsVisible="{TemplateBinding EnableCancel}" Content="{TemplateBinding CancelContent}" Margin="0,10,10,10" HorizontalAlignment="Left" Command="{Binding CancelCommand}">
-              <i:Interaction.Behaviors>
-                <behaviors:FocusOnAttachedBehavior IsEnabled="{Binding FocusCancel, RelativeSource={RelativeSource TemplatedParent}}" />
-              </i:Interaction.Behaviors>
-            </Button>
-            <Button Name="PART_NextButton" Classes="action" IsVisible="{TemplateBinding EnableNext}" Content="{TemplateBinding NextContent}" Margin="10,10,0,10" HorizontalAlignment="Right" Command="{Binding NextCommand}">
-              <i:Interaction.Behaviors>
-                <behaviors:FocusOnAttachedBehavior IsEnabled="{Binding FocusNext, RelativeSource={RelativeSource TemplatedParent}}" />
-              </i:Interaction.Behaviors>
-            </Button>
-          </Panel>
-          <ScrollViewer HorizontalScrollBarVisibility="Disabled" Margin="0 0 0 32">
-            <ContentPresenter Name="PART_ContentPresenter"
-                              Background="{TemplateBinding Background}"
-                              BorderBrush="{TemplateBinding BorderBrush}"
-                              BorderThickness="{TemplateBinding BorderThickness}"
-                              ContentTemplate="{TemplateBinding ContentTemplate}"
-                              Content="{TemplateBinding Content}"
-                              Padding="{TemplateBinding Padding}"
-                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
-          </ScrollViewer>
-        </DockPanel>
+              <Button Name="PART_NextButton" Classes="action" IsVisible="{TemplateBinding EnableNext}" Content="{TemplateBinding NextContent}" Margin="10,10,0,10" HorizontalAlignment="Right" Command="{Binding NextCommand}" IsDefault="True">
+                <i:Interaction.Behaviors>
+                  <behaviors:FocusOnAttachedBehavior IsEnabled="{Binding FocusNext, RelativeSource={RelativeSource TemplatedParent}}" />
+                </i:Interaction.Behaviors>
+              </Button>
+            </Panel>
+
+            <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                          VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}"
+                          Margin="0 0 0 32" Padding="0 0 10 0">
+              <ContentControl Name="PART_ContentPresenter"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                Content="{TemplateBinding Content}"
+                                Padding="{TemplateBinding Padding}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+            </ScrollViewer>
+          </DockPanel>
+        </Panel>
       </ControlTemplate>
     </Setter>
   </Style>
+
   <Style Selector="c|ContentArea /template/ ContentPresenter#PART_TitlePresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="TextBlock.FontSize" Value="{DynamicResource FontSizeH3}" />
   </Style>
+
   <Style Selector="c|ContentArea :is(Control).caption TextBlock, c|ContentArea :is(TextBlock).caption">
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="FontSize" Value="{DynamicResource FontSizeH7}" />
     <Setter Property="TextWrapping" Value="Wrap" />
     <Setter Property="Opacity" Value="0.6" />
   </Style>
+
+  <Style Selector="c|ContentArea /template/ c|ProgressRing#LoadingRing">
+    <Setter Property="Width" Value="100"/>
+    <Setter Property="Height" Value="100"/>
+  </Style>
+
 </Styles>

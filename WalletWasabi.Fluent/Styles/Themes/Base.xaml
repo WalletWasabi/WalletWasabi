@@ -15,6 +15,17 @@
     <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="#59B164"/>
     <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="#90CB9C"/>
     <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="#80A3A3A3"/>
+
+    <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#C95050" />
+    <SolidColorBrush x:Key="PrivacyLevelMinimalBrush" Color="#E06868" />
+    <SolidColorBrush x:Key="PrivacyLevelMediumBrush" Color="#DDA73E" />
+    <SolidColorBrush x:Key="PrivacyLevelStrongBrush" Color="#72BD81" />
+    <SolidColorBrush x:Key="PrivacyLevelExtremeBrush" Color="#89C67A" />
+    <SolidColorBrush x:Key="PrivacyLevelExtremeAltBrush" Color="#5B92D2" />
+
+
+    <SolidColorBrush x:Key="WarningMessageForeground">#FFDD00</SolidColorBrush>
     <StaticResource x:Key="SystemControlErrorTextForegroundBrush" ResourceKey="SystemErrorTextColor" />
+    <SolidColorBrush x:Key="HyperLinkForeground">#00A2E8</SolidColorBrush>
   </Styles.Resources>
 </Styles>

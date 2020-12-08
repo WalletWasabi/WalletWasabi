@@ -1,5 +1,4 @@
 using System.Reactive.Linq;
-using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
@@ -7,12 +6,12 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
-	public class EnterPasswordViewModel : DialogViewModelBase<string?>
+	public partial class EnterPasswordViewModel : DialogViewModelBase<string?>
 	{
-		private string? _confirmPassword;
-		private string? _password;
+		[AutoNotify] private string? _confirmPassword;
+		[AutoNotify] private string? _password;
 
-		public EnterPasswordViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, string subtitle) : base(navigationState, navigationTarget)
+		public EnterPasswordViewModel(string subtitle)
 		{
 			Subtitle = subtitle;
 
@@ -29,13 +28,13 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				x => x.IsDialogOpen,
 				x => x.Password,
 				x => x.ConfirmPassword,
-				(isDialogOpen, password, confirmPassword) =>
+				delegate
 				{
 					// This will fire validations before return canExecute value.
 					this.RaisePropertyChanged(nameof(Password));
 					this.RaisePropertyChanged(nameof(ConfirmPassword));
 
-					return isDialogOpen && ((string.IsNullOrEmpty(password) && string.IsNullOrEmpty(confirmPassword)) || (!string.IsNullOrEmpty(password) && !string.IsNullOrEmpty(confirmPassword) && !Validations.Any));
+					return IsDialogOpen && ((string.IsNullOrEmpty(Password) && string.IsNullOrEmpty(ConfirmPassword)) || (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) && !Validations.Any));
 				})
 				.ObserveOn(RxApp.MainThreadScheduler);
 
@@ -44,18 +43,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			BackCommand = ReactiveCommand.Create(() => Close(), backCommandCanExecute);
 			NextCommand = ReactiveCommand.Create(() => Close(Password), nextCommandCanExecute);
 			CancelCommand = ReactiveCommand.Create(() => Close(), cancelCommandCanExecute);
-		}
-
-		public string? Password
-		{
-			get => _password;
-			set => this.RaiseAndSetIfChanged(ref _password, value);
-		}
-
-		public string? ConfirmPassword
-		{
-			get => _confirmPassword;
-			set => this.RaiseAndSetIfChanged(ref _confirmPassword, value);
 		}
 
 		public string Subtitle { get; }

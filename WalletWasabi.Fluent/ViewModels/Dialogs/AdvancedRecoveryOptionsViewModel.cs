@@ -1,5 +1,4 @@
 using System.Reactive.Linq;
-using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
@@ -8,12 +7,12 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
-	public class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<(KeyPath? accountKeyPath, int? minGapLimit)>
+	public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<(KeyPath? accountKeyPath, int? minGapLimit)>
 	{
-		private string _accountKeyPath;
-		private string _minGapLimit;
+		[AutoNotify] private string _accountKeyPath;
+		[AutoNotify] private string _minGapLimit;
 
-		public AdvancedRecoveryOptionsViewModel(NavigationStateViewModel navigationState, NavigationTarget navigationTarget, (KeyPath keyPath, int minGapLimit) interactionInput) : base(navigationState, navigationTarget)
+		public AdvancedRecoveryOptionsViewModel((KeyPath keyPath, int minGapLimit) interactionInput)
 		{
 			this.ValidateProperty(x => x.AccountKeyPath, ValidateAccountKeyPath);
 			this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
@@ -39,7 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			_accountKeyPath = interactionInput.keyPath.ToString();
 			_minGapLimit = interactionInput.minGapLimit.ToString();
 
-			BackCommand = ReactiveCommand.Create(() => GoBack(), backCommandCanExecute);
+			BackCommand = ReactiveCommand.Create(() => Navigate().Back(), backCommandCanExecute);
 
 			NextCommand = ReactiveCommand.Create(
 				() => Close((KeyPath.Parse(AccountKeyPath), int.Parse(MinGapLimit))),
@@ -47,20 +46,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			CancelCommand = ReactiveCommand.Create(() => Close(), cancelCommandCanExecute);
 		}
-
-		public string AccountKeyPath
-		{
-			get => _accountKeyPath;
-			set => this.RaiseAndSetIfChanged(ref _accountKeyPath, value);
-		}
-
-		public string MinGapLimit
-		{
-			get => _minGapLimit;
-			set => this.RaiseAndSetIfChanged(ref _minGapLimit, value);
-		}
-
-		public ICommand NextCommand { get; }
 
 		private void ValidateMinGapLimit(IValidationErrors errors)
 		{
