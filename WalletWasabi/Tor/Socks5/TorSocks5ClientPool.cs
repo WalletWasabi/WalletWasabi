@@ -219,7 +219,7 @@ namespace WalletWasabi.Tor.Socks5
 
 				Logger.LogTrace("Wait 1s for a free pool item.");
 				await Task.Delay(1000, token).ConfigureAwait(false);
-			} while (!token.IsCancellationRequested);
+			} while (true);
 		}
 
 		/// <remarks>Caller is responsible for acquiring <see cref="ObtainPoolItemAsyncLock"/>.</remarks>
