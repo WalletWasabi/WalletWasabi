@@ -46,53 +46,6 @@
                         Icon="{StaticResource recover_arrow_right_regular}"
                         Command="{Binding RecoverWalletCommand}"/>
 
-          <!-- <StackPanel.Styles> -->
-          <!--   <Style Selector="Button"> -->
-          <!--     <Setter Property="HorizontalAlignment" Value="Stretch" /> -->
-          <!--     <Setter Property="BorderThickness" Value="1" /> -->
-          <!--     <Setter Property="Padding" Value="0" /> -->
-          <!--     <Setter Property="IsEnabled" Value="{Binding OptionsEnabled}" /> -->
-          <!--     <Setter Property="Opacity" Value="{Binding OptionsEnabled, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}" /> -->
-          <!--     <Setter Property="IsVisible" x:CompileBindings="False" Value="{Binding $self.Opacity, Converter={x:Static conv:BoolOpacityConverters.OpacityToBool}}" /> -->
-          <!--   </Style> -->
-          <!--   <Style Selector="Button.option:disabled /template/ ContentPresenter#PART_ContentPresenter"> -->
-          <!--     <Setter Property="Background" Value="{DynamicResource OptionButtonBackground}" /> -->
-          <!--   </Style> -->
-          <!-- </StackPanel.Styles> -->
-
-          <!-- <Button Classes="option" Command="{Binding CreateWalletCommand}"> -->
-          <!--   <StackPanel Orientation="Horizontal"> -->
-          <!--     <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource add_regular}" Width="16" -->
-          <!--               VerticalAlignment="Center" /> -->
-          <!--     <TextBlock Text="Create a new wallet" VerticalAlignment="Center" /> -->
-          <!--   </StackPanel> -->
-          <!-- </Button> -->
-          <!-- -->
-          <!-- <Button Classes="option" Command="{Binding RecoverWalletCommand}"> -->
-          <!--   <StackPanel Orientation="Horizontal"> -->
-          <!--     <PathIcon DockPanel.Dock="Left" Margin="20" -->
-          <!--               Data="{StaticResource recover_arrow_right_regular}" -->
-          <!--               Width="16" VerticalAlignment="Center" /> -->
-          <!--     <TextBlock Text="Recover a wallet" VerticalAlignment="Center" /> -->
-          <!--   </StackPanel> -->
-          <!-- </Button> -->
-          <!-- -->
-          <!-- <Button Classes="option" Command="{Binding ImportWalletCommand}"> -->
-          <!--   <StackPanel Orientation="Horizontal"> -->
-          <!--     <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource import_regular}" -->
-          <!--               Width="16" -->
-          <!--               VerticalAlignment="Center" /> -->
-          <!--     <TextBlock Text="Import a wallet" VerticalAlignment="Center" /> -->
-          <!--   </StackPanel> -->
-          <!-- </Button> -->
-          <!-- -->
-          <!-- <Button Classes="option" Command="{Binding ConnectHardwareWalletCommand}"> -->
-          <!--   <StackPanel Orientation="Horizontal"> -->
-          <!--     <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource web_asset_regular}" -->
-          <!--               Width="16" VerticalAlignment="Center" /> -->
-          <!--     <TextBlock Text="Connect to hardware wallet" VerticalAlignment="Center" /> -->
-          <!--   </StackPanel> -->
-          <!-- </Button> -->
         </WrapPanel>
       </ScrollViewer>
     </DockPanel>

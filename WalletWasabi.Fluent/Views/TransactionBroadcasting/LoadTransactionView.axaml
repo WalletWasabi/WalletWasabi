@@ -8,41 +8,16 @@
              x:DataType="transactionBroadcasting:LoadTransactionViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.TransactionBroadcasting.LoadTransactionView">
-    <c:ContentArea Title="Transaction Broadcaster"
-                   Caption="Paste or import the transaction and broadcast it to the network."
-                   EnableCancel="True">
-        <c:ContentArea.Styles>
-            <Style Selector="Panel > PathIcon">
-                <Setter Property="Width" Value="80"/>
-                <Setter Property="Height" Value="80"/>
-                <Setter Property="Opacity" Value="0.8"/>
-            </Style>
-            <Style Selector="Panel > TextBlock">
-                <Setter Property="Margin" Value="0 0 0 15"/>
-                <Setter Property="HorizontalAlignment" Value="Center"/>
-                <Setter Property="VerticalAlignment" Value="Bottom"/>
-            </Style>
-            <Style Selector="StackPanel > Button">
-                <Setter Property="Width" Value="250"/>
-                <Setter Property="Height" Value="250"/>
-            </Style>
-        </c:ContentArea.Styles>
-            <StackPanel Orientation="Horizontal" Spacing="50" HorizontalAlignment="Center" VerticalAlignment="Center">
-
-                <Button Classes="option" Command="{Binding ImportTransactionCommand}">
-                    <Panel>
-                        <TextBlock Text="Import transaction" />
-                        <PathIcon Data="{StaticResource folder_move_regular}" />
-                    </Panel>
-                </Button>
-
-                <Button Classes="option">
-                    <Panel>
-                        <TextBlock Text="Paste from clipboard" />
-                        <PathIcon Data="{StaticResource clipboard_text_regular}" />
-                    </Panel>
-                </Button>
-
-            </StackPanel>
-    </c:ContentArea>
+<c:ContentArea Title="Transaction Broadcaster"
+               Caption="Paste or import the transaction and broadcast it to the network."
+               EnableCancel="True">
+    <StackPanel Orientation="Horizontal" Spacing="50" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <c:TileButton Text="Import transaction"
+                      Icon="{StaticResource folder_move_regular}"
+                      Command="{Binding ImportTransactionCommand}"/>
+        <c:TileButton Text="Paste from clipboard"
+                      Icon="{StaticResource clipboard_text_regular}"
+                      Command="{Binding PasteCommand}"/>
+    </StackPanel>
+</c:ContentArea>
 </UserControl>
