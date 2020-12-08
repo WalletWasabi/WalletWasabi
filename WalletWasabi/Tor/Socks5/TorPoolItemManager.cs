@@ -40,7 +40,7 @@ namespace WalletWasabi.Tor.Socks5
 			lock (HostBucketsLock)
 			{
 				// Get list of connections for given host.
-				List<IPoolItem> hostItems = GetHostListNoLock(host);
+				List<IPoolItem> hostItems = AddOrGetNoLock(host);
 
 				if (hostItems.Count < MaxPoolItemsPerHost)
 				{
@@ -62,7 +62,7 @@ namespace WalletWasabi.Tor.Socks5
 		{
 			lock (HostBucketsLock)
 			{
-				return new List<IPoolItem>(GetHostListNoLock(host));
+				return new List<IPoolItem>(AddOrGetNoLock(host));
 			}
 		}
 
@@ -77,7 +77,7 @@ namespace WalletWasabi.Tor.Socks5
 			lock (HostBucketsLock)
 			{
 				// Get list of connections for given host.
-				List<IPoolItem> hostItems = GetHostListNoLock(host);
+				List<IPoolItem> hostItems = AddOrGetNoLock(host);
 
 				IPoolItem? reservedItem = null;
 
@@ -104,7 +104,7 @@ namespace WalletWasabi.Tor.Socks5
 		}
 
 		/// <remarks>Requires access guarded by <see cref="HostBucketsLock"/>.</remarks>
-		private List<IPoolItem> GetHostListNoLock(string host)
+		private List<IPoolItem> AddOrGetNoLock(string host)
 		{
 			// Make sure the list is present.
 			if (!HostBuckets.ContainsKey(host))
