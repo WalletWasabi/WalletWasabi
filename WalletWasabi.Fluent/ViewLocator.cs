@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent
 
 		public IControl Build(object data)
 		{
-			var type =  data.GetType();
+			var type = data.GetType();
 			if (s_views.TryGetValue(type, out var func))
 			{
 				return func?.Invoke();
