@@ -123,7 +123,7 @@ namespace {namespaceNameLocator}
 				string classNameView = classNameViewModel.Replace("ViewModel", "View");
 
 				var classNameViewSymbol = compilation.GetTypeByMetadataName(classNameView);
-				if (classNameViewSymbol is null || !classNameViewSymbol.BaseType.Equals(userControlViewSymbol, SymbolEqualityComparer.Default))
+				if (classNameViewSymbol is null || classNameViewSymbol.BaseType?.Equals(userControlViewSymbol, SymbolEqualityComparer.Default) != true)
 				{
 					source.AppendLine($@"			[typeof({classNameViewModel})] = () => new TextBlock() {{ Text = {("\"Not Found: " + classNameView + "\"")} }},");
 				}

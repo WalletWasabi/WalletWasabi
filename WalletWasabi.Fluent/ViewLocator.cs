@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent
 			var type = data.GetType();
 			if (s_views.TryGetValue(type, out var func))
 			{
-				return func?.Invoke();
+				return func.Invoke();
 			}
 			throw new Exception($"Unable to create view for type: {type}");
 		}
