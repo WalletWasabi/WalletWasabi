@@ -26,7 +26,14 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			OpenCommand = ReactiveCommand.Create(
 				() =>
 				{
-					Navigate().To(this, NavigationMode.Clear);
+					if (SelectionMode == NavBarItemSelectionMode.Toggle)
+					{
+						Toggle();
+					}
+					else
+					{
+						Navigate().To(this, NavigationMode.Clear);
+					}
 				});
 
 			this.WhenAnyValue(x => x.IsExpanded)
