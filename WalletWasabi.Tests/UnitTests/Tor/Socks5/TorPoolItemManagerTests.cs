@@ -20,9 +20,9 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			Assert.Empty(clientsManager.GetItemsCopy(uri.Host));
 
 			// No pool item can be re-used at this point.
-			(bool canBeAdded, IPoolItem? poolItem) result1 = clientsManager.GetPoolItem(uri.Host, isolateStream: false);
-			Assert.True(result1.canBeAdded);
-			Assert.Null(result1.poolItem);
+			bool canBeAdded = clientsManager.GetPoolItem(uri.Host, isolateStream: false, out IPoolItem? poolItem);
+			Assert.True(canBeAdded);
+			Assert.Null(poolItem);
 
 			// No pool item can be re-used at this point.
 			TestPoolItem item1 = new(PoolItemState.InUse, allowRecycling: true);
@@ -43,11 +43,11 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			item1.State = PoolItemState.FreeToUse;
 
 			// Get free pool item, it should be item1.
-			(bool canBeAdded, IPoolItem? poolItem) result2 = clientsManager.GetPoolItem(uri.Host, isolateStream: false);
-			Assert.False(result2.canBeAdded); // All slots are full.
-			Assert.NotNull(result2.poolItem);
-			Assert.Equal(item1, result2.poolItem);
-			Assert.Equal(PoolItemState.InUse, ((TestPoolItem)result2.poolItem!).State);
+			canBeAdded = clientsManager.GetPoolItem(uri.Host, isolateStream: false, out poolItem);
+			Assert.False(canBeAdded); // All slots are full.
+			Assert.NotNull(poolItem);
+			Assert.Equal(item1, poolItem);
+			Assert.Equal(PoolItemState.InUse, ((TestPoolItem)poolItem!).State);
 		}
 	}
 }

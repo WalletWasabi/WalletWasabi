@@ -197,7 +197,7 @@ namespace WalletWasabi.Tor.Socks5
 			{
 				using (await ObtainPoolItemAsyncLock.LockAsync(token).ConfigureAwait(false))
 				{
-					(bool canBeAdded, IPoolItem? poolItem) = PoolItemManager.GetPoolItem(host, isolateStream);
+					bool canBeAdded = PoolItemManager.GetPoolItem(host, isolateStream, out IPoolItem? poolItem);
 
 					if (poolItem is { })
 					{
@@ -219,7 +219,7 @@ namespace WalletWasabi.Tor.Socks5
 
 				Logger.LogTrace("Wait 1s for a free pool item.");
 				await Task.Delay(1000, token).ConfigureAwait(false);
-			} while (true);
+			} while (!token.IsCancellationRequested);
 		}
 
 		/// <remarks>Caller is responsible for acquiring <see cref="ObtainPoolItemAsyncLock"/>.</remarks>

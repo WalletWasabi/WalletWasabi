@@ -72,14 +72,14 @@ namespace WalletWasabi.Tor.Socks5
 		/// <param name="host">URI's host value.</param>
 		/// <param name="isolateStream"><c>true</c> if a new Tor circuit is required for this HTTP request.</param>
 		/// <returns>Whether a new pool item can be added to <see cref="TorPoolItemManager"/> and reserved pool item to use, if any.</returns>
-		public (bool canBeAdded, IPoolItem? poolItem) GetPoolItem(string host, bool isolateStream)
+		public bool GetPoolItem(string host, bool isolateStream, out IPoolItem? poolItem)
 		{
 			lock (HostBucketsLock)
 			{
 				// Get list of connections for given host.
 				List<IPoolItem> hostItems = AddOrGetNoLock(host);
 
-				IPoolItem? reservedItem = null;
+				poolItem = null;
 
 				// Find first free connection, if it exists.
 				List<IPoolItem> disposeList = hostItems.FindAll(item => item.NeedRecycling).ToList();
@@ -90,7 +90,7 @@ namespace WalletWasabi.Tor.Socks5
 				if (!isolateStream)
 				{
 					// Find first free connection, if it exists.
-					reservedItem = hostItems.Find(item => item.TryReserve());
+					poolItem = hostItems.Find(item => item.TryReserve());
 				}
 				else
 				{
@@ -99,7 +99,7 @@ namespace WalletWasabi.Tor.Socks5
 
 				bool canBeAdded = hostItems.Count < MaxPoolItemsPerHost;
 
-				return (canBeAdded, reservedItem);
+				return canBeAdded;
 			}
 		}
 
