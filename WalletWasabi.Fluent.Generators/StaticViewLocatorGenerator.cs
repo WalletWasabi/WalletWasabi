@@ -65,7 +65,10 @@ namespace WalletWasabi.Fluent
 				}
 				else if (namedTypeSymbol.Name.EndsWith("ViewModel"))
 				{
-					namedTypeSymbolViewModels.Add(namedTypeSymbol);
+					if (!namedTypeSymbol.IsAbstract)
+					{
+						namedTypeSymbolViewModels.Add(namedTypeSymbol);
+					}
 				}
 			}
 
