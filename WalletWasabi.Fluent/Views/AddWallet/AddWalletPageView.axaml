@@ -21,33 +21,26 @@
           </i:Interaction.Behaviors>
         </TextBox>
       </StackPanel>
-      <ScrollViewer>
-        <WrapPanel Orientation="Horizontal" Margin="0 0 0 20" HorizontalAlignment="Center">
-          <WrapPanel.Styles>
-            <Style Selector="c|TileButton">
-              <Setter Property="Margin" Value="15"/>
-              <Setter Property="IsEnabled" Value="{Binding OptionsEnabled}"/>
-            </Style>
-          </WrapPanel.Styles>
-
-          <c:TileButton Text="Create a new wallet"
-                        Icon="{StaticResource add_regular}"
-                        Command="{Binding CreateWalletCommand}"/>
-
-          <c:TileButton Text="Connect to hardware wallet"
-                        Icon="{StaticResource web_asset_regular}"
-                        Command="{Binding ConnectHardwareWalletCommand}"/>
-
-          <c:TileButton Text="Import a wallet"
-                        Icon="{StaticResource import_regular}"
-                        Command="{Binding ImportWalletCommand}"/>
-
-          <c:TileButton Text="Recover a wallet"
-                        Icon="{StaticResource recover_arrow_right_regular}"
-                        Command="{Binding RecoverWalletCommand}"/>
-
-        </WrapPanel>
-      </ScrollViewer>
+      <WrapPanel Orientation="Horizontal" Margin="0 0 0 20" HorizontalAlignment="Center">
+        <WrapPanel.Styles>
+          <Style Selector="c|TileButton">
+            <Setter Property="Margin" Value="15"/>
+            <Setter Property="IsEnabled" Value="{Binding OptionsEnabled}"/>
+          </Style>
+        </WrapPanel.Styles>
+        <c:TileButton Text="Create a new wallet"
+                      Icon="{StaticResource add_regular}"
+                      Command="{Binding CreateWalletCommand}"/>
+        <c:TileButton Text="Connect to hardware wallet"
+                      Icon="{StaticResource web_asset_regular}"
+                      Command="{Binding ConnectHardwareWalletCommand}"/>
+        <c:TileButton Text="Import a wallet"
+                      Icon="{StaticResource import_regular}"
+                      Command="{Binding ImportWalletCommand}"/>
+        <c:TileButton Text="Recover a wallet"
+                      Icon="{StaticResource recover_arrow_right_regular}"
+                      Command="{Binding RecoverWalletCommand}"/>
+      </WrapPanel>
     </DockPanel>
   </c:ContentArea>
 </UserControl>
