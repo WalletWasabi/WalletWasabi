@@ -29,7 +29,8 @@
                    Opacity="{Binding IsModified, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"
                    DockPanel.Dock="Bottom" />
 
-    <c:ContentArea Title="Settings" Caption="Manage appearance, privacy and other settings">
+    <c:ContentArea Title="Settings" Caption="Manage appearance, privacy and other settings"
+                   EnableBack="True">
       <DockPanel LastChildFill="True">
 
         <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}">
