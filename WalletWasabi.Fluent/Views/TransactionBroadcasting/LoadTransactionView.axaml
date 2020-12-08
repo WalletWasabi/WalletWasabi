@@ -12,6 +12,13 @@
                Caption="Paste or import the transaction and broadcast it to the network."
                EnableCancel="True">
     <StackPanel Orientation="Horizontal" Spacing="50" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel.Styles>
+            <Style Selector="c|TileButton">
+                <Setter Property="Height" Value="250"/>
+                <Setter Property="Width" Value="250"/>
+                <Setter Property="IconSize" Value="80"/>
+            </Style>
+        </StackPanel.Styles>
         <c:TileButton Text="Import transaction"
                       Icon="{StaticResource folder_move_regular}"
                       Command="{Binding ImportTransactionCommand}"/>

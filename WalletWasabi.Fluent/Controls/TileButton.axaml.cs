@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.Controls
 	public class TileButton : Button
 	{
 		public static readonly StyledProperty<int> IconSizeProperty =
-			AvaloniaProperty.Register<TileButton, int>(nameof(IconSize), 80);
+			AvaloniaProperty.Register<TileButton, int>(nameof(IconSize), 40);
 
 		public static readonly StyledProperty<string> TextProperty =
 			AvaloniaProperty.Register<TileButton, string>(nameof(Text));
