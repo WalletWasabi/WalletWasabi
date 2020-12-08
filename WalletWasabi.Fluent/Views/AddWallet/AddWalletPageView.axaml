@@ -32,7 +32,7 @@
                       Icon="{StaticResource add_regular}"
                       Command="{Binding CreateWalletCommand}"/>
         <c:TileButton Text="Connect to hardware wallet"
-                      Icon="{StaticResource web_asset_regular}"
+                      Icon="{StaticResource calculator_regular}"
                       Command="{Binding ConnectHardwareWalletCommand}"/>
         <c:TileButton Text="Import a wallet"
                       Icon="{StaticResource import_regular}"
