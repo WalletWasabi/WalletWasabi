@@ -22,10 +22,11 @@
         </TextBox>
       </StackPanel>
       <ScrollViewer>
-        <WrapPanel Orientation="Horizontal" Margin="0 0 0 20">
+        <WrapPanel Orientation="Horizontal" Margin="0 0 0 20" HorizontalAlignment="Center">
           <WrapPanel.Styles>
             <Style Selector="c|TileButton">
               <Setter Property="Margin" Value="10"/>
+              <Setter Property="IsEnabled" Value="{Binding OptionsEnabled}"/>
             </Style>
           </WrapPanel.Styles>
 
