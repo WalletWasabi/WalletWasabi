@@ -30,6 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		[AutoNotify] private string _walletName = "";
 		[AutoNotify] private bool _optionsEnabled;
+		[AutoNotify] private bool _enableBack;
 
 		private readonly LegalDocuments _legalDocuments;
 
@@ -42,6 +43,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			Title = "Add Wallet";
 			SelectionMode = NavBarItemSelectionMode.Button;
 			_legalDocuments = legalDocuments;
+
+			Navigate()
+				.WhenAnyValue(x => x.CanNavigateBack)
+				.Subscribe(x => EnableBack = x);
 
 			this.WhenAnyValue(x => x.WalletName)
 				.ObserveOn(RxApp.MainThreadScheduler)
