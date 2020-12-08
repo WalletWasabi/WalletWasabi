@@ -47,9 +47,9 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// </summary>
 		public IRelativeHttpClient NewHttpClient(Func<Uri> baseUriFn, bool isolateStream)
 		{
-			if (TorEndpoint is { })
+			if (TorSocks5ClientPool is { })
 			{
-				return new TorHttpClient(TorSocks5ClientPool!, baseUriFn, isolateStream);
+				return new TorHttpClient(TorSocks5ClientPool, baseUriFn, isolateStream);
 			}
 			else
 			{
@@ -62,14 +62,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// </summary>
 		public IRelativeHttpClient NewBackendTorHttpClient(bool isolateStream)
 		{
-			if (TorEndpoint is { })
-			{
-				return new TorHttpClient(TorSocks5ClientPool!, BackendUriGetter, isolateStream);
-			}
-			else
-			{
-				return new ClearnetHttpClient(BackendUriGetter);
-			}
+			return NewHttpClient(BackendUriGetter, isolateStream);
 		}
 
 		// Protected implementation of Dispose pattern.
