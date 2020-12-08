@@ -107,11 +107,11 @@ using WalletWasabi.Gui.ViewModels;
 namespace {namespaceNameLocator}
 {{
     public partial class {classNameLocator}
-    {{
-");
+    {{");
 		source.Append($@"
 		private static Dictionary<Type, Func<Control>> s_views = new()
-		{{");
+		{{
+");
 
 			foreach (var namedTypeSymbolViewModel in namedTypeSymbolViewModels)
 			{
@@ -122,18 +122,15 @@ namespace {namespaceNameLocator}
 				var classNameViewSymbol = compilation.GetTypeByMetadataName(classNameView);
 				if (classNameViewSymbol is null)
 				{
-					source.Append($@"
-			[typeof({classNameViewModel})] = () => new TextBlock() {{ Text = {("\"Not Found: " + classNameView + "\"")} }},");
+					source.AppendLine($@"			[typeof({classNameViewModel})] = () => new TextBlock() {{ Text = {("\"Not Found: " + classNameView + "\"")} }},");
 				}
 				else
 				{
-					source.Append($@"
-			[typeof({classNameViewModel})] = () => new {classNameView}(),");
+					source.AppendLine($@"			[typeof({classNameViewModel})] = () => new {classNameView}(),");
 				}
 			}
 
-			source.Append($@"
-		}};
+			source.Append($@"		}};
 	}}
 }}");
 

@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent
 				return func?.Invoke();
 			}
 			throw new Exception($"Unable to create view for type: {type}");
-			/*var name =.FullName!.Replace("ViewModel", "View");
+			/*var name = data.GetType().FullName!.Replace("ViewModel", "View");
 			var type = Type.GetType(name);
 
 			if (type != null)
