@@ -35,7 +35,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// <param name="host">URI's host.</param>
 		/// <param name="poolItem">Pool item to add.</param>
 		/// <returns><c>true</c> when the new item was added, <c>false</c> otherwise.</returns>
-		public bool AddPoolItem(string host, IPoolItem poolItem)
+		public bool TryAddPoolItem(string host, IPoolItem poolItem)
 		{
 			lock (HostBucketsLock)
 			{

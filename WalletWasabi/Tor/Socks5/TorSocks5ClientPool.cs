@@ -232,7 +232,7 @@ namespace WalletWasabi.Tor.Socks5
 			{
 				poolItem = await NewPoolItemCreator.Invoke(request, isolateStream, token).ConfigureAwait(false);
 				Logger.LogTrace($"[NEW {poolItem}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
-				PoolItemManager.AddPoolItem(host, poolItem);
+				PoolItemManager.TryAddPoolItem(host, poolItem);
 			}
 			catch (TorException e)
 			{

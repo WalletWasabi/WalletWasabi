@@ -26,17 +26,17 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 
 			// No pool item can be re-used at this point.
 			TestPoolItem item1 = new(PoolItemState.InUse, allowRecycling: true);
-			bool itemAdded = clientsManager.AddPoolItem(uri.Host, item1);
+			bool itemAdded = clientsManager.TryAddPoolItem(uri.Host, item1);
 			Assert.True(itemAdded);
 
 			// One added pool item is in used, so it cannot be re-used.
 			TestPoolItem item2 = new(PoolItemState.InUse, allowRecycling: true);
-			bool itemAdded2 = clientsManager.AddPoolItem(uri.Host, item2);
+			bool itemAdded2 = clientsManager.TryAddPoolItem(uri.Host, item2);
 			Assert.True(itemAdded2);
 
 			// Cannot add third item, limit is two per host.
 			TestPoolItem item3 = new(PoolItemState.InUse, allowRecycling: true);
-			bool itemAdded3 = clientsManager.AddPoolItem(uri.Host, item3);
+			bool itemAdded3 = clientsManager.TryAddPoolItem(uri.Host, item3);
 			Assert.False(itemAdded3);
 
 			// Change state of item1, so that is free to be used again.
