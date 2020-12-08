@@ -89,7 +89,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task GetNodeVersionTestsAsync()
 		{
-			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
 			Version version = await CoreNode.GetVersionAsync(cts.Token);
 			Assert.Equal(WalletWasabi.Helpers.Constants.BitcoinCoreVersion, version);
 		}
