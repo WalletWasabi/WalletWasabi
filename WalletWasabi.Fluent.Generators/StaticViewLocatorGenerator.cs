@@ -123,12 +123,12 @@ namespace {namespaceNameLocator}
 				if (classNameViewSymbol is null)
 				{
 					source.Append($@"
-				[typeof({classNameViewModel})] = () => new TextBlock() {{ Text = {("\"Not Found: " + classNameView + "\"")} }},");
+			[typeof({classNameViewModel})] = () => new TextBlock() {{ Text = {("\"Not Found: " + classNameView + "\"")} }},");
 				}
 				else
 				{
 					source.Append($@"
-				[typeof({classNameViewModel})] = () => new {classNameView}(),");
+			[typeof({classNameViewModel})] = () => new {classNameView}(),");
 				}
 			}
 
