@@ -8,13 +8,20 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent
 {
-	public class ViewLocator : IDataTemplate
+	[StaticViewLocator]
+	public partial class ViewLocator : IDataTemplate
 	{
 		public bool SupportsRecycling => false;
 
 		public IControl Build(object data)
 		{
-			var name = data.GetType().FullName!.Replace("ViewModel", "View");
+			var type =  data.GetType();
+			if (s_views.TryGetValue(type, out var func))
+			{
+				return func?.Invoke();
+			}
+			throw new Exception($"Unable to create view for type: {type}");
+			/*var name =.FullName!.Replace("ViewModel", "View");
 			var type = Type.GetType(name);
 
 			if (type != null)
@@ -31,7 +38,7 @@ namespace WalletWasabi.Fluent
 			else
 			{
 				return new TextBlock { Text = "Not Found: " + name };
-			}
+			}*/
 		}
 
 		public bool Match(object data)
