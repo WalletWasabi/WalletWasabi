@@ -19,7 +19,7 @@
     <DockPanel LastChildFill="True">
 
       <Viewbox MaxHeight="150" DockPanel.Dock="Top" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0 20 0 0">
-        <StackPanel  Spacing="40" Orientation="Horizontal">
+        <StackPanel Spacing="40" Orientation="Horizontal">
           <Image Height="100" Source="/Assets/HardwareIcons/ledger.png" />
           <Image Height="100" Source="/Assets/HardwareIcons/coldcard.png" />
           <Image Height="100" Source="/Assets/HardwareIcons/trezor.png" />
