@@ -91,7 +91,11 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		{
 			lock (StateLock)
 			{
-				State = AllowRecycling ? PoolItemState.FreeToUse : PoolItemState.ToDispose;
+				if (State < PoolItemState.Disposed)
+				{
+					State = AllowRecycling ? PoolItemState.FreeToUse : PoolItemState.ToDispose;
+				}
+
 				return State;
 			}
 		}
@@ -120,7 +124,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 					Client.Dispose();
 					lock (StateLock)
 					{
-						State = PoolItemState.ToDispose;
+						State = PoolItemState.Disposed;
 					}
 				}
 				_disposedValue = true;

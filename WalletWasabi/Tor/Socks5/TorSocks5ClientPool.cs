@@ -141,7 +141,7 @@ namespace WalletWasabi.Tor.Socks5
 						itemToDispose = null;
 
 						// Let others use the client.
-						var state = poolItem.Unreserve();
+						PoolItemState state = poolItem.Unreserve();
 						Logger.LogTrace($"['{poolItem}'] Unreserve. State is: '{state}'.");
 
 						TorDoesntWorkSince = null;
