@@ -2,6 +2,7 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Tor.Http
 {
@@ -31,9 +32,12 @@ namespace WalletWasabi.Tor.Http
 		/// Sends an HTTP(s) request.
 		/// <para>The method can be used only when <see cref="DestinationUriAction"/> is set.</para>
 		/// </summary>
+		/// <exception cref="ArgumentNullException">If <see cref="DestinationUriAction"/> is <c>null</c>.</exception>
 		async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
 		{
-			var requestUri = new Uri(DestinationUriAction!.Invoke(), relativeUri);
+			var destinationUriAction = Guard.NotNull(nameof(DestinationUriAction), DestinationUriAction);
+
+			var requestUri = new Uri(destinationUriAction.Invoke(), relativeUri);
 			using var httpRequestMessage = new HttpRequestMessage(method, requestUri);
 
 			if (content is { })
