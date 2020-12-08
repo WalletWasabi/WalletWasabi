@@ -22,11 +22,29 @@
         </TextBox>
       </StackPanel>
       <ScrollViewer>
-        <StackPanel Spacing="10" Margin="0 0 0 20">
+        <WrapPanel Orientation="Horizontal" Margin="0 0 0 20">
+          <WrapPanel.Styles>
+            <Style Selector="c|TileButton">
+              <Setter Property="Margin" Value="10"/>
+            </Style>
+          </WrapPanel.Styles>
+
           <c:TileButton Text="Create a new wallet"
                         Icon="{StaticResource add_regular}"
-                        Command="{Binding CreateWalletCommand}"
-                        />
+                        Command="{Binding CreateWalletCommand}"/>
+
+          <c:TileButton Text="Connect to hardware wallet"
+                        Icon="{StaticResource web_asset_regular}"
+                        Command="{Binding ConnectHardwareWalletCommand}"/>
+
+          <c:TileButton Text="Import a wallet"
+                        Icon="{StaticResource import_regular}"
+                        Command="{Binding ImportWalletCommand}"/>
+
+          <c:TileButton Text="Recover a wallet"
+                        Icon="{StaticResource recover_arrow_right_regular}"
+                        Command="{Binding RecoverWalletCommand}"/>
+
           <!-- <StackPanel.Styles> -->
           <!--   <Style Selector="Button"> -->
           <!--     <Setter Property="HorizontalAlignment" Value="Stretch" /> -->
@@ -74,7 +92,7 @@
           <!--     <TextBlock Text="Connect to hardware wallet" VerticalAlignment="Center" /> -->
           <!--   </StackPanel> -->
           <!-- </Button> -->
-        </StackPanel>
+        </WrapPanel>
       </ScrollViewer>
     </DockPanel>
   </c:ContentArea>
