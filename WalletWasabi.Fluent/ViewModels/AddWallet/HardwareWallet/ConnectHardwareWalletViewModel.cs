@@ -1,7 +1,9 @@
 using System;
+using System.IO;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -42,12 +44,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				Message = "";
 			});
 
+			// TODO: Create an up-to-date article
+			OpenBrowserCommand = ReactiveCommand.CreateFromTask(async () =>
+				await IoHelpers.OpenBrowserAsync("https://docs.wasabiwallet.io/using-wasabi/ColdWasabi.html#using-hardware-wallet-step-by-step"));
+
 			_message = "";
 		}
 
 		public string WalletName { get; }
 
 		public HardwareWalletOperations HardwareWalletOperations { get; }
+
+		public ICommand OpenBrowserCommand { get; }
 
 		private void OnNoHardwareWalletFound(object? sender, EventArgs e)
 		{

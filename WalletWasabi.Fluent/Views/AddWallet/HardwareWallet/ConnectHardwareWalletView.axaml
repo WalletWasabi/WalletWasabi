@@ -28,7 +28,7 @@
       <Panel DockPanel.Dock="Bottom">
         <TextBlock Text="{Binding Message}" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0 0 0 200"/>
         <c:ProgressRing IsVisible="{Binding !ContinueButtonEnable}" IsIndeterminate="True" VerticalAlignment="Center" HorizontalAlignment="Center" Height="100" Width="100" />
-        <Button Content="More information and help with Hardware Wallets" Classes="h8 plain activeHyperLink" HorizontalAlignment="Center" VerticalAlignment="Bottom" Foreground="{DynamicResource SystemAccentColor}" />
+        <Button Command="{Binding OpenBrowserCommand}" Content="More information and help with Hardware Wallets" Classes="h8 plain activeHyperLink" HorizontalAlignment="Center" VerticalAlignment="Bottom" Foreground="{DynamicResource SystemAccentColor}" />
       </Panel>
 
     </DockPanel>
