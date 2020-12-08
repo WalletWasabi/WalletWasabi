@@ -27,11 +27,11 @@
         </StackPanel>
       </Viewbox>
 
-      <Panel DockPanel.Dock="Bottom">
-        <TextBlock Text="{Binding Message}" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Margin="0 15 0 200"/>
-        <c:ProgressRing IsVisible="{Binding !ContinueButtonEnable}" IsIndeterminate="True" VerticalAlignment="Center" HorizontalAlignment="Center" Height="100" Width="100" />
-        <Button Command="{Binding OpenBrowserCommand}" Content="More information and help with Hardware Wallets" Classes="h8 plain activeHyperLink" HorizontalAlignment="Center" VerticalAlignment="Bottom" Foreground="{DynamicResource SystemAccentColor}" />
-      </Panel>
+      <DockPanel DockPanel.Dock="Bottom" LastChildFill="True" Margin="0 50 0 0">
+        <TextBlock Text="{Binding Message}" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top"/>
+        <Button Command="{Binding OpenBrowserCommand}" Content="More information and help with Hardware Wallets" Classes="h8 plain activeHyperLink" HorizontalAlignment="Center" DockPanel.Dock="Bottom"/>
+        <c:ProgressRing IsVisible="{Binding !ContinueButtonEnable}" Margin="15" IsIndeterminate="True" VerticalAlignment="Center" HorizontalAlignment="Center" Height="100" Width="100" />
+      </DockPanel>
 
     </DockPanel>
   </c:ContentArea>

@@ -61,7 +61,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			IsBusy = false;
 			ContinueButtonEnable = true;
-			Message = "Make sure your device is unlocked with PIN and plugged in then press Continue.";
+			Message = "Connect your wallet to the USB port on your PC / Enter the PIN on the Wallet.";
 			Task.Run(() => HardwareWalletOperations.StopDetectionAsync());
 			HardwareWalletOperations.NoHardwareWalletFound -= OnNoHardwareWalletFound;
 		}
