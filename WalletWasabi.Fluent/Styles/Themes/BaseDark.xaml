@@ -19,7 +19,6 @@
     <SolidColorBrush x:Key="OptionButtonBorderBrush">#7FFFFFFF</SolidColorBrush>
 
     <SolidColorBrush x:Key="DialogOverlayColor">#7F2E2E2E</SolidColorBrush>
-    <SolidColorBrush x:Key="DialogBackground">#323232</SolidColorBrush>
     <BoxShadows x:Key="DialogBoxShadow">4 11 30 1 #3F000000</BoxShadows>
 
     <StaticResource x:Key="TagsBoxControlForeground" ResourceKey="TextControlForeground" />
