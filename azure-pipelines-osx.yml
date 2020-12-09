@@ -16,8 +16,9 @@ jobs:
   - task: DotNetCoreCLI@2
     displayName: 'Restore'
     inputs:
-      command: restore
+      command: 'restore'
       arguments: --locked-mode
+      feedsToUse: 'config'
   - task: DotNetCoreCLI@2
     displayName: 'Build Debug'
     inputs:
