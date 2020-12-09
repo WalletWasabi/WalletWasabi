@@ -19,7 +19,7 @@ jobs:
       command: 'restore'
       arguments: --locked-mode
       feedsToUse: 'config'
-      nugetConfigPath: 'WalletWasabi/NuGet.Config'
+      nugetConfigPath: 'NuGet.Config'
   - task: DotNetCoreCLI@2
     displayName: 'Build Debug'
     inputs:
