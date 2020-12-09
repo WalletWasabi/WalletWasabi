@@ -75,6 +75,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			_navBar = new NavBarViewModel(MainScreen, _walletManager);
 
+			NavigationManager.RegisterType(_navBar);
+
 			RegisterCategories(_searchPage);
 			RegisterViewModels();
 
