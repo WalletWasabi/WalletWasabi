@@ -15,7 +15,7 @@ bitcoind
 bitcoin-cli getblockchaininfo
 tor
 sudo service nginx start
-rm WalletWasabi/WalletWasabi.Backend/bin/ -r ; dotnet publish ~/WalletWasabi/WalletWasabi.Backend --configuration Release --self-contained false
+rm -rf WalletWasabi/WalletWasabi.Backend/bin/ ; dotnet publish ~/WalletWasabi/WalletWasabi.Backend --configuration Release --self-contained false
 sudo systemctl start walletwasabi.service
 pgrep -ilfa tor && pgrep -ilfa bitcoin && pgrep -ilfa wasabi && pgrep -ilfa nginx
 tail -10000 ~/.walletwasabi/backend/Logs.txt
