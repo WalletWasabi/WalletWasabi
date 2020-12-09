@@ -2,6 +2,7 @@ using System;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia.Controls.Chrome;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Gui.ViewModels;
@@ -22,9 +23,16 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			BackCommand = ReactiveCommand.Create(() => Navigate().Back());
 
 			CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
+
+			Title = "";
+			ErrorCaption = "We are sorry, something happened during the process.";
 		}
 
 		public virtual string IconName => "navigation_regular";
+
+		public string Title { get; set; }
+
+		public string ErrorCaption { get; set; }
 
 		public ICommand? NextCommand { get; protected set; }
 
@@ -103,6 +111,12 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			Navigate(target).Back();
 
 			return result;
+		}
+
+		protected void ShowError(string message)
+		{
+			var dialog = new ShowErrorDialogViewModel(message, Title, ErrorCaption);
+			dialog.ShowDialogAsync();
 		}
 	}
 }

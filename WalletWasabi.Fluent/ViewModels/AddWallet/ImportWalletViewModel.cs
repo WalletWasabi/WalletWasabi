@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using NBitcoin;
 using Newtonsoft.Json.Linq;
 using WalletWasabi.Blockchain.Keys;
@@ -17,16 +18,19 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public ImportWalletViewModel(string walletName, WalletManager walletManager)
 		{
+			Title = "Import Wallet";
+			ErrorCaption = "The wallet file was not valid or compatible with Wasabi.";
+
 			WalletName = walletName;
 			WalletManager = walletManager;
 
-			ImportWallet();
+			Task.Run(ImportWallet);
 		}
 
 		private string WalletName { get; }
 		private WalletManager WalletManager { get; }
 
-		private async void ImportWallet()
+		private async Task ImportWallet()
 		{
 			var filePath = await FileDialogHelper.ShowOpenFileDialogAsync("Import wallet file", new []{ "json" });
 
@@ -55,7 +59,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 			catch (Exception ex)
 			{
-				FluentLogger.ShowAndLogError(ex);
+				// FluentLogger.ShowAndLogError(ex);
+				ShowError(ex.Message);
 			}
 		}
 

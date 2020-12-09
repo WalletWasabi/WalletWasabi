@@ -9,8 +9,8 @@ namespace WalletWasabi.Fluent.Helpers
 		public static void ShowAndLogError(Exception ex)
 		{
 			Logger.LogError(ex);
-			var dialog = new ShowErrorDialogViewModel(ex.Message);
-			dialog.ShowDialogAsync();
+			// var dialog = new ShowErrorDialogViewModel(ex.Message);
+			// dialog.ShowDialogAsync();
 		}
 	}
 }

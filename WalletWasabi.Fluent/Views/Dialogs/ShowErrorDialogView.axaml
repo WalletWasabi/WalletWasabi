@@ -8,9 +8,9 @@
              x:DataType="dialog:ShowErrorDialogViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.ShowErrorDialogView">
-  <c:ContentArea Title="Something went wrong"
-                 Caption="We are sorry, something happened during the process."
-                 EnableNext="True" NextContent="Done"
+  <c:ContentArea Title="{Binding Title}"
+                 Caption="{Binding Caption}"
+                 EnableNext="True" NextContent="Ok"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
       <DockPanel VerticalAlignment="Center">
           <TextBlock Text="{Binding Message}" DockPanel.Dock="Bottom" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="500" Margin="20 0" />
