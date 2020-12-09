@@ -50,7 +50,7 @@ namespace WalletWasabi.Tor.Socks5
 
 				return true;
 			}
-			catch (TorConnectionException)
+			catch (Exception e) when (e is TorConnectionException or TorAuthenticationException)
 			{
 				return false;
 			}
