@@ -12,7 +12,6 @@ using AvalonStudio.Shell;
 using Avalonia.Dialogs;
 using AvalonStudio.Extensibility;
 
-
 namespace WalletWasabi.Gui
 {
 	internal class GuiProgram : GuiProgramBase
@@ -24,7 +23,6 @@ namespace WalletWasabi.Gui
 
 		public override void StartCrashReporter(string[] args)
 		{
-
 			var result = AppBuilder.Configure<CrashReportApp>().UseReactiveUI();
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -45,8 +43,8 @@ namespace WalletWasabi.Gui
 				.With(new MacOSPlatformOptions { ShowInDock = true });
 
 			result.StartShellApp("Wasabi Wallet", _ => SetTheme(), args);
-		
 		}
+
 		public override void BuildAndRunAvaloniaApp(string[] args)
 		{
 			BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
