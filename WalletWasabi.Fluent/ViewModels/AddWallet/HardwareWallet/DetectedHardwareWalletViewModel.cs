@@ -2,7 +2,6 @@ using System;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Hwi.Models;
 
