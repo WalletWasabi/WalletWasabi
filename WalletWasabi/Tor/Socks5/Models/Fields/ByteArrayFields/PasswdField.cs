@@ -11,14 +11,12 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 			Bytes = Guard.NotNullOrEmpty(nameof(bytes), bytes);
 		}
 
-		public PasswdField(string passwd)
-			: this(Encoding.UTF8.GetBytes(passwd))
+		public PasswdField(string password)
+			: this(Encoding.UTF8.GetBytes(password))
 		{
 		}
 
 		private byte[] Bytes { get; }
-
-		public string Passwd => Encoding.UTF8.GetString(Bytes); // Tor accepts UTF8 encoded passwd
 
 		public override byte[] ToBytes() => Bytes;
 	}
