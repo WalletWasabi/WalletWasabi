@@ -97,7 +97,7 @@ namespace WalletWasabi.Microservices
 
 			try
 			{
-				Logger.LogTrace("Wait for the process to exit.");
+				Logger.LogTrace($"Wait for the process to exit: '{Process.StartInfo.FileName}'");
 
 				await Process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
