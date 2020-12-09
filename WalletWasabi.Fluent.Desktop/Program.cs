@@ -16,6 +16,7 @@ using WalletWasabi.Gui.CrashReport;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Wallets;
 
@@ -30,6 +31,8 @@ namespace WalletWasabi.Fluent.Desktop
 
 		private static TerminateService TerminateService = new TerminateService(TerminateApplicationAsync);
 
+		private static SingleInstanceChecker? SingleInstanceChecker { get; set; }
+
 		// Initialization code. Don't use any Avalonia, third-party APIs or any
 		// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
 		// yet and stuff might break.
@@ -41,12 +44,15 @@ namespace WalletWasabi.Fluent.Desktop
 			try
 			{
 				Global = CreateGlobal();
+				SingleInstanceChecker = new SingleInstanceChecker(Global.Network);
+
 				Locator.CurrentMutable.RegisterConstant(Global);
 				Locator.CurrentMutable.RegisterConstant(CrashReporter);
 
-				//Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+				SingleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 
 				runGui = ProcessCliCommands(args);
 
@@ -172,6 +178,11 @@ namespace WalletWasabi.Fluent.Desktop
 			if (mainViewModel is { })
 			{
 				Logger.LogSoftwareStopped("Wasabi GUI");
+			}
+
+			if (SingleInstanceChecker is { } single)
+			{
+				await single.DisposeAsync().ConfigureAwait(false);
 			}
 
 			Logger.LogSoftwareStopped("Wasabi");
