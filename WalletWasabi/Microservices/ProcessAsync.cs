@@ -25,14 +25,8 @@ namespace WalletWasabi.Microservices
 
 		private ProcessAsync(Process process)
 		{
-			ProcessExecutionTcs = new TaskCompletionSource<bool>();
-
 			Process = process;
-			Process.EnableRaisingEvents = true;
-			Process.Exited += OnExited;
 		}
-
-		private TaskCompletionSource<bool> ProcessExecutionTcs { get; }
 
 		private Process Process { get; }
 
@@ -90,10 +84,10 @@ namespace WalletWasabi.Microservices
 		/// <summary>
 		/// Waits until the process either finishes on its own or when user cancels the action.
 		/// </summary>
-		/// <param name="cancel">Cancellation token.</param>
-		/// <param name="killOnCancel">If <c>true</c> the process will be killed (with entire process tree) when this asynchronous action is canceled via <paramref name="cancel"/> token.</param>
+		/// <param name="cancellationToken">Cancellation token.</param>
+		/// <param name="killOnCancel">If <c>true</c> the process will be killed (with entire process tree) when this asynchronous action is canceled via <paramref name="cancellationToken"/> token.</param>
 		/// <returns><see cref="Task"/>.</returns>
-		public async Task WaitForExitAsync(CancellationToken cancel, bool killOnCancel = false)
+		public async Task WaitForExitAsync(CancellationToken cancellationToken, bool killOnCancel = false)
 		{
 			if (Process.HasExited)
 			{
@@ -103,15 +97,11 @@ namespace WalletWasabi.Microservices
 
 			try
 			{
-				// If this token is already in the canceled state, the delegate will be run immediately and synchronously.
-				using (cancel.Register(() => ProcessExecutionTcs.TrySetCanceled()))
-				{
-					Logger.LogTrace("Wait for the process to exit.");
+				Logger.LogTrace($"Wait for the process to exit: '{Process.StartInfo.FileName}'");
 
-					await ProcessExecutionTcs.Task.ConfigureAwait(false);
+				await Process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
-					Logger.LogTrace("Process has exited.");
-				}
+				Logger.LogTrace("Process has exited.");
 			}
 			catch (OperationCanceledException ex)
 			{
@@ -133,7 +123,7 @@ namespace WalletWasabi.Microservices
 					}
 				}
 
-				throw new TaskCanceledException("Waiting for process exiting was canceled.", ex, cancel);
+				throw new TaskCanceledException("Waiting for process exiting was canceled.", ex, cancellationToken);
 			}
 		}
 
@@ -148,7 +138,6 @@ namespace WalletWasabi.Microservices
 			if (disposing)
 			{
 				// Dispose managed state (managed objects).
-				Process.Exited -= OnExited;
 				Process.Dispose();
 			}
 
@@ -162,11 +151,6 @@ namespace WalletWasabi.Microservices
 
 			// Suppress finalization.
 			GC.SuppressFinalize(this);
-		}
-
-		private void OnExited(object? sender, EventArgs? e)
-		{
-			ProcessExecutionTcs.TrySetResult(true);
 		}
 	}
 }
