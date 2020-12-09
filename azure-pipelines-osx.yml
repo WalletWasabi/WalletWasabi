@@ -19,6 +19,7 @@ jobs:
       command: 'restore'
       arguments: --locked-mode
       feedsToUse: 'config'
+      nugetConfigPath: 'NuGet.config'
   - task: DotNetCoreCLI@2
     displayName: 'Build Debug'
     inputs:
