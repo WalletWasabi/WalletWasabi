@@ -40,6 +40,9 @@
         <c:TileButton Text="Recover a wallet"
                       Icon="{StaticResource recover_arrow_right_regular}"
                       Command="{Binding RecoverWalletCommand}"/>
+        <c:TileButton Text="Exception"
+                      Icon="{StaticResource recover_arrow_right_regular}"
+                      Command="{Binding ExceptionCommand}"/>
       </WrapPanel>
     </DockPanel>
   </c:ContentArea>

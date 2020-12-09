@@ -116,7 +116,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		protected void ShowError(string message)
 		{
 			var dialog = new ShowErrorDialogViewModel(message, Title, ErrorCaption);
-			dialog.ShowDialogAsync();
+			NavigateDialog(dialog, CurrentTarget == NavigationTarget.HomeScreen ? NavigationTarget.DialogScreen : CurrentTarget);
 		}
 	}
 }

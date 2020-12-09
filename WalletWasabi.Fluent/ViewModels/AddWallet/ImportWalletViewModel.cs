@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
@@ -59,7 +60,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 			catch (Exception ex)
 			{
-				// FluentLogger.ShowAndLogError(ex);
+				Logger.LogError(ex);
 				ShowError(ex.Message);
 			}
 		}

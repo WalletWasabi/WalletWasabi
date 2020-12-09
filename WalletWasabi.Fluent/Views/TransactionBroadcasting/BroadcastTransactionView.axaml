@@ -9,7 +9,7 @@
              x:DataType="transactionBroadcasting:BroadcastTransactionViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.TransactionBroadcasting.BroadcastTransactionView">
-    <c:ContentArea Title="Broadcast Transaction"
+    <c:ContentArea Title="{Binding Title}"
                    Caption="{Binding TransactionId}"
                    EnableCancel="{Binding !IsBusy}"
                    EnableNext="True" NextContent="Broadcast">

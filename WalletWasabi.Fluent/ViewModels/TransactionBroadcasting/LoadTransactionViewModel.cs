@@ -21,6 +21,9 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		{
 			Network = network;
 
+			Title = "Transaction Broadcaster";
+			ErrorCaption = "It was not possible to load the transaction.";
+
 			this.WhenAnyValue(x => x.FinalTransaction)
 				.Where(x => x is { })
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -40,6 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 					catch (Exception ex)
 					{
 						Logger.LogError(ex);
+						ShowError(ex.Message);
 					}
 				},
 				outputScheduler: RxApp.MainThreadScheduler);
@@ -71,7 +75,8 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				}
 				catch (Exception ex)
 				{
-					FluentLogger.ShowAndLogError(ex);
+					Logger.LogError(ex);
+					ShowError(ex.Message);
 				}
 			});
 		}

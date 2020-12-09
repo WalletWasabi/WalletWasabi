@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Logging;
 using WalletWasabi.Stores;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
@@ -37,6 +38,9 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 			TransactionBroadcaster broadcaster,
 			SmartTransaction transaction)
 		{
+			Title = "Broadcast Transaction";
+			ErrorCaption = "It was not possible to broadcast the transaction.";
+
 			var nullMoney = new Money(-1L);
 			var nullOutput = new TxOut(nullMoney, Script.Empty);
 
@@ -87,7 +91,8 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 					}
 					catch (Exception ex)
 					{
-						FluentLogger.ShowAndLogError(ex);
+						Logger.LogError(ex);
+						ShowError(ex.Message);
 					}
 
 					Navigate().Back();

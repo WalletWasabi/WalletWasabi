@@ -1,6 +1,7 @@
 using ReactiveUI;
 using System;
 using System.IO;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Windows.Input;
 using System.Reactive.Linq;
@@ -51,11 +52,16 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			RecoverWalletCommand = ReactiveCommand.Create(
 				() => { Navigate().To(new RecoverWalletViewModel(WalletName, network, walletManager)); });
 
-			ImportWalletCommand = ReactiveCommand.Create(() => new ImportWalletViewModel(WalletName, walletManager));
+			ImportWalletCommand = ReactiveCommand.Create(() => new ImportWalletViewModel(WalletName, walletManager){ CurrentTarget = NavigationTarget.HomeScreen});
 
 			ConnectHardwareWalletCommand = ReactiveCommand.Create(() =>
 			{
 				Navigate().To(new ConnectHardwareWalletViewModel(WalletName, network, walletManager));
+			});
+
+			ExceptionCommand = ReactiveCommand.Create(() =>
+			{
+				ShowError("asdadadaad");
 			});
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
@@ -88,6 +94,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
 		}
+
+		public ReactiveCommand<Unit, Unit> ExceptionCommand { get; set; }
 
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{

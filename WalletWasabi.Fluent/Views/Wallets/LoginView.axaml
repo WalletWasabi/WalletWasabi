@@ -15,6 +15,6 @@
         <behaviors:FocusOnAttachedBehavior />
       </i:Interaction.Behaviors>
     </TextBox>
-    <Button Content="Login" Classes="action" HorizontalAlignment="Right" Click="Button_OnClick" />
+    <Button Content="Login" Classes="action" HorizontalAlignment="Right" />
   </StackPanel>
 </UserControl>
