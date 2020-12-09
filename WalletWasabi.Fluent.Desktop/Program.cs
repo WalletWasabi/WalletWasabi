@@ -2,14 +2,12 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Dialogs;
 using Avalonia.ReactiveUI;
-using Avalonia.Threading;
 using Splat;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.CrashReport;
@@ -26,9 +24,9 @@ namespace WalletWasabi.Fluent.Desktop
 		private static Global? Global;
 
 		// This is only needed to pass CrashReporter to AppMainAsync otherwise it could be a local variable in Main().
-		private static CrashReporter CrashReporter = new CrashReporter();
+		private static readonly CrashReporter CrashReporter = new CrashReporter();
 
-		private static TerminateService TerminateService = new TerminateService(TerminateApplicationAsync);
+		private static readonly TerminateService TerminateService = new TerminateService(TerminateApplicationAsync);
 
 		// Initialization code. Don't use any Avalonia, third-party APIs or any
 		// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -41,10 +39,10 @@ namespace WalletWasabi.Fluent.Desktop
 			try
 			{
 				Global = CreateGlobal();
-				Locator.CurrentMutable.RegisterConstant(Global);
-				Locator.CurrentMutable.RegisterConstant(CrashReporter);
 
-				//Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
+				// TODO only required due to statusbar vm... to be removed.
+				Locator.CurrentMutable.RegisterConstant(Global);
+
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
@@ -61,11 +59,7 @@ namespace WalletWasabi.Fluent.Desktop
 					Logger.LogSoftwareStarted("Wasabi GUI");
 
 					BuildAvaloniaApp()
-						.AfterSetup(_ =>
-						{
-							ThemeHelper.ApplyTheme(Global!.UiConfig.DarkModeEnabled);
-							AppMainAsync(args);
-						})
+						.AfterSetup(_ => ThemeHelper.ApplyTheme(Global!.UiConfig.DarkModeEnabled))
 						.StartWithClassicDesktopLifetime(args);
 				}
 			}
@@ -104,23 +98,6 @@ namespace WalletWasabi.Fluent.Desktop
 				new PasswordFinderCommand(Global!.WalletManager),
 				new CrashReportCommand(CrashReporter));
 			return executionTask.GetAwaiter().GetResult();
-		}
-
-		private static async void AppMainAsync(string[] args)
-		{
-			try
-			{
-				await Global!.InitializeNoWalletAsync(TerminateService);
-
-				MainViewModel.Instance!.Initialize();
-
-				Dispatcher.UIThread.Post(GC.Collect);
-			}
-			catch (Exception ex)
-			{
-				// There is no other way to stop the creation of the WasabiWindow, we have to exit the application here instead of return to Main.
-				TerminateAppAndHandleException(ex, true);
-			}
 		}
 
 		/// <summary>
@@ -198,7 +175,7 @@ namespace WalletWasabi.Fluent.Desktop
 		{
 			bool useGpuLinux = true;
 
-			var result = AppBuilder.Configure(() => new App(Global!))
+			var result = AppBuilder.Configure(() => new App(Global!, async () => await Global!.InitializeNoWalletAsync(TerminateService)))
 				.UseReactiveUI();
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
