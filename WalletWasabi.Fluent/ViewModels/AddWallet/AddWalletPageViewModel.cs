@@ -33,11 +33,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		private readonly LegalDocuments _legalDocuments;
 
-		public AddWalletPageViewModel(
-			LegalDocuments legalDocuments,
+		public AddWalletPageViewModel(LegalDocuments legalDocuments,
 			WalletManager walletManager,
 			BitcoinStore store,
-			Network network)
+			Network network, NavBarViewModel navBar)
 		{
 			Title = "Add Wallet";
 			SelectionMode = NavBarItemSelectionMode.Button;
@@ -49,7 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
 			RecoverWalletCommand = ReactiveCommand.Create(
-				() => { Navigate().To(new RecoverWalletViewModel(WalletName, network, walletManager)); });
+				() => { Navigate().To(new RecoverWalletViewModel(WalletName, network, walletManager, navBar)); });
 
 			ImportWalletCommand = ReactiveCommand.Create(() => new ImportWalletViewModel(WalletName, walletManager));
 
@@ -80,7 +79,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 								return walletGenerator.GenerateWallet(WalletName, password);
 							});
 
-						Navigate().To(new RecoveryWordsViewModel(km, mnemonic, walletManager));
+						Navigate().To(new RecoveryWordsViewModel(km, mnemonic, walletManager, navBar));
 
 						IsBusy = false;
 					}

@@ -11,6 +11,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Logging;
@@ -25,10 +26,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		[AutoNotify] private IEnumerable<string>? _suggestions;
 		[AutoNotify] private Mnemonic? _currentMnemonics;
 
-		public RecoverWalletViewModel(
-			string walletName,
+		public RecoverWalletViewModel(string walletName,
 			Network network,
-			WalletManager walletManager)
+			WalletManager walletManager,
+			NavBarViewModel navBar)
 		{
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
@@ -50,7 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNext(walletManager, network, walletName),
+				async () => await OnNext(walletManager, network, walletName, navBar),
 				FinishCommandCanExecute);
 
 			AdvancedOptionsInteraction = new Interaction<(KeyPath, int), (KeyPath?, int?)>();
@@ -73,10 +74,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				});
 		}
 
-		private async Task OnNext(
-			WalletManager walletManager,
+		private async Task OnNext(WalletManager walletManager,
 			Network network,
-			string? walletName)
+			string? walletName, NavBarViewModel navBar)
 		{
 			IsBusy = true;
 
@@ -113,7 +113,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 			finally
 			{
-				Navigate().To(new AddedWalletPageViewModel(walletName!, WalletType.Normal));
+				Navigate().To(new AddedWalletPageViewModel(navBar, walletName!, WalletType.Normal));
 			}
 		}
 

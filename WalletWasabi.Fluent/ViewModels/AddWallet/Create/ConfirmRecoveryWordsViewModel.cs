@@ -7,6 +7,7 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
@@ -16,7 +17,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 	{
 		private readonly ReadOnlyObservableCollection<RecoveryWordViewModel> _confirmationWords;
 
-		public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
+		public ConfirmRecoveryWordsViewModel(NavBarViewModel navBar, List<RecoveryWordViewModel> mnemonicWords,
+			KeyManager keyManager, WalletManager walletManager)
 		{
 			var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 
@@ -32,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 				{
 					walletManager.AddWallet(keyManager);
 
-					Navigate().To(new AddedWalletPageViewModel(keyManager.WalletName, WalletType.Normal));
+					Navigate().To(new AddedWalletPageViewModel(navBar, keyManager.WalletName, WalletType.Normal));
 				},
 				finishCommandCanExecute);
 

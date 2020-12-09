@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
@@ -9,10 +10,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 {
 	public class RecoveryWordsViewModel : RoutableViewModel
 	{
-		public RecoveryWordsViewModel(
-			KeyManager keyManager,
+		public RecoveryWordsViewModel(KeyManager keyManager,
 			Mnemonic mnemonic,
-			WalletManager walletManager)
+			WalletManager walletManager, NavBarViewModel navBar)
 		{
 			MnemonicWords = new List<RecoveryWordViewModel>();
 
@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 			}
 
 			NextCommand = ReactiveCommand.Create(
-				() => Navigate().To(new ConfirmRecoveryWordsViewModel(MnemonicWords, keyManager, walletManager)));
+				() => Navigate().To(new ConfirmRecoveryWordsViewModel(navBar, MnemonicWords, keyManager, walletManager)));
 
 			CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 		}

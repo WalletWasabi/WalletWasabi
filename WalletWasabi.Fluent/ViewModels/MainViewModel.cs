@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private DialogScreenViewModel _dialogScreen;
 		[AutoNotify] private NavBarViewModel _navBar;
 		[AutoNotify] private StatusBarViewModel _statusBar;
-		[AutoNotify] private string _title = "Wasabi Wallet";		
+		[AutoNotify] private string _title = "Wasabi Wallet";
 		private readonly SettingsPageViewModel _settingsPage;
 		private readonly SearchPageViewModel _searchPage;
 		private readonly PrivacyModeViewModel _privacyMode;
@@ -61,24 +61,25 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			_walletManager = new WalletManagerViewModel(global.WalletManager, global.UiConfig);
 
+			_navBar = new NavBarViewModel(MainScreen, _walletManager);
+
 			_addWalletPage = new AddWalletPageViewModel(
 				global.LegalDocuments,
 				global.WalletManager,
 				global.BitcoinStore,
-				global.Network);
+				global.Network,
+				_navBar);
 
 			_settingsPage = new SettingsPageViewModel(global.Config, global.UiConfig);
-			_privacyMode = new PrivacyModeViewModel(global.UiConfig);			
+			_privacyMode = new PrivacyModeViewModel(global.UiConfig);
 			_searchPage = new SearchPageViewModel();
-
-			_navBar = new NavBarViewModel(MainScreen, _walletManager);
 
 			RegisterCategories(_searchPage);
 			RegisterViewModels();
 
 			RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
 
-			_searchPage.Initialise();			
+			_searchPage.Initialise();
 
 			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
