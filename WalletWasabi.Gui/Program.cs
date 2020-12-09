@@ -12,7 +12,7 @@ namespace WalletWasabi.Gui
 		/// see https://github.com/AvaloniaUI/Avalonia/wiki/Unresolved-platform-support-issues
 		private static void Main(string[] args)
 		{
-			GuiProgram program = new ();
+			GuiProgram program = new();
 			program.Run(args);
 		}
 	}
