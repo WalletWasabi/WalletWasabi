@@ -4,11 +4,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.OctetFields
 {
 	public class CmdField : OctetSerializableBase
 	{
-		public CmdField(byte byteValue)
-		{
-			ByteValue = byteValue;
-		}
-
 		// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt
 		// The BIND command is not supported.
 		// The (SOCKS5) "UDP ASSOCIATE" command is not supported.
@@ -31,5 +26,10 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.OctetFields
 		// hostname for that IPv4 record, and returns it in the "server bound
 		// address" portion of the reply.
 		public static readonly CmdField ResolvePtr = new CmdField(0xF1);
+
+		public CmdField(byte byteValue)
+		{
+			ByteValue = byteValue;
+		}
 	}
 }
