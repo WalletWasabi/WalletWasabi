@@ -5,8 +5,8 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Logging;
 using WalletWasabi.Stores;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
@@ -87,8 +87,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 					}
 					catch (Exception ex)
 					{
-						// TODO: Notify the user
-						Logger.LogError(ex);
+						FluentLogger.ShowAndLogError(ex);
 					}
 
 					Navigate().Back();

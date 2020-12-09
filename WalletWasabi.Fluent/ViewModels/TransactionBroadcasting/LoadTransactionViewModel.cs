@@ -71,8 +71,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				}
 				catch (Exception ex)
 				{
-					// TODO: Notify the user
-					Logger.LogError(ex);
+					FluentLogger.ShowAndLogError(ex);
 				}
 			});
 		}

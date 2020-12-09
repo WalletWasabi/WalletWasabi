@@ -1,14 +1,16 @@
-using WalletWasabi.Fluent.ViewModels.Navigation;
+using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
-	public partial class ShowErrorDialogViewModel : DialogViewModelBase
+	public class ShowErrorDialogViewModel : DialogViewModelBase<bool>
 	{
-		[AutoNotify] private string _message;
-
 		public ShowErrorDialogViewModel(string message)
 		{
-			_message = message;
+			Message = message;
+
+			NextCommand = ReactiveCommand.Create(() => Close());
 		}
+
+		public string Message { get; }
 	}
 }

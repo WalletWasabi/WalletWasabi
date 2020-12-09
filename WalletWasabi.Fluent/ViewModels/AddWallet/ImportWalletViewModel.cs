@@ -1,19 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using NBitcoin;
 using Newtonsoft.Json.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
@@ -57,13 +50,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 				WalletManager.AddWallet(km);
 
+				// TODO: get the type from the wallet file
 				Navigate().To(new AddedWalletPageViewModel(WalletName, isColdcardJson ? WalletType.Coldcard : WalletType.Normal));
 			}
 			catch (Exception ex)
 			{
-				// TODO: Notify the user
-				Logger.LogError(ex);
-				Navigate().To(new ShowErrorDialogViewModel(ex.Message));
+				FluentLogger.ShowAndLogError(ex);
 			}
 		}
 

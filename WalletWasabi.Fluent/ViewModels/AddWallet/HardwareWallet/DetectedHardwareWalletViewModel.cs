@@ -2,9 +2,9 @@ using System;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Hwi.Models;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
@@ -50,8 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				}
 				catch(Exception ex)
 				{
-					// TODO: Notify the user
-					Logger.LogError(ex);
+					FluentLogger.ShowAndLogError(ex);
 					Navigate().Back();
 				}
 
