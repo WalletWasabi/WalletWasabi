@@ -10,6 +10,7 @@ using NBitcoin;
 using Newtonsoft.Json.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -36,7 +37,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			var filePath = await FileDialogHelper.ShowOpenFileDialogAsync("Import wallet file", new []{ "json" });
 
-			// Dialog canceled.
 			if (filePath is null)
 			{
 				return;
@@ -51,17 +51,20 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 				// TODO: Better logic to distinguish wallets.
 				// If Count <= 3 then it is a possible Coldcard json otherwise possible Wasabi json
-				KeyManager km = jsonWallet.Count <= 3 ? GetKeyManagerByColdcardJson(jsonWallet, walletFullPath) : GetKeyManagerByWasabiJson(filePath, walletFullPath);
+				var isColdcardJson = jsonWallet.Count <= 3;
+
+				KeyManager km =  isColdcardJson ? GetKeyManagerByColdcardJson(jsonWallet, walletFullPath) : GetKeyManagerByWasabiJson(filePath, walletFullPath);
 
 				WalletManager.AddWallet(km);
+
+				Navigate().To(new AddedWalletPageViewModel(WalletName, isColdcardJson ? WalletType.Coldcard : WalletType.Normal));
 			}
 			catch (Exception ex)
 			{
 				// TODO: Notify the user
 				Logger.LogError(ex);
+				Navigate().To(new ShowErrorDialogViewModel(ex.Message));
 			}
-
-			Navigate().Clear();
 		}
 
 		private bool IsWalletExists(HDFingerprint? fingerprint) => WalletManager.GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);

@@ -16,6 +16,10 @@
 			<SubType>Designer</SubType>
 		</AvaloniaResource>
 		<AvaloniaResource Include="Assets\**" />
+		<Compile Update="Views\Dialogs\ShowErrorDialogView.axaml.cs">
+		  <DependentUpon>ShowErrorDialog.axaml</DependentUpon>
+		  <SubType>Code</SubType>
+		</Compile>
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0012147-beta" />
