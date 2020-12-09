@@ -14,7 +14,7 @@ using AvalonStudio.Extensibility;
 
 namespace WalletWasabi.Gui
 {
-	internal class GuiProgram : GuiProgramBase
+	internal class GuiProgram : ProgramBase
 	{
 		public override void SetPlatformBaseDirectory(string datadir)
 		{

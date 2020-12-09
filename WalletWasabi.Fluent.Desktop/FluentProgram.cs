@@ -12,13 +12,13 @@ using WalletWasabi.Gui;
 
 namespace WalletWasabi.Fluent.Desktop
 {
-	public class FluentProgram : GuiProgramBase
+	public class FluentProgram : ProgramBase
 	{
-
 		public override void SetPlatformBaseDirectory(string datadir)
 		{
 			// This does not need to be set in Fluent.
 		}
+
 		public override void StartCrashReporter(string[] args)
 		{
 			// TODO: insert crash report start code here.
@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.Desktop
 		}
 
 		// Avalonia configuration, don't remove; also used by visual designer.
-		private  AppBuilder BuildAvaloniaApp()
+		private AppBuilder BuildAvaloniaApp()
 		{
 			bool useGpuLinux = true;
 

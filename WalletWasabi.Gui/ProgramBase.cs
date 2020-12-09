@@ -12,16 +12,16 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui
 {
-	public class GuiProgramBase
+	public class ProgramBase
 	{
-		public  Global? Global { get; private set; }
+		public Global? Global { get; private set; }
 
 		// This is only needed to pass CrashReporter to AppMainAsync otherwise it could be a local variable in Main().
 		private CrashReporter CrashReporter { get; } = new CrashReporter();
 
 		public TerminateService TerminateService { get; }
 
-		public GuiProgramBase()
+		public ProgramBase()
 		{
 			TerminateService = new TerminateService(TerminateApplicationAsync);
 		}
@@ -41,7 +41,7 @@ namespace WalletWasabi.Gui
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				runGui = ProcessCliCommands(Global,args);
+				runGui = ProcessCliCommands(Global, args);
 
 				if (CrashReporter.IsReport)
 				{
@@ -51,7 +51,6 @@ namespace WalletWasabi.Gui
 				{
 					Logger.LogSoftwareStarted("Wasabi GUI");
 					BuildAndRunAvaloniaApp(args);
-
 				}
 			}
 			catch (Exception ex)
@@ -71,7 +70,6 @@ namespace WalletWasabi.Gui
 		{
 			throw new NotImplementedException();
 		}
-
 
 		private Global CreateGlobal()
 		{
@@ -118,7 +116,6 @@ namespace WalletWasabi.Gui
 		{
 			throw new NotImplementedException();
 		}
-
 
 		/// <summary>
 		/// This is a helper method until the creation of the window in AppMainAsync cannot be aborted without Environment.Exit().
@@ -192,6 +189,5 @@ namespace WalletWasabi.Gui
 		{
 			throw new NotImplementedException();
 		}
-
 	}
 }
