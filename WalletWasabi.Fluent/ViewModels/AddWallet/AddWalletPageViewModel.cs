@@ -59,11 +59,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				Navigate().To(new ConnectHardwareWalletViewModel(WalletName, network, walletManager));
 			});
 
-			ExceptionCommand = ReactiveCommand.Create(() =>
-			{
-				ShowError("asdadadaad");
-			});
-
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
