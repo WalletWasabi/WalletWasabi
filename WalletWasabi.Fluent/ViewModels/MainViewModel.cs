@@ -197,18 +197,12 @@ namespace WalletWasabi.Fluent.ViewModels
 					return legalDocs;
 				});
 
-			OpenWalletsFolderViewModel.RegisterLazy(() =>
-			{
-				IoHelpers.OpenFolderInFileExplorer(_walletManager.Model.WalletDirectories.WalletsDir);
-				return null;
-			});
-
 			UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
 			BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
 			DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
 
 			OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel(_global.DataDir));
-			OpenWalletFolderViewModel.RegisterLazy(() => new OpenWalletFolderViewModel(_walletManager));
+			OpenDirectory.OpenWalletsFolderViewModel.RegisterLazy(() => new OpenDirectory.OpenWalletsFolderViewModel(_walletManager.Model.WalletDirectories.WalletsDir));
 			OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
 			OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel(_global));
 			OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel(_global));
