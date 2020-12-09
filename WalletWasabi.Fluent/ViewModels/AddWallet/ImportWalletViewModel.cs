@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		private async void ImportWallet()
 		{
-			var filePath = await FileDialogHelper.ShowOpenFileDialogAsync("Import wallet file");
+			var filePath = await FileDialogHelper.ShowOpenFileDialogAsync("Import wallet file", new []{ "json" });
 
 			// Dialog canceled.
 			if (filePath is null)

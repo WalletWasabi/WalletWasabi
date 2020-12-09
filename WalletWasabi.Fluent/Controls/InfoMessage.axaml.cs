@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.Controls
 	public class InfoMessage : Label
 	{
 		public static readonly StyledProperty<int> IconSizeProperty =
-			AvaloniaProperty.Register<ContentArea, int>(nameof(IconSize), 20);
+			AvaloniaProperty.Register<InfoMessage, int>(nameof(IconSize), 20);
 
 		public int IconSize
 		{

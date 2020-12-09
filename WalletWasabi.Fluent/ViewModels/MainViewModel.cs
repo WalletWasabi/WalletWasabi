@@ -14,6 +14,8 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Search;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
+using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
+using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -26,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private DialogScreenViewModel _dialogScreen;
 		[AutoNotify] private NavBarViewModel _navBar;
 		[AutoNotify] private StatusBarViewModel _statusBar;
-		[AutoNotify] private string _title = "Wasabi Wallet";		
+		[AutoNotify] private string _title = "Wasabi Wallet";
 		private readonly SettingsPageViewModel _settingsPage;
 		private readonly SearchPageViewModel _searchPage;
 		private readonly PrivacyModeViewModel _privacyMode;
@@ -68,17 +70,19 @@ namespace WalletWasabi.Fluent.ViewModels
 				global.Network);
 
 			_settingsPage = new SettingsPageViewModel(global.Config, global.UiConfig);
-			_privacyMode = new PrivacyModeViewModel(global.UiConfig);			
+			_privacyMode = new PrivacyModeViewModel(global.UiConfig);
 			_searchPage = new SearchPageViewModel();
 
 			_navBar = new NavBarViewModel(MainScreen, _walletManager);
+
+			NavigationManager.RegisterType(_navBar);
 
 			RegisterCategories(_searchPage);
 			RegisterViewModels();
 
 			RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
 
-			_searchPage.Initialise();			
+			_searchPage.Initialise();
 
 			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -195,17 +199,23 @@ namespace WalletWasabi.Fluent.ViewModels
 					return legalDocs;
 				});
 
-			OpenWalletsFolderViewModel.RegisterLazy(() =>
-			{
-				IoHelpers.OpenFolderInFileExplorer(_walletManager.Model.WalletDirectories.WalletsDir);
-				return null;
-			});
+			UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
+			BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
+			DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
+
+			OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel(_global.DataDir));
+			OpenDirectory.OpenWalletsFolderViewModel.RegisterLazy(() => new OpenDirectory.OpenWalletsFolderViewModel(_walletManager.Model.WalletDirectories.WalletsDir));
+			OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
+			OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel(_global));
+			OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel(_global));
 		}
 
 		private static void RegisterCategories(SearchPageViewModel searchPage)
 		{
 			searchPage.RegisterCategory("General", 0);
 			searchPage.RegisterCategory("Settings", 1);
+			searchPage.RegisterCategory("Help & Support", 2);
+			searchPage.RegisterCategory("Open", 3);
 		}
 	}
 }
