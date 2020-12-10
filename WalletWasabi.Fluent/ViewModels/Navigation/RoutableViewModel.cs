@@ -108,10 +108,12 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			return result;
 		}
 
-		protected void ShowError(string message, string caption)
+		protected async Task ShowErrorAsync(string message, string caption)
 		{
 			var dialog = new ShowErrorDialogViewModel(message, Title, caption);
-			NavigateDialog(dialog, CurrentTarget == NavigationTarget.HomeScreen ? NavigationTarget.DialogScreen : CurrentTarget);
+			var targetScreen = CurrentTarget == NavigationTarget.HomeScreen ? NavigationTarget.DialogScreen : CurrentTarget;
+
+			await NavigateDialog(dialog, targetScreen);
 		}
 	}
 }

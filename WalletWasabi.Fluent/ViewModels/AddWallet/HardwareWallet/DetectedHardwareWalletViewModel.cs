@@ -50,7 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				}
 				catch(Exception ex)
 				{
-					ShowError(ex.Message, "Error occured during adding your wallet.");
+					await ShowErrorAsync(ex.Message, "Error occured during adding your wallet.");
 					Navigate().Back();
 				}
 
