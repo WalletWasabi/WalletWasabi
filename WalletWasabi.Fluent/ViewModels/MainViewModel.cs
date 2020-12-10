@@ -33,6 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private readonly SearchPageViewModel _searchPage;
 		private readonly PrivacyModeViewModel _privacyMode;
 		private readonly AddWalletPageViewModel _addWalletPage;
+		private readonly AddWalletButtonViewModel _addWalletButton;
 		private readonly WalletManagerViewModel _walletManager;
 
 		public MainViewModel(Global global)
@@ -72,6 +73,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			_settingsPage = new SettingsPageViewModel(global.Config, global.UiConfig);
 			_privacyMode = new PrivacyModeViewModel(global.UiConfig);
 			_searchPage = new SearchPageViewModel();
+			_addWalletButton = new AddWalletButtonViewModel(_addWalletPage);
 
 			_navBar = new NavBarViewModel(MainScreen, _walletManager);
 
@@ -123,6 +125,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			PrivacyModeViewModel.Register(_privacyMode);
 			AddWalletPageViewModel.Register(_addWalletPage);
 			SettingsPageViewModel.Register(_settingsPage);
+			AddWalletButtonViewModel.Register(_addWalletButton);
 
 			GeneralSettingsTabViewModel.RegisterLazy(
 				() =>
