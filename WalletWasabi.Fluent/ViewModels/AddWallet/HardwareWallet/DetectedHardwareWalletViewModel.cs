@@ -4,6 +4,7 @@ using ReactiveUI;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
@@ -50,6 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				}
 				catch(Exception ex)
 				{
+					Logger.LogError(ex);
 					await ShowErrorAsync(ex.Message, "Error occured during adding your wallet.");
 					Navigate().Back();
 				}
