@@ -17,8 +17,12 @@ namespace WalletWasabi.Fluent.ViewModels
 		Caption = "Displays all the current info about the app",
 		IconName = "info_regular",
 		Order = 4,
-		Category = "General",
-		Keywords = new[] { "About", "Software", "Version", "Source", "Code", "Github", "Status", "Stats", "Tor", "Onion", "Bug", "Report", "FAQ", "Questions,", "Docs", "Documentation", "Link", "Links", "Help" },
+		Category = "Help & Support",
+		Keywords = new[]
+		{
+			"About", "Software", "Version", "Source", "Code", "Github", "Status", "Stats", "Tor", "Onion", "Bug",
+			"Report", "FAQ", "Questions,", "Docs", "Documentation", "Link", "Links", "Help"
+		},
 		NavBarPosition = NavBarPosition.None,
 		NavigationTarget = NavigationTarget.DialogScreen)]
 	public partial class AboutViewModel : RoutableViewModel
@@ -46,22 +50,22 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public Version ClientVersion => Constants.ClientVersion;
 
-		public string ClearnetLink => "https://wasabiwallet.io/";
+		public static string ClearnetLink => "https://wasabiwallet.io/";
 
-		public string TorLink => "http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion";
+		public static string TorLink => "http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion";
 
-		public string SourceCodeLink => "https://github.com/zkSNACKs/WalletWasabi/";
+		public static string SourceCodeLink => "https://github.com/zkSNACKs/WalletWasabi/";
 
-		public string StatusPageLink => "https://stats.uptimerobot.com/YQqGyUL8A7";
+		public static string StatusPageLink => "https://stats.uptimerobot.com/YQqGyUL8A7";
 
-		public string UserSupportLink => "https://www.reddit.com/r/WasabiWallet/";
+		public static string UserSupportLink => "https://www.reddit.com/r/WasabiWallet/";
 
-		public string BugReportLink => "https://github.com/zkSNACKs/WalletWasabi/issues/";
+		public static string BugReportLink => "https://github.com/zkSNACKs/WalletWasabi/issues/";
 
-		public string FAQLink => "https://docs.wasabiwallet.io/FAQ/";
+		public static string FAQLink => "https://docs.wasabiwallet.io/FAQ/";
 
-		public string DocsLink => "https://docs.wasabiwallet.io/";
+		public static string DocsLink => "https://docs.wasabiwallet.io/";
 
-		public string License => "https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md";
+		public static string License => "https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md";
 	}
 }

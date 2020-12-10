@@ -4,7 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.NavBar"
+             xmlns:rx="using:System.Reactive"
              x:DataType="vm:NavBarViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -39,7 +42,12 @@
       <Setter Property="ItemTemplate">
         <Setter.Value>
           <DataTemplate x:DataType="vm:NavBarItemViewModel">
-              <Panel Width="45" HorizontalAlignment="Center" ToolTip.Tip="{Binding Title}">
+              <Panel Width="45" Background="Transparent" HorizontalAlignment="Center" ToolTip.Tip="{Binding Title}">
+                <i:Interaction.Behaviors>
+                  <ia:EventTriggerBehavior EventName="PointerPressed" SourceObject="{Binding $parent[c:NavBarItem]}">
+                    <ia:InvokeCommandAction Command="{Binding OpenCommand}" CommandParameter="{x:Static rx:Unit.Default}" />
+                  </ia:EventTriggerBehavior>
+                </i:Interaction.Behaviors>
                 <PathIcon HorizontalAlignment="Left">
                   <PathIcon.Data>
                     <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />

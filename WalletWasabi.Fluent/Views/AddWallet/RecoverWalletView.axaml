@@ -36,10 +36,10 @@
                 </c:TagsBox>
             </DockPanel>
 
-            <Button Classes="plain obscured"
+            <Button Classes="plain obscured"  Margin="0 10 0 0"
                     Command="{Binding AdvancedRecoveryOptionsDialogCommand}">
                 <StackPanel Orientation="Horizontal">
-                    <PathIcon Data="{StaticResource options_regular}" />
+                    <PathIcon Data="{StaticResource options_regular}" Margin="0 0 10 0"/>
                     <TextBlock Text="Advanced Recovery Options..." />
                 </StackPanel>
             </Button>

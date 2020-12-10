@@ -406,6 +406,11 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void OnResponseArrivedIsGenSocksServFail(bool isGenSocksServFail)
 		{
+			if (MainWindowViewModel.Instance is null)
+			{
+				return;
+			}
+
 			if (isGenSocksServFail)
 			{
 				// Is close band present?

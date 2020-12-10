@@ -1,4 +1,6 @@
+using System.Linq;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
@@ -19,10 +21,21 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			WalletName = walletName;
 			Type = type;
 
-			NextCommand = ReactiveCommand.Create(() =>
-			{
-				Navigate().Clear();
-			});
+			NextCommand = ReactiveCommand.Create(
+				() =>
+				{
+					Navigate().Clear();
+
+					var navBar = NavigationManager.Get<NavBarViewModel>();
+
+					var wallet = navBar?.Items.FirstOrDefault(x => x.WalletName == walletName);
+
+					if (wallet is { } && navBar is { })
+					{
+						navBar.SelectedItem = wallet;
+						Navigate(NavigationTarget.HomeScreen).To(wallet, NavigationMode.Clear);
+					}
+				});
 		}
 
 		public WalletType Type { get; }
