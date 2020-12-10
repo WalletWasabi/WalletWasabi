@@ -36,8 +36,8 @@ namespace WalletWasabi.Fluent.Desktop
 		// yet and stuff might break.
 		public static void Main(string[] args)
 		{
-			bool runGui;
-			Exception? appException = null;
+			int exitCode = 0;
+			bool guiStarted = false;
 
 			try
 			{
@@ -53,30 +53,43 @@ namespace WalletWasabi.Fluent.Desktop
 
 				SingleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 
-				runGui = ProcessCliCommands(args);
-
-				if (CrashReporter.IsReport)
+				if (args.Length != 0)
 				{
-					Console.WriteLine("TODO Implement crash reporting.");
-					return;
+					ProcessCliCommands(args);
 				}
-
-				if (runGui)
+				else
 				{
-					Logger.LogSoftwareStarted("Wasabi GUI");
+					if (CrashReporter.IsReport)
+					{
+						Console.WriteLine("TODO Implement crash reporting.");
+						return;
+					}
 
+					Logger.LogSoftwareStarted("Wasabi GUI");
+					guiStarted = true;
 					BuildAvaloniaApp()
 						.AfterSetup(_ => ThemeHelper.ApplyTheme(Global!.UiConfig.DarkModeEnabled))
 						.StartWithClassicDesktopLifetime(args);
 				}
 			}
+			catch (OperationCanceledException ex)
+			{
+				Logger.LogDebug(ex);
+			}
 			catch (Exception ex)
 			{
-				appException = ex;
-				throw;
+				exitCode = 1;
+				Logger.LogCritical(ex);
+
+				if (guiStarted)
+				{
+					CrashReporter.SetException(ex);
+				}
 			}
 
-			TerminateAppAndHandleException(appException, runGui);
+			TerminateService.Terminate();
+
+			Environment.Exit(exitCode);
 		}
 
 		private static Global CreateGlobal()
@@ -105,27 +118,6 @@ namespace WalletWasabi.Fluent.Desktop
 				new PasswordFinderCommand(Global!.WalletManager),
 				new CrashReportCommand(CrashReporter));
 			return executionTask.GetAwaiter().GetResult();
-		}
-
-		/// <summary>
-		/// This is a helper method until the creation of the window in AppMainAsync cannot be aborted without Environment.Exit().
-		/// </summary>
-		private static void TerminateAppAndHandleException(Exception? ex, bool runGui)
-		{
-			if (ex is OperationCanceledException)
-			{
-				Logger.LogDebug(ex);
-			}
-			else if (ex is { })
-			{
-				Logger.LogCritical(ex);
-				if (runGui)
-				{
-					CrashReporter.SetException(ex);
-				}
-			}
-
-			TerminateService.Terminate(ex is { } ? 1 : 0);
 		}
 
 		/// <summary>
