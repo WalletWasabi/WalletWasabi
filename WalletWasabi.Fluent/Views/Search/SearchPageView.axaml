@@ -15,7 +15,6 @@
   <c:ContentArea Title="Action Center" IsBusy="{Binding IsBusy}">
     <c:ContentArea.Caption>
       <DockPanel>
-        
         <TextBlock DockPanel.Dock="Left" Text="Locate and discover features in Wasabi" />
         <TextBox VerticalAlignment="Top" Margin="80 -20 0 0" HorizontalAlignment="Stretch" Text="{Binding SearchQuery}" Watermark="Type here to search">
           <TextBox.InnerLeftContent>
@@ -49,7 +48,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <Button Classes="option" Command="{Binding OpenCommand}" Height="115" Width="188" Margin="4">
+                    <Button Classes="option" Command="{Binding OpenCommand}" Height="115" Width="178" Margin="4">
                       <Panel>
                         <PathIcon Width="20" Height="20" Opacity="0.8" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="12,12,0,0">
                           <PathIcon.Data>

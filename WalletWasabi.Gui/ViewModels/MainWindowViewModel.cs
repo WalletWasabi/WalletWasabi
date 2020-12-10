@@ -83,9 +83,9 @@ namespace WalletWasabi.Gui.ViewModels
 		public UiConfig UiConfig { get; }
 		public IShell Shell { get; }
 		public WalletManager WalletManager { get; }
-		public static MainWindowViewModel Instance { get; internal set; }
+		public static MainWindowViewModel? Instance { get; internal set; }
 
-		public ModalDialogViewModelBase ModalDialog
+		public ModalDialogViewModelBase? ModalDialog
 		{
 			get => _modalDialog;
 			private set => this.RaiseAndSetIfChanged(ref _modalDialog, value);
