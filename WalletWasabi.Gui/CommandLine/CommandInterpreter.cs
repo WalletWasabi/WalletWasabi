@@ -28,6 +28,8 @@ namespace WalletWasabi.Gui.CommandLine
 				return true;
 			}
 
+			EnsureBackwardCompatibilityWithOldParameters(ref args);
+
 			var suite = new CommandSet("wassabee", Out, Error)
 			{
 				"Usage: wassabee [OPTIONS]+",
@@ -43,7 +45,6 @@ namespace WalletWasabi.Gui.CommandLine
 				crashReportedCommand
 			};
 
-			EnsureBackwardCompatibilityWithOldParameters(ref args);
 			if (await suite.RunAsync(args) == 0)
 			{
 				return false;
