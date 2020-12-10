@@ -1,7 +1,6 @@
 using ReactiveUI;
 using System;
 using System.IO;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Windows.Input;
 using System.Reactive.Linq;
