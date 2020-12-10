@@ -55,7 +55,7 @@ namespace WalletWasabi.Fluent.Desktop
 
 				if (args.Length != 0)
 				{
-					ProcessCliCommands(args);
+					ProcessCliCommands(Global, args);
 				}
 				else
 				{
@@ -67,8 +67,8 @@ namespace WalletWasabi.Fluent.Desktop
 
 					Logger.LogSoftwareStarted("Wasabi GUI");
 					guiStarted = true;
-					BuildAvaloniaApp()
-						.AfterSetup(_ => ThemeHelper.ApplyTheme(Global!.UiConfig.DarkModeEnabled))
+					BuildAvaloniaApp(Global)
+						.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled))
 						.StartWithClassicDesktopLifetime(args);
 				}
 			}
@@ -108,14 +108,14 @@ namespace WalletWasabi.Fluent.Desktop
 			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
 		}
 
-		private static bool ProcessCliCommands(string[] args)
+		private static bool ProcessCliCommands(Global global, string[] args)
 		{
-			var daemon = new Daemon(Global!, TerminateService);
+			var daemon = new Daemon(global, TerminateService);
 			var interpreter = new CommandInterpreter(Console.Out, Console.Error);
 			var executionTask = interpreter.ExecuteCommandsAsync(
 				args,
 				new MixerCommand(daemon),
-				new PasswordFinderCommand(Global!.WalletManager),
+				new PasswordFinderCommand(global.WalletManager),
 				new CrashReportCommand(CrashReporter));
 			return executionTask.GetAwaiter().GetResult();
 		}
@@ -175,11 +175,11 @@ namespace WalletWasabi.Fluent.Desktop
 		}
 
 		// Avalonia configuration, don't remove; also used by visual designer.
-		private static AppBuilder BuildAvaloniaApp()
+		private static AppBuilder BuildAvaloniaApp(Global global)
 		{
 			bool useGpuLinux = true;
 
-			var result = AppBuilder.Configure(() => new App(Global!, async () => await Global!.InitializeNoWalletAsync(TerminateService)))
+			var result = AppBuilder.Configure(() => new App(global, async () => await global.InitializeNoWalletAsync(TerminateService)))
 				.UseReactiveUI();
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
