@@ -281,6 +281,16 @@ namespace WalletWasabi.Logging
 		/// <example>For example: <c>Credentials: {"User":"SomeUser", "Password":"P@ssword"}</c></example>
 		public static void LogTrace(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) => Log(exception, LogLevel.Trace, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 
+		/// <summary>
+		/// Logs <paramref name="message"/> with <paramref name="exception"/> using <see cref="Exception.ToString()"/> concatenated to it at <see cref="LogLevel.Trace"/> level.
+		///
+		/// <para>For information that is valuable only to a developer debugging an issue.</para>
+		/// </summary>
+		/// <remarks>These messages may contain sensitive application data and so should not be enabled in a production environment.</remarks>
+		/// <example>For example: <c>Credentials: {"User":"SomeUser", "Password":"P@ssword"}</c></example>
+		public static void LogTrace(string message, Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
+			=> Log(message, exception, LogLevel.Trace, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
+
 		#endregion TraceLoggingMethods
 
 		#region DebugLoggingMethods

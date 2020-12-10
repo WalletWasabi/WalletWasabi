@@ -123,13 +123,14 @@ namespace WalletWasabi.Tor.Socks5
 
 			int i = 0;
 			int attemptsNo = 3;
+			IPoolItem? poolItem = null;
 
 			try
 			{
 				do
 				{
 					i++;
-					IPoolItem poolItem = await ObtainPoolItemAsync(request, isolateStream, cancellationToken).ConfigureAwait(false);
+					poolItem = await ObtainPoolItemAsync(request, isolateStream, cancellationToken).ConfigureAwait(false);
 					IPoolItem? itemToDispose = poolItem;
 
 					try
@@ -178,9 +179,10 @@ namespace WalletWasabi.Tor.Socks5
 					}
 				} while (i < attemptsNo);
 			}
-			catch (Exception ex)
+			catch (Exception e)
 			{
-				OnTorRequestFailed(ex);
+				Logger.LogTrace($"[{poolItem}] Request failed with exception", e);
+				OnTorRequestFailed(e);
 				throw;
 			}
 
