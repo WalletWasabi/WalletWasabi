@@ -14,7 +14,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			WalletName = walletName;
 
 			Title = "Hardware Wallet";
-			ErrorCaption = "Error occured during adding your wallet.";
 
 			switch (hardwareWalletOperations.SelectedDevice!.Model)
 			{
@@ -52,7 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				}
 				catch(Exception ex)
 				{
-					ShowError(ex.Message);
+					ShowError(ex.Message, "Error occured during adding your wallet.");
 					Navigate().Back();
 				}
 

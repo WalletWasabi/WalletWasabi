@@ -25,14 +25,11 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 
 			Title = "";
-			ErrorCaption = "We are sorry, something happened during the process.";
 		}
 
 		public virtual string IconName => "navigation_regular";
 
 		public string Title { get; set; }
-
-		public string ErrorCaption { get; set; }
 
 		public ICommand? NextCommand { get; protected set; }
 
@@ -113,9 +110,9 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			return result;
 		}
 
-		protected void ShowError(string message)
+		protected void ShowError(string message, string caption)
 		{
-			var dialog = new ShowErrorDialogViewModel(message, Title, ErrorCaption);
+			var dialog = new ShowErrorDialogViewModel(message, Title, caption);
 			NavigateDialog(dialog, CurrentTarget == NavigationTarget.HomeScreen ? NavigationTarget.DialogScreen : CurrentTarget);
 		}
 	}

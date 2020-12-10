@@ -20,7 +20,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		public ImportWalletViewModel(string walletName, WalletManager walletManager)
 		{
 			Title = "Import Wallet";
-			ErrorCaption = "The wallet file was not valid or compatible with Wasabi.";
 
 			WalletName = walletName;
 			WalletManager = walletManager;
@@ -61,7 +60,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
-				ShowError(ex.Message);
+				ShowError(ex.Message, "The wallet file was not valid or compatible with Wasabi.");
 			}
 		}
 

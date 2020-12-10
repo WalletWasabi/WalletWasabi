@@ -39,7 +39,6 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 			SmartTransaction transaction)
 		{
 			Title = "Broadcast Transaction";
-			ErrorCaption = "It was not possible to broadcast the transaction.";
 
 			var nullMoney = new Money(-1L);
 			var nullOutput = new TxOut(nullMoney, Script.Empty);
@@ -92,7 +91,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 					catch (Exception ex)
 					{
 						Logger.LogError(ex);
-						ShowError(ex.Message);
+						ShowError(ex.Message, "It was not possible to broadcast the transaction.");
 					}
 
 					Navigate().Back();
