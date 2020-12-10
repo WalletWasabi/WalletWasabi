@@ -9,6 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		public TestDialogViewModel(string message)
 		{
+			Title = "Test Dialog";
 			_message = message;
 
 			BackCommand = ReactiveCommand.Create(

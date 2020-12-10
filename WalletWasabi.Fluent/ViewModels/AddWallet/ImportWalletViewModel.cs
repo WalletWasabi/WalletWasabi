@@ -20,7 +20,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		public ImportWalletViewModel(string walletName, WalletManager walletManager)
 		{
 			Title = "Import Wallet";
-
 			WalletName = walletName;
 			WalletManager = walletManager;
 

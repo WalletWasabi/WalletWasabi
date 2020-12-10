@@ -4,14 +4,13 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:AddWalletPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.AddWalletPageView">
-  <c:ContentArea Title="Add Wallet" Caption="Type in your wallet's name and select an option:"
+  <c:ContentArea Title="{Binding Title}" Caption="Type in your wallet's name and select an option:"
                  EnableBack="{Binding EnableBack}"
                  IsBusy="{Binding IsBusy}">
     <DockPanel>

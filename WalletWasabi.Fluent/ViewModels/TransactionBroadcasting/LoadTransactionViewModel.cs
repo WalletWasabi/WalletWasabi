@@ -19,9 +19,8 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 
 		public LoadTransactionViewModel(Network network)
 		{
-			Network = network;
-
 			Title = "Transaction Broadcaster";
+			Network = network;
 
 			this.WhenAnyValue(x => x.FinalTransaction)
 				.Where(x => x is { })
@@ -33,7 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				{
 					try
 					{
-						var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", filterExtTypes: new[] {"psbt", "*"});
+						var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", new[] {"psbt", "*"});
 						if (path is { })
 						{
 							FinalTransaction = await ParseTransactionAsync(path);

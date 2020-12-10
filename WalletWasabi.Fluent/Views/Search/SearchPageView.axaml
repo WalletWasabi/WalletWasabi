@@ -6,13 +6,11 @@
              xmlns:search="using:WalletWasabi.Fluent.ViewModels.Search"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:SearchPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Search.SearchPageView">
-  <c:ContentArea Title="Action Center" IsBusy="{Binding IsBusy}">
+  <c:ContentArea Title="{Binding Title}" IsBusy="{Binding IsBusy}">
     <c:ContentArea.Caption>
       <DockPanel>
         <TextBlock DockPanel.Dock="Left" Text="Locate and discover features in Wasabi" />

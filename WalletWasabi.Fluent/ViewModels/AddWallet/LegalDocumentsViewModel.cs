@@ -14,8 +14,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		public LegalDocumentsViewModel(string content)
 		{
+			Title = "Terms and Conditions";
 			Content = content;
-
 			NextCommand = BackCommand;
 		}
 

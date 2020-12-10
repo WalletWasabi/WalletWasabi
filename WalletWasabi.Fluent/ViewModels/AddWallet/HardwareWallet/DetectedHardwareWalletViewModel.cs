@@ -11,9 +11,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 	{
 		public DetectedHardwareWalletViewModel(HardwareWalletOperations hardwareWalletOperations, string walletName)
 		{
-			WalletName = walletName;
-
 			Title = "Hardware Wallet";
+			WalletName = walletName;
 
 			switch (hardwareWalletOperations.SelectedDevice!.Model)
 			{

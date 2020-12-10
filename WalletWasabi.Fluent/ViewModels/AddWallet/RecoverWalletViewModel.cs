@@ -30,6 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			Network network,
 			WalletManager walletManager)
 		{
+			Title = "Enter recovery words";
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
 			Mnemonics.ToObservableChangeSet().ToCollection()
