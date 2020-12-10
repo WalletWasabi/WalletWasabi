@@ -1,7 +1,11 @@
+using System;
+using System.Reactive.Concurrency;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using ReactiveUI;
 using WalletWasabi.Fluent.Behaviors;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.Views;
@@ -11,16 +15,18 @@ namespace WalletWasabi.Fluent
 {
 	public class App : Application
 	{
-		private Global? _global;
+		private readonly Global? _global;
+		private Func<Task> _backendInitialiseAsync;
 
 		public App()
 		{
 			Name = "Wasabi Wallet";
 		}
 
-		public App(Global global) : this()
+		public App(Global global, Func<Task> backendInitialiseAsync) : this()
 		{
 			_global = global;
+			_backendInitialiseAsync = backendInitialiseAsync;
 		}
 
 		public override void Initialize()
@@ -42,6 +48,14 @@ namespace WalletWasabi.Fluent
 					{
 						DataContext = MainViewModel.Instance
 					};
+
+					RxApp.MainThreadScheduler.Schedule(
+						async () =>
+						{
+							await _backendInitialiseAsync();
+
+							MainViewModel.Instance!.Initialize();
+						});
 				}
 			}
 

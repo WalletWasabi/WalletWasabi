@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
@@ -9,7 +10,27 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 	{
 		private static readonly Dictionary<NavigationMetaData, InstanceGeneratorBase> NavigationEntries = new ();
 
+		private static readonly Dictionary<Type, ViewModelBase> TypeRegistry = new ();
+
 		public static IEnumerable<NavigationMetaData> MetaData => NavigationEntries.Keys.Select(x => x);
+
+		public static void RegisterType<T>(T instance) where T : ViewModelBase
+		{
+			if (!TypeRegistry.ContainsKey(typeof(T)))
+			{
+				TypeRegistry.Add(typeof(T), instance);
+			}
+		}
+
+		public static T? Get<T>() where T : ViewModelBase
+		{
+			if (TypeRegistry.ContainsKey(typeof(T)) && TypeRegistry[typeof(T)] is T vmb)
+			{
+				return vmb;
+			}
+
+			return null;
+		}
 
 		public static async Task<RoutableViewModel?> MaterialiseViewModel(NavigationMetaData metaData)
 		{
