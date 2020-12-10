@@ -1,9 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using NBitcoin;
 using Newtonsoft.Json.Linq;
+using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -22,12 +25,16 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			Title = "Import Wallet";
 			WalletName = walletName;
 			WalletManager = walletManager;
-
-			Task.Run(ImportWallet);
 		}
 
 		private string WalletName { get; }
 		private WalletManager WalletManager { get; }
+
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		{
+			RxApp.MainThreadScheduler.Schedule(async () => await ImportWallet());
+			base.OnNavigatedTo(inStack, disposable);
+		}
 
 		private async Task ImportWallet()
 		{
