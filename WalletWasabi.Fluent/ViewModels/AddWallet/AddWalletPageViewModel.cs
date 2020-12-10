@@ -65,7 +65,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			RecoverWalletCommand = ReactiveCommand.Create(
 				() => { Navigate().To(new RecoverWalletViewModel(WalletName, network, walletManager)); });
 
-			ImportWalletCommand = ReactiveCommand.Create(() => new ImportWalletViewModel(WalletName, walletManager){ CurrentTarget = NavigationTarget.HomeScreen});
+			ImportWalletCommand = ReactiveCommand.Create(() => new ImportWalletViewModel(WalletName, walletManager));
 
 			ConnectHardwareWalletCommand = ReactiveCommand.Create(() =>
 			{
