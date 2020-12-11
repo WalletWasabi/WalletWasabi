@@ -1,10 +1,9 @@
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using Avalonia.ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
 
 namespace WalletWasabi.Fluent.Views.Dialogs
 {
-	public class AdvancedRecoveryOptionsView : ReactiveUserControl<AdvancedRecoveryOptionsViewModel>
+	public class AdvancedRecoveryOptionsView : UserControl
 	{
 		public AdvancedRecoveryOptionsView()
 		{

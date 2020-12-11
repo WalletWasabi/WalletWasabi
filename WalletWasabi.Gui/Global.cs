@@ -130,7 +130,7 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				await SingleInstanceChecker.CheckAsync().ConfigureAwait(false);
+				await SingleInstanceChecker.EnsureSingleOrThrowAsync().ConfigureAwait(false);
 
 				cancel.ThrowIfCancellationRequested();
 
@@ -756,26 +756,11 @@ namespace WalletWasabi.Gui
 
 				try
 				{
-					SingleInstanceChecker?.Dispose();
+					await SingleInstanceChecker.DisposeAsync().ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{
 					Logger.LogError($"Error during the disposal of {nameof(SingleInstanceChecker)}: {ex}");
-				}
-
-				Logger.LogDebug($"Step: {nameof(AsyncMutex)}.", nameof(Global));
-
-				if (AsyncMutex.IsAny)
-				{
-					try
-					{
-						await AsyncMutex.WaitForAllMutexToCloseAsync().ConfigureAwait(false);
-						Logger.LogInfo($"{nameof(AsyncMutex)}(es) are stopped.");
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError($"Error during stopping {nameof(AsyncMutex)}: {ex}");
-					}
 				}
 			}
 			catch (Exception ex)

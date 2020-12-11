@@ -23,8 +23,16 @@ namespace WalletWasabi.WebClients.Wasabi
 			TorEndpoint = torEndPoint;
 			BackendUriGetter = backendUriGetter;
 
-			SharedTorHttpClient = new TorHttpClient(BackendUriGetter.Invoke(), TorEndpoint, isolateStream: false);
-			SharedWasabiClient = new WasabiClient(SharedTorHttpClient);
+			if (torEndPoint is { })
+			{
+				BackendHttpClient = new TorHttpClient(BackendUriGetter, TorEndpoint, isolateStream: false);
+			}
+			else
+			{
+				BackendHttpClient = new ClearnetHttpClient(BackendUriGetter);
+			}
+
+			SharedWasabiClient = new WasabiClient(BackendHttpClient);
 		}
 
 		/// <summary>Tor SOCKS5 endpoint.</summary>
@@ -37,8 +45,8 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <summary>Whether Tor is enabled or disabled.</summary>
 		public bool IsTorEnabled => TorEndpoint is { };
 
-		/// <summary>Shared instance of <see cref="TorHttpClient"/>.</summary>
-		public TorHttpClient SharedTorHttpClient { get; }
+		/// <summary>Backend HTTP client, shared instance.</summary>
+		private IRelativeHttpClient BackendHttpClient { get; }
 
 		/// <summary>Shared instance of <see cref="WasabiClient"/>.</summary>
 		public WasabiClient SharedWasabiClient { get; }
@@ -67,7 +75,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		}
 
 		/// <summary>
-		/// Creates new <see cref="TorHttpClient"/> instance with correctly set backend URL.
+		/// Creates new <see cref="TorHttpClient"/>.
 		/// </summary>
 		public TorHttpClient NewBackendTorHttpClient(bool isolateStream)
 		{
@@ -85,7 +93,10 @@ namespace WalletWasabi.WebClients.Wasabi
 			if (disposing)
 			{
 				// Dispose managed state (managed objects).
-				SharedTorHttpClient.Dispose();
+				if (BackendHttpClient is IDisposable httpClient)
+				{
+					httpClient.Dispose();
+				}
 			}
 
 			_disposed = true;

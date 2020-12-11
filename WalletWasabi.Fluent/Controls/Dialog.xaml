@@ -19,7 +19,7 @@
                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                  Margin="20">
             <Border CornerRadius="4" BoxShadow="{DynamicResource DialogBoxShadow}"
-                    Background="{DynamicResource DialogBackground}"
+                    Background="{DynamicResource RegionColor}"
                     MaxWidth="{TemplateBinding MaxContentWidth}" MaxHeight="{TemplateBinding MaxContentHeight}" Margin="40">
               <ContentPresenter Name="PART_ContentPresenter" Margin="16 28 16 16"
                                 Background="{TemplateBinding Background}"

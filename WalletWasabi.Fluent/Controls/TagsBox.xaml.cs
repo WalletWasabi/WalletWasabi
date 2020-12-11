@@ -124,15 +124,13 @@ namespace WalletWasabi.Fluent.Controls
 
 			if (_isFocused)
 			{
-				Dispatcher.UIThread.Post(
-					() => { _autoCompleteBox.Focus(); });
+				Dispatcher.UIThread.Post(() => _autoCompleteBox.Focus());
 			}
 		}
 
 		private void CheckIsInputEnabled()
 		{
-			if (Items is IList x &&
-			    ItemCountLimit > 0)
+			if (Items is IList x && ItemCountLimit > 0)
 			{
 				_isInputEnabled = x.Count < ItemCountLimit;
 			}
@@ -152,8 +150,8 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			if (RestrictInputToSuggestions &&
-			    Suggestions is IList<string> suggestions &&
-			    !suggestions.Any(x => x.StartsWith(autoCompleteBox.SearchText ?? "", true, CultureInfo.CurrentCulture)))
+				Suggestions is IList<string> suggestions &&
+				!suggestions.Any(x => x.StartsWith(autoCompleteBox.SearchText ?? "", true, CultureInfo.CurrentCulture)))
 			{
 				e.Handled = true;
 			}
@@ -213,7 +211,7 @@ namespace WalletWasabi.Fluent.Controls
 			BackspaceLogicClear();
 			autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
 
-			Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
+			Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 		}
 
 		private void BackspaceLogicClear()
@@ -265,14 +263,14 @@ namespace WalletWasabi.Fluent.Controls
 					}
 				}
 
-				Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
+				Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 				return;
 			}
 
 			if (!_isInputEnabled ||
-			    currentText.Length < 1 ||
-			    string.IsNullOrEmpty(currentText) ||
-			    !endsWithSpace)
+				currentText.Length < 1 ||
+				string.IsNullOrEmpty(currentText) ||
+				!endsWithSpace)
 			{
 				return;
 			}
@@ -281,7 +279,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			BackspaceLogicClear();
 
-			Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
+			Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 		}
 
 		private void OnKeyUp(object? sender, KeyEventArgs e)
@@ -305,9 +303,9 @@ namespace WalletWasabi.Fluent.Controls
 					break;
 				case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(currentText):
 					if (RestrictInputToSuggestions &&
-					    Suggestions is { } &&
-					    !Suggestions.Cast<string>().Any(
-						    x => x.Equals(currentText, StringComparison.InvariantCultureIgnoreCase)))
+						Suggestions is { } &&
+						!Suggestions.Cast<string>().Any(
+							x => x.Equals(currentText, StringComparison.InvariantCultureIgnoreCase)))
 					{
 						break;
 					}
@@ -316,7 +314,7 @@ namespace WalletWasabi.Fluent.Controls
 					SelectTag(currentText);
 					ExecuteCompletedCommand();
 
-					Dispatcher.UIThread.Post(() => { autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty); });
+					Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 					break;
 				case Key.Enter:
 					ExecuteCompletedCommand();

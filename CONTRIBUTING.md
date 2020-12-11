@@ -194,7 +194,7 @@ It is very important for us to follow the MVVM pattern in UI code. Whenever diff
 Some pointers on how to recognise if we are breaking MVVM:
 
 * Putting code in .xaml.cs (code-behind files)
-* Putting buisness logic inside control code
+* Putting business logic inside control code
 * Views that depend on more than 1 viewmodel class.
 
 If it seems not possible to implement something without breaking some of this advice please consult with @danwalmsley.

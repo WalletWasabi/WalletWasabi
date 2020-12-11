@@ -56,7 +56,7 @@ namespace WalletWasabi.BitcoinCore
 				coreNode.Config = new CoreConfig();
 				if (File.Exists(configPath))
 				{
-					var configString = await File.ReadAllTextAsync(configPath).ConfigureAwait(false);
+					var configString = await File.ReadAllTextAsync(configPath, cancel).ConfigureAwait(false);
 					coreNode.Config.AddOrUpdate(configString); // Bitcoin Core considers the last entry to be valid.
 				}
 				cancel.ThrowIfCancellationRequested();
@@ -177,7 +177,7 @@ namespace WalletWasabi.BitcoinCore
 					|| !File.Exists(configPath))
 				{
 					IoHelpers.EnsureContainingDirectoryExists(configPath);
-					await File.WriteAllTextAsync(configPath, coreNode.Config.ToString()).ConfigureAwait(false);
+					await File.WriteAllTextAsync(configPath, coreNode.Config.ToString(), CancellationToken.None).ConfigureAwait(false);
 				}
 				cancel.ThrowIfCancellationRequested();
 

@@ -7,7 +7,7 @@
     <Thickness x:Key="TextControlThemePadding">15,10,15,8</Thickness>
     <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
     <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
-  </Styles.Resources>  
+  </Styles.Resources>
 
   <Style Selector="TextBox">
     <Setter Property="Template">
@@ -92,4 +92,37 @@
     <Setter Property="MinHeight" Value="20" />
   </Style>
 
+  <Style Selector="TextBox.selectable_text_block">
+    <Setter Property="IsReadOnly" Value="True" />
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="ContextMenu">
+      <ContextMenu>
+        <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}" IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}"/>
+      </ContextMenu>
+    </Setter>
+    <Setter Property="Template">
+      <ControlTemplate>
+        <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                      VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
+          <Panel>
+            <TextPresenter Name="PART_TextPresenter"
+                           Text="{TemplateBinding Text, Mode=TwoWay}"
+                           CaretIndex="{TemplateBinding CaretIndex}"
+                           SelectionStart="{TemplateBinding SelectionStart}"
+                           SelectionEnd="{TemplateBinding SelectionEnd}"
+                           TextAlignment="{TemplateBinding TextAlignment}"
+                           TextWrapping="{TemplateBinding TextWrapping}"
+                           PasswordChar="{TemplateBinding PasswordChar}"
+                           RevealPassword="{TemplateBinding RevealPassword}"
+                           SelectionBrush="{TemplateBinding SelectionBrush}"
+                           SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                           CaretBrush="{TemplateBinding CaretBrush}"
+                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+          </Panel>
+        </ScrollViewer>
+      </ControlTemplate>
+    </Setter>
+  </Style>
 </Styles>

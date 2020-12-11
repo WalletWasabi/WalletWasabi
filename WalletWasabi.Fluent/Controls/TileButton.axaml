@@ -1,0 +1,84 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:WalletWasabi.Fluent.Controls">
+
+  <Style Selector="c|TileButton">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border x:Name="PART_Border"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                Background="{TemplateBinding Background}">
+          <Panel>
+            <PathIcon x:Name="PART_Icon"
+                      Data="{TemplateBinding Icon}"
+                      Width="{TemplateBinding IconSize}"
+                      Height="{TemplateBinding IconSize}"
+                      Foreground="{TemplateBinding Foreground}"/>
+            <TextBlock x:Name="PART_Text"
+                       Text="{TemplateBinding Text}"
+                       Foreground="{TemplateBinding Foreground}"
+                       DockPanel.Dock="Bottom"/>
+          </Panel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="c|TileButton /template/ PathIcon#PART_Icon">
+    <Setter Property="Opacity" Value="0.8"/>
+    <Setter Property="HorizontalAlignment" Value="Center"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+    <Setter Property="Margin" Value="0 0 0 15"/>
+  </Style>
+
+  <Style Selector="c|TileButton /template/ TextBlock#PART_Text">
+    <Setter Property="Margin" Value="10 0 10 15"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+    <Setter Property="HorizontalAlignment" Value="Center"/>
+    <Setter Property="VerticalAlignment" Value="Bottom"/>
+    <Setter Property="TextAlignment" Value="Center"/>
+  </Style>
+
+  <Style Selector="c|TileButton /template/ Border#PART_Border">
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="BoxShadow" Value="{DynamicResource OptionButtonShadow}" />
+  </Style>
+
+  <Style Selector="c|TileButton">
+    <Setter Property="Width" Value="150"/>
+    <Setter Property="Height" Value="150"/>
+    <Setter Property="ClipToBounds" Value="False" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Background" Value="{DynamicResource OptionButtonBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource OptionButtonBorderBrush}" />
+  </Style>
+
+  <Style Selector="c|TileButton:pointerover">
+    <Setter Property="Background" Value="{DynamicResource ButtonBackgroundPointerOver}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrushPointerOver}" />
+    <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundPointerOver}" />
+  </Style>
+
+  <Style Selector="c|TileButton:pressed">
+    <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundPressed}" />
+  </Style>
+
+  <Style Selector="c|TileButton:pressed">
+    <Setter Property="RenderTransform" Value="scale(0.98)" />
+  </Style>
+
+  <Style Selector="c|TileButton[IsEnabled=False]">
+    <Setter Property="Opacity" Value="0.4" />
+  </Style>
+
+  <Style Selector="c|TileButton[IsEnabled=True]">
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+
+</Styles>

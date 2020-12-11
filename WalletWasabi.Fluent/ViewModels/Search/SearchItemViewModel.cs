@@ -1,40 +1,48 @@
-using System;
+using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Search
 {
-	public class SearchItemViewModel : NavBarItemViewModel
+	public class SearchItemViewModel : RoutableViewModel
 	{
+		private readonly NavigationMetaData _metaData;
+
 		public SearchItemViewModel(
-			string title,
-			string caption,
-			int order,
-			SearchCategory category,
-			string keywords,
-			string iconName,
-			NavigationStateViewModel navigationState,
-			NavigationTarget navigationTarget,
-			Func<RoutableViewModel> createTargetView) : base(navigationState, navigationTarget)
+			SearchPageViewModel owner,
+			NavigationMetaData metaData,
+			SearchCategory category)
 		{
-			Title = title;
-			Caption = caption;
-			Order = order;
+			_metaData = metaData;
 			Category = category;
-			Keywords = keywords;
-			IconName = iconName;
-			OpenCommand = ReactiveCommand.Create(() => NavigateTo(createTargetView(), navigationTarget));
+
+			OpenCommand = ReactiveCommand.CreateFromTask(
+				async () =>
+				{
+					owner.IsBusy = true;
+					var view = await NavigationManager.MaterialiseViewModel(metaData);
+
+					if (view is { })
+					{
+						Navigate(view.DefaultTarget).To(view);
+					}
+
+					owner.IsBusy = false;
+				});
 		}
 
-		public override string IconName { get; }
+		public string Title => _metaData.Title;
 
-		public string Caption { get; }
+		public string Caption => _metaData.Caption;
 
-		public int Order { get; }
+		public int Order => _metaData.Order;
 
 		public SearchCategory Category { get; }
 
-		public string Keywords { get; }
+		public string[] Keywords => _metaData.Keywords;
+
+		public ICommand OpenCommand { get; }
+
+		public override string IconName => _metaData.IconName;
 	}
 }

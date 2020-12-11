@@ -19,14 +19,16 @@
   <Styles.Resources>
   </Styles.Resources>
   <Style Selector="c|ContentArea">
+    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
           <c:ProgressRing Name="LoadingRing" IsIndeterminate="True" IsVisible="{TemplateBinding IsBusy}" />
-          <DockPanel Name="MainDockPanel" Margin="20,0,10,0" IsVisible="{Binding !#LoadingRing.IsVisible}">
+          <DockPanel Name="MainDockPanel" Margin="31,0,21,0" IsVisible="{Binding !#LoadingRing.IsVisible}">
             <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 20">
               <DockPanel>
-                <Button Margin="-20,0,0,0" Classes="plain" Command="{Binding BackCommand}" IsVisible="{TemplateBinding EnableBack}">
+                <Button Margin="-31,0,0,0" Classes="plain" Command="{Binding BackCommand}" IsVisible="{TemplateBinding EnableBack}">
                   <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
                 </Button>
                 <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
@@ -39,14 +41,17 @@
                   <behaviors:FocusOnAttachedBehavior IsEnabled="{Binding FocusCancel, RelativeSource={RelativeSource TemplatedParent}}" />
                 </i:Interaction.Behaviors>
               </Button>
-              <Button Name="PART_NextButton" Classes="action" IsVisible="{TemplateBinding EnableNext}" Content="{TemplateBinding NextContent}" Margin="10,10,0,10" HorizontalAlignment="Right" Command="{Binding NextCommand}">
+              <Button Name="PART_NextButton" Classes="action" IsVisible="{TemplateBinding EnableNext}" Content="{TemplateBinding NextContent}" Margin="10,10,0,10" HorizontalAlignment="Right" Command="{Binding NextCommand}" IsDefault="True">
                 <i:Interaction.Behaviors>
                   <behaviors:FocusOnAttachedBehavior IsEnabled="{Binding FocusNext, RelativeSource={RelativeSource TemplatedParent}}" />
                 </i:Interaction.Behaviors>
               </Button>
             </Panel>
-            <ScrollViewer HorizontalScrollBarVisibility="Disabled" Margin="0 0 0 32" Padding="0 0 10 0">
-              <ContentPresenter Name="PART_ContentPresenter"
+
+            <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                          VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}"
+                          Margin="0 0 0 32" Padding="0 0 10 0">
+              <ContentControl Name="PART_ContentPresenter"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"

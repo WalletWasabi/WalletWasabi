@@ -227,9 +227,6 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			// signtx request: reject
 			// signtx request: accept
 			// confirm transaction: accept and send
-			// unverified inputs: continue
-			// signtx request: accept
-			// confirm transaction: accept and send
 			//
 			// --- USER INTERACTIONS ---
 
@@ -287,11 +284,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			Assert.Equal(HwiErrorCode.BadArgument, ex.ErrorCode);
 
 			// USER: CONFIRM
-			var nullFailEx = await Assert.ThrowsAsync<PSBTException>(async () => await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token));
-			Assert.Equal(nullFailEx.Message.Contains("NullFail"), true);
-
-			// USER: CONFIRM
-			PSBT signedPsbt = await Gui.Controls.WalletExplorer.SendTabViewModel.SignPsbtWithoutInputTxsAsync(client, fingerprint, Psbt, cts.Token);
+			PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
 
 			Transaction signedTx = signedPsbt.GetOriginalTransaction();
 			Assert.Equal(Psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());

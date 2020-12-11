@@ -31,7 +31,7 @@ namespace WalletWasabi.Backend.Models
 
 			if (parts.Length < 5)
 			{
-				throw new ArgumentException(nameof(line), line);
+				throw new ArgumentException(line, nameof(line));
 			}
 
 			var blockHeight = uint.Parse(parts[0]);
@@ -48,13 +48,13 @@ namespace WalletWasabi.Backend.Models
 		{
 			var builder = new StringBuilder();
 			builder.Append(Header.Height);
-			builder.Append(":");
+			builder.Append(':');
 			builder.Append(Header.BlockHash);
-			builder.Append(":");
+			builder.Append(':');
 			builder.Append(Filter);
-			builder.Append(":");
+			builder.Append(':');
 			builder.Append(Header.PrevHash);
-			builder.Append(":");
+			builder.Append(':');
 			builder.Append(Header.BlockTime.ToUnixTimeSeconds());
 
 			return builder.ToString();

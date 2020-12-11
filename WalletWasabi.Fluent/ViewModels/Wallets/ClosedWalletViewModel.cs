@@ -5,24 +5,19 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
-	public class ClosedWalletViewModel : WalletViewModelBase
+	public partial class ClosedWalletViewModel : WalletViewModelBase
 	{
-		private ObservableCollection<NavBarItemViewModel> _items;
+		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
 
-		protected ClosedWalletViewModel(NavigationStateViewModel navigationState, WalletManager walletManager, Wallet wallet) : base(navigationState, wallet)
+		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet) : base(wallet)
 		{
-			_items = new ObservableCollection<NavBarItemViewModel>
-			{
-				new SettingsPageViewModel(navigationState) { Parent = this }
-			};
+			_items = new ObservableCollection<NavBarItemViewModel>();
 
 			OpenWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -49,23 +44,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				this.WhenAnyValue(x => x.WalletState).Select(x => x == WalletState.Uninitialized));
 		}
 
-		public ObservableCollection<NavBarItemViewModel> Items
-		{
-			get => _items;
-			set => this.RaiseAndSetIfChanged(ref _items, value);
-		}
-
 		public ReactiveCommand<Unit, Unit> OpenWalletCommand { get; }
 
 		public override string IconName => "web_asset_regular";
 
-		public static WalletViewModelBase Create(NavigationStateViewModel navigationState, WalletManager walletManager, Wallet wallet)
+		public static WalletViewModelBase Create(WalletManager walletManager, Wallet wallet)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new ClosedHardwareWalletViewModel(navigationState, walletManager, wallet)
+				? new ClosedHardwareWalletViewModel(walletManager, wallet)
 				: wallet.KeyManager.IsWatchOnly
-					? new ClosedWatchOnlyWalletViewModel(navigationState, walletManager, wallet)
-					: new ClosedWalletViewModel(navigationState, walletManager, wallet);
+					? new ClosedWatchOnlyWalletViewModel(walletManager, wallet)
+					: new ClosedWalletViewModel(walletManager, wallet);
 		}
 	}
 }
