@@ -70,9 +70,10 @@ namespace WalletWasabi.Models
 			return false;
 		}
 
-		public override int GetHashCode()
-		{
-			return (ExceptionType, Message, StackTrace, InnerException).GetHashCode();
-		}
+		public override int GetHashCode() => HashCode.Combine(ExceptionType, Message, StackTrace, InnerException);
+
+		public static bool operator ==(SerializableException? se1, SerializableException? se2) => se1 is null || se2 is null ? Equals(se1, se2) : se1.Equals(se2);
+
+		public static bool operator !=(SerializableException? se1, SerializableException? se2) => se1 is null || se2 is null ? !Equals(se1, se2) : !(se1.Equals(se2));
 	}
 }
