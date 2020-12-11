@@ -121,7 +121,7 @@ namespace WalletWasabi.Services.Terminate
 			AssemblyLoadContext.Default.Unloading -= Default_Unloading;
 			AppDomain.CurrentDomain.DomainUnload -= CurrentDomain_DomainUnload;
 
-			if (IsSystemEventsSubscribed)
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && IsSystemEventsSubscribed)
 			{
 				SystemEvents.SessionEnding -= Windows_SystemEvents_SessionEnding;
 			}
