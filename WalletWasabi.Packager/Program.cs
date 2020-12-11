@@ -171,7 +171,7 @@ namespace WalletWasabi.Packager
 					}
 					var msiFileName = Path.GetFileNameWithoutExtension(msiPath);
 					var newMsiPath = Path.Combine(BinDistDirectory, $"{msiFileName}-{VersionPrefix}.msi");
-					File.Move(msiPath, newMsiPath);
+					File.Copy(msiPath, newMsiPath);
 
 					Console.Write("Enter Code Signing Certificate Password: ");
 					string pfxPassword = PasswordConsole.ReadPassword();
