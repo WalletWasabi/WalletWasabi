@@ -5,7 +5,6 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 using WalletWasabi.Stores;
@@ -87,14 +86,14 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 					try
 					{
 						await broadcaster.SendTransactionAsync(transaction);
+						Navigate().To(new SuccessBroadcastTransactionViewModel());
 					}
 					catch (Exception ex)
 					{
 						Logger.LogError(ex);
+						Navigate().Back();
 						await ShowErrorAsync(ex.ToUserFriendlyString(), "It was not possible to broadcast the transaction.");
 					}
-
-					Navigate().Back();
 
 					IsBusy = false;
 				},
