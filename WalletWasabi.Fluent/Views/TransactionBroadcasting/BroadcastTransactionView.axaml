@@ -12,7 +12,8 @@
     <c:ContentArea Title="{Binding Title}"
                    Caption="{Binding TransactionId}"
                    EnableCancel="{Binding !IsBusy}"
-                   EnableNext="True" NextContent="Broadcast">
+                   EnableNext="True" NextContent="Broadcast"
+                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
         <DockPanel LastChildFill="True">
             <DockPanel.Styles>
@@ -82,7 +83,7 @@
                 </StackPanel>
             </Grid>
 
-            <Viewbox Width="300" DockPanel.Dock="Top" HorizontalAlignment="Center">
+            <Viewbox MaxHeight="200" DockPanel.Dock="Top" HorizontalAlignment="Center">
                 <Viewbox.Resources>
                     <SolidColorBrush x:Key="SystemAccentSolidColorBrush" Color="{StaticResource SystemAccentColor}"/>
                 </Viewbox.Resources>
