@@ -5,25 +5,16 @@ using System.Threading.Tasks;
 using NBitcoin;
 using Newtonsoft.Json.Linq;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.AddWallet
+namespace WalletWasabi.Helpers
 {
 	public static class ImportWalletHelper
 	{
-		private const string _walletExistsErrorMessage = "Wallet with the same fingerprint already exists!";
+		private const string WalletExistsErrorMessage = "Wallet with the same fingerprint already exists!";
 
-		public static async Task<(bool isColdcardJson, KeyManager? keyManager)> ImportWalletAsync(WalletManager walletManager, string walletName)
+		public static async Task<bool> ImportWalletAsync(WalletManager walletManager, string walletName, string filePath)
 		{
-			var filePath = await FileDialogHelper.ShowOpenFileDialogAsync("Import wallet file", new[] { "json" });
-
-			if (filePath is null)
-			{
-				return (false, null);
-			}
-
 			var walletFullPath = walletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 
 			string jsonString = await File.ReadAllTextAsync(filePath);
@@ -37,7 +28,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				? GetKeyManagerByColdcardJson(walletManager, jsonWallet, walletFullPath)
 				: GetKeyManagerByWasabiJson(walletManager, filePath, walletFullPath);
 
-			return (isColdcardJson, km);
+			walletManager.AddWallet(km);
+
+			return isColdcardJson;
 		}
 
 		private static KeyManager GetKeyManagerByWasabiJson(WalletManager manager, string filePath, string walletFullPath)
@@ -46,7 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			if (manager.IsWalletExists(km.MasterFingerprint))
 			{
-				throw new InvalidOperationException(_walletExistsErrorMessage);
+				throw new InvalidOperationException(WalletExistsErrorMessage);
 			}
 
 			km.SetFilePath(walletFullPath);
@@ -83,7 +76,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			if (manager.IsWalletExists(mfp))
 			{
-				throw new InvalidOperationException(_walletExistsErrorMessage);
+				throw new InvalidOperationException(WalletExistsErrorMessage);
 			}
 
 			ExtPubKey extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpubString);

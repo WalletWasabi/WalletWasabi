@@ -10,11 +10,13 @@ using WalletWasabi.Stores;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 using WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Helpers;
 using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 
@@ -70,15 +72,17 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			{
 				try
 				{
-					var (isColdcardJson, keyManager) = await ImportWalletHelper.ImportWalletAsync(walletManager, WalletName);
+					var filePath = await FileDialogHelper.ShowOpenFileDialogAsync("Import wallet file", new[] { "json" });
 
-					if (keyManager is { })
+					if (filePath is null)
 					{
-						walletManager.AddWallet(keyManager);
-
-						// TODO: get the type from the wallet file
-						Navigate().To(new AddedWalletPageViewModel(WalletName, isColdcardJson ? WalletType.Coldcard : WalletType.Normal));
+						return;
 					}
+
+					var isColdcardJson = await ImportWalletHelper.ImportWalletAsync(walletManager, WalletName, filePath);
+
+					// TODO: get the type from the wallet file
+					Navigate().To(new AddedWalletPageViewModel(WalletName, isColdcardJson ? WalletType.Coldcard : WalletType.Normal));
 				}
 				catch (Exception ex)
 				{
