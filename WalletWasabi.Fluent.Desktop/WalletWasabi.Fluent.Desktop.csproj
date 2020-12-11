@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<OutputType>WinExe</OutputType>
+		<OutputType>Exe</OutputType>
 		<TargetFramework>net5.0</TargetFramework>
 		<AnalysisLevel>latest</AnalysisLevel>
 		<Nullable>enable</Nullable>
