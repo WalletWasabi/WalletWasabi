@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.Desktop
 		// yet and stuff might break.
 		public static void Main(string[] args)
 		{
-			bool runGui;
+			bool runGui = false;
 			Exception? appException = null;
 
 			try
@@ -45,6 +45,10 @@ namespace WalletWasabi.Fluent.Desktop
 
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+				if (CrashReporter.TryProcessCliArgs(args))
+				{
+				}
 
 				runGui = ProcessCliCommands(args);
 
@@ -66,7 +70,6 @@ namespace WalletWasabi.Fluent.Desktop
 			catch (Exception ex)
 			{
 				appException = ex;
-				throw;
 			}
 
 			TerminateAppAndHandleException(appException, runGui);

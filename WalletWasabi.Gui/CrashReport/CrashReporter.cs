@@ -10,11 +10,11 @@ namespace WalletWasabi.Gui.CrashReport
 	{
 		private const int MaxRecursiveCalls = 5;
 		public int Attempts { get; private set; }
-		public string Base64ExceptionString { get; private set; } = null;
+		public string? Base64ExceptionString { get; private set; } = null;
 		public bool IsReport { get; private set; }
 		public bool HadException { get; private set; }
 		public bool IsInvokeRequired => !IsReport && HadException;
-		public SerializableException SerializedException { get; private set; }
+		public SerializableException? SerializedException { get; private set; }
 
 		public void TryInvokeCrashReport()
 		{
@@ -24,15 +24,17 @@ namespace WalletWasabi.Gui.CrashReport
 				{
 					throw new InvalidOperationException($"The crash report has been called {MaxRecursiveCalls} times. Will not continue to avoid recursion errors.");
 				}
-				if (string.IsNullOrEmpty(Base64ExceptionString))
+
+				var args = ToCliArguments();
+
+				var path = Process.GetCurrentProcess()?.MainModule?.FileName;
+				if (string.IsNullOrEmpty(path))
 				{
-					throw new InvalidOperationException($"The crash report exception message is empty.");
+					throw new InvalidOperationException($"Invalid path: '{path}'");
 				}
 
-				var args = $"crashreport -attempt=\"{Attempts + 1}\" -exception=\"{Base64ExceptionString}\"";
-
-				ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(Process.GetCurrentProcess().MainModule.FileName, args);
-				using Process p = Process.Start(startInfo);
+				ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(path, args);
+				using Process? p = Process.Start(startInfo);
 			}
 			catch (Exception ex)
 			{
@@ -40,12 +42,38 @@ namespace WalletWasabi.Gui.CrashReport
 			}
 		}
 
-		public void SetShowCrashReport(string base64ExceptionString, int attempts)
+		public string ToCliArguments()
 		{
-			Attempts = attempts;
-			Base64ExceptionString = base64ExceptionString;
-			SerializedException = SerializableException.FromBase64String(Base64ExceptionString);
-			IsReport = true;
+			if (string.IsNullOrEmpty(Base64ExceptionString))
+			{
+				throw new InvalidOperationException($"The crash report exception message is empty.");
+			}
+
+			return $"crashreport -attempt=\"{Attempts + 1}\" -exception=\"{Base64ExceptionString}\"";
+		}
+
+		public bool TryProcessCliArgs(string[] args)
+		{
+			if (args.Length < 3)
+			{
+				return false;
+			}
+
+			if (args[0].Contains("crashreport") && args[1].Contains("-attempt=") && args[2].Contains("-exception="))
+			{
+				var attemptString = args[1].Split("=", StringSplitOptions.RemoveEmptyEntries)[1].Trim('"');
+
+				var exceptionString = args[2].Split("=", StringSplitOptions.RemoveEmptyEntries)[1].Trim('"'); ;
+
+				Attempts = int.Parse(attemptString);
+				Base64ExceptionString = exceptionString;
+				SerializedException = SerializableException.FromBase64String(exceptionString);
+				IsReport = true;
+
+				return true;
+			}
+
+			return false;
 		}
 
 		/// <summary>
