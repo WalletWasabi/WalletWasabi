@@ -5,7 +5,7 @@ using System.Text;
 namespace WalletWasabi.Models
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class SerializableException
+	public class SerializableException : IEquatable<SerializableException>
 	{
 		public SerializableException()
 		{
@@ -25,16 +25,16 @@ namespace WalletWasabi.Models
 		}
 
 		[JsonProperty(PropertyName = "ExceptionType")]
-		public string ExceptionType { get; set; }
+		public string? ExceptionType { get; private set; }
 
 		[JsonProperty(PropertyName = "Message")]
-		public string Message { get; set; }
+		public string? Message { get; private set; }
 
 		[JsonProperty(PropertyName = "StackTrace")]
-		public string StackTrace { get; set; }
+		public string? StackTrace { get; private set; }
 
 		[JsonProperty(PropertyName = "InnerException")]
-		public SerializableException InnerException { get; set; }
+		public SerializableException? InnerException { get; private set; }
 
 		public static string ToBase64String(SerializableException exception)
 		{
@@ -45,6 +45,34 @@ namespace WalletWasabi.Models
 		{
 			var json = Encoding.UTF8.GetString(Convert.FromBase64String(base64String));
 			return JsonConvert.DeserializeObject<SerializableException>(json);
+		}
+
+		public bool Equals(SerializableException? other)
+		{
+			if (other == null)
+			{
+				return false;
+			}
+
+			return
+				ExceptionType == other.ExceptionType &&
+				Message == other.Message &&
+				StackTrace == other.StackTrace &&
+				InnerException == other.InnerException;
+		}
+
+		public override bool Equals(object? obj)
+		{
+			if (obj is SerializableException se)
+			{
+				return Equals(se);
+			}
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			return (ExceptionType, Message, StackTrace, InnerException).GetHashCode();
 		}
 	}
 }
