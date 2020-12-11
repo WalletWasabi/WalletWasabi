@@ -1,4 +1,3 @@
-using NSubsys;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -44,7 +43,7 @@ namespace WalletWasabi.Packager
 
 		public static string PackagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
 		public static string SolutionDirectory = Path.GetFullPath(Path.Combine(PackagerProjectDirectory, ".."));
-		public static string GuiProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.Gui"));
+		public static string GuiProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.Fluent.Desktop"));
 		public static string LibraryProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi"));
 		public static string WixProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller"));
 		public static string BinDistDirectory = Path.GetFullPath(Path.Combine(GuiProjectDirectory, "bin", "dist"));
@@ -390,13 +389,21 @@ namespace WalletWasabi.Packager
 				string newExecutablePath;
 				if (target.StartsWith("win"))
 				{
-					oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui.exe");
+					oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent.Desktop.exe");
 					newExecutablePath = Path.Combine(currentBinDistDirectory, $"{ExecutableName}.exe");
+
+					// Delete unused executables.
+					File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent.exe"));
+					File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui.exe"));
 				}
 				else // Linux & OSX
 				{
-					oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui");
+					oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent.Desktop");
 					newExecutablePath = Path.Combine(currentBinDistDirectory, ExecutableName);
+
+					// Delete unused executables.
+					File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent"));
+					File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui"));
 				}
 				File.Move(oldExecutablePath, newExecutablePath);
 
@@ -404,15 +411,6 @@ namespace WalletWasabi.Packager
 
 				if (target.StartsWith("win"))
 				{
-					var daemonExePath = newExecutablePath[0..^4] + "d.exe";
-					File.Copy(newExecutablePath, daemonExePath);
-
-					// Do not open console.
-					if (!NSubsysUtil.ProcessFile(newExecutablePath))
-					{
-						Console.WriteLine("ERROR: Could not remove console from exe.");
-					}
-
 					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
 					if (OnlyBinaries)
 					{

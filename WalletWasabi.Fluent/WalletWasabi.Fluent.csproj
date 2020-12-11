@@ -7,6 +7,10 @@
 		<NoWarn>1701;1702;1705;1591;1573;CA1031</NoWarn>
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 		<CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+		<RuntimeIdentifiers>win7-x64;linux-x64;osx-x64</RuntimeIdentifiers>
+		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi</PathMap>
 	</PropertyGroup>
 	<ItemGroup>
 		<Compile Update="**\*.xaml.cs">
@@ -28,5 +32,9 @@
 		<ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj" />
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
 </Project>
