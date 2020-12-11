@@ -166,16 +166,12 @@ namespace WalletWasabi.Fluent.ViewModels
 							await Task.Delay(100);
 						}
 
-						DialogScreen.Back();
-
 						return new BroadcastTransactionViewModel(
 							_global.BitcoinStore,
 							_global.Network,
 							_global.TransactionBroadcaster,
 							dialogResult.Result);
 					}
-
-					DialogScreen.Back();
 
 					return null;
 				});
