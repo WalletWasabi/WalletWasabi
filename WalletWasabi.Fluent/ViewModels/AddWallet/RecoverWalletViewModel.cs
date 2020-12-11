@@ -112,6 +112,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				}
 				catch (Exception ex)
 				{
+					// TODO navigate to error dialog.
 					Logger.LogError(ex);
 				}
 			}
