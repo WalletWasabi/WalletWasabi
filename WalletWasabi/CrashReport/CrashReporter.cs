@@ -66,7 +66,7 @@ namespace WalletWasabi.CrashReport
 			{
 				var attemptString = args[1].Split("=", StringSplitOptions.RemoveEmptyEntries)[1].Trim('"');
 
-				var exceptionString = args[2].Split("=", StringSplitOptions.RemoveEmptyEntries)[1].Trim('"'); ;
+				var exceptionString = args[2].Split("=", StringSplitOptions.RemoveEmptyEntries)[1].Trim('"');
 
 				Attempts = int.Parse(attemptString);
 				Base64ExceptionString = exceptionString;
