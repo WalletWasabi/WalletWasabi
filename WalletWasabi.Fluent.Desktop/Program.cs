@@ -98,8 +98,7 @@ namespace WalletWasabi.Fluent.Desktop
 			var executionTask = interpreter.ExecuteCommandsAsync(
 				args,
 				new MixerCommand(daemon),
-				new PasswordFinderCommand(Global!.WalletManager),
-				new CrashReportCommand(CrashReporter));
+				new PasswordFinderCommand(Global!.WalletManager));
 			return executionTask.GetAwaiter().GetResult();
 		}
 
