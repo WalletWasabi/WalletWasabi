@@ -175,6 +175,7 @@ namespace WalletWasabi.Packager
 
 					Console.Write("Enter Code Signing Certificate Password: ");
 					string pfxPassword = PasswordConsole.ReadPassword();
+
 					// Sign code with digicert.
 					using (var process = Process.Start(new ProcessStartInfo
 					{
@@ -328,7 +329,8 @@ namespace WalletWasabi.Packager
 				using (var process = Process.Start(new ProcessStartInfo
 				{
 					FileName = "dotnet",
-					Arguments = string.Join(" ",
+					Arguments = string.Join(
+						" ",
 						$"publish",
 						$"--configuration Release",
 						$"--force",
@@ -534,6 +536,7 @@ namespace WalletWasabi.Packager
 					}
 
 					var controlFilePath = Path.Combine(debianFolderPath, "control");
+
 					// License format does not yet work, but should work in the future, it's work in progress: https://bugs.launchpad.net/ubuntu/+source/software-center/+bug/435183
 					var controlFileContent = $"Package: {ExecutableName}\n" +
 						$"Priority: optional\n" +
