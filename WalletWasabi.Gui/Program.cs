@@ -13,7 +13,6 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.CrashReport;
 using WalletWasabi.Gui.CommandLine;
-using WalletWasabi.Gui.CrashReport;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
