@@ -16,6 +16,7 @@ using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Legal;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
@@ -65,10 +66,25 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			RecoverWalletCommand = ReactiveCommand.Create(
 				() => { Navigate().To(new RecoverWalletViewModel(WalletName, network, walletManager)); });
 
-			ImportWalletCommand = ReactiveCommand.Create(() =>
+			ImportWalletCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				Navigate().To(new ImportWalletViewModel(WalletName, walletManager));
-				Navigate().Back();
+				try
+				{
+					var (isColdcardJson, keyManager) = await ImportWalletHelper.ImportWalletAsync(walletManager, WalletName);
+
+					if (keyManager is { })
+					{
+						walletManager.AddWallet(keyManager);
+
+						// TODO: get the type from the wallet file
+						Navigate().To(new AddedWalletPageViewModel(WalletName, isColdcardJson ? WalletType.Coldcard : WalletType.Normal));
+					}
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError(ex);
+					await ShowErrorAsync(ex.ToUserFriendlyString(), "The wallet file was not valid or compatible with Wasabi.");
+				}
 			});
 
 			ConnectHardwareWalletCommand = ReactiveCommand.Create(() =>

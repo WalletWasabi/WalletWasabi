@@ -2,7 +2,6 @@ using System;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Avalonia.Controls.Chrome;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Gui.ViewModels;
