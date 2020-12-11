@@ -7,10 +7,10 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using WalletWasabi.CrashReport;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.CommandLine;
-using WalletWasabi.Gui.CrashReport;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -48,15 +48,10 @@ namespace WalletWasabi.Fluent.Desktop
 
 				if (CrashReporter.TryProcessCliArgs(args))
 				{
+					Console.WriteLine("TODO Implement crash reporting.");
 				}
 
 				runGui = ProcessCliCommands(args);
-
-				if (CrashReporter.IsReport)
-				{
-					Console.WriteLine("TODO Implement crash reporting.");
-					return;
-				}
 
 				if (runGui)
 				{
@@ -134,11 +129,8 @@ namespace WalletWasabi.Fluent.Desktop
 				mainViewModel.Dispose();
 			}
 
-			if (CrashReporter.IsInvokeRequired is true)
-			{
-				// Trigger the CrashReport process.
-				CrashReporter.TryInvokeCrashReport();
-			}
+			// Trigger the CrashReport process.
+			CrashReporter.TryInvokeCrashReport();
 
 			if (Global is { } global)
 			{

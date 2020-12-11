@@ -4,20 +4,23 @@ using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Gui.CrashReport
+namespace WalletWasabi.CrashReport
 {
 	public class CrashReporter
 	{
 		private const int MaxRecursiveCalls = 5;
 		public int Attempts { get; private set; }
 		public string? Base64ExceptionString { get; private set; } = null;
-		public bool IsReport { get; private set; }
 		public bool HadException { get; private set; }
-		public bool IsInvokeRequired => !IsReport && HadException;
 		public SerializableException? SerializedException { get; private set; }
 
 		public void TryInvokeCrashReport()
 		{
+			if (!HadException)
+			{
+				return;
+			}
+
 			try
 			{
 				if (Attempts >= MaxRecursiveCalls)
@@ -68,7 +71,6 @@ namespace WalletWasabi.Gui.CrashReport
 				Attempts = int.Parse(attemptString);
 				Base64ExceptionString = exceptionString;
 				SerializedException = SerializableException.FromBase64String(exceptionString);
-				IsReport = true;
 
 				return true;
 			}

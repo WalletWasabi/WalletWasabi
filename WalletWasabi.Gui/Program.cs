@@ -11,6 +11,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using WalletWasabi.CrashReport;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.CrashReport;
 using WalletWasabi.Gui.ViewModels;
@@ -53,11 +54,7 @@ namespace WalletWasabi.Gui
 
 				runGui = ProcessCliCommands(args);
 
-				if (CrashReporter.IsReport)
-				{
-					StartCrashReporter(args);
-				}
-				else if (runGui)
+				if (runGui)
 				{
 					Logger.LogSoftwareStarted("Wasabi GUI");
 					BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
@@ -153,12 +150,6 @@ namespace WalletWasabi.Gui
 				mainViewModel.Dispose();
 			}
 
-			if (CrashReporter.IsInvokeRequired is true)
-			{
-				// Trigger the CrashReport process.
-				CrashReporter.TryInvokeCrashReport();
-			}
-
 			if (Global is { } global)
 			{
 				await global.DisposeAsync().ConfigureAwait(false);
@@ -181,30 +172,6 @@ namespace WalletWasabi.Gui
 		private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)
 		{
 			Logger.LogWarning(e?.ExceptionObject as Exception);
-		}
-
-		private static void StartCrashReporter(string[] args)
-		{
-			var result = AppBuilder.Configure<CrashReportApp>().UseReactiveUI();
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				result
-					.UseWin32()
-					.UseSkia();
-			}
-			else
-			{
-				result.UsePlatformDetect();
-			}
-
-			result
-				.With(new Win32PlatformOptions { AllowEglInitialization = false, UseDeferredRendering = true })
-				.With(new X11PlatformOptions { UseGpu = false, WmClass = "Wasabi Wallet Crash Reporting" })
-				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = false })
-				.With(new MacOSPlatformOptions { ShowInDock = true });
-
-			result.StartShellApp("Wasabi Wallet", _ => SetTheme(), args);
 		}
 
 		private static AppBuilder BuildAvaloniaApp()

@@ -3,6 +3,7 @@ using Splat;
 using System;
 using System.Reactive;
 using System.Reactive.Linq;
+using WalletWasabi.CrashReport;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;

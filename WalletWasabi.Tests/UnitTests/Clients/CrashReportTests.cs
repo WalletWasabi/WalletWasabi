@@ -1,5 +1,5 @@
 using System;
-using WalletWasabi.Gui.CrashReport;
+using WalletWasabi.CrashReport;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Clients
@@ -32,7 +32,6 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 
 			// Args are split by space and passed to Main IRL.
 			Assert.True(reporting.TryProcessCliArgs(args.Split(' ')));
-			Assert.True(reporting.IsReport);
 			Assert.Equal(reporting.SerializedException, ex.ToSerializableException());
 		}
 	}
