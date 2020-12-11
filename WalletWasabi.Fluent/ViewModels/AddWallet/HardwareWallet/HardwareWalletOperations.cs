@@ -143,8 +143,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 					var detectedHardwareWallets =
 						(await Client.EnumerateAsync(timeoutCts.Token)
 							.ConfigureAwait(false))
-							.Where(wallet => WalletManager.GetWallets()
-							.Any(x => x.KeyManager.MasterFingerprint == wallet.Fingerprint) == false)
+							.Where(wallet => !WalletManager.IsWalletExists(wallet.Fingerprint))
 							.ToArray();
 
 					detectionCts.Token.ThrowIfCancellationRequested();

@@ -40,13 +40,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			return (isColdcardJson, km);
 		}
 
-		private static bool IsWalletExists(WalletManager manager, HDFingerprint? fingerprint) => manager.GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
-
 		private static KeyManager GetKeyManagerByWasabiJson(WalletManager manager, string filePath, string walletFullPath)
 		{
 			var km = KeyManager.FromFile(filePath);
 
-			if (IsWalletExists(manager, km.MasterFingerprint))
+			if (manager.IsWalletExists(km.MasterFingerprint))
 			{
 				throw new InvalidOperationException(_walletExistsErrorMessage);
 			}
@@ -83,7 +81,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			var bytes = ByteHelpers.FromHex(Guard.NotNullOrEmptyOrWhitespace(nameof(mfpString), mfpString, trim: true));
 			HDFingerprint mfp = reverseByteOrder ? new HDFingerprint(bytes.Reverse().ToArray()) : new HDFingerprint(bytes);
 
-			if (IsWalletExists(manager, mfp))
+			if (manager.IsWalletExists(mfp))
 			{
 				throw new InvalidOperationException(_walletExistsErrorMessage);
 			}
