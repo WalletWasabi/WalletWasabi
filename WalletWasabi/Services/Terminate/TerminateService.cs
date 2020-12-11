@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Threading;
@@ -24,12 +25,11 @@ namespace WalletWasabi.Services.Terminate
 			AssemblyLoadContext.Default.Unloading += Default_Unloading;
 			AppDomain.CurrentDomain.DomainUnload += CurrentDomain_DomainUnload;
 
-#if (!DEBUG)
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Debugger.IsAttached)
 			{
+				Logger.LogInfo($"{nameof(TerminateService)} subscribed to SystemEvents");
 				SystemEvents.SessionEnding += Windows_SystemEvents_SessionEnding;
 			}
-#endif
 		}
 
 		public bool IsTerminateRequested => Interlocked.Read(ref _terminateStatus) > TerminateStatusNotStarted;
@@ -117,7 +117,7 @@ namespace WalletWasabi.Services.Terminate
 			AssemblyLoadContext.Default.Unloading -= Default_Unloading;
 			AppDomain.CurrentDomain.DomainUnload -= CurrentDomain_DomainUnload;
 
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Debugger.IsAttached)
 			{
 				SystemEvents.SessionEnding -= Windows_SystemEvents_SessionEnding;
 			}
