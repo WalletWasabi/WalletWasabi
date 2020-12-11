@@ -150,6 +150,11 @@ namespace WalletWasabi.Tor.Socks5
 
 						return response;
 					}
+					catch (IOException e)
+					{
+						// NetworkStream may throw IOException.
+						throw new TorConnectionException($"Failed to read/write HTTP(s) request.", e);
+					}
 					catch (TorConnectCommandException e) when (e.RepField == RepField.TtlExpired)
 					{
 						// If we get TTL Expired error then wait and retry again linux often does this.
