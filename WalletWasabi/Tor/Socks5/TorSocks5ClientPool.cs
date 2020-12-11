@@ -158,9 +158,19 @@ namespace WalletWasabi.Tor.Socks5
 					catch (TorConnectCommandException e) when (e.RepField == RepField.TtlExpired)
 					{
 						// If we get TTL Expired error then wait and retry again linux often does this.
-						Logger.LogTrace(e);
+						Logger.LogTrace("TTL exception occurred.", e);
 
 						await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
+
+						if (i == attemptsNo)
+						{
+							Logger.LogDebug($"All {attemptsNo} attempts failed.");
+							throw;
+						}
+					}
+					catch (HttpRequestException e)
+					{
+						Logger.LogTrace("Request may actually fail because we repeat the action.", e);
 
 						if (i == attemptsNo)
 						{
