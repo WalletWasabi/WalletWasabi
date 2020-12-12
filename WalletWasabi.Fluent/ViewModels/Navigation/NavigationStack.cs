@@ -165,6 +165,15 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			}
 		}
 
+		public void Skip()
+		{
+			if (_backStack.Count > 0)
+			{
+				_backStack.Pop();
+				UpdateCanNavigateBack();
+			}
+		}
+
 		private void UpdateCanNavigateBack()
 		{
 			CanNavigateBack = _backStack.Count > 0;

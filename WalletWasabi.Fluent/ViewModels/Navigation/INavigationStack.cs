@@ -18,6 +18,8 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		void BackTo(T viewmodel);
 
+		void Skip();
+
 		void Clear();
 	}
 }
