@@ -4,6 +4,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -42,11 +43,17 @@ namespace WalletWasabi.Fluent.ViewModels
 			OpenBrowserCommand= ReactiveCommand.CreateFromTask<string>(
 				async (link) =>
 					await IoHelpers.OpenBrowserAsync(link));
+
+			CopyLinkCommand = ReactiveCommand.CreateFromTask<string>(
+				async (link) =>
+					await Application.Current.Clipboard.SetTextAsync(link));
 		}
 
 		public ICommand AboutAdvancedInfoDialogCommand { get; }
 
 		public ICommand OpenBrowserCommand { get; }
+
+		public ICommand CopyLinkCommand { get; }
 
 		public Version ClientVersion => Constants.ClientVersion;
 
