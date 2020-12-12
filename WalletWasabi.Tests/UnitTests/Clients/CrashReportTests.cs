@@ -1,5 +1,5 @@
 using System;
-using WalletWasabi.CrashReport;
+using WalletWasabi.Fluent.CrashReport;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Clients

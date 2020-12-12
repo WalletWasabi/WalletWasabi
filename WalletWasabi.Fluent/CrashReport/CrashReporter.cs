@@ -4,7 +4,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.CrashReport
+namespace WalletWasabi.Fluent.CrashReport
 {
 	public class CrashReporter
 	{

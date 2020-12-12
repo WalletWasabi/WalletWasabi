@@ -11,7 +11,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using WalletWasabi.CrashReport;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
@@ -29,9 +28,6 @@ namespace WalletWasabi.Gui
 	{
 		private static Global Global;
 
-		// This is only needed to pass CrashReporter to AppMainAsync otherwise it could be a local variable in Main().
-		private static CrashReporter CrashReporter = new CrashReporter();
-
 		private static TerminateService TerminateService = new TerminateService(TerminateApplicationAsync);
 
 		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
@@ -45,7 +41,6 @@ namespace WalletWasabi.Gui
 			{
 				Global = CreateGlobal();
 				Locator.CurrentMutable.RegisterConstant(Global);
-				Locator.CurrentMutable.RegisterConstant(CrashReporter);
 
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -129,10 +124,6 @@ namespace WalletWasabi.Gui
 			else if (ex is { })
 			{
 				Logger.LogCritical(ex);
-				if (runGui)
-				{
-					CrashReporter.SetException(ex);
-				}
 			}
 
 			TerminateService.Terminate(ex is { } ? 1 : 0);
