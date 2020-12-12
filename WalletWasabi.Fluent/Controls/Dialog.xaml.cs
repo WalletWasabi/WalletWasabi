@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
 
 		public static readonly StyledProperty<bool> EnableOverlayCancelProperty =
-			AvaloniaProperty.Register<Dialog, bool>(nameof(EnableOverlayCancel));
+			AvaloniaProperty.Register<Dialog, bool>(nameof(EnableCancelOnPressed));
 
 		public static readonly StyledProperty<double> MaxContentHeightProperty =
 			AvaloniaProperty.Register<Dialog, double>(nameof(MaxContentHeight), double.PositiveInfinity);
@@ -27,7 +27,7 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(IsDialogOpenProperty, value);
 		}
 
-		public bool EnableOverlayCancel
+		public bool EnableCancelOnPressed
 		{
 			get => GetValue(EnableOverlayCancelProperty);
 			set => SetValue(EnableOverlayCancelProperty, value);
@@ -62,7 +62,7 @@ namespace WalletWasabi.Fluent.Controls
 			var overlayButton = e.NameScope.Find<Panel>("PART_Overlay");
 			overlayButton.PointerPressed += (_, __) =>
 			{
-				if (EnableOverlayCancel)
+				if (EnableCancelOnPressed)
 				{
 					IsDialogOpen = false;
 				}
