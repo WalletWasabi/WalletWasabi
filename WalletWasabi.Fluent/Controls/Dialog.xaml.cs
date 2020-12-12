@@ -1,6 +1,9 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -12,8 +15,11 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> IsDialogOpenProperty =
 			AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
 
-		public static readonly StyledProperty<bool> EnableOverlayCancelProperty =
+		public static readonly StyledProperty<bool> EnableCancelOnPressedProperty =
 			AvaloniaProperty.Register<Dialog, bool>(nameof(EnableCancelOnPressed));
+
+		public static readonly StyledProperty<bool> EnableCancelOnEscapeProperty =
+			AvaloniaProperty.Register<Dialog, bool>(nameof(EnableCancelOnEscape));
 
 		public static readonly StyledProperty<double> MaxContentHeightProperty =
 			AvaloniaProperty.Register<Dialog, double>(nameof(MaxContentHeight), double.PositiveInfinity);
@@ -29,8 +35,14 @@ namespace WalletWasabi.Fluent.Controls
 
 		public bool EnableCancelOnPressed
 		{
-			get => GetValue(EnableOverlayCancelProperty);
-			set => SetValue(EnableOverlayCancelProperty, value);
+			get => GetValue(EnableCancelOnPressedProperty);
+			set => SetValue(EnableCancelOnPressedProperty, value);
+		}
+
+		public bool EnableCancelOnEscape
+		{
+			get => GetValue(EnableCancelOnEscapeProperty);
+			set => SetValue(EnableCancelOnEscapeProperty, value);
 		}
 
 		public double MaxContentHeight
@@ -64,9 +76,27 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				if (EnableCancelOnPressed)
 				{
-					IsDialogOpen = false;
+					Close();
 				}
 			};
+
+			if (this.GetVisualRoot() is TopLevel topLevel)
+			{
+				topLevel.AddHandler(KeyDownEvent, CancelKeyDown, RoutingStrategies.Tunnel);
+			}
+		}
+
+		private void Close()
+		{
+			IsDialogOpen = false;
+		}
+
+		private void CancelKeyDown(object? sender, KeyEventArgs e)
+		{
+			if (e.Key == Key.Escape && EnableCancelOnEscape)
+			{
+				Close();
+			}
 		}
 	}
 }
