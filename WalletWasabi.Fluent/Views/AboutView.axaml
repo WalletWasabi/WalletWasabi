@@ -92,41 +92,47 @@
       <DockPanel>
         <StackPanel Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Left" Orientation="Vertical">
           <WrapPanel Margin="0 0 0 25">
-            <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
-                    CommandParameter="{Binding DocsLink}">
+            <Button Classes="plain"
+                    Command="{Binding OpenBrowserCommand}"
+                    CommandParameter="{x:Static vm:AboutViewModel.DocsLink}">
               <TextBlock Text="Documentation" Classes="Hyperlink" />
             </Button>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
             <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
-                    CommandParameter="{Binding SourceCodeLink}">
+                    CommandParameter="{x:Static vm:AboutViewModel.SourceCodeLink}">
               <TextBlock Text="Source Code (Github)" Classes="Hyperlink" />
             </Button>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
-            <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
-                    CommandParameter="{Binding ClearnetLink}">
+            <Button Classes="plain"
+                    Command="{Binding OpenBrowserCommand}"
+                    CommandParameter="{x:Static vm:AboutViewModel.ClearnetLink}">
               <TextBlock Text="Website (Clearnet)" Classes="Hyperlink" />
             </Button>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
-            <Button Classes="plain" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding TorLink}">
+            <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
+                    CommandParameter="{x:Static vm:AboutViewModel.TorLink}">
               <TextBlock Text="Website (Tor)" Classes="Hyperlink" />
             </Button>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
-            <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
-                    CommandParameter="{Binding StatusPageLink}">
+            <Button Classes="plain"
+                    Command="{Binding OpenBrowserCommand}"
+                    CommandParameter="{x:Static vm:AboutViewModel.StatusPageLink}">
               <TextBlock Text="Coordinator Status Page" Classes="Hyperlink" />
             </Button>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
             <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
-                    CommandParameter="{Binding UserSupportLink}">
+                    CommandParameter="{x:Static vm:AboutViewModel.UserSupportLink}">
               <TextBlock Text="User Support" Classes="Hyperlink" />
             </Button>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
             <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
-                    CommandParameter="{Binding BugReportLink}">
+                    CommandParameter="{x:Static vm:AboutViewModel.BugReportLink}">
               <TextBlock Text="Bug Reporting" Classes="Hyperlink" />
             </Button>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
-            <Button Classes="plain" Command="{Binding OpenBrowserCommand}" CommandParameter="{Binding FAQLink}">
+            <Button Classes="plain"
+                    Command="{Binding OpenBrowserCommand}"
+                    CommandParameter="{x:Static vm:AboutViewModel.FAQLink}">
               <TextBlock Text="FAQs" Classes="Hyperlink" />
             </Button>
           </WrapPanel>
@@ -141,8 +147,9 @@
 
           <WrapPanel HorizontalAlignment="Center">
             <TextBlock Margin=" 0 0 0 -0.5" Text="This open source software is licensed with " />
-            <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
-                    CommandParameter="{Binding License}">
+            <Button Classes="plain"
+                    Command="{Binding OpenBrowserCommand}"
+                    CommandParameter="{x:Static vm:AboutViewModel.LicenseLink}">
               <TextBlock Text="MIT License" Classes="Hyperlink" />
             </Button>
             <TextBlock Margin=" 0 0 0 -0.5" Text="." />

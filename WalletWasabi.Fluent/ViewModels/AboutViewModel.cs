@@ -39,14 +39,14 @@ namespace WalletWasabi.Fluent.ViewModels
 			AboutAdvancedInfoDialogCommand = ReactiveCommand.CreateFromTask(
 				execute: async () => await interaction.Handle(Unit.Default).ToTask());
 
-			OpenBrowserCommand.ThrownExceptions
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex));
+			OpenBrowserCommand= ReactiveCommand.CreateFromTask<string>(
+				async (link) =>
+					await IoHelpers.OpenBrowserAsync(link));
 		}
 
 		public ICommand AboutAdvancedInfoDialogCommand { get; }
 
-		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
+		public ICommand OpenBrowserCommand { get; }
 
 		public Version ClientVersion => Constants.ClientVersion;
 
@@ -66,6 +66,6 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public static string DocsLink => "https://docs.wasabiwallet.io/";
 
-		public static string License => "https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md";
+		public static string LicenseLink => "https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md";
 	}
 }
