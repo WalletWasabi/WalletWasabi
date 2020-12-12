@@ -40,7 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			AboutAdvancedInfoDialogCommand = ReactiveCommand.CreateFromTask(
 				execute: async () => await interaction.Handle(Unit.Default).ToTask());
 
-			OpenBrowserCommand= ReactiveCommand.CreateFromTask<string>(
+			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(
 				async (link) =>
 					await IoHelpers.OpenBrowserAsync(link));
 
