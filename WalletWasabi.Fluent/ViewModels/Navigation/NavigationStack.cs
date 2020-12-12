@@ -144,6 +144,10 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 						_backStack.Push(CurrentPage);
 					}
 					break;
+
+				case NavigationMode.Skip:
+					// Do not push old page on the back stack.
+					break;
 			}
 
 			NavigationOperation(oldPage, oldInStack, viewmodel, newInStack);
@@ -162,15 +166,6 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			else
 			{
 				Clear(); // in this case only CurrentPage might be set and Clear will provide correct behavior.
-			}
-		}
-
-		public void Skip()
-		{
-			if (_backStack.Count > 0)
-			{
-				_backStack.Pop();
-				UpdateCanNavigateBack();
 			}
 		}
 

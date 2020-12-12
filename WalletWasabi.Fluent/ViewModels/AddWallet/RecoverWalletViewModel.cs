@@ -86,8 +86,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					new EnterPasswordViewModel(
 						"Type the password of the wallet to be able to recover and click Continue."));
 
-				Navigate().Skip();
-
 				if (result is { } password)
 				{
 					await Task.Run(
@@ -115,7 +113,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 			finally
 			{
-				Navigate().To(new AddedWalletPageViewModel(walletName!, WalletType.Normal));
+				Navigate().To(new AddedWalletPageViewModel(walletName!, WalletType.Normal), NavigationMode.Skip);
 			}
 		}
 

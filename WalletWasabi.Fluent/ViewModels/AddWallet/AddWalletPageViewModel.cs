@@ -15,6 +15,7 @@ using WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Legal;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
@@ -78,8 +79,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					var result = await NavigateDialog(
 						new EnterPasswordViewModel("Type the password of the wallet and click Continue."));
 
-					Navigate().Skip();
-
 					if (result is { } password)
 					{
 						IsBusy = true;
@@ -96,7 +95,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 								return walletGenerator.GenerateWallet(WalletName, password);
 							});
 
-						Navigate().To(new RecoveryWordsViewModel(km, mnemonic, walletManager));
+						Navigate().To(new RecoveryWordsViewModel(km, mnemonic, walletManager), NavigationMode.Skip);
 
 						IsBusy = false;
 					}
