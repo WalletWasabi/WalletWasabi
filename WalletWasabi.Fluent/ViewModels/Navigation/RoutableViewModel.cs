@@ -100,8 +100,6 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 			var result = await dialog.GetDialogResultAsync();
 
-			Navigate(target).Back();
-
 			return result;
 		}
 	}
