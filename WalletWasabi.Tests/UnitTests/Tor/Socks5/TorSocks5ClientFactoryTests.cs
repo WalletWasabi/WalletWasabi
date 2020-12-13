@@ -57,7 +57,8 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 					Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][client] About to make connection.");
 					using TorConnection torConnection = await factory.EstablishConnectionAsync(httpRequestHost, httpRequestPort, useSsl: false, isolateStream: false, timeoutToken).ConfigureAwait(false);
 					Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][client] Connection established.");
-				}, timeoutToken);
+				},
+				timeoutToken);
 
 				using TcpClient client = await acceptTask;
 
