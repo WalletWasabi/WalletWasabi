@@ -19,7 +19,7 @@
             <DockPanel.Styles>
                 <Style Selector="TextBlock.unit">
                     <Setter Property="VerticalAlignment" Value="Bottom"/>
-                    <Setter Property="Margin" Value="3 0 0 6"/>
+                    <Setter Property="Margin" Value="3 0 0 5"/>
                     <Setter Property="FontSize" Value="12"/>
                 </Style>
 
@@ -32,7 +32,7 @@
 
                 <Style Selector="StackPanel.amountValue">
                     <Setter Property="Orientation" Value="Horizontal"/>
-                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                    <Setter Property="HorizontalAlignment" Value="Left"/>
                     <Setter Property="TextBlock.FontSize" Value="35"/>
                     <Setter Property="TextBlock.FontWeight" Value="UltraLight"/>
                 </Style>
@@ -57,39 +57,38 @@
                 <TextBlock Text="{Binding OutputCountString}" />
             </StackPanel>
 
-            <Grid ColumnDefinitions="*,*,*" DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Margin="20">
-                <StackPanel Grid.Column="0" HorizontalAlignment="Left">
-                    <TextBlock Text="Input" Classes="amountTitle"/>
-                    <StackPanel Classes="amountValue">
-                        <TextBlock Text="{Binding TotalInputValue, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
-                        <TextBlock Text="BTC" Classes="unit" IsVisible="{Binding !!TotalInputValue}"/>
+            <Viewbox DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Margin="20 0 20 20">
+                <Grid ColumnDefinitions="230,*,230">
+                    <StackPanel Grid.Column="0" HorizontalAlignment="Left">
+                        <TextBlock Text="Input" Classes="amountTitle"/>
+                        <StackPanel Classes="amountValue">
+                            <TextBlock Text="{Binding TotalInputValue, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
+                            <TextBlock Text="BTC" Classes="unit" IsVisible="{Binding !!TotalInputValue}"/>
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
 
-                <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-                    <TextBlock Text="Output" Classes="amountTitle" />
-                    <StackPanel Classes="amountValue">
-                        <TextBlock Text="{Binding TotalOutputValue, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
-                        <TextBlock Text="BTC" Classes="unit" IsVisible="{Binding !!TotalOutputValue}" />
+                    <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                        <TextBlock Text="Output" Classes="amountTitle" />
+                        <StackPanel Classes="amountValue">
+                            <TextBlock Text="{Binding TotalOutputValue, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
+                            <TextBlock Text="BTC" Classes="unit" IsVisible="{Binding !!TotalOutputValue}" />
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
 
-                <StackPanel Grid.Column="2" HorizontalAlignment="Right">
-                    <TextBlock Text="Fee" Classes="amountTitle"/>
-                    <StackPanel Classes="amountValue">
-                        <TextBlock Text="{Binding NetworkFee, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
-                        <TextBlock Text="BTC" Classes="unit" IsVisible="{Binding !!NetworkFee}" />
+                    <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+                        <TextBlock Text="Fee" Classes="amountTitle"/>
+                        <StackPanel Classes="amountValue">
+                            <TextBlock Text="{Binding NetworkFee, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
+                            <TextBlock Text="BTC" Classes="unit" IsVisible="{Binding !!NetworkFee}" />
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
-            </Grid>
+                </Grid>
+            </Viewbox>
 
             <Viewbox MaxHeight="200" DockPanel.Dock="Top" HorizontalAlignment="Center">
-                <Viewbox.Resources>
-                    <SolidColorBrush x:Key="SystemAccentSolidColorBrush" Color="{StaticResource SystemAccentColor}"/>
-                </Viewbox.Resources>
                 <Viewbox.Styles>
                     <Style Selector="PathIcon">
-                        <Setter Property="Foreground" Value="{StaticResource SystemAccentSolidColorBrush}"/>
+                        <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}"/>
                         <Setter Property="Opacity" Value="0.6"/>
                     </Style>
                     <Style Selector="PathIcon.broadcasting">
