@@ -165,7 +165,8 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 
 				// Tor SOCKS5 response reporting error.
 				// Note: RepField.Succeeded is the only OK code.
-				byte[] torSocks5Response = new byte[] {
+				byte[] torSocks5Response = new byte[]
+				{
 					VerField.Socks5.Value, RepField.TtlExpired.ToByte(), RsvField.X00.ToByte(), AtypField.DomainName.ToByte(),
 					0x00, 0x00, 0x00, 0x00, // BndAddr
 					0x00, 0x00 // BndPort
