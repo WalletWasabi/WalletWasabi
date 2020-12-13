@@ -50,15 +50,16 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][server] Wait for TCP client on port {serverPort}.");
 				Task<TcpClient> acceptTask = listener.AcceptTcpClientAsync().WithAwaitCancellationAsync(timeoutToken);
 
-				Task clientTask = Task.Run(async () =>
-				{
-					TorSocks5ClientFactory factory = new(new IPEndPoint(IPAddress.Loopback, serverPort));
+				Task clientTask = Task.Run(
+					async () =>
+					{
+						TorSocks5ClientFactory factory = new(new IPEndPoint(IPAddress.Loopback, serverPort));
 
-					Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][client] About to make connection.");
-					using TorConnection torConnection = await factory.EstablishConnectionAsync(httpRequestHost, httpRequestPort, useSsl: false, isolateStream: false, timeoutToken).ConfigureAwait(false);
-					Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][client] Connection established.");
-				},
-				timeoutToken);
+						Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][client] About to make connection.");
+						using TorConnection torConnection = await factory.EstablishConnectionAsync(httpRequestHost, httpRequestPort, useSsl: false, isolateStream: false, timeoutToken).ConfigureAwait(false);
+						Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][client] Connection established.");
+					},
+					timeoutToken);
 
 				using TcpClient client = await acceptTask;
 
@@ -121,14 +122,16 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][server] Wait for TCP client on port {serverPort}.");
 				Task<TcpClient> acceptTask = listener.AcceptTcpClientAsync().WithAwaitCancellationAsync(timeoutToken);
 
-				Task clientTask = Task.Run(async () =>
-				{
-					TorSocks5ClientFactory factory = new(new IPEndPoint(IPAddress.Loopback, serverPort));
+				Task clientTask = Task.Run(
+					async () =>
+					{
+						TorSocks5ClientFactory factory = new(new IPEndPoint(IPAddress.Loopback, serverPort));
 
-					Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][client] About to make connection.");
-					using TorConnection torConnection = await factory.EstablishConnectionAsync(httpRequestHost, httpRequestPort, useSsl: false, isolateStream: false, timeoutToken).ConfigureAwait(false);
-					Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][client] Connection established.");
-				}, timeoutToken);
+						Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][client] About to make connection.");
+						using TorConnection torConnection = await factory.EstablishConnectionAsync(httpRequestHost, httpRequestPort, useSsl: false, isolateStream: false, timeoutToken).ConfigureAwait(false);
+						Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][client] Connection established.");
+					},
+					timeoutToken);
 
 				using TcpClient client = await acceptTask;
 
