@@ -160,7 +160,7 @@ namespace WalletWasabi.Tor.Socks5
 						// If we get TTL Expired error then wait and retry again linux often does this.
 						Logger.LogTrace("TTL exception occurred.", e);
 
-						await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
+						await Task.Delay(3000, cancellationToken).ConfigureAwait(false);
 
 						if (i == attemptsNo)
 						{
