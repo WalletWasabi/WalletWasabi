@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			this.WhenAnyValue(
 					x => x.UseTor,
-					x => x.UseTor,
+					x => x.TerminateTorOnExit,
 					x => x.TorSocks5EndPoint)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))

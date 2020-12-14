@@ -12,6 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 	{
 		public DetectedHardwareWalletViewModel(HardwareWalletOperations hardwareWalletOperations, string walletName)
 		{
+			Title = "Hardware Wallet";
 			WalletName = walletName;
 
 			switch (hardwareWalletOperations.SelectedDevice!.Model)
@@ -50,8 +51,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				}
 				catch(Exception ex)
 				{
-					// TODO: Notify the user
 					Logger.LogError(ex);
+					await ShowErrorAsync(ex.ToUserFriendlyString(), "Error occured during adding your wallet.");
 					Navigate().Back();
 				}
 

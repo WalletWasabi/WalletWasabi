@@ -10,7 +10,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 {
 	[NavigationMetaData(
 		Title = "About Wasabi",
@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			var interaction = new Interaction<Unit, Unit>();
 			interaction.RegisterHandler(
 				async x =>
-					x.SetOutput(await new AboutAdvancedInfoViewModel().ShowDialogAsync()));
+					x.SetOutput((await new AboutAdvancedInfoViewModel().ShowDialogAsync()).Result));
 
 			AboutAdvancedInfoDialogCommand = ReactiveCommand.CreateFromTask(
 				execute: async () => await interaction.Handle(Unit.Default).ToTask());
@@ -42,6 +42,8 @@ namespace WalletWasabi.Fluent.ViewModels
 			OpenBrowserCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
+
+			NextCommand = ReactiveCommand.Create(() => Navigate().Clear());
 		}
 
 		public ICommand AboutAdvancedInfoDialogCommand { get; }
