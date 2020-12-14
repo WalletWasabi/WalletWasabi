@@ -4,6 +4,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -39,16 +40,22 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 			AboutAdvancedInfoDialogCommand = ReactiveCommand.CreateFromTask(
 				execute: async () => await interaction.Handle(Unit.Default).ToTask());
 
-			OpenBrowserCommand.ThrownExceptions
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex => Logger.LogError(ex));
+			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(
+				async (link) =>
+					await IoHelpers.OpenBrowserAsync(link));
 
-			NextCommand = ReactiveCommand.Create(() => Navigate().Clear());
+			CopyLinkCommand = ReactiveCommand.CreateFromTask<string>(
+				async (link) =>
+					await Application.Current.Clipboard.SetTextAsync(link));
+
+			NextCommand = CancelCommand;
 		}
 
 		public ICommand AboutAdvancedInfoDialogCommand { get; }
 
-		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
+		public ICommand OpenBrowserCommand { get; }
+
+		public ICommand CopyLinkCommand { get; }
 
 		public Version ClientVersion => Constants.ClientVersion;
 
@@ -68,6 +75,6 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 
 		public static string DocsLink => "https://docs.wasabiwallet.io/";
 
-		public static string License => "https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md";
+		public static string LicenseLink => "https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md";
 	}
 }
