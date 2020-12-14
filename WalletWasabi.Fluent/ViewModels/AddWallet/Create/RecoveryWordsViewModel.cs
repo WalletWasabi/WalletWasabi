@@ -14,6 +14,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 			Mnemonic mnemonic,
 			WalletManager walletManager)
 		{
+			Title = "Recovery words";
+			
 			MnemonicWords = new List<RecoveryWordViewModel>();
 
 			for (int i = 0; i < mnemonic.Words.Length; i++)

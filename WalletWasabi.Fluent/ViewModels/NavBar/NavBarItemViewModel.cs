@@ -15,13 +15,10 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 	public abstract partial class NavBarItemViewModel : RoutableViewModel
 	{
 		private bool _isSelected;
-
 		[AutoNotify] private bool _isExpanded;
-		[AutoNotify] private string _title;
 
 		protected NavBarItemViewModel()
 		{
-			_title = "";
 			SelectionMode = NavBarItemSelectionMode.Selected;
 			OpenCommand = ReactiveCommand.Create(
 				() =>

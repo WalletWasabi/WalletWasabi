@@ -9,7 +9,7 @@
              x:CompileBindings="True"
              x:DataType="vm:LegalDocumentsViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.LegalDocumentsView">
-  <c:ContentArea Title="Terms and Conditions"
+  <c:ContentArea Title="{Binding Title}"
                  Caption="Please read the small print."
                  EnableNext="True" NextContent="Continue" FocusNext="True">
       <TextBlock TextWrapping="Wrap" Text="{Binding Content}" />
