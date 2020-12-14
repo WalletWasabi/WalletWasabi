@@ -59,7 +59,7 @@ namespace WalletWasabi.Fluent.Desktop
 
 				if (args.Length != 0)
 				{
-					ProcessCliCommands(Global, args, crashReporter);
+					ProcessCliCommands(Global, args);
 				}
 				else
 				{
@@ -125,7 +125,7 @@ namespace WalletWasabi.Fluent.Desktop
 			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
 		}
 
-		private static bool ProcessCliCommands(Global global, string[] args, CrashReporter crashReporter)
+		private static bool ProcessCliCommands(Global global, string[] args)
 		{
 			var daemon = new Daemon(global, TerminateService);
 			var interpreter = new CommandInterpreter(Console.Out, Console.Error);
