@@ -16,10 +16,6 @@
 			<SubType>Designer</SubType>
 		</AvaloniaResource>
 		<AvaloniaResource Include="Assets\**" />
-		<Compile Update="Views\TransactionBroadcasting\SuccessBroadcastTransactionView.axaml.cs">
-		  <DependentUpon>SuccessBroadcastTransactionView.axaml</DependentUpon>
-		  <SubType>Code</SubType>
-		</Compile>
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.0-rc1" />
