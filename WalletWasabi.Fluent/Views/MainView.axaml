@@ -67,7 +67,7 @@
               MaxContentWidth="{Binding MaxContentWidth}" MaxContentHeight="{Binding MaxContentHeight}">
       <c:Dialog.Styles>
         <Style Selector="c|Dialog /template/ Panel#PART_DialogHost">
-          <Setter Property="Margin" Value="20"/>
+          <Setter Property="Margin" Value="20,30,20,20"/>
         </Style>
         <Style Selector="c|Dialog /template/ Border#PART_Border">
           <Setter Property="Margin" Value="0"/>
