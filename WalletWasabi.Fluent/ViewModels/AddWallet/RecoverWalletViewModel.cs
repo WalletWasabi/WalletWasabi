@@ -89,25 +89,25 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			{
 				try
 				{
-					await Task.Run(
+					var keyManager = await Task.Run(
 						() =>
 						{
 							var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName!)
 								.walletFilePath;
 
-							var keyManager = KeyManager.Recover(
+							var result = KeyManager.Recover(
 								CurrentMnemonics!,
 								password!,
 								walletFilePath,
 								AccountKeyPath,
 								MinGapLimit);
 
-							keyManager.SetNetwork(network);
+							result.SetNetwork(network);
 
-							walletManager.AddWallet(keyManager);
+							return result;
 						});
 
-					Navigate().To(new AddedWalletPageViewModel(walletName!, WalletType.Normal));
+					Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager, WalletType.Normal));
 
 					return;
 				}
