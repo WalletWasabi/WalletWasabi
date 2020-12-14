@@ -42,6 +42,8 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 			OpenBrowserCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
+
+			NextCommand = ReactiveCommand.Create(() => Navigate().Clear());
 		}
 
 		public ICommand AboutAdvancedInfoDialogCommand { get; }

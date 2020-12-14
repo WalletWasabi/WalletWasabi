@@ -71,7 +71,7 @@
     </Style>
   </UserControl.Styles>
   <Panel>
-    <controls:ContentArea>
+    <controls:ContentArea EnableNext="True" NextContent="Close">
       <controls:ContentArea.Title>
         <StackPanel Orientation="Horizontal">
           <TextBlock Name="LogoText1" Classes="h1 semibold">Wasabi</TextBlock>
