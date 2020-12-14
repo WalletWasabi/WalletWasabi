@@ -29,23 +29,27 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private string _localBitcoinCoreDataDir;
 		[AutoNotify] private bool _stopLocalBitcoinCoreOnShutdown;
 		[AutoNotify] private string _bitcoinP2PEndPoint;
+		[AutoNotify] private string _dustThreshold;
 
 		public BitcoinTabSettingsViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
 		{
 			this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
+			this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
 			_network = config.Network;
 			_startLocalBitcoinCoreOnStartup = config.StartLocalBitcoinCoreOnStartup;
 			_localBitcoinCoreDataDir = config.LocalBitcoinCoreDataDir;
 			_stopLocalBitcoinCoreOnShutdown = config.StopLocalBitcoinCoreOnShutdown;
 			_bitcoinP2PEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
+			_dustThreshold = config.DustThreshold.ToString();
 
 			this.WhenAnyValue(
 					x => x.Network,
 					x => x.StartLocalBitcoinCoreOnStartup,
 					x => x.StopLocalBitcoinCoreOnShutdown,
 					x => x.BitcoinP2PEndPoint,
-					x => x.LocalBitcoinCoreDataDir)
+					x => x.LocalBitcoinCoreDataDir,
+					x => x.DustThreshold)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 				.Skip(1)
@@ -70,6 +74,27 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			}
 		}
 
+		private void ValidateDustThreshold(IValidationErrors errors) =>
+			ValidateDustThreshold(errors, DustThreshold, whiteSpaceOk: true);
+
+		private void ValidateDustThreshold(IValidationErrors errors, string dustThreshold, bool whiteSpaceOk)
+		{
+			if (!whiteSpaceOk || !string.IsNullOrWhiteSpace(dustThreshold))
+			{
+				if (!string.IsNullOrEmpty(dustThreshold) && dustThreshold.Contains(
+					',',
+					StringComparison.InvariantCultureIgnoreCase))
+				{
+					errors.Add(ErrorSeverity.Error, "Use decimal point instead of comma.");
+				}
+
+				if (!decimal.TryParse(dustThreshold, out var dust) || dust < 0)
+				{
+					errors.Add(ErrorSeverity.Error, "Invalid dust threshold.");
+				}
+			}
+		}
+
 		protected override void EditConfigOnSave(Config config)
 		{
 			if (Network == config.Network)
@@ -82,6 +107,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				config.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
 				config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
 				config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
+				config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold)
+					? Money.Coins(threshold)
+					: Config.DefaultDustThreshold;
 			}
 			else
 			{
