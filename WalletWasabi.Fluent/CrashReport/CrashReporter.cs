@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.CrashReport
 
 				var args = ToCliArguments();
 
-				var path = Process.GetCurrentProcess()?.MainModule?.FileName;
+				var path = Process.GetCurrentProcess().MainModule?.FileName;
 				if (string.IsNullOrEmpty(path))
 				{
 					throw new InvalidOperationException($"Invalid path: '{path}'");
