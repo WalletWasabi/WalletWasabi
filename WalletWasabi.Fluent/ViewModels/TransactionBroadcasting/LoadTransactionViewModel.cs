@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 			this.WhenAnyValue(x => x.FinalTransaction)
 				.Where(x => x is { })
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(finalTransaction => Close(finalTransaction));
+				.Subscribe(finalTransaction => Close(result: finalTransaction));
 
 			ImportTransactionCommand = ReactiveCommand.CreateFromTask(
 				async () =>

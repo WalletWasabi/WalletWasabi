@@ -41,7 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			BackCommand = ReactiveCommand.Create(() => Navigate().Back(), backCommandCanExecute);
 
 			NextCommand = ReactiveCommand.Create(
-				() => Close((KeyPath.Parse(AccountKeyPath), int.Parse(MinGapLimit))),
+				() => Close(result: (KeyPath.Parse(AccountKeyPath), int.Parse(MinGapLimit))),
 				nextCommandCanExecute);
 
 			CancelCommand = ReactiveCommand.Create(() => Close(), cancelCommandCanExecute);
