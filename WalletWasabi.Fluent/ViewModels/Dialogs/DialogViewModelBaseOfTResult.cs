@@ -14,23 +14,23 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
 	{
 		private readonly IDisposable _disposable;
-		private readonly TaskCompletionSource<TResult> _currentTaskCompletionSource;
+		private readonly TaskCompletionSource<DialogResult<TResult>> _currentTaskCompletionSource;
 
 		protected DialogViewModelBase()
 		{
-			_currentTaskCompletionSource = new TaskCompletionSource<TResult>();
+			_currentTaskCompletionSource = new TaskCompletionSource<DialogResult<TResult>>();
 
 			_disposable = this.WhenAnyValue(x => x.IsDialogOpen)
 							  .Skip(1) // Skip the initial value change (which is false).
 							  .DistinctUntilChanged()
 							  .Subscribe(OnIsDialogOpenChanged);
 
-			CancelCommand = ReactiveCommand.Create(() => Close());
+			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));
 		}
 
 		protected override void OnNavigatedFrom()
 		{
-			Close();
+			Close(DialogResultKind.Cancel);
 
 			base.OnNavigatedFrom();
 		}
@@ -48,15 +48,15 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		/// Method to be called when the dialog intends to close
 		/// and ready to pass a value back to the caller.
 		/// </summary>
-		/// <param name="value">The return value of the dialog</param>
-		protected void Close(TResult value = default)
+		/// <param name="result">The return value of the dialog</param>
+		protected void Close(DialogResultKind kind = DialogResultKind.Normal, TResult result = default)
 		{
 			if (_currentTaskCompletionSource.Task.IsCompleted)
 			{
 				return;
 			}
 
-			_currentTaskCompletionSource.SetResult(value);
+			_currentTaskCompletionSource.SetResult(new DialogResult<TResult>(result, kind));
 
 			_disposable.Dispose();
 
@@ -69,7 +69,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		/// Shows the dialog.
 		/// </summary>
 		/// <returns>The value to be returned when the dialog is finished.</returns>
-		public Task<TResult> ShowDialogAsync(IDialogHost? host = null)
+		public Task<DialogResult<TResult>> ShowDialogAsync(IDialogHost? host = null)
 		{
 			if (host is null)
 			{
@@ -90,7 +90,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		/// Gets the dialog result.
 		/// </summary>
 		/// <returns>The value to be returned when the dialog is finished.</returns>
-		public Task<TResult> GetDialogResultAsync()
+		public Task<DialogResult<TResult>> GetDialogResultAsync()
 		{
 			IsDialogOpen = true;
 
