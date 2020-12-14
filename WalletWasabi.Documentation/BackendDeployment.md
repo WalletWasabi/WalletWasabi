@@ -483,3 +483,7 @@ Check all of the certificates that you’ve obtained and tries to renew any that
 `sudo certbot renew`
 
 Detailed instuctions about configuration [here](https://certbot.eff.org/lets-encrypt/ubuntubionic-nginx).
+
+## Accessing Software Logs
+
+You can read the log file with the `tail -1000 ~/.walletwasabi/backend/Logs.txt`. However these logs aren't kept around forever. In order to access a longer timeframe use `sudo tail -1000 /var/log/syslog | grep "walletwasabi-backend"` and `sudo tail -1000 /var/log/syslog.1 | grep "walletwasabi-backend"`.

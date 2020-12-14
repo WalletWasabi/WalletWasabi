@@ -25,7 +25,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		Order = 2,
 		Category = "General",
 		Keywords = new[] { "Wallet", "Add", "Create", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger" },
-		IconName = "add_circle_regular")]
+		IconName = "add_circle_regular",
+		NavBarPosition = NavBarPosition.Bottom)]
 	public partial class AddWalletPageViewModel : NavBarItemViewModel
 	{
 		[AutoNotify] private string _walletName = "";
