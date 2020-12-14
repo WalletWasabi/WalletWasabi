@@ -54,7 +54,26 @@
               EnableCancelOnEscape="True"
               IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-              MaxContentWidth="800" MaxContentHeight="700">
+              MaxContentWidth="{Binding MaxContentWidth}" MaxContentHeight="{Binding MaxContentHeight}">
+      <ContentControl Content="{Binding CurrentPage}" />
+    </c:Dialog>
+    <c:Dialog x:CompileBindings="False"
+              DataContext="{Binding FullScreen}"
+              IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
+              EnableCancelOnPressed="False"
+              EnableCancelOnEscape="True"
+              IsEnabled="{Binding $parent.DataContext.IsFullScreenEnabled}"
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+              MaxContentWidth="{Binding MaxContentWidth}" MaxContentHeight="{Binding MaxContentHeight}">
+      <c:Dialog.Styles>
+        <Style Selector="c|Dialog /template/ Panel#PART_DialogHost">
+          <Setter Property="Margin" Value="0"/>
+        </Style>
+        <Style Selector="c|Dialog /template/ Border#PART_Border">
+          <Setter Property="Margin" Value="0"/>
+          <Setter Property="CornerRadius" Value="0"/>
+        </Style>
+      </c:Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
     <c:Dialog DataContext="{Binding CurrentDialog}"
