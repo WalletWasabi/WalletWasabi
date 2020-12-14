@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:transactionBroadcasting="clr-namespace:WalletWasabi.Fluent.ViewModels.TransactionBroadcasting"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="transactionBroadcasting:SuccessBroadcastTransactionViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.TransactionBroadcasting.SuccessBroadcastTransactionView">
+    <c:ContentArea Title="{Binding Title}"
+                   EnableNext="True" NextContent="Done"
+                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
+        <DockPanel>
+            <TextBlock Text="Your transaction was successfully broadcasted." DockPanel.Dock="Bottom" TextAlignment="Center" TextWrapping="Wrap" Margin="0 40"/>
+            <Viewbox MaxHeight="200" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Viewbox.Styles>
+                    <Style Selector=":is(PathIcon).fadeIn">
+                        <Style.Animations>
+                            <Animation Duration="0:0:1">
+                                <KeyFrame Cue="0%">
+                                    <Setter Property="Opacity" Value="0.0"/>
+                                </KeyFrame>
+                                <KeyFrame Cue="100%">
+                                    <Setter Property="Opacity" Value="1.0"/>
+                                </KeyFrame>
+                            </Animation>
+                        </Style.Animations>
+                    </Style>
+                </Viewbox.Styles>
+                <PathIcon Data="{StaticResource checkmark_filled}" Foreground="{DynamicResource SystemControlBackgroundAccentBrush}" Classes="fadeIn" />
+            </Viewbox>
+        </DockPanel>
+    </c:ContentArea>
+</UserControl>

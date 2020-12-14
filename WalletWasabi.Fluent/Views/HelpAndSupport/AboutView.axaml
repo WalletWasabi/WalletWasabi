@@ -2,12 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.HelpAndSupport"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:AboutViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.AboutView">
+             x:Class="WalletWasabi.Fluent.Views.HelpAndSupport.AboutView">
   <UserControl.Styles>
     <Style Selector="TextBlock#LogoText1">
       <Style.Animations>
@@ -73,7 +73,7 @@
     </Style>
   </UserControl.Styles>
   <Panel>
-    <controls:ContentArea>
+    <controls:ContentArea EnableNext="True" NextContent="Close">
       <controls:ContentArea.Title>
         <StackPanel Orientation="Horizontal">
           <TextBlock Name="LogoText1" Classes="h1 semibold">Wasabi</TextBlock>
