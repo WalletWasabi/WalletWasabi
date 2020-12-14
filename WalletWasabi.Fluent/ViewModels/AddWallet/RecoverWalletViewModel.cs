@@ -30,6 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			Network network,
 			WalletManager walletManager)
 		{
+			Title = "Enter recovery words";
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
 			Mnemonics.ToObservableChangeSet().ToCollection()
@@ -57,7 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			AdvancedOptionsInteraction.RegisterHandler(
 				async interaction =>
 					interaction.SetOutput(
-						await new AdvancedRecoveryOptionsViewModel(interaction.Input).ShowDialogAsync()));
+						(await new AdvancedRecoveryOptionsViewModel(interaction.Input).ShowDialogAsync()).Result));
 
 			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -80,40 +81,48 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			IsBusy = true;
 
-			try
-			{
-				var result = await NavigateDialog(
-					new EnterPasswordViewModel(
-						"Type the password of the wallet to be able to recover and click Continue."));
+			var dialogResult = await NavigateDialog(
+				new EnterPasswordViewModel(
+					"Type the password of the wallet to be able to recover and click Continue."));
 
-				if (result is { } password)
+			if (dialogResult.Result is { } password)
+			{
+				try
 				{
 					await Task.Run(
 						() =>
-					{
-						var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName!)
-							.walletFilePath;
+						{
+							var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName!)
+								.walletFilePath;
 
-						var keyManager = KeyManager.Recover(
-							CurrentMnemonics!,
-							password!,
-							walletFilePath,
-							AccountKeyPath,
-							MinGapLimit);
+							var keyManager = KeyManager.Recover(
+								CurrentMnemonics!,
+								password!,
+								walletFilePath,
+								AccountKeyPath,
+								MinGapLimit);
 
-						keyManager.SetNetwork(network);
+							keyManager.SetNetwork(network);
 
-						walletManager.AddWallet(keyManager);
-					});
+							walletManager.AddWallet(keyManager);
+						});
+
+					Navigate().To(new AddedWalletPageViewModel(walletName!, WalletType.Normal));
+
+					return;
+				}
+				catch (Exception ex)
+				{
+					// TODO navigate to error dialog.
+					Logger.LogError(ex);
 				}
 			}
-			catch (Exception ex)
+
+			IsBusy = false;
+
+			if (dialogResult.Kind == DialogResultKind.Cancel)
 			{
-				Logger.LogError(ex);
-			}
-			finally
-			{
-				Navigate().To(new AddedWalletPageViewModel(walletName!, WalletType.Normal));
+				Navigate().Clear();
 			}
 		}
 
