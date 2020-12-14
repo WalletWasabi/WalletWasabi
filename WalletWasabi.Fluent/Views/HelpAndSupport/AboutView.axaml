@@ -228,9 +228,6 @@
                 <PathIcon Data="{StaticResource copy_regular}" Width="13" />
               </Button>
             </StackPanel>
-            <TextBlock Margin=" 0 0 0 -0.5"
-                       VerticalAlignment="Center"
-                       Text="." />
           </WrapPanel>
         </StackPanel>
         <Panel Height="150" />
