@@ -43,10 +43,10 @@ namespace WalletWasabi.Packager
 
 		public static string PackagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
 		public static string SolutionDirectory = Path.GetFullPath(Path.Combine(PackagerProjectDirectory, ".."));
-		public static string FluentProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.Fluent.Desktop"));
+		public static string DesktopProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.Fluent.Desktop"));
 		public static string LibraryProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi"));
 		public static string WixProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller"));
-		public static string BinDistDirectory = Path.GetFullPath(Path.Combine(FluentProjectDirectory, "bin", "dist"));
+		public static string BinDistDirectory = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "dist"));
 
 		public static string VersionPrefix = Constants.ClientVersion.Revision == 0 ? Constants.ClientVersion.ToString(3) : Constants.ClientVersion.ToString();
 
@@ -249,19 +249,19 @@ namespace WalletWasabi.Packager
 			{
 				FileName = "cmd",
 				RedirectStandardInput = true,
-				WorkingDirectory = FluentProjectDirectory
+				WorkingDirectory = DesktopProjectDirectory
 			}))
 			{
 				process.StandardInput.WriteLine("dotnet clean --configuration Release && exit");
 				process.WaitForExit();
 			}
 
-			var fluentBinReleaseDirectory = Path.GetFullPath(Path.Combine(FluentProjectDirectory, "bin", "Release"));
+			var desktopBinReleaseDirectory = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "Release"));
 			var libraryBinReleaseDirectory = Path.GetFullPath(Path.Combine(LibraryProjectDirectory, "bin", "Release"));
-			if (Directory.Exists(fluentBinReleaseDirectory))
+			if (Directory.Exists(desktopBinReleaseDirectory))
 			{
-				IoHelpers.TryDeleteDirectoryAsync(fluentBinReleaseDirectory).GetAwaiter().GetResult();
-				Console.WriteLine($"Deleted {fluentBinReleaseDirectory}");
+				IoHelpers.TryDeleteDirectoryAsync(desktopBinReleaseDirectory).GetAwaiter().GetResult();
+				Console.WriteLine($"Deleted {desktopBinReleaseDirectory}");
 			}
 			if (Directory.Exists(libraryBinReleaseDirectory))
 			{
@@ -294,7 +294,7 @@ namespace WalletWasabi.Packager
 				{
 					FileName = "dotnet",
 					Arguments = $"clean",
-					WorkingDirectory = FluentProjectDirectory
+					WorkingDirectory = DesktopProjectDirectory
 				}))
 				{
 					process.WaitForExit();
@@ -346,7 +346,7 @@ namespace WalletWasabi.Packager
 						$"/p:DocumentationFile=\"\"",
 						$"/p:Deterministic=true",
 						$"/p:RestoreLockedMode=true"),
-					WorkingDirectory = FluentProjectDirectory,
+					WorkingDirectory = DesktopProjectDirectory,
 					RedirectStandardOutput = true
 				}))
 				{
@@ -521,7 +521,7 @@ namespace WalletWasabi.Packager
 					newFolderPath = Path.Combine(BinDistDirectory, newFolderRelativePath);
 					Directory.Move(publishedFolder, newFolderPath);
 
-					var assetsFolder = Path.Combine(FluentProjectDirectory, "Assets");
+					var assetsFolder = Path.Combine(DesktopProjectDirectory, "Assets");
 					var assetsInfo = new DirectoryInfo(assetsFolder);
 
 					foreach (var file in assetsInfo.EnumerateFiles())
