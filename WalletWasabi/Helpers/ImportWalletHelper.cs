@@ -37,7 +37,7 @@ namespace WalletWasabi.Helpers
 		{
 			var km = KeyManager.FromFile(filePath);
 
-			if (manager.IsWalletExists(km.MasterFingerprint))
+			if (manager.WalletExists(km.MasterFingerprint))
 			{
 				throw new InvalidOperationException(WalletExistsErrorMessage);
 			}
@@ -74,7 +74,7 @@ namespace WalletWasabi.Helpers
 			var bytes = ByteHelpers.FromHex(Guard.NotNullOrEmptyOrWhitespace(nameof(mfpString), mfpString, trim: true));
 			HDFingerprint mfp = reverseByteOrder ? new HDFingerprint(bytes.Reverse().ToArray()) : new HDFingerprint(bytes);
 
-			if (manager.IsWalletExists(mfp))
+			if (manager.WalletExists(mfp))
 			{
 				throw new InvalidOperationException(WalletExistsErrorMessage);
 			}
