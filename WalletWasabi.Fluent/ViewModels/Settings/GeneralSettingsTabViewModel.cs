@@ -32,7 +32,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		public GeneralSettingsTabViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
 		{
-
 			_darkModeEnabled = uiConfig.DarkModeEnabled;
 			_autoCopy = uiConfig.Autocopy;
 			_customFee = uiConfig.IsCustomFee;
