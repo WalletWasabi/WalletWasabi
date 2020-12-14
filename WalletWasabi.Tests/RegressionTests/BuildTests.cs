@@ -320,7 +320,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				{
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 					{
-						throw ex;
+						throw;
 					}
 					return; // Occassionally this fails on Linux or OSX, I have no idea why.
 				}

@@ -13,6 +13,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public TermsAndConditionsViewModel(LegalDocuments legalDocuments, RoutableViewModel next)
 		{
+			Title = "Welcome to Wasabi Wallet";
+
 			ViewTermsCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{

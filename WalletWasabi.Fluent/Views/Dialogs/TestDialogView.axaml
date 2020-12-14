@@ -8,7 +8,7 @@
              x:DataType="dialog:TestDialogViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.TestDialogView">
-  <c:ContentArea Title="Test Dialog" Caption="A quick example of a dialog:" EnableCancel="False" EnableNext="True" NextContent="Confirm">
+  <c:ContentArea Title="{Binding Title}" Caption="A quick example of a dialog:" EnableCancel="False" EnableNext="True" NextContent="Confirm">
     <StackPanel HorizontalAlignment="Center"
                 VerticalAlignment="Center">
       <TextBlock Text="{Binding Message}" />
