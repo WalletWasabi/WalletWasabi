@@ -151,8 +151,8 @@ namespace WalletWasabi.Packager
 				RedirectStandardInput = true,
 				WorkingDirectory = PackagerProjectDirectory
 			});
-			process.StandardInput.WriteLine($"git checkout -- Program.cs && exit");
-			process.WaitForExit();
+			process?.StandardInput.WriteLine($"git checkout -- Program.cs && exit");
+			process?.WaitForExit();
 		}
 
 		private static void Sign()
@@ -184,8 +184,8 @@ namespace WalletWasabi.Packager
 						WorkingDirectory = BinDistDirectory
 					}))
 					{
-						process.StandardInput.WriteLine($"signtool sign /d \"Wasabi Wallet\" /f \"{PfxPath}\" /p {pfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
-						process.WaitForExit();
+						process?.StandardInput.WriteLine($"signtool sign /d \"Wasabi Wallet\" /f \"{PfxPath}\" /p {pfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
+						process?.WaitForExit();
 					}
 
 					IoHelpers.TryDeleteDirectoryAsync(publishedFolder).GetAwaiter().GetResult();
@@ -218,8 +218,8 @@ namespace WalletWasabi.Packager
 					WorkingDirectory = BinDistDirectory
 				}))
 				{
-					process.StandardInput.WriteLine($"gpg --armor --detach-sign {finalFile} && exit");
-					process.WaitForExit();
+					process?.StandardInput.WriteLine($"gpg --armor --detach-sign {finalFile} && exit");
+					process?.WaitForExit();
 				}
 
 				using (var process = Process.Start(new ProcessStartInfo
@@ -229,8 +229,8 @@ namespace WalletWasabi.Packager
 					WorkingDirectory = WixProjectDirectory
 				}))
 				{
-					process.StandardInput.WriteLine($"git checkout -- ComponentsGenerated.wxs && exit");
-					process.WaitForExit();
+					process?.StandardInput.WriteLine($"git checkout -- ComponentsGenerated.wxs && exit");
+					process?.WaitForExit();
 				}
 			}
 
@@ -252,8 +252,8 @@ namespace WalletWasabi.Packager
 				WorkingDirectory = DesktopProjectDirectory
 			}))
 			{
-				process.StandardInput.WriteLine("dotnet clean --configuration Release && exit");
-				process.WaitForExit();
+				process?.StandardInput.WriteLine("dotnet clean --configuration Release && exit");
+				process?.WaitForExit();
 			}
 
 			var desktopBinReleaseDirectory = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "Release"));
@@ -297,7 +297,7 @@ namespace WalletWasabi.Packager
 					WorkingDirectory = DesktopProjectDirectory
 				}))
 				{
-					process.WaitForExit();
+					process?.WaitForExit();
 				}
 
 				// https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish?tabs=netcore21
@@ -350,11 +350,11 @@ namespace WalletWasabi.Packager
 					RedirectStandardOutput = true
 				}))
 				{
-					string error = process.StandardOutput.ReadToEnd();
-					process.WaitForExit();
-					if (process.ExitCode != 0)
+					string? error = process?.StandardOutput.ReadToEnd();
+					process?.WaitForExit();
+					if (process?.ExitCode is int exitCode)
 					{
-						throw new InvalidOperationException($"dotnet publish returned with error code {process.ExitCode}. Error message was: {error ?? "none"}");
+						throw new InvalidOperationException($"dotnet publish returned with error code {exitCode}. Error message was: {error ?? "none"}");
 					}
 				}
 
@@ -496,7 +496,7 @@ namespace WalletWasabi.Packager
 						WorkingDirectory = BinDistDirectory
 					}))
 					{
-						process.WaitForExit();
+						process?.WaitForExit();
 					}
 
 					Console.WriteLine("Create Linux .deb");
@@ -599,7 +599,7 @@ namespace WalletWasabi.Packager
 						WorkingDirectory = BinDistDirectory
 					}))
 					{
-						process.WaitForExit();
+						process?.WaitForExit();
 					}
 
 					IoHelpers.TryDeleteDirectoryAsync(debFolderPath).GetAwaiter().GetResult();
