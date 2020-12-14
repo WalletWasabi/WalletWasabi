@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.CrashReport
 		public bool HadException { get; private set; }
 		public SerializableException? SerializedException { get; private set; }
 
-		public void TryInvokeCrashReport()
+		public void TryInvokeIfRequired()
 		{
 			if (!HadException)
 			{
