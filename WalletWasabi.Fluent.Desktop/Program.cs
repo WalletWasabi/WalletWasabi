@@ -84,19 +84,18 @@ namespace WalletWasabi.Fluent.Desktop
 					crashReporter.SetException(ex);
 				}
 			}
-
-			TerminateService.Terminate();
-
-			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
-			TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
-
-			if (singleInstanceChecker is { } single)
+			finally
 			{
-				single.DisposeAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-			}
+				TerminateService.Terminate();
 
-			// Trigger the CrashReport process.
-			crashReporter.TryInvokeIfRequired();
+				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
+				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
+
+				singleInstanceChecker?.DisposeAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+				// Trigger the CrashReport process.
+				crashReporter.TryInvokeIfRequired();
+			}
 
 			Logger.LogSoftwareStopped("Wasabi");
 
