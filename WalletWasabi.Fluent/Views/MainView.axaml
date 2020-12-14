@@ -50,6 +50,8 @@
     <c:Dialog x:CompileBindings="False"
               DataContext="{Binding DialogScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
+              EnableCancelOnPressed="False"
+              EnableCancelOnEscape="True"
               IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
               MaxContentWidth="800" MaxContentHeight="700">
@@ -57,6 +59,8 @@
     </c:Dialog>
     <c:Dialog DataContext="{Binding CurrentDialog}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
+              EnableCancelOnPressed="False"
+              EnableCancelOnEscape="True"
               Content="{Binding }"
               HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
   </Panel>
