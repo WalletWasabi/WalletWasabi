@@ -18,6 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		public AddedWalletPageViewModel(string walletName, WalletType type)
 		{
+			Title = "Success";
 			WalletName = walletName;
 			Type = type;
 

@@ -11,9 +11,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		[AutoNotify] private string? _confirmPassword;
 		[AutoNotify] private string? _password;
 
-		public EnterPasswordViewModel(string subtitle)
+		public EnterPasswordViewModel(string caption)
 		{
-			Subtitle = subtitle;
+			Title = "Enter a password";
+			Caption = caption;
 
 			// This means pressing continue will make the password empty string.
 			// pressing cancel will return null.
@@ -45,7 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel), cancelCommandCanExecute);
 		}
 
-		public string Subtitle { get; }
+		public string Caption { get; }
 
 		protected override void OnDialogClosed()
 		{

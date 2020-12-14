@@ -18,7 +18,7 @@
       <Setter Property="MinHeight" Value="25" />
     </Style>
   </UserControl.Styles>
-  <c:ContentArea Title="Advanced Recovery Options"
+  <c:ContentArea Title="{Binding Title}"
                  Caption="Type your wallet-specific recovery options and click Continue."
                  EnableCancel="True" CancelContent="Cancel"
                  EnableNext="True" NextContent="Continue">

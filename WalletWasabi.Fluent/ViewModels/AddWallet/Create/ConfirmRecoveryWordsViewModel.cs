@@ -18,6 +18,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 
 		public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
 		{
+			Title = "Confirm recovery words";
+			
 			var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 
 			var finishCommandCanExecute =
