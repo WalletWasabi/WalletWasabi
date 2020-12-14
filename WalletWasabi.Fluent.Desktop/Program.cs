@@ -41,9 +41,11 @@ namespace WalletWasabi.Fluent.Desktop
 
 			try
 			{
-				Global = CreateGlobal();
+				string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+				var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
 
-				SingleInstanceChecker = new SingleInstanceChecker(Global.Network);
+				SingleInstanceChecker = new SingleInstanceChecker(config.Network);
+				Global = CreateGlobal(dataDir, uiConfig, config);
 
 				// TODO only required due to statusbar vm... to be removed.
 				Locator.CurrentMutable.RegisterConstant(Global);
@@ -79,17 +81,23 @@ namespace WalletWasabi.Fluent.Desktop
 			TerminateAppAndHandleException(appException, runGui);
 		}
 
-		private static Global CreateGlobal()
+		private static (UiConfig uiConfig, Config config) LoadOrCreateConfigs(string dataDir)
 		{
-			string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 			Directory.CreateDirectory(dataDir);
-			string torLogsFile = Path.Combine(dataDir, "TorLogs.txt");
 
-			var uiConfig = new UiConfig(Path.Combine(dataDir, "UiConfig.json"));
+			UiConfig uiConfig = new(Path.Combine(dataDir, "UiConfig.json"));
 			uiConfig.LoadOrCreateDefaultFile();
-			var config = new Config(Path.Combine(dataDir, "Config.json"));
+
+			Config config = new(Path.Combine(dataDir, "Config.json"));
 			config.LoadOrCreateDefaultFile();
 			config.CorrectMixUntilAnonymitySet();
+
+			return (uiConfig, config);
+		}
+
+		private static Global CreateGlobal(string dataDir, UiConfig uiConfig, Config config)
+		{
+			string torLogsFile = Path.Combine(dataDir, "TorLogs.txt");
 			var walletManager = new WalletManager(config.Network, new WalletDirectories(dataDir));
 
 			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
