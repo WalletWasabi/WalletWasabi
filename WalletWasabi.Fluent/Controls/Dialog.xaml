@@ -13,7 +13,7 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
-          <Panel Background="{DynamicResource DialogOverlayColor}" Name="PART_Overlay" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+          <Panel Name="PART_Overlay" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
           <Panel Name="PART_DialogHost"
                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
@@ -41,6 +41,7 @@
         <DoubleTransition Property="Opacity" Duration="0:0:0.25" />
       </Transitions>
     </Setter>
+    <Setter Property="Background" Value="{DynamicResource DialogOverlayColor}"/>
     <Setter Property="IsHitTestVisible" Value="False"/>
     <Setter Property="Opacity" Value="0"/>
   </Style>

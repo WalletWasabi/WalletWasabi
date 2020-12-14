@@ -67,11 +67,19 @@
               MaxContentWidth="{Binding MaxContentWidth}" MaxContentHeight="{Binding MaxContentHeight}">
       <c:Dialog.Styles>
         <Style Selector="c|Dialog /template/ Panel#PART_DialogHost">
-          <Setter Property="Margin" Value="0"/>
+          <Setter Property="Margin" Value="20"/>
         </Style>
         <Style Selector="c|Dialog /template/ Border#PART_Border">
           <Setter Property="Margin" Value="0"/>
           <Setter Property="CornerRadius" Value="0"/>
+          <Setter Property="BoxShadow" Value=""/>
+        </Style>
+        <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
+          <Setter Property="Background" Value="{DynamicResource RegionColor}"/>
+        </Style>
+        <Style Selector="c|Dialog:open /template/ Panel#PART_Overlay">
+          <Setter Property="IsHitTestVisible" Value="False"/>
+          <Setter Property="Opacity" Value="1"/>
         </Style>
       </c:Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />
