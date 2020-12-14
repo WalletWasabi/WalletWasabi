@@ -14,6 +14,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		public AdvancedRecoveryOptionsViewModel((KeyPath keyPath, int minGapLimit) interactionInput)
 		{
+			Title = "Advanced Recovery Options";
+
 			this.ValidateProperty(x => x.AccountKeyPath, ValidateAccountKeyPath);
 			this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
 
