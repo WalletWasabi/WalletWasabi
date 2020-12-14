@@ -352,7 +352,7 @@ namespace WalletWasabi.Packager
 				{
 					string? error = process?.StandardOutput.ReadToEnd();
 					process?.WaitForExit();
-					if (process?.ExitCode is int exitCode)
+					if (process?.ExitCode is int exitCode && exitCode != 0)
 					{
 						throw new InvalidOperationException($"dotnet publish returned with error code {exitCode}. Error message was: {error ?? "none"}");
 					}
@@ -476,6 +476,8 @@ namespace WalletWasabi.Packager
 
 					var linuxPath = $"/mnt/{driveLetterLower}/{Tools.LinuxPath(BinDistDirectory[3..])}";
 
+					var chmodExecutablesArgs = "-type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \\) -exec chmod u+x {} \\;";
+
 					var commands = new[]
 					{
 						"cd ~",
@@ -483,7 +485,7 @@ namespace WalletWasabi.Packager
 						$"sudo mount -t drvfs {driveLetterUpper}: /mnt/{driveLetterLower} -o metadata",
 						$"cd {linuxPath}",
 						$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
-						$"sudo find ./{newFolderName} -type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' \\) -exec chmod u+x {{}} \\;",
+						$"sudo find ./{newFolderName} {chmodExecutablesArgs}",
 						$"tar -pczvf {newFolderName}.tar.gz {newFolderName}"
 					};
 					string arguments = string.Join(" && ", commands);
@@ -585,7 +587,7 @@ namespace WalletWasabi.Packager
 						"sudo mount -t drvfs C: /mnt/c -o metadata",
 						$"cd {linuxPath}",
 						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
-						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \\) -exec chmod +x {{}} \\;",
+						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} {chmodExecutablesArgs}",
 						$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
 						$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
 						$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
