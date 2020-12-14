@@ -7,6 +7,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	public class AboutAdvancedInfoViewModel : DialogViewModelBase<Unit>
 	{
+		public AboutAdvancedInfoViewModel()
+		{
+			NextCommand = CancelCommand;
+		}
+
 		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
 
 		public Version HwiVersion => Constants.HwiVersion;
