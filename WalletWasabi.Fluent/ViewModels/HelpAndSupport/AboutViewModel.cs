@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 			var interaction = new Interaction<Unit, Unit>();
 			interaction.RegisterHandler(
 				async x =>
-					x.SetOutput(await new AboutAdvancedInfoViewModel().ShowDialogAsync()));
+					x.SetOutput((await new AboutAdvancedInfoViewModel().ShowDialogAsync()).Result));
 
 			AboutAdvancedInfoDialogCommand = ReactiveCommand.CreateFromTask(
 				execute: async () => await interaction.Handle(Unit.Default).ToTask());

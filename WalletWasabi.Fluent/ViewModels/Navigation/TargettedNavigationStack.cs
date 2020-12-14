@@ -5,7 +5,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
 	public static class NavigationExtensions
 	{
-		public static async Task<T> NavigateDialog<T>(
+		public static async Task<DialogResult<T>> NavigateDialog<T>(
 			this TargettedNavigationStack stack,
 			DialogViewModelBase<T> dialog)
 		{
