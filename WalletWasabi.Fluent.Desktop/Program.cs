@@ -24,12 +24,7 @@ namespace WalletWasabi.Fluent.Desktop
 	{
 		private static Global? Global;
 
-		// This is only needed to pass CrashReporter to AppMainAsync otherwise it could be a local variable in Main().
-		private static readonly CrashReporter CrashReporter = new CrashReporter();
-
 		private static readonly TerminateService TerminateService = new TerminateService(TerminateApplicationAsync);
-
-		private static SingleInstanceChecker? SingleInstanceChecker { get; set; }
 
 		// Initialization code. Don't use any Avalonia, third-party APIs or any
 		// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -38,14 +33,16 @@ namespace WalletWasabi.Fluent.Desktop
 		{
 			int exitCode = 0;
 			bool guiStarted = false;
+			SingleInstanceChecker? singleInstanceChecker = null;
+			CrashReporter crashReporter = new();
 
 			try
 			{
 				string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 				var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
 
-				SingleInstanceChecker = new SingleInstanceChecker(config.Network);
-				SingleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
+				singleInstanceChecker = new SingleInstanceChecker(config.Network);
+				singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 
 				Global = CreateGlobal(dataDir, uiConfig, config);
 
@@ -57,11 +54,11 @@ namespace WalletWasabi.Fluent.Desktop
 
 				if (args.Length != 0)
 				{
-					ProcessCliCommands(Global, args);
+					ProcessCliCommands(Global, args, crashReporter);
 				}
 				else
 				{
-					if (CrashReporter.IsReport)
+					if (crashReporter.IsReport)
 					{
 						Console.WriteLine("TODO Implement crash reporting.");
 						return;
@@ -85,11 +82,27 @@ namespace WalletWasabi.Fluent.Desktop
 
 				if (guiStarted)
 				{
-					CrashReporter.SetException(ex);
+					crashReporter.SetException(ex);
 				}
 			}
 
 			TerminateService.Terminate();
+
+			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
+			TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
+
+			if (singleInstanceChecker is { } single)
+			{
+				single.DisposeAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+			}
+
+			if (crashReporter.IsInvokeRequired is true)
+			{
+				// Trigger the CrashReport process.
+				crashReporter.TryInvokeCrashReport();
+			}
+
+			Logger.LogSoftwareStopped("Wasabi");
 
 			Environment.Exit(exitCode);
 		}
@@ -116,7 +129,7 @@ namespace WalletWasabi.Fluent.Desktop
 			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
 		}
 
-		private static bool ProcessCliCommands(Global global, string[] args)
+		private static bool ProcessCliCommands(Global global, string[] args, CrashReporter crashReporter)
 		{
 			var daemon = new Daemon(global, TerminateService);
 			var interpreter = new CommandInterpreter(Console.Out, Console.Error);
@@ -124,7 +137,7 @@ namespace WalletWasabi.Fluent.Desktop
 				args,
 				new MixerCommand(daemon),
 				new PasswordFinderCommand(global.WalletManager),
-				new CrashReportCommand(CrashReporter));
+				new CrashReportCommand(crashReporter));
 			return executionTask.GetAwaiter().GetResult();
 		}
 
@@ -139,31 +152,15 @@ namespace WalletWasabi.Fluent.Desktop
 				mainViewModel.Dispose();
 			}
 
-			if (CrashReporter.IsInvokeRequired is true)
-			{
-				// Trigger the CrashReport process.
-				CrashReporter.TryInvokeCrashReport();
-			}
-
 			if (Global is { } global)
 			{
 				await global.DisposeAsync().ConfigureAwait(false);
 			}
 
-			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
-			TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
-
 			if (mainViewModel is { })
 			{
 				Logger.LogSoftwareStopped("Wasabi GUI");
 			}
-
-			if (SingleInstanceChecker is { } single)
-			{
-				await single.DisposeAsync().ConfigureAwait(false);
-			}
-
-			Logger.LogSoftwareStopped("Wasabi");
 		}
 
 		private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs? e)
