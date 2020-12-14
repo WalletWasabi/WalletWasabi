@@ -483,7 +483,7 @@ namespace WalletWasabi.Packager
 						$"sudo mount -t drvfs {driveLetterUpper}: /mnt/{driveLetterLower} -o metadata",
 						$"cd {linuxPath}",
 						$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
-						$"sudo find ./{newFolderName} -type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' \\) -exec chmod +x {{}} \\;",
+						$"sudo find ./{newFolderName} -type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' \\) -exec chmod u+x {{}} \\;",
 						$"tar -pczvf {newFolderName}.tar.gz {newFolderName}"
 					};
 					string arguments = string.Join(" && ", commands);
