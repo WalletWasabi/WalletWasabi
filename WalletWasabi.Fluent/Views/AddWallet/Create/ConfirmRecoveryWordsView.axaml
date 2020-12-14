@@ -17,7 +17,7 @@
   </UserControl.KeyBindings>
   <c:ContentArea Title="Confirm recovery words" Caption="Type the required recovery words"
                  EnableBack="True"
-                 EnableCancel="True" CancelContent="Cancel"
+                 EnableCancel="False"
                  EnableNext="True" NextContent="Continue">
     <ScrollViewer>
       <ItemsControl HorizontalAlignment="Center" Items="{Binding ConfirmationWords}">
