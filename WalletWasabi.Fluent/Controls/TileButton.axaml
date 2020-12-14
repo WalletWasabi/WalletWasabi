@@ -81,4 +81,18 @@
     <Setter Property="Opacity" Value="1" />
   </Style>
 
+  <Style Selector="c|TileButton.action">
+    <Setter Property="Background" Value="{StaticResource ActionButtonBackgroundColor}" />
+    <Setter Property="TextBlock.Foreground" Value="{StaticResource ActionButtonForegroundColor}" />
+  </Style>
+  <Style Selector="c|TileButton.action:pointerover">
+    <Setter Property="Background" Value="{StaticResource ActionButtonPointerOverBackgroundColor}" />
+  </Style>
+  <Style Selector="c|TileButton.action:pressed">
+    <Setter Property="Background" Value="{StaticResource ActionButtonPressedBackgroundColor}" />
+  </Style>
+  <Style Selector="c|TileButton.action:disabled">
+    <Setter Property="Background" Value="{StaticResource ActionButtonDisabledBackgroundColor}" />
+  </Style>
+
 </Styles>
