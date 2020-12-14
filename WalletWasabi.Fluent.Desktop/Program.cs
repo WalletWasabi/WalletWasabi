@@ -45,6 +45,8 @@ namespace WalletWasabi.Fluent.Desktop
 				var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
 
 				SingleInstanceChecker = new SingleInstanceChecker(config.Network);
+				SingleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
+
 				Global = CreateGlobal(dataDir, uiConfig, config);
 
 				// TODO only required due to statusbar vm... to be removed.
@@ -52,8 +54,6 @@ namespace WalletWasabi.Fluent.Desktop
 
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
-
-				SingleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 
 				if (args.Length != 0)
 				{
