@@ -20,7 +20,7 @@
                  EnableCancel="True" CancelContent="Cancel"
                  EnableNext="True" NextContent="Continue">
     <ScrollViewer>
-      <ItemsControl HorizontalAlignment="Center" Items="{Binding ConfirmationWords}">
+      <ItemsControl HorizontalAlignment="Center" VerticalAlignment="Center" Items="{Binding ConfirmationWords}">
         <i:Interaction.Behaviors>
           <behaviors:FocusFirstTextBoxInItemsControlBehavior />
         </i:Interaction.Behaviors>
