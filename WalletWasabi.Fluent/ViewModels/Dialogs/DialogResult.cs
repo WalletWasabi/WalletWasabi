@@ -8,8 +8,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			Kind = kind;
 		}
 
-		public TResult? Result;
+		public TResult? Result { get; }
 
-		public DialogResultKind Kind;
+		public DialogResultKind Kind { get; }
 	}
 }
