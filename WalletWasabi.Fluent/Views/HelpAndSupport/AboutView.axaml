@@ -71,6 +71,12 @@
     <Style Selector="TextBox.Content">
       <Setter Property="Margin" Value="0 4 0 0" />
     </Style>
+    <Style Selector="Button > PathIcon">
+      <Setter Property="Opacity" Value="0.5" />
+    </Style>
+    <Style Selector="Button:pointerover > PathIcon">
+      <Setter Property="Opacity" Value="0.75" />
+    </Style>
   </UserControl.Styles>
   <Panel>
     <controls:ContentArea EnableNext="True" NextContent="Close">
@@ -91,8 +97,8 @@
         </StackPanel>
       </controls:ContentArea.Caption>
       <DockPanel>
-        <StackPanel Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Left" Orientation="Vertical">
-          <WrapPanel Margin="0 0 0 25">
+        <StackPanel Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Orientation="Vertical">
+          <WrapPanel Margin="0 0 0 25" HorizontalAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
               <Button Classes="plain"
                       Command="{Binding OpenBrowserCommand}"
@@ -103,7 +109,7 @@
                       Command="{Binding CopyLinkCommand}"
                       CommandParameter="{x:Static vm:AboutViewModel.DocsLink}"
                       ToolTip.Tip="Copy link">
-                <PathIcon Data="{StaticResource copy_link}" Width="13" />
+                <PathIcon Data="{StaticResource copy_regular}" Width="13" />
               </Button>
             </StackPanel>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
@@ -116,7 +122,7 @@
                       Command="{Binding CopyLinkCommand}"
                       CommandParameter="{x:Static vm:AboutViewModel.SourceCodeLink}"
                       ToolTip.Tip="Copy link">
-                <PathIcon Data="{StaticResource copy_link}" Width="13" />
+                <PathIcon Data="{StaticResource copy_regular}" Width="13" />
               </Button>
             </StackPanel>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
@@ -130,20 +136,17 @@
                       Command="{Binding CopyLinkCommand}"
                       CommandParameter="{x:Static vm:AboutViewModel.ClearnetLink}"
                       ToolTip.Tip="Copy link">
-                <PathIcon Data="{StaticResource copy_link}" Width="13" />
+                <PathIcon Data="{StaticResource copy_regular}" Width="13" />
               </Button>
             </StackPanel>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
             <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
-              <Button Classes="plain" Command="{Binding OpenBrowserCommand}"
-                      CommandParameter="{x:Static vm:AboutViewModel.TorLink}">
-                <TextBlock Text="Website (Tor)" Classes="Hyperlink" />
-              </Button>
+              <TextBlock Text="Website (Tor)" />
               <Button Classes="plain"
                       Command="{Binding CopyLinkCommand}"
                       CommandParameter="{x:Static vm:AboutViewModel.TorLink}"
                       ToolTip.Tip="Copy link">
-                <PathIcon Data="{StaticResource copy_link}" Width="13" />
+                <PathIcon Data="{StaticResource copy_regular}" Width="13" />
               </Button>
             </StackPanel>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
@@ -157,7 +160,7 @@
                       Command="{Binding CopyLinkCommand}"
                       CommandParameter="{x:Static vm:AboutViewModel.StatusPageLink}"
                       ToolTip.Tip="Copy link">
-                <PathIcon Data="{StaticResource copy_link}" Width="13" />
+                <PathIcon Data="{StaticResource copy_regular}" Width="13" />
               </Button>
             </StackPanel>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
@@ -170,7 +173,7 @@
                       Command="{Binding CopyLinkCommand}"
                       CommandParameter="{x:Static vm:AboutViewModel.UserSupportLink}"
                       ToolTip.Tip="Copy link">
-                <PathIcon Data="{StaticResource copy_link}" Width="13" />
+                <PathIcon Data="{StaticResource copy_regular}" Width="13" />
               </Button>
             </StackPanel>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
@@ -183,7 +186,7 @@
                       Command="{Binding CopyLinkCommand}"
                       CommandParameter="{x:Static vm:AboutViewModel.BugReportLink}"
                       ToolTip.Tip="Copy link">
-                <PathIcon Data="{StaticResource copy_link}" Width="13" />
+                <PathIcon Data="{StaticResource copy_regular}" Width="13" />
               </Button>
             </StackPanel>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
@@ -197,7 +200,7 @@
                       Command="{Binding CopyLinkCommand}"
                       CommandParameter="{x:Static vm:AboutViewModel.FAQLink}"
                       ToolTip.Tip="Copy link">
-                <PathIcon Data="{StaticResource copy_link}" Width="13" />
+                <PathIcon Data="{StaticResource copy_regular}" Width="13" />
               </Button>
             </StackPanel>
           </WrapPanel>
@@ -222,7 +225,7 @@
                       Command="{Binding CopyLinkCommand}"
                       CommandParameter="{x:Static vm:AboutViewModel.LicenseLink}"
                       ToolTip.Tip="Copy link">
-                <PathIcon Data="{StaticResource copy_link}" Width="13" />
+                <PathIcon Data="{StaticResource copy_regular}" Width="13" />
               </Button>
             </StackPanel>
             <TextBlock Margin=" 0 0 0 -0.5"

@@ -47,6 +47,8 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 			CopyLinkCommand = ReactiveCommand.CreateFromTask<string>(
 				async (link) =>
 					await Application.Current.Clipboard.SetTextAsync(link));
+
+			NextCommand = CancelCommand;
 		}
 
 		public ICommand AboutAdvancedInfoDialogCommand { get; }
