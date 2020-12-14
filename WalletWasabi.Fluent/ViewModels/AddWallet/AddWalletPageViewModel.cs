@@ -99,10 +99,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					var result = await NavigateDialog(
+					var dialogResult = await NavigateDialog(
 						new EnterPasswordViewModel("Type the password of the wallet and click Continue."));
 
-					if (result is { } password)
+					if (dialogResult.Result is { } password)
 					{
 						IsBusy = true;
 

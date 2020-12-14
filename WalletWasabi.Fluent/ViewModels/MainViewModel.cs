@@ -157,9 +157,9 @@ namespace WalletWasabi.Fluent.ViewModels
 			BroadcastTransactionViewModel.RegisterAsyncLazy(
 				async () =>
 				{
-					var result = await DialogScreen.NavigateDialog(new LoadTransactionViewModel(_global.Network));
+					var dialogResult = await DialogScreen.NavigateDialog(new LoadTransactionViewModel(_global.Network));
 
-					if (result is { })
+					if (dialogResult.Result is { })
 					{
 						while (_global.TransactionBroadcaster is null)
 						{
@@ -170,7 +170,7 @@ namespace WalletWasabi.Fluent.ViewModels
 							_global.BitcoinStore,
 							_global.Network,
 							_global.TransactionBroadcaster,
-							result);
+							dialogResult.Result);
 					}
 
 					return null;

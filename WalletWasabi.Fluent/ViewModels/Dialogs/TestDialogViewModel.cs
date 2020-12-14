@@ -16,10 +16,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				() => Navigate().Back(),
 				this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler));
 			CancelCommand = ReactiveCommand.Create(
-				() => Close(false),
+				() => Close(result: false),
 				this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler));
 			NextCommand = ReactiveCommand.Create(
-				() => Close(true),
+				() => Close(result: true),
 				this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler));
 		}
 
@@ -29,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		public void Close()
 		{
-			Close(false);
+			Close(result: false);
 		}
 	}
 }
