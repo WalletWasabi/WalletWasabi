@@ -110,6 +110,13 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			return result;
 		}
 
+		public async Task<TResult> NavigateBusyDialog<TResult>(Task<TResult> task)
+		{
+			await NavigateDialog(new BusyDialogViewModel(task), NavigationTarget.DialogHost);
+
+			return await task;
+		}
+
 		protected async Task ShowErrorAsync(string message, string caption)
 		{
 			var dialog = new ShowErrorDialogViewModel(message, Title, caption);

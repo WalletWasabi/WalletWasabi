@@ -105,23 +105,20 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 					if (dialogResult.Result is { } password)
 					{
-						IsBusy = true;
-
-						var (km, mnemonic) = await Task.Run(
-							() =>
-							{
-								var walletGenerator = new WalletGenerator(
-									walletManager.WalletDirectories.WalletsDir,
-									network)
+						var (km, mnemonic) = await NavigateBusyDialog(
+							Task.Run(
+								() =>
 								{
-									TipHeight = store.SmartHeaderChain.TipHeight
-								};
-								return walletGenerator.GenerateWallet(WalletName, password);
-							});
+									var walletGenerator = new WalletGenerator(
+										walletManager.WalletDirectories.WalletsDir,
+										network)
+									{
+										TipHeight = store.SmartHeaderChain.TipHeight
+									};
+									return walletGenerator.GenerateWallet(WalletName, password);
+								}));
 
 						Navigate().To(new RecoveryWordsViewModel(km, mnemonic, walletManager));
-
-						IsBusy = false;
 					}
 				});
 
