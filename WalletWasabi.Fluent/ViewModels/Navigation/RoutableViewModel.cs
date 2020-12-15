@@ -74,6 +74,9 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 				case NavigationTarget.DialogScreen:
 					return NavigationState.Instance.DialogScreenNavigation;
+
+				case NavigationTarget.FullScreen:
+					return NavigationState.Instance.FullScreenNavigation;
 			}
 
 			throw new NotSupportedException();

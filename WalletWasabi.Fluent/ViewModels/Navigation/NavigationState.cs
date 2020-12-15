@@ -5,10 +5,15 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
 	public class NavigationState
 	{
-		private NavigationState(INavigationStack<RoutableViewModel> homeScreenNavigation, INavigationStack<RoutableViewModel> dialogScreenNavigation, Func<IDialogHost> dialogHost)
+		private NavigationState(
+			INavigationStack<RoutableViewModel> homeScreenNavigation,
+			INavigationStack<RoutableViewModel> dialogScreenNavigation,
+			INavigationStack<RoutableViewModel> fullScreenNavigation,
+			Func<IDialogHost> dialogHost)
 		{
 			HomeScreenNavigation = homeScreenNavigation;
 			DialogScreenNavigation = dialogScreenNavigation;
+			FullScreenNavigation = fullScreenNavigation;
 			DialogHost = dialogHost;
 		}
 
@@ -20,9 +25,19 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		public INavigationStack<RoutableViewModel> DialogScreenNavigation { get; }
 
-		public static void Register(INavigationStack<RoutableViewModel> homeScreenNavigation, INavigationStack<RoutableViewModel> dialogScreenNavigation, Func<IDialogHost> dialogHost)
+		public INavigationStack<RoutableViewModel> FullScreenNavigation { get; }
+
+		public static void Register(
+			INavigationStack<RoutableViewModel> homeScreenNavigation,
+			INavigationStack<RoutableViewModel> dialogScreenNavigation,
+			INavigationStack<RoutableViewModel> fullScreenNavigation,
+			Func<IDialogHost> dialogHost)
 		{
-			Instance = new NavigationState(homeScreenNavigation, dialogScreenNavigation, dialogHost);
+			Instance = new NavigationState(
+				homeScreenNavigation,
+				dialogScreenNavigation,
+				fullScreenNavigation,
+				dialogHost);
 		}
 	}
 }

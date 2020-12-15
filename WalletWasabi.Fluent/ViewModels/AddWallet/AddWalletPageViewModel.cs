@@ -29,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		Category = "General",
 		Keywords = new[] { "Wallet", "Add", "Create", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger" },
 		IconName = "add_circle_regular",
-		NavigationTarget = NavigationTarget.DialogScreen,
+		NavigationTarget = NavigationTarget.FullScreen,
 		NavBarPosition = NavBarPosition.Bottom)]
 	public partial class AddWalletPageViewModel : NavBarItemViewModel
 	{

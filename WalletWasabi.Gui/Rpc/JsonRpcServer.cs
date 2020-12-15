@@ -69,7 +69,7 @@ namespace WalletWasabi.Gui.Rpc
 								response.ContentType = "application/json-rpc";
 								var output = response.OutputStream;
 								var buffer = Encoding.UTF8.GetBytes(result);
-								await output.WriteAsync(buffer, 0, buffer.Length, stoppingToken).ConfigureAwait(false);
+								await output.WriteAsync(buffer.AsMemory(0, buffer.Length), stoppingToken).ConfigureAwait(false);
 								await output.FlushAsync(stoppingToken).ConfigureAwait(false);
 							}
 						}
