@@ -6,15 +6,20 @@
              xmlns:search="using:WalletWasabi.Fluent.ViewModels.Search"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:SearchPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Search.SearchPageView">
   <c:ContentArea Title="{Binding Title}" IsBusy="{Binding IsBusy}">
     <c:ContentArea.Caption>
-      <DockPanel>
-        <TextBlock DockPanel.Dock="Left" Text="Locate and discover features in Wasabi" />
-        <TextBox VerticalAlignment="Top" Margin="80 -20 0 0" HorizontalAlignment="Stretch" Text="{Binding SearchQuery}" Watermark="Type here to search">
+      <WrapPanel>
+        <TextBlock Text="Locate and discover features in Wasabi" VerticalAlignment="Top" Margin="0 0 20 30"/>
+        <TextBox MinWidth="350" Margin="0 -10 0 0" VerticalAlignment="Top" Text="{Binding SearchQuery}" Watermark="Type here to search">
+          <i:Interaction.Behaviors>
+            <behaviors:HorizontallyStretchWrapPanelChild />
+          </i:Interaction.Behaviors>
           <TextBox.InnerLeftContent>
             <PathIcon Data="{StaticResource search_regular}"
                       Width="20" Height="20"
@@ -23,7 +28,7 @@
                       Margin="16,8,0,0" />
           </TextBox.InnerLeftContent>
         </TextBox>
-      </DockPanel>
+      </WrapPanel>
     </c:ContentArea.Caption>
     <Panel>
       <ItemsControl HorizontalAlignment="Left" Items="{Binding SearchResults}">
