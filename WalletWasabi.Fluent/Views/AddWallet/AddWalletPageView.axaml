@@ -4,73 +4,45 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:AddWalletPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.AddWalletPageView">
-  <c:ContentArea Title="Add Wallet" Caption="Type in your wallet's name and select an option:" IsBusy="{Binding IsBusy}">
+  <c:ContentArea Title="{Binding Title}" Caption="Type in your wallet's name and select an option:"
+                 EnableBack="{Binding EnableBack}"
+                 IsBusy="{Binding IsBusy}">
     <DockPanel>
       <StackPanel DockPanel.Dock="Top" Margin="0 0 0 20">
         <Label Content="Wallet _Name:" Target="walletNameTb" />
-        <TextBox x:Name="walletNameTb" Text="{Binding WalletName}" Watermark="(e.g. My Wallet)">
+        <TextBox x:Name="walletNameTb" MaxLength="250" Text="{Binding WalletName}" Watermark="(e.g. My Wallet)">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>
         </TextBox>
       </StackPanel>
-      <ScrollViewer>
-        <StackPanel Spacing="10" Margin="0 0 0 20">
-          <StackPanel.Styles>
-            <Style Selector="Button">
-              <Setter Property="HorizontalAlignment" Value="Stretch" />
-              <Setter Property="BorderThickness" Value="1" />
-              <Setter Property="Padding" Value="0" />
-              <Setter Property="IsEnabled" Value="{Binding OptionsEnabled}" />
-              <Setter Property="Opacity" Value="{Binding OptionsEnabled, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}" />
-              <Setter Property="IsVisible" x:CompileBindings="False" Value="{Binding $self.Opacity, Converter={x:Static conv:BoolOpacityConverters.OpacityToBool}}" />
-            </Style>
-            <Style Selector="Button.option:disabled /template/ ContentPresenter#PART_ContentPresenter">
-              <Setter Property="Background" Value="{DynamicResource OptionButtonBackground}" />
-            </Style>
-          </StackPanel.Styles>
-          <Button Classes="option" Command="{Binding CreateWalletCommand}">
-            <StackPanel Orientation="Horizontal">
-              <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource add_regular}" Width="16"
-                        VerticalAlignment="Center" />
-              <TextBlock Text="Create a new wallet" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-
-          <Button Classes="option" Command="{Binding RecoverWalletCommand}">
-            <StackPanel Orientation="Horizontal">
-              <PathIcon DockPanel.Dock="Left" Margin="20"
-                        Data="{StaticResource recover_arrow_right_regular}"
-                        Width="16" VerticalAlignment="Center" />
-              <TextBlock Text="Recover a wallet" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-
-          <Button Classes="option" Command="{Binding ImportWalletCommand}">
-            <StackPanel Orientation="Horizontal">
-              <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource import_regular}"
-                        Width="16"
-                        VerticalAlignment="Center" />
-              <TextBlock Text="Import a wallet" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-
-          <Button Classes="option" Command="{Binding ConnectHardwareWalletCommand}">
-            <StackPanel Orientation="Horizontal">
-              <PathIcon DockPanel.Dock="Left" Margin="20" Data="{StaticResource web_asset_regular}"
-                        Width="16" VerticalAlignment="Center" />
-              <TextBlock Text="Connect to hardware wallet" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-        </StackPanel>
-      </ScrollViewer>
+      <WrapPanel Orientation="Horizontal" Margin="0 0 0 20" HorizontalAlignment="Center">
+        <WrapPanel.Styles>
+          <Style Selector="c|TileButton">
+            <Setter Property="Margin" Value="15"/>
+            <Setter Property="IsEnabled" Value="{Binding OptionsEnabled}"/>
+          </Style>
+        </WrapPanel.Styles>
+        <c:TileButton Text="Create a new wallet"
+                      Classes="action"
+                      Icon="{StaticResource add_regular}"
+                      Command="{Binding CreateWalletCommand}"/>
+        <c:TileButton Text="Connect to hardware wallet"
+                      Icon="{StaticResource calculator_regular}"
+                      Command="{Binding ConnectHardwareWalletCommand}"/>
+        <c:TileButton Text="Import a wallet"
+                      Icon="{StaticResource import_regular}"
+                      Command="{Binding ImportWalletCommand}"/>
+        <c:TileButton Text="Recover a wallet"
+                      Icon="{StaticResource recover_arrow_right_regular}"
+                      Command="{Binding RecoverWalletCommand}"/>
+      </WrapPanel>
     </DockPanel>
   </c:ContentArea>
 </UserControl>

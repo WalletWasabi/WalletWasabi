@@ -5,45 +5,18 @@
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
 		<NoWarn>1701;1702;1705;1591;1573;CA1031</NoWarn>
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+		<CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
 	</PropertyGroup>
 	<ItemGroup>
-		<AdditionalFiles Include="**\*.axaml" />
-		<AdditionalFiles Include="**\*.xaml" />
-		<Compile Update="**\*.xaml.cs">
-			<DependentUpon>%(Filename)</DependentUpon>
-		</Compile>
-		<AvaloniaResource Include="**\*.xaml">
-			<SubType>Designer</SubType>
-		</AvaloniaResource>
 		<AvaloniaResource Include="Assets\**" />
-		<Compile Update="Controls\InfoMessage.axaml.cs">
-		  <DependentUpon>InfoMessage.axaml</DependentUpon>
-		  <SubType>Code</SubType>
-		</Compile>
-		<Compile Update="Views\AddWallet\HardwareWallet\DetectedHardwareWalletView.axaml.cs">
-		  <DependentUpon>DetectedHardwareWalletView.axaml</DependentUpon>
-		  <SubType>Code</SubType>
-		</Compile>
-		<Compile Update="Views\AddWallet\HardwareWallet\ConnectHardwareWalletView.axaml.cs">
-		  <DependentUpon>ConnectHardwareWalletView.axaml</DependentUpon>
-		  <SubType>Code</SubType>
-		</Compile>
-		<Compile Update="Views\AddWallet\Create\RecoveryWordsView.axaml.cs">
-		  <DependentUpon>RecoveryWordsView.axaml</DependentUpon>
-		  <SubType>Code</SubType>
-		</Compile>
-		<Compile Update="Views\AddWallet\Create\ConfirmRecoveryWordsView.axaml.cs">
-		  <DependentUpon>ConfirmRecoveryWordsView.axaml</DependentUpon>
-		  <SubType>Code</SubType>
-		</Compile>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0012147-beta" />
-		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.999-cibuild0012147-beta" />
-		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.0-build20201130-02" />
-		<PackageReference Include="Avalonia.Xaml.Interactions.Custom" Version="0.10.0-build20201130-02" />
-		<PackageReference Include="Avalonia.Xaml.Interactivity" Version="0.10.0-build20201130-02" />
-		<PackageReference Include="Svg.Skia.Avalonia" Version="0.10.0-preview7" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.0-rc1" />
+		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.0-rc1" />
+		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.0-rc1" />
+		<PackageReference Include="Avalonia.Xaml.Interactions.Custom" Version="0.10.0-rc1" />
+		<PackageReference Include="Avalonia.Xaml.Interactivity" Version="0.10.0-rc1" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj" />

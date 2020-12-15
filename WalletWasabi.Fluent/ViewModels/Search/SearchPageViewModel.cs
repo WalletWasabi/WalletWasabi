@@ -12,8 +12,8 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 namespace WalletWasabi.Fluent.ViewModels.Search
 {
 	[NavigationMetaData(
-		Title = "Search",
-		IconName = "search_regular",
+		Title = "Action Center",
+		IconName = "officeapps_regular",
 		Searchable = false,
 		NavBarPosition = NavBarPosition.Bottom)]
 	public partial class SearchPageViewModel : NavBarItemViewModel
@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 
 		public SearchPageViewModel()
 		{
-			Title = "Search";
+			Title = "Action Center";
 			_categories = new Dictionary<string, SearchCategory>();
 			_categorySources = new Dictionary<SearchCategory, SourceList<SearchItemViewModel>>();
 		}
@@ -86,7 +86,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 		{
 			if (_categories.TryGetValue(metaData.Category, out var searchCategory))
 			{
-				var result = new SearchItemViewModel(metaData, searchCategory);
+				var result = new SearchItemViewModel(this, metaData, searchCategory);
 
 				_categorySources[searchCategory].Add(result);
 

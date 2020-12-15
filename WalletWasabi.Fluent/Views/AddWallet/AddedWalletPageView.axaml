@@ -9,14 +9,17 @@
              x:DataType="vm:AddedWalletPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.AddedWalletPageView">
-  <c:ContentArea Title="Success" NextContent="Done" EnableNext="True" EnableCancel="False" EnableBack="False">
-    <StackPanel VerticalAlignment="Center" Spacing="40">
-      <Image Height="180" Source="{Binding Path='Type', Converter={x:Static conv:WalletTypeImageConverter.Instance}}" />
-      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+  <c:ContentArea Title="{Binding Title}" NextContent="Done" EnableNext="True" EnableCancel="False" EnableBack="False"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <DockPanel VerticalAlignment="Center">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 40 0 0">
         <TextBlock Text="Your wallet " />
         <TextBlock Text="{Binding WalletName}" FontWeight="Bold"/>
         <TextBlock Text=" was added to Wasabi." />
       </StackPanel>
-    </StackPanel>
+      <Viewbox MaxHeight="200">
+        <Image Source="{Binding Path='Type', Converter={x:Static conv:WalletTypeImageConverter.Instance}}" />
+      </Viewbox>
+    </DockPanel>
   </c:ContentArea>
 </UserControl>

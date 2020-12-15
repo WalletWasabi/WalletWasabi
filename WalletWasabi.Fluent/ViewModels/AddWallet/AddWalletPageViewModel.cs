@@ -10,13 +10,15 @@ using WalletWasabi.Stores;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 using WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Helpers;
 using WalletWasabi.Legal;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
@@ -27,12 +29,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		Category = "General",
 		Keywords = new[] { "Wallet", "Add", "Create", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger" },
 		IconName = "add_circle_regular",
-		NavBarPosition = NavBarPosition.Bottom,
-		NavigationTarget = NavigationTarget.DialogScreen)]
+		NavigationTarget = NavigationTarget.FullScreen,
+		NavBarPosition = NavBarPosition.Bottom)]
 	public partial class AddWalletPageViewModel : NavBarItemViewModel
 	{
 		[AutoNotify] private string _walletName = "";
 		[AutoNotify] private bool _optionsEnabled;
+		[AutoNotify] private bool _enableBack;
 
 		private readonly LegalDocuments _legalDocuments;
 
@@ -46,6 +49,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			SelectionMode = NavBarItemSelectionMode.Button;
 			_legalDocuments = legalDocuments;
 
+			var enableBack = default(IDisposable);
+
+			this.WhenAnyValue(x => x.CurrentTarget)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					enableBack?.Dispose();
+					enableBack = Navigate()
+						.WhenAnyValue(y => y.CanNavigateBack)
+						.Subscribe(y => EnableBack = y);
+				});
+
 			this.WhenAnyValue(x => x.WalletName)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => !string.IsNullOrWhiteSpace(x))
@@ -54,7 +69,28 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			RecoverWalletCommand = ReactiveCommand.Create(
 				() => { Navigate().To(new RecoverWalletViewModel(WalletName, network, walletManager)); });
 
-			ImportWalletCommand = ReactiveCommand.Create(() => new ImportWalletViewModel(WalletName, walletManager));
+			ImportWalletCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				try
+				{
+					var filePath = await FileDialogHelper.ShowOpenFileDialogAsync("Import wallet file", new[] { "json" });
+
+					if (filePath is null)
+					{
+						return;
+					}
+
+					var (isColdCardJson, keyManager) = await ImportWalletHelper.ImportWalletAsync(walletManager, WalletName, filePath);
+
+					// TODO: get the type from the wallet file
+					Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager, isColdCardJson ? WalletType.Coldcard : WalletType.Normal));
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError(ex);
+					await ShowErrorAsync(ex.ToUserFriendlyString(), "The wallet file was not valid or compatible with Wasabi.");
+				}
+			});
 
 			ConnectHardwareWalletCommand = ReactiveCommand.Create(() =>
 			{
@@ -64,10 +100,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					var result = await NavigateDialog(
+					var dialogResult = await NavigateDialog(
 						new EnterPasswordViewModel("Type the password of the wallet and click Continue."));
 
-					if (result is { } password)
+					if (dialogResult.Result is { } password)
 					{
 						IsBusy = true;
 
@@ -83,7 +119,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 								return walletGenerator.GenerateWallet(WalletName, password);
 							});
 
-						Navigate().To(new RecoveryWordsViewModel(km, mnemonic, walletManager), NavigationMode.Clear);
+						Navigate().To(new RecoveryWordsViewModel(km, mnemonic, walletManager));
 
 						IsBusy = false;
 					}

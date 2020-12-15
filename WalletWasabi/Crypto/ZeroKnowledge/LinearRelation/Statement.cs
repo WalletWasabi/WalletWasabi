@@ -44,7 +44,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		{
 			// The responses matrix should match the generators in the equations and
 			// there should be once nonce per equation.
-			Guard.True(nameof(publicNonces), Equations.Count() == publicNonces.Count());
+			Guard.True(nameof(publicNonces), Equations.Count() == publicNonces.Count);
 
 			return Equations.Zip(publicNonces, (equation, r) => equation.Verify(r, challenge, responses)).All(x => x);
 		}

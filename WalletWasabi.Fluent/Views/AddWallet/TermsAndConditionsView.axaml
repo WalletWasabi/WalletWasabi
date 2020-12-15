@@ -14,9 +14,10 @@
     <UserControl.KeyBindings>
         <KeyBinding Gesture="Enter" Command="{Binding NextCommand}" />
     </UserControl.KeyBindings>
-    <c:ContentArea Title="Welcome to Wasabi Wallet"
+    <c:ContentArea Title="{Binding Title}"
                    EnableCancel="False"
-                   EnableNext="True" NextContent="Continue" FocusNext="True">
+                   EnableNext="True" NextContent="Continue" FocusNext="True"
+                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DockPanel>
             <CheckBox Margin="0 10 0 0" IsChecked="{Binding IsAgreed}"
                       DockPanel.Dock="Bottom" Name="CheckBox_Agree"
@@ -26,14 +27,14 @@
                 </i:Interaction.Behaviors>
                 <StackPanel Orientation="Horizontal">
                     <Label Content="I _agree to the " Target="CheckBox_Agree" FontWeight="Normal" Margin="0"
-                           Padding="0" />
+                           Padding="0" IsHitTestVisible="False" />
                     <Button Classes="plain" Command="{Binding ViewTermsCommand}">
                         <TextBlock Text="Terms and conditions" TextDecorations="Underline"
                                    Foreground="{DynamicResource SystemAccentColor}" />
                     </Button>
                 </StackPanel>
             </CheckBox>
-            <Viewbox Height="300">
+            <Viewbox MaxHeight="300">
                 <Image>
                     <Image.Source>
                         <DrawingImage Drawing="{StaticResource placeholder_graphics_legal}"/>

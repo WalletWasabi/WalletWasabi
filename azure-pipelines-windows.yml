@@ -7,7 +7,7 @@ variables:
 jobs:
 - job: Windows
   pool:
-    vmImage: 'vs2017-win2016'
+    vmImage: 'windows-2019'
   steps:
   - task: UseDotNet@2
     displayName: 'Install .NET'
@@ -16,8 +16,10 @@ jobs:
   - task: DotNetCoreCLI@2
     displayName: 'Restore'
     inputs:
-      command: restore
+      command: 'restore'
       arguments: --locked-mode
+      feedsToUse: 'config'
+      nugetConfigPath: 'NuGet.Config'
   - task: DotNetCoreCLI@2
     displayName: 'Build Debug'
     inputs:

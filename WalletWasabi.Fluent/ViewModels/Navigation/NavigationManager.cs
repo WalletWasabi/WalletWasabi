@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
@@ -9,9 +10,29 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 	{
 		private static readonly Dictionary<NavigationMetaData, InstanceGeneratorBase> NavigationEntries = new ();
 
+		private static readonly Dictionary<Type, ViewModelBase> TypeRegistry = new ();
+
 		public static IEnumerable<NavigationMetaData> MetaData => NavigationEntries.Keys.Select(x => x);
 
-		public static async Task<RoutableViewModel> MaterialiseViewModel(NavigationMetaData metaData)
+		public static void RegisterType<T>(T instance) where T : ViewModelBase
+		{
+			if (!TypeRegistry.ContainsKey(typeof(T)))
+			{
+				TypeRegistry.Add(typeof(T), instance);
+			}
+		}
+
+		public static T? Get<T>() where T : ViewModelBase
+		{
+			if (TypeRegistry.ContainsKey(typeof(T)) && TypeRegistry[typeof(T)] is T vmb)
+			{
+				return vmb;
+			}
+
+			return null;
+		}
+
+		public static async Task<RoutableViewModel?> MaterialiseViewModel(NavigationMetaData metaData)
 		{
 			if (NavigationEntries.ContainsKey(metaData))
 			{
@@ -32,7 +53,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			throw new Exception("ViewModel metadata not registered.");
 		}
 
-		public static void RegisterAsyncLazy(NavigationMetaData metaData, Func<Task<RoutableViewModel>> generator)
+		public static void RegisterAsyncLazy(NavigationMetaData metaData, Func<Task<RoutableViewModel?>> generator)
 		{
 			if (metaData.Searchable && (metaData.Category is null || metaData.Title is null))
 			{
@@ -45,7 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			}
 		}
 
-		public static void RegisterLazy(NavigationMetaData metaData, Func<RoutableViewModel> generator)
+		public static void RegisterLazy(NavigationMetaData metaData, Func<RoutableViewModel?> generator)
 		{
 			if (metaData.Searchable && (metaData.Category is null || metaData.Title is null))
 			{
@@ -77,22 +98,22 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		private class AsyncInstanceGenerator : InstanceGeneratorBase
 		{
-			public AsyncInstanceGenerator(Func<Task<RoutableViewModel>> generate)
+			public AsyncInstanceGenerator(Func<Task<RoutableViewModel?>> generate)
 			{
 				Generate = generate;
 			}
 
-			public Func<Task<RoutableViewModel>> Generate { get; }
+			public Func<Task<RoutableViewModel?>> Generate { get; }
 		}
 
 		private class SynchronousInstanceGenerator : InstanceGeneratorBase
 		{
-			public SynchronousInstanceGenerator(Func<RoutableViewModel> generate)
+			public SynchronousInstanceGenerator(Func<RoutableViewModel?> generate)
 			{
 				Generate = generate;
 			}
 
-			public Func<RoutableViewModel> Generate { get; }
+			public Func<RoutableViewModel?> Generate { get; }
 		}
 
 		private class InstanceGenerator : InstanceGeneratorBase

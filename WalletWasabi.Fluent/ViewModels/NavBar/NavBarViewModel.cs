@@ -45,6 +45,15 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				.OfType<NavBarItemViewModel>()
 				.Subscribe(NavigateItem);
 
+			this.WhenAnyValue(x => x.Items.Count)
+				.Subscribe(x =>
+				{
+					if (x > 0 && SelectedItem is null)
+					{
+						SelectedItem = Items.FirstOrDefault();
+					}
+				});
+
 			this.WhenAnyValue(x => x.IsOpen)
 				.Subscribe(x =>
 				{
@@ -159,7 +168,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				RaiseAndChangeSelectedItem(null);
 				RaiseAndChangeSelectedItem(value);
 				_isNavigating = false;
-				NavigateItem(value);
+				// TODO: NavigateItem(value);
 				_isNavigating = true;
 				RaiseAndChangeSelectedItem(null);
 				RaiseAndChangeSelectedItem(previous);
@@ -174,7 +183,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				RaiseAndChangeSelectedItem(null);
 				RaiseAndChangeSelectedItem(value);
 				_isNavigating = false;
-				value.Toggle();
+				// TODO: value.Toggle();
 				_isNavigating = true;
 				RaiseAndChangeSelectedItem(null);
 				RaiseAndChangeSelectedItem(previous);

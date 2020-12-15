@@ -12,6 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 	{
 		public DetectedHardwareWalletViewModel(HardwareWalletOperations hardwareWalletOperations, string walletName)
 		{
+			Title = "Hardware Wallet";
 			WalletName = walletName;
 
 			switch (hardwareWalletOperations.SelectedDevice!.Model)
@@ -44,14 +45,16 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 				try
 				{
-					await hardwareWalletOperations.GenerateWalletAsync(WalletName);
+					var km = await hardwareWalletOperations.GenerateWalletAsync(WalletName);
+					var walletManager = hardwareWalletOperations.WalletManager;
 					hardwareWalletOperations.Dispose();
-					Navigate().To(new AddedWalletPageViewModel(WalletName, Type));
+
+					Navigate().To(new AddedWalletPageViewModel(walletManager, km, Type));
 				}
 				catch(Exception ex)
 				{
-					// TODO: Notify the user
 					Logger.LogError(ex);
+					await ShowErrorAsync(ex.ToUserFriendlyString(), "Error occured during adding your wallet.");
 					Navigate().Back();
 				}
 

@@ -10,9 +10,14 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	public partial class DialogScreenViewModel : TargettedNavigationStack
 	{
 		[AutoNotify] private bool _isDialogOpen;
+		[AutoNotify] private double _maxContentWidth;
+		[AutoNotify] private double _maxContentHeight;
 
-		public DialogScreenViewModel() : base(NavigationTarget.DialogScreen)
+		public DialogScreenViewModel(double maxContentWidth, double maxContentHeight, NavigationTarget navigationTarget = NavigationTarget.DialogScreen) : base(navigationTarget)
 		{
+			_maxContentWidth = maxContentWidth;
+			_maxContentHeight = maxContentHeight;
+
 			this.WhenAnyValue(x => x.IsDialogOpen)
 				.Skip(1) // Skip the initial value change (which is false).
 				.DistinctUntilChanged()

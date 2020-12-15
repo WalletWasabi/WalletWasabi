@@ -9,12 +9,12 @@
              x:CompileBindings="True"
              x:DataType="create:RecoveryWordsViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.RecoveryWordsView">
-  <c:ContentArea Title="Recovery words"
+  <c:ContentArea Title="{Binding Title}"
                  Caption="Write down the following numbered recovery words in order. These can be used to recover your wallet in the future. It is very important you keep them in a safe place."
                  EnableCancel="True" CancelContent="Cancel"
                  EnableBack="True"
                  EnableNext="True" NextContent="Continue" FocusNext="True">
-    <ItemsControl Items="{Binding MnemonicWords}" HorizontalAlignment="Stretch">
+    <ItemsControl Items="{Binding MnemonicWords}" VerticalAlignment="Center" HorizontalAlignment="Center">
       <ItemsControl.Styles>
         <Style Selector="TextBlock">
           <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />

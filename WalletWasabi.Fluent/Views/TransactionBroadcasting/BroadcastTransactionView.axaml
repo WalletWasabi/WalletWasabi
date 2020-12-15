@@ -1,0 +1,117 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:transactionBroadcasting="clr-namespace:WalletWasabi.Fluent.ViewModels.TransactionBroadcasting"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="transactionBroadcasting:BroadcastTransactionViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.TransactionBroadcasting.BroadcastTransactionView">
+    <c:ContentArea Title="{Binding Title}"
+                   Caption="{Binding TransactionId}"
+                   EnableCancel="{Binding !IsBusy}"
+                   EnableNext="True" NextContent="Broadcast"
+                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
+
+        <DockPanel LastChildFill="True">
+            <DockPanel.Styles>
+                <Style Selector="TextBlock.unit">
+                    <Setter Property="VerticalAlignment" Value="Bottom"/>
+                    <Setter Property="Margin" Value="3 0 0 5"/>
+                    <Setter Property="FontSize" Value="12"/>
+                </Style>
+
+                <Style Selector="TextBlock.amountTitle">
+                    <Setter Property="FontSize" Value="24"/>
+                    <Setter Property="HorizontalAlignment" Value="Left"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="Margin" Value="0 0 0 -5"/>
+                </Style>
+
+                <Style Selector="StackPanel.amountValue">
+                    <Setter Property="Orientation" Value="Horizontal"/>
+                    <Setter Property="HorizontalAlignment" Value="Left"/>
+                    <Setter Property="TextBlock.FontSize" Value="35"/>
+                    <Setter Property="TextBlock.FontWeight" Value="UltraLight"/>
+                </Style>
+            </DockPanel.Styles>
+
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="20">
+                <StackPanel.Styles>
+                    <Style Selector="TextBlock">
+                        <Setter Property="VerticalAlignment" Value="Bottom"/>
+                        <Setter Property="FontWeight" Value="UltraLight"/>
+                    </Style>
+                    <Style Selector="TextBlock.countValue">
+                        <Setter Property="FontSize" Value="20"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Setter Property="Margin" Value="0 0 0 -2"/>
+                    </Style>
+                </StackPanel.Styles>
+                <TextBlock Text="The transaction has " />
+                <TextBlock Text="{Binding InputCount}" Classes="countValue"/>
+                <TextBlock Text="{Binding InputCountString}" />
+                <TextBlock Text="{Binding OutputCount}" Classes="countValue"/>
+                <TextBlock Text="{Binding OutputCountString}" />
+            </StackPanel>
+
+            <Viewbox DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Margin="20 0 20 20">
+                <Grid ColumnDefinitions="230,*,230">
+                    <StackPanel Grid.Column="0" HorizontalAlignment="Left">
+                        <TextBlock Text="Input" Classes="amountTitle"/>
+                        <StackPanel Classes="amountValue">
+                            <TextBlock Text="{Binding TotalInputValue, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
+                            <TextBlock Text="BTC" Classes="unit" IsVisible="{Binding !!TotalInputValue}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                        <TextBlock Text="Output" Classes="amountTitle" />
+                        <StackPanel Classes="amountValue">
+                            <TextBlock Text="{Binding TotalOutputValue, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
+                            <TextBlock Text="BTC" Classes="unit" IsVisible="{Binding !!TotalOutputValue}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+                        <TextBlock Text="Fee" Classes="amountTitle"/>
+                        <StackPanel Classes="amountValue">
+                            <TextBlock Text="{Binding NetworkFee, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
+                            <TextBlock Text="BTC" Classes="unit" IsVisible="{Binding !!NetworkFee}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Viewbox>
+
+            <Viewbox MaxHeight="200" DockPanel.Dock="Top" HorizontalAlignment="Center">
+                <Viewbox.Styles>
+                    <Style Selector="PathIcon">
+                        <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}"/>
+                        <Setter Property="Opacity" Value="0.6"/>
+                    </Style>
+                    <Style Selector="PathIcon.broadcasting">
+                        <Setter Property="Opacity" Value="0.6"/>
+                        <Style.Animations>
+                            <Animation Duration="0:0:0.5" IterationCount="INFINITE" PlaybackDirection="Alternate">
+                                <KeyFrame Cue="0%">
+                                    <Setter Property="Opacity" Value="0.2"/>
+                                </KeyFrame>
+                                <KeyFrame Cue="100%">
+                                    <Setter Property="Opacity" Value="1.0"/>
+                                </KeyFrame>
+                            </Animation>
+                        </Style.Animations>
+                    </Style>
+                </Viewbox.Styles>
+
+                <Panel>
+                    <PathIcon IsVisible="{Binding IsBusy}" Data="{StaticResource live_regular}" Classes="broadcasting" />
+                    <PathIcon IsVisible="{Binding !IsBusy}" Data="{StaticResource live_regular}" />
+                </Panel>
+            </Viewbox>
+
+        </DockPanel>
+    </c:ContentArea>
+</UserControl>

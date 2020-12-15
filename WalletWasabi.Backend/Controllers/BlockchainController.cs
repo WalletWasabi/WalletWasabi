@@ -332,7 +332,7 @@ namespace WalletWasabi.Backend.Controllers
 			catch (Exception ex)
 			{
 				Logger.LogDebug(ex);
-				throw ex;
+				throw;
 			}
 		}
 

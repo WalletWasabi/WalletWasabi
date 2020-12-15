@@ -315,7 +315,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 					Assert.Equal(Money.Coins(1.0m), originalCoin.Amount);
 
 					// Remove the created coin by the transaction.
-					Assert.Equal(3, e.ReplacedCoins.Count());
+					Assert.Equal(3, e.ReplacedCoins.Count);
 					Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "B");
 					Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "C");
 					Assert.Single(e.ReplacedCoins, coin => coin.HdPubKey.Label == "D");

@@ -43,13 +43,13 @@ namespace WalletWasabi.Tests.UnitTests
 			var graph = new[] { tx0, tx1, tx2, tx7, tx5, tx3, tx4, tx6 }.ToDependencyGraph();
 
 			Assert.Equal(3, graph.Count());  // tx0, tx1 and tx2
-			Assert.Equal(2, graph.First().Children.Count());  // tx0 has two children tx3 and tx4
-			Assert.Equal(2, graph.Skip(1).First().Children.Count());  // tx1 has two children tx3 and tx4
+			Assert.Equal(2, graph.First().Children.Count);  // tx0 has two children tx3 and tx4
+			Assert.Equal(2, graph.Skip(1).First().Children.Count);  // tx1 has two children tx3 and tx4
 			Assert.Single(graph.Last().Children);  // tx2 has only one children tx7
-			Assert.Equal(2, graph.Last().Children.Single().Parents.Count());  // tx7 has two parents tx2 and tx6
+			Assert.Equal(2, graph.Last().Children.Single().Parents.Count);  // tx7 has two parents tx2 and tx6
 
 			var txs = graph.OrderByDependency().ToArray();
-			Assert.Equal(8, txs.Count());
+			Assert.Equal(8, txs.Length);
 			Assert.Equal(tx0, txs[0]);
 			Assert.Equal(tx1, txs[1]);
 			Assert.Equal(tx2, txs[2]);
