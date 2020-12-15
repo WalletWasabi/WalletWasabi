@@ -30,6 +30,7 @@
           </Style>
         </WrapPanel.Styles>
         <c:TileButton Text="Create a new wallet"
+                      Classes="action"
                       Icon="{StaticResource add_regular}"
                       Command="{Binding CreateWalletCommand}"/>
         <c:TileButton Text="Connect to hardware wallet"
