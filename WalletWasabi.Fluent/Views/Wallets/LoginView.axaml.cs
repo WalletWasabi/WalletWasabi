@@ -1,8 +1,5 @@
-using System;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
-using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Views.Wallets
 {

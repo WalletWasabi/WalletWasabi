@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation
