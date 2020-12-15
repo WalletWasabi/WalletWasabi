@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -22,19 +23,19 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 
 			var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 
-			var finishCommandCanExecute =
+			var nextCommandCanExecute =
 				confirmationWordsSourceList
 				.Connect()
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.WhenValueChanged(x => x.IsConfirmed)
-				.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
+				.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed) || walletManager.Network != Network.Main);
 
 			NextCommand = ReactiveCommand.Create(
 				() =>
 				{
 					Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager, WalletType.Normal));
 				},
-				finishCommandCanExecute);
+				nextCommandCanExecute);
 
 			CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 
