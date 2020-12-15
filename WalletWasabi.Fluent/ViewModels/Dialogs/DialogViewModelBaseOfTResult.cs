@@ -2,6 +2,7 @@ using ReactiveUI;
 using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
@@ -62,7 +63,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			IsDialogOpen = false;
 
-			OnDialogClosed();
+			((INavigatable)this).OnNavigatedFrom(true);
 		}
 
 		/// <summary>
@@ -81,6 +82,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				host.CurrentDialog = this;
 			}
 
+			OnNavigatedTo(false);
+
 			IsDialogOpen = true;
 
 			return _currentTaskCompletionSource.Task;
@@ -95,13 +98,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			IsDialogOpen = true;
 
 			return _currentTaskCompletionSource.Task;
-		}
-
-		/// <summary>
-		/// Method that is triggered when the dialog is closed.
-		/// </summary>
-		protected virtual void OnDialogClosed()
-		{
 		}
 	}
 }

@@ -19,9 +19,5 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		public string BackendCompatibleVersions => Constants.ClientSupportBackendVersionText;
 
 		public string CurrentBackendMajorVersion => WasabiClient.ApiVersion.ToString();
-
-		protected override void OnDialogClosed()
-		{
-		}
 	}
 }

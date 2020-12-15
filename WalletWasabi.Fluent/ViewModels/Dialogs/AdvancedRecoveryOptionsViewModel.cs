@@ -76,9 +76,5 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				errors.Add(ErrorSeverity.Error, "Path is not a valid derivation path.");
 			}
 		}
-
-		protected override void OnDialogClosed()
-		{
-		}
 	}
 }

@@ -48,10 +48,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		public string Caption { get; }
 
-		protected override void OnDialogClosed()
+		protected override void OnNavigatedFrom()
 		{
 			Password = "";
 			ConfirmPassword = "";
+
+			base.OnNavigatedFrom();
 		}
 
 		private void ValidateConfirmPassword(IValidationErrors errors)
