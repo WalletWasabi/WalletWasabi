@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
-using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Models;
-using WalletWasabi.Gui.Validation;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
