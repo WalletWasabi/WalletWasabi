@@ -15,11 +15,11 @@ namespace WalletWasabi.Fluent.Behaviors
 			AssociatedObject?.Parent.WhenAnyValue(x => x.Bounds)
 				.DistinctUntilChanged()
 				.Where(_ => AssociatedObject.Parent.VisualChildren.Count > 0)
-				.Subscribe(StretchLastChild)
+				.Subscribe(StretchChild)
 				.DisposeWith(disposables);
 		}
 
-		private void StretchLastChild(Rect parentBounds)
+		private void StretchChild(Rect parentBounds)
 		{
 			if (!(AssociatedObject?.Parent is WrapPanel parent) || AssociatedObject is null)
 			{
