@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 		public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
 		{
 			Title = "Confirm recovery words";
-			
+
 			var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 
 			var finishCommandCanExecute =
@@ -32,9 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 			NextCommand = ReactiveCommand.Create(
 				() =>
 				{
-					walletManager.AddWallet(keyManager);
-
-					Navigate().To(new AddedWalletPageViewModel(keyManager.WalletName, WalletType.Normal));
+					Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager, WalletType.Normal));
 				},
 				finishCommandCanExecute);
 

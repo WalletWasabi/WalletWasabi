@@ -13,7 +13,7 @@ namespace WalletWasabi.Helpers
 	{
 		private const string WalletExistsErrorMessage = "Wallet with the same fingerprint already exists!";
 
-		public static async Task<bool> ImportWalletAsync(WalletManager walletManager, string walletName, string filePath)
+		public static async Task<(bool isColdCardJson, KeyManager keyManager)> ImportWalletAsync(WalletManager walletManager, string walletName, string filePath)
 		{
 			var walletFullPath = walletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 
@@ -28,9 +28,7 @@ namespace WalletWasabi.Helpers
 				? GetKeyManagerByColdcardJson(walletManager, jsonWallet, walletFullPath)
 				: GetKeyManagerByWasabiJson(walletManager, filePath, walletFullPath);
 
-			walletManager.AddWallet(km);
-
-			return isColdcardJson;
+			return (isColdcardJson, km);
 		}
 
 		private static KeyManager GetKeyManagerByWasabiJson(WalletManager manager, string filePath, string walletFullPath)
