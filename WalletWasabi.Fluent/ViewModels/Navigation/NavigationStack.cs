@@ -143,6 +143,10 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 						_backStack.Push(CurrentPage);
 					}
 					break;
+
+				case NavigationMode.Skip:
+					// Do not push old page on the back stack.
+					break;
 			}
 
 			NavigationOperation(oldPage, oldInStack, viewmodel, newInStack);
