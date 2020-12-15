@@ -21,6 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			RxApp.MainThreadScheduler.Schedule(async () =>
 			{
+				await _task;
 				Close();
 			});
 		}
