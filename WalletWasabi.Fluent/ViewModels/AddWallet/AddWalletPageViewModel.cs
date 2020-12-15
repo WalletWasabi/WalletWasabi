@@ -36,6 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		[AutoNotify] private string _walletName = "";
 		[AutoNotify] private bool _optionsEnabled;
 		[AutoNotify] private bool _enableBack;
+		[AutoNotify] private bool _enableCancel;
 
 		private readonly LegalDocuments _legalDocuments;
 
@@ -131,6 +132,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{
 			base.OnNavigatedTo(inStack, disposable);
+
+			_enableCancel = CurrentTarget != NavigationTarget.HomeScreen;
 
 			this.RaisePropertyChanged(WalletName);
 
