@@ -79,6 +79,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			Network network,
 			string? walletName)
 		{
+			IsBusy = true;
+			
 			var dialogResult = await NavigateDialog(
 				new EnterPasswordViewModel(
 					"Type the password of the wallet to be able to recover and click Continue."));
@@ -88,8 +90,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				try
 				{
 					var keyManager = await NavigateBusyDialog(Task.Run(
-						() =>
+						async () =>
 						{
+							await Task.Delay(5000);
 							var walletFilePath = walletManager.WalletDirectories.GetWalletFilePaths(walletName!)
 								.walletFilePath;
 
@@ -107,6 +110,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 					Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager, WalletType.Normal));
 
+					IsBusy = false;
 					return;
 				}
 				catch (Exception ex)

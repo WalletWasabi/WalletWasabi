@@ -7,7 +7,7 @@
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
              x:DataType="dialog:BusyDialogViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Dialogs.BusyDialogView">
+             x:Class="WalletWasabi.Fluent.Views.Dialogs.BusyDialogView" MinWidth="250" MinHeight="250">
     <c:ContentArea IsBusy="True">
   </c:ContentArea>
 </UserControl>
