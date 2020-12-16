@@ -20,8 +20,8 @@ namespace WalletWasabi.Packager
 		// 2. Build WIX project with Release and x64 configuration.
 		// 3. Sign with Packager, set restore true so the password won't be kept.
 
-		public const bool DoPublish = false;
-		public const bool DoSign = true;
+		public const bool DoPublish = true;
+		public const bool DoSign = false;
 		public const bool DoRestoreProgramCs = false;
 
 		public const string PfxPath = "C:\\digicert.pfx";
