@@ -34,25 +34,25 @@ namespace WalletWasabi.Packager
 		// Avalonia - win7-32, linux-64, osx-64
 		// We'll only support x64, if someone complains, we can come back to it.
 		// For 32 bit Windows there needs to be a lot of WIX configuration to be done.
-		public static string[] Targets = new[]
+		private static string[] Targets = new[]
 		{
 			"win7-x64",
 			"linux-x64",
 			"osx-x64"
 		};
 
-		public static string PackagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
-		public static string SolutionDirectory = Path.GetFullPath(Path.Combine(PackagerProjectDirectory, ".."));
-		public static string DesktopProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.Fluent.Desktop"));
-		public static string LibraryProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi"));
-		public static string WixProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller"));
-		public static string BinDistDirectory = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "dist"));
+		private static string PackagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
+		private static string SolutionDirectory = Path.GetFullPath(Path.Combine(PackagerProjectDirectory, ".."));
+		private static string DesktopProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.Fluent.Desktop"));
+		private static string LibraryProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi"));
+		private static string WixProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller"));
+		private static string BinDistDirectory = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "dist"));
 
-		public static string VersionPrefix = Constants.ClientVersion.Revision == 0 ? Constants.ClientVersion.ToString(3) : Constants.ClientVersion.ToString();
+		private static string VersionPrefix = Constants.ClientVersion.Revision == 0 ? Constants.ClientVersion.ToString(3) : Constants.ClientVersion.ToString();
 
-		public static bool OnlyBinaries;
-		public static bool OnlyCreateDigests;
-		public static bool IsContinuousDelivery;
+		private static bool OnlyBinaries;
+		private static bool OnlyCreateDigests;
+		private static bool IsContinuousDelivery;
 
 		/// <summary>
 		/// Main entry point.
