@@ -29,12 +29,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		Category = "General",
 		Keywords = new[] { "Wallet", "Add", "Create", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger" },
 		IconName = "add_circle_regular",
+		NavigationTarget = NavigationTarget.FullScreen,
 		NavBarPosition = NavBarPosition.Bottom)]
 	public partial class AddWalletPageViewModel : NavBarItemViewModel
 	{
 		[AutoNotify] private string _walletName = "";
 		[AutoNotify] private bool _optionsEnabled;
 		[AutoNotify] private bool _enableBack;
+		[AutoNotify] private bool _enableCancel;
 
 		private readonly LegalDocuments _legalDocuments;
 
@@ -79,10 +81,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						return;
 					}
 
-					var isColdcardJson = await ImportWalletHelper.ImportWalletAsync(walletManager, WalletName, filePath);
+					var (isColdCardJson, keyManager) = await ImportWalletHelper.ImportWalletAsync(walletManager, WalletName, filePath);
 
 					// TODO: get the type from the wallet file
-					Navigate().To(new AddedWalletPageViewModel(WalletName, isColdcardJson ? WalletType.Coldcard : WalletType.Normal));
+					Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager, isColdCardJson ? WalletType.Coldcard : WalletType.Normal));
 				}
 				catch (Exception ex)
 				{
@@ -130,6 +132,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{
 			base.OnNavigatedTo(inStack, disposable);
+
+			_enableCancel = CurrentTarget != NavigationTarget.HomeScreen;
 
 			this.RaisePropertyChanged(WalletName);
 

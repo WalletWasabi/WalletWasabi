@@ -30,6 +30,8 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		public ICommand? NextCommand { get; protected set; }
 
+		public ICommand? SkipCommand { get; protected set; }
+
 		public ICommand BackCommand { get; protected set; }
 
 		public ICommand CancelCommand { get; protected set; }
@@ -74,6 +76,9 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 				case NavigationTarget.DialogScreen:
 					return NavigationState.Instance.DialogScreenNavigation;
+
+				case NavigationTarget.FullScreen:
+					return NavigationState.Instance.FullScreenNavigation;
 			}
 
 			throw new NotSupportedException();

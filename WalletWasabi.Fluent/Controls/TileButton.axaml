@@ -59,12 +59,14 @@
     <Setter Property="BorderBrush" Value="{DynamicResource OptionButtonBorderBrush}" />
   </Style>
 
+  <!-- Pointerover -->
   <Style Selector="c|TileButton:pointerover">
     <Setter Property="Background" Value="{DynamicResource ButtonBackgroundPointerOver}" />
     <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrushPointerOver}" />
     <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundPointerOver}" />
   </Style>
 
+  <!-- Pressed -->
   <Style Selector="c|TileButton:pressed">
     <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundPressed}" />
   </Style>
@@ -73,12 +75,19 @@
     <Setter Property="RenderTransform" Value="scale(0.98)" />
   </Style>
 
+  <!-- Fade in/out -->
   <Style Selector="c|TileButton[IsEnabled=False]">
     <Setter Property="Opacity" Value="0.4" />
   </Style>
 
   <Style Selector="c|TileButton[IsEnabled=True]">
     <Setter Property="Opacity" Value="1" />
+  </Style>
+
+  <!-- Action style -->
+  <Style Selector="c|TileButton.action">
+    <Setter Property="BorderThickness" Value="0 0 0 2" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
   </Style>
 
 </Styles>

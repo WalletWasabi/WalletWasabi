@@ -24,8 +24,10 @@ namespace WalletWasabi.Fluent.ViewModels
 		private readonly Global _global;
 		[AutoNotify] private bool _isMainContentEnabled;
 		[AutoNotify] private bool _isDialogScreenEnabled;
+		[AutoNotify] private bool _isFullScreenEnabled;
 		[AutoNotify] private DialogViewModelBase? _currentDialog;
 		[AutoNotify] private DialogScreenViewModel _dialogScreen;
+		[AutoNotify] private DialogScreenViewModel _fullScreen;
 		[AutoNotify] private NavBarViewModel _navBar;
 		[AutoNotify] private StatusBarViewModel _statusBar;
 		[AutoNotify] private string _title = "Wasabi Wallet";
@@ -39,11 +41,13 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			_global = global;
 
-			_dialogScreen = new DialogScreenViewModel();
+			_dialogScreen = new DialogScreenViewModel(800, 700);
+
+			_fullScreen = new DialogScreenViewModel(double.PositiveInfinity, double.PositiveInfinity, NavigationTarget.FullScreen);
 
 			MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
 
-			NavigationState.Register(MainScreen, DialogScreen, () => this);
+			NavigationState.Register(MainScreen, DialogScreen, FullScreen, () => this);
 
 			Network = global.Network;
 
@@ -51,6 +55,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			_isMainContentEnabled = true;
 			_isDialogScreenEnabled = true;
+			_isFullScreenEnabled = true;
 
 			_statusBar = new StatusBarViewModel(
 				global.DataDir,
@@ -88,9 +93,17 @@ namespace WalletWasabi.Fluent.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsMainContentEnabled = !x);
 
+			this.WhenAnyValue(x => x.FullScreen!.IsDialogOpen)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => IsMainContentEnabled = !x);
+
 			this.WhenAnyValue(x => x.CurrentDialog!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => IsDialogScreenEnabled = !x);
+				.Subscribe(x =>
+				{
+					IsFullScreenEnabled = !x;
+					IsDialogScreenEnabled = !x;
+				});
 
 			_walletManager.WhenAnyValue(x => x.Items.Count)
 				.Subscribe(x => _navBar.IsHidden = x == 0);

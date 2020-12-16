@@ -3,7 +3,7 @@
   <Styles.Resources>
     <Thickness x:Key="ActionButtonPadding">20,10</Thickness>
   </Styles.Resources>
-  
+
   <Style Selector="Button.action /template/ ContentPresenter">
     <Setter Property="Background" Value="{StaticResource ActionButtonBackgroundColor}" />
     <Setter Property="Padding" Value="{StaticResource ActionButtonPadding}" />

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -12,17 +13,18 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 {
-	public class ConfirmRecoveryWordsViewModel : RoutableViewModel
+	public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	{
 		private readonly ReadOnlyObservableCollection<RecoveryWordViewModel> _confirmationWords;
+		[AutoNotify] private bool _isSkipEnable;
 
 		public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
 		{
 			Title = "Confirm recovery words";
-			
 			var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
+			_isSkipEnable = walletManager.Network != Network.Main;
 
-			var finishCommandCanExecute =
+			var nextCommandCanExecute =
 				confirmationWordsSourceList
 				.Connect()
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -32,11 +34,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 			NextCommand = ReactiveCommand.Create(
 				() =>
 				{
-					walletManager.AddWallet(keyManager);
-
-					Navigate().To(new AddedWalletPageViewModel(keyManager.WalletName, WalletType.Normal));
+					Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager, WalletType.Normal));
 				},
-				finishCommandCanExecute);
+				nextCommandCanExecute);
+
+			if (_isSkipEnable)
+			{
+				SkipCommand = ReactiveCommand.Create(() => NextCommand.Execute(null));
+			}
 
 			CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 

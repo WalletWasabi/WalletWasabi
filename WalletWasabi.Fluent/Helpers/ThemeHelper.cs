@@ -15,9 +15,9 @@ namespace WalletWasabi.Fluent.Helpers
 			{
 				var themeIndex = Application.Current.Styles.IndexOf(currentTheme);
 
-				var newTheme = new StyleInclude(new Uri("avares://WalletWasabi.Fluent/App.xaml"))
+				var newTheme = new StyleInclude(new Uri("avares://WalletWasabi.Fluent/App.axaml"))
 				{
-					Source = new Uri($"avares://WalletWasabi.Fluent/Styles/Themes/{(darkMode ? "BaseDark" : "BaseLight")}.xaml")
+					Source = new Uri($"avares://WalletWasabi.Fluent/Styles/Themes/{(darkMode ? "BaseDark" : "BaseLight")}.axaml")
 				};
 
 				Application.Current.Styles[themeIndex] = newTheme;

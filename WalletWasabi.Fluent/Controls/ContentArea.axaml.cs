@@ -21,6 +21,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> EnableNextProperty =
 			AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableNext));
 
+		public static readonly StyledProperty<bool> EnableSkipProperty =
+			AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableSkip));
+
 		public static readonly StyledProperty<bool> FocusNextProperty =
 			AvaloniaProperty.Register<ContentArea, bool>(nameof(FocusNext));
 
@@ -32,6 +35,9 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<object> NextContentProperty =
 			AvaloniaProperty.Register<ContentArea, object>(nameof(NextContent), "Next");
+
+		public static readonly StyledProperty<object> SkipContentProperty =
+			AvaloniaProperty.Register<ContentArea, object>(nameof(NextContent), "Skip");
 
 		public static readonly StyledProperty<bool> IsBusyProperty =
 			AvaloniaProperty.Register<ContentArea, bool>(nameof(IsBusy));
@@ -69,6 +75,12 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(EnableNextProperty, value);
 		}
 
+		public bool EnableSkip
+		{
+			get => GetValue(EnableSkipProperty);
+			set => SetValue(EnableSkipProperty, value);
+		}
+
 		public bool FocusNext
 		{
 			get => GetValue(FocusNextProperty);
@@ -91,6 +103,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(NextContentProperty);
 			set => SetValue(NextContentProperty, value);
+		}
+
+		public object SkipContent
+		{
+			get => GetValue(SkipContentProperty);
+			set => SetValue(SkipContentProperty, value);
 		}
 
 		public bool IsBusy

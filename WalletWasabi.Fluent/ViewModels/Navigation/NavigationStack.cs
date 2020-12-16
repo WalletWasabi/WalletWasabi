@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation
@@ -143,6 +142,10 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 					{
 						_backStack.Push(CurrentPage);
 					}
+					break;
+
+				case NavigationMode.Skip:
+					// Do not push old page on the back stack.
 					break;
 			}
 
