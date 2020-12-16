@@ -28,7 +28,8 @@ namespace WalletWasabi.Fluent
 		Default = 0,
 		HomeScreen = 1,
 		DialogScreen = 2,
-		DialogHost = 3
+		FullScreen = 3,
+		DialogHost = 4
 	}
 
 	public sealed class NavigationMetaData
@@ -184,8 +185,8 @@ namespace {namespaceName}
 			source.Append($@"        }};
 ");
 
-			source.AppendLine($@"        public static void RegisterAsyncLazy(Func<Task<RoutableViewModel>> createInstance) => NavigationManager.RegisterAsyncLazy(MetaData, createInstance);");
-			source.AppendLine($@"        public static void RegisterLazy(Func<RoutableViewModel> createInstance) => NavigationManager.RegisterLazy(MetaData, createInstance);");
+			source.AppendLine($@"        public static void RegisterAsyncLazy(Func<Task<RoutableViewModel?>> createInstance) => NavigationManager.RegisterAsyncLazy(MetaData, createInstance);");
+			source.AppendLine($@"        public static void RegisterLazy(Func<RoutableViewModel?> createInstance) => NavigationManager.RegisterLazy(MetaData, createInstance);");
 			source.AppendLine($@"        public static void Register(RoutableViewModel createInstance) => NavigationManager.Register(MetaData, createInstance);");
 
 			var routeableClass = compilation.GetTypeByMetadataName("WalletWasabi.Fluent.ViewModels.Navigation.RoutableViewModel");

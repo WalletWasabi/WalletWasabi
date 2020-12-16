@@ -61,7 +61,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			}
 		}
 
-		public async Task GenerateWalletAsync(string walletName)
+		public async Task<KeyManager> GenerateWalletAsync(string walletName)
 		{
 			var selectedDevice = SelectedDevice;
 
@@ -83,8 +83,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 					cts.Token).ConfigureAwait(false);
 				var path = WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 
-				var km = KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, path);
-				WalletManager.AddWallet(km);
+				return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, path);
+
 			}
 			catch (Exception)
 			{
@@ -143,8 +143,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 					var detectedHardwareWallets =
 						(await Client.EnumerateAsync(timeoutCts.Token)
 							.ConfigureAwait(false))
-							.Where(wallet => WalletManager.GetWallets()
-							.Any(x => x.KeyManager.MasterFingerprint == wallet.Fingerprint) == false)
+							.Where(wallet => !WalletManager.WalletExists(wallet.Fingerprint))
 							.ToArray();
 
 					detectionCts.Token.ThrowIfCancellationRequested();

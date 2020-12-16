@@ -10,7 +10,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.HardwareWallet.ConnectHardwareWalletView">
 
-  <c:ContentArea Title="Hardware Wallet"
+  <c:ContentArea Title="{Binding Title}"
                  Caption="Connect your hardware wallet to the PC"
                  EnableCancel="True" CancelContent="Cancel"
                  EnableBack="True"

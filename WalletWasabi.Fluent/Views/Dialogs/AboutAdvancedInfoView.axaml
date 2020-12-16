@@ -19,7 +19,7 @@
     </UserControl.Styles>
     <controls:ContentArea Title="Advanced Information"
                           EnableCancel="False"
-                          EnableNext="False">
+                          EnableNext="True" NextContent="OK">
         <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380" Margin="30 0 0 0">
             <StackPanel>
                 <TextBlock Classes="Header" Text="Compatible Coordinator Versions" />

@@ -10,13 +10,14 @@
              x:DataType="vm:AddWalletPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.AddWalletPageView">
-  <c:ContentArea Title="Add Wallet" Caption="Type in your wallet's name and select an option:"
+  <c:ContentArea Title="{Binding Title}" Caption="Type in your wallet's name and select an option:"
                  EnableBack="{Binding EnableBack}"
+                 EnableCancel="{Binding EnableCancel}"
                  IsBusy="{Binding IsBusy}">
     <DockPanel>
       <StackPanel DockPanel.Dock="Top" Margin="0 0 0 20">
         <Label Content="Wallet _Name:" Target="walletNameTb" />
-        <TextBox x:Name="walletNameTb" Text="{Binding WalletName}" Watermark="(e.g. My Wallet)">
+        <TextBox x:Name="walletNameTb" MaxLength="250" Text="{Binding WalletName}" Watermark="(e.g. My Wallet)">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>
@@ -30,6 +31,7 @@
           </Style>
         </WrapPanel.Styles>
         <c:TileButton Text="Create a new wallet"
+                      Classes="action"
                       Icon="{StaticResource add_regular}"
                       Command="{Binding CreateWalletCommand}"/>
         <c:TileButton Text="Connect to hardware wallet"

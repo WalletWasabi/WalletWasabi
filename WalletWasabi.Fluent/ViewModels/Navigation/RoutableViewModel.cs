@@ -11,6 +11,8 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 	public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	{
 		[AutoNotify] private bool _isBusy;
+		[AutoNotify] private string _title;
+
 		private CompositeDisposable? _currentDisposable;
 
 		public NavigationTarget CurrentTarget { get; internal set; }
@@ -19,14 +21,16 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		protected RoutableViewModel()
 		{
+			_title = "";
 			BackCommand = ReactiveCommand.Create(() => Navigate().Back());
-
 			CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 		}
 
 		public virtual string IconName => "navigation_regular";
 
 		public ICommand? NextCommand { get; protected set; }
+
+		public ICommand? SkipCommand { get; protected set; }
 
 		public ICommand BackCommand { get; protected set; }
 
@@ -72,6 +76,9 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 				case NavigationTarget.DialogScreen:
 					return NavigationState.Instance.DialogScreenNavigation;
+
+				case NavigationTarget.FullScreen:
+					return NavigationState.Instance.FullScreenNavigation;
 			}
 
 			throw new NotSupportedException();
@@ -91,10 +98,10 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		{
 		}
 
-		public async Task<TResult> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog)
+		public async Task<DialogResult<TResult>> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog)
 			=> await NavigateDialog(dialog, CurrentTarget);
 
-		public async Task<TResult> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target)
+		public async Task<DialogResult<TResult>> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target)
 		{
 			Navigate(target).To(dialog);
 
@@ -103,6 +110,12 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			Navigate(target).Back();
 
 			return result;
+		}
+
+		protected async Task ShowErrorAsync(string message, string caption)
+		{
+			var dialog = new ShowErrorDialogViewModel(message, Title, caption);
+			await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 		}
 	}
 }

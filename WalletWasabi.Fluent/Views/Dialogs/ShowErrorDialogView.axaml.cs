@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views
+namespace WalletWasabi.Fluent.Views.Dialogs
 {
-	public class AboutView : UserControl
+	public class ShowErrorDialogView : UserControl
 	{
-		public AboutView()
+		public ShowErrorDialogView()
 		{
 			InitializeComponent();
 		}

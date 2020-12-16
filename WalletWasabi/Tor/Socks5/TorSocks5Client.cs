@@ -350,7 +350,7 @@ namespace WalletWasabi.Tor.Socks5
 					var stream = TcpClient.GetStream();
 
 					// Write data to the stream
-					await stream.WriteAsync(sendBuffer, 0, sendBuffer.Length, cancellationToken).ConfigureAwait(false);
+					await stream.WriteAsync(sendBuffer.AsMemory(0, sendBuffer.Length), cancellationToken).ConfigureAwait(false);
 					await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
 
 					// If receiveBufferSize is null, zero or negative or bigger than TcpClient.ReceiveBufferSize
@@ -363,7 +363,7 @@ namespace WalletWasabi.Tor.Socks5
 					// Receive the response
 					var receiveBuffer = new byte[actualReceiveBufferSize];
 
-					int receiveCount = await stream.ReadAsync(receiveBuffer, 0, actualReceiveBufferSize, cancellationToken).ConfigureAwait(false);
+					int receiveCount = await stream.ReadAsync(receiveBuffer.AsMemory(0, actualReceiveBufferSize), cancellationToken).ConfigureAwait(false);
 
 					if (receiveCount <= 0)
 					{
@@ -381,7 +381,7 @@ namespace WalletWasabi.Tor.Socks5
 					while (stream.DataAvailable)
 					{
 						Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
-						receiveCount = await stream.ReadAsync(receiveBuffer, 0, actualReceiveBufferSize, cancellationToken).ConfigureAwait(false);
+						receiveCount = await stream.ReadAsync(receiveBuffer.AsMemory(0, actualReceiveBufferSize), cancellationToken).ConfigureAwait(false);
 						if (receiveCount <= 0)
 						{
 							throw new TorConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");

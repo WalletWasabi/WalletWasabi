@@ -13,14 +13,13 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
-          <Panel Background="{DynamicResource DialogOverlayColor}" Name="PART_Overlay" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+          <Panel Name="PART_Overlay" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
           <Panel Name="PART_DialogHost"
                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                 Margin="20">
-            <Border CornerRadius="4" BoxShadow="{DynamicResource DialogBoxShadow}"
+                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
+            <Border Name="PART_Border"
                     Background="{DynamicResource RegionColor}"
-                    MaxWidth="{TemplateBinding MaxContentWidth}" MaxHeight="{TemplateBinding MaxContentHeight}" Margin="40">
+                    MaxWidth="{TemplateBinding MaxContentWidth}" MaxHeight="{TemplateBinding MaxContentHeight}">
               <ContentPresenter Name="PART_ContentPresenter" Margin="16 28 16 16"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
@@ -42,10 +41,12 @@
         <DoubleTransition Property="Opacity" Duration="0:0:0.25" />
       </Transitions>
     </Setter>
+    <Setter Property="Background" Value="{DynamicResource DialogOverlayColor}"/>
     <Setter Property="IsHitTestVisible" Value="False"/>
     <Setter Property="Opacity" Value="0"/>
   </Style>
   <Style Selector="c|Dialog /template/ Panel#PART_DialogHost">
+    <Setter Property="Margin" Value="20"/>
     <Setter Property="Transitions">
       <Transitions>
         <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.35" Easing="{StaticResource FluentEasing}" />
@@ -53,6 +54,11 @@
       </Transitions>
     </Setter>
     <Setter Property="Opacity" Value="0"/>
+  </Style>
+  <Style Selector="c|Dialog /template/ Border#PART_Border">
+    <Setter Property="Margin" Value="40"/>
+    <Setter Property="CornerRadius" Value="4"/>
+    <Setter Property="BoxShadow" Value="{DynamicResource DialogBoxShadow}"/>
   </Style>
 
   <!-- Dialog Opened State -->
