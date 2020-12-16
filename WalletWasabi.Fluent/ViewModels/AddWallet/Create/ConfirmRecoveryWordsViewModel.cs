@@ -15,6 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 {
 	public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	{
+		[AutoNotify] private bool _isSkipEnable;
 		private readonly ReadOnlyObservableCollection<RecoveryWordViewModel> _confirmationWords;
 		[AutoNotify] private bool _isSkipEnable;
 
