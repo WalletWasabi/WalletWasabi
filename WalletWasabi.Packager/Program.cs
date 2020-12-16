@@ -51,7 +51,6 @@ namespace WalletWasabi.Packager
 		private static string VersionPrefix = Constants.ClientVersion.Revision == 0 ? Constants.ClientVersion.ToString(3) : Constants.ClientVersion.ToString();
 
 		private static bool OnlyBinaries;
-		private static bool OnlyCreateDigests;
 		private static bool IsContinuousDelivery;
 
 		/// <summary>
