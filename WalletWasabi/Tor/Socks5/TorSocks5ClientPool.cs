@@ -31,11 +31,11 @@ namespace WalletWasabi.Tor.Socks5
 		/// <summary>
 		/// Delegate method for creating a new pool item.
 		/// </summary>
-		/// <param name="request">HTTP request for which to create <see cref="IPoolItem"/> instance.</param>
+		/// <param name="requestUri">HTTP request URI for which to create <see cref="IPoolItem"/> instance.</param>
 		/// <param name="isolateStream"><c>true</c> if a new Tor circuit is required for this HTTP request.</param>
 		/// <param name="token">Cancellation token to cancel the asynchronous operation.</param>
 		/// <returns>New pool item.</returns>
-		public delegate Task<IPoolItem> CreateNewPoolItemDelegateAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default);
+		public delegate Task<IPoolItem> CreateNewPoolItemDelegateAsync(Uri requestUri, bool isolateStream, CancellationToken token = default);
 
 		/// <summary>
 		/// Creates a new instance of the object.
@@ -247,7 +247,7 @@ namespace WalletWasabi.Tor.Socks5
 
 			try
 			{
-				poolItem = await NewPoolItemCreator.Invoke(request, isolateStream, token).ConfigureAwait(false);
+				poolItem = await NewPoolItemCreator.Invoke(request.RequestUri!, isolateStream, token).ConfigureAwait(false);
 				Logger.LogTrace($"[NEW {poolItem}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
 				PoolItemManager.TryAddPoolItem(host, poolItem);
 			}

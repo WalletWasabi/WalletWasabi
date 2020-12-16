@@ -60,12 +60,12 @@ namespace WalletWasabi.Tor.Socks5
 		/// Creates a new connected TCP client connected to Tor SOCKS5 endpoint.
 		/// </summary>
 		/// <inheritdoc cref="EstablishConnectionAsync(string, int, bool, bool, CancellationToken)"/>
-		public async Task<IPoolItem> EstablishConnectionAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default)
+		public async Task<IPoolItem> EstablishConnectionAsync(Uri requestUri, bool isolateStream, CancellationToken token = default)
 		{
-			bool useSsl = request.RequestUri!.Scheme == Uri.UriSchemeHttps;
-			string host = request.RequestUri.DnsSafeHost;
+			bool useSsl = requestUri.Scheme == Uri.UriSchemeHttps;
+			string host = requestUri.DnsSafeHost;
 			bool allowRecycling = !useSsl && !isolateStream;
-			int port = request.RequestUri!.Port;
+			int port = requestUri.Port;
 
 			TorConnection newClient = await EstablishConnectionAsync(host, port, useSsl, isolateStream, token).ConfigureAwait(false);
 			return new TorPoolItem(newClient, allowRecycling);
@@ -105,10 +105,6 @@ namespace WalletWasabi.Tor.Socks5
 				tcpClient = null;
 				return result;
 			}
-			catch (TorException)
-			{
-				throw;
-			}
 			finally
 			{
 				transportStream?.Dispose();
@@ -140,7 +136,18 @@ namespace WalletWasabi.Tor.Socks5
 				await tcpClient.ConnectAsync(host, port.Value, cancellationToken).ConfigureAwait(false);
 				return tcpClient.GetStream();
 			}
-			catch (Exception ex) when (IsConnectionRefused(ex))
+			catch (SocketException ex) when (ex.ErrorCode is 10061 or 111 or 61)
+			{
+				// 10061 ~ "No connection could be made because the target machine actively refused it" on Windows.
+				// 111   ~ "Connection refused" on Linux.
+				// 61    ~ "Connection refused" on macOS.
+				throw new TorConnectionException($"Could not connect to Tor SOCKSPort at '{host}:{port}'. Is Tor running?", ex);
+			}
+			catch (Exception ex) when (
+				// Windows
+				ex.Message.StartsWith("No connection could be made because the target machine actively refused it") ||
+				// Linux && macOS
+				ex.Message.StartsWith("Connection refused"))
 			{
 				throw new TorConnectionException($"Could not connect to Tor SOCKSPort at '{host}:{port}'. Is Tor running?", ex);
 			}
@@ -282,43 +289,6 @@ namespace WalletWasabi.Tor.Socks5
 			{
 				Logger.LogTrace("<");
 			}
-		}
-
-		private static bool IsConnectionRefused(Exception exc)
-		{
-			Exception? error = null;
-			try
-			{
-				throw exc;
-			}
-			// ex.Message must be checked, because I'm having difficulty catching SocketExceptionFactory+ExtendedSocketException
-			// Only works on English Os-es.
-			catch (Exception ex) when (ex.Message.StartsWith("No connection could be made because the target machine actively refused it") // Windows
-				|| ex.Message.StartsWith("Connection refused")) // Linux && OSX
-			{
-				error = ex;
-			}
-			// "No connection could be made because the target machine actively refused it" for non-English Windows.
-			catch (SocketException ex) when (ex.ErrorCode == 10061)
-			{
-				error = ex;
-			}
-			// "Connection refused" for non-English Linux.
-			catch (SocketException ex) when (ex.ErrorCode == 111)
-			{
-				error = ex;
-			}
-			// "Connection refused" for non-English OSX.
-			catch (SocketException ex) when (ex.ErrorCode == 61)
-			{
-				error = ex;
-			}
-			catch
-			{
-				// Ignored, since error is null.
-			}
-
-			return error is { };
 		}
 
 		/// <summary>

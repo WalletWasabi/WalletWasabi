@@ -154,9 +154,9 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 		public Stream TransportStream { get; }
 
 		[SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Cancellation token is required by the delegate.")]
-		public Task<IPoolItem> CreateNewAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default)
+		public Task<IPoolItem> CreateNewAsync(Uri requestUri, bool isolateStream, CancellationToken token = default)
 		{
-			bool useSsl = request.RequestUri!.Scheme == Uri.UriSchemeHttps;
+			bool useSsl = requestUri.Scheme == Uri.UriSchemeHttps;
 			bool allowRecycling = !useSsl && !isolateStream;
 
 			return Task.FromResult<IPoolItem>(new TestPoolItem(PoolItemState.InUse, allowRecycling, TransportStream));
