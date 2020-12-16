@@ -135,7 +135,7 @@ namespace WalletWasabi.Tor.Socks5
 
 					try
 					{
-						Logger.LogTrace($"['{poolItem}'] About to send request.");
+						Logger.LogTrace($"['{poolItem}'][Attempt #{i}] About to send request.");
 						HttpResponseMessage response = await SendCoreAsync(poolItem.GetTransportStream(), request, cancellationToken).ConfigureAwait(false);
 
 						// Client works OK, no need to dispose.
@@ -143,7 +143,7 @@ namespace WalletWasabi.Tor.Socks5
 
 						// Let others use the client.
 						PoolItemState state = poolItem.Unreserve();
-						Logger.LogTrace($"['{poolItem}'] Unreserve. State is: '{state}'.");
+						Logger.LogTrace($"['{poolItem}'][Attempt #{i}] Unreserve. State is: '{state}'.");
 
 						TorDoesntWorkSince = null;
 						LatestTorException = null;
@@ -158,23 +158,23 @@ namespace WalletWasabi.Tor.Socks5
 					catch (TorConnectCommandException e) when (e.RepField == RepField.TtlExpired)
 					{
 						// If we get TTL Expired error then wait and retry again linux often does this.
-						Logger.LogTrace("TTL exception occurred.", e);
+						Logger.LogTrace($"['{poolItem}'] TTL exception occurred.", e);
 
 						await Task.Delay(3000, cancellationToken).ConfigureAwait(false);
 
 						if (i == attemptsNo)
 						{
-							Logger.LogDebug($"All {attemptsNo} attempts failed.");
+							Logger.LogDebug($"['{poolItem}'] All {attemptsNo} attempts failed.");
 							throw;
 						}
 					}
 					catch (HttpRequestException e)
 					{
-						Logger.LogTrace("Request may actually fail because we repeat the action.", e);
+						Logger.LogTrace($"['{poolItem}'] Request may actually fail because we repeat the action.", e);
 
 						if (i == attemptsNo)
 						{
-							Logger.LogDebug($"All {attemptsNo} attempts failed.");
+							Logger.LogDebug($"['{poolItem}'] All {attemptsNo} attempts failed.");
 							throw;
 						}
 					}
