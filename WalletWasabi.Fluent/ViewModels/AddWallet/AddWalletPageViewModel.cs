@@ -29,6 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		Category = "General",
 		Keywords = new[] { "Wallet", "Add", "Create", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger" },
 		IconName = "add_circle_regular",
+		NavigationTarget = NavigationTarget.FullScreen,
 		NavBarPosition = NavBarPosition.Bottom)]
 	public partial class AddWalletPageViewModel : NavBarItemViewModel
 	{
@@ -79,10 +80,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						return;
 					}
 
-					var isColdcardJson = await ImportWalletHelper.ImportWalletAsync(walletManager, WalletName, filePath);
+					var (isColdCardJson, keyManager) = await ImportWalletHelper.ImportWalletAsync(walletManager, WalletName, filePath);
 
 					// TODO: get the type from the wallet file
-					Navigate().To(new AddedWalletPageViewModel(WalletName, isColdcardJson ? WalletType.Coldcard : WalletType.Normal));
+					Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager, isColdCardJson ? WalletType.Coldcard : WalletType.Normal));
 				}
 				catch (Exception ex)
 				{

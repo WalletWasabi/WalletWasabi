@@ -31,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				});
 		}
 
-		public string Title => _metaData.Title;
+		public new string Title => _metaData.Title;
 
 		public string Caption => _metaData.Caption;
 

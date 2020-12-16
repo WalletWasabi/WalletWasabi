@@ -45,9 +45,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 				try
 				{
-					await hardwareWalletOperations.GenerateWalletAsync(WalletName);
+					var km = await hardwareWalletOperations.GenerateWalletAsync(WalletName);
+					var walletManager = hardwareWalletOperations.WalletManager;
 					hardwareWalletOperations.Dispose();
-					Navigate().To(new AddedWalletPageViewModel(WalletName, Type));
+
+					Navigate().To(new AddedWalletPageViewModel(walletManager, km, Type));
 				}
 				catch(Exception ex)
 				{
