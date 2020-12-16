@@ -94,7 +94,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				},
 				nextCommandCanExecute);
 
-			EnableAutoBusy(NextCommand);
+			EnableAutoBusyOn(NextCommand);
 		}
 	}
 }

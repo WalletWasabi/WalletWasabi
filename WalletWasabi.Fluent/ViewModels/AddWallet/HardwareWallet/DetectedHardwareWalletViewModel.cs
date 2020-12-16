@@ -62,7 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				Navigate().Back();
 			});
 
-			EnableAutoBusy(NextCommand);
+			EnableAutoBusyOn(NextCommand);
 		}
 
 		public string WalletName { get; }

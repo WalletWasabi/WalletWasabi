@@ -73,7 +73,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					}
 				});
 
-			EnableAutoBusy(NextCommand);
+			EnableAutoBusyOn(NextCommand);
 		}
 
 		private async Task OnNext(

@@ -98,7 +98,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		{
 		}
 
-		protected void EnableAutoBusy(params ICommand[] commands)
+		protected void EnableAutoBusyOn(params ICommand[] commands)
 		{
 			foreach (var command in commands)
 			{

@@ -122,8 +122,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				});
 
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
-			
-			EnableAutoBusy(CreateWalletCommand);
+
+			EnableAutoBusyOn(CreateWalletCommand);
 		}
 
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
