@@ -121,7 +121,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void SelfAnonsetSanityCheck()
 		{
-			// If we have multiple same denomination in the same coinjoin, then don't gain anonset on ourselves.
+			// If we have multiple same denomination in the same coinjoin, then our anonset would be total coins/our coins.
 			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
 			var othersOutputs = new[] { 1, 1, 1 };
 			var ownOutputs = new[] { 1, 1 };
@@ -134,7 +134,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			analyser.Analyze(tx);
 
 			Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
-			Assert.All(tx.WalletOutputs, x => Assert.Equal(4, x.HdPubKey.AnonymitySet));
+			Assert.All(tx.WalletOutputs, x => Assert.Equal(5 / 2, x.HdPubKey.AnonymitySet));
 		}
 
 		[Fact]
@@ -167,9 +167,12 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 
 			Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
 
-			// The anonset calculation should be 5, but there's 4 inputs so - 1 = 3.
-			// After than - 1 because 2 out of it is ours.
-			Assert.All(tx.WalletOutputs, x => Assert.Equal(2, x.HdPubKey.AnonymitySet));
+			// The anonset calculation naively would be 5,
+			// but there's only 3 inputs so that limits our anonset to 3.
+			// After that we should get 3/2 because 2 out of 3 is ours.
+			// Finally we don't mess around with decimal precisions, so
+			// conservatively 3/2 = 1.
+			Assert.All(tx.WalletOutputs, x => Assert.Equal(1, x.HdPubKey.AnonymitySet));
 		}
 
 		[Fact]
