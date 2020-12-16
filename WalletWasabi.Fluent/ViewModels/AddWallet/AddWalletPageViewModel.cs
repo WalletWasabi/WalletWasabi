@@ -105,8 +105,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 					if (dialogResult.Result is { } password)
 					{
-						IsBusy = true;
-
 						var (km, mnemonic) = await Task.Run(
 							() =>
 							{
@@ -120,12 +118,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 							});
 
 						Navigate().To(new RecoveryWordsViewModel(km, mnemonic, walletManager));
-
-						IsBusy = false;
 					}
 				});
 
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
+			
+			EnableAutoBusy(CreateWalletCommand);
 		}
 
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)

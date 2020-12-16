@@ -81,8 +81,6 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 			NextCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					IsBusy = true;
-
 					try
 					{
 						await broadcaster.SendTransactionAsync(transaction);
@@ -93,10 +91,10 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 						Logger.LogError(ex);
 						await ShowErrorAsync(ex.ToUserFriendlyString(), "It was not possible to broadcast the transaction.");
 					}
-
-					IsBusy = false;
 				},
 				nextCommandCanExecute);
+
+			EnableAutoBusy(NextCommand);
 		}
 	}
 }
