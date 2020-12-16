@@ -30,6 +30,8 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		public ICommand? NextCommand { get; protected set; }
 
+		public ICommand? SkipCommand { get; protected set; }
+
 		public ICommand BackCommand { get; protected set; }
 
 		public ICommand CancelCommand { get; protected set; }
