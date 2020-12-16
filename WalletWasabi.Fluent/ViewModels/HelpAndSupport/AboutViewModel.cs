@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Reactive;
-using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
@@ -9,7 +8,6 @@ using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 {
