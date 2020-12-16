@@ -13,22 +13,23 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 {
-	public class ConfirmRecoveryWordsViewModel : RoutableViewModel
+	public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	{
 		private readonly ReadOnlyObservableCollection<RecoveryWordViewModel> _confirmationWords;
+		[AutoNotify] private bool _isSkipEnable;
 
 		public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
 		{
 			Title = "Confirm recovery words";
-
 			var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
+			_isSkipEnable = walletManager.Network != Network.Main;
 
 			var nextCommandCanExecute =
 				confirmationWordsSourceList
 				.Connect()
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.WhenValueChanged(x => x.IsConfirmed)
-				.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed) || walletManager.Network != Network.Main);
+				.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
 
 			NextCommand = ReactiveCommand.Create(
 				() =>
@@ -36,6 +37,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 					Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager, WalletType.Normal));
 				},
 				nextCommandCanExecute);
+
+			if (_isSkipEnable)
+			{
+				SkipCommand = ReactiveCommand.Create(() => NextCommand.Execute(null));
+			}
 
 			CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 
