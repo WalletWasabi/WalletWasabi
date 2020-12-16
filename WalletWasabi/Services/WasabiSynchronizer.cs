@@ -219,7 +219,7 @@ namespace WalletWasabi.Services
 									}
 									else
 									{
-										throw ex;
+										throw;
 									}
 								}
 								catch (Exception x)

@@ -1,4 +1,3 @@
-using ReactiveUI;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;

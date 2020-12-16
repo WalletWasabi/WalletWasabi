@@ -10,11 +10,11 @@
              x:DataType="vm:SearchPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Search.SearchPageView">
-  <c:ContentArea Title="Action Center" IsBusy="{Binding IsBusy}">
+  <c:ContentArea Title="{Binding Title}" IsBusy="{Binding IsBusy}">
     <c:ContentArea.Caption>
-      <DockPanel>
-        <TextBlock DockPanel.Dock="Left" Text="Locate and discover features in Wasabi" />
-        <TextBox VerticalAlignment="Top" Margin="80 -20 0 0" HorizontalAlignment="Stretch" Text="{Binding SearchQuery}" Watermark="Type here to search">
+      <c:ConcatenatingWrapPanel>
+        <TextBlock Text="Locate and discover features in Wasabi" VerticalAlignment="Top" Margin="0 0 20 32"/>
+        <TextBox MinWidth="350" Margin="0 -22 0 0" VerticalAlignment="Top" Text="{Binding SearchQuery}" Watermark="Type here to search">
           <TextBox.InnerLeftContent>
             <PathIcon Data="{StaticResource search_regular}"
                       Width="20" Height="20"
@@ -23,7 +23,7 @@
                       Margin="16,8,0,0" />
           </TextBox.InnerLeftContent>
         </TextBox>
-      </DockPanel>
+      </c:ConcatenatingWrapPanel>
     </c:ContentArea.Caption>
     <Panel>
       <ItemsControl HorizontalAlignment="Left" Items="{Binding SearchResults}">

@@ -19,8 +19,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public ConnectHardwareWalletViewModel(string walletName, Network network, WalletManager walletManager)
 		{
+			Title = "Hardware Wallet";
+			_message = "";
 			IsBusy = true;
-
 			WalletName = walletName;
 			HardwareWalletOperations = new HardwareWalletOperations(walletManager, network);
 			HardwareWalletOperations.NoHardwareWalletFound += OnNoHardwareWalletFound;
@@ -47,8 +48,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			// TODO: Create an up-to-date article
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask(async () =>
 				await IoHelpers.OpenBrowserAsync("https://docs.wasabiwallet.io/using-wasabi/ColdWasabi.html#using-hardware-wallet-step-by-step"));
-
-			_message = "";
 		}
 
 		public string WalletName { get; }

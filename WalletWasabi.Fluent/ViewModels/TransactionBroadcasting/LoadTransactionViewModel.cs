@@ -19,19 +19,20 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 
 		public LoadTransactionViewModel(Network network)
 		{
+			Title = "Transaction Broadcaster";
 			Network = network;
 
 			this.WhenAnyValue(x => x.FinalTransaction)
 				.Where(x => x is { })
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(finalTransaction => Close(finalTransaction));
+				.Subscribe(finalTransaction => Close(result: finalTransaction));
 
 			ImportTransactionCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
 					try
 					{
-						var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", filterExtTypes: new[] {"psbt", "*"});
+						var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", new[] {"psbt", "*"});
 						if (path is { })
 						{
 							FinalTransaction = await ParseTransactionAsync(path);
@@ -40,6 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 					catch (Exception ex)
 					{
 						Logger.LogError(ex);
+						await ShowErrorAsync(ex.ToUserFriendlyString(), "It was not possible to load the transaction.");
 					}
 				},
 				outputScheduler: RxApp.MainThreadScheduler);
@@ -71,8 +73,8 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				}
 				catch (Exception ex)
 				{
-					// TODO: Notify the user
 					Logger.LogError(ex);
+					await ShowErrorAsync(ex.ToUserFriendlyString(), "It was not possible to paste the transaction.");
 				}
 			});
 		}
