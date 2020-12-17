@@ -5,29 +5,26 @@
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:login="clr-namespace:WalletWasabi.Fluent.ViewModels.Login"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="login:LoginViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Login.LoginView">
-  <controls:ContentArea Title="Login"
+  <c:ContentArea Title="Login"
                         Caption="Enter your password to access your wallet"
-                        ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DockPanel>
-      <StackPanel>
-        <Viewbox MaxHeight="200">
-          <Image Source="/Assets/HardwareIcons/ledger.png" />
-        </Viewbox>
+                        HorizontalAlignment="Stretch">
+      <StackPanel HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 MinWidth="400">
+          <Viewbox MaxHeight="200" Margin="20">
+            <Image Source="/Assets/HardwareIcons/ledger.png" Margin="10"/>
+          </Viewbox>
+          <Label Content="Password:"/>
+          <TextBox Text="{Binding Password}" Watermark="type here..." PasswordChar="•" Classes="revealPasswordButton"/>
+        <Panel HorizontalAlignment="Stretch" DockPanel.Dock="Bottom">
+          <Button Classes="activeHyperLink skip" Content="Forgot password?" HorizontalAlignment="Left"/>
+          <Button Content="Login" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}"/>
+        </Panel>
       </StackPanel>
-
-      <Button Content="Left"
-              DockPanel.Dock="Left"
-              VerticalAlignment="Bottom"/>
-
-      <Button Content="Right"
-              DockPanel.Dock="Right"
-              VerticalAlignment="Bottom"
-              Command="{Binding NextCommand}"/>
-    </DockPanel>
-  </controls:ContentArea>
+  </c:ContentArea>
 </UserControl>
