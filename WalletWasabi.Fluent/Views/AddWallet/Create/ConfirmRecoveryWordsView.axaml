@@ -18,7 +18,8 @@
   <c:ContentArea Title="{Binding Title}" Caption="Type the required recovery words"
                  EnableBack="True"
                  EnableCancel="False"
-                 EnableNext="True" NextContent="Continue">
+                 EnableNext="True" NextContent="Continue"
+                 EnableSkip="{Binding IsSkipEnable}">
     <ScrollViewer>
       <ItemsControl HorizontalAlignment="Center" VerticalAlignment="Center" Items="{Binding ConfirmationWords}">
         <i:Interaction.Behaviors>
