@@ -122,7 +122,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					Logger.LogInfo("Creating a new wallet file.");
 					var walletName = WalletManager.WalletDirectories.GetNextWalletName("Coldcard");
 					var walletFullPath = WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
-					var keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
+					var keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, WalletManager.Network, walletFullPath);
 					WalletManager.AddWallet(keyManager);
 					owner.SelectLoadWallet(keyManager);
 				}
@@ -340,7 +340,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					{
 						throw new InvalidOperationException("Hardware wallet did not provide fingerprint.");
 					}
-					WalletManager.AddWallet(KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.Fingerprint.Value, extPubKey, path));
+					WalletManager.AddWallet(KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.Fingerprint.Value, extPubKey, WalletManager.Network, path));
 				}
 
 				KeyManager keyManager = WalletManager.GetWalletByName(walletName).KeyManager;

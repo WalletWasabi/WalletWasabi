@@ -265,7 +265,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			{
 				// Test DelayedClientRoundRegistration logic.
 				ClientRoundRegistration first = null;
-				var randomKey = KeyManager.CreateNew(out _, "").GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false);
+				var randomKey = KeyManager.CreateNew(out _, "", network).GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false);
 				var second = new ClientRoundRegistration(aliceClient,
 					new[] { BitcoinFactory.CreateSmartCoin(randomKey, 0m, anonymitySet: 2) },
 					BitcoinAddress.Create("12Rty3c8j3QiZSwLVaBtch6XUMZaja3RC7", Network.Main));
@@ -1104,7 +1104,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				var amount = Money.Coins((decimal)damount);
 
-				var keyManager = KeyManager.CreateNew(out _, password);
+				var keyManager = KeyManager.CreateNew(out _, password, network);
 				var key = keyManager.GenerateNewKey("foo", KeyState.Clean, false);
 				var bech = key.GetP2wpkhAddress(network);
 				var txId = await rpc.SendToAddressAsync(bech, amount, replaceable: false);
@@ -1191,7 +1191,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
 			await rpc.GenerateAsync(3); // So to make sure we have enough money.
-			var keyManager = KeyManager.CreateNew(out _, password);
+			var keyManager = KeyManager.CreateNew(out _, password, network);
 			var key1 = keyManager.GenerateNewKey("foo", KeyState.Clean, false);
 			var key2 = keyManager.GenerateNewKey("bar", KeyState.Clean, false);
 			var key3 = keyManager.GenerateNewKey("baz", KeyState.Clean, false);
@@ -1384,9 +1384,9 @@ namespace WalletWasabi.Tests.RegressionTests
 			var synchronizer2 = new WasabiSynchronizer(network, bitcoinStore, wasabiClientFactory);
 
 			// 4. Create key manager service.
-			var keyManager = KeyManager.CreateNew(out _, password);
+			var keyManager = KeyManager.CreateNew(out _, password, network);
 
-			var keyManager2 = KeyManager.CreateNew(out _, password);
+			var keyManager2 = KeyManager.CreateNew(out _, password, network);
 
 			// 5. Create wallet service.
 			var workDir = Helpers.Common.GetWorkDir();

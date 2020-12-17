@@ -16,6 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 	public class HardwareWalletOperations : IDisposable
 	{
 		public event EventHandler<HwiEnumerateEntry[]>? HardwareWalletsFound;
+
 		public event EventHandler? NoHardwareWalletFound;
 
 		public HardwareWalletOperations(WalletManager walletManager, Network network)
@@ -26,7 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			DisposeCts = new CancellationTokenSource();
 			Stopwatch = new Stopwatch();
 
-			PassphraseTimer = new Timer(8000) {AutoReset = false};
+			PassphraseTimer = new Timer(8000) { AutoReset = false };
 
 			StartDetection();
 		}
@@ -57,7 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			}
 			else
 			{
-				HardwareWalletsFound?.Invoke(this,wallets);
+				HardwareWalletsFound?.Invoke(this, wallets);
 			}
 		}
 
@@ -74,7 +75,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 				await StopDetectionAsync();
 
-				var fingerPrint = (HDFingerprint) selectedDevice.Fingerprint;
+				var fingerPrint = (HDFingerprint)selectedDevice.Fingerprint;
 				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 				var extPubKey = await Client.GetXpubAsync(
 					selectedDevice.Model,
@@ -83,8 +84,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 					cts.Token).ConfigureAwait(false);
 				var path = WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 
-				return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, path);
-
+				return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, WalletManager.Network, path);
 			}
 			catch (Exception)
 			{
@@ -143,7 +143,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 					var detectedHardwareWallets =
 						(await Client.EnumerateAsync(timeoutCts.Token)
 							.ConfigureAwait(false))
-							.Where(wallet => !WalletManager.WalletExists(wallet.Fingerprint))
+							.Where(wallet => !WalletManager.WalletExists(wallet.Fingerprint, WalletManager.Network))
 							.ToArray();
 
 					detectionCts.Token.ThrowIfCancellationRequested();

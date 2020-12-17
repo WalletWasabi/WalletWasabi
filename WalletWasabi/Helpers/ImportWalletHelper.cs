@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -35,7 +35,7 @@ namespace WalletWasabi.Helpers
 		{
 			var km = KeyManager.FromFile(filePath);
 
-			if (manager.WalletExists(km.MasterFingerprint))
+			if (manager.WalletExists(km.MasterFingerprint, manager.Network))
 			{
 				throw new InvalidOperationException(WalletExistsErrorMessage);
 			}
@@ -61,7 +61,7 @@ namespace WalletWasabi.Helpers
 			}
 			else
 			{
-				Version coldCardVersion = new (coldCardVersionString);
+				Version coldCardVersion = new(coldCardVersionString);
 
 				if (coldCardVersion == new Version("2.1.0")) // Should never happen though.
 				{
@@ -72,14 +72,14 @@ namespace WalletWasabi.Helpers
 			var bytes = ByteHelpers.FromHex(Guard.NotNullOrEmptyOrWhitespace(nameof(mfpString), mfpString, trim: true));
 			HDFingerprint mfp = reverseByteOrder ? new HDFingerprint(bytes.Reverse().ToArray()) : new HDFingerprint(bytes);
 
-			if (manager.WalletExists(mfp))
+			if (manager.WalletExists(mfp, manager.Network))
 			{
 				throw new InvalidOperationException(WalletExistsErrorMessage);
 			}
 
 			ExtPubKey extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpubString);
 
-			return KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
+			return KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, manager.Network, walletFullPath);
 		}
 	}
 }

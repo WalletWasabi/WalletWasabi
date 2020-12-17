@@ -56,7 +56,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, wasabiClientFactory);
 
 			// 4. Create key manager service.
-			var keyManager = KeyManager.CreateNew(out _, password);
+			var keyManager = KeyManager.CreateNew(out _, password, network);
 
 			// 5. Create wallet service.
 			var workDir = Helpers.Common.GetWorkDir();
@@ -220,7 +220,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, wasabiClientFactory);
 
 			// 4. Create key manager service.
-			var keyManager = KeyManager.CreateNew(out _, password);
+			var keyManager = KeyManager.CreateNew(out _, password, network);
 
 			// 5. Create wallet service.
 			var workDir = Helpers.Common.GetWorkDir();

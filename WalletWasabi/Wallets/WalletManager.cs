@@ -279,7 +279,7 @@ namespace WalletWasabi.Wallets
 			await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
 
-		public bool WalletExists(HDFingerprint? fingerprint) => GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
+		public bool WalletExists(HDFingerprint? fingerprint, Network network) => GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint && x.Network == network);
 
 		private void ChaumianClient_OnDequeue(object? sender, DequeueResult e)
 		{

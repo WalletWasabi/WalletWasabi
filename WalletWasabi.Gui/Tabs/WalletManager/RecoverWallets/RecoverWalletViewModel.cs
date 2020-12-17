@@ -86,8 +86,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 				try
 				{
 					var mnemonic = new Mnemonic(MnemonicWords);
-					var km = KeyManager.Recover(mnemonic, Password, filePath: null, keyPath, minGapLimit);
-					km.SetNetwork(Global.Network);
+					var km = KeyManager.Recover(mnemonic, Password, Global.Network, filePath: null, keyPath, minGapLimit);
 					km.SetFilePath(walletFilePath);
 					WalletManager.AddWallet(km);
 

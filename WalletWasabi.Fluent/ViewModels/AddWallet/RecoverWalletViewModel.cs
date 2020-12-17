@@ -98,11 +98,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 							var result = KeyManager.Recover(
 								CurrentMnemonics!,
 								password!,
+								network,
 								walletFilePath,
 								AccountKeyPath,
 								MinGapLimit);
-
-							result.SetNetwork(network);
 
 							return result;
 						});
