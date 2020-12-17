@@ -102,7 +102,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 				bitcoinStore.BlockRepository);
 
 			using Wallet wallet = Wallet.CreateAndRegisterServices(
-				network,
 				bitcoinStore,
 				keyManager,
 				syncer,

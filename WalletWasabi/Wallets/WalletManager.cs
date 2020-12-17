@@ -201,7 +201,7 @@ namespace WalletWasabi.Wallets
 
 		public Wallet AddWallet(KeyManager keyManager)
 		{
-			Wallet wallet = new Wallet(WalletDirectories.WorkDir, Network, keyManager);
+			Wallet wallet = new Wallet(WalletDirectories.WorkDir, keyManager);
 			AddWallet(wallet);
 			return wallet;
 		}
@@ -212,7 +212,7 @@ namespace WalletWasabi.Wallets
 			Wallet wallet;
 			try
 			{
-				wallet = new Wallet(WalletDirectories.WorkDir, Network, walletFullPath);
+				wallet = new Wallet(WalletDirectories.WorkDir, walletFullPath);
 			}
 			catch (Exception ex)
 			{
@@ -239,7 +239,7 @@ namespace WalletWasabi.Wallets
 				}
 				File.Copy(walletBackupFullPath, walletFullPath);
 
-				wallet = new Wallet(WalletDirectories.WorkDir, Network, walletFullPath);
+				wallet = new Wallet(WalletDirectories.WorkDir, walletFullPath);
 			}
 
 			AddWallet(wallet);

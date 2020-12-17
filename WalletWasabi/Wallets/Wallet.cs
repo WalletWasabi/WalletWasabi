@@ -29,14 +29,13 @@ namespace WalletWasabi.Wallets
 	{
 		private WalletState _state;
 
-		public Wallet(string dataDir, Network network, string filePath) : this(dataDir, network, KeyManager.FromFile(filePath))
+		public Wallet(string dataDir, string filePath) : this(dataDir, KeyManager.FromFile(filePath))
 		{
 		}
 
-		public Wallet(string dataDir, Network network, KeyManager keyManager)
+		public Wallet(string dataDir, KeyManager keyManager)
 		{
 			Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
-			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 
 			RuntimeParams.SetDataDir(dataDir);
@@ -85,7 +84,7 @@ namespace WalletWasabi.Wallets
 		/// </summary>
 		public ICoinsView Coins { get; private set; }
 
-		public Network Network { get; }
+		public Network Network => KeyManager.GetNetwork();
 		public TransactionProcessor TransactionProcessor { get; private set; }
 
 		public IFeeProvider FeeProvider { get; private set; }
@@ -487,9 +486,9 @@ namespace WalletWasabi.Wallets
 			State = WalletState.WaitingForInit;
 		}
 
-		public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, NodesGroup nodes, string dataDir, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, IBlockProvider blockProvider)
+		public static Wallet CreateAndRegisterServices(BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, NodesGroup nodes, string dataDir, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, IBlockProvider blockProvider)
 		{
-			var wallet = new Wallet(dataDir, network, keyManager);
+			var wallet = new Wallet(dataDir, keyManager);
 			wallet.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, feeProvider, blockProvider);
 			return wallet;
 		}
