@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -43,7 +44,17 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<NavBarItemViewModel>()
-				.Subscribe(NavigateItem);
+				.Subscribe(x =>
+					{
+						if (x is WalletViewModelBase {IsLoggedIn: false} wallet)
+						{
+							x.Navigate().To(new LoginViewModel(wallet));
+						}
+						else
+						{
+							NavigateItem(x);
+						}
+					});
 
 			this.WhenAnyValue(x => x.Items.Count)
 				.Subscribe(x =>

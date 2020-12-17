@@ -35,6 +35,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				.DisposeWith(_disposables);
 		}
 
+		public bool IsLoggedIn { get; set; }
+
 		public Wallet Wallet { get; }
 
 		public string WalletName => Wallet.WalletName;

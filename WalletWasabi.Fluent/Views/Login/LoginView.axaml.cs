@@ -1,7 +1,8 @@
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets
+namespace WalletWasabi.Fluent.Views.Login
 {
 	public class LoginView : UserControl
 	{
