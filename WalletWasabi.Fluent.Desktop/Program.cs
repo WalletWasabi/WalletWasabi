@@ -24,27 +24,26 @@ namespace WalletWasabi.Fluent.Desktop
 	{
 		private static Global? Global;
 
-		// This is only needed to pass CrashReporter to AppMainAsync otherwise it could be a local variable in Main().
-		private static readonly CrashReporter CrashReporter = new CrashReporter();
-
 		private static readonly TerminateService TerminateService = new TerminateService(TerminateApplicationAsync);
-
-		private static SingleInstanceChecker? SingleInstanceChecker { get; set; }
 
 		// Initialization code. Don't use any Avalonia, third-party APIs or any
 		// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
 		// yet and stuff might break.
-		public static void Main(string[] args)
+		public static int Main(string[] args)
 		{
-			bool runGui;
-			Exception? appException = null;
+			int exitCode = 0;
+			bool guiStarted = false;
+			SingleInstanceChecker? singleInstanceChecker = null;
+			CrashReporter crashReporter = new();
 
 			try
 			{
 				string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 				var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
 
-				SingleInstanceChecker = new SingleInstanceChecker(config.Network);
+				singleInstanceChecker = new SingleInstanceChecker(config.Network);
+				singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
+
 				Global = CreateGlobal(dataDir, uiConfig, config);
 
 				// TODO only required due to statusbar vm... to be removed.
@@ -53,32 +52,59 @@ namespace WalletWasabi.Fluent.Desktop
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				SingleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
-
-				runGui = ProcessCliCommands(args);
-
-				if (CrashReporter.IsReport)
+				if (args.Length != 0)
 				{
-					Console.WriteLine("TODO Implement crash reporting.");
-					return;
+					ProcessCliCommands(Global, args, crashReporter);
 				}
-
-				if (runGui)
+				else
 				{
-					Logger.LogSoftwareStarted("Wasabi GUI");
+					if (crashReporter.IsReport)
+					{
+						Console.WriteLine("TODO Implement crash reporting.");
+						return 0;
+					}
 
-					BuildAvaloniaApp()
-						.AfterSetup(_ => ThemeHelper.ApplyTheme(Global!.UiConfig.DarkModeEnabled))
+					Logger.LogSoftwareStarted("Wasabi GUI");
+					guiStarted = true;
+					BuildAvaloniaApp(Global)
+						.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled))
 						.StartWithClassicDesktopLifetime(args);
 				}
 			}
+			catch (OperationCanceledException ex)
+			{
+				Logger.LogDebug(ex);
+			}
 			catch (Exception ex)
 			{
-				appException = ex;
-				throw;
+				exitCode = 1;
+				Logger.LogCritical(ex);
+
+				if (guiStarted)
+				{
+					crashReporter.SetException(ex);
+				}
 			}
 
-			TerminateAppAndHandleException(appException, runGui);
+			TerminateService.Terminate();
+
+			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
+			TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
+
+			if (singleInstanceChecker is { } single)
+			{
+				single.DisposeAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+			}
+
+			if (crashReporter.IsInvokeRequired is true)
+			{
+				// Trigger the CrashReport process.
+				crashReporter.TryInvokeCrashReport();
+			}
+
+			Logger.LogSoftwareStopped("Wasabi");
+
+			return exitCode;
 		}
 
 		private static (UiConfig uiConfig, Config config) LoadOrCreateConfigs(string dataDir)
@@ -103,37 +129,16 @@ namespace WalletWasabi.Fluent.Desktop
 			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
 		}
 
-		private static bool ProcessCliCommands(string[] args)
+		private static bool ProcessCliCommands(Global global, string[] args, CrashReporter crashReporter)
 		{
-			var daemon = new Daemon(Global!, TerminateService);
+			var daemon = new Daemon(global, TerminateService);
 			var interpreter = new CommandInterpreter(Console.Out, Console.Error);
 			var executionTask = interpreter.ExecuteCommandsAsync(
 				args,
 				new MixerCommand(daemon),
-				new PasswordFinderCommand(Global!.WalletManager),
-				new CrashReportCommand(CrashReporter));
+				new PasswordFinderCommand(global.WalletManager),
+				new CrashReportCommand(crashReporter));
 			return executionTask.GetAwaiter().GetResult();
-		}
-
-		/// <summary>
-		/// This is a helper method until the creation of the window in AppMainAsync cannot be aborted without Environment.Exit().
-		/// </summary>
-		private static void TerminateAppAndHandleException(Exception? ex, bool runGui)
-		{
-			if (ex is OperationCanceledException)
-			{
-				Logger.LogDebug(ex);
-			}
-			else if (ex is { })
-			{
-				Logger.LogCritical(ex);
-				if (runGui)
-				{
-					CrashReporter.SetException(ex);
-				}
-			}
-
-			TerminateService.Terminate(ex is { } ? 1 : 0);
 		}
 
 		/// <summary>
@@ -147,31 +152,15 @@ namespace WalletWasabi.Fluent.Desktop
 				mainViewModel.Dispose();
 			}
 
-			if (CrashReporter.IsInvokeRequired is true)
-			{
-				// Trigger the CrashReport process.
-				CrashReporter.TryInvokeCrashReport();
-			}
-
 			if (Global is { } global)
 			{
 				await global.DisposeAsync().ConfigureAwait(false);
 			}
 
-			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
-			TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
-
 			if (mainViewModel is { })
 			{
 				Logger.LogSoftwareStopped("Wasabi GUI");
 			}
-
-			if (SingleInstanceChecker is { } single)
-			{
-				await single.DisposeAsync().ConfigureAwait(false);
-			}
-
-			Logger.LogSoftwareStopped("Wasabi");
 		}
 
 		private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs? e)
@@ -191,11 +180,11 @@ namespace WalletWasabi.Fluent.Desktop
 		}
 
 		// Avalonia configuration, don't remove; also used by visual designer.
-		private static AppBuilder BuildAvaloniaApp()
+		private static AppBuilder BuildAvaloniaApp(Global global)
 		{
 			bool useGpuLinux = true;
 
-			var result = AppBuilder.Configure(() => new App(Global!, async () => await Global!.InitializeNoWalletAsync(TerminateService)))
+			var result = AppBuilder.Configure(() => new App(global, async () => await global.InitializeNoWalletAsync(TerminateService)))
 				.UseReactiveUI();
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
