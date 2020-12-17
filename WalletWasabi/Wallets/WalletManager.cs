@@ -143,7 +143,10 @@ namespace WalletWasabi.Wallets
 			lock (Lock)
 			{
 				// Throw an exception if the wallet was not added to the WalletManager.
-				Wallets.Single(x => x.Key == wallet);
+				if (!Wallets.Any(x => x.Key == wallet))
+				{
+					throw new InvalidOperationException($"Wallet with name '{wallet.WalletName}' on network '{Network}' does not exist.");
+				}
 			}
 
 			wallet.SetWaitingForInitState();
@@ -275,7 +278,7 @@ namespace WalletWasabi.Wallets
 			}
 			await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
-		
+
 		public bool WalletExists(HDFingerprint? fingerprint) => GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
 
 		private void ChaumianClient_OnDequeue(object? sender, DequeueResult e)
