@@ -44,17 +44,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<NavBarItemViewModel>()
-				.Subscribe(x =>
-					{
-						if (x is WalletViewModelBase {IsLoggedIn: false} wallet)
-						{
-							x.Navigate().To(new LoginViewModel(wallet));
-						}
-						else
-						{
-							NavigateItem(x);
-						}
-					});
+				.Subscribe(NavigateItem);
 
 			this.WhenAnyValue(x => x.Items.Count)
 				.Subscribe(x =>

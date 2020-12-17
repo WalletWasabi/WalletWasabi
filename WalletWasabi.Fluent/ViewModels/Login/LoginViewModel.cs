@@ -11,7 +11,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			NextCommand = ReactiveCommand.Create(() =>
 			{
 				wallet.IsLoggedIn = true;
-				wallet.OpenCommand
 			});
 		}
 	}
