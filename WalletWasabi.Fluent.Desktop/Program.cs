@@ -87,10 +87,13 @@ namespace WalletWasabi.Fluent.Desktop
 
 			TerminateService.Terminate();
 
+			if (singleInstanceChecker is { })
+			{
+				Task.Run(async () => await singleInstanceChecker.DisposeAsync()).Wait();
+			}
+
 			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 			TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
-
-			singleInstanceChecker?.DisposeAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
 			// Trigger the CrashReport process.
 			crashReporter.TryInvokeIfRequired();
@@ -129,7 +132,7 @@ namespace WalletWasabi.Fluent.Desktop
 			var executionTask = interpreter.ExecuteCommandsAsync(
 				args,
 				new MixerCommand(daemon),
-				new PasswordFinderCommand(Global!.WalletManager));
+				new PasswordFinderCommand(global.WalletManager));
 			return executionTask.GetAwaiter().GetResult();
 		}
 
