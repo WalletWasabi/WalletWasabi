@@ -6,22 +6,19 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Gui;
-using WalletWasabi.Gui.Helpers;
-using WalletWasabi.Gui.Validation;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Login
 {
-	public class LoginViewModel : RoutableViewModel
+	public partial class LoginViewModel : RoutableViewModel
 	{
+		[AutoNotify] private string _password;
+
 		public LoginViewModel(WalletViewModelBase wallet)
 		{
-			Password = "";
-
-			this.ValidateProperty(x => x.Password, ValidatePassword);
+			_password = "";
 
 			NextCommand = ReactiveCommand.Create(() =>
 			{
@@ -29,8 +26,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 				var walletManager = Locator.Current.GetService<Global>().WalletManager;
 
 				KeyManager keyManager = walletManager.GetWalletByName(wallet.WalletName).KeyManager;
-
-
 
 				if (PasswordHelper.TryPassword(keyManager, Password, out var compatibilityPasswordUsed))
 				{
@@ -46,13 +41,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 				}
 			});
 		}
-
-		private void ValidatePassword(IValidationErrors errors)
-		{
-			throw new NotImplementedException();
-		}
-
-		public string Password { get; set; }
 
 		public async Task LoadWalletAsync(KeyManager keyManager, WalletManager walletManager)
 		{
