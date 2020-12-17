@@ -87,9 +87,9 @@ namespace WalletWasabi.Fluent.Desktop
 
 			TerminateService.Terminate();
 
-			if (singleInstanceChecker is { })
+			if (singleInstanceChecker is { } single)
 			{
-				Task.Run(async () => await singleInstanceChecker.DisposeAsync()).Wait();
+				Task.Run(async () => await single.DisposeAsync()).Wait();
 			}
 
 			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
