@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 		{
 			Title = "Confirm recovery words";
 			var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
-			_isSkipEnable = walletManager.Network != Network.Main;
+			_isSkipEnable = walletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
 
 			var nextCommandCanExecute =
 				confirmationWordsSourceList

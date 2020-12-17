@@ -29,7 +29,7 @@ namespace WalletWasabi.Fluent.Desktop
 		// Initialization code. Don't use any Avalonia, third-party APIs or any
 		// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
 		// yet and stuff might break.
-		public static void Main(string[] args)
+		public static int Main(string[] args)
 		{
 			int exitCode = 0;
 			bool guiStarted = false;
@@ -99,7 +99,7 @@ namespace WalletWasabi.Fluent.Desktop
 
 			Logger.LogSoftwareStopped("Wasabi");
 
-			Environment.Exit(exitCode);
+			return exitCode;
 		}
 
 		private static (UiConfig uiConfig, Config config) LoadOrCreateConfigs(string dataDir)
