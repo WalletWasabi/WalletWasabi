@@ -160,9 +160,9 @@ namespace WalletWasabi.Fluent.Desktop
 
 		private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs? e)
 		{
-			if (e?.Exception != null)
+			if (e?.Exception is Exception ex)
 			{
-				Logger.LogWarning(e.Exception);
+				Logger.LogWarning(ex);
 			}
 		}
 
