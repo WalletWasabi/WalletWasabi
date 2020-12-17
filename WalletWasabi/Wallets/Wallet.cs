@@ -389,7 +389,6 @@ namespace WalletWasabi.Wallets
 
 		private async Task LoadWalletStateAsync(CancellationToken cancel)
 		{
-			KeyManager.AssertNetworkOrClearBlockState(Network);
 			Height bestKeyManagerHeight = KeyManager.GetBestHeight();
 
 			using (BenchmarkLogger.Measure(LogLevel.Info, "Initial Transaction Processing"))

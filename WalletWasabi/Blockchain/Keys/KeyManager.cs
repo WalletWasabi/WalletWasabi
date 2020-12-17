@@ -763,26 +763,6 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 		}
 
-		public void AssertNetworkOrClearBlockState(Network expectedNetwork)
-		{
-			lock (BlockchainStateLock)
-			{
-				var lastNetwork = BlockchainState.Network;
-				if (lastNetwork is null || lastNetwork != expectedNetwork)
-				{
-					BlockchainState.Network = expectedNetwork;
-					BlockchainState.Height = 0;
-					ToFileNoBlockchainStateLock();
-
-					if (lastNetwork is { })
-					{
-						Logger.LogWarning($"Wallet is opened on {expectedNetwork}. Last time it was opened on {lastNetwork}.");
-					}
-					Logger.LogInfo("Blockchain cache is cleared.");
-				}
-			}
-		}
-
 		#endregion BlockchainState
 	}
 }
