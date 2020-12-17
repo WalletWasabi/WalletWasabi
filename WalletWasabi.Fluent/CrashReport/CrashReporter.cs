@@ -8,15 +8,24 @@ namespace WalletWasabi.Fluent.CrashReport
 {
 	public class CrashReporter
 	{
-		private const int MaxRecursiveCalls = 5;
+		private const int MaxRecursiveCalls = 3;
 		public int Attempts { get; private set; }
-		public string? Base64ExceptionString { get; private set; } = null;
+		private string? Base64ExceptionString { get; set; } = null;
+
+		/// <summary>
+		/// The current Wasabi instance had an exception.
+		/// </summary>
 		public bool HadException { get; private set; }
+
 		public SerializableException? SerializedException { get; private set; }
 
+		/// <summary>
+		/// Call this right before the end of the application. It will call another Wasabi instance in crash report mode if there is something to report.
+		/// The exception can be set by the CLI arguments by calling <see cref="ProcessCliArgs(string[])"/> or <see cref="SetException(Exception)"/>.
+		/// </summary>
 		public void TryInvokeIfRequired()
 		{
-			if (!HadException)
+			if (SerializedException is null)
 			{
 				return;
 			}
@@ -55,11 +64,11 @@ namespace WalletWasabi.Fluent.CrashReport
 			return $"crashreport -attempt=\"{Attempts + 1}\" -exception=\"{Base64ExceptionString}\"";
 		}
 
-		public bool TryProcessCliArgs(string[] args)
+		public SerializableException? ProcessCliArgs(string[] args)
 		{
 			if (args.Length < 3)
 			{
-				return false;
+				return null;
 			}
 
 			if (args[0].Contains("crashreport") && args[1].Contains("-attempt=") && args[2].Contains("-exception="))
@@ -69,13 +78,11 @@ namespace WalletWasabi.Fluent.CrashReport
 				var exceptionString = args[2].Split("=", StringSplitOptions.RemoveEmptyEntries)[1].Trim('"');
 
 				Attempts = int.Parse(attemptString);
-				Base64ExceptionString = exceptionString;
-				SerializedException = SerializableException.FromBase64String(exceptionString);
 
-				return true;
+				return SerializableException.FromBase64String(exceptionString);
 			}
 
-			return false;
+			return null;
 		}
 
 		/// <summary>

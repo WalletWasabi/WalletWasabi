@@ -31,8 +31,8 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			CrashReporter reporting = new();
 
 			// Args are split by space and passed to Main IRL.
-			Assert.True(reporting.TryProcessCliArgs(args.Split(' ')));
-			Assert.Equal(reporting.SerializedException, ex.ToSerializableException());
+			var exceptionFromCli = reporting.ProcessCliArgs(args.Split(' '));
+			Assert.Equal(exceptionFromCli, ex.ToSerializableException());
 		}
 	}
 }

@@ -31,7 +31,6 @@ namespace WalletWasabi.Fluent.Desktop
 		// yet and stuff might break.
 		public static int Main(string[] args)
 		{
-			int exitCode = 0;
 			bool guiStarted = false;
 			SingleInstanceChecker? singleInstanceChecker = null;
 			CrashReporter crashReporter = new();
@@ -52,22 +51,25 @@ namespace WalletWasabi.Fluent.Desktop
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				if (crashReporter.TryProcessCliArgs(args))
+				if (crashReporter.ProcessCliArgs(args) is { } exceptionToReport)
 				{
-					Console.WriteLine("TODO Implement crash reporting.");
-				}
-
-				if (args.Length != 0)
-				{
-					ProcessCliCommands(Global, args);
+					// Show the exception
+					Console.WriteLine($"TODO Implement crash reporting. {exceptionToReport}");
 				}
 				else
 				{
-					Logger.LogSoftwareStarted("Wasabi GUI");
-					guiStarted = true;
-					BuildAvaloniaApp(Global)
-						.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled))
-						.StartWithClassicDesktopLifetime(args);
+					if (args.Length != 0)
+					{
+						ProcessCliCommands(Global, args);
+					}
+					else
+					{
+						Logger.LogSoftwareStarted("Wasabi GUI");
+						guiStarted = true;
+						BuildAvaloniaApp(Global)
+							.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled))
+							.StartWithClassicDesktopLifetime(args);
+					}
 				}
 			}
 			catch (OperationCanceledException ex)
@@ -76,13 +78,8 @@ namespace WalletWasabi.Fluent.Desktop
 			}
 			catch (Exception ex)
 			{
-				exitCode = 1;
+				crashReporter.SetException(ex);
 				Logger.LogCritical(ex);
-
-				if (guiStarted)
-				{
-					crashReporter.SetException(ex);
-				}
 			}
 
 			TerminateService.Terminate();
@@ -95,12 +92,15 @@ namespace WalletWasabi.Fluent.Desktop
 			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 			TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
-			// Trigger the CrashReport process.
-			crashReporter.TryInvokeIfRequired();
+			if (guiStarted)
+			{
+				// Trigger the CrashReport process.
+				crashReporter.TryInvokeIfRequired();
+			}
 
 			Logger.LogSoftwareStopped("Wasabi");
 
-			return exitCode;
+			return crashReporter.HadException ? 1 : 0;
 		}
 
 		private static (UiConfig uiConfig, Config config) LoadOrCreateConfigs(string dataDir)
