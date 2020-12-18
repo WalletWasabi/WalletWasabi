@@ -85,7 +85,11 @@ namespace WalletWasabi.Tor.Socks5
 				List<IPoolItem> disposeList = hostItems.FindAll(item => item.NeedRecycling).ToList();
 
 				// Remove items for disposal from the list.
-				disposeList.ForEach(item => hostItems.Remove(item));
+				disposeList.ForEach(item =>
+				{
+					hostItems.Remove(item);
+					(item as IDisposable)?.Dispose();
+				});
 
 				if (!isolateStream)
 				{
