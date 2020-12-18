@@ -20,7 +20,7 @@ namespace WalletWasabi.Helpers
 			string jsonString = await File.ReadAllTextAsync(filePath).ConfigureAwait(false);
 			var jsonWallet = JObject.Parse(jsonString);
 
-			// Older CC wallet file do not contain 'ColdCardFirmwareVersion' but contains the same keys as Wasabi, so we are checking the number
+			// Older CC wallet file does not contain 'ColdCardFirmwareVersion' but contains the same keys as Wasabi, so we are checking the number
 			var isColdcardJson = jsonWallet.Count <= 3;
 
 			KeyManager km = isColdcardJson
