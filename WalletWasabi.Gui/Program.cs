@@ -119,6 +119,7 @@ namespace WalletWasabi.Gui
 			{
 				// There is no other way to stop the creation of the WasabiWindow, we have to exit the application here instead of return to Main.
 				TerminateAppAndHandleException(ex, true);
+				Environment.Exit(1);
 			}
 		}
 
@@ -140,7 +141,7 @@ namespace WalletWasabi.Gui
 				}
 			}
 
-			TerminateService.Terminate(ex is { } ? 1 : 0);
+			TerminateService.Terminate();
 		}
 
 		/// <summary>

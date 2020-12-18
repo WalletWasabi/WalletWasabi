@@ -71,7 +71,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			var client = new SatoshiClient(torHttpClient);
 			var states = await client.GetAllRoundStatesAsync();
 			Assert.True(states.NotNullAndNotEmpty());
-			Assert.True(states.Count() >= 1);
+			Assert.True(states.Any());
 		}
 
 		[Theory]
