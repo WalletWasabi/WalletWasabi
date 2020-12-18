@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using ReactiveUI;
 using Splat;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Gui;
 using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
@@ -15,32 +15,54 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 	public partial class LoginViewModel : RoutableViewModel
 	{
 		[AutoNotify] private string _password;
+		[AutoNotify] private bool _isPasswordIncorrect;
 
-		public LoginViewModel(WalletViewModelBase wallet)
+		public LoginViewModel(WalletViewModelBase wallet, WalletManager walletManager)
 		{
 			_password = "";
 
-			NextCommand = ReactiveCommand.Create(() =>
+			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				// TODO: isBusy
-				var walletManager = Locator.Current.GetService<Global>().WalletManager;
+				IsBusy = true;
 
 				KeyManager keyManager = walletManager.GetWalletByName(wallet.WalletName).KeyManager;
 
-				if (PasswordHelper.TryPassword(keyManager, Password, out var compatibilityPasswordUsed))
-				{
-					if (compatibilityPasswordUsed is { })
+				IsPasswordIncorrect = await Task.Run(
+					() =>
 					{
-						// TODO: User should create a new wallet
-					}
+						if (PasswordHelper.TryPassword(keyManager, Password, out var compatibilityPasswordUsed))
+						{
+							if (compatibilityPasswordUsed is { })
+							{
+								// TODO: User should create a new wallet
+							}
 
-					Task.Run(async () => await LoadWalletAsync(keyManager, walletManager));
+							return false;
+						}
+
+						return true;
+					});
+
+				if (!IsPasswordIncorrect)
+				{
+					// Task.Run(async () => await LoadWalletAsync(keyManager, walletManager));
+					_ = LoadWalletAsync(keyManager, walletManager);
 
 					// TODO: navigate to the wallet welcome page
 					Navigate().To(wallet);
 				}
+
+				IsBusy = false;
+			});
+
+			OkCommand = ReactiveCommand.Create(() =>
+			{
+				Password = "";
+				IsPasswordIncorrect = false;
 			});
 		}
+
+		public ICommand OkCommand { get; }
 
 		public async Task LoadWalletAsync(KeyManager keyManager, WalletManager walletManager)
 		{

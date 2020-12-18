@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:loginViews="clr-namespace:WalletWasabi.Fluent.Views.Login"
+             xmlns:login="clr-namespace:WalletWasabi.Fluent.ViewModels.Login"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="login:SimpleLoginViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Login.SimpleLoginView">
+  <c:ContentArea Title="Login"
+                 Caption="Enter your password to access your wallet"
+                 DataContext="{Binding Login}"
+                 HorizontalAlignment="Stretch"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                 IsBusy="{Binding IsBusy}">
+      <loginViews:LoginView />
+  </c:ContentArea>
+</UserControl>

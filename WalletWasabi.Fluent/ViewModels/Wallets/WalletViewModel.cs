@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	{
 		[AutoNotify] private ObservableCollection<ViewModelBase> _actions;
 
-		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
+		protected WalletViewModel(UiConfig uiConfig, Wallet wallet, WalletManager walletManager) : base(wallet, walletManager)
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
@@ -63,13 +63,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		public override string IconName => "web_asset_regular";
 
-		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet)
+		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet, WalletManager walletManager)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new HardwareWalletViewModel(uiConfig, wallet)
+				? new HardwareWalletViewModel(uiConfig, wallet, walletManager)
 				: wallet.KeyManager.IsWatchOnly
-					? new WatchOnlyWalletViewModel(uiConfig, wallet)
-					: new WalletViewModel(uiConfig, wallet);
+					? new WatchOnlyWalletViewModel(uiConfig, wallet, walletManager)
+					: new WalletViewModel(uiConfig, wallet, walletManager);
 		}
 
 		public void OpenWalletTabs()
