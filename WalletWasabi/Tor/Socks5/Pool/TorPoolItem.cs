@@ -106,38 +106,20 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		}
 
 		/// <summary>
-		/// <list type="bullet">
-		/// <item>Unmanaged resources need to be released regardless of the value of the <paramref name="disposing"/> parameter.</item>
-		/// <item>Managed resources need to be released if the value of <paramref name="disposing"/> is <c>true</c>.</item>
-		/// </list>
-		/// </summary>
-		/// <param name="disposing">
-		/// Indicates whether the method call comes from a <see cref="Dispose()"/> method
-		/// (its value is <c>true</c>) or from a finalizer (its value is <c>false</c>).
-		/// </param>
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Client.Dispose();
-					lock (StateLock)
-					{
-						State = PoolItemState.Disposed;
-					}
-				}
-				_disposedValue = true;
-			}
-		}
-
-		/// <summary>
-		/// Do not change this code.
+		/// Finalizer is not used to dispose this object.
+		/// Each instance of this object must be explicitly released (disposed) before it is stopped being used.
 		/// </summary>
 		public void Dispose()
 		{
-			// Dispose of unmanaged resources.
-			Dispose(true);
+			if (!_disposedValue)
+			{
+				Client.Dispose();
+				lock (StateLock)
+				{
+					State = PoolItemState.Disposed;
+				}
+				_disposedValue = true;
+			}
 
 			// Suppress finalization.
 			GC.SuppressFinalize(this);
