@@ -11,6 +11,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Blockchain.Keys
 {
@@ -117,6 +118,9 @@ namespace WalletWasabi.Blockchain.Keys
 
 		[JsonProperty(Order = 9)]
 		private List<HdPubKey> HdPubKeys { get; }
+
+		[JsonProperty(Order = 10, PropertyName = "Icon")]
+		public string? Icon { get; private set; }
 
 		private object BlockchainStateLock { get; }
 
@@ -761,6 +765,20 @@ namespace WalletWasabi.Blockchain.Keys
 					Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - newHeight}. From {prevHeight} to {newHeight}.");
 				}
 			}
+		}
+
+		public void SetIcon(string icon)
+		{
+			lock (BlockchainStateLock)
+			{
+				Icon = icon;
+				ToFileNoBlockchainStateLock();
+			}
+		}
+
+		public void SetIcon(WalletType type)
+		{
+			SetIcon(type.ToString());
 		}
 
 		public void AssertNetworkOrClearBlockState(Network expectedNetwork)

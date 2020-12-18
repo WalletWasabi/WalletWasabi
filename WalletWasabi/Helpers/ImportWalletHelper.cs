@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,22 +13,26 @@ namespace WalletWasabi.Helpers
 	{
 		private const string WalletExistsErrorMessage = "Wallet with the same fingerprint already exists!";
 
-		public static async Task<(bool isColdCardJson, KeyManager keyManager)> ImportWalletAsync(WalletManager walletManager, string walletName, string filePath)
+		public static async Task<KeyManager> ImportWalletAsync(WalletManager walletManager, string walletName, string filePath)
 		{
 			var walletFullPath = walletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 
-			string jsonString = await File.ReadAllTextAsync(filePath);
+			string jsonString = await File.ReadAllTextAsync(filePath).ConfigureAwait(false);
 			var jsonWallet = JObject.Parse(jsonString);
 
-			// TODO: Better logic to distinguish wallets.
-			// If Count <= 3 then it is a possible Coldcard json otherwise possible Wasabi json
+			// Older CC wallet file do not contain 'ColdCardFirmwareVersion' but contains the same keys as Wasabi, so we are checking the number
 			var isColdcardJson = jsonWallet.Count <= 3;
 
 			KeyManager km = isColdcardJson
 				? GetKeyManagerByColdcardJson(walletManager, jsonWallet, walletFullPath)
 				: GetKeyManagerByWasabiJson(walletManager, filePath, walletFullPath);
 
-			return (isColdcardJson, km);
+			if (isColdcardJson)
+			{
+				km.SetIcon(WalletType.Coldcard);
+			}
+
+			return km;
 		}
 
 		private static KeyManager GetKeyManagerByWasabiJson(WalletManager manager, string filePath, string walletFullPath)
@@ -61,7 +65,7 @@ namespace WalletWasabi.Helpers
 			}
 			else
 			{
-				Version coldCardVersion = new (coldCardVersionString);
+				Version coldCardVersion = new(coldCardVersionString);
 
 				if (coldCardVersion == new Version("2.1.0")) // Should never happen though.
 				{
