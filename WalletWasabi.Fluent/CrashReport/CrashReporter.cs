@@ -44,7 +44,7 @@ namespace WalletWasabi.Fluent.CrashReport
 
 				if (args[0].Contains("crashreport") && args[1].Contains("-exception="))
 				{
-					var exceptionString = args[1].Split("=", StringSplitOptions.RemoveEmptyEntries)[1].Trim('"');
+					var exceptionString = args[1].Split("=", count: 2)[1].Trim('"');
 
 					exception = SerializableException.FromBase64String(exceptionString);
 					return true;
