@@ -31,33 +31,45 @@ namespace WalletWasabi.Fluent.Desktop
 		// yet and stuff might break.
 		public static int Main(string[] args)
 		{
-			bool guiStarted = false;
-			SingleInstanceChecker? singleInstanceChecker = null;
-			CrashReporter crashReporter = new();
+			AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+			TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+			bool runGui = true;
 
 			try
 			{
-				string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-				var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
-
-				singleInstanceChecker = new SingleInstanceChecker(config.Network);
-				singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
-
-				Global = CreateGlobal(dataDir, uiConfig, config);
-
-				// TODO only required due to statusbar vm... to be removed.
-				Locator.CurrentMutable.RegisterConstant(Global);
-
-				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
-
-				if (crashReporter.ProcessCliArgs(args) is { } exceptionToReport)
+				if (CrashReporter.TryGetExceptionFromCliArgs(args, out var exceptionToShow))
 				{
-					// Show the exception
-					Console.WriteLine($"TODO Implement crash reporting. {exceptionToReport}");
+					// Show the exception.
+					Console.WriteLine($"TODO Implement crash reporting. {exceptionToShow}");
+
+					runGui = false;
 				}
-				else
+			}
+			catch (Exception ex)
+			{
+				// Anything happens here just log it and do not run the Gui.
+				Logger.LogCritical(ex);
+				runGui = false;
+			}
+
+			Exception? exceptionToReport = null;
+			SingleInstanceChecker? singleInstanceChecker = null;
+
+			if (runGui)
+			{
+				try
 				{
+					string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+					var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
+
+					singleInstanceChecker = new SingleInstanceChecker(config.Network);
+					singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
+
+					Global = CreateGlobal(dataDir, uiConfig, config);
+
+					// TODO only required due to statusbar vm... to be removed.
+					Locator.CurrentMutable.RegisterConstant(Global);
+
 					if (args.Length != 0)
 					{
 						ProcessCliCommands(Global, args);
@@ -65,22 +77,23 @@ namespace WalletWasabi.Fluent.Desktop
 					else
 					{
 						Logger.LogSoftwareStarted("Wasabi GUI");
-						guiStarted = true;
 						BuildAvaloniaApp(Global)
 							.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled))
 							.StartWithClassicDesktopLifetime(args);
 					}
 				}
+				catch (OperationCanceledException ex)
+				{
+					Logger.LogDebug(ex);
+				}
+				catch (Exception ex)
+				{
+					exceptionToReport = ex;
+					Logger.LogCritical(ex);
+				}
 			}
-			catch (OperationCanceledException ex)
-			{
-				Logger.LogDebug(ex);
-			}
-			catch (Exception ex)
-			{
-				crashReporter.SetException(ex);
-				Logger.LogCritical(ex);
-			}
+
+			// Start termination/disposal of the application.
 
 			TerminateService.Terminate();
 
@@ -89,18 +102,18 @@ namespace WalletWasabi.Fluent.Desktop
 				Task.Run(async () => await single.DisposeAsync()).Wait();
 			}
 
+			if (exceptionToReport is { })
+			{
+				// Trigger the CrashReport process if required.
+				CrashReporter.TryInvokeIfRequired(exceptionToReport);
+			}
+
 			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 			TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
-			if (guiStarted)
-			{
-				// Trigger the CrashReport process.
-				crashReporter.TryInvokeIfRequired();
-			}
-
 			Logger.LogSoftwareStopped("Wasabi");
 
-			return crashReporter.HadException ? 1 : 0;
+			return exceptionToReport is { } ? 1 : 0;
 		}
 
 		private static (UiConfig uiConfig, Config config) LoadOrCreateConfigs(string dataDir)

@@ -6,38 +6,20 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.CrashReport
 {
-	public class CrashReporter
+	public static class CrashReporter
 	{
-		private const int MaxRecursiveCalls = 3;
-		public int Attempts { get; private set; }
-		private string? Base64ExceptionString { get; set; } = null;
-
-		/// <summary>
-		/// The current Wasabi instance had an exception.
-		/// </summary>
-		public bool HadException { get; private set; }
-
-		public SerializableException? SerializedException { get; private set; }
-
-		/// <summary>
-		/// Call this right before the end of the application. It will call another Wasabi instance in crash report mode if there is something to report.
-		/// The exception can be set by the CLI arguments by calling <see cref="ProcessCliArgs(string[])"/> or <see cref="SetException(Exception)"/>.
-		/// </summary>
-		public void TryInvokeIfRequired()
+		public static bool TryInvokeIfRequired(Exception exceptionToReport)
 		{
-			if (SerializedException is null)
+			if (exceptionToReport is null)
 			{
-				return;
+				return false;
 			}
 
 			try
 			{
-				if (Attempts >= MaxRecursiveCalls)
-				{
-					throw new InvalidOperationException($"The crash report has been called {MaxRecursiveCalls} times. Will not continue to avoid recursion errors.");
-				}
-
-				var args = ToCliArguments();
+				var serializedException = exceptionToReport.ToSerializableException();
+				var base64ExceptionString = SerializableException.ToBase64String(serializedException);
+				var args = $"crashreport -exception=\"{base64ExceptionString}\"";
 
 				var path = Process.GetCurrentProcess().MainModule?.FileName;
 				if (string.IsNullOrEmpty(path))
@@ -47,52 +29,45 @@ namespace WalletWasabi.Fluent.CrashReport
 
 				ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(path, args);
 				using Process? p = Process.Start(startInfo);
+
+				return true;
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning($"There was a problem while invoking crash report:{ex.ToUserFriendlyString()}.");
+				Logger.LogWarning($"There was a problem while invoking crash report: '{ex}'.");
 			}
+
+			return false;
 		}
 
-		public string ToCliArguments()
+		public static bool TryGetExceptionFromCliArgs(string[] args, out SerializableException? exception)
 		{
-			if (string.IsNullOrEmpty(Base64ExceptionString))
+			exception = null;
+			try
 			{
-				throw new InvalidOperationException($"The crash report exception message is empty.");
+				if (args.Length < 2)
+				{
+					return false;
+				}
+
+				if (args[0].Contains("crashreport") && args[1].Contains("-exception="))
+				{
+					var exceptionString = args[1].Split("=", StringSplitOptions.RemoveEmptyEntries)[1].Trim('"');
+
+					exception = SerializableException.FromBase64String(exceptionString);
+					return true;
+				}
+			}
+			catch (Exception ex)
+			{
+				// Report the current exception.
+				exception = ex.ToSerializableException();
+
+				Logger.LogCritical($"There was a problem: '{ex}'.");
+				return true;
 			}
 
-			return $"crashreport -attempt=\"{Attempts + 1}\" -exception=\"{Base64ExceptionString}\"";
-		}
-
-		public SerializableException? ProcessCliArgs(string[] args)
-		{
-			if (args.Length < 3)
-			{
-				return null;
-			}
-
-			if (args[0].Contains("crashreport") && args[1].Contains("-attempt=") && args[2].Contains("-exception="))
-			{
-				var attemptString = args[1].Split("=", StringSplitOptions.RemoveEmptyEntries)[1].Trim('"');
-
-				var exceptionString = args[2].Split("=", StringSplitOptions.RemoveEmptyEntries)[1].Trim('"');
-
-				Attempts = int.Parse(attemptString);
-
-				return SerializableException.FromBase64String(exceptionString);
-			}
-
-			return null;
-		}
-
-		/// <summary>
-		/// Sets the exception when it occurs the first time and should be reported to the user.
-		/// </summary>
-		public void SetException(Exception ex)
-		{
-			SerializedException = ex.ToSerializableException();
-			Base64ExceptionString = SerializableException.ToBase64String(SerializedException);
-			HadException = true;
+			return false;
 		}
 	}
 }
