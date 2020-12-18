@@ -11,7 +11,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 	/// <para>Then it is decided whether the pool item can be re-used for a next HTTP(s) request or not.</para>
 	/// </summary>
 	/// <remarks>Currently we re-use TCP connection to Tor SOCKS5 endpoint for HTTP requests but not for HTTPS requests.</remarks>
-	public class TorPoolItem : IPoolItem
+	public class TorPoolItem : IPoolItem, IDisposable
 	{
 		private static long Counter;
 
