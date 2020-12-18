@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
 using WalletWasabi.Models;
@@ -31,7 +32,7 @@ namespace WalletWasabi.Fluent.CrashReport
 			}
 		}
 
-		public static bool TryGetExceptionFromCliArgs(string[] args, out SerializableException? exception)
+		public static bool TryGetExceptionFromCliArgs(string[] args, [NotNullWhen(true)] out SerializableException? exception)
 		{
 			exception = null;
 			try
