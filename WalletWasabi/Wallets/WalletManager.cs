@@ -281,6 +281,8 @@ namespace WalletWasabi.Wallets
 
 		public bool WalletExists(HDFingerprint? fingerprint, Network network) => GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint && x.Network == network);
 
+		public bool WalletExists(HDFingerprint? fingerprint) => WalletExists(fingerprint, Network);
+
 		private void ChaumianClient_OnDequeue(object? sender, DequeueResult e)
 		{
 			OnDequeue?.Invoke(sender, e);

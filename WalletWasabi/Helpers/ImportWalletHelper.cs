@@ -35,7 +35,12 @@ namespace WalletWasabi.Helpers
 		{
 			var km = KeyManager.FromFile(filePath);
 
-			if (manager.WalletExists(km.MasterFingerprint, manager.Network))
+			if (km.GetNetwork() != manager.Network)
+			{
+				throw new InvalidOperationException($"Wasabi network is currently '{manager.Network}', but wallet that you want to import is on '{km.GetNetwork()}'.");
+			}
+
+			if (manager.WalletExists(km.MasterFingerprint))
 			{
 				throw new InvalidOperationException(WalletExistsErrorMessage);
 			}
@@ -72,7 +77,7 @@ namespace WalletWasabi.Helpers
 			var bytes = ByteHelpers.FromHex(Guard.NotNullOrEmptyOrWhitespace(nameof(mfpString), mfpString, trim: true));
 			HDFingerprint mfp = reverseByteOrder ? new HDFingerprint(bytes.Reverse().ToArray()) : new HDFingerprint(bytes);
 
-			if (manager.WalletExists(mfp, manager.Network))
+			if (manager.WalletExists(mfp))
 			{
 				throw new InvalidOperationException(WalletExistsErrorMessage);
 			}
