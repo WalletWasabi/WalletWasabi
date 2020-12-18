@@ -10,11 +10,6 @@ namespace WalletWasabi.Fluent.CrashReport
 	{
 		public static void Invoke(Exception exceptionToReport)
 		{
-			if (exceptionToReport is null)
-			{
-				return;
-			}
-
 			try
 			{
 				var serializedException = exceptionToReport.ToSerializableException();
