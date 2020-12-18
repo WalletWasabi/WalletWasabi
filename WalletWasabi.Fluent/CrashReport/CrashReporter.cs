@@ -8,11 +8,11 @@ namespace WalletWasabi.Fluent.CrashReport
 {
 	public static class CrashReporter
 	{
-		public static bool TryInvokeIfRequired(Exception exceptionToReport)
+		public static void Invoke(Exception exceptionToReport)
 		{
 			if (exceptionToReport is null)
 			{
-				return false;
+				return;
 			}
 
 			try
@@ -29,15 +29,11 @@ namespace WalletWasabi.Fluent.CrashReport
 
 				ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(path, args);
 				using Process? p = Process.Start(startInfo);
-
-				return true;
 			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning($"There was a problem while invoking crash report: '{ex}'.");
 			}
-
-			return false;
 		}
 
 		public static bool TryGetExceptionFromCliArgs(string[] args, out SerializableException? exception)

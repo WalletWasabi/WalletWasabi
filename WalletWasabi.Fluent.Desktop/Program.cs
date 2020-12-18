@@ -105,7 +105,7 @@ namespace WalletWasabi.Fluent.Desktop
 			if (exceptionToReport is { })
 			{
 				// Trigger the CrashReport process if required.
-				CrashReporter.TryInvokeIfRequired(exceptionToReport);
+				CrashReporter.Invoke(exceptionToReport);
 			}
 
 			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
