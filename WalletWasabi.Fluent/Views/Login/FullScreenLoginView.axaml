@@ -3,32 +3,26 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:loginViews="clr-namespace:WalletWasabi.Fluent.Views.Login"
              xmlns:login="clr-namespace:WalletWasabi.Fluent.ViewModels.Login"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="login:FullScreenLoginViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Login.FullScreenLoginView">
-  <c:ContentArea Title="Login"
-                 Caption="Enter your password to access your wallet"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                 IsBusy="{Binding Login.IsBusy}">
+  <c:ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                 IsBusy="{Binding IsBusy}">
       <Panel>
-          <loginViews:LoginView DataContext="{Binding Login}"/>
+          <c:LoginControl/>
 
-          <ComboBox SelectedIndex="0"
+          <ComboBox SelectedItem="{Binding SelectedWallet}"
+                    Items="{Binding Wallets}"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Bottom">
-              <ComboBoxItem>Wallet #1</ComboBoxItem>
-              <ComboBoxItem>Wallet #2</ComboBoxItem>
-              <ComboBoxItem>Wallet #3</ComboBoxItem>
+              <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                      <TextBlock Text="{Binding Wallet.WalletName}"/>
+                  </DataTemplate>
+              </ComboBox.ItemTemplate>
           </ComboBox>
-
-          <StackPanel Orientation="Horizontal">
-              <Button>X</Button>
-              <Button>Y</Button>
-              <Button>Z</Button>
-          </StackPanel>
       </Panel>
   </c:ContentArea>
 </UserControl>

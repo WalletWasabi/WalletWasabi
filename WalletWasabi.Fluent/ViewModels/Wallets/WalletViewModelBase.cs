@@ -39,7 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				if (Wallet.State == WalletState.Uninitialized)
 				{
-					Navigate().To(new SimpleLoginViewModel(this, walletManager));
+					Navigate().To(new LoginViewModel(this, walletManager));
 				}
 				else
 				{

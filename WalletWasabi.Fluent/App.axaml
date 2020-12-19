@@ -23,6 +23,7 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/NavBarItem.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/NavBarTreeItem.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/TileButton.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/LoginControl.axaml" />
   </Application.Styles>
   <NativeMenu.Menu>
     <NativeMenu>

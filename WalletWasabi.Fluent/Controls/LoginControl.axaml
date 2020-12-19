@@ -1,0 +1,37 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:WalletWasabi.Fluent.Controls">
+  <Style Selector="c|LoginControl">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <StackPanel HorizontalAlignment="Stretch"
+                    VerticalAlignment="Center">
+
+          <Viewbox MaxHeight="200">
+            <Image Source="/Assets/HardwareIcons/ledger.png" Margin="10"/>
+          </Viewbox>
+
+          <Panel Height="150" MaxWidth="350">
+
+            <!-- Enter password -->
+            <StackPanel IsVisible="{Binding !IsPasswordIncorrect}" VerticalAlignment="Bottom">
+              <Label Content="Password:"/>
+              <TextBox Text="{Binding Password}" Watermark="type here..." PasswordChar="•" Classes="revealPasswordButton"/>
+              <Panel Margin="0 -20 0 0 ">
+                <Button Classes="activeHyperLink skip" Content="Forgot password?" HorizontalAlignment="Left"/>
+                <Button Content="Login" IsDefault="True" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}"/>
+              </Panel>
+            </StackPanel>
+
+            <!-- Incorrect password -->
+            <StackPanel Spacing="20" IsVisible="{Binding IsPasswordIncorrect}" VerticalAlignment="Bottom">
+              <TextBlock Text="The password is incorrect! Try Again." HorizontalAlignment="Center"/>
+              <Button Content="OK" Classes="action" HorizontalAlignment="Center" Command="{Binding OkCommand}"/>
+            </StackPanel>
+
+          </Panel>
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>
