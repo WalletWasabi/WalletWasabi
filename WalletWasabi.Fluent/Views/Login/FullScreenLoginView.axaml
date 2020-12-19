@@ -4,6 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:login="clr-namespace:WalletWasabi.Fluent.ViewModels.Login"
+             xmlns:navBar="clr-namespace:WalletWasabi.Fluent.ViewModels.NavBar"
+             xmlns:conv="using:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="login:FullScreenLoginViewModel"
              x:CompileBindings="True"
@@ -23,6 +25,25 @@
                   </DataTemplate>
               </ComboBox.ItemTemplate>
           </ComboBox>
+
+          <ListBox Items="{Binding BottomItems}"
+                   SelectedItem="{Binding SelectedBottomItem}"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Bottom"
+                   Background="Transparent">
+              <ListBox.ItemsPanel>
+                  <ItemsPanelTemplate>
+                      <StackPanel Orientation="Horizontal"/>
+                  </ItemsPanelTemplate>
+              </ListBox.ItemsPanel>
+              <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="navBar:NavBarItemViewModel">
+                      <PathIcon Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}"
+                                ToolTip.Tip="{Binding Title}"
+                                Background="Transparent"/>
+                  </DataTemplate>
+              </ListBox.ItemTemplate>
+          </ListBox>
       </Panel>
   </c:ContentArea>
 </UserControl>

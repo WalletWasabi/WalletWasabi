@@ -15,6 +15,7 @@ using WalletWasabi.Fluent.ViewModels.Search;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
+using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 
 namespace WalletWasabi.Fluent.ViewModels
@@ -112,6 +113,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				MainScreen.To(_addWalletPage);
 			}
+			else
+			{
+				FullScreen.To(new FullScreenLoginViewModel(global.WalletManager, _walletManager.Items, _navBar.BottomItems));
+			}
+
 		}
 
 		public TargettedNavigationStack MainScreen { get; }
