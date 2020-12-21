@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
@@ -15,11 +16,23 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 	{
 		[AutoNotify] private string _password;
 		[AutoNotify] private bool _isPasswordIncorrect;
+		[AutoNotify] private bool _isPasswordNeeded;
 		[AutoNotify] private WalletViewModelBase? _selectedWallet;
 
 		protected LoginViewModelBase(WalletManager walletManager)
 		{
 			_password = "";
+
+			this.WhenAnyValue(x => x.SelectedWallet)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(wallet =>
+				{
+					if (wallet is { })
+					{
+						Password = "";
+						IsPasswordNeeded = !wallet.Wallet.KeyManager.IsHardwareWallet;
+					}
+				});
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -35,6 +48,11 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 				IsPasswordIncorrect = await Task.Run(
 					() =>
 					{
+						if (!IsPasswordNeeded)
+						{
+							return false;
+						}
+
 						if (PasswordHelper.TryPassword(keyManager, Password, out var compatibilityPasswordUsed))
 						{
 							if (compatibilityPasswordUsed is { })

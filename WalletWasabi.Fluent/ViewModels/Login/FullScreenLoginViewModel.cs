@@ -8,7 +8,6 @@ using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Search;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Login
@@ -39,6 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 			Observable
 				.FromEventPattern(Wallets, nameof(Wallets.CollectionChanged))
+				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SelectedWallet = Wallets.FirstOrDefault())
 				.DisposeWith(disposable);
