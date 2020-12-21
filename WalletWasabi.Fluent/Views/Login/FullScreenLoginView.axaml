@@ -18,10 +18,15 @@
           <ComboBox SelectedItem="{Binding SelectedWallet}"
                     Items="{Binding Wallets}"
                     HorizontalAlignment="Right"
-                    VerticalAlignment="Bottom">
+                    VerticalAlignment="Bottom"
+                    BorderThickness="0"
+                    Width="200">
               <ComboBox.ItemTemplate>
                   <DataTemplate>
-                      <TextBlock Text="{Binding Wallet.WalletName}"/>
+                      <StackPanel Orientation="Horizontal">
+                          <Image Source="/Assets/HardwareIcons/ledger.png" Margin="0 0 10 0" Width="20" Height="20"/>
+                          <TextBlock Text="{Binding Wallet.WalletName}" VerticalAlignment="Center" />
+                      </StackPanel>
                   </DataTemplate>
               </ComboBox.ItemTemplate>
           </ComboBox>
