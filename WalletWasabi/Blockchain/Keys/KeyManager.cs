@@ -207,42 +207,6 @@ namespace WalletWasabi.Blockchain.Keys
 			return km;
 		}
 
-		public static bool TryGetEncryptedSecretFromFile(string filePath, out BitcoinEncryptedSecretNoEC encryptedSecret)
-		{
-			encryptedSecret = default;
-			filePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath);
-
-			if (!File.Exists(filePath))
-			{
-				throw new FileNotFoundException($"Wallet file not found at: `{filePath}`.");
-			}
-
-			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
-			var encryptedSecretLine = File.ReadLines(filePath) // Enumerated read.
-				.Take(21) // Limit reads to x lines.
-				.FirstOrDefault(line => line.Contains("\"EncryptedSecret\": \"", StringComparison.OrdinalIgnoreCase));
-
-			if (string.IsNullOrEmpty(encryptedSecretLine))
-			{
-				return false;
-			}
-
-			var parts = encryptedSecretLine.Split("\"EncryptedSecret\": \"");
-			if (parts.Length != 2)
-			{
-				throw new FormatException($"Could not split line: {encryptedSecretLine}");
-			}
-
-			var encsec = parts[1].TrimEnd(',', '"');
-			if (string.IsNullOrEmpty(encsec) || encsec.Equals("null", StringComparison.OrdinalIgnoreCase))
-			{
-				return false;
-			}
-
-			encryptedSecret = new BitcoinEncryptedSecretNoEC(encsec);
-			return true;
-		}
-
 		public void SetFilePath(string filePath)
 		{
 			FilePath = string.IsNullOrWhiteSpace(filePath) ? null : filePath;
