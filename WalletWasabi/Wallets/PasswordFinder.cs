@@ -6,12 +6,13 @@ using System.Linq;
 using System.Security;
 using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.CommandLine
 {
-	internal class PasswordFinder
+	public class PasswordFinder
 	{
-		internal static Dictionary<string, string> Charsets = new Dictionary<string, string>
+		public static readonly Dictionary<string, string> Charsets = new Dictionary<string, string>
 		{
 			["en"] = "abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
 			["es"] = "aábcdeéfghiíjkmnñoópqrstuúüvwxyzAÁBCDEÉFGHIÍJKLMNNOÓPQRSTUÚÜVWXYZ",
@@ -20,39 +21,18 @@ namespace WalletWasabi.Gui.CommandLine
 			["fr"] = "aâàbcçdæeéèëœfghiîïjkmnoôpqrstuùüvwxyÿzAÂÀBCÇDÆEÉÈËŒFGHIÎÏJKMNOÔPQRSTUÙÜVWXYŸZ",
 		};
 
-		internal static void Find(string secret, string language, bool useNumbers, bool useSymbols)
+		public static string? Find(Wallet wallet, string language, bool useNumbers, bool useSymbols, string likelyPassword, Action<int> reportPercentage)
 		{
-			BitcoinEncryptedSecretNoEC encryptedSecret;
-			try
-			{
-				encryptedSecret = new BitcoinEncryptedSecretNoEC(secret);
-			}
-			catch (FormatException)
-			{
-				Logger.LogCritical("ERROR: The encrypted secret is invalid. Make sure you copied correctly from your wallet file.");
-				return;
-			}
+			BitcoinEncryptedSecretNoEC encryptedSecret = wallet.KeyManager.EncryptedSecret;
 
-			Logger.LogWarning($"WARNING: This tool will display your password if it finds it.");
-			Logger.LogWarning($"         You can cancel this by CTRL+C combination anytime.{Environment.NewLine}");
-
-			Console.Write("Enter a likely password: ");
-
-			var password = PasswordConsole.ReadPassword();
 			var charset = Charsets[language] + (useNumbers ? "0123456789" : "") + (useSymbols ? "|!¡@$¿?_-\"#$/%&()´+*=[]{},;:.^`<>" : "");
 
 			var found = false;
 			var lastpwd = "";
 			var attempts = 0;
-			var maxNumberAttempts = password.Length * charset.Length;
-			var stepSize = (maxNumberAttempts + 101) / 100;
+			var maxNumberAttempts = likelyPassword.Length * charset.Length;
 
-			Console.WriteLine();
-			Console.Write($"[{"",100}] 0%");
-
-			var sw = new Stopwatch();
-			sw.Start();
-			foreach (var pwd in GeneratePasswords(password, charset.ToArray()))
+			foreach (var pwd in GeneratePasswords(likelyPassword, charset.ToArray()))
 			{
 				lastpwd = pwd;
 				try
@@ -64,28 +44,12 @@ namespace WalletWasabi.Gui.CommandLine
 				catch (SecurityException)
 				{
 				}
-				Progress(++attempts, stepSize, maxNumberAttempts, sw.Elapsed);
+				var percentage = (int)((float)++attempts / maxNumberAttempts * 100);
+
+				reportPercentage.Invoke(percentage);
 			}
-			sw.Stop();
 
-			Console.WriteLine();
-			Console.WriteLine();
-			Logger.LogInfo($"Completed in {sw.Elapsed}");
-			Console.WriteLine(found ? $"SUCCESS: Password found: >>> {lastpwd} <<<" : "FAILED: Password not found");
-			Console.WriteLine();
-		}
-
-		private static void Progress(int iter, int stepSize, int max, TimeSpan elapsed)
-		{
-			if (iter % stepSize == 0)
-			{
-				var percentage = (int)((float)iter / max * 100);
-				var estimatedTime = elapsed / percentage * (100 - percentage);
-				var bar = new string('#', percentage);
-
-				Console.CursorLeft = 0;
-				Console.Write($"[{bar,-100}] {percentage}% - ET: {estimatedTime}");
-			}
+			return found ? lastpwd : null;
 		}
 
 		private static IEnumerable<string> GeneratePasswords(string password, char[] charset)
