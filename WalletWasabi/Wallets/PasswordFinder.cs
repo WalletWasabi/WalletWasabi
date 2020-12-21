@@ -1,16 +1,12 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Security;
-using WalletWasabi.Logging;
-using WalletWasabi.Userfacing;
-using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Gui.CommandLine
+namespace WalletWasabi.Wallets
 {
-	public class PasswordFinder
+	public static class PasswordFinder
 	{
 		public static readonly Dictionary<string, string> Charsets = new Dictionary<string, string>
 		{
