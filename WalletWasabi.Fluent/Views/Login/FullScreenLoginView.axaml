@@ -10,7 +10,9 @@
              x:DataType="login:FullScreenLoginViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Login.FullScreenLoginView">
-    <c:ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled"
+    <c:ContentArea Title="Login"
+                   Caption="Select the wallet and enter its password to access your wallet"
+                   ScrollViewer.VerticalScrollBarVisibility="Disabled"
                    IsBusy="{Binding IsBusy}">
       <Panel>
         <c:LoginControl/>

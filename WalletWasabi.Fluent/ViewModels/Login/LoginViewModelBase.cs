@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 					if (wallet is { })
 					{
 						Password = "";
-						IsPasswordNeeded = !wallet.Wallet.KeyManager.IsHardwareWallet;
+						IsPasswordNeeded = !wallet.Wallet.KeyManager.IsWatchOnly;
 					}
 				});
 
