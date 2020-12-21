@@ -38,25 +38,27 @@
                   HorizontalAlignment="Left"
                   VerticalAlignment="Bottom">
         <StackPanel.Styles>
-          <Style Selector="Button.bottom"
+          <Style Selector="PathIcon"
                  x:DataType="navBar:NavBarItemViewModel">
-            <Setter Property="Command" Value="{Binding OpenCommand}"/>
+            <Setter Property="ToolTip.Tip" Value="{Binding Title}"/>
+            <Setter Property="Width" Value="25"/>
+            <Setter Property="Height" Value="25"/>
+            <Setter Property="Data" Value="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}"/>
+          </Style>
+
+          <Style Selector="Button.bottom">
+            <Setter Property="Command" Value="{Binding NavigateToCommand}"/>
             <Setter Property="Padding" Value="10"/>
-            <Setter Property="Content">
-              <Setter.Value>
-                <Template>
-                  <PathIcon Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}"
-                            ToolTip.Tip="{Binding Title}"
-                            Width="25"
-                            Height="25"/>
-                </Template>
-              </Setter.Value>
-            </Setter>
           </Style>
         </StackPanel.Styles>
 
-        <Button DataContext="{Binding ActionCenter}" Classes="invisible bottom"/>
-        <Button DataContext="{Binding AddWallet}" Classes="invisible bottom"/>
+        <Button Classes="invisible bottom" CommandParameter="{Binding ActionCenter}">
+          <PathIcon DataContext="{Binding ActionCenter}"/>
+        </Button>
+
+        <Button Classes="invisible bottom" CommandParameter="{Binding AddWallet}">
+          <PathIcon DataContext="{Binding AddWallet}"/>
+        </Button>
       </StackPanel>
     </Panel>
   </c:ContentArea>

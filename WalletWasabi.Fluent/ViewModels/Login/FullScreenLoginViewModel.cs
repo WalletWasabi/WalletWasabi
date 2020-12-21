@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.NavBar;
@@ -26,11 +27,22 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			Wallets = wallets;
 			ActionCenter = actionCenter;
 			AddWallet = addWallet;
+
+			NavigateToCommand = ReactiveCommand.Create<NavBarItemViewModel>(NavigateToExecute);
 		}
 
+		public ICommand NavigateToCommand { get; }
+
 		public ObservableCollection<WalletViewModelBase> Wallets { get; }
+
 		public SearchPageViewModel ActionCenter { get; }
+
 		public AddWalletPageViewModel AddWallet { get; }
+
+		private void NavigateToExecute(NavBarItemViewModel item)
+		{
+			Navigate().To(item);
+		}
 
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{
