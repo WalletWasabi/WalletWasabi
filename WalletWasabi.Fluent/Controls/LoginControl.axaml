@@ -24,7 +24,7 @@
                 </Panel>
               </StackPanel>
 
-              <!-- Hardware wallet -->
+              <!-- Hardware & Watch only wallet -->
               <Button IsVisible="{Binding !IsPasswordNeeded}" Content="Login" Classes="action" HorizontalAlignment="Center" Command="{Binding NextCommand}"/>
             </Panel>
 
