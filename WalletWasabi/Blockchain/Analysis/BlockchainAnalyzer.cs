@@ -115,8 +115,8 @@ namespace WalletWasabi.Blockchain.Analysis
 				// equivalent outputs that the i-th output has in in the transaction.
 				int anonset = anonsets[newCoin.Index];
 
-				// Don't count our own equivalent outputs in the anonset.
-				anonset -= indistinguishableWalletOutputs[newCoin.Amount] - 1;
+				// Picking randomly an output would make our anonset: total/ours.
+				anonset /= indistinguishableWalletOutputs[newCoin.Amount];
 
 				// Account for the inherited anonymity set size from the inputs in the
 				// anonymity set size estimate.
