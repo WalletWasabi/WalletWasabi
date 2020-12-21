@@ -115,7 +115,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			}
 			else
 			{
-				FullScreen.To(new FullScreenLoginViewModel(global.WalletManager, _walletManager.Items, _navBar.BottomItems));
+				FullScreen.To(new FullScreenLoginViewModel(global.WalletManager, _walletManager.Items, _searchPage, _addWalletPage));
 			}
 
 		}

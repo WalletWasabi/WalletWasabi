@@ -26,24 +26,30 @@
               </ComboBox.ItemTemplate>
           </ComboBox>
 
-          <ListBox Items="{Binding BottomItems}"
-                   SelectedItem="{Binding SelectedBottomItem}"
-                   HorizontalAlignment="Left"
-                   VerticalAlignment="Bottom"
-                   Background="Transparent">
-              <ListBox.ItemsPanel>
-                  <ItemsPanelTemplate>
-                      <StackPanel Orientation="Horizontal"/>
-                  </ItemsPanelTemplate>
-              </ListBox.ItemsPanel>
-              <ListBox.ItemTemplate>
-                  <DataTemplate x:DataType="navBar:NavBarItemViewModel">
-                      <PathIcon Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}"
-                                ToolTip.Tip="{Binding Title}"
-                                Background="Transparent"/>
-                  </DataTemplate>
-              </ListBox.ItemTemplate>
-          </ListBox>
+          <StackPanel Orientation="Horizontal"
+                      HorizontalAlignment="Left"
+                      VerticalAlignment="Bottom">
+              <StackPanel.Styles>
+                  <Style Selector="Button.bottom"
+                         x:DataType="navBar:NavBarItemViewModel">
+                      <Setter Property="Command" Value="{Binding OpenCommand}"/>
+                      <Setter Property="Padding" Value="10"/>
+                      <Setter Property="Content">
+                          <Setter.Value>
+                              <Template>
+                                  <PathIcon Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}"
+                                            ToolTip.Tip="{Binding Title}"
+                                            Width="25"
+                                            Height="25"/>
+                              </Template>
+                          </Setter.Value>
+                      </Setter>
+                  </Style>
+              </StackPanel.Styles>
+
+              <Button DataContext="{Binding ActionCenter}" Classes="invisible bottom"/>
+              <Button DataContext="{Binding AddWallet}" Classes="invisible bottom"/>
+          </StackPanel>
       </Panel>
   </c:ContentArea>
 </UserControl>

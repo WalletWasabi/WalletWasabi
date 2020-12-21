@@ -4,7 +4,9 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Search;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Wallets;
@@ -18,22 +20,18 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 		public FullScreenLoginViewModel(
 			WalletManager walletManager,
 			ObservableCollection<WalletViewModelBase> wallets,
-			ObservableCollection<NavBarItemViewModel> bottomItems)
+			SearchPageViewModel actionCenter,
+			AddWalletPageViewModel addWallet)
 			: base(walletManager)
 		{
 			Wallets = wallets;
-			BottomItems = bottomItems;
-
-			this.WhenAnyValue(x => x.SelectedBottomItem)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					x?.OpenCommand.Execute(null);
-				});
+			ActionCenter = actionCenter;
+			AddWallet = addWallet;
 		}
 
 		public ObservableCollection<WalletViewModelBase> Wallets { get; }
-		public ObservableCollection<NavBarItemViewModel> BottomItems { get; }
+		public SearchPageViewModel ActionCenter { get; }
+		public AddWalletPageViewModel AddWallet { get; }
 
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{
