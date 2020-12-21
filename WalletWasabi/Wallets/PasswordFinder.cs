@@ -40,7 +40,9 @@ namespace WalletWasabi.Wallets
 				catch (SecurityException)
 				{
 				}
-				var percentage = (int)((float)++attempts / maxNumberAttempts * 100);
+
+				attempts++;
+				var percentage = (int)((float)attempts / maxNumberAttempts * 100);
 
 				reportPercentage.Invoke(percentage);
 			}
