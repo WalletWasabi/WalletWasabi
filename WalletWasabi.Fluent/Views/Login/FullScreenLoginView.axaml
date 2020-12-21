@@ -10,53 +10,54 @@
              x:DataType="login:FullScreenLoginViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Login.FullScreenLoginView">
-    <c:ContentArea Title="Login"
-                   Caption="Select the wallet and enter its password to access your wallet"
-                   IsBusy="{Binding IsBusy}"
-                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
-      <Panel>
-        <c:LoginControl/>
+  <c:ContentArea Title="Login"
+                 Caption="Select the wallet and enter its password to access your wallet"
+                 IsBusy="{Binding IsBusy}"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <Panel>
 
-        <ComboBox SelectedItem="{Binding SelectedWallet}"
-                  Items="{Binding Wallets}"
-                  HorizontalAlignment="Right"
-                  VerticalAlignment="Bottom"
-                  Background="Transparent"
-                  Width="200">
-            <ComboBox.ItemTemplate>
-              <DataTemplate>
-                  <StackPanel Orientation="Horizontal">
-                      <Image Source="/Assets/HardwareIcons/ledger.png" Margin="0 0 10 0" Width="20" Height="20"/>
-                      <TextBlock Text="{Binding Wallet.WalletName}" VerticalAlignment="Center" />
-                  </StackPanel>
-              </DataTemplate>
-          </ComboBox.ItemTemplate>
+      <c:LoginControl Margin="0 0 0 40"/>
+
+      <ComboBox SelectedItem="{Binding SelectedWallet}"
+                Items="{Binding Wallets}"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Background="Transparent"
+                Width="200">
+        <ComboBox.ItemTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal">
+              <Image Source="/Assets/HardwareIcons/ledger.png" Margin="0 0 10 0" Width="20" Height="20"/>
+              <TextBlock Text="{Binding Wallet.WalletName}" VerticalAlignment="Center" />
+            </StackPanel>
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
       </ComboBox>
 
       <StackPanel Orientation="Horizontal"
                   HorizontalAlignment="Left"
                   VerticalAlignment="Bottom">
-          <StackPanel.Styles>
-              <Style Selector="Button.bottom"
-                     x:DataType="navBar:NavBarItemViewModel">
-                  <Setter Property="Command" Value="{Binding OpenCommand}"/>
-                  <Setter Property="Padding" Value="10"/>
-                  <Setter Property="Content">
-                      <Setter.Value>
-                          <Template>
-                              <PathIcon Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}"
-                                        ToolTip.Tip="{Binding Title}"
-                                        Width="25"
-                                        Height="25"/>
-                          </Template>
-                      </Setter.Value>
-                  </Setter>
-              </Style>
-          </StackPanel.Styles>
+        <StackPanel.Styles>
+          <Style Selector="Button.bottom"
+                 x:DataType="navBar:NavBarItemViewModel">
+            <Setter Property="Command" Value="{Binding OpenCommand}"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Content">
+              <Setter.Value>
+                <Template>
+                  <PathIcon Data="{Binding IconName, Converter={x:Static conv:NavBarIconConverter.Instance}}"
+                            ToolTip.Tip="{Binding Title}"
+                            Width="25"
+                            Height="25"/>
+                </Template>
+              </Setter.Value>
+            </Setter>
+          </Style>
+        </StackPanel.Styles>
 
-          <Button DataContext="{Binding ActionCenter}" Classes="invisible bottom"/>
-          <Button DataContext="{Binding AddWallet}" Classes="invisible bottom"/>
+        <Button DataContext="{Binding ActionCenter}" Classes="invisible bottom"/>
+        <Button DataContext="{Binding AddWallet}" Classes="invisible bottom"/>
       </StackPanel>
-      </Panel>
+    </Panel>
   </c:ContentArea>
 </UserControl>
