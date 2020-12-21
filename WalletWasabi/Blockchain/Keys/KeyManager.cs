@@ -769,11 +769,8 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public void SetIcon(string icon)
 		{
-			lock (BlockchainStateLock)
-			{
-				Icon = icon;
-				ToFileNoBlockchainStateLock();
-			}
+			Icon = icon;
+			ToFile();
 		}
 
 		public void SetIcon(WalletType type)
