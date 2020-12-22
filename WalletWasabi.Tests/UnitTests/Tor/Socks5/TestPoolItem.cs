@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tor.Socks5.Pool;
@@ -26,8 +25,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 		/// <inheritdoc/>
 		public Stream GetTransportStream()
 		{
-			Guard.NotNull(nameof(TransportStream), TransportStream);
-			return TransportStream!;
+			return Guard.NotNull(nameof(TransportStream), TransportStream);
 		}
 
 		/// <inheritdoc/>
