@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
@@ -9,11 +10,16 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public class AddedWalletPageViewModel : RoutableViewModel
 	{
-		public AddedWalletPageViewModel(WalletManager walletManager, KeyManager keyManager, WalletType type)
+		public AddedWalletPageViewModel(WalletManager walletManager, KeyManager keyManager)
 		{
 			Title = "Success";
 			WalletName = keyManager.WalletName;
-			Type = type;
+
+			Type = Enum.TryParse(typeof(WalletType), keyManager.Icon, true, out var typ) && typ is { }
+				? (WalletType)typ
+				: keyManager.IsHardwareWallet
+					? WalletType.Hardware
+					: WalletType.Normal;
 
 			NextCommand = ReactiveCommand.Create(
 				() =>
