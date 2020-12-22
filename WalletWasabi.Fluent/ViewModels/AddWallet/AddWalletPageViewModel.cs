@@ -81,10 +81,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						return;
 					}
 
-					var (isColdCardJson, keyManager) = await ImportWalletHelper.ImportWalletAsync(walletManager, WalletName, filePath);
+					var keyManager = await ImportWalletHelper.ImportWalletAsync(walletManager, WalletName, filePath);
 
 					// TODO: get the type from the wallet file
-					Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager, isColdCardJson ? WalletType.Coldcard : WalletType.Normal));
+					Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager));
 				}
 				catch (Exception ex)
 				{
