@@ -39,9 +39,9 @@
         </ComboBox.Resources>
         <ComboBox.ItemTemplate>
           <DataTemplate>
-            <StackPanel Orientation="Horizontal">
-              <Image Source="/Assets/HardwareIcons/ledger.png" Margin="0 0 10 0" Width="20" Height="20"/>
-              <TextBlock Text="{Binding Wallet.WalletName}" VerticalAlignment="Center" />
+            <StackPanel DataContext="{Binding Wallet}" Orientation="Horizontal">
+              <Image Source="{Binding KeyManager, Converter={x:Static conv:WalletIconConverter.KeyManagerToImage}}" Margin="0 0 10 0" Width="20" Height="20"/>
+              <TextBlock Text="{Binding WalletName}" VerticalAlignment="Center" />
             </StackPanel>
           </DataTemplate>
         </ComboBox.ItemTemplate>

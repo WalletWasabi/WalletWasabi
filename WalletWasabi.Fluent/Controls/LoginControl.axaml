@@ -1,6 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters">
   <Style Selector="c|LoginControl">
     <Setter Property="Template">
       <ControlTemplate>
@@ -47,7 +48,7 @@
 
           <!-- Icon -->
           <Viewbox MaxHeight="200">
-            <Image Source="/Assets/HardwareIcons/normal.png" />
+            <Image Source="{Binding SelectedWallet.Wallet.KeyManager, Converter={x:Static conv:WalletIconConverter.KeyManagerToImage}}" />
           </Viewbox>
 
         </DockPanel>

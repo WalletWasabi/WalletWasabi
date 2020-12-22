@@ -2,6 +2,9 @@
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -25,12 +28,12 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 			this.WhenAnyValue(x => x.SelectedWallet)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(wallet =>
+				.Subscribe(selectedWallet =>
 				{
-					if (wallet is { })
+					if (selectedWallet is { })
 					{
 						Password = "";
-						IsPasswordNeeded = !wallet.Wallet.KeyManager.IsWatchOnly;
+						IsPasswordNeeded = !selectedWallet.Wallet.KeyManager.IsWatchOnly;
 					}
 				});
 
