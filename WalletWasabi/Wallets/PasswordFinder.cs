@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace WalletWasabi.Wallets
 {
-	public class PasswordFinder
+	public static class PasswordFinder
 	{
 		public static readonly Dictionary<string, string> Charsets = new Dictionary<string, string>
 		{
