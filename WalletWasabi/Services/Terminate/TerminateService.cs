@@ -84,8 +84,8 @@ namespace WalletWasabi.Services.Terminate
 		/// <summary>
 		/// Terminates the application.
 		/// </summary>
-		/// <remark>This is a blocking method.</remark>
-		public void Terminate()
+		/// <remark>This is a blocking method. Note that program execution ends at the end of this method due to <see cref="Environment.Exit(int)"/> call.</remark>
+		public void Terminate(int exitCode = 0)
 		{
 			var prevValue = Interlocked.CompareExchange(ref _terminateStatus, TerminateStatusInProgress, TerminateStatusNotStarted);
 			Logger.LogTrace($"Terminate was called from ThreadId: {Thread.CurrentThread.ManagedThreadId}");
@@ -130,6 +130,8 @@ namespace WalletWasabi.Services.Terminate
 			Interlocked.Exchange(ref _terminateStatus, TerminateStatusFinished);
 
 			Logger.LogSoftwareStopped("Wasabi");
+
+			Environment.Exit(exitCode);
 		}
 	}
 }

@@ -263,6 +263,3 @@ dotnet_diagnostic.CA1835.severity = warning
 
 # CA2200: Rethrow to preserve stack details
 dotnet_diagnostic.CA2200.severity = warning
-
-# CA1827: Do not use Count() or LongCount() when Any() can be used
-dotnet_diagnostic.CA1827.severity = warning

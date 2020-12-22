@@ -107,7 +107,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 							return result;
 						});
 
-					Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager));
+					Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager, WalletType.Normal));
 
 					return;
 				}

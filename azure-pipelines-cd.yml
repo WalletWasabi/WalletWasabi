@@ -20,7 +20,7 @@ jobs:
       arguments: '--cdelivery'
   - task: CopyFiles@2
     inputs:
-      SourceFolder: 'WalletWasabi.Fluent.Desktop/bin/dist/cdelivery/'
+      SourceFolder: 'WalletWasabi.Gui/bin/dist/cdelivery/'
       contents: '**'
       targetFolder: $(Build.ArtifactStagingDirectory)
   - task: PublishBuildArtifacts@1

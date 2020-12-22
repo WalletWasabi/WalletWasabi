@@ -1,4 +1,4 @@
-namespace WalletWasabi.Wallets
+namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
 	public enum WalletType
 	{

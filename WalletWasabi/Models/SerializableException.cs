@@ -5,15 +5,10 @@ using System.Text;
 namespace WalletWasabi.Models
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public record SerializableException
+	public class SerializableException
 	{
-		[JsonConstructor]
-		protected SerializableException(string exceptionType, string message, string stackTrace, SerializableException innerException)
+		public SerializableException()
 		{
-			ExceptionType = exceptionType;
-			Message = message;
-			StackTrace = stackTrace;
-			InnerException = innerException;
 		}
 
 		public SerializableException(Exception ex)
@@ -30,16 +25,16 @@ namespace WalletWasabi.Models
 		}
 
 		[JsonProperty(PropertyName = "ExceptionType")]
-		public string? ExceptionType { get; }
+		public string ExceptionType { get; set; }
 
 		[JsonProperty(PropertyName = "Message")]
-		public string Message { get; }
+		public string Message { get; set; }
 
 		[JsonProperty(PropertyName = "StackTrace")]
-		public string? StackTrace { get; }
+		public string StackTrace { get; set; }
 
 		[JsonProperty(PropertyName = "InnerException")]
-		public SerializableException? InnerException { get; }
+		public SerializableException InnerException { get; set; }
 
 		public static string ToBase64String(SerializableException exception)
 		{

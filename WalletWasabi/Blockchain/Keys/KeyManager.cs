@@ -11,7 +11,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Blockchain.Keys
 {
@@ -119,9 +118,6 @@ namespace WalletWasabi.Blockchain.Keys
 		[JsonProperty(Order = 9)]
 		private List<HdPubKey> HdPubKeys { get; }
 
-		[JsonProperty(Order = 10, PropertyName = "Icon")]
-		public string? Icon { get; private set; }
-
 		private object BlockchainStateLock { get; }
 
 		private object HdPubKeysLock { get; }
@@ -205,6 +201,115 @@ namespace WalletWasabi.Blockchain.Keys
 			km.PasswordVerified ??= true;
 
 			return km;
+		}
+
+		public static bool TryGetEncryptedSecretFromFile(string filePath, out BitcoinEncryptedSecretNoEC encryptedSecret)
+		{
+			encryptedSecret = default;
+			filePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath);
+
+			if (!File.Exists(filePath))
+			{
+				throw new FileNotFoundException($"Wallet file not found at: `{filePath}`.");
+			}
+
+			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
+			var encryptedSecretLine = File.ReadLines(filePath) // Enumerated read.
+				.Take(21) // Limit reads to x lines.
+				.FirstOrDefault(line => line.Contains("\"EncryptedSecret\": \"", StringComparison.OrdinalIgnoreCase));
+
+			if (string.IsNullOrEmpty(encryptedSecretLine))
+			{
+				return false;
+			}
+
+			var parts = encryptedSecretLine.Split("\"EncryptedSecret\": \"");
+			if (parts.Length != 2)
+			{
+				throw new FormatException($"Could not split line: {encryptedSecretLine}");
+			}
+
+			var encsec = parts[1].TrimEnd(',', '"');
+			if (string.IsNullOrEmpty(encsec) || encsec.Equals("null", StringComparison.OrdinalIgnoreCase))
+			{
+				return false;
+			}
+
+			encryptedSecret = new BitcoinEncryptedSecretNoEC(encsec);
+			return true;
+		}
+
+		public static bool TryGetExtPubKeyFromFile(string filePath, out ExtPubKey extPubKey)
+		{
+			extPubKey = default;
+			filePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath);
+
+			if (!File.Exists(filePath))
+			{
+				throw new FileNotFoundException($"Wallet file not found at: `{filePath}`.");
+			}
+
+			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
+			var extPubKeyLine = File.ReadLines(filePath) // Enumerated read.
+				.Take(21) // Limit reads to x lines.
+				.FirstOrDefault(line => line.Contains("\"ExtPubKey\": \"", StringComparison.OrdinalIgnoreCase));
+
+			if (string.IsNullOrEmpty(extPubKeyLine))
+			{
+				return false;
+			}
+
+			var parts = extPubKeyLine.Split("\"ExtPubKey\": \"");
+			if (parts.Length != 2)
+			{
+				throw new FormatException($"Could not split line: {extPubKeyLine}");
+			}
+
+			var xpub = parts[1].TrimEnd(',', '"');
+			if (string.IsNullOrEmpty(xpub) || xpub.Equals("null", StringComparison.OrdinalIgnoreCase))
+			{
+				return false;
+			}
+
+			extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpub);
+			return true;
+		}
+
+		public static bool TryGetMasterFingerprintFromFile(string filePath, out HDFingerprint masterFingerprint)
+		{
+			masterFingerprint = default;
+			filePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath);
+
+			if (!File.Exists(filePath))
+			{
+				throw new FileNotFoundException($"Wallet file not found at: `{filePath}`.");
+			}
+
+			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
+			var masterFpLine = File.ReadLines(filePath) // Enumerated read.
+				.Take(21) // Limit reads to x lines.
+				.FirstOrDefault(line => line.Contains("\"MasterFingerprint\": \"", StringComparison.OrdinalIgnoreCase));
+
+			if (string.IsNullOrEmpty(masterFpLine))
+			{
+				return false;
+			}
+
+			var parts = masterFpLine.Split("\"MasterFingerprint\": \"");
+			if (parts.Length != 2)
+			{
+				throw new FormatException($"Could not split line: {masterFpLine}");
+			}
+
+			var hex = parts[1].TrimEnd(',', '"');
+			if (string.IsNullOrEmpty(hex) || hex.Equals("null", StringComparison.OrdinalIgnoreCase))
+			{
+				return false;
+			}
+
+			var mfp = new HDFingerprint(ByteHelpers.FromHex(hex));
+			masterFingerprint = mfp;
+			return true;
 		}
 
 		public void SetFilePath(string filePath)
@@ -656,17 +761,6 @@ namespace WalletWasabi.Blockchain.Keys
 					Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - newHeight}. From {prevHeight} to {newHeight}.");
 				}
 			}
-		}
-
-		public void SetIcon(string icon)
-		{
-			Icon = icon;
-			ToFile();
-		}
-
-		public void SetIcon(WalletType type)
-		{
-			SetIcon(type.ToString());
 		}
 
 		public void AssertNetworkOrClearBlockState(Network expectedNetwork)

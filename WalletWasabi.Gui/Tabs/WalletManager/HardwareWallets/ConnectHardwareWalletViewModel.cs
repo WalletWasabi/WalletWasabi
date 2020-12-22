@@ -318,9 +318,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusType.AcquiringXpubFromHardwareWallet);
 				}
 
-				walletName = WalletManager.GetWallets(true).FirstOrDefault(w => w.KeyManager.ExtPubKey == extPubKey)?.WalletName;
-
-				if (walletName is null)
+				if (TryFindWalletByExtPubKey(extPubKey, out string wn))
+				{
+					walletName = wn.TrimEnd(".json", StringComparison.OrdinalIgnoreCase);
+				}
+				else
 				{
 					var prefix = selectedWallet.HardwareWalletInfo?.Model.FriendlyName() ?? HardwareWalletModels.Unknown.FriendlyName();
 					walletName = WalletManager.WalletDirectories.GetNextWalletName(prefix);
@@ -422,6 +424,16 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			{
 				IsHwWalletSearchTextVisible = false;
 			}
+		}
+
+		private bool TryFindWalletByExtPubKey(ExtPubKey extPubKey, out string walletName)
+		{
+			walletName = WalletManager.WalletDirectories
+				.EnumerateWalletFiles(includeBackupDir: false)
+				.FirstOrDefault(fi => KeyManager.TryGetExtPubKeyFromFile(fi.FullName, out ExtPubKey epk) && epk == extPubKey)
+				?.Name;
+
+			return walletName is { };
 		}
 	}
 }
