@@ -71,8 +71,10 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 					// Task.Run(async () => await LoadWalletAsync(keyManager, walletManager));
 					_ = LoadWalletAsync(keyManager, walletManager);
 
+					Navigate().Clear();
+
 					// TODO: navigate to the wallet welcome page
-					Navigate().To(SelectedWallet);
+					Navigate(NavigationTarget.HomeScreen).To(SelectedWallet);
 				}
 
 				IsBusy = false;
