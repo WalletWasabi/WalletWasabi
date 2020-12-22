@@ -36,6 +36,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 		public Task DisposeAsync()
 		{
+			TorSocks5ClientPool.Dispose();
 			return Task.CompletedTask;
 		}
 
