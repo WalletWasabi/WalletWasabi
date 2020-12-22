@@ -7,14 +7,14 @@ namespace WalletWasabi.Tests.UnitTests
 	public class SerializableExceptionTests
 	{
 		[Fact]
-		public void UtxoRefereeSerialization()
+		public void SerializableExceptionTest()
 		{
 			var message = "Foo Bar Buzz";
 			var innerMessage = "Inner Foo Bar Buzz";
 			var innerStackTrace = "";
 
 			Exception ex;
-			string stackTrace;
+			string? stackTrace;
 			try
 			{
 				try
@@ -41,9 +41,12 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(stackTrace, result.StackTrace);
 			Assert.Equal(typeof(InvalidOperationException).FullName, result.ExceptionType);
 
-			Assert.Equal(innerMessage, result.InnerException.Message);
-			Assert.Equal(innerStackTrace, result.InnerException.StackTrace);
-			Assert.Equal(typeof(OperationCanceledException).FullName, result.InnerException.ExceptionType);
+			Assert.Equal(innerMessage, result.InnerException?.Message);
+			Assert.Equal(innerStackTrace, result.InnerException?.StackTrace);
+			Assert.Equal(typeof(OperationCanceledException).FullName, result.InnerException?.ExceptionType);
+
+			var serializableException2 = ex.ToSerializableException();
+			Assert.Equal(serializableException, serializableException2);
 		}
 	}
 }
