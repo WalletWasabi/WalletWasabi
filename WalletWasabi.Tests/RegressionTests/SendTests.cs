@@ -742,7 +742,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Empty(wallet.Coins);
 
 				var tx0Id = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m), replaceable: true);
-				while (wallet.Coins.Count() == 0)
+				while (!wallet.Coins.Any())
 				{
 					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
 				}
