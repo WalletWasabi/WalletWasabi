@@ -10,9 +10,9 @@ namespace WalletWasabi.Tor.Socks5.Pool
 	public interface IPoolItem
 	{
 		/// <summary>
-		/// Gets whether internal <see cref="GetTransportStream"/> can be re-used for a new HTTP(s) request.
+		/// If returns <c>false</c>, then internal <see cref="GetTransportStream"/> can be re-used for a new HTTP(s) request.
 		/// </summary>
-		/// <returns><c>true</c> when <see cref="TorPoolItem"/> must be discarded, <c>false</c> otherwise.</returns>
+		/// <returns><c>true</c> when <see cref="IPoolItem"/> resources must be released/disposed, <c>false</c> otherwise.</returns>
 		bool NeedRecycling { get; }
 
 		/// <summary>Reserve the pool item for an HTTP(s) request so no other consumer can use this pool item.</summary>

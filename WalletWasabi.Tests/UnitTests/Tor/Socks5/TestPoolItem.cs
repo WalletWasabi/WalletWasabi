@@ -43,7 +43,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 		/// <inheritdoc/>
 		public PoolItemState Unreserve()
 		{
-			State = NeedRecycling ? PoolItemState.FreeToUse : PoolItemState.ToDispose;
+			State = AllowRecycling ? PoolItemState.FreeToUse : PoolItemState.ToDispose;
 			return State;
 		}
 	}
