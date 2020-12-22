@@ -33,6 +33,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public override string DoButtonText => "Send Transaction";
 		public override string DoingButtonText => "Sending Transaction...";
 
+		public string PayjoinEndPoint
+		{
+			get => _payjoinEndPoint;
+			set => this.RaiseAndSetIfChanged(ref _payjoinEndPoint, value);
+		}
+
 		protected override async Task BuildTransaction(string password, PaymentIntent payments, FeeStrategy feeStrategy, bool allowUnconfirmed = false, IEnumerable<OutPoint>? allowedInputs = null)
 		{
 			BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, payments, feeStrategy, allowUnconfirmed: true, allowedInputs: allowedInputs, GetPayjoinClient()));
@@ -72,12 +78,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(signedTransaction));
 
 			ResetUi();
-		}
-
-		public string PayjoinEndPoint
-		{
-			get => _payjoinEndPoint;
-			set => this.RaiseAndSetIfChanged(ref _payjoinEndPoint, value);
 		}
 
 		private IPayjoinClient GetPayjoinClient()
