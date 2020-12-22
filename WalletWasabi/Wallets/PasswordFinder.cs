@@ -3,10 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security;
+using System.Threading;
 
 namespace WalletWasabi.Wallets
 {
-	public static class PasswordFinder
+	public class PasswordFinder
 	{
 		public static readonly Dictionary<string, string> Charsets = new Dictionary<string, string>
 		{
@@ -17,25 +18,25 @@ namespace WalletWasabi.Wallets
 			["fr"] = "aâàbcçdæeéèëœfghiîïjkmnoôpqrstuùüvwxyÿzAÂÀBCÇDÆEÉÈËŒFGHIÎÏJKMNOÔPQRSTUÙÜVWXYŸZ",
 		};
 
-		public static string? Find(Wallet wallet, string language, bool useNumbers, bool useSymbols, string likelyPassword, Action<int> reportPercentage)
+		public static bool TryFind(Wallet wallet, string language, bool useNumbers, bool useSymbols, string likelyPassword, Action<int> reportPercentage, out string? foundPassword, CancellationToken cancellationToken = default)
 		{
+			foundPassword = null;
 			BitcoinEncryptedSecretNoEC encryptedSecret = wallet.KeyManager.EncryptedSecret;
 
 			var charset = Charsets[language] + (useNumbers ? "0123456789" : "") + (useSymbols ? "|!¡@$¿?_-\"#$/%&()´+*=[]{},;:.^`<>" : "");
 
-			var found = false;
-			var lastpwd = "";
 			var attempts = 0;
 			var maxNumberAttempts = likelyPassword.Length * charset.Length;
 
 			foreach (var pwd in GeneratePasswords(likelyPassword, charset.ToArray()))
 			{
-				lastpwd = pwd;
+				cancellationToken.ThrowIfCancellationRequested();
+
 				try
 				{
 					encryptedSecret.GetKey(pwd);
-					found = true;
-					break;
+					foundPassword = pwd;
+					return true;
 				}
 				catch (SecurityException)
 				{
@@ -47,7 +48,7 @@ namespace WalletWasabi.Wallets
 				reportPercentage.Invoke(percentage);
 			}
 
-			return found ? lastpwd : null;
+			return false;
 		}
 
 		private static IEnumerable<string> GeneratePasswords(string password, char[] charset)
