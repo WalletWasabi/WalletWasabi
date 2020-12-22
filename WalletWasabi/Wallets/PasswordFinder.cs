@@ -1,6 +1,7 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security;
 using System.Threading;
@@ -18,7 +19,7 @@ namespace WalletWasabi.Wallets
 			["fr"] = "aâàbcçdæeéèëœfghiîïjkmnoôpqrstuùüvwxyÿzAÂÀBCÇDÆEÉÈËŒFGHIÎÏJKMNOÔPQRSTUÙÜVWXYŸZ",
 		};
 
-		public static bool TryFind(Wallet wallet, string language, bool useNumbers, bool useSymbols, string likelyPassword, Action<int> reportPercentage, out string? foundPassword, CancellationToken cancellationToken = default)
+		public static bool TryFind(Wallet wallet, string language, bool useNumbers, bool useSymbols, string likelyPassword, Action<int, TimeSpan> reportPercentage, out string? foundPassword, CancellationToken cancellationToken = default)
 		{
 			foundPassword = null;
 			BitcoinEncryptedSecretNoEC encryptedSecret = wallet.KeyManager.EncryptedSecret;
@@ -27,6 +28,8 @@ namespace WalletWasabi.Wallets
 
 			var attempts = 0;
 			var maxNumberAttempts = likelyPassword.Length * charset.Length;
+
+			Stopwatch sw = Stopwatch.StartNew();
 
 			foreach (var pwd in GeneratePasswords(likelyPassword, charset.ToArray()))
 			{
@@ -44,8 +47,9 @@ namespace WalletWasabi.Wallets
 
 				attempts++;
 				var percentage = (int)((float)attempts / maxNumberAttempts * 100);
+				var remainingTime = sw.Elapsed / percentage * (100 - percentage);
 
-				reportPercentage.Invoke(percentage);
+				reportPercentage?.Invoke(percentage, remainingTime);
 			}
 
 			return false;
