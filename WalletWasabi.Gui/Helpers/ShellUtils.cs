@@ -43,7 +43,7 @@ namespace WalletWasabi.Gui.Helpers
 		}
 
 		public static int ExecuteShellCommand(string commandName, string args, Action<object, DataReceivedEventArgs>
-			outputReceivedCallback, Action<object, DataReceivedEventArgs> errorReceivedCallback = null, bool resolveExecutable = true,
+			outputReceivedCallback, Action<object, DataReceivedEventArgs>? errorReceivedCallback = null, bool resolveExecutable = true,
 			string workingDirectory = "", bool executeInShell = true, bool includeSystemPaths = true, params string[] extraPaths)
 		{
 			using var shellProc = new Process

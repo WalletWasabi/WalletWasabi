@@ -59,7 +59,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			SelectedCategory = Categories.First(x => x is RecoverWalletViewModel);
 		}
 
-		public void SelectLoadWallet(KeyManager keyManager = null)
+		public void SelectLoadWallet(KeyManager? keyManager = null)
 		{
 			SelectedCategory = LoadWalletDesktop;
 			LoadWalletDesktop.SelectWallet(keyManager);

@@ -173,7 +173,7 @@ namespace Mono.Options
 		{
 		}
 
-		public CommandSet(string suite, TextWriter output, TextWriter error, MessageLocalizerConverter localizer = null)
+		public CommandSet(string suite, TextWriter output, TextWriter error, MessageLocalizerConverter? localizer = null)
 		{
 			Suite = suite ?? throw new ArgumentNullException(nameof(suite));
 			Options = new CommandOptionSet(this, localizer);
@@ -352,7 +352,7 @@ namespace Mono.Options
 			return false;
 		}
 
-		public IEnumerable<string> GetCompletions(string prefix = null)
+		public IEnumerable<string> GetCompletions(string? prefix = null)
 		{
 			ExtractToken(ref prefix, out string rest);
 

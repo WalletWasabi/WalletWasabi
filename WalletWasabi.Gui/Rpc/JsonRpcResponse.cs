@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui.Rpc
 			return new JsonRpcResponse(id, result, null);
 		}
 
-		public static JsonRpcResponse CreateErrorResponse(string id, JsonRpcErrorCodes code, string message = null)
+		public static JsonRpcResponse CreateErrorResponse(string id, JsonRpcErrorCodes code, string? message = null)
 		{
 			var error = new
 			{
