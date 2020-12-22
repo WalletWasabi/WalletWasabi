@@ -6,10 +6,13 @@ using Xunit;
 namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 {
 	/// <summary>
-	/// Tests for <see cref="TorPoolItemManager"/>
+	/// Tests for <see cref="TorPoolItemManager"/>.
 	/// </summary>
 	public class TorPoolItemManagerTests
 	{
+		/// <summary>
+		/// Make sure that at most 2 TCP connections are established with Tor SOCKS5 for a given URI host (e.g. <c>postman-echo.com</c>).
+		/// </summary>
 		[Fact]
 		public void BehaviorTest()
 		{
