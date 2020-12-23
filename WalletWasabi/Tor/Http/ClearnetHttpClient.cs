@@ -11,7 +11,10 @@ namespace WalletWasabi.Tor.Http
 	/// HTTP client implementation based on .NET's <see cref="HttpClient"/> which provides least privacy for Wasabi users,
 	/// as HTTP requests are being sent over clearnet.
 	/// </summary>
-	/// <remarks>Inner <see cref="HttpClient"/> instance is thread-safe.</remarks>
+	/// <remarks>
+	/// Similarly to <see cref="HttpClient"/>, it is possible to use <see cref="ClearnetHttpClient"/> with or without setting base URI.
+	/// <para>Inner <see cref="HttpClient"/> instance is thread-safe.</para>
+	/// </remarks>
 	public class ClearnetHttpClient : IRelativeHttpClient
 	{
 		[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "SocketsHttpHandler and HttpClient lives as long as the application does.")]
