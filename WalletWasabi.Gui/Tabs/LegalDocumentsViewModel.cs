@@ -21,7 +21,7 @@ namespace WalletWasabi.Gui.Tabs
 		private string _text;
 		private bool _emptyContent;
 
-		public LegalDocumentsViewModel(string? content = null, LegalDocuments? legalDoc = null) : base()
+		public LegalDocumentsViewModel(string content = null, LegalDocuments legalDoc = null) : base()
 		{
 			FilePath = legalDoc?.FilePath;
 			Content = content;
@@ -51,9 +51,9 @@ namespace WalletWasabi.Gui.Tabs
 				.Subscribe(text => EmptyContent = string.IsNullOrEmpty(text));
 		}
 
-		public string? FilePath { get; set; } = null;
+		public string FilePath { get; set; } = null;
 
-		public string? Content { get; set; } = null;
+		public string Content { get; set; } = null;
 
 		public bool EmptyContent
 		{
@@ -68,7 +68,7 @@ namespace WalletWasabi.Gui.Tabs
 		}
 
 		public ReactiveCommand<Unit, Unit> AgreeClicked { get; }
-		public LegalDocuments? LegalDoc { get; }
+		public LegalDocuments LegalDoc { get; }
 
 		public bool IsAgreed { get; set; }
 		public bool IsDirty { get; set; }

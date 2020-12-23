@@ -124,7 +124,7 @@ namespace WalletWasabi.Gui.Rpc
 		}
 
 		[JsonRpcMethod("build")]
-		public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string? password = null)
+		public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string password = null)
 		{
 			Guard.NotNull(nameof(payments), payments);
 			Guard.NotNull(nameof(coins), coins);
@@ -148,7 +148,7 @@ namespace WalletWasabi.Gui.Rpc
 		}
 
 		[JsonRpcMethod("send")]
-		public async Task<object> SendTransactionAsync(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string? password = null)
+		public async Task<object> SendTransactionAsync(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string password = null)
 		{
 			var txHex = BuildTransaction(payments, coins, feeTarget, password);
 			var smartTx = new SmartTransaction(Transaction.Parse(txHex, Global.Network), Height.Mempool);
@@ -206,7 +206,7 @@ namespace WalletWasabi.Gui.Rpc
 		}
 
 		[JsonRpcMethod("enqueue")]
-		public async Task EnqueueForCoinJoinAsync(OutPoint[] coins, string? password = null)
+		public async Task EnqueueForCoinJoinAsync(OutPoint[] coins, string password = null)
 		{
 			Guard.NotNull(nameof(coins), coins);
 
