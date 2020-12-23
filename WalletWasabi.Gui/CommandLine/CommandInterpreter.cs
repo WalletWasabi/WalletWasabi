@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.CommandLine
 		private TextWriter Error { get; }
 
 		/// <returns>If the GUI should run or not.</returns>
-		public async Task<bool> ExecuteCommandsAsync(string[] args, Command mixerCommand, Command passwordFinderCommand, Command crashReportedCommand)
+		public async Task<bool> ExecuteCommandsAsync(string[] args, Command mixerCommand, Command passwordFinderCommand)
 		{
 			var showHelp = false;
 			var showVersion = false;
@@ -39,8 +39,7 @@ namespace WalletWasabi.Gui.CommandLine
 				"Available commands are:",
 				"",
 				mixerCommand,
-				passwordFinderCommand,
-				crashReportedCommand
+				passwordFinderCommand
 			};
 
 			EnsureBackwardCompatibilityWithOldParameters(ref args);

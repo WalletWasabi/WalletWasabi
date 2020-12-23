@@ -12,7 +12,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
-using WalletWasabi.Gui.CrashReport;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -29,9 +28,6 @@ namespace WalletWasabi.Gui
 	{
 		private static Global Global;
 
-		// This is only needed to pass CrashReporter to AppMainAsync otherwise it could be a local variable in Main().
-		private static CrashReporter CrashReporter = new CrashReporter();
-
 		private static TerminateService TerminateService = new TerminateService(TerminateApplicationAsync);
 
 		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
@@ -45,7 +41,6 @@ namespace WalletWasabi.Gui
 			{
 				Global = CreateGlobal();
 				Locator.CurrentMutable.RegisterConstant(Global);
-				Locator.CurrentMutable.RegisterConstant(CrashReporter);
 
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -53,11 +48,7 @@ namespace WalletWasabi.Gui
 
 				runGui = ProcessCliCommands(args);
 
-				if (CrashReporter.IsReport)
-				{
-					StartCrashReporter(args);
-				}
-				else if (runGui)
+				if (runGui)
 				{
 					Logger.LogSoftwareStarted("Wasabi GUI");
 					BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
@@ -94,8 +85,7 @@ namespace WalletWasabi.Gui
 			var executionTask = interpreter.ExecuteCommandsAsync(
 				args,
 				new MixerCommand(daemon),
-				new PasswordFinderCommand(Global.WalletManager),
-				new CrashReportCommand(CrashReporter));
+				new PasswordFinderCommand(Global.WalletManager));
 			return executionTask.GetAwaiter().GetResult();
 		}
 
@@ -135,10 +125,6 @@ namespace WalletWasabi.Gui
 			else if (ex is { })
 			{
 				Logger.LogCritical(ex);
-				if (runGui)
-				{
-					CrashReporter.SetException(ex);
-				}
 			}
 
 			TerminateService.Terminate();
@@ -153,12 +139,6 @@ namespace WalletWasabi.Gui
 			if (mainViewModel is { })
 			{
 				mainViewModel.Dispose();
-			}
-
-			if (CrashReporter.IsInvokeRequired is true)
-			{
-				// Trigger the CrashReport process.
-				CrashReporter.TryInvokeCrashReport();
 			}
 
 			if (Global is { } global)
@@ -183,30 +163,6 @@ namespace WalletWasabi.Gui
 		private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)
 		{
 			Logger.LogWarning(e?.ExceptionObject as Exception);
-		}
-
-		private static void StartCrashReporter(string[] args)
-		{
-			var result = AppBuilder.Configure<CrashReportApp>().UseReactiveUI();
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				result
-					.UseWin32()
-					.UseSkia();
-			}
-			else
-			{
-				result.UsePlatformDetect();
-			}
-
-			result
-				.With(new Win32PlatformOptions { AllowEglInitialization = false, UseDeferredRendering = true })
-				.With(new X11PlatformOptions { UseGpu = false, WmClass = "Wasabi Wallet Crash Reporting" })
-				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = false })
-				.With(new MacOSPlatformOptions { ShowInDock = true });
-
-			result.StartShellApp("Wasabi Wallet", _ => SetTheme(), args);
 		}
 
 		private static AppBuilder BuildAvaloniaApp()
