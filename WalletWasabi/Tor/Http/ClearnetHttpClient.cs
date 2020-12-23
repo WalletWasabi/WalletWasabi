@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -13,6 +14,7 @@ namespace WalletWasabi.Tor.Http
 	/// <remarks>Inner <see cref="HttpClient"/> instance is thread-safe.</remarks>
 	public class ClearnetHttpClient : IRelativeHttpClient
 	{
+		[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "SocketsHttpHandler and HttpClient lives as long as the application does.")]
 		static ClearnetHttpClient()
 		{
 			var socketHandler = new SocketsHttpHandler()
