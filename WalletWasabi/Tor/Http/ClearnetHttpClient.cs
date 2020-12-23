@@ -24,8 +24,6 @@ namespace WalletWasabi.Tor.Http
 				PooledConnectionLifetime = TimeSpan.FromMinutes(5)
 			};
 
-			socketHandler.SslOptions.EnabledSslProtocols = IHttpClient.SupportedSslProtocols;
-
 			HttpClient = new HttpClient(socketHandler);
 		}
 

@@ -115,7 +115,7 @@ namespace WalletWasabi.Tor.Socks5
 		private async static Task<SslStream> UpgradeToSslAsync(TcpClient tcpClient, string host)
 		{
 			var sslStream = new SslStream(tcpClient.GetStream(), leaveInnerStreamOpen: false);
-			await sslStream.AuthenticateAsClientAsync(host, new X509CertificateCollection(), IHttpClient.SupportedSslProtocols, true).ConfigureAwait(false);
+			await sslStream.AuthenticateAsClientAsync(host, new X509CertificateCollection(), true).ConfigureAwait(false);
 			return sslStream;
 		}
 
