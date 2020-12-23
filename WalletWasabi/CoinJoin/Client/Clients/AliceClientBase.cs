@@ -64,42 +64,36 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				Inputs = inputs
 			};
 			var client = new AliceClient4(roundId, registeredAddresses, signerPubKeys, requesters, network, httpClient);
-			try
+
+			// Correct it if forgot to set.
+			if (request.RoundId != roundId)
 			{
-				// Correct it if forgot to set.
-				if (request.RoundId != roundId)
+				if (request.RoundId == 0)
 				{
-					if (request.RoundId == 0)
-					{
-						request.RoundId = roundId;
-					}
-					else
-					{
-						throw new NotSupportedException($"InputRequest {nameof(roundId)} does not match to the provided {nameof(roundId)}: {request.RoundId} != {roundId}.");
-					}
+					request.RoundId = roundId;
 				}
-				using HttpResponseMessage response = await client.TorClient.SendAsync(HttpMethod.Post, $"/api/v{WasabiClient.ApiVersion}/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()).ConfigureAwait(false);
-				if (response.StatusCode != HttpStatusCode.OK)
+				else
 				{
-					await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
+					throw new NotSupportedException($"InputRequest {nameof(roundId)} does not match to the provided {nameof(roundId)}: {request.RoundId} != {roundId}.");
 				}
-
-				var inputsResponse = await response.Content.ReadAsJsonAsync<InputsResponse>().ConfigureAwait(false);
-
-				if (inputsResponse.RoundId != roundId) // This should never happen. If it does, that's a bug in the coordinator.
-				{
-					throw new NotSupportedException($"Coordinator assigned us to the wrong round: {inputsResponse.RoundId}. Requested round: {roundId}.");
-				}
-
-				client.UniqueId = inputsResponse.UniqueId;
-				Logger.LogInfo($"Round ({client.RoundId}), Alice ({client.UniqueId}): Registered {request.Inputs.Count()} inputs.");
-
-				return client;
 			}
-			catch
+			using HttpResponseMessage response = await client.TorClient.SendAsync(HttpMethod.Post, $"/api/v{WasabiClient.ApiVersion}/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()).ConfigureAwait(false);
+			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				throw;
+				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
+
+			var inputsResponse = await response.Content.ReadAsJsonAsync<InputsResponse>().ConfigureAwait(false);
+
+			if (inputsResponse.RoundId != roundId) // This should never happen. If it does, that's a bug in the coordinator.
+			{
+				throw new NotSupportedException($"Coordinator assigned us to the wrong round: {inputsResponse.RoundId}. Requested round: {roundId}.");
+			}
+
+			client.UniqueId = inputsResponse.UniqueId;
+			Logger.LogInfo($"Round ({client.RoundId}), Alice ({client.UniqueId}): Registered {request.Inputs.Count()} inputs.");
+
+			return client;
 		}
 
 		public async Task<(RoundPhase currentPhase, IEnumerable<ActiveOutput> activeOutputs)> PostConfirmationAsync()
