@@ -580,6 +580,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				{
 					// If our SatoshiClient does not yet know about the round, because of delay, then delay the round registration.
 					DelayedRoundRegistration = registration;
+					return;
 				}
 
 				roundRegistered.Registration = registration;
