@@ -16,7 +16,6 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 		public PoolItemState State { get; set; }
 		public bool AllowRecycling { get; }
 
-
 		/// <inheritdoc/>
 		public bool NeedRecycling => State == PoolItemState.ToDispose;
 
