@@ -82,14 +82,6 @@ namespace WalletWasabi.Blockchain.Mempool
 			}
 		}
 
-		public IEnumerable<TransactionBroadcastEntry> GetBroadcastStore()
-		{
-			lock (BroadcastStoreLock)
-			{
-				return BroadcastStore.ToList();
-			}
-		}
-
 		private int _cleanupInProcess;
 
 		/// <summary>
