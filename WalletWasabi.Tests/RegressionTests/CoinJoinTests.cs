@@ -1386,10 +1386,10 @@ namespace WalletWasabi.Tests.RegressionTests
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
 
+			var keyManager2 = KeyManager.CreateNew(out _, password);
+
 			// 5. Create wallet service.
 			var workDir = Helpers.Common.GetWorkDir();
-
-			var keyManager2 = KeyManager.CreateNew(out _, password);
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
