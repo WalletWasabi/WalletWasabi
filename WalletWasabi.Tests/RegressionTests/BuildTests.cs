@@ -58,13 +58,11 @@ namespace WalletWasabi.Tests.RegressionTests
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
 
-			// 5. Create wallet service.
-			var workDir = Helpers.Common.GetWorkDir();
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
 
-			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);
+			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, serviceConfiguration, synchronizer, blockProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
 			var scp = new Key().ScriptPubKey;
@@ -227,7 +225,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
-			var walletManager = new WalletManager(network, new WalletDirectories(workDir));
+			var walletManager = new WalletManager(network, new WalletDirectories(network, workDir));
 			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, blockProvider);
 
 			var baseTip = await rpc.GetBestBlockHashAsync();

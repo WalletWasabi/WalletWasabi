@@ -29,17 +29,15 @@ namespace WalletWasabi.Wallets
 	{
 		private WalletState _state;
 
-		public Wallet(string dataDir, Network network, string filePath) : this(dataDir, network, KeyManager.FromFile(filePath))
+		public Wallet(Network network, string filePath) : this(network, KeyManager.FromFile(filePath))
 		{
 		}
 
-		public Wallet(string dataDir, Network network, KeyManager keyManager)
+		public Wallet(Network network, KeyManager keyManager)
 		{
-			Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 
-			RuntimeParams.SetDataDir(dataDir);
 			HandleFiltersLock = new AsyncLock();
 
 			KeyManager.AssertCleanKeysIndexed();
@@ -488,9 +486,9 @@ namespace WalletWasabi.Wallets
 			State = WalletState.WaitingForInit;
 		}
 
-		public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, NodesGroup nodes, string dataDir, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, IBlockProvider blockProvider)
+		public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, NodesGroup nodes, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, IBlockProvider blockProvider)
 		{
-			var wallet = new Wallet(dataDir, network, keyManager);
+			var wallet = new Wallet(network, keyManager);
 			wallet.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, feeProvider, blockProvider);
 			return wallet;
 		}

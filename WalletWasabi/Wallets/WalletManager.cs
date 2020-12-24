@@ -198,7 +198,7 @@ namespace WalletWasabi.Wallets
 
 		public Wallet AddWallet(KeyManager keyManager)
 		{
-			Wallet wallet = new Wallet(WalletDirectories.WorkDir, Network, keyManager);
+			Wallet wallet = new Wallet(Network, keyManager);
 			AddWallet(wallet);
 			return wallet;
 		}
@@ -209,7 +209,7 @@ namespace WalletWasabi.Wallets
 			Wallet wallet;
 			try
 			{
-				wallet = new Wallet(WalletDirectories.WorkDir, Network, walletFullPath);
+				wallet = new Wallet(Network, walletFullPath);
 			}
 			catch (Exception ex)
 			{
@@ -236,7 +236,7 @@ namespace WalletWasabi.Wallets
 				}
 				File.Copy(walletBackupFullPath, walletFullPath);
 
-				wallet = new Wallet(WalletDirectories.WorkDir, Network, walletFullPath);
+				wallet = new Wallet(Network, walletFullPath);
 			}
 
 			AddWallet(wallet);
@@ -275,7 +275,7 @@ namespace WalletWasabi.Wallets
 			}
 			await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
-		
+
 		public bool WalletExists(HDFingerprint? fingerprint) => GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
 
 		private void ChaumianClient_OnDequeue(object? sender, DequeueResult e)
