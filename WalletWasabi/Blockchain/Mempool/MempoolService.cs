@@ -52,12 +52,11 @@ namespace WalletWasabi.Blockchain.Mempool
 			}
 		}
 
-		public bool TryRemoveFromBroadcastStore(uint256 transactionHash, out TransactionBroadcastEntry entry)
+		public bool TryRemoveFromBroadcastStore(uint256 transactionHash)
 		{
 			lock (BroadcastStoreLock)
 			{
 				var found = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
-				entry = found;
 
 				if (found is null)
 				{
