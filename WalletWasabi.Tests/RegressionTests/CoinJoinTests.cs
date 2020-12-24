@@ -1386,6 +1386,9 @@ namespace WalletWasabi.Tests.RegressionTests
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
 
+			// 5. Create wallet service.
+			var workDir = Helpers.Common.GetWorkDir();
+
 			var keyManager2 = KeyManager.CreateNew(out _, password);
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
@@ -1396,10 +1399,11 @@ namespace WalletWasabi.Tests.RegressionTests
 				new P2pBlockProvider(nodes2, null, synchronizer, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
 
-			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, serviceConfiguration, synchronizer, blockProvider);
+			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
-			using var wallet2 = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager2, synchronizer2, nodes2, serviceConfiguration, synchronizer2, blockProvider2);
+			var workDir2 = Path.Combine(Helpers.Common.GetWorkDir(), "2");
+			using var wallet2 = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager2, synchronizer2, nodes2, workDir2, serviceConfiguration, synchronizer2, blockProvider2);
 
 			// Get some money, make it confirm.
 			var key = keyManager.GetNextReceiveKey("fundZeroLink", out _);

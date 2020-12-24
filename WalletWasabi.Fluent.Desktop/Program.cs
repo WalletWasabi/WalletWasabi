@@ -133,8 +133,7 @@ namespace WalletWasabi.Fluent.Desktop
 		private static Global CreateGlobal(string dataDir, UiConfig uiConfig, Config config)
 		{
 			string torLogsFile = Path.Combine(dataDir, "TorLogs.txt");
-			RuntimeParams.SetDataDir(dataDir);
-			var walletManager = new WalletManager(config.Network, new WalletDirectories(config.Network, dataDir));
+			var walletManager = new WalletManager(config.Network, dataDir, new WalletDirectories(config.Network, dataDir));
 
 			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
 		}

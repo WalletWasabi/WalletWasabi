@@ -23,11 +23,13 @@ namespace WalletWasabi.Wallets
 {
 	public class WalletManager
 	{
-		public WalletManager(Network network, WalletDirectories walletDirectories)
+		public WalletManager(Network network, string workDir, WalletDirectories walletDirectories)
 		{
 			using (BenchmarkLogger.Measure())
 			{
 				Network = Guard.NotNull(nameof(network), network);
+				WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
+				Directory.CreateDirectory(WorkDir);
 				WalletDirectories = Guard.NotNull(nameof(walletDirectories), walletDirectories);
 				Wallets = new Dictionary<Wallet, HashSet<uint256>>();
 				Lock = new object();
@@ -74,6 +76,7 @@ namespace WalletWasabi.Wallets
 		public Network Network { get; }
 		public WalletDirectories WalletDirectories { get; }
 		private IBlockProvider BlockProvider { get; set; }
+		public string WorkDir { get; }
 
 		private void RefreshWalletList()
 		{
@@ -198,7 +201,7 @@ namespace WalletWasabi.Wallets
 
 		public Wallet AddWallet(KeyManager keyManager)
 		{
-			Wallet wallet = new Wallet(Network, keyManager);
+			Wallet wallet = new Wallet(WorkDir, Network, keyManager);
 			AddWallet(wallet);
 			return wallet;
 		}
@@ -209,7 +212,7 @@ namespace WalletWasabi.Wallets
 			Wallet wallet;
 			try
 			{
-				wallet = new Wallet(Network, walletFullPath);
+				wallet = new Wallet(WorkDir, Network, walletFullPath);
 			}
 			catch (Exception ex)
 			{
@@ -236,7 +239,7 @@ namespace WalletWasabi.Wallets
 				}
 				File.Copy(walletBackupFullPath, walletFullPath);
 
-				wallet = new Wallet(Network, walletFullPath);
+				wallet = new Wallet(WorkDir, Network, walletFullPath);
 			}
 
 			AddWallet(wallet);
