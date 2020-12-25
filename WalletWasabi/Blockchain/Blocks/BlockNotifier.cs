@@ -36,7 +36,7 @@ namespace WalletWasabi.Blockchain.Blocks
 		public P2pNode P2pNode { get; }
 		public uint256 BestBlockHash { get; private set; }
 
-		private uint256 LastInv { get; set; } = null;
+		private uint256? LastInv { get; set; } = null;
 		private object LastInvLock { get; } = new object();
 
 		private void P2pNode_BlockInv(object? sender, uint256 blockHash)
@@ -51,7 +51,7 @@ namespace WalletWasabi.Blockchain.Blocks
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
 			uint256 bestBlockHash;
-			uint256 lastInv;
+			uint256? lastInv;
 			lock (LastInvLock)
 			{
 				lastInv = LastInv;
