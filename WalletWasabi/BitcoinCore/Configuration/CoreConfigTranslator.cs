@@ -18,7 +18,7 @@ namespace WalletWasabi.BitcoinCore.Configuration
 		public string TryGetValue(string key)
 		{
 			var configDic = Config.ToDictionary();
-			string result = null;
+			string? result = null;
 			foreach (var networkPrefixWithDot in NetworkTranslator.GetConfigPrefixesWithDots(Network))
 			{
 				var found = configDic.TryGet($"{networkPrefixWithDot}{key}");

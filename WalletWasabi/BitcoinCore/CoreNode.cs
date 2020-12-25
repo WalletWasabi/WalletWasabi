@@ -257,9 +257,9 @@ namespace WalletWasabi.BitcoinCore
 		{
 			await DisposeAsync().ConfigureAwait(false);
 
-			Exception exThrown = null;
+			Exception? exThrown = null;
 
-			BitcoindRpcProcessBridge bridge = null;
+			BitcoindRpcProcessBridge? bridge = null;
 			if (Bridge is { })
 			{
 				bridge = Bridge;
