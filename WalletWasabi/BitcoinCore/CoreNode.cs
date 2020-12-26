@@ -257,8 +257,6 @@ namespace WalletWasabi.BitcoinCore
 		{
 			await DisposeAsync().ConfigureAwait(false);
 
-			Exception? exThrown = null;
-
 			BitcoindRpcProcessBridge? bridge = null;
 			if (Bridge is { })
 			{
@@ -279,19 +277,14 @@ namespace WalletWasabi.BitcoinCore
 				}
 				catch (Exception ex)
 				{
-					exThrown = ex;
+					Logger.LogInfo("Did not stop the Bitcoin node. Reason:");
+					Logger.LogWarning(ex);
+					return false;
 				}
 			}
 
 			Logger.LogInfo("Did not stop the Bitcoin node. Reason:");
-			if (exThrown is null)
-			{
-				Logger.LogInfo("The Bitcoin node was started externally.");
-			}
-			else
-			{
-				Logger.LogWarning(exThrown);
-			}
+			Logger.LogInfo("The Bitcoin node was started externally.");
 			return false;
 		}
 	}

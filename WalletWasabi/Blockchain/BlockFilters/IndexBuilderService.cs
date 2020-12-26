@@ -111,13 +111,11 @@ namespace WalletWasabi.Blockchain.BlockFilters
 					{
 						Interlocked.Exchange(ref _serviceStatus, Running);
 
-						SyncInfo? syncInfo = null;
 						while (IsRunning)
 						{
 							try
 							{
-								// If we did not yet initialized syncInfo, do so.
-								syncInfo ??= await GetSyncInfoAsync().ConfigureAwait(false);
+								SyncInfo syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
 
 								uint currentHeight = 0;
 								uint256? currentHash = null;
