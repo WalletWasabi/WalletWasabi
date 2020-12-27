@@ -1062,7 +1062,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.NotEmpty(changeCoin.HdPubKey.Cluster.Labels);
 		}
 
-		private static SmartTransaction CreateSpendingTransaction(Coin coin, Script scriptPubKey = null, int height = 0)
+		private static SmartTransaction CreateSpendingTransaction(Coin coin, Script? scriptPubKey = null, int height = 0)
 		{
 			var tx = Network.RegTest.CreateTransaction();
 			tx.Inputs.Add(coin.Outpoint, Script.Empty, WitScript.Empty);
