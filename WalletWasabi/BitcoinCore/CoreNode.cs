@@ -63,9 +63,9 @@ namespace WalletWasabi.BitcoinCore
 
 				var configTranslator = new CoreConfigTranslator(coreNode.Config, coreNode.Network);
 
-				string rpcUser = configTranslator.TryGetRpcUser();
-				string rpcPassword = configTranslator.TryGetRpcPassword();
-				string rpcCookieFilePath = configTranslator.TryGetRpcCookieFile();
+				string? rpcUser = configTranslator.TryGetRpcUser();
+				string? rpcPassword = configTranslator.TryGetRpcPassword();
+				string? rpcCookieFilePath = configTranslator.TryGetRpcCookieFile();
 				string? rpcHost = configTranslator.TryGetRpcBind();
 				int? rpcPort = configTranslator.TryGetRpcPort();
 				WhiteBind whiteBind = configTranslator.TryGetWhiteBind();
