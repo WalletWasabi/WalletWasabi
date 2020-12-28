@@ -32,8 +32,6 @@ namespace WalletWasabi.BitcoinCore.Configuration
 
 		public string? TryGetRpcBind() => TryGetValue("rpcbind");
 
-		public string? TryGetRpcAllowIp() => TryGetValue("rpcallowip");
-
 		public ushort? TryGetRpcPort()
 		{
 			var stringValue = TryGetValue("rpcport");
@@ -49,17 +47,6 @@ namespace WalletWasabi.BitcoinCore.Configuration
 		{
 			var stringValue = TryGetValue("whitebind");
 			if (stringValue is { } && WhiteBind.TryParse(stringValue, Network, out WhiteBind value))
-			{
-				return value;
-			}
-
-			return null;
-		}
-
-		public WhiteList TryGetWhiteList()
-		{
-			var stringValue = TryGetValue("whitelist");
-			if (stringValue is { } && WhiteList.TryParse(stringValue, Network, out WhiteList value))
 			{
 				return value;
 			}
