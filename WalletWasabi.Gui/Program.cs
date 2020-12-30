@@ -59,7 +59,7 @@ namespace WalletWasabi.Gui
 				appException = ex;
 			}
 
-			TerminateAppAndHandleException(appException, runGui);
+			TerminateAppAndHandleException(appException);
 		}
 
 		private static Global CreateGlobal()
@@ -108,7 +108,7 @@ namespace WalletWasabi.Gui
 			catch (Exception ex)
 			{
 				// There is no other way to stop the creation of the WasabiWindow, we have to exit the application here instead of return to Main.
-				TerminateAppAndHandleException(ex, true);
+				TerminateAppAndHandleException(ex);
 				Environment.Exit(1);
 			}
 		}
@@ -116,7 +116,7 @@ namespace WalletWasabi.Gui
 		/// <summary>
 		/// This is a helper method until the creation of the window in AppMainAsync cannot be aborted without Environment.Exit().
 		/// </summary>
-		private static void TerminateAppAndHandleException(Exception? ex, bool runGui)
+		private static void TerminateAppAndHandleException(Exception? ex)
 		{
 			if (ex is OperationCanceledException)
 			{
