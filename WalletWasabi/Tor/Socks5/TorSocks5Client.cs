@@ -152,7 +152,7 @@ namespace WalletWasabi.Tor.Socks5
 				// Username / Password request:
 				var identity = RandomString.CapitalAlphaNumeric(21);
 				var uName = new UNameField(uName: identity);
-				var passwd = new PasswdField(passwd: identity);
+				var passwd = new PasswdField(password: identity);
 				var usernamePasswordRequest = new UsernamePasswordRequest(uName, passwd);
 				sendBuffer = usernamePasswordRequest.ToBytes();
 
