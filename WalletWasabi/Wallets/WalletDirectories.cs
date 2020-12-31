@@ -1,3 +1,4 @@
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,17 +13,29 @@ namespace WalletWasabi.Wallets
 		public const string WalletsBackupDirName = "WalletBackups";
 		private const string WalletFileExtension = "json";
 
-		public WalletDirectories(string workDir)
+		public WalletDirectories(Network network, string workDir)
 		{
-			WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
+			Network = network;
+			var correctedWorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
+			if (network.NetworkType == NetworkType.Mainnet)
+			{
+				WalletsDir = Path.Combine(correctedWorkDir, WalletsDirName);
+				WalletsBackupDir = Path.Combine(correctedWorkDir, WalletsBackupDirName);
+			}
+			else
+			{
+				WalletsDir = Path.Combine(correctedWorkDir, WalletsDirName, network.ToString());
+				WalletsBackupDir = Path.Combine(correctedWorkDir, WalletsBackupDirName, network.ToString());
+			}
 
 			Directory.CreateDirectory(WalletsDir);
 			Directory.CreateDirectory(WalletsBackupDir);
 		}
 
-		public string WorkDir { get; }
-		public string WalletsDir => Path.Combine(WorkDir, WalletsDirName);
-		public string WalletsBackupDir => Path.Combine(WorkDir, WalletsBackupDirName);
+		public string WalletsDir { get; }
+		public string WalletsBackupDir { get; }
+
+		public Network Network { get; }
 
 		public (string walletFilePath, string walletBackupFilePath) GetWalletFilePaths(string walletName)
 		{
@@ -39,7 +52,7 @@ namespace WalletWasabi.Wallets
 			var walletsDirExists = walletsDirInfo.Exists;
 			var searchPattern = $"*.{WalletFileExtension}";
 			var searchOption = SearchOption.TopDirectoryOnly;
-			IEnumerable<FileInfo> result = null;
+			IEnumerable<FileInfo> result;
 
 			if (includeBackupDir)
 			{

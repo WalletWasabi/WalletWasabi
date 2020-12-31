@@ -227,7 +227,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
-			var walletManager = new WalletManager(network, new WalletDirectories(workDir));
+			var walletManager = new WalletManager(network, workDir, new WalletDirectories(network, workDir));
 			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, blockProvider);
 
 			var baseTip = await rpc.GetBestBlockHashAsync();

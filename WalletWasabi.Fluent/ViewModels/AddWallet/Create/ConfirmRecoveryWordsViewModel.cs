@@ -32,10 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 				.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
 
 			NextCommand = ReactiveCommand.Create(
-				() =>
-				{
-					Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager));
-				},
+				() => Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager)),
 				nextCommandCanExecute);
 
 			if (_isSkipEnable)

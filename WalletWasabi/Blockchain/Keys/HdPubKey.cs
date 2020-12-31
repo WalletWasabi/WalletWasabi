@@ -95,7 +95,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 		private int HashCode { get; }
 
-		public void SetLabel(SmartLabel label, KeyManager kmToFile = null)
+		public void SetLabel(SmartLabel label, KeyManager? kmToFile = null)
 		{
 			label ??= SmartLabel.Empty;
 
@@ -110,7 +110,7 @@ namespace WalletWasabi.Blockchain.Keys
 			kmToFile?.ToFile();
 		}
 
-		public void SetKeyState(KeyState state, KeyManager kmToFile = null)
+		public void SetKeyState(KeyState state, KeyManager? kmToFile = null)
 		{
 			if (KeyState == state)
 			{

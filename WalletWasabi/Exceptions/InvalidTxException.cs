@@ -8,13 +8,13 @@ namespace WalletWasabi.Exceptions
 {
 	public class InvalidTxException : Exception
 	{
-		public InvalidTxException(Transaction invalidTx, IEnumerable<TransactionPolicyError> errors = null)
+		public InvalidTxException(Transaction invalidTx, IEnumerable<TransactionPolicyError>? errors = null)
 		{
 			Transaction = Guard.NotNull(nameof(invalidTx), invalidTx);
 			Errors = errors;
 		}
 
 		public Transaction Transaction { get; }
-		public IEnumerable<TransactionPolicyError> Errors { get; }
+		public IEnumerable<TransactionPolicyError>? Errors { get; }
 	}
 }

@@ -9,11 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.CoinJoin.Common.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace NBitcoin
 {
@@ -49,14 +47,6 @@ namespace NBitcoin
 				{
 					return b.Object;
 				}
-			}
-		}
-
-		public static IEnumerable<OutPoint> ToOutPoints(this TxInList me)
-		{
-			foreach (var input in me)
-			{
-				yield return input.PrevOut;
 			}
 		}
 
@@ -200,35 +190,6 @@ namespace NBitcoin
 				me.Add(money, scriptPubKey);
 			}
 		}
-
-		/// <summary>
-		/// If scriptpubkey is already present, just add the value.
-		/// </summary>
-		public static void AddWithOptimize(this TxOutList me, Money money, IDestination destination)
-		{
-			me.AddWithOptimize(money, destination.ScriptPubKey);
-		}
-
-		/// <summary>
-		/// If scriptpubkey is already present, just add the value.
-		/// </summary>
-		public static void AddWithOptimize(this TxOutList me, TxOut txOut)
-		{
-			me.AddWithOptimize(txOut.Value, txOut.ScriptPubKey);
-		}
-
-		/// <summary>
-		/// If scriptpubkey is already present, just add the value.
-		/// </summary>
-		public static void AddRangeWithOptimize(this TxOutList me, IEnumerable<TxOut> collection)
-		{
-			foreach (var txOut in collection)
-			{
-				me.AddWithOptimize(txOut);
-			}
-		}
-
-		public static uint256 BlindMessage(this Requester requester, uint256 messageHash, SchnorrPubKey schnorrPubKey) => requester.BlindMessage(messageHash, schnorrPubKey.RpubKey, schnorrPubKey.SignerPubKey);
 
 		public static string ToZpub(this ExtPubKey extPubKey, Network network)
 		{

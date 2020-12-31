@@ -68,7 +68,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
 			RecoverWalletCommand = ReactiveCommand.Create(
-				() => { Navigate().To(new RecoverWalletViewModel(WalletName, network, walletManager)); });
+				() => Navigate().To(new RecoverWalletViewModel(WalletName, network, walletManager)));
 
 			ImportWalletCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -93,10 +93,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				}
 			});
 
-			ConnectHardwareWalletCommand = ReactiveCommand.Create(() =>
-			{
-				Navigate().To(new ConnectHardwareWalletViewModel(WalletName, network, walletManager));
-			});
+			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => Navigate().To(new ConnectHardwareWalletViewModel(WalletName, network, walletManager)));
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>

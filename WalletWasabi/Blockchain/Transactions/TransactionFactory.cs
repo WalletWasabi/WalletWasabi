@@ -44,8 +44,8 @@ namespace WalletWasabi.Blockchain.Transactions
 		public BuildTransactionResult BuildTransaction(
 			PaymentIntent payments,
 			FeeRate feeRate,
-			IEnumerable<OutPoint> allowedInputs = null,
-			IPayjoinClient payjoinClient = null)
+			IEnumerable<OutPoint>? allowedInputs = null,
+			IPayjoinClient? payjoinClient = null)
 			=> BuildTransaction(payments, () => feeRate, allowedInputs, () => LockTime.Zero, payjoinClient);
 
 		/// <exception cref="ArgumentException"></exception>
@@ -54,9 +54,9 @@ namespace WalletWasabi.Blockchain.Transactions
 		public BuildTransactionResult BuildTransaction(
 			PaymentIntent payments,
 			Func<FeeRate> feeRateFetcher,
-			IEnumerable<OutPoint> allowedInputs = null,
-			Func<LockTime> lockTimeSelector = null,
-			IPayjoinClient payjoinClient = null)
+			IEnumerable<OutPoint>? allowedInputs = null,
+			Func<LockTime>? lockTimeSelector = null,
+			IPayjoinClient? payjoinClient = null)
 		{
 			payments = Guard.NotNull(nameof(payments), payments);
 			lockTimeSelector ??= () => LockTime.Zero;

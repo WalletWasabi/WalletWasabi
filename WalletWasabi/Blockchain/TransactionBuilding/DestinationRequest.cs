@@ -18,7 +18,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 		{
 		}
 
-		public DestinationRequest(IDestination destination, MoneyRequest amount, SmartLabel label = null)
+		public DestinationRequest(IDestination destination, MoneyRequest amount, SmartLabel? label = null)
 		{
 			Destination = Guard.NotNull(nameof(destination), destination);
 			Amount = Guard.NotNull(nameof(amount), amount);

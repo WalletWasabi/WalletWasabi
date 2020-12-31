@@ -49,10 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				IsBusy = false;
 			});
 
-			NoCommand = ReactiveCommand.Create(() =>
-			{
-				Navigate().Back();
-			});
+			NoCommand = ReactiveCommand.Create(() => Navigate().Back());
 		}
 
 		public string WalletName { get; }
