@@ -55,7 +55,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 
 			// No segwit transaction. Ignore it.
-			var tx = CreateCreditingTransaction(new Key().PubKey.Hash.ScriptPubKey, Money.Coins(1.0m));
+			using Key key = new();
+			var tx = CreateCreditingTransaction(key.PubKey.Hash.ScriptPubKey, Money.Coins(1.0m));
 
 			var relevant = transactionProcessor.Process(tx);
 
@@ -71,7 +72,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 
 			// No segwit transaction. Ignore it.
-			var tx = CreateCreditingTransaction(new Key().PubKey.Hash.ScriptPubKey, Money.Coins(1.0m), height: 54321);
+			using Key key = new();
+			var tx = CreateCreditingTransaction(key.PubKey.Hash.ScriptPubKey, Money.Coins(1.0m), height: 54321);
 
 			var relevant = transactionProcessor.Process(tx);
 
@@ -608,7 +610,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
 
 			// Spend the received coin
-			var tx1 = CreateSpendingTransaction(createdCoin, new Key().PubKey.ScriptPubKey);
+			using Key key = new();
+			var tx1 = CreateSpendingTransaction(createdCoin, key.PubKey.ScriptPubKey);
 			var relevant = transactionProcessor.Process(tx1);
 
 			Assert.True(relevant.IsNews);
@@ -744,7 +747,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// Spend the received coin to someone else B
 			var changeScript1 = transactionProcessor.NewKey("B").P2wpkhScript;
-			var tx1 = CreateSpendingTransaction(new[] { createdCoin.Coin }, new Key().ScriptPubKey, changeScript1);
+			using Key key = new();
+			var tx1 = CreateSpendingTransaction(new[] { createdCoin.Coin }, key.ScriptPubKey, changeScript1);
 			transactionProcessor.Process(tx1);
 			createdCoin = transactionProcessor.Coins.First();
 			Assert.Equal("A, B", createdCoin.HdPubKey.Cluster.Labels);
@@ -794,7 +798,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var changeScript = transactionProcessor.NewKey("D").P2wpkhScript;
 			var coins = new[] { scoinA.Coin, scoinB.Coin, scoinC.Coin };
-			var tx3 = CreateSpendingTransaction(coins, new Key().ScriptPubKey, changeScript);
+			using Key key1 = new();
+			var tx3 = CreateSpendingTransaction(coins, key1.ScriptPubKey, changeScript);
 			transactionProcessor.Process(tx3);
 
 			var changeCoinD = Assert.Single(transactionProcessor.Coins);
@@ -807,7 +812,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			changeScript = transactionProcessor.NewKey("F").P2wpkhScript;
 			coins = new[] { changeCoinD.Coin, scoinE.Coin };
-			var tx5 = CreateSpendingTransaction(coins, new Key().ScriptPubKey, changeScript);
+			using Key key2 = new();
+			var tx5 = CreateSpendingTransaction(coins, key2.ScriptPubKey, changeScript);
 			transactionProcessor.Process(tx5);
 
 			var changeCoin = Assert.Single(transactionProcessor.Coins);
@@ -1004,7 +1010,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var changeScript = transactionProcessor.NewKey("D").P2wpkhScript;
 			var coins = new[] { scoinA.Coin, scoinB.Coin, scoinC.Coin };
-			var tx3 = CreateSpendingTransaction(coins, new Key().ScriptPubKey, changeScript, height: 55555);
+			using Key key = new();
+			var tx3 = CreateSpendingTransaction(coins, key.ScriptPubKey, changeScript, height: 55555);
 			transactionProcessor.Process(tx3);
 
 			var changeCoinD = Assert.Single(transactionProcessor.Coins);
