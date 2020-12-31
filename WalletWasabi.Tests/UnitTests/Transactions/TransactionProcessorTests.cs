@@ -87,9 +87,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 
 			// An unconfirmed segwit transaction for us
-			var key = transactionProcessor.KeyManager.GetKeys().First();
+			var hdPubKey = transactionProcessor.KeyManager.GetKeys().First();
 
-			var tx1 = CreateCreditingTransaction(key.PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
+			var tx1 = CreateCreditingTransaction(hdPubKey.PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
 			var blockHeight = new Height(77551);
 			var tx2 = new SmartTransaction(tx1.Transaction, blockHeight);
 			var tx3 = CreateSpendingTransaction(tx2.Transaction.Outputs.AsCoins().First(), BitcoinFactory.CreateScript());
@@ -164,9 +164,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 
 			// An unconfirmed segwit transaction for us
-			var key = transactionProcessor.KeyManager.GetKeys().First();
+			var hdPubKey = transactionProcessor.KeyManager.GetKeys().First();
 
-			var tx = CreateCreditingTransaction(key.PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
+			var tx = CreateCreditingTransaction(hdPubKey.PubKey.WitHash.ScriptPubKey, Money.Coins(1.0m));
 			transactionProcessor.Process(tx);
 
 			Assert.True(transactionProcessor.TransactionStore.ConfirmedStore.IsEmpty());
@@ -660,10 +660,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var transactionProcessor = await CreateTransactionProcessorAsync();
 			var keys = transactionProcessor.KeyManager.GetKeys();
 
-			foreach (var key in keys.Take(5))
+			foreach (var hdPubKey in keys.Take(5))
 			{
 				transactionProcessor.Process(
-					CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(0.000099m)));
+					CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(0.000099m)));
 			}
 
 			// It is relevant even when all the coins can be dust.
@@ -735,8 +735,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			//                                                               +---> (change of C - cluster C, B, A)
 			//
 			var transactionProcessor = await CreateTransactionProcessorAsync();
-			var key = transactionProcessor.NewKey("A");
-			var tx0 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			var hdPubKey = transactionProcessor.NewKey("A");
+			var tx0 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx0);
 
 			var createdCoin = transactionProcessor.Coins.First();
@@ -776,16 +776,16 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			//                                                                   |        |
 			// --tx4---> (E) ----------------------------------------------------+        +-->(change of F - cluster F, D, A, B, C, E)
 			var transactionProcessor = await CreateTransactionProcessorAsync();
-			var key = transactionProcessor.NewKey("A");
-			var tx0 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			var hdPubKey = transactionProcessor.NewKey("A");
+			var tx0 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx0);
 
-			key = transactionProcessor.NewKey("B");
-			var tx1 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			hdPubKey = transactionProcessor.NewKey("B");
+			var tx1 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx1);
 
-			key = transactionProcessor.NewKey("C");
-			var tx2 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			hdPubKey = transactionProcessor.NewKey("C");
+			var tx2 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx2);
 
 			var scoinA = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "A");
@@ -800,8 +800,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var changeCoinD = Assert.Single(transactionProcessor.Coins);
 			Assert.Equal("A, B, C, D", changeCoinD.HdPubKey.Cluster.Labels);
 
-			key = transactionProcessor.NewKey("E");
-			var tx4 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			hdPubKey = transactionProcessor.NewKey("E");
+			var tx4 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx4);
 			var scoinE = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "E");
 
@@ -825,16 +825,16 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			//
 			// --tx4---> (D - reuse - cluster (D, A, B, C))
 			var transactionProcessor = await CreateTransactionProcessorAsync();
-			var key = transactionProcessor.NewKey("A");
-			var tx0 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			var hdPubKey = transactionProcessor.NewKey("A");
+			var tx0 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx0);
 
-			key = transactionProcessor.NewKey("B");
-			var tx1 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			hdPubKey = transactionProcessor.NewKey("B");
+			var tx1 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx1);
 
-			key = transactionProcessor.NewKey("C");
-			var tx2 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			hdPubKey = transactionProcessor.NewKey("C");
+			var tx2 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx2);
 
 			var scoinA = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "A");
@@ -867,15 +867,15 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			//
 			// --tx1---> (A) ---tx2---> (B - cluster (B, A))
 			var transactionProcessor = await CreateTransactionProcessorAsync();
-			var key = transactionProcessor.NewKey("A");
-			var tx0 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			var hdPubKey = transactionProcessor.NewKey("A");
+			var tx0 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx0);
 
-			var tx1 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			var tx1 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 			var result = transactionProcessor.Process(tx1);
 
-			key = transactionProcessor.NewKey("B");
-			var tx2 = CreateSpendingTransaction(result.ReceivedCoins[0].Coin, key.P2wpkhScript);
+			hdPubKey = transactionProcessor.NewKey("B");
+			var tx2 = CreateSpendingTransaction(result.ReceivedCoins[0].Coin, hdPubKey.P2wpkhScript);
 			transactionProcessor.Process(tx2);
 
 			var coins = transactionProcessor.Coins;
@@ -893,16 +893,16 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// --tx2---> (C) --+    +----tx4 (replacement)---> (pay to D - coins is different order - cluster (D, A, B, C))
 			//
 			var transactionProcessor = await CreateTransactionProcessorAsync();
-			var key = transactionProcessor.NewKey("A");
-			var tx0 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			var hdPubKey = transactionProcessor.NewKey("A");
+			var tx0 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx0);
 
-			key = transactionProcessor.NewKey("B");
-			var tx1 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			hdPubKey = transactionProcessor.NewKey("B");
+			var tx1 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx1);
 
-			key = transactionProcessor.NewKey("C");
-			var tx2 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			hdPubKey = transactionProcessor.NewKey("C");
+			var tx2 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx2);
 
 			var scoinA = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "A");
@@ -937,16 +937,16 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			//                      |
 			// --tx4---> (X) -------+
 			var transactionProcessor = await CreateTransactionProcessorAsync();
-			var key = transactionProcessor.NewKey("A");
-			var tx0 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			var hdPubKey = transactionProcessor.NewKey("A");
+			var tx0 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx0);
 
-			key = transactionProcessor.NewKey("B");
-			var tx1 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			hdPubKey = transactionProcessor.NewKey("B");
+			var tx1 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx1);
 
-			key = transactionProcessor.NewKey("C");
-			var tx2 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			hdPubKey = transactionProcessor.NewKey("C");
+			var tx2 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx2);
 
 			var scoinA = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "A");
@@ -962,8 +962,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var paymentCoin = Assert.Single(transactionProcessor.Coins, c => c.ScriptPubKey == myself);
 			Assert.Equal("A, B, C, D", paymentCoin.HdPubKey.Cluster.Labels);
 
-			key = transactionProcessor.NewKey("X");
-			var tx4 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			hdPubKey = transactionProcessor.NewKey("X");
+			var tx4 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx4);
 			var scoinX = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "X");
 
@@ -986,16 +986,16 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			//                      +---- The block is reorg and tx3 is removed
 			//
 			var transactionProcessor = await CreateTransactionProcessorAsync();
-			var key = transactionProcessor.NewKey("A");
-			var tx0 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m), height: 54321);
+			var hdPubKey = transactionProcessor.NewKey("A");
+			var tx0 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m), height: 54321);
 			transactionProcessor.Process(tx0);
 
-			key = transactionProcessor.NewKey("B");
-			var tx1 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m), height: 54322);
+			hdPubKey = transactionProcessor.NewKey("B");
+			var tx1 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m), height: 54322);
 			transactionProcessor.Process(tx1);
 
-			key = transactionProcessor.NewKey("C");
-			var tx2 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m), height: 54323);
+			hdPubKey = transactionProcessor.NewKey("C");
+			var tx2 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m), height: 54323);
 			transactionProcessor.Process(tx2);
 
 			var scoinA = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "A");
@@ -1032,8 +1032,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// Note: tx1 is a coinjoin transaction
 
 			var transactionProcessor = await CreateTransactionProcessorAsync();
-			var key = transactionProcessor.NewKey("A");
-			var tx0 = CreateCreditingTransaction(key.P2wpkhScript, Money.Coins(1.0m));
+			var hdPubKey = transactionProcessor.NewKey("A");
+			var tx0 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 			transactionProcessor.Process(tx0);
 
 			var receivedCoin = Assert.Single(transactionProcessor.Coins);
