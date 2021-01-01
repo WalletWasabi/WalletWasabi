@@ -34,7 +34,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			{
 				read = await stream.ReadByteAsync(ctsToken).ConfigureAwait(false);
 				bab.Append((byte)read);
-				if ((byte)read == LF)
+				if (LF == (byte)read)
 				{
 					break;
 				}
