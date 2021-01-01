@@ -35,7 +35,7 @@ namespace System.IO
 		/// <param name="buffer">Buffer whose length must be at least <paramref name="count"/> elements.</param>
 		/// <param name="count">Number of bytes to read.</param>
 		/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
-		/// <returns><paramref name="count"/> when all <paramref name="count"/> bytes were read from the stream. Otherwise, a number of remaining bytes that were not transmitted.</returns>
+		/// <returns>Number of read bytes. At most <paramref name="count"/>.</returns>
 		public static async Task<int> ReadBlockAsync(this Stream stream, byte[] buffer, int count, CancellationToken cancellationToken = default)
 		{
 			int left = count;
