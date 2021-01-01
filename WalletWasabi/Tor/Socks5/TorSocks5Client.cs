@@ -369,7 +369,7 @@ namespace WalletWasabi.Tor.Socks5
 					{
 						int unreadBytes = await stream.ReadBlockAsync(receiveBuffer, receiveBufferSize.Value, cancellationToken).ConfigureAwait(false);
 
-						if (unreadBytes == 0)
+						if (unreadBytes == receiveBufferSize.Value)
 						{
 							return receiveBuffer;
 						}
