@@ -85,11 +85,6 @@ namespace WalletWasabi.Tests.UnitTests
 			throw new NotImplementedException();
 		}
 
-		public GetTxOutResponse GetTxOut(uint256 txid, int index, bool includeMempool = true)
-		{
-			throw new NotImplementedException();
-		}
-
 		public Task<GetTxOutResponse> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true)
 		{
 			throw new NotImplementedException();
