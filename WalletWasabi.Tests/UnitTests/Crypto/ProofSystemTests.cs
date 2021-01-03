@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto;
@@ -13,11 +14,12 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 	{
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
+		[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Variables denote math symbols.")]
 		public void CanProveAndVerifyMAC()
 		{
 			// The coordinator generates a composed private key called CoordinatorSecretKey
 			// and derives from that the coordinator's public parameters called CoordinatorParameters.
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 			var coordinatorKey = new CoordinatorSecretKey(rnd);
 			var coordinatorParameters = coordinatorKey.ComputeCoordinatorParameters();
 
@@ -56,9 +58,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
+		[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Variables denote math symbols.")]
 		public void CanProveAndVerifyMacShow()
 		{
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 			var coordinatorKey = new CoordinatorSecretKey(rnd);
 			var coordinatorParameters = coordinatorKey.ComputeCoordinatorParameters();
 
@@ -95,9 +98,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
+		[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Variables denote math symbols.")]
 		public void CanProveAndVerifyPresentedBalance()
 		{
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 
 			var a = new Scalar(10_000u);
 			var r = rnd.GetScalar();
@@ -119,9 +123,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
+		[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Variables denote math symbols.")]
 		public void CanProveAndVerifyRequestedBalance()
 		{
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 
 			var a = new Scalar(10_000u);
 			var r = rnd.GetScalar();
@@ -151,9 +156,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[InlineData(int.MaxValue - 1, int.MaxValue)]
 		[InlineData(int.MaxValue, int.MaxValue - 1)]
 		[Trait("UnitTest", "UnitTest")]
+		[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Variables denote math symbols.")]
 		public void CanProveAndVerifyBalance(int presentedAmount, int requestedAmount)
 		{
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 
 			var a = new Scalar((uint)presentedAmount);
 			var r = rnd.GetScalar();
@@ -196,7 +202,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[InlineData((ulong)uint.MaxValue + 1, 33, true)]
 		public void CanProveAndVerifyCommitmentRange(ulong amount, int width, bool pass)
 		{
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 
 			var amountScalar = new Scalar(amount);
 			var randomness = rnd.GetScalar();
@@ -217,9 +223,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
+		[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Variables denote math symbols.")]
 		public void CanProveAndVerifyZeroProofs()
 		{
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 
 			var a0 = Scalar.Zero;
 			var r0 = rnd.GetScalar();

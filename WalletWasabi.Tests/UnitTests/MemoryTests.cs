@@ -97,7 +97,7 @@ namespace WalletWasabi.Tests.UnitTests
 			}
 
 			using var cache = new MemoryCache(new MemoryCacheOptions());
-			var expireKey1 = new CancellationTokenSource();
+			using var expireKey1 = new CancellationTokenSource();
 
 			var options = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) };
 			options.AddExpirationToken(new CancellationChangeToken(expireKey1.Token));

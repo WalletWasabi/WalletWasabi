@@ -13,7 +13,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Trait("UnitTest", "UnitTest")]
 		public void CannotBuildWrongMac()
 		{
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 			var sk = new CoordinatorSecretKey(rnd);
 
 			Assert.Throws<ArgumentNullException>(() => MAC.ComputeMAC(null!, Generators.G, Scalar.One));
@@ -26,7 +26,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Trait("UnitTest", "UnitTest")]
 		public void CanProduceAndVerifyMAC()
 		{
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 			var sk = new CoordinatorSecretKey(rnd);
 
 			var attribute = rnd.GetScalar() * Generators.G;  // any random point
@@ -41,7 +41,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Trait("UnitTest", "UnitTest")]
 		public void CanDetectInvalidMAC()
 		{
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 			var sk = new CoordinatorSecretKey(rnd);
 
 			var attribute = rnd.GetScalar() * Generators.G;  // any random point
@@ -65,7 +65,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Trait("UnitTest", "UnitTest")]
 		public void EqualityTests()
 		{
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 
 			var right = (attribute: rnd.GetScalar() * Generators.G, sk: new CoordinatorSecretKey(rnd), t: rnd.GetScalar());
 			var wrong = (attribute: rnd.GetScalar() * Generators.G, sk: new CoordinatorSecretKey(rnd), t: rnd.GetScalar());

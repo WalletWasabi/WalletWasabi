@@ -47,7 +47,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 					var generators = new GroupElementVector(Generators.G, Generators.Ga);
 					var publicPoint = secrets * generators;
 					var statement = new Statement(publicPoint, generators);
-					var proof = ProofSystemHelpers.Prove(statement, secrets, new SecureRandom());
+					using SecureRandom random = new();
+					var proof = ProofSystemHelpers.Prove(statement, secrets, random);
 					Assert.True(ProofSystemHelpers.Verify(statement, proof));
 				}
 			}

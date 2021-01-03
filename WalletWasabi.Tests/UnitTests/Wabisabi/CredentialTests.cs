@@ -18,7 +18,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 		public void CredentialIssuance()
 		{
 			var numberOfCredentials = 3;
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 			var sk = new CoordinatorSecretKey(rnd);
 
 			var client = new WabiSabiClient(sk.ComputeCoordinatorParameters(), numberOfCredentials, rnd);
@@ -121,7 +121,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 		public void InvalidCredentialRequests()
 		{
 			var numberOfCredentials = 3;
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 			var sk = new CoordinatorSecretKey(rnd);
 
 			var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd);
