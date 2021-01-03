@@ -176,7 +176,9 @@ namespace WalletWasabi.Tests.UnitTests
 
 			if (result2 != Value2)
 			{
-				Assert.False(true, $"{nameof(result2)} value is '{result2}' instead of '{Value2}'. " +
+				Assert.False(
+					true,
+					$"{nameof(result2)} value is '{result2}' instead of '{Value2}'. " +
 					$"Debug info: Wait time was: {elapsedMilliseconds} ms. " +
 					$"Previous values: {nameof(result0)}='{result0}', {nameof(result1)}='{result1}'");
 			}
