@@ -27,7 +27,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Http.Extensions
 			using HttpRequestMessage request = new(new HttpMethod("CONNECT"), "https://postman-echo.com");
 			string plaintext = await HttpRequestMessageExtensions.ToHttpStringAsync(request, CancellationToken.None);
 
-			Assert.Equal("CONNECT / HTTP/1.1\r\n", plaintext);
+			Assert.Equal("CONNECT / HTTP/1.1\r\n\r\n", plaintext);
 		}
 
 		[Fact]
