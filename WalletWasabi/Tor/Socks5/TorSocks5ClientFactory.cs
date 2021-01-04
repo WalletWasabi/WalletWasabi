@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
@@ -10,7 +9,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
@@ -24,6 +22,12 @@ namespace WalletWasabi.Tor.Socks5
 	/// </summary>
 	public class TorSocks5ClientFactory
 	{
+		/// <summary><see cref="SocketException"/> message prefix for the connection refused state on English Windows system.</summary>
+		private const string ExPrefixOnWindows = "No connection could be made because the target machine actively refused it";
+
+		/// <summary><see cref="SocketException"/> message prefix for the connection refused state on Linux or macOS.</summary>
+		private const string ExPrefixOnUnixBasedOSs = "Connection refused";
+
 		/// <summary>
 		/// Creates a new instance of the object.
 		/// </summary>
@@ -143,11 +147,7 @@ namespace WalletWasabi.Tor.Socks5
 				// 61    ~ "Connection refused" on macOS.
 				throw new TorConnectionException($"Could not connect to Tor SOCKSPort at '{host}:{port}'. Is Tor running?", ex);
 			}
-			catch (Exception ex) when (
-				// Windows
-				ex.Message.StartsWith("No connection could be made because the target machine actively refused it") ||
-				// Linux && macOS
-				ex.Message.StartsWith("Connection refused"))
+			catch (Exception ex) when (ex.Message is string && (ex.Message.StartsWith(ExPrefixOnWindows) || ex.Message.StartsWith(ExPrefixOnUnixBasedOSs)))
 			{
 				throw new TorConnectionException($"Could not connect to Tor SOCKSPort at '{host}:{port}'. Is Tor running?", ex);
 			}
