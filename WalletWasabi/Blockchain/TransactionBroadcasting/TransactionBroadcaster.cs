@@ -177,7 +177,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 			}
 			finally
 			{
-				BitcoinStore.MempoolService.TryRemoveFromBroadcastStore(transaction.GetHash(), out _); // Remove it just to be sure. Probably has been removed previously.
+				BitcoinStore.MempoolService.TryRemoveFromBroadcastStore(transaction.GetHash()); // Remove it just to be sure. Probably has been removed previously.
 			}
 		}
 

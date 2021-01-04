@@ -4,8 +4,7 @@ namespace WalletWasabi.Tor.Http
 	{
 		public const string SP = " ";
 		public const string HTAB = "\t";
-		public const string CR = "\r";
-		public const string LF = "\n";
+		public const byte LF = (byte)'\n';
 		public const string CRLF = "\r\n";
 	}
 }
