@@ -136,7 +136,7 @@ namespace WalletWasabi.Logging
 				var category = string.IsNullOrWhiteSpace(callerFilePath) ? "" : $"{EnvironmentHelpers.ExtractFileName(callerFilePath)} ({callerLineNumber})";
 
 				var messageBuilder = new StringBuilder();
-				messageBuilder.Append($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {level.ToString().ToUpperInvariant()}\t");
+				messageBuilder.Append($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} [{Thread.CurrentThread.ManagedThreadId}] {level.ToString().ToUpperInvariant()}\t");
 
 				if (message.Length == 0)
 				{
