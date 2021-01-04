@@ -26,10 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				});
 
 			NextCommand = ReactiveCommand.Create(
-				() =>
-				{
-					Navigate().BackTo(next);
-				},
+				() => Navigate().BackTo(next),
 				this.WhenAnyValue(x => x.IsAgreed).ObserveOn(RxApp.MainThreadScheduler));
 		}
 
