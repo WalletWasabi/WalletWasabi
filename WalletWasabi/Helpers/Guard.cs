@@ -28,6 +28,7 @@ namespace WalletWasabi.Helpers
 			return (bool)value;
 		}
 
+		[return: NotNull]
 		public static T NotNull<T>(string parameterName, T value)
 		{
 			AssertCorrectParameterName(parameterName);
