@@ -213,7 +213,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			}
 		}
 
-		public async Task MakeSureTwoRunningRoundsAsync(Money feePerInputs = null, Money feePerOutputs = null)
+		public async Task MakeSureTwoRunningRoundsAsync(Money? feePerInputs = null, Money? feePerOutputs = null)
 		{
 			using (await RoundsListLock.LockAsync().ConfigureAwait(false))
 			{

@@ -1,4 +1,3 @@
-using NSubsys;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -35,25 +34,24 @@ namespace WalletWasabi.Packager
 		// Avalonia - win7-32, linux-64, osx-64
 		// We'll only support x64, if someone complains, we can come back to it.
 		// For 32 bit Windows there needs to be a lot of WIX configuration to be done.
-		public static string[] Targets = new[]
+		private static string[] Targets = new[]
 		{
 			"win7-x64",
 			"linux-x64",
 			"osx-x64"
 		};
 
-		public static string PackagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
-		public static string SolutionDirectory = Path.GetFullPath(Path.Combine(PackagerProjectDirectory, ".."));
-		public static string GuiProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.Gui"));
-		public static string LibraryProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi"));
-		public static string WixProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller"));
-		public static string BinDistDirectory = Path.GetFullPath(Path.Combine(GuiProjectDirectory, "bin", "dist"));
+		public static string PackagerProjectDirectory { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
+		private static string SolutionDirectory = Path.GetFullPath(Path.Combine(PackagerProjectDirectory, ".."));
+		private static string DesktopProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.Fluent.Desktop"));
+		private static string LibraryProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi"));
+		private static string WixProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller"));
+		private static string BinDistDirectory = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "dist"));
 
-		public static string VersionPrefix = Constants.ClientVersion.Revision == 0 ? Constants.ClientVersion.ToString(3) : Constants.ClientVersion.ToString();
+		private static string VersionPrefix = Constants.ClientVersion.Revision == 0 ? Constants.ClientVersion.ToString(3) : Constants.ClientVersion.ToString();
 
-		public static bool OnlyBinaries;
-		public static bool OnlyCreateDigests;
-		public static bool IsContinuousDelivery;
+		private static bool OnlyBinaries;
+		private static bool IsContinuousDelivery;
 
 		/// <summary>
 		/// Main entry point.
@@ -146,14 +144,7 @@ namespace WalletWasabi.Packager
 
 		private static void RestoreProgramCs()
 		{
-			using var process = Process.Start(new ProcessStartInfo
-			{
-				FileName = "cmd",
-				RedirectStandardInput = true,
-				WorkingDirectory = PackagerProjectDirectory
-			});
-			process.StandardInput.WriteLine($"git checkout -- Program.cs && exit");
-			process.WaitForExit();
+			StartProcessAndWaitForExit("cmd", PackagerProjectDirectory, "git checkout -- Program.cs && exit");
 		}
 
 		private static void Sign()
@@ -172,21 +163,13 @@ namespace WalletWasabi.Packager
 					}
 					var msiFileName = Path.GetFileNameWithoutExtension(msiPath);
 					var newMsiPath = Path.Combine(BinDistDirectory, $"{msiFileName}-{VersionPrefix}.msi");
-					File.Move(msiPath, newMsiPath);
+					File.Copy(msiPath, newMsiPath);
 
 					Console.Write("Enter Code Signing Certificate Password: ");
 					string pfxPassword = PasswordConsole.ReadPassword();
+
 					// Sign code with digicert.
-					using (var process = Process.Start(new ProcessStartInfo
-					{
-						FileName = "cmd",
-						RedirectStandardInput = true,
-						WorkingDirectory = BinDistDirectory
-					}))
-					{
-						process.StandardInput.WriteLine($"signtool sign /d \"Wasabi Wallet\" /f \"{PfxPath}\" /p {pfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
-						process.WaitForExit();
-					}
+					StartProcessAndWaitForExit("cmd", BinDistDirectory, $"signtool sign /d \"Wasabi Wallet\" /f \"{PfxPath}\" /p {pfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
 
 					IoHelpers.TryDeleteDirectoryAsync(publishedFolder).GetAwaiter().GetResult();
 					Console.WriteLine($"Deleted {publishedFolder}");
@@ -211,27 +194,9 @@ namespace WalletWasabi.Packager
 
 			foreach (var finalFile in finalFiles)
 			{
-				using (var process = Process.Start(new ProcessStartInfo
-				{
-					FileName = "cmd",
-					RedirectStandardInput = true,
-					WorkingDirectory = BinDistDirectory
-				}))
-				{
-					process.StandardInput.WriteLine($"gpg --armor --detach-sign {finalFile} && exit");
-					process.WaitForExit();
-				}
+				StartProcessAndWaitForExit("cmd", BinDistDirectory, $"gpg --armor --detach-sign {finalFile} && exit");
 
-				using (var process = Process.Start(new ProcessStartInfo
-				{
-					FileName = "cmd",
-					RedirectStandardInput = true,
-					WorkingDirectory = WixProjectDirectory
-				}))
-				{
-					process.StandardInput.WriteLine($"git checkout -- ComponentsGenerated.wxs && exit");
-					process.WaitForExit();
-				}
+				StartProcessAndWaitForExit("cmd", WixProjectDirectory, $"git checkout -- ComponentsGenerated.wxs && exit");
 			}
 
 			IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
@@ -245,23 +210,14 @@ namespace WalletWasabi.Packager
 				Console.WriteLine($"Deleted {BinDistDirectory}");
 			}
 
-			using (var process = Process.Start(new ProcessStartInfo
-			{
-				FileName = "cmd",
-				RedirectStandardInput = true,
-				WorkingDirectory = GuiProjectDirectory
-			}))
-			{
-				process.StandardInput.WriteLine("dotnet clean --configuration Release && exit");
-				process.WaitForExit();
-			}
+			StartProcessAndWaitForExit("cmd", DesktopProjectDirectory, "dotnet clean --configuration Release && exit");
 
-			var guiBinReleaseDirectory = Path.GetFullPath(Path.Combine(GuiProjectDirectory, "bin", "Release"));
+			var desktopBinReleaseDirectory = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "Release"));
 			var libraryBinReleaseDirectory = Path.GetFullPath(Path.Combine(LibraryProjectDirectory, "bin", "Release"));
-			if (Directory.Exists(guiBinReleaseDirectory))
+			if (Directory.Exists(desktopBinReleaseDirectory))
 			{
-				IoHelpers.TryDeleteDirectoryAsync(guiBinReleaseDirectory).GetAwaiter().GetResult();
-				Console.WriteLine($"Deleted {guiBinReleaseDirectory}");
+				IoHelpers.TryDeleteDirectoryAsync(desktopBinReleaseDirectory).GetAwaiter().GetResult();
+				Console.WriteLine($"Deleted {desktopBinReleaseDirectory}");
 			}
 			if (Directory.Exists(libraryBinReleaseDirectory))
 			{
@@ -290,15 +246,7 @@ namespace WalletWasabi.Packager
 					Console.WriteLine($"Created {currentBinDistDirectory}");
 				}
 
-				using (var process = Process.Start(new ProcessStartInfo
-				{
-					FileName = "dotnet",
-					Arguments = $"clean",
-					WorkingDirectory = GuiProjectDirectory
-				}))
-				{
-					process.WaitForExit();
-				}
+				StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "clean");
 
 				// https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish?tabs=netcore21
 				// -c|--configuration {Debug|Release}
@@ -326,10 +274,12 @@ namespace WalletWasabi.Packager
 				// https://github.com/dotnet/docs/issues/7568
 				// /p:Version=1.2.3.4
 				//		"dotnet publish" supports msbuild command line options like /p:Version=1.2.3.4
-				using (var process = Process.Start(new ProcessStartInfo
-				{
-					FileName = "dotnet",
-					Arguments = string.Join(" ",
+
+				StartProcessAndWaitForExit(
+					"dotnet",
+					DesktopProjectDirectory,
+					arguments: string.Join(
+						" ",
 						$"publish",
 						$"--configuration Release",
 						$"--force",
@@ -345,17 +295,7 @@ namespace WalletWasabi.Packager
 						$"/p:DocumentationFile=\"\"",
 						$"/p:Deterministic=true",
 						$"/p:RestoreLockedMode=true"),
-					WorkingDirectory = GuiProjectDirectory,
-					RedirectStandardOutput = true
-				}))
-				{
-					string error = process.StandardOutput.ReadToEnd();
-					process.WaitForExit();
-					if (process.ExitCode != 0)
-					{
-						throw new InvalidOperationException($"dotnet publish returned with error code {process.ExitCode}. Error message was: {error ?? "none"}");
-					}
-				}
+					redirectStandardOutput: true);
 
 				Tools.ClearSha512Tags(currentBinDistDirectory);
 
@@ -390,13 +330,21 @@ namespace WalletWasabi.Packager
 				string newExecutablePath;
 				if (target.StartsWith("win"))
 				{
-					oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui.exe");
+					oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent.Desktop.exe");
 					newExecutablePath = Path.Combine(currentBinDistDirectory, $"{ExecutableName}.exe");
+
+					// Delete unused executables.
+					File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent.exe"));
+					File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui.exe"));
 				}
 				else // Linux & OSX
 				{
-					oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui");
+					oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent.Desktop");
 					newExecutablePath = Path.Combine(currentBinDistDirectory, ExecutableName);
+
+					// Delete unused executables.
+					File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Fluent"));
+					File.Delete(Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui"));
 				}
 				File.Move(oldExecutablePath, newExecutablePath);
 
@@ -404,15 +352,6 @@ namespace WalletWasabi.Packager
 
 				if (target.StartsWith("win"))
 				{
-					var daemonExePath = newExecutablePath[0..^4] + "d.exe";
-					File.Copy(newExecutablePath, daemonExePath);
-
-					// Do not open console.
-					if (!NSubsysUtil.ProcessFile(newExecutablePath))
-					{
-						Console.WriteLine("ERROR: Could not remove console from exe.");
-					}
-
 					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
 					if (OnlyBinaries)
 					{
@@ -476,6 +415,8 @@ namespace WalletWasabi.Packager
 
 					var linuxPath = $"/mnt/{driveLetterLower}/{Tools.LinuxPath(BinDistDirectory[3..])}";
 
+					var chmodExecutablesArgs = "-type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' -o -name 'tor' \\) -exec chmod u+x {} \\;";
+
 					var commands = new[]
 					{
 						"cd ~",
@@ -483,21 +424,12 @@ namespace WalletWasabi.Packager
 						$"sudo mount -t drvfs {driveLetterUpper}: /mnt/{driveLetterLower} -o metadata",
 						$"cd {linuxPath}",
 						$"sudo find ./{newFolderName} -type f -exec chmod 644 {{}} \\;",
-						$"sudo find ./{newFolderName} -type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' \\) -exec chmod +x {{}} \\;",
+						$"sudo find ./{newFolderName} {chmodExecutablesArgs}",
 						$"tar -pczvf {newFolderName}.tar.gz {newFolderName}"
 					};
 					string arguments = string.Join(" && ", commands);
 
-					using (var process = Process.Start(new ProcessStartInfo
-					{
-						FileName = "wsl",
-						Arguments = arguments,
-						RedirectStandardInput = true,
-						WorkingDirectory = BinDistDirectory
-					}))
-					{
-						process.WaitForExit();
-					}
+					StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
 
 					Console.WriteLine("Create Linux .deb");
 
@@ -521,7 +453,7 @@ namespace WalletWasabi.Packager
 					newFolderPath = Path.Combine(BinDistDirectory, newFolderRelativePath);
 					Directory.Move(publishedFolder, newFolderPath);
 
-					var assetsFolder = Path.Combine(GuiProjectDirectory, "Assets");
+					var assetsFolder = Path.Combine(DesktopProjectDirectory, "Assets");
 					var assetsInfo = new DirectoryInfo(assetsFolder);
 
 					foreach (var file in assetsInfo.EnumerateFiles())
@@ -536,6 +468,7 @@ namespace WalletWasabi.Packager
 					}
 
 					var controlFilePath = Path.Combine(debianFolderPath, "control");
+
 					// License format does not yet work, but should work in the future, it's work in progress: https://bugs.launchpad.net/ubuntu/+source/software-center/+bug/435183
 					var controlFileContent = $"Package: {ExecutableName}\n" +
 						$"Priority: optional\n" +
@@ -584,22 +517,14 @@ namespace WalletWasabi.Packager
 						"sudo mount -t drvfs C: /mnt/c -o metadata",
 						$"cd {linuxPath}",
 						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f -exec chmod 644 {{}} \\;",
-						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} -type f \\( -name 'wassabee' -o -name 'hwi' -o -name 'bitcoind' \\) -exec chmod +x {{}} \\;",
+						$"sudo find {Tools.LinuxPath(newFolderRelativePath)} {chmodExecutablesArgs}",
 						$"sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)}",
 						$"sudo chmod -R 0644 {debDestopFileLinuxPath}",
 						$"dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)"
 					};
 					arguments = string.Join(" && ", commands);
-					using (var process = Process.Start(new ProcessStartInfo
-					{
-						FileName = "wsl",
-						Arguments = arguments,
-						RedirectStandardInput = true,
-						WorkingDirectory = BinDistDirectory
-					}))
-					{
-						process.WaitForExit();
-					}
+
+					StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
 
 					IoHelpers.TryDeleteDirectoryAsync(debFolderPath).GetAwaiter().GetResult();
 
@@ -611,6 +536,46 @@ namespace WalletWasabi.Packager
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
 			}
+		}
+
+		private static string? StartProcessAndWaitForExit(string command, string workingDirectory, string? writeToStandardInput = null, string? arguments = null, bool redirectStandardOutput = false)
+		{
+			var isWriteToStandardInput = !string.IsNullOrWhiteSpace(writeToStandardInput);
+
+			using var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = command,
+				Arguments = arguments ?? "",
+				RedirectStandardInput = isWriteToStandardInput,
+				RedirectStandardOutput = redirectStandardOutput,
+				WorkingDirectory = workingDirectory
+			});
+
+			if (process is null)
+			{
+				throw new InvalidOperationException($"Process '{command}' is invalid.");
+			}
+
+			if (isWriteToStandardInput)
+			{
+				process.StandardInput.WriteLine(writeToStandardInput);
+			}
+
+			string? output = null;
+
+			if (redirectStandardOutput)
+			{
+				output = process.StandardOutput.ReadToEnd();
+			}
+
+			process.WaitForExit();
+
+			if (process.ExitCode is not 0)
+			{
+				throw new InvalidOperationException($"Process exited with code '{process.ExitCode}'.{ (redirectStandardOutput ? output : "") }");
+			}
+
+			return output;
 		}
 
 #pragma warning restore CS0162 // Unreachable code detected

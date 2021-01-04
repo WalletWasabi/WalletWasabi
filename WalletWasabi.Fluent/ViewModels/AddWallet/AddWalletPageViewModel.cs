@@ -36,6 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		[AutoNotify] private string _walletName = "";
 		[AutoNotify] private bool _optionsEnabled;
 		[AutoNotify] private bool _enableBack;
+		[AutoNotify] private bool _enableCancel;
 
 		private readonly LegalDocuments _legalDocuments;
 
@@ -67,7 +68,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
 			RecoverWalletCommand = ReactiveCommand.Create(
-				() => { Navigate().To(new RecoverWalletViewModel(WalletName, network, walletManager)); });
+				() => Navigate().To(new RecoverWalletViewModel(WalletName, network, walletManager)));
 
 			ImportWalletCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -80,10 +81,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						return;
 					}
 
-					var (isColdCardJson, keyManager) = await ImportWalletHelper.ImportWalletAsync(walletManager, WalletName, filePath);
+					var keyManager = await ImportWalletHelper.ImportWalletAsync(walletManager, WalletName, filePath);
 
 					// TODO: get the type from the wallet file
-					Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager, isColdCardJson ? WalletType.Coldcard : WalletType.Normal));
+					Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager));
 				}
 				catch (Exception ex)
 				{
@@ -92,10 +93,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				}
 			});
 
-			ConnectHardwareWalletCommand = ReactiveCommand.Create(() =>
-			{
-				Navigate().To(new ConnectHardwareWalletViewModel(WalletName, network, walletManager));
-			});
+			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => Navigate().To(new ConnectHardwareWalletViewModel(WalletName, network, walletManager)));
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -129,6 +127,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{
 			base.OnNavigatedTo(inStack, disposable);
+
+			_enableCancel = CurrentTarget != NavigationTarget.HomeScreen;
 
 			this.RaisePropertyChanged(WalletName);
 

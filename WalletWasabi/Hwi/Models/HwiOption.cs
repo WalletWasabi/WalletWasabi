@@ -7,7 +7,7 @@ namespace WalletWasabi.Hwi.Models
 {
 	public class HwiOption : IEquatable<HwiOption>
 	{
-		private HwiOption(HwiOptions type, string argument = null)
+		private HwiOption(HwiOptions type, string? argument = null)
 		{
 			Type = type;
 			Arguments = argument;
@@ -23,7 +23,7 @@ namespace WalletWasabi.Hwi.Models
 		public static HwiOption StdIn => new HwiOption(HwiOptions.StdIn);
 
 		public HwiOptions Type { get; }
-		public string Arguments { get; }
+		public string? Arguments { get; }
 
 		public static HwiOption DevicePath(string devicePath)
 		{

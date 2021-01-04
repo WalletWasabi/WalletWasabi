@@ -5,6 +5,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
@@ -15,27 +16,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			Title = "Hardware Wallet";
 			WalletName = walletName;
 
-			switch (hardwareWalletOperations.SelectedDevice!.Model)
+			Type = hardwareWalletOperations.SelectedDevice!.Model switch
 			{
-				case HardwareWalletModels.Coldcard:
-				case HardwareWalletModels.Coldcard_Simulator:
-					Type = WalletType.Coldcard;
-					break;
-
-				case HardwareWalletModels.Ledger_Nano_S:
-					Type = WalletType.Ledger;
-					break;
-
-				case HardwareWalletModels.Trezor_1:
-				case HardwareWalletModels.Trezor_1_Simulator:
-				case HardwareWalletModels.Trezor_T:
-				case HardwareWalletModels.Trezor_T_Simulator:
-					Type = WalletType.Trezor;
-					break;
-				default:
-					Type = WalletType.Hardware;
-					break;
-			}
+				HardwareWalletModels.Coldcard or HardwareWalletModels.Coldcard_Simulator => WalletType.Coldcard,
+				HardwareWalletModels.Ledger_Nano_S => WalletType.Ledger,
+				HardwareWalletModels.Trezor_1 or HardwareWalletModels.Trezor_1_Simulator or HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_T_Simulator => WalletType.Trezor,
+				_ => WalletType.Hardware,
+			};
 
 			TypeName = hardwareWalletOperations.SelectedDevice.Model.FriendlyName();
 
@@ -46,10 +33,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 					var km = await hardwareWalletOperations.GenerateWalletAsync(WalletName);
 					var walletManager = hardwareWalletOperations.WalletManager;
 					hardwareWalletOperations.Dispose();
+					km.SetIcon(Type);
 
-					Navigate().To(new AddedWalletPageViewModel(walletManager, km, Type));
+					Navigate().To(new AddedWalletPageViewModel(walletManager, km));
 				}
-				catch(Exception ex)
+				catch (Exception ex)
 				{
 					Logger.LogError(ex);
 					await ShowErrorAsync(ex.ToUserFriendlyString(), "Error occured during adding your wallet.");
@@ -57,10 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				}
 			});
 
-			NoCommand = ReactiveCommand.Create(() =>
-			{
-				Navigate().Back();
-			});
+			NoCommand = ReactiveCommand.Create(() => Navigate().Back());
 
 			EnableAutoBusyOn(NextCommand);
 		}

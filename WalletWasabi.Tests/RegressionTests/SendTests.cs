@@ -62,7 +62,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
 
-			var walletManager = new WalletManager(network, new WalletDirectories(workDir));
+			var walletManager = new WalletManager(network, workDir, new WalletDirectories(network, workDir));
 			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, blockProvider);
 
 			// Get some money, make it confirm.
@@ -542,7 +542,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
 
-			var walletManager = new WalletManager(network, new WalletDirectories(workDir));
+			var walletManager = new WalletManager(network, workDir, new WalletDirectories(network, workDir));
 			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, blockProvider);
 
 			// Get some money, make it confirm.
@@ -742,7 +742,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Empty(wallet.Coins);
 
 				var tx0Id = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m), replaceable: true);
-				while (wallet.Coins.Count() == 0)
+				while (!wallet.Coins.Any())
 				{
 					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
 				}

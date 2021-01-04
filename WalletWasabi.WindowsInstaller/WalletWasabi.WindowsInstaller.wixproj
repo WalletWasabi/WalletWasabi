@@ -24,8 +24,8 @@
     <Compile Include="Product.wxs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj">
-      <Name>WalletWasabi.Gui</Name>
+    <ProjectReference Include="..\WalletWasabi.Fluent.Desktop\WalletWasabi.Fluent.Desktop.csproj">
+      <Name>WalletWasabi.Fluent.Desktop</Name>
       <Project>{b007dc0f-8c86-439d-be3c-283218d8308b}</Project>
       <Private>True</Private>
       <DoNotHarvest>True</DoNotHarvest>
@@ -54,15 +54,15 @@
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
 	      Other similar extension points exist, see Wix.targets. -->
   <Target Name="BeforeBuild">
-    <GetAssemblyIdentity AssemblyFiles="..\WalletWasabi.Gui\bin\dist\win7-x64\WalletWasabi.Gui.dll">
+    <GetAssemblyIdentity AssemblyFiles="..\WalletWasabi.Fluent.Desktop\bin\dist\win7-x64\WalletWasabi.Fluent.Desktop.dll">
       <Output TaskParameter="Assemblies" ItemName="AssemblyVersion" />
     </GetAssemblyIdentity>
     <PropertyGroup>
-      <LinkerBaseInputPaths>..\WalletWasabi.Gui\bin\dist\win7-x64</LinkerBaseInputPaths>
-      <DefineConstants>BuildVersion=%(AssemblyVersion.Version);BasePath=..\WalletWasabi.Gui\bin\dist\win7-x64</DefineConstants>
+      <LinkerBaseInputPaths>..\WalletWasabi.Fluent.Desktop\bin\dist\win7-x64</LinkerBaseInputPaths>
+      <DefineConstants>BuildVersion=%(AssemblyVersion.Version);BasePath=..\WalletWasabi.Fluent.Desktop\bin\dist\win7-x64</DefineConstants>
     </PropertyGroup>
     <!-- Harvest file components from publish folder. -->
-    <HeatDirectory OutputFile="ComponentsGenerated.wxs" DirectoryRefId="INSTALLFOLDER" ComponentGroupName="PublishedComponents" SuppressCom="true" Directory="..\WalletWasabi.Gui\bin\dist\win7-x64" SuppressFragments="true" SuppressRegistry="true" SuppressRootDirectory="true" AutoGenerateGuids="false" GenerateGuidsNow="true" ToolPath="$(WixToolPath)" PreprocessorVariable="var.BasePath" />
+    <HeatDirectory OutputFile="ComponentsGenerated.wxs" DirectoryRefId="INSTALLFOLDER" ComponentGroupName="PublishedComponents" SuppressCom="true" Directory="..\WalletWasabi.Fluent.Desktop\bin\dist\win7-x64" SuppressFragments="true" SuppressRegistry="true" SuppressRootDirectory="true" AutoGenerateGuids="false" GenerateGuidsNow="true" ToolPath="$(WixToolPath)" PreprocessorVariable="var.BasePath" />
   </Target>
   <Target Name="AfterBuild">
   </Target>

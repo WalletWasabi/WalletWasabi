@@ -164,7 +164,7 @@ namespace Mono.Options
 {
 	public class Command
 	{
-		public Command(string name, string help = null)
+		public Command(string name, string? help = null)
 		{
 			if (string.IsNullOrEmpty(name))
 			{
@@ -176,7 +176,7 @@ namespace Mono.Options
 		}
 
 		public string Name { get; }
-		public string Help { get; }
+		public string? Help { get; }
 
 		public OptionSet Options { get; set; }
 		public Action<IEnumerable<string>> Run { get; set; }
