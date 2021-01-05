@@ -324,7 +324,9 @@ namespace WalletWasabi.Tor.Socks5
 				// Read exactly "receiveBufferSize" bytes.
 				if (receiveBufferSize != null)
 				{
-					if (await stream.ReadExactlyAsync(receiveBuffer, receiveBufferSize.Value, cancellationToken).ConfigureAwait(false))
+					int unreadBytes = await stream.ReadBlockAsync(receiveBuffer, receiveBufferSize.Value, cancellationToken).ConfigureAwait(false);
+
+					if (unreadBytes == receiveBufferSize.Value)
 					{
 						return receiveBuffer;
 					}

@@ -107,7 +107,7 @@ namespace WalletWasabi.BitcoinCore.Configuration
 				.Where((x, i) => i == 0 || x != allLines[i - 1]);
 
 			var retLines = new List<string>();
-			string section = null;
+			string? section = null;
 			foreach (var line in allCorrectedLines)
 			{
 				if (line == "[main]")
