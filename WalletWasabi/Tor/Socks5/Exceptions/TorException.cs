@@ -10,8 +10,9 @@ namespace WalletWasabi.Tor.Socks5.Exceptions
 	/// <remarks>
 	/// <see cref="TorException"/> inherits <see cref="HttpRequestException"/> so that <see cref="ClearnetHttpClient"/>,
 	/// <see cref="TorHttpClient"/> and possibly other implementations of <see cref="IHttpClient"/> throws an exception with common ancestor.
+	/// <para>This exception is abstract because it is not supposed to be instantiated.</para>
 	/// </remarks>
-	public class TorException : HttpRequestException
+	public abstract class TorException : HttpRequestException
 	{
 		public TorException(string message) : base(message)
 		{
