@@ -16,7 +16,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 
 			Task.Run(() =>
 			{
-				return;
 				var passwordFound = WalletWasabi.Wallets.PasswordFinder.TryFind(
 					options.Wallet,
 					options.Charset.ToString(),
