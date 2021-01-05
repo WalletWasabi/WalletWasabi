@@ -5,7 +5,5 @@ namespace WalletWasabi.Tor.Socks5.Models.Interfaces
 		byte ToByte();
 
 		string ToHex(bool xhhSyntax);
-
-		void FromHex(string hex);
 	}
 }

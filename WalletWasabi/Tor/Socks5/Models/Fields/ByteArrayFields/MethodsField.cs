@@ -8,8 +8,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 {
 	public class MethodsField : ByteArraySerializableBase
 	{
-		#region Constructors
-
 		public MethodsField(byte[] bytes)
 		{
 			Guard.NotNullOrEmpty(nameof(bytes), bytes);
@@ -37,10 +35,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 			}
 		}
 
-		#endregion Constructors
-
-		#region PropertiesAndMembers
-
 		private byte[] Bytes { get; }
 
 		public IEnumerable<MethodField> Methods
@@ -55,12 +49,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 			}
 		}
 
-		#endregion PropertiesAndMembers
-
-		#region Serialization
-
 		public override byte[] ToBytes() => Bytes;
-
-		#endregion Serialization
 	}
 }

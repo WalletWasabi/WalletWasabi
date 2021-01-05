@@ -66,7 +66,7 @@ namespace WalletWasabi.Gui
 			var config = new Config(Path.Combine(dataDir, "Config.json"));
 			config.LoadOrCreateDefaultFile();
 			config.CorrectMixUntilAnonymitySet();
-			var walletManager = new WalletManager(config.Network, new WalletDirectories(dataDir));
+			var walletManager = new WalletManager(config.Network, dataDir, new WalletDirectories(config.Network, dataDir));
 
 			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
 		}

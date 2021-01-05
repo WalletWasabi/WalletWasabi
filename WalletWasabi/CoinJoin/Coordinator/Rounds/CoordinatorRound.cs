@@ -212,7 +212,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			InputRegistrationTimesout = DateTimeOffset.UtcNow + InputRegistrationTimeout;
 		}
 
-		public async Task ExecuteNextPhaseAsync(RoundPhase expectedPhase, Money feePerInputs = null, Money feePerOutputs = null)
+		public async Task ExecuteNextPhaseAsync(RoundPhase expectedPhase, Money? feePerInputs = null, Money? feePerOutputs = null)
 		{
 			using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
 			{

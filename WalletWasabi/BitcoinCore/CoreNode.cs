@@ -63,9 +63,9 @@ namespace WalletWasabi.BitcoinCore
 
 				var configTranslator = new CoreConfigTranslator(coreNode.Config, coreNode.Network);
 
-				string rpcUser = configTranslator.TryGetRpcUser();
-				string rpcPassword = configTranslator.TryGetRpcPassword();
-				string rpcCookieFilePath = configTranslator.TryGetRpcCookieFile();
+				string? rpcUser = configTranslator.TryGetRpcUser();
+				string? rpcPassword = configTranslator.TryGetRpcPassword();
+				string? rpcCookieFilePath = configTranslator.TryGetRpcCookieFile();
 				string? rpcHost = configTranslator.TryGetRpcBind();
 				int? rpcPort = configTranslator.TryGetRpcPort();
 				WhiteBind whiteBind = configTranslator.TryGetWhiteBind();
@@ -257,9 +257,7 @@ namespace WalletWasabi.BitcoinCore
 		{
 			await DisposeAsync().ConfigureAwait(false);
 
-			Exception exThrown = null;
-
-			BitcoindRpcProcessBridge bridge = null;
+			BitcoindRpcProcessBridge? bridge = null;
 			if (Bridge is { })
 			{
 				bridge = Bridge;
@@ -279,19 +277,14 @@ namespace WalletWasabi.BitcoinCore
 				}
 				catch (Exception ex)
 				{
-					exThrown = ex;
+					Logger.LogInfo("Did not stop the Bitcoin node. Reason:");
+					Logger.LogWarning(ex);
+					return false;
 				}
 			}
 
 			Logger.LogInfo("Did not stop the Bitcoin node. Reason:");
-			if (exThrown is null)
-			{
-				Logger.LogInfo("The Bitcoin node was started externally.");
-			}
-			else
-			{
-				Logger.LogWarning(exThrown);
-			}
+			Logger.LogInfo("The Bitcoin node was started externally.");
 			return false;
 		}
 	}

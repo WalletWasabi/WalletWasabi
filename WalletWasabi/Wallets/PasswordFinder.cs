@@ -1,8 +1,10 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security;
+using System.Threading;
 
 namespace WalletWasabi.Wallets
 {
@@ -17,25 +19,27 @@ namespace WalletWasabi.Wallets
 			["fr"] = "aâàbcçdæeéèëœfghiîïjkmnoôpqrstuùüvwxyÿzAÂÀBCÇDÆEÉÈËŒFGHIÎÏJKMNOÔPQRSTUÙÜVWXYŸZ",
 		};
 
-		public static string? Find(Wallet wallet, string language, bool useNumbers, bool useSymbols, string likelyPassword, Action<int> reportPercentage)
+		public static bool TryFind(Wallet wallet, string language, bool useNumbers, bool useSymbols, string likelyPassword, out string? foundPassword, Action<int, TimeSpan>? reportPercentage = null, CancellationToken cancellationToken = default)
 		{
+			foundPassword = null;
 			BitcoinEncryptedSecretNoEC encryptedSecret = wallet.KeyManager.EncryptedSecret;
 
 			var charset = Charsets[language] + (useNumbers ? "0123456789" : "") + (useSymbols ? "|!¡@$¿?_-\"#$/%&()´+*=[]{},;:.^`<>" : "");
 
-			var found = false;
-			var lastpwd = "";
 			var attempts = 0;
 			var maxNumberAttempts = likelyPassword.Length * charset.Length;
 
+			Stopwatch sw = Stopwatch.StartNew();
+
 			foreach (var pwd in GeneratePasswords(likelyPassword, charset.ToArray()))
 			{
-				lastpwd = pwd;
+				cancellationToken.ThrowIfCancellationRequested();
+
 				try
 				{
 					encryptedSecret.GetKey(pwd);
-					found = true;
-					break;
+					foundPassword = pwd;
+					return true;
 				}
 				catch (SecurityException)
 				{
@@ -43,11 +47,12 @@ namespace WalletWasabi.Wallets
 
 				attempts++;
 				var percentage = (int)((float)attempts / maxNumberAttempts * 100);
+				var remainingTime = sw.Elapsed / percentage * (100 - percentage);
 
-				reportPercentage.Invoke(percentage);
+				reportPercentage?.Invoke(percentage, remainingTime);
 			}
 
-			return found ? lastpwd : null;
+			return false;
 		}
 
 		private static IEnumerable<string> GeneratePasswords(string password, char[] charset)
