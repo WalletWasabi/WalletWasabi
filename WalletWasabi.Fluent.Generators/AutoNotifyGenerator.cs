@@ -54,7 +54,7 @@ namespace WalletWasabi.Fluent
 			context.AddSource("AccessModifier", SourceText.From(ModifierText, Encoding.UTF8));
 			context.AddSource("AutoNotifyAttribute", SourceText.From(AttributeText, Encoding.UTF8));
 
-			if (!(context.SyntaxReceiver is SyntaxReceiver receiver))
+			if (context.SyntaxReceiver is not SyntaxReceiver receiver)
 			{
 				return;
 			}
