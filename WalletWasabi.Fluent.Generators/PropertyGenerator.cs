@@ -69,7 +69,7 @@ namespace WalletWasabi.Fluent
 			}
 			context.AddSource("PropertyAttribute", SourceText.From(AttributeText, Encoding.UTF8));
 
-			if (!(context.SyntaxReceiver is SyntaxReceiver receiver))
+			if (context.SyntaxReceiver is not SyntaxReceiver receiver)
 			{
 				return;
 			}

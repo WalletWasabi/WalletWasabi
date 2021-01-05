@@ -84,8 +84,7 @@ namespace WalletWasabi.Gui
 			var interpreter = new CommandInterpreter(Console.Out, Console.Error);
 			var executionTask = interpreter.ExecuteCommandsAsync(
 				args,
-				new MixerCommand(daemon),
-				new PasswordFinderCommand(Global.WalletManager));
+				new MixerCommand(daemon));
 			return executionTask.GetAwaiter().GetResult();
 		}
 
