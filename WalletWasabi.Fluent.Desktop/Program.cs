@@ -144,8 +144,7 @@ namespace WalletWasabi.Fluent.Desktop
 			var interpreter = new CommandInterpreter(Console.Out, Console.Error);
 			var executionTask = interpreter.ExecuteCommandsAsync(
 				args,
-				new MixerCommand(daemon),
-				new PasswordFinderCommand(global.WalletManager));
+				new MixerCommand(daemon));
 			return executionTask.GetAwaiter().GetResult();
 		}
 
