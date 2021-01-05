@@ -38,10 +38,10 @@ namespace System.IO
 		/// <returns>Number of read bytes. At most <paramref name="count"/>.</returns>
 		public static async Task<int> ReadBlockAsync(this Stream stream, byte[] buffer, int count, CancellationToken cancellationToken = default)
 		{
-			int left = count;
-			while (left != 0)
+			int remaining = count;
+			while (remaining != 0)
 			{
-				int read = await stream.ReadAsync(buffer.AsMemory(count - left, left), cancellationToken).ConfigureAwait(false);
+				int read = await stream.ReadAsync(buffer.AsMemory(count - remaining, remaining), cancellationToken).ConfigureAwait(false);
 
 				// End of stream.
 				if (read == 0)
@@ -49,9 +49,9 @@ namespace System.IO
 					break;
 				}
 
-				left -= read;
+				remaining -= read;
 			}
-			return count - left;
+			return count - remaining;
 		}
 	}
 }
