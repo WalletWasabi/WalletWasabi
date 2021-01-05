@@ -7,10 +7,10 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.CommandLine;
-using WalletWasabi.Gui.CrashReport;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -31,80 +31,89 @@ namespace WalletWasabi.Fluent.Desktop
 		// yet and stuff might break.
 		public static int Main(string[] args)
 		{
-			int exitCode = 0;
-			bool guiStarted = false;
-			SingleInstanceChecker? singleInstanceChecker = null;
-			CrashReporter crashReporter = new();
+			AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+			TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+			bool runGui = true;
 
 			try
 			{
-				string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-				var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
-
-				singleInstanceChecker = new SingleInstanceChecker(config.Network);
-				singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
-
-				Global = CreateGlobal(dataDir, uiConfig, config);
-
-				// TODO only required due to statusbar vm... to be removed.
-				Locator.CurrentMutable.RegisterConstant(Global);
-
-				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
-
-				if (args.Length != 0)
+				if (CrashReporter.TryGetExceptionFromCliArgs(args, out var exceptionToShow))
 				{
-					ProcessCliCommands(Global, args, crashReporter);
-				}
-				else
-				{
-					if (crashReporter.IsReport)
-					{
-						Console.WriteLine("TODO Implement crash reporting.");
-						return 0;
-					}
+					// Show the exception.
+					Console.WriteLine($"TODO Implement crash reporting. {exceptionToShow}");
 
-					Logger.LogSoftwareStarted("Wasabi GUI");
-					guiStarted = true;
-					BuildAvaloniaApp(Global)
-						.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled))
-						.StartWithClassicDesktopLifetime(args);
+					runGui = false;
 				}
-			}
-			catch (OperationCanceledException ex)
-			{
-				Logger.LogDebug(ex);
 			}
 			catch (Exception ex)
 			{
-				exitCode = 1;
+				// Anything happens here just log it and do not run the Gui.
 				Logger.LogCritical(ex);
+				runGui = false;
+			}
 
-				if (guiStarted)
+			Exception? exceptionToReport = null;
+			SingleInstanceChecker? singleInstanceChecker = null;
+
+			if (runGui)
+			{
+				try
 				{
-					crashReporter.SetException(ex);
+					string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+					var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
+
+					singleInstanceChecker = new SingleInstanceChecker(config.Network);
+					singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
+
+					Global = CreateGlobal(dataDir, uiConfig, config);
+
+					// TODO only required due to statusbar vm... to be removed.
+					Locator.CurrentMutable.RegisterConstant(Global);
+
+					if (args.Length != 0)
+					{
+						ProcessCliCommands(Global, args);
+					}
+					else
+					{
+						Logger.LogSoftwareStarted("Wasabi GUI");
+						BuildAvaloniaApp(Global)
+							.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled))
+							.StartWithClassicDesktopLifetime(args);
+					}
+				}
+				catch (OperationCanceledException ex)
+				{
+					Logger.LogDebug(ex);
+				}
+				catch (Exception ex)
+				{
+					exceptionToReport = ex;
+					Logger.LogCritical(ex);
 				}
 			}
 
+			// Start termination/disposal of the application.
+
 			TerminateService.Terminate();
+
+			if (singleInstanceChecker is { } single)
+			{
+				Task.Run(async () => await single.DisposeAsync()).Wait();
+			}
+
+			if (exceptionToReport is { })
+			{
+				// Trigger the CrashReport process if required.
+				CrashReporter.Invoke(exceptionToReport);
+			}
 
 			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 			TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
-			if (singleInstanceChecker is { } single)
-			{
-				single.DisposeAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-			}
-
-			if (crashReporter.IsInvokeRequired is true)
-			{
-				// Trigger the CrashReport process.
-				crashReporter.TryInvokeCrashReport();
-			}
-
 			Logger.LogSoftwareStopped("Wasabi");
 
-			return exitCode;
+			return exceptionToReport is { } ? 1 : 0;
 		}
 
 		private static (UiConfig uiConfig, Config config) LoadOrCreateConfigs(string dataDir)
@@ -124,20 +133,18 @@ namespace WalletWasabi.Fluent.Desktop
 		private static Global CreateGlobal(string dataDir, UiConfig uiConfig, Config config)
 		{
 			string torLogsFile = Path.Combine(dataDir, "TorLogs.txt");
-			var walletManager = new WalletManager(config.Network, new WalletDirectories(dataDir));
+			var walletManager = new WalletManager(config.Network, dataDir, new WalletDirectories(config.Network, dataDir));
 
 			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
 		}
 
-		private static bool ProcessCliCommands(Global global, string[] args, CrashReporter crashReporter)
+		private static bool ProcessCliCommands(Global global, string[] args)
 		{
 			var daemon = new Daemon(global, TerminateService);
 			var interpreter = new CommandInterpreter(Console.Out, Console.Error);
 			var executionTask = interpreter.ExecuteCommandsAsync(
 				args,
-				new MixerCommand(daemon),
-				new PasswordFinderCommand(global.WalletManager),
-				new CrashReportCommand(crashReporter));
+				new MixerCommand(daemon));
 			return executionTask.GetAwaiter().GetResult();
 		}
 
@@ -165,9 +172,9 @@ namespace WalletWasabi.Fluent.Desktop
 
 		private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs? e)
 		{
-			if (e?.Exception != null)
+			if (e?.Exception is Exception ex)
 			{
-				Logger.LogWarning(e.Exception);
+				Logger.LogWarning(ex);
 			}
 		}
 

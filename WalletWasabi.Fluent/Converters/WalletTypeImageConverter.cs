@@ -4,7 +4,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using System;
 using System.Globalization;
-using WalletWasabi.Fluent.ViewModels.AddWallet;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Converters
 {
