@@ -1,4 +1,6 @@
-﻿using WalletWasabi.Fluent.ViewModels.Navigation;
+﻿using System;
+using System.Threading.Tasks;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 {
@@ -10,7 +12,38 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 		public SearchPasswordViewModel(PasswordFinderOptions options)
 		{
 			Title = "Password Finder";
-			_remainingText = "adsadsadasdasdasd";
+			_remainingText = "";
+
+			Task.Run(() =>
+			{
+				return;
+				var passwordFound = WalletWasabi.Wallets.PasswordFinder.TryFind(
+					options.Wallet,
+					options.Charset.ToString(),
+					options.UseNumbers,
+					options.UseSymbols,
+					options.Password,
+					out var foundPassword,
+					SetStatus);
+
+				Navigate().To(new PasswordFinderResultViewModel(foundPassword));
+			});
 		}
+
+		private void SetStatus(int percentage, TimeSpan remainingTime)
+		{
+			Percentage = percentage;
+
+			var h = remainingTime.Hours;
+			var m = remainingTime.Minutes;
+			var s = remainingTime.Seconds;
+
+			RemainingText = "The search will finish in " +
+			                $"{h} hour{AddSIfPlural(h)}, " +
+			                $"{m} minute{AddSIfPlural(m)}, " +
+			                $"{s} second{AddSIfPlural(s)}.";
+		}
+
+		private string AddSIfPlural(int n) => n > 1 ? "s" : "";
 	}
 }

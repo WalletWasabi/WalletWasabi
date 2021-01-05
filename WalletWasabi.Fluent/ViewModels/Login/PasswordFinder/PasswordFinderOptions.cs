@@ -19,9 +19,10 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 
 	public class PasswordFinderOptions
 	{
-		public PasswordFinderOptions(Wallet wallet)
+		public PasswordFinderOptions(Wallet wallet, string password)
 		{
 			Wallet = wallet;
+			Password = password;
 		}
 
 		public Wallet Wallet { get; }
@@ -32,5 +33,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 
 		public bool UseSymbols { get; set; }
 
+		public string Password { get; }
 	}
 }

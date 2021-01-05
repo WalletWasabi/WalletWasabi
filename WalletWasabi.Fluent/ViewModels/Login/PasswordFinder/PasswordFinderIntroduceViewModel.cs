@@ -1,4 +1,5 @@
 ﻿using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
@@ -10,10 +11,16 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 		{
 			Title = "Password Finder";
 
-			NextCommand = ReactiveCommand.Create(() =>
+			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				var options = new PasswordFinderOptions(wallet);
-				Navigate().To(new SelectCharsetViewModel(options));
+				var dialogResult =
+					await NavigateDialog(new EnterPasswordViewModel("Type in your incorrect password."));
+
+				if (dialogResult.Result is { } password)
+				{
+					var options = new PasswordFinderOptions(wallet, password);
+					Navigate().To(new SelectCharsetViewModel(options));
+				}
 			});
 		}
 	}

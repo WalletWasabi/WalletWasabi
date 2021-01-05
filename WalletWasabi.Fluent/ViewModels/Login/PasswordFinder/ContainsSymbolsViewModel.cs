@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 
 			AnswerCommand = ReactiveCommand.Create<bool>(ans =>
 			{
-				options.UseNumbers = ans;
+				options.UseSymbols = ans;
 				Navigate().To(new SearchPasswordViewModel(options));
 			});
 		}
