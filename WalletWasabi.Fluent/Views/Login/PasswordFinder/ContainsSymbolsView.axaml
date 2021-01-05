@@ -1,0 +1,45 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Login.PasswordFinder"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:s="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="vm:ContainsSymbolsViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Login.PasswordFinder.ContainsSymbolsView">
+  <c:ContentArea Title="{Binding Title}"
+                 EnableNext="False"
+                 EnableCancel="True"
+                 EnableBack="True">
+    <DockPanel>
+      <DockPanel.Styles>
+        <Style Selector="Button.yesNo">
+          <Setter Property="Width" Value="150"/>
+          <Setter Property="Height" Value="40"/>
+          <Setter Property="HorizontalAlignment" Value="Center"/>
+          <Setter Property="HorizontalContentAlignment" Value="Center"/>
+          <Setter Property="VerticalContentAlignment" Value="Center"/>
+          <Setter Property="FontSize" Value="{StaticResource FontSizeH6}"/>
+          <Setter Property="Padding" Value="0"/>
+        </Style>
+      </DockPanel.Styles>
+      <DockPanel.Resources>
+        <s:Boolean x:Key="True">True</s:Boolean>
+        <s:Boolean x:Key="False">False</s:Boolean>
+      </DockPanel.Resources>
+
+      <StackPanel Spacing="200" HorizontalAlignment="Center" Orientation="Horizontal" DockPanel.Dock="Bottom" Margin="0 0 0 30">
+        <Button Content="No" Classes="yesNo" Command="{Binding AnswerCommand}" CommandParameter="{StaticResource False}"/>
+        <Button Content="Yes" Classes="action yesNo" IsDefault="True" Command="{Binding AnswerCommand}" CommandParameter="{StaticResource True}"/>
+      </StackPanel>
+
+      <StackPanel VerticalAlignment="Center" Spacing="40">
+        <TextBlock Text="%^*)#" FontSize="75" HorizontalAlignment="Center" />
+        <TextBlock Text="Does your password contains special characters?" HorizontalAlignment="Center" />
+      </StackPanel>
+
+    </DockPanel>
+  </c:ContentArea>
+</UserControl>

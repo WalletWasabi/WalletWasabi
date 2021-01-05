@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using System.Windows.Input;
+using WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
@@ -42,7 +44,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					}
 				},
 				this.WhenAnyValue(x => x.WalletState).Select(x => x == WalletState.Uninitialized));
+
+			PwFinderCommand = ReactiveCommand.Create(() =>
+			{
+				Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet));
+			});
 		}
+
+		public ICommand PwFinderCommand { get; }
 
 		public ReactiveCommand<Unit, Unit> OpenWalletCommand { get; }
 
