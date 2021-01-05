@@ -32,30 +32,4 @@
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Compile Update="Views\Login\PasswordFinder\PasswordFinderIntroduceView.axaml.cs">
-	    <DependentUpon>AddedWalletPageView.axaml</DependentUpon>
-	    <SubType>Code</SubType>
-	  </Compile>
-	  <Compile Update="Views\Login\PasswordFinder\SelectCharsetView.axaml.cs">
-	    <DependentUpon>SelectCharsetView.axaml</DependentUpon>
-	    <SubType>Code</SubType>
-	  </Compile>
-	  <Compile Update="Views\Login\PasswordFinder\ContainsNumbersView.axaml.cs">
-	    <DependentUpon>ContainsNumbersView.axaml</DependentUpon>
-	    <SubType>Code</SubType>
-	  </Compile>
-	  <Compile Update="Views\Login\PasswordFinder\ContainsSymbolsView.axaml.cs">
-	    <DependentUpon>ContainsSymbolsView.axaml</DependentUpon>
-	    <SubType>Code</SubType>
-	  </Compile>
-	  <Compile Update="Views\Login\PasswordFinder\SearchPasswordView.axaml.cs">
-	    <DependentUpon>SearchPasswordView.axaml</DependentUpon>
-	    <SubType>Code</SubType>
-	  </Compile>
-	  <Compile Update="Views\Login\PasswordFinder\PasswordFinderResultView.axaml.cs">
-	    <DependentUpon>PasswordFinderResultView.axaml</DependentUpon>
-	    <SubType>Code</SubType>
-	  </Compile>
-	</ItemGroup>
 </Project>
