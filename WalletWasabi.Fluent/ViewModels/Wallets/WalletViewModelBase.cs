@@ -37,7 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			OpenCommand = ReactiveCommand.Create(() =>
 			{
-				if (Wallet.State == WalletState.Uninitialized)
+				if (!Wallet.IsLoggedIn)
 				{
 					Navigate().To(new LoginViewModel(this, walletManager));
 				}

@@ -46,7 +46,8 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 				IsBusy = true;
 
-				KeyManager keyManager = walletManager.GetWalletByName(SelectedWallet.WalletName).KeyManager;
+				var wallet = walletManager.GetWalletByName(SelectedWallet.WalletName);
+				var keyManager = wallet.KeyManager;
 
 				IsPasswordIncorrect = await Task.Run(
 					() =>
@@ -71,8 +72,14 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 				if (!IsPasswordIncorrect)
 				{
-					// Task.Run(async () => await LoadWalletAsync(keyManager, walletManager));
-					_ = LoadWalletAsync(keyManager, walletManager);
+
+					if (wallet.State == WalletState.Uninitialized)
+					{
+						// Task.Run(async () => await LoadWalletAsync(keyManager, walletManager));
+						_ = LoadWalletAsync(keyManager, walletManager);
+					}
+
+					wallet.Login();
 
 					Navigate().Clear();
 
