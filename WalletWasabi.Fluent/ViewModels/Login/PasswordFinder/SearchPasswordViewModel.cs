@@ -40,6 +40,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 							$"{s} second{AddSIfPlural(s)}.";
 		}
 
-		private string AddSIfPlural(int n) => n > 1 ? "s" : "";
+		private static string AddSIfPlural(int n) => n > 1 ? "s" : "";
 	}
 }
