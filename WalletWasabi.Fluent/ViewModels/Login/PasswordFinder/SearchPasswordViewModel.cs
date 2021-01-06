@@ -8,12 +8,17 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 	public partial class SearchPasswordViewModel : RoutableViewModel
 	{
 		[AutoNotify] private int _percentage;
-		[AutoNotify] private string _remainingText;
+		[AutoNotify] private int _remainingHour;
+		[AutoNotify] private int _remainingMin;
+		[AutoNotify] private int _remainingSec;
+		[AutoNotify] private string _hourText;
+		[AutoNotify] private string _minText;
+		[AutoNotify] private string _secText;
+
 
 		public SearchPasswordViewModel(PasswordFinderOptions options)
 		{
 			Title = "Password Finder";
-			_remainingText = "";
 
 			Task.Run(() =>
 			{
@@ -26,14 +31,13 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 		{
 			Percentage = percentage;
 
-			var h = remainingTime.Hours;
-			var m = remainingTime.Minutes;
-			var s = remainingTime.Seconds;
+			RemainingHour = remainingTime.Hours;
+			RemainingMin = remainingTime.Minutes;
+			RemainingSec = remainingTime.Seconds;
 
-			RemainingText = "The search will finish in " +
-							$"{h} hour{AddSIfPlural(h)}, " +
-							$"{m} minute{AddSIfPlural(m)}, " +
-							$"{s} second{AddSIfPlural(s)}.";
+			HourText = $" hour{AddSIfPlural(RemainingHour)} ";
+			MinText = $" minute{AddSIfPlural(RemainingMin)} ";
+			SecText = $" second{AddSIfPlural(RemainingSec)}.";
 		}
 
 		private static string AddSIfPlural(int n) => n > 1 ? "s" : "";
