@@ -16,23 +16,24 @@
                  EnableBack="True">
 
     <ListBox Items="{Binding Charsets}"
-             SelectedItem="{Binding SelectedCharset}"
-             Background="Transparent">
+             SelectedItem="{Binding SelectedCharset}">
       <ListBox.ItemsPanel>
         <ItemsPanelTemplate>
-          <WrapPanel Orientation="Horizontal" />
+          <StackPanel HorizontalAlignment="Stretch" />
         </ItemsPanelTemplate>
       </ListBox.ItemsPanel>
       <ListBox.ItemTemplate>
         <DataTemplate>
-          <Panel Width="150" Height="150"
-                 Margin="10">
-            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="45" Text="{Binding Converter={x:Static conv:EnumToStringConverter.ToUpperCase}}"/>
-            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Bottom" Text="{Binding Converter={x:Static conv:EnumToStringConverter.ToFriendlyName}}"/>
-          </Panel>
+          <DockPanel LastChildFill="True">
+            <TextBlock FontSize="45" Width="70" TextAlignment="Center" VerticalAlignment="Center" FontWeight="Light" Text="{Binding Converter={x:Static conv:EnumConverters.ToUpperCase}}" DockPanel.Dock="Left"/>
+            <TextBlock FontSize="45" Text="-" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+            <DockPanel DockPanel.Dock="Left" Margin="10 0 0 0" LastChildFill="True">
+              <TextBlock DockPanel.Dock="Bottom" TextWrapping="Wrap" Opacity="0.6" FontSize="12" FontWeight="Light" Text="{Binding Converter={x:Static conv:EnumConverters.ToCharset}}"/>
+              <TextBlock DockPanel.Dock="Top" FontSize="30" FontWeight="Bold" Text="{Binding Converter={x:Static conv:EnumConverters.ToFriendlyName}}"/>
+            </DockPanel>
+          </DockPanel>
         </DataTemplate>
       </ListBox.ItemTemplate>
     </ListBox>
-
   </c:ContentArea>
 </UserControl>
