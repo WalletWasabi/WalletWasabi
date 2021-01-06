@@ -2,6 +2,7 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Security;
 using System.Threading;
@@ -19,7 +20,7 @@ namespace WalletWasabi.Wallets.PasswordFinder
 			[Charset.fr] = "aâàbcçdæeéèëœfghiîïjkmnoôpqrstuùüvwxyÿzAÂÀBCÇDÆEÉÈËŒFGHIÎÏJKMNOÔPQRSTUÙÜVWXYŸZ",
 		};
 
-		public static bool TryFind(PasswordFinderOptions passwordFinderOptions, out string? foundPassword, Action<int, TimeSpan>? reportPercentage = null, CancellationToken cancellationToken = default)
+		public static bool TryFind(PasswordFinderOptions passwordFinderOptions, [NotNullWhen(true)] out string? foundPassword, Action<int, TimeSpan>? reportPercentage = null, CancellationToken cancellationToken = default)
 		{
 			foundPassword = null;
 			BitcoinEncryptedSecretNoEC encryptedSecret = passwordFinderOptions.Wallet.KeyManager.EncryptedSecret;
