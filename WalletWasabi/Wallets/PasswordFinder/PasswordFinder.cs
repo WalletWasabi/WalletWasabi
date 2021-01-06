@@ -6,7 +6,7 @@ using System.Linq;
 using System.Security;
 using System.Threading;
 
-namespace WalletWasabi.Wallets
+namespace WalletWasabi.Wallets.PasswordFinder
 {
 	public static class PasswordFinder
 	{

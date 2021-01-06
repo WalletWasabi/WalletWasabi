@@ -1,22 +1,5 @@
-﻿using System.ComponentModel;
-using WalletWasabi.Wallets;
-
-namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
+namespace WalletWasabi.Wallets.PasswordFinder
 {
-	public enum Charset
-	{
-		[Description("English")]
-		en,
-		[Description("Spanish")]
-		es,
-		[Description("Italian")]
-		it,
-		[Description("French")]
-		fr,
-		[Description("Portuguese")]
-		pt
-	}
-
 	public class PasswordFinderOptions
 	{
 		public PasswordFinderOptions(Wallet wallet, string password)

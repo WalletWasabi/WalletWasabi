@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Wallets.PasswordFinder;
 
 namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 {
@@ -16,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 
 			Task.Run(() =>
 			{
-				var passwordFound = WalletWasabi.Wallets.PasswordFinder.TryFind(
+				var passwordFound = WalletWasabi.Wallets.PasswordFinder.PasswordFinder.TryFind(
 					options.Wallet,
 					options.Charset.ToString(),
 					options.UseNumbers,
