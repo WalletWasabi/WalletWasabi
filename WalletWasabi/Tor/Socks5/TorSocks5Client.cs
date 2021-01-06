@@ -356,38 +356,7 @@ namespace WalletWasabi.Tor.Socks5
 					}
 					else if (request is TorSocks5Request)
 					{
-						var actualReceiveBufferSize = TcpClient.ReceiveBufferSize;
-
-						// Receive the response
-						var receiveBuffer = new byte[actualReceiveBufferSize];
-
-						int receiveCount = await stream.ReadAsync(receiveBuffer.AsMemory(0, actualReceiveBufferSize), cancellationToken).ConfigureAwait(false);
-
-						if (receiveCount <= 0)
-						{
-							throw new TorConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
-						}
-						// if we could fit everything into our buffer, then return it
-						if (!stream.DataAvailable)
-						{
-							return receiveBuffer[..receiveCount];
-						}
-
-						// while we have data available, start building a byte array
-						var builder = new ByteArrayBuilder();
-						builder.Append(receiveBuffer[..receiveCount]);
-						while (stream.DataAvailable)
-						{
-							Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
-							receiveCount = await stream.ReadAsync(receiveBuffer.AsMemory(0, actualReceiveBufferSize), cancellationToken).ConfigureAwait(false);
-							if (receiveCount <= 0)
-							{
-								throw new TorConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
-							}
-							builder.Append(receiveBuffer[..receiveCount]);
-						}
-
-						return builder.ToArray();
+						return await ReadRequestResponseAsync(stream, cancellationToken).ConfigureAwait(false);
 					}
 					else
 					{
@@ -404,6 +373,92 @@ namespace WalletWasabi.Tor.Socks5
 			{
 				throw new TorConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.", ex);
 			}
+		}
+
+		/// <summary>
+		/// Reads response for <see cref="TorSocks5Request"/>.
+		/// </summary>
+		private static async Task<byte[]> ReadRequestResponseAsync(NetworkStream stream, CancellationToken cancellationToken)
+		{
+			ByteArrayBuilder builder = new(capacity: 1024);
+
+			// Read: VER, CMD, RSV and ATYP values.
+			int byteResult = -1;
+
+			for (int i = 0; i < 4; i++)
+			{
+				byteResult = await stream.ReadByteAsync(cancellationToken).ConfigureAwait(false);
+
+				if (byteResult == -1)
+				{
+					throw new TorConnectionException("Failed to read first four bytes from the SOCKS5 response.");
+				}
+
+				builder.Append((byte)byteResult);
+			}
+
+			// Process last read byte which is ATYP.
+			byte addrType = (byte)byteResult;
+
+			int dstAddrLength = addrType switch
+			{
+				// IPv4.
+				0x01 => 4,
+				// Fully-qualified domain name.
+				0x03 => await stream.ReadByteAsync(cancellationToken).ConfigureAwait(false),
+				// IPv6.
+				0x04 => 16,
+				_ => throw new TorConnectionException("Received unsupported ATYP value.")
+			};
+
+			if (dstAddrLength == -1)
+			{
+				throw new TorConnectionException("Failed to read the length of DST.ADDR from the SOCKS5 response.");
+			}
+
+			// Read DST.ADDR.
+			for (int i = 0; i < dstAddrLength; i++)
+			{
+				byteResult = await stream.ReadByteAsync(cancellationToken).ConfigureAwait(false);
+
+				if (byteResult == -1)
+				{
+					throw new TorConnectionException("Failed to read DST.ADDR from the SOCKS5 response.");
+				}
+
+				builder.Append((byte)byteResult);
+			}
+
+			// Read DST.PORT.
+			for (int i = 0; i < 2; i++)
+			{
+				byteResult = await stream.ReadByteAsync(cancellationToken).ConfigureAwait(false);
+
+				if (byteResult == -1)
+				{
+					throw new TorConnectionException("Failed to read DST.PORT from the SOCKS5 response.");
+				}
+
+				builder.Append((byte)byteResult);
+			}
+
+			return builder.ToArray();
+		}
+
+		private static async Task<byte[]> ReadTwoByteResponseAsync(NetworkStream stream, CancellationToken cancellationToken)
+		{
+			// Read exactly "receiveBufferSize" bytes.
+			int receiveBufferSize = 2;
+			byte[] receiveBuffer = new byte[receiveBufferSize];
+
+			int unreadBytes = await stream.ReadBlockAsync(receiveBuffer, receiveBufferSize, cancellationToken).ConfigureAwait(false);
+
+			if (unreadBytes == receiveBufferSize)
+			{
+				return receiveBuffer;
+			}
+
+			throw new TorConnectionException($"Failed to read {receiveBufferSize} bytes as expected from Tor SOCKS5.");
 		}
 
 		#endregion Methods
