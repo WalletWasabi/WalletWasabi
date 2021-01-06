@@ -46,11 +46,10 @@ namespace WalletWasabi.Wallets
 				}
 
 				attempts++;
-				var percentage = (int)((float)attempts / maxNumberAttempts * 100);
-				// var remainingTime = sw.Elapsed / percentage * (100 - percentage);
-				var remainingTime = new TimeSpan(0, 1, 34, 27);
+				var percentage = (double)attempts / maxNumberAttempts * 100;
+				var remainingMilliseconds = sw.Elapsed.TotalMilliseconds / percentage * (100 - percentage);
 
-				reportPercentage?.Invoke(percentage, remainingTime);
+				reportPercentage?.Invoke((int)percentage, TimeSpan.FromMilliseconds(remainingMilliseconds));
 			}
 
 			return false;
