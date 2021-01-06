@@ -141,7 +141,11 @@
             </StackPanel>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
             <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
-              <TextBlock Text="Website (Tor)" />
+              <Button Classes="plain"
+                      Command="{Binding OpenBrowserCommand}"
+                      CommandParameter="{x:Static vm:AboutViewModel.TorLink}">
+                <TextBlock Text="Website (Tor)" Classes="Hyperlink" />
+              </Button>
               <Button Classes="plain"
                       Command="{Binding CopyLinkCommand}"
                       CommandParameter="{x:Static vm:AboutViewModel.TorLink}"
