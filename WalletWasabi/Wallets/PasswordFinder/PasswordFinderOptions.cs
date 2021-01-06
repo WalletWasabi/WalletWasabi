@@ -2,10 +2,10 @@ namespace WalletWasabi.Wallets.PasswordFinder
 {
 	public class PasswordFinderOptions
 	{
-		public PasswordFinderOptions(Wallet wallet, string password)
+		public PasswordFinderOptions(Wallet wallet, string likelyPassword)
 		{
 			Wallet = wallet;
-			Password = password;
+			LikelyPassword = likelyPassword;
 		}
 
 		public Wallet Wallet { get; }
@@ -16,6 +16,6 @@ namespace WalletWasabi.Wallets.PasswordFinder
 
 		public bool UseSymbols { get; set; }
 
-		public string Password { get; }
+		public string LikelyPassword { get; }
 	}
 }

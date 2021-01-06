@@ -28,7 +28,7 @@ namespace WalletWasabi.Wallets.PasswordFinder
 			var charset = Charsets[passwordFinderOptions.Charset] + (passwordFinderOptions.UseNumbers ? "0123456789" : "") + (passwordFinderOptions.UseSymbols ? "|!¡@$¿?_-\"#$/%&()´+*=[]{},;:.^`<>" : "");
 
 			var attempts = 0;
-			var likelyPassword = passwordFinderOptions.Password;
+			var likelyPassword = passwordFinderOptions.LikelyPassword;
 			var maxNumberAttempts = likelyPassword.Length * charset.Length;
 
 			Stopwatch sw = Stopwatch.StartNew();
