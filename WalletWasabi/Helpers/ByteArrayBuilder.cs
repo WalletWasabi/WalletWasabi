@@ -6,7 +6,7 @@ namespace System
 	{
 		private byte[] _buffer;
 
-		public ByteArrayBuilder(): this(4096)
+		public ByteArrayBuilder() : this(4096)
 		{
 		}
 
