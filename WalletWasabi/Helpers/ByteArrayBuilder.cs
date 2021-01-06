@@ -6,9 +6,13 @@ namespace System
 	{
 		private byte[] _buffer;
 
-		public ByteArrayBuilder()
+		public ByteArrayBuilder(): this(4096)
 		{
-			_buffer = new byte[4096];
+		}
+
+		public ByteArrayBuilder(int capacity)
+		{
+			_buffer = new byte[capacity];
 			Length = 0;
 		}
 
