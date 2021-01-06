@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets.PasswordFinder;
@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 			{
 				var passwordFound = WalletWasabi.Wallets.PasswordFinder.PasswordFinder.TryFind(
 					options.Wallet,
-					options.Charset.ToString(),
+					options.Charset,
 					options.UseNumbers,
 					options.UseSymbols,
 					options.Password,
@@ -39,9 +39,9 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 			var s = remainingTime.Seconds;
 
 			RemainingText = "The search will finish in " +
-			                $"{h} hour{AddSIfPlural(h)}, " +
-			                $"{m} minute{AddSIfPlural(m)}, " +
-			                $"{s} second{AddSIfPlural(s)}.";
+							$"{h} hour{AddSIfPlural(h)}, " +
+							$"{m} minute{AddSIfPlural(m)}, " +
+							$"{s} second{AddSIfPlural(s)}.";
 		}
 
 		private string AddSIfPlural(int n) => n > 1 ? "s" : "";
