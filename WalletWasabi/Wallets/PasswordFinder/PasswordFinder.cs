@@ -19,14 +19,15 @@ namespace WalletWasabi.Wallets.PasswordFinder
 			[Charset.fr] = "aâàbcçdæeéèëœfghiîïjkmnoôpqrstuùüvwxyÿzAÂÀBCÇDÆEÉÈËŒFGHIÎÏJKMNOÔPQRSTUÙÜVWXYŸZ",
 		};
 
-		public static bool TryFind(Wallet wallet, Charset language, bool useNumbers, bool useSymbols, string likelyPassword, out string? foundPassword, Action<int, TimeSpan>? reportPercentage = null, CancellationToken cancellationToken = default)
+		public static bool TryFind(PasswordFinderOptions passwordFinderOptions, out string? foundPassword, Action<int, TimeSpan>? reportPercentage = null, CancellationToken cancellationToken = default)
 		{
 			foundPassword = null;
-			BitcoinEncryptedSecretNoEC encryptedSecret = wallet.KeyManager.EncryptedSecret;
+			BitcoinEncryptedSecretNoEC encryptedSecret = passwordFinderOptions.Wallet.KeyManager.EncryptedSecret;
 
-			var charset = Charsets[language] + (useNumbers ? "0123456789" : "") + (useSymbols ? "|!¡@$¿?_-\"#$/%&()´+*=[]{},;:.^`<>" : "");
+			var charset = Charsets[passwordFinderOptions.Charset] + (passwordFinderOptions.UseNumbers ? "0123456789" : "") + (passwordFinderOptions.UseSymbols ? "|!¡@$¿?_-\"#$/%&()´+*=[]{},;:.^`<>" : "");
 
 			var attempts = 0;
+			var likelyPassword = passwordFinderOptions.Password;
 			var maxNumberAttempts = likelyPassword.Length * charset.Length;
 
 			Stopwatch sw = Stopwatch.StartNew();
