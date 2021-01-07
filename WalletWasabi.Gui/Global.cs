@@ -51,6 +51,7 @@ namespace WalletWasabi.Gui
 		public TorSettings TorSettings { get; }
 		public BitcoinStore BitcoinStore { get; }
 		public LegalDocuments LegalDocuments { get; set; }
+		public LegalChecker LegalChecker { get; private set; }
 		public Config Config { get; }
 
 		public string AddressManagerFilePath { get; private set; }
@@ -142,8 +143,10 @@ namespace WalletWasabi.Gui
 
 				var userAgent = Constants.UserAgents.RandomElement();
 				var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
+				UpdateChecker updateChecker = new(TimeSpan.FromMinutes(7), Synchronizer);
 
-				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
+				LegalChecker = new(updateChecker);
+				HostedServices.Register(updateChecker, "Software Update Checker");
 
 				HostedServices.Register(new SystemAwakeChecker(WalletManager), "System Awake Checker");
 
@@ -653,6 +656,14 @@ namespace WalletWasabi.Gui
 				{
 					coinJoinProcessor.Dispose();
 					Logger.LogInfo($"{nameof(CoinJoinProcessor)} is disposed.");
+				}
+
+				Logger.LogDebug($"Step: {nameof(LegalChecker)}.", nameof(Global));
+
+				if (LegalChecker is { } legalChecker)
+				{
+					legalChecker.Dispose();
+					Logger.LogInfo($"Disposed {nameof(LegalChecker)}.");
 				}
 
 				Logger.LogDebug($"Step: {nameof(HostedServices)}.", nameof(Global));
