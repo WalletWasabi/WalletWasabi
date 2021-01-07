@@ -15,12 +15,17 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var dialogResult =
-					await NavigateDialog(new EnterPasswordViewModel("Type in your incorrect password."));
+					await NavigateDialog(new EnterPasswordViewModel("Type in your incorrect password.", enableEmpty: false));
 
 				if (dialogResult.Result is { } password)
 				{
 					var options = new PasswordFinderOptions(wallet, password);
 					Navigate().To(new SelectCharsetViewModel(options));
+				}
+
+				if (dialogResult.Kind == DialogResultKind.Cancel)
+				{
+					Navigate().Clear();
 				}
 			});
 		}

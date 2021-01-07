@@ -25,22 +25,28 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 			_hourText = "";
 			_minText = "";
 			_secText = "";
-			CancelToken = new CancellationTokenSource();
+			var cancelToken = new CancellationTokenSource();
 
-			Task.Run(() =>
+			Task.Run(async () =>
 			{
-				PasswordFinderHelper.TryFind(options, out var foundPassword, SetStatus, CancelToken.Token);
-				Navigate().To(new PasswordFinderResultViewModel(foundPassword));
+				if (PasswordFinderHelper.TryFind(options, out var foundPassword, SetStatus, cancelToken.Token))
+				{
+					Navigate().To(new PasswordFinderResultViewModel(foundPassword));
+				}
+				else
+				{
+					await ShowErrorAsync("We have not found your password, try search again with different options.", "The search has been finished, see the result below.");
+					Navigate().Clear();
+				}
 			});
 
 			CancelCommand = ReactiveCommand.Create(() =>
 			{
-				CancelToken.Cancel();
+				cancelToken.Cancel();
 				Navigate().Clear();
 			});
 		}
 
-		private CancellationTokenSource CancelToken { get; }
 
 		private void SetStatus(int percentage, TimeSpan remainingTime)
 		{

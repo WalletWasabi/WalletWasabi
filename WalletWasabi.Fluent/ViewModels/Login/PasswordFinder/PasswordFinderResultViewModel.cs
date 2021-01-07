@@ -7,11 +7,10 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 		[AutoNotify] private string? _password;
 		[AutoNotify] private bool _success;
 
-		public PasswordFinderResultViewModel(string? password)
+		public PasswordFinderResultViewModel(string password)
 		{
 			Title = "Password Finder";
 			_password = password;
-			_success = password is { };
 
 			NextCommand = CancelCommand;
 		}
