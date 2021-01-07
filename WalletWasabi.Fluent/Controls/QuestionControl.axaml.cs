@@ -43,6 +43,4 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(TextProperty, value);
 		}
 	}
-
-
 }

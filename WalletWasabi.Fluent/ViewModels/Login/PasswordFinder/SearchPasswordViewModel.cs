@@ -47,7 +47,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 			});
 		}
 
-
 		private void SetStatus(int percentage, TimeSpan remainingTime)
 		{
 			RemainingTimeReceived = true;

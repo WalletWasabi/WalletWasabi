@@ -8,7 +8,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 {
 	public class ContainsNumbersViewModel : RoutableViewModel
 	{
-
 		public ContainsNumbersViewModel(PasswordFinderOptions options)
 		{
 			Options = options;

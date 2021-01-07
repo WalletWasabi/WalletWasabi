@@ -35,7 +35,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 					this.RaisePropertyChanged(nameof(Password));
 					this.RaisePropertyChanged(nameof(ConfirmPassword));
 
-
 					return IsDialogOpen &&
 					       ((enableEmpty && string.IsNullOrEmpty(Password) && string.IsNullOrEmpty(ConfirmPassword)) ||
 					        (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) && !Validations.Any));
