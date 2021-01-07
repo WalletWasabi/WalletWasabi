@@ -16,24 +16,29 @@
                  EnableBack="True">
 
     <ListBox Items="{Binding Charsets}"
-             SelectedItem="{Binding SelectedCharset}">
+             SelectedItem="{Binding SelectedCharset}"
+             Background="Transparent">
       <ListBox.ItemsPanel>
         <ItemsPanelTemplate>
-          <StackPanel HorizontalAlignment="Stretch" />
+          <WrapPanel HorizontalAlignment="Stretch" />
         </ItemsPanelTemplate>
       </ListBox.ItemsPanel>
       <ListBox.ItemTemplate>
         <DataTemplate>
-          <DockPanel LastChildFill="True">
-            <TextBlock FontSize="45" Width="70" TextAlignment="Center" VerticalAlignment="Center" FontWeight="Light" Text="{Binding Converter={x:Static conv:EnumConverters.ToUpperCase}}" DockPanel.Dock="Left"/>
-            <TextBlock FontSize="45" Text="-" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-            <DockPanel DockPanel.Dock="Left" Margin="10 0 0 0" LastChildFill="True">
-              <TextBlock DockPanel.Dock="Bottom" TextWrapping="Wrap" Opacity="0.6" FontSize="12" FontWeight="Light" Text="{Binding Converter={x:Static conv:EnumConverters.ToCharset}}"/>
-              <TextBlock DockPanel.Dock="Top" FontSize="30" FontWeight="Bold" Text="{Binding Converter={x:Static conv:EnumConverters.ToFriendlyName}}"/>
-            </DockPanel>
-          </DockPanel>
+          <Border BoxShadow="{DynamicResource OptionButtonShadow}"
+                  Background="{DynamicResource OptionButtonBackground}"
+                  ToolTip.Tip="{Binding Converter={x:Static conv:EnumConverters.ToCharset}}"
+                  Margin="15"
+                  Width="180"
+                  Height="180">
+            <Panel>
+              <TextBlock FontSize="50" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding Converter={x:Static conv:EnumConverters.ToUpperCase}}"/>
+              <TextBlock Opacity="0.6" Margin="0 0 0 10" FontWeight="Light" HorizontalAlignment="Center" VerticalAlignment="Bottom" Text="{Binding Converter={x:Static conv:EnumConverters.ToFriendlyName}}"/>
+            </Panel>
+          </Border>
         </DataTemplate>
       </ListBox.ItemTemplate>
     </ListBox>
+
   </c:ContentArea>
 </UserControl>
