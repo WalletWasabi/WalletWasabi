@@ -152,7 +152,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			{
 				WalletName = "";
 
-				var termsAndConditions = new TermsAndConditionsViewModel(legalDocuments, this);
+				var termsAndConditions = new TermsAndConditionsViewModel(_legalChecker, this);
 				Navigate().To(termsAndConditions);
 				return true;
 			}
