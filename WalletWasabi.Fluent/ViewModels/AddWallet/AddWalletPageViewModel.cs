@@ -99,6 +99,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
+					if (EnsureTermsAndConditions())
+					{
+						return;
+					}
+
 					var dialogResult = await NavigateDialog(
 						new EnterPasswordViewModel("Type the password of the wallet and click Continue."));
 
@@ -137,14 +142,21 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			if (!inStack)
 			{
-				if (_legalChecker.IsAgreementRequired(out var legalDocuments))
-				{
-					WalletName = "";
-
-					var termsAndConditions = new TermsAndConditionsViewModel(legalDocuments, this);
-					Navigate().To(termsAndConditions);
-				}
+				EnsureTermsAndConditions();
 			}
+		}
+
+		private bool EnsureTermsAndConditions()
+		{
+			if (_legalChecker.IsAgreementRequired(out var legalDocuments))
+			{
+				WalletName = "";
+
+				var termsAndConditions = new TermsAndConditionsViewModel(legalDocuments, this);
+				Navigate().To(termsAndConditions);
+				return true;
+			}
+			return false;
 		}
 
 		private void ValidateWalletName(IValidationErrors errors, WalletManager walletManager, string walletName)

@@ -23,8 +23,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		public LegalDocumentsViewModel(string content = null, LegalDocuments legalDoc = null) : base()
 		{
-			FilePath = legalDoc?.FilePath;
-			Content = content;
+			Content = LegalDoc?.Content;
 
 			LegalDoc = legalDoc;
 			IsAgreed = content is null; // If content wasn't provided, then the filepath must had been provided. If the file exists, then it's agreed.

@@ -15,17 +15,16 @@ namespace WalletWasabi.Legal
 		public const string AssetsFoldername = "Assets";
 		public static readonly string EmbeddedFilePath = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), LegalFolderName, AssetsFoldername, EmbeddedFileName);
 
-		public LegalDocuments(string filePath)
+		public LegalDocuments(Version version, string content)
 		{
-			FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath, trim: true);
-			var verString = Path.GetFileNameWithoutExtension(FilePath);
-			Version = Version.Parse(verString);
+			Version = version;
+			Content = content;
 		}
 
-		public string FilePath { get; }
 		public Version Version { get; }
+		public string Content { get; }
 
-		public static LegalDocuments? TryLoadAgreed(string dataDir)
+		public static async Task<LegalDocuments?> TryLoadAgreedAsync(string dataDir)
 		{
 			var legalFolderPath = Path.Combine(dataDir, LegalFolderName);
 			IoHelpers.EnsureDirectoryExists(legalFolderPath);
@@ -35,7 +34,12 @@ namespace WalletWasabi.Legal
 			if (legalDocCandidateCount == 1)
 			{
 				var filePath = legalDocCandidates.Single();
-				return new LegalDocuments(filePath);
+
+				var content = await File.ReadAllTextAsync(filePath).ConfigureAwait(false);
+				var verString = Path.GetFileNameWithoutExtension(filePath);
+				var version = Version.Parse(verString);
+
+				return new LegalDocuments(version, content);
 			}
 			else if (legalDocCandidateCount > 1)
 			{
@@ -62,21 +66,19 @@ namespace WalletWasabi.Legal
 			}
 		}
 
-		public async Task ToFileAsync(string content)
+		public async Task ToFileAsync(string dataDir)
 		{
-			var legalFolderPath = Path.GetDirectoryName(FilePath);
-			if (legalFolderPath is null)
+			dataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir, trim: true);
+			var legalFolderPath = Path.Combine(dataDir, LegalFolderName);
+			var filePath = Path.Combine(legalFolderPath, $"{Version}.txt");
+
+			if (filePath is null)
 			{
 				throw new InvalidOperationException($"Invalid {nameof(legalFolderPath)}.");
 			}
 
 			RemoveCandidates(legalFolderPath);
-			await File.WriteAllTextAsync(FilePath, content).ConfigureAwait(false);
-		}
-
-		public async Task<string> ReadContentAsync()
-		{
-			return await File.ReadAllTextAsync(FilePath).ConfigureAwait(false);
+			await File.WriteAllTextAsync(filePath, Content).ConfigureAwait(false);
 		}
 	}
 }

@@ -27,13 +27,12 @@ namespace WalletWasabi.Services
 		private string DataDir { get; }
 		public LegalDocuments? CurrentLegalDocument { get; private set; }
 		private LegalDocuments? NewLegalDocument { get; set; }
-		private string? NewLegalContent { get; set; }
 
-		public void Initialize(UpdateChecker updateChecker)
+		public async Task InitializeAsync(UpdateChecker updateChecker)
 		{
 			UpdateChecker = updateChecker;
 			UpdateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
-			CurrentLegalDocument = LegalDocuments.TryLoadAgreed(DataDir);
+			CurrentLegalDocument = await LegalDocuments.TryLoadAgreedAsync(DataDir).ConfigureAwait(false);
 		}
 
 		public bool IsAgreementRequired([NotNullWhen(true)] out LegalDocuments? legalDocuments)
@@ -64,12 +63,11 @@ namespace WalletWasabi.Services
 					if (CurrentLegalDocument is null || CurrentLegalDocument.Version < updateStatus.LegalDocumentsVersion)
 					{
 						var legalFolderPath = Path.Combine(DataDir, LegalDocuments.LegalFolderName);
-						var filePath = Path.Combine(legalFolderPath, $"{updateStatus.LegalDocumentsVersion}.txt");
 
 						// Store the content, in case of agreement it will be saved to file.
-						NewLegalContent = await UpdateChecker.WasabiClient.GetLegalDocumentsAsync(CancellationToken.None).ConfigureAwait(false);
+						var content = await UpdateChecker.WasabiClient.GetLegalDocumentsAsync(CancellationToken.None).ConfigureAwait(false);
 
-						NewLegalDocument = new LegalDocuments(filePath);
+						NewLegalDocument = new LegalDocuments(updateStatus.LegalDocumentsVersion, content);
 					}
 				}
 			}
@@ -83,12 +81,12 @@ namespace WalletWasabi.Services
 		{
 			using (await LegalDocumentLock.LockAsync().ConfigureAwait(false))
 			{
-				if (NewLegalDocument is not { } newLegalDocument || string.IsNullOrEmpty(NewLegalContent))
+				if (NewLegalDocument is not { } newLegalDocument || string.IsNullOrEmpty(newLegalDocument.Content))
 				{
 					throw new InvalidOperationException("Cannot agree the new legal document.");
 				}
 
-				await newLegalDocument.ToFileAsync(NewLegalContent).ConfigureAwait(false);
+				await newLegalDocument.ToFileAsync(DataDir).ConfigureAwait(false);
 
 				CurrentLegalDocument = NewLegalDocument;
 				NewLegalDocument = null;

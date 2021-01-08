@@ -188,12 +188,10 @@ namespace WalletWasabi.Fluent.ViewModels
 					return null;
 				});
 
-			LegalDocumentsViewModel.RegisterAsyncLazy(
-				async () =>
+			LegalDocumentsViewModel.RegisterLazy(
+				() =>
 				{
-					var content = await _global.LegalChecker?.CurrentLegalDocument?.ReadContentAsync();
-
-					var legalDocs = new LegalDocumentsViewModel(content);
+					var legalDocs = new LegalDocumentsViewModel(_global.LegalChecker.CurrentLegalDocument?.Content ?? "");
 
 					return legalDocs;
 				});
