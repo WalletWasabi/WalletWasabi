@@ -35,7 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 				}
 				else
 				{
-					await ShowErrorAsync("We have not found your password, try search again with different options.", "The search has been finished, see the result below.");
+					await ShowErrorAsync("We have not found your password, try search again with different options.", "The search has been finished, see the result below");
 					Navigate().Clear();
 				}
 			});

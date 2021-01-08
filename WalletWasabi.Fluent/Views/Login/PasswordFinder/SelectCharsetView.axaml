@@ -10,7 +10,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Login.PasswordFinder.SelectCharsetView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption="Please select the charset"
+                 Caption="Please select the character set"
                  EnableNext="False"
                  EnableCancel="True"
                  EnableBack="True">
