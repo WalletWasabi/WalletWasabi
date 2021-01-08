@@ -12,7 +12,6 @@ using WalletWasabi.CoinJoin.Coordinator;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.XunitConfiguration;
-using WalletWasabi.Tor.Http;
 using Xunit;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 using UnblindedSignature = WalletWasabi.Crypto.UnblindedSignature;
@@ -25,9 +24,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		public DosTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
-
-			var httpClient = new ClearnetHttpClient(() => new Uri(RegTestFixture.BackendEndPoint));
-			SatoshiClient = new SatoshiClient(httpClient);
+			SatoshiClient = new SatoshiClient(regTestFixture.BackendHttpClient);
 		}
 
 		private RegTestFixture RegTestFixture { get; }

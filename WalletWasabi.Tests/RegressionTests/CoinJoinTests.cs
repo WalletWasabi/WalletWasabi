@@ -46,12 +46,10 @@ namespace WalletWasabi.Tests.RegressionTests
 		{
 			RegTestFixture = regTestFixture;
 			BaseUri = new Uri(RegTestFixture.BackendEndPoint);
-			BackendClearnetHttpClient = new ClearnetHttpClient(() => RegTestFixture.BackendEndPointUri);
 		}
 
 		private RegTestFixture RegTestFixture { get; }
 		public Uri BaseUri { get; }
-		public ClearnetHttpClient BackendClearnetHttpClient { get; }
 
 		[Fact]
 		public async Task CoordinatorCtorTestsAsync()
@@ -110,7 +108,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			coordinator.AbortAllRoundsInInputRegistration("");
 
 			using var torClient = new TorHttpClient(BaseUri, Helpers.Common.TorSocks5Endpoint);
-			var satoshiClient = new SatoshiClient(new ClearnetHttpClient(() => BaseUri));
+			var satoshiClient = new SatoshiClient(RegTestFixture.BackendHttpClient);
 
 			#region PostInputsGetStates
 
@@ -614,8 +612,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				{
-					var bobClient1 = new BobClient(BackendClearnetHttpClient);
-					var bobClient2 = new BobClient(BackendClearnetHttpClient);
+					var bobClient1 = new BobClient(RegTestFixture.BackendHttpClient);
+					var bobClient2 = new BobClient(RegTestFixture.BackendHttpClient);
 					await bobClient1.PostOutputAsync(aliceClient1.RoundId, new ActiveOutput(outputAddress1, connConfResp.activeOutputs.First().Signature, 0));
 					await bobClient2.PostOutputAsync(aliceClient2.RoundId, new ActiveOutput(outputAddress2, connConfResp2.activeOutputs.First().Signature, 0));
 				}
@@ -686,7 +684,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 				Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
 
-				var wasabiClient = new WasabiClient(BackendClearnetHttpClient);
+				var wasabiClient = new WasabiClient(RegTestFixture.BackendHttpClient);
 				var syncInfo = await wasabiClient.GetSynchronizeAsync(blockHashed[0], 1);
 				Assert.Contains(unsignedCoinJoin.GetHash(), syncInfo.UnconfirmedCoinJoins);
 				var txs = await wasabiClient.GetTransactionsAsync(network, new[] { unsignedCoinJoin.GetHash() }, CancellationToken.None);
@@ -711,7 +709,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
 			using var torClient = new TorHttpClient(baseUri, Helpers.Common.TorSocks5Endpoint);
-			var satoshiClient = new SatoshiClient(new ClearnetHttpClient(() => BaseUri));
+			var satoshiClient = new SatoshiClient(RegTestFixture.BackendHttpClient);
 			var round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 			var roundId = round.RoundId;
 
@@ -795,7 +793,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			Assert.Equal(RoundPhase.OutputRegistration, roundState.Phase);
 
 			var l = 0;
-			var bobClient = new BobClient(BackendClearnetHttpClient);
+			var bobClient = new BobClient(RegTestFixture.BackendHttpClient);
 
 			foreach (var (aliceClient, outputs, _) in participants)
 			{
@@ -991,7 +989,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var outputRequests = new List<Task>();
 			foreach (var user in users)
 			{
-				var bobClient = new BobClient(BackendClearnetHttpClient);
+				var bobClient = new BobClient(RegTestFixture.BackendHttpClient);
 				outputRequests.Add(bobClient.PostOutputAsync(roundId, new ActiveOutput(user.activeOutputAddress, user.unblindedSignature, 0)));
 			}
 
