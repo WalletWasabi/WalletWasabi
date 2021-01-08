@@ -4,7 +4,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 {
 	public partial class PasswordFinderResultViewModel : RoutableViewModel
 	{
-		[AutoNotify] private string? _password;
+		[AutoNotify] private string _password;
 		[AutoNotify] private bool _success;
 
 		public PasswordFinderResultViewModel(string password)
