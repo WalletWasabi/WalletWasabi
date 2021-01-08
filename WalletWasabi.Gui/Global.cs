@@ -50,7 +50,7 @@ namespace WalletWasabi.Gui
 		public string DataDir { get; }
 		public TorSettings TorSettings { get; }
 		public BitcoinStore BitcoinStore { get; }
-		public LegalChecker? LegalChecker { get; private set; }
+		public LegalChecker LegalChecker { get; private set; }
 		public Config Config { get; }
 
 		public string AddressManagerFilePath { get; private set; }
@@ -107,6 +107,7 @@ namespace WalletWasabi.Gui
 					: new WasabiClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
 
 				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, wasabiClientFactory);
+				LegalChecker = new(DataDir);
 			}
 		}
 
@@ -142,7 +143,8 @@ namespace WalletWasabi.Gui
 				var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
 				UpdateChecker updateChecker = new(TimeSpan.FromMinutes(7), Synchronizer);
 
-				LegalChecker = new(updateChecker, DataDir);
+				LegalChecker.Initialize(updateChecker);
+
 				HostedServices.Register(updateChecker, "Software Update Checker");
 
 				HostedServices.Register(new SystemAwakeChecker(WalletManager), "System Awake Checker");

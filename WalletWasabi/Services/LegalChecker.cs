@@ -17,19 +17,24 @@ namespace WalletWasabi.Services
 	{
 		private bool _disposedValue;
 
-		public LegalChecker(UpdateChecker updateChecker, string dataDir)
+		public LegalChecker(string dataDir)
 		{
-			UpdateChecker = updateChecker;
 			DataDir = dataDir;
-			UpdateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
 		}
 
 		private AsyncLock LegalDocumentLock { get; } = new();
-		private UpdateChecker UpdateChecker { get; }
+		private UpdateChecker? UpdateChecker { get; set; }
 		private string DataDir { get; }
 		public LegalDocuments? CurrentLegalDocument { get; private set; }
 		private LegalDocuments? NewLegalDocument { get; set; }
 		private string? NewLegalContent { get; set; }
+
+		public void Initialize(UpdateChecker updateChecker)
+		{
+			UpdateChecker = updateChecker;
+			UpdateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
+			CurrentLegalDocument = LegalDocuments.TryLoadAgreed(DataDir);
+		}
 
 		public bool IsAgreementRequired([NotNullWhen(true)] out LegalDocuments? legalDocuments)
 		{
@@ -48,6 +53,11 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
+				if (UpdateChecker is null)
+				{
+					return;
+				}
+
 				using (await LegalDocumentLock.LockAsync().ConfigureAwait(false))
 				{
 					// If we don't have it or there is a new one.
@@ -91,7 +101,10 @@ namespace WalletWasabi.Services
 			{
 				if (disposing)
 				{
-					UpdateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
+					if (UpdateChecker is { } updateChecker)
+					{
+						updateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
+					}
 				}
 
 				_disposedValue = true;
