@@ -18,9 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			ViewTermsCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					var content = await File.ReadAllTextAsync(legalDocuments.FilePath);
-
-					var legalDocs = new LegalDocumentsViewModel(content);
+					var legalDocs = new LegalDocumentsViewModel(await legalDocuments.ReadContentAsync());
 
 					Navigate().To(legalDocs);
 				});

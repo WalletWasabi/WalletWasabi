@@ -68,7 +68,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			_walletManager = new WalletManagerViewModel(global.WalletManager, global.UiConfig);
 
 			_addWalletPage = new AddWalletPageViewModel(
-				global.LegalDocuments,
+				global.LegalChecker,
 				global.WalletManager,
 				global.BitcoinStore,
 				global.Network);
@@ -191,7 +191,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			LegalDocumentsViewModel.RegisterAsyncLazy(
 				async () =>
 				{
-					var content = await File.ReadAllTextAsync(_global.LegalDocuments.FilePath);
+					var content = await _global.LegalChecker?.CurrentLegalDocument?.ReadContentAsync();
 
 					var legalDocs = new LegalDocumentsViewModel(content);
 

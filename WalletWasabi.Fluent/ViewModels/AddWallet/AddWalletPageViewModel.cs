@@ -19,6 +19,7 @@ using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Helpers;
 using WalletWasabi.Legal;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
@@ -38,17 +39,17 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		[AutoNotify] private bool _enableBack;
 		[AutoNotify] private bool _enableCancel;
 
-		private readonly LegalDocuments _legalDocuments;
+		private readonly LegalChecker _legalChecker;
 
 		public AddWalletPageViewModel(
-			LegalDocuments legalDocuments,
+			LegalChecker legalChecker,
 			WalletManager walletManager,
 			BitcoinStore store,
 			Network network)
 		{
 			Title = "Add Wallet";
 			SelectionMode = NavBarItemSelectionMode.Button;
-			_legalDocuments = legalDocuments;
+			_legalChecker = legalChecker;
 
 			var enableBack = default(IDisposable);
 
@@ -136,11 +137,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			if (!inStack)
 			{
-				WalletName = "";
+				if (_legalChecker.IsAgreementRequired(out var legalDocuments))
+				{
+					WalletName = "";
 
-				var termsAndConditions = new TermsAndConditionsViewModel(_legalDocuments, this);
-
-				Navigate().To(termsAndConditions);
+					var termsAndConditions = new TermsAndConditionsViewModel(legalDocuments, this);
+					Navigate().To(termsAndConditions);
+				}
 			}
 		}
 

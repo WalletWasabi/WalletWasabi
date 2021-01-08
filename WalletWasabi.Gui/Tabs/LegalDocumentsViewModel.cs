@@ -32,8 +32,10 @@ namespace WalletWasabi.Gui.Tabs
 			AgreeClicked = ReactiveCommand.CreateFromTask(async () =>
 			{
 				IsAgreed = true;
-				await LegalDoc.ToFileAsync(Content);
-				Locator.Current.GetService<Global>().LegalDocuments = LegalDoc;
+				if (Locator.Current.GetService<Global>().LegalChecker is { } legalChecker)
+				{
+					await legalChecker.AgreeAsync().ConfigureAwait(false);
+				}
 				Close();
 			});
 

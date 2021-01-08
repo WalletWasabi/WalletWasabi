@@ -50,8 +50,7 @@ namespace WalletWasabi.Gui
 		public string DataDir { get; }
 		public TorSettings TorSettings { get; }
 		public BitcoinStore BitcoinStore { get; }
-		public LegalDocuments LegalDocuments { get; set; }
-		public LegalChecker LegalChecker { get; private set; }
+		public LegalChecker? LegalChecker { get; private set; }
 		public Config Config { get; }
 
 		public string AddressManagerFilePath { get; private set; }
@@ -91,8 +90,6 @@ namespace WalletWasabi.Gui
 
 				HostedServices = new HostedServices();
 				WalletManager = walletManager;
-
-				LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
 
 				WalletManager.OnDequeue += WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;

@@ -75,7 +75,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 			LegalDocumentsCommand = new CommandDefinition(
 				"Legal Documents",
 				commandIconService.GetCompletionKindImage("LegalDocuments"),
-				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(legalDoc: Locator.Current.GetService<Global>()?.LegalDocuments))));
+				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(legalDoc: Locator.Current.GetService<Global>()?.LegalChecker?.CurrentLegalDocument))));
 
 			Observable
 				.Merge(AboutCommand.GetReactiveCommand().ThrownExceptions)

@@ -73,5 +73,10 @@ namespace WalletWasabi.Legal
 			RemoveCandidates(legalFolderPath);
 			await File.WriteAllTextAsync(FilePath, content).ConfigureAwait(false);
 		}
+
+		public async Task<string> ReadContentAsync()
+		{
+			return await File.ReadAllTextAsync(FilePath).ConfigureAwait(false);
+		}
 	}
 }

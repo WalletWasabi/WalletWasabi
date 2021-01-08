@@ -1,6 +1,7 @@
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -26,17 +27,28 @@ namespace WalletWasabi.Services
 		private AsyncLock LegalDocumentLock { get; } = new();
 		private UpdateChecker UpdateChecker { get; }
 		private string DataDir { get; }
-		private LegalDocuments? CurrentLegalDocument { get; set; }
+		public LegalDocuments? CurrentLegalDocument { get; private set; }
 		private LegalDocuments? NewLegalDocument { get; set; }
 		private string? NewLegalContent { get; set; }
 
-		public bool IsAgreementRequired => NewLegalDocument is { };
+		public bool IsAgreementRequired([NotNullWhen(true)] out LegalDocuments? legalDocuments)
+		{
+			legalDocuments = null;
+
+			if (NewLegalDocument is { } legal)
+			{
+				legalDocuments = legal;
+				return true;
+			}
+
+			return false;
+		}
 
 		private async void UpdateChecker_UpdateStatusChangedAsync(object? _, UpdateStatus updateStatus)
 		{
 			try
 			{
-				using (await LegalDocumentLock.LockAsync())
+				using (await LegalDocumentLock.LockAsync().ConfigureAwait(false))
 				{
 					// If we don't have it or there is a new one.
 					if (CurrentLegalDocument is null || CurrentLegalDocument.Version < updateStatus.LegalDocumentsVersion)
@@ -59,7 +71,7 @@ namespace WalletWasabi.Services
 
 		public async Task AgreeAsync()
 		{
-			using (await LegalDocumentLock.LockAsync())
+			using (await LegalDocumentLock.LockAsync().ConfigureAwait(false))
 			{
 				if (NewLegalDocument is not { } newLegalDocument || string.IsNullOrEmpty(NewLegalContent))
 				{
