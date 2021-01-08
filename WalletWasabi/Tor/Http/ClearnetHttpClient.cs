@@ -1,5 +1,4 @@
 using System;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,27 +12,16 @@ namespace WalletWasabi.Tor.Http
 	/// <remarks>Inner <see cref="HttpClient"/> instance is thread-safe.</remarks>
 	public class ClearnetHttpClient : IRelativeHttpClient
 	{
-		static ClearnetHttpClient()
-		{
-			var socketHandler = new SocketsHttpHandler()
-			{
-				// Only GZip is currently used by Wasabi Backend.
-				AutomaticDecompression = DecompressionMethods.GZip,
-				PooledConnectionLifetime = TimeSpan.FromMinutes(5)
-			};
-
-			HttpClient = new HttpClient(socketHandler);
-		}
-
-		public ClearnetHttpClient(Func<Uri> destinationUriAction)
+		public ClearnetHttpClient(HttpClient httpClient, Func<Uri> destinationUriAction)
 		{
 			DestinationUriAction = destinationUriAction;
+			HttpClient = httpClient;
 		}
 
 		public Func<Uri> DestinationUriAction { get; }
 
 		/// <summary>Predefined HTTP client that handles HTTP requests when Tor is disabled.</summary>
-		private static HttpClient HttpClient { get; }
+		private HttpClient HttpClient { get; }
 
 		/// <summary>The value is not used at the moment.</summary>
 		/// <remarks>

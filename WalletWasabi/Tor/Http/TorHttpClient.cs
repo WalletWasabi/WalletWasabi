@@ -15,6 +15,7 @@ using WalletWasabi.Tor.Http.Models;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Tor.Http
 {
@@ -70,7 +71,7 @@ namespace WalletWasabi.Tor.Http
 
 		private Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request, bool isolateStream, CancellationToken cancellationToken = default)
 		{
-			return new ClearnetHttpClient(DestinationUriAction).SendAsync(request, isolateStream, cancellationToken);
+			return new ClearnetHttpClient(WasabiClientFactory.HttpClient, DestinationUriAction).SendAsync(request, isolateStream, cancellationToken);
 		}
 
 		/// <remarks>

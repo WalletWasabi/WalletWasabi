@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using System.Net.Http;
 using WalletWasabi.Tor.Http;
 
 namespace WalletWasabi.WebClients.Wasabi
@@ -13,6 +14,19 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// To detect redundant calls.
 		/// </summary>
 		private bool _disposed = false;
+
+		/// <summary>Temporary solution until #4738 PR is merged. Static constructor will be removed then.</summary>
+		static WasabiClientFactory()
+		{
+			SocketHandler = new SocketsHttpHandler()
+			{
+				// Only GZip is currently used by Wasabi Backend.
+				AutomaticDecompression = DecompressionMethods.GZip,
+				PooledConnectionLifetime = TimeSpan.FromMinutes(5)
+			};
+
+			HttpClient = new HttpClient(SocketHandler);
+		}
 
 		/// <summary>
 		/// Creates a new instance of the object.
@@ -29,7 +43,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			}
 			else
 			{
-				BackendHttpClient = new ClearnetHttpClient(BackendUriGetter);
+				BackendHttpClient = new ClearnetHttpClient(HttpClient, BackendUriGetter);
 			}
 
 			SharedWasabiClient = new WasabiClient(BackendHttpClient);
@@ -44,6 +58,13 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		/// <summary>Whether Tor is enabled or disabled.</summary>
 		public bool IsTorEnabled => TorEndpoint is { };
+
+		/// <remarks>The goal is to make this field non-static when #4738 PR is merged.</remarks>
+		private static SocketsHttpHandler SocketHandler;
+
+		/// <summary>.NET HTTP client to be used by <see cref="ClearnetHttpClient"/> instances.</summary>
+		/// <remarks>The goal is to make this field non-static when #4738 PR is merged.</remarks>
+		public static HttpClient HttpClient { get; }
 
 		/// <summary>Backend HTTP client, shared instance.</summary>
 		private IRelativeHttpClient BackendHttpClient { get; }
@@ -70,7 +91,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			}
 			else
 			{
-				return new ClearnetHttpClient(baseUriFn);
+				return new ClearnetHttpClient(HttpClient, baseUriFn);
 			}
 		}
 
@@ -97,6 +118,9 @@ namespace WalletWasabi.WebClients.Wasabi
 				{
 					httpClient.Dispose();
 				}
+
+				HttpClient.Dispose();
+				SocketHandler.Dispose();
 			}
 
 			_disposed = true;
