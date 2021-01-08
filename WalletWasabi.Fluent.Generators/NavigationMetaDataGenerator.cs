@@ -90,7 +90,7 @@ namespace WalletWasabi.Fluent
 		{
 			context.AddSource("NavigationMetaDataAttribute", SourceText.From(AttributeText, Encoding.UTF8));
 
-			if (!(context.SyntaxReceiver is SyntaxReceiver receiver))
+			if (context.SyntaxReceiver is not SyntaxReceiver receiver)
 			{
 				return;
 			}

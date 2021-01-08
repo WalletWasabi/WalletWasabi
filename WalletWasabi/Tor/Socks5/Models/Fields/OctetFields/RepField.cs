@@ -21,32 +21,28 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.OctetFields
 	/// <seealso href="https://www.ietf.org/rfc/rfc1928.txt"/>
 	public class RepField : OctetSerializableBase
 	{
+		public static readonly RepField Succeeded = new RepField((byte)ReplyType.Succeeded);
+
+		public static readonly RepField GeneralSocksServerFailure = new RepField((byte)ReplyType.GeneralSocksServerFailure);
+
+		public static readonly RepField CconnectionNotAllowedByRuleset = new RepField((byte)ReplyType.ConnectionNotAllowedByRuleset);
+
+		public static readonly RepField NetworkUnreachable = new RepField((byte)ReplyType.NetworkUnreachable);
+
+		public static readonly RepField HostUnreachable = new RepField((byte)ReplyType.HostUnreachable);
+
+		public static readonly RepField ConnectionRefused = new RepField((byte)ReplyType.ConnectionRefused);
+
+		public static readonly RepField TtlExpired = new RepField((byte)ReplyType.TtlExpired);
+
+		public static readonly RepField CommandNoSupported = new RepField((byte)ReplyType.CommandNotSupported);
+
+		public static readonly RepField AddressTypeNotSupported = new RepField((byte)ReplyType.AddressTypeNotSupported);
+
 		public RepField(byte byteValue)
 		{
 			ByteValue = byteValue;
 		}
-
-		#region Statics
-
-		public static RepField Succeeded => new RepField((byte)ReplyType.Succeeded);
-
-		public static RepField GeneralSocksServerFailure => new RepField((byte)ReplyType.GeneralSocksServerFailure);
-
-		public static RepField CconnectionNotAllowedByRuleset => new RepField((byte)ReplyType.ConnectionNotAllowedByRuleset);
-
-		public static RepField NetworkUnreachable => new RepField((byte)ReplyType.NetworkUnreachable);
-
-		public static RepField HostUnreachable => new RepField((byte)ReplyType.HostUnreachable);
-
-		public static RepField ConnectionRefused => new RepField((byte)ReplyType.ConnectionRefused);
-
-		public static RepField TtlExpired => new RepField((byte)ReplyType.TtlExpired);
-
-		public static RepField CommandNoSupported => new RepField((byte)ReplyType.CommandNotSupported);
-
-		public static RepField AddressTypeNotSupported => new RepField((byte)ReplyType.AddressTypeNotSupported);
-
-		#endregion Statics
 
 		public override string ToString()
 		{
