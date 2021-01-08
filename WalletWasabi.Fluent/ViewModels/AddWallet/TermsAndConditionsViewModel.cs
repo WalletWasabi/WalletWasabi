@@ -15,8 +15,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			Title = "Welcome to Wasabi Wallet";
 
-			ViewTermsCommand = ReactiveCommand.CreateFromTask(
-				async () =>
+			ViewTermsCommand = ReactiveCommand.Create(
+				() =>
 				{
 					var legalDocs = new LegalDocumentsViewModel(legalDocuments.Content);
 
