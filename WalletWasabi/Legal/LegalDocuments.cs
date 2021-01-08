@@ -25,7 +25,7 @@ namespace WalletWasabi.Legal
 		public string FilePath { get; }
 		public Version Version { get; }
 
-		public static LegalDocuments TryLoadAgreed(string dataDir)
+		public static LegalDocuments? TryLoadAgreed(string dataDir)
 		{
 			var legalFolderPath = Path.Combine(dataDir, LegalFolderName);
 			IoHelpers.EnsureDirectoryExists(legalFolderPath);
@@ -65,6 +65,11 @@ namespace WalletWasabi.Legal
 		public async Task ToFileAsync(string content)
 		{
 			var legalFolderPath = Path.GetDirectoryName(FilePath);
+			if (legalFolderPath is null)
+			{
+				throw new InvalidOperationException($"Invalid {nameof(legalFolderPath)}.");
+			}
+
 			RemoveCandidates(legalFolderPath);
 			await File.WriteAllTextAsync(FilePath, content).ConfigureAwait(false);
 		}
