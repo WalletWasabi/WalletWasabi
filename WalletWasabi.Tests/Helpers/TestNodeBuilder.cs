@@ -29,6 +29,7 @@ namespace WalletWasabi.Tests.Helpers
 					EndPointStrategy.Random,
 					txIndex: 1,
 					prune: 0,
+					daemon: 0,
 					mempoolReplacement: "fee,optin",
 					userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
 					fallbackFee: Money.Coins(0.0002m), // https://github.com/bitcoin/bitcoin/pull/16524

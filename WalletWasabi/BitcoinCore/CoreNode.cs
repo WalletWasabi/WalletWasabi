@@ -152,6 +152,11 @@ namespace WalletWasabi.BitcoinCore
 					desiredConfigLines.Add($"{configPrefix}.prune = {coreNodeParams.Prune}");
 				}
 
+				if (coreNodeParams.Daemon is { })
+				{
+					desiredConfigLines.Add($"{configPrefix}.daemon = {coreNodeParams.Daemon}");
+				}
+
 				if (coreNodeParams.MempoolReplacement is { })
 				{
 					desiredConfigLines.Add($"{configPrefix}.mempoolreplacement = {coreNodeParams.MempoolReplacement}");
