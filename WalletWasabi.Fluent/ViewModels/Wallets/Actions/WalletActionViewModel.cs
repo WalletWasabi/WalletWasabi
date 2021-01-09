@@ -2,11 +2,11 @@
 using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.WalletPages
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 {
-	public abstract partial class WalletPageViewModel : NavBarItemViewModel
+	public abstract partial class WalletActionViewModel : NavBarItemViewModel
 	{
-		protected WalletPageViewModel(Wallet wallet)
+		protected WalletActionViewModel(Wallet wallet)
 		{
 			Wallet = Guard.NotNull(nameof(wallet), wallet);
 		}
