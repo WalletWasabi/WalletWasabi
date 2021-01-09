@@ -8,9 +8,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 		IconName = "web_asset_regular",
 		NavBarPosition = NavBarPosition.None,
 		NavigationTarget = NavigationTarget.HomeScreen)]
-	public partial class SendWalletViewActionModel : WalletActionViewModel
+	public partial class SendWalletActionViewModel : WalletActionViewModel
 	{
-		public SendWalletViewActionModel(Wallet wallet) : base(wallet)
+		public SendWalletActionViewModel(Wallet wallet) : base(wallet)
 		{
 		}
 	}
