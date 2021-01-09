@@ -5,69 +5,10 @@
   <Style Selector="c|LoginControl">
     <Setter Property="Template">
       <ControlTemplate>
-        <DockPanel HorizontalAlignment="Stretch"
-                   VerticalAlignment="Center"
-                   LastChildFill="True">
 
-          <Panel Height="150" MaxWidth="400" DockPanel.Dock="Bottom">
-            <Panel IsVisible="{Binding !IsPasswordIncorrect}"
-                   Classes="fadeAnimation">
-
-              <!-- Enter password -->
-              <StackPanel VerticalAlignment="Bottom"
-                          IsVisible="{Binding IsPasswordNeeded}"
-                          Classes="fadeAnimation">
-                <Label Content="Password:"/>
-                <TextBox Text="{Binding Password}" Watermark="type here..." PasswordChar="•" Classes="revealPasswordButton"/>
-                <Panel Margin="0 -20 0 0 ">
-                  <Button Classes="activeHyperLink skip" Content="Forgot password?" HorizontalAlignment="Left"/>
-                  <Button Content="Login" IsDefault="True" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}"/>
-                </Panel>
-              </StackPanel>
-
-              <!-- Hardware & Watch only wallet -->
-              <StackPanel Classes="fadeAnimation"
-                          IsVisible="{Binding !IsPasswordNeeded}"
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Center">
-                <Button Content="Login" Classes="action" Command="{Binding NextCommand}"/>
-              </StackPanel>
-
-            </Panel>
-
-            <!-- Incorrect password -->
-            <StackPanel Spacing="20"
-                        IsVisible="{Binding IsPasswordIncorrect}"
-                        VerticalAlignment="Bottom"
-                        Classes="fadeAnimation">
-              <TextBlock Text="The password is incorrect! Try Again." HorizontalAlignment="Center"/>
-              <Button Content="OK" Classes="action" HorizontalAlignment="Center" Command="{Binding OkCommand}"/>
-            </StackPanel>
-
-          </Panel>
-
-          <!-- Icon -->
-          <Viewbox MaxHeight="200">
-            <Image Source="{Binding SelectedWallet.Wallet.KeyManager, Converter={x:Static conv:WalletIconConverter.KeyManagerToImage}}" />
-          </Viewbox>
-
-        </DockPanel>
       </ControlTemplate>
     </Setter>
   </Style>
 
-  <Style Selector="StackPanel.fadeAnimation[IsVisible=true], Panel.fadeAnimation[IsVisible=true]">
-    <Setter Property="Opacity" Value="1"/>
-  </Style>
-  <Style Selector="StackPanel.fadeAnimation[IsVisible=False], Panel.fadeAnimation[IsVisible=False]">
-    <Setter Property="Opacity" Value="0"/>
-  </Style>
 
-  <Style Selector="Panel.fadeAnimation, StackPanel.fadeAnimation">
-    <Setter Property="Transitions">
-      <Transitions>
-        <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
-      </Transitions>
-    </Setter>
-  </Style>
 </Styles>

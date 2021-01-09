@@ -113,11 +113,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				MainScreen.To(_addWalletPage);
 			}
-			else
-			{
-				FullScreen.To(new FullScreenLoginViewModel(global.WalletManager, _walletManager.Items, _searchPage, _addWalletPage));
-			}
-
 		}
 
 		public TargettedNavigationStack MainScreen { get; }
