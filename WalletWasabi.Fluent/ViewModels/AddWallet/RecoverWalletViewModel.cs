@@ -13,7 +13,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui.Validation;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -97,7 +96,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 								.walletFilePath;
 
 							var result = KeyManager.Recover(
-								CurrentMnemonics,
+								CurrentMnemonics!,
 								password!,
 								walletFilePath,
 								AccountKeyPath,
