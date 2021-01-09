@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using WalletWasabi.Fluent.ViewModels.Wallets.Actions;
 using WalletWasabi.Gui;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -50,11 +51,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			if (Wallet.KeyManager.IsHardwareWallet || !Wallet.KeyManager.IsWatchOnly)
 			{
+				_actions.Add(new SendWalletActionViewModel(Wallet));
 			}
+
+			_actions.Add(new ReceiveWalletActionViewModel(Wallet));
 
 			if (!Wallet.KeyManager.IsWatchOnly)
 			{
+				_actions.Add(new CoinJoinWalletActionViewModel(Wallet));
 			}
+
+			_actions.Add(new AdvancedWalletActionViewModel(Wallet));
 		}
 
 		private CompositeDisposable Disposables { get; set; }
