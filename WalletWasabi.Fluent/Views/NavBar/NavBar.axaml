@@ -143,7 +143,9 @@
         </Style>
       </c:NavBarTreeView.Styles>
       <c:NavBarTreeView.ItemTemplate>
-        <TreeDataTemplate ItemsSource="{Binding Items}" x:CompileBindings="False">
+      </c:NavBarTreeView.ItemTemplate>
+      <c:NavBarTreeView.DataTemplates>
+        <TreeDataTemplate x:DataType="vm:NavBarItemViewModel" ItemsSource="{Binding Items}" x:CompileBindings="False">
           <Panel>
             <Panel Width="45" HorizontalAlignment="Left">
               <PathIcon HorizontalAlignment="Left">
@@ -155,7 +157,10 @@
             <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
           </Panel>
         </TreeDataTemplate>
-      </c:NavBarTreeView.ItemTemplate>
+        <DataTemplate x:DataType="vm:SeparatorItemViewModel" x:CompileBindings="False">
+          <Separator IsHitTestVisible="False"/>
+        </DataTemplate>
+      </c:NavBarTreeView.DataTemplates>
     </c:NavBarTreeView>
   </DockPanel>
 </UserControl>
