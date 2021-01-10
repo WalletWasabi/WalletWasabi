@@ -11,5 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 		}
 
 		public WalletViewModelBase Wallet { get; }
+
+		public override string ToString() => Title;
 	}
 }

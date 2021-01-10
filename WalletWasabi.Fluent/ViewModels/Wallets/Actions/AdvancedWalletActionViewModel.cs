@@ -12,5 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 		public AdvancedWalletActionViewModel(WalletViewModelBase wallet) : base(wallet)
 		{
 		}
+
+		public string Title => "Advanced";
 	}
 }

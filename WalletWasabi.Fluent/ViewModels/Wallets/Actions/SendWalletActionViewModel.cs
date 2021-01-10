@@ -12,5 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 		public SendWalletActionViewModel(WalletViewModelBase wallet) : base(wallet)
 		{
 		}
+
+		public string Title => "Send";
 	}
 }

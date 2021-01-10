@@ -12,5 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 		public CoinJoinWalletActionViewModel(WalletViewModelBase wallet) : base(wallet)
 		{
 		}
+
+		public string Title => "CoinJoin";
 	}
 }
