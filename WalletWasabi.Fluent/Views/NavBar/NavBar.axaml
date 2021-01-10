@@ -145,7 +145,7 @@
       </c:NavBarTreeView.Styles>
       <!-- TODO: TEMP -->
       <!--<c:NavBarTreeView.ItemTemplate>
-        <TreeDataTemplate x:DataType="vm:NavBarItemViewModel" ItemsSource="{Binding Items}" x:CompileBindings="False">
+        <TreeDataTemplate ItemsSource="{Binding Items}" x:CompileBindings="False">
           <Panel>
             <Panel Width="45" HorizontalAlignment="Left">
               <PathIcon HorizontalAlignment="Left">
