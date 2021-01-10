@@ -104,36 +104,41 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				walletViewModel.OpenWalletTabs();
 
-				// TODO: TEMP
-				var index = _wallets.IndexOf(walletViewModel);
-				if (index >= 0)
-				{
-					// Add top separator only when wallet is not first item.
-					if (index > 0)
-					{
-						var topSeparator = new SeparatorItemViewModel();
-						_items.Insert(index, topSeparator);
-						index += 1;
-					}
-
-					for (var i = 0; i < walletViewModel.Actions.Count; i++)
-					{
-						var action = walletViewModel.Actions[i];
-						_items.Insert(index + i + 1, action);
-					}
-
-					// Add bottom separator only when wallet is not first or last item.
-					if (_wallets.Count > 1 && index != _wallets.Count - 1)
-					{
-						var bottomSeparator = new SeparatorItemViewModel();
-						_items.Insert(index + walletViewModel.Actions.Count + 1, bottomSeparator);
-					}
-				}
+				OpenActions(walletViewModel);
 			}
 
 			walletViewModel.IsExpanded = true;
 
 			return walletViewModel;
+		}
+
+		private void OpenActions(WalletViewModel walletViewModel)
+		{
+			// TODO: TEMP
+			var index = _wallets.IndexOf(walletViewModel);
+			if (index >= 0)
+			{
+				// Add top separator only when wallet is not first item.
+				if (index > 0)
+				{
+					var topSeparator = new SeparatorItemViewModel();
+					_items.Insert(index, topSeparator);
+					index += 1;
+				}
+
+				for (var i = 0; i < walletViewModel.Actions.Count; i++)
+				{
+					var action = walletViewModel.Actions[i];
+					_items.Insert(index + i + 1, action);
+				}
+
+				// Add bottom separator only when wallet is not first or last item.
+				if (_wallets.Count > 1 && index != _wallets.Count - 1)
+				{
+					var bottomSeparator = new SeparatorItemViewModel();
+					_items.Insert(index + walletViewModel.Actions.Count + 1, bottomSeparator);
+				}
+			}
 		}
 
 		private void InsertWallet(WalletViewModelBase wallet)
