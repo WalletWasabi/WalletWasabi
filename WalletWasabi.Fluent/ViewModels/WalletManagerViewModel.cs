@@ -99,7 +99,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			InsertWallet(walletViewModel);
 
-			if (!walletManager.AnyWallet(x => x.State >= WalletState.Started && x != walletViewModel.Wallet))
+			// TODO: TEMP
+			//if (!walletManager.AnyWallet(x => x.State >= WalletState.Started && x != walletViewModel.Wallet))
 			{
 				walletViewModel.OpenWalletTabs();
 
