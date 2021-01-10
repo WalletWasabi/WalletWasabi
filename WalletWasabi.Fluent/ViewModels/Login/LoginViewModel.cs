@@ -18,12 +18,13 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 		[AutoNotify] private bool _isPasswordIncorrect;
 		[AutoNotify] private bool _isPasswordNeeded;
 		[AutoNotify] private WalletViewModelBase? _selectedWallet;
+		[AutoNotify] private string _walletName;
 
 		public LoginViewModel(WalletViewModelBase wallet, WalletManager walletManager)
 		{
 			SelectedWallet = wallet;
-
 			_password = "";
+			_walletName = wallet.WalletName;
 
 			this.WhenAnyValue(x => x.SelectedWallet)
 				.ObserveOn(RxApp.MainThreadScheduler)
