@@ -5,6 +5,8 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:login="clr-namespace:WalletWasabi.Fluent.ViewModels.Login"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="login:LoginViewModel"
              x:CompileBindings="True"
@@ -50,7 +52,11 @@
           <StackPanel VerticalAlignment="Bottom"
                       IsVisible="{Binding IsPasswordNeeded}"
                       Classes="fadeAnimation">
-            <TextBox Text="{Binding Password}" Watermark="Password" PasswordChar="•" Classes="revealPasswordButton"/>
+            <TextBox Text="{Binding Password}" Watermark="Password" PasswordChar="•" Classes="revealPasswordButton">
+              <i:Interaction.Behaviors>
+                <behaviors:FocusOnAttachedBehavior />
+              </i:Interaction.Behaviors>
+            </TextBox>
             <Panel Margin="0 -20 0 0 ">
               <Button Classes="activeHyperLink skip" Content="Forgot password?" HorizontalAlignment="Left"/>
               <Button Content="Login" IsDefault="True" IsVisible="{Binding !IsPasswordIncorrect}" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}"/>
