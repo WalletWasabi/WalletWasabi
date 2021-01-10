@@ -5,7 +5,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 	[NavigationMetaData(
 		Title = "Receive",
 		Caption = "",
-		IconName = "web_asset_regular",
+		IconName = "wallet_action_receive",
 		NavBarPosition = NavBarPosition.None,
 		NavigationTarget = NavigationTarget.HomeScreen)]
 	public partial class ReceiveWalletActionViewModel : WalletActionViewModel

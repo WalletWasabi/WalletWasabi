@@ -5,7 +5,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 	[NavigationMetaData(
 		Title = "Advanced",
 		Caption = "",
-		IconName = "web_asset_regular",
+		IconName = "wallet_action_advanced",
 		NavBarPosition = NavBarPosition.None,
 		NavigationTarget = NavigationTarget.HomeScreen)]
 	public partial class AdvancedWalletActionViewModel : WalletActionViewModel
