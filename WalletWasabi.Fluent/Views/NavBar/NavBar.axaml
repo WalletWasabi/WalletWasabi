@@ -159,7 +159,7 @@
         </TreeDataTemplate>
       </c:NavBarTreeView.ItemTemplate>-->
       <c:NavBarTreeView.DataTemplates>
-        <DataTemplate x:DataType="vmw:WalletViewModelBase" x:CompileBindings="False">
+        <DataTemplate DataType="vmw:WalletViewModelBase" x:CompileBindings="False">
           <Panel>
             <Panel Width="45" HorizontalAlignment="Left">
               <PathIcon HorizontalAlignment="Left">
