@@ -8,6 +8,7 @@
              xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.NavBar"
              xmlns:vmw="using:WalletWasabi.Fluent.ViewModels.Wallets"
+             xmlns:vmwa="using:WalletWasabi.Fluent.ViewModels.Wallets.Actions"
              xmlns:rx="using:System.Reactive"
              x:DataType="vm:NavBarViewModel"
              x:CompileBindings="True"
