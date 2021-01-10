@@ -14,6 +14,6 @@
       </i:Interaction.Behaviors>
     </TextBox>
     <!-- TODO: TEMP -->
-    <Button Content="Login" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}"/>
+    <Button Content="Login" Classes="action" HorizontalAlignment="Right" Command="{Binding OpenWalletCommand}"/>
   </StackPanel>
 </UserControl>
