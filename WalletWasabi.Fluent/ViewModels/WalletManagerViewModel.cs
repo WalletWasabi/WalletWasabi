@@ -108,7 +108,8 @@ namespace WalletWasabi.Fluent.ViewModels
 				var index = _wallets.IndexOf(walletViewModel);
 				if (index >= 0)
 				{
-					if (index == 0)
+					// Add top separator only when wallet is not first item.
+					if (index > 0)
 					{
 						var topSeparator = new SeparatorItemViewModel();
 						_items.Insert(index, topSeparator);
