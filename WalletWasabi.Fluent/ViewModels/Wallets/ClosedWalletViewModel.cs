@@ -19,6 +19,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		{
 			_items = new ObservableCollection<NavBarItemViewModel>();
 
+			// TODO: TEMP
+			NextCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				await walletManager.StartWalletAsync(wallet.KeyManager);
+			});
+
 			OpenWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{

@@ -13,6 +13,7 @@
         <behaviors:FocusOnAttachedBehavior />
       </i:Interaction.Behaviors>
     </TextBox>
-    <Button Content="Login" Classes="action" HorizontalAlignment="Right" />
+    <!-- TODO: TEMP -->
+    <Button Content="Login" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}"/>
   </StackPanel>
 </UserControl>
