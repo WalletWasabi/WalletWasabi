@@ -107,10 +107,23 @@ namespace WalletWasabi.Fluent.ViewModels
 				var index = _wallets.IndexOf(walletViewModel);
 				if (index >= 0)
 				{
+					if (index == 0)
+					{
+						var topSeparator = new SeparatorItemViewModel();
+						_items.Insert(index, topSeparator);
+						index += 1;
+					}
+
 					for (var i = 0; i < walletViewModel.Actions.Count; i++)
 					{
 						var action = walletViewModel.Actions[i];
 						_items.Insert(index + i + 1, action);
+					}
+
+					if (_wallets.Count > 1)
+					{
+						var bottomSeparator = new SeparatorItemViewModel();
+						_items.Insert(index + walletViewModel.Actions.Count + 1, bottomSeparator);
 					}
 				}
 			}
