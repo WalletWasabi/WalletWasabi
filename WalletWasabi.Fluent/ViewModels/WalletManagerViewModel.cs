@@ -122,7 +122,8 @@ namespace WalletWasabi.Fluent.ViewModels
 						_items.Insert(index + i + 1, action);
 					}
 
-					if (_wallets.Count > 1)
+					// Add bottom separator only when wallet is not first or last item.
+					if (_wallets.Count > 1 && index != _wallets.Count - 1)
 					{
 						var bottomSeparator = new SeparatorItemViewModel();
 						_items.Insert(index + walletViewModel.Actions.Count + 1, bottomSeparator);
