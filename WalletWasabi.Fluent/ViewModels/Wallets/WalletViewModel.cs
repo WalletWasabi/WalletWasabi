@@ -2,6 +2,7 @@ using NBitcoin;
 using ReactiveUI;
 using Splat;
 using System;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -16,13 +17,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class WalletViewModel : WalletViewModelBase
 	{
-		[AutoNotify] private ObservableCollection<ViewModelBase> _actions;
+		[AutoNotify] private ObservableCollection<WalletActionViewModel> _actions;
 
 		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			_actions = new ObservableCollection<ViewModelBase>();
+			_actions = new ObservableCollection<WalletActionViewModel>();
 
 			uiConfig = Locator.Current.GetService<Global>().UiConfig;
 

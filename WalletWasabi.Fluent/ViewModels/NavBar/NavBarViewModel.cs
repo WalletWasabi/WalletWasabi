@@ -72,7 +72,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				});
 		}
 
-		public ObservableCollection<WalletViewModelBase> Items => _walletManager.Items;
+		public ObservableCollection<NavBarItemViewModel> Items => _walletManager.Items;
 
 		public NavBarItemViewModel? SelectedItem
 		{

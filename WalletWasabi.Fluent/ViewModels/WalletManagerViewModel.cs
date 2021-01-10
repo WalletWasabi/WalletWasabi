@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using Avalonia.Threading;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
@@ -15,15 +16,17 @@ namespace WalletWasabi.Fluent.ViewModels
 	public partial class WalletManagerViewModel : ViewModelBase
 	{
 		private readonly Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
-		[AutoNotify] private WalletViewModelBase? _selectedItem;
-		[AutoNotify] private ObservableCollection<WalletViewModelBase> _items;
+		[AutoNotify] private ViewModelBase? _selectedItem;
+		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
+		[AutoNotify] private ObservableCollection<WalletViewModelBase> _wallets;
 		[AutoNotify] private bool _anyWalletStarted;
 
 		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig)
 		{
 			Model = walletManager;
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
-			_items = new ObservableCollection<WalletViewModelBase>();
+			_items = new ObservableCollection<NavBarItemViewModel>();
+			_wallets = new ObservableCollection<WalletViewModelBase>();
 
 			Observable
 				.FromEventPattern<WalletState>(walletManager, nameof(WalletManager.WalletStateChanged))
@@ -45,7 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels
 						}
 					}
 
-					AnyWalletStarted = Items.Any(y => y.WalletState == WalletState.Started);
+					AnyWalletStarted = Items.OfType<WalletViewModelBase>().Any(y => y.WalletState == WalletState.Started);
 				});
 
 			Observable
@@ -83,7 +86,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private WalletViewModelBase OpenWallet(WalletManager walletManager, UiConfig uiConfig, Wallet wallet)
 		{
-			if (_items.OfType<WalletViewModel>().Any(x => x.Title == wallet.WalletName))
+			if (_wallets.OfType<WalletViewModel>().Any(x => x.Title == wallet.WalletName))
 			{
 				throw new Exception("Wallet already opened.");
 			}
@@ -95,6 +98,17 @@ namespace WalletWasabi.Fluent.ViewModels
 			if (!walletManager.AnyWallet(x => x.State >= WalletState.Started && x != walletViewModel.Wallet))
 			{
 				walletViewModel.OpenWalletTabs();
+
+				// TODO: TEMP
+				var index = _wallets.IndexOf(walletViewModel);
+				if (index >= 0)
+				{
+					for (var i = 0; i < walletViewModel.Actions.Count; i++)
+					{
+						var action = walletViewModel.Actions[i];
+						_items.Insert(index + i + 1, action);
+					}
+				}
 			}
 
 			walletViewModel.IsExpanded = true;
@@ -104,7 +118,15 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private void InsertWallet(WalletViewModelBase wallet)
 		{
-			Items.InsertSorted(wallet);
+			_wallets.InsertSorted(wallet);
+
+			// TODO: Handle wallet Action being present in Items collection.
+			var index = _wallets.IndexOf(wallet);
+			if (index >= 0)
+			{
+				_items.Insert(index, wallet);
+			}
+
 			_walletDictionary.Add(wallet.Wallet, wallet);
 		}
 
@@ -112,7 +134,10 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			wallet.Dispose();
 
+			_wallets.Remove(wallet);
 			_items.Remove(wallet);
+			// TODO: Remove wallet Actions
+
 			_walletDictionary.Remove(wallet.Wallet);
 		}
 
