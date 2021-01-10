@@ -16,6 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels
 	public partial class WalletManagerViewModel : ViewModelBase
 	{
 		private readonly Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
+		private readonly Dictionary<WalletViewModelBase, List<NavBarItemViewModel>> _walletActionsDictionary;
 		[AutoNotify] private ViewModelBase? _selectedItem;
 		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
 		[AutoNotify] private ObservableCollection<WalletViewModelBase> _wallets;
@@ -25,6 +26,8 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			Model = walletManager;
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
+			// TODO: TEMP
+			_walletActionsDictionary = new Dictionary<WalletViewModelBase, List<NavBarItemViewModel>>();
 			_items = new ObservableCollection<NavBarItemViewModel>();
 			_wallets = new ObservableCollection<WalletViewModelBase>();
 
@@ -104,15 +107,40 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				walletViewModel.OpenWalletTabs();
 
-				OpenActions(walletViewModel);
+				var actions = new List<NavBarItemViewModel>();
+				_walletActionsDictionary[walletViewModel] = actions;
+				OpenActions(walletViewModel, actions);
 			}
 
 			walletViewModel.IsExpanded = true;
 
+			// TODO: TEMP
+			walletViewModel.WhenAnyValue(x => x.IsSelected)
+				.Subscribe(isSelected =>
+				{
+					if (isSelected)
+					{
+						var actions = _walletActionsDictionary[walletViewModel];
+						if (actions.Count == 0)
+						{
+							OpenActions(walletViewModel, actions);
+						}
+					}
+					else
+					{
+						var actions = _walletActionsDictionary[walletViewModel];
+						foreach (var action in actions)
+						{
+							_items.Remove(action);
+						}
+						actions.Clear();
+					}
+				});
+
 			return walletViewModel;
 		}
 
-		private void OpenActions(WalletViewModel walletViewModel)
+		private void OpenActions(WalletViewModel walletViewModel, List<NavBarItemViewModel> actions)
 		{
 			// TODO: TEMP
 			var index = _wallets.IndexOf(walletViewModel);
@@ -123,6 +151,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				{
 					var topSeparator = new SeparatorItemViewModel();
 					_items.Insert(index, topSeparator);
+					actions.Add(topSeparator);
 					index += 1;
 				}
 
@@ -130,6 +159,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				{
 					var action = walletViewModel.Actions[i];
 					_items.Insert(index + i + 1, action);
+					actions.Add(action);
 				}
 
 				// Add bottom separator only when wallet is not first or last item.
@@ -137,6 +167,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				{
 					var bottomSeparator = new SeparatorItemViewModel();
 					_items.Insert(index + walletViewModel.Actions.Count + 1, bottomSeparator);
+					actions.Add(bottomSeparator);
 				}
 			}
 		}
