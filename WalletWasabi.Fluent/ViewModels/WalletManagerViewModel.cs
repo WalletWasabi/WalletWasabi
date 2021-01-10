@@ -78,6 +78,10 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			var walletViewModel = OpenWallet(walletManager, uiConfig, closedWalletViewModel.Wallet);
 
+			// TODO: TEMP
+			walletViewModel.Navigate().Clear();
+			walletViewModel.Navigate(NavigationTarget.HomeScreen).To(walletViewModel);
+
 			if (select)
 			{
 				SelectedItem = walletViewModel;
