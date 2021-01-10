@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 		NavigationTarget = NavigationTarget.HomeScreen)]
 	public partial class AdvancedWalletActionViewModel : WalletActionViewModel
 	{
-		public AdvancedWalletActionViewModel(Wallet wallet) : base(wallet)
+		public AdvancedWalletActionViewModel(WalletViewModelBase wallet) : base(wallet)
 		{
 		}
 	}

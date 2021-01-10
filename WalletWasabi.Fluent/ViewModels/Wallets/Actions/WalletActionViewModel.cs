@@ -6,11 +6,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 {
 	public abstract partial class WalletActionViewModel : NavBarItemViewModel
 	{
-		protected WalletActionViewModel(Wallet wallet)
+		protected WalletActionViewModel(WalletViewModelBase wallet)
 		{
 			Wallet = Guard.NotNull(nameof(wallet), wallet);
 		}
 
-		public Wallet Wallet { get; }
+		public WalletViewModelBase Wallet { get; }
 	}
 }

@@ -51,17 +51,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			if (Wallet.KeyManager.IsHardwareWallet || !Wallet.KeyManager.IsWatchOnly)
 			{
-				_actions.Add(new SendWalletActionViewModel(Wallet));
+				_actions.Add(new SendWalletActionViewModel(this));
 			}
 
-			_actions.Add(new ReceiveWalletActionViewModel(Wallet));
+			_actions.Add(new ReceiveWalletActionViewModel(this));
 
 			if (!Wallet.KeyManager.IsWatchOnly)
 			{
-				_actions.Add(new CoinJoinWalletActionViewModel(Wallet));
+				_actions.Add(new CoinJoinWalletActionViewModel(this));
 			}
 
-			_actions.Add(new AdvancedWalletActionViewModel(Wallet));
+			_actions.Add(new AdvancedWalletActionViewModel(this));
 		}
 
 		private CompositeDisposable Disposables { get; set; }

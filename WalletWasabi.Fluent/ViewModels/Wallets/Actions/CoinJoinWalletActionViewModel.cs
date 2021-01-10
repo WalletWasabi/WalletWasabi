@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 		NavigationTarget = NavigationTarget.HomeScreen)]
 	public partial class CoinJoinWalletActionViewModel : WalletActionViewModel
 	{
-		public CoinJoinWalletActionViewModel(Wallet wallet) : base(wallet)
+		public CoinJoinWalletActionViewModel(WalletViewModelBase wallet) : base(wallet)
 		{
 		}
 	}
