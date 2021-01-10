@@ -171,7 +171,19 @@
             <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
           </Panel>
         </DataTemplate>
-        <DataTemplate x:DataType="vm:SeparatorItemViewModel" x:CompileBindings="False">
+        <DataTemplate DataType="vmwa:WalletActionViewModel" x:CompileBindings="False">
+          <Panel>
+            <Panel Width="45" HorizontalAlignment="Left">
+              <PathIcon HorizontalAlignment="Left">
+                <PathIcon.Data>
+                  <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                </PathIcon.Data>
+              </PathIcon>
+            </Panel>
+            <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
+          </Panel>
+        </DataTemplate>
+        <DataTemplate DataType="vm:SeparatorItemViewModel" x:CompileBindings="False">
           <Separator IsHitTestVisible="False"/>
         </DataTemplate>
       </c:NavBarTreeView.DataTemplates>
