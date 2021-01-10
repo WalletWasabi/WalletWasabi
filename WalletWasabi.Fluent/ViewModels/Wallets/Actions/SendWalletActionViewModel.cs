@@ -1,5 +1,4 @@
-﻿using WalletWasabi.Wallets;
-
+﻿
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 {
 	[NavigationMetaData(

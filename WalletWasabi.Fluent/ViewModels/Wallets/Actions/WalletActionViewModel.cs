@@ -1,6 +1,5 @@
 ﻿using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Helpers;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 {
