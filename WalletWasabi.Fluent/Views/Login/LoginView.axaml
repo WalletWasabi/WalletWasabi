@@ -5,8 +5,6 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:login="clr-namespace:WalletWasabi.Fluent.ViewModels.Login"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="login:LoginViewModel"
              x:CompileBindings="True"
@@ -16,76 +14,68 @@
                  HorizontalAlignment="Stretch"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  IsBusy="{Binding IsBusy}">
-      <DockPanel HorizontalAlignment="Stretch"
-                   VerticalAlignment="Center"
-                   LastChildFill="True">
-        <DockPanel.Styles>
-          <!-- <Style Selector="StackPanel.fadeAnimation[IsVisible=true], Panel.fadeAnimation[IsVisible=true]"> -->
-          <!--   <Setter Property="Opacity" Value="1"/> -->
-          <!-- </Style> -->
-          <!-- <Style Selector="StackPanel.fadeAnimation[IsVisible=False], Panel.fadeAnimation[IsVisible=False]"> -->
-          <!--   <Setter Property="Opacity" Value="0"/> -->
-          <!-- </Style> -->
-          <!-- -->
-          <!-- <Style Selector="Panel.fadeAnimation, StackPanel.fadeAnimation"> -->
-          <!--   <Setter Property="Transitions"> -->
-          <!--     <Transitions> -->
-          <!--       <DoubleTransition Property="Opacity" Duration="0:0:0.2"/> -->
-          <!--     </Transitions> -->
-          <!--   </Setter> -->
-          <!-- </Style> -->
-        </DockPanel.Styles>
+    <DockPanel HorizontalAlignment="Stretch"
+                 VerticalAlignment="Center"
+                 LastChildFill="True">
+      <DockPanel.Styles>
+        <Style Selector="StackPanel.fadeAnimation[IsVisible=true], Panel.fadeAnimation[IsVisible=true]">
+          <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <Style Selector="StackPanel.fadeAnimation[IsVisible=False], Panel.fadeAnimation[IsVisible=False]">
+          <Setter Property="Opacity" Value="0"/>
+        </Style>
 
-        <Panel Height="150" MaxWidth="400" DockPanel.Dock="Bottom">
-          <Panel IsVisible="{Binding !IsPasswordIncorrect}"
-                 Classes="fadeAnimation">
+        <Style Selector="Panel.fadeAnimation, StackPanel.fadeAnimation">
+          <Setter Property="Transitions">
+            <Transitions>
+              <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
+            </Transitions>
+          </Setter>
+        </Style>
+      </DockPanel.Styles>
 
-            <!-- Enter password -->
-            <StackPanel VerticalAlignment="Bottom"
-                        IsVisible="{Binding IsPasswordNeeded}"
-                        Classes="fadeAnimation">
-              <Label Content="Password:"/>
-              <TextBox Text="{Binding Password}" Watermark="type here..." PasswordChar="•" Classes="revealPasswordButton"/>
-              <Panel Margin="0 -20 0 0 ">
-                <Button Classes="activeHyperLink skip" Content="Forgot password?" HorizontalAlignment="Left"/>
-                <Button Content="Login" IsDefault="False" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}">
-                  <!-- <i:Interaction.Behaviors> -->
-                  <!--   <behaviors:FocusBehavior IsFocused="{Binding IsPasswordNeeded}" /> -->
-                  <!-- </i:Interaction.Behaviors> -->
-                </Button>
-              </Panel>
-            </StackPanel>
+      <Panel Height="150" MaxWidth="400" DockPanel.Dock="Bottom">
+        <Panel IsVisible="{Binding !IsPasswordIncorrect}"
+               Classes="fadeAnimation">
 
-            <!-- Hardware & Watch only wallet -->
-            <StackPanel Classes="fadeAnimation"
-                        IsVisible="{Binding !IsPasswordNeeded}"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center">
-              <Button Content="Login" IsDefault="False" Classes="action" Command="{Binding NextCommand}"/>
-            </StackPanel>
-
-          </Panel>
-
-          <!-- Incorrect password -->
-          <StackPanel Spacing="20"
-                      IsVisible="{Binding IsPasswordIncorrect}"
-                      VerticalAlignment="Bottom"
+          <!-- Enter password -->
+          <StackPanel VerticalAlignment="Bottom"
+                      IsVisible="{Binding IsPasswordNeeded}"
                       Classes="fadeAnimation">
-            <TextBlock Text="The password is incorrect! Try Again." HorizontalAlignment="Center"/>
-            <Button Content="OK" IsDefault="False" Classes="action" HorizontalAlignment="Center" Command="{Binding OkCommand}">
-              <!-- <i:Interaction.Behaviors> -->
-              <!--   <behaviors:FocusBehavior IsFocused="{Binding IsPasswordIncorrect}" /> -->
-              <!-- </i:Interaction.Behaviors> -->
-            </Button>
+            <Label Content="Password:"/>
+            <TextBox Text="{Binding Password}" Watermark="type here..." PasswordChar="•" Classes="revealPasswordButton"/>
+            <Panel Margin="0 -20 0 0 ">
+              <Button Classes="activeHyperLink skip" Content="Forgot password?" HorizontalAlignment="Left"/>
+              <Button Content="Login" IsDefault="True" IsVisible="{Binding !IsPasswordIncorrect}" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}"/>
+            </Panel>
           </StackPanel>
 
-          </Panel>
+          <!-- Hardware & Watch only wallet -->
+          <StackPanel Classes="fadeAnimation"
+                      IsVisible="{Binding !IsPasswordNeeded}"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center">
+            <Button Content="Login" IsDefault="False" Classes="action" Command="{Binding NextCommand}"/>
+          </StackPanel>
 
-          <!-- Icon -->
-          <Viewbox MaxHeight="200">
-            <Image Source="{Binding SelectedWallet.Wallet.KeyManager, Converter={x:Static conv:WalletIconConverter.KeyManagerToImage}}" />
-          </Viewbox>
+        </Panel>
 
-        </DockPanel>
+        <!-- Incorrect password -->
+        <StackPanel Spacing="20"
+                    IsVisible="{Binding IsPasswordIncorrect}"
+                    VerticalAlignment="Bottom"
+                    Classes="fadeAnimation">
+          <TextBlock Text="The password is incorrect! Try Again." HorizontalAlignment="Center"/>
+          <Button Content="OK" IsDefault="True" IsVisible="{Binding IsPasswordIncorrect}" Classes="action" HorizontalAlignment="Center" Command="{Binding OkCommand}"/>
+        </StackPanel>
+
+      </Panel>
+
+      <!-- Icon -->
+      <Viewbox MaxHeight="200">
+        <Image Source="{Binding SelectedWallet.Wallet.KeyManager, Converter={x:Static conv:WalletIconConverter.KeyManagerToImage}}" />
+      </Viewbox>
+
+    </DockPanel>
   </c:ContentArea>
 </UserControl>
