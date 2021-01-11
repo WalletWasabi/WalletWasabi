@@ -57,7 +57,7 @@
             </TextBox>
             <Panel Margin="0 -20 0 0 ">
               <Button Classes="activeHyperLink skip" Content="Forgot password?" HorizontalAlignment="Left"/>
-              <Button Content="Login" IsDefault="True" IsEnabled="{Binding !IsPasswordIncorrect}" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}"/>
+              <Button Content="Login" IsDefault="{Binding !IsPasswordIncorrect}" IsEnabled="{Binding !IsPasswordIncorrect}" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}"/>
             </Panel>
           </StackPanel>
 
@@ -71,7 +71,7 @@
                     VerticalAlignment="Bottom"
                     Classes="fadeAnimation">
           <TextBlock Text="The password is incorrect! Try Again." HorizontalAlignment="Center"/>
-          <Button Content="OK" IsDefault="True" IsEnabled="{Binding IsPasswordIncorrect}" Classes="action" HorizontalAlignment="Center" Command="{Binding OkCommand}"/>
+          <Button Content="OK" IsDefault="{Binding IsPasswordIncorrect}" IsEnabled="{Binding IsPasswordIncorrect}" Classes="action" HorizontalAlignment="Center" Command="{Binding OkCommand}"/>
         </StackPanel>
 
       </StackPanel>
