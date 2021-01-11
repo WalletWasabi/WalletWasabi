@@ -30,7 +30,25 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 				var wallet = walletViewModelBase.Wallet;
 
-				IsPasswordIncorrect = await CheckPassword(KeyManager, Password);
+				IsPasswordIncorrect = await Task.Run(async () =>
+				{
+					if (!IsPasswordNeeded)
+					{
+						return false;
+					}
+
+					if (PasswordHelper.TryPassword(KeyManager, Password, out var compatibilityPasswordUsed))
+					{
+						if (compatibilityPasswordUsed is { })
+						{
+							await ShowErrorAsync(PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
+						}
+
+						return false;
+					}
+
+					return true;
+				});
 
 				if (!IsPasswordIncorrect)
 				{
@@ -53,25 +71,5 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 		public ICommand OkCommand { get; }
 
 		public KeyManager KeyManager { get; }
-
-		private async Task<bool> CheckPassword(KeyManager km, string password)
-		{
-			if (!IsPasswordNeeded)
-			{
-				return false;
-			}
-
-			if (PasswordHelper.TryPassword(km, password, out var compatibilityPasswordUsed))
-			{
-				if (compatibilityPasswordUsed is { })
-				{
-					await ShowErrorAsync(PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
-				}
-
-				return false;
-			}
-
-			return true;
-		}
 	}
 }
