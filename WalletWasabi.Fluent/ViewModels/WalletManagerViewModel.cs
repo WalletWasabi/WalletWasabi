@@ -104,7 +104,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			_wallets.InsertSorted(wallet);
 
-			// TODO: Handle wallet Action being present in Items collection.
 			var index = _wallets.IndexOf(wallet);
 			if (index >= 0)
 			{
