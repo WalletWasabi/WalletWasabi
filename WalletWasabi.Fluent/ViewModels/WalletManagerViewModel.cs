@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			_items = new ObservableCollection<NavBarItemViewModel>();
 			_wallets = new ObservableCollection<WalletViewModelBase>();
 			// TODO: TEMP
-			_loggedInAndSelectedAlwaysFirst = true;
+			_loggedInAndSelectedAlwaysFirst = false;
 
 			Observable
 				.FromEventPattern<WalletState>(walletManager, nameof(WalletManager.WalletStateChanged))
