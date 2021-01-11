@@ -121,19 +121,20 @@ namespace WalletWasabi.Fluent.ViewModels
 			var index = _wallets.IndexOf(walletViewModel);
 			if (index >= 0)
 			{
+				var insertIndex = index;
 				// Add top separator only when wallet is not first item.
 				if (index > 0)
 				{
 					var topSeparator = new SeparatorItemViewModel();
 					_items.Insert(index, topSeparator);
 					actions.Add(topSeparator);
-					index += 1;
+					insertIndex += 1;
 				}
 
 				for (var i = 0; i < walletViewModel.Actions.Count; i++)
 				{
 					var action = walletViewModel.Actions[i];
-					_items.Insert(index + i + 1, action);
+					_items.Insert(insertIndex + i + 1, action);
 					actions.Add(action);
 				}
 
@@ -141,7 +142,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				if (_wallets.Count > 1 && index != _wallets.Count - 1)
 				{
 					var bottomSeparator = new SeparatorItemViewModel();
-					_items.Insert(index + walletViewModel.Actions.Count + 1, bottomSeparator);
+					_items.Insert(insertIndex + walletViewModel.Actions.Count + 1, bottomSeparator);
 					actions.Add(bottomSeparator);
 				}
 			}
