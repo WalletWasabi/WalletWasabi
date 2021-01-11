@@ -104,7 +104,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		{
 			foreach (var command in commands)
 			{
-				(command as ReactiveCommand<Unit, Unit>)?.IsExecuting
+				(command as IReactiveCommand)?.IsExecuting
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Skip(1)
 					.Subscribe(x => IsBusy = x);
