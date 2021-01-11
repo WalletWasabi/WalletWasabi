@@ -27,8 +27,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				var wallet = walletViewModelBase.Wallet;
-
 				IsPasswordIncorrect = await Task.Run(async () =>
 				{
 					if (!IsPasswordNeeded)
@@ -66,7 +64,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 			ForgotPasswordCommand = ReactiveCommand.Create(() =>
 				Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet)));
-				
+
 			EnableAutoBusyOn(NextCommand);
 		}
 
