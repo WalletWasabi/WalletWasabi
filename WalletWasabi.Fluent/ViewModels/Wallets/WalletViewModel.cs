@@ -19,15 +19,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class WalletViewModel : WalletViewModelBase
 	{
-		// TODO: TEMP
-		// [AutoNotify] private ObservableCollection<WalletActionViewModel> _actions;
-
 		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-
-			// TODO: TEMP
-			// _actions = new ObservableCollection<WalletActionViewModel>();
 
 			uiConfig = Locator.Current.GetService<Global>().UiConfig;
 
@@ -53,21 +47,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					}
 				})
 				.DisposeWith(Disposables);
-
-			// TODO: TEMP
-			/*if (Wallet.KeyManager.IsHardwareWallet || !Wallet.KeyManager.IsWatchOnly)
-			{
-				_actions.Add(new SendWalletActionViewModel(this));
-			}
-
-			_actions.Add(new ReceiveWalletActionViewModel(this));
-
-			if (!Wallet.KeyManager.IsWatchOnly)
-			{
-				_actions.Add(new CoinJoinWalletActionViewModel(this));
-			}
-
-			_actions.Add(new AdvancedWalletActionViewModel(this));*/
 		}
 
 		private CompositeDisposable Disposables { get; set; }
@@ -82,12 +61,5 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					? new WatchOnlyWalletViewModel(uiConfig, wallet)
 					: new WalletViewModel(uiConfig, wallet);
 		}
-
-		// TODO: TEMP
-		/*
-		public void OpenWalletTabs()
-		{
-			// TODO: Implement.
-		}*/
 	}
 }

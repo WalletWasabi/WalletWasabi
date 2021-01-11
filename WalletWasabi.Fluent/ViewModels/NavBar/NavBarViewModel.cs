@@ -197,13 +197,17 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		{
 			if (walletManager.Items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
 			{
-				// TODO: TEMP
-				walletManager.SelectionChanged(x);
-
-				if (!_isNavigating && x.SelectionMode == NavBarItemSelectionMode.Selected)
+				if (!_isNavigating)
 				{
 					_isNavigating = true;
-					SetSelectedItem(x);
+
+					walletManager.SelectionChanged(x);
+
+					if (x.SelectionMode == NavBarItemSelectionMode.Selected)
+					{
+						SetSelectedItem(x);
+					}
+
 					_isNavigating = false;
 				}
 			}
@@ -219,7 +223,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 					x.OpenCommand.Execute(default);
 				}
 
-				// TODO: TEMP
 				_walletManager.SelectionChanged(x);
 
 				CollapseOnClickAction?.Invoke();

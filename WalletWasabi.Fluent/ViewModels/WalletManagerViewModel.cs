@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private readonly Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 		private readonly Dictionary<WalletViewModelBase, List<NavBarItemViewModel>> _walletActionsDictionary;
-		[AutoNotify] private ViewModelBase? _selectedItem;
+		[AutoNotify] private WalletViewModelBase? _selectedWallet;
 		[AutoNotify] private bool _loggedInAndSelectedAlwaysFirst;
 		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
 		[AutoNotify] private ObservableCollection<WalletViewModelBase> _wallets;
@@ -28,12 +28,10 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			Model = walletManager;
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
-			// TODO: TEMP
 			_walletActionsDictionary = new Dictionary<WalletViewModelBase, List<NavBarItemViewModel>>();
 			_items = new ObservableCollection<NavBarItemViewModel>();
 			_wallets = new ObservableCollection<WalletViewModelBase>();
-			// TODO: TEMP
-			_loggedInAndSelectedAlwaysFirst = false;
+			_loggedInAndSelectedAlwaysFirst = true;
 
 			Observable
 				.FromEventPattern<WalletState>(walletManager, nameof(WalletManager.WalletStateChanged))
@@ -79,22 +77,11 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private void OpenClosedWallet(WalletManager walletManager, UiConfig uiConfig, ClosedWalletViewModel closedWalletViewModel)
 		{
-			// TODO: TEMP
-			// var select = SelectedItem == closedWalletViewModel;
-
 			RemoveWallet(closedWalletViewModel);
 
 			var walletViewModel = OpenWallet(walletManager, uiConfig, closedWalletViewModel.Wallet);
 
-			// TODO: TEMP
-			// walletViewModel.Navigate().Clear();
-			// walletViewModel.Navigate(NavigationTarget.HomeScreen).To(walletViewModel);
-
-			// TODO: TEMP
-			// if (select)
-			// {
-			// 	SelectedItem = walletViewModel;
-			// }
+			// TODO: Handle walletViewModel
 		}
 
 		private WalletViewModelBase OpenWallet(WalletManager walletManager, UiConfig uiConfig, Wallet wallet)
@@ -107,12 +94,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			var walletViewModel = WalletViewModel.Create(uiConfig, wallet);
 
 			InsertWallet(walletViewModel);
-
-			// TODO: TEMP
-			// if (!walletManager.AnyWallet(x => x.State >= WalletState.Started && x != walletViewModel.Wallet))
-			// {
-			// 	walletViewModel.OpenWalletTabs();
-			// }
 
 			walletViewModel.IsExpanded = true;
 
@@ -152,9 +133,62 @@ namespace WalletWasabi.Fluent.ViewModels
 			}
 		}
 
-		private void OpenActions(WalletViewModelBase walletViewModel, List<NavBarItemViewModel> result)
+		public void SelectionChanged(NavBarItemViewModel item)
 		{
-			// TODO: Insert current lodged in wallet at the top of the items list.
+			if (SelectedWallet == item)
+			{
+				return;
+			}
+
+			if (SelectedWallet is WalletViewModelBase walletViewModelPrevious && walletViewModelPrevious.Wallet.IsLoggedIn)
+			{
+				if (item is WalletViewModelBase && SelectedWallet != item)
+				{
+					RemoveActions(walletViewModelPrevious);
+
+					SelectedWallet = null;
+				}
+			}
+
+			if (item is WalletViewModelBase walletViewModelSelected && walletViewModelSelected.Wallet.IsLoggedIn)
+			{
+				if (!_walletActionsDictionary.TryGetValue(walletViewModelSelected, out var actions))
+				{
+					actions = new List<NavBarItemViewModel>();
+				}
+
+				_walletActionsDictionary[walletViewModelSelected] = actions;
+				InsertActions(walletViewModelSelected, actions);
+
+				SelectedWallet = walletViewModelSelected;
+			}
+		}
+
+		private List<WalletActionViewModel> GetWalletActions(WalletViewModelBase walletViewModel)
+		{
+			var wallet = walletViewModel.Wallet;
+			var actions = new List<WalletActionViewModel>();
+
+			if (wallet.KeyManager.IsHardwareWallet || !wallet.KeyManager.IsWatchOnly)
+			{
+				actions.Add(new SendWalletActionViewModel(walletViewModel));
+			}
+
+			actions.Add(new ReceiveWalletActionViewModel(walletViewModel));
+
+			if (!wallet.KeyManager.IsWatchOnly)
+			{
+				actions.Add(new CoinJoinWalletActionViewModel(walletViewModel));
+			}
+
+			actions.Add(new AdvancedWalletActionViewModel(walletViewModel));
+
+			return actions;
+		}
+
+		private void InsertActions(WalletViewModelBase walletViewModel, List<NavBarItemViewModel> result)
+		{
+			// Insert current lodged in wallet at the top of the items list.
 			if (_loggedInAndSelectedAlwaysFirst)
 			{
 				_items.Remove(walletViewModel);
@@ -164,7 +198,6 @@ namespace WalletWasabi.Fluent.ViewModels
 				_wallets.Insert(0, walletViewModel);
 			}
 
-			// TODO: TEMP
 			var index = _wallets.IndexOf(walletViewModel);
 			if (index >= 0)
 			{
@@ -197,61 +230,15 @@ namespace WalletWasabi.Fluent.ViewModels
 			}
 		}
 
-		private List<WalletActionViewModel> GetWalletActions(WalletViewModelBase walletViewModel)
+		private void RemoveActions(WalletViewModelBase walletViewModelPrevious)
 		{
-			var wallet = walletViewModel.Wallet;
-			var actions = new List<WalletActionViewModel>();
-
-			if (wallet.KeyManager.IsHardwareWallet || !wallet.KeyManager.IsWatchOnly)
+			var actions = _walletActionsDictionary[walletViewModelPrevious];
+			foreach (var action in actions)
 			{
-				actions.Add(new SendWalletActionViewModel(walletViewModel));
+				_items.Remove(action);
 			}
 
-			actions.Add(new ReceiveWalletActionViewModel(walletViewModel));
-
-			if (!wallet.KeyManager.IsWatchOnly)
-			{
-				actions.Add(new CoinJoinWalletActionViewModel(walletViewModel));
-			}
-
-			actions.Add(new AdvancedWalletActionViewModel(walletViewModel));
-
-			return actions;
-		}
-
-		public void SelectionChanged(NavBarItemViewModel item)
-		{
-			if (SelectedItem == item)
-			{
-				return;
-			}
-
-			var previousItem = SelectedItem;
-
-			if (previousItem is WalletViewModelBase walletViewModelPrevious && previousItem != item && item is not WalletActionViewModel && walletViewModelPrevious.Wallet.IsLoggedIn)
-			{
-				var actions = _walletActionsDictionary[walletViewModelPrevious];
-				foreach (var action in actions)
-				{
-					_items.Remove(action);
-				}
-				// actions.Clear();
-
-				SelectedItem = null;
-			}
-
-			if (item is WalletViewModelBase walletViewModelSelected && walletViewModelSelected.Wallet.IsLoggedIn)
-			{
-				SelectedItem = walletViewModelSelected;
-
-				if (!_walletActionsDictionary.TryGetValue(walletViewModelSelected, out var actions))
-				{
-					actions = new List<NavBarItemViewModel>();
-				}
-
-				_walletActionsDictionary[walletViewModelSelected] = actions;
-				OpenActions(walletViewModelSelected, actions);
-			}
+			actions.Clear();
 		}
 	}
 }
