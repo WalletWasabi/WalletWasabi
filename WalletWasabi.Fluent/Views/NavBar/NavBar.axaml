@@ -142,6 +142,7 @@
       <c:NavBarTreeView.Styles>
         <Style Selector="c|NavBarTreeItem">
           <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
+          <Setter Property="IsHitTestVisible" Value="{Binding SelectionMode, Mode=OneWay, Converter={x:Static conv:NavBarItemSeparatorConverter.Instance}}" x:CompileBindings="False" />
         </Style>
       </c:NavBarTreeView.Styles>
       <c:NavBarTreeView.DataTemplates>
