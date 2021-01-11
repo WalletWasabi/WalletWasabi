@@ -196,6 +196,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		{
 			if (walletManager.Items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
 			{
+				// TODO: TEMP
 				if (!_isNavigating && x.SelectionMode == NavBarItemSelectionMode.Selected)
 				{
 					_isNavigating = true;
