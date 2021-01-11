@@ -35,7 +35,7 @@
         </Style>
       </DockPanel.Styles>
 
-      <StackPanel Height="150" MaxWidth="400" DockPanel.Dock="Bottom">
+      <StackPanel Height="150" MaxWidth="400" DockPanel.Dock="Bottom" Spacing="30">
         <TextBlock Text="{Binding WalletName}"
                    TextWrapping="Wrap"
                    TextAlignment="Center"
