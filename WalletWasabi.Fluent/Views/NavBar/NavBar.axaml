@@ -138,7 +138,7 @@
       </c:NavBarListBox>
     </StackPanel>
 
-    <c:NavBarTreeView Items="{Binding Items}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+    <c:NavBarTreeView Items="{Binding Items}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}" AutoScrollToSelectedItem="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
       <c:NavBarTreeView.Styles>
         <Style Selector="c|NavBarTreeItem">
           <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
