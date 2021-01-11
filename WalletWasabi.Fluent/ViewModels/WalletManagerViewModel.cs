@@ -117,6 +117,15 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private void OpenActions(WalletViewModel walletViewModel, List<NavBarItemViewModel> actions)
 		{
+			// TODO: Insert current lodged in wallet at the top of the items list.
+#if true
+			_items.Remove(walletViewModel);
+			_items.Insert(0, walletViewModel);
+
+			_wallets.Remove(walletViewModel);
+			_wallets.Insert(0, walletViewModel);
+#endif
+
 			// TODO: TEMP
 			var index = _wallets.IndexOf(walletViewModel);
 			if (index >= 0)
