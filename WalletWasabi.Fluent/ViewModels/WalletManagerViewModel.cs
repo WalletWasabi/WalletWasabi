@@ -116,11 +116,17 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private void RemoveWallet(WalletViewModelBase wallet)
 		{
+			var isLoggedIn = wallet.Wallet.IsLoggedIn;
+
 			wallet.Dispose();
 
 			_wallets.Remove(wallet);
 			_items.Remove(wallet);
-			// TODO: Remove wallet Actions
+
+			if (isLoggedIn)
+			{
+				RemoveActions(wallet, true);
+			}
 
 			_walletDictionary.Remove(wallet.Wallet);
 		}
@@ -155,9 +161,9 @@ namespace WalletWasabi.Fluent.ViewModels
 				if (!_walletActionsDictionary.TryGetValue(walletViewModelSelected, out var actions))
 				{
 					actions = new List<NavBarItemViewModel>();
+					_walletActionsDictionary[walletViewModelSelected] = actions;
 				}
 
-				_walletActionsDictionary[walletViewModelSelected] = actions;
 				InsertActions(walletViewModelSelected, actions);
 
 				SelectedWallet = walletViewModelSelected;
@@ -230,15 +236,21 @@ namespace WalletWasabi.Fluent.ViewModels
 			}
 		}
 
-		private void RemoveActions(WalletViewModelBase walletViewModelPrevious)
+		private void RemoveActions(WalletViewModelBase wallet, bool dispose = false)
 		{
-			var actions = _walletActionsDictionary[walletViewModelPrevious];
+			var actions = _walletActionsDictionary[wallet];
+
 			foreach (var action in actions)
 			{
 				_items.Remove(action);
 			}
 
 			actions.Clear();
+
+			if (dispose)
+			{
+				_walletActionsDictionary.Remove(wallet);
+			}
 		}
 	}
 }
