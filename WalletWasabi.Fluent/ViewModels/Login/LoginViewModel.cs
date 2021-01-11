@@ -25,8 +25,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				IsBusy = true;
-
 				var wallet = walletViewModelBase.Wallet;
 
 				IsPasswordIncorrect = await Task.Run(async () =>
@@ -56,8 +54,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 					// TODO: navigate to the wallet welcome page
 					Navigate().To(walletViewModelBase, NavigationMode.Clear);
 				}
-
-				IsBusy = false;
 			});
 
 			OkCommand = ReactiveCommand.Create(() =>
@@ -65,6 +61,8 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 				Password = "";
 				IsPasswordIncorrect = false;
 			});
+
+			EnableAutoBusyOn(NextCommand);
 		}
 
 		public ICommand OkCommand { get; }
