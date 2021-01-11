@@ -7,6 +7,7 @@ using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Fluent.ViewModels.Wallets.Actions;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
@@ -16,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels
 	public partial class WalletManagerViewModel : ViewModelBase
 	{
 		private readonly Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
-		private readonly Dictionary<WalletViewModelBase, List<NavBarItemViewModel>> _walletActionsDictionary;
+		private readonly Dictionary<WalletViewModel, List<NavBarItemViewModel>> _walletActionsDictionary;
 		[AutoNotify] private ViewModelBase? _selectedItem;
 		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
 		[AutoNotify] private ObservableCollection<WalletViewModelBase> _wallets;
@@ -27,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			Model = walletManager;
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 			// TODO: TEMP
-			_walletActionsDictionary = new Dictionary<WalletViewModelBase, List<NavBarItemViewModel>>();
+			_walletActionsDictionary = new Dictionary<WalletViewModel, List<NavBarItemViewModel>>();
 			_items = new ObservableCollection<NavBarItemViewModel>();
 			_wallets = new ObservableCollection<WalletViewModelBase>();
 
@@ -75,7 +76,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private void OpenClosedWallet(WalletManager walletManager, UiConfig uiConfig, ClosedWalletViewModel closedWalletViewModel)
 		{
-			var select = SelectedItem == closedWalletViewModel;
+			// TODO: TEMP
+			// var select = SelectedItem == closedWalletViewModel;
 
 			RemoveWallet(closedWalletViewModel);
 
@@ -85,10 +87,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			walletViewModel.Navigate().Clear();
 			walletViewModel.Navigate(NavigationTarget.HomeScreen).To(walletViewModel);
 
-			if (select)
-			{
-				SelectedItem = walletViewModel;
-			}
+			// TODO: TEMP
+			// if (select)
+			// {
+			// 	SelectedItem = walletViewModel;
+			// }
 		}
 
 		private WalletViewModelBase OpenWallet(WalletManager walletManager, UiConfig uiConfig, Wallet wallet)
@@ -102,40 +105,12 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			InsertWallet(walletViewModel);
 
-			// TODO: TEMP
-			//if (!walletManager.AnyWallet(x => x.State >= WalletState.Started && x != walletViewModel.Wallet))
+			if (!walletManager.AnyWallet(x => x.State >= WalletState.Started && x != walletViewModel.Wallet))
 			{
 				walletViewModel.OpenWalletTabs();
-
-				var actions = new List<NavBarItemViewModel>();
-				_walletActionsDictionary[walletViewModel] = actions;
-				OpenActions(walletViewModel, actions);
 			}
 
 			walletViewModel.IsExpanded = true;
-
-			// TODO: TEMP
-			walletViewModel.WhenAnyValue(x => x.IsSelected)
-				.Subscribe(isSelected =>
-				{
-					if (isSelected)
-					{
-						var actions = _walletActionsDictionary[walletViewModel];
-						if (actions.Count == 0)
-						{
-							OpenActions(walletViewModel, actions);
-						}
-					}
-					else
-					{
-						var actions = _walletActionsDictionary[walletViewModel];
-						foreach (var action in actions)
-						{
-							_items.Remove(action);
-						}
-						actions.Clear();
-					}
-				});
 
 			return walletViewModel;
 		}
@@ -202,6 +177,41 @@ namespace WalletWasabi.Fluent.ViewModels
 			foreach (var wallet in walletManager.GetWallets())
 			{
 				InsertWallet(ClosedWalletViewModel.Create(walletManager, wallet));
+			}
+		}
+
+		public void SelectionChanged(NavBarItemViewModel item)
+		{
+			if (SelectedItem == item)
+			{
+				return;
+			}
+
+			var previousItem = SelectedItem;
+
+			if (previousItem is WalletViewModel walletViewModelPrevious && item is not WalletActionViewModel)
+			{
+				var actions = _walletActionsDictionary[walletViewModelPrevious];
+				foreach (var action in actions)
+				{
+					_items.Remove(action);
+				}
+				actions.Clear();
+
+				SelectedItem = null;
+			}
+
+			if (item is WalletViewModel walletViewModelSelected)
+			{
+				SelectedItem = walletViewModelSelected;
+
+				if (!_walletActionsDictionary.TryGetValue(walletViewModelSelected, out var actions))
+				{
+					actions = new List<NavBarItemViewModel>();
+				}
+
+				_walletActionsDictionary[walletViewModelSelected] = actions;
+				OpenActions(walletViewModelSelected, actions);
 			}
 		}
 	}
