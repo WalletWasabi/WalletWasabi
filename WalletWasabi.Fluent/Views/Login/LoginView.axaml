@@ -56,7 +56,7 @@
               </i:Interaction.Behaviors>
             </TextBox>
             <Panel Margin="0 -20 0 0 ">
-              <Button Classes="activeHyperLink skip" Content="Forgot password?" HorizontalAlignment="Left"/>
+              <Button Classes="activeHyperLink skip" Content="Forgot password?" HorizontalAlignment="Left" Command="{Binding ForgotPasswordCommand}"/>
               <Button Content="Login" IsDefault="{Binding !IsPasswordIncorrect}" IsEnabled="{Binding !IsPasswordIncorrect}" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}"/>
             </Panel>
           </StackPanel>
