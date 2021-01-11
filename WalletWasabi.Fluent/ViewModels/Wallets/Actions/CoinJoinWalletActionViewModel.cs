@@ -1,5 +1,4 @@
-﻿
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
+﻿namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 {
 	[NavigationMetaData(
 		Title = "CoinJoin",
