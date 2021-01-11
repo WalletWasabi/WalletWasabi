@@ -135,39 +135,5 @@ namespace WalletWasabi.Blockchain.Blocks
 				return Chain.Select(x => (x.Key, x.Value)).ToArray();
 			}
 		}
-
-		public bool TryGetHeader(uint height, out SmartHeader header)
-		{
-			header = null;
-			lock (Lock)
-			{
-				if (Chain.ContainsKey(height))
-				{
-					header = Chain[height];
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-		}
-
-		public bool TryGetHeight(uint256 hash, out uint height)
-		{
-			lock (Lock)
-			{
-				height = Chain.FirstOrDefault(x => x.Value.BlockHash == hash).Key;
-
-				// Default int will be 0. We do not know if this refers to the 0th hash or it just means the hash was not found.
-				// So let's check if the height contains or not.
-				// If the given height is 0, then check if the chain has a key with 0. If it does not have, then return false. If it has, check if the hash is the same or not.
-				if (height == 0 && (!Chain.ContainsKey(0) || Chain[0].BlockHash != hash))
-				{
-					return false;
-				}
-				return true;
-			}
-		}
 	}
 }

@@ -11,9 +11,6 @@ namespace WalletWasabi.Tor.Http
 	/// </summary>
 	public interface IHttpClient
 	{
-		/// <summary>TLS protocols we support for both clearnet and Tor proxy.</summary>
-		static readonly SslProtocols SupportedSslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
-
 		/// <summary>Sends an HTTP(s) request.</summary>
 		/// <param name="request">HTTP request message to send.</param>
 		/// <param name="isolateStream"><c>true</c> value is only available for Tor HTTP client to use a new Tor circuit

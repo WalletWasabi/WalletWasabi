@@ -2,16 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:local="using:WalletWasabi.Fluent.Views.Wallets"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"             
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.ClosedWalletView">
-  <c:ContentArea Title="Login" Caption="Enter your password to access your wallet" ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DockPanel>
-      <local:LoginView DockPanel.Dock="Bottom" />
-      <Viewbox MaxHeight="200">
-        <Image Source="/Assets/HardwareIcons/normal.png" />
-      </Viewbox>
-    </DockPanel>
-  </c:ContentArea>
+    Hello Wasabi!
 </UserControl>

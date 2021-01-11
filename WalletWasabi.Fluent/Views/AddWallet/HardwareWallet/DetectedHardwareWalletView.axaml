@@ -34,7 +34,7 @@
       </StackPanel>
 
       <StackPanel VerticalAlignment="Center" Spacing="40">
-        <Image Height="180" Source="{Binding Path='Type', Converter={x:Static conv:WalletTypeImageConverter.Instance}}" />
+        <Image Height="180" Source="{Binding Type, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />
         <TextBlock Text="{Binding TypeName, StringFormat={}{0}  was detected. Is this correct?}" HorizontalAlignment="Center" />
       </StackPanel>
 
