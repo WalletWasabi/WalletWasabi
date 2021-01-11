@@ -294,9 +294,7 @@ namespace WalletWasabi.Packager
 						$"/p:ErrorReport=none",
 						$"/p:DocumentationFile=\"\"",
 						$"/p:Deterministic=true",
-						$"/p:RestoreLockedMode=true",
-						$"/p:PublishTrimmed=true",
-						$"/p:TrimMode=CopyUsed"),
+						$"/p:RestoreLockedMode=true"),
 					redirectStandardOutput: true);
 
 				Tools.ClearSha512Tags(currentBinDistDirectory);

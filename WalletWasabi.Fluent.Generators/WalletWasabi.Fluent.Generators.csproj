@@ -5,6 +5,8 @@
 		<AnalysisLevel>latest</AnalysisLevel>
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
+		<PublishTrimmed>true</PublishTrimmed>
+		<TrimMode>CopyUsed</TrimMode>
     </PropertyGroup>
 
 	<ItemGroup>
