@@ -68,6 +68,8 @@ namespace WalletWasabi.Gui
 			config.CorrectMixUntilAnonymitySet();
 			var walletManager = new WalletManager(config.Network, dataDir, new WalletDirectories(config.Network, dataDir));
 
+			Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"));
+
 			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
 		}
 
