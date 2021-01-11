@@ -1,6 +1,6 @@
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets
+namespace WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet
 {
 	public class ClosedWatchOnlyWalletViewModel : ClosedWalletViewModel
 	{
