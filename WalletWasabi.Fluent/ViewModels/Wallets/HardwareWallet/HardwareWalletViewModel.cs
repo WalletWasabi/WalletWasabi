@@ -1,7 +1,7 @@
 using WalletWasabi.Gui;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets
+namespace WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet
 {
 	public class HardwareWalletViewModel : WalletViewModel
 	{

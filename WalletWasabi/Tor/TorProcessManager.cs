@@ -109,6 +109,12 @@ namespace WalletWasabi.Tor
 							break;
 						}
 
+						if (TorProcess.HasExited)
+						{
+							Logger.LogError("Tor process failed to start!");
+							return false;
+						}
+
 						const int MaxAttempts = 25;
 
 						if (i >= MaxAttempts)
