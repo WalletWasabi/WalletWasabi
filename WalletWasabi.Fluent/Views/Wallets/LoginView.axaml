@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"             
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.LoginView">
   <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" MaxWidth="400">
     <Label Content="_Password:" Target="passwordTb" />
@@ -13,7 +13,6 @@
         <behaviors:FocusOnAttachedBehavior />
       </i:Interaction.Behaviors>
     </TextBox>
-    <!-- TODO: TEMP -->
-    <Button Content="Login" Classes="action" HorizontalAlignment="Right" Command="{Binding OpenWalletCommand}"/>
+    <Button Content="Login" Classes="action" HorizontalAlignment="Right" />
   </StackPanel>
 </UserControl>
