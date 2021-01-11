@@ -83,6 +83,21 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			var device = devices[0];
 
+			if (!device.IsInitialized())
+			{
+				if (device.Model == HardwareWalletModels.Coldcard)
+				{
+					Message = "Initialize your device first.";
+				}
+				else
+				{
+					Message = "Check your device and finish the initialization.";
+					Task.Run(() => HardwareWalletOperations.InitHardwareWalletAsync(device));
+				}
+
+				return;
+			}
+
 			if (device.Code is { })
 			{
 				Message = "Something happened with your device, unlock it with your PIN/Passphrase or reconnect to the PC.";
@@ -98,21 +113,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			if (device.NeedsPinSent == true)
 			{
 				Message = "Enter your PIN on your device.";
-				return;
-			}
-
-			if (!device.IsInitialized())
-			{
-				if (device.Model == HardwareWalletModels.Coldcard)
-				{
-					Message = "Initialize your device first.";
-				}
-				else
-				{
-					Message = "Check your device and finish the initialization.";
-					Task.Run(() => HardwareWalletOperations.InitHardwareWalletAsync(device));
-				}
-
 				return;
 			}
 
