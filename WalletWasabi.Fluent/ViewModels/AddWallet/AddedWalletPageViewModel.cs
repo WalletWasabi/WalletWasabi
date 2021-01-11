@@ -13,14 +13,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		public AddedWalletPageViewModel(WalletManager walletManager, KeyManager keyManager)
 		{
+			KeyManager = keyManager;
 			Title = "Success";
 			WalletName = keyManager.WalletName;
-
-			Type = Enum.TryParse(typeof(WalletType), keyManager.Icon, true, out var typ) && typ is { }
-				? (WalletType)typ
-				: keyManager.IsHardwareWallet
-					? WalletType.Hardware
-					: WalletType.Normal;
 
 			NextCommand = ReactiveCommand.Create(
 				() =>
@@ -41,7 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				});
 		}
 
-		public WalletType Type { get; }
+		public KeyManager KeyManager { get; }
 
 		public string WalletName { get; }
 	}
