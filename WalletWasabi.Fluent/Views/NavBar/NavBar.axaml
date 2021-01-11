@@ -144,21 +144,6 @@
           <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
         </Style>
       </c:NavBarTreeView.Styles>
-      <!-- TODO: TEMP -->
-      <!--<c:NavBarTreeView.ItemTemplate>
-        <TreeDataTemplate ItemsSource="{Binding Items}" x:CompileBindings="False">
-          <Panel>
-            <Panel Width="45" HorizontalAlignment="Left">
-              <PathIcon HorizontalAlignment="Left">
-                <PathIcon.Data>
-                  <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
-                </PathIcon.Data>
-              </PathIcon>
-            </Panel>
-            <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
-          </Panel>
-        </TreeDataTemplate>
-      </c:NavBarTreeView.ItemTemplate>-->
       <c:NavBarTreeView.DataTemplates>
         <DataTemplate DataType="vmw:WalletViewModelBase" x:CompileBindings="False">
           <Panel>
