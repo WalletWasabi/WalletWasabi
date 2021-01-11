@@ -31,11 +31,8 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 		public PortField DstPort { get; }
 
 		public override byte[] ToBytes() => ByteHelpers.Combine(
-			new byte[]
-			{
-				Ver.ToByte(), Cmd.ToByte(), Rsv.ToByte(), Atyp.ToByte()
-			}
-			, DstAddr.ToBytes()
-			, DstPort.ToBytes());
+			new byte[] { Ver.ToByte(), Cmd.ToByte(), Rsv.ToByte(), Atyp.ToByte() },
+			DstAddr.ToBytes(),
+			DstPort.ToBytes());
 	}
 }
