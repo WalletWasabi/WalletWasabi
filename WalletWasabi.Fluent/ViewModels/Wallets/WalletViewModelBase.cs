@@ -17,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		private CompositeDisposable? _disposables;
 		private bool _disposedValue;
 
-		protected WalletViewModelBase(Wallet wallet, WalletManager walletManager)
+		protected WalletViewModelBase(Wallet wallet)
 		{
 			Wallet = Guard.NotNull(nameof(wallet), wallet);
 
@@ -39,7 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				if (!Wallet.IsLoggedIn)
 				{
-					Navigate().To(new LoginViewModel(this, walletManager));
+					Navigate().To(new LoginViewModel(this));
 				}
 				else
 				{

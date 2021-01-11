@@ -5,7 +5,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Userfacing;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Login
 {
@@ -16,7 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 		[AutoNotify] private bool _isPasswordNeeded;
 		[AutoNotify] private string _walletName;
 
-		public LoginViewModel(WalletViewModelBase walletViewModelBase, WalletManager walletManager)
+		public LoginViewModel(WalletViewModelBase walletViewModelBase)
 		{
 			Title = "Login";
 			KeyManager = walletViewModelBase.Wallet.KeyManager;

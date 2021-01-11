@@ -17,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	{
 		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
 
-		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet) : base(wallet, walletManager)
+		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet) : base(wallet)
 		{
 			_items = new ObservableCollection<NavBarItemViewModel>();
 
