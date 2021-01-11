@@ -219,6 +219,9 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 					x.OpenCommand.Execute(default);
 				}
 
+				// TODO: TEMP
+				_walletManager.SelectionChanged(x);
+
 				CollapseOnClickAction?.Invoke();
 				_isNavigating = false;
 			}
