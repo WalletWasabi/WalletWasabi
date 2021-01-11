@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
 			Mnemonics.ToObservableChangeSet().ToCollection()
-				.Select(x => x.Count == 12 ? new Mnemonic(GetTagsAsConcatString()) : default)
+				.Select(x => x.Count == 12 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
 				.Subscribe(x => CurrentMnemonics = x);
 
 			this.WhenAnyValue(x => x.SelectedTag)
