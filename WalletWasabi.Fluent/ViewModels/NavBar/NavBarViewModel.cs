@@ -39,6 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 			mainScreen.WhenAnyValue(x => x.CurrentPage)
 				.OfType<NavBarItemViewModel>()
+				.DistinctUntilChanged()
 				.Subscribe(x => CurrentPageChanged(x, walletManager));
 
 			this.WhenAnyValue(x => x.SelectedItem)
