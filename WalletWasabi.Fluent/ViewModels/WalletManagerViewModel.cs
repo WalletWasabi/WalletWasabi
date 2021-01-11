@@ -199,7 +199,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			var previousItem = SelectedItem;
 
-			if (previousItem is WalletViewModel walletViewModelPrevious && item is not WalletActionViewModel)
+			if (previousItem is WalletViewModel walletViewModelPrevious && previousItem != item && item is not WalletActionViewModel)
 			{
 				var actions = _walletActionsDictionary[walletViewModelPrevious];
 				foreach (var action in actions)
