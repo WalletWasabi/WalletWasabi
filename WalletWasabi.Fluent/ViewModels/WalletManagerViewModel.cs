@@ -147,28 +147,30 @@ namespace WalletWasabi.Fluent.ViewModels
 				return;
 			}
 
-			if (SelectedWallet is WalletViewModelBase walletViewModelPrevious && walletViewModelPrevious.Wallet.IsLoggedIn
-				&& item is WalletViewModelBase walletViewModel && walletViewModel.Wallet.IsLoggedIn)
+			if (SelectedWallet is { IsLoggedIn: true } walletViewModelPrevious /*&& item is WalletViewModelBase { IsLoggedIn: true }*/)
 			{
-				if (item is WalletViewModelBase && SelectedWallet != item)
+				if (item is not WalletActionViewModel && SelectedWallet != item)
 				{
-					RemoveActions(walletViewModelPrevious);
+					//if (item is WalletViewModelBase && SelectedWallet != item)
+					{
+						RemoveActions(walletViewModelPrevious);
 
-					SelectedWallet = null;
+						SelectedWallet = null;
+					}
 				}
 			}
 
-			if (item is WalletViewModelBase walletViewModelSelected && walletViewModelSelected.Wallet.IsLoggedIn)
+			if (item is WalletViewModelBase { IsLoggedIn: true} walletViewModelItem)
 			{
-				if (!_walletActionsDictionary.TryGetValue(walletViewModelSelected, out var actions))
+				if (!_walletActionsDictionary.TryGetValue(walletViewModelItem, out var actions))
 				{
 					actions = new List<NavBarItemViewModel>();
-					_walletActionsDictionary[walletViewModelSelected] = actions;
+					_walletActionsDictionary[walletViewModelItem] = actions;
 				}
 
-				InsertActions(walletViewModelSelected, actions);
+				InsertActions(walletViewModelItem, actions);
 
-				SelectedWallet = walletViewModelSelected;
+				SelectedWallet = walletViewModelItem;
 			}
 		}
 
@@ -210,7 +212,8 @@ namespace WalletWasabi.Fluent.ViewModels
 			_items.Remove(walletViewModel);
 			_actions.Add(walletViewModel);
 #endif
-			var index = _wallets.IndexOf(walletViewModel);
+			//var index = _wallets.IndexOf(walletViewModel);
+			var index = 1;
 			if (index >= 0)
 			{
 				var insertIndex = index;

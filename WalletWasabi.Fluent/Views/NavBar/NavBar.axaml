@@ -153,7 +153,7 @@
                     <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
                   </PathIcon.Data>
                 </PathIcon>
-                <Ellipse DataContext="{Binding Wallet}" IsVisible="{Binding IsLoggedIn}" Width="9" Height="9" Margin="15,13,0,0" Fill="#F2994A"/>
+                <Ellipse IsVisible="{Binding IsLoggedIn, Mode=OneWay}" Width="9" Height="9" Margin="15,13,0,0" Fill="#F2994A"/>
               </Panel>
               <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
             </Panel>
@@ -216,7 +216,7 @@
                   <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
                 </PathIcon.Data>
               </PathIcon>
-              <Ellipse DataContext="{Binding Wallet}" IsVisible="{Binding IsLoggedIn}" Width="9" Height="9" Margin="15,13,0,0" Fill="#F2994A"/>
+              <Ellipse IsVisible="{Binding IsLoggedIn, Mode=OneWay}" Width="9" Height="9" Margin="15,13,0,0" Fill="#F2994A"/>
             </Panel>
             <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
           </Panel>
@@ -240,7 +240,7 @@
                   <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
                 </PathIcon.Data>
               </PathIcon>
-              <Ellipse DataContext="{Binding Wallet}" IsVisible="{Binding IsLoggedIn}" Width="9" Height="9" Margin="15,13,0,0" Fill="#F2994A"/>
+              <Ellipse IsVisible="{Binding IsLoggedIn, Mode=OneWay}" Width="9" Height="9" Margin="15,13,0,0" Fill="#F2994A"/>
             </Panel>
             <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
           </Panel>
