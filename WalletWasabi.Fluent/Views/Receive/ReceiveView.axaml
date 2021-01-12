@@ -16,15 +16,20 @@
     <DockPanel>
       <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
         <Label Content="_Reference" Target="ReferenceTbx" HorizontalAlignment="Left"/>
-        <TextBox Text="{Binding Reference}" Name="ReferenceTbx" Watermark='Who knows this address is yours? E.g.: "Max, BitPay"' HorizontalAlignment="Stretch">
+        <AutoCompleteBox Text="{Binding Reference}"
+                         Name="ReferenceTbx"
+                         Watermark='Who knows this address is yours? E.g.: "Max, BitPay"'
+                         HorizontalAlignment="Stretch"
+                         MinimumPrefixLength="1"
+                         IsTextCompletionEnabled="True"
+                         Items="{Binding Suggestions}">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>
-        </TextBox>
+        </AutoCompleteBox>
       </StackPanel>
 
       <Button Content="View existing unused addresses" Classes="h8 plain activeHyperLink" HorizontalAlignment="Left" VerticalAlignment="Bottom" DockPanel.Dock="Bottom"/>
-
     </DockPanel>
   </c:ContentArea>
 </UserControl>
