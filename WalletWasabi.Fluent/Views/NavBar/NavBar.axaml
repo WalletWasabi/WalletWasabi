@@ -15,7 +15,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False">
   <UserControl.Styles>
-    <Style Selector=":is(ListBox)">
+    <!--<Style Selector=":is(ListBox)">
       <Setter Property="ItemTemplate">
         <Setter.Value>
           <DataTemplate x:DataType="vm:NavBarItemViewModel">
@@ -32,7 +32,7 @@
           </DataTemplate>
         </Setter.Value>
       </Setter>
-    </Style>
+    </Style>-->
     <Style Selector=":is(ListBox).bottom">
       <Setter Property="ItemsPanel">
         <Setter.Value>
@@ -41,7 +41,7 @@
           </ItemsPanelTemplate>
         </Setter.Value>
       </Setter>
-      <Setter Property="ItemTemplate">
+      <!--<Setter Property="ItemTemplate">
         <Setter.Value>
           <DataTemplate x:DataType="vm:NavBarItemViewModel">
               <Panel Width="45" Background="Transparent" HorizontalAlignment="Center" ToolTip.Tip="{Binding Title}">
@@ -58,7 +58,7 @@
               </Panel>
           </DataTemplate>
         </Setter.Value>
-      </Setter>
+      </Setter>-->
     </Style>
     <Style Selector="PathIcon">
       <Setter Property="Margin" Value="13 0 0 0" />
@@ -122,10 +122,58 @@
             <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
           </Style>
         </c:NavBarListBox.Styles>
+        <c:NavBarListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:NavBarItemViewModel">
+            <Panel>
+              <Panel Width="45" HorizontalAlignment="Left">
+                <PathIcon HorizontalAlignment="Left">
+                  <PathIcon.Data>
+                    <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                  </PathIcon.Data>
+                </PathIcon>
+              </Panel>
+              <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
+            </Panel>
+          </DataTemplate>
+        </c:NavBarListBox.ItemTemplate>
       </c:NavBarListBox>
       <Separator />
+      <c:NavBarListBox Items="{Binding Actions}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+        <c:NavBarListBox.Styles>
+          <Style Selector="c|NavBarItem">
+            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
+          </Style>
+        </c:NavBarListBox.Styles>
+        <c:NavBarListBox.DataTemplates>
+          <DataTemplate DataType="vmw:WalletViewModelBase" x:CompileBindings="False">
+            <Panel>
+              <Panel Width="45" HorizontalAlignment="Left">
+                <PathIcon HorizontalAlignment="Left">
+                  <PathIcon.Data>
+                    <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                  </PathIcon.Data>
+                </PathIcon>
+                <Ellipse DataContext="{Binding Wallet}" IsVisible="{Binding IsLoggedIn}" Width="9" Height="9" Margin="15,13,0,0" Fill="#F2994A"/>
+              </Panel>
+              <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
+            </Panel>
+          </DataTemplate>
+          <DataTemplate DataType="vmwa:WalletActionViewModel" x:CompileBindings="False">
+            <Panel>
+              <Panel Width="45" HorizontalAlignment="Left">
+                <PathIcon HorizontalAlignment="Left">
+                  <PathIcon.Data>
+                    <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                  </PathIcon.Data>
+                </PathIcon>
+              </Panel>
+              <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
+            </Panel>
+          </DataTemplate>
+        </c:NavBarListBox.DataTemplates>
+      </c:NavBarListBox>
+      <Separator IsVisible="{Binding !!Actions.Count}" />
     </StackPanel>
-
     <StackPanel DockPanel.Dock="Bottom">
       <Separator />
       <c:NavBarListBox Classes="bottom" Items="{Binding BottomItems}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}" >
@@ -135,9 +183,47 @@
             <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
           </Style>
         </c:NavBarListBox.Styles>
+        <c:NavBarListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:NavBarItemViewModel">
+            <Panel Width="45" Background="Transparent" HorizontalAlignment="Center" ToolTip.Tip="{Binding Title}">
+              <i:Interaction.Behaviors>
+                <ia:EventTriggerBehavior EventName="PointerPressed" SourceObject="{Binding $parent[c:NavBarItem]}">
+                  <ia:InvokeCommandAction Command="{Binding OpenCommand}" CommandParameter="{x:Static rx:Unit.Default}" />
+                </ia:EventTriggerBehavior>
+              </i:Interaction.Behaviors>
+              <PathIcon HorizontalAlignment="Left">
+                <PathIcon.Data>
+                  <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                </PathIcon.Data>
+              </PathIcon>
+            </Panel>
+          </DataTemplate>
+        </c:NavBarListBox.ItemTemplate>
       </c:NavBarListBox>
     </StackPanel>
-
+    <c:NavBarListBox Items="{Binding Items}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}" VerticalAlignment="{Binding Actions.Count, Mode=OneWay, Converter={x:Static conv:NavBarItemsListBoxAlignmentConverter.Instance}}">
+      <c:NavBarListBox.Styles>
+        <Style Selector="c|NavBarItem">
+          <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
+        </Style>
+      </c:NavBarListBox.Styles>
+      <c:NavBarListBox.DataTemplates>
+        <DataTemplate DataType="vmw:WalletViewModelBase" x:CompileBindings="False">
+          <Panel>
+            <Panel Width="45" HorizontalAlignment="Left">
+              <PathIcon HorizontalAlignment="Left">
+                <PathIcon.Data>
+                  <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                </PathIcon.Data>
+              </PathIcon>
+              <Ellipse DataContext="{Binding Wallet}" IsVisible="{Binding IsLoggedIn}" Width="9" Height="9" Margin="15,13,0,0" Fill="#F2994A"/>
+            </Panel>
+            <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
+          </Panel>
+        </DataTemplate>
+      </c:NavBarListBox.DataTemplates>
+    </c:NavBarListBox>
+    <!--
     <c:NavBarTreeView Items="{Binding Items}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}" AutoScrollToSelectedItem="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
       <c:NavBarTreeView.Styles>
         <Style Selector="c|NavBarTreeItem">
@@ -176,5 +262,6 @@
         </DataTemplate>
       </c:NavBarTreeView.DataTemplates>
     </c:NavBarTreeView>
+    -->
   </DockPanel>
 </UserControl>
