@@ -54,4 +54,8 @@
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="UnitTests\Tor\Socks5\Utils\" />
+	</ItemGroup>
+
 </Project>

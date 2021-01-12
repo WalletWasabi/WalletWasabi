@@ -6,16 +6,18 @@ using System.Threading.Tasks;
 using WalletWasabi.Tor.Http.Models;
 using static WalletWasabi.Tor.Http.Constants;
 
-namespace WalletWasabi.Tor.Socks5.Utils
+namespace WalletWasabi.Tor.Http.Extensions
 {
-	public static class TorHttpRequestMessageSerializer
+	public static class HttpRequestMessageExtensions
 	{
+		private static readonly HttpMethod ConnectHttpMethod = new("CONNECT");
+
 		/// <summary>
-		/// Converts <see cref="HttpRequestMessage"/> to plaintext HTTP 1.1 request string.
+		/// Converts <see cref="HttpRequestMessage"/> to plaintext HTTP request string.
 		/// </summary>
 		/// <param name="request">HTTP request to convert.</param>
 		/// <returns>String representation of <paramref name="request"/> according to <seealso href="https://tools.ietf.org/html/rfc7230"/>.</returns>
-		public static async Task<string> ToStringAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+		public static async Task<string> ToHttpStringAsync(this HttpRequestMessage request, CancellationToken cancellationToken = default)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-3.3.2
 			// A user agent SHOULD send a Content - Length in a request message when no Transfer-Encoding is sent and the request method defines a meaning
@@ -43,7 +45,7 @@ namespace WalletWasabi.Tor.Socks5.Utils
 			// distinguish among resources while servicing requests for multiple host names on a single IP address.
 			// Host = uri - host[":" port] ; Section 2.7.1
 			// A client MUST send a Host header field in all HTTP/1.1 request messages.
-			if (request.Method != new HttpMethod("CONNECT"))
+			if (request.Method != ConnectHttpMethod)
 			{
 				if (!request.Headers.Contains("Host"))
 				{

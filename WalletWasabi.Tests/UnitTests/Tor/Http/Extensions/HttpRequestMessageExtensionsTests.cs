@@ -2,23 +2,32 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Tor.Socks5.Utils;
+using WalletWasabi.Tor.Http.Extensions;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Tor.Socks5.Utils
+namespace WalletWasabi.Tests.UnitTests.Tor.Http.Extensions
 {
 	/// <summary>
-	/// Tests for <see cref="TorHttpRequestMessageSerializer"/>.
+	/// Tests for <see cref="HttpRequestMessageExtensions"/>.
 	/// </summary>
-	public class TorHttpRequestMessageSerializerTests
+	public class HttpRequestMessageExtensionsTests
 	{
 		[Fact]
 		public async Task GetTestAsync()
 		{
 			using HttpRequestMessage request = new(HttpMethod.Get, "https://postman-echo.com");
-			string plaintext = await TorHttpRequestMessageSerializer.ToStringAsync(request, CancellationToken.None);
+			string plaintext = await HttpRequestMessageExtensions.ToHttpStringAsync(request, CancellationToken.None);
 
 			Assert.Equal("GET / HTTP/1.1\r\nHost:postman-echo.com\r\n\r\n", plaintext);
+		}
+
+		[Fact]
+		public async Task ConnectTestAsync()
+		{
+			using HttpRequestMessage request = new(new HttpMethod("CONNECT"), "https://postman-echo.com");
+			string plaintext = await HttpRequestMessageExtensions.ToHttpStringAsync(request, CancellationToken.None);
+
+			Assert.Equal("CONNECT / HTTP/1.1\r\n\r\n", plaintext);
 		}
 
 		[Fact]
@@ -29,7 +38,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5.Utils
 			using HttpRequestMessage request = new(HttpMethod.Post, "https://postman-echo.com");
 			request.Content = content;
 
-			string actualPlaintext = await TorHttpRequestMessageSerializer.ToStringAsync(request, CancellationToken.None);
+			string actualPlaintext = await HttpRequestMessageExtensions.ToHttpStringAsync(request, CancellationToken.None);
 			string expected = "POST / HTTP/1.1\r\nHost:postman-echo.com\r\nContent-Type:application/json; charset=utf-8\r\nContent-Length:16\r\n\r\n{\"key\": \"value\"}";
 
 			Assert.Equal(expected, actualPlaintext);

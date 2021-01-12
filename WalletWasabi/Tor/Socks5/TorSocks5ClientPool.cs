@@ -269,7 +269,7 @@ namespace WalletWasabi.Tor.Socks5
 		private async static Task<HttpResponseMessage> SendCoreAsync(Stream transportStream, HttpRequestMessage request, CancellationToken token = default)
 		{
 			TorHttpRequestPreprocessor.Preprocess(request);
-			string requestString = await TorHttpRequestMessageSerializer.ToStringAsync(request, token).ConfigureAwait(false);
+			string requestString = await request.ToHttpStringAsync(token).ConfigureAwait(false);
 			byte[] bytes = Encoding.UTF8.GetBytes(requestString);
 
 			await transportStream.WriteAsync(bytes.AsMemory(0, bytes.Length), token).ConfigureAwait(false);
