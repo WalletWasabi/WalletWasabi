@@ -68,6 +68,7 @@
 
         <!-- Incorrect password -->
         <StackPanel Spacing="20"
+                    Margin="0,11,0,0"
                     IsVisible="{Binding IsPasswordIncorrect}"
                     VerticalAlignment="Bottom"
                     Classes="fadeAnimation">
