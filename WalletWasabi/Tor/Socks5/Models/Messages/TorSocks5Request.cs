@@ -22,19 +22,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 	/// <seealso href="https://tools.ietf.org/html/rfc1928">Section 4. Requests</seealso>
 	public class TorSocks5Request : ByteArraySerializableBase
 	{
-		public TorSocks5Request(byte[] bytes)
-		{
-			Guard.NotNullOrEmpty(nameof(bytes), bytes);
-			Guard.MinimumAndNotNull($"{nameof(bytes)}.{nameof(bytes.Length)}", bytes.Length, 6);
-
-			Ver = new VerField(bytes[0]);
-			Cmd = new CmdField(bytes[1]);
-			Rsv = new RsvField(bytes[2]);
-			Atyp = new AtypField(bytes[3]);
-			DstAddr = new AddrField(bytes[4..^2]);
-			DstPort = new PortField(bytes[^2..]);
-		}
-
 		public TorSocks5Request(CmdField cmd, AddrField dstAddr, PortField dstPort)
 		{
 			Cmd = Guard.NotNull(nameof(cmd), cmd);
@@ -57,6 +44,12 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 
 		public PortField DstPort { get; }
 
-		public override byte[] ToBytes() => ByteHelpers.Combine(new byte[] { Ver.ToByte(), Cmd.ToByte(), Rsv.ToByte(), Atyp.ToByte() }, DstAddr.ToBytes(), DstPort.ToBytes());
+		public override byte[] ToBytes() => ByteHelpers.Combine(
+			new byte[]
+				{
+					Ver.ToByte(), Cmd.ToByte(), Rsv.ToByte(), Atyp.ToByte()
+				},
+			DstAddr.ToBytes(),
+			DstPort.ToBytes());
 	}
 }

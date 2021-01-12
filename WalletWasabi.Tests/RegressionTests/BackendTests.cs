@@ -74,7 +74,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var utxos = await rpc.ListUnspentAsync();
 			var utxo = utxos[0];
 			var tx = await rpc.GetRawTransactionAsync(utxo.OutPoint.Hash);
-			var content = new StringContent($"'{tx.ToHex()}'", Encoding.UTF8, "application/json");
+			using StringContent content = new($"'{tx.ToHex()}'", Encoding.UTF8, "application/json");
 
 			Logger.TurnOff();
 
@@ -90,7 +90,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		{
 			await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
-			var content = new StringContent($"''", Encoding.UTF8, "application/json");
+			using StringContent content = new($"''", Encoding.UTF8, "application/json");
 
 			Logger.TurnOff();
 
@@ -220,7 +220,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 					await rpc.GenerateAsync(1);
 
-					var blockchainController = (BlockchainController)RegTestFixture.BackendHost.Services.GetService(typeof(BlockchainController));
+					var blockchainController = (BlockchainController)RegTestFixture.BackendHost.Services.GetService(typeof(BlockchainController))!;
 					blockchainController.Cache.Remove($"{nameof(BlockchainController.GetStatusAsync)}");
 
 					// Set back the time to trigger timeout in BlockchainController.GetStatusAsync.

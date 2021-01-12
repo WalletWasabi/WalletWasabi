@@ -1,5 +1,7 @@
 using System;
+using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
@@ -96,6 +98,17 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		protected virtual void OnNavigatedFrom()
 		{
+		}
+
+		protected void EnableAutoBusyOn(params ICommand[] commands)
+		{
+			foreach (var command in commands)
+			{
+				(command as IReactiveCommand)?.IsExecuting
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Skip(1)
+					.Subscribe(x => IsBusy = x);
+			}
 		}
 
 		public async Task<DialogResult<TResult>> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog)
