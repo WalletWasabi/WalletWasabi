@@ -20,6 +20,7 @@
     <c:QuestionControl Text="{Binding TypeName, StringFormat={}{0}  was detected. Is this correct?}"
                        YesCommand="{Binding NextCommand}"
                        NoCommand="{Binding NoCommand}"
-                       Icon="{Binding Path='Type', Converter={x:Static conv:HardwareWalletIconConverter.Instance}}"/>
+                       Icon="{Binding Path='Type', Converter={x:Static conv:HardwareWalletIconConverter.Instance}}"
+                       HighlightButton="YesButton"/>
   </c:ContentArea>
 </UserControl>

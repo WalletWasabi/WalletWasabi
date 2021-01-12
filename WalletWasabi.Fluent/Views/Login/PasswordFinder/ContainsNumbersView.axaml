@@ -17,6 +17,7 @@
     <c:QuestionControl Text="Does your password contains numbers?"
                        YesCommand="{Binding YesCommand}"
                        NoCommand="{Binding NoCommand}"
-                       Icon="/Assets/PasswordFinder/numbers.png"/>
+                       Icon="/Assets/PasswordFinder/numbers.png"
+                       HighlightButton="Both"/>
   </c:ContentArea>
 </UserControl>

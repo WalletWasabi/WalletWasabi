@@ -17,6 +17,7 @@
     <c:QuestionControl Text="Does your password contains special characters?"
                        YesCommand="{Binding YesCommand}"
                        NoCommand="{Binding NoCommand}"
-                       Icon="/Assets/PasswordFinder/symbols.png"/>
+                       Icon="/Assets/PasswordFinder/symbols.png"
+                       HighlightButton="Both"/>
   </c:ContentArea>
 </UserControl>

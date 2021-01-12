@@ -5,6 +5,14 @@ using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Controls
 {
+	public enum HighlightedButton
+	{
+		None,
+		YesButton,
+		NoButton,
+		Both
+	}
+
 	public class QuestionControl : Label
 	{
 		public static readonly StyledProperty<ICommand> YesCommandProperty =
@@ -18,6 +26,9 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<string> TextProperty =
 			AvaloniaProperty.Register<QuestionControl, string>(nameof(Text));
+
+		public static readonly StyledProperty<HighlightedButton> HighlightButtonProperty =
+			AvaloniaProperty.Register<QuestionControl, HighlightedButton>(nameof(HighlightButton));
 
 		public ICommand YesCommand
 		{
@@ -41,6 +52,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(TextProperty);
 			set => SetValue(TextProperty, value);
+		}
+
+		public HighlightedButton HighlightButton
+		{
+			get => GetValue(HighlightButtonProperty);
+			set => SetValue(HighlightButtonProperty, value);
 		}
 	}
 }
