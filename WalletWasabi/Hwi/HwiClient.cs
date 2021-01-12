@@ -281,14 +281,14 @@ namespace WalletWasabi.Hwi
 		{
 			if (exitCode != 0)
 			{
-				if (HwiParser.TryParseErrors(responseString, options, out HwiException error))
+				if (HwiParser.TryParseErrors(responseString, options, out HwiException? error))
 				{
 					throw error;
 				}
 				throw new HwiException(HwiErrorCode.UnknownError, $"'hwi {arguments}' exited with incorrect exit code: {exitCode}.");
 			}
 
-			if (HwiParser.TryParseErrors(responseString, options, out HwiException error2))
+			if (HwiParser.TryParseErrors(responseString, options, out HwiException? error2))
 			{
 				throw error2;
 			}

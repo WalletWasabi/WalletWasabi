@@ -89,7 +89,7 @@ namespace WalletWasabi.Blockchain.P2p
 
 			foreach (var inv in payload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX)))
 			{
-				if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry entry)) // If we have the transaction to be broadcasted then broadcast it now.
+				if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry? entry)) // If we have the transaction to be broadcasted then broadcast it now.
 				{
 					if (entry.NodeRemoteSocketEndpoint != node.RemoteSocketEndpoint.ToString())
 					{

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -85,7 +86,7 @@ namespace WalletWasabi.Io
 		/// <summary>
 		/// Source: https://stackoverflow.com/questions/7957544/how-to-ensure-that-data-doesnt-get-corrupted-when-saving-to-file/7957634#7957634
 		/// </summary>
-		private bool TryGetSafestFileVersion(out string safestFilePath)
+		private bool TryGetSafestFileVersion([NotNullWhen(true)] out string? safestFilePath)
 		{
 			// If foo.data and foo.data.new exist, load foo.data; foo.data.new may be broken (e.g. power off during write).
 			bool newExists = File.Exists(NewFilePath);
@@ -138,7 +139,7 @@ namespace WalletWasabi.Io
 		public new async Task<string[]> ReadAllLinesAsync(CancellationToken cancellationToken = default)
 		{
 			var filePath = FilePath;
-			if (TryGetSafestFileVersion(out string safestFilePath))
+			if (TryGetSafestFileVersion(out string? safestFilePath))
 			{
 				filePath = safestFilePath;
 			}
@@ -154,7 +155,7 @@ namespace WalletWasabi.Io
 		public new StreamReader OpenText(int bufferSize = Constants.BigFileReadWriteBufferSize)
 		{
 			var filePath = FilePath;
-			if (TryGetSafestFileVersion(out string safestFilePath))
+			if (TryGetSafestFileVersion(out string? safestFilePath))
 			{
 				filePath = safestFilePath;
 			}

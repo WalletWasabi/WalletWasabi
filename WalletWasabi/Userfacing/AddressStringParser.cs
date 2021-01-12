@@ -1,13 +1,14 @@
 using NBitcoin;
 using NBitcoin.Payment;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace WalletWasabi.Userfacing
 {
 	public static class AddressStringParser
 	{
-		public static bool TryParseBitcoinAddress(string text, Network expectedNetwork, out BitcoinUrlBuilder url)
+		public static bool TryParseBitcoinAddress(string text, Network expectedNetwork, [NotNullWhen(true)] out BitcoinUrlBuilder? url)
 		{
 			url = null;
 
@@ -35,7 +36,7 @@ namespace WalletWasabi.Userfacing
 			}
 		}
 
-		public static bool TryParseBitcoinUrl(string text, Network expectedNetwork, out BitcoinUrlBuilder url)
+		public static bool TryParseBitcoinUrl(string text, Network expectedNetwork, [NotNullWhen(true)] out BitcoinUrlBuilder? url)
 		{
 			url = null;
 
@@ -73,7 +74,7 @@ namespace WalletWasabi.Userfacing
 			}
 		}
 
-		public static bool TryParse(string text, Network expectedNetwork, out BitcoinUrlBuilder result)
+		public static bool TryParse(string text, Network expectedNetwork, [NotNullWhen(true)] out BitcoinUrlBuilder? result)
 		{
 			result = null;
 			if (string.IsNullOrWhiteSpace(text) || text.Length > 1000)
@@ -81,14 +82,14 @@ namespace WalletWasabi.Userfacing
 				return false;
 			}
 
-			if (TryParseBitcoinAddress(text, expectedNetwork, out BitcoinUrlBuilder addressResult))
+			if (TryParseBitcoinAddress(text, expectedNetwork, out BitcoinUrlBuilder? addressResult))
 			{
 				result = addressResult;
 				return true;
 			}
 			else
 			{
-				if (TryParseBitcoinUrl(text, expectedNetwork, out BitcoinUrlBuilder urlResult))
+				if (TryParseBitcoinUrl(text, expectedNetwork, out BitcoinUrlBuilder? urlResult))
 				{
 					result = urlResult;
 					return true;

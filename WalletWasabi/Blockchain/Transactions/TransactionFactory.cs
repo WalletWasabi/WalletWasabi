@@ -124,7 +124,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			HdPubKey changeHdPubKey = null;
 
-			if (payments.TryGetCustomRequest(out DestinationRequest custChange))
+			if (payments.TryGetCustomRequest(out DestinationRequest? custChange))
 			{
 				var changeScript = custChange.Destination.ScriptPubKey;
 				changeHdPubKey = KeyManager.GetKeyForScriptPubKey(changeScript);
