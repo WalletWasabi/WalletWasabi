@@ -20,6 +20,19 @@
                VerticalAlignment="Center"
                LastChildFill="True">
       <DockPanel.Styles>
+        <Style Selector="DockPanel.fadeAnimation[IsVisible=true]">
+          <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <Style Selector="DockPanel.fadeAnimation[IsVisible=False]">
+          <Setter Property="Opacity" Value="0"/>
+        </Style>
+        <Style Selector="DockPanel.fadeAnimation">
+          <Setter Property="Transitions">
+            <Transitions>
+              <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
+            </Transitions>
+          </Setter>
+        </Style>
         <Style Selector="StackPanel.fadeAnimation[IsVisible=true]">
           <Setter Property="Opacity" Value="1"/>
         </Style>
