@@ -225,7 +225,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				var firstSeenString = parts[6];
 				var isReplacementString = parts[7];
 
-				if (!Height.TryParse(heightString, out Height? height))
+				if (!Height.TryParse(heightString, out Height height))
 				{
 					height = Height.Unknown;
 				}

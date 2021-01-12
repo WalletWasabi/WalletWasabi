@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Models
@@ -81,7 +80,7 @@ namespace WalletWasabi.Models
 		/// <param name="heightOrHeightType">The height numerical value as its string representation
 		/// or well the strings "Mempool" or "Unknown" for the default initial height of those Heights.
 		/// </param>
-		public static bool TryParse(string heightOrHeightType, [NotNullWhen(true)] out Height? height)
+		public static bool TryParse(string heightOrHeightType, out Height height)
 		{
 			height = default;
 
