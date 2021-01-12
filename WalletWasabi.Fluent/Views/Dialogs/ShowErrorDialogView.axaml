@@ -10,7 +10,7 @@
              x:Class="WalletWasabi.Fluent.Views.Dialogs.ShowErrorDialogView">
   <c:ContentArea Title="{Binding Title}"
                  Caption="{Binding Caption}"
-                 EnableNext="True" NextContent="Ok"
+                 EnableNext="True" NextContent="OK"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
       <DockPanel VerticalAlignment="Center">
           <TextBlock Text="{Binding Message}" DockPanel.Dock="Bottom" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="500" Margin="20 0" />

@@ -232,32 +232,7 @@ namespace WalletWasabi.Tor.Http
 
 			cancel.ThrowIfCancellationRequested();
 
-			// https://tools.ietf.org/html/rfc7230#section-3.3.2
-			// A user agent SHOULD send a Content - Length in a request message when
-			// no Transfer-Encoding is sent and the request method defines a meaning
-			// for an enclosed payload body.For example, a Content - Length header
-			// field is normally sent in a POST request even when the value is 0
-			// (indicating an empty payload body).A user agent SHOULD NOT send a
-			// Content - Length header field when the request message does not contain
-			// a payload body and the method semantics do not anticipate such a
-			// body.
-			if (request.Method == HttpMethod.Post)
-			{
-				if (request.Headers.TransferEncoding.Count == 0)
-				{
-					if (request.Content is null)
-					{
-						request.Content = new ByteArrayContent(Array.Empty<byte>()); // dummy empty content
-						request.Content.Headers.ContentLength = 0;
-					}
-					else
-					{
-						request.Content.Headers.ContentLength ??= (await request.Content.ReadAsStringAsync(cancel).ConfigureAwait(false)).Length;
-					}
-				}
-			}
-
-			string requestString = await request.ToHttpStringAsync().ConfigureAwait(false);
+			string requestString = await request.ToHttpStringAsync(cancel).ConfigureAwait(false);
 
 			var bytes = Encoding.UTF8.GetBytes(requestString);
 

@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
 			Mnemonics.ToObservableChangeSet().ToCollection()
-				.Select(x => x.Count == 12 ? new Mnemonic(GetTagsAsConcatString()) : default)
+				.Select(x => x.Count == 12 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
 				.Subscribe(x => CurrentMnemonics = x);
 
 			this.WhenAnyValue(x => x.SelectedTag)
@@ -72,6 +72,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						MinGapLimit = (int)minGapLimitIn;
 					}
 				});
+
+			EnableAutoBusyOn(NextCommand);
 		}
 
 		private async Task OnNext(
@@ -79,8 +81,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			Network network,
 			string? walletName)
 		{
-			IsBusy = true;
-
 			var dialogResult = await NavigateDialog(
 				new EnterPasswordViewModel(
 					"Type the password of the wallet to be able to recover and click Continue."));
@@ -117,8 +117,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					Logger.LogError(ex);
 				}
 			}
-
-			IsBusy = false;
 
 			if (dialogResult.Kind == DialogResultKind.Cancel)
 			{
