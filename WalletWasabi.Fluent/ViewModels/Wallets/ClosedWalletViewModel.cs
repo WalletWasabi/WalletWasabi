@@ -5,8 +5,10 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
+using WalletWasabi.Fluent.Views.Receive;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -44,8 +46,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					}
 				},
 				this.WhenAnyValue(x => x.WalletState).Select(x => x == WalletState.Uninitialized));
+
+
+			OpenReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel()));
 		}
 
+		public IReactiveCommand OpenReceiveCommand { get; }
 		public ReactiveCommand<Unit, Unit> OpenWalletCommand { get; }
 
 		public override string IconName => "web_asset_regular";
