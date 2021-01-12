@@ -144,11 +144,13 @@ namespace WalletWasabi.Fluent.ViewModels
 			}
 		}
 
-		public void SelectionChanged(NavBarItemViewModel item)
+		public NavBarItemViewModel? SelectionChanged(NavBarItemViewModel item)
 		{
+			var result = default(NavBarItemViewModel);
+
 			if (SelectedWallet == item)
 			{
-				return;
+				return result;
 			}
 
 			if (SelectedWallet is { IsLoggedIn: true } walletViewModelPrevious /* && item is WalletViewModelBase { IsLoggedIn: true } */)
@@ -160,6 +162,8 @@ namespace WalletWasabi.Fluent.ViewModels
 					RemoveActions(walletViewModelPrevious, actions);
 
 					SelectedWallet = null;
+
+					result = item;
 				}
 			}
 
@@ -174,7 +178,11 @@ namespace WalletWasabi.Fluent.ViewModels
 				InsertActions(walletViewModelItem, actions);
 
 				SelectedWallet = walletViewModelItem;
+
+				result = item;
 			}
+
+			return result;
 		}
 
 		private List<WalletActionViewModel> GetWalletActions(WalletViewModelBase walletViewModel)
