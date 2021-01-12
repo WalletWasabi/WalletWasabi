@@ -46,14 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					}
 				},
 				this.WhenAnyValue(x => x.WalletState).Select(x => x == WalletState.Uninitialized));
-
-			PwFinderCommand = ReactiveCommand.Create(() =>
-			{
-				Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet));
-			});
 		}
-
-		public ICommand PwFinderCommand { get; }
 
 		public ReactiveCommand<Unit, Unit> OpenWalletCommand { get; }
 
