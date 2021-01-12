@@ -11,6 +11,6 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Receive.ReceiveAddressView">
   <c:ContentArea Title="{Binding Title}">
-
+    <TextBlock Text="{Binding Address}"/>
   </c:ContentArea>
 </UserControl>

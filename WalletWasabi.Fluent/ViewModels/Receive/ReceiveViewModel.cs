@@ -39,7 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 					// NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
 				}
 
-				Navigate().To(new ReceiveAddressesViewModel(newKey));
+				Navigate().To(new ReceiveAddressViewModel(newKey));
 			},
 			nextCommandCanExecute);
 		}
