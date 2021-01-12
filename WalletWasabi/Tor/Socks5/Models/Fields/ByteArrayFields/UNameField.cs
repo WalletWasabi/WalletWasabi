@@ -6,8 +6,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 {
 	public class UNameField : ByteArraySerializableBase
 	{
-		#region Constructors
-
 		public UNameField(byte[] bytes)
 		{
 			Bytes = Guard.NotNullOrEmpty(nameof(bytes), bytes);
@@ -18,20 +16,8 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 		{
 		}
 
-		#endregion Constructors
-
-		#region PropertiesAndMembers
-
 		private byte[] Bytes { get; }
 
-		public string UName => Encoding.UTF8.GetString(Bytes); // Tor accepts UTF8 encoded passwd
-
-		#endregion PropertiesAndMembers
-
-		#region Serialization
-
 		public override byte[] ToBytes() => Bytes;
-
-		#endregion Serialization
 	}
 }

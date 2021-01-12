@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Gui;
-using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -70,17 +69,10 @@ namespace WalletWasabi.Fluent.Desktop
 					// TODO only required due to statusbar vm... to be removed.
 					Locator.CurrentMutable.RegisterConstant(Global);
 
-					if (args.Length != 0)
-					{
-						ProcessCliCommands(Global, args);
-					}
-					else
-					{
-						Logger.LogSoftwareStarted("Wasabi GUI");
-						BuildAvaloniaApp(Global)
-							.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled))
-							.StartWithClassicDesktopLifetime(args);
-					}
+					Logger.LogSoftwareStarted("Wasabi GUI");
+					BuildAvaloniaApp(Global)
+						.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled))
+						.StartWithClassicDesktopLifetime(args);
 				}
 				catch (OperationCanceledException ex)
 				{
@@ -136,17 +128,6 @@ namespace WalletWasabi.Fluent.Desktop
 			var walletManager = new WalletManager(config.Network, dataDir, new WalletDirectories(config.Network, dataDir));
 
 			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
-		}
-
-		private static bool ProcessCliCommands(Global global, string[] args)
-		{
-			var daemon = new Daemon(global, TerminateService);
-			var interpreter = new CommandInterpreter(Console.Out, Console.Error);
-			var executionTask = interpreter.ExecuteCommandsAsync(
-				args,
-				new MixerCommand(daemon),
-				new PasswordFinderCommand(global.WalletManager));
-			return executionTask.GetAwaiter().GetResult();
 		}
 
 		/// <summary>

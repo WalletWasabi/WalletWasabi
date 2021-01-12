@@ -9,19 +9,39 @@ namespace WalletWasabi.Microservices
 	{
 		public static string GetBinaryFolder()
 		{
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				return GetBinaryFolder(OSPlatform.Windows);
+			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			{
+				return GetBinaryFolder(OSPlatform.Linux);
+			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				return GetBinaryFolder(OSPlatform.OSX);
+			}
+			else
+			{
+				throw new NotSupportedException("Operating system is not supported.");
+			}
+		}
+
+		public static string GetBinaryFolder(OSPlatform platform)
+		{
 			var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
 
 			string commonPartialPath = Path.Combine(fullBaseDirectory, "Microservices", "Binaries");
 			string path;
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			if (platform == OSPlatform.Windows)
 			{
 				path = Path.Combine(commonPartialPath, $"win64");
 			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			else if (platform == OSPlatform.Linux)
 			{
 				path = Path.Combine(commonPartialPath, $"lin64");
 			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			else if (platform == OSPlatform.OSX)
 			{
 				path = Path.Combine(commonPartialPath, $"osx64");
 			}

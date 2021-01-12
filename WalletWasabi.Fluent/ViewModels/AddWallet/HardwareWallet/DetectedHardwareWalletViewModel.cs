@@ -28,8 +28,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				IsBusy = true;
-
 				try
 				{
 					var km = await hardwareWalletOperations.GenerateWalletAsync(WalletName);
@@ -45,11 +43,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 					await ShowErrorAsync(ex.ToUserFriendlyString(), "Error occured during adding your wallet.");
 					Navigate().Back();
 				}
-
-				IsBusy = false;
 			});
 
 			NoCommand = ReactiveCommand.Create(() => Navigate().Back());
+
+			EnableAutoBusyOn(NextCommand);
 		}
 
 		public string WalletName { get; }
