@@ -225,10 +225,15 @@ namespace WalletWasabi.Fluent.ViewModels
 			}
 		}
 
-		private void RemoveActions(WalletViewModelBase wallet, IEnumerable<NavBarItemViewModel> actions, bool dispose = false)
+		private void RemoveActions(WalletViewModelBase walletViewModel, IEnumerable<NavBarItemViewModel> actions, bool dispose = false)
 		{
-			_actions.Remove(wallet);
-			_items.Insert(0, wallet);
+			_actions.Remove(walletViewModel);
+
+			var index = _wallets.IndexOf(walletViewModel);
+			if (index >= 0)
+			{
+				_items.Insert(index, walletViewModel);
+			}
 
 			foreach (var action in actions)
 			{
@@ -237,7 +242,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (dispose)
 			{
-				_walletActionsDictionary.Remove(wallet);
+				_walletActionsDictionary.Remove(walletViewModel);
 			}
 		}
 	}
