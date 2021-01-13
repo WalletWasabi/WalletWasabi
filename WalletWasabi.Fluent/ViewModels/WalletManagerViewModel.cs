@@ -109,7 +109,14 @@ namespace WalletWasabi.Fluent.ViewModels
 			var index = _wallets.IndexOf(wallet);
 			if (index >= 0)
 			{
-				_items.Insert(index, wallet);
+				if (SelectedWallet is not null)
+				{
+					_items.Insert(index - 1, wallet);
+				}
+				else
+				{
+					_items.Insert(index, wallet);
+				}
 			}
 
 			_walletDictionary.Add(wallet.Wallet, wallet);
