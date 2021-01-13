@@ -106,8 +106,8 @@ namespace WalletWasabi.Fluent.ViewModels
 					IsDialogScreenEnabled = !x;
 				});
 
-			_walletManager.WhenAnyValue(x => x.Items.Count)
-				.Subscribe(x => _navBar.IsHidden = x == 0);
+			_walletManager.WhenAnyValue(x => x.Items.Count, x => x.Actions.Count)
+				.Subscribe(x => _navBar.IsHidden = x.Item1 == 0 && x.Item2 == 0);
 
 			if (!_walletManager.Model.AnyWallet(_ => true))
 			{
