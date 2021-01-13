@@ -31,6 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		[AutoNotify] private double _currentOpenPaneLength;
 		[AutoNotify] private double _currentCompactPaneLength;
 		[AutoNotify] private bool _isHidden;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _hideItems;
 
 		public NavBarViewModel(TargettedNavigationStack mainScreen, WalletManagerViewModel walletManager)
 		{
@@ -71,6 +72,12 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				{
 					CurrentCompactPaneLength = x ? 0 : NormalCompactPaneLength;
 					CurrentOpenPaneLength = x ? 0 : NormalOpenPaneLength;
+				});
+
+			this.WhenAnyValue(x => x.IsOpen, x => x.Actions.Count)
+				.Subscribe(x =>
+				{
+					HideItems = !x.Item1 && x.Item2 > 0;
 				});
 		}
 
