@@ -11,8 +11,7 @@
 	{
 		public CoinJoinWalletActionViewModel(WalletViewModelBase wallet) : base(wallet)
 		{
+			Title = "CoinJoin";
 		}
-
-		public string Title => "CoinJoin";
 	}
 }

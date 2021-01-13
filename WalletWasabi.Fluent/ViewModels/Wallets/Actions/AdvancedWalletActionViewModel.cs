@@ -11,8 +11,7 @@
 	{
 		public AdvancedWalletActionViewModel(WalletViewModelBase wallet) : base(wallet)
 		{
+			Title = "Advanced";
 		}
-
-		public string Title => "Advanced";
 	}
 }

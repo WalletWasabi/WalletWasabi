@@ -11,8 +11,7 @@
 	{
 		public SendWalletActionViewModel(WalletViewModelBase wallet) : base(wallet)
 		{
+			Title = "Send";
 		}
-
-		public string Title => "Send";
 	}
 }

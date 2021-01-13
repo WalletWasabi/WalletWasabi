@@ -11,8 +11,8 @@
 	{
 		public ReceiveWalletActionViewModel(WalletViewModelBase wallet) : base(wallet)
 		{
+			Title = "Receive";
+			SelectionMode = NavBarItemSelectionMode.Button;
 		}
-
-		public string Title => "Receive";
 	}
 }
