@@ -262,17 +262,15 @@ namespace WalletWasabi.Gui
 				}
 				else
 				{
+					var bestEffortEndpointConnector = new BestEffortEndpointConnector();
+					connectionParameters.EndpointConnector = bestEffortEndpointConnector;
 					if (Config.UseTor)
 					{
-						// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
 						connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
-						// allowOnlyTorEndpoints: true - Connect only to onions and do not connect to clearnet IPs at all.
-						// This of course makes the first setting unnecessary, but it's better if that's around, in case someone wants to tinker here.
-						connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: Network == Network.Main);
-
-						await AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager).ConfigureAwait(false);
 					}
 					Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
+					Nodes.ConnectedNodes.Added += ConnectedNodes_OnAddedOrRemoved; 
+					Nodes.ConnectedNodes.Removed += ConnectedNodes_OnAddedOrRemoved; 
 					Nodes.MaximumNodeConnection = 12;
 					RegTestMempoolServingNode = null;
 				}
@@ -416,27 +414,15 @@ namespace WalletWasabi.Gui
 			return addressManagerBehavior;
 		}
 
-		private async Task AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager addressManager)
+		private void ConnectedNodes_OnAddedOrRemoved(object? sender, NodeEventArgs e)
 		{
-			if (Network == Network.RegTest)
+			if (Nodes.NodeConnectionParameters.EndpointConnector is BestEffortEndpointConnector bestEffortEndPointConnector)
 			{
-				return;
-			}
-
-			// curl -s https://bitnodes.21.co/api/v1/snapshots/latest/ | egrep -o '[a-z0-9]{16}\.onion:?[0-9]*' | sort -ru
-			// Then filtered to include only /Satoshi:0.17.x
-			var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
-
-			var onions = await File.ReadAllLinesAsync(Path.Combine(fullBaseDirectory, "Tor", "OnionSeeds", $"{Network}OnionSeeds.txt")).ConfigureAwait(false);
-
-			onions.Shuffle();
-			foreach (var onion in onions.Take(60))
-			{
-				if (EndPointParser.TryParse(onion, Network.DefaultPort, out var endpoint))
+				if (sender is NodesCollection nodesCollection)
 				{
-					await addressManager.AddAsync(endpoint).ConfigureAwait(false);
+					bestEffortEndPointConnector.UpdateConnectedNodesCounter(nodesCollection.Count);
 				}
-			}
+			} 
 		}
 
 		private void WalletManager_OnDequeue(object? sender, DequeueResult e)
@@ -680,6 +666,8 @@ namespace WalletWasabi.Gui
 
 				if (Nodes is { } nodes)
 				{
+					Nodes.ConnectedNodes.Added -= ConnectedNodes_OnAddedOrRemoved; 
+					Nodes.ConnectedNodes.Removed -= ConnectedNodes_OnAddedOrRemoved; 
 					nodes.Disconnect();
 					while (nodes.ConnectedNodes.Any(x => x.IsConnected))
 					{
