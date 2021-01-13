@@ -89,7 +89,7 @@
         <c:NavBarListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:NavBarItemViewModel">
             <Panel>
-              <Panel Width="45" HorizontalAlignment="Left">
+              <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
                 <PathIcon HorizontalAlignment="Left">
                   <PathIcon.Data>
                     <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
@@ -111,7 +111,7 @@
         <c:NavBarListBox.DataTemplates>
           <DataTemplate DataType="vmw:WalletViewModelBase" x:CompileBindings="False">
             <Panel>
-              <Panel Width="45" HorizontalAlignment="Left">
+              <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
                 <PathIcon HorizontalAlignment="Left">
                   <PathIcon.Data>
                     <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
@@ -124,7 +124,7 @@
           </DataTemplate>
           <DataTemplate DataType="vmwa:WalletActionViewModel" x:CompileBindings="False">
             <Panel>
-              <Panel Width="45" HorizontalAlignment="Left">
+              <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
                 <PathIcon HorizontalAlignment="Left">
                   <PathIcon.Data>
                     <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
@@ -174,7 +174,7 @@
       <c:NavBarListBox.DataTemplates>
         <DataTemplate DataType="vmw:WalletViewModelBase" x:CompileBindings="False">
           <Panel>
-            <Panel Width="45" HorizontalAlignment="Left">
+            <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
               <PathIcon HorizontalAlignment="Left">
                 <PathIcon.Data>
                   <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
