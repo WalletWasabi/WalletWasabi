@@ -8,7 +8,8 @@
              x:DataType="vm:AdvancedWalletActionViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Actions.AdvancedWalletActionView">
-  <c:ContentArea Title="Advanced" Caption="" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+  <c:ContentArea Title="Advanced" Caption=""
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
   </c:ContentArea>
 </UserControl>

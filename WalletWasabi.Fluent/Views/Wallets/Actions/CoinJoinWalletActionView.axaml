@@ -8,7 +8,8 @@
              x:DataType="vm:CoinJoinWalletActionViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Actions.CoinJoinWalletActionView">
-  <c:ContentArea Title="CoinJoin" Caption="" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+  <c:ContentArea Title="CoinJoin" Caption=""
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
   </c:ContentArea>
 </UserControl>
