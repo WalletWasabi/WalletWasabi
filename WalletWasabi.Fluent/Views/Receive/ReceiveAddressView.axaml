@@ -63,7 +63,7 @@
         <DockPanel HorizontalAlignment="Center" >
           <DockPanel IsVisible="{Binding !#CopiedTextBlock.IsVisible}" Classes="fadeAnimation">
             <TextBlock Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
-            <Button Margin="10 0 0 0" DockPanel.Dock="Right" Classes="plain" Command="{Binding CopyAddressCommand}">
+            <Button Margin="10 0 0 0" ToolTip.Tip="Copy" DockPanel.Dock="Right" Classes="plain" Command="{Binding CopyAddressCommand}">
               <PathIcon Data="{StaticResource copy_regular}"/>
             </Button>
           </DockPanel>
