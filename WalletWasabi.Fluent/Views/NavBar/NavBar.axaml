@@ -81,9 +81,14 @@
           </Style>
         </c:NavBarListBox.Styles>
         <c:NavBarListBox.ItemTemplate>
-          <DataTemplate x:DataType="vm:NavBarItemViewModel">
+          <DataTemplate x:DataType="vm:NavBarItemViewModel" x:CompileBindings="False">
             <Panel>
               <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
+                <i:Interaction.Behaviors>
+                  <ia:EventTriggerBehavior EventName="PointerPressed" SourceObject="{Binding $parent[c:NavBarItem]}">
+                    <ia:InvokeCommandAction Command="{Binding OpenCommand}" CommandParameter="{x:Static rx:Unit.Default}" />
+                  </ia:EventTriggerBehavior>
+                </i:Interaction.Behaviors>
                 <PathIcon HorizontalAlignment="Left">
                   <PathIcon.Data>
                     <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
@@ -106,9 +111,14 @@
           </Style>
         </c:NavBarListBox.Styles>
         <c:NavBarListBox.DataTemplates>
-          <DataTemplate DataType="vmw:WalletViewModelBase" x:CompileBindings="False">
+          <DataTemplate DataType="vmw:WalletViewModelBase">
             <Panel>
               <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
+                <i:Interaction.Behaviors>
+                  <ia:EventTriggerBehavior EventName="PointerPressed" SourceObject="{Binding $parent[c:NavBarItem]}">
+                    <ia:InvokeCommandAction Command="{Binding OpenCommand}" CommandParameter="{x:Static rx:Unit.Default}" />
+                  </ia:EventTriggerBehavior>
+                </i:Interaction.Behaviors>
                 <PathIcon HorizontalAlignment="Left">
                   <PathIcon.Data>
                     <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
@@ -119,9 +129,14 @@
               <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
             </Panel>
           </DataTemplate>
-          <DataTemplate DataType="vmwa:WalletActionViewModel" x:CompileBindings="False">
+          <DataTemplate DataType="vmwa:WalletActionViewModel">
             <Panel>
               <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
+                <i:Interaction.Behaviors>
+                  <ia:EventTriggerBehavior EventName="PointerPressed" SourceObject="{Binding $parent[c:NavBarItem]}">
+                    <ia:InvokeCommandAction Command="{Binding OpenCommand}" CommandParameter="{x:Static rx:Unit.Default}" />
+                  </ia:EventTriggerBehavior>
+                </i:Interaction.Behaviors>
                 <PathIcon HorizontalAlignment="Left">
                   <PathIcon.Data>
                     <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
@@ -194,9 +209,14 @@
         </Style>
       </c:NavBarListBox.Styles>
       <c:NavBarListBox.DataTemplates>
-        <DataTemplate DataType="vmw:WalletViewModelBase" x:CompileBindings="False">
+        <DataTemplate DataType="vmw:WalletViewModelBase">
           <Panel>
             <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
+              <i:Interaction.Behaviors>
+                <ia:EventTriggerBehavior EventName="PointerPressed" SourceObject="{Binding $parent[c:NavBarItem]}">
+                  <ia:InvokeCommandAction Command="{Binding OpenCommand}" CommandParameter="{x:Static rx:Unit.Default}" />
+                </ia:EventTriggerBehavior>
+              </i:Interaction.Behaviors>
               <PathIcon HorizontalAlignment="Left">
                 <PathIcon.Data>
                   <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
