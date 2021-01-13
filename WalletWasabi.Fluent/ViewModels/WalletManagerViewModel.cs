@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using Avalonia.Threading;
+using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -217,17 +218,21 @@ namespace WalletWasabi.Fluent.ViewModels
 		private void InsertActions(WalletViewModelBase walletViewModel, IEnumerable<NavBarItemViewModel> actions)
 		{
 			_items.Remove(walletViewModel);
-			_actions.Add(walletViewModel);
+			// _actions.Add(walletViewModel);
 
-			foreach (var action in actions)
-			{
-				_actions.Add(action);
-			}
+			// foreach (var action in actions)
+			// {
+			// 	_actions.Add(action);
+			// }
+
+			_actions.AddRange(actions.ToList().Prepend(walletViewModel));
 		}
 
 		private void RemoveActions(WalletViewModelBase walletViewModel, IEnumerable<NavBarItemViewModel> actions, bool dispose = false)
 		{
-			_actions.Remove(walletViewModel);
+			// _actions.Remove(walletViewModel);
+
+			_actions.Clear();
 
 			var index = _wallets.IndexOf(walletViewModel);
 			if (index >= 0)
@@ -235,10 +240,10 @@ namespace WalletWasabi.Fluent.ViewModels
 				_items.Insert(index, walletViewModel);
 			}
 
-			foreach (var action in actions)
-			{
-				_actions.Remove(action);
-			}
+			// foreach (var action in actions)
+			// {
+			// 	_actions.Remove(action);
+			// }
 
 			if (dispose)
 			{
