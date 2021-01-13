@@ -75,9 +75,7 @@ namespace WalletWasabi.Blockchain.Mempool
 		{
 			lock (BroadcastStoreLock)
 			{
-				var found = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
-				entry = found;
-
+				entry = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
 				return entry is { };
 			}
 		}

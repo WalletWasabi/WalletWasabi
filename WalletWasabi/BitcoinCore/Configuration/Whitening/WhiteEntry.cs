@@ -18,7 +18,7 @@ namespace WalletWasabi.BitcoinCore.Configuration.Whitening
 			var parts = value?.Split('@');
 			if (parts is { })
 			{
-				if (EndPointParser.TryParse(parts.LastOrDefault(), network.DefaultPort, out EndPoint endPoint))
+				if (EndPointParser.TryParse(parts.LastOrDefault(), network.DefaultPort, out EndPoint? endPoint))
 				{
 					whiteEntry = new T
 					{
