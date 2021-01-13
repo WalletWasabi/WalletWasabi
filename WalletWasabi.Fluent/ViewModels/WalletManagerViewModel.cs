@@ -161,7 +161,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				return result;
 			}
 
-			if (SelectedWallet is { IsLoggedIn: true } walletViewModelPrevious /* && item is WalletViewModelBase { IsLoggedIn: true } */)
+			if (SelectedWallet is { IsLoggedIn: true } walletViewModelPrevious && item is WalletViewModelBase { IsLoggedIn: true })
 			{
 				if (item is not WalletActionViewModel && SelectedWallet != item)
 				{
