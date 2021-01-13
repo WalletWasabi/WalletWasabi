@@ -10,6 +10,7 @@ namespace WalletWasabi.Hwi.Models
 	public enum HwiCommands
 	{
 		/// <summary>Get a list of all available hardware wallets.</summary>
+		[CommandName("enumerate")]
 		Enumerate,
 
 		/// <summary>
@@ -20,6 +21,7 @@ namespace WalletWasabi.Hwi.Models
 		/// <remarks>
 		/// Return <code>{"xpub": &lt;xpub string&gt;"}</code>.
 		/// </remarks>
+		[CommandName("getmasterxpub")]
 		GetMasterXpub,
 
 		/// <summary>
@@ -28,6 +30,7 @@ namespace WalletWasabi.Hwi.Models
 		/// <remarks>
 		/// Return <code>{"psbt": &lt;base64 psbt string&gt;}</code>.
 		/// </remarks>
+		[CommandName("signtx")]
 		SignTx,
 
 		/// <summary>
@@ -37,6 +40,7 @@ namespace WalletWasabi.Hwi.Models
 		/// Return <code>{"xpub": &lt;xpub string&gt;}</code>.
 		/// </remarks>
 		/// </summary>
+		[CommandName("getxpub")]
 		GetXpub,
 
 		/// <summary>
@@ -48,6 +52,7 @@ namespace WalletWasabi.Hwi.Models
 		/// <remarks>
 		/// Return <code>{"signature": &lt;base64 signature string&gt;}</code>.
 		/// </remarks>
+		[CommandName("signmessage")]
 		SignMessage,
 
 		/// <summary>
@@ -61,6 +66,7 @@ namespace WalletWasabi.Hwi.Models
 		/// <item><c>end</c>    - The index to end at.</item>
 		/// </list>
 		/// </remarks>
+		[CommandName("getkeypool")]
 		GetKeypool,
 
 		/// <summary>
@@ -72,6 +78,7 @@ namespace WalletWasabi.Hwi.Models
 		/// <remarks>
 		/// Return <code>{"address": &lt;base58 or bech32 address string&gt;}</code>.
 		/// </remarks>
+		[CommandName("displayaddress")]
 		DisplayAddress,
 
 		/// <summary>
@@ -82,6 +89,7 @@ namespace WalletWasabi.Hwi.Models
 		/// <remarks>
 		/// Return <code>{"success": bool, "error": str, "code": int}</code>.
 		/// </remarks>
+		[CommandName("setup")]
 		Setup,
 
 		/// <summary>
@@ -92,6 +100,7 @@ namespace WalletWasabi.Hwi.Models
 		/// <remarks>
 		/// Return <code>{"success": bool, "error": srt, "code": int}</code>.
 		/// </remarks>
+		[CommandName("wipe")]
 		Wipe,
 
 		/// <summary>
@@ -102,6 +111,7 @@ namespace WalletWasabi.Hwi.Models
 		/// <remarks>
 		/// Return <code>{"success": bool, "error": srt, "code": int}</code>.
 		/// </remarks>
+		[CommandName("restore")]
 		Restore,
 
 		/// <summary>
@@ -112,6 +122,7 @@ namespace WalletWasabi.Hwi.Models
 		/// <remarks>
 		/// Return <code>{"success": bool, "error": srt, "code": int}</code>.
 		/// </remarks>
+		[CommandName("backup")]
 		Backup,
 
 		/// <summary>
@@ -122,6 +133,7 @@ namespace WalletWasabi.Hwi.Models
 		/// <remarks>
 		/// Return <code>{"success": bool, "error": srt, "code": int}</code>.
 		/// </remarks>
+		[CommandName("promptpin")]
 		PromptPin,
 
 		/// <summary>
@@ -132,6 +144,7 @@ namespace WalletWasabi.Hwi.Models
 		/// <remarks>
 		/// Return <code>{"success": bool, "error": srt, "code": int}</code>.
 		/// </remarks>
+		[CommandName("sendpin")]
 		SendPin
 	}
 }

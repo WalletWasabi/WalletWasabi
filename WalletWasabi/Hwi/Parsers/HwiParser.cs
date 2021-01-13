@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
@@ -371,7 +372,9 @@ namespace WalletWasabi.Hwi.Parsers
 				{
 					argumentBuilder.Append(' ');
 				}
-				argumentBuilder.Append(command.ToString().ToLowerInvariant());
+
+				string commandName = command.GetFirstAttribute<CommandNameAttribute>()!.CommandName;
+				argumentBuilder.Append(commandName);
 			}
 
 			commandArguments = Guard.Correct(commandArguments);
