@@ -136,7 +136,14 @@
           </DataTemplate>
         </c:NavBarListBox.DataTemplates>
       </c:NavBarListBox>
-      <Separator IsVisible="{Binding !!Actions.Count}" />
+      <Separator>
+        <Separator.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="!!Actions.Count" />
+            <Binding Path="!!Items.Count" />
+          </MultiBinding>
+        </Separator.IsVisible>
+      </Separator>
     </StackPanel>
     <StackPanel DockPanel.Dock="Bottom">
       <Separator />
