@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Windows.Input;
+using System.Reactive;
+using System.Reactive.Linq;
 using Avalonia;
 using Gma.QrCodeNet.Encoding;
 using NBitcoin;
@@ -22,19 +23,18 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 
 			GenerateQrCode();
 
-			CopyAddressCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				await Application.Current.Clipboard.SetTextAsync(Address);
-			});
+			CopyAddressCommand = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Address));
 
-			(CopyAddressCommand as IReactiveCommand)
+			CopyAddressCommand
 				.IsExecuting
-				.Subscribe(b => CopyAnimationTrigger = b);
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Skip(1)
+				.Subscribe(x => CopyAnimationTrigger = x);
 
 			NextCommand = CancelCommand;
 		}
 
-		public ICommand CopyAddressCommand { get; }
+		public ReactiveCommand<Unit, Unit> CopyAddressCommand { get; set; }
 
 		public string Address { get; }
 
