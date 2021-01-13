@@ -6,11 +6,60 @@
              xmlns:receive="using:WalletWasabi.Fluent.ViewModels.Receive"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:ReceiveAddressViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Receive.ReceiveAddressView">
-  <c:ContentArea Title="{Binding Title}">
-    <TextBlock Text="{Binding Address}"/>
+  <c:ContentArea Title="{Binding Title}"
+                 EnableNext="True" NextContent="OK"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <DockPanel LastChildFill="True">
+      <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="30">
+        <StackPanel.Styles>
+          <Style Selector="TextBlock">
+            <Setter Property="FontWeight" Value="ExtraLight"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+          </Style>
+
+          <Style Selector="TextBlock.blink">
+            <Style.Animations>
+              <Animation Duration="0:0:0.75">
+                <KeyFrame Cue="0%">
+                  <Setter Property="IsVisible" Value="True"/>
+                  <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame Cue="10%">
+                  <Setter Property="Opacity" Value="1.0"/>
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                  <Setter Property="Opacity" Value="0"/>
+                  <Setter Property="IsVisible" Value="False"/>
+                </KeyFrame>
+              </Animation>
+            </Style.Animations>
+          </Style>
+
+        </StackPanel.Styles>
+
+        <StackPanel Spacing="10" HorizontalAlignment="Center">
+          <Button Classes="plain" Command="{Binding CopyAddressCommand}">
+            <PathIcon Data="{StaticResource copy_regular}" Foreground="{DynamicResource SystemAccentColor}"/>
+          </Button>
+          <TextBlock Text="{Binding Address}" FontSize="{StaticResource FontSizeH5}" IsVisible="{Binding !#CopiedTextBlock.IsVisible}"/>
+          <TextBlock Name="CopiedTextBlock" Text="Copied" FontSize="{StaticResource FontSizeH5}" IsVisible="False">
+            <i:Interaction.Behaviors>
+              <behaviors:TriggerStyleClassBehavior Classes="blink" StyleTrigger="{Binding CopyAnimationTrigger}"/>
+            </i:Interaction.Behaviors>
+          </TextBlock>
+        </StackPanel>
+        <TextBlock Text="{Binding Reference}" FontSize="{StaticResource FontSizeH2}" Opacity="0.6" />
+      </StackPanel>
+      <Viewbox MaxHeight="250" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <controls:QrCode Height="250" Matrix="{Binding QrCode}" />
+      </Viewbox>
+    </DockPanel>
   </c:ContentArea>
 </UserControl>
