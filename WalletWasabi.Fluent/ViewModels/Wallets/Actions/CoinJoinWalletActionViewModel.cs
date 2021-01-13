@@ -5,6 +5,7 @@
 		Caption = "",
 		IconName = "wallet_action_coinjoin",
 		NavBarPosition = NavBarPosition.None,
+		Searchable = false,
 		NavigationTarget = NavigationTarget.HomeScreen)]
 	public partial class CoinJoinWalletActionViewModel : WalletActionViewModel
 	{

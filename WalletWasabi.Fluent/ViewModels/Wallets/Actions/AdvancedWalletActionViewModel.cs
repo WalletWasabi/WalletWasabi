@@ -5,6 +5,7 @@
 		Caption = "",
 		IconName = "wallet_action_advanced",
 		NavBarPosition = NavBarPosition.None,
+		Searchable = false,
 		NavigationTarget = NavigationTarget.HomeScreen)]
 	public partial class AdvancedWalletActionViewModel : WalletActionViewModel
 	{
