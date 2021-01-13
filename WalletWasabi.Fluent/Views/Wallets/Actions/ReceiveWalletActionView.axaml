@@ -9,8 +9,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Actions.ReceiveWalletActionView">
   <c:ContentArea Title="Receive" Caption=""
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                 EnableCancel="True">
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
   </c:ContentArea>
 </UserControl>
