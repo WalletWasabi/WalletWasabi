@@ -17,8 +17,7 @@ namespace WalletWasabi.Fluent.Converters
 		{
 			if (value is int count)
 			{
-				// TODO: return count == 0 ? VerticalAlignment.Top : VerticalAlignment.Bottom;
-				return VerticalAlignment.Bottom;
+				return count == 0 ? VerticalAlignment.Top : VerticalAlignment.Bottom;
 			}
 
 			return null;
