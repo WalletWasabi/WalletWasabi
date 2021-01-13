@@ -15,15 +15,6 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False">
   <UserControl.Styles>
-    <Style Selector=":is(ListBox).bottom">
-      <Setter Property="ItemsPanel">
-        <Setter.Value>
-          <ItemsPanelTemplate>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" />
-          </ItemsPanelTemplate>
-        </Setter.Value>
-      </Setter>
-    </Style>
     <Style Selector="PathIcon">
       <Setter Property="Margin" Value="13 0 0 0" />
       <Setter Property="Height" Value="18" />
@@ -72,6 +63,7 @@
   <DockPanel Margin="0 0 0 4">
     <StackPanel DockPanel.Dock="Top" Spacing="5">
       <Panel Height="30" />
+      <!-- Logo -->
       <Border Padding="12" Margin="0 -10 0 0">
         <Panel>
           <Panel Width="45" HorizontalAlignment="Left">
@@ -80,7 +72,9 @@
           <TextBlock Text="Wasabi Wallet" Classes="h6" VerticalAlignment="Center" FontWeight="SemiBold" Margin="55 0 0 0" />
         </Panel>
       </Border>
-      <c:NavBarListBox Items="{Binding TopItems}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+      <!-- TopItems List -->
+      <c:NavBarListBox Items="{Binding TopItems}"
+                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
         <c:NavBarListBox.Styles>
           <Style Selector="c|NavBarItem">
             <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
@@ -102,7 +96,10 @@
         </c:NavBarListBox.ItemTemplate>
       </c:NavBarListBox>
       <Separator />
-      <c:NavBarListBox Items="{Binding Actions}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+      <!-- Actions List -->
+      <c:NavBarListBox Items="{Binding Actions}"
+                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+        <!-- TODO: Add animations for NavBarListBox when data bound Actions list is empty and when new items are added. -->
         <c:NavBarListBox.Styles>
           <Style Selector="c|NavBarItem">
             <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
@@ -136,6 +133,7 @@
           </DataTemplate>
         </c:NavBarListBox.DataTemplates>
       </c:NavBarListBox>
+      <!-- Actions Separator -->
       <Separator>
         <Separator.IsVisible>
           <MultiBinding Converter="{x:Static BoolConverters.And}">
@@ -147,8 +145,19 @@
     </StackPanel>
     <StackPanel DockPanel.Dock="Bottom">
       <Separator />
-      <c:NavBarListBox Classes="bottom" Items="{Binding BottomItems}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}" >
+      <!-- BottomItems List -->
+      <c:NavBarListBox Items="{Binding BottomItems}"
+                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
         <c:NavBarListBox.Styles>
+          <Style Selector=":is(ListBox)">
+            <Setter Property="ItemsPanel">
+              <Setter.Value>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" />
+                </ItemsPanelTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>
           <Style Selector="c|NavBarItem">
             <Setter Property="IndicatorOrientation" Value="Horizontal" />
             <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
@@ -172,7 +181,11 @@
         </c:NavBarListBox.ItemTemplate>
       </c:NavBarListBox>
     </StackPanel>
-    <c:NavBarListBox Items="{Binding Items}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}" VerticalAlignment="{Binding Actions.Count, Mode=OneWay, Converter={x:Static conv:NavBarItemsListBoxAlignmentConverter.Instance}}">
+    <!-- Items List -->
+    <c:NavBarListBox Items="{Binding Items}"
+                     SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                     VerticalAlignment="{Binding Actions.Count, Mode=OneWay, Converter={x:Static conv:NavBarItemsListBoxAlignmentConverter.Instance}}">
+      <!-- TODO: Add animations for NavBarListBox when VerticalAlignment changes Top to Bottom and Bottom to Top -->
       <c:NavBarListBox.Styles>
         <Style Selector="c|NavBarItem">
           <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
