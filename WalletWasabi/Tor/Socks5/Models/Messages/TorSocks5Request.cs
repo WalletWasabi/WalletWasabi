@@ -6,6 +6,20 @@ using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 
 namespace WalletWasabi.Tor.Socks5.Models.Messages
 {
+	/// <summary>
+	/// SOCKS5 request representation.
+	/// </summary>
+	/// <remarks>
+	/// <code>
+	/// The SOCKS request is formed as follows:
+	///  +----+-----+-------+------+----------+----------+
+	///  |VER | CMD |  RSV  | ATYP | DST.ADDR | DST.PORT |
+	///  +----+-----+-------+------+----------+----------+
+	///  | 1  |  1  | X'00' |  1   | Variable |    2     |
+	///  +----+-----+-------+------+----------+----------+
+	/// </code>
+	/// </remarks>
+	/// <seealso href="https://tools.ietf.org/html/rfc1928">Section 4. Requests</seealso>
 	public class TorSocks5Request : ByteArraySerializableBase
 	{
 		public TorSocks5Request(CmdField cmd, AddrField dstAddr, PortField dstPort)
