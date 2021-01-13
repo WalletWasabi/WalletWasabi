@@ -103,9 +103,27 @@
       <Separator />
       <!-- Actions List -->
       <c:NavBarListBox Items="{Binding Actions}"
-                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                       Name="ActionsListBox">
         <!-- TODO: Add animations for NavBarListBox when data bound Actions list is empty and when new items are added. -->
         <c:NavBarListBox.Styles>
+          <Style Selector=":is(ListBox):not(:empty)">
+            <Style.Animations>
+              <Animation Duration="0:0:0.3" Easing="LinearEasing">
+                <KeyFrame Cue="0%">
+                  <Setter Property="Opacity" Value="0.0"/>
+                  <Setter Property="TranslateTransform.Y" Value="{Binding #ActionsListBox.Bounds.Height, Converter={x:Static conv:NegativeDoubleConverter.Instance}}"/>
+                </KeyFrame>
+                <KeyFrame Cue="80%">
+                  <Setter Property="Opacity" Value="0.2"/>
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                  <Setter Property="Opacity" Value="1.0"/>
+                  <Setter Property="TranslateTransform.Y" Value="0.0"/>
+                </KeyFrame>
+              </Animation>
+            </Style.Animations>
+          </Style>
           <Style Selector="c|NavBarItem">
             <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
           </Style>
@@ -157,6 +175,25 @@
             <Binding Path="!HideItems" />
           </MultiBinding>
         </Separator.IsVisible>
+        <Separator.Styles>
+          <Style Selector="Separator[IsVisible=True]">
+            <Style.Animations>
+              <Animation Duration="0:0:0.3" Easing="LinearEasing">
+                <KeyFrame Cue="0%">
+                  <Setter Property="Opacity" Value="0.0"/>
+                  <Setter Property="TranslateTransform.Y" Value="{Binding #ActionsListBox.Bounds.Height, Converter={x:Static conv:NegativeDoubleConverter.Instance}}"/>
+                </KeyFrame>
+                <KeyFrame Cue="80%">
+                  <Setter Property="Opacity" Value="0.2"/>
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                  <Setter Property="Opacity" Value="1.0"/>
+                  <Setter Property="TranslateTransform.Y" Value="0.0"/>
+                </KeyFrame>
+              </Animation>
+            </Style.Animations>
+          </Style>
+        </Separator.Styles>
       </Separator>
     </StackPanel>
     <StackPanel DockPanel.Dock="Bottom">
@@ -201,9 +238,41 @@
     <c:NavBarListBox Items="{Binding Items}"
                      SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                      IsVisible="{Binding !HideItems, Mode=OneWay}"
+                     Name="ItemsListBox"
                      VerticalAlignment="{Binding Actions.Count, Mode=OneWay, Converter={x:Static conv:NavBarItemsListBoxAlignmentConverter.Instance}}">
       <!-- TODO: Add animations for NavBarListBox when VerticalAlignment changes Top to Bottom and Bottom to Top -->
       <c:NavBarListBox.Styles>
+        <Style Selector=":is(ListBox)[VerticalAlignment=Bottom]">
+          <Style.Animations>
+            <Animation Duration="0:0:0.3" Easing="LinearEasing">
+              <KeyFrame Cue="0%">
+                <Setter Property="Opacity" Value="0.0"/>
+                <Setter Property="TranslateTransform.Y" Value="{Binding #ItemsListBox.Bounds.Height}"/>
+              </KeyFrame>
+              <KeyFrame Cue="80%">
+                <Setter Property="Opacity" Value="0.2"/>
+              </KeyFrame>
+              <KeyFrame Cue="100%">
+                <Setter Property="Opacity" Value="1.0"/>
+                <Setter Property="TranslateTransform.Y" Value="0.0"/>
+              </KeyFrame>
+            </Animation>
+          </Style.Animations>
+        </Style>
+        <Style Selector=":is(ListBox)[VerticalAlignment=Top]">
+          <Style.Animations>
+            <Animation Duration="0:0:0.2" Easing="LinearEasing">
+              <KeyFrame Cue="0%">
+                <Setter Property="Opacity" Value="0.0"/>
+                <Setter Property="TranslateTransform.Y" Value="{Binding #ItemsListBox.Bounds.Height}"/>
+              </KeyFrame>
+              <KeyFrame Cue="100%">
+                <Setter Property="Opacity" Value="1.0"/>
+                <Setter Property="TranslateTransform.Y" Value="0.0"/>
+              </KeyFrame>
+            </Animation>
+          </Style.Animations>
+        </Style>
         <Style Selector="c|NavBarItem">
           <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
         </Style>
