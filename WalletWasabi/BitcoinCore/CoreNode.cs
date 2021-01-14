@@ -95,7 +95,7 @@ namespace WalletWasabi.BitcoinCore
 					coreNodeParams.RpcEndPointStrategy.EndPoint.TryGetPort(out rpcPort);
 				}
 
-				EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint rpce);
+				EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint? rpce);
 				coreNode.RpcEndPoint = rpce;
 
 				var rpcClient = new RPCClient(

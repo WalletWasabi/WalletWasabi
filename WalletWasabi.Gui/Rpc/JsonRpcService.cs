@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace WalletWasabi.Gui.Rpc
@@ -31,7 +32,7 @@ namespace WalletWasabi.Gui.Rpc
 		/// Tries to return the metadata for a given procedure name.
 		/// Returns true if found otherwise returns false.
 		/// </summary>
-		public bool TryGetMetadata(string methodName, out JsonRpcMethodMetadata metadata)
+		public bool TryGetMetadata(string methodName, [NotNullWhen(true)] out JsonRpcMethodMetadata? metadata)
 		{
 			if (_proceduresDirectory.Count == 0)
 			{
