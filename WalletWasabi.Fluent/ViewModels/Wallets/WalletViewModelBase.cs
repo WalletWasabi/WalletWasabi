@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Helpers;
+using WalletWasabi.Services;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -17,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		private CompositeDisposable? _disposables;
 		private bool _disposedValue;
 
-		protected WalletViewModelBase(Wallet wallet)
+		protected WalletViewModelBase(Wallet wallet, LegalChecker legalChecker)
 		{
 			Wallet = Guard.NotNull(nameof(wallet), wallet);
 
@@ -39,7 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				if (!Wallet.IsLoggedIn)
 				{
-					Navigate().To(new LoginViewModel(this));
+					Navigate().To(new LoginViewModel(this, legalChecker));
 				}
 				else
 				{

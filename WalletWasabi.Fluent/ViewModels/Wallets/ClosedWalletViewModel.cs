@@ -9,6 +9,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -17,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	{
 		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
 
-		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet) : base(wallet)
+		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet, LegalChecker legalChecker) : base(wallet, legalChecker)
 		{
 			_items = new ObservableCollection<NavBarItemViewModel>();
 
@@ -50,13 +51,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		public override string IconName => "web_asset_regular";
 
-		public static WalletViewModelBase Create(WalletManager walletManager, Wallet wallet)
+		public static WalletViewModelBase Create(WalletManager walletManager, Wallet wallet, LegalChecker legalChecker)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new ClosedHardwareWalletViewModel(walletManager, wallet)
+				? new ClosedHardwareWalletViewModel(walletManager, wallet, legalChecker)
 				: wallet.KeyManager.IsWatchOnly
-					? new ClosedWatchOnlyWalletViewModel(walletManager, wallet)
-					: new ClosedWalletViewModel(walletManager, wallet);
+					? new ClosedWatchOnlyWalletViewModel(walletManager, wallet, legalChecker)
+					: new ClosedWalletViewModel(walletManager, wallet, legalChecker);
 		}
 	}
 }

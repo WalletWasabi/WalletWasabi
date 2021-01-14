@@ -1,9 +1,11 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Login
@@ -15,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 		[AutoNotify] private bool _isPasswordNeeded;
 		[AutoNotify] private string _walletName;
 
-		public LoginViewModel(WalletViewModelBase walletViewModelBase)
+		public LoginViewModel(WalletViewModelBase walletViewModelBase, LegalChecker legalChecker)
 		{
 			Title = "Login";
 			KeyManager = walletViewModelBase.Wallet.KeyManager;
@@ -52,7 +54,18 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 					wallet.Login();
 
 					// TODO: navigate to the wallet welcome page
-					Navigate().To(walletViewModelBase, NavigationMode.Clear);
+					var navigateTo = walletViewModelBase;
+
+					if (legalChecker.TryGetNewLegalDocs(out _))
+					{
+						var legalDocs = new TermsAndConditionsViewModel(legalChecker, navigateTo);
+
+						Navigate().To(legalDocs);
+					}
+					else
+					{
+						Navigate().To(navigateTo, NavigationMode.Clear);
+					}
 				}
 			});
 

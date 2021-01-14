@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					if (legalChecker.TryGetNewLegalDocs(out var legalDocument))
 					{
 						var legalDocs = new LegalDocumentsViewModel(legalDocument.Content);
-						Navigate().To(legalDocs);
+						Navigate().To(legalDocs, NavigationMode.Clear);
 					}
 				});
 

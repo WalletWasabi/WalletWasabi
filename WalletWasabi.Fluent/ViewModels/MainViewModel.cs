@@ -66,7 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				global.BitcoinStore.SmartHeaderChain,
 				global.Synchronizer);
 
-			_walletManager = new WalletManagerViewModel(global.WalletManager, global.UiConfig);
+			_walletManager = new WalletManagerViewModel(global.WalletManager, global.UiConfig, global.LegalChecker);
 
 			_addWalletPage = new AddWalletPageViewModel(
 				global.LegalChecker,
