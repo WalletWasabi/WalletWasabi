@@ -64,10 +64,10 @@ namespace WalletWasabi.Services
 						var content = await UpdateChecker!.WasabiClient.GetLegalDocumentsAsync(CancellationToken.None).ConfigureAwait(false);
 
 						// Save it as a provisional legal document.
-						var prolegal = new LegalDocuments(updateStatus.LegalDocumentsVersion, content);
-						await prolegal.ToFileAsync(ProvisionalLegalFolder).ConfigureAwait(false);
+						var proLegal = new LegalDocuments(updateStatus.LegalDocumentsVersion, content);
+						await proLegal.ToFileAsync(ProvisionalLegalFolder).ConfigureAwait(false);
 
-						ProvisionalLegalDocument = prolegal;
+						ProvisionalLegalDocument = proLegal;
 					}
 				}
 			}
