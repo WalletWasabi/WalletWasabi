@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					if (legalChecker.TryGetNewLegalDocs(out var legalDocument))
 					{
 						var legalDocs = new LegalDocumentsViewModel(legalDocument.Content);
-						Navigate().To(legalDocs, NavigationMode.Clear);
+						Navigate().To(legalDocs);
 					}
 				});
 
@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				async () =>
 				{
 					await legalChecker.AgreeAsync();
-					Navigate().BackTo(next);
+					Navigate().To(next, NavigationMode.Clear);
 				},
 				this.WhenAnyValue(x => x.IsAgreed)
 				.ObserveOn(RxApp.MainThreadScheduler));
