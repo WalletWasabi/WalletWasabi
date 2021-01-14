@@ -39,8 +39,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		[AutoNotify] private bool _enableBack;
 		[AutoNotify] private bool _enableCancel;
 
-		private readonly LegalChecker _legalChecker;
-
 		public AddWalletPageViewModel(
 			LegalChecker legalChecker,
 			WalletManager walletManager,
@@ -49,7 +47,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			Title = "Add Wallet";
 			SelectionMode = NavBarItemSelectionMode.Button;
-			_legalChecker = legalChecker;
 
 			var enableBack = default(IDisposable);
 
@@ -99,11 +96,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					if (EnsureTermsAndConditions())
-					{
-						return;
-					}
-
 					var dialogResult = await NavigateDialog(
 						new EnterPasswordViewModel("Type the password of the wallet and click Continue."));
 
@@ -140,21 +132,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			if (!inStack)
 			{
-				EnsureTermsAndConditions();
-			}
-		}
-
-		private bool EnsureTermsAndConditions()
-		{
-			if (_legalChecker.TryGetNewLegalDocs(out var _))
-			{
 				WalletName = "";
-
-				var termsAndConditions = new TermsAndConditionsViewModel(_legalChecker, this);
-				Navigate().To(termsAndConditions);
-				return true;
 			}
-			return false;
 		}
 
 		private void ValidateWalletName(IValidationErrors errors, WalletManager walletManager, string walletName)
