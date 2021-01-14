@@ -172,23 +172,18 @@
           <MultiBinding Converter="{x:Static BoolConverters.And}">
             <Binding Path="!!Actions.Count" />
             <Binding Path="!!Items.Count" />
-            <Binding Path="!HideItems" />
+            <!-- TODO: <Binding Path="!HideItems" /> -->
           </MultiBinding>
         </Separator.IsVisible>
         <Separator.Styles>
           <Style Selector="Separator[IsVisible=True]">
             <Style.Animations>
-              <Animation Duration="0:0:0.3" Easing="LinearEasing">
+              <Animation Delay="0:0:0.3" Duration="0:0:0.2" Easing="LinearEasing">
                 <KeyFrame Cue="0%">
                   <Setter Property="Opacity" Value="0.0"/>
-                  <Setter Property="TranslateTransform.Y" Value="{Binding #ActionsListBox.Bounds.Height, Converter={x:Static conv:NegativeDoubleConverter.Instance}}"/>
-                </KeyFrame>
-                <KeyFrame Cue="80%">
-                  <Setter Property="Opacity" Value="0.2"/>
                 </KeyFrame>
                 <KeyFrame Cue="100%">
                   <Setter Property="Opacity" Value="1.0"/>
-                  <Setter Property="TranslateTransform.Y" Value="0.0"/>
                 </KeyFrame>
               </Animation>
             </Style.Animations>
