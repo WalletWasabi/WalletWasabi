@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using Avalonia.Threading;
 using DynamicData;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -19,9 +20,9 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private readonly Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 		private readonly Dictionary<WalletViewModelBase, List<WalletActionViewModel>> _walletActionsDictionary;
+		private readonly ReadOnlyObservableCollection<NavBarItemViewModel> _items;
 		[AutoNotify] private WalletViewModelBase? _selectedWallet;
 		[AutoNotify] private bool _loggedInAndSelectedAlwaysFirst;
-		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
 		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _actions;
 		[AutoNotify] private ObservableCollection<WalletViewModelBase> _wallets;
 		[AutoNotify] private bool _anyWalletStarted;
@@ -31,10 +32,25 @@ namespace WalletWasabi.Fluent.ViewModels
 			Model = walletManager;
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 			_walletActionsDictionary = new Dictionary<WalletViewModelBase, List<WalletActionViewModel>>();
-			_items = new ObservableCollection<NavBarItemViewModel>();
 			_actions = new ObservableCollection<NavBarItemViewModel>();
 			_wallets = new ObservableCollection<WalletViewModelBase>();
 			_loggedInAndSelectedAlwaysFirst = true;
+
+			static Func<WalletViewModelBase, bool> SelectedWalletFilter(WalletViewModelBase? selected)
+			{
+				return item => selected is null || item != selected;
+			}
+
+			var selectedWalletFilter = this.WhenValueChanged(t => t.SelectedWallet).Select(SelectedWalletFilter);
+
+			_wallets
+				.ToObservableChangeSet()
+				.Filter(selectedWalletFilter)
+				.Sort(SortExpressionComparer<WalletViewModelBase>.Ascending(i => i.WalletState).ThenByDescending(i => i.IsLoggedIn).ThenByAscending(i => i.Title))
+				.Transform(x => x as NavBarItemViewModel)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Bind(out _items)
+				.AsObservableList();
 
 			Observable
 				.FromEventPattern<WalletState>(walletManager, nameof(WalletManager.WalletStateChanged))
@@ -76,6 +92,8 @@ namespace WalletWasabi.Fluent.ViewModels
 			Dispatcher.UIThread.Post(() => LoadWallets(walletManager));
 		}
 
+		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _items;
+
 		public WalletManager Model { get; }
 
 		private void OpenClosedWallet(WalletManager walletManager, UiConfig uiConfig, ClosedWalletViewModel closedWalletViewModel)
@@ -89,7 +107,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private WalletViewModelBase OpenWallet(WalletManager walletManager, UiConfig uiConfig, Wallet wallet)
 		{
-			if (_wallets.OfType<WalletViewModel>().Any(x => x.Title == wallet.WalletName))
+			if (_wallets.Any(x => x.Title == wallet.WalletName))
 			{
 				throw new Exception("Wallet already opened.");
 			}
@@ -107,19 +125,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			_wallets.InsertSorted(wallet);
 
-			var index = _wallets.IndexOf(wallet);
-			if (index >= 0)
-			{
-				if (SelectedWallet is not null)
-				{
-					_items.Insert(index - 1, wallet);
-				}
-				else
-				{
-					_items.Insert(index, wallet);
-				}
-			}
-
 			_walletDictionary.Add(wallet.Wallet, wallet);
 		}
 
@@ -130,7 +135,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			walletViewModel.Dispose();
 
 			_wallets.Remove(walletViewModel);
-			_items.Remove(walletViewModel);
 
 			if (isLoggedIn)
 			{
@@ -217,33 +221,12 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private void InsertActions(WalletViewModelBase walletViewModel, IEnumerable<NavBarItemViewModel> actions)
 		{
-			_items.Remove(walletViewModel);
-			// _actions.Add(walletViewModel);
-
-			// foreach (var action in actions)
-			// {
-			// 	_actions.Add(action);
-			// }
-
 			_actions.AddRange(actions.ToList().Prepend(walletViewModel));
 		}
 
 		private void RemoveActions(WalletViewModelBase walletViewModel, IEnumerable<NavBarItemViewModel> actions, bool dispose = false)
 		{
-			// _actions.Remove(walletViewModel);
-
 			_actions.Clear();
-
-			var index = _wallets.IndexOf(walletViewModel);
-			if (index >= 0)
-			{
-				_items.Insert(index, walletViewModel);
-			}
-
-			// foreach (var action in actions)
-			// {
-			// 	_actions.Remove(action);
-			// }
 
 			if (dispose)
 			{
