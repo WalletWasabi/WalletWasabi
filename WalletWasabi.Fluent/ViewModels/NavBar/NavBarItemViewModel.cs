@@ -7,10 +7,9 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 {
 	public enum NavBarItemSelectionMode
 	{
-		None = 0,
-		Selected = 1,
-		Button = 2,
-		Toggle = 3
+		Selected = 0,
+		Button = 1,
+		Toggle = 2
 	}
 
 	public abstract partial class NavBarItemViewModel : RoutableViewModel
