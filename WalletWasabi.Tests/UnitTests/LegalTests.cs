@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Legal;
+using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
@@ -17,7 +18,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var legal = new LegalDocuments(version, "");
 			var dir = Common.GetWorkDir();
 			await legal.ToFileAsync(dir);
-			var filePath = Directory.EnumerateFiles(Path.Combine(dir, LegalDocuments.LegalFolderName), "*.*", SearchOption.TopDirectoryOnly).Single();
+			var filePath = Directory.EnumerateFiles(Path.Combine(dir, LegalChecker.LegalFolderName), "*.*", SearchOption.TopDirectoryOnly).Single();
 			Assert.Equal("1.1.txt", Path.GetFileName(filePath));
 			Assert.Equal(version, legal.Version);
 		}
@@ -111,7 +112,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task CanLoadLegalDocsAsync()
 		{
-			var dir = Common.GetWorkDir();
+			var dir = Path.Combine(Common.GetWorkDir(), LegalChecker.LegalFolderName);
 			if (Directory.Exists(dir))
 			{
 				Directory.Delete(dir, true);
@@ -136,17 +137,13 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task CanSerializeFileAsync()
 		{
-			var dir = Common.GetWorkDir();
-			if (Directory.Exists(dir))
-			{
-				Directory.Delete(dir, true);
-			}
+			Version version = new(1, 1);
+			LegalDocuments legal = new(version, "Don't trust, verify!");
+			string legalFolderPath = Path.Combine(Common.GetWorkDir(), LegalChecker.LegalFolderName);
+			await legal.ToFileAsync(legalFolderPath);
 
-			var legal = new LegalDocuments(new Version(1, 1), "");
-			await legal.ToFileAsync(dir);
-
-			string filePath = Path.Combine(dir, LegalDocuments.LegalFolderName, "1.1.txt");
-			Assert.True(File.Exists(filePath));
+			string expectedFilePath = $"{Path.Combine(legalFolderPath, version.ToString())}.txt";
+			Assert.True(File.Exists(expectedFilePath));
 		}
 	}
 }

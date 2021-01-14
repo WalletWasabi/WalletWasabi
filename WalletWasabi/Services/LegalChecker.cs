@@ -12,12 +12,15 @@ namespace WalletWasabi.Services
 {
 	public class LegalChecker : IDisposable
 	{
+		public const string LegalFolderName = "Legal";
+		public const string ProvisionalLegalFolderName = "Provisional";
+
 		private bool _disposedValue;
 
 		public LegalChecker(string dataDir)
 		{
-			LegalFolder = Path.Combine(dataDir, "Legal");
-			ProvisionalLegalFolder = Path.Combine(LegalFolder, "Provisional");
+			LegalFolder = Path.Combine(dataDir, LegalFolderName);
+			ProvisionalLegalFolder = Path.Combine(LegalFolder, ProvisionalLegalFolderName);
 		}
 
 		private AsyncLock LegalDocumentLock { get; } = new();
