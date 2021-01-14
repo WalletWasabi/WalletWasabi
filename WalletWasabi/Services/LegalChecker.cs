@@ -25,8 +25,8 @@ namespace WalletWasabi.Services
 
 		private AsyncLock LegalDocumentLock { get; } = new();
 		private UpdateChecker? UpdateChecker { get; set; }
-		private string LegalFolder { get; }
-		private string ProvisionalLegalFolder { get; }
+		public string LegalFolder { get; }
+		public string ProvisionalLegalFolder { get; }
 		public LegalDocuments? CurrentLegalDocument { get; private set; }
 		private LegalDocuments? ProvisionalLegalDocument { get; set; }
 
