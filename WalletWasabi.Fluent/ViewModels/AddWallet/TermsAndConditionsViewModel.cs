@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			ViewTermsCommand = ReactiveCommand.Create(
 				() =>
 				{
-					if (legalChecker.IsAgreementRequired(out var legalDocument))
+					if (legalChecker.TryGetNewLegalDocs(out var legalDocument))
 					{
 						var legalDocs = new LegalDocumentsViewModel(legalDocument.Content);
 						Navigate().To(legalDocs);

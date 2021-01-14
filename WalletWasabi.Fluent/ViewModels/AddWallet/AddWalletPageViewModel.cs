@@ -146,7 +146,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		private bool EnsureTermsAndConditions()
 		{
-			if (_legalChecker.IsAgreementRequired(out var legalDocuments))
+			if (_legalChecker.TryGetNewLegalDocs(out var _))
 			{
 				WalletName = "";
 

@@ -35,7 +35,7 @@ namespace WalletWasabi.Services
 			CurrentLegalDocument = await LegalDocuments.TryLoadAgreedAsync(DataDir).ConfigureAwait(false);
 		}
 
-		public bool IsAgreementRequired([NotNullWhen(true)] out LegalDocuments? legalDocuments)
+		public bool TryGetNewLegalDocs([NotNullWhen(true)] out LegalDocuments? legalDocuments)
 		{
 			legalDocuments = null;
 
