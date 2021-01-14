@@ -85,18 +85,10 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 		public IEnumerable<DestinationRequest> Requests { get; }
 		public ChangeStrategy ChangeStrategy { get; }
 		public Money TotalAmount { get; }
-		public int Count => Requests.Count();
 
 		public bool TryGetCustomRequest([NotNullWhen(true)] out DestinationRequest? request)
 		{
 			request = Requests.SingleOrDefault(x => x.Amount.Type is MoneyRequestType.Change or MoneyRequestType.AllRemaining);
-
-			return request is { };
-		}
-
-		public bool TryGetFeeSubtractionRequest([NotNullWhen(true)] out DestinationRequest? request)
-		{
-			request = Requests.SingleOrDefault(x => x.Amount.SubtractFee);
 
 			return request is { };
 		}
