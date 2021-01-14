@@ -211,10 +211,10 @@ namespace WalletWasabi.BitcoinCore
 			string processPath = MicroserviceHelpers.GetBinaryPath("bitcoind");
 			ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(processPath, arguments: "-version");
 
-			Process process = Process.Start(startInfo);
+			Process process = Process.Start(startInfo)!;
 
-			await process.WaitForExitAsync(cancel).ConfigureAwait(false);
 			string responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+			await process.WaitForExitAsync(cancel).ConfigureAwait(false);
 
 			if (process.ExitCode != 0)
 			{
