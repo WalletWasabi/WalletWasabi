@@ -10,10 +10,7 @@ namespace WalletWasabi.Legal
 {
 	public class LegalDocuments
 	{
-		public const string EmbeddedFileName = "LegalDocuments.txt";
-		public const string LegalFolderName = "Legal";
-		public const string AssetsFoldername = "Assets";
-		public static readonly string EmbeddedFilePath = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), LegalFolderName, AssetsFoldername, EmbeddedFileName);
+		public static readonly string EmbeddedFilePath = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "Legal", "Assets", "LegalDocuments.txt");
 
 		public LegalDocuments(Version version, string content)
 		{
@@ -24,11 +21,14 @@ namespace WalletWasabi.Legal
 		public Version Version { get; }
 		public string Content { get; }
 
-		public static async Task<LegalDocuments?> TryLoadAgreedAsync(string dataDir)
+		public static async Task<LegalDocuments?> TryLoadAgreedAsync(string folderPath)
 		{
-			var legalFolderPath = Path.Combine(dataDir, LegalFolderName);
-			IoHelpers.EnsureDirectoryExists(legalFolderPath);
-			var legalDocCandidates = FindCandidates(legalFolderPath);
+			if (!Directory.Exists(folderPath))
+			{
+				return null;
+			}
+
+			var legalDocCandidates = FindCandidates(folderPath);
 			var legalDocCandidateCount = legalDocCandidates.Count();
 
 			if (legalDocCandidateCount == 1)
@@ -43,41 +43,50 @@ namespace WalletWasabi.Legal
 			}
 			else if (legalDocCandidateCount > 1)
 			{
-				RemoveCandidates(legalFolderPath);
+				RemoveCandidates(folderPath);
 			}
 
 			return null;
 		}
 
-		private static IEnumerable<string> FindCandidates(string legalFolderPath)
+		private static IEnumerable<string> FindCandidates(string folderPath)
 		{
+			if (!Directory.Exists(folderPath))
+			{
+				return Enumerable.Empty<string>();
+			}
+
 			return Directory
-				.EnumerateFiles(legalFolderPath, "*.txt", SearchOption.TopDirectoryOnly)
+				.EnumerateFiles(folderPath, "*.txt", SearchOption.TopDirectoryOnly)
 				.Where(x => Version.TryParse(Path.GetFileNameWithoutExtension(x), out _));
 		}
 
-		private static void RemoveCandidates(string legalFolderPath)
+		public static void RemoveCandidates(string folderPath)
 		{
-			IoHelpers.EnsureDirectoryExists(legalFolderPath);
-			foreach (var candidate in FindCandidates(legalFolderPath))
+			if (!Directory.Exists(folderPath))
+			{
+				return;
+			}
+
+			foreach (var candidate in FindCandidates(folderPath))
 			{
 				File.Delete(candidate);
 				Logger.LogInfo($"Removed legal doc candidate: {candidate}.");
 			}
 		}
 
-		public async Task ToFileAsync(string dataDir)
+		public async Task ToFileAsync(string folderPath)
 		{
-			dataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir, trim: true);
-			var legalFolderPath = Path.Combine(dataDir, LegalFolderName);
-			var filePath = Path.Combine(legalFolderPath, $"{Version}.txt");
+			folderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(folderPath), folderPath, trim: true);
+			IoHelpers.EnsureDirectoryExists(folderPath);
+			var filePath = Path.Combine(folderPath, $"{Version}.txt");
 
 			if (filePath is null)
 			{
-				throw new InvalidOperationException($"Invalid {nameof(legalFolderPath)}.");
+				throw new InvalidOperationException($"Invalid {nameof(folderPath)}.");
 			}
 
-			RemoveCandidates(legalFolderPath);
+			RemoveCandidates(folderPath);
 			await File.WriteAllTextAsync(filePath, Content).ConfigureAwait(false);
 		}
 	}

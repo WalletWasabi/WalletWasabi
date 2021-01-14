@@ -1,10 +1,7 @@
 using Nito.AsyncEx;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Legal;
@@ -19,27 +16,30 @@ namespace WalletWasabi.Services
 
 		public LegalChecker(string dataDir)
 		{
-			DataDir = dataDir;
+			LegalFolder = Path.Combine(dataDir, "Legal");
+			ProvisionalLegalFolder = Path.Combine(LegalFolder, "Provisional");
 		}
 
 		private AsyncLock LegalDocumentLock { get; } = new();
 		private UpdateChecker? UpdateChecker { get; set; }
-		private string DataDir { get; }
+		private string LegalFolder { get; }
+		private string ProvisionalLegalFolder { get; }
 		public LegalDocuments? CurrentLegalDocument { get; private set; }
-		private LegalDocuments? NewLegalDocument { get; set; }
+		private LegalDocuments? ProvisionalLegalDocument { get; set; }
 
 		public async Task InitializeAsync(UpdateChecker updateChecker)
 		{
 			UpdateChecker = updateChecker;
 			UpdateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
-			CurrentLegalDocument = await LegalDocuments.TryLoadAgreedAsync(DataDir).ConfigureAwait(false);
+			CurrentLegalDocument = await LegalDocuments.TryLoadAgreedAsync(LegalFolder).ConfigureAwait(false);
+			ProvisionalLegalDocument = await LegalDocuments.TryLoadAgreedAsync(ProvisionalLegalFolder).ConfigureAwait(false);
 		}
 
 		public bool TryGetNewLegalDocs([NotNullWhen(true)] out LegalDocuments? legalDocuments)
 		{
 			legalDocuments = null;
 
-			if (NewLegalDocument is { } legal)
+			if (ProvisionalLegalDocument is { } legal)
 			{
 				legalDocuments = legal;
 				return true;
@@ -52,22 +52,19 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				if (UpdateChecker is null)
-				{
-					return;
-				}
-
 				using (await LegalDocumentLock.LockAsync().ConfigureAwait(false))
 				{
 					// If we don't have it or there is a new one.
 					if (CurrentLegalDocument is null || CurrentLegalDocument.Version < updateStatus.LegalDocumentsVersion)
 					{
-						var legalFolderPath = Path.Combine(DataDir, LegalDocuments.LegalFolderName);
+						// UpdateChecker cannot be null as the event called by it.
+						var content = await UpdateChecker!.WasabiClient.GetLegalDocumentsAsync(CancellationToken.None).ConfigureAwait(false);
 
-						// Store the content, in case of agreement it will be saved to file.
-						var content = await UpdateChecker.WasabiClient.GetLegalDocumentsAsync(CancellationToken.None).ConfigureAwait(false);
+						// Save it as a provisional legal document.
+						var prolegal = new LegalDocuments(updateStatus.LegalDocumentsVersion, content);
+						await prolegal.ToFileAsync(ProvisionalLegalFolder).ConfigureAwait(false);
 
-						NewLegalDocument = new LegalDocuments(updateStatus.LegalDocumentsVersion, content);
+						ProvisionalLegalDocument = prolegal;
 					}
 				}
 			}
@@ -81,15 +78,16 @@ namespace WalletWasabi.Services
 		{
 			using (await LegalDocumentLock.LockAsync().ConfigureAwait(false))
 			{
-				if (NewLegalDocument is not { } newLegalDocument || string.IsNullOrEmpty(newLegalDocument.Content))
+				if (ProvisionalLegalDocument is not { } provisionalLegalDocument || string.IsNullOrEmpty(provisionalLegalDocument.Content))
 				{
 					throw new InvalidOperationException("Cannot agree the new legal document.");
 				}
 
-				await newLegalDocument.ToFileAsync(DataDir).ConfigureAwait(false);
+				await provisionalLegalDocument.ToFileAsync(LegalFolder).ConfigureAwait(false);
+				LegalDocuments.RemoveCandidates(ProvisionalLegalFolder);
 
-				CurrentLegalDocument = NewLegalDocument;
-				NewLegalDocument = null;
+				CurrentLegalDocument = ProvisionalLegalDocument;
+				ProvisionalLegalDocument = null;
 			}
 		}
 
