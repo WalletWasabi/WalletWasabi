@@ -1,6 +1,7 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -70,14 +71,12 @@ namespace WalletWasabi.Blockchain.Mempool
 			}
 		}
 
-		public bool TryGetFromBroadcastStore(uint256 transactionHash, out TransactionBroadcastEntry entry)
+		public bool TryGetFromBroadcastStore(uint256 transactionHash, [NotNullWhen(true)] out TransactionBroadcastEntry? entry)
 		{
 			lock (BroadcastStoreLock)
 			{
-				var found = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
-				entry = found;
-
-				return found is { };
+				entry = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
+				return entry is { };
 			}
 		}
 

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using WalletWasabi.Helpers;
@@ -37,7 +38,7 @@ namespace WalletWasabi.Userfacing
 		}
 
 		/// <param name="defaultPort">If invalid and it's needed to use, then this function returns false.</param>
-		public static bool TryParse(string endPointString, int defaultPort, out EndPoint endPoint)
+		public static bool TryParse(string endPointString, int defaultPort, [NotNullWhen(true)] out EndPoint? endPoint)
 		{
 			endPoint = null;
 
@@ -99,7 +100,7 @@ namespace WalletWasabi.Userfacing
 					host = IPAddress.Loopback.ToString();
 				}
 
-				if (IPAddress.TryParse(host, out IPAddress addr))
+				if (IPAddress.TryParse(host, out IPAddress? addr))
 				{
 					endPoint = new IPEndPoint(addr, port);
 				}
