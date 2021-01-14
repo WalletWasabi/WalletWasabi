@@ -9,6 +9,6 @@
 	`git update-index --chmod=+x .\win64\Tor\tor.exe`
 	`git update-index --chmod=+x .\osx64\Tor\tor`
 	`git update-index --chmod=+x .\osx64\Tor\tor.real`
-4. Update the binary hashes of each executable and the text documentation in the test project.
+4. Update the binary hashes of each executable and the text documentation in `*BinaryHashesTests.cs` test files.
 5. Commit, push.
 6. Make sure CI passes.
