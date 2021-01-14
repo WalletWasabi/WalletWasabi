@@ -32,8 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					await legalChecker.AgreeAsync();
 					Navigate().To(next, NavigationMode.Clear);
 				},
-				this.WhenAnyValue(x => x.IsAgreed)
-				.ObserveOn(RxApp.MainThreadScheduler));
+				this.WhenAnyValue(x => x.IsAgreed).ObserveOn(RxApp.MainThreadScheduler));
 		}
 
 		public ICommand ViewTermsCommand { get; }
