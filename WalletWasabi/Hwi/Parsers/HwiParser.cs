@@ -373,8 +373,7 @@ namespace WalletWasabi.Hwi.Parsers
 					argumentBuilder.Append(' ');
 				}
 
-				string commandName = command.GetFirstAttribute<CommandNameAttribute>()!.CommandName;
-				argumentBuilder.Append(commandName);
+				argumentBuilder.Append(command.Value.ToCommandName());
 			}
 
 			commandArguments = Guard.Correct(commandArguments);
@@ -391,6 +390,11 @@ namespace WalletWasabi.Hwi.Parsers
 		public static string ToHwiFriendlyString(this HardwareWalletModels me)
 		{
 			return me.ToString().ToLowerInvariant();
+		}
+
+		public static string ToCommandName(this HwiCommands command)
+		{
+			return command.GetFirstAttribute<CommandNameAttribute>()!.CommandName;
 		}
 	}
 }
