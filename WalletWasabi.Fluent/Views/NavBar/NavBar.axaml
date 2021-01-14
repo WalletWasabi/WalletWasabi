@@ -175,6 +175,7 @@
             <!-- TODO: <Binding Path="!HideItems" /> -->
           </MultiBinding>
         </Separator.IsVisible>
+        <!-- TODO: Add animations for Separator when IsVisible changes to True -->
         <Separator.Styles>
           <Style Selector="Separator[IsVisible=True]">
             <Style.Animations>
