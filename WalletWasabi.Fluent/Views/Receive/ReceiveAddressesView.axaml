@@ -10,7 +10,10 @@
              x:DataType="receive:ReceiveAddressesViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Receive.ReceiveAddressesView">
-  <c:ContentArea Title="{Binding Title}">
+  <c:ContentArea Title="{Binding Title}"
+                 EnableBack="True"
+                 EnableCancel="True"
+                 >
 
   </c:ContentArea>
 </UserControl>

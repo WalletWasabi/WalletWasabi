@@ -47,7 +47,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				},
 				this.WhenAnyValue(x => x.WalletState).Select(x => x == WalletState.Uninitialized));
 
-
 			OpenReceiveCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(new ReceiveViewModel(walletManager, wallet)));
 		}
 

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
-using Avalonia.Xaml.Interactions.Custom;
+using System.Windows.Input;
 using ReactiveUI;
 using Splat;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -39,10 +39,14 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 					// NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
 				}
 
-				Navigate().To(new ReceiveAddressViewModel(newKey, wallet.Network));
+				Navigate().To(new ReceiveAddressViewModel(newKey, wallet.Network, wallet.KeyManager.MasterFingerprint, wallet.KeyManager.IsHardwareWallet));
 			},
 			nextCommandCanExecute);
+
+			ShowExistingAddressesCommand = ReactiveCommand.Create(() => Navigate().To(new ReceiveAddressesViewModel()));
 		}
+
+		public ICommand ShowExistingAddressesCommand { get; }
 
 		private HashSet<string> GetLabels(WalletManager walletManager)
 		{

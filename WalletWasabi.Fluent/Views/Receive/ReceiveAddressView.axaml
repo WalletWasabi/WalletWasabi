@@ -57,19 +57,21 @@
             <Setter Property="Opacity" Value="0"/>
           </Style>
 
-
         </StackPanel.Styles>
 
         <DockPanel HorizontalAlignment="Center" >
           <DockPanel IsVisible="{Binding !#CopiedTextBlock.IsVisible}" Classes="fadeAnimation">
-            <TextBlock Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
-            <Button Margin="10 0 0 0" ToolTip.Tip="Copy" DockPanel.Dock="Right" Classes="plain" Command="{Binding CopyAddressCommand}">
+            <Button Margin="5 0 0 0" ToolTip.Tip="Show on the hardware wallet" DockPanel.Dock="Right" Classes="plain" Command="{Binding ShowOnHwWalletCommand}" IsVisible="{Binding IsHardwareWallet}">
+              <PathIcon Data="{StaticResource share_regular}"/>
+            </Button>
+            <Button Margin="20 0 0 0" ToolTip.Tip="Copy" DockPanel.Dock="Right" Classes="plain" Command="{Binding CopyAddressCommand}">
               <PathIcon Data="{StaticResource copy_regular}"/>
             </Button>
+            <TextBlock Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
           </DockPanel>
-          <TextBlock Name="CopiedTextBlock" Text="Copied" FontSize="{StaticResource FontSizeH5}" IsVisible="False">
+          <TextBlock Name="CopiedTextBlock" Text="{Binding ActionText}" FontSize="{StaticResource FontSizeH5}" IsVisible="False">
             <i:Interaction.Behaviors>
-              <behaviors:TriggerStyleClassBehavior Classes="blinkAnimation" StyleTrigger="{Binding CopyAnimationTrigger}"/>
+              <behaviors:TriggerStyleClassBehavior Classes="blinkAnimation" StyleTrigger="{Binding AnimationTrigger}"/>
             </i:Interaction.Behaviors>
           </TextBlock>
         </DockPanel>

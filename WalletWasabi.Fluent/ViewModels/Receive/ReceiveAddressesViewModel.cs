@@ -1,13 +1,12 @@
-﻿using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.ViewModels.Navigation;
+﻿using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Receive
 {
-	public partial class ReceiveAddressesViewModel : RoutableViewModel
+	public class ReceiveAddressesViewModel : RoutableViewModel
 	{
-
 		public ReceiveAddressesViewModel()
 		{
+			Title = "Receive Addresses";
 		}
 	}
 }
