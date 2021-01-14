@@ -86,8 +86,6 @@ namespace WalletWasabi.Gui
 				UiConfig = uiConfig;
 				TorSettings = new TorSettings(DataDir, torLogsFile, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory());
 
-				Logger.InitializeDefaults(Path.Combine(DataDir, "Logs.txt"));
-
 				HostedServices = new HostedServices();
 				WalletManager = walletManager;
 
