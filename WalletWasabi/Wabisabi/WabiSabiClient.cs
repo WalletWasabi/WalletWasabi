@@ -10,7 +10,7 @@ using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Wabisabi
+namespace WalletWasabi.WabiSabi
 {
 	/// <summary>
 	/// Provides the methods for creating <see cref="RegistrationRequestMessage">unified WabiSabi credential registration request messages</see>

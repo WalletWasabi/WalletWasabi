@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using WalletWasabi.Crypto.Groups;
 
-namespace WalletWasabi.Wabisabi
+namespace WalletWasabi.WabiSabi
 {
 	/// <summary>
 	/// Represents a request for issuing a new credential.
