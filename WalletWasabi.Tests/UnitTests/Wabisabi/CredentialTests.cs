@@ -6,10 +6,10 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
-using WalletWasabi.Wabisabi;
+using WalletWasabi.WabiSabi;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Wabisabi
+namespace WalletWasabi.Tests.UnitTests.WabiSabi
 {
 	public class CredentialTests
 	{

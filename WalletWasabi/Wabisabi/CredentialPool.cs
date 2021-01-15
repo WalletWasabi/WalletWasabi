@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Crypto.ZeroKnowledge;
 
-namespace WalletWasabi.Wabisabi
+namespace WalletWasabi.WabiSabi
 {
 	/// <summary>
 	/// Keeps a registry of credentials available.
@@ -31,7 +31,7 @@ namespace WalletWasabi.Wabisabi
 		public IEnumerable<Credential> All => Credentials;
 
 		/// <summary>
-		/// Removes credentials that were used and registers those that were issued. 
+		/// Removes credentials that were used and registers those that were issued.
 		/// </summary>
 		/// <param name="newCredentials">Credentials received from the coordinator.</param>
 		/// <param name="oldCredentials">Credentials exchanged by the ones that were issued.</param>

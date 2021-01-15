@@ -7,11 +7,11 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.JsonConverters;
-using WalletWasabi.Wabisabi;
-using WalletWasabi.Wabisabi.Serialization;
+using WalletWasabi.WabiSabi;
+using WalletWasabi.WabiSabi.Serialization;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Wabisabi
+namespace WalletWasabi.Tests.UnitTests.WabiSabi
 {
 	public class SerializationTests
 	{
