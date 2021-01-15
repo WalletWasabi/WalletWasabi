@@ -152,7 +152,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 			};
 
 			var numberOfCredentials = 2;
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 			var sk = new CoordinatorSecretKey(rnd);
 
 			var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd);
@@ -163,13 +163,13 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 			var present = client.Credentials.ZeroValue.Take(numberOfCredentials);
 			(credentialRequest, _) = client.CreateRequest(new[] { Money.Coins(1) }, present);
 
-			// Registration request message 
+			// Registration request message
 			var serializedRequestMessage = JsonConvert.SerializeObject(credentialRequest, converters);
 			var deserializedRequestMessage = JsonConvert.DeserializeObject<RegistrationRequestMessage>(serializedRequestMessage, converters);
 			var reserializedRequestMessage = JsonConvert.SerializeObject(deserializedRequestMessage, converters);
 			Assert.Equal(serializedRequestMessage, reserializedRequestMessage);
 
-			// Registration response message 
+			// Registration response message
 			var serializedResponseMessage = JsonConvert.SerializeObject(credentialResponse, converters);
 			var deserializedResponseMessage = JsonConvert.DeserializeObject<RegistrationResponseMessage>(serializedResponseMessage, converters);
 			var reserializedResponseMessage = JsonConvert.SerializeObject(deserializedResponseMessage, converters);
