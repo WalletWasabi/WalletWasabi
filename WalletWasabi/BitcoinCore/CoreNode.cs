@@ -68,7 +68,7 @@ namespace WalletWasabi.BitcoinCore
 				string? rpcCookieFilePath = configTranslator.TryGetRpcCookieFile();
 				string? rpcHost = configTranslator.TryGetRpcBind();
 				int? rpcPort = configTranslator.TryGetRpcPort();
-				WhiteBind whiteBind = configTranslator.TryGetWhiteBind();
+				WhiteBind? whiteBind = configTranslator.TryGetWhiteBind();
 
 				string authString;
 				bool cookieAuth = rpcCookieFilePath is { };

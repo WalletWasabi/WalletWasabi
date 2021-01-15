@@ -41,7 +41,7 @@ namespace WalletWasabi.Tor.Http.Extensions
 			var headerStruct = headerSection.ToHttpResponseHeaders();
 
 			HttpMessageHelper.AssertValidHeaders(headerStruct.ResponseHeaders, headerStruct.ContentHeaders);
-			byte[] contentBytes = await HttpMessageHelper.GetContentBytesAsync(responseStream, headerStruct, requestMethod, statusLine).ConfigureAwait(false);
+			byte[]? contentBytes = await HttpMessageHelper.GetContentBytesAsync(responseStream, headerStruct, requestMethod, statusLine).ConfigureAwait(false);
 			contentBytes = HttpMessageHelper.HandleGzipCompression(headerStruct.ContentHeaders, contentBytes);
 			response.Content = contentBytes is null ? null : new ByteArrayContent(contentBytes);
 
