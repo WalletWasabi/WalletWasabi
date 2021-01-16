@@ -172,7 +172,7 @@
           <MultiBinding Converter="{x:Static BoolConverters.And}">
             <Binding Path="!!Actions.Count" />
             <Binding Path="!!Items.Count" />
-            <!-- TODO: <Binding Path="!HideItems" /> -->
+            <Binding Path="!HideItems" />
           </MultiBinding>
         </Separator.IsVisible>
         <!-- TODO: Add animations for Separator when IsVisible changes to True -->
