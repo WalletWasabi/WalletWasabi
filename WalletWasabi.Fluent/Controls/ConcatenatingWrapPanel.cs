@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		public ConcatenatingWrapPanel()
 		{
-			ConcatenatedChildren.CollectionChanged += base.ChildrenChanged;
+			ConcatenatedChildren.CollectionChanged += ChildrenChanged;
 		}
 
 		public Avalonia.Controls.Controls ConcatenatedChildren { get; } = new Avalonia.Controls.Controls();
