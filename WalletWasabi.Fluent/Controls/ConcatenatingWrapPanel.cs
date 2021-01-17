@@ -52,8 +52,8 @@ namespace WalletWasabi.Fluent.Controls
 		/// </summary>
 		public Orientation Orientation
 		{
-			get { return GetValue(OrientationProperty); }
-			set { SetValue(OrientationProperty, value); }
+			get => GetValue(OrientationProperty);
+			set => SetValue(OrientationProperty, value);
 		}
 
 		/// <summary>
@@ -61,8 +61,8 @@ namespace WalletWasabi.Fluent.Controls
 		/// </summary>
 		public double ItemWidth
 		{
-			get { return GetValue(ItemWidthProperty); }
-			set { SetValue(ItemWidthProperty, value); }
+			get => GetValue(ItemWidthProperty);
+			set => SetValue(ItemWidthProperty, value);
 		}
 
 		/// <summary>
@@ -70,8 +70,8 @@ namespace WalletWasabi.Fluent.Controls
 		/// </summary>
 		public double ItemHeight
 		{
-			get { return GetValue(ItemHeightProperty); }
-			set { SetValue(ItemHeightProperty, value); }
+			get => GetValue(ItemHeightProperty);
+			set => SetValue(ItemHeightProperty, value);
 		}
 
 		/// <summary>
@@ -93,24 +93,31 @@ namespace WalletWasabi.Fluent.Controls
 				case NavigationDirection.First:
 					index = 0;
 					break;
+
 				case NavigationDirection.Last:
 					index = children.Count - 1;
 					break;
+
 				case NavigationDirection.Next:
 					++index;
 					break;
+
 				case NavigationDirection.Previous:
 					--index;
 					break;
+
 				case NavigationDirection.Left:
 					index = horiz ? index - 1 : -1;
 					break;
+
 				case NavigationDirection.Right:
 					index = horiz ? index + 1 : -1;
 					break;
+
 				case NavigationDirection.Up:
 					index = horiz ? -1 : index - 1;
 					break;
+
 				case NavigationDirection.Down:
 					index = horiz ? -1 : index + 1;
 					break;
@@ -304,7 +311,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			internal double Width
 			{
-				get { return _orientation == Orientation.Horizontal ? U : V; }
+				get => _orientation == Orientation.Horizontal ? U : V;
 				set
 				{
 					if (_orientation == Orientation.Horizontal)
@@ -317,9 +324,10 @@ namespace WalletWasabi.Fluent.Controls
 					}
 				}
 			}
+
 			internal double Height
 			{
-				get { return _orientation == Orientation.Horizontal ? V : U; }
+				get => _orientation == Orientation.Horizontal ? V : U;
 				set
 				{
 					if (_orientation == Orientation.Horizontal)
