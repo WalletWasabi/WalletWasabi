@@ -56,14 +56,14 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Subscribe(_ => Save());
 		}
 
-		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
+		public static Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
 
-		public IEnumerable<Network> Networks => Network.GetNetworks();
+		public static IEnumerable<Network> Networks => Network.GetNetworks();
 
 		private void ValidateBitcoinP2PEndPoint(IValidationErrors errors)
 			=> ValidateEndPoint(errors, BitcoinP2PEndPoint, Network.DefaultPort, whiteSpaceOk: true);
 
-		private void ValidateEndPoint(IValidationErrors errors, string endPoint, int defaultPort, bool whiteSpaceOk)
+		private static void ValidateEndPoint(IValidationErrors errors, string endPoint, int defaultPort, bool whiteSpaceOk)
 		{
 			if (!whiteSpaceOk || !string.IsNullOrWhiteSpace(endPoint))
 			{
@@ -77,7 +77,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private void ValidateDustThreshold(IValidationErrors errors) =>
 			ValidateDustThreshold(errors, DustThreshold, whiteSpaceOk: true);
 
-		private void ValidateDustThreshold(IValidationErrors errors, string dustThreshold, bool whiteSpaceOk)
+		private static void ValidateDustThreshold(IValidationErrors errors, string dustThreshold, bool whiteSpaceOk)
 		{
 			if (!whiteSpaceOk || !string.IsNullOrWhiteSpace(dustThreshold))
 			{

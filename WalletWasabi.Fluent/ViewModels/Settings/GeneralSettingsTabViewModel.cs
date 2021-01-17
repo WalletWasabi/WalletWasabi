@@ -67,7 +67,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Subscribe(x => uiConfig.FeeDisplayFormat = (int) x);
 		}
 
-		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats =>
+		public static IEnumerable<FeeDisplayFormat> FeeDisplayFormats =>
 			Enum.GetValues(typeof(FeeDisplayFormat)).Cast<FeeDisplayFormat>();
 
 		protected override void EditConfigOnSave(Config config)

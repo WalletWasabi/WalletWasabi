@@ -72,7 +72,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					: new WalletViewModel(uiConfig, wallet);
 		}
 
-		public void OpenWalletTabs()
+		public static void OpenWalletTabs()
 		{
 			// TODO: Implement.
 		}

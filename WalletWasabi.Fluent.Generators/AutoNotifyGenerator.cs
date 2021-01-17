@@ -183,7 +183,7 @@ namespace {namespaceName}
 			return source.ToString();
 		}
 
-		private void ProcessField(StringBuilder source, IFieldSymbol fieldSymbol, ISymbol attributeSymbol)
+		private static void ProcessField(StringBuilder source, IFieldSymbol fieldSymbol, ISymbol attributeSymbol)
 		{
 			var fieldName = fieldSymbol.Name;
 			var fieldType = fieldSymbol.Type;

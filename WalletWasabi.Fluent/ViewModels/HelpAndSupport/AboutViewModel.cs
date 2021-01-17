@@ -55,7 +55,7 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 
 		public ICommand CopyLinkCommand { get; }
 
-		public Version ClientVersion => Constants.ClientVersion;
+		public static Version ClientVersion => Constants.ClientVersion;
 
 		public static string ClearnetLink => "https://wasabiwallet.io/";
 
