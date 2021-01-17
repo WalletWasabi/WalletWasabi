@@ -159,7 +159,8 @@ namespace WalletWasabi.Fluent.Controls
 					child.Measure(childConstraint);
 
 					// This is the size of the child in UV space
-					var sz = new UVSize(orientation,
+					var sz = new UVSize(
+						orientation,
 						itemWidthSet ? itemWidth : child.DesiredSize.Width,
 						itemHeightSet ? itemHeight : child.DesiredSize.Height);
 
@@ -213,7 +214,8 @@ namespace WalletWasabi.Fluent.Controls
 				var child = children[i];
 				if (child != null)
 				{
-					var sz = new UVSize(orientation,
+					var sz = new UVSize(
+						orientation,
 						itemWidthSet ? itemWidth : child.DesiredSize.Width,
 						itemHeightSet ? itemHeight : child.DesiredSize.Height);
 
@@ -291,6 +293,10 @@ namespace WalletWasabi.Fluent.Controls
 
 		private struct UVSize
 		{
+			internal double U;
+			internal double V;
+			private Orientation _orientation;
+
 			internal UVSize(Orientation orientation, double width, double height)
 			{
 				U = V = 0d;
@@ -304,10 +310,6 @@ namespace WalletWasabi.Fluent.Controls
 				U = V = 0d;
 				_orientation = orientation;
 			}
-
-			internal double U;
-			internal double V;
-			private Orientation _orientation;
 
 			internal double Width
 			{
