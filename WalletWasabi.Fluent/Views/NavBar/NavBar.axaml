@@ -107,13 +107,13 @@
                 </KeyFrame>
                 <KeyFrame Cue="100%">
                   <Setter Property="Opacity" Value="1.0"/>
-                  <Setter Property="TranslateTransform.Y" Value="0.0"/>
+                  <!-- <Setter Property="TranslateTransform.Y" Value="0.0"/> -->
                 </KeyFrame>
               </Animation>
             </Style.Animations>
           </Style>
           <Style Selector="c|NavBarItem">
-            <!-- <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" /> -->
+            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
           </Style>
         </c:NavBarListBox.Styles>
         <c:NavBarListBox.DataTemplates>
