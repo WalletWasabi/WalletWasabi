@@ -28,11 +28,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				{
 					try
 					{
-						if (wallet.KeyManager.PasswordVerified is true)
-						{
-							// TODO ... new UX will test password earlier...
-						}
-
 						await Task.Run(async () => await walletManager.StartWalletAsync(Wallet));
 					}
 					catch (OperationCanceledException ex)
@@ -51,6 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		}
 
 		public IReactiveCommand OpenReceiveCommand { get; }
+
 		public ReactiveCommand<Unit, Unit> OpenWalletCommand { get; }
 
 		public override string IconName => "web_asset_regular";

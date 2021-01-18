@@ -13,6 +13,7 @@
              x:Class="WalletWasabi.Fluent.Views.Receive.ReceiveAddressView">
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="OK"
+                 EnableBack="True"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel LastChildFill="True">
       <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="30">

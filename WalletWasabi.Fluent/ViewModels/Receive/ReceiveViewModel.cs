@@ -43,7 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 			},
 			nextCommandCanExecute);
 
-			ShowExistingAddressesCommand = ReactiveCommand.Create(() => Navigate().To(new ReceiveAddressesViewModel()));
+			ShowExistingAddressesCommand = ReactiveCommand.Create(() => Navigate().To(new ReceiveAddressesViewModel(wallet)));
 		}
 
 		public ICommand ShowExistingAddressesCommand { get; }

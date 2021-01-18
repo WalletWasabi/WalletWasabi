@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 
 		public ReceiveAddressViewModel(HdPubKey model, Network network, HDFingerprint? masterFingerprint, bool isHardwareWallet)
 		{
-			Title = "Receive";
+			Title = "Address";
 			Address = model.GetP2wpkhAddress(network).ToString();
 			Reference = model.Label;
 			IsHardwareWallet = isHardwareWallet;
@@ -43,7 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 					return;
 				}
 
-				ActionText = "Showing";
+				ActionText = "Sending to device";
 
 				await Task.Run(async () =>
 				{
@@ -62,8 +61,8 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 					catch (Exception ex)
 					{
 						Logger.LogError(ex);
-						AnimationTrigger = false; // prevent animation when error dialog is returned.
-						await ShowErrorAsync(ex.ToUserFriendlyString(), "We were unable to send the address to the device"); // TODO: FIX NAVIGATION BACK
+						AnimationTrigger = false; // prevents animation when error dialog is returned.
+						await ShowErrorAsync(ex.ToUserFriendlyString(), "We were unable to send the address to the device");
 					}
 				});
 			});
@@ -73,7 +72,7 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 			NextCommand = CancelCommand;
 		}
 
-		public ReactiveCommand<Unit, Unit> CopyAddressCommand { get; set; }
+		public ICommand CopyAddressCommand { get; set; }
 
 		public ICommand ShowOnHwWalletCommand { get; set; }
 

@@ -30,7 +30,7 @@
             </Style>
           </AutoCompleteBox.Styles>
           <i:Interaction.Behaviors>
-            <behaviors:FocusOnAttachedBehavior />
+            <behaviors:FocusOnAttachedBehavior IsEnabled="True"/>
           </i:Interaction.Behaviors>
         </AutoCompleteBox>
       </StackPanel>
