@@ -19,12 +19,12 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private const double NormalCompactPaneLength = 68;
 		private const double NormalOpenPaneLength = 280;
 
-		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _topItems;
-		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _bottomItems;
 		private NavBarItemViewModel? _selectedItem;
 		private readonly WalletManagerViewModel _walletManager;
-		[AutoNotify] private bool _isBackButtonVisible;
 		private bool _isNavigating;
+		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _topItems;
+		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _bottomItems;
+		[AutoNotify] private bool _isBackButtonVisible;
 		[AutoNotify] private bool _isOpen;
 		[AutoNotify] private Action? _toggleAction;
 		[AutoNotify] private Action? _collapseOnClickAction;
