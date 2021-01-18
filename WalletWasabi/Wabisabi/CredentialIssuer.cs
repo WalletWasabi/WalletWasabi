@@ -45,14 +45,14 @@ namespace WalletWasabi.WabiSabi
 		/// <summary>
 		/// Initializes a new instance of the CredentialIssuer class.
 		/// </summary>
-		/// <param name="coordinatorSecretKey">The <see cref="CoordinatorSecretKey">coordinator's secret key</see> used to issue the credentials.</param>
+		/// <param name="credentialIssuerSecretKey">The <see cref="CredentialIssuerSecretKey">coordinator's secret key</see> used to issue the credentials.</param>
 		/// <param name="numberOfCredentials">The number of credentials that the protocol handles in each request/response.</param>
 		/// <param name="randomNumberGenerator">The random number generator.</param>
-		public CredentialIssuer(CoordinatorSecretKey coordinatorSecretKey, int numberOfCredentials, WasabiRandom randomNumberGenerator)
+		public CredentialIssuer(CredentialIssuerSecretKey credentialIssuerSecretKey, int numberOfCredentials, WasabiRandom randomNumberGenerator)
 		{
-			CoordinatorSecretKey = Guard.NotNull(nameof(coordinatorSecretKey), coordinatorSecretKey);
+			CredentialIssuerSecretKey = Guard.NotNull(nameof(credentialIssuerSecretKey), credentialIssuerSecretKey);
 			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
-			CoordinatorParameters = CoordinatorSecretKey.ComputeCoordinatorParameters();
+			CredentialIssuerParameters = CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 		}
 
@@ -65,9 +65,9 @@ namespace WalletWasabi.WabiSabi
 
 		private WasabiRandom RandomNumberGenerator { get; }
 
-		private CoordinatorSecretKey CoordinatorSecretKey { get; }
+		private CredentialIssuerSecretKey CredentialIssuerSecretKey { get; }
 
-		private CredentialIssuerParameters CoordinatorParameters { get; }
+		private CredentialIssuerParameters CredentialIssuerParameters { get; }
 
 		/// <summary>
 		/// Gets the number of credentials that have to be requested/presented
@@ -133,10 +133,10 @@ namespace WalletWasabi.WabiSabi
 			foreach (var presentation in presented)
 			{
 				// Calculate Z using coordinator secret.
-				var z = presentation.ComputeZ(CoordinatorSecretKey);
+				var z = presentation.ComputeZ(CredentialIssuerSecretKey);
 
 				// Add the credential presentation to the statements to be verified.
-				statements.Add(ProofSystem.ShowCredentialStatement(presentation, z, CoordinatorParameters));
+				statements.Add(ProofSystem.ShowCredentialStatement(presentation, z, CredentialIssuerParameters));
 
 				// Check if the serial numbers have been used before. Note that
 				// the serial numbers have not yet been verified at this point, but a
@@ -201,7 +201,7 @@ namespace WalletWasabi.WabiSabi
 
 		private (MAC Mac, Knowledge Knowledge) IssueCredential(GroupElement ma, Scalar t)
 		{
-			var sk = CoordinatorSecretKey;
+			var sk = CredentialIssuerSecretKey;
 			var mac = MAC.ComputeMAC(sk, ma, t);
 			var knowledge = ProofSystem.IssuerParametersKnowledge(mac, ma, sk);
 			return (mac, knowledge);

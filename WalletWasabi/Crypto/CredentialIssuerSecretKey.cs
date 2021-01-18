@@ -4,14 +4,14 @@ using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.Crypto
 {
-	public class CoordinatorSecretKey
+	public class CredentialIssuerSecretKey
 	{
-		public CoordinatorSecretKey(WasabiRandom rng)
+		public CredentialIssuerSecretKey(WasabiRandom rng)
 			: this(rng.GetScalar(), rng.GetScalar(), rng.GetScalar(), rng.GetScalar(), rng.GetScalar())
 		{
 		}
 
-		private CoordinatorSecretKey(Scalar w, Scalar wp, Scalar x0, Scalar x1, Scalar ya)
+		private CredentialIssuerSecretKey(Scalar w, Scalar wp, Scalar x0, Scalar x1, Scalar ya)
 		{
 			W = w;
 			Wp = wp;
@@ -26,7 +26,7 @@ namespace WalletWasabi.Crypto
 		public Scalar X1 { get; }
 		public Scalar Ya { get; }
 
-		public CredentialIssuerParameters ComputeCoordinatorParameters() =>
+		public CredentialIssuerParameters ComputeCredentialIssuerParameters() =>
 			new CredentialIssuerParameters(
 				cw: W * Generators.Gw + Wp * Generators.Gwp,
 				i: Generators.GV - (X0 * Generators.Gx0 + X1 * Generators.Gx1 + Ya * Generators.Ga));

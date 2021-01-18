@@ -19,19 +19,19 @@ namespace WalletWasabi.WabiSabi
 	public class WabiSabiClient
 	{
 		public WabiSabiClient(
-			CredentialIssuerParameters coordinatorParameters,
+			CredentialIssuerParameters credentialIssuerParameters,
 			int numberOfCredentials,
 			WasabiRandom randomNumberGenerator)
 		{
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
-			CoordinatorParameters = Guard.NotNull(nameof(coordinatorParameters), coordinatorParameters);
+			CredentialIssuerParameters = Guard.NotNull(nameof(credentialIssuerParameters), credentialIssuerParameters);
 			Credentials = new CredentialPool();
 		}
 
 		private int NumberOfCredentials { get; }
 
-		private CredentialIssuerParameters CoordinatorParameters { get; }
+		private CredentialIssuerParameters CredentialIssuerParameters { get; }
 
 		private WasabiRandom RandomNumberGenerator { get; }
 
@@ -131,7 +131,7 @@ namespace WalletWasabi.WabiSabi
 				var z = RandomNumberGenerator.GetScalar();
 				var presentation = credential.Present(z);
 				presentations.Add(presentation);
-				knowledgeToProve.Add(ProofSystem.ShowCredentialKnowledge(presentation, z, credential, CoordinatorParameters));
+				knowledgeToProve.Add(ProofSystem.ShowCredentialKnowledge(presentation, z, credential, CredentialIssuerParameters));
 				zs.Add(z);
 			}
 
@@ -206,7 +206,7 @@ namespace WalletWasabi.WabiSabi
 				.ToArray();
 
 			var statements = credentials
-				.Select(x => ProofSystem.IssuerParametersStatement(CoordinatorParameters, x.Issued, x.Requested.Ma));
+				.Select(x => ProofSystem.IssuerParametersStatement(CredentialIssuerParameters, x.Issued, x.Requested.Ma));
 
 			var areCorrectlyIssued = ProofSystem.Verify(registrationValidationData.Transcript, statements, registrationResponse.Proofs);
 			if (!areCorrectlyIssued)

@@ -16,10 +16,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		public void CanProveAndVerifyMAC()
 		{
 			// The coordinator generates a composed private key called CoordinatorSecretKey
-			// and derives from that the coordinator's public parameters called CoordinatorParameters.
+			// and derives from that the coordinator's public parameters called credentialIssuerParameters.
 			var rnd = new SecureRandom();
-			var coordinatorKey = new CoordinatorSecretKey(rnd);
-			var coordinatorParameters = coordinatorKey.ComputeCoordinatorParameters();
+			var coordinatorKey = new CredentialIssuerSecretKey(rnd);
+			var coordinatorParameters = coordinatorKey.ComputeCredentialIssuerParameters();
 
 			// A blinded amount is known as an `attribute`. In this case the attribute Ma is the
 			// value 10000 blinded with a random `blindingFactor`. This attribute is sent to
@@ -59,8 +59,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		public void CanProveAndVerifyMacShow()
 		{
 			var rnd = new SecureRandom();
-			var coordinatorKey = new CoordinatorSecretKey(rnd);
-			var coordinatorParameters = coordinatorKey.ComputeCoordinatorParameters();
+			var coordinatorKey = new CredentialIssuerSecretKey(rnd);
+			var coordinatorParameters = coordinatorKey.ComputeCredentialIssuerParameters();
 
 			// A blinded amount is known as an `attribute`. In this case the attribute Ma is the
 			// value 10000 blinded with a random `blindingFactor`. This attribute is sent to

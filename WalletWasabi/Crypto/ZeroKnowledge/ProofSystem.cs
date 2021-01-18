@@ -87,8 +87,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			return Enumerable.Zip(statements, proofs, (s, p) => s.CheckVerificationEquation(p.PublicNonces, challenge, p.Responses)).All(x => x);
 		}
 
-		public static Knowledge IssuerParametersKnowledge(MAC mac, GroupElement ma, CoordinatorSecretKey sk)
-			=> new Knowledge(IssuerParametersStatement(sk.ComputeCoordinatorParameters(), mac, ma), new ScalarVector(sk.W, sk.Wp, sk.X0, sk.X1, sk.Ya));
+		public static Knowledge IssuerParametersKnowledge(MAC mac, GroupElement ma, CredentialIssuerSecretKey sk)
+			=> new Knowledge(IssuerParametersStatement(sk.ComputeCredentialIssuerParameters(), mac, ma), new ScalarVector(sk.W, sk.Wp, sk.X0, sk.X1, sk.Ya));
 
 		public static Statement IssuerParametersStatement(CredentialIssuerParameters iparams, MAC mac, GroupElement ma)
 			=> new Statement(new GroupElement[,]

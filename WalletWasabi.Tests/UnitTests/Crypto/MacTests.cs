@@ -14,7 +14,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		public void CannotBuildWrongMac()
 		{
 			var rnd = new SecureRandom();
-			var sk = new CoordinatorSecretKey(rnd);
+			var sk = new CredentialIssuerSecretKey(rnd);
 
 			Assert.Throws<ArgumentNullException>(() => MAC.ComputeMAC(null!, Generators.G, Scalar.One));
 			Assert.Throws<ArgumentNullException>(() => MAC.ComputeMAC(sk, null!, Scalar.One));
@@ -27,7 +27,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		public void CanProduceAndVerifyMAC()
 		{
 			var rnd = new SecureRandom();
-			var sk = new CoordinatorSecretKey(rnd);
+			var sk = new CredentialIssuerSecretKey(rnd);
 
 			var attribute = rnd.GetScalar() * Generators.G;  // any random point
 			var t = rnd.GetScalar();
@@ -42,7 +42,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		public void CanDetectInvalidMAC()
 		{
 			var rnd = new SecureRandom();
-			var sk = new CoordinatorSecretKey(rnd);
+			var sk = new CredentialIssuerSecretKey(rnd);
 
 			var attribute = rnd.GetScalar() * Generators.G;  // any random point
 			var differentAttribute = rnd.GetScalar() * Generators.G;  // any other random point
@@ -57,7 +57,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Assert.NotEqual(mac, differentMac);
 
 			mac = MAC.ComputeMAC(sk, attribute, differentT);
-			var differentSk = new CoordinatorSecretKey(rnd);
+			var differentSk = new CredentialIssuerSecretKey(rnd);
 			Assert.False(mac.VerifyMAC(differentSk, attribute));
 		}
 
@@ -67,8 +67,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		{
 			var rnd = new SecureRandom();
 
-			var right = (attribute: rnd.GetScalar() * Generators.G, sk: new CoordinatorSecretKey(rnd), t: rnd.GetScalar());
-			var wrong = (attribute: rnd.GetScalar() * Generators.G, sk: new CoordinatorSecretKey(rnd), t: rnd.GetScalar());
+			var right = (attribute: rnd.GetScalar() * Generators.G, sk: new CredentialIssuerSecretKey(rnd), t: rnd.GetScalar());
+			var wrong = (attribute: rnd.GetScalar() * Generators.G, sk: new CredentialIssuerSecretKey(rnd), t: rnd.GetScalar());
 
 			var cases = new[]
 			{
