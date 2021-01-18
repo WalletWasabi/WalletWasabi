@@ -94,7 +94,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (!walletManager.AnyWallet(x => x.State >= WalletState.Started && x != walletViewModel.Wallet))
 			{
-				WalletViewModel.OpenWalletTabs();
+				walletViewModel.OpenWalletTabs();
 			}
 
 			walletViewModel.IsExpanded = true;
