@@ -71,19 +71,13 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		public INavigationStack<RoutableViewModel> Navigate(NavigationTarget currentTarget)
 		{
-			switch (currentTarget)
+			return currentTarget switch
 			{
-				case NavigationTarget.HomeScreen:
-					return NavigationState.Instance.HomeScreenNavigation;
-
-				case NavigationTarget.DialogScreen:
-					return NavigationState.Instance.DialogScreenNavigation;
-
-				case NavigationTarget.FullScreen:
-					return NavigationState.Instance.FullScreenNavigation;
-			}
-
-			throw new NotSupportedException();
+				NavigationTarget.HomeScreen => NavigationState.Instance.HomeScreenNavigation,
+				NavigationTarget.DialogScreen => NavigationState.Instance.DialogScreenNavigation,
+				NavigationTarget.FullScreen => NavigationState.Instance.FullScreenNavigation,
+				_ => throw new NotSupportedException(),
+			};
 		}
 
 		public void OnNavigatedTo(bool isInHistory)
