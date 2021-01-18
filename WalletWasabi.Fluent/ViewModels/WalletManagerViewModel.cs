@@ -102,7 +102,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			var walletViewModel = OpenWallet(walletManager, uiConfig, closedWalletViewModel.Wallet);
 
-			// TODO: Handle walletViewModel
+			// TODO: Handle opened walletViewModel.
 		}
 
 		private WalletViewModelBase OpenWallet(WalletManager walletManager, UiConfig uiConfig, Wallet wallet)
