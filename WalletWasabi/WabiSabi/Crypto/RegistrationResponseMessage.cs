@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.ZeroKnowledge;
 
-namespace WalletWasabi.WabiSabi
+namespace WalletWasabi.WabiSabi.Crypto
 {
 	/// <summary>
 	/// Represents a response message for the WabiSabi unified registration protocol.

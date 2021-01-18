@@ -11,7 +11,7 @@ using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.WabiSabi
+namespace WalletWasabi.WabiSabi.Crypto
 {
 	/// <summary>
 	/// Issues anonymous credentials using the coordinator's secret key.

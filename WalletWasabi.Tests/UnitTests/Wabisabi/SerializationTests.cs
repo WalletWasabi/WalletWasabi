@@ -8,7 +8,8 @@ using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.WabiSabi;
-using WalletWasabi.WabiSabi.Serialization;
+using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Crypto.Serialization;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi

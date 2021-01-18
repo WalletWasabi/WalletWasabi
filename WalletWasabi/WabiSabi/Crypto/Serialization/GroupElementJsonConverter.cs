@@ -3,7 +3,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using WalletWasabi.Crypto.Groups;
 
-namespace WalletWasabi.WabiSabi.Serialization
+namespace WalletWasabi.WabiSabi.Crypto.Serialization
 {
 	public class GroupElementJsonConverter : JsonConverter
 	{

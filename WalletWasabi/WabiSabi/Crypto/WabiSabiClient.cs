@@ -10,7 +10,7 @@ using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.WabiSabi
+namespace WalletWasabi.WabiSabi.Crypto
 {
 	/// <summary>
 	/// Provides the methods for creating <see cref="RegistrationRequestMessage">unified WabiSabi credential registration request messages</see>
@@ -200,8 +200,7 @@ namespace WalletWasabi.WabiSabi
 					$"{issuedCredentialCount} issued but {requestedCredentialCount} were requested.");
 			}
 
-			var credentials = Enumerable
-				.Zip(registrationValidationData.Requested, registrationResponse.IssuedCredentials)
+			var credentials = registrationValidationData.Requested.Zip(registrationResponse.IssuedCredentials)
 				.Select(x => (Requested: x.First, Issued: x.Second))
 				.ToArray();
 

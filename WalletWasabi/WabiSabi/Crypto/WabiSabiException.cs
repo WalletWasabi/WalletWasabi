@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace WalletWasabi.WabiSabi
+namespace WalletWasabi.WabiSabi.Crypto
 {
 	[Serializable]
 	public class WabiSabiException : Exception

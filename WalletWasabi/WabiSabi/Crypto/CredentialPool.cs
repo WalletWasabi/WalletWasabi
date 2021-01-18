@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Crypto.ZeroKnowledge;
 
-namespace WalletWasabi.WabiSabi
+namespace WalletWasabi.WabiSabi.Crypto
 {
 	/// <summary>
 	/// Keeps a registry of credentials available.

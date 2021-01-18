@@ -1,4 +1,4 @@
-namespace WalletWasabi.WabiSabi
+namespace WalletWasabi.WabiSabi.Crypto
 {
 	public enum WabiSabiErrorCode
 	{
