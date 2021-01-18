@@ -43,7 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 					return;
 				}
 
-				ActionText = "Sending";
+				ActionText = "Showing";
 
 				await Task.Run(async () =>
 				{
@@ -57,7 +57,7 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 					catch (FormatException ex) when (ex.Message.Contains("network") && network == Network.TestNet)
 					{
 						// This exception happens everytime on TestNet because of Wasabi Keypath handling.
-						// The user don't need know about it.
+						// The user doesn't need to know about it.
 					}
 					catch (Exception ex)
 					{
