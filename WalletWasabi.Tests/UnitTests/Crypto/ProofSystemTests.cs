@@ -18,8 +18,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			// The coordinator generates a composed private key called CredentialIssuerSecretKey
 			// and derives from that the coordinator's public parameters called credentialIssuerParameters.
 			using var rnd = new SecureRandom();
-			var coordinatorKey = new CredentialIssuerSecretKey(rnd);
-			var coordinatorParameters = coordinatorKey.ComputeCredentialIssuerParameters();
+			var credentialIssuerKey = new CredentialIssuerSecretKey(rnd);
+			var credentialIssuerParameters = credentialIssuerKey.ComputeCredentialIssuerParameters();
 
 			// A blinded amount is known as an `attribute`. In this case the attribute Ma is the
 			// value 10000 blinded with a random `blindingFactor`. This attribute is sent to
@@ -32,14 +32,14 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			// coordinator's secret key. The coordinator sends the pair (MAC + proofOfMac) back
 			// to the client.
 			var t = rnd.GetScalar();
-			var mac = MAC.ComputeMAC(coordinatorKey, ma, t);
+			var mac = MAC.ComputeMAC(credentialIssuerKey, ma, t);
 
-			var coordinatorKnowledge = ProofSystem.IssuerParametersKnowledge(mac, ma, coordinatorKey);
+			var coordinatorKnowledge = ProofSystem.IssuerParametersKnowledge(mac, ma, credentialIssuerKey);
 			var proofOfMac = ProofSystemHelpers.Prove(coordinatorKnowledge, rnd);
 
 			// The client receives the MAC and the proofOfMac which let the client know that the MAC
 			// was generated with the coordinator's secret key.
-			var clientStatement = ProofSystem.IssuerParametersStatement(coordinatorParameters, mac, ma);
+			var clientStatement = ProofSystem.IssuerParametersStatement(credentialIssuerParameters, mac, ma);
 			var isValidProof = ProofSystemHelpers.Verify(clientStatement, proofOfMac);
 			Assert.True(isValidProof);
 
@@ -59,8 +59,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		public void CanProveAndVerifyMacShow()
 		{
 			using var rnd = new SecureRandom();
-			var coordinatorKey = new CredentialIssuerSecretKey(rnd);
-			var coordinatorParameters = coordinatorKey.ComputeCredentialIssuerParameters();
+			var credentialIssuerKey = new CredentialIssuerSecretKey(rnd);
+			var credentialIssuerParameters = credentialIssuerKey.ComputeCredentialIssuerParameters();
 
 			// A blinded amount is known as an `attribute`. In this case the attribute Ma is the
 			// value 10000 blinded with a random `blindingFactor`. This attribute is sent to
@@ -73,21 +73,21 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			// coordinator's secret key. The coordinator sends the pair (MAC, proofOfMac) back
 			// to the client.
 			var t = rnd.GetScalar();
-			var mac = MAC.ComputeMAC(coordinatorKey, ma, t);
+			var mac = MAC.ComputeMAC(credentialIssuerKey, ma, t);
 
 			// The client randomizes the commitments before presenting them to the coordinator proving to
 			// the coordinator that a credential is valid (prover knows a valid MAC on non-randomized attribute)
 			var credential = new Credential(amount, r, mac);
 			var z = rnd.GetScalar();
 			var randomizedCredential = credential.Present(z);
-			var knowledge = ProofSystem.ShowCredentialKnowledge(randomizedCredential, z, credential, coordinatorParameters);
+			var knowledge = ProofSystem.ShowCredentialKnowledge(randomizedCredential, z, credential, credentialIssuerParameters);
 			var proofOfMacShow = ProofSystemHelpers.Prove(knowledge, rnd);
 
 			// The coordinator must verify the received randomized credential is valid.
-			var capitalZ = randomizedCredential.ComputeZ(coordinatorKey);
-			Assert.Equal(capitalZ, z * coordinatorParameters.I);
+			var capitalZ = randomizedCredential.ComputeZ(credentialIssuerKey);
+			Assert.Equal(capitalZ, z * credentialIssuerParameters.I);
 
-			var statement = ProofSystem.ShowCredentialStatement(randomizedCredential, capitalZ, coordinatorParameters);
+			var statement = ProofSystem.ShowCredentialStatement(randomizedCredential, capitalZ, credentialIssuerParameters);
 			var isValidProof = ProofSystemHelpers.Verify(statement, proofOfMacShow);
 
 			Assert.True(isValidProof);

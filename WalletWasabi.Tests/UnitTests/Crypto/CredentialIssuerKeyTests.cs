@@ -8,7 +8,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto
 {
-	public class CoordinatorKeyTests
+	public class CredentialIssuerKeyTests
 	{
 		[Fact]
 		public void GenerateCredentialIssuerParameters()
