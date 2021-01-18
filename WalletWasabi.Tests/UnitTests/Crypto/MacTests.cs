@@ -13,7 +13,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Trait("UnitTest", "UnitTest")]
 		public void CannotBuildWrongMac()
 		{
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 			var sk = new CredentialIssuerSecretKey(rnd);
 
 			Assert.Throws<ArgumentNullException>(() => MAC.ComputeMAC(null!, Generators.G, Scalar.One));
@@ -26,7 +26,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Trait("UnitTest", "UnitTest")]
 		public void CanProduceAndVerifyMAC()
 		{
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 			var sk = new CredentialIssuerSecretKey(rnd);
 
 			var attribute = rnd.GetScalar() * Generators.G;  // any random point
@@ -41,7 +41,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Trait("UnitTest", "UnitTest")]
 		public void CanDetectInvalidMAC()
 		{
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 			var sk = new CredentialIssuerSecretKey(rnd);
 
 			var attribute = rnd.GetScalar() * Generators.G;  // any random point
@@ -65,21 +65,21 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Trait("UnitTest", "UnitTest")]
 		public void EqualityTests()
 		{
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 
 			var right = (attribute: rnd.GetScalar() * Generators.G, sk: new CredentialIssuerSecretKey(rnd), t: rnd.GetScalar());
 			var wrong = (attribute: rnd.GetScalar() * Generators.G, sk: new CredentialIssuerSecretKey(rnd), t: rnd.GetScalar());
 
 			var cases = new[]
 			{
-				(attribute: right.attribute, sk: right.sk, t: right.t, isEqual: true),
-				(attribute: right.attribute, sk: right.sk, t: wrong.t, isEqual: false),
-				(attribute: right.attribute, sk: wrong.sk, t: right.t, isEqual: false),
-				(attribute: right.attribute, sk: wrong.sk, t: wrong.t, isEqual: false),
-				(attribute: wrong.attribute, sk: right.sk, t: right.t, isEqual: false),
-				(attribute: wrong.attribute, sk: right.sk, t: wrong.t, isEqual: false),
-				(attribute: wrong.attribute, sk: wrong.sk, t: right.t, isEqual: false),
-				(attribute: wrong.attribute, sk: wrong.sk, t: wrong.t, isEqual: false),
+				(right.attribute, right.sk, right.t, isEqual: true),
+				(right.attribute, right.sk, wrong.t, isEqual: false),
+				(right.attribute, wrong.sk, right.t, isEqual: false),
+				(right.attribute, wrong.sk, wrong.t, isEqual: false),
+				(wrong.attribute, right.sk, right.t, isEqual: false),
+				(wrong.attribute, right.sk, wrong.t, isEqual: false),
+				(wrong.attribute, wrong.sk, right.t, isEqual: false),
+				(wrong.attribute, wrong.sk, wrong.t, isEqual: false),
 			};
 
 			var mac = MAC.ComputeMAC(right.sk, right.attribute, right.t);

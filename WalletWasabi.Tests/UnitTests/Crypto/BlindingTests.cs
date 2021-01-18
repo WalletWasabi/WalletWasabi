@@ -19,8 +19,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		public void CanParseUnblindedSignature()
 		{
 			var requester = new Requester();
-			var r = new Key(Encoders.Hex.DecodeData("31E151628AED2A6ABF7155809CF4F3C762E7160F38B4DA56B784D9045190CFA0"));
-			var key = new Key(Encoders.Hex.DecodeData("B7E151628AED2A6ABF7158809CF4F3C762E7160F38B4DA56A784D9045190CFEF"));
+			using var r = new Key(Encoders.Hex.DecodeData("31E151628AED2A6ABF7155809CF4F3C762E7160F38B4DA56B784D9045190CFA0"));
+			using var key = new Key(Encoders.Hex.DecodeData("B7E151628AED2A6ABF7158809CF4F3C762E7160F38B4DA56A784D9045190CFEF"));
 			var signer = new Signer(key);
 
 			var message = new uint256(Encoders.Hex.DecodeData("243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89"), false);
@@ -47,8 +47,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		{
 			// Test with known values
 			var requester = new Requester();
-			var r = new Key(Encoders.Hex.DecodeData("31E151628AED2A6ABF7155809CF4F3C762E7160F38B4DA56B784D9045190CFA0"));
-			var key = new Key(Encoders.Hex.DecodeData("B7E151628AED2A6ABF7158809CF4F3C762E7160F38B4DA56A784D9045190CFEF"));
+			using var r = new Key(Encoders.Hex.DecodeData("31E151628AED2A6ABF7155809CF4F3C762E7160F38B4DA56B784D9045190CFA0"));
+			using var key = new Key(Encoders.Hex.DecodeData("B7E151628AED2A6ABF7158809CF4F3C762E7160F38B4DA56A784D9045190CFEF"));
 			var signer = new Signer(key);
 
 			var message = new uint256(Encoders.Hex.DecodeData("243F6A8885A308D313198A2E03707344A4093822299F31D0082EFA98EC4E6C89"), false);
@@ -62,7 +62,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			// Test with unknown values
 			requester = new Requester();
-			signer = new Signer(new Key());
+			using var k = new Key();
+			signer = new Signer(k);
 
 			message = NBitcoin.Crypto.Hashes.DoubleSHA256(Encoders.ASCII.DecodeData("Hello world!"));
 			blindedMessage = requester.BlindMessage(message, r.PubKey, signer.Key.PubKey);
@@ -76,7 +77,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			for (var i = 0; i < 1_000; i++)
 			{
 				requester = new Requester();
-				signer = new Signer(new Key());
+				using var k2 = new Key();
+				signer = new Signer(k2);
 				blindedMessage = requester.BlindMessage(newMessage, r.PubKey, signer.Key.PubKey);
 				blindSignature = signer.Sign(blindedMessage, r);
 				unblindedSignature = requester.UnblindSignature(blindSignature);
@@ -92,8 +94,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		public void CanBlindSign()
 		{
 			// Generate ECDSA keypairs.
-			var r = new Key();
-			var key = new Key();
+			using var r = new Key();
+			using var key = new Key();
 			Signer signer = new Signer(key);
 
 			// Generate ECDSA requester.
@@ -122,8 +124,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[Fact]
 		public void CanEncodeDecodeBlinding()
 		{
-			var key = new Key();
-			var r = new Key();
+			using var key = new Key();
+			using var r = new Key();
 			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
 			var hash = new uint256(NBitcoin.Crypto.Hashes.SHA256(message));
 			var requester = new Requester();
@@ -139,8 +141,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		public void ConvertBackAndForth()
 		{
 			var converter = new UnblindedSignatureJsonConverter();
-			var r = new Key();
-			var key = new Key();
+			using var r = new Key();
+			using var key = new Key();
 			var signer = new Signer(key);
 
 			foreach (var i in Enumerable.Range(0, 100))
