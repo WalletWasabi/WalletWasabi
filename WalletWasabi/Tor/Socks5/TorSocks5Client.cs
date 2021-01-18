@@ -12,6 +12,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Exceptions;
+using WalletWasabi.Tor.Socks5.Models.Bases;
 using WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Models.Messages;
@@ -126,8 +127,7 @@ namespace WalletWasabi.Tor.Socks5
 			// SOCKS5 client implementations.
 			var methods = new MethodsField(isolateStream ? MethodField.UsernamePassword : MethodField.NoAuthenticationRequired);
 
-			byte[] sendBuffer = new VersionMethodRequest(methods).ToBytes();
-			byte[] receiveBuffer = await SendAsync(sendBuffer, receiveBufferSize: 2, cancellationToken).ConfigureAwait(false);
+			byte[] receiveBuffer = await SendRequestAsync(new VersionMethodRequest(methods), cancellationToken).ConfigureAwait(false);
 
 			var methodSelection = new MethodSelectionResponse(receiveBuffer);
 
@@ -154,10 +154,8 @@ namespace WalletWasabi.Tor.Socks5
 				var uName = new UNameField(uName: identity);
 				var passwd = new PasswdField(password: identity);
 				var usernamePasswordRequest = new UsernamePasswordRequest(uName, passwd);
-				sendBuffer = usernamePasswordRequest.ToBytes();
 
-				Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
-				receiveBuffer = await SendAsync(sendBuffer, receiveBufferSize: 2, cancellationToken).ConfigureAwait(false);
+				receiveBuffer = await SendRequestAsync(usernamePasswordRequest, cancellationToken).ConfigureAwait(false);
 
 				var userNamePasswordResponse = new UsernamePasswordResponse(receiveBuffer);
 
@@ -183,7 +181,7 @@ namespace WalletWasabi.Tor.Socks5
 		public async Task UpgradeToSslAsync(string host)
 		{
 			SslStream sslStream = new SslStream(TcpClient.GetStream(), leaveInnerStreamOpen: true);
-			await sslStream.AuthenticateAsClientAsync(host, new X509CertificateCollection(), IHttpClient.SupportedSslProtocols, true).ConfigureAwait(false);
+			await sslStream.AuthenticateAsClientAsync(host, new X509CertificateCollection(), true).ConfigureAwait(false);
 			Stream = sslStream;
 		}
 
@@ -222,10 +220,8 @@ namespace WalletWasabi.Tor.Socks5
 
 			try
 			{
-				var connectionRequest = new TorSocks5Request(cmd: CmdField.Connect, new AddrField(host), new PortField(port));
-				var sendBuffer = connectionRequest.ToBytes();
-
-				var receiveBuffer = await SendAsync(sendBuffer, receiveBufferSize: null, cancellationToken).ConfigureAwait(false);
+				TorSocks5Request connectRequest = new(cmd: CmdField.Connect, new AddrField(host), new PortField(port));
+				byte[] receiveBuffer = await SendRequestAsync(connectRequest, cancellationToken).ConfigureAwait(false);
 
 				var connectionResponse = new TorSocks5Response(receiveBuffer);
 
@@ -331,16 +327,15 @@ namespace WalletWasabi.Tor.Socks5
 		}
 
 		/// <summary>
-		/// Sends bytes to the Tor Socks5 connection
+		/// Sends a request to the Tor SOCKS5 connection and returns a byte response.
 		/// </summary>
-		/// <param name="sendBuffer">Sent data</param>
-		/// <param name="receiveBufferSize">Maximum number of bytes expected to be received in the reply</param>
+		/// <param name="request">Request to send.</param>
 		/// <param name="cancellationToken">Cancellation token to cancel sending.</param>
 		/// <returns>Reply</returns>
-		private async Task<byte[]> SendAsync(byte[] sendBuffer, int? receiveBufferSize = null, CancellationToken cancellationToken = default)
+		/// <exception cref="ArgumentException">When <paramref name="request"/> is not supported.</exception>
+		/// <exception cref="TorConnectionException">When we receive no response from Tor or the response is invalid.</exception>
+		private async Task<byte[]> SendRequestAsync(ByteArraySerializableBase request, CancellationToken cancellationToken = default)
 		{
-			Guard.NotNullOrEmpty(nameof(sendBuffer), sendBuffer);
-
 			try
 			{
 				await AssertConnectedAsync(cancellationToken).ConfigureAwait(false);
@@ -349,58 +344,121 @@ namespace WalletWasabi.Tor.Socks5
 				{
 					var stream = TcpClient.GetStream();
 
-					// Write data to the stream
-					await stream.WriteAsync(sendBuffer.AsMemory(0, sendBuffer.Length), cancellationToken).ConfigureAwait(false);
+					byte[] dataToSend = request.ToBytes();
+
+					// Write data to the stream.
+					await stream.WriteAsync(dataToSend.AsMemory(0, dataToSend.Length), cancellationToken).ConfigureAwait(false);
 					await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
 
-					// If receiveBufferSize is null, zero or negative or bigger than TcpClient.ReceiveBufferSize
-					// then work with TcpClient.ReceiveBufferSize
-					var tcpReceiveBuffSize = TcpClient.ReceiveBufferSize;
-					var actualReceiveBufferSize = receiveBufferSize is null || receiveBufferSize <= 0 || receiveBufferSize > tcpReceiveBuffSize
-						? tcpReceiveBuffSize
-						: (int)receiveBufferSize;
-
-					// Receive the response
-					var receiveBuffer = new byte[actualReceiveBufferSize];
-
-					int receiveCount = await stream.ReadAsync(receiveBuffer.AsMemory(0, actualReceiveBufferSize), cancellationToken).ConfigureAwait(false);
-
-					if (receiveCount <= 0)
+					if (request is VersionMethodRequest or UsernamePasswordRequest)
 					{
-						throw new TorConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
+						return await ReadTwoByteResponseAsync(stream, cancellationToken).ConfigureAwait(false);
 					}
-					// if we could fit everything into our buffer, then return it
-					if (!stream.DataAvailable)
+					else if (request is TorSocks5Request)
 					{
-						return receiveBuffer[..receiveCount];
+						return await ReadRequestResponseAsync(stream, cancellationToken).ConfigureAwait(false);
 					}
-
-					// while we have data available, start building a byte array
-					var builder = new ByteArrayBuilder();
-					builder.Append(receiveBuffer[..receiveCount]);
-					while (stream.DataAvailable)
+					else
 					{
-						Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
-						receiveCount = await stream.ReadAsync(receiveBuffer.AsMemory(0, actualReceiveBufferSize), cancellationToken).ConfigureAwait(false);
-						if (receiveCount <= 0)
-						{
-							throw new TorConnectionException($"Not connected to Tor SOCKS5 proxy: {TorSocks5EndPoint}.");
-						}
-						builder.Append(receiveBuffer[..receiveCount]);
+						throw new ArgumentException("Not supported request type.", nameof(request));
 					}
-
-					return builder.ToArray();
 				}
 			}
 			catch (OperationCanceledException)
 			{
-				Logger.LogTrace($"Send operation was canceled.");
+				Logger.LogTrace("Send operation was canceled.");
 				throw;
 			}
 			catch (IOException ex)
 			{
 				throw new TorConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.", ex);
 			}
+		}
+
+		/// <summary>
+		/// Reads response for <see cref="TorSocks5Request"/>.
+		/// </summary>
+		private static async Task<byte[]> ReadRequestResponseAsync(NetworkStream stream, CancellationToken cancellationToken)
+		{
+			ByteArrayBuilder builder = new(capacity: 1024);
+
+			// Read: VER, CMD, RSV and ATYP values.
+			int byteResult = -1;
+
+			for (int i = 0; i < 4; i++)
+			{
+				byteResult = await stream.ReadByteAsync(cancellationToken).ConfigureAwait(false);
+
+				if (byteResult == -1)
+				{
+					throw new TorConnectionException("Failed to read first four bytes from the SOCKS5 response.");
+				}
+
+				builder.Append((byte)byteResult);
+			}
+
+			// Process last read byte which is ATYP.
+			byte addrType = (byte)byteResult;
+
+			int dstAddrLength = addrType switch
+			{
+				// IPv4.
+				0x01 => 4,
+				// Fully-qualified domain name.
+				0x03 => await stream.ReadByteAsync(cancellationToken).ConfigureAwait(false),
+				// IPv6.
+				0x04 => 16,
+				_ => throw new TorConnectionException("Received unsupported ATYP value.")
+			};
+
+			if (dstAddrLength == -1)
+			{
+				throw new TorConnectionException("Failed to read the length of DST.ADDR from the SOCKS5 response.");
+			}
+
+			// Read DST.ADDR.
+			for (int i = 0; i < dstAddrLength; i++)
+			{
+				byteResult = await stream.ReadByteAsync(cancellationToken).ConfigureAwait(false);
+
+				if (byteResult == -1)
+				{
+					throw new TorConnectionException("Failed to read DST.ADDR from the SOCKS5 response.");
+				}
+
+				builder.Append((byte)byteResult);
+			}
+
+			// Read DST.PORT.
+			for (int i = 0; i < 2; i++)
+			{
+				byteResult = await stream.ReadByteAsync(cancellationToken).ConfigureAwait(false);
+
+				if (byteResult == -1)
+				{
+					throw new TorConnectionException("Failed to read DST.PORT from the SOCKS5 response.");
+				}
+
+				builder.Append((byte)byteResult);
+			}
+
+			return builder.ToArray();
+		}
+
+		private static async Task<byte[]> ReadTwoByteResponseAsync(NetworkStream stream, CancellationToken cancellationToken)
+		{
+			// Read exactly "receiveBufferSize" bytes.
+			int receiveBufferSize = 2;
+			byte[] receiveBuffer = new byte[receiveBufferSize];
+
+			int unreadBytes = await stream.ReadBlockAsync(receiveBuffer, receiveBufferSize, cancellationToken).ConfigureAwait(false);
+
+			if (unreadBytes == receiveBufferSize)
+			{
+				return receiveBuffer;
+			}
+
+			throw new TorConnectionException($"Failed to read {receiveBufferSize} bytes as expected from Tor SOCKS5.");
 		}
 
 		#endregion Methods

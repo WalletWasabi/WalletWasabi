@@ -408,7 +408,7 @@ namespace WalletWasabi.Gui
 				{
 					int port = torSocks5Port ?? Constants.DefaultTorSocksPort;
 
-					if (EndPointParser.TryParse(torHost, port, out EndPoint ep))
+					if (EndPointParser.TryParse(torHost, port, out EndPoint? ep))
 					{
 						TorSocks5EndPoint = ep;
 						saveIt = true;
@@ -419,7 +419,7 @@ namespace WalletWasabi.Gui
 				{
 					int port = mainNetBitcoinCorePort ?? Constants.DefaultMainNetBitcoinP2pPort;
 
-					if (EndPointParser.TryParse(mainNetBitcoinCoreHost, port, out EndPoint ep))
+					if (EndPointParser.TryParse(mainNetBitcoinCoreHost, port, out EndPoint? ep))
 					{
 						MainNetBitcoinP2pEndPoint = ep;
 						saveIt = true;
@@ -430,7 +430,7 @@ namespace WalletWasabi.Gui
 				{
 					int port = testNetBitcoinCorePort ?? Constants.DefaultTestNetBitcoinP2pPort;
 
-					if (EndPointParser.TryParse(testNetBitcoinCoreHost, port, out EndPoint ep))
+					if (EndPointParser.TryParse(testNetBitcoinCoreHost, port, out EndPoint? ep))
 					{
 						TestNetBitcoinP2pEndPoint = ep;
 						saveIt = true;
@@ -441,7 +441,7 @@ namespace WalletWasabi.Gui
 				{
 					int port = regTestBitcoinCorePort ?? Constants.DefaultRegTestBitcoinP2pPort;
 
-					if (EndPointParser.TryParse(regTestBitcoinCoreHost, port, out EndPoint ep))
+					if (EndPointParser.TryParse(regTestBitcoinCoreHost, port, out EndPoint? ep))
 					{
 						RegTestBitcoinP2pEndPoint = ep;
 						saveIt = true;

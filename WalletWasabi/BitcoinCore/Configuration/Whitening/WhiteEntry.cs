@@ -1,4 +1,5 @@
 using NBitcoin;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using WalletWasabi.Userfacing;
@@ -8,16 +9,16 @@ namespace WalletWasabi.BitcoinCore.Configuration.Whitening
 	public abstract class WhiteEntry
 	{
 		public string Permissions { get; private set; } = "";
-		public EndPoint EndPoint { get; private set; } = null;
+		public EndPoint? EndPoint { get; private set; } = null;
 
-		public static bool TryParse<T>(string value, Network network, out T whiteEntry) where T : WhiteEntry, new()
+		public static bool TryParse<T>(string value, Network network, [NotNullWhen(true)] out T? whiteEntry) where T : WhiteEntry, new()
 		{
 			whiteEntry = null;
 			// https://github.com/bitcoin/bitcoin/pull/16248
 			var parts = value?.Split('@');
 			if (parts is { })
 			{
-				if (EndPointParser.TryParse(parts.LastOrDefault(), network.DefaultPort, out EndPoint endPoint))
+				if (EndPointParser.TryParse(parts.LastOrDefault(), network.DefaultPort, out EndPoint? endPoint))
 				{
 					whiteEntry = new T
 					{

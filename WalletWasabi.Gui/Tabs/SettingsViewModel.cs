@@ -357,11 +357,11 @@ namespace WalletWasabi.Gui.Tabs
 					config.LoadFile();
 					if (Network == config.Network)
 					{
-						if (EndPointParser.TryParse(TorSocks5EndPoint, Constants.DefaultTorSocksPort, out EndPoint torEp))
+						if (EndPointParser.TryParse(TorSocks5EndPoint, Constants.DefaultTorSocksPort, out EndPoint? torEp))
 						{
 							config.TorSocks5EndPoint = torEp;
 						}
-						if (EndPointParser.TryParse(BitcoinP2pEndPoint, network.DefaultPort, out EndPoint p2pEp))
+						if (EndPointParser.TryParse(BitcoinP2pEndPoint, network.DefaultPort, out EndPoint? p2pEp))
 						{
 							config.SetP2PEndpoint(p2pEp);
 						}

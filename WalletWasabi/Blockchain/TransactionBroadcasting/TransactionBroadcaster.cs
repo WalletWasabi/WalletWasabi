@@ -48,7 +48,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 			// Give 7 seconds to send the inv payload.
 			await node.SendMessageAsync(invPayload).WithAwaitCancellationAsync(TimeSpan.FromSeconds(7)).ConfigureAwait(false); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
 
-			if (BitcoinStore.MempoolService.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry entry))
+			if (BitcoinStore.MempoolService.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry? entry))
 			{
 				// Give 7 seconds for serving.
 				var timeout = 0;

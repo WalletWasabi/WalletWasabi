@@ -92,7 +92,7 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				foreach (var defaultPort in validPorts)
 				{
-					var success = EndPointParser.TryParse(inputString, defaultPort, out EndPoint ep);
+					var success = EndPointParser.TryParse(inputString, defaultPort, out EndPoint? ep);
 					AssertEndPointParserOutputs(success, ep, host, defaultPort);
 				}
 			}
@@ -100,14 +100,14 @@ namespace WalletWasabi.Tests.UnitTests
 			// Default port is not used.
 			foreach (var inputString in inputsWithPorts)
 			{
-				var success = EndPointParser.TryParse(inputString, 12345, out EndPoint ep);
+				var success = EndPointParser.TryParse(inputString, 12345, out EndPoint? ep);
 				AssertEndPointParserOutputs(success, ep, host, 5000);
 			}
 
 			// Default port is invalid, string port is not provided.
 			foreach (var inputString in inputsWithoutPorts)
 			{
-				Assert.False(EndPointParser.TryParse(inputString, -1, out EndPoint ep));
+				Assert.False(EndPointParser.TryParse(inputString, -1, out EndPoint? ep));
 			}
 
 			// Defaultport doesn't correct invalid port input.
@@ -115,14 +115,14 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				foreach (var defaultPort in validPorts)
 				{
-					Assert.False(EndPointParser.TryParse(inputString, defaultPort, out EndPoint ep));
+					Assert.False(EndPointParser.TryParse(inputString, defaultPort, out EndPoint? ep));
 				}
 			}
 
 			// Both default and string ports are invalid.
 			foreach (var inputString in inputsWithInvalidPorts)
 			{
-				Assert.False(EndPointParser.TryParse(inputString, -1, out EndPoint ep));
+				Assert.False(EndPointParser.TryParse(inputString, -1, out EndPoint? ep));
 			}
 		}
 
@@ -162,7 +162,7 @@ namespace WalletWasabi.Tests.UnitTests
 				Assert.False(AddressStringParser.TryParseBitcoinAddress(test.address, null, out _));
 				Assert.False(AddressStringParser.TryParseBitcoinAddress(null, test.network, out _));
 
-				Assert.True(AddressStringParser.TryParseBitcoinAddress(test.address, test.network, out BitcoinUrlBuilder result));
+				Assert.True(AddressStringParser.TryParseBitcoinAddress(test.address, test.network, out BitcoinUrlBuilder? result));
 				Assert.Equal(test.address, result.Address.ToString());
 
 				Assert.True(AddressStringParser.TryParseBitcoinAddress(test.address.Insert(0, "   "), test.network, out result));
@@ -193,7 +193,7 @@ namespace WalletWasabi.Tests.UnitTests
 				Assert.False(AddressStringParser.TryParseBitcoinUrl(test.url, null, out _));
 				Assert.False(AddressStringParser.TryParseBitcoinUrl(null, test.network, out _));
 
-				Assert.True(AddressStringParser.TryParseBitcoinUrl(test.url, test.network, out BitcoinUrlBuilder result));
+				Assert.True(AddressStringParser.TryParseBitcoinUrl(test.url, test.network, out BitcoinUrlBuilder? result));
 				Assert.Equal(test.url.Split(new[] { ':', '?' })[1], result.Address.ToString());
 
 				Assert.True(AddressStringParser.TryParseBitcoinUrl(test.url.Insert(0, "   "), test.network, out result));

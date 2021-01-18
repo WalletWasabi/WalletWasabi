@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
@@ -13,10 +14,10 @@ namespace WalletWasabi.Hwi.Parsers
 {
 	public static class HwiParser
 	{
-		public static bool TryParseErrors(string text, IEnumerable<HwiOption> options, out HwiException error)
+		public static bool TryParseErrors(string text, IEnumerable<HwiOption> options, [NotNullWhen(true)] out HwiException? error)
 		{
 			error = null;
-			if (JsonHelpers.TryParseJToken(text, out JToken token) && TryParseError(token, out HwiException e))
+			if (JsonHelpers.TryParseJToken(text, out JToken? token) && TryParseError(token, out HwiException? e))
 			{
 				error = e;
 			}
@@ -44,7 +45,7 @@ namespace WalletWasabi.Hwi.Parsers
 			return error is { };
 		}
 
-		public static bool TryParseError(JToken token, out HwiException error)
+		public static bool TryParseError(JToken token, [NotNullWhen(true)] out HwiException? error)
 		{
 			error = null;
 			if (token is JArray)
@@ -158,7 +159,7 @@ namespace WalletWasabi.Hwi.Parsers
 
 		public static ExtPubKey ParseExtPubKey(string json)
 		{
-			if (JsonHelpers.TryParseJToken(json, out JToken token))
+			if (JsonHelpers.TryParseJToken(json, out JToken? token))
 			{
 				var extPubKeyString = token["xpub"]?.ToString().Trim();
 				var extPubKey = string.IsNullOrEmpty(extPubKeyString) ? null : NBitcoinHelpers.BetterParseExtPubKey(extPubKeyString);
@@ -178,7 +179,7 @@ namespace WalletWasabi.Hwi.Parsers
 				network = Network.TestNet;
 			}
 
-			if (JsonHelpers.TryParseJToken(json, out JToken token))
+			if (JsonHelpers.TryParseJToken(json, out JToken? token))
 			{
 				var addressString = token["address"]?.ToString()?.Trim() ?? null;
 				try
@@ -206,7 +207,7 @@ namespace WalletWasabi.Hwi.Parsers
 				network = Network.TestNet;
 			}
 
-			if (JsonHelpers.TryParseJToken(json, out JToken token))
+			if (JsonHelpers.TryParseJToken(json, out JToken? token))
 			{
 				var psbtString = token["psbt"]?.ToString()?.Trim() ?? null;
 				var psbt = PSBT.Parse(psbtString, network);
@@ -254,7 +255,7 @@ namespace WalletWasabi.Hwi.Parsers
 
 			HwiErrorCode? code = null;
 			string errorString = null;
-			if (TryParseError(json, out HwiException err))
+			if (TryParseError(json, out HwiException? err))
 			{
 				code = err.ErrorCode;
 				errorString = err.Message;
@@ -286,7 +287,7 @@ namespace WalletWasabi.Hwi.Parsers
 			return rawPath.Replace(@"\\", @"\");
 		}
 
-		public static bool TryParseVersion(string hwiResponse, out Version version)
+		public static bool TryParseVersion(string hwiResponse, [NotNullWhen(true)] out Version? version)
 		{
 			version = null;
 			try

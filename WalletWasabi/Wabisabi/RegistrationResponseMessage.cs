@@ -1,16 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.ZeroKnowledge;
 
-namespace WalletWasabi.Wabisabi
+namespace WalletWasabi.WabiSabi
 {
 	/// <summary>
 	/// Represents a response message for the WabiSabi unified registration protocol.
 	/// </summary>
 	/// <remarks>
 	/// RegistrationResponseMessage message is the unified protocol message used in both phases,
-	/// inputs registration and outputs registration. It contains the collection of `k` issued 
+	/// inputs registration and outputs registration. It contains the collection of `k` issued
 	/// credentials and the corresponding proofs.
 	/// </remarks>
 	public class RegistrationResponseMessage
