@@ -17,7 +17,7 @@ namespace WalletWasabi.Gui.Converters
 			{ ErrorSeverity.Error, new SolidColorBrush(Colors.IndianRed) }
 		};
 
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is ErrorSeverity severity)
 			{
@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui.Converters
 			return null;
 		}
 
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			return null;
 		}

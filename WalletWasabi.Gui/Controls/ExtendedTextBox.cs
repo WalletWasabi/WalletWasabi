@@ -93,7 +93,7 @@ namespace WalletWasabi.Gui.Controls
 
 		protected virtual bool IsCopyEnabled => true;
 
-		private async Task<string> PasteAsync()
+		private async Task<string?> PasteAsync()
 		{
 			var text = await Application.Current.Clipboard.GetTextAsync();
 
@@ -144,7 +144,7 @@ namespace WalletWasabi.Gui.Controls
 			}
 		}
 
-		private DrawingPresenter GetCopyPresenter()
+		private DrawingPresenter? GetCopyPresenter()
 		{
 			if (ResourceNodeExtensions.TryFindResource(this, "Copy", out var rawIcon))
 			{
@@ -157,7 +157,7 @@ namespace WalletWasabi.Gui.Controls
 			return null;
 		}
 
-		private DrawingPresenter GetPastePresenter()
+		private DrawingPresenter? GetPastePresenter()
 		{
 			if (ResourceNodeExtensions.TryFindResource(this, "Paste", out var rawIcon))
 			{

@@ -72,7 +72,7 @@ namespace WalletWasabi.Fluent.Controls
 			base.OnApplyTemplate(e);
 
 			var overlayButton = e.NameScope.Find<Panel>("PART_Overlay");
-			overlayButton.PointerPressed += (_, __) =>
+			overlayButton.PointerPressed += (_, _) =>
 			{
 				if (EnableCancelOnPressed)
 				{

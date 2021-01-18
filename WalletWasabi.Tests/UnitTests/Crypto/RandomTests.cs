@@ -1,7 +1,6 @@
 using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using Xunit;
@@ -68,7 +67,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 				}
 			}
 
-			foreach (var random in randoms.Where(x => x is IDisposable))
+			foreach (WasabiRandom random in randoms)
 			{
 				(random as IDisposable)?.Dispose();
 			}
@@ -104,7 +103,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 				Assert.Equal(count, set.Count);
 			}
 
-			foreach (var random in randoms.Where(x => x is IDisposable))
+			foreach (WasabiRandom random in randoms)
 			{
 				(random as IDisposable)?.Dispose();
 			}
