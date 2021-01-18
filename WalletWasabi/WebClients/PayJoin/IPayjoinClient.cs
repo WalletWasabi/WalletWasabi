@@ -10,6 +10,6 @@ namespace WalletWasabi.WebClients.PayJoin
 	{
 		Uri PaymentUrl { get; }
 
-		Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey changeHdPubKey, CancellationToken cancellationToken);
+		Task<PSBT?> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey changeHdPubKey, CancellationToken cancellationToken);
 	}
 }
