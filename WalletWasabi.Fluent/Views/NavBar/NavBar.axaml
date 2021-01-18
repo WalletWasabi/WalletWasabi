@@ -100,10 +100,10 @@
         <c:NavBarListBox.Styles>
           <Style Selector=":is(ListBox):not(:empty)">
             <Style.Animations>
-              <Animation Duration="0:0:0.3" Easing="LinearEasing">
+              <Animation Delay="0:0:0.3" Duration="0:0:0.3" Easing="LinearEasing">
                 <KeyFrame Cue="0%">
                   <Setter Property="Opacity" Value="0.0"/>
-                  <Setter Property="TranslateTransform.Y" Value="{Binding #ActionsListBox.Bounds.Height, Converter={x:Static conv:NegativeDoubleConverter.Instance}}"/>
+                  <!-- <Setter Property="TranslateTransform.Y" Value="{Binding #ActionsListBox.Bounds.Height, Converter={x:Static conv:NegativeDoubleConverter.Instance}}"/> -->
                 </KeyFrame>
                 <KeyFrame Cue="100%">
                   <Setter Property="Opacity" Value="1.0"/>
@@ -113,7 +113,7 @@
             </Style.Animations>
           </Style>
           <Style Selector="c|NavBarItem">
-            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
+            <!-- <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" /> -->
           </Style>
         </c:NavBarListBox.Styles>
         <c:NavBarListBox.DataTemplates>
@@ -156,7 +156,7 @@
         <Separator.Styles>
           <Style Selector="Separator[IsVisible=True]">
             <Style.Animations>
-              <Animation Delay="0:0:0.3" Duration="0:0:0.2" Easing="LinearEasing">
+              <Animation Delay="0:0:0.3" Duration="0:0:0.3" Easing="LinearEasing">
                 <KeyFrame Cue="0%">
                   <Setter Property="Opacity" Value="0.0"/>
                 </KeyFrame>
