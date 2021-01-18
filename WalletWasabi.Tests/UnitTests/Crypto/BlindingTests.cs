@@ -14,6 +14,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 {
 	public class BlindingTests
 	{
+		private static Random Random = new Random(123456);
+
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
 		public void CanParseUnblindedSignature()
@@ -134,8 +136,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			uint256 decoded = new uint256(encoded);
 			Assert.Equal(blindedHash, decoded);
 		}
-
-		private static Random Random = new Random(123456);
 
 		[Fact]
 		public void ConvertBackAndForth()
