@@ -10,6 +10,7 @@
              x:DataType="receive:ReceiveViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Receive.ReceiveView">
+
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Continue"
                  EnableCancel="True">
@@ -17,12 +18,17 @@
       <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
         <Label Content="_Reference" Target="ReferenceTbx" HorizontalAlignment="Left"/>
         <AutoCompleteBox Text="{Binding Reference}"
-                         Name="ReferenceTbx"
+                         x:Name="ReferenceTbx"
                          Watermark='Who knows this address is yours? E.g.: "Max, BitPay"'
                          HorizontalAlignment="Stretch"
                          MinimumPrefixLength="1"
                          IsTextCompletionEnabled="True"
                          Items="{Binding Suggestions}">
+          <AutoCompleteBox.Styles>
+            <Style Selector="AutoCompleteBox /template/ Popup#PART_Popup">
+              <Setter Property="MaxWidth" Value="{Binding #ReferenceTbx.Bounds.Width}"/>
+            </Style>
+          </AutoCompleteBox.Styles>
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>
