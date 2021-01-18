@@ -100,7 +100,7 @@
         <c:NavBarListBox.Styles>
           <Style Selector=":is(ListBox):not(:empty)">
             <Style.Animations>
-              <Animation Delay="0:0:0.3" Duration="0:0:0.3" Easing="LinearEasing">
+              <Animation Delay="0:0:0.0" Duration="0:0:0.3" Easing="SplineEasing">
                 <KeyFrame Cue="0%">
                   <Setter Property="Opacity" Value="0.0"/>
                   <!-- <Setter Property="TranslateTransform.Y" Value="{Binding #ActionsListBox.Bounds.Height, Converter={x:Static conv:NegativeDoubleConverter.Instance}}"/> -->
@@ -156,7 +156,7 @@
         <Separator.Styles>
           <Style Selector="Separator[IsVisible=True]">
             <Style.Animations>
-              <Animation Delay="0:0:0.3" Duration="0:0:0.3" Easing="LinearEasing">
+              <Animation Delay="0:0:0.0" Duration="0:0:0.3" Easing="SplineEasing">
                 <KeyFrame Cue="0%">
                   <Setter Property="Opacity" Value="0.0"/>
                 </KeyFrame>
@@ -211,7 +211,7 @@
       <c:NavBarListBox.Styles>
         <Style Selector=":is(ListBox)[VerticalAlignment=Bottom]">
           <Style.Animations>
-            <Animation Duration="0:0:0.3" Easing="LinearEasing">
+            <Animation Duration="0:0:0.3" Easing="SplineEasing">
               <KeyFrame Cue="0%">
                 <Setter Property="Opacity" Value="0.0"/>
                 <Setter Property="TranslateTransform.Y" Value="{Binding #ItemsListBox.Bounds.Height}"/>
@@ -228,7 +228,7 @@
         </Style>
         <Style Selector=":is(ListBox)[VerticalAlignment=Top]">
           <Style.Animations>
-            <Animation Duration="0:0:0.2" Easing="LinearEasing">
+            <Animation Duration="0:0:0.3" Easing="SplineEasing">
               <KeyFrame Cue="0%">
                 <Setter Property="Opacity" Value="0.0"/>
                 <Setter Property="TranslateTransform.Y" Value="{Binding #ItemsListBox.Bounds.Height}"/>
