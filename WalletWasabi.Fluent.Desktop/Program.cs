@@ -164,7 +164,11 @@ namespace WalletWasabi.Fluent.Desktop
 		private static async Task TerminateApplicationAsync()
 		{
 			var mainViewModel = MainViewModel.Instance;
-			mainViewModel?.ClearStacks();
+
+			if (mainViewModel is { })
+			{
+				mainViewModel.ClearStacks();
+			}
 
 			if (Global is { } global)
 			{
