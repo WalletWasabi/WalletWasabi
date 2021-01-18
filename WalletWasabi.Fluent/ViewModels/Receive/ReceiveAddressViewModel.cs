@@ -62,7 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 					catch (Exception ex)
 					{
 						Logger.LogError(ex);
-						AnimationTrigger = false; // prevent animation when error dialog is returned
+						AnimationTrigger = false; // prevent animation when error dialog is returned.
 						await ShowErrorAsync(ex.ToUserFriendlyString(), "We were unable to send the address to the device"); // TODO: FIX NAVIGATION BACK
 					}
 				});

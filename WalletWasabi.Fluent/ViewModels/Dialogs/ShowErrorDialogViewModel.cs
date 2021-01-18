@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			Title = title;
 			Caption = caption;
 
-			NextCommand = ReactiveCommand.Create(() => Navigate().Back());
+			NextCommand = ReactiveCommand.Create(() => Close());
 		}
 
 		public string Message { get; }
