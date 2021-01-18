@@ -2,7 +2,7 @@ using NBitcoin;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto.Groups;
 
-namespace WalletWasabi.WabiSabi
+namespace WalletWasabi.WabiSabi.Crypto
 {
 	public class IssuanceValidationData
 	{

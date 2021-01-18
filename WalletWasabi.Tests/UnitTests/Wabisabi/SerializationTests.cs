@@ -8,7 +8,8 @@ using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.WabiSabi;
-using WalletWasabi.WabiSabi.Serialization;
+using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Crypto.Serialization;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi
@@ -153,10 +154,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 
 			var numberOfCredentials = 2;
 			using var rnd = new SecureRandom();
-			var sk = new CoordinatorSecretKey(rnd);
+			var sk = new CredentialIssuerSecretKey(rnd);
 
 			var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd);
-			var client = new WabiSabiClient(sk.ComputeCoordinatorParameters(), numberOfCredentials, rnd);
+			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), numberOfCredentials, rnd);
 			var (credentialRequest, validationData) = client.CreateRequestForZeroAmount();
 			var credentialResponse = issuer.HandleRequest(credentialRequest);
 			client.HandleResponse(credentialResponse, validationData);

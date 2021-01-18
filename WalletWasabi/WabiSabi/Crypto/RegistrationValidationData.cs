@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using WalletWasabi.Crypto.ZeroKnowledge;
 
-namespace WalletWasabi.WabiSabi
+namespace WalletWasabi.WabiSabi.Crypto
 {
 	/// <summary>
 	/// Maintains the state needed to validate the credentials once the coordinator

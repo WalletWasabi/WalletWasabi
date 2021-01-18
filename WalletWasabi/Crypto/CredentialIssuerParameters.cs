@@ -3,9 +3,9 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto
 {
-	public class CoordinatorParameters
+	public class CredentialIssuerParameters
 	{
-		public CoordinatorParameters(GroupElement cw, GroupElement i)
+		public CredentialIssuerParameters(GroupElement cw, GroupElement i)
 		{
 			Cw = Guard.NotNullOrInfinity(nameof(cw), cw);
 			I = Guard.NotNullOrInfinity(nameof(i), i);

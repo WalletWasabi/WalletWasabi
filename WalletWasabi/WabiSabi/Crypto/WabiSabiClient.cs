@@ -10,7 +10,7 @@ using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.WabiSabi
+namespace WalletWasabi.WabiSabi.Crypto
 {
 	/// <summary>
 	/// Provides the methods for creating <see cref="RegistrationRequestMessage">unified WabiSabi credential registration request messages</see>
@@ -19,19 +19,19 @@ namespace WalletWasabi.WabiSabi
 	public class WabiSabiClient
 	{
 		public WabiSabiClient(
-			CoordinatorParameters coordinatorParameters,
+			CredentialIssuerParameters credentialIssuerParameters,
 			int numberOfCredentials,
 			WasabiRandom randomNumberGenerator)
 		{
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
-			CoordinatorParameters = Guard.NotNull(nameof(coordinatorParameters), coordinatorParameters);
+			CredentialIssuerParameters = Guard.NotNull(nameof(credentialIssuerParameters), credentialIssuerParameters);
 			Credentials = new CredentialPool();
 		}
 
 		private int NumberOfCredentials { get; }
 
-		private CoordinatorParameters CoordinatorParameters { get; }
+		private CredentialIssuerParameters CredentialIssuerParameters { get; }
 
 		private WasabiRandom RandomNumberGenerator { get; }
 
@@ -131,7 +131,7 @@ namespace WalletWasabi.WabiSabi
 				var z = RandomNumberGenerator.GetScalar();
 				var presentation = credential.Present(z);
 				presentations.Add(presentation);
-				knowledgeToProve.Add(ProofSystem.ShowCredentialKnowledge(presentation, z, credential, CoordinatorParameters));
+				knowledgeToProve.Add(ProofSystem.ShowCredentialKnowledge(presentation, z, credential, CredentialIssuerParameters));
 				zs.Add(z);
 			}
 
@@ -200,13 +200,12 @@ namespace WalletWasabi.WabiSabi
 					$"{issuedCredentialCount} issued but {requestedCredentialCount} were requested.");
 			}
 
-			var credentials = Enumerable
-				.Zip(registrationValidationData.Requested, registrationResponse.IssuedCredentials)
+			var credentials = registrationValidationData.Requested.Zip(registrationResponse.IssuedCredentials)
 				.Select(x => (Requested: x.First, Issued: x.Second))
 				.ToArray();
 
 			var statements = credentials
-				.Select(x => ProofSystem.IssuerParametersStatement(CoordinatorParameters, x.Issued, x.Requested.Ma));
+				.Select(x => ProofSystem.IssuerParametersStatement(CredentialIssuerParameters, x.Issued, x.Requested.Ma));
 
 			var areCorrectlyIssued = ProofSystem.Verify(registrationValidationData.Transcript, statements, registrationResponse.Proofs);
 			if (!areCorrectlyIssued)
