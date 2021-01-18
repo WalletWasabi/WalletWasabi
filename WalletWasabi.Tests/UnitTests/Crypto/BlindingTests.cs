@@ -32,7 +32,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			var str = unblindedSignature.ToString();
 			Assert.True(UnblindedSignature.TryParse(str, out var unblindedSignature2));
-			Assert.Equal(unblindedSignature.C, unblindedSignature2.C);
+			Assert.Equal(unblindedSignature.C, unblindedSignature2!.C);
 			Assert.Equal(unblindedSignature.S, unblindedSignature2.S);
 			str += "o";
 			Assert.False(UnblindedSignature.TryParse(str, out _));
