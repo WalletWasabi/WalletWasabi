@@ -97,7 +97,6 @@
       <c:NavBarListBox Items="{Binding Actions}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="ActionsListBox">
-        <!-- TODO: Add animations for NavBarListBox when data bound Actions list is empty and when new items are added. -->
         <c:NavBarListBox.Styles>
           <Style Selector=":is(ListBox):not(:empty)">
             <Style.Animations>
@@ -157,7 +156,6 @@
             <Binding Path="!HideItems" />
           </MultiBinding>
         </Separator.IsVisible>
-        <!-- TODO: Add animations for Separator when IsVisible changes to True -->
         <Separator.Styles>
           <Style Selector="Separator[IsVisible=True]">
             <Style.Animations>
@@ -213,7 +211,6 @@
                      IsVisible="{Binding !HideItems, Mode=OneWay}"
                      Name="ItemsListBox"
                      VerticalAlignment="{Binding Actions.Count, Mode=OneWay, Converter={x:Static conv:NavBarItemsListBoxAlignmentConverter.Instance}}">
-      <!-- TODO: Add animations for NavBarListBox when VerticalAlignment changes Top to Bottom and Bottom to Top -->
       <c:NavBarListBox.Styles>
         <Style Selector=":is(ListBox)[VerticalAlignment=Bottom]">
           <Style.Animations>
