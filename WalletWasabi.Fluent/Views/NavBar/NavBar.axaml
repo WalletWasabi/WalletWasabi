@@ -105,9 +105,6 @@
                   <Setter Property="Opacity" Value="0.0"/>
                   <Setter Property="TranslateTransform.Y" Value="{Binding #ActionsListBox.Bounds.Height, Converter={x:Static conv:NegativeDoubleConverter.Instance}}"/>
                 </KeyFrame>
-                <KeyFrame Cue="80%">
-                  <Setter Property="Opacity" Value="0.2"/>
-                </KeyFrame>
                 <KeyFrame Cue="100%">
                   <Setter Property="Opacity" Value="1.0"/>
                   <Setter Property="TranslateTransform.Y" Value="0.0"/>
