@@ -158,7 +158,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Banning
 			}
 		}
 
-		public async Task<BannedUtxo> TryGetBannedAsync(OutPoint outpoint, bool notedToo)
+		public async Task<BannedUtxo?> TryGetBannedAsync(OutPoint outpoint, bool notedToo)
 		{
 			if (BannedUtxos.TryGetValue(outpoint, out BannedUtxo bannedElem))
 			{

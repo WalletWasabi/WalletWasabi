@@ -1,6 +1,7 @@
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
@@ -37,8 +38,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 				var generator = Generators.G;
 				var publicPoint = secret * generator;
 				var statement = new Statement(publicPoint, Generators.G);
-				using SecureRandom random = new();
-				var proof = ProofSystemHelpers.Prove(statement, secret, random);
+				using var rand = new SecureRandom();
+				var proof = ProofSystemHelpers.Prove(statement, secret, rand);
 				Assert.True(ProofSystemHelpers.Verify(statement, proof));
 			}
 		}

@@ -14,6 +14,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 {
 	public class BlindingTests
 	{
+		private static Random Random = new Random(123456);
+
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
 		public void CanParseUnblindedSignature()
@@ -62,8 +64,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			// Test with unknown values
 			requester = new Requester();
-			using Key signerKey = new Key();
-			signer = new Signer(signerKey);
+			using var k = new Key();
+			signer = new Signer(k);
 
 			message = NBitcoin.Crypto.Hashes.DoubleSHA256(Encoders.ASCII.DecodeData("Hello world!"));
 			blindedMessage = requester.BlindMessage(message, r.PubKey, signer.Key.PubKey);
@@ -77,8 +79,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			for (var i = 0; i < 1_000; i++)
 			{
 				requester = new Requester();
-				using Key signerKey2 = new Key();
-				signer = new Signer(signerKey2);
+				using var k2 = new Key();
+				signer = new Signer(k2);
 				blindedMessage = requester.BlindMessage(newMessage, r.PubKey, signer.Key.PubKey);
 				blindSignature = signer.Sign(blindedMessage, r);
 				unblindedSignature = requester.UnblindSignature(blindSignature);
@@ -135,8 +137,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Assert.Equal(blindedHash, decoded);
 		}
 
-		private static Random Random = new Random(123456);
-
 		[Fact]
 		public void ConvertBackAndForth()
 		{
@@ -157,10 +157,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 				var sb = new StringBuilder();
 				using var writer = new JsonTextWriter(new StringWriter(sb));
-				converter.WriteJson(writer, unblindedSignature, null!);
+				converter.WriteJson(writer, unblindedSignature, null);
 
 				using var reader = new JsonTextReader(new StringReader(sb.ToString()));
-				var convertedUnblindedSignature = (UnblindedSignature)converter.ReadJson(reader, null!, null!, null!);
+				var convertedUnblindedSignature = (UnblindedSignature)converter.ReadJson(reader, null, null, null);
 				Assert.Equal(unblindedSignature.C, convertedUnblindedSignature.C);
 				Assert.Equal(unblindedSignature.S, convertedUnblindedSignature.S);
 			}
@@ -174,7 +174,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			using var reader = new JsonTextReader(new StringReader(json));
 			var converter = new UnblindedSignatureJsonConverter();
-			var ex = Assert.Throws<FormatException>(() => converter.ReadJson(reader, null!, null!, null!));
+			var ex = Assert.Throws<FormatException>(() => converter.ReadJson(reader, null, null, null));
 			Assert.Contains("longer than 32 bytes", ex.Message);
 		}
 	}

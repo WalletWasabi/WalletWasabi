@@ -54,21 +54,26 @@ namespace WalletWasabi.Logging
 		#region Initializers
 
 		/// <summary>
-		/// Initializes the Logger with default values.
-		///
-		/// <para>If RELEASE then <see cref="MinimumLevel"/> is set to <see cref="LogLevel.Info"/>, and logs only to file.</para>
-		/// <para>If DEBUG then <see cref="MinimumLevel"/> is set to <see cref="LogLevel.Debug"/>, and logs to file, debug and console.</para>
+		/// Initializes the logger with default values.
+		/// <para>
+		/// Default values are set as follows:
+		/// <list type="bullet">
+		/// <item>For RELEASE mode: <see cref="MinimumLevel"/> is set to <see cref="LogLevel.Info"/>, and logs only to file.</item>
+		/// <item>For DEBUG mode: <see cref="MinimumLevel"/> is set to <see cref="LogLevel.Debug"/>, and logs to file, debug and console.</item>
+		/// </list>
+		/// </para>
 		/// </summary>
-		public static void InitializeDefaults(string filePath)
+		/// <param name="logLevel">Use <c>null</c> to use default <see cref="LogLevel"/> or a custom value to force non-default <see cref="LogLevel"/>.</param>
+		public static void InitializeDefaults(string filePath, LogLevel? logLevel = null)
 		{
 			SetFilePath(filePath);
 
 #if RELEASE
-			SetMinimumLevel(LogLevel.Info);
+			SetMinimumLevel(logLevel ??= LogLevel.Info);
 			SetModes(LogMode.Console, LogMode.File);
 
 #else
-			SetMinimumLevel(LogLevel.Debug);
+			SetMinimumLevel(logLevel ??= LogLevel.Debug);
 			SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
 #endif
 		}

@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto;
@@ -14,34 +13,33 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 	{
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
-		[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Variables denote math symbols.")]
 		public void CanProveAndVerifyMAC()
 		{
-			// The coordinator generates a composed private key called CoordinatorSecretKey
-			// and derives from that the coordinator's public parameters called CoordinatorParameters.
+			// The coordinator generates a composed private key called CredentialIssuerSecretKey
+			// and derives from that the coordinator's public parameters called credentialIssuerParameters.
 			using var rnd = new SecureRandom();
-			var coordinatorKey = new CoordinatorSecretKey(rnd);
-			var coordinatorParameters = coordinatorKey.ComputeCoordinatorParameters();
+			var credentialIssuerKey = new CredentialIssuerSecretKey(rnd);
+			var credentialIssuerParameters = credentialIssuerKey.ComputeCredentialIssuerParameters();
 
 			// A blinded amount is known as an `attribute`. In this case the attribute Ma is the
 			// value 10000 blinded with a random `blindingFactor`. This attribute is sent to
 			// the coordinator.
 			var amount = new Scalar(10_000);
 			var r = rnd.GetScalar();
-			var Ma = amount * Generators.G + r * Generators.Gh;
+			var ma = amount * Generators.G + r * Generators.Gh;
 
 			// The coordinator generates a MAC and a proof that the MAC was generated using the
 			// coordinator's secret key. The coordinator sends the pair (MAC + proofOfMac) back
 			// to the client.
 			var t = rnd.GetScalar();
-			var mac = MAC.ComputeMAC(coordinatorKey, Ma, t);
+			var mac = MAC.ComputeMAC(credentialIssuerKey, ma, t);
 
-			var coordinatorKnowledge = ProofSystem.IssuerParametersKnowledge(mac, Ma, coordinatorKey);
+			var coordinatorKnowledge = ProofSystem.IssuerParametersKnowledge(mac, ma, credentialIssuerKey);
 			var proofOfMac = ProofSystemHelpers.Prove(coordinatorKnowledge, rnd);
 
 			// The client receives the MAC and the proofOfMac which let the client know that the MAC
 			// was generated with the coordinator's secret key.
-			var clientStatement = ProofSystem.IssuerParametersStatement(coordinatorParameters, mac, Ma);
+			var clientStatement = ProofSystem.IssuerParametersStatement(credentialIssuerParameters, mac, ma);
 			var isValidProof = ProofSystemHelpers.Verify(clientStatement, proofOfMac);
 			Assert.True(isValidProof);
 
@@ -58,39 +56,38 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
-		[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Variables denote math symbols.")]
 		public void CanProveAndVerifyMacShow()
 		{
 			using var rnd = new SecureRandom();
-			var coordinatorKey = new CoordinatorSecretKey(rnd);
-			var coordinatorParameters = coordinatorKey.ComputeCoordinatorParameters();
+			var credentialIssuerKey = new CredentialIssuerSecretKey(rnd);
+			var credentialIssuerParameters = credentialIssuerKey.ComputeCredentialIssuerParameters();
 
 			// A blinded amount is known as an `attribute`. In this case the attribute Ma is the
 			// value 10000 blinded with a random `blindingFactor`. This attribute is sent to
 			// the coordinator.
 			var amount = new Scalar(10_000);
 			var r = rnd.GetScalar();
-			var Ma = amount * Generators.Gg + r * Generators.Gh;
+			var ma = amount * Generators.Gg + r * Generators.Gh;
 
 			// The coordinator generates a MAC and a proof that the MAC was generated using the
 			// coordinator's secret key. The coordinator sends the pair (MAC, proofOfMac) back
 			// to the client.
 			var t = rnd.GetScalar();
-			var mac = MAC.ComputeMAC(coordinatorKey, Ma, t);
+			var mac = MAC.ComputeMAC(credentialIssuerKey, ma, t);
 
 			// The client randomizes the commitments before presenting them to the coordinator proving to
 			// the coordinator that a credential is valid (prover knows a valid MAC on non-randomized attribute)
 			var credential = new Credential(amount, r, mac);
 			var z = rnd.GetScalar();
 			var randomizedCredential = credential.Present(z);
-			var knowledge = ProofSystem.ShowCredentialKnowledge(randomizedCredential, z, credential, coordinatorParameters);
+			var knowledge = ProofSystem.ShowCredentialKnowledge(randomizedCredential, z, credential, credentialIssuerParameters);
 			var proofOfMacShow = ProofSystemHelpers.Prove(knowledge, rnd);
 
 			// The coordinator must verify the received randomized credential is valid.
-			var Z = randomizedCredential.ComputeZ(coordinatorKey);
-			Assert.Equal(Z, z * coordinatorParameters.I);
+			var capitalZ = randomizedCredential.ComputeZ(credentialIssuerKey);
+			Assert.Equal(capitalZ, z * credentialIssuerParameters.I);
 
-			var statement = ProofSystem.ShowCredentialStatement(randomizedCredential, Z, coordinatorParameters);
+			var statement = ProofSystem.ShowCredentialStatement(randomizedCredential, capitalZ, credentialIssuerParameters);
 			var isValidProof = ProofSystemHelpers.Verify(statement, proofOfMacShow);
 
 			Assert.True(isValidProof);
@@ -98,7 +95,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
-		[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Variables denote math symbols.")]
 		public void CanProveAndVerifyPresentedBalance()
 		{
 			using var rnd = new SecureRandom();
@@ -106,39 +102,38 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var a = new Scalar(10_000u);
 			var r = rnd.GetScalar();
 			var z = rnd.GetScalar();
-			var Ca = z * Generators.Ga + a * Generators.Gg + r * Generators.Gh;
+			var ca = z * Generators.Ga + a * Generators.Gg + r * Generators.Gh;
 
 			var knowledge = ProofSystem.BalanceProofKnowledge(z, r);
 			var proofOfBalance = ProofSystemHelpers.Prove(knowledge, rnd);
 
-			var statement = ProofSystem.BalanceProofStatement(Ca - a * Generators.Gg);
+			var statement = ProofSystem.BalanceProofStatement(ca - a * Generators.Gg);
 			Assert.True(ProofSystemHelpers.Verify(statement, proofOfBalance));
 
-			var badStatement = ProofSystem.BalanceProofStatement(Ca + Generators.Gg - a * Generators.Gg);
+			var badStatement = ProofSystem.BalanceProofStatement(ca + Generators.Gg - a * Generators.Gg);
 			Assert.False(ProofSystemHelpers.Verify(badStatement, proofOfBalance));
 
-			badStatement = ProofSystem.BalanceProofStatement(Ca);
+			badStatement = ProofSystem.BalanceProofStatement(ca);
 			Assert.False(ProofSystemHelpers.Verify(badStatement, proofOfBalance));
 		}
 
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
-		[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Variables denote math symbols.")]
 		public void CanProveAndVerifyRequestedBalance()
 		{
 			using var rnd = new SecureRandom();
 
 			var a = new Scalar(10_000u);
 			var r = rnd.GetScalar();
-			var Ma = a * Generators.Gg + r * Generators.Gh;
+			var ma = a * Generators.Gg + r * Generators.Gh;
 
 			var knowledge = ProofSystem.BalanceProofKnowledge(Scalar.Zero, r.Negate());
 			var proofOfBalance = ProofSystemHelpers.Prove(knowledge, rnd);
 
-			var statement = ProofSystem.BalanceProofStatement(a * Generators.Gg - Ma);
+			var statement = ProofSystem.BalanceProofStatement(a * Generators.Gg - ma);
 			Assert.True(ProofSystemHelpers.Verify(statement, proofOfBalance));
 
-			var badStatement = ProofSystem.BalanceProofStatement(Ma);
+			var badStatement = ProofSystem.BalanceProofStatement(ma);
 			Assert.False(ProofSystemHelpers.Verify(badStatement, proofOfBalance));
 		}
 
@@ -156,7 +151,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		[InlineData(int.MaxValue - 1, int.MaxValue)]
 		[InlineData(int.MaxValue, int.MaxValue - 1)]
 		[Trait("UnitTest", "UnitTest")]
-		[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Variables denote math symbols.")]
 		public void CanProveAndVerifyBalance(int presentedAmount, int requestedAmount)
 		{
 			using var rnd = new SecureRandom();
@@ -164,11 +158,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var a = new Scalar((uint)presentedAmount);
 			var r = rnd.GetScalar();
 			var z = rnd.GetScalar();
-			var Ca = z * Generators.Ga + a * Generators.Gg + r * Generators.Gh;
+			var ca = z * Generators.Ga + a * Generators.Gg + r * Generators.Gh;
 
 			var ap = new Scalar((uint)requestedAmount);
 			var rp = rnd.GetScalar();
-			var Ma = ap * Generators.Gg + rp * Generators.Gh;
+			var ma = ap * Generators.Gg + rp * Generators.Gh;
 
 			var delta = new Scalar((uint)Math.Abs(presentedAmount - requestedAmount));
 			delta = presentedAmount > requestedAmount ? delta.Negate() : delta;
@@ -176,10 +170,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			var proofOfBalance = ProofSystemHelpers.Prove(knowledge, rnd);
 
-			var statement = ProofSystem.BalanceProofStatement(Ca + delta * Generators.Gg - Ma);
+			var statement = ProofSystem.BalanceProofStatement(ca + delta * Generators.Gg - ma);
 			Assert.True(ProofSystemHelpers.Verify(statement, proofOfBalance));
 
-			var badStatement = ProofSystem.BalanceProofStatement(Ca + (delta + Scalar.One) * Generators.Gg - Ma);
+			var badStatement = ProofSystem.BalanceProofStatement(ca + (delta + Scalar.One) * Generators.Gg - ma);
 			Assert.False(ProofSystemHelpers.Verify(badStatement, proofOfBalance));
 		}
 
@@ -223,31 +217,30 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
-		[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Variables denote math symbols.")]
 		public void CanProveAndVerifyZeroProofs()
 		{
 			using var rnd = new SecureRandom();
 
 			var a0 = Scalar.Zero;
 			var r0 = rnd.GetScalar();
-			var Ma0 = a0 * Generators.Gg + r0 * Generators.Gh;
+			var ma0 = a0 * Generators.Gg + r0 * Generators.Gh;
 
 			var a1 = Scalar.Zero;
 			var r1 = rnd.GetScalar();
-			var Ma1 = a1 * Generators.Gg + r1 * Generators.Gh;
+			var ma1 = a1 * Generators.Gg + r1 * Generators.Gh;
 
 			var knowledge = new[]
 			{
-				ProofSystem.ZeroProofKnowledge(Ma0, r0),
-				ProofSystem.ZeroProofKnowledge(Ma1, r1)
+				ProofSystem.ZeroProofKnowledge(ma0, r0),
+				ProofSystem.ZeroProofKnowledge(ma1, r1)
 			};
 
 			var proofs = ProofSystem.Prove(new Transcript(Array.Empty<byte>()), knowledge, rnd);
 
 			var statements = new[]
 			{
-				ProofSystem.ZeroProofStatement(Ma0),
-				ProofSystem.ZeroProofStatement(Ma1)
+				ProofSystem.ZeroProofStatement(ma0),
+				ProofSystem.ZeroProofStatement(ma1)
 			};
 
 			Assert.True(ProofSystem.Verify(new Transcript(Array.Empty<byte>()), statements, proofs));

@@ -1,6 +1,7 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
@@ -84,18 +85,10 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 		public IEnumerable<DestinationRequest> Requests { get; }
 		public ChangeStrategy ChangeStrategy { get; }
 		public Money TotalAmount { get; }
-		public int Count => Requests.Count();
 
-		public bool TryGetCustomRequest(out DestinationRequest request)
+		public bool TryGetCustomRequest([NotNullWhen(true)] out DestinationRequest? request)
 		{
 			request = Requests.SingleOrDefault(x => x.Amount.Type is MoneyRequestType.Change or MoneyRequestType.AllRemaining);
-
-			return request is { };
-		}
-
-		public bool TryGetFeeSubtractionRequest(out DestinationRequest request)
-		{
-			request = Requests.SingleOrDefault(x => x.Amount.SubtractFee);
 
 			return request is { };
 		}
