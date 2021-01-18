@@ -187,18 +187,18 @@ namespace WalletWasabi.Services
 								TorStatus = TorStatus.Running;
 								DoNotGenSocksServFail();
 							}
-							catch (TorConnectionException ex)
+							catch (HttpRequestException ex) when (ex.InnerException is TorConnectionException innerEx)
 							{
 								TorStatus = TorStatus.NotRunning;
 								BackendStatus = BackendStatus.NotConnected;
-								HandleIfGenSocksServFail(ex);
+								HandleIfGenSocksServFail(innerEx);
 								throw;
 							}
-							catch (TorConnectCommandFailedException ex)
+							catch (HttpRequestException ex) when (ex.InnerException is TorConnectCommandFailedException innerEx)
 							{
 								TorStatus = TorStatus.Running;
 								BackendStatus = BackendStatus.NotConnected;
-								HandleIfGenSocksServFail(ex);
+								HandleIfGenSocksServFail(innerEx);
 								throw;
 							}
 							catch (HttpRequestException ex) when (ex.Message.Contains("Not Found"))
