@@ -19,7 +19,7 @@ namespace WalletWasabi.WabiSabi
 	public class WabiSabiClient
 	{
 		public WabiSabiClient(
-			CoordinatorParameters coordinatorParameters,
+			CredentialIssuerParameters coordinatorParameters,
 			int numberOfCredentials,
 			WasabiRandom randomNumberGenerator)
 		{
@@ -31,7 +31,7 @@ namespace WalletWasabi.WabiSabi
 
 		private int NumberOfCredentials { get; }
 
-		private CoordinatorParameters CoordinatorParameters { get; }
+		private CredentialIssuerParameters CoordinatorParameters { get; }
 
 		private WasabiRandom RandomNumberGenerator { get; }
 

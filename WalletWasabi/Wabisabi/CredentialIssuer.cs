@@ -67,7 +67,7 @@ namespace WalletWasabi.WabiSabi
 
 		private CoordinatorSecretKey CoordinatorSecretKey { get; }
 
-		private CoordinatorParameters CoordinatorParameters { get; }
+		private CredentialIssuerParameters CoordinatorParameters { get; }
 
 		/// <summary>
 		/// Gets the number of credentials that have to be requested/presented

@@ -26,8 +26,8 @@ namespace WalletWasabi.Crypto
 		public Scalar X1 { get; }
 		public Scalar Ya { get; }
 
-		public CoordinatorParameters ComputeCoordinatorParameters() =>
-			new CoordinatorParameters(
+		public CredentialIssuerParameters ComputeCoordinatorParameters() =>
+			new CredentialIssuerParameters(
 				cw: W * Generators.Gw + Wp * Generators.Gwp,
 				i: Generators.GV - (X0 * Generators.Gx0 + X1 * Generators.Gx1 + Ya * Generators.Ga));
 
