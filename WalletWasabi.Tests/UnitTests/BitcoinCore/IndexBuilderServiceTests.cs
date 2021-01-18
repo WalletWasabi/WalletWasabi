@@ -26,7 +26,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 					InitialBlockDownload = false
 				}),
 			};
-			var blockNotifier = new BlockNotifier(TimeSpan.MaxValue, rpc);
+			using var blockNotifier = new BlockNotifier(TimeSpan.MaxValue, rpc);
 			var indexer = new IndexBuilderService(rpc, blockNotifier, ".");
 
 			indexer.Synchronize();
@@ -53,7 +53,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 					});
 				}
 			};
-			var blockNotifier = new BlockNotifier(TimeSpan.MaxValue, rpc);
+			using var blockNotifier = new BlockNotifier(TimeSpan.MaxValue, rpc);
 			var indexer = new IndexBuilderService(rpc, blockNotifier, ".");
 
 			indexer.Synchronize();
@@ -84,7 +84,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				OnGetBlockHashAsync = (height) => Task.FromResult(blockchain[height].Hash),
 				OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
 			};
-			var blockNotifier = new BlockNotifier(TimeSpan.MaxValue, rpc);
+			using var blockNotifier = new BlockNotifier(TimeSpan.MaxValue, rpc);
 			var indexer = new IndexBuilderService(rpc, blockNotifier, ".");
 
 			indexer.Synchronize();
@@ -110,7 +110,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				OnGetBlockHashAsync = (height) => Task.FromResult(blockchain[height].Hash),
 				OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
 			};
-			var blockNotifier = new BlockNotifier(TimeSpan.MaxValue, rpc);
+			using var blockNotifier = new BlockNotifier(TimeSpan.MaxValue, rpc);
 			var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
 
 			indexer.Synchronize();
