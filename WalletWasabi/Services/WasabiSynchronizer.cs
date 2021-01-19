@@ -187,17 +187,11 @@ namespace WalletWasabi.Services
 								TorStatus = TorStatus.Running;
 								DoNotGenSocksServFail();
 							}
-							catch (HttpRequestException ex) when (ex.InnerException is TorConnectionException innerEx)
+							catch (HttpRequestException ex) when (ex.InnerException is TorException innerEx)
 							{
-								TorStatus = TorStatus.NotRunning;
+								TorStatus = innerEx is TorConnectionException ? TorStatus.NotRunning : TorStatus.Running;
 								BackendStatus = BackendStatus.NotConnected;
-								HandleIfGenSocksServFail(innerEx);
-								throw;
-							}
-							catch (HttpRequestException ex) when (ex.InnerException is TorConnectCommandFailedException innerEx)
-							{
-								TorStatus = TorStatus.Running;
-								BackendStatus = BackendStatus.NotConnected;
+								HandleIfGenSocksServFail(ex);
 								HandleIfGenSocksServFail(innerEx);
 								throw;
 							}
@@ -253,7 +247,7 @@ namespace WalletWasabi.Services
 
 							hashChain.UpdateServerTipHeight((uint)response.BestHeight);
 							ExchangeRate? exchangeRate = response.ExchangeRates.FirstOrDefault();
-							if (exchangeRate is { } && exchangeRate.Rate != 0)
+							if (exchangeRate is { Rate: > 0 })
 							{
 								UsdExchangeRate = exchangeRate.Rate;
 							}
