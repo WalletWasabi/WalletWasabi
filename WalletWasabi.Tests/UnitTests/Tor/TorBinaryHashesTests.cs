@@ -4,7 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
-using WalletWasabi.Microservices;
+using WalletWasabi.Tor;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Tor
@@ -23,14 +23,13 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 				{ OSPlatform.OSX, "fe6d719e18bf3a963f0274de259b7e029f40e4fe778f4d170bba343eb491af00" },
 			};
 
-			foreach (var item in expectedHashes)
+			foreach ((OSPlatform platform, string expectedHash) in expectedHashes)
 			{
-				string binaryFolder = Path.Combine(MicroserviceHelpers.GetBinaryFolder(item.Key), "Tor");
-				string filePath = Path.Combine(binaryFolder, item.Key == OSPlatform.Windows ? "tor.exe" : item.Key == OSPlatform.Linux ? "tor" : "tor.real");
+				string filePath = TorSettings.GetTorBinaryFilePath(platform);
 
 				using SHA256 sha256 = SHA256.Create();
 				using FileStream fileStream = File.OpenRead(filePath);
-				Assert.Equal(item.Value, ByteHelpers.ToHex(sha256.ComputeHash(fileStream)).ToLowerInvariant());
+				Assert.Equal(expectedHash, ByteHelpers.ToHex(sha256.ComputeHash(fileStream)).ToLowerInvariant());
 			}
 		}
 	}
