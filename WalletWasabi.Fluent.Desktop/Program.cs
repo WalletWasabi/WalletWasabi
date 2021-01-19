@@ -163,20 +163,14 @@ namespace WalletWasabi.Fluent.Desktop
 		/// </summary>
 		private static async Task TerminateApplicationAsync()
 		{
-			var mainViewModel = MainViewModel.Instance;
-
-			if (mainViewModel is { })
-			{
-				mainViewModel.ClearStacks();
-			}
-
 			if (Global is { } global)
 			{
 				await global.DisposeAsync().ConfigureAwait(false);
 			}
 
-			if (mainViewModel is { })
+			if (MainViewModel.Instance is { } mainViewModel)
 			{
+				mainViewModel.ClearStacks();
 				Logger.LogSoftwareStopped("Wasabi GUI");
 			}
 		}
