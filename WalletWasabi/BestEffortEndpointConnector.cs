@@ -12,78 +12,6 @@ namespace WalletWasabi
 {
 	public class BestEffortEndpointConnector : IEnpointConnector
 	{
-		public enum ConnectionMode
-		{
-			// Connect to nodes published as onion services only
-			OnionServiceOnly,
-			// Connect to nodes published on the clearnet through Tor exit nodes
-			AllowGoingThroughTorExitNodes,
-		}
-
-		// A class to share state between all the BestEffortEndpointConnector connectors.
-		// This is necessary because NBitcoin clones the connectors for every new node connection
-		// attempt using the original connector.
-		public class EffortState
-		{
-			private long _connectedNodesCount;
-			private DateTimeOffset _lastModeChangeTime;
-			private bool _lostConnection;
-			public long ConnectedNodesCount
-			{
-				get => _connectedNodesCount;
-				set
-				{
-					_lostConnection = value == 0 && _connectedNodesCount > 0;
-					_connectedNodesCount = value;
-				}
-			}
-
-			public ConnectionMode Mode { get; set; }
-			public DateTimeOffset LastModeChangeTime
-			{
-				get => _lastModeChangeTime;
-				set
-				{
-					_lostConnection = false;
-					_lastModeChangeTime = value;
-				}
-			}
-
-			public TimeSpan ElapsedTimeSinceLastModeChange => DateTimeOffset.UtcNow - LastModeChangeTime;
-
-			public EffortState(ConnectionMode mode, DateTimeOffset lastModeChangeTime)
-			{
-				Mode = mode;
-				LastModeChangeTime = lastModeChangeTime;
-			}
-
-			public bool CheckModeUpdate()
-			{
-				var previousMode = Mode;
-				if (_lostConnection)
-				{
-					Mode = ConnectionMode.OnionServiceOnly;
-				}
-				else if ( ElapsedTimeSinceLastModeChange > TimeSpan.FromMinutes(1))
-				{
-					if (Mode == ConnectionMode.OnionServiceOnly)
-					{
-						Mode = ConnectionMode.AllowGoingThroughTorExitNodes;
-					};
-				}
-				if (previousMode != Mode)
-				{
-					Logger.LogInfo($"Update connection mode from {previousMode} to {Mode}.");
-					LastModeChangeTime = DateTimeOffset.UtcNow;
-					return true;
-				}
-				return false;
-			}
-		}
-
-		public DefaultEndpointConnector Connector { get; private set; }
-		public EffortState State { get; private set; }
-
 		public BestEffortEndpointConnector()
 			: this(
 				new DefaultEndpointConnector(allowOnlyTorEndpoints: true),
@@ -96,6 +24,18 @@ namespace WalletWasabi
 			Connector = connector;
 			State = state;
 		}
+
+		public enum ConnectionMode
+		{
+			// Connect to nodes published as onion services only
+			OnionServiceOnly,
+
+			// Connect to nodes published on the clearnet through Tor exit nodes
+			AllowGoingThroughTorExitNodes,
+		}
+
+		public DefaultEndpointConnector Connector { get; private set; }
+		public EffortState State { get; private set; }
 
 		public void UpdateConnectedNodesCounter(int connectedNodes)
 		{
@@ -121,6 +61,68 @@ namespace WalletWasabi
 
 			await Connector.ConnectSocket(socket, endPoint, nodeConnectionParameters, cancellationToken).ConfigureAwait(false);
 			State.LastModeChangeTime = DateTimeOffset.UtcNow;
+		}
+
+		// A class to share state between all the BestEffortEndpointConnector connectors.
+		// This is necessary because NBitcoin clones the connectors for every new node connection
+		// attempt using the original connector.
+		public class EffortState
+		{
+			private long _connectedNodesCount;
+			private DateTimeOffset _lastModeChangeTime;
+			private bool _lostConnection;
+
+			public EffortState(ConnectionMode mode, DateTimeOffset lastModeChangeTime)
+			{
+				Mode = mode;
+				LastModeChangeTime = lastModeChangeTime;
+			}
+
+			public long ConnectedNodesCount
+			{
+				get => _connectedNodesCount;
+				set
+				{
+					_lostConnection = value == 0 && _connectedNodesCount > 0;
+					_connectedNodesCount = value;
+				}
+			}
+
+			public ConnectionMode Mode { get; set; }
+			public DateTimeOffset LastModeChangeTime
+			{
+				get => _lastModeChangeTime;
+				set
+				{
+					_lostConnection = false;
+					_lastModeChangeTime = value;
+				}
+			}
+
+			public TimeSpan ElapsedTimeSinceLastModeChange => DateTimeOffset.UtcNow - LastModeChangeTime;
+
+			public bool CheckModeUpdate()
+			{
+				var previousMode = Mode;
+				if (_lostConnection)
+				{
+					Mode = ConnectionMode.OnionServiceOnly;
+				}
+				else if ( ElapsedTimeSinceLastModeChange > TimeSpan.FromMinutes(1))
+				{
+					if (Mode == ConnectionMode.OnionServiceOnly)
+					{
+						Mode = ConnectionMode.AllowGoingThroughTorExitNodes;
+					}
+				}
+				if (previousMode != Mode)
+				{
+					Logger.LogInfo($"Update connection mode from {previousMode} to {Mode}.");
+					LastModeChangeTime = DateTimeOffset.UtcNow;
+					return true;
+				}
+				return false;
+			}
 		}
 	}
 }
