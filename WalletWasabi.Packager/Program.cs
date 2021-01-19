@@ -68,26 +68,6 @@ namespace WalletWasabi.Packager
 				return;
 			}
 
-			// If I want a list of up to date onions run it with '--getonions'.
-			if (argsProcessor.IsGetOnionsMode())
-			{
-				var api = new BitnodesApi(Console.Out);
-				await api.PrintOnionsAsync();
-
-				return;
-			}
-
-			// If I want a list of up to date onions run it with '--reduceonions'.
-			if (argsProcessor.IsReduceOnionsMode())
-			{
-				string onionFilePath = Path.Combine(LibraryProjectDirectory, "Tor", "OnionSeeds", "MainOnionSeeds.txt");
-				var currentOnions = File.ReadAllLines(onionFilePath).ToHashSet();
-
-				var api = new BitnodesApi(Console.Out);
-				await api.PrintOnionsAsync(currentOnions);
-
-				return;
-			}
 
 			// Only binaries mode is for deterministic builds.
 			OnlyBinaries = argsProcessor.IsOnlyBinariesMode();
