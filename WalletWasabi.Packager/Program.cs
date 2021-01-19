@@ -258,8 +258,7 @@ namespace WalletWasabi.Packager
 				StartProcessAndWaitForExit(
 					"dotnet",
 					DesktopProjectDirectory,
-					arguments: string.Join(
-						" ",
+					arguments: string.Join(" ",
 						$"publish",
 						$"--configuration Release",
 						$"--force",

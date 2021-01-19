@@ -74,13 +74,6 @@ namespace WalletWasabi.Tests.UnitTests
 				async () => await ConnectAsync(new IPEndPoint(IPAddress.Loopback, 180)));
 			Assert.Contains("refused", ex.Message);
 			Assert.Equal(BestEffortEndpointConnector.ConnectionMode.AllowGoingThroughTorExitNodes, connector.State.Mode);
-
-			// Simulate there are no connections made (so, go to desperate mode and connect to clearnet).
-			connector.State.LastModeChangeTime = DateTimeOffset.UtcNow.AddHours(-1);
-			ex = await Assert.ThrowsAnyAsync<SocketException>(
-				async () => await ConnectAsync(new IPEndPoint(IPAddress.Loopback, 180)));
-			Assert.Contains("refused", ex.Message);
-			Assert.Equal(BestEffortEndpointConnector.ConnectionMode.ClearNet, connector.State.Mode);
 		}
 	}
 }

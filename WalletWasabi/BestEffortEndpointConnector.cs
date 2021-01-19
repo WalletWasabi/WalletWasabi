@@ -18,8 +18,6 @@ namespace WalletWasabi
 			OnionServiceOnly,
 			// Connect to nodes published on the clearnet through Tor exit nodes
 			AllowGoingThroughTorExitNodes,
-			// Connect to nodes directly on clearnet
-			ClearNet
 		}
 
 		// A class to share state between all the BestEffortEndpointConnector connectors.
@@ -66,15 +64,11 @@ namespace WalletWasabi
 				{
 					Mode = ConnectionMode.OnionServiceOnly;
 				}
-				else if ( (ElapsedTimeSinceLastModeChange > TimeSpan.FromMinutes(1) && ConnectedNodesCount == 0)
-						|| (ElapsedTimeSinceLastModeChange > TimeSpan.FromMinutes(2) && ConnectedNodesCount <= 3)
-						|| (ElapsedTimeSinceLastModeChange > TimeSpan.FromMinutes(3) && ConnectedNodesCount <= 5))
+				else if ( ElapsedTimeSinceLastModeChange > TimeSpan.FromMinutes(1))
 				{
-					Mode = Mode switch {
-						ConnectionMode.OnionServiceOnly => ConnectionMode.AllowGoingThroughTorExitNodes,
-						ConnectionMode.AllowGoingThroughTorExitNodes => ConnectionMode.ClearNet,
-						ConnectionMode.ClearNet => ConnectionMode.ClearNet,
-						_ => throw new ArgumentException($"Unknown {nameof(Mode)} value {Mode}.")
+					if (Mode == ConnectionMode.OnionServiceOnly)
+					{
+						Mode = ConnectionMode.AllowGoingThroughTorExitNodes;
 					};
 				}
 				if (previousMode != Mode)
@@ -117,32 +111,12 @@ namespace WalletWasabi
 		{
 			if (State.CheckModeUpdate())
 			{
-				var socksSettings = nodeConnectionParameters.TemplateBehaviors.Find<SocksSettingsBehavior>();
-
-				switch (State.Mode)
+				Connector.AllowOnlyTorEndpoints = State.Mode switch
 				{
-					case ConnectionMode.OnionServiceOnly:
-						Connector.AllowOnlyTorEndpoints = true;  // throw if endPoint is not a Tor endpoint
-						if (socksSettings is { })
-						{
-							socksSettings.OnlyForOnionHosts = false; // go through Tor always
-						}
-						break;
-					case ConnectionMode.AllowGoingThroughTorExitNodes:
-						Connector.AllowOnlyTorEndpoints = false; // do not throw if endPoint is not a Tor endpoint
-						if (socksSettings is { })
-						{
-							socksSettings.OnlyForOnionHosts = false; // go through Tor always
-						}
-						break;
-					case ConnectionMode.ClearNet:
-						Connector.AllowOnlyTorEndpoints = false; // do not throw if endPoint is not a Tor endpoint
-						if (socksSettings is { })
-						{
-							socksSettings.OnlyForOnionHosts = true; // go through Tor always
-						}
-						break;
-				}
+					ConnectionMode.OnionServiceOnly => true,
+					ConnectionMode.AllowGoingThroughTorExitNodes => false,
+					_ => throw new InvalidOperationException($"Unknown ${typeof(ConnectionMode).Name} with value {State.Mode}.")
+				};
 			}
 
 			await Connector.ConnectSocket(socket, endPoint, nodeConnectionParameters, cancellationToken).ConfigureAwait(false);
