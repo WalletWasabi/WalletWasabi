@@ -252,7 +252,7 @@ namespace WalletWasabi.Services
 							}
 
 							hashChain.UpdateServerTipHeight((uint)response.BestHeight);
-							ExchangeRate exchangeRate = response.ExchangeRates.FirstOrDefault();
+							ExchangeRate? exchangeRate = response.ExchangeRates.FirstOrDefault();
 							if (exchangeRate is { } && exchangeRate.Rate != 0)
 							{
 								UsdExchangeRate = exchangeRate.Rate;
