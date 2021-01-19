@@ -14,9 +14,11 @@
                  Caption="Connect your hardware wallet to the PC"
                  EnableCancel="True" CancelContent="Cancel"
                  EnableBack="True"
-                 EnableNext="{Binding ContinueButtonEnable}" NextContent="Continue"
-                 IsBusy="{Binding IsBusy}">
-    <DockPanel LastChildFill="True">
+                 EnableNext="{Binding !IsSearching}" NextContent="Continue"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <DockPanel LastChildFill="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+
+      <Button Command="{Binding OpenBrowserCommand}" Content="More information and help with Hardware Wallets" Classes="h8 plain activeHyperLink" HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Bottom"/>
 
       <Viewbox MaxHeight="150" DockPanel.Dock="Top" VerticalAlignment="Top" HorizontalAlignment="Center">
         <StackPanel Spacing="40" Orientation="Horizontal">
@@ -27,12 +29,10 @@
         </StackPanel>
       </Viewbox>
 
-      <DockPanel DockPanel.Dock="Bottom" LastChildFill="True" Margin="0 50 0 0">
-        <TextBlock Text="{Binding Message}" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top"/>
-        <Button Command="{Binding OpenBrowserCommand}" Content="More information and help with Hardware Wallets" Classes="h8 plain activeHyperLink" HorizontalAlignment="Center" DockPanel.Dock="Bottom"/>
-        <c:ProgressRing IsVisible="{Binding !ContinueButtonEnable}" Margin="15" IsIndeterminate="True" VerticalAlignment="Center" HorizontalAlignment="Center" Height="100" Width="100" />
-      </DockPanel>
-
+      <Panel HorizontalAlignment="Center" VerticalAlignment="Center" >
+        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" TextAlignment="Center" />
+        <c:ProgressRing IsVisible="{Binding IsSearching}" Margin="15" IsIndeterminate="True" Height="100" Width="100" />
+      </Panel>
     </DockPanel>
   </c:ContentArea>
 </UserControl>

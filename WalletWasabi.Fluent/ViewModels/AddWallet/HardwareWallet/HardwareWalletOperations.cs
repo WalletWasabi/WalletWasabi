@@ -15,27 +15,17 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
 	public class HardwareWalletOperations : IDisposable
 	{
-		public event EventHandler<HwiEnumerateEntry[]>? HardwareWalletsFound;
-		public event EventHandler? NoHardwareWalletFound;
+		public event EventHandler<HwiEnumerateEntry[]>? DetectionCompleted;
 
-		public HardwareWalletOperations(WalletManager walletManager, Network network)
+		public HardwareWalletOperations(WalletManager walletManager)
 		{
 			WalletManager = walletManager;
-			Network = network;
-			Client = new HwiClient(network);
+			Client = new HwiClient(WalletManager.Network);
 			DisposeCts = new CancellationTokenSource();
-			Stopwatch = new Stopwatch();
-
 			PassphraseTimer = new Timer(8000) {AutoReset = false};
-
-			StartDetection();
 		}
 
-		public HwiEnumerateEntry? SelectedDevice { get; set; }
-
 		public WalletManager WalletManager { get; }
-
-		public Network Network { get; }
 
 		public HwiClient Client { get; }
 
@@ -45,52 +35,30 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public Task? DetectionTask { get; set; }
 
-		public Stopwatch Stopwatch { get; }
-
 		public Timer PassphraseTimer { get; }
 
 		private void OnDetectionCompleted(HwiEnumerateEntry[] wallets)
 		{
-			if (wallets.Length == 0)
-			{
-				NoHardwareWalletFound?.Invoke(this, EventArgs.Empty);
-			}
-			else
-			{
-				HardwareWalletsFound?.Invoke(this,wallets);
-			}
+			DetectionCompleted?.Invoke(this, wallets);
 		}
 
-		public async Task<KeyManager> GenerateWalletAsync(string walletName)
+		public async Task<KeyManager> GenerateWalletAsync(string walletName, HwiEnumerateEntry device)
 		{
-			var selectedDevice = SelectedDevice;
-
-			try
+			if (device.Fingerprint is null)
 			{
-				if (selectedDevice?.Fingerprint is null)
-				{
-					throw new Exception("Cannot be null.");
-				}
-
-				await StopDetectionAsync();
-
-				var fingerPrint = (HDFingerprint) selectedDevice.Fingerprint;
-				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-				var extPubKey = await Client.GetXpubAsync(
-					selectedDevice.Model,
-					selectedDevice.Path,
-					KeyManager.DefaultAccountKeyPath,
-					cts.Token).ConfigureAwait(false);
-				var path = WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
-
-				return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, path);
-
+				throw new Exception("Cannot be null.");
 			}
-			catch (Exception)
-			{
-				StartDetection();
-				throw;
-			}
+
+			var fingerPrint = (HDFingerprint) device.Fingerprint;
+			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+			var extPubKey = await Client.GetXpubAsync(
+				device.Model,
+				device.Path,
+				KeyManager.DefaultAccountKeyPath,
+				cts.Token).ConfigureAwait(false);
+			var path = WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
+
+			return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, path);
 		}
 
 		public async Task InitHardwareWalletAsync(HwiEnumerateEntry device)
@@ -131,44 +99,31 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		protected async Task HardwareWalletDetectionAsync(CancellationTokenSource detectionCts)
 		{
-			while (!detectionCts.IsCancellationRequested)
+			try
 			{
-				Stopwatch.Start();
+				using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
-				try
+				PassphraseTimer.Start();
+				var detectedHardwareWallets =
+					(await Client.EnumerateAsync(timeoutCts.Token)
+						.ConfigureAwait(false))
+						.Where(wallet => !WalletManager.WalletExists(wallet.Fingerprint))
+						.ToArray();
+
+				detectionCts.Token.ThrowIfCancellationRequested();
+
+				OnDetectionCompleted(detectedHardwareWallets);
+			}
+			catch (Exception ex)
+			{
+				if (ex is not OperationCanceledException)
 				{
-					using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-
-					PassphraseTimer.Start();
-					var detectedHardwareWallets =
-						(await Client.EnumerateAsync(timeoutCts.Token)
-							.ConfigureAwait(false))
-							.Where(wallet => !WalletManager.WalletExists(wallet.Fingerprint))
-							.ToArray();
-
-					detectionCts.Token.ThrowIfCancellationRequested();
-
-					OnDetectionCompleted(detectedHardwareWallets);
+					Logger.LogError(ex);
 				}
-				catch (Exception ex)
-				{
-					if (ex is not OperationCanceledException)
-					{
-						Logger.LogError(ex);
-					}
-				}
-				finally
-				{
-					PassphraseTimer.Stop();
-				}
-
-				// Too fast enumeration causes the detected hardware wallets to be unable to provide the fingerprint.
-				// Wait at least 5 seconds between two enumerations.
-				Stopwatch.Stop();
-				if (Stopwatch.Elapsed.Milliseconds < 5000)
-				{
-					await Task.Delay(5000 - Stopwatch.Elapsed.Milliseconds).ConfigureAwait(false);
-				}
+			}
+			finally
+			{
+				PassphraseTimer.Stop();
 			}
 		}
 

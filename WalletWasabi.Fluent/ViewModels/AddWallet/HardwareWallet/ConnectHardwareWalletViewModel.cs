@@ -1,10 +1,8 @@
-using System;
 using System.IO;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Input;
-using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Hwi.Models;
@@ -15,35 +13,17 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 	public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 	{
 		[AutoNotify] private string _message;
-		[AutoNotify] private bool _continueButtonEnable;
+		[AutoNotify] private bool _isSearching;
 
-		public ConnectHardwareWalletViewModel(string walletName, Network network, WalletManager walletManager)
+		public ConnectHardwareWalletViewModel(string walletName, WalletManager walletManager)
 		{
 			Title = "Hardware Wallet";
 			_message = "";
-			IsBusy = true;
 			WalletName = walletName;
-			HardwareWalletOperations = new HardwareWalletOperations(walletManager, network);
-			HardwareWalletOperations.NoHardwareWalletFound += OnNoHardwareWalletFound;
+			WalletManager = walletManager;
+			HardwareWalletOperations = new HardwareWalletOperations(walletManager);
 
-			BackCommand = ReactiveCommand.Create(() =>
-			{
-				HardwareWalletOperations.Dispose();
-				Navigate().Back();
-			});
-
-			CancelCommand = ReactiveCommand.Create(() =>
-			{
-				HardwareWalletOperations.Dispose();
-				Navigate().Clear();
-			});
-
-			NextCommand = ReactiveCommand.Create(() =>
-			{
-				HardwareWalletOperations.StartDetection();
-				ContinueButtonEnable = false;
-				Message = "";
-			});
+			NextCommand = ReactiveCommand.Create(RunDetection);
 
 			// TODO: Create an up-to-date article
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -52,28 +32,34 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public string WalletName { get; }
 
+		public WalletManager WalletManager { get; }
+
 		public HardwareWalletOperations HardwareWalletOperations { get; }
 
 		public ICommand OpenBrowserCommand { get; }
 
-		private void OnNoHardwareWalletFound(object? sender, EventArgs e)
+		private void RunDetection()
 		{
-			IsBusy = false;
-			ContinueButtonEnable = true;
-			Message = "Connect your wallet to the USB port on your PC / Enter the PIN on the Wallet.";
-			Task.Run(() => HardwareWalletOperations.StopDetectionAsync());
-			HardwareWalletOperations.NoHardwareWalletFound -= OnNoHardwareWalletFound;
+			IsSearching = true;
+			Message = "";
+			HardwareWalletOperations.StartDetection();
 		}
 
 		private void OnPassphraseNeeded(object sender, ElapsedEventArgs e)
 		{
-			IsBusy = false;
+			IsSearching = false;
 			Message = "Check your device and enter your passphrase.";
 		}
 
-		private void OnHardwareWalletsFound(object? sender, HwiEnumerateEntry[] devices)
+		private void OnDetectionCompleted(object? sender, HwiEnumerateEntry[] devices)
 		{
-			IsBusy = false;
+			IsSearching = false;
+
+			if (devices.Length == 0)
+			{
+				Message = "Connect your wallet to the USB port on your PC / Enter the PIN on the Wallet.";
+				return;
+			}
 
 			if (devices.Length > 1)
 			{
@@ -116,24 +102,23 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				return;
 			}
 
-			HardwareWalletOperations.SelectedDevice = device;
-			Navigate().To(new DetectedHardwareWalletViewModel(HardwareWalletOperations, WalletName));
+			Navigate().To(new DetectedHardwareWalletViewModel(WalletManager, WalletName, device));
 		}
 
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{
 			base.OnNavigatedTo(inStack, disposable);
 
-			Message = "";
-
-			HardwareWalletOperations.HardwareWalletsFound += OnHardwareWalletsFound;
+			HardwareWalletOperations.DetectionCompleted += OnDetectionCompleted;
 			HardwareWalletOperations.PassphraseTimer.Elapsed += OnPassphraseNeeded;
+
+			RunDetection();
 
 			Disposable.Create(() =>
 			{
-				HardwareWalletOperations.HardwareWalletsFound -= OnHardwareWalletsFound;
-				HardwareWalletOperations.NoHardwareWalletFound -= OnNoHardwareWalletFound;
+				HardwareWalletOperations.DetectionCompleted -= OnDetectionCompleted;
 				HardwareWalletOperations.PassphraseTimer.Elapsed -= OnPassphraseNeeded;
+				HardwareWalletOperations.Dispose();
 			})
 			.DisposeWith(disposable);
 		}

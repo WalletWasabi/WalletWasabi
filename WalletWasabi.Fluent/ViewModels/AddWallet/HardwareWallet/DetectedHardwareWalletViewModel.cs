@@ -11,12 +11,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
 	public class DetectedHardwareWalletViewModel : RoutableViewModel
 	{
-		public DetectedHardwareWalletViewModel(HardwareWalletOperations hardwareWalletOperations, string walletName)
+		public DetectedHardwareWalletViewModel(WalletManager walletManager, string walletName, HwiEnumerateEntry device)
 		{
 			Title = "Hardware Wallet";
 			WalletName = walletName;
 
-			Type = hardwareWalletOperations.SelectedDevice!.Model switch
+			Type = device.Model switch
 			{
 				HardwareWalletModels.Coldcard or HardwareWalletModels.Coldcard_Simulator => WalletType.Coldcard,
 				HardwareWalletModels.Ledger_Nano_S => WalletType.Ledger,
@@ -24,15 +24,15 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				_ => WalletType.Hardware,
 			};
 
-			TypeName = hardwareWalletOperations.SelectedDevice.Model.FriendlyName();
+			TypeName = device.Model.FriendlyName();
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				try
 				{
-					var km = await hardwareWalletOperations.GenerateWalletAsync(WalletName);
-					var walletManager = hardwareWalletOperations.WalletManager;
-					hardwareWalletOperations.Dispose();
+					using var hwo = new HardwareWalletOperations(walletManager);
+
+					var km = await hwo.GenerateWalletAsync(WalletName, device);
 					km.SetIcon(Type);
 
 					Navigate().To(new AddedWalletPageViewModel(walletManager, km));

@@ -93,7 +93,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				}
 			});
 
-			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => Navigate().To(new ConnectHardwareWalletViewModel(WalletName, network, walletManager)));
+			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => Navigate().To(new ConnectHardwareWalletViewModel(WalletName, walletManager)));
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
