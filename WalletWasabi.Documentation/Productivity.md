@@ -1,6 +1,6 @@
 # Productivity
 
-Developers use to work with many branches at the same time because during any single day they review others' pull requests, try new crazy things, work on new features/bug-fixes and also fix somebody elses' PRs. All this forces a combination of `git stash [pop|save]`, `git fetch`, `git checkout [-f]` and again `git stash [pop|apply]`. No matter if this is done by command line or with a tool the problem of having only one copy of the code is a ugly constrain.
+Developers work with many branches at the same time because during any single day they review others' pull requests, try new crazy things, work on new features/bug-fixes and also fix somebody else's PRs. All this forces a combination of `git stash [pop|save]`, `git fetch`, `git checkout [-f]` and again `git stash [pop|apply]`. No matter if this is done by command line or with a tool the problem of having only one copy of the code is an ugly constrain.
 
 ## Wasabi Wallet folders organization (suggestion)
 
@@ -33,7 +33,7 @@ Once we have all the remote repositories we fetch them all (this can be a bit sl
 $ git fetch --all
 ```
 
-After that we have alsolutely everything locally.
+After that we have absolutely everything locally.
 
 ### Folders organization
 
@@ -50,7 +50,7 @@ $ git worktree add team/yahia/bitcoind-tor-hashes yahia/bitcoind-tor-hashes
 $ git worktree add team/kiminuo/tor-exceptions kiminuo/feature/2021-01-Tor-exceptions-2nd
 ```
 
-Bellow you can see what got after the previous commands. In this way it is possible to simply switch from PR to PR and from branch to branch as easy as simply `cd`. 
+Bellow you can see what you got after the previous commands. In this way it is possible to simply switch from PR to PR and from branch to branch as easy as simply `cd`.
 
 We can go to the Kiminuo's tor-exceptions branch and work there, add files, review the changes, compile it and test it and we can immediately jump to the Yahia's bitcoind-tor-hashes branch, perform a `git pull` to have the latest changes and review it.
 
@@ -99,13 +99,13 @@ We can go to the Kiminuo's tor-exceptions branch and work there, add files, revi
     │       ├── WalletWasabi.Tests
     │       └── WalletWasabi.WindowsInstaller
     └── yuval 
- ```
+```
 
- This is also usefull for testing bugs in released versions. Imagine you are working in the middle of some refactoring for a new feature and someone reports a bug in `v1.1.12.2`. In that case you don't need to stash nor commit anything, instead you can simply do:
+This is also useful for testing bugs in released versions. Imagine you are working in the middle of some refactoring for a new feature and someone reports a bug in `v1.1.12.2`. In that case you don't need to stash nor commit anything, instead you can simply do:
 
- ```
- $ git worktree add reseases/v1.1.12.2 v1.1.12.2
- $ cd reseases/v1.1.12.2
- ```
+```
+$ git worktree add releases/v1.1.12.2 v1.1.12.2
+$ cd releases/v1.1.12.2
+```
 
- And that's all.
+And that's all.
