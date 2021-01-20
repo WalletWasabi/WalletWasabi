@@ -12,13 +12,13 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			NextCommand = CancelCommand;
 		}
 
-		public static Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
+		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
 
-		public static Version HwiVersion => Constants.HwiVersion;
+		public Version HwiVersion => Constants.HwiVersion;
 
-		public static string BackendCompatibleVersions => Constants.ClientSupportBackendVersionText;
+		public string BackendCompatibleVersions => Constants.ClientSupportBackendVersionText;
 
-		public static string CurrentBackendMajorVersion => WasabiClient.ApiVersion.ToString();
+		public string CurrentBackendMajorVersion => WasabiClient.ApiVersion.ToString();
 
 		protected override void OnDialogClosed()
 		{

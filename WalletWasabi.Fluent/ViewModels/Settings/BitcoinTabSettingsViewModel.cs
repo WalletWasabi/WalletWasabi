@@ -56,9 +56,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Subscribe(_ => Save());
 		}
 
-		public static Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
+		public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
 
-		public static IEnumerable<Network> Networks => Network.GetNetworks();
+		public IEnumerable<Network> Networks => Network.GetNetworks();
 
 		private void ValidateBitcoinP2PEndPoint(IValidationErrors errors)
 			=> ValidateEndPoint(errors, BitcoinP2PEndPoint, Network.DefaultPort, whiteSpaceOk: true);
