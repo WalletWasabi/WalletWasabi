@@ -233,7 +233,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// <param name="host">IPv4 or domain of the destination.</param>
 		/// <param name="port">Port number of the destination.</param>
 		/// <exception cref="OperationCanceledException">When operation is canceled.</exception>
-		/// <exception cref="TorConnectCommandException">When response to <see cref="CmdField.Connect"/> request is NOT <see cref="RepField.Succeeded"/>.</exception>
+		/// <exception cref="TorConnectCommandFailedException">When response to <see cref="CmdField.Connect"/> request is NOT <see cref="RepField.Succeeded"/>.</exception>
 		/// <exception cref="TorException">When sending of the HTTP(s) request fails for any reason.</exception>
 		/// <seealso href="https://tools.ietf.org/html/rfc1928">Section 3. Procedure for TCP-based clients</seealso>
 		private async Task ConnectToDestinationAsync(TcpClient tcpClient, string host, int port, CancellationToken cancellationToken = default)
@@ -260,7 +260,7 @@ namespace WalletWasabi.Tor.Socks5
 					// the reply. This must be no more than 10 seconds after detecting the
 					// condition that caused a failure.
 					Logger.LogWarning($"Connection response indicates a failure. Actual response is: '{connectionResponse.Rep}'. Request: '{host}:{port}'.");
-					throw new TorConnectCommandException(connectionResponse.Rep);
+					throw new TorConnectCommandFailedException(connectionResponse.Rep);
 				}
 
 				// Do not check the Bnd. Address and Bnd. Port. because Tor does not seem to return any, ever. It returns zeros instead.

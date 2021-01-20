@@ -98,7 +98,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 		/// <item>Client sends an HTTP request to Tor SOCKS5.</item>
 		/// <item>Server verifies that the data received by the Tor SOCKS5 side is correct.</item>
 		/// <item>Server responds with <see cref="RepField.TtlExpired"/> to the client's CONNECT command.</item>
-		/// <item><see cref="TorConnectCommandException"/> is expected to be thrown on the client side.</item>
+		/// <item><see cref="TorConnectCommandFailedException"/> is expected to be thrown on the client side.</item>
 		/// </list>
 		/// </summary>
 		[Fact]
@@ -181,7 +181,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				stream.Flush();
 
 				Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][server] Expecting exception.");
-				await Assert.ThrowsAsync<TorConnectCommandException>(async () => await clientTask.WithAwaitCancellationAsync(timeoutToken));
+				await Assert.ThrowsAsync<TorConnectCommandFailedException>(async () => await clientTask.WithAwaitCancellationAsync(timeoutToken));
 			}
 			finally
 			{

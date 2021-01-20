@@ -156,7 +156,7 @@ namespace WalletWasabi.Tor.Socks5
 						TorConnectionException innerException = new($"Failed to read/write HTTP(s) request.", e);
 						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", innerException);
 					}
-					catch (TorConnectCommandException e) when (e.RepField == RepField.TtlExpired)
+					catch (TorConnectCommandFailedException e) when (e.RepField == RepField.TtlExpired)
 					{
 						// If we get TTL Expired error then wait and retry again linux often does this.
 						Logger.LogTrace($"['{poolItem}'] TTL exception occurred.", e);
