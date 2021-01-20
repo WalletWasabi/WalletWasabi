@@ -108,13 +108,14 @@ namespace WalletWasabi
 				{
 					Mode = ConnectionMode.OnionServiceOnly;
 				}
-				else if ( ElapsedTimeSinceLastModeChange > TimeSpan.FromMinutes(1))
+				else if (ElapsedTimeSinceLastModeChange > TimeSpan.FromMinutes(1))
 				{
 					if (Mode == ConnectionMode.OnionServiceOnly)
 					{
 						Mode = ConnectionMode.AllowGoingThroughTorExitNodes;
 					}
 				}
+
 				if (previousMode != Mode)
 				{
 					Logger.LogInfo($"Update connection mode from {previousMode} to {Mode}.");
