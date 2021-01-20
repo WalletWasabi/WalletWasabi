@@ -29,21 +29,18 @@ namespace WalletWasabi.Legal
 			}
 
 			var legalDocCandidates = FindCandidates(folderPath);
-			var legalDocCandidateCount = legalDocCandidates.Count();
-
-			if (legalDocCandidateCount == 1)
+			switch (legalDocCandidates.Count())
 			{
-				var filePath = legalDocCandidates.Single();
+				case 1:
+					var filePath = legalDocCandidates.Single();
+					var content = await File.ReadAllTextAsync(filePath).ConfigureAwait(false);
+					var verString = Path.GetFileNameWithoutExtension(filePath);
+					var version = Version.Parse(verString);
+					return new LegalDocuments(version, content);
 
-				var content = await File.ReadAllTextAsync(filePath).ConfigureAwait(false);
-				var verString = Path.GetFileNameWithoutExtension(filePath);
-				var version = Version.Parse(verString);
-
-				return new LegalDocuments(version, content);
-			}
-			else if (legalDocCandidateCount > 1)
-			{
-				RemoveCandidates(folderPath);
+				case > 1:
+					RemoveCandidates(folderPath);
+					break;
 			}
 
 			return null;
