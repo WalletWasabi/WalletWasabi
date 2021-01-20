@@ -60,7 +60,7 @@ namespace WalletWasabi
 			}
 
 			await Connector.ConnectSocket(socket, endPoint, nodeConnectionParameters, cancellationToken).ConfigureAwait(false);
-			State.LastModeChangeTime = DateTimeOffset.UtcNow;
+			State.ResetModeChangeTimeControl();
 		}
 
 		// A class to share state between all the BestEffortEndpointConnector connectors.
@@ -101,6 +101,11 @@ namespace WalletWasabi
 
 			public TimeSpan ElapsedTimeSinceLastModeChange => DateTimeOffset.UtcNow - LastModeChangeTime;
 
+			public void ResetModeChangeTimeControl()
+			{
+				LastModeChangeTime = DateTimeOffset.UtcNow;
+			}
+
 			public bool CheckModeUpdate()
 			{
 				var previousMode = Mode;
@@ -119,7 +124,7 @@ namespace WalletWasabi
 				if (previousMode != Mode)
 				{
 					Logger.LogInfo($"Update connection mode from {previousMode} to {Mode}.");
-					LastModeChangeTime = DateTimeOffset.UtcNow;
+					ResetModeChangeTimeControl();
 					return true;
 				}
 				return false;
