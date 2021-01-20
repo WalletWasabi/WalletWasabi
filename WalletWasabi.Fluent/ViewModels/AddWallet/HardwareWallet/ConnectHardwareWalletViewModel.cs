@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Fluent.ViewModels.Login;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Hwi.Models;
@@ -27,7 +27,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			WalletName = walletName;
 			WalletManager = walletManager;
 			Wallets = wallets;
-			HardwareWalletOperations = new HardwareWalletOperations(walletManager);
 
 			NextCommand = ReactiveCommand.Create(RunDetection);
 
@@ -37,13 +36,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			NavigateToExistingWalletLoginCommand = ReactiveCommand.Create(() =>
 			{
-				if (ExistingWallet is null)
-				{
-					return;
-				}
+				var navBar = NavigationManager.Get<NavBarViewModel>();
 
-				Navigate().Clear();
-				Navigate(NavigationTarget.HomeScreen).To(new LoginViewModel(ExistingWallet), NavigationMode.Clear);
+				if (ExistingWallet is { } && navBar is { })
+				{
+					navBar.SelectedItem = ExistingWallet;
+					Navigate().Clear();
+					ExistingWallet.OpenCommand.Execute(default);
+				}
 			});
 		}
 
@@ -55,7 +55,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public WalletViewModelBase? ExistingWallet { get; set; }
 
-		public HardwareWalletOperations HardwareWalletOperations { get; }
+		public HardwareWalletOperations HardwareWalletOperations { get; set; }
 
 		public ICommand OpenBrowserCommand { get; }
 
@@ -96,7 +96,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			if (WalletManager.WalletExists(device.Fingerprint))
 			{
 				ExistingWallet = Wallets.FirstOrDefault(x => x.Wallet.KeyManager.MasterFingerprint == device.Fingerprint);
-				Message = "The connected hardware wallet is already added to the software, click below to login or click Continue to search again.";
+				Message = "The connected hardware wallet is already added to the software, click below to open it or click Continue to search again.";
 				ExistingWalletFound = true;
 				return;
 			}
@@ -141,6 +141,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			base.OnNavigatedTo(inStack, disposable);
 
+			HardwareWalletOperations = new HardwareWalletOperations(WalletManager);
 			HardwareWalletOperations.DetectionCompleted += OnDetectionCompleted;
 			HardwareWalletOperations.PassphraseTimer.Elapsed += OnPassphraseNeeded;
 
