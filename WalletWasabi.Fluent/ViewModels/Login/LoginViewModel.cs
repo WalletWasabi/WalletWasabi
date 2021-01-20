@@ -54,17 +54,17 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 					wallet.Login();
 
 					// TODO: navigate to the wallet welcome page
-					var navigateTo = walletViewModelBase;
+					var targetViewModel = walletViewModelBase;
 
 					if (legalChecker.TryGetNewLegalDocs(out _))
 					{
-						var legalDocs = new TermsAndConditionsViewModel(legalChecker, navigateTo);
+						var legalDocs = new TermsAndConditionsViewModel(legalChecker, targetViewModel);
 
 						Navigate().To(legalDocs);
 					}
 					else
 					{
-						Navigate().To(navigateTo, NavigationMode.Clear);
+						Navigate().To(targetViewModel, NavigationMode.Clear);
 					}
 				}
 			});
