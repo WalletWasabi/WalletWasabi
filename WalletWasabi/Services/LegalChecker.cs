@@ -23,6 +23,10 @@ namespace WalletWasabi.Services
 			ProvisionalLegalFolder = Path.Combine(LegalFolder, ProvisionalLegalFolderName);
 		}
 
+		public event EventHandler<LegalDocuments>? AgreedChanged;
+
+		public event EventHandler<LegalDocuments>? ProvisionalChanged;
+
 		/// <remarks>Lock object to guard <see cref="CurrentLegalDocument"/> and <see cref="ProvisionalLegalDocument"/> property.</remarks>
 		private AsyncLock LegalDocumentLock { get; } = new();
 
@@ -57,6 +61,8 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
+				LegalDocuments? provisionalLegalDocument = null;
+
 				using (await LegalDocumentLock.LockAsync().ConfigureAwait(false))
 				{
 					// If we don't have it or there is a new one.
@@ -66,11 +72,16 @@ namespace WalletWasabi.Services
 						var content = await UpdateChecker!.WasabiClient.GetLegalDocumentsAsync(CancellationToken.None).ConfigureAwait(false);
 
 						// Save it as a provisional legal document.
-						var proLegal = new LegalDocuments(updateStatus.LegalDocumentsVersion, content);
-						await proLegal.ToFileAsync(ProvisionalLegalFolder).ConfigureAwait(false);
+						provisionalLegalDocument = new(updateStatus.LegalDocumentsVersion, content);
+						await provisionalLegalDocument.ToFileAsync(ProvisionalLegalFolder).ConfigureAwait(false);
 
-						ProvisionalLegalDocument = proLegal;
+						ProvisionalLegalDocument = provisionalLegalDocument;
 					}
+				}
+
+				if (provisionalLegalDocument is { })
+				{
+					ProvisionalChanged?.Invoke(this, provisionalLegalDocument);
 				}
 			}
 			catch (Exception ex)
@@ -94,6 +105,8 @@ namespace WalletWasabi.Services
 				CurrentLegalDocument = ProvisionalLegalDocument;
 				ProvisionalLegalDocument = null;
 			}
+
+			AgreedChanged?.Invoke(this, CurrentLegalDocument);
 		}
 
 		protected virtual void Dispose(bool disposing)
