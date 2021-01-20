@@ -23,7 +23,9 @@ namespace WalletWasabi.Services
 			ProvisionalLegalFolder = Path.Combine(LegalFolder, ProvisionalLegalFolderName);
 		}
 
+		/// <remarks>Lock object to guard <see cref="CurrentLegalDocument"/> and <see cref="ProvisionalLegalDocument"/> property.</remarks>
 		private AsyncLock LegalDocumentLock { get; } = new();
+
 		private UpdateChecker? UpdateChecker { get; set; }
 		public string LegalFolder { get; }
 		public string ProvisionalLegalFolder { get; }
