@@ -617,14 +617,6 @@ namespace WalletWasabi.Gui
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 				}
 
-				Logger.LogDebug($"Step: Application's MainWindow.", nameof(Global));
-
-				Dispatcher.UIThread.PostLogException(() =>
-				{
-					var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
-					window?.Close();
-				});
-
 				WalletManager.OnDequeue -= WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed -= WalletManager_WalletRelevantTransactionProcessed;
 
