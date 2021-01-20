@@ -78,7 +78,7 @@ namespace WalletWasabi.Legal
 
 		public async Task ToFileAsync(string folderPath)
 		{
-			folderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(folderPath), folderPath, trim: true);
+			folderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(folderPath), folderPath);
 			IoHelpers.EnsureDirectoryExists(folderPath);
 			var filePath = Path.Combine(folderPath, $"{Version}.txt");
 
