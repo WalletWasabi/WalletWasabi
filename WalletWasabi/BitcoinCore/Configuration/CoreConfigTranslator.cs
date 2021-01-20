@@ -43,7 +43,7 @@ namespace WalletWasabi.BitcoinCore.Configuration
 			return null;
 		}
 
-		public WhiteBind TryGetWhiteBind()
+		public WhiteBind? TryGetWhiteBind()
 		{
 			var stringValue = TryGetValue("whitebind");
 			if (stringValue is { } && WhiteBind.TryParse(stringValue, Network, out WhiteBind? value))

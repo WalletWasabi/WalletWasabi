@@ -21,7 +21,7 @@ namespace WalletWasabi.Legal
 		public Version Version { get; }
 		public string Content { get; }
 
-		public static async Task<LegalDocuments?> LoadAgreedAsync(string folderPath)
+public static async Task<LegalDocuments?> LoadAgreedAsync(string folderPath)
 		{
 			if (!Directory.Exists(folderPath))
 			{

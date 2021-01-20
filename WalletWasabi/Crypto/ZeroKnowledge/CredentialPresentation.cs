@@ -49,7 +49,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		/// </summary>
 		/// <param name="sk">The coordinator's secret key.</param>
 		/// <returns>The Z element needed to verify that a randomized credential's proof is valid.</returns>
-		public GroupElement ComputeZ(CoordinatorSecretKey sk)
+		public GroupElement ComputeZ(CredentialIssuerSecretKey sk)
 			=> CV - (sk.W * Generators.Gw + sk.X0 * Cx0 + sk.X1 * Cx1 + sk.Ya * Ca);
 	}
 }

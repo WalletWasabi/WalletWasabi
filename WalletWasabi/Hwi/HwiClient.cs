@@ -21,7 +21,7 @@ namespace WalletWasabi.Hwi
 		public HwiClient(Network network, IHwiProcessInvoker? bridge = null)
 		{
 			Network = Guard.NotNull(nameof(network), network);
-			Bridge = bridge ?? new HwiProcessBridge(new ProcessInvoker());
+			Bridge = bridge ?? new HwiProcessBridge();
 		}
 
 		#endregion ConstructorsAndInitializers

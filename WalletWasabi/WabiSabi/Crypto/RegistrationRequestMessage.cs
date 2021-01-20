@@ -5,7 +5,7 @@ using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using Newtonsoft.Json;
 
-namespace WalletWasabi.Wabisabi
+namespace WalletWasabi.WabiSabi.Crypto
 {
 	/// <summary>
 	/// Represents a request message for the WabiSabi unified registration protocol.

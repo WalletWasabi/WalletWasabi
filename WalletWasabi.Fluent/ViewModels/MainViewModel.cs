@@ -119,6 +119,13 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private Network Network { get; }
 
+		public void ClearStacks()
+		{
+			MainScreen.Clear();
+			DialogScreen.Clear();
+			FullScreen.Clear();
+		}
+
 		public void Initialize()
 		{
 			StatusBar.Initialize(_global.Nodes.ConnectedNodes);

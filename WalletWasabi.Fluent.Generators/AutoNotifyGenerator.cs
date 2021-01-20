@@ -84,8 +84,7 @@ namespace WalletWasabi.Fluent
 
 				foreach (VariableDeclaratorSyntax variable in field.Declaration.Variables)
 				{
-					var fieldSymbol = semanticModel.GetDeclaredSymbol(variable) as IFieldSymbol;
-					if (fieldSymbol is null)
+					if (semanticModel.GetDeclaredSymbol(variable) is not IFieldSymbol fieldSymbol)
 					{
 						continue;
 					}

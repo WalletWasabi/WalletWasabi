@@ -15,17 +15,17 @@ namespace WalletWasabi.Fluent.Helpers
 		public static async Task<string?> ShowOpenFileDialogAsync(string title)
 		{
 			var ofd = CreateOpenFileDialog(title);
-			return await GetDialogResult(ofd);
+			return await GetDialogResultAsync(ofd);
 		}
 
 		public static async Task<string?> ShowOpenFileDialogAsync(string title, string[] filterExtTypes)
 		{
 			var ofd = CreateOpenFileDialog(title);
 			ofd.Filters = GenerateFilters(filterExtTypes);
-			return await GetDialogResult(ofd);
+			return await GetDialogResultAsync(ofd);
 		}
 
-		private static async Task<string?> GetDialogResult(OpenFileDialog ofd)
+		private static async Task<string?> GetDialogResultAsync(OpenFileDialog ofd)
 		{
 			var window = ((IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime).MainWindow;
 			var selected = await ofd.ShowAsync(window);
