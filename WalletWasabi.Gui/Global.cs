@@ -141,7 +141,7 @@ namespace WalletWasabi.Gui
 				var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
 				UpdateChecker updateChecker = new(TimeSpan.FromMinutes(7), Synchronizer);
 
-				LegalChecker.InitializeAsync(updateChecker);
+				await LegalChecker.InitializeAsync(updateChecker).ConfigureAwait(false);
 
 				HostedServices.Register(updateChecker, "Software Update Checker");
 
