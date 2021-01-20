@@ -1,10 +1,14 @@
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Wallets;
 
@@ -14,13 +18,15 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 	{
 		[AutoNotify] private string _message;
 		[AutoNotify] private bool _isSearching;
+		[AutoNotify] private bool _existingWalletFound;
 
-		public ConnectHardwareWalletViewModel(string walletName, WalletManager walletManager)
+		public ConnectHardwareWalletViewModel(string walletName, WalletManager walletManager, ObservableCollection<WalletViewModelBase> wallets)
 		{
 			Title = "Hardware Wallet";
 			_message = "";
 			WalletName = walletName;
 			WalletManager = walletManager;
+			Wallets = wallets;
 			HardwareWalletOperations = new HardwareWalletOperations(walletManager);
 
 			NextCommand = ReactiveCommand.Create(RunDetection);
@@ -28,19 +34,37 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			// TODO: Create an up-to-date article
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask(async () =>
 				await IoHelpers.OpenBrowserAsync("https://docs.wasabiwallet.io/using-wasabi/ColdWasabi.html#using-hardware-wallet-step-by-step"));
+
+			NavigateToExistingWalletLoginCommand = ReactiveCommand.Create(() =>
+			{
+				if (ExistingWallet is null)
+				{
+					return;
+				}
+
+				Navigate().Clear();
+				Navigate(NavigationTarget.HomeScreen).To(new LoginViewModel(ExistingWallet), NavigationMode.Clear);
+			});
 		}
 
 		public string WalletName { get; }
 
 		public WalletManager WalletManager { get; }
 
+		public ObservableCollection<WalletViewModelBase> Wallets { get; }
+
+		public WalletViewModelBase? ExistingWallet { get; set; }
+
 		public HardwareWalletOperations HardwareWalletOperations { get; }
 
 		public ICommand OpenBrowserCommand { get; }
 
+		public ICommand NavigateToExistingWalletLoginCommand { get; }
+
 		private void RunDetection()
 		{
 			IsSearching = true;
+			ExistingWalletFound = false;
 			Message = "";
 			HardwareWalletOperations.StartDetection();
 		}
@@ -68,6 +92,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			}
 
 			var device = devices[0];
+
+			if (WalletManager.WalletExists(device.Fingerprint))
+			{
+				ExistingWallet = Wallets.FirstOrDefault(x => x.Wallet.KeyManager.MasterFingerprint == device.Fingerprint);
+				Message = "The connected hardware wallet is already added to the software, click below to login or click Continue to search again.";
+				ExistingWalletFound = true;
+				return;
+			}
 
 			if (!device.IsInitialized())
 			{

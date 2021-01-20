@@ -29,8 +29,11 @@
         </StackPanel>
       </Viewbox>
 
-      <Panel HorizontalAlignment="Center" VerticalAlignment="Center" >
-        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" TextAlignment="Center" />
+      <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+        <DockPanel>
+          <TextBlock Text="{Binding Message}" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top"/>
+          <Button IsVisible="{Binding ExistingWalletFound}" Margin="0 15 0 0" Command="{Binding NavigateToExistingWalletLoginCommand}" Content="Click here to login" Classes="h7 plain activeHyperLink" HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Bottom"/>
+        </DockPanel>
         <c:ProgressRing IsVisible="{Binding IsSearching}" Margin="15" IsIndeterminate="True" Height="100" Width="100" />
       </Panel>
     </DockPanel>
