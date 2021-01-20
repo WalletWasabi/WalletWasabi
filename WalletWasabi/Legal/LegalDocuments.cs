@@ -32,10 +32,14 @@ namespace WalletWasabi.Legal
 			switch (legalDocCandidates.Count())
 			{
 				case 1:
-					var filePath = legalDocCandidates.Single();
-					var content = await File.ReadAllTextAsync(filePath).ConfigureAwait(false);
-					var verString = Path.GetFileNameWithoutExtension(filePath);
-					var version = Version.Parse(verString);
+					string? filePath = legalDocCandidates.Single();
+					string? content = await File.ReadAllTextAsync(filePath).ConfigureAwait(false);
+					string? verString = Path.GetFileNameWithoutExtension(filePath);
+					Version? version = Version.Parse(verString);
+					if (version is null)
+					{
+						throw new InvalidOperationException("Legal documents version is null.");
+					}
 					return new LegalDocuments(version, content);
 
 				case > 1:
