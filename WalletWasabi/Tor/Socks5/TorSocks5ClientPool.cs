@@ -153,7 +153,8 @@ namespace WalletWasabi.Tor.Socks5
 					catch (IOException e)
 					{
 						// NetworkStream may throw IOException.
-						throw new TorConnectionException($"Failed to read/write HTTP(s) request.", e);
+						TorConnectionException innerException = new($"Failed to read/write HTTP(s) request.", e);
+						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", innerException);
 					}
 					catch (TorConnectCommandException e) when (e.RepField == RepField.TtlExpired)
 					{
@@ -165,23 +166,14 @@ namespace WalletWasabi.Tor.Socks5
 						if (i == attemptsNo)
 						{
 							Logger.LogDebug($"['{poolItem}'] All {attemptsNo} attempts failed.");
-							throw;
-						}
-					}
-					catch (HttpRequestException e)
-					{
-						Logger.LogTrace($"['{poolItem}'] Request may actually fail because we repeat the action.", e);
-
-						if (i == attemptsNo)
-						{
-							Logger.LogDebug($"['{poolItem}'] All {attemptsNo} attempts failed.");
-							throw;
+							throw new HttpRequestException("Failed to handle the HTTP request via Tor.", e);
 						}
 					}
 					catch (SocketException e) when (e.ErrorCode == (int)SocketError.ConnectionRefused)
 					{
 						Logger.LogTrace(e);
-						throw new TorConnectionException("Connection was refused.", e);
+						TorConnectionException innerException = new("Connection was refused.", e);
+						throw new HttpRequestException("Failed to handle the HTTP request via Tor.", innerException);
 					}
 					catch (Exception e)
 					{
