@@ -1,6 +1,4 @@
 using System;
-using System.Net.Http;
-using WalletWasabi.Tor.Http;
 
 namespace WalletWasabi.Tor.Socks5.Exceptions
 {
