@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using NBitcoin.DataEncoders;
 using NBitcoin.Secp256k1;
 
@@ -15,7 +16,7 @@ namespace WalletWasabi.Crypto
 		internal Scalar C { get; }
 		internal Scalar S { get; }
 
-		public static bool TryParse(ReadOnlySpan<byte> in64, out UnblindedSignature? unblindedSignature)
+		public static bool TryParse(ReadOnlySpan<byte> in64, [NotNullWhen(true)] out UnblindedSignature? unblindedSignature)
 		{
 			unblindedSignature = null;
 			if (in64.Length != 64)
@@ -59,7 +60,7 @@ namespace WalletWasabi.Crypto
 			throw new FormatException("Invalid unblinded signature");
 		}
 
-		public static bool TryParse(string str, out UnblindedSignature? unblindedSignature)
+		public static bool TryParse(string str, [NotNullWhen(true)] out UnblindedSignature? unblindedSignature)
 		{
 			unblindedSignature = null;
 			if (str is null)

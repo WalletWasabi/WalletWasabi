@@ -80,7 +80,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			Assert.Null(translator.TryGetWhiteBind());
 
 			config.AddOrUpdate("main.whitebind=127.0.0.1:18444");
-			WhiteBind whiteBind = translator.TryGetWhiteBind();
+			WhiteBind? whiteBind = translator.TryGetWhiteBind();
 			var ipEndPoint = whiteBind.EndPoint as IPEndPoint;
 			Assert.Equal(IPAddress.Loopback, ipEndPoint.Address);
 			Assert.Equal(18444, ipEndPoint.Port);

@@ -64,7 +64,7 @@ namespace WalletWasabi.Wallets
 		/// <returns>The requested bitcoin block.</returns>
 		public async Task<Block> GetBlockAsync(uint256 hash, CancellationToken cancellationToken)
 		{
-			Block block = null;
+			Block? block = null;
 			try
 			{
 				DownloadingBlockChanged?.Invoke(null, true);
@@ -148,7 +148,7 @@ namespace WalletWasabi.Wallets
 			return block;
 		}
 
-		private async Task<Block> TryDownloadBlockFromLocalNodeAsync(uint256 hash, CancellationToken cancellationToken)
+		private async Task<Block?> TryDownloadBlockFromLocalNodeAsync(uint256 hash, CancellationToken cancellationToken)
 		{
 			if (CoreNode?.RpcClient is null)
 			{

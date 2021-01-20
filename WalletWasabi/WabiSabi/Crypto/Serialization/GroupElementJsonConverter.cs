@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using NBitcoin;
 using Newtonsoft.Json;
 using WalletWasabi.Crypto.Groups;
 
-namespace WalletWasabi.Wabisabi.Serialization
+namespace WalletWasabi.WabiSabi.Crypto.Serialization
 {
 	public class GroupElementJsonConverter : JsonConverter
 	{

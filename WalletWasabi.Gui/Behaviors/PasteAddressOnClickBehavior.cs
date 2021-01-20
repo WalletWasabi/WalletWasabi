@@ -64,9 +64,9 @@ namespace WalletWasabi.Gui.Behaviors
 
 		private bool ProcessText(string text)
 		{
-			if (AddressStringParser.TryParse(text, Global.Network, out BitcoinUrlBuilder result))
+			if (AddressStringParser.TryParse(text, Global.Network, out BitcoinUrlBuilder? result))
 			{
-				AssociatedObject.Text = result?.Address?.ToString();
+				AssociatedObject.Text = result.Address?.ToString();
 				CommandParameter = result;
 				ExecuteCommand();
 				return true;

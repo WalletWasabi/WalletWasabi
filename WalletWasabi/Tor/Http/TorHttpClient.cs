@@ -23,9 +23,8 @@ namespace WalletWasabi.Tor.Http
 
 		private TorSocks5ClientPool TorSocks5ClientPool { get; }
 
-		/// <remarks>
-		/// Throws <see cref="OperationCanceledException"/> if <paramref name="token"/> is set.
-		/// </remarks>
+		/// <exception cref="HttpRequestException">When HTTP request fails to be processed. Inner exception may be an instance of <see cref="TorException"/>.</exception>
+		/// <exception cref="OperationCanceledException">When <paramref name="cancel"/> is canceled by the user.</exception>
 		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken token = default)
 		{
 			var requestUri = new Uri(DestinationUriAction(), relativeUri);

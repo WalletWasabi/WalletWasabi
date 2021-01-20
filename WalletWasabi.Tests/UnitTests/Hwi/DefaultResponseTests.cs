@@ -9,7 +9,6 @@ using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.Hwi.ProcessBridge;
-using WalletWasabi.Microservices;
 using Xunit;
 using WalletWasabi.Helpers;
 
@@ -123,7 +122,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		[Fact]
 		public async Task OpenConsoleDoesntThrowAsync()
 		{
-			var pb = new HwiProcessBridge(new ProcessInvoker());
+			HwiProcessBridge pb = new();
 
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -159,7 +158,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		public void TryParseVersionTests(string input, bool isParsable)
 		{
 			Version expectedVersion = new Version(1, 1, 2);
-			Assert.Equal(isParsable, HwiParser.TryParseVersion(input, out Version actualVersion));
+			Assert.Equal(isParsable, HwiParser.TryParseVersion(input, out Version? actualVersion));
 
 			if (isParsable)
 			{
@@ -209,7 +208,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		{
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 
-			var pb = new HwiProcessBridge(new ProcessInvoker());
+			HwiProcessBridge pb = new();
 
 			// Start HWI with "version" argument and test that we get non-empty response.
 			(string response, int exitCode) result = await pb.SendCommandAsync("--version", openConsole: false, cts.Token);
@@ -228,7 +227,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		{
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 
-			var processBridge = new HwiProcessBridge(new ProcessInvoker());
+			HwiProcessBridge processBridge = new();
 			(string response, int exitCode) result = await processBridge.SendCommandAsync("--help", openConsole: false, cts.Token);
 
 			Assert.Equal(0, result.exitCode);

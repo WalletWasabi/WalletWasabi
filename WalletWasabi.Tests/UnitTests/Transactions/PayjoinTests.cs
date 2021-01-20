@@ -1,22 +1,16 @@
 using NBitcoin;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Tests.UnitTests.Clients;
 using WalletWasabi.WebClients.PayJoin;
 using Xunit;
 using System.Net.Http;
 using System.Net;
 using System.Text;
-using WalletWasabi.Models;
 using System.Collections.Specialized;
-using WalletWasabi.Tor.Http;
 using WalletWasabi.Tests.Helpers;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions
@@ -97,7 +91,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var allowedCoins = transactionFactory.Coins.ToArray();
 
 			var amount = Money.Coins(0.001m);
-			var payment = new PaymentIntent(new Key().ScriptPubKey, amount);
+			using Key key = new();
+			PaymentIntent payment = new(key.ScriptPubKey, amount);
 
 			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), allowedCoins.Select(x => x.OutPoint), payjoinClient);
 

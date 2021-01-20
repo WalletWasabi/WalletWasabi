@@ -16,7 +16,7 @@ namespace WalletWasabi.JsonConverters
 		}
 
 		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		public override object ReadJson(JsonReader reader, Type? objectType, object? existingValue, JsonSerializer? serializer)
 		{
 			JArray arr = JArray.Load(reader);
 
@@ -45,7 +45,7 @@ namespace WalletWasabi.JsonConverters
 		}
 
 		/// <inheritdoc />
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+		public override void WriteJson(JsonWriter writer, object value, JsonSerializer? serializer)
 		{
 			var signature = (UnblindedSignature)value;
 			var c = new BigInteger(signature.C.ToBytes(), isUnsigned: true, isBigEndian: true);

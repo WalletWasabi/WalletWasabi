@@ -3,7 +3,12 @@ using System;
 namespace WalletWasabi.Tor.Socks5.Exceptions
 {
 	/// <summary>
-	/// TCP connection to Tor SOCKS5 endpoint failed.
+	/// Exception for the following cases:
+	/// <list type="bullet">
+	/// <item>An error in establishing a TCP connection to Tor SOCKS5 endpoint.</item>
+	/// <item>Any failure in sending data to Tor SOCKS5 endpoint.</item>
+	/// <item>Any failure in reading data from Tor SOCKS5 endpoint.</item>
+	/// </list>
 	/// </summary>
 	public class TorConnectionException : TorException
 	{

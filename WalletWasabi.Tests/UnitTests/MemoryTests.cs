@@ -97,7 +97,7 @@ namespace WalletWasabi.Tests.UnitTests
 			}
 
 			using var cache = new MemoryCache(new MemoryCacheOptions());
-			var expireKey1 = new CancellationTokenSource();
+			using var expireKey1 = new CancellationTokenSource();
 
 			var options = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) };
 			options.AddExpirationToken(new CancellationChangeToken(expireKey1.Token));
@@ -176,9 +176,9 @@ namespace WalletWasabi.Tests.UnitTests
 
 			if (result2 != Value2)
 			{
-				Assert.False(true, $"{nameof(result2)} value is '{result2}' instead of '{Value2}'. " +
-					$"Debug info: Wait time was: {elapsedMilliseconds} ms. " +
-					$"Previous values: {nameof(result0)}='{result0}', {nameof(result1)}='{result1}'");
+				Assert.False(
+					true,
+					$"{nameof(result2)} value is '{result2}' instead of '{Value2}'. Debug info: Wait time was: {elapsedMilliseconds} ms. Previous values: {nameof(result0)}='{result0}', {nameof(result1)}='{result1}'");
 			}
 		}
 

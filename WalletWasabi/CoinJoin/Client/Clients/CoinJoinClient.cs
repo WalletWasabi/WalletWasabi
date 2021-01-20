@@ -972,7 +972,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			return result;
 		}
 
-		protected string SaltSoup()
+		protected string? SaltSoup()
 		{
 			if (!HasIngredients)
 			{

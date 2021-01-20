@@ -19,7 +19,7 @@ namespace WalletWasabi.Blockchain.P2p
 		{
 			if (inv.Type.HasFlag(InventoryType.MSG_TX))
 			{
-				if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry entry)) // If we have the transaction then adjust confirmation.
+				if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry? entry)) // If we have the transaction then adjust confirmation.
 				{
 					if (entry.NodeRemoteSocketEndpoint == remoteSocketEndpoint.ToString())
 					{

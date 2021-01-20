@@ -127,7 +127,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 				: null;
 		}
 
-		public static byte[] HandleGzipCompression(HttpContentHeaders contentHeaders, byte[] decodedBodyArray)
+		public static byte[]? HandleGzipCompression(HttpContentHeaders contentHeaders, byte[]? decodedBodyArray)
 		{
 			if (decodedBodyArray is null || !decodedBodyArray.Any())
 			{
@@ -153,7 +153,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			return decodedBodyArray;
 		}
 
-		public static async Task<byte[]> GetContentBytesAsync(Stream stream, HttpRequestContentHeaders headerStruct, CancellationToken ctsToken = default)
+		public static async Task<byte[]?> GetContentBytesAsync(Stream stream, HttpRequestContentHeaders headerStruct, CancellationToken ctsToken = default)
 		{
 			if (headerStruct.RequestHeaders is { } && headerStruct.RequestHeaders.Contains("Transfer-Encoding"))
 			{
@@ -197,7 +197,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			return GetDummyOrNullContentBytes(headerStruct.ContentHeaders);
 		}
 
-		public static async Task<byte[]> GetContentBytesAsync(Stream stream, HttpResponseContentHeaders headerStruct, HttpMethod requestMethod, StatusLine statusLine, CancellationToken ctsToken = default)
+		public static async Task<byte[]?> GetContentBytesAsync(Stream stream, HttpResponseContentHeaders headerStruct, HttpMethod requestMethod, StatusLine statusLine, CancellationToken ctsToken = default)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// The length of a message body is determined by one of the following
@@ -526,7 +526,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			}
 		}
 
-		public static byte[] GetDummyOrNullContentBytes(HttpContentHeaders contentHeaders)
+		public static byte[]? GetDummyOrNullContentBytes(HttpContentHeaders contentHeaders)
 		{
 			if (contentHeaders.NotNullAndNotEmpty())
 			{

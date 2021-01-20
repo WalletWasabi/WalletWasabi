@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using System.Reactive.Linq;
 using ReactiveUI;
@@ -60,7 +60,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		protected override void EditConfigOnSave(Config config)
 		{
-			if (EndPointParser.TryParse(TorSocks5EndPoint, Constants.DefaultTorSocksPort, out EndPoint torEp))
+			if (EndPointParser.TryParse(TorSocks5EndPoint, Constants.DefaultTorSocksPort, out EndPoint? torEp))
 			{
 				config.TorSocks5EndPoint = torEp;
 			}

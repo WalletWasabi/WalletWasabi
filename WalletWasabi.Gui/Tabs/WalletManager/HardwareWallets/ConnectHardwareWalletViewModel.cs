@@ -222,7 +222,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			LoadButtonText = text;
 		}
 
-		public async Task<KeyManager> LoadKeyManagerAsync()
+		public async Task<KeyManager?> LoadKeyManagerAsync()
 		{
 			try
 			{
