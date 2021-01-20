@@ -106,7 +106,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
 
 			using var client = MakeTorHttpClient(new Uri("http://172.217.6.142"));
-			var content = await (await client.SendAsync(HttpMethod.Get, "")).Content.ReadAsStringAsync(ctsTimeout.Token);
+			HttpResponseMessage httpResponseMessage = await client.SendAsync(HttpMethod.Get, relativeUri: "", content: null, ctsTimeout.Token);
+			string content = await httpResponseMessage.Content.ReadAsStringAsync(ctsTimeout.Token);
 
 			Assert.NotEmpty(content);
 		}

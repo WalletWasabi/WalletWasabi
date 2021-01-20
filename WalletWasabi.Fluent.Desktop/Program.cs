@@ -9,8 +9,8 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Gui;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
@@ -163,20 +163,15 @@ namespace WalletWasabi.Fluent.Desktop
 		/// </summary>
 		private static async Task TerminateApplicationAsync()
 		{
-			var mainViewModel = MainWindowViewModel.Instance;
-			if (mainViewModel is { })
+			if (MainViewModel.Instance is { } mainViewModel)
 			{
-				mainViewModel.Dispose();
+				mainViewModel.ClearStacks();
+				Logger.LogSoftwareStopped("Wasabi GUI");
 			}
 
 			if (Global is { } global)
 			{
 				await global.DisposeAsync().ConfigureAwait(false);
-			}
-
-			if (mainViewModel is { })
-			{
-				Logger.LogSoftwareStopped("Wasabi GUI");
 			}
 		}
 
