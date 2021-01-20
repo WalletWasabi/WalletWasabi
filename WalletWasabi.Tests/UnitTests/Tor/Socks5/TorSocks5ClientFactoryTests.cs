@@ -26,7 +26,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 		/// <item>Client sends an HTTP request to Tor SOCKS5.</item>
 		/// <item>Server verifies that the data received by the Tor SOCKS5 side is correct.</item>
 		/// <item>Server responds with <see cref="MethodField.NoAcceptableMethods"/> to the client's handshake.</item>
-		/// <item><see cref="TorAuthenticationException"/> is expected to be thrown on the client side.</item>
+		/// <item><see cref="NotSupportedException"/> is expected to be thrown on the client side.</item>
 		/// </list>
 		/// </summary>
 		[Fact]
@@ -85,7 +85,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				stream.Flush();
 
 				Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][server] Expecting exception.");
-				await Assert.ThrowsAsync<TorAuthenticationException>(async () => await clientTask.WithAwaitCancellationAsync(timeoutToken));
+				await Assert.ThrowsAsync<NotSupportedException>(async () => await clientTask.WithAwaitCancellationAsync(timeoutToken));
 			}
 			finally
 			{

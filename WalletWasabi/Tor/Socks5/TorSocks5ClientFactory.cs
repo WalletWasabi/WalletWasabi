@@ -54,7 +54,7 @@ namespace WalletWasabi.Tor.Socks5
 
 				return true;
 			}
-			catch (Exception e) when (e is TorConnectionException or TorAuthenticationException)
+			catch (Exception e) when (e is TorConnectionException)
 			{
 				return false;
 			}
@@ -161,7 +161,8 @@ namespace WalletWasabi.Tor.Socks5
 		/// <seealso href="https://www.torproject.org/docs/tor-manual.html.en"/>
 		/// <seealso href="https://linux.die.net/man/1/tor">For <c>IsolateSOCKSAuth</c> option explanation.</seealso>
 		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35"/>
-		/// <exception cref="TorAuthenticationException">When authentication fails due to unsupported authentication method or invalid credentials.</exception>
+		/// <exception cref="NotSupportedException">When authentication fails due to unsupported authentication method.</exception>
+		/// <exception cref="InvalidOperationException">When authentication fails due to invalid credentials.</exception>
 		private async Task HandshakeAsync(TcpClient tcpClient, bool isolateStream = false, CancellationToken cancellationToken = default)
 		{
 			// https://github.com/torproject/torspec/blob/master/socks-extensions.txt
@@ -183,14 +184,14 @@ namespace WalletWasabi.Tor.Socks5
 
 			if (methodSelection.Ver != VerField.Socks5)
 			{
-				throw new TorAuthenticationException($"SOCKS{methodSelection.Ver.Value} not supported. Only SOCKS5 is supported.");
+				throw new NotSupportedException($"SOCKS{methodSelection.Ver.Value} not supported. Only SOCKS5 is supported.");
 			}
 			else if (methodSelection.Method == MethodField.NoAcceptableMethods)
 			{
 				// https://www.ietf.org/rfc/rfc1928.txt
 				// If the selected METHOD is X'FF', none of the methods listed by the
 				// client are acceptable, and the client MUST close the connection.
-				throw new TorAuthenticationException("Tor's SOCKS5 proxy does not support any of the client's authentication methods.");
+				throw new NotSupportedException("Tor's SOCKS5 proxy does not support any of the client's authentication methods.");
 			}
 			else if (methodSelection.Method == MethodField.UsernamePassword)
 			{
@@ -212,7 +213,7 @@ namespace WalletWasabi.Tor.Socks5
 
 				if (userNamePasswordResponse.Ver != usernamePasswordRequest.Ver)
 				{
-					throw new TorAuthenticationException($"Authentication version {userNamePasswordResponse.Ver.Value} not supported. Only version {usernamePasswordRequest.Ver} is supported.");
+					throw new NotSupportedException($"Authentication version {userNamePasswordResponse.Ver.Value} not supported. Only version {usernamePasswordRequest.Ver} is supported.");
 				}
 
 				if (!userNamePasswordResponse.Status.IsSuccess()) // Tor authentication is different, this will never happen;
@@ -221,7 +222,7 @@ namespace WalletWasabi.Tor.Socks5
 					// A STATUS field of X'00' indicates success. If the server returns a
 					// `failure' (STATUS value other than X'00') status, it MUST close the
 					// connection.
-					throw new TorAuthenticationException("Wrong username and/or password.");
+					throw new InvalidOperationException("Wrong username and/or password.");
 				}
 			}
 		}
