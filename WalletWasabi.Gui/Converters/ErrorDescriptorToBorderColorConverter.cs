@@ -10,7 +10,7 @@ namespace WalletWasabi.Gui.Converters
 {
 	public class ErrorDescriptorToBorderColorConverter : IValueConverter
 	{
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			var descriptors = ErrorDescriptors.Create();
 
@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui.Converters
 			return GetColorFromDescriptors(descriptors);
 		}
 
-		private SolidColorBrush GetColorFromDescriptors(ErrorDescriptors descriptors)
+		private SolidColorBrush? GetColorFromDescriptors(ErrorDescriptors descriptors)
 		{
 			if (!descriptors.Any())
 			{
@@ -48,7 +48,7 @@ namespace WalletWasabi.Gui.Converters
 			}
 		}
 
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			return null;
 		}

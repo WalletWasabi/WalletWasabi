@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Reactive.Linq;
@@ -99,7 +99,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		{
 			if (Network == config.Network)
 			{
-				if (EndPointParser.TryParse(BitcoinP2PEndPoint, Network.DefaultPort, out EndPoint p2PEp))
+				if (EndPointParser.TryParse(BitcoinP2PEndPoint, Network.DefaultPort, out EndPoint? p2PEp))
 				{
 					config.SetP2PEndpoint(p2PEp);
 				}

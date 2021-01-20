@@ -93,6 +93,12 @@ namespace WalletWasabi.Wallets
 		public IBlockProvider BlockProvider { get; private set; }
 		private AsyncLock HandleFiltersLock { get; }
 
+		public bool IsLoggedIn { get; private set; }
+
+		public void Login() => IsLoggedIn = true;
+		
+		public void Logout() => IsLoggedIn = false;
+
 		public void RegisterServices(
 			BitcoinStore bitcoinStore,
 			WasabiSynchronizer syncer,

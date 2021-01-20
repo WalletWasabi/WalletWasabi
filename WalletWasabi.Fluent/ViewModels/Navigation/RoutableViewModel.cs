@@ -1,5 +1,7 @@
 using System;
+using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
@@ -69,19 +71,13 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		public INavigationStack<RoutableViewModel> Navigate(NavigationTarget currentTarget)
 		{
-			switch (currentTarget)
+			return currentTarget switch
 			{
-				case NavigationTarget.HomeScreen:
-					return NavigationState.Instance.HomeScreenNavigation;
-
-				case NavigationTarget.DialogScreen:
-					return NavigationState.Instance.DialogScreenNavigation;
-
-				case NavigationTarget.FullScreen:
-					return NavigationState.Instance.FullScreenNavigation;
-			}
-
-			throw new NotSupportedException();
+				NavigationTarget.HomeScreen => NavigationState.Instance.HomeScreenNavigation,
+				NavigationTarget.DialogScreen => NavigationState.Instance.DialogScreenNavigation,
+				NavigationTarget.FullScreen => NavigationState.Instance.FullScreenNavigation,
+				_ => throw new NotSupportedException(),
+			};
 		}
 
 		public void OnNavigatedTo(bool isInHistory)
@@ -96,6 +92,17 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		protected virtual void OnNavigatedFrom()
 		{
+		}
+
+		protected void EnableAutoBusyOn(params ICommand[] commands)
+		{
+			foreach (var command in commands)
+			{
+				(command as IReactiveCommand)?.IsExecuting
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Skip(1)
+					.Subscribe(x => IsBusy = x);
+			}
 		}
 
 		public async Task<DialogResult<TResult>> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog)

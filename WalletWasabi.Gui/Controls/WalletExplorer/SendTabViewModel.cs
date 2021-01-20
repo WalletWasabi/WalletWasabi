@@ -60,7 +60,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
 					}
-					catch (HwiException)
+					catch (HwiException ex) when (ex.ErrorCode is not HwiErrorCode.ActionCanceled)
 					{
 						await PinPadViewModel.UnlockAsync();
 						signedPsbt = await client.SignTxAsync(Wallet.KeyManager.MasterFingerprint.Value, result.Psbt, cts.Token);
@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ResetUi();
 		}
 
-		private IPayjoinClient GetPayjoinClient()
+		private IPayjoinClient? GetPayjoinClient()
 		{
 			if (!string.IsNullOrWhiteSpace(PayjoinEndPoint) &&
 				Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))

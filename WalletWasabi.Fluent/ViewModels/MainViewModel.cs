@@ -15,6 +15,7 @@ using WalletWasabi.Fluent.ViewModels.Search;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
+using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 
 namespace WalletWasabi.Fluent.ViewModels
@@ -119,6 +120,13 @@ namespace WalletWasabi.Fluent.ViewModels
 		public static MainViewModel? Instance { get; internal set; }
 
 		private Network Network { get; }
+
+		public void ClearStacks()
+		{
+			MainScreen.Clear();
+			DialogScreen.Clear();
+			FullScreen.Clear();
+		}
 
 		public void Initialize()
 		{
