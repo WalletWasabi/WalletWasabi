@@ -1,8 +1,8 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Hwi;
@@ -13,33 +13,36 @@ using Timer = System.Timers.Timer;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
-	public class HardwareWalletOperations : IDisposable
+	public class HardwareWalletOperations : IAsyncDisposable
 	{
 		public event EventHandler<HwiEnumerateEntry[]>? DetectionCompleted;
+		public event EventHandler? PassphraseNeeded;
 
 		public HardwareWalletOperations(WalletManager walletManager)
 		{
 			WalletManager = walletManager;
 			Client = new HwiClient(WalletManager.Network);
 			DisposeCts = new CancellationTokenSource();
-			PassphraseTimer = new Timer(8000) {AutoReset = false};
 		}
 
 		public WalletManager WalletManager { get; }
 
 		public HwiClient Client { get; }
 
-		private CancellationTokenSource? DetectionCts { get; set; }
-
 		private CancellationTokenSource DisposeCts { get; }
 
 		public Task? DetectionTask { get; set; }
 
-		public Timer PassphraseTimer { get; }
+		public Task? InitTask { get; set; }
 
 		private void OnDetectionCompleted(HwiEnumerateEntry[] wallets)
 		{
 			DetectionCompleted?.Invoke(this, wallets);
+		}
+
+		private void OnPassphraseNeeded(object sender, ElapsedEventArgs e)
+		{
+			PassphraseNeeded?.Invoke(this, EventArgs.Empty);
 		}
 
 		public async Task<KeyManager> GenerateWalletAsync(string walletName, HwiEnumerateEntry device)
@@ -61,7 +64,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, path);
 		}
 
-		public async Task InitHardwareWalletAsync(HwiEnumerateEntry device)
+		public void InitHardwareWallet(HwiEnumerateEntry device)
+		{
+			InitTask = InitHardwareWalletAsync(device);
+		}
+
+		private async Task InitHardwareWalletAsync(HwiEnumerateEntry device)
 		{
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(21));
 			using var initCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, DisposeCts.Token);
@@ -79,37 +87,28 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			}
 		}
 
-		public async Task StopDetectionAsync()
-		{
-			if (DetectionTask is { } task && DetectionCts is { } cts)
-			{
-				cts.Cancel();
-				await task;
-			}
-		}
-
 		public void StartDetection()
 		{
-			if (DisposeCts is { } cts)
-			{
-				DetectionCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token);
-				DetectionTask = HardwareWalletDetectionAsync(DetectionCts);
-			}
+			DetectionTask = RunDetectionAsync();
 		}
 
-		protected async Task HardwareWalletDetectionAsync(CancellationTokenSource detectionCts)
+		protected async Task RunDetectionAsync()
 		{
+			using var passphraseTimer = new Timer(8000) {AutoReset = false};
+			passphraseTimer.Elapsed += OnPassphraseNeeded;
+
 			try
 			{
-				using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+				using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, DisposeCts.Token);
 
-				PassphraseTimer.Start();
+				passphraseTimer.Start();
 				var detectedHardwareWallets =
 					(await Client.EnumerateAsync(timeoutCts.Token)
 						.ConfigureAwait(false))
 						.ToArray();
 
-				detectionCts.Token.ThrowIfCancellationRequested();
+				DisposeCts.Token.ThrowIfCancellationRequested();
 
 				OnDetectionCompleted(detectedHardwareWallets);
 			}
@@ -122,21 +121,27 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			}
 			finally
 			{
-				PassphraseTimer.Stop();
+				passphraseTimer.Stop();
 			}
 		}
 
-		public void Dispose()
+		public async ValueTask DisposeAsync()
 		{
-			Task.Run(async () =>
+			if (DetectionTask is { } detectionTask)
 			{
-				await StopDetectionAsync();
+				DisposeCts.Cancel();
+				await detectionTask;
+				detectionTask.Dispose();
+			}
 
-				DisposeCts.Dispose();
-				DetectionCts?.Dispose();
-				DetectionTask?.Dispose();
-				PassphraseTimer.Dispose();
-			});
+			if (InitTask is { } initTask)
+			{
+				DisposeCts.Cancel();
+				await initTask;
+				initTask.Dispose();
+			}
+
+			DisposeCts.Dispose();
 		}
 	}
 }

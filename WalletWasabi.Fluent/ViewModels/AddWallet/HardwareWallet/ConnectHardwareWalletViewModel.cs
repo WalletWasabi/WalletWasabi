@@ -1,9 +1,8 @@
+using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
-using System.Threading.Tasks;
-using System.Timers;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
@@ -55,7 +54,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public WalletViewModelBase? ExistingWallet { get; set; }
 
-		public HardwareWalletOperations HardwareWalletOperations { get; set; }
+		public HardwareWalletOperations? HardwareWalletOperations { get; set; }
 
 		public ICommand OpenBrowserCommand { get; }
 
@@ -63,13 +62,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		private void RunDetection()
 		{
+			if (HardwareWalletOperations is null)
+			{
+				return;
+			}
+
 			IsSearching = true;
 			ExistingWalletFound = false;
 			Message = "";
 			HardwareWalletOperations.StartDetection();
 		}
 
-		private void OnPassphraseNeeded(object sender, ElapsedEventArgs e)
+		private void OnPassphraseNeeded(object? sender, EventArgs e)
 		{
 			IsSearching = false;
 			Message = "Check your device and enter your passphrase.";
@@ -77,6 +81,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		private void OnDetectionCompleted(object? sender, HwiEnumerateEntry[] devices)
 		{
+			if (HardwareWalletOperations is null)
+			{
+				return;
+			}
+
 			IsSearching = false;
 
 			if (devices.Length == 0)
@@ -110,7 +119,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				else
 				{
 					Message = "Check your device and finish the initialization.";
-					Task.Run(() => HardwareWalletOperations.InitHardwareWalletAsync(device));
+					HardwareWalletOperations.InitHardwareWallet(device);
 				}
 
 				return;
@@ -143,15 +152,15 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			HardwareWalletOperations = new HardwareWalletOperations(WalletManager);
 			HardwareWalletOperations.DetectionCompleted += OnDetectionCompleted;
-			HardwareWalletOperations.PassphraseTimer.Elapsed += OnPassphraseNeeded;
+			HardwareWalletOperations.PassphraseNeeded += OnPassphraseNeeded;
 
 			RunDetection();
 
-			Disposable.Create(() =>
+			Disposable.Create(async () =>
 			{
 				HardwareWalletOperations.DetectionCompleted -= OnDetectionCompleted;
-				HardwareWalletOperations.PassphraseTimer.Elapsed -= OnPassphraseNeeded;
-				HardwareWalletOperations.Dispose();
+				HardwareWalletOperations.PassphraseNeeded -= OnPassphraseNeeded;
+				await HardwareWalletOperations.DisposeAsync();
 			})
 			.DisposeWith(disposable);
 		}
