@@ -22,13 +22,13 @@ namespace WalletWasabi.Tests.UnitTests
 
 			Directory.CreateDirectory(legalDir);
 
-			var res = await LegalDocuments.TryLoadAgreedAsync(legalDir);
+			var res = await LegalDocuments.LoadAgreedAsync(legalDir);
 			Assert.Null(res);
 
 			// Leaves one trash alone.
 			var trash1 = File.Create(Path.Combine(legalDir, "foo"));
 			await trash1.DisposeAsync();
-			res = await LegalDocuments.TryLoadAgreedAsync(legalDir);
+			res = await LegalDocuments.LoadAgreedAsync(legalDir);
 			Assert.Null(res);
 			Assert.Single(Directory.GetFiles(legalDir));
 			Assert.Empty(Directory.GetDirectories(legalDir));
@@ -38,7 +38,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var trash3 = File.Create(Path.Combine(legalDir, "foo2"));
 			await trash2.DisposeAsync();
 			await trash3.DisposeAsync();
-			res = await LegalDocuments.TryLoadAgreedAsync(legalDir);
+			res = await LegalDocuments.LoadAgreedAsync(legalDir);
 			Assert.Null(res);
 			Assert.Equal(3, Directory.GetFiles(legalDir).Length);
 			Assert.Empty(Directory.GetDirectories(legalDir));
@@ -55,7 +55,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			Directory.CreateDirectory(legalDir);
 
-			var res = await LegalDocuments.TryLoadAgreedAsync(legalDir);
+			var res = await LegalDocuments.LoadAgreedAsync(legalDir);
 			Assert.Null(res);
 
 			// Deletes them if multiple legal docs found.
@@ -63,7 +63,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var candidate2 = File.Create(Path.Combine(legalDir, "1.2.txt"));
 			await candidate1.DisposeAsync();
 			await candidate2.DisposeAsync();
-			res = await LegalDocuments.TryLoadAgreedAsync(legalDir);
+			res = await LegalDocuments.LoadAgreedAsync(legalDir);
 			Assert.Null(res);
 			Assert.Empty(Directory.GetFiles(legalDir));
 			Assert.Empty(Directory.GetDirectories(legalDir));
@@ -75,7 +75,7 @@ namespace WalletWasabi.Tests.UnitTests
 			await trash.DisposeAsync();
 			await candidate1.DisposeAsync();
 			await candidate2.DisposeAsync();
-			res = await LegalDocuments.TryLoadAgreedAsync(legalDir);
+			res = await LegalDocuments.LoadAgreedAsync(legalDir);
 			Assert.Null(res);
 			Assert.Single(Directory.GetFiles(legalDir));
 			Assert.Empty(Directory.GetDirectories(legalDir));
@@ -92,7 +92,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			Directory.CreateDirectory(legalDir);
 
-			var res = await LegalDocuments.TryLoadAgreedAsync(legalDir);
+			var res = await LegalDocuments.LoadAgreedAsync(legalDir);
 			Assert.Null(res);
 
 			var version = new Version(1, 1);
@@ -100,7 +100,7 @@ namespace WalletWasabi.Tests.UnitTests
 			// Deletes them if multiple legal docs found.
 			var candidate = File.Create(Path.Combine(legalDir, $"{version}.txt"));
 			await candidate.DisposeAsync();
-			res = await LegalDocuments.TryLoadAgreedAsync(legalDir);
+			res = await LegalDocuments.LoadAgreedAsync(legalDir);
 			Assert.NotNull(res);
 			Assert.Single(Directory.GetFiles(legalDir));
 			Assert.Empty(Directory.GetDirectories(legalDir));
