@@ -422,7 +422,7 @@ namespace WalletWasabi.Gui
 				{
 					bestEffortEndPointConnector.UpdateConnectedNodesCounter(nodesCollection.Count);
 				}
-			} 
+			}
 		}
 
 		private void WalletManager_OnDequeue(object? sender, DequeueResult e)

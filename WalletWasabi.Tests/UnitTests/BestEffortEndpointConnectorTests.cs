@@ -36,7 +36,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal("The Endpoint connector is configured to allow only Tor endpoints and the '127.0.0.1:180' enpoint is not one", ex.Message);
 			Assert.Equal(BestEffortEndpointConnector.ConnectionMode.OnionServiceOnly, connector.State.Mode);
 
-			// Try to connect to an onion address (it has to fail because there is no a real socks proxy listening).
+			// Try to connect to an onion address (it has to fail because there is no real socks proxy listening).
 			ex = await Assert.ThrowsAnyAsync<SocketException>(
 				async () => await ConnectAsync(new DnsEndPoint("nec4kn4ghql7p7an.onion", 80)));
 			Assert.Contains("refused", ex.Message);
