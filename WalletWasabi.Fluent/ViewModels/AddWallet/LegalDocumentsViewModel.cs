@@ -37,29 +37,34 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.FromEventPattern<LegalDocuments>(LegalChecker, nameof(LegalChecker.ProvisionalChanged))
 				.Select(x => x.EventArgs)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(legalDocuments => Content = legalDocuments.Content)
+				.Subscribe(legalDocuments => UpdateContent(legalDocuments))
 				.DisposeWith(disposable);
 
 			Observable
 				.FromEventPattern<LegalDocuments>(LegalChecker, nameof(LegalChecker.AgreedChanged))
 				.Select(x => x.EventArgs)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(legalDocuments => Content = legalDocuments.Content)
+				.Subscribe(legalDocuments => UpdateContent(legalDocuments))
 				.DisposeWith(disposable);
 
 			if (LegalChecker.TryGetNewLegalDocs(out LegalDocuments? provisional))
 			{
-				Content = provisional.Content;
+				UpdateContent(provisional);
 			}
 			else if (LegalChecker.CurrentLegalDocument is { } current)
 			{
-				Content = current.Content;
+				UpdateContent(current);
 			}
 			else
 			{
 				//TODO: display busy logic.
 				Content = "Loading...";
 			}
+		}
+
+		private void UpdateContent(LegalDocuments legalDocuments)
+		{
+			Content = legalDocuments.Content;
 		}
 	}
 }
