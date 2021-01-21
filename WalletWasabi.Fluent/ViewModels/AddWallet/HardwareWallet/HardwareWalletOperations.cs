@@ -49,7 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			if (device.Fingerprint is null)
 			{
-				throw new Exception("Cannot be null.");
+				throw new Exception("Fingerprint cannot be null.");
 			}
 
 			var fingerPrint = (HDFingerprint) device.Fingerprint;
@@ -89,6 +89,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public void StartDetection()
 		{
+			if (DetectionTask?.Status == TaskStatus.WaitingForActivation)
+			{
+				return;
+			}
+
 			DetectionTask = RunDetectionAsync();
 		}
 
