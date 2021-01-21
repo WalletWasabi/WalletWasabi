@@ -56,6 +56,7 @@ namespace WalletWasabi.Legal
 			{
 				return Enumerable.Empty<string>();
 			}
+
 			return Directory
 				.EnumerateFiles(folderPath, "*.txt", SearchOption.TopDirectoryOnly)
 				.Where(x => Version.TryParse(Path.GetFileNameWithoutExtension(x), out _));
@@ -80,6 +81,7 @@ namespace WalletWasabi.Legal
 			folderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(folderPath), folderPath);
 			IoHelpers.EnsureDirectoryExists(folderPath);
 			var filePath = Path.Combine(folderPath, $"{Version}.txt");
+
 			if (filePath is null)
 			{
 				throw new InvalidOperationException($"Invalid {nameof(folderPath)}.");

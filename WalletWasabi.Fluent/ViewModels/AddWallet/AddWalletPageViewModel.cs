@@ -39,7 +39,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		[AutoNotify] private bool _enableCancel;
 
 		public AddWalletPageViewModel(
-			LegalDocuments legalDocuments,
 			WalletManager walletManager,
 			BitcoinStore store,
 			Network network)
