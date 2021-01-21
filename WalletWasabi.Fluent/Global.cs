@@ -26,7 +26,6 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Extensions;
-using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Rpc;
 using WalletWasabi.Helpers;
@@ -456,7 +455,7 @@ namespace WalletWasabi.Gui
 						var type = reason == DequeueReason.UserRequested ? NotificationType.Information : NotificationType.Warning;
 						var message = reason == DequeueReason.UserRequested ? "" : reason.FriendlyName();
 						var title = success.Value.Count() == 1 ? $"Coin ({success.Value.First().Amount.ToString(false, true)}) Dequeued" : $"{success.Value.Count()} Coins Dequeued";
-						NotificationHelpers.Notify(message, title, type, sender: sender);
+						//TODO: NotificationHelpers.Notify(message, title, type, sender: sender);
 					}
 				}
 
@@ -466,7 +465,7 @@ namespace WalletWasabi.Gui
 					var type = NotificationType.Warning;
 					var message = reason.FriendlyName();
 					var title = failure.Value.Count() == 1 ? $"Couldn't Dequeue Coin ({failure.Value.First().Amount.ToString(false, true)})" : $"Couldn't Dequeue {failure.Value.Count()} Coins";
-					NotificationHelpers.Notify(message, title, type, sender: sender);
+					//TODO: NotificationHelpers.Notify(message, title, type, sender: sender);
 				}
 			}
 			catch (Exception ex)
@@ -576,7 +575,7 @@ namespace WalletWasabi.Gui
 		{
 			message = Guard.Correct(message);
 			title = Guard.Correct(title);
-			NotificationHelpers.Notify(message, title, notificationType, async () => await FileHelpers.OpenFileInTextEditorAsync(Logger.FilePath).ConfigureAwait(false), sender);
+			//TODO NotificationHelpers.Notify(message, title, notificationType, async () => await FileHelpers.OpenFileInTextEditorAsync(Logger.FilePath).ConfigureAwait(false), sender);
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
 		}
 

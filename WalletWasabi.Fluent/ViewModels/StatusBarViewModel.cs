@@ -1,5 +1,3 @@
-using AvalonStudio.Extensibility;
-using AvalonStudio.Shell;
 using NBitcoin;
 using NBitcoin.Protocol;
 using ReactiveUI;
@@ -14,10 +12,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Gui.Dialogs;
-using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models.StatusBarStatuses;
-using WalletWasabi.Gui.Tabs;
 using WalletWasabi.Helpers;
 using WalletWasabi.Legal;
 using WalletWasabi.Logging;
@@ -368,14 +363,11 @@ namespace WalletWasabi.Gui.ViewModels
 								var legalFolderPath = Path.Combine(DataDir, LegalDocuments.LegalFolderName);
 								var filePath = Path.Combine(legalFolderPath, $"{version}.txt");
 								var legalContent = await client.GetLegalDocumentsAsync(CancellationToken.None);
-
-								MainWindowViewModel.Instance.PushLockScreen(new LegalDocumentsViewModel(legalContent, new LegalDocuments(filePath)));
 							}
 						}
 						catch (Exception ex)
 						{
 							Logger.LogError(ex);
-							NotificationHelpers.Error($"Could not get Legal Documents!{(ex.InnerException is TorConnectionException ? " Backend not connected. Check your internet connection!" : "")}");
 						}
 						finally
 						{
@@ -393,7 +385,6 @@ namespace WalletWasabi.Gui.ViewModels
 				catch (Exception ex)
 				{
 					Logger.LogWarning(ex);
-					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 				}
 			}, this.WhenAnyValue(x => x.UpdateAvailable, x => x.CriticalUpdateAvailable, (x, y) => x || y));
 
@@ -406,49 +397,50 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void OnResponseArrivedIsGenSocksServFail(bool isGenSocksServFail)
 		{
-			if (MainWindowViewModel.Instance is null)
-			{
-				return;
-			}
+			//TODO:
+			//if (MainWindowViewModel.Instance is null)
+			//{
+			//	return;
+			//}
 
-			if (isGenSocksServFail)
-			{
-				// Is close band present?
-				if (MainWindowViewModel.Instance.ModalDialog is { })
-				{
-					// Do nothing.
-				}
-				else
-				{
-					// Show GenSocksServFail dialog on OS-es we suspect Tor is outdated.
-					var osDesc = RuntimeInformation.OSDescription;
-					if (osDesc.Contains("16.04.1-Ubuntu", StringComparison.InvariantCultureIgnoreCase)
-						|| osDesc.Contains("16.04.0-Ubuntu", StringComparison.InvariantCultureIgnoreCase))
-					{
-						MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter().GetResult();
-					}
-				}
-			}
-			else
-			{
-				// Is close band present?
-				if (MainWindowViewModel.Instance.ModalDialog is { })
-				{
-					// Is it GenSocksServFail dialog?
-					if (MainWindowViewModel.Instance.ModalDialog is GenSocksServFailDialogViewModel)
-					{
-						MainWindowViewModel.Instance.ModalDialog.Close(true);
-					}
-					else
-					{
-						// Do nothing.
-					}
-				}
-				else
-				{
-					// Do nothing.
-				}
-			}
+			//if (isGenSocksServFail)
+			//{
+			//	// Is close band present?
+			//	if (MainWindowViewModel.Instance.ModalDialog is { })
+			//	{
+			//		// Do nothing.
+			//	}
+			//	else
+			//	{
+			//		// Show GenSocksServFail dialog on OS-es we suspect Tor is outdated.
+			//		var osDesc = RuntimeInformation.OSDescription;
+			//		if (osDesc.Contains("16.04.1-Ubuntu", StringComparison.InvariantCultureIgnoreCase)
+			//			|| osDesc.Contains("16.04.0-Ubuntu", StringComparison.InvariantCultureIgnoreCase))
+			//		{
+			//			MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter().GetResult();
+			//		}
+			//	}
+			//}
+			//else
+			//{
+			//	// Is close band present?
+			//	if (MainWindowViewModel.Instance.ModalDialog is { })
+			//	{
+			//		// Is it GenSocksServFail dialog?
+			//		if (MainWindowViewModel.Instance.ModalDialog is GenSocksServFailDialogViewModel)
+			//		{
+			//			MainWindowViewModel.Instance.ModalDialog.Close(true);
+			//		}
+			//		else
+			//		{
+			//			// Do nothing.
+			//		}
+			//	}
+			//	else
+			//	{
+			//		// Do nothing.
+			//	}
+			//}
 		}
 
 		public void TryAddStatus(StatusType status, ushort percentage = 0)

@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 
 			if (updateWith is { })
 			{
-				Dispatcher.UIThread.PostLogException(() => CurrentStatus = updateWith);
+				//TODO: Dispatcher.UIThread.PostLogException(() => CurrentStatus = updateWith);
 			}
 		}
 	}

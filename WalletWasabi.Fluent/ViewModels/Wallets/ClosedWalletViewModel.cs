@@ -39,7 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					}
 					catch (Exception ex)
 					{
-						NotificationHelpers.Error($"Couldn't load wallet. Reason: {ex.ToUserFriendlyString()}", sender: wallet);
+						//TODO NotificationHelpers.Error($"Couldn't load wallet. Reason: {ex.ToUserFriendlyString()}", sender: wallet);
 						Logger.LogError(ex);
 					}
 				},

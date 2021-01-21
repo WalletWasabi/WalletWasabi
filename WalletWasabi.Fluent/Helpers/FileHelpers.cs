@@ -61,7 +61,7 @@ namespace WalletWasabi.Gui.Helpers
 			}
 			else
 			{
-				NotificationHelpers.Error("File not found.");
+				//TODO NotificationHelpers.Error("File not found.");
 			}
 		}
 	}
