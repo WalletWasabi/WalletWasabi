@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 						return;
 					}
 
-					Navigate().To(new ReceiveAddressViewModel(selected, wallet.Network, wallet.KeyManager.MasterFingerprint, wallet.KeyManager.IsHardwareWallet));
+					Navigate().To(new ReceiveAddressViewModel(selected, wallet.Network, wallet.KeyManager.MasterFingerprint, wallet.KeyManager.IsHardwareWallet, null));
 					SelectedAddress = null;
 				});
 		}
@@ -61,7 +61,6 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 				IEnumerable<HdPubKey> keys = Wallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
 				foreach (HdPubKey key in keys)
 				{
-					// addresses.Add(new AddressViewModel(key, Wallet.KeyManager, this));
 					Addresses.Add(key);
 				}
 			}

@@ -18,14 +18,16 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 	{
 		[AutoNotify] private bool _animationTrigger;
 		[AutoNotify] private string _actionText;
+		[AutoNotify] private string? _gapLimitMessage;
 
-		public ReceiveAddressViewModel(HdPubKey model, Network network, HDFingerprint? masterFingerprint, bool isHardwareWallet)
+		public ReceiveAddressViewModel(HdPubKey model, Network network, HDFingerprint? masterFingerprint, bool isHardwareWallet, string? minGapLimitMessage)
 		{
 			Title = "Address";
 			Address = model.GetP2wpkhAddress(network).ToString();
 			Reference = model.Label;
 			IsHardwareWallet = isHardwareWallet;
 			_actionText = "";
+			_gapLimitMessage = minGapLimitMessage;
 
 			GenerateQrCode();
 

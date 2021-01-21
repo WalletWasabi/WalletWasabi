@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
 using Splat;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui;
 using WalletWasabi.Wallets;
@@ -13,11 +15,14 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 {
 	public partial class ReceiveViewModel : NavBarItemViewModel
 	{
+		public Wallet Wallet { get; }
 		[AutoNotify] private string _reference;
 		[AutoNotify] private HashSet<string> _suggestions;
+		[AutoNotify] private bool _isExistingAddressesButtonVisible;
 
 		public ReceiveViewModel(WalletManager walletManager, Wallet wallet)
 		{
+			Wallet = wallet;
 			Title = "Receive";
 			_reference = "";
 			_suggestions = GetLabels(walletManager);
@@ -31,15 +36,16 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 			() =>
 			{
 				var newKey = wallet.KeyManager.GetNextReceiveKey(Reference, out bool minGapLimitIncreased);
-				if (minGapLimitIncreased)
+
+				string? minGapLimitMessage = default;
+				if (minGapLimitIncreased || true)
 				{
 					int minGapLimit = wallet.KeyManager.MinGapLimit.Value;
 					int prevMinGapLimit = minGapLimit - 1;
-					//TODO: Notify the user
-					// NotificationHelpers.Warning($"{nameof(KeyManager.MinGapLimit)} increased from {prevMinGapLimit} to {minGapLimit}.");
+					minGapLimitMessage = $"Minimum gap limit increased from {prevMinGapLimit} to {minGapLimit}.";
 				}
 
-				Navigate().To(new ReceiveAddressViewModel(newKey, wallet.Network, wallet.KeyManager.MasterFingerprint, wallet.KeyManager.IsHardwareWallet));
+				Navigate().To(new ReceiveAddressViewModel(newKey, wallet.Network, wallet.KeyManager.MasterFingerprint, wallet.KeyManager.IsHardwareWallet, minGapLimitMessage));
 			},
 			nextCommandCanExecute);
 
@@ -47,6 +53,13 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 		}
 
 		public ICommand ShowExistingAddressesCommand { get; }
+
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		{
+			base.OnNavigatedTo(inStack, disposable);
+
+			IsExistingAddressesButtonVisible = Wallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
+		}
 
 		private HashSet<string> GetLabels(WalletManager walletManager)
 		{

@@ -76,11 +76,14 @@
             </i:Interaction.Behaviors>
           </TextBlock>
         </DockPanel>
-        <TextBlock Text="{Binding Reference}" FontSize="{StaticResource FontSizeH2}" Opacity="0.6" />
+        <TextBlock Text="{Binding Reference}" FontSize="{StaticResource FontSizeH2}" Margin="200 0" Opacity="0.6" />
       </StackPanel>
+
+
       <Viewbox MaxHeight="250" HorizontalAlignment="Center" VerticalAlignment="Center">
         <controls:QrCode Height="250" Matrix="{Binding QrCode}" />
       </Viewbox>
+
     </DockPanel>
   </c:ContentArea>
 </UserControl>
