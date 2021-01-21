@@ -70,7 +70,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			_walletManager = new WalletManagerViewModel(global.WalletManager, global.UiConfig);
 
 			_addWalletPage = new AddWalletPageViewModel(
-				global.LegalDocuments,
 				global.WalletManager,
 				global.BitcoinStore,
 				global.Network);
