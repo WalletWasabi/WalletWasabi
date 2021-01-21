@@ -53,7 +53,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		public void SyntheticNoncesTest()
 		{
 			var protocol = Encoding.UTF8.GetBytes("test TranscriptRng collisions");
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 
 			var commitment1 = new[] { Generators.Gx0 };
 			var commitment2 = new[] { Generators.Gx1 };
@@ -151,7 +151,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		{
 			var protocol = Encoding.UTF8.GetBytes("witness size");
 
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 
 			var witness = new Scalar[size];
 
@@ -168,7 +168,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		{
 			var protocol = Encoding.UTF8.GetBytes("empty witness not allowed");
 
-			var rnd = new SecureRandom();
+			using var rnd = new SecureRandom();
 
 			var transcript = new Transcript(protocol);
 

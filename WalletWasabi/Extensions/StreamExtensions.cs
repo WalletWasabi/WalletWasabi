@@ -6,13 +6,19 @@ namespace System.IO
 {
 	public static class StreamExtensions
 	{
-		public static async Task<int> ReadByteAsync(this Stream stream, CancellationToken ctsToken = default)
+		/// <summary>
+		/// Reads a single byte from <paramref name="stream"/>.
+		/// </summary>
+		/// <param name="stream">Stream to read from.</param>
+		/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
+		/// <returns><c>-1</c> when no byte could be read, otherwise valid byte value (cast <see cref="int"/> result to <see cref="byte"/>).</returns>
+		public static async Task<int> ReadByteAsync(this Stream stream, CancellationToken cancellationToken = default)
 		{
 			ArrayPool<byte> pool = ArrayPool<byte>.Shared;
 			byte[] buffer = pool.Rent(1);
 			try
 			{
-				int len = await stream.ReadAsync(buffer.AsMemory(0, 1), ctsToken).ConfigureAwait(false);
+				int len = await stream.ReadAsync(buffer.AsMemory(0, 1), cancellationToken).ConfigureAwait(false);
 
 				// End of stream.
 				if (len == 0)

@@ -27,7 +27,7 @@ namespace WalletWasabi.WebClients.PayJoin
 		public Uri PaymentUrl { get; }
 		private IRelativeHttpClient TorHttpClient { get; }
 
-		public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey changeHdPubKey, CancellationToken cancellationToken)
+		public async Task<PSBT?> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey changeHdPubKey, CancellationToken cancellationToken)
 		{
 			Guard.NotNull(nameof(originalTx), originalTx);
 			if (originalTx.IsAllFinalized())

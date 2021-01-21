@@ -173,11 +173,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				{
 					return;
 				}
-				catch (TorConnectionException) // If some internet connection issue then it'll likely time out and take it as unconfirmed.
-				{
-					return;
-				}
-				catch (TorConnectCommandFailedException) // If some Tor connection issue then it'll likely time out and take it as unconfirmed.
+				catch (HttpRequestException ex) when (ex.InnerException is TorException) // If some Tor connection issue then it'll likely time out and take it as unconfirmed.
 				{
 					return;
 				}

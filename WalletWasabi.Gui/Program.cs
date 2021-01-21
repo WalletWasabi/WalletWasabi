@@ -11,7 +11,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -34,7 +33,6 @@ namespace WalletWasabi.Gui
 		/// see https://github.com/AvaloniaUI/Avalonia/wiki/Unresolved-platform-support-issues
 		private static void Main(string[] args)
 		{
-			bool runGui = false;
 			Exception? appException = null;
 
 			try
@@ -46,13 +44,8 @@ namespace WalletWasabi.Gui
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				runGui = ProcessCliCommands(args);
-
-				if (runGui)
-				{
-					Logger.LogSoftwareStarted("Wasabi GUI");
-					BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
-				}
+				Logger.LogSoftwareStarted("Wasabi GUI");
+				BuildAvaloniaApp().StartShellApp("Wasabi Wallet", AppMainAsync, args);
 			}
 			catch (Exception ex)
 			{
@@ -75,17 +68,9 @@ namespace WalletWasabi.Gui
 			config.CorrectMixUntilAnonymitySet();
 			var walletManager = new WalletManager(config.Network, dataDir, new WalletDirectories(config.Network, dataDir));
 
-			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
-		}
+			Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"));
 
-		private static bool ProcessCliCommands(string[] args)
-		{
-			var daemon = new Daemon(Global, TerminateService);
-			var interpreter = new CommandInterpreter(Console.Out, Console.Error);
-			var executionTask = interpreter.ExecuteCommandsAsync(
-				args,
-				new MixerCommand(daemon));
-			return executionTask.GetAwaiter().GetResult();
+			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
 		}
 
 		private static void SetTheme() => AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);

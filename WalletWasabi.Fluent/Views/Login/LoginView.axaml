@@ -20,13 +20,13 @@
                VerticalAlignment="Center"
                LastChildFill="True">
       <DockPanel.Styles>
-        <Style Selector="StackPanel.fadeAnimation[IsVisible=true]">
+        <Style Selector=":is(Panel).fadeAnimation[IsVisible=true]">
           <Setter Property="Opacity" Value="1"/>
         </Style>
-        <Style Selector="StackPanel.fadeAnimation[IsVisible=False]">
+        <Style Selector=":is(Panel).fadeAnimation[IsVisible=False]">
           <Setter Property="Opacity" Value="0"/>
         </Style>
-        <Style Selector="StackPanel.fadeAnimation">
+        <Style Selector=":is(Panel).fadeAnimation">
           <Setter Property="Transitions">
             <Transitions>
               <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
@@ -35,7 +35,7 @@
         </Style>
       </DockPanel.Styles>
 
-      <StackPanel Height="150" MaxWidth="400" DockPanel.Dock="Bottom" Spacing="30">
+      <StackPanel MaxWidth="400" DockPanel.Dock="Bottom" Spacing="30">
         <TextBlock Text="{Binding WalletName}"
                    TextWrapping="Wrap"
                    TextAlignment="Center"
@@ -44,13 +44,14 @@
                    FontWeight="ExtraLight"
                    Margin="0 10"/>
 
-        <StackPanel IsVisible="{Binding !IsPasswordIncorrect}"
-                    Classes="fadeAnimation">
+        <DockPanel IsVisible="{Binding !IsPasswordIncorrect}"
+                   Classes="fadeAnimation">
 
           <!-- Enter password -->
-          <StackPanel VerticalAlignment="Bottom"
-                      IsVisible="{Binding IsPasswordNeeded}">
-            <TextBox Text="{Binding Password}" Watermark="Password" PasswordChar="•" Classes="revealPasswordButton">
+          <DockPanel DockPanel.Dock="Top"
+                     VerticalAlignment="Bottom"
+                     IsVisible="{Binding IsPasswordNeeded}">
+            <TextBox DockPanel.Dock="Top" Text="{Binding Password}" Watermark="Password" PasswordChar="•" Classes="revealPasswordButton">
               <i:Interaction.Behaviors>
                 <behaviors:FocusOnAttachedBehavior />
               </i:Interaction.Behaviors>
@@ -61,14 +62,15 @@
 
               </Button>
             </Panel>
-          </StackPanel>
+          </DockPanel>
 
           <!-- Hardware & Watch only wallet -->
           <Button Content="Login" IsVisible="{Binding !IsPasswordNeeded}" HorizontalAlignment="Center" Classes="action" Command="{Binding NextCommand}"/>
-        </StackPanel>
+        </DockPanel>
 
         <!-- Incorrect password -->
         <StackPanel Spacing="20"
+                    Margin="0,11,0,0"
                     IsVisible="{Binding IsPasswordIncorrect}"
                     VerticalAlignment="Bottom"
                     Classes="fadeAnimation">

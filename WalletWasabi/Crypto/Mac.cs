@@ -30,7 +30,7 @@ namespace WalletWasabi.Crypto
 		public override int GetHashCode() =>
 			HashCode.Combine(T, V).GetHashCode();
 
-		public static MAC ComputeMAC(CoordinatorSecretKey sk, GroupElement ma, Scalar t)
+		public static MAC ComputeMAC(CredentialIssuerSecretKey sk, GroupElement ma, Scalar t)
 		{
 			Guard.NotNull(nameof(sk), sk);
 			Guard.NotZero(nameof(t), t);
@@ -39,7 +39,7 @@ namespace WalletWasabi.Crypto
 			return ComputeAlgebraicMAC((sk.X0, sk.X1), (sk.W * Generators.Gw) + (sk.Ya * ma), t);
 		}
 
-		public bool VerifyMAC(CoordinatorSecretKey sk, GroupElement ma) =>
+		public bool VerifyMAC(CredentialIssuerSecretKey sk, GroupElement ma) =>
 			ComputeMAC(sk, ma, T) == this;
 
 		private static MAC ComputeAlgebraicMAC((Scalar x0, Scalar x1) sk, GroupElement m, Scalar t) =>

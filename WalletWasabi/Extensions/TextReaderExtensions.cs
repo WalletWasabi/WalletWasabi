@@ -12,7 +12,7 @@ namespace System.IO
 		// contain the terminating carriage return and/or line feed. The returned
 		// value is null if the end of the input stream has been reached.
 		// If CRLF is true, the line ends only at ("\r\n").
-		public static string ReadLine(this TextReader me, bool strictCRLF = false)
+		public static string? ReadLine(this TextReader me, bool strictCRLF = false)
 		{
 			if (strictCRLF == false)
 			{
@@ -43,7 +43,7 @@ namespace System.IO
 			return null;
 		}
 
-		public static string ReadPart(this TextReader me, char separator)
+		public static string? ReadPart(this TextReader me, char separator)
 		{
 			var sb = new StringBuilder();
 			while (true)
