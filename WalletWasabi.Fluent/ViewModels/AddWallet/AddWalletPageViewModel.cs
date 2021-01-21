@@ -38,8 +38,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		[AutoNotify] private bool _enableBack;
 		[AutoNotify] private bool _enableCancel;
 
-		private readonly LegalDocuments _legalDocuments;
-
 		public AddWalletPageViewModel(
 			LegalDocuments legalDocuments,
 			WalletManager walletManager,
@@ -48,7 +46,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			Title = "Add Wallet";
 			SelectionMode = NavBarItemSelectionMode.Button;
-			_legalDocuments = legalDocuments;
 
 			var enableBack = default(IDisposable);
 
@@ -135,10 +132,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			if (!inStack)
 			{
 				WalletName = "";
-
-				var termsAndConditions = new TermsAndConditionsViewModel(_legalDocuments, this);
-
-				Navigate().To(termsAndConditions);
 			}
 		}
 
