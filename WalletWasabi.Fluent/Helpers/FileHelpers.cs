@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Gui.Helpers
+namespace WalletWasabi.Fluent.Helpers
 {
 	public static class FileHelpers
 	{

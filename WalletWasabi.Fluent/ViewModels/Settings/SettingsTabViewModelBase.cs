@@ -1,9 +1,7 @@
-﻿using System;
+using System;
 using System.Reactive.Concurrency;
 using ReactiveUI;
 using WalletWasabi.Fluent.Model;
-using WalletWasabi.Gui;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
@@ -11,6 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 	public abstract class SettingsTabViewModelBase : ViewModelBase
 	{
 		protected const int ThrottleTime = 500;
+
 		public static event EventHandler<RestartNeededEventArgs>? RestartNeeded;
 
 		protected SettingsTabViewModelBase(Config config, UiConfig uiConfig)
@@ -26,7 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		public static UiConfig? UiConfigOnOpen { get; set; }
 
-		private static object ConfigLock { get; } = new ();
+		private static object ConfigLock { get; } = new();
 
 		protected void Save()
 		{
@@ -80,7 +79,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			bool uiConfigChanged;
 			if (darkMode is not null)
 			{
-				uiConfigChanged = UiConfigOnOpen.DarkModeEnabled != (bool) darkMode;
+				uiConfigChanged = UiConfigOnOpen.DarkModeEnabled != (bool)darkMode;
 			}
 			else
 			{

@@ -6,7 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Gui.Validation
+namespace WalletWasabi.Fluent.Validation
 {
 	public class Validations : ReactiveObject, IRegisterValidationMethod, IValidations
 	{

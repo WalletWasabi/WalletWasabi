@@ -1,6 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:converters="using:WalletWasabi.Gui.Converters">
+        xmlns:converters="using:WalletWasabi.Fluent.Converters">
   <Styles.Resources>
     <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
     <Thickness x:Key="TextControlBorderThemeThicknessFocused">0,0,0,2</Thickness>
@@ -46,33 +46,33 @@
                              DockPanel.Dock="Top" />
                   <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
                                 VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
-                      <Panel>
-                        <TextBlock Name="PART_Watermark"
-                                Opacity="0.5"
-                                Text="{TemplateBinding Watermark}"
-                                TextAlignment="{TemplateBinding TextAlignment}"
-                                TextWrapping="{TemplateBinding TextWrapping}"
-                                IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
-                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                        <!-- TODO eliminate this margin... text layout issue? -->
-                        <TextPresenter Name="PART_TextPresenter"
-                                      Margin="0 1 0 0"
-                                      Text="{TemplateBinding Text, Mode=TwoWay}"
-                                      CaretIndex="{TemplateBinding CaretIndex}"
-                                      SelectionStart="{TemplateBinding SelectionStart}"
-                                      SelectionEnd="{TemplateBinding SelectionEnd}"
-                                      TextAlignment="{TemplateBinding TextAlignment}"
-                                      TextWrapping="{TemplateBinding TextWrapping}"
-                                      PasswordChar="{TemplateBinding PasswordChar}"
-                                      RevealPassword="{TemplateBinding RevealPassword}"
-                                      SelectionBrush="{TemplateBinding SelectionBrush}"
-                                      SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
-                                      CaretBrush="{TemplateBinding CaretBrush}"
-                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                      </Panel>
-                    </ScrollViewer>
+                    <Panel>
+                      <TextBlock Name="PART_Watermark"
+                              Opacity="0.5"
+                              Text="{TemplateBinding Watermark}"
+                              TextAlignment="{TemplateBinding TextAlignment}"
+                              TextWrapping="{TemplateBinding TextWrapping}"
+                              IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                      <!-- TODO eliminate this margin... text layout issue? -->
+                      <TextPresenter Name="PART_TextPresenter"
+                                    Margin="0 1 0 0"
+                                    Text="{TemplateBinding Text, Mode=TwoWay}"
+                                    CaretIndex="{TemplateBinding CaretIndex}"
+                                    SelectionStart="{TemplateBinding SelectionStart}"
+                                    SelectionEnd="{TemplateBinding SelectionEnd}"
+                                    TextAlignment="{TemplateBinding TextAlignment}"
+                                    TextWrapping="{TemplateBinding TextWrapping}"
+                                    PasswordChar="{TemplateBinding PasswordChar}"
+                                    RevealPassword="{TemplateBinding RevealPassword}"
+                                    SelectionBrush="{TemplateBinding SelectionBrush}"
+                                    SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                                    CaretBrush="{TemplateBinding CaretBrush}"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Panel>
+                  </ScrollViewer>
                 </DockPanel>
                 <ContentPresenter Grid.Column="2" Grid.ColumnSpan="1" Content="{TemplateBinding InnerRightContent}" />
               </Grid>
@@ -98,7 +98,7 @@
     <Setter Property="Padding" Value="0" />
     <Setter Property="ContextMenu">
       <ContextMenu>
-        <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}" IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}"/>
+        <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}" IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}" />
       </ContextMenu>
     </Setter>
     <Setter Property="Template">

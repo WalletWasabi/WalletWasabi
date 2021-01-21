@@ -3,7 +3,7 @@ using Avalonia.Input;
 using System;
 using System.Globalization;
 
-namespace WalletWasabi.Gui.Converters
+namespace WalletWasabi.Fluent.Converters
 {
 	public class ShowCursorConverter : IValueConverter
 	{

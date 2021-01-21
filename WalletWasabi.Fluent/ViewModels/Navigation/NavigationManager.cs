@@ -2,15 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
 	public static class NavigationManager
 	{
-		private static readonly Dictionary<NavigationMetaData, InstanceGeneratorBase> NavigationEntries = new ();
+		private static readonly Dictionary<NavigationMetaData, InstanceGeneratorBase> NavigationEntries = new();
 
-		private static readonly Dictionary<Type, ViewModelBase> TypeRegistry = new ();
+		private static readonly Dictionary<Type, ViewModelBase> TypeRegistry = new();
 
 		public static IEnumerable<NavigationMetaData> MetaData => NavigationEntries.Keys.Select(x => x);
 

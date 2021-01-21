@@ -2,9 +2,9 @@ using ReactiveUI;
 using System;
 using System.Collections;
 using System.ComponentModel;
-using WalletWasabi.Gui.Validation;
+using WalletWasabi.Fluent.Validation;
 
-namespace WalletWasabi.Gui.ViewModels
+namespace WalletWasabi.Fluent.ViewModels
 {
 	public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo, IRegisterValidationMethod
 	{

@@ -6,10 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using WalletWasabi.Logging;
-using WalletWasabi.Gui.Models;
 using WalletWasabi.Services.Terminate;
+using WalletWasabi.Fluent.Model.JsonRpcServer;
 
-namespace WalletWasabi.Gui.Rpc
+namespace WalletWasabi.Fluent.Rpc
 {
 	public class JsonRpcServer : BackgroundService
 	{

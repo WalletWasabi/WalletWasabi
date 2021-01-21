@@ -2,7 +2,7 @@ using Avalonia.Data.Converters;
 using System;
 using System.Globalization;
 
-namespace WalletWasabi.Gui.Converters
+namespace WalletWasabi.Fluent.Converters
 {
 	public class ShouldDisplayValueConverter : IValueConverter
 	{

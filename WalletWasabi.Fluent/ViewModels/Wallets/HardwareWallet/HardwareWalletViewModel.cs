@@ -1,4 +1,3 @@
-using WalletWasabi.Gui;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet

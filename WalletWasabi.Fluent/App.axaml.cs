@@ -9,7 +9,6 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Behaviors;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.Views;
-using Global = WalletWasabi.Gui.Global;
 
 namespace WalletWasabi.Fluent
 {

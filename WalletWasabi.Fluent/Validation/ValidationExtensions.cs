@@ -2,7 +2,7 @@ using System;
 using System.Linq.Expressions;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Gui.Validation
+namespace WalletWasabi.Fluent.Validation
 {
 	public delegate void ValidateMethod(IValidationErrors errors);
 

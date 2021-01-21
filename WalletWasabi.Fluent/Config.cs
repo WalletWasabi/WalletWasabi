@@ -13,7 +13,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Tor;
 using WalletWasabi.Userfacing;
 
-namespace WalletWasabi.Gui
+namespace WalletWasabi.Fluent
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class Config : ConfigBase

@@ -1,6 +1,6 @@
 using System;
 
-namespace WalletWasabi.Gui.Rpc
+namespace WalletWasabi.Fluent.Rpc
 {
 	/// <summary>
 	/// Class used to decorate service methods and map them with their rpc method name.

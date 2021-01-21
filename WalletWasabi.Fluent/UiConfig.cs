@@ -5,10 +5,10 @@ using System.ComponentModel;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Bases;
-using WalletWasabi.Gui.Converters;
-using WalletWasabi.Gui.Models.Sorting;
+using WalletWasabi.Fluent.Converters;
+using WalletWasabi.Fluent.Model.Sorting;
 
-namespace WalletWasabi.Gui
+namespace WalletWasabi.Fluent
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class UiConfig : ConfigBase

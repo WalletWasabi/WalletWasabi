@@ -16,9 +16,8 @@ using WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Helpers;
-using WalletWasabi.Legal;
 using WalletWasabi.Logging;
-using WalletWasabi.Gui.Validation;
+using WalletWasabi.Fluent.Validation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {

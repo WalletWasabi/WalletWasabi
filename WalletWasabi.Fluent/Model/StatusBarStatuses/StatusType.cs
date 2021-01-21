@@ -1,4 +1,4 @@
-namespace WalletWasabi.Gui.Models.StatusBarStatuses
+namespace WalletWasabi.Fluent.Model.StatusBarStatuses
 {
 	/// <summary>
 	/// Order: priority the lower.

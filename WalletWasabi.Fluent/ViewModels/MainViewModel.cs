@@ -6,16 +6,13 @@ using ReactiveUI;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using Global = WalletWasabi.Gui.Global;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Search;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
-using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 
 namespace WalletWasabi.Fluent.ViewModels

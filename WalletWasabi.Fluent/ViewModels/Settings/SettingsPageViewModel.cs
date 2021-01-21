@@ -1,7 +1,6 @@
 using System.Reactive.Disposables;
 using WalletWasabi.Fluent.Model;
 using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Gui;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {

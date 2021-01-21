@@ -1,6 +1,6 @@
 using System;
 
-namespace WalletWasabi.Gui.Models.Sorting
+namespace WalletWasabi.Fluent.Model.Sorting
 {
 	public struct SortingPreference : IEquatable<SortingPreference>
 	{

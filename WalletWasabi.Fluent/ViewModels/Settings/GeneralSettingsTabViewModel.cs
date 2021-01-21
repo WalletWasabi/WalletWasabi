@@ -1,10 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using ReactiveUI;
-using WalletWasabi.Gui;
-using WalletWasabi.Gui.Models;
+using WalletWasabi.Fluent.Model;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
@@ -34,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_customFee = uiConfig.IsCustomFee;
 			_customChangeAddress = uiConfig.IsCustomChangeAddress;
 			_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), uiConfig.FeeDisplayFormat)
-				? (FeeDisplayFormat) uiConfig.FeeDisplayFormat
+				? (FeeDisplayFormat)uiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
 
 			this.WhenAnyValue(x => x.DarkModeEnabled)
@@ -64,7 +63,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Skip(1)
-				.Subscribe(x => uiConfig.FeeDisplayFormat = (int) x);
+				.Subscribe(x => uiConfig.FeeDisplayFormat = (int)x);
 		}
 
 		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats =>

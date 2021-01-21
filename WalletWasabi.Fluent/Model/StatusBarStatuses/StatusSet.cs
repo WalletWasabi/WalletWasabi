@@ -3,7 +3,7 @@ using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace WalletWasabi.Gui.Models.StatusBarStatuses
+namespace WalletWasabi.Fluent.Model.StatusBarStatuses
 {
 	public class StatusSet : ReactiveObject
 	{

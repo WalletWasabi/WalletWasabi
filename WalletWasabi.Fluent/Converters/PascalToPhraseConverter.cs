@@ -3,7 +3,7 @@ using System;
 using System.Globalization;
 using System.Text;
 
-namespace WalletWasabi.Gui.Converters
+namespace WalletWasabi.Fluent.Converters
 {
 	public class PascalToPhraseConverter : IValueConverter
 	{

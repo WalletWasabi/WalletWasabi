@@ -1,7 +1,7 @@
 using System;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Gui.Models.StatusBarStatuses
+namespace WalletWasabi.Fluent.Model.StatusBarStatuses
 {
 	public class Status : IEquatable<Status>
 	{

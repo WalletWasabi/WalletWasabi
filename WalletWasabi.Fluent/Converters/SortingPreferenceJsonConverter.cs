@@ -1,8 +1,8 @@
 using Newtonsoft.Json;
 using System;
-using WalletWasabi.Gui.Models.Sorting;
+using WalletWasabi.Fluent.Model.Sorting;
 
-namespace WalletWasabi.Gui.Converters
+namespace WalletWasabi.Fluent.Converters
 {
 	public class SortingPreferenceJsonConverter : JsonConverter
 	{

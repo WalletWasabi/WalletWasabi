@@ -6,8 +6,6 @@ using System.Reactive.Linq;
 using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Gui;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels

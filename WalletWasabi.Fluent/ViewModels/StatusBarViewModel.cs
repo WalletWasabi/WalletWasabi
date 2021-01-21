@@ -8,21 +8,19 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Gui.Models.StatusBarStatuses;
+using WalletWasabi.Fluent.Model.StatusBarStatuses;
 using WalletWasabi.Helpers;
 using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
-using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
-namespace WalletWasabi.Gui.ViewModels
+namespace WalletWasabi.Fluent.ViewModels
 {
 	public class StatusBarViewModel : ViewModelBase
 	{

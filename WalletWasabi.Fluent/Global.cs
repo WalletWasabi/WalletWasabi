@@ -1,7 +1,4 @@
-using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
-using Avalonia.Threading;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.Protocol;
@@ -26,8 +23,9 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Extensions;
-using WalletWasabi.Gui.Models;
-using WalletWasabi.Gui.Rpc;
+using WalletWasabi.Fluent.Model;
+using WalletWasabi.Fluent.Model.JsonRpcServer;
+using WalletWasabi.Fluent.Rpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Legal;
 using WalletWasabi.Logging;
@@ -39,7 +37,7 @@ using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
-namespace WalletWasabi.Gui
+namespace WalletWasabi.Fluent
 {
 	public class Global
 	{

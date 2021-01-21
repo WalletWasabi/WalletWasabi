@@ -1,8 +1,7 @@
-﻿using System;
+using System;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Gui;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {

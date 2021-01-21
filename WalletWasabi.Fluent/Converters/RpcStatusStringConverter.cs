@@ -4,7 +4,7 @@ using System.Globalization;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Exceptions;
 
-namespace WalletWasabi.Gui.Converters
+namespace WalletWasabi.Fluent.Converters
 {
 	public class RpcStatusStringConverter : IValueConverter
 	{
