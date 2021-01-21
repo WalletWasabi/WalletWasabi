@@ -72,17 +72,11 @@ namespace WalletWasabi.Gui.Shell.Commands
 						}
 					}));
 
-			LegalDocumentsCommand = new CommandDefinition(
-				"Legal Documents",
-				commandIconService.GetCompletionKindImage("LegalDocuments"),
-				ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new LegalDocumentsViewModel(legalDoc: Locator.Current.GetService<Global>()?.LegalDocuments))));
-
 			Observable
 				.Merge(AboutCommand.GetReactiveCommand().ThrownExceptions)
 				.Merge(UserSupportCommand.GetReactiveCommand().ThrownExceptions)
 				.Merge(ReportBugCommand.GetReactiveCommand().ThrownExceptions)
 				.Merge(DocsCommand.GetReactiveCommand().ThrownExceptions)
-				.Merge(LegalDocumentsCommand.GetReactiveCommand().ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
@@ -102,8 +96,5 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		[ExportCommandDefinition("Help.Documentation")]
 		public CommandDefinition DocsCommand { get; }
-
-		[ExportCommandDefinition("Help.LegalDocuments")]
-		public CommandDefinition LegalDocumentsCommand { get; }
 	}
 }
