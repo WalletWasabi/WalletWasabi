@@ -33,15 +33,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			base.OnNavigatedTo(inStack, disposable);
 
-			Observable
-				.FromEventPattern<LegalDocuments>(LegalChecker, nameof(LegalChecker.ProvisionalChanged))
-				.Select(x => x.EventArgs)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(legalDocuments => UpdateContent(legalDocuments))
-				.DisposeWith(disposable);
-
-			Observable
-				.FromEventPattern<LegalDocuments>(LegalChecker, nameof(LegalChecker.AgreedChanged))
+			Observable.Merge(
+				Observable.FromEventPattern<LegalDocuments>(LegalChecker, nameof(LegalChecker.AgreedChanged)),
+				Observable.FromEventPattern<LegalDocuments>(LegalChecker, nameof(LegalChecker.ProvisionalChanged)))
 				.Select(x => x.EventArgs)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(legalDocuments => UpdateContent(legalDocuments))
