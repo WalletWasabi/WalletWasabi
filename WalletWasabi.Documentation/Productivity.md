@@ -64,8 +64,8 @@ For each team member we can have a dedicated folder in the team folder and then,
 
 **With developers remote repositories:**
 ```
-$ git worktree add kiminuo/pr-1234 yahia/bitcoind-tor-hashes
-$ git worktree add yahia/pr-2534 kiminuo/feature/2021-01-Tor-exceptions-2nd
+$ git worktree add kiminuo/pr-1234 kiminuo/feature/2021-01-Tor-exceptions-2nd
+$ git worktree add yahia/pr-2534 yahia/bitcoind-tor-hashes
 ```
 
 **With origin only remote repository:**
