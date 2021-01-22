@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.Controls
 		Both
 	}
 
-	public class QuestionControl : Label
+	public class QuestionControl : ContentControl
 	{
 		public static readonly StyledProperty<ICommand> YesCommandProperty =
 			AvaloniaProperty.Register<QuestionControl, ICommand>(nameof(YesCommand));
