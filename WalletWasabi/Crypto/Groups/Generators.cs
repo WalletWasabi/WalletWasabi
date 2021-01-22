@@ -7,6 +7,9 @@ namespace WalletWasabi.Crypto.Groups
 {
 	public static class Generators
 	{
+		private static GroupElement[]? _negateGh2i;
+		private static Scalar[]? _binaryVector; 
+
 		/// <summary>
 		/// Base point defined in the secp256k1 standard used in ECDSA public key derivation.
 		/// </summary>
@@ -57,6 +60,31 @@ namespace WalletWasabi.Crypto.Groups
 		/// </summary>
 		public static GroupElement Gs { get; } = FromText("Gs");
 
+		public static GroupElement[] NegateGh2i 
+		{
+			get
+			{
+				if (_negateGh2i is null)
+				{
+					var negatedGh = Gh.Negate();
+					_negateGh2i = BinaryVector.Select(b => b * negatedGh).ToArray();
+				}
+				return _negateGh2i;
+			}
+		}
+
+		public static Scalar[] BinaryVector 
+		{
+			get
+			{
+				if (_binaryVector is null)
+				{
+					_binaryVector = Enumerable.Range(0, Constants.RangeProofWidth).Select(i => Scalar.Zero.CAddBit((uint)i, 1)).ToArray();
+				}
+				return _binaryVector;
+			}
+		}
+
 		public static bool TryGetFriendlyGeneratorName(GroupElement? ge, out string name)
 		{
 			static string FormatName(string generatorName) => $"{generatorName} Generator";
@@ -99,34 +127,6 @@ namespace WalletWasabi.Crypto.Groups
 			while (!GE.TryCreateXQuad(new FE(buffer), out ge));
 
 			return new GroupElement(ge);
-		}
-
-
-		private static GroupElement[]? _negateGh2i;
-		public static GroupElement[] NegateGh2i 
-		{
-			get
-			{
-				if (_negateGh2i is null)
-				{
-					var negatedGh = Gh.Negate();
-					_negateGh2i = BinaryVector.Select(b => b * negatedGh).ToArray();
-				}
-				return _negateGh2i;
-			}
-		}
-
-		private static Scalar[]? _binaryVector; 
-		public static Scalar[] BinaryVector 
-		{
-			get
-			{
-				if (_binaryVector is null)
-				{
-					_binaryVector = Enumerable.Range(0, Constants.RangeProofWidth).Select(i => Scalar.Zero.CAddBit((uint)i, 1)).ToArray();
-				}
-				return _binaryVector;
-			}
 		}
 	}
 }
