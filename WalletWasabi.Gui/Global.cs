@@ -262,16 +262,7 @@ namespace WalletWasabi.Gui
 				}
 				else
 				{
-					var bestEffortEndpointConnector = new BestEffortEndpointConnector();
-					connectionParameters.EndpointConnector = bestEffortEndpointConnector;
-					if (Config.UseTor)
-					{
-						connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
-					}
-					Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
-					Nodes.ConnectedNodes.Added += ConnectedNodes_OnAddedOrRemoved; 
-					Nodes.ConnectedNodes.Removed += ConnectedNodes_OnAddedOrRemoved; 
-					Nodes.MaximumNodeConnection = 12;
+					Nodes = CreateAndConfigureNodesGroup(connectionParameters);
 					RegTestMempoolServingNode = null;
 				}
 
@@ -348,6 +339,21 @@ namespace WalletWasabi.Gui
 			{
 				InitializationCompleted.TrySetResult(true);
 			}
+		}
+
+		private NodesGroup CreateAndConfigureNodesGroup(NodeConnectionParameters connectionParameters)
+		{
+			var bestEffortEndpointConnector = new BestEffortEndpointConnector();
+			connectionParameters.EndpointConnector = bestEffortEndpointConnector;
+			if (Config.UseTor)
+			{
+				connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
+			}
+			var nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
+			nodes.ConnectedNodes.Added += ConnectedNodes_OnAddedOrRemoved;
+			nodes.ConnectedNodes.Removed += ConnectedNodes_OnAddedOrRemoved;
+			nodes.MaximumNodeConnection = 12;
+			return nodes;
 		}
 
 		private async Task<AddressManagerBehavior> InitializeAddressManagerBehaviorAsync()
