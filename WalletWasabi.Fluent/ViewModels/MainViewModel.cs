@@ -64,13 +64,11 @@ namespace WalletWasabi.Fluent.ViewModels
 				global.Config,
 				global.HostedServices,
 				global.BitcoinStore.SmartHeaderChain,
-				global.Synchronizer,
-				global.LegalDocuments);
+				global.Synchronizer);
 
 			_walletManager = new WalletManagerViewModel(global.WalletManager, global.UiConfig);
 
 			_addWalletPage = new AddWalletPageViewModel(
-				global.LegalDocuments,
 				global.WalletManager,
 				global.BitcoinStore,
 				global.Network);
@@ -120,6 +118,13 @@ namespace WalletWasabi.Fluent.ViewModels
 		public static MainViewModel? Instance { get; internal set; }
 
 		private Network Network { get; }
+
+		public void ClearStacks()
+		{
+			MainScreen.Clear();
+			DialogScreen.Clear();
+			FullScreen.Clear();
+		}
 
 		public void Initialize()
 		{

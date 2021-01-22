@@ -87,10 +87,10 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			return Enumerable.Zip(statements, proofs, (s, p) => s.CheckVerificationEquation(p.PublicNonces, challenge, p.Responses)).All(x => x);
 		}
 
-		public static Knowledge IssuerParametersKnowledge(MAC mac, GroupElement ma, CoordinatorSecretKey sk)
-			=> new Knowledge(IssuerParametersStatement(sk.ComputeCoordinatorParameters(), mac, ma), new ScalarVector(sk.W, sk.Wp, sk.X0, sk.X1, sk.Ya));
+		public static Knowledge IssuerParametersKnowledge(MAC mac, GroupElement ma, CredentialIssuerSecretKey sk)
+			=> new Knowledge(IssuerParametersStatement(sk.ComputeCredentialIssuerParameters(), mac, ma), new ScalarVector(sk.W, sk.Wp, sk.X0, sk.X1, sk.Ya));
 
-		public static Statement IssuerParametersStatement(CoordinatorParameters iparams, MAC mac, GroupElement ma)
+		public static Statement IssuerParametersStatement(CredentialIssuerParameters iparams, MAC mac, GroupElement ma)
 			=> new Statement(new GroupElement[,]
 			{
 				// public                                             Witness terms:
@@ -100,12 +100,12 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				{ iparams.Cw,                Generators.Gw, Generators.Gwp, O,              O,              O },
 			});
 
-		public static Knowledge ShowCredentialKnowledge(CredentialPresentation presentation, Scalar z, Credential credential, CoordinatorParameters iparams)
+		public static Knowledge ShowCredentialKnowledge(CredentialPresentation presentation, Scalar z, Credential credential, CredentialIssuerParameters iparams)
 			=> new Knowledge(
 				ShowCredentialStatement(presentation, z * iparams.I, iparams),
 				new ScalarVector(z, (credential.Mac.T * z).Negate(), credential.Mac.T, credential.Amount, credential.Randomness));
 
-		public static Statement ShowCredentialStatement(CredentialPresentation c, GroupElement z, CoordinatorParameters iparams)
+		public static Statement ShowCredentialStatement(CredentialPresentation c, GroupElement z, CredentialIssuerParameters iparams)
 			=> new Statement(new GroupElement[,]
 			{
 				// public                     Witness terms:

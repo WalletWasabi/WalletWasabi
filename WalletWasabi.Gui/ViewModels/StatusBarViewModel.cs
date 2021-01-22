@@ -46,11 +46,9 @@ namespace WalletWasabi.Gui.ViewModels
 		private ObservableAsPropertyHelper<string> _status;
 		private bool _downloadingBlock;
 
-		private bool _legalDocsLoading;
-
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		public StatusBarViewModel(string dataDir, Network network, Config config, HostedServices hostedServices, SmartHeaderChain smartHeaderChain, WasabiSynchronizer synchronizer, LegalDocuments? legalDocuments)
+		public StatusBarViewModel(string dataDir, Network network, Config config, HostedServices hostedServices, SmartHeaderChain smartHeaderChain, WasabiSynchronizer synchronizer)
 		{
 			DataDir = dataDir;
 			Network = network;
@@ -58,7 +56,6 @@ namespace WalletWasabi.Gui.ViewModels
 			HostedServices = hostedServices;
 			SmartHeaderChain = smartHeaderChain;
 			Synchronizer = synchronizer;
-			LegalDocuments = legalDocuments;
 			Backend = BackendStatus.NotConnected;
 			UseTor = false;
 			Tor = TorStatus.NotRunning;
@@ -88,8 +85,6 @@ namespace WalletWasabi.Gui.ViewModels
 		private HostedServices HostedServices { get; }
 
 		private SmartHeaderChain SmartHeaderChain { get; }
-
-		private LegalDocuments? LegalDocuments { get; }
 
 		public bool UseBitcoinCore
 		{
@@ -353,35 +348,6 @@ namespace WalletWasabi.Gui.ViewModels
 
 					UpdateAvailable = !x.ClientUpToDate;
 					CriticalUpdateAvailable = !x.BackendCompatible;
-
-					if (!_legalDocsLoading)
-					{
-						_legalDocsLoading = true;
-
-						try
-						{
-							if (LegalDocuments is null || LegalDocuments.Version < x.LegalDocumentsVersion)
-							{
-								WasabiClient client = Synchronizer.WasabiClientFactory.SharedWasabiClient;
-								var versions = await client.GetVersionsAsync(CancellationToken.None);
-								var version = versions.LegalDocumentsVersion;
-								var legalFolderPath = Path.Combine(DataDir, LegalDocuments.LegalFolderName);
-								var filePath = Path.Combine(legalFolderPath, $"{version}.txt");
-								var legalContent = await client.GetLegalDocumentsAsync(CancellationToken.None);
-
-								MainWindowViewModel.Instance.PushLockScreen(new LegalDocumentsViewModel(legalContent, new LegalDocuments(filePath)));
-							}
-						}
-						catch (Exception ex)
-						{
-							Logger.LogError(ex);
-							NotificationHelpers.Error($"Could not get Legal Documents!{(ex is TorConnectionException ? " Backend not connected. Check your internet connection!" : "")}");
-						}
-						finally
-						{
-							_legalDocsLoading = false;
-						}
-					}
 				});
 
 			UpdateCommand = ReactiveCommand.CreateFromTask(async () =>

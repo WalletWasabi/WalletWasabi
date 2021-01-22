@@ -122,7 +122,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 		public SourceList<WalletViewModelBase> RootList { get; private set; }
 		public ReactiveCommand<Unit, IDisposable> LoadCommand { get; }
-		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
+		public ReactiveCommand<Unit, KeyManager?> TestPasswordCommand { get; }
 		public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
 		private WalletManagerViewModel Owner { get; }
 
@@ -138,7 +138,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			Password = "";
 		}
 
-		public KeyManager LoadKeyManager()
+		public KeyManager? LoadKeyManager()
 		{
 			try
 			{

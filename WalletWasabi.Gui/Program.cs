@@ -68,6 +68,8 @@ namespace WalletWasabi.Gui
 			config.CorrectMixUntilAnonymitySet();
 			var walletManager = new WalletManager(config.Network, dataDir, new WalletDirectories(config.Network, dataDir));
 
+			Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"));
+
 			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
 		}
 
@@ -78,7 +80,7 @@ namespace WalletWasabi.Gui
 			try
 			{
 				SetTheme();
-				var statusBarViewModel = new StatusBarViewModel(Global.DataDir, Global.Network, Global.Config, Global.HostedServices, Global.BitcoinStore.SmartHeaderChain, Global.Synchronizer, Global.LegalDocuments);
+				var statusBarViewModel = new StatusBarViewModel(Global.DataDir, Global.Network, Global.Config, Global.HostedServices, Global.BitcoinStore.SmartHeaderChain, Global.Synchronizer);
 				MainWindowViewModel.Instance = new MainWindowViewModel(Global.Network, Global.UiConfig, Global.WalletManager, statusBarViewModel, IoC.Get<IShell>());
 
 				await Global.InitializeNoWalletAsync(TerminateService);

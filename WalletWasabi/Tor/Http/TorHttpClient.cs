@@ -73,9 +73,8 @@ namespace WalletWasabi.Tor.Http
 			return new ClearnetHttpClient(DestinationUriAction).SendAsync(request, isolateStream, cancellationToken);
 		}
 
-		/// <remarks>
-		/// Throws <see cref="OperationCanceledException"/> if <paramref name="cancel"/> is set.
-		/// </remarks>
+		/// <exception cref="HttpRequestException">When HTTP request fails to be processed. Inner exception may be an instance of <see cref="TorException"/>.</exception>
+		/// <exception cref="OperationCanceledException">When <paramref name="cancel"/> is canceled by the user.</exception>
 		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
 		{
 			Guard.NotNull(nameof(method), method);
@@ -159,6 +158,13 @@ namespace WalletWasabi.Tor.Http
 			{
 				SetTorNotWorkingState(ex);
 				throw;
+			}
+			catch (TorException ex)
+			{
+				SetTorNotWorkingState(ex);
+
+				// Wrap exception to unify ClearnetHttpClient and TorHttpClient exception throwing behavior.
+				throw new HttpRequestException("Failed to handle the HTTP request via Tor.", inner: ex);
 			}
 			catch (Exception ex)
 			{
