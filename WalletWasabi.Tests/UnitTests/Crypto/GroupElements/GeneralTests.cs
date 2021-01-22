@@ -36,8 +36,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		[Fact]
 		public void ConstructorDoesntThrow()
 		{
-			new GroupElement(GE.Infinity);
-			new GroupElement(EC.G);
+			Assert.NotNull(new GroupElement(GE.Infinity));
+			Assert.NotNull(new GroupElement(EC.G));
 		}
 
 		[Fact]
