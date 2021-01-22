@@ -96,18 +96,27 @@
       <!-- Actions List -->
       <c:NavBarListBox Items="{Binding Actions}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                       Name="ActionsListBox">
+                       Name="ActionsListBox"
+                       RenderTransformOrigin="0%,50%">
         <c:NavBarListBox.Styles>
           <Style Selector=":is(ListBox):not(:empty)">
             <Style.Animations>
-              <Animation Delay="0:0:0.0" Duration="0:0:0.3" Easing="SplineEasing">
+              <Animation Delay="0:0:0.0" Duration="0:0:0.175">
                 <KeyFrame Cue="0%">
                   <Setter Property="Opacity" Value="0.0"/>
-                  <!-- <Setter Property="TranslateTransform.Y" Value="{Binding #ActionsListBox.Bounds.Height, Converter={x:Static conv:NegativeDoubleConverter.Instance}}"/> -->
                 </KeyFrame>
-                <KeyFrame Cue="100%">
+                <KeyFrame Cue="0.1%" KeySpline="{StaticResource FluentKeySpline}">
+                  <Setter Property="TranslateTransform.X" Value="-40"/>
+                  <Setter Property="ScaleTransform.ScaleX" Value="0.98"/>
+                  <Setter Property="ScaleTransform.ScaleY" Value="0.98"/>
+                </KeyFrame>
+                <KeyFrame Cue="99%">
                   <Setter Property="Opacity" Value="1.0"/>
-                  <!-- <Setter Property="TranslateTransform.Y" Value="0.0"/> -->
+                </KeyFrame>
+                <KeyFrame Cue="100%" KeySpline="{StaticResource FluentKeySpline}">
+                  <Setter Property="TranslateTransform.X" Value="0"/>
+                  <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                  <Setter Property="ScaleTransform.ScaleY" Value="1"/>
                 </KeyFrame>
               </Animation>
             </Style.Animations>
@@ -156,7 +165,7 @@
         <Separator.Styles>
           <Style Selector="Separator[IsVisible=True]">
             <Style.Animations>
-              <Animation Delay="0:0:0.0" Duration="0:0:0.3" Easing="SplineEasing">
+              <Animation Delay="0:0:0.0" Duration="0:0:0.175">
                 <KeyFrame Cue="0%">
                   <Setter Property="Opacity" Value="0.0"/>
                 </KeyFrame>
@@ -207,35 +216,49 @@
                      SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                      IsVisible="{Binding !HideItems, Mode=OneWay}"
                      Name="ItemsListBox"
+                     RenderTransformOrigin="0%,50%"
                      VerticalAlignment="{Binding Actions.Count, Mode=OneWay, Converter={x:Static conv:NavBarItemsListBoxAlignmentConverter.Instance}}">
       <c:NavBarListBox.Styles>
         <Style Selector=":is(ListBox)[VerticalAlignment=Bottom]">
           <Style.Animations>
-            <Animation Duration="0:0:0.3" Easing="SplineEasing">
+            <Animation Delay="0:0:0.1" Duration="0:0:0.175">
               <KeyFrame Cue="0%">
                 <Setter Property="Opacity" Value="0.0"/>
-                <Setter Property="TranslateTransform.Y" Value="{Binding #ItemsListBox.Bounds.Height}"/>
               </KeyFrame>
-              <KeyFrame Cue="80%">
-                <Setter Property="Opacity" Value="0.2"/>
+              <KeyFrame Cue="0.1%" KeySpline="{StaticResource FluentKeySpline}">
+                <Setter Property="TranslateTransform.X" Value="-40"/>
+                <Setter Property="ScaleTransform.ScaleX" Value="0.98"/>
+                <Setter Property="ScaleTransform.ScaleY" Value="0.98"/>
               </KeyFrame>
-              <KeyFrame Cue="100%">
+              <KeyFrame Cue="99%">
                 <Setter Property="Opacity" Value="1.0"/>
-                <Setter Property="TranslateTransform.Y" Value="0.0"/>
+              </KeyFrame>
+              <KeyFrame Cue="100%" KeySpline="{StaticResource FluentKeySpline}">
+                <Setter Property="TranslateTransform.X" Value="0"/>
+                <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                <Setter Property="ScaleTransform.ScaleY" Value="1"/>
               </KeyFrame>
             </Animation>
           </Style.Animations>
         </Style>
         <Style Selector=":is(ListBox)[VerticalAlignment=Top]">
           <Style.Animations>
-            <Animation Duration="0:0:0.3" Easing="SplineEasing">
+            <Animation Delay="0:0:0.0" Duration="0:0:0.175">
               <KeyFrame Cue="0%">
                 <Setter Property="Opacity" Value="0.0"/>
-                <Setter Property="TranslateTransform.Y" Value="{Binding #ItemsListBox.Bounds.Height}"/>
               </KeyFrame>
-              <KeyFrame Cue="100%">
+              <KeyFrame Cue="0.1%" KeySpline="{StaticResource FluentKeySpline}">
+                <Setter Property="TranslateTransform.X" Value="-40"/>
+                <Setter Property="ScaleTransform.ScaleX" Value="0.98"/>
+                <Setter Property="ScaleTransform.ScaleY" Value="0.98"/>
+              </KeyFrame>
+              <KeyFrame Cue="99%">
                 <Setter Property="Opacity" Value="1.0"/>
-                <Setter Property="TranslateTransform.Y" Value="0.0"/>
+              </KeyFrame>
+              <KeyFrame Cue="100%" KeySpline="{StaticResource FluentKeySpline}">
+                <Setter Property="TranslateTransform.X" Value="0"/>
+                <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                <Setter Property="ScaleTransform.ScaleY" Value="1"/>
               </KeyFrame>
             </Animation>
           </Style.Animations>
