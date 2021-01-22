@@ -21,7 +21,7 @@ namespace WalletWasabi.Hwi
 		public HwiClient(Network network, IHwiProcessInvoker? bridge = null)
 		{
 			Network = Guard.NotNull(nameof(network), network);
-			Bridge = bridge ?? new HwiProcessBridge(new ProcessInvoker());
+			Bridge = bridge ?? new HwiProcessBridge();
 		}
 
 		#endregion ConstructorsAndInitializers
@@ -281,14 +281,14 @@ namespace WalletWasabi.Hwi
 		{
 			if (exitCode != 0)
 			{
-				if (HwiParser.TryParseErrors(responseString, options, out HwiException error))
+				if (HwiParser.TryParseErrors(responseString, options, out HwiException? error))
 				{
 					throw error;
 				}
 				throw new HwiException(HwiErrorCode.UnknownError, $"'hwi {arguments}' exited with incorrect exit code: {exitCode}.");
 			}
 
-			if (HwiParser.TryParseErrors(responseString, options, out HwiException error2))
+			if (HwiParser.TryParseErrors(responseString, options, out HwiException? error2))
 			{
 				throw error2;
 			}

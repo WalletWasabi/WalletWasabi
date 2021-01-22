@@ -45,7 +45,7 @@ namespace NBitcoin.RPC
 		/// <summary>
 		/// If null is returned, no exception is thrown, so the test was successful.
 		/// </summary>
-		public static async Task<Exception> TestAsync(this IRPCClient rpc)
+		public static async Task<Exception?> TestAsync(this IRPCClient rpc)
 		{
 			try
 			{

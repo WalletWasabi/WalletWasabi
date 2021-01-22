@@ -25,7 +25,7 @@ namespace WalletWasabi.Legal
 		public string FilePath { get; }
 		public Version Version { get; }
 
-		public static LegalDocuments TryLoadAgreed(string dataDir)
+		public static LegalDocuments? TryLoadAgreed(string dataDir)
 		{
 			var legalFolderPath = Path.Combine(dataDir, LegalFolderName);
 			IoHelpers.EnsureDirectoryExists(legalFolderPath);

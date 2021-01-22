@@ -68,7 +68,7 @@ namespace WalletWasabi.BitcoinCore
 				string? rpcCookieFilePath = configTranslator.TryGetRpcCookieFile();
 				string? rpcHost = configTranslator.TryGetRpcBind();
 				int? rpcPort = configTranslator.TryGetRpcPort();
-				WhiteBind whiteBind = configTranslator.TryGetWhiteBind();
+				WhiteBind? whiteBind = configTranslator.TryGetWhiteBind();
 
 				string authString;
 				bool cookieAuth = rpcCookieFilePath is { };
@@ -95,7 +95,7 @@ namespace WalletWasabi.BitcoinCore
 					coreNodeParams.RpcEndPointStrategy.EndPoint.TryGetPort(out rpcPort);
 				}
 
-				EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint rpce);
+				EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint? rpce);
 				coreNode.RpcEndPoint = rpce;
 
 				var rpcClient = new RPCClient(
@@ -130,6 +130,7 @@ namespace WalletWasabi.BitcoinCore
 				{
 					$"{configPrefix}.server			= 1",
 					$"{configPrefix}.listen			= 1",
+					$"{configPrefix}.daemon			= 0", // https://github.com/zkSNACKs/WalletWasabi/issues/3588
 					$"{configPrefix}.whitebind		= {whiteBindPermissionsPart}{coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
 					$"{configPrefix}.rpcbind		= {rpcBindParameter}",
 					$"{configPrefix}.rpcallowip		= {IPAddress.Loopback}",
@@ -208,25 +209,26 @@ namespace WalletWasabi.BitcoinCore
 
 		public static async Task<Version> GetVersionAsync(CancellationToken cancel)
 		{
-			var invoker = new ProcessInvoker();
-
 			string processPath = MicroserviceHelpers.GetBinaryPath("bitcoind");
-			string arguments = "-version";
+			ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(processPath, arguments: "-version");
 
-			ProcessStartInfo processStartInfo = ProcessStartInfoFactory.Make(processPath, arguments);
-			var (responseString, exitCode) = await invoker.SendCommandAsync(processStartInfo, cancel).ConfigureAwait(false);
+			Process process = Process.Start(startInfo)!;
 
-			if (exitCode != 0)
+			string responseString = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+			await process.WaitForExitAsync(cancel).ConfigureAwait(false);
+
+			if (process.ExitCode != 0)
 			{
-				throw new BitcoindException($"'bitcoind {arguments}' exited with incorrect exit code: {exitCode}.");
+				throw new BitcoindException($"Process exited with incorrect exit code: {process.ExitCode}.");
 			}
-			var firstLine = responseString.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).First();
+
+			string firstLine = responseString.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).First();
 			string versionString = firstLine
 				.Split("version v", StringSplitOptions.RemoveEmptyEntries)
 				.Last()
 				.Split(".knots", StringSplitOptions.RemoveEmptyEntries).First();
-			var version = new Version(versionString);
-			return version;
+
+			return new(versionString);
 		}
 
 		public async Task<Node> CreateNewP2pNodeAsync()

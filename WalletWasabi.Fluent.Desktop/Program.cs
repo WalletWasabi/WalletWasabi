@@ -9,13 +9,14 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Gui;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Wallets;
+using LogLevel = WalletWasabi.Logging.LogLevel;
 
 namespace WalletWasabi.Fluent.Desktop
 {
@@ -59,6 +60,8 @@ namespace WalletWasabi.Fluent.Desktop
 				try
 				{
 					string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+
+					SetupLogger(dataDir, args);
 					var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
 
 					singleInstanceChecker = new SingleInstanceChecker(config.Network);
@@ -108,6 +111,31 @@ namespace WalletWasabi.Fluent.Desktop
 			return exceptionToReport is { } ? 1 : 0;
 		}
 
+		/// <summary>
+		/// Initializes Wasabi Logger. Sets user-defined log-level, if provided.
+		/// </summary>
+		/// <example>Start Wasabi Wallet with <c>./wassabee --LogLevel=trace</c> to set <see cref="LogLevel.Trace"/>.</example>
+		private static void SetupLogger(string dataDir, string[] args)
+		{
+			LogLevel? logLevel = null;
+
+			foreach (string arg in args)
+			{
+				if (arg.StartsWith("--LogLevel="))
+				{
+					string value = arg.Split('=', count: 2)[1];
+
+					if (Enum.TryParse(value, ignoreCase: true, out LogLevel parsedLevel))
+					{
+						logLevel = parsedLevel;
+						break;
+					}
+				}
+			}
+
+			Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"), logLevel);
+		}
+
 		private static (UiConfig uiConfig, Config config) LoadOrCreateConfigs(string dataDir)
 		{
 			Directory.CreateDirectory(dataDir);
@@ -135,20 +163,15 @@ namespace WalletWasabi.Fluent.Desktop
 		/// </summary>
 		private static async Task TerminateApplicationAsync()
 		{
-			var mainViewModel = MainWindowViewModel.Instance;
-			if (mainViewModel is { })
+			if (MainViewModel.Instance is { } mainViewModel)
 			{
-				mainViewModel.Dispose();
+				mainViewModel.ClearStacks();
+				Logger.LogSoftwareStopped("Wasabi GUI");
 			}
 
 			if (Global is { } global)
 			{
 				await global.DisposeAsync().ConfigureAwait(false);
-			}
-
-			if (mainViewModel is { })
-			{
-				Logger.LogSoftwareStopped("Wasabi GUI");
 			}
 		}
 

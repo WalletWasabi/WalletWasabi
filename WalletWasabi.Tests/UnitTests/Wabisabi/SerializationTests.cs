@@ -7,11 +7,12 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.JsonConverters;
-using WalletWasabi.Wabisabi;
-using WalletWasabi.Wabisabi.Serialization;
+using WalletWasabi.WabiSabi;
+using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Crypto.Serialization;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Wabisabi
+namespace WalletWasabi.Tests.UnitTests.WabiSabi
 {
 	public class SerializationTests
 	{
@@ -23,7 +24,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				new GroupElementJsonConverter()
 			};
 
-			// Deserialization invalid elements
+			// Deserialization invalid elements.
 			var ex = Assert.Throws<ArgumentException>(() => JsonConvert.DeserializeObject<GroupElement>("21", converters));
 			Assert.StartsWith("No valid serialized GroupElement", ex.Message);
 
@@ -33,14 +34,14 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 			ex = Assert.Throws<ArgumentException>(() => JsonConvert.DeserializeObject<GroupElement>("\"0000000000000000000000000000000000000000000000000000000000000000\"", converters));
 			Assert.StartsWith("Parameter must be 33. Actual: 32.", ex.Message);
 
-			// Serialization Infinity test
+			// Serialization Infinity test.
 			var serializedInfinityGroupElement = JsonConvert.SerializeObject(GroupElement.Infinity, converters);
 			Assert.Equal("\"000000000000000000000000000000000000000000000000000000000000000000\"", serializedInfinityGroupElement);
 
 			var deserializedInfinityGroupElement = JsonConvert.DeserializeObject<GroupElement>("\"000000000000000000000000000000000000000000000000000000000000000000\"", converters);
 			Assert.Equal(GroupElement.Infinity, deserializedInfinityGroupElement);
 
-			// Serialization round test
+			// Serialization round test.
 			var serializedGroupElement = JsonConvert.SerializeObject(Generators.G, converters);
 			Assert.Equal("\"0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798\"", serializedGroupElement);
 
@@ -56,7 +57,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				new GroupElementJsonConverter()
 			};
 
-			// Serialization collection test
+			// Serialization collection test.
 			var serializedGroupElements = JsonConvert.SerializeObject(new[] { Generators.Gx0, Generators.Gx1 }, converters);
 			Assert.Equal("[\"02E33C9F3CBE6388A2D3C3ECB12153DB73499928541905D86AAA4FFC01F2763B54\",\"0246253CC926AAB789BAA278AB9A54EDEF455CA2014038E9F84DE312C05A8121CC\"]", serializedGroupElements);
 
@@ -76,7 +77,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				new GroupElementJsonConverter()
 			};
 
-			// Serialization round test
+			// Serialization round test.
 			var issuanceRequest = new IssuanceRequest(Generators.G, Enumerable.Range(0, 5).Select(i => Generators.FromText($"G{i}")));
 			var serializedIssuanceRequest = JsonConvert.SerializeObject(issuanceRequest, converters);
 
@@ -93,20 +94,20 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				new ScalarJsonConverter()
 			};
 
-			// Deserialization invalid scalar
+			// Deserialization invalid scalar.
 			var ex = Assert.Throws<ArgumentException>(() => JsonConvert.DeserializeObject<Scalar>("21", converters));
 			Assert.StartsWith("No valid serialized Scalar", ex.Message);
 
 			Assert.Throws<IndexOutOfRangeException>(() => JsonConvert.DeserializeObject<Scalar>("\"\"", converters));
 
-			// Serialization Zero test
+			// Serialization Zero test.
 			var serializedZero = JsonConvert.SerializeObject(Scalar.Zero, converters);
 			Assert.Equal("\"0000000000000000000000000000000000000000000000000000000000000000\"", serializedZero);
 
 			var deserializedZero = JsonConvert.DeserializeObject<Scalar>("\"0000000000000000000000000000000000000000000000000000000000000000\"", converters);
 			Assert.Equal(Scalar.Zero, deserializedZero);
 
-			// Serialization round test
+			// Serialization round test.
 			var scalar = new Scalar(ByteHelpers.FromHex("D9C17A80D299A51E1ED9CF94FCE5FD883ADACE4ECC167E1D1FB8E5C4A0ADC4D2"));
 
 			var serializedScalar = JsonConvert.SerializeObject(scalar, converters);
@@ -124,7 +125,7 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 				new ScalarJsonConverter()
 			};
 
-			// Serialization collection test
+			// Serialization collection test.
 			var one = Scalar.One;
 			var two = one + one;
 			var three = two + one;
@@ -152,24 +153,24 @@ namespace WalletWasabi.Tests.UnitTests.Wabisabi
 			};
 
 			var numberOfCredentials = 2;
-			var rnd = new SecureRandom();
-			var sk = new CoordinatorSecretKey(rnd);
+			using var rnd = new SecureRandom();
+			var sk = new CredentialIssuerSecretKey(rnd);
 
 			var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd);
-			var client = new WabiSabiClient(sk.ComputeCoordinatorParameters(), numberOfCredentials, rnd);
+			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), numberOfCredentials, rnd);
 			var (credentialRequest, validationData) = client.CreateRequestForZeroAmount();
 			var credentialResponse = issuer.HandleRequest(credentialRequest);
 			client.HandleResponse(credentialResponse, validationData);
 			var present = client.Credentials.ZeroValue.Take(numberOfCredentials);
 			(credentialRequest, _) = client.CreateRequest(new[] { Money.Coins(1) }, present);
 
-			// Registration request message 
+			// Registration request message.
 			var serializedRequestMessage = JsonConvert.SerializeObject(credentialRequest, converters);
 			var deserializedRequestMessage = JsonConvert.DeserializeObject<RegistrationRequestMessage>(serializedRequestMessage, converters);
 			var reserializedRequestMessage = JsonConvert.SerializeObject(deserializedRequestMessage, converters);
 			Assert.Equal(serializedRequestMessage, reserializedRequestMessage);
 
-			// Registration response message 
+			// Registration response message.
 			var serializedResponseMessage = JsonConvert.SerializeObject(credentialResponse, converters);
 			var deserializedResponseMessage = JsonConvert.DeserializeObject<RegistrationResponseMessage>(serializedResponseMessage, converters);
 			var reserializedResponseMessage = JsonConvert.SerializeObject(deserializedResponseMessage, converters);

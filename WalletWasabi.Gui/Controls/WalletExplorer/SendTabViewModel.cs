@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ResetUi();
 		}
 
-		private IPayjoinClient GetPayjoinClient()
+		private IPayjoinClient? GetPayjoinClient()
 		{
 			if (!string.IsNullOrWhiteSpace(PayjoinEndPoint) &&
 				Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))

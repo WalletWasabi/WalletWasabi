@@ -18,7 +18,7 @@ namespace WalletWasabi.JsonConverters
 
 		public override bool CanConvert(Type objectType) => typeof(RoundStateResponseBase) == objectType;
 
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
 			if (reader.TokenType == JsonToken.Null)
 			{
