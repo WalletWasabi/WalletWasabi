@@ -22,6 +22,11 @@ namespace WalletWasabi.WabiSabi
 		/// Configuration of coinjoins can be modified runtime.
 		/// Set how often changes in the configuration file should be monitored.
 		/// </summary>
-		public TimeSpan ConfigChangeMonitoringPeriod { get; init; } = TimeSpan.FromSeconds(10);
+		public TimeSpan ConfigChangeMonitoringPeriod { get; init; } = TimeSpan.FromSeconds(7);
+
+		/// <summary>
+		/// How often should UTXOs be sent to prison.
+		/// </summary>
+		public TimeSpan UtxoJudgementPeriod { get; init; } = TimeSpan.FromSeconds(1);
 	}
 }
