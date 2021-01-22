@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Login.PasswordFinder
 {
-	public class PasswordFinderResultView : UserControl
+	public class PasswordNotFoundView : UserControl
 	{
-		public PasswordFinderResultView()
+		public PasswordNotFoundView()
 		{
 			InitializeComponent();
 		}

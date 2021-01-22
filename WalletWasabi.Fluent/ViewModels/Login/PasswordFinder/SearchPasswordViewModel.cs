@@ -31,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 			{
 				if (PasswordFinderHelper.TryFind(options, out var foundPassword, SetStatus, cancelToken.Token))
 				{
-					Navigate().To(new PasswordFinderResultViewModel(foundPassword));
+					Navigate().To(new PasswordFoundViewModel(foundPassword));
 				}
 				else
 				{
