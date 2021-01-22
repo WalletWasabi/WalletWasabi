@@ -54,11 +54,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			var fingerPrint = (HDFingerprint)device.Fingerprint;
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+			using var genCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, DisposeCts.Token);
+
 			var extPubKey = await Client.GetXpubAsync(
 				device.Model,
 				device.Path,
 				KeyManager.DefaultAccountKeyPath,
-				cts.Token).ConfigureAwait(false);
+				genCts.Token).ConfigureAwait(false);
 
 			return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, walletFilePath);
 		}
