@@ -21,7 +21,7 @@
           <Viewbox MaxHeight="150" DockPanel.Dock="Top">
             <Image Height="100" Source="{TemplateBinding Icon}" />
           </Viewbox>
-          <ContentControl Content="{TemplateBinding Content}" DockPanel.Dock="Top"/>
+          <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" DockPanel.Dock="Top"/>
         </DockPanel>
       </ControlTemplate>
     </Setter>
