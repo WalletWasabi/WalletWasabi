@@ -16,7 +16,7 @@
                  EnableCancel="True">
     <DockPanel>
       <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
-        <Label Content="_Reference" Target="ReferenceTbx" HorizontalAlignment="Left"/>
+        <Label Content="_Reference" Target="ReferenceTbx" HorizontalAlignment="Left" FontWeight="Normal" />
         <AutoCompleteBox Text="{Binding Reference}"
                          x:Name="ReferenceTbx"
                          Watermark='Who knows this address is yours? E.g.: "Max, BitPay"'
