@@ -132,7 +132,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			=> new Knowledge(ZeroProofStatement(ma), new ScalarVector(r));
 
 		public static GroupElement PedersenCommitment(Scalar s, Scalar b)
-		 	=> new GroupElement(ECMultContext.Instance.MultBatch(new[] { s, b }, new[] { Generators.Gg.Ge, Generators.Gh.Ge }).ToGroupElement());
+		 	=> new GroupElement(ECMultContext.Instance.MultBatch(null, new[] { s, b }, new[] { Generators.Gg.Ge, Generators.Gh.Ge }, new MultBatchOptions(ECMultiImplementation.Strauss)));
 
 		// TODO swap return value order, remove GroupElement argument
 		// expect nonce provider instead of WasabiRandom?
@@ -198,8 +198,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			// Ma, proven by showing that the public input is a commitment to 0 (only
 			// Gh term required to represent it). The per-bit witness terms of this
 			// equation are added in the loop below.
-			var binaryVector = Enumerable.Range(0, width).Select(i => Scalar.Zero.CAddBit((uint)i, 1)).ToArray();
-			var bitsTotal = new GroupElement(ECMultContext.Instance.MultBatch(binaryVector, b.Select(x => x.Ge).ToArray()).ToGroupElement());
+			var binaryVector = Generators.BinaryVector.AsSpan(0, width);
+			var bitsTotal = new GroupElement(ECMultContext.Instance.MultBatch(binaryVector, b.Select(x => x.Ge).ToArray()));
 
 			equations[0, 0] = ma - bitsTotal;
 			equations[0, 1] = Generators.Gh; // first witness term is r in Ma = a*Gg + r*Gh
@@ -221,7 +221,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			for (int i = 0; i < width; i++)
 			{
 				// Add [ -r_i * 2^i * Gh ] term to first equation.
-				equations[0, RndColumn(i)] = binaryVector[i] * negatedGh;
+				equations[0, RndColumn(i)] = Generators.NegateGh2i[i];
 
 				// Add equation proving B is a Pedersen commitment to b:
 				//   [ B = b*Gg + r*Gh ]

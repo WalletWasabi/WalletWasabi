@@ -22,7 +22,7 @@ namespace WalletWasabi.Crypto.Groups
 		}
 
 		// Since GEJ.IsValidVariable, this constructor is private
-		private GroupElement(GEJ groupElementJacobian)
+		internal GroupElement(GEJ groupElementJacobian)
 		{
 			if (groupElementJacobian.IsInfinity)
 			{
