@@ -20,14 +20,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		[AutoNotify] private string? _content;
 
-		private LegalChecker LegalChecker { get; }
-
 		public LegalDocumentsViewModel(LegalChecker legalChecker)
 		{
 			Title = "Terms and Conditions";
 			NextCommand = BackCommand;
 			LegalChecker = legalChecker;
+
+			this.WhenAnyValue(x => x.Content)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(content => IsBusy = content is null);
 		}
+
+		private LegalChecker LegalChecker { get; }
 
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{
@@ -48,11 +52,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			else if (LegalChecker.CurrentLegalDocument is { } current)
 			{
 				UpdateContent(current);
-			}
-			else
-			{
-				//TODO: display busy logic.
-				Content = "Loading...";
 			}
 		}
 
