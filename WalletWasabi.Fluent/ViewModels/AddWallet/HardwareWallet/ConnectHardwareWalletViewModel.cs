@@ -150,7 +150,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			base.OnNavigatedTo(inStack, disposable);
 
-			HardwareWalletOperations = new HardwareWalletOperations(WalletManager);
+			HardwareWalletOperations = new HardwareWalletOperations(WalletManager.Network);
 			HardwareWalletOperations.DetectionCompleted += OnDetectionCompleted;
 			HardwareWalletOperations.PassphraseNeeded += OnPassphraseNeeded;
 

@@ -16,16 +16,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 	public class HardwareWalletOperations : IAsyncDisposable
 	{
 		public event EventHandler<HwiEnumerateEntry[]>? DetectionCompleted;
+
 		public event EventHandler? PassphraseNeeded;
 
-		public HardwareWalletOperations(WalletManager walletManager)
+		public HardwareWalletOperations(Network network)
 		{
-			WalletManager = walletManager;
-			Client = new HwiClient(WalletManager.Network);
+			Client = new HwiClient(network);
 			DisposeCts = new CancellationTokenSource();
 		}
-
-		public WalletManager WalletManager { get; }
 
 		public HwiClient Client { get; }
 
@@ -45,23 +43,22 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			PassphraseNeeded?.Invoke(this, EventArgs.Empty);
 		}
 
-		public async Task<KeyManager> GenerateWalletAsync(string walletName, HwiEnumerateEntry device)
+		public async Task<KeyManager> GenerateWalletAsync(HwiEnumerateEntry device, string walletFilePath)
 		{
 			if (device.Fingerprint is null)
 			{
 				throw new Exception("Fingerprint cannot be null.");
 			}
 
-			var fingerPrint = (HDFingerprint) device.Fingerprint;
+			var fingerPrint = (HDFingerprint)device.Fingerprint;
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 			var extPubKey = await Client.GetXpubAsync(
 				device.Model,
 				device.Path,
 				KeyManager.DefaultAccountKeyPath,
 				cts.Token).ConfigureAwait(false);
-			var path = WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 
-			return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, path);
+			return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, walletFilePath);
 		}
 
 		public void InitHardwareWallet(HwiEnumerateEntry device)
@@ -104,7 +101,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		protected async Task RunDetectionAsync()
 		{
-			using var passphraseTimer = new Timer(8000) {AutoReset = false};
+			using var passphraseTimer = new Timer(8000) { AutoReset = false };
 			passphraseTimer.Elapsed += OnPassphraseNeeded;
 
 			try

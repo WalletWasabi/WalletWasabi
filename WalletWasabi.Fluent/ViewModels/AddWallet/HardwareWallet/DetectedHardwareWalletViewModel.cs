@@ -17,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			Title = "Hardware Wallet";
 			WalletManager = walletManager;
 			WalletName = walletName;
-			HardwareWalletOperations = new HardwareWalletOperations(WalletManager);
+			HardwareWalletOperations = new HardwareWalletOperations(walletManager.Network);
 
 			Type = device.Model switch
 			{
@@ -33,7 +33,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			{
 				try
 				{
-					var km = await HardwareWalletOperations.GenerateWalletAsync(WalletName, device);
+					var walletFilePath = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
+
+					var km = await HardwareWalletOperations.GenerateWalletAsync(device, walletFilePath);
 					km.SetIcon(Type);
 
 					Navigate().To(new AddedWalletPageViewModel(walletManager, km));
