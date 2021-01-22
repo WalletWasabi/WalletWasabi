@@ -149,8 +149,9 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			//   randomly generated credentials in memory or persistent storage, and
 			//   re-request by loading and re-sending.
 			// - long term fee credentials will definitely need deterministic
-			//   randomness because the server can only give idempotent responses with
-			//   its own records.
+			//   randomness because otherwise recovery of credentials from
+			//   seed would not result in idempotent responses if the client
+			//   loses state
 			var randomness = Enumerable.Repeat(0, width).Select(_ => rnd.GetScalar()).ToArray();
 			var bitCommitments = bits.Zip(randomness, (b, r) => PedersenCommitment(b, r));
 
