@@ -66,6 +66,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public void InitHardwareWallet(HwiEnumerateEntry device)
 		{
+			if (InitTask?.Status == TaskStatus.WaitingForActivation)
+			{
+				return;
+			}
+
 			InitTask = InitHardwareWalletAsync(device);
 		}
 
