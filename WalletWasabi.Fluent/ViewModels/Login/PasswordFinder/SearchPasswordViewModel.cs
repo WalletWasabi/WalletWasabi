@@ -10,7 +10,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 {
 	public partial class SearchPasswordViewModel : RoutableViewModel
 	{
-		public PasswordFinderOptions Options { get; }
 		[AutoNotify] private int _percentage;
 		[AutoNotify] private int _remainingHour;
 		[AutoNotify] private int _remainingMin;
@@ -28,6 +27,8 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 			_minText = "";
 			_secText = "";
 		}
+
+		public PasswordFinderOptions Options { get; }
 
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{
@@ -51,12 +52,11 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 			{
 				if (PasswordFinderHelper.TryFind(options, out var foundPassword, SetStatus, token))
 				{
-					Navigate().To(new PasswordFoundViewModel(foundPassword));
+					Navigate().To(new PasswordFoundViewModel(foundPassword), NavigationMode.Clear);
 				}
 				else
 				{
-					// await ShowErrorAsync("We have not found your password, try search again with different options.", "The search has been finished, see the result below");
-					Navigate().Clear();
+					Navigate().To(new PasswordNotFoundViewModel(options.Wallet), NavigationMode.Clear);
 				}
 			}
 			catch (OperationCanceledException)
