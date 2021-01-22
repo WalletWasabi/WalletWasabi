@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
-using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets.PasswordFinder;
 
@@ -10,6 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 {
 	public partial class SearchPasswordViewModel : RoutableViewModel
 	{
+		public PasswordFinderOptions Options { get; }
 		[AutoNotify] private int _percentage;
 		[AutoNotify] private int _remainingHour;
 		[AutoNotify] private int _remainingMin;
@@ -22,29 +23,45 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 		public SearchPasswordViewModel(PasswordFinderOptions options)
 		{
 			Title = "Password Finder";
+			Options = options;
 			_hourText = "";
 			_minText = "";
 			_secText = "";
+		}
+
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		{
+			base.OnNavigatedTo(inStack, disposable);
+
 			var cancelToken = new CancellationTokenSource();
 
-			Task.Run(async () =>
+			var t = Task.Run(() => FindPassword(Options, cancelToken.Token));
+
+			Disposable.Create(async () =>
 			{
-				if (PasswordFinderHelper.TryFind(options, out var foundPassword, SetStatus, cancelToken.Token))
+				cancelToken.Cancel();
+				await t;
+			})
+			.DisposeWith(disposable);
+		}
+
+		private void FindPassword(PasswordFinderOptions options, CancellationToken token)
+		{
+			try
+			{
+				if (PasswordFinderHelper.TryFind(options, out var foundPassword, SetStatus, token))
 				{
 					Navigate().To(new PasswordFoundViewModel(foundPassword));
 				}
 				else
 				{
-					await ShowErrorAsync("We have not found your password, try search again with different options.", "The search has been finished, see the result below");
+					// await ShowErrorAsync("We have not found your password, try search again with different options.", "The search has been finished, see the result below");
 					Navigate().Clear();
 				}
-			});
-
-			CancelCommand = ReactiveCommand.Create(() =>
+			}
+			catch (OperationCanceledException)
 			{
-				cancelToken.Cancel();
-				Navigate().Clear();
-			});
+			}
 		}
 
 		private void SetStatus(int percentage, TimeSpan remainingTime)
