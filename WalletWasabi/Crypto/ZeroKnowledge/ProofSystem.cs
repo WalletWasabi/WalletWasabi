@@ -153,7 +153,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			//   seed would not result in idempotent responses if the client
 			//   loses state
 			var randomness = Enumerable.Repeat(0, width).Select(_ => rnd.GetScalar()).ToArray();
-			var bitCommitments = bits.Zip(randomness, (b, r) => PedersenCommitment(b, r));
+			var bitCommitments = bits.Zip(randomness, (b, r) => PedersenCommitment(b, r)).ToArray();
 
 			var columns = width * 3 + 1; // three witness terms per bit and one for the commitment
 			static int BitColumn(int i) => 3 * i + 1;
@@ -199,8 +199,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			// Ma, proven by showing that the public input is a commitment to 0 (only
 			// Gh term required to represent it). The per-bit witness terms of this
 			// equation are added in the loop below.
-			var binaryVector = Generators.BinaryVector.AsSpan(0, width);
-			var bitsTotal = new GroupElement(ECMultContext.Instance.MultBatch(binaryVector, b.Select(x => x.Ge).ToArray()));
+			var powersOfTwo = Generators.PowersOfTwo.AsSpan(0, width);
+			var bitsTotal = new GroupElement(ECMultContext.Instance.MultBatch(powersOfTwo, b.Select(x => x.Ge).ToArray()));
 
 			equations[0, 0] = ma - bitsTotal;
 			equations[0, 1] = Generators.Gh; // first witness term is r in Ma = a*Gg + r*Gh

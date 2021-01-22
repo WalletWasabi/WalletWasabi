@@ -8,7 +8,7 @@ namespace WalletWasabi.Crypto.Groups
 	public static class Generators
 	{
 		private static GroupElement[]? _negateGh2i;
-		private static Scalar[]? _binaryVector; 
+		private static Scalar[]? _powerOfTwo; 
 
 		/// <summary>
 		/// Base point defined in the secp256k1 standard used in ECDSA public key derivation.
@@ -67,21 +67,21 @@ namespace WalletWasabi.Crypto.Groups
 				if (_negateGh2i is null)
 				{
 					var negatedGh = Gh.Negate();
-					_negateGh2i = BinaryVector.Select(b => b * negatedGh).ToArray();
+					_negateGh2i = PowersOfTwo.Select(b => b * negatedGh).ToArray();
 				}
 				return _negateGh2i;
 			}
 		}
 
-		public static Scalar[] BinaryVector 
+		public static Scalar[] PowersOfTwo
 		{
 			get
 			{
-				if (_binaryVector is null)
+				if (_powerOfTwo is null)
 				{
-					_binaryVector = Enumerable.Range(0, Constants.RangeProofWidth).Select(i => Scalar.Zero.CAddBit((uint)i, 1)).ToArray();
+					_powerOfTwo = Enumerable.Range(0, Constants.RangeProofWidth).Select(i => Scalar.Zero.CAddBit((uint)i, 1)).ToArray();
 				}
-				return _binaryVector;
+				return _powerOfTwo;
 			}
 		}
 
