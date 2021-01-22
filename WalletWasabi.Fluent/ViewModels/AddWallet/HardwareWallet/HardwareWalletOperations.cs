@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
+using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.Wallets;
 using Timer = System.Timers.Timer;
 
@@ -32,8 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		public Task? DetectionTask { get; set; }
 		private object DetectionTaskLock { get; } = new object();
 
-		public Task? InitTask { get; set; }
-		private object InitTaskLock { get; } = new object();
+		private AbandonedTasks AbandonedTasks { get; } = new();
 
 		private void OnDetectionCompleted(HwiEnumerateEntry[] wallets)
 		{
@@ -65,15 +65,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public void InitHardwareWallet(HwiEnumerateEntry device)
 		{
-			lock (InitTaskLock)
-			{
-				if (InitTask?.IsCompleted is false)
-				{
-					return;
-				}
-
-				InitTask = InitHardwareWalletAsync(device);
-			}
+			AbandonedTasks.AddAndClearCompleted(InitHardwareWalletAsync(device));
 		}
 
 		private async Task InitHardwareWalletAsync(HwiEnumerateEntry device)
@@ -104,6 +96,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				}
 
 				DetectionTask = RunDetectionAsync();
+				AbandonedTasks.AddAndClearCompleted(DetectionTask);
 			}
 		}
 
@@ -142,33 +135,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public async ValueTask DisposeAsync()
 		{
-			if (DetectionTask is { } detectionTask)
-			{
-				DisposeCts.Cancel();
-				try
-				{
-					await detectionTask;
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-				}
-				detectionTask.Dispose();
-			}
+			DisposeCts.Cancel();
 
-			if (InitTask is { } initTask)
-			{
-				DisposeCts.Cancel();
-				try
-				{
-					await initTask;
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-				}
-				initTask.Dispose();
-			}
+			await AbandonedTasks.WhenAllAsync();
 
 			DisposeCts.Dispose();
 		}
