@@ -97,12 +97,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 					return;
 				}
 
-				DetectionTask = RunDetectionAsync();
+				DetectionTask = DetectAsync();
 				AbandonedTasks.AddAndClearCompleted(DetectionTask);
 			}
 		}
 
-		protected async Task RunDetectionAsync()
+		protected async Task DetectAsync()
 		{
 			using var passphraseTimer = new Timer(8000) { AutoReset = false };
 			passphraseTimer.Elapsed += OnPassphraseNeeded;
@@ -113,10 +113,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, DisposeCts.Token);
 
 				passphraseTimer.Start();
-				var detectedHardwareWallets =
-					(await Client.EnumerateAsync(timeoutCts.Token)
-						.ConfigureAwait(false))
-						.ToArray();
+				var detectedHardwareWallets = (await Client.EnumerateAsync(timeoutCts.Token).ConfigureAwait(false)).ToArray();
 
 				DisposeCts.Token.ThrowIfCancellationRequested();
 
