@@ -26,8 +26,9 @@
 
 ## Weekly routine
 
-- Wednesday 13:00 UTC: Team meetings.
-- Wednesday 14:00 UTC: General meeting.
+- Monday 18:00 UTC: [Research Club Conversations](https://github.com/zkSNACKs/WasabiResearchClub)
+- Wednesday 13:00 UTC: Team Meetings
+- Wednesday 14:00 UTC: Vision Meeting
 - Pair programming hour.
 
 ## Monthly routine
