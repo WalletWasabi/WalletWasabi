@@ -45,7 +45,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		{
 			GroupElement Randomize(GroupElement g, GroupElement m) => m + z * g;
 			return new CredentialPresentation(
-				ca: Randomize(Generators.Ga, Amount * Generators.Gg + Randomness * Generators.Gh),
+				ca: Randomize(Generators.Ga, ProofSystem.PedersenCommitment(Amount, Randomness)),
 				cx0: Randomize(Generators.Gx0, Mac.U),
 				cx1: Randomize(Generators.Gx1, Mac.T * Mac.U),
 				cV: Randomize(Generators.GV, Mac.V),
