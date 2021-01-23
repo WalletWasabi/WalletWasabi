@@ -26,7 +26,8 @@
 
 ## Weekly routine
 
-- Wednesday 13:00 UTC: Developer meeting.
+- Wednesday 13:00 UTC: Team meetings.
+- Wednesday 14:00 UTC: General meeting.
 - Pair programming hour.
 
 ## Monthly routine
