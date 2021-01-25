@@ -79,6 +79,16 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				{
 					HideItems = !x.Item1 && x.Item2 > 0;
 				});
+
+			_walletManager.WhenAnyValue(x => x.SelectedWallet)
+				.OfType<NavBarItemViewModel>()
+				.Subscribe(x =>
+				{
+					if (x is not null)
+					{
+						SelectedItem = x;
+					}
+				});
 		}
 
 		public ObservableCollection<NavBarItemViewModel> Actions => _walletManager.Actions;
