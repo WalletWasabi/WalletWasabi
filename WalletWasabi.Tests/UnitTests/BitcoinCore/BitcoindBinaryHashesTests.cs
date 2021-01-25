@@ -15,7 +15,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		/// Bitcoin Knots distributes only SHA256 checksums for installers and for zip archives and not their content, so the validity of the hashes below depends on peer review consensus.
 		/// </summary>
 		/// <remarks>To verify a file hash, you can use, for example, <c>certUtil -hashfile bitcoind.exe SHA256</c> command.</remarks>
-		/// <seealso href="https://bitcoinknots.org/files/0.20.x/0.20.1.knots20200815/SHA256SUMS.asc">Our current Bitcoin Knots version is 0.20.1.</seealso>
 		[Fact]
 		public void VerifyBitcoindBinaryChecksumHashes()
 		{
