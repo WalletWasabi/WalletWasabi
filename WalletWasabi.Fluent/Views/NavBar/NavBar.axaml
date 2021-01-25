@@ -79,6 +79,9 @@
             <Setter Property="Focusable" Value="{Binding IsEnabled}" x:CompileBindings="False" />
             <Setter Property="IsEnabled" Value="{Binding IsEnabled}" x:CompileBindings="False" />
           </Style>
+          <Style Selector="c|NavBarItem:disabled PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+          </Style>
         </c:NavBarListBox.Styles>
         <c:NavBarListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:NavBarItemViewModel" x:CompileBindings="False">
@@ -129,6 +132,9 @@
             <Setter Property="IsHitTestVisible" Value="{Binding IsEnabled}" x:CompileBindings="False" />
             <Setter Property="Focusable" Value="{Binding IsEnabled}" x:CompileBindings="False" />
             <Setter Property="IsEnabled" Value="{Binding IsEnabled}" x:CompileBindings="False" />
+          </Style>
+          <Style Selector="c|NavBarItem:disabled PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
           </Style>
         </c:NavBarListBox.Styles>
         <c:NavBarListBox.DataTemplates>
@@ -206,6 +212,9 @@
             <Setter Property="Focusable" Value="{Binding IsEnabled}" x:CompileBindings="False" />
             <Setter Property="IsEnabled" Value="{Binding IsEnabled}" x:CompileBindings="False" />
           </Style>
+          <Style Selector="c|NavBarItem:disabled PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+          </Style>
         </c:NavBarListBox.Styles>
         <c:NavBarListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:NavBarItemViewModel">
@@ -277,6 +286,9 @@
           <Setter Property="IsHitTestVisible" Value="{Binding IsEnabled}" x:CompileBindings="False" />
           <Setter Property="Focusable" Value="{Binding IsEnabled}" x:CompileBindings="False" />
           <Setter Property="IsEnabled" Value="{Binding IsEnabled}" x:CompileBindings="False" />
+        </Style>
+        <Style Selector="c|NavBarItem:disabled PathIcon">
+          <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
         </Style>
       </c:NavBarListBox.Styles>
       <c:NavBarListBox.DataTemplates>
