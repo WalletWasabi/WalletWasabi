@@ -254,26 +254,28 @@ namespace WalletWasabi.Packager
 				// /p:Version=1.2.3.4
 				//		"dotnet publish" supports msbuild command line options like /p:Version=1.2.3.4
 
+				string dotnetProcessArgs = string.Join(
+					" ",
+					$"publish",
+					$"--configuration Release",
+					$"--force",
+					$"--output \"{currentBinDistDirectory}\"",
+					$"--self-contained true",
+					$"--runtime \"{target}\"",
+					$"--disable-parallel",
+					$"--no-cache",
+					$"/p:VersionPrefix={VersionPrefix}",
+					$"/p:DebugType=none",
+					$"/p:DebugSymbols=false",
+					$"/p:ErrorReport=none",
+					$"/p:DocumentationFile=\"\"",
+					$"/p:Deterministic=true",
+					$"/p:RestoreLockedMode=true");
+
 				StartProcessAndWaitForExit(
 					"dotnet",
 					DesktopProjectDirectory,
-					arguments: string.Join(
-						" ",
-						$"publish",
-						$"--configuration Release",
-						$"--force",
-						$"--output \"{currentBinDistDirectory}\"",
-						$"--self-contained true",
-						$"--runtime \"{target}\"",
-						$"--disable-parallel",
-						$"--no-cache",
-						$"/p:VersionPrefix={VersionPrefix}",
-						$"/p:DebugType=none",
-						$"/p:DebugSymbols=false",
-						$"/p:ErrorReport=none",
-						$"/p:DocumentationFile=\"\"",
-						$"/p:Deterministic=true",
-						$"/p:RestoreLockedMode=true"),
+					arguments: dotnetProcessArgs,
 					redirectStandardOutput: true);
 
 				Tools.ClearSha512Tags(currentBinDistDirectory);
