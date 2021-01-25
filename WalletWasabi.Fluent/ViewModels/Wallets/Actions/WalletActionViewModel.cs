@@ -13,6 +13,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 		{
 			Wallet = Guard.NotNull(nameof(wallet), wallet);
 
+			IsEnabled = wallet.WalletState == WalletState.Started;
+
 			wallet.WhenAnyValue(x => x.WalletState).Select(x => IsEnabled = (x == WalletState.Started));
 		}
 
