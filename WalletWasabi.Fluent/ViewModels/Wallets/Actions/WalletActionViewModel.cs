@@ -5,6 +5,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 {
 	public abstract partial class WalletActionViewModel : NavBarItemViewModel
 	{
+		[AutoNotify] private bool _isEnabled;
+
 		protected WalletActionViewModel(WalletViewModelBase wallet)
 		{
 			Wallet = Guard.NotNull(nameof(wallet), wallet);
