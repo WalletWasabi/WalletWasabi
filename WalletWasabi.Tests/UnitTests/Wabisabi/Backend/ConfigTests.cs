@@ -63,7 +63,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 			var configChangeMonitoringPeriod = TimeSpan.FromMilliseconds(10);
-			var configChangeAwaitDuration = TimeSpan.FromMilliseconds(100);
+			var configChangeAwaitDuration = TimeSpan.FromMilliseconds(200);
 
 			CoordinatorParameters coordinatorParameters = new(workDir) { ConfigChangeMonitoringPeriod = configChangeMonitoringPeriod };
 			using WabiSabiCoordinator coordinator = new(coordinatorParameters);
