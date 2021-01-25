@@ -106,13 +106,16 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (select)
 			{
-				if (!_walletActionsDictionary.TryGetValue(walletViewModelItem, out var actions))
+				if (walletViewModelItem.IsLoggedIn)
 				{
-					actions = GetWalletActions(walletViewModelItem);
-					_walletActionsDictionary[walletViewModelItem] = actions;
-				}
+					if (!_walletActionsDictionary.TryGetValue(walletViewModelItem, out var actions))
+					{
+						actions = GetWalletActions(walletViewModelItem);
+						_walletActionsDictionary[walletViewModelItem] = actions;
+					}
 
-				InsertActions(walletViewModelItem, actions);
+					InsertActions(walletViewModelItem, actions);
+				}
 
 				SelectedWallet = walletViewModelItem;
 			}
