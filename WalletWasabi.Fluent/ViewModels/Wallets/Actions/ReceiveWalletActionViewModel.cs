@@ -8,12 +8,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 		IconName = "wallet_action_receive",
 		NavBarPosition = NavBarPosition.None,
 		Searchable = false,
-		NavigationTarget = NavigationTarget.HomeScreen)]
+		NavigationTarget = NavigationTarget.DialogScreen)]
 	public partial class ReceiveWalletActionViewModel : WalletActionViewModel
 	{
 		public ReceiveWalletActionViewModel(WalletViewModelBase wallet) : base(wallet)
 		{
 			Title = "Receive";
+			SelectionMode = NavBarItemSelectionMode.Button;
 		}
 	}
 }
