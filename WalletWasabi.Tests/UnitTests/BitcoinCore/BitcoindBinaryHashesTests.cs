@@ -15,7 +15,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		/// Bitcoin Knots distributes only SHA256 checksums for installers and for zip archives and not their content, so the validity of the hashes below depends on peer review consensus.
 		/// </summary>
 		/// <remarks>To verify a file hash, you can use, for example, <c>certUtil -hashfile bitcoind.exe SHA256</c> command.</remarks>
-		/// <seealso href="https://bitcoinknots.org/files/0.20.x/0.20.0.knots20200614/SHA256SUMS.asc">Our current Bitcoin Knots version is 0.20.0.</seealso>
 		[Fact]
 		public void VerifyBitcoindBinaryChecksumHashes()
 		{
@@ -23,9 +22,9 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 			Dictionary<OSPlatform, string> expectedHashes = new()
 			{
-				{ OSPlatform.Windows, "f3efa8047da261043b18cb360f1705a603393c691a8dc0a6c244ffb55f9a4b9d" },
-				{ OSPlatform.Linux, "213fd04e89bf466092536554cf5475fdcc8498ccd57155d2dd965d0d64b4aa3c" },
-				{ OSPlatform.OSX, "4efb294133f8fb7f54ecc380849a82fffea75ceb5a77d1dca3333f7a3df8709a" },
+				{ OSPlatform.Windows, "2406e8d63e8ee5dc71089049a52f5b3f3f7a39a9b054a323d7e3e0c8cbadec1b" },
+				{ OSPlatform.Linux, "09aff9831d5ea24e69bbc27d16cf57c3763ba42dacd69f425710828e7f9101c8" },
+				{ OSPlatform.OSX, "2353e36d938eb314ade94df2d18b85e23fd7232ac096feaed46f0306c6b55b59" },
 			};
 
 			foreach (var item in expectedHashes)
