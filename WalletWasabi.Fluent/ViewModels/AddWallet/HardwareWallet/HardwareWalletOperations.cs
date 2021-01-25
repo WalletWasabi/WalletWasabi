@@ -57,7 +57,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			}
 			else
 			{
-				HardwareWalletsFound?.Invoke(this,wallets);
+				HardwareWalletsFound?.Invoke(this, wallets);
 			}
 		}
 
