@@ -2,24 +2,17 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
 using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Nito.AsyncEx;
-using WalletWasabi.Wallets;
-using Timer = System.Timers.Timer;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
 	public class HardwareWalletOperations : IAsyncDisposable
 	{
-		public event EventHandler<HwiEnumerateEntry[]>? DetectionCompleted;
-
-		public event EventHandler? PassphraseNeeded;
-
 		public HardwareWalletOperations(Network network)
 		{
 			Client = new HwiClient(network);
@@ -30,20 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		private CancellationTokenSource DisposeCts { get; }
 
-		public Task? DetectionTask { get; set; }
-		private object DetectionTaskLock { get; } = new object();
-
 		private AbandonedTasks AbandonedTasks { get; } = new();
-
-		private void OnDetectionCompleted(HwiEnumerateEntry[] wallets)
-		{
-			DetectionCompleted?.Invoke(this, wallets);
-		}
-
-		private void OnPassphraseNeeded(object sender, ElapsedEventArgs e)
-		{
-			PassphraseNeeded?.Invoke(this, EventArgs.Empty);
-		}
 
 		public async Task<KeyManager> GenerateWalletAsync(HwiEnumerateEntry device, string walletFilePath)
 		{
@@ -88,48 +68,16 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			}
 		}
 
-		public void StartDetection()
+		public async Task<HwiEnumerateEntry[]> DetectAsync()
 		{
-			lock (DetectionTaskLock)
-			{
-				if (DetectionTask?.IsCompleted is false)
-				{
-					return;
-				}
+			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+			using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, DisposeCts.Token);
 
-				DetectionTask = DetectAsync();
-				AbandonedTasks.AddAndClearCompleted(DetectionTask);
-			}
-		}
+			var detectedHardwareWallets = (await Client.EnumerateAsync(timeoutCts.Token).ConfigureAwait(false)).ToArray();
 
-		protected async Task DetectAsync()
-		{
-			using var passphraseTimer = new Timer(8000) { AutoReset = false };
-			passphraseTimer.Elapsed += OnPassphraseNeeded;
+			DisposeCts.Token.ThrowIfCancellationRequested();
 
-			try
-			{
-				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-				using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, DisposeCts.Token);
-
-				passphraseTimer.Start();
-				var detectedHardwareWallets = (await Client.EnumerateAsync(timeoutCts.Token).ConfigureAwait(false)).ToArray();
-
-				DisposeCts.Token.ThrowIfCancellationRequested();
-
-				OnDetectionCompleted(detectedHardwareWallets);
-			}
-			catch (Exception ex)
-			{
-				if (ex is not OperationCanceledException)
-				{
-					Logger.LogError(ex);
-				}
-			}
-			finally
-			{
-				passphraseTimer.Stop();
-			}
+			return detectedHardwareWallets;
 		}
 
 		public async ValueTask DisposeAsync()

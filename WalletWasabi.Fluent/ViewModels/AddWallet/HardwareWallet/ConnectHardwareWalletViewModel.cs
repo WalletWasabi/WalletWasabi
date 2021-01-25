@@ -3,12 +3,17 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.Logging;
+using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
@@ -18,6 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		[AutoNotify] private string _message;
 		[AutoNotify] private bool _isSearching;
 		[AutoNotify] private bool _existingWalletFound;
+		[AutoNotify] private bool _nextButtonEnable;
 
 		public ConnectHardwareWalletViewModel(string walletName, WalletManager walletManager, ObservableCollection<WalletViewModelBase> wallets)
 		{
@@ -26,10 +32,22 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			WalletName = walletName;
 			WalletManager = walletManager;
 			Wallets = wallets;
+			AbandonedTasks = new AbandonedTasks();
+			HardwareWalletOperations = new HardwareWalletOperations(WalletManager.Network);
 
-			NextCommand = ReactiveCommand.Create(RunDetection);
+			NextCommand = ReactiveCommand.Create(() =>
+			{
+				if (HardwareWalletOperations is null || IsSearching)
+				{
+					return;
+				}
 
-			// TODO: Create an up-to-date article
+				ExistingWalletFound = false;
+				Message = "";
+
+				AbandonedTasks.AddAndClearCompleted(DetectionAsync(HardwareWalletOperations));
+			});
+
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask(async () =>
 				await IoHelpers.OpenBrowserAsync("https://docs.wasabiwallet.io/using-wasabi/ColdWasabi.html#using-hardware-wallet-step-by-step"));
 
@@ -44,7 +62,15 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 					ExistingWallet.OpenCommand.Execute(default);
 				}
 			});
+
+			this.WhenAnyValue(x => x.Message)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(message => NextButtonEnable = !string.IsNullOrEmpty(message));
+
+			NextCommand.Execute(default);
 		}
+
+		private AbandonedTasks AbandonedTasks { get; }
 
 		public string WalletName { get; }
 
@@ -60,33 +86,47 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public ICommand NavigateToExistingWalletLoginCommand { get; }
 
-		private void RunDetection()
+		private async Task DetectionAsync(HardwareWalletOperations hwo)
 		{
-			if (HardwareWalletOperations is null)
-			{
-				return;
-			}
-
 			IsSearching = true;
-			ExistingWalletFound = false;
-			Message = "";
-			HardwareWalletOperations.StartDetection();
+
+			try
+			{
+				CancellationTokenSource cts = new();
+				AbandonedTasks.AddAndClearCompleted(PassphraseNeeded(cts.Token));
+				var result = await hwo.DetectAsync();
+				cts.Cancel();
+				EvaluateDetectionResult(result);
+			}
+			catch (Exception ex) when (ex is not OperationCanceledException)
+			{
+				Logger.LogError(ex);
+			}
+			finally
+			{
+				IsSearching = false;
+			}
 		}
 
-		private void OnPassphraseNeeded(object? sender, EventArgs e)
+		private async Task PassphraseNeeded(CancellationToken cancellationToken)
 		{
-			IsSearching = false;
-			Message = "Check your device and enter your passphrase.";
+			try
+			{
+				await Task.Delay(7000, cancellationToken);
+				Message = "Check your device and enter your passphrase.";
+			}
+			catch (OperationCanceledException)
+			{
+				// ignored
+			}
 		}
 
-		private void OnDetectionCompleted(object? sender, HwiEnumerateEntry[] devices)
+		private void EvaluateDetectionResult(HwiEnumerateEntry[] devices)
 		{
 			if (HardwareWalletOperations is null)
 			{
 				return;
 			}
-
-			IsSearching = false;
 
 			if (devices.Length == 0)
 			{
@@ -150,17 +190,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			base.OnNavigatedTo(inStack, disposable);
 
-			HardwareWalletOperations = new HardwareWalletOperations(WalletManager.Network);
-			HardwareWalletOperations.DetectionCompleted += OnDetectionCompleted;
-			HardwareWalletOperations.PassphraseNeeded += OnPassphraseNeeded;
-
-			RunDetection();
+			HardwareWalletOperations ??= new HardwareWalletOperations(WalletManager.Network);
 
 			Disposable.Create(async () =>
 			{
-				HardwareWalletOperations.DetectionCompleted -= OnDetectionCompleted;
-				HardwareWalletOperations.PassphraseNeeded -= OnPassphraseNeeded;
 				await HardwareWalletOperations.DisposeAsync();
+				await AbandonedTasks.WhenAllAsync();
 			})
 			.DisposeWith(disposable);
 		}
