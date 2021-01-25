@@ -53,7 +53,10 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				{
 					if (x > 0 && SelectedItem is null)
 					{
-						SelectedItem = Items.FirstOrDefault();
+						if (!_walletManager.IsLoadingWallet)
+						{
+							SelectedItem = Items.FirstOrDefault();
+						}
 					}
 				});
 

@@ -22,6 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private readonly Dictionary<WalletViewModelBase, List<WalletActionViewModel>> _walletActionsDictionary;
 		private readonly ReadOnlyObservableCollection<NavBarItemViewModel> _items;
 		[AutoNotify] private WalletViewModelBase? _selectedWallet;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
 		[AutoNotify] private bool _loggedInAndSelectedAlwaysFirst;
 		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _actions;
 		[AutoNotify] private ObservableCollection<WalletViewModelBase> _wallets;
@@ -68,7 +69,9 @@ namespace WalletWasabi.Fluent.ViewModels
 						}
 						else if (_walletDictionary[wallet] is ClosedWalletViewModel cwvm && wallet.State == WalletState.Started)
 						{
+							IsLoadingWallet = true;
 							OpenClosedWallet(walletManager, uiConfig, cwvm);
+							IsLoadingWallet = false;
 						}
 					}
 
