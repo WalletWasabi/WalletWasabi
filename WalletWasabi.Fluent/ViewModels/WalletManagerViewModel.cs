@@ -46,7 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			_wallets
 				.ToObservableChangeSet()
 				.Filter(selectedWalletFilter)
-				.Sort(SortExpressionComparer<WalletViewModelBase>.Ascending(i => i.WalletState).ThenByDescending(i => i.IsLoggedIn).ThenByAscending(i => i.Title))
+				.Sort(SortExpressionComparer<WalletViewModelBase>.Descending(i => i.WalletState).ThenByDescending(i => i.IsLoggedIn).ThenByAscending(i => i.Title))
 				.Transform(x => x as NavBarItemViewModel)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _items)
