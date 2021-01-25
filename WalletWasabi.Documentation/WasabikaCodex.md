@@ -94,7 +94,7 @@ __Fact__: code review is one of the few scientifically proven code improvement t
   You can use it with the console in the project library by the following commands:  
    - `git upd` -> Update the forked repository  
    - `git del` -> Delete the current branch remotely and locally  
-   - `git pr "PRName"` -> Create a new branch, commit then push your work, open your browser with a new PR waiting for you to fill the title and the description.
+   - `git pr "Commit message"` -> Create a new branch, commit then push your work, open your browser with a new PR waiting for you to fill the title and the description.
 
 # Productivity tips
 
