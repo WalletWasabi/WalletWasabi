@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning
 {
@@ -17,6 +18,11 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 		public UtxoJudge(TimeSpan period, string prisonFilePath) : base(period)
 		{
 			Prison = UtxoPrison.FromFileOrEmpty(prisonFilePath);
+			var inmateCount = Prison.CountInmates();
+			if (inmateCount != 0)
+			{
+				Logger.LogInfo($"{inmateCount} UTXOs are found in prison. {Prison.CountInmates(Punishment.Banned)} are banned {Prison.CountInmates(Punishment.Noted)} are noted.");
+			}
 		}
 
 		public UtxoPrison Prison { get; }

@@ -53,5 +53,17 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 			IoHelpers.EnsureContainingDirectoryExists(FilePath);
 			await File.WriteAllLinesAsync(FilePath, Inmates.Select(x => x.ToString())).ConfigureAwait(false);
 		}
+
+		public int CountInmates(Punishment? punishment = null)
+		{
+			if (punishment is null)
+			{
+				return Inmates.Count;
+			}
+			else
+			{
+				return Inmates.Where(x => x.Value.Punishment == punishment).Count();
+			}
+		}
 	}
 }
