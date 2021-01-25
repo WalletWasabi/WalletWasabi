@@ -257,24 +257,23 @@ namespace WalletWasabi.Packager
 				StartProcessAndWaitForExit(
 					"dotnet",
 					DesktopProjectDirectory,
-					arguments:
-						string.Join(
-							" ",
-							$"publish",
-							$"--configuration Release",
-							$"--force",
-							$"--output \"{currentBinDistDirectory}\"",
-							$"--self-contained true",
-							$"--runtime \"{target}\"",
-							$"--disable-parallel",
-							$"--no-cache",
-							$"/p:VersionPrefix={VersionPrefix}",
-							$"/p:DebugType=none",
-							$"/p:DebugSymbols=false",
-							$"/p:ErrorReport=none",
-							$"/p:DocumentationFile=\"\"",
-							$"/p:Deterministic=true",
-							$"/p:RestoreLockedMode=true"),
+					arguments: string.Join(
+						" ",
+						$"publish",
+						$"--configuration Release",
+						$"--force",
+						$"--output \"{currentBinDistDirectory}\"",
+						$"--self-contained true",
+						$"--runtime \"{target}\"",
+						$"--disable-parallel",
+						$"--no-cache",
+						$"/p:VersionPrefix={VersionPrefix}",
+						$"/p:DebugType=none",
+						$"/p:DebugSymbols=false",
+						$"/p:ErrorReport=none",
+						$"/p:DocumentationFile=\"\"",
+						$"/p:Deterministic=true",
+						$"/p:RestoreLockedMode=true"),
 					redirectStandardOutput: true);
 
 				Tools.ClearSha512Tags(currentBinDistDirectory);
