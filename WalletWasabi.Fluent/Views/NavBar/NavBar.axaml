@@ -123,6 +123,8 @@
           </Style>
           <Style Selector="c|NavBarItem">
             <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
+            <Setter Property="IsHitTestVisible" Value="{Binding IsEnabled}" x:CompileBindings="False" />
+            <Setter Property="Focusable" Value="{Binding IsEnabled}" x:CompileBindings="False" />
           </Style>
         </c:NavBarListBox.Styles>
         <c:NavBarListBox.DataTemplates>
