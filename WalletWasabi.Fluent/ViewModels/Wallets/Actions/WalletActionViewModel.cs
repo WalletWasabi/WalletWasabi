@@ -1,5 +1,9 @@
-﻿using WalletWasabi.Fluent.ViewModels.NavBar;
+﻿using System.Reactive;
+using System.Reactive.Linq;
+using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Helpers;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 {
@@ -10,6 +14,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 		protected WalletActionViewModel(WalletViewModelBase wallet)
 		{
 			Wallet = Guard.NotNull(nameof(wallet), wallet);
+
+			wallet.WhenAnyValue(x => x.WalletState).Select(x => IsEnabled = (x == WalletState.Started));
 		}
 
 		public WalletViewModelBase Wallet { get; }
