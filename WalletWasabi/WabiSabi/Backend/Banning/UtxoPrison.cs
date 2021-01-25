@@ -13,9 +13,9 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 	/// <summary>
 	/// Malicious UTXOs are sent here.
 	/// </summary>
-	public class Prison
+	public class UtxoPrison
 	{
-		private Prison(string filePath, Dictionary<OutPoint, Inmate> inmates)
+		private UtxoPrison(string filePath, Dictionary<OutPoint, Inmate> inmates)
 		{
 			FilePath = filePath;
 			Inmates = inmates;
@@ -25,7 +25,7 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 
 		private string FilePath { get; }
 
-		public static Prison FromFileOrEmpty(string filePath)
+		public static UtxoPrison FromFileOrEmpty(string filePath)
 		{
 			var inmates = new Dictionary<OutPoint, Inmate>();
 			if (File.Exists(filePath))
@@ -45,7 +45,7 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 				}
 			}
 
-			return new Prison(filePath, inmates);
+			return new UtxoPrison(filePath, inmates);
 		}
 
 		public async Task ToFileAsync()

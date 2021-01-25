@@ -11,15 +11,15 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 	/// <summary>
 	/// Judge sends UTXOs to prison.
 	/// </summary>
-	public class Judge : PeriodicRunner
+	public class UtxoJudge : PeriodicRunner
 	{
 		/// <param name="period">How often to make judgements.</param>
-		public Judge(TimeSpan period, string prisonFilePath) : base(period)
+		public UtxoJudge(TimeSpan period, string prisonFilePath) : base(period)
 		{
-			Prison = Prison.FromFileOrEmpty(prisonFilePath);
+			Prison = UtxoPrison.FromFileOrEmpty(prisonFilePath);
 		}
 
-		public Prison Prison { get; }
+		public UtxoPrison Prison { get; }
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{

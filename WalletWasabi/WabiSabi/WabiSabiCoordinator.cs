@@ -34,7 +34,7 @@ namespace WalletWasabi.WabiSabi
 		public string WorkDir { get; }
 		public WabiSabiConfig Config { get; }
 		public ConfigWatcher ConfigWatcher { get; }
-		public Judge Judge { get; }
+		public UtxoJudge Judge { get; }
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
