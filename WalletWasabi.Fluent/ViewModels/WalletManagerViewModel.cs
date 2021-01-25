@@ -101,27 +101,19 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private void OpenClosedWallet(WalletManager walletManager, UiConfig uiConfig, ClosedWalletViewModel closedWalletViewModel)
 		{
-			var select = SelectedWallet == closedWalletViewModel;
-
 			RemoveWallet(closedWalletViewModel);
 
 			var walletViewModelItem = OpenWallet(walletManager, uiConfig, closedWalletViewModel.Wallet);
 
-			if (select)
+			if (!_walletActionsDictionary.TryGetValue(walletViewModelItem, out var actions))
 			{
-				if (walletViewModelItem.IsLoggedIn)
-				{
-					if (!_walletActionsDictionary.TryGetValue(walletViewModelItem, out var actions))
-					{
-						actions = GetWalletActions(walletViewModelItem);
-						_walletActionsDictionary[walletViewModelItem] = actions;
-					}
-
-					InsertActions(walletViewModelItem, actions);
-				}
-
-				SelectedWallet = walletViewModelItem;
+				actions = GetWalletActions(walletViewModelItem);
+				_walletActionsDictionary[walletViewModelItem] = actions;
 			}
+
+			InsertActions(walletViewModelItem, actions);
+
+			SelectedWallet = walletViewModelItem;
 		}
 
 		private WalletViewModelBase OpenWallet(WalletManager walletManager, UiConfig uiConfig, Wallet wallet)
