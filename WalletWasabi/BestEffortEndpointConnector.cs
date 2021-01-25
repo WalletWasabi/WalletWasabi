@@ -89,6 +89,7 @@ namespace WalletWasabi
 			}
 
 			public ConnectionMode Mode { get; set; }
+
 			public DateTimeOffset LastModeChangeTime
 			{
 				get => _lastModeChangeTime;

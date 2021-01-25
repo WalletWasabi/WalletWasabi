@@ -672,8 +672,8 @@ namespace WalletWasabi.Gui
 
 				if (Nodes is { } nodes)
 				{
-					Nodes.ConnectedNodes.Added -= ConnectedNodes_OnAddedOrRemoved; 
-					Nodes.ConnectedNodes.Removed -= ConnectedNodes_OnAddedOrRemoved; 
+					Nodes.ConnectedNodes.Added -= ConnectedNodes_OnAddedOrRemoved;
+					Nodes.ConnectedNodes.Removed -= ConnectedNodes_OnAddedOrRemoved;
 					nodes.Disconnect();
 					while (nodes.ConnectedNodes.Any(x => x.IsConnected))
 					{
