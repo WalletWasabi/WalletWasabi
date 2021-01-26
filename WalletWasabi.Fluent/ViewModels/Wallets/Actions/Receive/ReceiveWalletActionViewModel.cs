@@ -43,7 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 				{
 					var newKey = WasabiWallet.KeyManager.GetNextReceiveKey(Reference, out bool minGapLimitIncreased);
 
-					string? minGapLimitMessage;
+					string? minGapLimitMessage = default;
 					if (minGapLimitIncreased)
 					{
 						int minGapLimit = WasabiWallet.KeyManager.MinGapLimit.Value;
