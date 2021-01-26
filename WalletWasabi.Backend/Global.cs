@@ -14,7 +14,6 @@ using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
-using WalletWasabi.WabiSabi;
 
 namespace WalletWasabi.Backend
 {
@@ -23,7 +22,7 @@ namespace WalletWasabi.Backend
 		public Global(string dataDir)
 		{
 			DataDir = dataDir ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
-			HostedServices = new();
+			HostedServices = new HostedServices();
 		}
 
 		public string DataDir { get; }
@@ -37,7 +36,6 @@ namespace WalletWasabi.Backend
 		public IndexBuilderService IndexBuilderService { get; private set; }
 
 		public Coordinator Coordinator { get; private set; }
-		public WabiSabiCoordinator WabiSabiCoordinator { get; private set; }
 
 		public Config Config { get; private set; }
 
@@ -54,10 +52,6 @@ namespace WalletWasabi.Backend
 
 			// Make sure P2P works.
 			await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint(), cancel);
-
-			CoordinatorParameters coordinatorParameters = new(DataDir);
-			WabiSabiCoordinator = new(coordinatorParameters);
-			HostedServices.Register(WabiSabiCoordinator, "WabiSabi Coordinator");
 
 			if (roundConfig.FilePath is { })
 			{
@@ -87,8 +81,8 @@ namespace WalletWasabi.Backend
 			var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 			var blockNotifier = HostedServices.FirstOrDefault<BlockNotifier>();
-			IndexBuilderService = new(RpcClient, blockNotifier, indexFilePath);
-			Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
+			IndexBuilderService = new IndexBuilderService(RpcClient, blockNotifier, indexFilePath);
+			Coordinator = new Coordinator(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
 			IndexBuilderService.Synchronize();
 			Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
 
@@ -102,7 +96,7 @@ namespace WalletWasabi.Backend
 			Guard.NotNull(nameof(endPoint), endPoint);
 
 			// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
-			P2pNode = new(network, endPoint, new(), $"/WasabiCoordinator:{Constants.BackendMajorVersion}/");
+			P2pNode = new P2pNode(network, endPoint, new MempoolService(), $"/WasabiCoordinator:{Constants.BackendMajorVersion}/");
 			await P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
 			HostedServices.Register(new BlockNotifier(TimeSpan.FromSeconds(7), RpcClient, P2pNode), "Block Notifier");
 		}

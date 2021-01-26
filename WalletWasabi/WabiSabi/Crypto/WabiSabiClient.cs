@@ -144,7 +144,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 				var scalarAmount = new Scalar((ulong)amount.Satoshi);
 
 				var randomness = RandomNumberGenerator.GetScalar(allowZero: false);
-				var ma = ProofSystem.PedersenCommitment(scalarAmount, randomness);
+				var ma = scalarAmount * Generators.Gg + randomness * Generators.Gh;
 
 				var (rangeKnowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(scalarAmount, randomness, Constants.RangeProofWidth, RandomNumberGenerator);
 				knowledgeToProve.Add(rangeKnowledge);

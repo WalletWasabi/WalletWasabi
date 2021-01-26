@@ -4,7 +4,5 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.ClosedHardwareWalletView">
-  <StackPanel>
-    <Button Command="{Binding OpenWalletCommand}">Load</Button>
-  </StackPanel>
+    Hello Wasabi!
 </UserControl>

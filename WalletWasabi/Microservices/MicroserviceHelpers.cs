@@ -7,45 +7,43 @@ namespace WalletWasabi.Microservices
 {
 	public static class MicroserviceHelpers
 	{
-		public static OSPlatform GetCurrentPlatform()
+		public static string GetBinaryFolder()
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				return OSPlatform.Windows;
+				return GetBinaryFolder(OSPlatform.Windows);
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				return OSPlatform.Linux;
+				return GetBinaryFolder(OSPlatform.Linux);
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				return OSPlatform.OSX;
+				return GetBinaryFolder(OSPlatform.OSX);
 			}
 			else
 			{
-				throw new NotSupportedException("Platform is not supported.");
+				throw new NotSupportedException("Operating system is not supported.");
 			}
 		}
 
-		public static string GetBinaryFolder(OSPlatform? platform = null)
+		public static string GetBinaryFolder(OSPlatform platform)
 		{
-			platform ??= GetCurrentPlatform();
+			var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
 
-			string fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
 			string commonPartialPath = Path.Combine(fullBaseDirectory, "Microservices", "Binaries");
-
 			string path;
 			if (platform == OSPlatform.Windows)
 			{
-				path = Path.Combine(commonPartialPath, "win64");
+				path = Path.Combine(commonPartialPath, $"win64");
 			}
 			else if (platform == OSPlatform.Linux)
 			{
-				path = Path.Combine(commonPartialPath, "lin64");
+				path = Path.Combine(commonPartialPath, $"lin64");
 			}
 			else if (platform == OSPlatform.OSX)
 			{
-				path = Path.Combine(commonPartialPath, "osx64");
+				path = Path.Combine(commonPartialPath, $"osx64");
 			}
 			else
 			{
@@ -55,13 +53,9 @@ namespace WalletWasabi.Microservices
 			return path;
 		}
 
-		public static string GetBinaryPath(string binaryNameWithoutExtension, OSPlatform? platform = null)
+		public static string GetBinaryPath(string binaryNameWithoutExtension)
 		{
-			platform ??= GetCurrentPlatform();
-			string binaryFolder = GetBinaryFolder(platform);
-			string fileName = platform.Value == OSPlatform.Windows ? $"{binaryNameWithoutExtension}.exe" : $"{binaryNameWithoutExtension}";
-
-			return Path.Combine(binaryFolder, fileName);
+			return Path.Combine(GetBinaryFolder(), RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"{binaryNameWithoutExtension}.exe" : $"{binaryNameWithoutExtension}");
 		}
 	}
 }

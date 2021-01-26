@@ -18,6 +18,13 @@ namespace WalletWasabi.Tor.Socks5.Models.Bases
 			return ByteHelpers.ToHex(ToBytes());
 		}
 
+		public string ToString(Encoding encoding)
+		{
+			Guard.NotNull(nameof(encoding), encoding);
+
+			return encoding.GetString(ToBytes());
+		}
+
 		public override string ToString()
 		{
 			return ToHex(xhhSyntax: true);

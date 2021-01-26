@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Bases;
 using WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields;
@@ -193,6 +194,16 @@ namespace WalletWasabi.Tor.Socks5
 			return Stream;
 		}
 
+		private async Task ConnectToDestinationAsync(EndPoint destination, CancellationToken cancellationToken = default)
+		{
+			if (!destination.TryGetHostAndPort(out string? host, out int? port))
+			{
+				throw new ArgumentException("Endpoint type is not supported.", nameof(destination));
+			}
+
+			await ConnectToDestinationAsync(host, port.Value, cancellationToken).ConfigureAwait(false);
+		}
+
 		/// <summary>
 		/// Sends <see cref="CmdField.Connect"/> command to SOCKS5 server to instruct it to connect to
 		/// <paramref name="host"/>:<paramref name="port"/> on behalf of this client.
@@ -254,6 +265,26 @@ namespace WalletWasabi.Tor.Socks5
 			}
 		}
 
+		private async Task AssertConnectedAsync(CancellationToken token = default)
+		{
+			if (!IsConnected)
+			{
+				// try reconnect, maybe the server came online already
+				try
+				{
+					await ConnectToDestinationAsync(RemoteEndPoint, token).ConfigureAwait(false);
+				}
+				catch (Exception ex) when (IsConnectionRefused(ex))
+				{
+					throw new TorConnectionException($"{nameof(TorSocks5Client)} is not connected to '{RemoteEndPoint}'.", ex);
+				}
+				if (!IsConnected)
+				{
+					throw new TorConnectionException($"{nameof(TorSocks5Client)} is not connected to '{RemoteEndPoint}'.");
+				}
+			}
+		}
+
 		#endregion Initializers
 
 		#region Methods
@@ -307,6 +338,8 @@ namespace WalletWasabi.Tor.Socks5
 		{
 			try
 			{
+				await AssertConnectedAsync(cancellationToken).ConfigureAwait(false);
+
 				using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 				{
 					var stream = TcpClient.GetStream();

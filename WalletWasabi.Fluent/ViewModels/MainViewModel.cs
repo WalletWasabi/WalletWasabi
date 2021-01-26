@@ -64,11 +64,13 @@ namespace WalletWasabi.Fluent.ViewModels
 				global.Config,
 				global.HostedServices,
 				global.BitcoinStore.SmartHeaderChain,
-				global.Synchronizer);
+				global.Synchronizer,
+				global.LegalDocuments);
 
 			_walletManager = new WalletManagerViewModel(global.WalletManager, global.UiConfig);
 
 			_addWalletPage = new AddWalletPageViewModel(
+				global.LegalDocuments,
 				global.WalletManager,
 				global.BitcoinStore,
 				global.Network,
@@ -105,8 +107,8 @@ namespace WalletWasabi.Fluent.ViewModels
 					IsDialogScreenEnabled = !x;
 				});
 
-			_walletManager.WhenAnyValue(x => x.Items.Count, x => x.Actions.Count)
-				.Subscribe(x => _navBar.IsHidden = x.Item1 == 0 && x.Item2 == 0);
+			_walletManager.WhenAnyValue(x => x.Items.Count)
+				.Subscribe(x => _navBar.IsHidden = x == 0);
 
 			if (!_walletManager.Model.AnyWallet(_ => true))
 			{

@@ -18,7 +18,8 @@ namespace WalletWasabi.Tor
 		/// <param name="distributionFolderPath">Full path to folder containing Tor installation files.</param>
 		public TorSettings(string dataDir, string logFilePath, string distributionFolderPath)
 		{
-			TorBinaryFilePath = GetTorBinaryFilePath();
+			var torBinary = MicroserviceHelpers.GetBinaryPath(Path.Combine("Tor", "tor"));
+			TorBinaryFilePath = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"{torBinary}.real" : torBinary;
 			TorBinaryDir = Path.Combine(MicroserviceHelpers.GetBinaryFolder(), "Tor");
 
 			TorDataDir = Path.Combine(dataDir, "tordata");
@@ -46,15 +47,6 @@ namespace WalletWasabi.Tor
 
 		private string GeoIpPath { get; }
 		private string GeoIp6Path { get; }
-
-		/// <returns>Full path to Tor binary for selected <paramref name="platform"/>.</returns>
-		public static string GetTorBinaryFilePath(OSPlatform? platform = null)
-		{
-			platform ??= MicroserviceHelpers.GetCurrentPlatform();
-
-			string binaryPath = MicroserviceHelpers.GetBinaryPath(Path.Combine("Tor", "tor"), platform);
-			return platform == OSPlatform.OSX ? $"{binaryPath}.real" : binaryPath;
-		}
 
 		public string GetCmdArguments(EndPoint torSocks5EndPoint)
 		{

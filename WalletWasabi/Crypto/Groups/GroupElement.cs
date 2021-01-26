@@ -22,7 +22,7 @@ namespace WalletWasabi.Crypto.Groups
 		}
 
 		// Since GEJ.IsValidVariable, this constructor is private
-		internal GroupElement(GEJ groupElementJacobian)
+		private GroupElement(GEJ groupElementJacobian)
 		{
 			if (groupElementJacobian.IsInfinity)
 			{
@@ -45,7 +45,7 @@ namespace WalletWasabi.Crypto.Groups
 
 		private GEJ Gej { get; }
 		private Lazy<GE> LazyGe { get; }
-		internal GE Ge => LazyGe.Value;
+		private GE Ge => LazyGe.Value;
 		private bool IsGeCreated => LazyGe.IsValueCreated;
 
 		public bool IsInfinity => Gej.IsInfinity;

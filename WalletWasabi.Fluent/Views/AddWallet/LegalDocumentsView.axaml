@@ -11,7 +11,7 @@
              x:Class="WalletWasabi.Fluent.Views.AddWallet.LegalDocumentsView">
   <c:ContentArea Title="{Binding Title}"
                  Caption="Please read the small print."
-                 EnableBack="True" FocusCancel="True">
-    <TextBlock TextWrapping="Wrap" Text="{Binding Content}" />
+                 EnableNext="True" NextContent="Continue" FocusNext="True">
+      <TextBlock TextWrapping="Wrap" Text="{Binding Content}" />
   </c:ContentArea>
 </UserControl>

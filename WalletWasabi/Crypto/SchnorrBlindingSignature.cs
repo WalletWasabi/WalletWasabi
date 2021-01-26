@@ -137,30 +137,18 @@ namespace WalletWasabi.Crypto
 					throw new ArgumentException("Invalid blinded message.", nameof(blindedMessage));
 				}
 
-				ECPrivKey? r = null;
-				ECPrivKey? d = null;
-
-				try
+				if (!Context.Instance.TryCreateECPrivKey(rKey.ToBytes(), out var r))
 				{
-					if (!Context.Instance.TryCreateECPrivKey(rKey.ToBytes(), out r))
-					{
-						throw new FormatException("Invalid key.");
-					}
-
-					if (!Context.Instance.TryCreateECPrivKey(Key.ToBytes(), out d))
-					{
-						throw new FormatException("Invalid key.");
-					}
-
-					var sp = r.sec + (cp * d.sec).Negate();
-					sp.WriteToSpan(tmp);
-					return new uint256(tmp);
+					throw new FormatException("Invalid key.");
 				}
-				finally
+				if (!Context.Instance.TryCreateECPrivKey(Key.ToBytes(), out var d))
 				{
-					r?.Dispose();
-					d?.Dispose();
+					throw new FormatException("Invalid key.");
 				}
+
+				var sp = r.sec + (cp * d.sec).Negate();
+				sp.WriteToSpan(tmp);
+				return new uint256(tmp);
 			}
 
 			public bool VerifyUnblindedSignature(UnblindedSignature signature, uint256 dataHash)
