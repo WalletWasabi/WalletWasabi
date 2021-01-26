@@ -17,7 +17,7 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 		}
 
 		private Dictionary<OutPoint, Inmate> Inmates { get; }
-		public object Lock { get; } = new object();
+		private object Lock { get; } = new object();
 
 		/// <summary>
 		/// To identify the latest change happened in the prison.
@@ -56,10 +56,7 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 			}
 		}
 
-		public bool TryRelease(Inmate inmate)
-			=> TryRelease(inmate.Utxo, out _);
-
-		private bool TryRelease(OutPoint utxo, [NotNullWhen(returnValue: true)] out Inmate? inmate)
+		public bool TryRelease(OutPoint utxo, [NotNullWhen(returnValue: true)] out Inmate? inmate)
 		{
 			lock (Lock)
 			{
@@ -108,7 +105,7 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 			}
 		}
 
-		public IEnumerable<Inmate> GetInamtes()
+		public IEnumerable<Inmate> GetInmates()
 		{
 			lock (Lock)
 			{

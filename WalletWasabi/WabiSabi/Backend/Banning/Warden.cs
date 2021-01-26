@@ -71,7 +71,7 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 		public async Task SerializePrisonAsync()
 		{
 			IoHelpers.EnsureContainingDirectoryExists(PrisonFilePath);
-			await File.WriteAllLinesAsync(PrisonFilePath, Prison.GetInamtes().Select(x => x.ToString())).ConfigureAwait(false);
+			await File.WriteAllLinesAsync(PrisonFilePath, Prison.GetInmates().Select(x => x.ToString())).ConfigureAwait(false);
 		}
 
 		protected override async Task ActionAsync(CancellationToken cancel)

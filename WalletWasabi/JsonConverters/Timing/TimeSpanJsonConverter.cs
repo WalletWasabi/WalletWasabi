@@ -44,7 +44,7 @@ namespace WalletWasabi.JsonConverters.Timing
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
 			var ts = (TimeSpan)value;
-			writer.WriteValue($"{ts.Days}d{ts.Hours}h{ts.Minutes}m{ts.Seconds}s");
+			writer.WriteValue($"{ts.Days}d {ts.Hours}h {ts.Minutes}m {ts.Seconds}s");
 		}
 	}
 }

@@ -20,7 +20,7 @@ namespace WalletWasabi.WabiSabi
 			Parameters = parameters;
 
 			Warden = new(parameters.UtxoJudgementPeriod, parameters.PrisonFilePath, Config);
-			ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => { });
+			ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
 		}
 
 		public ConfigWatcher ConfigWatcher { get; }
