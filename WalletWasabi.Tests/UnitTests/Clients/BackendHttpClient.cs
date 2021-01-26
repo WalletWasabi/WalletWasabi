@@ -2,8 +2,9 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Tor.Http;
 
-namespace WalletWasabi.Tor.Http
+namespace WalletWasabi.Tests.UnitTests.Clients
 {
 	/// <summary>
 	/// Convenience class that allows sending HTTP request to Wasabi Backend using relative URIs.
