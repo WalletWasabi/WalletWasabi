@@ -1,6 +1,5 @@
 using ReactiveUI;
 using System;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Reactive.Disposables;
 using System.Windows.Input;
@@ -17,7 +16,6 @@ using WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Helpers;
 using WalletWasabi.Legal;
 using WalletWasabi.Logging;
@@ -40,17 +38,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		[AutoNotify] private bool _enableBack;
 		[AutoNotify] private bool _enableCancel;
 
-		private readonly LegalDocuments _legalDocuments;
-
-		public AddWalletPageViewModel(LegalDocuments legalDocuments,
+		public AddWalletPageViewModel(
 			WalletManager walletManager,
 			BitcoinStore store,
-			Network network,
-			ObservableCollection<WalletViewModelBase> wallets)
+			Network network)
 		{
 			Title = "Add Wallet";
 			SelectionMode = NavBarItemSelectionMode.Button;
-			_legalDocuments = legalDocuments;
 
 			var enableBack = default(IDisposable);
 
@@ -95,7 +89,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				}
 			});
 
-			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => Navigate().To(new ConnectHardwareWalletViewModel(WalletName, walletManager, wallets)));
+			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => Navigate().To(new ConnectHardwareWalletViewModel(WalletName, network, walletManager)));
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -137,10 +131,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			if (!inStack)
 			{
 				WalletName = "";
-
-				var termsAndConditions = new TermsAndConditionsViewModel(_legalDocuments, this);
-
-				Navigate().To(termsAndConditions);
 			}
 		}
 

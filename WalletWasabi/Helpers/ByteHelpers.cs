@@ -106,13 +106,8 @@ namespace System
 		/// <summary>
 		/// Fastest byte array to hex implementation in C#
 		/// </summary>
-		public static string? ToHex(params byte[] bytes)
+		public static string ToHex(params byte[] bytes)
 		{
-			if (bytes is null)
-			{
-				return null;
-			}
-
 			if (bytes.Length == 0)
 			{
 				return "";
@@ -137,13 +132,8 @@ namespace System
 		/// <summary>
 		/// Fastest hex to byte array implementation in C#
 		/// </summary>
-		public static byte[]? FromHex(string hex)
+		public static byte[] FromHex(string hex)
 		{
-			if (hex is null)
-			{
-				return null;
-			}
-
 			if (string.IsNullOrWhiteSpace(hex))
 			{
 				return Array.Empty<byte>();
