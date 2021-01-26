@@ -27,30 +27,9 @@
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
-
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Compile Update="Views\Login\PasswordFinder\PasswordNotFoundView.axaml.cs">
-	    <DependentUpon>PasswordNotFoundView.axaml</DependentUpon>
-	    <SubType>Code</SubType>
-	  </Compile>
-	  <Compile Update="Views\Wallets\Actions\Receive\ReceiveAddressesView.axaml.cs">
-	    <DependentUpon>ReceiveAddressesView.axaml</DependentUpon>
-	    <SubType>Code</SubType>
-	  </Compile>
-	  <Compile Update="Views\Wallets\Actions\Receive\ReceiveAddressView.axaml.cs">
-	    <DependentUpon>ReceiveAddressView.axaml</DependentUpon>
-	    <SubType>Code</SubType>
-	  </Compile>
-	  <Compile Update="Views\Wallets\Actions\Receive\ReceiveWalletActionView.axaml.cs">
-	    <DependentUpon>ReceiveWalletActionView.axaml</DependentUpon>
-	    <SubType>Code</SubType>
-	  </Compile>
-	</ItemGroup>
-
 	<ItemGroup>
 	  <Folder Include="Views\Receive" />
 	</ItemGroup>
