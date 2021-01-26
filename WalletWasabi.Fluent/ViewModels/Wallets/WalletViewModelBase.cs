@@ -53,6 +53,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		public string WalletName => Wallet.WalletName;
 
+		public bool IsLoggedIn => Wallet.IsLoggedIn;
+
 		public int CompareTo([AllowNull] WalletViewModelBase other)
 		{
 			if (WalletState != other!.WalletState)
