@@ -39,6 +39,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var i2 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Banned, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), 2);
 			w.Prison.Punish(i1);
 			w.Prison.Punish(i2);
+
 			// Wait until serializes.
 			await Task.Delay(50);
 			await w.StopAsync(CancellationToken.None);
@@ -78,6 +79,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			p.Punish(i1);
 			p.Punish(i2);
 			Assert.NotEmpty(p.GetInmates());
+
 			// Wait until releases from prison.
 			await Task.Delay(50);
 			Assert.Empty(p.GetInmates());
