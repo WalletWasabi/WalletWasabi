@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		[AutoNotify] private string? _confirmPassword;
 		[AutoNotify] private string? _password;
 
-		public EnterPasswordViewModel(string caption)
+		public EnterPasswordViewModel(string caption, bool enableEmpty = true)
 		{
 			Title = "Enter a password";
 			Caption = caption;
@@ -35,7 +35,9 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 					this.RaisePropertyChanged(nameof(Password));
 					this.RaisePropertyChanged(nameof(ConfirmPassword));
 
-					return IsDialogOpen && ((string.IsNullOrEmpty(Password) && string.IsNullOrEmpty(ConfirmPassword)) || (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) && !Validations.Any));
+					return IsDialogOpen &&
+					       ((enableEmpty && string.IsNullOrEmpty(Password) && string.IsNullOrEmpty(ConfirmPassword)) ||
+					        (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) && !Validations.Any));
 				})
 				.ObserveOn(RxApp.MainThreadScheduler);
 
