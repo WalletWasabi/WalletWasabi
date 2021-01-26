@@ -17,42 +17,37 @@ namespace WalletWasabi.WabiSabi
 	{
 		public WabiSabiCoordinator(CoordinatorParameters parameters)
 		{
-			DataDir = parameters.DataDir;
-			WorkDir = Path.Combine(DataDir, "WabiSabi");
-			IoHelpers.EnsureDirectoryExists(WorkDir);
+			Parameters = parameters;
 
-			var configFilePath = Path.Combine(DataDir, "WabiSabiConfig.json");
-			Config = new(configFilePath);
-			Config.LoadOrCreateDefaultFile();
+			Warden = new(parameters.UtxoJudgementPeriod, parameters.PrisonFilePath, Config);
 			ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => { });
-
-			var prisonFilePath = Path.Combine(WorkDir, "Prison.txt");
-			Judge = new(parameters.UtxoJudgementPeriod, prisonFilePath);
 		}
 
-		public string DataDir { get; }
-		public string WorkDir { get; }
-		public WabiSabiConfig Config { get; }
 		public ConfigWatcher ConfigWatcher { get; }
-		public UtxoJudge Judge { get; }
+		public Warden Warden { get; }
+
+		public CoordinatorParameters Parameters { get; }
+		public string WorkDir => Parameters.CoordinatorDataDir;
+		public Prison Prison => Warden.Prison;
+		public WabiSabiConfig Config => Parameters.RuntimeCoordinatorConfig;
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
 			await ConfigWatcher.StartAsync(stoppingToken).ConfigureAwait(false);
-			await Judge.StartAsync(stoppingToken).ConfigureAwait(false);
+			await Warden.StartAsync(stoppingToken).ConfigureAwait(false);
 		}
 
 		public override async Task StopAsync(CancellationToken cancellationToken)
 		{
 			await base.StopAsync(cancellationToken).ConfigureAwait(false);
 			await ConfigWatcher.StopAsync(cancellationToken).ConfigureAwait(false);
-			await Judge.StopAsync(cancellationToken).ConfigureAwait(false);
+			await Warden.StopAsync(cancellationToken).ConfigureAwait(false);
 		}
 
 		public override void Dispose()
 		{
 			ConfigWatcher.Dispose();
-			Judge.Dispose();
+			Warden.Dispose();
 			base.Dispose();
 		}
 	}

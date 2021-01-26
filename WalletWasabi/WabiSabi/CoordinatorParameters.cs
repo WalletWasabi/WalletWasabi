@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.WabiSabi.Backend;
 
 namespace WalletWasabi.WabiSabi
 {
@@ -10,13 +12,33 @@ namespace WalletWasabi.WabiSabi
 	{
 		public CoordinatorParameters(string dataDir)
 		{
-			DataDir = dataDir;
+			ApplicationDataDir = dataDir;
+			IoHelpers.EnsureDirectoryExists(CoordinatorDataDir);
+
+			var runtimeConfigurationFilePath = Path.Combine(ApplicationDataDir, "WabiSabiConfig.json");
+			RuntimeCoordinatorConfig = new(runtimeConfigurationFilePath);
+			RuntimeCoordinatorConfig.LoadOrCreateDefaultFile();
 		}
 
 		/// <summary>
 		/// The main data directory of the application.
 		/// </summary>
-		public string DataDir { get; }
+		public string ApplicationDataDir { get; }
+
+		/// <summary>
+		/// The main data directory of the coordinator.
+		/// </summary>
+		public string CoordinatorDataDir => Path.Combine(ApplicationDataDir, "WabiSabi");
+
+		/// <summary>
+		/// Banned UTXOs are serialized here.
+		/// </summary>
+		public string PrisonFilePath => Path.Combine(CoordinatorDataDir, "Prison.txt");
+
+		/// <summary>
+		/// Runtime adjustable configuration of the coordinator.
+		/// </summary>
+		public WabiSabiConfig RuntimeCoordinatorConfig { get; }
 
 		/// <summary>
 		/// Configuration of coinjoins can be modified runtime.
@@ -27,6 +49,6 @@ namespace WalletWasabi.WabiSabi
 		/// <summary>
 		/// How often should UTXOs be sent to prison.
 		/// </summary>
-		public TimeSpan UtxoJudgementPeriod { get; init; } = TimeSpan.FromSeconds(1);
+		public TimeSpan UtxoJudgementPeriod { get; init; } = TimeSpan.FromSeconds(7);
 	}
 }
