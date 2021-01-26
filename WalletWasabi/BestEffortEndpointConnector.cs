@@ -1,7 +1,10 @@
+using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using NBitcoin.Protocol.Connectors;
+using NBitcoin.Socks;
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -13,28 +16,15 @@ namespace WalletWasabi
 	public class BestEffortEndpointConnector : IEnpointConnector
 	{
 		public BestEffortEndpointConnector()
-			: this(
-				new DefaultEndpointConnector(allowOnlyTorEndpoints: true),
-				new EffortState(ConnectionMode.OnionServiceOnly, DateTimeOffset.UtcNow))
+			: this(new EffortState(DateTimeOffset.UtcNow))
 		{
 		}
 
-		private BestEffortEndpointConnector(DefaultEndpointConnector connector, EffortState state)
+		private BestEffortEndpointConnector(EffortState state)
 		{
-			Connector = connector;
 			State = state;
 		}
 
-		public enum ConnectionMode
-		{
-			// Connect to nodes published as onion services only
-			OnionServiceOnly,
-
-			// Connect to nodes published on the clearnet through Tor exit nodes
-			AllowGoingThroughTorExitNodes,
-		}
-
-		public DefaultEndpointConnector Connector { get; private set; }
 		public EffortState State { get; private set; }
 
 		public void UpdateConnectedNodesCounter(int connectedNodes)
@@ -44,23 +34,49 @@ namespace WalletWasabi
 
 		public IEnpointConnector Clone()
 		{
-			return new BestEffortEndpointConnector(Connector, State);
+			return new BestEffortEndpointConnector(State);
 		}
 
-		public virtual async Task ConnectSocket(Socket socket, EndPoint endPoint, NodeConnectionParameters nodeConnectionParameters, CancellationToken cancellationToken)
+		public virtual async Task ConnectSocket(Socket socket, EndPoint endpoint, NodeConnectionParameters nodeConnectionParameters, CancellationToken cancellationToken)
 		{
-			if (State.CheckModeUpdate())
-			{
-				Connector.AllowOnlyTorEndpoints = State.Mode switch
-				{
-					ConnectionMode.OnionServiceOnly => true,
-					ConnectionMode.AllowGoingThroughTorExitNodes => false,
-					_ => throw new InvalidOperationException($"Unknown ${typeof(ConnectionMode).Name} with value {State.Mode}.")
-				};
-			}
+			var isTor = endpoint.IsTor();
 
-			await Connector.ConnectSocket(socket, endPoint, nodeConnectionParameters, cancellationToken).ConfigureAwait(false);
-			State.ResetModeChangeTimeControl();
+			var socksSettings = nodeConnectionParameters.TemplateBehaviors.Find<SocksSettingsBehavior>();
+			var socketEndpoint = endpoint;
+			var useSocks = isTor || socksSettings?.OnlyForOnionHosts is false;
+			if (useSocks)
+			{
+				if (socksSettings?.SocksEndpoint == null)
+				{
+					throw new InvalidOperationException("SocksSettingsBehavior.SocksEndpoint is not set but the connection is expecting using socks proxy");
+				}
+				if (!isTor && State.AllowOnlyTorEndpoints)
+				{
+					throw new InvalidOperationException($"The Endpoint connector is configured to allow only Tor endpoints and the '{endpoint}' enpoint is not one");
+				}
+
+				socketEndpoint = socksSettings.SocksEndpoint;
+			}
+			if (socketEndpoint is IPEndPoint mappedv4 && mappedv4.Address.IsIPv4MappedToIPv6Ex())
+			{
+				socketEndpoint = new IPEndPoint(mappedv4.Address.MapToIPv4Ex(), mappedv4.Port);
+			}
+			await socket.ConnectAsync(socketEndpoint, cancellationToken).ConfigureAwait(false);
+
+			if (useSocks)
+			{
+				await SocksHelper.Handshake(socket, endpoint, GenerateCredentials(), cancellationToken).ConfigureAwait(false);
+
+				State.ResetConnectionTimeControl();
+			}
+		}
+
+		private NetworkCredential GenerateCredentials()
+		{
+			const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+			var identity = new string(Enumerable.Repeat(Chars, 21)
+				.Select(s => s[(int)(RandomUtils.GetUInt32() % s.Length)]).ToArray());
+			return new NetworkCredential(identity, identity);
 		}
 
 		// A class to share state between all the BestEffortEndpointConnector connectors.
@@ -68,67 +84,52 @@ namespace WalletWasabi
 		// attempt using the original connector.
 		public class EffortState
 		{
-			private long _connectedNodesCount;
-			private DateTimeOffset _lastModeChangeTime;
-			private bool _lostConnection;
+			private bool _allowAnyConnetionType;
 
-			public EffortState(ConnectionMode mode, DateTimeOffset lastModeChangeTime)
+			public EffortState(DateTimeOffset lastConnectionTime)
 			{
-				Mode = mode;
-				LastModeChangeTime = lastModeChangeTime;
+				LastConnectionTime = lastConnectionTime;
 			}
 
 			public long ConnectedNodesCount
 			{
-				get => _connectedNodesCount;
-				set
-				{
-					_lostConnection = value == 0 && _connectedNodesCount > 0;
-					_connectedNodesCount = value;
-				}
+				get; 
+				set;
+			} 
+
+			public DateTimeOffset LastConnectionTime
+			{
+				get;
+				set;
 			}
 
-			public ConnectionMode Mode { get; set; }
-
-			public DateTimeOffset LastModeChangeTime
+			public TimeSpan ElapsedTimeSinceLastConnection => DateTimeOffset.UtcNow - LastConnectionTime;
+			 
+			public bool AllowOnlyTorEndpoints
 			{
-				get => _lastModeChangeTime;
-				set
+				get
 				{
-					_lostConnection = false;
-					_lastModeChangeTime = value;
-				}
-			}
-
-			public TimeSpan ElapsedTimeSinceLastModeChange => DateTimeOffset.UtcNow - LastModeChangeTime;
-
-			public void ResetModeChangeTimeControl()
-			{
-				LastModeChangeTime = DateTimeOffset.UtcNow;
-			}
-
-			public bool CheckModeUpdate()
-			{
-				var previousMode = Mode;
-				if (_lostConnection)
-				{
-					Mode = ConnectionMode.OnionServiceOnly;
-				}
-				else if (ElapsedTimeSinceLastModeChange > TimeSpan.FromMinutes(1))
-				{
-					if (Mode == ConnectionMode.OnionServiceOnly)
+					var allowAnyConnetionType = ConnectedNodesCount <= 5 || ElapsedTimeSinceLastConnection > TimeSpan.FromSeconds(30);
+				
+					if (_allowAnyConnetionType != allowAnyConnetionType)
 					{
-						Mode = ConnectionMode.AllowGoingThroughTorExitNodes;
+						_allowAnyConnetionType = allowAnyConnetionType;
+						Logger.LogDebug(ToString());
+						ResetConnectionTimeControl();
 					}
-				}
 
-				if (previousMode != Mode)
-				{
-					Logger.LogInfo($"Update connection mode from {previousMode} to {Mode}.");
-					ResetModeChangeTimeControl();
-					return true;
+					return !_allowAnyConnetionType;
 				}
-				return false;
+			}
+
+			public void ResetConnectionTimeControl()
+			{
+				LastConnectionTime = DateTimeOffset.UtcNow;
+			}
+
+			public override string ToString()
+			{
+				return $"Connections: {ConnectedNodesCount}, Last connection time: {LastConnectionTime}, Currently allow only onions: {!_allowAnyConnetionType}.";
 			}
 		}
 	}
