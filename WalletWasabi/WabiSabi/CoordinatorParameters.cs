@@ -47,8 +47,8 @@ namespace WalletWasabi.WabiSabi
 		public TimeSpan ConfigChangeMonitoringPeriod { get; init; } = TimeSpan.FromSeconds(7);
 
 		/// <summary>
-		/// How often should UTXOs be sent to prison.
+		/// How often should UTXOs be serialized and released from prison.
 		/// </summary>
-		public TimeSpan UtxoJudgementPeriod { get; init; } = TimeSpan.FromSeconds(7);
+		public TimeSpan UtxoWardenPeriod { get; init; } = TimeSpan.FromSeconds(7);
 	}
 }
