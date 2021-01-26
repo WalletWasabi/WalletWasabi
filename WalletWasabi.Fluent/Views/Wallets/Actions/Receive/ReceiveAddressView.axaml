@@ -46,12 +46,11 @@
       </DockPanel.Styles>
       <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="30">
         <StackPanel.Styles>
-
-
           <Style Selector="TextBlock.blinkAnimation">
             <Style.Animations>
               <Animation Duration="0:0:0.5">
                 <KeyFrame Cue="0%">
+                  <Setter Property="IsVisible" Value="True"/>
                   <Setter Property="Opacity" Value="0"/>
                 </KeyFrame>
                 <KeyFrame Cue="10%">
@@ -59,11 +58,11 @@
                 </KeyFrame>
                 <KeyFrame Cue="100%">
                   <Setter Property="Opacity" Value="0"/>
+                  <Setter Property="IsVisible" Value="False"/>
                 </KeyFrame>
               </Animation>
             </Style.Animations>
           </Style>
-
           <Style Selector="DockPanel.fadeAnimation">
             <Setter Property="Transitions">
               <Transitions>
@@ -71,14 +70,12 @@
               </Transitions>
             </Setter>
           </Style>
-
           <Style Selector="DockPanel.fadeAnimation[IsVisible=True]">
             <Setter Property="Opacity" Value="1"/>
           </Style>
           <Style Selector="DockPanel.fadeAnimation[IsVisible=False]">
             <Setter Property="Opacity" Value="0"/>
           </Style>
-
         </StackPanel.Styles>
 
         <DockPanel HorizontalAlignment="Center" >
