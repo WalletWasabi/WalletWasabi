@@ -37,14 +37,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			NextCommand = ReactiveCommand.Create(() =>
 			{
-				if (HardwareWalletOperations is null || IsSearching)
+				if (IsSearching)
 				{
 					return;
 				}
 
 				ExistingWalletFound = false;
 				Message = "";
-
 				AbandonedTasks.AddAndClearCompleted(DetectionAsync(HardwareWalletOperations));
 			});
 
@@ -96,7 +95,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				AbandonedTasks.AddAndClearCompleted(PassphraseNeeded(cts.Token));
 				var result = await hwo.DetectAsync();
 				cts.Cancel();
-				EvaluateDetectionResult(result);
+				EvaluateDetectionResult(result, hwo);
 			}
 			catch (Exception ex) when (ex is not OperationCanceledException)
 			{
@@ -121,13 +120,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			}
 		}
 
-		private void EvaluateDetectionResult(HwiEnumerateEntry[] devices)
+		private void EvaluateDetectionResult(HwiEnumerateEntry[] devices, HardwareWalletOperations hwo)
 		{
-			if (HardwareWalletOperations is null)
-			{
-				return;
-			}
-
 			if (devices.Length == 0)
 			{
 				Message = "Connect your wallet to the USB port on your PC / Enter the PIN on the Wallet.";
@@ -159,7 +153,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				else
 				{
 					Message = "Check your device and finish the initialization.";
-					HardwareWalletOperations.InitHardwareWallet(device);
+					AbandonedTasks.AddAndClearCompleted(hwo.InitHardwareWalletAsync(device));
 				}
 
 				return;
@@ -194,7 +188,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			Disposable.Create(async () =>
 			{
-				await HardwareWalletOperations.DisposeAsync();
+				HardwareWalletOperations.Dispose();
 				await AbandonedTasks.WhenAllAsync();
 			})
 			.DisposeWith(disposable);

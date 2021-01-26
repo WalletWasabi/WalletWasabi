@@ -34,7 +34,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				try
 				{
 					var walletFilePath = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
-
 					var km = await HardwareWalletOperations.GenerateWalletAsync(device, walletFilePath);
 					km.SetIcon(Type);
 
@@ -62,13 +61,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public ICommand NoCommand { get; }
 
-		private HardwareWalletOperations HardwareWalletOperations { get; set; }
+		private HardwareWalletOperations HardwareWalletOperations { get; }
 
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{
 			base.OnNavigatedTo(inStack, disposable);
 
-			Disposable.Create(async () => await HardwareWalletOperations.DisposeAsync()).DisposeWith(disposable);
+			Disposable.Create(() => HardwareWalletOperations.Dispose()).DisposeWith(disposable);
 		}
 	}
 }

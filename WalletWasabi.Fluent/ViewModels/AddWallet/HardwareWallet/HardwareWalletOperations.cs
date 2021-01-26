@@ -7,11 +7,10 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
-using WalletWasabi.Nito.AsyncEx;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
-	public class HardwareWalletOperations : IAsyncDisposable
+	public class HardwareWalletOperations : IDisposable
 	{
 		public HardwareWalletOperations(Network network)
 		{
@@ -22,8 +21,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		public HwiClient Client { get; }
 
 		private CancellationTokenSource DisposeCts { get; }
-
-		private AbandonedTasks AbandonedTasks { get; } = new();
 
 		public async Task<KeyManager> GenerateWalletAsync(HwiEnumerateEntry device, string walletFilePath)
 		{
@@ -45,12 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, walletFilePath);
 		}
 
-		public void InitHardwareWallet(HwiEnumerateEntry device)
-		{
-			AbandonedTasks.AddAndClearCompleted(InitHardwareWalletAsync(device));
-		}
-
-		private async Task InitHardwareWalletAsync(HwiEnumerateEntry device)
+		public async Task InitHardwareWalletAsync(HwiEnumerateEntry device)
 		{
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(21));
 			using var initCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, DisposeCts.Token);
@@ -80,12 +72,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			return detectedHardwareWallets;
 		}
 
-		public async ValueTask DisposeAsync()
+		public void Dispose()
 		{
 			DisposeCts.Cancel();
-
-			await AbandonedTasks.WhenAllAsync();
-
 			DisposeCts.Dispose();
 		}
 	}
