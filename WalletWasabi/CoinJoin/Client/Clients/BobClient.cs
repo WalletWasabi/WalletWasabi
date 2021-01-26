@@ -12,12 +12,12 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 	public class BobClient
 	{
 		/// <inheritdoc/>
-		public BobClient(IHttpClient httpClient)
+		public BobClient(TorHttpClient httpClient)
 		{
 			HttpClient = httpClient;
 		}
 
-		private IHttpClient HttpClient { get; }
+		private TorHttpClient HttpClient { get; }
 
 		/// <returns>If the phase is still in OutputRegistration.</returns>
 		public async Task<bool> PostOutputAsync(long roundId, ActiveOutput activeOutput)

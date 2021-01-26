@@ -14,12 +14,12 @@ namespace WalletWasabi.Tor.Http
 		/// Creates a new instance of the object.
 		/// </summary>
 		/// <param name="httpClient">Use <see cref="ClearnetHttpClient"/> or <see cref="TorHttpClient"/> to initialize.</param>
-		public BackendHttpClient(IHttpClient httpClient)
+		public BackendHttpClient(TorHttpClient httpClient)
 		{
 			HttpClient = httpClient;
 		}
 
-		private IHttpClient HttpClient { get; }
+		private TorHttpClient HttpClient { get; }
 
 		/// <summary>
 		/// Sends an HTTP request to Wasabi Backend.

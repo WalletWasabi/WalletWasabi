@@ -8,7 +8,7 @@ using WalletWasabi.Tor.Http;
 
 namespace WalletWasabi.Tests.UnitTests.Clients
 {
-	public class MockTorHttpClient : IHttpClient
+	public class MockTorHttpClient
 	{
 		public Func<Uri> DestinationUriAction => () => new Uri("https://payment.server.org/pj");
 
@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			return await OnSendAsync(method, uri.AbsolutePath, parameters, body).ConfigureAwait(false);
 		}
 
-		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
 		{
 			string body = (request.Content is { })
 				? await request.Content.ReadAsStringAsync(token).ConfigureAwait(false)

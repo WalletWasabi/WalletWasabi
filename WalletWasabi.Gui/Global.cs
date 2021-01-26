@@ -141,7 +141,7 @@ namespace WalletWasabi.Gui
 				var userAgent = Constants.UserAgents.RandomElement();
 				var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
 
-				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
+				HostedServices.Register(new UpdateChecker(TimeSpan.FromSeconds(7), Synchronizer), "Software Update Checker");
 
 				HostedServices.Register(new SystemAwakeChecker(WalletManager), "System Awake Checker");
 

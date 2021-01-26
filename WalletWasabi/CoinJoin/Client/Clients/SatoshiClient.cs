@@ -12,12 +12,12 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 {
 	public class SatoshiClient
 	{
-		public SatoshiClient(IHttpClient httpClient)
+		public SatoshiClient(TorHttpClient httpClient)
 		{
 			HttpClient = httpClient;
 		}
 
-		private IHttpClient HttpClient { get; }
+		private TorHttpClient HttpClient { get; }
 
 		public async Task<IEnumerable<RoundStateResponseBase>> GetAllRoundStatesAsync()
 		{
