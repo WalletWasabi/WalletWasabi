@@ -72,7 +72,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				global.WalletManager,
 				global.BitcoinStore,
 				global.Network,
-				_walletManager.Items);
+				_walletManager.Wallets);
 
 			_settingsPage = new SettingsPageViewModel(global.Config, global.UiConfig);
 			_privacyMode = new PrivacyModeViewModel(global.UiConfig);
