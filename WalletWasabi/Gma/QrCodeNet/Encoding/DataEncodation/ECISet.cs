@@ -161,23 +161,6 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			}
 		}
 
-		internal string GetECINameByValue(int eCIValue)
-		{
-			if (_valueToName is null)
-			{
-				Initialize(AppendOption.ValueToName);
-			}
-
-			if (_valueToName.TryGetValue(eCIValue, out string eCIName))
-			{
-				return eCIName;
-			}
-			else
-			{
-				throw new ArgumentOutOfRangeException($"ECI does not contain value: {eCIValue}.");
-			}
-		}
-
 		/// <returns>ECI table in Dictionary collection</returns>
 		public Dictionary<string, int> GetECITable()
 		{
@@ -197,16 +180,6 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			}
 
 			return _nameToValue.ContainsKey(encodingName);
-		}
-
-		public bool ContainsECIValue(int eciValue)
-		{
-			if (_valueToName is null)
-			{
-				Initialize(AppendOption.ValueToName);
-			}
-
-			return _valueToName.ContainsKey(eciValue);
 		}
 
 		/// <remarks>ISO/IEC 18004:2006 Chapter 6.4.2 Page 24.</remarks>

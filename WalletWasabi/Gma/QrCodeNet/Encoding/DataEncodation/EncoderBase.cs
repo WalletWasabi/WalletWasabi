@@ -6,8 +6,6 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		{
 		}
 
-		protected virtual int GetDataLength(string content) => content.Length;
-
 		/// <summary>
 		/// Returns the bit representation of input data.
 		/// </summary>
