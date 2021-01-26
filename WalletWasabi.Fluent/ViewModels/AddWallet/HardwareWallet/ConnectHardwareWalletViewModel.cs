@@ -35,17 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			AbandonedTasks = new AbandonedTasks();
 			HardwareWalletOperations = new HardwareWalletOperations(WalletManager.Network);
 
-			NextCommand = ReactiveCommand.Create(() =>
-			{
-				if (IsSearching)
-				{
-					return;
-				}
-
-				ExistingWalletFound = false;
-				Message = "";
-				AbandonedTasks.AddAndClearCompleted(DetectionAsync(HardwareWalletOperations));
-			});
+			NextCommand = ReactiveCommand.Create(() => StartDetection(HardwareWalletOperations));
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask(async () =>
 				await IoHelpers.OpenBrowserAsync("https://docs.wasabiwallet.io/using-wasabi/ColdWasabi.html#using-hardware-wallet-step-by-step"));
@@ -65,8 +55,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			this.WhenAnyValue(x => x.Message)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(message => NextButtonEnable = !string.IsNullOrEmpty(message));
-
-			NextCommand.Execute(default);
 		}
 
 		private AbandonedTasks AbandonedTasks { get; }
@@ -85,6 +73,19 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public ICommand NavigateToExistingWalletLoginCommand { get; }
 
+		private void StartDetection(HardwareWalletOperations hwo)
+		{
+			Message = "";
+
+			if (IsSearching)
+			{
+				return;
+			}
+
+			ExistingWalletFound = false;
+			AbandonedTasks.AddAndClearCompleted(DetectionAsync(hwo));
+		}
+
 		private async Task DetectionAsync(HardwareWalletOperations hwo)
 		{
 			IsSearching = true;
@@ -92,7 +93,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			try
 			{
 				CancellationTokenSource cts = new();
-				AbandonedTasks.AddAndClearCompleted(PassphraseNeeded(cts.Token));
+				AbandonedTasks.AddAndClearCompleted(CheckForPassphraseAsync(cts.Token));
 				var result = await hwo.DetectAsync();
 				cts.Cancel();
 				EvaluateDetectionResult(result, hwo);
@@ -107,7 +108,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			}
 		}
 
-		private async Task PassphraseNeeded(CancellationToken cancellationToken)
+		private async Task CheckForPassphraseAsync(CancellationToken cancellationToken)
 		{
 			try
 			{
@@ -186,9 +187,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			HardwareWalletOperations ??= new HardwareWalletOperations(WalletManager.Network);
 
+			StartDetection(HardwareWalletOperations);
+
 			Disposable.Create(async () =>
 			{
 				HardwareWalletOperations.Dispose();
+				HardwareWalletOperations = null;
 				await AbandonedTasks.WhenAllAsync();
 			})
 			.DisposeWith(disposable);
