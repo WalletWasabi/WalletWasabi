@@ -30,8 +30,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		private HashSet<SmartCoin> LatestSpentCoinsSnapshot { get; set; }
 		private Dictionary<OutPoint, HashSet<SmartCoin>> CoinsByOutPoint { get; }
 
-		public bool IsEmpty => !AsCoinsView().Any();
-
 		private CoinsView AsCoinsViewNoLock()
 		{
 			if (InvalidateSnapshot)
@@ -251,8 +249,6 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		public IEnumerator<SmartCoin> GetEnumerator() => AsCoinsView().GetEnumerator();
 
 		public ICoinsView OutPoints(ISet<OutPoint> outPoints) => AsCoinsView().OutPoints(outPoints);
-
-		public ICoinsView OutPoints(TxInList txIns) => AsCoinsView().OutPoints(txIns);
 
 		public ICoinsView CreatedBy(uint256 txid) => AsCoinsView().CreatedBy(txid);
 

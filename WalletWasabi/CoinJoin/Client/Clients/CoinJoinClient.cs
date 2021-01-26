@@ -117,8 +117,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public bool HasIngredients => Salt is { } && Soup is { };
 
-		public bool IsDestinationSame => KeyManager.ExtPubKey == DestinationKeyManager.ExtPubKey;
-
 		private async void Synchronizer_ResponseArrivedAsync(object? sender, SynchronizeResponse e)
 		{
 			await TryProcessStatusAsync(e?.CcjRoundStates).ConfigureAwait(false);
@@ -721,9 +719,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				}
 			}
 		}
-
-		public async Task QueueCoinsToMixAsync(params SmartCoin[] coins)
-			=> await QueueCoinsToMixAsync(coins as IEnumerable<SmartCoin>).ConfigureAwait(false);
 
 		public async Task QueueCoinsToMixAsync(IEnumerable<SmartCoin> coins)
 		{

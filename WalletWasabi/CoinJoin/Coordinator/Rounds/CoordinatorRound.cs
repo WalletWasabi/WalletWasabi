@@ -980,22 +980,6 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 		}
 
-		public bool ContainsBlindedOutputScript(uint256 blindedOutputScript)
-		{
-			using (RoundSynchronizerLock.Lock())
-			{
-				foreach (Alice alice in Alices)
-				{
-					if (alice.BlindedOutputScripts.Contains(blindedOutputScript))
-					{
-						return true;
-					}
-				}
-			}
-
-			return false;
-		}
-
 		public bool ContainsAnyBlindedOutputScript(IEnumerable<uint256> blindedOutputScripts)
 		{
 			using (RoundSynchronizerLock.Lock())

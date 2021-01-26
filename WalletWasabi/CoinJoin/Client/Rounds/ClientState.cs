@@ -136,14 +136,6 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			}
 		}
 
-		public int CountAllQueuedCoins()
-		{
-			lock (StateLock)
-			{
-				return WaitingList.Count + Rounds.Sum(x => x.CoinsRegistered.Count());
-			}
-		}
-
 		public IEnumerable<Money> GetAllQueuedCoinAmounts()
 		{
 			lock (StateLock)
