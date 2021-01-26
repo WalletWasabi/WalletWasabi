@@ -4,11 +4,10 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
-using Splat;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Gui;
+using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
@@ -26,13 +25,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 		[AutoNotify] private HashSet<string> _suggestions;
 		[AutoNotify] private bool _isExistingAddressesButtonVisible;
 
-		public ReceiveWalletActionViewModel(WalletViewModelBase wallet, WalletManager walletManager) : base(wallet)
+		public ReceiveWalletActionViewModel(WalletViewModelBase wallet, WalletManager walletManager, BitcoinStore bitcoinStore) : base(wallet)
 		{
 			Title = "Receive";
 			SelectionMode = NavBarItemSelectionMode.Button;
 			WasabiWallet = wallet.Wallet;
 			_reference = "";
-			_suggestions = GetLabels(walletManager);
+			_suggestions = GetLabels(walletManager, bitcoinStore);
 
 			var nextCommandCanExecute =
 				this.WhenAnyValue(x => x.Reference)
@@ -44,7 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 				{
 					var newKey = WasabiWallet.KeyManager.GetNextReceiveKey(Reference, out bool minGapLimitIncreased);
 
-					string? minGapLimitMessage = default;
+					string? minGapLimitMessage;
 					if (minGapLimitIncreased || true)
 					{
 						int minGapLimit = WasabiWallet.KeyManager.MinGapLimit.Value;
@@ -70,18 +69,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 			IsExistingAddressesButtonVisible = WasabiWallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
 		}
 
-		private HashSet<string> GetLabels(WalletManager walletManager)
+		private HashSet<string> GetLabels(WalletManager walletManager, BitcoinStore store)
 		{
-			//TODO: remove locator
-			var global = Locator.Current.GetService<Global>();
-			var bitcoinStore = global.BitcoinStore;
-
 			// Don't refresh wallet list as it may be slow.
 			IEnumerable<SmartLabel> labels = walletManager.GetWallets(refreshWalletList: false)
 				.Select(x => x.KeyManager)
 				.SelectMany(x => x.GetLabels());
 
-			var txStore = bitcoinStore.TransactionStore;
+			var txStore = store.TransactionStore;
 			if (txStore is { })
 			{
 				labels = labels.Concat(txStore.GetLabels());

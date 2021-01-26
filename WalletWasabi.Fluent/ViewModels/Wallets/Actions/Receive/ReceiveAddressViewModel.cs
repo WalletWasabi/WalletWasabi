@@ -46,7 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 
 				ActionText = "Sending to device";
 
-				await Task.Run((Func<Task?>) (async () =>
+				await Task.Run(async () =>
 				{
 					try
 					{
@@ -66,7 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 						AnimationTrigger = false; // prevents animation when error dialog is returned.
 						await ShowErrorAsync(ex.ToUserFriendlyString(), "We were unable to send the address to the device");
 					}
-				}));
+				});
 			});
 
 			ObserveToAnimationTrigger(CopyAddressCommand, ShowOnHwWalletCommand);

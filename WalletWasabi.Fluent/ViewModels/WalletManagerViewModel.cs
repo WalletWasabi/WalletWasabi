@@ -12,6 +12,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Actions;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 using ReceiveWalletActionViewModel = WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive.ReceiveWalletActionViewModel;
 
@@ -29,9 +30,10 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private ObservableCollection<WalletViewModelBase> _wallets;
 		[AutoNotify] private bool _anyWalletStarted;
 
-		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig)
+		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig, BitcoinStore bitcoinStore)
 		{
 			Model = walletManager;
+			BitcoinStore = bitcoinStore;
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 			_walletActionsDictionary = new Dictionary<WalletViewModelBase, List<WalletActionViewModel>>();
 			_actions = new ObservableCollection<NavBarItemViewModel>();
@@ -99,6 +101,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _items;
 
 		public WalletManager Model { get; }
+		public BitcoinStore BitcoinStore { get; }
 
 		private void OpenClosedWallet(WalletManager walletManager, UiConfig uiConfig, ClosedWalletViewModel closedWalletViewModel)
 		{
@@ -219,7 +222,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				actions.Add(new SendWalletActionViewModel(walletViewModel));
 			}
 
-			actions.Add(new ReceiveWalletActionViewModel(walletViewModel, Model));
+			actions.Add(new ReceiveWalletActionViewModel(walletViewModel, Model, BitcoinStore));
 
 			if (!wallet.KeyManager.IsWatchOnly)
 			{
