@@ -44,7 +44,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 					return;
 				}
 
-				ActionText = "Sending to device";
+				ActionText = "Displaying";
 
 				await Task.Run(async () =>
 				{
