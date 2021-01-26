@@ -16,11 +16,8 @@
                  EnableBack="True"
                  EnableNext="{Binding NextButtonEnable}" NextContent="Continue"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <DockPanel LastChildFill="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-
-      <Button Command="{Binding OpenBrowserCommand}" Content="More information and help with Hardware Wallets" Classes="h8 plain activeHyperLink" HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Bottom"/>
-
-      <Viewbox MaxHeight="150" DockPanel.Dock="Top" VerticalAlignment="Top" HorizontalAlignment="Center">
+    <Grid RowDefinitions="*,3*,Auto">
+      <Viewbox MaxHeight="150" Grid.Row="0" HorizontalAlignment="Center">
         <StackPanel Spacing="40" Orientation="Horizontal">
           <Image Height="100" Source="/Assets/HardwareIcons/ledger.png" />
           <Image Height="100" Source="/Assets/HardwareIcons/coldcard.png" />
@@ -28,14 +25,14 @@
           <Image Height="100" Source="/Assets/HardwareIcons/generic.png" />
         </StackPanel>
       </Viewbox>
-
-      <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+      <Panel HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="1">
         <DockPanel>
           <TextBlock Text="{Binding Message}" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top"/>
           <Button IsVisible="{Binding ExistingWalletFound}" Margin="0 15 0 0" Command="{Binding NavigateToExistingWalletLoginCommand}" Content="Open wallet" Classes="h7 plain activeHyperLink" HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Bottom"/>
         </DockPanel>
         <c:ProgressRing IsVisible="{Binding !NextButtonEnable}" Margin="15" IsIndeterminate="True" Height="100" Width="100" />
       </Panel>
-    </DockPanel>
+      <Button Command="{Binding OpenBrowserCommand}" Content="More information and help with Hardware Wallets" Classes="h8 plain activeHyperLink" HorizontalAlignment="Center" Grid.Row="2"/>
+    </Grid>
   </c:ContentArea>
 </UserControl>
