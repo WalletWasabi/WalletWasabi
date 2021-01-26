@@ -9,7 +9,7 @@ namespace WalletWasabi.Tor.Http
 	/// Interface defining HTTP client capable of sending HTTP requests that are relative to some base URI.
 	/// <para>This is useful, for example, to send requests to Wasabi Backend server.</para>
 	/// </summary>
-	public interface IRelativeHttpClient : IHttpClient
+	public interface IHttpClient
 	{
 		Func<Uri> DestinationUriAction { get; }
 
@@ -37,5 +37,13 @@ namespace WalletWasabi.Tor.Http
 
 			return await SendAsync(httpRequestMessage, DefaultIsolateStream, cancel).ConfigureAwait(false);
 		}
+
+		/// <summary>Sends an HTTP(s) request.</summary>
+		/// <param name="request">HTTP request message to send.</param>
+		/// <param name="isolateStream"><c>true</c> value is only available for Tor HTTP client to use a new Tor circuit
+		/// for this single HTTP(s) request, otherwise <c>false</c> when no new Tor circuit is required or when <see cref="IHttpClient"/>
+		/// implementation does not support this option (e.g. clearnet).</param>
+		/// <param name="token">Cancellation token to cancel the asynchronous operation.</param>
+		Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default);
 	}
 }
