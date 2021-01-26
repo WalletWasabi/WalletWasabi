@@ -10,7 +10,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.Receive
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 {
 	public partial class ReceiveAddressesViewModel : RoutableViewModel
 	{

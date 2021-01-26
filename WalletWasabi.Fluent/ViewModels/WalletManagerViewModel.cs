@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Actions;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
+using ReceiveWalletActionViewModel = WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive.ReceiveWalletActionViewModel;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -218,7 +219,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				actions.Add(new SendWalletActionViewModel(walletViewModel));
 			}
 
-			actions.Add(new ReceiveWalletActionViewModel(walletViewModel));
+			actions.Add(new ReceiveWalletActionViewModel(walletViewModel, Model));
 
 			if (!wallet.KeyManager.IsWatchOnly)
 			{

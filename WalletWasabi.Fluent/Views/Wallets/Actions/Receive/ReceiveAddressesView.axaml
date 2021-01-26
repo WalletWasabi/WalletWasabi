@@ -3,14 +3,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Actions"
+             xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="vm:ReceiveWalletActionViewModel"
+             x:DataType="receive:ReceiveAddressesViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Actions.ReceiveWalletActionView">
-  <c:ContentArea Title="Receive" Caption=""
-                 EnableCancel="True"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
-
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Actions.Receive.ReceiveAddressesView">
+  <c:ContentArea Title="{Binding Title}"
+                 EnableBack="True"
+                 EnableCancel="True">
+    <ListBox Items="{Binding Addresses}"
+             SelectedItem="{Binding SelectedAddress}"/>
   </c:ContentArea>
 </UserControl>

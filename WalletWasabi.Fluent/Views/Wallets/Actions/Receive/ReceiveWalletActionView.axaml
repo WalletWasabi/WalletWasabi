@@ -3,14 +3,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:receive="using:WalletWasabi.Fluent.ViewModels.Receive"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="receive:ReceiveViewModel"
+             xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive"
+             x:DataType="receive:ReceiveWalletActionViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Receive.ReceiveView">
-
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Actions.Receive.ReceiveWalletActionView">
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Continue"
                  EnableCancel="True">

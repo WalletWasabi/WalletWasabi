@@ -12,7 +12,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Hwi;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Fluent.ViewModels.Receive
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 {
 	public partial class ReceiveAddressViewModel : RoutableViewModel
 	{
@@ -46,7 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 
 				ActionText = "Sending to device";
 
-				await Task.Run(async () =>
+				await Task.Run((Func<Task?>) (async () =>
 				{
 					try
 					{
@@ -66,7 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels.Receive
 						AnimationTrigger = false; // prevents animation when error dialog is returned.
 						await ShowErrorAsync(ex.ToUserFriendlyString(), "We were unable to send the address to the device");
 					}
-				});
+				}));
 			});
 
 			ObserveToAnimationTrigger(CopyAddressCommand, ShowOnHwWalletCommand);

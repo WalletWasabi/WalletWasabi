@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Receive
+namespace WalletWasabi.Fluent.Views.Wallets.Actions.Receive
 {
-	public class ReceiveView : UserControl
+	public class ReceiveAddressesView : UserControl
 	{
-		public ReceiveView()
+		public ReceiveAddressesView()
 		{
 			InitializeComponent();
 		}
