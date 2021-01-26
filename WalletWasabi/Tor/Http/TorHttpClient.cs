@@ -18,7 +18,7 @@ using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 
 namespace WalletWasabi.Tor.Http
 {
-	public class TorHttpClient : IRelativeHttpClient, IDisposable
+	public class TorHttpClient : IHttpClient, IDisposable
 	{
 		private static DateTimeOffset? TorDoesntWorkSinceBacking = null;
 

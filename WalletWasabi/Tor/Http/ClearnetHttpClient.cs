@@ -11,7 +11,7 @@ namespace WalletWasabi.Tor.Http
 	/// as HTTP requests are being sent over clearnet.
 	/// </summary>
 	/// <remarks>Inner <see cref="HttpClient"/> instance is thread-safe.</remarks>
-	public class ClearnetHttpClient : IRelativeHttpClient
+	public class ClearnetHttpClient : IHttpClient
 	{
 		static ClearnetHttpClient()
 		{
