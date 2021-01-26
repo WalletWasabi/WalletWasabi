@@ -19,18 +19,19 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private const double NormalCompactPaneLength = 68;
 		private const double NormalOpenPaneLength = 280;
 
-		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _topItems;
-		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _bottomItems;
 		private NavBarItemViewModel? _selectedItem;
 		private readonly WalletManagerViewModel _walletManager;
-		[AutoNotify] private bool _isBackButtonVisible;
 		private bool _isNavigating;
+		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _topItems;
+		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _bottomItems;
+		[AutoNotify] private bool _isBackButtonVisible;
 		[AutoNotify] private bool _isOpen;
 		[AutoNotify] private Action? _toggleAction;
 		[AutoNotify] private Action? _collapseOnClickAction;
 		[AutoNotify] private double _currentOpenPaneLength;
 		[AutoNotify] private double _currentCompactPaneLength;
 		[AutoNotify] private bool _isHidden;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _hideItems;
 
 		public NavBarViewModel(TargettedNavigationStack mainScreen, WalletManagerViewModel walletManager)
 		{
@@ -40,6 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 			mainScreen.WhenAnyValue(x => x.CurrentPage)
 				.OfType<NavBarItemViewModel>()
+				.DistinctUntilChanged()
 				.Subscribe(x => CurrentPageChanged(x, walletManager));
 
 			this.WhenAnyValue(x => x.SelectedItem)
@@ -51,7 +53,10 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				{
 					if (x > 0 && SelectedItem is null)
 					{
-						SelectedItem = Items.FirstOrDefault();
+						if (!_walletManager.IsLoadingWallet)
+						{
+							SelectedItem = Items.FirstOrDefault();
+						}
 					}
 				});
 
@@ -71,9 +76,27 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 					CurrentCompactPaneLength = x ? 0 : NormalCompactPaneLength;
 					CurrentOpenPaneLength = x ? 0 : NormalOpenPaneLength;
 				});
+
+			this.WhenAnyValue(x => x.IsOpen, x => x.Actions.Count)
+				.Subscribe(x =>
+				{
+					HideItems = !x.Item1 && x.Item2 > 0;
+				});
+
+			_walletManager.WhenAnyValue(x => x.SelectedWallet)
+				.OfType<NavBarItemViewModel>()
+				.Subscribe(x =>
+				{
+					if (x is not null)
+					{
+						SelectedItem = x;
+					}
+				});
 		}
 
-		public ObservableCollection<WalletViewModelBase> Items => _walletManager.Items;
+		public ObservableCollection<NavBarItemViewModel> Actions => _walletManager.Actions;
+
+		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _walletManager.Items;
 
 		public NavBarItemViewModel? SelectedItem
 		{
@@ -169,7 +192,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				RaiseAndChangeSelectedItem(null);
 				RaiseAndChangeSelectedItem(value);
 				_isNavigating = false;
-				// TODO: NavigateItem(value);
+				NavigateItem(value);
 				_isNavigating = true;
 				RaiseAndChangeSelectedItem(null);
 				RaiseAndChangeSelectedItem(previous);
@@ -184,7 +207,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				RaiseAndChangeSelectedItem(null);
 				RaiseAndChangeSelectedItem(value);
 				_isNavigating = false;
-				// TODO: value.Toggle();
+				value.Toggle();
 				_isNavigating = true;
 				RaiseAndChangeSelectedItem(null);
 				RaiseAndChangeSelectedItem(previous);
@@ -196,10 +219,21 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		{
 			if (walletManager.Items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
 			{
-				if (!_isNavigating && x.SelectionMode == NavBarItemSelectionMode.Selected)
+				if (!_isNavigating)
 				{
 					_isNavigating = true;
-					SetSelectedItem(x);
+
+					var result = walletManager.SelectionChanged(x);
+					if (result is not null)
+					{
+						SelectedItem = x;
+					}
+
+					if (x.SelectionMode == NavBarItemSelectionMode.Selected)
+					{
+						SetSelectedItem(x);
+					}
+
 					_isNavigating = false;
 				}
 			}
@@ -210,6 +244,13 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			if (!_isNavigating)
 			{
 				_isNavigating = true;
+
+				var result = _walletManager.SelectionChanged(x);
+				if (result is not null)
+				{
+					SelectedItem = result;
+				}
+
 				if (x.OpenCommand.CanExecute(default))
 				{
 					x.OpenCommand.Execute(default);
