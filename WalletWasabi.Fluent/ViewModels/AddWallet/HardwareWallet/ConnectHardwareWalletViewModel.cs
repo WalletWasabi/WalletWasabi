@@ -57,7 +57,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				.Subscribe(message => NextButtonEnable = !string.IsNullOrEmpty(message));
 		}
 
-		public CancellationTokenSource CancelCts { get; }
+		public CancellationTokenSource? CancelCts { get; set; }
 
 		private AbandonedTasks AbandonedTasks { get; }
 
@@ -185,12 +185,15 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			base.OnNavigatedTo(inStack, disposable);
 
+			CancelCts ??= new CancellationTokenSource();
+
 			StartDetection();
 
 			Disposable.Create(async () =>
 			{
 				CancelCts.Cancel();
 				CancelCts.Dispose();
+				CancelCts = null;
 				await AbandonedTasks.WhenAllAsync();
 			})
 			.DisposeWith(disposable);
