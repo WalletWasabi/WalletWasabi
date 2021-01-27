@@ -202,31 +202,31 @@ namespace WalletWasabi.Fluent.Controls
 
         #endregion
 
+        #region Fields
+
+        private bool _captured;
+
+        #endregion
+
         #region static ctor
 
         static LineChart()
         {
-            AffectsMeasure<LineChart>(StrokeThicknessProperty);
-            AffectsRender<LineChart>(
-                ValuesProperty,
-                LabelsProperty,
-                MinValueProperty,
-                MaxValueProperty,
-                FillProperty,
-                StrokeProperty,
-                StrokeThicknessProperty,
-                LabelForegroundProperty,
-                LabelAngleProperty,
-                CursorStrokeProperty,
-                CursorThicknessProperty,
-                CursorValueProperty);
+	        AffectsMeasure<LineChart>(StrokeThicknessProperty);
+	        AffectsRender<LineChart>(
+		        ValuesProperty,
+		        LabelsProperty,
+		        MinValueProperty,
+		        MaxValueProperty,
+		        FillProperty,
+		        StrokeProperty,
+		        StrokeThicknessProperty,
+		        LabelForegroundProperty,
+		        LabelAngleProperty,
+		        CursorStrokeProperty,
+		        CursorThicknessProperty,
+		        CursorValueProperty);
         }
-
-        #endregion
-
-        #region Fields
-
-        private bool _captured;
 
         #endregion
 
