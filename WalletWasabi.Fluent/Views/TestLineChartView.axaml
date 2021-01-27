@@ -30,7 +30,7 @@
         </Style>
         <!-- LineChart Labels -->
         <Style Selector="c|LineChart.labels">
-            <Setter Property="LabelForeground" Value="Black" />
+            <Setter Property="LabelForeground" Value="{DynamicResource TextForegroundColor}" />
             <Setter Property="LabelAngle" Value="-45" />
             <Setter Property="LabelOffset" Value="15" />
             <Setter Property="LabelHeight" Value="45" />
@@ -47,7 +47,7 @@
         </Style>
         <!-- LineChart XAxis -->
         <Style Selector="c|LineChart.xAxis">
-            <Setter Property="XAxisStroke" Value="Black" />
+            <Setter Property="XAxisStroke" Value="{DynamicResource TextForegroundColor}" />
             <Setter Property="XAxisStrokeThickness" Value="1" />
             <Setter Property="XAxisArrowSize" Value="3.5" />
         </Style>
@@ -59,7 +59,7 @@
         </Style>
         <!-- LineChart YAxis Title -->
         <Style Selector="c|LineChart.yAxisTitle">
-            <Setter Property="YAxisTitleForeground" Value="Black" />
+            <Setter Property="YAxisTitleForeground" Value="{DynamicResource TextForegroundColor}" />
             <Setter Property="YAxisTitleAngle" Value="270" />
             <Setter Property="YAxisTitleOffset" Value="200" />
             <Setter Property="YAxisTitleHeight" Value="0" />
@@ -144,7 +144,7 @@
                             <LinearGradientBrush.GradientStops>
                                 <GradientStop Offset="0.0" Color="#4285F4"/>
                                 <GradientStop Offset="0.5" Color="#C6DAFC"/>
-                                <GradientStop Offset="1.0" Color="#FFFFFF"/>
+                                <GradientStop Offset="1.0" Color="{DynamicResource RegionColor}"/>
                             </LinearGradientBrush.GradientStops>
                         </LinearGradientBrush>
                     </c:LineChart.Fill>
