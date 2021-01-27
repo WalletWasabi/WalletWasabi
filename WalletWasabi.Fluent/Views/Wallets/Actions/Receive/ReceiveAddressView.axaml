@@ -97,9 +97,15 @@
         <TextBlock Text="{Binding Reference}" FontSize="{StaticResource FontSizeH2}" Margin="200 0" Opacity="0.6" />
       </StackPanel>
       <TextBlock Text="{Binding GapLimitMessage}" Opacity="0" Classes="gapLimitTextAnimation" IsVisible="True" Margin="5" Foreground="{DynamicResource WarningMessageForeground}" DockPanel.Dock="Top"/>
-      <Viewbox MaxHeight="250" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <controls:QrCode Height="250" Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" />
-      </Viewbox>
+
+      <DockPanel MaxHeight="250" HorizontalAlignment="Center" Margin="0 0 -30 0">
+        <Button Command="{Binding SaveQrCodeCommand}" Classes="plain" DockPanel.Dock="Right" VerticalAlignment="Bottom" Margin="10 0 0 18">
+          <PathIcon Data="{StaticResource save_regular}"/>
+        </Button>
+        <Viewbox HorizontalAlignment="Center" VerticalAlignment="Center" DockPanel.Dock="Left">
+          <controls:QrCode Height="250" Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" />
+        </Viewbox>
+      </DockPanel>
 
     </DockPanel>
   </c:ContentArea>
