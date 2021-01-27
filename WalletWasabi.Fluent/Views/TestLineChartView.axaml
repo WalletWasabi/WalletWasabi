@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500"
              x:Class="WalletWasabi.Fluent.Views.TestLineChartView">
     <UserControl.DataContext>
         <vm:TestLineChartViewModel/>
