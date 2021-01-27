@@ -598,10 +598,10 @@ namespace WalletWasabi.Fluent.Controls
         {
             base.Render(context);
 
-            var state = CreateDrawState(Bounds.Width, Bounds.Height);
+            var state = CreateChartState(Bounds.Width, Bounds.Height);
 
-            DrawFill(context, state);
-            DrawStroke(context, state);
+            DrawAreaFill(context, state);
+            DrawAreaStroke(context, state);
             DrawCursor(context, state);
             DrawXAxis(context, state);
             DrawYAxis(context, state);
@@ -610,7 +610,7 @@ namespace WalletWasabi.Fluent.Controls
             DrawBorder(context, state);
         }
 
-        private LineChartState CreateDrawState(double width, double height)
+        private LineChartState CreateChartState(double width, double height)
         {
 	        var state = new LineChartState();
 
@@ -655,7 +655,35 @@ namespace WalletWasabi.Fluent.Controls
 	        return state;
         }
 
-        private void DrawFill(DrawingContext context, LineChartState state)
+        private static Geometry CreateFllGeometry(IReadOnlyList<Point> points, double width, double height)
+        {
+	        var geometry = new StreamGeometry();
+	        using var context = geometry.Open();
+	        context.BeginFigure(points[0], true);
+	        for (var i = 1; i < points.Count; i++)
+	        {
+		        context.LineTo(points[i]);
+	        }
+	        context.LineTo(new Point(width, height));
+	        context.LineTo(new Point(0, height));
+	        context.EndFigure(true);
+	        return geometry;
+        }
+
+        private static Geometry CreateStrokeGeometry(IReadOnlyList<Point> points)
+        {
+	        var geometry = new StreamGeometry();
+	        using var context = geometry.Open();
+	        context.BeginFigure(points[0], false);
+	        for (var i = 1; i < points.Count; i++)
+	        {
+		        context.LineTo(points[i]);
+	        }
+	        context.EndFigure(false);
+	        return geometry;
+        }
+
+        private void DrawAreaFill(DrawingContext context, LineChartState state)
         {
 	        if (state.Points is null)
 	        {
@@ -667,16 +695,7 @@ namespace WalletWasabi.Fluent.Controls
 	            return;
             }
             var deflate = 0.5;
-            var geometry = new StreamGeometry();
-            using var geometryContext = geometry.Open();
-            geometryContext.BeginFigure(state.Points[0], true);
-            for (var i = 1; i < state.Points.Length; i++)
-            {
-                geometryContext.LineTo(state.Points[i]);
-            }
-            geometryContext.LineTo(new Point(state.AreaWidth, state.AreaHeight));
-            geometryContext.LineTo(new Point(0, state.AreaHeight));
-            geometryContext.EndFigure(true);
+            var geometry = CreateFllGeometry(state.Points, state.AreaWidth, state.AreaHeight);
             var transform = context.PushPreTransform(
 	            Matrix.CreateTranslation(
 		            state.AreaMargin.Left + deflate,
@@ -685,7 +704,7 @@ namespace WalletWasabi.Fluent.Controls
             transform.Dispose();
         }
 
-        private void DrawStroke(DrawingContext context, LineChartState state)
+        private void DrawAreaStroke(DrawingContext context, LineChartState state)
         {
 	        if (state.Points is null)
 	        {
@@ -698,14 +717,7 @@ namespace WalletWasabi.Fluent.Controls
             }
             var strokeThickness = StrokeThickness;
             var deflate = strokeThickness * 0.5;
-            var geometry = new StreamGeometry();
-            using var geometryContext = geometry.Open();
-            geometryContext.BeginFigure(state.Points[0], false);
-            for (var i = 1; i < state.Points.Length; i++)
-            {
-                geometryContext.LineTo(state.Points[i]);
-            }
-            geometryContext.EndFigure(false);
+            var geometry = CreateStrokeGeometry(state.Points);
             var pen = new Pen(brush, strokeThickness);
             var transform = context.PushPreTransform(
 	            Matrix.CreateTranslation(
