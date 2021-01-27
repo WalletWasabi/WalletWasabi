@@ -190,13 +190,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			StartDetection();
 
 			Disposable.Create(async () =>
-			{
-				CancelCts.Cancel();
-				CancelCts.Dispose();
-				CancelCts = null;
-				await AbandonedTasks.WhenAllAsync();
-			})
-			.DisposeWith(disposable);
+				{
+					CancelCts.Cancel();
+					CancelCts.Dispose();
+					CancelCts = null;
+					await AbandonedTasks.WhenAllAsync();
+				})
+				.DisposeWith(disposable);
 		}
 	}
 }
