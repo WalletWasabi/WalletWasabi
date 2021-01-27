@@ -10,6 +10,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Actions;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
@@ -19,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels
 	public partial class WalletManagerViewModel : ViewModelBase
 	{
 		private readonly Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
-		private readonly Dictionary<WalletViewModelBase, List<WalletActionViewModel>> _walletActionsDictionary;
+		private readonly Dictionary<WalletViewModelBase, List<NavBarItemViewModel>> _walletActionsDictionary;
 		private readonly ReadOnlyObservableCollection<NavBarItemViewModel> _items;
 		[AutoNotify] private WalletViewModelBase? _selectedWallet;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
@@ -32,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			Model = walletManager;
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
-			_walletActionsDictionary = new Dictionary<WalletViewModelBase, List<WalletActionViewModel>>();
+			_walletActionsDictionary = new Dictionary<WalletViewModelBase, List<NavBarItemViewModel>>();
 			_actions = new ObservableCollection<NavBarItemViewModel>();
 			_wallets = new ObservableCollection<WalletViewModelBase>();
 			_loggedInAndSelectedAlwaysFirst = true;
@@ -178,7 +179,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (SelectedWallet is { IsLoggedIn: true } walletViewModelPrevious && (item is WalletViewModelBase && SelectedWallet != item))
 			{
-				if (item is not WalletActionViewModel && SelectedWallet != item)
+				if (/*item is not WalletActionViewModel &&*/ SelectedWallet != item)
 				{
 					var actions = _walletActionsDictionary[walletViewModelPrevious];
 
@@ -208,14 +209,14 @@ namespace WalletWasabi.Fluent.ViewModels
 			return result;
 		}
 
-		private List<WalletActionViewModel> GetWalletActions(WalletViewModelBase walletViewModel)
+		private List<NavBarItemViewModel> GetWalletActions(WalletViewModelBase walletViewModel)
 		{
 			var wallet = walletViewModel.Wallet;
-			var actions = new List<WalletActionViewModel>();
+			var actions = new List<NavBarItemViewModel>();
 
 			if (wallet.KeyManager.IsHardwareWallet || !wallet.KeyManager.IsWatchOnly)
 			{
-				actions.Add(new SendWalletActionViewModel(walletViewModel));
+				actions.Add(new SendViewModel());
 			}
 
 			actions.Add(new ReceiveWalletActionViewModel(walletViewModel));

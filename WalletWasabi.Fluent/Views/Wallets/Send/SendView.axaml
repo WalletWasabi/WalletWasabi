@@ -5,10 +5,11 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Actions"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="vm:SendWalletActionViewModel"
+             x:DataType="vm:ReceiveWalletActionViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Actions.SendWalletActionView">
-  <c:ContentArea Title="Send" Caption=""
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Actions.ReceiveWalletActionView">
+  <c:ContentArea Title="Receive" Caption=""
+                 EnableCancel="True"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
   </c:ContentArea>
