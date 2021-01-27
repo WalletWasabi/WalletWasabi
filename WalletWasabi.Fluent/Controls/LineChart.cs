@@ -7,20 +7,7 @@ using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Controls
 {
-	internal class LineChartState
-	{
-		public double Width { get; set; }
-		public double Height { get; set; }
-		public double AreaWidth { get; set; }
-		public double AreaHeight { get; set; }
-		public Thickness AreaMargin { get; set; }
-		public Point[]? Points { get; set; }
-		public List<string>? Labels { get; set; }
-		public double Step { get; set; }
-		public double CursorPosition { get; set; }
-	}
-
-    public class LineChart : Control
+	public class LineChart : Control
     {
         #region Properties
 
@@ -895,5 +882,19 @@ namespace WalletWasabi.Fluent.Controls
             var rectDeflate = rect.Deflate(thickness * 0.5);
             context.DrawRectangle(null, pen, rectDeflate, radiusX, radiusY);
         }
+
+        private class LineChartState
+        {
+	        public double Width { get; set; }
+	        public double Height { get; set; }
+	        public double AreaWidth { get; set; }
+	        public double AreaHeight { get; set; }
+	        public Thickness AreaMargin { get; set; }
+	        public Point[]? Points { get; set; }
+	        public List<string>? Labels { get; set; }
+	        public double Step { get; set; }
+	        public double CursorPosition { get; set; }
+        }
+
     }
 }
