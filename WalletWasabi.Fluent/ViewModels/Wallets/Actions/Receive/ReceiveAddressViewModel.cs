@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 
 		public ReceiveAddressViewModel(HdPubKey model, Network network, HDFingerprint? masterFingerprint, bool isHardwareWallet, string? minGapLimitMessage)
 		{
-			Title = "Address";
+			Title = "Receive Address";
 			Address = model.GetP2wpkhAddress(network).ToString();
 			Reference = model.Label;
 			IsHardwareWallet = isHardwareWallet;
