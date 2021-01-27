@@ -13,8 +13,8 @@ namespace WalletWasabi.Fluent.Controls
 
         #region Values
 
-        public static readonly StyledProperty<List<double>> ValuesProperty =
-            AvaloniaProperty.Register<LineChart, List<double>>(nameof(Values));
+        public static readonly StyledProperty<List<double>?> ValuesProperty =
+            AvaloniaProperty.Register<LineChart, List<double>?>(nameof(Values));
 
         public static readonly StyledProperty<double> MinValueProperty =
             AvaloniaProperty.Register<LineChart, double>(nameof(MinValue));
@@ -41,8 +41,8 @@ namespace WalletWasabi.Fluent.Controls
 
         #region Labels
 
-        public static readonly StyledProperty<List<string>> LabelsProperty =
-            AvaloniaProperty.Register<LineChart, List<string>>(nameof(Labels));
+        public static readonly StyledProperty<List<string>?> LabelsProperty =
+            AvaloniaProperty.Register<LineChart, List<string>?>(nameof(Labels));
 
         public static readonly StyledProperty<IBrush?> LabelForegroundProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(LabelForeground));
@@ -220,7 +220,7 @@ namespace WalletWasabi.Fluent.Controls
 
         #region Values
 
-        public List<double> Values
+        public List<double>? Values
         {
             get => GetValue(ValuesProperty);
             set => SetValue(ValuesProperty, value);
@@ -272,7 +272,7 @@ namespace WalletWasabi.Fluent.Controls
 
         #region Labels
 
-        public List<string> Labels
+        public List<string>? Labels
         {
             get => GetValue(LabelsProperty);
             set => SetValue(LabelsProperty, value);
@@ -567,7 +567,7 @@ namespace WalletWasabi.Fluent.Controls
         {
             return range - value / max * range;
         }
-        
+
         private static FormattedText CreateFormattedText(string text, Typeface typeface, TextAlignment alignment, double fontSize, Size constraint)
         {
 	        return new FormattedText()
@@ -581,45 +581,86 @@ namespace WalletWasabi.Fluent.Controls
 	        };
         }
 
+        private class LineChartState
+        {
+	        public double Width { get; set; }
+	        public double Height { get; set; }
+	        public double AreaWidth { get; set; }
+	        public double AreaHeight { get; set; }
+	        public Thickness AreaMargin { get; set; }
+	        public Point[]? Points { get; set; }
+	        public List<string>? Labels { get; set; }
+	        public double Step { get; set; }
+	        public double CursorPosition { get; set; }
+        }
+
         public override void Render(DrawingContext context)
         {
             base.Render(context);
 
-            var width = Bounds.Width;
-            var height = Bounds.Height;
+            var state = CreateDrawState(Bounds.Width, Bounds.Height);
 
-            var valuesMargin = ValuesMargin;
-            var valuesWidth = width - valuesMargin.Left - valuesMargin.Right;
-            var valuesHeight = height - valuesMargin.Top - valuesMargin.Bottom;
-            var logarithmicScale = LogarithmicScale;
-            var values = Values;
-            var labels = Labels;
-            var valuesList = logarithmicScale ? values.Select(y => Math.Log(y)).ToList() : values.ToList();
-            var valuesMax = valuesList.Max();
-            var scaledValues = valuesList.Select(y => ScaleVertical(y, valuesMax, valuesHeight)).ToList();
-            var step = valuesWidth / (valuesList.Count - 1);
-            var points = new Point[valuesList.Count];
-            for (var i = 0; i < valuesList.Count; i++)
-            {
-                points[i] = new Point(i * step, scaledValues[i]);
-            }
-            var minValue = MinValue;
-            var maxValue = MaxValue;
-            var cursorValue = CursorValue;
-            var cursorPosition = ScaleHorizontal(maxValue - cursorValue, maxValue, valuesWidth);
-
-            DrawFill(context, points, valuesWidth, valuesHeight, valuesMargin);
-            DrawStroke(context, points, valuesMargin);
-            DrawCursor(context, cursorPosition, valuesHeight, valuesMargin);
-            DrawXAxis(context, valuesWidth, valuesHeight, valuesMargin);
-            DrawYAxis(context, valuesWidth, valuesHeight, valuesMargin);
-            DrawYAxisTitle(context, valuesWidth, valuesHeight, valuesMargin);
-            DrawLabels(context, labels, step, valuesHeight, valuesMargin);
-            DrawBorder(context, 0, 0, width, height);
+            DrawFill(context, state);
+            DrawStroke(context, state);
+            DrawCursor(context, state);
+            DrawXAxis(context, state);
+            DrawYAxis(context, state);
+            DrawYAxisTitle(context, state);
+            DrawLabels(context, state);
+            DrawBorder(context, state);
         }
 
-        private void DrawFill(DrawingContext context, Point[] points, double width, double height, Thickness margin)
+        private LineChartState CreateDrawState(double width, double height)
         {
+	        var state = new LineChartState();
+
+	        state.AreaMargin = ValuesMargin;
+	        state.AreaWidth = width - state.AreaMargin.Left - state.AreaMargin.Right;
+	        state.AreaHeight = height - state.AreaMargin.Top - state.AreaMargin.Bottom;
+
+	        var values = Values;
+	        if (values is not null)
+	        {
+		        var logarithmicScale = LogarithmicScale;
+
+		        var valuesList = logarithmicScale ?
+			        values.Select(y => Math.Log(y)).ToList()
+			        : values.ToList();
+
+		        var valuesListMax = valuesList.Max();
+		        var scaledValues = valuesList
+			        .Select(y => ScaleVertical(y, valuesListMax, state.AreaHeight))
+			        .ToList();
+
+		        state.Step = state.AreaWidth / (scaledValues.Count - 1);
+		        state.Points = new Point[scaledValues.Count];
+
+		        for (var i = 0; i < scaledValues.Count; i++)
+		        {
+			        state.Points[i] = new Point(i * state.Step, scaledValues[i]);
+		        }
+	        }
+
+	        var labels = Labels;
+	        if (labels is not null)
+	        {
+		        state.Labels = labels.ToList();
+	        }
+
+	        var minValue = MinValue;
+	        var maxValue = MaxValue;
+	        var cursorValue = CursorValue;
+	        state.CursorPosition = ScaleHorizontal(maxValue - cursorValue, maxValue, state.AreaWidth);
+
+	        return state;
+        }
+
+        private void DrawFill(DrawingContext context, LineChartState state)
+        {
+	        if (state.Points is null)
+	        {
+		        return;
+	        }
             var brush = Fill;
             if (brush is null)
             {
@@ -628,21 +669,28 @@ namespace WalletWasabi.Fluent.Controls
             var deflate = 0.5;
             var geometry = new StreamGeometry();
             using var geometryContext = geometry.Open();
-            geometryContext.BeginFigure(points[0], true);
-            for (var i = 1; i < points.Length; i++)
+            geometryContext.BeginFigure(state.Points[0], true);
+            for (var i = 1; i < state.Points.Length; i++)
             {
-                geometryContext.LineTo(points[i]);
+                geometryContext.LineTo(state.Points[i]);
             }
-            geometryContext.LineTo(new Point(width, height));
-            geometryContext.LineTo(new Point(0, height));
+            geometryContext.LineTo(new Point(state.AreaWidth, state.AreaHeight));
+            geometryContext.LineTo(new Point(0, state.AreaHeight));
             geometryContext.EndFigure(true);
-            var transform = context.PushPreTransform(Matrix.CreateTranslation(margin.Left + deflate, margin.Top + deflate));
+            var transform = context.PushPreTransform(
+	            Matrix.CreateTranslation(
+		            state.AreaMargin.Left + deflate,
+		            state.AreaMargin.Top + deflate));
             context.DrawGeometry(brush, null, geometry);
             transform.Dispose();
         }
 
-        private void DrawStroke(DrawingContext context, Point[] points, Thickness margin)
+        private void DrawStroke(DrawingContext context, LineChartState state)
         {
+	        if (state.Points is null)
+	        {
+		        return;
+	        }
             var brush = Stroke;
             if (brush is null)
             {
@@ -652,19 +700,22 @@ namespace WalletWasabi.Fluent.Controls
             var deflate = strokeThickness * 0.5;
             var geometry = new StreamGeometry();
             using var geometryContext = geometry.Open();
-            geometryContext.BeginFigure(points[0], false);
-            for (var i = 1; i < points.Length; i++)
+            geometryContext.BeginFigure(state.Points[0], false);
+            for (var i = 1; i < state.Points.Length; i++)
             {
-                geometryContext.LineTo(points[i]);
+                geometryContext.LineTo(state.Points[i]);
             }
             geometryContext.EndFigure(false);
             var pen = new Pen(brush, strokeThickness);
-            var transform = context.PushPreTransform(Matrix.CreateTranslation(margin.Left + deflate, margin.Top + deflate));
+            var transform = context.PushPreTransform(
+	            Matrix.CreateTranslation(
+		            state.AreaMargin.Left + deflate,
+		            state.AreaMargin.Top + deflate));
             context.DrawGeometry(null, pen, geometry);
             transform.Dispose();
         }
 
-        private void DrawCursor(DrawingContext context, double position, double height, Thickness margin)
+        private void DrawCursor(DrawingContext context, LineChartState state)
         {
             var brush = CursorStroke;
             if (brush is null)
@@ -674,14 +725,17 @@ namespace WalletWasabi.Fluent.Controls
             var thickness = CursorThickness;
             var pen = new Pen(brush, thickness);
             var deflate = thickness * 0.5;
-            var p1 = new Point(position + deflate, 0);
-            var p2 = new Point(position + deflate, height);
-            var transform = context.PushPreTransform(Matrix.CreateTranslation(margin.Left, margin.Top));
+            var p1 = new Point(state.CursorPosition + deflate, 0);
+            var p2 = new Point(state.CursorPosition + deflate, state.AreaHeight);
+            var transform = context.PushPreTransform(
+	            Matrix.CreateTranslation(
+		            state.AreaMargin.Left,
+		            state.AreaMargin.Top));
             context.DrawLine(pen, p1, p2);
             transform.Dispose();
         }
 
-        private void DrawXAxis(DrawingContext context, double width, double height, Thickness margin)
+        private void DrawXAxis(DrawingContext context, LineChartState state)
         {
             var brush = XAxisStroke;
             if (brush is null)
@@ -692,8 +746,12 @@ namespace WalletWasabi.Fluent.Controls
             var thickness = XAxisStrokeThickness;
             var pen = new Pen(brush, thickness);
             var deflate = thickness * 0.5;
-            var p1 = new Point(margin.Left + 0.0, margin.Top + height + deflate);
-            var p2 = new Point(margin.Left + width, margin.Top + height + deflate);
+            var p1 = new Point(
+	            state.AreaMargin.Left + 0.0,
+	            state.AreaMargin.Top + state.AreaHeight + deflate);
+            var p2 = new Point(
+	            state.AreaMargin.Left + state.AreaWidth,
+	            state.AreaMargin.Top + state.AreaHeight + deflate);
             context.DrawLine(pen, p1, p2);
             var p3 = new Point(p2.X, p2.Y);
             var p4 = new Point(p2.X - size, p2.Y - size);
@@ -703,7 +761,7 @@ namespace WalletWasabi.Fluent.Controls
             context.DrawLine(pen, p5, p6);
         }
 
-        private void DrawYAxis(DrawingContext context, double width, double height, Thickness margin)
+        private void DrawYAxis(DrawingContext context, LineChartState state)
         {
 	        var brush = YAxisStroke;
 	        if (brush is null)
@@ -714,8 +772,12 @@ namespace WalletWasabi.Fluent.Controls
             var thickness = YAxisStrokeThickness;
             var pen = new Pen(brush, thickness);
             var deflate = thickness * 0.5;
-            var p1 = new Point(margin.Left / 2 + deflate, margin.Top + 0.0);
-            var p2 = new Point(margin.Left / 2 + deflate, margin.Top + height);
+            var p1 = new Point(
+	            state.AreaMargin.Left / 2 + deflate,
+	            state.AreaMargin.Top + 0.0);
+            var p2 = new Point(
+	            state.AreaMargin.Left / 2 + deflate,
+	            state.AreaMargin.Top + state.AreaHeight);
             context.DrawLine(pen, p1, p2);
             var p3 = new Point(p1.X, p1.Y);
             var p4 = new Point(p1.X - size, p1.Y + size);
@@ -725,7 +787,7 @@ namespace WalletWasabi.Fluent.Controls
             context.DrawLine(pen, p5, p6);
         }
 
-        private void DrawYAxisTitle(DrawingContext context, double width, double height, Thickness margin)
+        private void DrawYAxisTitle(DrawingContext context, LineChartState state)
         {
 	        var foreground = YAxisTitleForeground;
 	        if (foreground is null)
@@ -742,8 +804,7 @@ namespace WalletWasabi.Fluent.Controls
             var angleRadians = Math.PI / 180.0 * YAxisTitleAngle;
             var alignment = YAxisTitleAlignment;
             var title = YAxisTitle;
-
-            var origin = new Point(margin.Left, margin.Top + offset);
+            var origin = new Point(state.AreaMargin.Left, state.AreaMargin.Top + offset);
             var constraint = new Size(200, 50);
             var formattedText = CreateFormattedText(title, typeface, alignment, fontSize, constraint);
             var xPosition = origin.X;
@@ -762,8 +823,12 @@ namespace WalletWasabi.Fluent.Controls
 #endif
         }
 
-        private void DrawLabels(DrawingContext context, List<string> labels, double step, double height, Thickness margin)
+        private void DrawLabels(DrawingContext context, LineChartState state)
         {
+	        if (state.Labels is null)
+	        {
+		        return;
+	        }
 	        var foreground = LabelForeground;
 	        if (foreground is null)
 	        {
@@ -779,11 +844,13 @@ namespace WalletWasabi.Fluent.Controls
             var angleRadians = Math.PI / 180.0 * LabelAngle;
             var alignment = LabelAlignment;
 
-            for (var i = 0; i < labels.Count; i++)
+            for (var i = 0; i < state.Labels.Count; i++)
             {
-                var origin = new Point(i * step - step / 2 + margin.Left, height + margin.Top + offset);
-                var constraint = new Size(step, constrainHeight);
-                var formattedText = CreateFormattedText(labels[i], typeface, alignment, fontSize, constraint);
+                var origin = new Point(
+	                i * state.Step - state.Step / 2 + state.AreaMargin.Left,
+	                state.AreaHeight + state.AreaMargin.Top + offset);
+                var constraint = new Size(state.Step, constrainHeight);
+                var formattedText = CreateFormattedText(state.Labels[i], typeface, alignment, fontSize, constraint);
                 var xPosition = origin.X + constraint.Width / 2;
                 var yPosition = origin.Y + constraint.Height / 2;
                 var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
@@ -801,7 +868,7 @@ namespace WalletWasabi.Fluent.Controls
             }
         }
 
-        private void DrawBorder(DrawingContext context, double x, double y, double width, double height)
+        private void DrawBorder(DrawingContext context, LineChartState state)
         {
             var brush = BorderBrush;
             if (brush is null)
@@ -812,7 +879,7 @@ namespace WalletWasabi.Fluent.Controls
             var radiusX = BorderRadiusX;
             var radiusY = BorderRadiusY;
             var pen = new Pen(brush, thickness);
-            var rect = new Rect(x, y, width, height);
+            var rect = new Rect(0, 0, state.Width, state.Height);
             var rectDeflate = rect.Deflate(thickness * 0.5);
             context.DrawRectangle(null, pen, rectDeflate, radiusX, radiusY);
         }
