@@ -2,15 +2,31 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Actions"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="vm:ReceiveWalletActionViewModel"
+             x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
-  <c:ContentArea Title="Receive" Caption=""
+  <c:ContentArea Title="Send" Caption=""
                  EnableCancel="True"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
+      <StackPanel>
+          <Label Content="_To:" Target="toTb" />
+          <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}" Watermark="(e.g. Bitcoin address or PayJoin URL)">
+              <TextBox.InnerRightContent>
+                  <Button Classes="plain"
+                          ToolTip.Tip="Paste">
+                      <PathIcon Data="{StaticResource paste_regular}" Width="13" />
+                  </Button>
+              </TextBox.InnerRightContent>
+              <i:Interaction.Behaviors>
+                  <behaviors:FocusOnAttachedBehavior />
+              </i:Interaction.Behaviors>
+          </TextBox>
+      </StackPanel>
   </c:ContentArea>
 </UserControl>
