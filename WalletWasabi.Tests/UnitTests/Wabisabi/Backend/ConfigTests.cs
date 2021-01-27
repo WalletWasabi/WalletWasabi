@@ -58,7 +58,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		}
 
 		[Fact]
-		public async Task LoadsIncomleteConfigAsync()
+		public async Task LoadsIncompleteConfigAsync()
 		{
 			var workDir = Common.GetWorkDir();
 			await IoHelpers.TryDeleteDirectoryAsync(workDir);
