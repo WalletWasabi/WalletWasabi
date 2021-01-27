@@ -59,6 +59,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 				Addresses.Clear();
 
 				IEnumerable<HdPubKey> keys = Wallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Reverse();
+
 				foreach (HdPubKey key in keys)
 				{
 					Addresses.Add(key);

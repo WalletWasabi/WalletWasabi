@@ -101,6 +101,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _items;
 
 		public WalletManager Model { get; }
+
 		public BitcoinStore BitcoinStore { get; }
 
 		private void OpenClosedWallet(WalletManager walletManager, UiConfig uiConfig, ClosedWalletViewModel closedWalletViewModel)
