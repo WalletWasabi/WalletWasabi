@@ -600,7 +600,7 @@ namespace WalletWasabi.Fluent.Controls
             DrawCursor(context, cursorPosition, valuesHeight, valuesMargin);
             DrawXAxis(context, valuesWidth, valuesHeight, valuesMargin);
             DrawYAxis(context, valuesWidth, valuesHeight, valuesMargin);
-            DrawYAxisTitle(context, YAxisTitle, valuesWidth, valuesHeight, valuesMargin);
+            DrawYAxisTitle(context, valuesWidth, valuesHeight, valuesMargin);
             DrawLabels(context, labels, step, valuesHeight, valuesMargin);
             DrawBorder(context, 0, 0, width, height);
         }
@@ -712,7 +712,7 @@ namespace WalletWasabi.Fluent.Controls
             context.DrawLine(pen, p5, p6);
         }
 
-        private void DrawYAxisTitle(DrawingContext context, string title, double width, double height, Thickness margin)
+        private void DrawYAxisTitle(DrawingContext context, double width, double height, Thickness margin)
         {
 	        var foreground = YAxisTitleForeground;
 	        if (foreground is null)
@@ -728,6 +728,7 @@ namespace WalletWasabi.Fluent.Controls
             var constrainHeight = YAxisTitleHeight;
             var angleRadians = Math.PI / 180.0 * YAxisTitleAngle;
             var alignment = YAxisTitleAlignment;
+            var title = YAxisTitle;
 
             var origin = new Point(margin.Left, margin.Top + offset);
             var constraint = new Size(200, 50);
