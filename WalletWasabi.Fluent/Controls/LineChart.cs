@@ -5,13 +5,15 @@ using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Controls
 {
 	public class LineChart : Control
     {
-        #region Properties
+        #region Avalonia Properties
 
         #region Values
 
@@ -198,7 +200,9 @@ namespace WalletWasabi.Fluent.Controls
 
         #endregion
 
-        #region LineChart ctor
+        #endregion
+
+        #region static ctor
 
         static LineChart()
         {
@@ -219,6 +223,14 @@ namespace WalletWasabi.Fluent.Controls
         }
 
         #endregion
+
+        #region Fields
+
+        private bool _captured;
+
+        #endregion
+
+        #region Clr Properties
 
         #region Values
 
@@ -560,6 +572,11 @@ namespace WalletWasabi.Fluent.Controls
 
         #endregion
 
+        private static double Clamp(double val, double min, double max)
+        {
+	        return Math.Min(Math.Max(val, min), max);
+        }
+
         private static double ScaleHorizontal(double value, double max, double range)
         {
             return value / max * range;
@@ -611,9 +628,53 @@ namespace WalletWasabi.Fluent.Controls
 	        };
         }
 
+        public LineChart()
+        {
+	        AddHandler(PointerPressedEvent, PointerPressedHandler, RoutingStrategies.Tunnel);
+	        AddHandler(PointerReleasedEvent, PointerReleasedHandler, RoutingStrategies.Tunnel);
+	        AddHandler(PointerMovedEvent, PointerMovedHandler, RoutingStrategies.Tunnel);
+        }
+
+        private void UpdateCursorPosition(double x)
+        {
+	        var rangeValues = MaxValue - MinValue;
+	        var rangeArea = Bounds.Width - ValuesMargin.Left - ValuesMargin.Right;
+	        var value = Clamp(x - ValuesMargin.Left, 0, rangeArea);
+	        CursorValue = MaxValue - rangeValues / rangeArea * value;
+        }
+
+        private void PointerMovedHandler(object? sender, PointerEventArgs e)
+        {
+	        if (_captured)
+	        {
+		        var position = e.GetPosition(this);
+		        UpdateCursorPosition(position.X);
+	        }
+        }
+
+        private void PointerReleasedHandler(object? sender, PointerReleasedEventArgs e)
+        {
+	        if (_captured)
+	        {
+		        Cursor = new Cursor(StandardCursorType.Arrow);
+		        _captured = false;
+	        }
+        }
+
+        private void PointerPressedHandler(object? sender, PointerPressedEventArgs e)
+        {
+	        var position = e.GetPosition(this);
+	        UpdateCursorPosition(position.X);
+	        Cursor = new Cursor(StandardCursorType.SizeWestEast);
+	        _captured = true;
+        }
+
         private LineChartState CreateChartState(double width, double height)
         {
 	        var state = new LineChartState();
+
+	        state.Width = width;
+	        state.Height = height;
 
 	        state.AreaMargin = ValuesMargin;
 	        state.AreaWidth = width - state.AreaMargin.Left - state.AreaMargin.Right;
@@ -654,22 +715,6 @@ namespace WalletWasabi.Fluent.Controls
 	        state.CursorPosition = ScaleHorizontal(maxValue - cursorValue, maxValue, state.AreaWidth);
 
 	        return state;
-        }
-
-        public override void Render(DrawingContext context)
-        {
-            base.Render(context);
-
-            var state = CreateChartState(Bounds.Width, Bounds.Height);
-
-            DrawAreaFill(context, state);
-            DrawAreaStroke(context, state);
-            DrawCursor(context, state);
-            DrawXAxis(context, state);
-            DrawYAxis(context, state);
-            DrawYAxisTitle(context, state);
-            DrawLabels(context, state);
-            DrawBorder(context, state);
         }
 
         private void DrawAreaFill(DrawingContext context, LineChartState state)
@@ -872,17 +917,29 @@ namespace WalletWasabi.Fluent.Controls
         private void DrawBorder(DrawingContext context, LineChartState state)
         {
             var brush = BorderBrush;
-            if (brush is null)
-            {
-	            return;
-            }
             var thickness = BorderThickness;
             var radiusX = BorderRadiusX;
             var radiusY = BorderRadiusY;
             var pen = new Pen(brush, thickness);
             var rect = new Rect(0, 0, state.Width, state.Height);
             var rectDeflate = rect.Deflate(thickness * 0.5);
-            context.DrawRectangle(null, pen, rectDeflate, radiusX, radiusY);
+            context.DrawRectangle(Brushes.Transparent, pen, rectDeflate, radiusX, radiusY);
+        }
+
+        public override void Render(DrawingContext context)
+        {
+	        base.Render(context);
+
+	        var state = CreateChartState(Bounds.Width, Bounds.Height);
+
+	        DrawAreaFill(context, state);
+	        DrawAreaStroke(context, state);
+	        DrawCursor(context, state);
+	        DrawXAxis(context, state);
+	        DrawYAxis(context, state);
+	        DrawYAxisTitle(context, state);
+	        DrawLabels(context, state);
+	        DrawBorder(context, state);
         }
 
         private class LineChartState

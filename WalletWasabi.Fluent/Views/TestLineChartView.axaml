@@ -71,7 +71,7 @@
         </Style>
         <!-- LineChart Border -->
         <Style Selector="c|LineChart.border">
-            <Setter Property="BorderBrush" Value="Black" />
+            <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="BorderRadiusX" Value="4" />
             <Setter Property="BorderRadiusY" Value="4" />
@@ -90,13 +90,15 @@
                            DockPanel.Dock="Left"/>
                     <Slider x:Name="CursorValue1"
                             Classes="cursor"
-                            Minimum="2"
-                            Maximum="1008"
-                            Value="36"
+                            Minimum="{Binding #SolidLineChart.MinValue}"
+                            Maximum="{Binding #SolidLineChart.MaxValue}"
+                            Value="{Binding #SolidLineChart.CursorValue}"
                             Margin="0,0,30,0"/>
                 </DockPanel>
-                <c:LineChart Classes="labels cursor border yAxis yAxisTitle"
+                <c:LineChart x:Name="SolidLineChart"
+                             Classes="labels cursor border yAxis yAxisTitle"
                              Values="{Binding Values}"
+                             CursorValue="36"
                              Labels="{Binding Labels}"
                              MinValue="2"
                              MaxValue="1008"
@@ -105,7 +107,6 @@
                              Fill="#C6DAFC"
                              Stroke="#4285F4"
                              StrokeThickness="2"
-                             CursorValue="{Binding #CursorValue1.Value}"
                              YAxisTitle="More Expensive">
                 </c:LineChart>
             </DockPanel>
@@ -122,22 +123,21 @@
                            DockPanel.Dock="Left"/>
                     <Slider x:Name="CursorValue2"
                             Classes="cursor"
-                            Minimum="2"
-                            Maximum="1008"
-                            Value="36"
+                            Minimum="{Binding #GradientLineChart.MinValue}"
+                            Maximum="{Binding #GradientLineChart.MaxValue}"
+                            Value="{Binding #GradientLineChart.CursorValue}"
                             Margin="0,0,30,0"/>
                 </DockPanel>
-                <c:LineChart Classes="labels cursor border yAxis yAxisTitle"
+                <c:LineChart x:Name="GradientLineChart"
+                             Classes="labels cursor border yAxis yAxisTitle"
                              Values="{Binding Values}"
                              Labels="{Binding Labels}"
+                             CursorValue="36"
                              MinValue="2"
                              MaxValue="1008"
                              LogarithmicScale="False"
                              ValuesMargin="60,30,30,60"
                              StrokeThickness="2"
-                             CursorStroke="#72BD81"
-                             CursorThickness="2"
-                             CursorValue="{Binding #CursorValue2.Value}"
                              YAxisTitle="More Expensive">
                     <c:LineChart.Fill>
                         <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%">
