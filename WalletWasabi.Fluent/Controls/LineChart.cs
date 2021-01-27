@@ -51,11 +51,11 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<IBrush?> LabelForegroundProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(LabelForeground));
 
-        public static readonly StyledProperty<double> LabelOffsetProperty =
-            AvaloniaProperty.Register<LineChart, double>(nameof(LabelOffset));
+        public static readonly StyledProperty<Point> LabelOffsetProperty =
+            AvaloniaProperty.Register<LineChart, Point>(nameof(LabelOffset));
 
-        public static readonly StyledProperty<double> LabelHeightProperty =
-            AvaloniaProperty.Register<LineChart, double>(nameof(LabelHeight));
+        public static readonly StyledProperty<Size> LabelSizeProperty =
+            AvaloniaProperty.Register<LineChart, Size>(nameof(LabelSize));
 
         public static readonly StyledProperty<TextAlignment> LabelAlignmentProperty =
             AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(LabelAlignment));
@@ -315,16 +315,16 @@ namespace WalletWasabi.Fluent.Controls
             set => SetValue(LabelAngleProperty, value);
         }
 
-        public double LabelOffset
+        public Point LabelOffset
         {
             get => GetValue(LabelOffsetProperty);
             set => SetValue(LabelOffsetProperty, value);
         }
 
-        public double LabelHeight
+        public Size LabelSize
         {
-            get => GetValue(LabelHeightProperty);
-            set => SetValue(LabelHeightProperty, value);
+            get => GetValue(LabelSizeProperty);
+            set => SetValue(LabelSizeProperty, value);
         }
 
         public TextAlignment LabelAlignment
@@ -890,33 +890,33 @@ namespace WalletWasabi.Fluent.Controls
             var typeface = new Typeface(fontFamily, fontStyle, fontWeight);
             var fontSize = LabelFontSize;
             var offset = LabelOffset;
-            var labelHeight = LabelHeight;
+            var size = LabelSize;
             var angleRadians = Math.PI / 180.0 * LabelAngle;
             var alignment = LabelAlignment;
-
+            var originTop = state.AreaHeight + state.AreaMargin.Top;
+            var offsetTransform = context.PushPreTransform(Matrix.CreateTranslation(offset.X, offset.Y));
             for (var i = 0; i < state.Labels.Count; i++)
             {
-                var origin = new Point(
-	                i * state.Step - state.Step / 2 + state.AreaMargin.Left,
-	                state.AreaHeight + state.AreaMargin.Top + offset);
-                var constraint = new Size(state.Step, labelHeight);
+	            var origin = new Point(i * state.Step - state.Step / 2 + state.AreaMargin.Left, originTop);
+                var constraint = new Size(size.Width, size.Height);
                 var formattedText = CreateFormattedText(state.Labels[i], typeface, alignment, fontSize, constraint);
-                var xPosition = origin.X + state.Step / 2;
-                var yPosition = origin.Y + labelHeight / 2;
+                var xPosition = origin.X + size.Width / 2;
+                var yPosition = origin.Y + size.Height / 2;
                 var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
                              * Matrix.CreateRotation(angleRadians)
                              * Matrix.CreateTranslation(xPosition, yPosition);
-                var transform = context.PushPreTransform(matrix);
-                var offsetCenter = new Point(0, labelHeight / 2 - formattedText.Bounds.Height / 2);
+                var labelTransform = context.PushPreTransform(matrix);
+                var offsetCenter = new Point(0, size.Height / 2 - formattedText.Bounds.Height / 2);
                 context.DrawText(foreground, origin + offsetCenter, formattedText);
 #if DEBUG_LABELS
                 context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Magenta)), new Rect(origin, constraint));
 #endif
-                transform.Dispose();
+                labelTransform.Dispose();
 #if DEBUG_LABELS
                 context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Cyan)), new Rect(origin, constraint));
 #endif
             }
+            offsetTransform.Dispose();
         }
 
         private void DrawBorder(DrawingContext context, LineChartState state)
