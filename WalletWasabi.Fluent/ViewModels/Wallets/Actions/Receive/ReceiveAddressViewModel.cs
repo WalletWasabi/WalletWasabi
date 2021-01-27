@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,12 +70,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 				});
 			});
 
+			SaveQrCodeCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				if (QrCodeCommand is { } cmd)
+				{
+					await cmd.Execute(Address);
+				}
+			});
+
 			ObserveToAnimationTrigger(CopyAddressCommand, ShowOnHwWalletCommand);
 
 			NextCommand = CancelCommand;
 		}
 
+		public ReactiveCommand<string, Unit>? QrCodeCommand { get; set; }
+
 		public ICommand CopyAddressCommand { get; set; }
+
+		public ICommand SaveQrCodeCommand { get; }
 
 		public ICommand ShowOnHwWalletCommand { get; set; }
 

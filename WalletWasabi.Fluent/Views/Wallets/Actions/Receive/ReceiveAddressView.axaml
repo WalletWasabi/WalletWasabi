@@ -98,7 +98,7 @@
       </StackPanel>
       <TextBlock Text="{Binding GapLimitMessage}" Opacity="0" Classes="gapLimitTextAnimation" IsVisible="True" Margin="5" Foreground="{DynamicResource WarningMessageForeground}" DockPanel.Dock="Top"/>
       <Viewbox MaxHeight="250" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <controls:QrCode Height="250" Matrix="{Binding QrCode}" />
+        <controls:QrCode Height="250" Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" />
       </Viewbox>
 
     </DockPanel>
