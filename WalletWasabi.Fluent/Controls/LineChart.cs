@@ -230,6 +230,17 @@ namespace WalletWasabi.Fluent.Controls
 
         #endregion
 
+        #region  ctor
+
+        public LineChart()
+        {
+	        AddHandler(PointerPressedEvent, PointerPressedHandler, RoutingStrategies.Tunnel);
+	        AddHandler(PointerReleasedEvent, PointerReleasedHandler, RoutingStrategies.Tunnel);
+	        AddHandler(PointerMovedEvent, PointerMovedHandler, RoutingStrategies.Tunnel);
+        }
+
+        #endregion
+
         #region Clr Properties
 
         #region Values
@@ -626,13 +637,6 @@ namespace WalletWasabi.Fluent.Controls
 		        FontSize = fontSize,
 		        Constraint = constraint
 	        };
-        }
-
-        public LineChart()
-        {
-	        AddHandler(PointerPressedEvent, PointerPressedHandler, RoutingStrategies.Tunnel);
-	        AddHandler(PointerReleasedEvent, PointerReleasedHandler, RoutingStrategies.Tunnel);
-	        AddHandler(PointerMovedEvent, PointerMovedHandler, RoutingStrategies.Tunnel);
         }
 
         private void UpdateCursorPosition(double x)
