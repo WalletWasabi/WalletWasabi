@@ -43,15 +43,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 				{
 					var newKey = WasabiWallet.KeyManager.GetNextReceiveKey(Reference, out bool minGapLimitIncreased);
 
-					string? minGapLimitMessage = default;
 					if (minGapLimitIncreased)
 					{
 						int minGapLimit = WasabiWallet.KeyManager.MinGapLimit.Value;
 						int prevMinGapLimit = minGapLimit - 1;
-						minGapLimitMessage = $"Minimum gap limit increased from {prevMinGapLimit} to {minGapLimit}.";
+						var minGapLimitMessage = $"Minimum gap limit increased from {prevMinGapLimit} to {minGapLimit}.";
+						// TODO: notification
 					}
 
-					Navigate().To(new ReceiveAddressViewModel(newKey, WasabiWallet.Network, WasabiWallet.KeyManager.MasterFingerprint, WasabiWallet.KeyManager.IsHardwareWallet, minGapLimitMessage));
+					Navigate().To(new ReceiveAddressViewModel(newKey, WasabiWallet.Network, WasabiWallet.KeyManager.MasterFingerprint, WasabiWallet.KeyManager.IsHardwareWallet));
 				},
 				nextCommandCanExecute);
 

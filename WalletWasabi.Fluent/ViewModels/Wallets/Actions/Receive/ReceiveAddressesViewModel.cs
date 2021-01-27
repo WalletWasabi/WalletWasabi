@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 						return;
 					}
 
-					Navigate().To(new ReceiveAddressViewModel(selected, wallet.Network, wallet.KeyManager.MasterFingerprint, wallet.KeyManager.IsHardwareWallet, null));
+					Navigate().To(new ReceiveAddressViewModel(selected, wallet.Network, wallet.KeyManager.MasterFingerprint, wallet.KeyManager.IsHardwareWallet));
 					SelectedAddress = null;
 				});
 		}

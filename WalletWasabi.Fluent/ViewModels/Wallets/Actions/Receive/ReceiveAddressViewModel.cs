@@ -15,28 +15,18 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 {
-	public partial class ReceiveAddressViewModel : RoutableViewModel
+	public class ReceiveAddressViewModel : RoutableViewModel
 	{
-		[AutoNotify] private bool _animationTrigger;
-		[AutoNotify] private string _actionText;
-		[AutoNotify] private string? _gapLimitMessage;
-
-		public ReceiveAddressViewModel(HdPubKey model, Network network, HDFingerprint? masterFingerprint, bool isHardwareWallet, string? minGapLimitMessage)
+		public ReceiveAddressViewModel(HdPubKey model, Network network, HDFingerprint? masterFingerprint, bool isHardwareWallet)
 		{
 			Title = "Receive Address";
 			Address = model.GetP2wpkhAddress(network).ToString();
 			Reference = model.Label;
 			IsHardwareWallet = isHardwareWallet;
-			_actionText = "";
-			_gapLimitMessage = minGapLimitMessage;
 
 			GenerateQrCode();
 
-			CopyAddressCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				ActionText = "Copied";
-				await Application.Current.Clipboard.SetTextAsync(Address);
-			});
+			CopyAddressCommand = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Address));
 
 			ShowOnHwWalletCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -44,8 +34,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 				{
 					return;
 				}
-
-				ActionText = "Displaying";
 
 				await Task.Run(async () =>
 				{
@@ -64,7 +52,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 					catch (Exception ex)
 					{
 						Logger.LogError(ex);
-						AnimationTrigger = false; // prevents animation when error dialog is returned.
 						await ShowErrorAsync(ex.ToUserFriendlyString(), "We were unable to send the address to the device");
 					}
 				});
@@ -77,8 +64,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 					await cmd.Execute(Address);
 				}
 			});
-
-			ObserveToAnimationTrigger(CopyAddressCommand, ShowOnHwWalletCommand);
 
 			NextCommand = CancelCommand;
 		}
@@ -98,17 +83,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions.Receive
 		public bool[,]? QrCode { get; set; }
 
 		public bool IsHardwareWallet { get; }
-
-		private void ObserveToAnimationTrigger(params ICommand[] commands)
-		{
-			foreach (var cmd in commands)
-			{
-				(cmd as IReactiveCommand)
-					?.IsExecuting
-					.ObserveOn(RxApp.MainThreadScheduler)
-					.Subscribe(x => AnimationTrigger = x);
-			}
-		}
 
 		private void GenerateQrCode()
 		{
