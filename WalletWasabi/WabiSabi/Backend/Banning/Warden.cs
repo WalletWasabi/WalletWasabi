@@ -23,6 +23,11 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 			LastKnownChange = Prison.ChangeId;
 		}
 
+		public static Warden FromParameters(CoordinatorParameters parameters)
+		{
+			return new(parameters.UtxoWardenPeriod, parameters.PrisonFilePath, parameters.RuntimeCoordinatorConfig);
+		}
+
 		public Prison Prison { get; }
 		public Guid LastKnownChange { get; private set; }
 

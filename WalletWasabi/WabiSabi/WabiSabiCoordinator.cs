@@ -18,9 +18,15 @@ namespace WalletWasabi.WabiSabi
 		public WabiSabiCoordinator(CoordinatorParameters parameters)
 		{
 			Parameters = parameters;
+			Warden = Warden.FromParameters(parameters);
+			ConfigWatcher = ConfigWatcher.FromParameters(parameters, () => Logger.LogInfo("WabiSabi configuration has changed."));
+		}
 
-			Warden = new(parameters.UtxoWardenPeriod, parameters.PrisonFilePath, Config);
-			ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
+		public WabiSabiCoordinator(CoordinatorParameters parameters, Warden warden, ConfigWatcher configWatcher)
+		{
+			Parameters = parameters;
+			Warden = warden;
+			ConfigWatcher = configWatcher;
 		}
 
 		public ConfigWatcher ConfigWatcher { get; }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
+using WalletWasabi.WabiSabi;
 
 namespace WalletWasabi.Services
 {
@@ -14,6 +15,11 @@ namespace WalletWasabi.Services
 			Config = Guard.NotNull(nameof(config), config);
 			ExecuteWhenChanged = Guard.NotNull(nameof(executeWhenChanged), executeWhenChanged);
 			config.AssertFilePathSet();
+		}
+
+		public static ConfigWatcher FromParameters(CoordinatorParameters parameters, Action executeWhenChanged)
+		{
+			return new(parameters.ConfigChangeMonitoringPeriod, parameters.RuntimeCoordinatorConfig, executeWhenChanged);
 		}
 
 		public IConfig Config { get; }

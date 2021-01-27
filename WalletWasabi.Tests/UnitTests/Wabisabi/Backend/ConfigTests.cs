@@ -6,9 +6,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.JsonConverters.Timing;
+using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.Banning;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
@@ -99,10 +101,20 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var configChangeMonitoringPeriod = TimeSpan.FromMilliseconds(10);
 			var configChangeAwaitDuration = TimeSpan.FromMilliseconds(200);
 
+			using ManualResetEventSlim configChangedEvent = new();
+
+			// Construct Coordinator.
 			CoordinatorParameters coordinatorParameters = new(workDir) { ConfigChangeMonitoringPeriod = configChangeMonitoringPeriod };
-			using WabiSabiCoordinator coordinator = new(coordinatorParameters);
+			Warden warden = Warden.FromParameters(coordinatorParameters);
+
+			// Note: Config watcher notifies us when a change occurs.
+			ConfigWatcher configWatcher = ConfigWatcher.FromParameters(coordinatorParameters, executeWhenChanged: () => configChangedEvent.Set());
+			using WabiSabiCoordinator coordinator = new(coordinatorParameters, warden, configWatcher);
+
+			// Start Coordinator.
 			await coordinator.StartAsync(CancellationToken.None);
 
+			// #1: First config modification.
 			var configPath = Path.Combine(workDir, "WabiSabiConfig.json");
 			WabiSabiConfig configChanger = new(configPath);
 			configChanger.LoadOrCreateDefaultFile();
@@ -111,18 +123,23 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.NotEqual(newTarget, coordinator.Config.ConfirmationTarget);
 			configChanger.ToFile();
 
-			// Leave time for the config change to be picked up.
-			await Task.Delay(configChangeAwaitDuration);
+			// Wait for the change signal.
+			Assert.True(configChangedEvent.Wait(2_000));
+			configChangedEvent.Reset();
 			Assert.Equal(newTarget, coordinator.Config.ConfirmationTarget);
 
-			// Do it one more time.
+			// #2: Second config modification.
 			newTarget = 372;
 			configChanger.ConfirmationTarget = newTarget;
 			Assert.NotEqual(newTarget, coordinator.Config.ConfirmationTarget);
 			configChanger.ToFile();
-			await Task.Delay(configChangeAwaitDuration);
+
+			// Wait for the change signal.
+			Assert.True(configChangedEvent.Wait(2_000));
+			configChangedEvent.Reset();
 			Assert.Equal(newTarget, coordinator.Config.ConfirmationTarget);
 
+			// Stop Coordinator.
 			await coordinator.StopAsync(CancellationToken.None);
 		}
 	}
