@@ -10,23 +10,43 @@
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
-  <c:ContentArea Title="Send" Caption=""
-                 EnableCancel="True"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <c:ContentArea Title="Send" Caption=""
+                   EnableCancel="True"
+                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-      <StackPanel>
-          <Label Content="_To:" Target="toTb" />
-          <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}" Watermark="(e.g. Bitcoin address or PayJoin URL)">
-              <TextBox.InnerRightContent>
-                  <Button Classes="plain"
-                          ToolTip.Tip="Paste">
-                      <PathIcon Data="{StaticResource paste_regular}" Width="13" />
-                  </Button>
-              </TextBox.InnerRightContent>
-              <i:Interaction.Behaviors>
-                  <behaviors:FocusOnAttachedBehavior />
-              </i:Interaction.Behaviors>
-          </TextBox>
-      </StackPanel>
-  </c:ContentArea>
+        <StackPanel Spacing="10">
+            <StackPanel>
+                <Label Content="_To:" Target="toTb" />
+                <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}"
+                         Watermark="(e.g. Bitcoin address or PayJoin URL)">
+                    <TextBox.InnerRightContent>
+                        <Button Classes="plain"
+                                ToolTip.Tip="Paste">
+                            <PathIcon Data="{StaticResource paste_regular}" Width="13" />
+                        </Button>
+                    </TextBox.InnerRightContent>
+                    <i:Interaction.Behaviors>
+                        <behaviors:FocusOnAttachedBehavior />
+                    </i:Interaction.Behaviors>
+                </TextBox>
+            </StackPanel>
+
+            <StackPanel>
+                <Label Content="_Amount:" Target="amountTb" />
+                <TextBox x:Name="amountTb" MaxLength="250" Text="{Binding To}" Watermark="12 BTC" />
+            </StackPanel>
+
+            <StackPanel>
+                <Label Content="_Labels:" Target="LabelTagBox" DockPanel.Dock="Top" />
+                <c:TagsBox x:Name="LabelTagBox"
+                           ItemCountLimit="12"
+                           RestrictInputToSuggestions="True" />
+            </StackPanel>
+
+            <StackPanel>
+                <Label Content="_Priority:" Target="PrioritySlider" DockPanel.Dock="Top" />
+                <Slider x:Name="PrioritySlider" Minimum="0" Maximum="100" Value="100" />
+            </StackPanel>
+        </StackPanel>
+    </c:ContentArea>
 </UserControl>
