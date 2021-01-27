@@ -890,7 +890,7 @@ namespace WalletWasabi.Fluent.Controls
             var typeface = new Typeface(fontFamily, fontStyle, fontWeight);
             var fontSize = LabelFontSize;
             var offset = LabelOffset;
-            var constrainHeight = LabelHeight;
+            var labelHeight = LabelHeight;
             var angleRadians = Math.PI / 180.0 * LabelAngle;
             var alignment = LabelAlignment;
 
@@ -899,10 +899,10 @@ namespace WalletWasabi.Fluent.Controls
                 var origin = new Point(
 	                i * state.Step - state.Step / 2 + state.AreaMargin.Left,
 	                state.AreaHeight + state.AreaMargin.Top + offset);
-                var constraint = new Size(state.Step, constrainHeight);
+                var constraint = new Size(state.Step, labelHeight);
                 var formattedText = CreateFormattedText(state.Labels[i], typeface, alignment, fontSize, constraint);
-                var xPosition = origin.X + constraint.Width / 2;
-                var yPosition = origin.Y + constraint.Height / 2;
+                var xPosition = origin.X + state.Step / 2;
+                var yPosition = origin.Y + labelHeight / 2;
                 var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
                              * Matrix.CreateRotation(angleRadians)
                              * Matrix.CreateTranslation(xPosition, yPosition);
