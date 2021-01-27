@@ -53,7 +53,7 @@
         </Style>
         <!-- LineChart YAxis -->
         <Style Selector="c|LineChart.yAxis">
-            <Setter Property="YAxisStroke" Value="Black" />
+            <Setter Property="YAxisStroke" Value="{DynamicResource TextForegroundColor}" />
             <Setter Property="YAxisStrokeThickness" Value="1" />
             <Setter Property="YAxisArrowSize" Value="3.5" />
         </Style>
