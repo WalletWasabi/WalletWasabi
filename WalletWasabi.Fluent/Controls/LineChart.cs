@@ -607,8 +607,8 @@ namespace WalletWasabi.Fluent.Controls
 
         private void DrawFill(DrawingContext context, Point[] points, double width, double height, Thickness margin)
         {
-            var fill = Fill;
-            if (fill is null)
+            var brush = Fill;
+            if (brush is null)
             {
 	            return;
             }
@@ -624,14 +624,14 @@ namespace WalletWasabi.Fluent.Controls
             geometryContext.LineTo(new Point(0, height));
             geometryContext.EndFigure(true);
             var transform = context.PushPreTransform(Matrix.CreateTranslation(margin.Left + deflate, margin.Top + deflate));
-            context.DrawGeometry(fill, null, geometry);
+            context.DrawGeometry(brush, null, geometry);
             transform.Dispose();
         }
 
         private void DrawStroke(DrawingContext context, Point[] points, Thickness margin)
         {
-            var stroke = Stroke;
-            if (stroke is null)
+            var brush = Stroke;
+            if (brush is null)
             {
 	            return;
             }
@@ -645,7 +645,7 @@ namespace WalletWasabi.Fluent.Controls
                 geometryContext.LineTo(points[i]);
             }
             geometryContext.EndFigure(false);
-            var pen = new Pen(stroke, strokeThickness);
+            var pen = new Pen(brush, strokeThickness);
             var transform = context.PushPreTransform(Matrix.CreateTranslation(margin.Left + deflate, margin.Top + deflate));
             context.DrawGeometry(null, pen, geometry);
             transform.Dispose();
