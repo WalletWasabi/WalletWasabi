@@ -11,6 +11,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Nito.AsyncEx;
@@ -99,7 +100,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			{
 				CancellationTokenSource cts = new();
 				AbandonedTasks.AddAndClearCompleted(CheckForPassphraseAsync(cts.Token));
-				var result = await HardwareWalletOperations.DetectAsync(WalletManager.Network, cancel);
+				var result = await HardwareWalletOperationHelper.DetectAsync(WalletManager.Network, cancel);
 				cts.Cancel();
 				EvaluateDetectionResult(result, cancel);
 			}
@@ -159,7 +160,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				else
 				{
 					Message = "Check your device and finish the initialization.";
-					AbandonedTasks.AddAndClearCompleted(HardwareWalletOperations.InitHardwareWalletAsync(device, WalletManager.Network, cancel));
+					AbandonedTasks.AddAndClearCompleted(HardwareWalletOperationHelper.InitHardwareWalletAsync(device, WalletManager.Network, cancel));
 				}
 
 				return;

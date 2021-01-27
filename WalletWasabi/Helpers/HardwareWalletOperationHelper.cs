@@ -8,9 +8,9 @@ using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
+namespace WalletWasabi.Helpers
 {
-	public static class HardwareWalletOperations
+	public static class HardwareWalletOperationHelper
 	{
 		public static async Task<KeyManager> GenerateWalletAsync(HwiEnumerateEntry device, string walletFilePath, Network network, CancellationToken cancelToken)
 		{

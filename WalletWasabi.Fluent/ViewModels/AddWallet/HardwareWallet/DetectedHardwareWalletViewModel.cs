@@ -5,6 +5,7 @@ using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -35,7 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				try
 				{
 					var walletFilePath = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
-					var km = await HardwareWalletOperations.GenerateWalletAsync(device, walletFilePath, WalletManager.Network, CancelCts.Token);
+					var km = await HardwareWalletOperationHelper.GenerateWalletAsync(device, walletFilePath, WalletManager.Network, CancelCts.Token);
 					km.SetIcon(Type);
 
 					Navigate().To(new AddedWalletPageViewModel(walletManager, km));
