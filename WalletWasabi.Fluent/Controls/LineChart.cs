@@ -7,6 +7,19 @@ using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Controls
 {
+	internal class LineChartState
+	{
+		public double Width { get; set; }
+		public double Height { get; set; }
+		public double AreaWidth { get; set; }
+		public double AreaHeight { get; set; }
+		public Thickness AreaMargin { get; set; }
+		public Point[]? Points { get; set; }
+		public List<string>? Labels { get; set; }
+		public double Step { get; set; }
+		public double CursorPosition { get; set; }
+	}
+
     public class LineChart : Control
     {
         #region Properties
@@ -568,6 +581,34 @@ namespace WalletWasabi.Fluent.Controls
             return range - value / max * range;
         }
 
+        private static Geometry CreateFllGeometry(IReadOnlyList<Point> points, double width, double height)
+        {
+	        var geometry = new StreamGeometry();
+	        using var context = geometry.Open();
+	        context.BeginFigure(points[0], true);
+	        for (var i = 1; i < points.Count; i++)
+	        {
+		        context.LineTo(points[i]);
+	        }
+	        context.LineTo(new Point(width, height));
+	        context.LineTo(new Point(0, height));
+	        context.EndFigure(true);
+	        return geometry;
+        }
+
+        private static Geometry CreateStrokeGeometry(IReadOnlyList<Point> points)
+        {
+	        var geometry = new StreamGeometry();
+	        using var context = geometry.Open();
+	        context.BeginFigure(points[0], false);
+	        for (var i = 1; i < points.Count; i++)
+	        {
+		        context.LineTo(points[i]);
+	        }
+	        context.EndFigure(false);
+	        return geometry;
+        }
+
         private static FormattedText CreateFormattedText(string text, Typeface typeface, TextAlignment alignment, double fontSize, Size constraint)
         {
 	        return new FormattedText()
@@ -579,35 +620,6 @@ namespace WalletWasabi.Fluent.Controls
 		        FontSize = fontSize,
 		        Constraint = constraint
 	        };
-        }
-
-        private class LineChartState
-        {
-	        public double Width { get; set; }
-	        public double Height { get; set; }
-	        public double AreaWidth { get; set; }
-	        public double AreaHeight { get; set; }
-	        public Thickness AreaMargin { get; set; }
-	        public Point[]? Points { get; set; }
-	        public List<string>? Labels { get; set; }
-	        public double Step { get; set; }
-	        public double CursorPosition { get; set; }
-        }
-
-        public override void Render(DrawingContext context)
-        {
-            base.Render(context);
-
-            var state = CreateChartState(Bounds.Width, Bounds.Height);
-
-            DrawAreaFill(context, state);
-            DrawAreaStroke(context, state);
-            DrawCursor(context, state);
-            DrawXAxis(context, state);
-            DrawYAxis(context, state);
-            DrawYAxisTitle(context, state);
-            DrawLabels(context, state);
-            DrawBorder(context, state);
         }
 
         private LineChartState CreateChartState(double width, double height)
@@ -655,32 +667,20 @@ namespace WalletWasabi.Fluent.Controls
 	        return state;
         }
 
-        private static Geometry CreateFllGeometry(IReadOnlyList<Point> points, double width, double height)
+        public override void Render(DrawingContext context)
         {
-	        var geometry = new StreamGeometry();
-	        using var context = geometry.Open();
-	        context.BeginFigure(points[0], true);
-	        for (var i = 1; i < points.Count; i++)
-	        {
-		        context.LineTo(points[i]);
-	        }
-	        context.LineTo(new Point(width, height));
-	        context.LineTo(new Point(0, height));
-	        context.EndFigure(true);
-	        return geometry;
-        }
+            base.Render(context);
 
-        private static Geometry CreateStrokeGeometry(IReadOnlyList<Point> points)
-        {
-	        var geometry = new StreamGeometry();
-	        using var context = geometry.Open();
-	        context.BeginFigure(points[0], false);
-	        for (var i = 1; i < points.Count; i++)
-	        {
-		        context.LineTo(points[i]);
-	        }
-	        context.EndFigure(false);
-	        return geometry;
+            var state = CreateChartState(Bounds.Width, Bounds.Height);
+
+            DrawAreaFill(context, state);
+            DrawAreaStroke(context, state);
+            DrawCursor(context, state);
+            DrawXAxis(context, state);
+            DrawYAxis(context, state);
+            DrawYAxisTitle(context, state);
+            DrawLabels(context, state);
+            DrawBorder(context, state);
         }
 
         private void DrawAreaFill(DrawingContext context, LineChartState state)
