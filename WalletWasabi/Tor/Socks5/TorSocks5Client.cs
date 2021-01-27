@@ -23,12 +23,6 @@ namespace WalletWasabi.Tor.Socks5
 	/// </summary>
 	public class TorSocks5Client : IDisposable
 	{
-		/// <summary><see cref="SocketException"/> message prefix for the connection refused state on English Windows system.</summary>
-		private const string ExPrefixOnWindows = "No connection could be made because the target machine actively refused it";
-
-		/// <summary><see cref="SocketException"/> message prefix for the connection refused state on Linux or macOS.</summary>
-		private const string ExPrefixOnUnixBasedOSs = "Connection refused";
-
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		/// <param name="endPoint">Valid Tor end point.</param>
@@ -83,10 +77,6 @@ namespace WalletWasabi.Tor.Socks5
 					// 10061 ~ "No connection could be made because the target machine actively refused it" on Windows.
 					// 111   ~ "Connection refused" on Linux.
 					// 61    ~ "Connection refused" on macOS.
-					throw new TorConnectionException($"Could not connect to Tor SOCKSPort at '{host}:{port}'. Is Tor running?", ex);
-				}
-				catch (Exception ex) when (ex.Message is string && (ex.Message.StartsWith(ExPrefixOnWindows) || ex.Message.StartsWith(ExPrefixOnUnixBasedOSs)))
-				{
 					throw new TorConnectionException($"Could not connect to Tor SOCKSPort at '{host}:{port}'. Is Tor running?", ex);
 				}
 
