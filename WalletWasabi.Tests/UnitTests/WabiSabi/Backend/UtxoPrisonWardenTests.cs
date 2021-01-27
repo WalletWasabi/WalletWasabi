@@ -62,6 +62,32 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		}
 
 		[Fact]
+		public async Task NoPrisonSerializationAsync()
+		{
+			// Don't serialize when there's no change.
+			var workDir = Common.GetWorkDir();
+			await IoHelpers.TryDeleteDirectoryAsync(workDir);
+
+			// Create prison.
+			CoordinatorParameters coordinatorParameters = new(workDir) { UtxoWardenPeriod = TimeSpan.FromMilliseconds(1) };
+			using var w = new Warden(coordinatorParameters.UtxoWardenPeriod, coordinatorParameters.PrisonFilePath, coordinatorParameters.RuntimeCoordinatorConfig);
+			await w.StartAsync(CancellationToken.None);
+			var i1 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Noted, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), 1);
+			var i2 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Banned, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), 2);
+			w.Prison.Punish(i1);
+			w.Prison.Punish(i2);
+
+			// Wait until serializes.
+			await Task.Delay(50);
+
+			// Make sure it does not serialize again as there was no change.
+			File.Delete(w.PrisonFilePath);
+			await Task.Delay(50);
+			Assert.False(File.Exists(w.PrisonFilePath));
+			await w.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
 		public async Task ReleasesInmatesAsync()
 		{
 			var workDir = Common.GetWorkDir();
