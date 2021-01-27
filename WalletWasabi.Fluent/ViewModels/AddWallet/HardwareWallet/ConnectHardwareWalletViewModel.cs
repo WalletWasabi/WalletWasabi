@@ -33,9 +33,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			WalletManager = walletManager;
 			Wallets = wallets;
 			AbandonedTasks = new AbandonedTasks();
-			HardwareWalletOperations = new HardwareWalletOperations(WalletManager.Network);
+			CancelCts = new CancellationTokenSource();
 
-			NextCommand = ReactiveCommand.Create(() => StartDetection(HardwareWalletOperations));
+			NextCommand = ReactiveCommand.Create(StartDetection);
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask(async () =>
 				await IoHelpers.OpenBrowserAsync("https://docs.wasabiwallet.io/using-wasabi/ColdWasabi.html#using-hardware-wallet-step-by-step"));
@@ -57,6 +57,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				.Subscribe(message => NextButtonEnable = !string.IsNullOrEmpty(message));
 		}
 
+		public CancellationTokenSource CancelCts { get; }
+
 		private AbandonedTasks AbandonedTasks { get; }
 
 		public string WalletName { get; }
@@ -67,13 +69,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public WalletViewModelBase? ExistingWallet { get; set; }
 
-		public HardwareWalletOperations? HardwareWalletOperations { get; set; }
-
 		public ICommand OpenBrowserCommand { get; }
 
 		public ICommand NavigateToExistingWalletLoginCommand { get; }
 
-		private void StartDetection(HardwareWalletOperations hwo)
+		private void StartDetection()
 		{
 			Message = "";
 
@@ -83,10 +83,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			}
 
 			ExistingWalletFound = false;
-			AbandonedTasks.AddAndClearCompleted(DetectionAsync(hwo));
+			AbandonedTasks.AddAndClearCompleted(DetectionAsync());
 		}
 
-		private async Task DetectionAsync(HardwareWalletOperations hwo)
+		private async Task DetectionAsync()
 		{
 			IsSearching = true;
 
@@ -94,9 +94,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			{
 				CancellationTokenSource cts = new();
 				AbandonedTasks.AddAndClearCompleted(CheckForPassphraseAsync(cts.Token));
-				var result = await hwo.DetectAsync();
+				var result = await HardwareWalletOperations.DetectAsync(WalletManager.Network, CancelCts.Token);
 				cts.Cancel();
-				EvaluateDetectionResult(result, hwo);
+				EvaluateDetectionResult(result);
 			}
 			catch (Exception ex) when (ex is not OperationCanceledException)
 			{
@@ -121,7 +121,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			}
 		}
 
-		private void EvaluateDetectionResult(HwiEnumerateEntry[] devices, HardwareWalletOperations hwo)
+		private void EvaluateDetectionResult(HwiEnumerateEntry[] devices)
 		{
 			if (devices.Length == 0)
 			{
@@ -154,7 +154,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				else
 				{
 					Message = "Check your device and finish the initialization.";
-					AbandonedTasks.AddAndClearCompleted(hwo.InitHardwareWalletAsync(device));
+					AbandonedTasks.AddAndClearCompleted(HardwareWalletOperations.InitHardwareWalletAsync(device, WalletManager.Network, CancelCts.Token));
 				}
 
 				return;
@@ -185,14 +185,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			base.OnNavigatedTo(inStack, disposable);
 
-			HardwareWalletOperations ??= new HardwareWalletOperations(WalletManager.Network);
-
-			StartDetection(HardwareWalletOperations);
+			StartDetection();
 
 			Disposable.Create(async () =>
 			{
-				HardwareWalletOperations.Dispose();
-				HardwareWalletOperations = null;
+				CancelCts.Cancel();
+				CancelCts.Dispose();
 				await AbandonedTasks.WhenAllAsync();
 			})
 			.DisposeWith(disposable);

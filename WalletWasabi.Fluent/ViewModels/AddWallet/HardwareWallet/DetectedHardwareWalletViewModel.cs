@@ -1,5 +1,6 @@
 using System;
 using System.Reactive.Disposables;
+using System.Threading;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Extensions;
@@ -17,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			Title = "Hardware Wallet";
 			WalletManager = walletManager;
 			WalletName = walletName;
-			HardwareWalletOperations = new HardwareWalletOperations(walletManager.Network);
+			CancelCts = new CancellationTokenSource();
 
 			Type = device.Model switch
 			{
@@ -34,7 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				try
 				{
 					var walletFilePath = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
-					var km = await HardwareWalletOperations.GenerateWalletAsync(device, walletFilePath);
+					var km = await HardwareWalletOperations.GenerateWalletAsync(device, walletFilePath, WalletManager.Network, CancelCts.Token);
 					km.SetIcon(Type);
 
 					Navigate().To(new AddedWalletPageViewModel(walletManager, km));
@@ -52,7 +53,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			EnableAutoBusyOn(NextCommand);
 		}
 
+		public CancellationTokenSource CancelCts { get; }
+
 		public WalletManager WalletManager { get; }
+
 		public string WalletName { get; }
 
 		public WalletType Type { get; }
@@ -61,13 +65,15 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public ICommand NoCommand { get; }
 
-		private HardwareWalletOperations HardwareWalletOperations { get; }
-
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{
 			base.OnNavigatedTo(inStack, disposable);
 
-			Disposable.Create(() => HardwareWalletOperations.Dispose()).DisposeWith(disposable);
+			Disposable.Create(() =>
+			{
+				CancelCts.Cancel();
+				CancelCts.Dispose();
+			});
 		}
 	}
 }

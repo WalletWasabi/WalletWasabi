@@ -10,30 +10,22 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
-	public class HardwareWalletOperations : IDisposable
+	public static class HardwareWalletOperations
 	{
-		public HardwareWalletOperations(Network network)
-		{
-			Client = new HwiClient(network);
-			DisposeCts = new CancellationTokenSource();
-		}
-
-		public HwiClient Client { get; }
-
-		private CancellationTokenSource DisposeCts { get; }
-
-		public async Task<KeyManager> GenerateWalletAsync(HwiEnumerateEntry device, string walletFilePath)
+		public static async Task<KeyManager> GenerateWalletAsync(HwiEnumerateEntry device, string walletFilePath, Network network, CancellationToken cancelToken)
 		{
 			if (device.Fingerprint is null)
 			{
 				throw new Exception("Fingerprint cannot be null.");
 			}
 
+			var client = new HwiClient(network);
 			var fingerPrint = (HDFingerprint)device.Fingerprint;
-			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-			using var genCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, DisposeCts.Token);
 
-			var extPubKey = await Client.GetXpubAsync(
+			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+			using var genCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancelToken);
+
+			var extPubKey = await client.GetXpubAsync(
 				device.Model,
 				device.Path,
 				KeyManager.DefaultAccountKeyPath,
@@ -42,17 +34,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, extPubKey, walletFilePath);
 		}
 
-		public async Task InitHardwareWalletAsync(HwiEnumerateEntry device)
+		public static async Task InitHardwareWalletAsync(HwiEnumerateEntry device, Network network, CancellationToken cancelToken)
 		{
+			var client = new HwiClient(network);
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(21));
-			using var initCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, DisposeCts.Token);
+			using var initCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancelToken);
 
 			// Trezor T doesn't require interactive mode.
 			var interactiveMode = !(device.Model == HardwareWalletModels.Trezor_T || device.Model == HardwareWalletModels.Trezor_T_Simulator);
 
 			try
 			{
-				await Client.SetupAsync(device.Model, device.Path, interactiveMode, initCts.Token);
+				await client.SetupAsync(device.Model, device.Path, interactiveMode, initCts.Token).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -60,22 +53,17 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			}
 		}
 
-		public async Task<HwiEnumerateEntry[]> DetectAsync()
+		public static async Task<HwiEnumerateEntry[]> DetectAsync(Network network, CancellationToken cancelToken)
 		{
+			var client = new HwiClient(network);
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-			using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, DisposeCts.Token);
+			using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancelToken);
 
-			var detectedHardwareWallets = (await Client.EnumerateAsync(timeoutCts.Token).ConfigureAwait(false)).ToArray();
+			var detectedHardwareWallets = (await client.EnumerateAsync(timeoutCts.Token).ConfigureAwait(false)).ToArray();
 
-			DisposeCts.Token.ThrowIfCancellationRequested();
+			cancelToken.ThrowIfCancellationRequested();
 
 			return detectedHardwareWallets;
-		}
-
-		public void Dispose()
-		{
-			DisposeCts.Cancel();
-			DisposeCts.Dispose();
 		}
 	}
 }
