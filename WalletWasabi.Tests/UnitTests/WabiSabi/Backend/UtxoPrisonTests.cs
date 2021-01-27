@@ -22,7 +22,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		}
 
 		[Fact]
-		public void PrisonChangeTracking()
+		public async Task PrisonChangeTrackingAsync()
 		{
 			var p = new Prison(Enumerable.Empty<Inmate>());
 			var currentChangeId = p.ChangeId;
@@ -47,6 +47,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.True(p.TryRelease(op, out _));
 			Assert.NotEqual(currentChangeId, p.ChangeId);
 			currentChangeId = p.ChangeId;
+
+			await Task.Delay(50);
 
 			p.ReleaseEligibleInmates(TimeSpan.FromMilliseconds(1));
 			Assert.NotEqual(currentChangeId, p.ChangeId);
