@@ -567,6 +567,19 @@ namespace WalletWasabi.Fluent.Controls
         {
             return range - value / max * range;
         }
+        
+        private static FormattedText CreateFormattedText(string text, Typeface typeface, TextAlignment alignment, double fontSize, Size constraint)
+        {
+	        return new FormattedText()
+	        {
+		        Typeface = typeface,
+		        Text = text,
+		        TextAlignment = alignment,
+		        TextWrapping = TextWrapping.Wrap,
+		        FontSize = fontSize,
+		        Constraint = constraint
+	        };
+        }
 
         public override void Render(DrawingContext context)
         {
@@ -732,15 +745,7 @@ namespace WalletWasabi.Fluent.Controls
 
             var origin = new Point(margin.Left, margin.Top + offset);
             var constraint = new Size(200, 50);
-            var formattedText = new FormattedText()
-            {
-                Typeface = typeface,
-                Text = title,
-                TextAlignment = alignment,
-                TextWrapping = TextWrapping.Wrap,
-                FontSize = fontSize,
-                Constraint = constraint
-            };
+            var formattedText = CreateFormattedText(title, typeface, alignment, fontSize, constraint);
             var xPosition = origin.X;
             var yPosition = origin.Y;
             var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
@@ -778,15 +783,7 @@ namespace WalletWasabi.Fluent.Controls
             {
                 var origin = new Point(i * step - step / 2 + margin.Left, height + margin.Top + offset);
                 var constraint = new Size(step, constrainHeight);
-                var formattedText = new FormattedText()
-                {
-                    Typeface = typeface,
-                    Text = labels[i],
-                    TextAlignment = alignment,
-                    TextWrapping = TextWrapping.Wrap,
-                    FontSize = fontSize,
-                    Constraint = constraint
-                };
+                var formattedText = CreateFormattedText(labels[i], typeface, alignment, fontSize, constraint);
                 var xPosition = origin.X + constraint.Width / 2;
                 var yPosition = origin.Y + constraint.Height / 2;
                 var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
