@@ -7,7 +7,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:ReceiveWalletActionViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Actions.ReceiveWalletActionView">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
   <c:ContentArea Title="Receive" Caption=""
                  EnableCancel="True"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
