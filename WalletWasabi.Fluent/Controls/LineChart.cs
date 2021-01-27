@@ -895,6 +895,5 @@ namespace WalletWasabi.Fluent.Controls
 	        public double Step { get; set; }
 	        public double CursorPosition { get; set; }
         }
-
     }
 }
