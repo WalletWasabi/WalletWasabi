@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define DEBUG_LABELS
+//#define DEBUG_AXIS_TITLE
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
@@ -603,7 +605,7 @@ namespace WalletWasabi.Fluent.Controls
 		        Typeface = typeface,
 		        Text = text,
 		        TextAlignment = alignment,
-		        TextWrapping = TextWrapping.Wrap,
+		        TextWrapping = TextWrapping.NoWrap,
 		        FontSize = fontSize,
 		        Constraint = constraint
 	        };
@@ -813,11 +815,11 @@ namespace WalletWasabi.Fluent.Controls
                          * Matrix.CreateTranslation(xPosition, yPosition);
             var transform = context.PushPreTransform(matrix);
             context.DrawText(foreground, origin, formattedText);
-#if false
+#if DEBUG_AXIS_TITLE
             context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Magenta)), new Rect(origin, constraint));
 #endif
             transform.Dispose();
-#if false
+#if DEBUG_AXIS_TITLE
             context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Cyan)), new Rect(origin, constraint));
 #endif
         }
@@ -857,11 +859,11 @@ namespace WalletWasabi.Fluent.Controls
                              * Matrix.CreateTranslation(xPosition, yPosition);
                 var transform = context.PushPreTransform(matrix);
                 context.DrawText(foreground, origin, formattedText);
-#if false
+#if DEBUG_LABELS
                 context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Magenta)), new Rect(origin, constraint));
 #endif
                 transform.Dispose();
-#if false
+#if DEBUG_LABELS
                 context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Cyan)), new Rect(origin, constraint));
 #endif
             }
