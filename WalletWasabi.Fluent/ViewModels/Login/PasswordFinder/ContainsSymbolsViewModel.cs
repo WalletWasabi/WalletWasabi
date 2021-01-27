@@ -6,12 +6,12 @@ using WalletWasabi.Wallets.PasswordFinder;
 
 namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 {
-	public class ContainsSymbolsViewModel : RoutableViewModel
+	[NavigationMetaData(Title = "Password Finder")]
+	public partial class ContainsSymbolsViewModel : RoutableViewModel
 	{
 		public ContainsSymbolsViewModel(PasswordFinderOptions options)
 		{
 			Options = options;
-			Title = "Password Finder";
 
 			YesCommand = ReactiveCommand.Create(() => SetAnswer(true));
 			NoCommand = ReactiveCommand.Create(() => SetAnswer(false));

@@ -7,14 +7,13 @@ using WalletWasabi.Legal;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
+	[NavigationMetaData(Title = "Welcome to Wasabi Wallet")]
 	public partial class TermsAndConditionsViewModel : RoutableViewModel
 	{
 		[AutoNotify] private bool _isAgreed;
 
 		public TermsAndConditionsViewModel(LegalDocuments legalDocuments, RoutableViewModel next)
 		{
-			Title = "Welcome to Wasabi Wallet";
-
 			ViewTermsCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{

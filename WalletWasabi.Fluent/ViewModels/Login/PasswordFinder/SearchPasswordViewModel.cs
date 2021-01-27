@@ -8,6 +8,7 @@ using WalletWasabi.Wallets.PasswordFinder;
 
 namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 {
+	[NavigationMetaData(Title = "Password Finder")]
 	public partial class SearchPasswordViewModel : RoutableViewModel
 	{
 		[AutoNotify] private int _percentage;
@@ -21,7 +22,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 
 		public SearchPasswordViewModel(PasswordFinderOptions options)
 		{
-			Title = "Password Finder";
 			Options = options;
 			_hourText = "";
 			_minText = "";

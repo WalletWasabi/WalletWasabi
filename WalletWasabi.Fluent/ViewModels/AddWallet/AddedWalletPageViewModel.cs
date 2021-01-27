@@ -9,12 +9,12 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
-	public class AddedWalletPageViewModel : RoutableViewModel
+	[NavigationMetaData(Title = "Success")]
+	public partial class AddedWalletPageViewModel : RoutableViewModel
 	{
 		public AddedWalletPageViewModel(WalletManager walletManager, KeyManager keyManager)
 		{
 			KeyManager = keyManager;
-			Title = "Success";
 			WalletName = keyManager.WalletName;
 
 			NextCommand = ReactiveCommand.Create(

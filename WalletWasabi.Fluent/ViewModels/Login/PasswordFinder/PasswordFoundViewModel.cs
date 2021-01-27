@@ -2,6 +2,7 @@
 
 namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 {
+	[NavigationMetaData(Title = "Password Finder")]
 	public partial class PasswordFoundViewModel : RoutableViewModel
 	{
 		[AutoNotify] private string _password;
@@ -9,7 +10,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 
 		public PasswordFoundViewModel(string password)
 		{
-			Title = "Password Finder";
 			_password = password;
 
 			NextCommand = CancelCommand;

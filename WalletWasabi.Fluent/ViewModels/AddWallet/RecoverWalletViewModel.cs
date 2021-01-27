@@ -19,6 +19,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
+	[NavigationMetaData (Title = "Enter recovery words")]
 	public partial class RecoverWalletViewModel : RoutableViewModel
 	{
 		[AutoNotify] private string? _selectedTag;
@@ -30,7 +31,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			Network network,
 			WalletManager walletManager)
 		{
-			Title = "Enter recovery words";
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
 			Mnemonics.ToObservableChangeSet().ToCollection()

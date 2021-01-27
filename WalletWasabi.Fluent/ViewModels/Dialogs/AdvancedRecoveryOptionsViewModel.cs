@@ -7,6 +7,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
+	[NavigationMetaData(Title = "Advanced Recovery Options")]
 	public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<(KeyPath? accountKeyPath, int? minGapLimit)>
 	{
 		[AutoNotify] private string _accountKeyPath;
@@ -14,8 +15,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		public AdvancedRecoveryOptionsViewModel((KeyPath keyPath, int minGapLimit) interactionInput)
 		{
-			Title = "Advanced Recovery Options";
-
 			this.ValidateProperty(x => x.AccountKeyPath, ValidateAccountKeyPath);
 			this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
 

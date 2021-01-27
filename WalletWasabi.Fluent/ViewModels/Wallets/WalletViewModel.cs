@@ -19,6 +19,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class WalletViewModel : WalletViewModelBase
 	{
+		private string _title;
+
 		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
@@ -50,6 +52,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		}
 
 		private CompositeDisposable Disposables { get; set; }
+
+		public override string Title
+		{
+			get => _title;
+			protected set => this.RaiseAndSetIfChanged(ref _title, value);
+		}
 
 		public override string IconName => "web_asset_regular";
 

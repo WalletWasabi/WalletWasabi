@@ -9,11 +9,11 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
-	public class DetectedHardwareWalletViewModel : RoutableViewModel
+	[NavigationMetaData(Title = "Hardware Wallet")]
+	public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 	{
 		public DetectedHardwareWalletViewModel(HardwareWalletOperations hardwareWalletOperations, string walletName)
 		{
-			Title = "Hardware Wallet";
 			WalletName = walletName;
 
 			Type = hardwareWalletOperations.SelectedDevice!.Model switch

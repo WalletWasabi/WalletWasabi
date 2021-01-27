@@ -2,13 +2,14 @@
 using System.Reactive.Concurrency;
 using ReactiveUI;
 using WalletWasabi.Fluent.Model;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public abstract class SettingsTabViewModelBase : ViewModelBase
+	public abstract class SettingsTabViewModelBase : RoutableViewModel
 	{
 		protected const int ThrottleTime = 500;
 		public static event EventHandler<RestartNeededEventArgs>? RestartNeeded;

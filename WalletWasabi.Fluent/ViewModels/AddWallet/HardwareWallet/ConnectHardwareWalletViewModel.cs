@@ -12,6 +12,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
+	[NavigationMetaData(Title = "Hardware Wallet")]
 	public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 	{
 		[AutoNotify] private string _message;
@@ -19,7 +20,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public ConnectHardwareWalletViewModel(string walletName, Network network, WalletManager walletManager)
 		{
-			Title = "Hardware Wallet";
 			_message = "";
 			IsBusy = true;
 			WalletName = walletName;
