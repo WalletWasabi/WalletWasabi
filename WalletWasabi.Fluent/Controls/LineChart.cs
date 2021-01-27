@@ -907,7 +907,8 @@ namespace WalletWasabi.Fluent.Controls
                              * Matrix.CreateRotation(angleRadians)
                              * Matrix.CreateTranslation(xPosition, yPosition);
                 var transform = context.PushPreTransform(matrix);
-                context.DrawText(foreground, origin, formattedText);
+                var offsetCenter = new Point(0, labelHeight / 2 - formattedText.Bounds.Height / 2);
+                context.DrawText(foreground, origin + offsetCenter, formattedText);
 #if DEBUG_LABELS
                 context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Magenta)), new Rect(origin, constraint));
 #endif
