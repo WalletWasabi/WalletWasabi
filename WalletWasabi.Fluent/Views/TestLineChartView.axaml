@@ -32,9 +32,9 @@
         <Style Selector="c|LineChart.labels">
             <Setter Property="LabelForeground" Value="{DynamicResource TextForegroundColor}" />
             <Setter Property="LabelAngle" Value="-45" />
-            <Setter Property="LabelOffset" Value="15" />
-            <Setter Property="LabelHeight" Value="45" />
-            <Setter Property="LabelAlignment" Value="Left" />
+            <Setter Property="LabelOffset" Value="20" />
+            <Setter Property="LabelHeight" Value="20" />
+            <Setter Property="LabelAlignment" Value="Right" />
             <Setter Property="LabelFontFamily" Value="Arial" />
             <Setter Property="LabelFontStyle" Value="Normal" />
             <Setter Property="LabelFontWeight" Value="Normal" />
@@ -103,7 +103,7 @@
                              MinValue="2"
                              MaxValue="1008"
                              LogarithmicScale="False"
-                             ValuesMargin="60,30,30,60"
+                             ValuesMargin="60,30,30,50"
                              Fill="#C6DAFC"
                              Stroke="#4285F4"
                              StrokeThickness="2"
