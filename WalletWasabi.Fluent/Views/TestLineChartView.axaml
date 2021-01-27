@@ -77,9 +77,9 @@
             <Setter Property="BorderRadiusY" Value="4" />
         </Style>
     </UserControl.Styles>
-    <TabControl>
+    <TabControl Background="{x:Null}">
         <TabItem Header="Solid">
-            <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+            <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                 <DockPanel DockPanel.Dock="Bottom">
                     <Label Content="_Fee:" Width="60" FontWeight="Normal" VerticalAlignment="Center" DockPanel.Dock="Left"/>
                     <Slider x:Name="CursorValue1"
@@ -90,8 +90,6 @@
                             Margin="0,0,30,0"/>
                 </DockPanel>
                 <c:LineChart Classes="labels cursor border yAxis yAxisTitle"
-                             Width="785"
-                             Height="428"
                              Values="{Binding Values}"
                              Labels="{Binding Labels}"
                              MinValue="2"
@@ -107,7 +105,7 @@
             </DockPanel>
         </TabItem>
         <TabItem Header="LinearGradient">
-            <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+            <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                 <DockPanel DockPanel.Dock="Bottom">
                     <Label Content="_Fee:" Width="60" FontWeight="Normal" VerticalAlignment="Center" DockPanel.Dock="Left"/>
                     <Slider x:Name="CursorValue2"
@@ -118,8 +116,6 @@
                             Margin="0,0,30,0"/>
                 </DockPanel>
                 <c:LineChart Classes="labels cursor border yAxis yAxisTitle"
-                             Width="785"
-                             Height="428"
                              Values="{Binding Values}"
                              Labels="{Binding Labels}"
                              MinValue="2"
