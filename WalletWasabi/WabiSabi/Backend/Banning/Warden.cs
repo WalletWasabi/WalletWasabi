@@ -26,7 +26,7 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 		public Prison Prison { get; }
 		public Guid LastKnownChange { get; private set; }
 
-		private string PrisonFilePath { get; }
+		public string PrisonFilePath { get; }
 		public WabiSabiConfig Config { get; }
 
 		private static Prison DeserializePrison(string prisonFilePath)
