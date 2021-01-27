@@ -446,7 +446,6 @@ namespace WalletWasabi.Fluent.Controls
             set => SetValue(XAxisTitleFontSizeProperty, value);
         }
 
-
         #endregion
 
         #region YAxisTitle
