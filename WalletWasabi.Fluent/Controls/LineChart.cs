@@ -1,5 +1,5 @@
-﻿//#define DEBUG_LABELS
-//#define DEBUG_AXIS_TITLE
+﻿// #define DEBUG_LABELS
+// #define DEBUG_AXIS_TITLE
 using System;
 using System.Collections.Generic;
 using System.Linq;
