@@ -303,5 +303,13 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			var hex = ByteHelpers.ToHex(ge.ToBytes());
 			Assert.Equal(expectedHex, hex);
 		}
+
+		[Fact]
+		public void ToHex()
+		{
+			Assert.Throws<NullReferenceException>(() => ByteHelpers.ToHex(null!));
+			Assert.Equal("", ByteHelpers.ToHex(Array.Empty<byte>()));
+			Assert.Equal("0102", ByteHelpers.ToHex(0x01, 0x02));
+		}
 	}
 }

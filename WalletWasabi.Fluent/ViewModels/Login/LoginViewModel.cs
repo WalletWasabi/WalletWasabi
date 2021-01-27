@@ -50,6 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 				if (!IsPasswordIncorrect)
 				{
 					wallet.Login();
+					walletViewModelBase.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
 
 					// TODO: navigate to the wallet welcome page
 					Navigate().To(walletViewModelBase, NavigationMode.Clear);
