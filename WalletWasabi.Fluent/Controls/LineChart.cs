@@ -595,50 +595,23 @@ namespace WalletWasabi.Fluent.Controls
             var cursorValue = CursorValue;
             var cursorPosition = ScaleHorizontal(maxValue - cursorValue, maxValue, valuesWidth);
 
-            if (Fill is not null)
-            {
-                DrawFill(context, points, valuesWidth, valuesHeight, valuesMargin);
-            }
-
-            if (Stroke is not null)
-            {
-                DrawStroke(context, points, valuesMargin);
-            }
-
-            if (CursorStroke is not null)
-            {
-                DrawCursor(context, cursorPosition, valuesHeight, valuesMargin);
-            }
-
-            if (XAxisStroke is not null)
-            {
-                DrawXAxis(context, valuesWidth, valuesHeight, valuesMargin);
-            }
-
-            if (YAxisStroke is not null)
-            {
-                DrawYAxis(context, valuesWidth, valuesHeight, valuesMargin);
-            }
-
-            if (YAxisTitleForeground is not null)
-            {
-                DrawYAxisTitle(context, YAxisTitle, valuesWidth, valuesHeight, valuesMargin);
-            }
-
-            if (LabelForeground is not null)
-            {
-                DrawLabels(context, labels, step, valuesHeight, valuesMargin);
-            }
-
-            if (BorderBrush is not null)
-            {
-                DrawBorder(context, 0, 0, width, height);
-            }
+            DrawFill(context, points, valuesWidth, valuesHeight, valuesMargin);
+            DrawStroke(context, points, valuesMargin);
+            DrawCursor(context, cursorPosition, valuesHeight, valuesMargin);
+            DrawXAxis(context, valuesWidth, valuesHeight, valuesMargin);
+            DrawYAxis(context, valuesWidth, valuesHeight, valuesMargin);
+            DrawYAxisTitle(context, YAxisTitle, valuesWidth, valuesHeight, valuesMargin);
+            DrawLabels(context, labels, step, valuesHeight, valuesMargin);
+            DrawBorder(context, 0, 0, width, height);
         }
 
         private void DrawFill(DrawingContext context, Point[] points, double width, double height, Thickness margin)
         {
             var fill = Fill;
+            if (fill is null)
+            {
+	            return;
+            }
             var deflate = 0.5;
             var geometry = new StreamGeometry();
             using var geometryContext = geometry.Open();
@@ -658,6 +631,10 @@ namespace WalletWasabi.Fluent.Controls
         private void DrawStroke(DrawingContext context, Point[] points, Thickness margin)
         {
             var stroke = Stroke;
+            if (stroke is null)
+            {
+	            return;
+            }
             var strokeThickness = StrokeThickness;
             var deflate = strokeThickness * 0.5;
             var geometry = new StreamGeometry();
@@ -677,6 +654,10 @@ namespace WalletWasabi.Fluent.Controls
         private void DrawCursor(DrawingContext context, double position, double height, Thickness margin)
         {
             var brush = CursorStroke;
+            if (brush is null)
+            {
+	            return;
+            }
             var thickness = CursorThickness;
             var pen = new Pen(brush, thickness);
             var deflate = thickness * 0.5;
@@ -689,8 +670,12 @@ namespace WalletWasabi.Fluent.Controls
 
         private void DrawXAxis(DrawingContext context, double width, double height, Thickness margin)
         {
-            var size = XAxisArrowSize;
             var brush = XAxisStroke;
+            if (brush is null)
+            {
+	            return;
+            }
+            var size = XAxisArrowSize;
             var thickness = XAxisStrokeThickness;
             var pen = new Pen(brush, thickness);
             var deflate = thickness * 0.5;
@@ -707,8 +692,12 @@ namespace WalletWasabi.Fluent.Controls
 
         private void DrawYAxis(DrawingContext context, double width, double height, Thickness margin)
         {
+	        var brush = YAxisStroke;
+	        if (brush is null)
+	        {
+		        return;
+	        }
             var size = YAxisArrowSize;
-            var brush = YAxisStroke;
             var thickness = YAxisStrokeThickness;
             var pen = new Pen(brush, thickness);
             var deflate = thickness * 0.5;
@@ -725,6 +714,11 @@ namespace WalletWasabi.Fluent.Controls
 
         private void DrawYAxisTitle(DrawingContext context, string title, double width, double height, Thickness margin)
         {
+	        var foreground = YAxisTitleForeground;
+	        if (foreground is null)
+	        {
+		        return;
+	        }
             var fontFamily = YAxisTitleFontFamily;
             var fontStyle = YAxisTitleFontStyle;
             var fontWeight = YAxisTitleFontWeight;
@@ -732,7 +726,6 @@ namespace WalletWasabi.Fluent.Controls
             var fontSize = YAxisTitleFontSize;
             var offset = YAxisTitleOffset;
             var constrainHeight = YAxisTitleHeight;
-            var foreground = YAxisTitleForeground;
             var angleRadians = Math.PI / 180.0 * YAxisTitleAngle;
             var alignment = YAxisTitleAlignment;
 
@@ -765,6 +758,11 @@ namespace WalletWasabi.Fluent.Controls
 
         private void DrawLabels(DrawingContext context, List<string> labels, double step, double height, Thickness margin)
         {
+	        var foreground = LabelForeground;
+	        if (foreground is null)
+	        {
+		        return;
+	        }
             var fontFamily = LabelFontFamily;
             var fontStyle = LabelFontStyle;
             var fontWeight = LabelFontWeight;
@@ -772,7 +770,6 @@ namespace WalletWasabi.Fluent.Controls
             var fontSize = LabelFontSize;
             var offset = LabelOffset;
             var constrainHeight = LabelHeight;
-            var foreground = LabelForeground;
             var angleRadians = Math.PI / 180.0 * LabelAngle;
             var alignment = LabelAlignment;
 
@@ -809,6 +806,10 @@ namespace WalletWasabi.Fluent.Controls
         private void DrawBorder(DrawingContext context, double x, double y, double width, double height)
         {
             var brush = BorderBrush;
+            if (brush is null)
+            {
+	            return;
+            }
             var thickness = BorderThickness;
             var radiusX = BorderRadiusX;
             var radiusY = BorderRadiusY;
