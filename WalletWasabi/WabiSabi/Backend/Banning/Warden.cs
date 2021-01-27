@@ -84,6 +84,7 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 			if (LastKnownChange != Prison.ChangeId)
 			{
 				await SerializePrisonAsync().ConfigureAwait(false);
+				LastKnownChange = Prison.ChangeId;
 			}
 		}
 	}
