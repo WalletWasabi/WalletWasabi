@@ -897,7 +897,7 @@ namespace WalletWasabi.Fluent.Controls
             var offsetTransform = context.PushPreTransform(Matrix.CreateTranslation(offset.X, offset.Y));
             for (var i = 0; i < state.Labels.Count; i++)
             {
-	            var origin = new Point(i * state.Step - state.Step / 2 + state.AreaMargin.Left, originTop);
+	            var origin = new Point(i * state.Step - size.Width / 2 + state.AreaMargin.Left, originTop);
                 var constraint = new Size(size.Width, size.Height);
                 var formattedText = CreateFormattedText(state.Labels[i], typeface, alignment, fontSize, constraint);
                 var xPosition = origin.X + size.Width / 2;
