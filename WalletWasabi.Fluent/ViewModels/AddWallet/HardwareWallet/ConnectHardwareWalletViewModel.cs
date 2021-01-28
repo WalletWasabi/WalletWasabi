@@ -76,7 +76,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		private void StartDetection()
 		{
-			if (CancelCts is null)
+			var cancelCts = CancelCts;
+			if (cancelCts is null)
 			{
 				return;
 			}
@@ -89,7 +90,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			}
 
 			ExistingWalletFound = false;
-			AbandonedTasks.AddAndClearCompleted(DetectionAsync(CancelCts.Token));
+			AbandonedTasks.AddAndClearCompleted(DetectionAsync(cancelCts.Token));
 		}
 
 		private async Task DetectionAsync(CancellationToken cancel)
