@@ -45,8 +45,6 @@ namespace WalletWasabi.Helpers
 		public const int DefaultTestNetBitcoinCoreRpcPort = 18332;
 		public const int DefaultRegTestBitcoinCoreRpcPort = 18443;
 
-		public const double TransactionRBFSignalRate = 0.02; // 2% RBF transactions
-
 		public const decimal DefaultDustThreshold = 0.00005m;
 
 		public const string AlphaNumericCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
