@@ -68,9 +68,9 @@ namespace WalletWasabi.Tor.Http
 
 		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable.
 
-		private Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request, bool isolateStream, CancellationToken cancellationToken = default)
+		private Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
 		{
-			return new ClearnetHttpClient(BaseUriGetter).SendAsync(request, isolateStream, cancellationToken);
+			return new ClearnetHttpClient(BaseUriGetter).SendAsync(request, cancellationToken);
 		}
 
 		/// <exception cref="HttpRequestException">When HTTP request fails to be processed. Inner exception may be an instance of <see cref="TorException"/>.</exception>
@@ -90,7 +90,7 @@ namespace WalletWasabi.Tor.Http
 			// Use clearnet HTTP client when Tor is disabled.
 			if (TorSocks5EndPoint is null)
 			{
-				return await ClearnetRequestAsync(request, DefaultIsolateStream, cancel).ConfigureAwait(false);
+				return await ClearnetRequestAsync(request, cancel).ConfigureAwait(false);
 			}
 			else
 			{
@@ -191,7 +191,7 @@ namespace WalletWasabi.Tor.Http
 			// Use clearnet HTTP client when Tor is disabled.
 			if (TorSocks5EndPoint is null)
 			{
-				return await ClearnetRequestAsync(request, isolateStream, token).ConfigureAwait(false);
+				return await ClearnetRequestAsync(request, token).ConfigureAwait(false);
 			}
 			else
 			{
