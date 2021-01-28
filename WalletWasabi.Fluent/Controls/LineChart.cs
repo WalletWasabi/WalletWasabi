@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent.Controls
     {
         #region Avalonia Properties
 
-        #region Values
+        #region Area
 
         public static readonly StyledProperty<List<double>?> ValuesProperty =
             AvaloniaProperty.Register<LineChart, List<double>?>(nameof(Values));
@@ -38,8 +38,8 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<double> StrokeThicknessProperty =
             AvaloniaProperty.Register<LineChart, double>(nameof(StrokeThickness));
 
-        public static readonly StyledProperty<Thickness> ValuesMarginProperty =
-            AvaloniaProperty.Register<LineChart, Thickness>(nameof(ValuesMargin));
+        public static readonly StyledProperty<Thickness> AreaMarginProperty =
+            AvaloniaProperty.Register<LineChart, Thickness>(nameof(AreaMargin));
 
         #endregion
 
@@ -246,7 +246,7 @@ namespace WalletWasabi.Fluent.Controls
 
         #region Clr Properties
 
-        #region Values
+        #region Area
 
         public List<double>? Values
         {
@@ -290,10 +290,10 @@ namespace WalletWasabi.Fluent.Controls
             set => SetValue(StrokeThicknessProperty, value);
         }
 
-        public Thickness ValuesMargin
+        public Thickness AreaMargin
         {
-            get => GetValue(ValuesMarginProperty);
-            set => SetValue(ValuesMarginProperty, value);
+            get => GetValue(AreaMarginProperty);
+            set => SetValue(AreaMarginProperty, value);
         }
 
         #endregion
@@ -651,8 +651,8 @@ namespace WalletWasabi.Fluent.Controls
         private void UpdateCursorPosition(double x)
         {
 	        var rangeValues = MaxValue - MinValue;
-	        var rangeArea = Bounds.Width - ValuesMargin.Left - ValuesMargin.Right;
-	        var value = Clamp(x - ValuesMargin.Left, 0, rangeArea);
+	        var rangeArea = Bounds.Width - AreaMargin.Left - AreaMargin.Right;
+	        var value = Clamp(x - AreaMargin.Left, 0, rangeArea);
 	        CursorValue = MaxValue - rangeValues / rangeArea * value;
         }
 
@@ -689,7 +689,7 @@ namespace WalletWasabi.Fluent.Controls
 	        state.Width = width;
 	        state.Height = height;
 
-	        state.AreaMargin = ValuesMargin;
+	        state.AreaMargin = AreaMargin;
 	        state.AreaWidth = width - state.AreaMargin.Left - state.AreaMargin.Right;
 	        state.AreaHeight = height - state.AreaMargin.Top - state.AreaMargin.Bottom;
 

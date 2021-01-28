@@ -96,7 +96,7 @@
                              MinValue="2"
                              MaxValue="1008"
                              LogarithmicScale="False"
-                             ValuesMargin="60,40,30,30"
+                             AreaMargin="60,40,30,30"
                              StrokeThickness="2"
                              YAxisTitle="More Expensive">
                     <c:LineChart.Fill>
@@ -135,7 +135,7 @@
                              MinValue="2"
                              MaxValue="1008"
                              LogarithmicScale="False"
-                             ValuesMargin="60,40,30,30"
+                             AreaMargin="60,40,30,30"
                              Fill="#2872BD81"
                              Stroke="#FF72BD81"
                              StrokeThickness="2"
