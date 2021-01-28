@@ -61,11 +61,11 @@ bar
 
 			var configDic = coreConfig.ToDictionary();
 
-			Assert.True(configDic.TryGetValue("foo", out string v1));
-			Assert.True(configDic.TryGetValue("too", out string v2));
+			Assert.True(configDic.TryGetValue("foo", out var v1));
+			Assert.True(configDic.TryGetValue("too", out var v2));
 			Assert.False(configDic.TryGetValue("qoo", out _));
 			Assert.False(configDic.TryGetValue("bar", out _));
-			Assert.True(configDic.TryGetValue("foo bar", out string v3));
+			Assert.True(configDic.TryGetValue("foo bar", out var v3));
 
 			Assert.Equal("bar", v1);
 			Assert.Equal("1", v2);
@@ -76,11 +76,11 @@ bar
 
 			var configDic2 = coreConfig2.ToDictionary();
 
-			Assert.True(configDic2.TryGetValue("foo", out string v1_2));
-			Assert.True(configDic2.TryGetValue("too", out string v2_2));
+			Assert.True(configDic2.TryGetValue("foo", out var v1_2));
+			Assert.True(configDic2.TryGetValue("too", out var v2_2));
 			Assert.False(configDic2.TryGetValue("qoo", out _));
 			Assert.False(configDic2.TryGetValue("bar", out _));
-			Assert.True(configDic2.TryGetValue("foo bar", out string v3_3));
+			Assert.True(configDic2.TryGetValue("foo bar", out var v3_3));
 
 			Assert.Equal("bar", v1_2);
 			Assert.Equal("1", v2_2);
@@ -100,9 +100,9 @@ bar
 			configDic = coreConfig.ToDictionary();
 			configDic2 = coreConfig2.ToDictionary();
 
-			Assert.True(configDic.TryGetValue("moo", out string mooValue));
-			Assert.True(configDic.TryGetValue("foo", out string fooValue));
-			Assert.True(configDic.TryGetValue("too", out string tooValue));
+			Assert.True(configDic.TryGetValue("moo", out var mooValue));
+			Assert.True(configDic.TryGetValue("foo", out var fooValue));
+			Assert.True(configDic.TryGetValue("too", out var tooValue));
 			Assert.Equal("1", mooValue);
 			Assert.Equal("bar", fooValue);
 			Assert.Equal("0", tooValue);
