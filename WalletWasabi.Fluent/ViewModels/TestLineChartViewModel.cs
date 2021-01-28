@@ -4,7 +4,6 @@ namespace WalletWasabi.Fluent.ViewModels
 {
     public class TestLineChartViewModel
     {
-
 	    public double XAxisCurrentValue { get; set; } = 36;
 
 	    public double XAxisMinValue { get; set; } = 2;
