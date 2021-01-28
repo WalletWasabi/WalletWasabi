@@ -32,7 +32,7 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 			}
 		}
 
-		public void Punish(OutPoint utxo, Punishment punishment, ulong lastDisruptedRoundId)
+		public void Punish(OutPoint utxo, Punishment punishment, Guid lastDisruptedRoundId)
 			=> Punish(new Inmate(utxo, punishment, DateTimeOffset.UtcNow, lastDisruptedRoundId));
 
 		public void Punish(Inmate inmate)
