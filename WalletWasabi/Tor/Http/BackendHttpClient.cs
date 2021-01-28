@@ -25,7 +25,7 @@ namespace WalletWasabi.Tor.Http
 		/// Sends an HTTP request to Wasabi Backend.
 		/// </summary>
 		/// <param name="method">HTTP method</param>
-		/// <param name="apiQuery">API query part to append to <see cref="IHttpClient.DestinationUriAction"/>.</param>
+		/// <param name="apiQuery">API query part to append to <see cref="IHttpClient.BaseUriGetter"/>.</param>
 		/// <param name="content">HTTP request content. Only for <see cref="HttpMethod.Post"/> method.</param>
 		/// <param name="token">Cancellation token to cancel the asynchronous operation.</param>
 		public Task<HttpResponseMessage> SendAsync(HttpMethod method, string apiQuery, HttpContent? content = null, CancellationToken token = default)

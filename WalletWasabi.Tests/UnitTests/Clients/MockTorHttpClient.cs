@@ -10,7 +10,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 {
 	public class MockTorHttpClient : IHttpClient
 	{
-		public Func<Uri> DestinationUriAction => () => new Uri("https://payment.server.org/pj");
+		public Func<Uri> BaseUriGetter => () => new Uri("https://payment.server.org/pj");
 
 		public bool DefaultIsolateStream => false;
 

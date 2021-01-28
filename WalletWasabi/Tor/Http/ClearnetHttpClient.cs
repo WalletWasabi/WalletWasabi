@@ -27,10 +27,10 @@ namespace WalletWasabi.Tor.Http
 
 		public ClearnetHttpClient(Func<Uri> destinationUriAction)
 		{
-			DestinationUriAction = destinationUriAction;
+			BaseUriGetter = destinationUriAction;
 		}
 
-		public Func<Uri> DestinationUriAction { get; }
+		public Func<Uri> BaseUriGetter { get; }
 
 		/// <summary>Predefined HTTP client that handles HTTP requests when Tor is disabled.</summary>
 		private static HttpClient HttpClient { get; }

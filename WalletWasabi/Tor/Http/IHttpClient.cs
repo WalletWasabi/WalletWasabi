@@ -8,10 +8,10 @@ namespace WalletWasabi.Tor.Http
 	/// <summary>
 	/// Interface defining HTTP client capable of sending either absolute or relative HTTP requests.
 	/// </summary>
-	/// <remarks>Relative HTTP requests are allowed only when <see cref="DestinationUriAction"/> returns non-<see langword="null"/> value.</remarks>
+	/// <remarks>Relative HTTP requests are allowed only when <see cref="BaseUriGetter"/> returns non-<see langword="null"/> value.</remarks>
 	public interface IHttpClient
 	{
-		Func<Uri?> DestinationUriAction { get; }
+		Func<Uri?> BaseUriGetter { get; }
 
 		/// <summary>
 		/// Whether each HTTP(s) request should use a separate Tor circuit by default or not to increase privacy.
@@ -36,7 +36,7 @@ namespace WalletWasabi.Tor.Http
 		/// <exception cref="InvalidOperationException"/>
 		async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
 		{
-			Uri? baseUri = DestinationUriAction.Invoke();
+			Uri? baseUri = BaseUriGetter.Invoke();
 
 			if (baseUri is null)
 			{
