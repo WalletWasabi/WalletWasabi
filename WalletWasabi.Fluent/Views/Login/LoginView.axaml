@@ -57,8 +57,10 @@
               </i:Interaction.Behaviors>
             </TextBox>
             <Panel Margin="0 -20 0 0 ">
-              <Button Classes="activeHyperLink skip" Content="Forgot password?" HorizontalAlignment="Left"/>
-              <Button Content="Login" IsDefault="{Binding !IsPasswordIncorrect}" IsEnabled="{Binding !IsPasswordIncorrect}" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}"/>
+              <Button Classes="activeHyperLink skip" Content="Forgot password?" HorizontalAlignment="Left" Command="{Binding ForgotPasswordCommand}"/>
+              <Button Content="Login" IsDefault="{Binding !IsPasswordIncorrect}" Focusable="False" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}">
+
+              </Button>
             </Panel>
           </DockPanel>
 
@@ -73,7 +75,7 @@
                     VerticalAlignment="Bottom"
                     Classes="fadeAnimation">
           <TextBlock Text="The password is incorrect! Try Again." HorizontalAlignment="Center"/>
-          <Button Content="OK" IsDefault="{Binding IsPasswordIncorrect}" IsEnabled="{Binding IsPasswordIncorrect}" Classes="action" HorizontalAlignment="Center" Command="{Binding OkCommand}"/>
+          <Button Content="OK" IsDefault="{Binding IsPasswordIncorrect}" Focusable="False" Classes="action" HorizontalAlignment="Center" Command="{Binding OkCommand}"/>
         </StackPanel>
 
       </StackPanel>

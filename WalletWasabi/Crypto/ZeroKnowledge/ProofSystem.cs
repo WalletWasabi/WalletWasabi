@@ -131,11 +131,14 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public static Knowledge ZeroProofKnowledge(GroupElement ma, Scalar r)
 			=> new Knowledge(ZeroProofStatement(ma), new ScalarVector(r));
 
+		public static GroupElement PedersenCommitment(Scalar s, Scalar b)
+		 	=> new GroupElement(ECMultContext.Instance.MultBatch(new[] { s, b }, new[] { Generators.Gg.Ge, Generators.Gh.Ge }));
+
 		// TODO swap return value order, remove GroupElement argument
 		// expect nonce provider instead of WasabiRandom?
 		public static (Knowledge knowledge, IEnumerable<GroupElement> bitCommitments) RangeProofKnowledge(Scalar a, Scalar r, int width, WasabiRandom rnd)
 		{
-			var ma = a * Generators.Gg + r * Generators.Gh;
+			var ma = PedersenCommitment(a, r);
 			var bits = Enumerable.Range(0, width).Select(i => a.GetBits(i, 1) == 0 ? Scalar.Zero : Scalar.One);
 
 			// Generate bit commitments.
@@ -146,10 +149,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			//   randomly generated credentials in memory or persistent storage, and
 			//   re-request by loading and re-sending.
 			// - long term fee credentials will definitely need deterministic
-			//   randomness because the server can only give idempotent responses with
-			//   its own records.
+			//   randomness because otherwise recovery of credentials from
+			//   seed would not result in idempotent responses if the client
+			//   loses state
 			var randomness = Enumerable.Repeat(0, width).Select(_ => rnd.GetScalar()).ToArray();
-			var bitCommitments = bits.Zip(randomness, (b, r) => b * Generators.Gg + r * Generators.Gh);
+			var bitCommitments = bits.Zip(randomness, (b, r) => PedersenCommitment(b, r)).ToArray();
 
 			var columns = width * 3 + 1; // three witness terms per bit and one for the commitment
 			static int BitColumn(int i) => 3 * i + 1;
@@ -179,7 +183,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 		public static Statement RangeProofStatement(GroupElement ma, IEnumerable<GroupElement> bitCommitments)
 		{
-			var width = bitCommitments.Count(); // can be 0
+			var b = bitCommitments.ToArray();
+			var width = b.Length; // can be 0
 			Guard.InRangeAndNotNull(nameof(width), width, 0, Constants.RangeProofWidth);
 
 			var rows = width * 2 + 1; // two equations per bit, and one for the sum
@@ -194,7 +199,9 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			// Ma, proven by showing that the public input is a commitment to 0 (only
 			// Gh term required to represent it). The per-bit witness terms of this
 			// equation are added in the loop below.
-			var bitsTotal = bitCommitments.Select((b, i) => Scalar.Zero.CAddBit((uint)i, 1) * b).Sum();
+			var powersOfTwo = Generators.PowersOfTwo.AsSpan(0, width);
+			var bitsTotal = new GroupElement(ECMultContext.Instance.MultBatch(powersOfTwo, b.Select(x => x.Ge).ToArray()));
+
 			equations[0, 0] = ma - bitsTotal;
 			equations[0, 1] = Generators.Gh; // first witness term is r in Ma = a*Gg + r*Gh
 
@@ -211,11 +218,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			static int BitSquaredRow(int i) => BitRepresentationRow(i) + 1; // row for [ b*(B_i-Gg) - rb*Gh <=> b = b*b ] proof
 
 			// For each bit, add two equations and one term to the first equation.
-			var b = bitCommitments.ToArray();
-			for (int i = 0; i < bitCommitments.Count(); i++)
+			var negatedGh = Generators.Gh.Negate();
+			for (int i = 0; i < width; i++)
 			{
 				// Add [ -r_i * 2^i * Gh ] term to first equation.
-				equations[0, RndColumn(i)] = Scalar.Zero.CAddBit((uint)i, 1) * Generators.Gh.Negate();
+				equations[0, RndColumn(i)] = Generators.NegateGh2i[i];
 
 				// Add equation proving B is a Pedersen commitment to b:
 				//   [ B = b*Gg + r*Gh ]
@@ -236,7 +243,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				// in the verification equation we require that the following terms
 				// cancel out (public input point is O):
 				equations[BitSquaredRow(i), BitColumn(i)] = b[i] - Generators.Gg;
-				equations[BitSquaredRow(i), ProductColumn(i)] = Generators.Gh.Negate();
+				equations[BitSquaredRow(i), ProductColumn(i)] = negatedGh;
 			}
 
 			return new Statement(equations);
