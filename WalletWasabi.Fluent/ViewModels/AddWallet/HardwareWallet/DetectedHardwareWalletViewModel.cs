@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				HardwareWalletModels.Coldcard or HardwareWalletModels.Coldcard_Simulator => WalletType.Coldcard,
 				HardwareWalletModels.Ledger_Nano_S => WalletType.Ledger,
 				HardwareWalletModels.Trezor_1 or HardwareWalletModels.Trezor_1_Simulator or HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_T_Simulator => WalletType.Trezor,
-				_ => WalletType.Hardware,
+				_ => WalletType.Hardware
 			};
 
 			TypeName = device.Model.FriendlyName();
