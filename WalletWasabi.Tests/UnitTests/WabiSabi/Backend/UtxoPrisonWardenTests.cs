@@ -32,7 +32,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 			// Create prison.
-			CoordinatorParameters coordinatorParameters = new(workDir) { UtxoWardenPeriod = TimeSpan.FromMilliseconds(1) };
+			CoordinatorParameters coordinatorParameters = new(workDir);
 			using var w = new Warden(coordinatorParameters.UtxoWardenPeriod, coordinatorParameters.PrisonFilePath, coordinatorParameters.RuntimeCoordinatorConfig);
 			await w.StartAsync(CancellationToken.None);
 			var i1 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Noted, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), 1);
@@ -41,11 +41,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			w.Prison.Punish(i2);
 
 			// Wait until serializes.
-			await Task.Delay(50);
+			await w.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(3));
 			await w.StopAsync(CancellationToken.None);
 
 			// See if prev UTXOs are loaded.
-			CoordinatorParameters coordinatorParameters2 = new(workDir) { UtxoWardenPeriod = TimeSpan.FromMilliseconds(1) };
+			CoordinatorParameters coordinatorParameters2 = new(workDir);
 			using var w2 = new Warden(coordinatorParameters2.UtxoWardenPeriod, coordinatorParameters2.PrisonFilePath, coordinatorParameters2.RuntimeCoordinatorConfig);
 			await w2.StartAsync(CancellationToken.None);
 
@@ -69,7 +69,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 			// Create prison.
-			CoordinatorParameters coordinatorParameters = new(workDir) { UtxoWardenPeriod = TimeSpan.FromMilliseconds(1) };
+			CoordinatorParameters coordinatorParameters = new(workDir);
 			using var w = new Warden(coordinatorParameters.UtxoWardenPeriod, coordinatorParameters.PrisonFilePath, coordinatorParameters.RuntimeCoordinatorConfig);
 			await w.StartAsync(CancellationToken.None);
 			var i1 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Noted, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), 1);
@@ -78,11 +78,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			w.Prison.Punish(i2);
 
 			// Wait until serializes.
-			await Task.Delay(50);
+			await w.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(3));
 
 			// Make sure it does not serialize again as there was no change.
 			File.Delete(w.PrisonFilePath);
-			await Task.Delay(50);
+			await w.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(3));
 			Assert.False(File.Exists(w.PrisonFilePath));
 			await w.StopAsync(CancellationToken.None);
 		}
@@ -94,7 +94,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 			// Create prison.
-			CoordinatorParameters coordinatorParameters = new(workDir) { UtxoWardenPeriod = TimeSpan.FromMilliseconds(1) };
+			CoordinatorParameters coordinatorParameters = new(workDir);
 			coordinatorParameters.RuntimeCoordinatorConfig.ReleaseUtxoFromPrisonAfter = TimeSpan.FromMilliseconds(1);
 
 			using var w = new Warden(coordinatorParameters.UtxoWardenPeriod, coordinatorParameters.PrisonFilePath, coordinatorParameters.RuntimeCoordinatorConfig);
@@ -107,7 +107,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.NotEmpty(p.GetInmates());
 
 			// Wait until releases from prison.
-			await Task.Delay(50);
+			await w.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(3));
 			Assert.Empty(p.GetInmates());
 			await w.StopAsync(CancellationToken.None);
 		}
