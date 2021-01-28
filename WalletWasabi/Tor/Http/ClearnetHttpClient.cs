@@ -25,9 +25,9 @@ namespace WalletWasabi.Tor.Http
 			HttpClient = new HttpClient(socketHandler);
 		}
 
-		public ClearnetHttpClient(Func<Uri> destinationUriAction)
+		public ClearnetHttpClient(Func<Uri> baseUriGetter)
 		{
-			BaseUriGetter = destinationUriAction;
+			BaseUriGetter = baseUriGetter;
 		}
 
 		public Func<Uri> BaseUriGetter { get; }
