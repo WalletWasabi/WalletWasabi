@@ -226,7 +226,7 @@ namespace WalletWasabi.Tor.Http
 			if (TorSocks5Client is null || !TorSocks5Client.IsConnected)
 			{
 				TorSocks5Client = new TorSocks5Client(TorSocks5EndPoint!);
-				await TorSocks5Client.ConnectAsync().ConfigureAwait(false);
+				await TorSocks5Client.ConnectAsync(cancel).ConfigureAwait(false);
 				await TorSocks5Client.HandshakeAsync(isolateStream, cancel).ConfigureAwait(false);
 				await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port, cancel).ConfigureAwait(false);
 

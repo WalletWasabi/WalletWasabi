@@ -136,7 +136,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
-		private void ValidateWalletName(IValidationErrors errors, WalletManager walletManager, string walletName)
+		private static void ValidateWalletName(IValidationErrors errors, WalletManager walletManager, string walletName)
 		{
 			string walletFilePath = Path.Combine(walletManager.WalletDirectories.WalletsDir, $"{walletName}.json");
 

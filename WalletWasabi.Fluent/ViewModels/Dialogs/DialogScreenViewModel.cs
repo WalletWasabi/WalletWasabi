@@ -38,7 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			IsDialogOpen = CurrentPage is { };
 		}
 
-		private void CloseDialogs(IEnumerable<RoutableViewModel> navigationStack)
+		private static void CloseDialogs(IEnumerable<RoutableViewModel> navigationStack)
 		{
 			// Close all dialogs so the awaited tasks can complete.
 			// - DialogViewModelBase.ShowDialogAsync()
