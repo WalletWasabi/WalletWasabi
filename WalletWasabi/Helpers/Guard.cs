@@ -100,7 +100,7 @@ namespace WalletWasabi.Helpers
 			return value;
 		}
 
-		public static Dictionary<TKey, TValue> NotNullOrEmpty<TKey, TValue>(string parameterName, Dictionary<TKey, TValue> value) where TKey: notnull
+		public static Dictionary<TKey, TValue> NotNullOrEmpty<TKey, TValue>(string parameterName, Dictionary<TKey, TValue> value) where TKey : notnull
 		{
 			NotNull(parameterName, value);
 			if (!value.Any())
@@ -209,6 +209,5 @@ namespace WalletWasabi.Helpers
 				_ when scalar.IsZero => throw new ArgumentException("Value cannot be zero.", parameterName),
 				_ => scalar
 			};
-
 	}
 }
