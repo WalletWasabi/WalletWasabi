@@ -11,11 +11,9 @@ using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Controls
 {
-	public class LineChart : Control
+	public partial class LineChart : Control
     {
-        #region Avalonia Properties
-
-        #region Area
+	    // Area
 
         public static readonly StyledProperty<Thickness> AreaMarginProperty =
 	        AvaloniaProperty.Register<LineChart, Thickness>(nameof(AreaMargin));
@@ -41,9 +39,7 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<double> AreaStrokeMiterLimitProperty =
 	        AvaloniaProperty.Register<LineChart, double>(nameof(AreaStrokeMiterLimit), 10.0);
 
-        #endregion
-
-        #region XAxis
+        // XAxis
 
         public static readonly StyledProperty<List<double>?> XAxisValuesProperty =
 	        AvaloniaProperty.Register<LineChart, List<double>?>(nameof(XAxisValues));
@@ -60,9 +56,7 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<double> XAxisArrowSizeProperty =
             AvaloniaProperty.Register<LineChart, double>(nameof(XAxisArrowSize));
 
-        #endregion
-
-        #region XAxis Label
+        // XAxis Label
 
         public static readonly StyledProperty<IBrush?> XAxisLabelForegroundProperty =
 	        AvaloniaProperty.Register<LineChart, IBrush?>(nameof(XAxisLabelForeground));
@@ -94,9 +88,7 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<double> XAxisLabelFontSizeProperty =
 	        AvaloniaProperty.Register<LineChart, double>(nameof(XAxisLabelFontSize));
 
-        #endregion
-
-        #region XAxis Title
+        // XAxis Title
 
         public static readonly StyledProperty<string> XAxisTitleProperty =
 	        AvaloniaProperty.Register<LineChart, string>(nameof(XAxisTitle));
@@ -128,9 +120,7 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<double> XAxisTitleFontSizeProperty =
 	        AvaloniaProperty.Register<LineChart, double>(nameof(XAxisTitleFontSize));
 
-        #endregion
-
-        #region YAxis
+        // YAxis
 
         public static readonly StyledProperty<List<double>?> YAxisValuesProperty =
 	        AvaloniaProperty.Register<LineChart, List<double>?>(nameof(YAxisValues));
@@ -156,9 +146,7 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<double> YAxisArrowSizeProperty =
             AvaloniaProperty.Register<LineChart, double>(nameof(YAxisArrowSize));
 
-        #endregion
-
-        #region YAxis Title
+        // YAxis Title
 
         public static readonly StyledProperty<string> YAxisTitleProperty =
 	        AvaloniaProperty.Register<LineChart, string>(nameof(YAxisTitle));
@@ -190,9 +178,7 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<double> YAxisTitleFontSizeProperty =
             AvaloniaProperty.Register<LineChart, double>(nameof(YAxisTitleFontSize));
 
-        #endregion
-
-        #region Cursor
+        // Cursor
 
         public static readonly StyledProperty<IBrush?> CursorStrokeProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(CursorStroke));
@@ -212,9 +198,7 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<double> CursorStrokeMiterLimitProperty =
 	        AvaloniaProperty.Register<LineChart, double>(nameof(CursorStrokeMiterLimit), 10.0);
 
-        #endregion
-
-        #region Border
+        // Border
 
         public static readonly StyledProperty<IBrush?> BorderBrushProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(BorderBrush));
@@ -228,17 +212,11 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<double> BorderRadiusYProperty =
             AvaloniaProperty.Register<LineChart, double>(nameof(BorderRadiusY));
 
-        #endregion
-
-        #endregion
-
-        #region Fields
+        // Fields
 
         private bool _captured;
 
-        #endregion
-
-        #region static ctor
+        // ctor
 
         static LineChart()
         {
@@ -251,10 +229,6 @@ namespace WalletWasabi.Fluent.Controls
 		        XAxisCurrentValueProperty);
         }
 
-        #endregion
-
-        #region  ctor
-
         public LineChart()
         {
 	        AddHandler(PointerPressedEvent, PointerPressedHandler, RoutingStrategies.Tunnel);
@@ -262,11 +236,7 @@ namespace WalletWasabi.Fluent.Controls
 	        AddHandler(PointerMovedEvent, PointerMovedHandler, RoutingStrategies.Tunnel);
         }
 
-        #endregion
-
-        #region Clr Properties
-
-        #region Area
+        // Area
 
         public Thickness AreaMargin
         {
@@ -316,9 +286,7 @@ namespace WalletWasabi.Fluent.Controls
 	        set => SetValue(AreaStrokeMiterLimitProperty, value);
         }
 
-        #endregion
-
-        #region XAxis
+        // XAxis
 
         public double XAxisCurrentValue
         {
@@ -368,9 +336,7 @@ namespace WalletWasabi.Fluent.Controls
 	        set => SetValue(XAxisArrowSizeProperty, value);
         }
 
-        #endregion
-
-        #region XAxis Label
+        // XAxis Label
 
         public IBrush? XAxisLabelForeground
         {
@@ -432,9 +398,7 @@ namespace WalletWasabi.Fluent.Controls
             set => SetValue(XAxisLabelFontSizeProperty, value);
         }
 
-        #endregion
-
-        #region XAxis Title
+        // XAxis Title
 
         public string XAxisTitle
         {
@@ -496,9 +460,7 @@ namespace WalletWasabi.Fluent.Controls
 	        set => SetValue(XAxisTitleFontSizeProperty, value);
         }
 
-        #endregion
-
-        #region YAxis
+        // YAxis
 
         public List<double>? YAxisValues
         {
@@ -530,9 +492,7 @@ namespace WalletWasabi.Fluent.Controls
             set => SetValue(YAxisArrowSizeProperty, value);
         }
 
-        #endregion
-
-        #region YAxisTitle
+        // YAxisTitle
 
         public string YAxisTitle
         {
@@ -594,9 +554,7 @@ namespace WalletWasabi.Fluent.Controls
             set => SetValue(YAxisTitleFontSizeProperty, value);
         }
 
-        #endregion
-
-        #region Cursor
+        // Cursor
 
         public IBrush? CursorStroke
         {
@@ -634,9 +592,7 @@ namespace WalletWasabi.Fluent.Controls
 	        set => SetValue(CursorStrokeMiterLimitProperty, value);
         }
 
-        #endregion
-
-        #region Border
+        // Border
 
         public IBrush? BorderBrush
         {
@@ -661,12 +617,11 @@ namespace WalletWasabi.Fluent.Controls
             get => GetValue(BorderRadiusYProperty);
             set => SetValue(BorderRadiusYProperty, value);
         }
+    }
 
-        #endregion
-
-        #endregion
-
-        private static double Clamp(double val, double min, double max)
+	public partial class LineChart : Control
+    {
+	    private static double Clamp(double val, double min, double max)
         {
 	        return Math.Min(Math.Max(val, min), max);
         }
