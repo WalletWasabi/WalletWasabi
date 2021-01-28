@@ -17,13 +17,13 @@ namespace WalletWasabi.Services
 			config.AssertFilePathSet();
 		}
 
+		public IConfig Config { get; }
+		public Action ExecuteWhenChanged { get; }
+
 		public static ConfigWatcher FromParameters(CoordinatorParameters parameters, Action executeWhenChanged)
 		{
 			return new(parameters.ConfigChangeMonitoringPeriod, parameters.RuntimeCoordinatorConfig, executeWhenChanged);
 		}
-
-		public IConfig Config { get; }
-		public Action ExecuteWhenChanged { get; }
 
 		protected override Task ActionAsync(CancellationToken cancel)
 		{
