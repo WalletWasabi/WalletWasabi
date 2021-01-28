@@ -100,6 +100,7 @@
                              LogarithmicScale="False"
                              AreaMargin="60,40,30,30"
                              StrokeThickness="2"
+                             StrokeLineCap="Round"
                              YAxisTitle="More Expensive">
                     <c:LineChart.Fill>
                         <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
