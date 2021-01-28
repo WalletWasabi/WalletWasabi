@@ -98,7 +98,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			try
 			{
-				CancellationTokenSource cts = new();
+				using CancellationTokenSource cts = new();
 				AbandonedTasks.AddAndClearCompleted(CheckForPassphraseAsync(cts.Token));
 				var result = await HardwareWalletOperationHelpers.DetectAsync(WalletManager.Network, cancel);
 				cts.Cancel();
