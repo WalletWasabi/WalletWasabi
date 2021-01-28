@@ -31,10 +31,11 @@
         <!-- LineChart Labels -->
         <Style Selector="c|LineChart.labels">
             <Setter Property="LabelForeground" Value="{DynamicResource TextForegroundColor}" />
-            <Setter Property="LabelAngle" Value="-45" />
-            <Setter Property="LabelOffset" Value="-15,15" />
+            <Setter Property="LabelOpacity" Value="0.5" />
+            <Setter Property="LabelAngle" Value="0" />
+            <Setter Property="LabelOffset" Value="0,10" />
             <Setter Property="LabelSize" Value="50,30" />
-            <Setter Property="LabelAlignment" Value="Right" />
+            <Setter Property="LabelAlignment" Value="Center" />
             <Setter Property="LabelFontFamily" Value="Arial" />
             <Setter Property="LabelFontStyle" Value="Normal" />
             <Setter Property="LabelFontWeight" Value="Normal" />
@@ -78,23 +79,54 @@
         </Style>
     </UserControl.Styles>
     <TabControl Background="{x:Null}">
+        <TabItem Header="Gradient">
+            <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <Slider x:Name="CursorValue2"
+                        DockPanel.Dock="Bottom"
+                        Classes="cursor"
+                        Minimum="{Binding #GradientLineChart.MinValue}"
+                        Maximum="{Binding #GradientLineChart.MaxValue}"
+                        Value="{Binding #GradientLineChart.CursorValue}"
+                        Margin="60,0,30,0"/>
+                <c:LineChart x:Name="GradientLineChart"
+                             Classes="labels cursor border yAxis yAxisTitle"
+                             Values="{Binding Values}"
+                             Labels="{Binding Labels}"
+                             CursorValue="36"
+                             MinValue="2"
+                             MaxValue="1008"
+                             LogarithmicScale="False"
+                             ValuesMargin="60,40,30,30"
+                             StrokeThickness="2"
+                             YAxisTitle="More Expensive">
+                    <c:LineChart.Fill>
+                        <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
+                            <LinearGradientBrush.GradientStops>
+                                <GradientStop Offset="0.0" Color="#FF72BD81"/>
+                                <GradientStop Offset="1.0" Color="#0072BD81"/>
+                            </LinearGradientBrush.GradientStops>
+                        </LinearGradientBrush>
+                    </c:LineChart.Fill>
+                    <c:LineChart.Stroke>
+                        <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
+                            <LinearGradientBrush.GradientStops>
+                                <GradientStop Offset="0.0" Color="#72BD81"/>
+                                <GradientStop Offset="1.0" Color="#72BD81"/>
+                            </LinearGradientBrush.GradientStops>
+                        </LinearGradientBrush>
+                    </c:LineChart.Stroke>
+                </c:LineChart>
+            </DockPanel>
+        </TabItem>
         <TabItem Header="Solid">
             <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                <DockPanel DockPanel.Dock="Bottom">
-                    <Label Content="_Fee:"
-                           Width="60"
-                           Padding="3,3,20,3"
-                           HorizontalContentAlignment="Right"
-                           VerticalAlignment="Center"
-                           FontWeight="Normal"
-                           DockPanel.Dock="Left"/>
-                    <Slider x:Name="CursorValue1"
-                            Classes="cursor"
-                            Minimum="{Binding #SolidLineChart.MinValue}"
-                            Maximum="{Binding #SolidLineChart.MaxValue}"
-                            Value="{Binding #SolidLineChart.CursorValue}"
-                            Margin="0,0,30,0"/>
-                </DockPanel>
+                <Slider x:Name="CursorValue1"
+                        DockPanel.Dock="Bottom"
+                        Classes="cursor"
+                        Minimum="{Binding #SolidLineChart.MinValue}"
+                        Maximum="{Binding #SolidLineChart.MaxValue}"
+                        Value="{Binding #SolidLineChart.CursorValue}"
+                        Margin="60,0,30,0"/>
                 <c:LineChart x:Name="SolidLineChart"
                              Classes="labels cursor border yAxis yAxisTitle"
                              Values="{Binding Values}"
@@ -104,58 +136,10 @@
                              MaxValue="1008"
                              LogarithmicScale="False"
                              ValuesMargin="60,30,30,50"
-                             Fill="#C6DAFC"
-                             Stroke="#4285F4"
+                             Fill="#2872BD81"
+                             Stroke="#FF72BD81"
                              StrokeThickness="2"
                              YAxisTitle="More Expensive">
-                </c:LineChart>
-            </DockPanel>
-        </TabItem>
-        <TabItem Header="LinearGradient">
-            <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                <DockPanel DockPanel.Dock="Bottom">
-                    <Label Content="_Fee:"
-                           Width="60"
-                           Padding="3,3,20,3"
-                           HorizontalContentAlignment="Right"
-                           VerticalAlignment="Center"
-                           FontWeight="Normal"
-                           DockPanel.Dock="Left"/>
-                    <Slider x:Name="CursorValue2"
-                            Classes="cursor"
-                            Minimum="{Binding #GradientLineChart.MinValue}"
-                            Maximum="{Binding #GradientLineChart.MaxValue}"
-                            Value="{Binding #GradientLineChart.CursorValue}"
-                            Margin="0,0,30,0"/>
-                </DockPanel>
-                <c:LineChart x:Name="GradientLineChart"
-                             Classes="labels cursor border yAxis yAxisTitle"
-                             Values="{Binding Values}"
-                             Labels="{Binding Labels}"
-                             CursorValue="36"
-                             MinValue="2"
-                             MaxValue="1008"
-                             LogarithmicScale="False"
-                             ValuesMargin="60,30,30,60"
-                             StrokeThickness="2"
-                             YAxisTitle="More Expensive">
-                    <c:LineChart.Fill>
-                        <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%">
-                            <LinearGradientBrush.GradientStops>
-                                <GradientStop Offset="0.0" Color="#4285F4"/>
-                                <GradientStop Offset="0.5" Color="#C6DAFC"/>
-                                <GradientStop Offset="1.0" Color="{DynamicResource RegionColor}"/>
-                            </LinearGradientBrush.GradientStops>
-                        </LinearGradientBrush>
-                    </c:LineChart.Fill>
-                    <c:LineChart.Stroke>
-                        <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
-                            <LinearGradientBrush.GradientStops>
-                                <GradientStop Offset="0.0" Color="#4285F4"/>
-                                <GradientStop Offset="1.0" Color="#4285F4"/>
-                            </LinearGradientBrush.GradientStops>
-                        </LinearGradientBrush>
-                    </c:LineChart.Stroke>
                 </c:LineChart>
             </DockPanel>
         </TabItem>
