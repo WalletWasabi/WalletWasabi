@@ -11,7 +11,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 {
 	public class BobClient
 	{
-		/// <inheritdoc/>
 		public BobClient(IHttpClient httpClient)
 		{
 			HttpClient = httpClient;
