@@ -4,7 +4,7 @@ This guide is for giving detailed instructions about how to debug Wasabi Wallet 
 We will focus on how to achieve this with `vscode` first because that is the cross-platform IDE used by some of the developer team members.
 
 ## Before Starting
-We assume the reader has already read the project [README](https://github.com/zkSNACKs/WalletWasabi/blob/master/README.md) file and has installed the [.NET Core 3.1 SDK](https://www.microsoft.com/net/download), and knows how to clone the repository and build the Wasabi solution.
+We assume the reader has already read the project [README](https://github.com/zkSNACKs/WalletWasabi/blob/master/README.md) file and has installed the [.NET Core 5.0 SDK](https://dotnet.microsoft.com/download), and knows how to clone the repository and build the Wasabi solution.
 
 
 ## Install VS Code and C# extension
