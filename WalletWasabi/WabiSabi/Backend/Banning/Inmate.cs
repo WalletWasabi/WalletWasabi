@@ -13,7 +13,7 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 	/// </summary>
 	public class Inmate
 	{
-		public Inmate(OutPoint utxo, Punishment punishment, DateTimeOffset started, ulong lastDisruptedRoundId)
+		public Inmate(OutPoint utxo, Punishment punishment, DateTimeOffset started, Guid lastDisruptedRoundId)
 		{
 			Utxo = utxo;
 			Punishment = punishment;
@@ -24,7 +24,7 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 		public OutPoint Utxo { get; }
 		public Punishment Punishment { get; }
 		public DateTimeOffset Started { get; }
-		public ulong LastDisruptedRoundId { get; }
+		public Guid LastDisruptedRoundId { get; }
 
 		public TimeSpan TimeSpent => DateTimeOffset.UtcNow - Started;
 
@@ -41,7 +41,7 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 			var started = DateTimeOffset.FromUnixTimeSeconds(long.Parse(startedString));
 			var punishment = Enum.Parse<Punishment>(punishmentString);
 			var utxo = new OutPoint(new uint256(utxoHashString), int.Parse(utxoIndexString));
-			var lastDisruptedRoundId = ulong.Parse(disruptedRoundIdString);
+			var lastDisruptedRoundId = Guid.Parse(disruptedRoundIdString);
 
 			return new(utxo, punishment, started, lastDisruptedRoundId);
 		}
