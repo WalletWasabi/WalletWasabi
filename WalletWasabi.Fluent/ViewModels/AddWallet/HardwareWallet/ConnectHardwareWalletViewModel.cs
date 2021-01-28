@@ -100,7 +100,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			{
 				CancellationTokenSource cts = new();
 				AbandonedTasks.AddAndClearCompleted(CheckForPassphraseAsync(cts.Token));
-				var result = await HardwareWalletOperationHelper.DetectAsync(WalletManager.Network, cancel);
+				var result = await HardwareWalletOperationHelpers.DetectAsync(WalletManager.Network, cancel);
 				cts.Cancel();
 				EvaluateDetectionResult(result, cancel);
 			}
@@ -160,7 +160,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				else
 				{
 					Message = "Check your device and finish the initialization.";
-					AbandonedTasks.AddAndClearCompleted(HardwareWalletOperationHelper.InitHardwareWalletAsync(device, WalletManager.Network, cancel));
+					AbandonedTasks.AddAndClearCompleted(HardwareWalletOperationHelpers.InitHardwareWalletAsync(device, WalletManager.Network, cancel));
 				}
 
 				return;

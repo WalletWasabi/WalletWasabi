@@ -10,7 +10,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers
 {
-	public static class HardwareWalletOperationHelper
+	public static class HardwareWalletOperationHelpers
 	{
 		public static async Task<KeyManager> GenerateWalletAsync(HwiEnumerateEntry device, string walletFilePath, Network network, CancellationToken cancelToken)
 		{
