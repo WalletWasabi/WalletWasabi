@@ -55,10 +55,10 @@ namespace WalletWasabi.Fluent.Controls
 
         #endregion
 
-        #region Labels
+        #region XAxis Labels
 
-        public static readonly StyledProperty<List<string>?> LabelsProperty =
-            AvaloniaProperty.Register<LineChart, List<string>?>(nameof(Labels));
+        public static readonly StyledProperty<List<string>?> XAxisLabelsProperty =
+            AvaloniaProperty.Register<LineChart, List<string>?>(nameof(XAxisLabels));
 
         public static readonly StyledProperty<IBrush?> LabelForegroundProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(LabelForeground));
@@ -94,9 +94,6 @@ namespace WalletWasabi.Fluent.Controls
 
         #region XAxis
 
-        public static readonly StyledProperty<string> XAxisTitleProperty =
-            AvaloniaProperty.Register<LineChart, string>(nameof(XAxisTitle));
-
         public static readonly StyledProperty<IBrush?> XAxisStrokeProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(XAxisStroke));
 
@@ -110,9 +107,6 @@ namespace WalletWasabi.Fluent.Controls
 
         #region YAxis
 
-        public static readonly StyledProperty<string> YAxisTitleProperty =
-            AvaloniaProperty.Register<LineChart, string>(nameof(YAxisTitle));
-
         public static readonly StyledProperty<IBrush?> YAxisStrokeProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(YAxisStroke));
 
@@ -125,6 +119,9 @@ namespace WalletWasabi.Fluent.Controls
         #endregion
 
         #region XAxisTitle
+
+        public static readonly StyledProperty<string> XAxisTitleProperty =
+	        AvaloniaProperty.Register<LineChart, string>(nameof(XAxisTitle));
 
         public static readonly StyledProperty<IBrush?> XAxisTitleForegroundProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(XAxisTitleForeground));
@@ -156,6 +153,9 @@ namespace WalletWasabi.Fluent.Controls
         #endregion
 
         #region YAxisTitle
+
+        public static readonly StyledProperty<string> YAxisTitleProperty =
+	        AvaloniaProperty.Register<LineChart, string>(nameof(YAxisTitle));
 
         public static readonly StyledProperty<IBrush?> YAxisTitleForegroundProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(YAxisTitleForeground));
@@ -242,7 +242,7 @@ namespace WalletWasabi.Fluent.Controls
 	        AffectsMeasure<LineChart>(AreaMarginProperty);
 	        AffectsRender<LineChart>(
 		        ValuesProperty,
-		        LabelsProperty,
+		        XAxisLabelsProperty,
 		        MinValueProperty,
 		        MaxValueProperty,
 		        CursorValueProperty);
@@ -341,10 +341,10 @@ namespace WalletWasabi.Fluent.Controls
 
         #region Labels
 
-        public List<string>? Labels
+        public List<string>? XAxisLabels
         {
-            get => GetValue(LabelsProperty);
-            set => SetValue(LabelsProperty, value);
+            get => GetValue(XAxisLabelsProperty);
+            set => SetValue(XAxisLabelsProperty, value);
         }
 
         public IBrush? LabelForeground
@@ -411,12 +411,6 @@ namespace WalletWasabi.Fluent.Controls
 
         #region XAxis
 
-        public string XAxisTitle
-        {
-            get => GetValue(XAxisTitleProperty);
-            set => SetValue(XAxisTitleProperty, value);
-        }
-
         public IBrush? XAxisStroke
         {
             get => GetValue(XAxisStrokeProperty);
@@ -439,12 +433,6 @@ namespace WalletWasabi.Fluent.Controls
 
         #region YAxis
 
-        public string YAxisTitle
-        {
-            get => GetValue(YAxisTitleProperty);
-            set => SetValue(YAxisTitleProperty, value);
-        }
-
         public IBrush? YAxisStroke
         {
             get => GetValue(YAxisStrokeProperty);
@@ -466,6 +454,12 @@ namespace WalletWasabi.Fluent.Controls
         #endregion
 
         #region XAxisTitle
+
+        public string XAxisTitle
+        {
+	        get => GetValue(XAxisTitleProperty);
+	        set => SetValue(XAxisTitleProperty, value);
+        }
 
         public IBrush? XAxisTitleForeground
         {
@@ -524,6 +518,12 @@ namespace WalletWasabi.Fluent.Controls
         #endregion
 
         #region YAxisTitle
+
+        public string YAxisTitle
+        {
+	        get => GetValue(YAxisTitleProperty);
+	        set => SetValue(YAxisTitleProperty, value);
+        }
 
         public IBrush? YAxisTitleForeground
         {
@@ -781,7 +781,7 @@ namespace WalletWasabi.Fluent.Controls
 		        }
 	        }
 
-	        var labels = Labels;
+	        var labels = XAxisLabels;
 	        if (labels is not null)
 	        {
 		        state.Labels = labels.ToList();
