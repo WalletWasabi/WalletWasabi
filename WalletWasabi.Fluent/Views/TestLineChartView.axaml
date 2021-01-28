@@ -44,7 +44,9 @@
         <!-- LineChart Cursor -->
         <Style Selector="c|LineChart.cursor">
             <Setter Property="CursorStroke" Value="#72BD81" />
-            <Setter Property="CursorThickness" Value="2" />
+            <Setter Property="CursorStrokeThickness" Value="2" />
+            <!-- <Setter Property="CursorStrokeDashStyle" Value="{x:Static DashStyle.Dash}" /> -->
+            <Setter Property="CursorStrokeLineCap" Value="Round" />
         </Style>
         <!-- LineChart XAxis -->
         <Style Selector="c|LineChart.xAxis">
