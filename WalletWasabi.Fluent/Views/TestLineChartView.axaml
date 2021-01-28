@@ -135,7 +135,7 @@
                              MinValue="2"
                              MaxValue="1008"
                              LogarithmicScale="False"
-                             ValuesMargin="60,30,30,50"
+                             ValuesMargin="60,40,30,30"
                              Fill="#2872BD81"
                              Stroke="#FF72BD81"
                              StrokeThickness="2"
