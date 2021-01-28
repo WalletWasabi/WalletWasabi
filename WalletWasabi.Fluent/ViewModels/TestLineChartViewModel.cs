@@ -4,26 +4,14 @@ namespace WalletWasabi.Fluent.ViewModels
 {
     public class TestLineChartViewModel
     {
-        public List<double> Values => new List<double>()
-        {
-            15,
-            22,
-            44,
-            50,
-            64,
-            68,
-            92,
-            114,
-            118,
-            142,
-            182,
-            222,
-            446,
-            548,
-            600
-        };
 
-        // public List<string> Labels => new List<string>()
+	    public double XAxisCurrentValue { get; set; } = 36;
+
+	    public double XAxisMinValue { get; set; } = 2;
+
+	    public double XAxisMaxValue { get; set; } = 864;
+
+        // public List<string> XAxisLabels => new List<string>()
         // {
         //     "6 days",
         //     "4 days",
@@ -61,7 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels
             "20m"
         };
 
-        public List<double> XAxisLabelsPosition => new List<double>()
+        public List<double> XAxisValues => new List<double>()
         {
 	        864,
 	        576,
@@ -80,10 +68,23 @@ namespace WalletWasabi.Fluent.ViewModels
 	        2,
         };
 
-        public double XCurrentValue { get; set; } = 36;
-
-        public double XMinValue { get; set; } = 2;
-
-        public double XMaxValue { get; set; } = 864;
+        public List<double> YAxisValues => new List<double>()
+        {
+	        15,
+	        22,
+	        44,
+	        50,
+	        64,
+	        68,
+	        92,
+	        114,
+	        118,
+	        142,
+	        182,
+	        222,
+	        446,
+	        548,
+	        600
+        };
     }
 }

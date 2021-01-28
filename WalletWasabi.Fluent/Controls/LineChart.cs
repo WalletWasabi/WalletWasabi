@@ -133,19 +133,19 @@ namespace WalletWasabi.Fluent.Controls
         #region YAxis
 
         public static readonly StyledProperty<List<double>?> YAxisValuesProperty =
-	        AvaloniaProperty.Register<LineChart, List<double>?>(nameof(YValues));
+	        AvaloniaProperty.Register<LineChart, List<double>?>(nameof(YAxisValues));
 
         public static readonly StyledProperty<bool> YAxisLogarithmicScaleProperty =
 	        AvaloniaProperty.Register<LineChart, bool>(nameof(YAxisLogarithmicScale));
 
         public static readonly StyledProperty<double> XAxisCurrentValueProperty =
-	        AvaloniaProperty.Register<LineChart, double>(nameof(XCurrentValue));
+	        AvaloniaProperty.Register<LineChart, double>(nameof(XAxisCurrentValue));
 
         public static readonly StyledProperty<double> XAxisMinValueProperty =
-	        AvaloniaProperty.Register<LineChart, double>(nameof(XMinValue));
+	        AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMinValue));
 
         public static readonly StyledProperty<double> XAxisMaxValueProperty =
-	        AvaloniaProperty.Register<LineChart, double>(nameof(XMaxValue));
+	        AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMaxValue));
 
         public static readonly StyledProperty<IBrush?> YAxisStrokeProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(YAxisStroke));
@@ -320,19 +320,19 @@ namespace WalletWasabi.Fluent.Controls
 
         #region XAxis
 
-        public double XCurrentValue
+        public double XAxisCurrentValue
         {
 	        get => GetValue(XAxisCurrentValueProperty);
 	        set => SetValue(XAxisCurrentValueProperty, value);
         }
 
-        public double XMinValue
+        public double XAxisMinValue
         {
 	        get => GetValue(XAxisMinValueProperty);
 	        set => SetValue(XAxisMinValueProperty, value);
         }
 
-        public double XMaxValue
+        public double XAxisMaxValue
         {
 	        get => GetValue(XAxisMaxValueProperty);
 	        set => SetValue(XAxisMaxValueProperty, value);
@@ -500,7 +500,7 @@ namespace WalletWasabi.Fluent.Controls
 
         #region YAxis
 
-        public List<double>? YValues
+        public List<double>? YAxisValues
         {
 	        get => GetValue(YAxisValuesProperty);
 	        set => SetValue(YAxisValuesProperty, value);
@@ -724,10 +724,10 @@ namespace WalletWasabi.Fluent.Controls
 
         private void UpdateCursorPosition(double x)
         {
-	        var rangeValues = XMaxValue - XMinValue;
+	        var rangeValues = XAxisMaxValue - XAxisMinValue;
 	        var rangeArea = Bounds.Width - AreaMargin.Left - AreaMargin.Right;
 	        var value = Clamp(x - AreaMargin.Left, 0, rangeArea);
-	        XCurrentValue = XMaxValue - rangeValues / rangeArea * value;
+	        XAxisCurrentValue = XAxisMaxValue - rangeValues / rangeArea * value;
         }
 
         private void PointerMovedHandler(object? sender, PointerEventArgs e)
@@ -767,7 +767,7 @@ namespace WalletWasabi.Fluent.Controls
 	        state.AreaWidth = width - state.AreaMargin.Left - state.AreaMargin.Right;
 	        state.AreaHeight = height - state.AreaMargin.Top - state.AreaMargin.Bottom;
 
-	        var values = YValues;
+	        var values = YAxisValues;
 	        if (values is not null)
 	        {
 		        var logarithmicScale = YAxisLogarithmicScale;
@@ -796,9 +796,9 @@ namespace WalletWasabi.Fluent.Controls
 		        state.XLabels = labels.ToList();
 	        }
 
-	        var minValue = XMinValue;
-	        var maxValue = XMaxValue;
-	        var cursorValue = XCurrentValue;
+	        var minValue = XAxisMinValue;
+	        var maxValue = XAxisMaxValue;
+	        var cursorValue = XAxisCurrentValue;
 	        state.CursorPosition = ScaleHorizontal(maxValue - cursorValue, maxValue, state.AreaWidth);
 
 	        return state;
