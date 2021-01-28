@@ -51,6 +51,9 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<IBrush?> LabelForegroundProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(LabelForeground));
 
+        public static readonly StyledProperty<double> LabelOpacityProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(LabelOpacity));
+
         public static readonly StyledProperty<Point> LabelOffsetProperty =
             AvaloniaProperty.Register<LineChart, Point>(nameof(LabelOffset));
 
@@ -307,6 +310,12 @@ namespace WalletWasabi.Fluent.Controls
         {
             get => GetValue(LabelForegroundProperty);
             set => SetValue(LabelForegroundProperty, value);
+        }
+
+        public double LabelOpacity
+        {
+	        get => GetValue(LabelOpacityProperty);
+	        set => SetValue(LabelOpacityProperty, value);
         }
 
         public double LabelAngle
@@ -884,6 +893,7 @@ namespace WalletWasabi.Fluent.Controls
 	        {
 		        return;
 	        }
+	        var opacity = LabelOpacity;
             var fontFamily = LabelFontFamily;
             var fontStyle = LabelFontStyle;
             var fontWeight = LabelFontWeight;
@@ -907,10 +917,12 @@ namespace WalletWasabi.Fluent.Controls
                              * Matrix.CreateTranslation(xPosition, yPosition);
                 var labelTransform = context.PushPreTransform(matrix);
                 var offsetCenter = new Point(0, size.Height / 2 - formattedText.Bounds.Height / 2);
+                var opacityState = context.PushOpacity(opacity);
                 context.DrawText(foreground, origin + offsetCenter, formattedText);
 #if DEBUG_LABELS
                 context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Magenta)), new Rect(origin, constraint));
 #endif
+	            opacityState.Dispose();
                 labelTransform.Dispose();
 #if DEBUG_LABELS
                 context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Cyan)), new Rect(origin, constraint));
