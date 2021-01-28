@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private readonly SearchPageViewModel _searchPage;
 		private readonly PrivacyModeViewModel _privacyMode;
 		private readonly AddWalletPageViewModel _addWalletPage;
-		private readonly WalletManagerViewModel _walletManager;
+		private readonly WalletManagerViewModel _walletManagerViewModel;
 
 		public MainViewModel(Global global)
 		{
@@ -66,13 +66,13 @@ namespace WalletWasabi.Fluent.ViewModels
 				global.BitcoinStore.SmartHeaderChain,
 				global.Synchronizer);
 
-			_walletManager = new WalletManagerViewModel(global.WalletManager, global.UiConfig);
+			_walletManagerViewModel = new WalletManagerViewModel(global.WalletManager, global.UiConfig);
 
 			_addWalletPage = new AddWalletPageViewModel(
 				global.WalletManager,
 				global.BitcoinStore,
 				global.Network,
-				_walletManager.Wallets);
+				_walletManagerViewModel.Wallets);
 
 			_settingsPage = new SettingsPageViewModel(global.Config, global.UiConfig);
 			_privacyMode = new PrivacyModeViewModel(global.UiConfig);
