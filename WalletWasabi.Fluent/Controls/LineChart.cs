@@ -17,82 +17,39 @@ namespace WalletWasabi.Fluent.Controls
 
         #region Area
 
-        public static readonly StyledProperty<List<double>?> ValuesProperty =
-            AvaloniaProperty.Register<LineChart, List<double>?>(nameof(Values));
-
-        public static readonly StyledProperty<double> MinValueProperty =
-            AvaloniaProperty.Register<LineChart, double>(nameof(MinValue));
-
-        public static readonly StyledProperty<double> MaxValueProperty =
-            AvaloniaProperty.Register<LineChart, double>(nameof(MaxValue));
-
-        public static readonly StyledProperty<bool> LogarithmicScaleProperty =
-            AvaloniaProperty.Register<LineChart, bool>(nameof(LogarithmicScale));
-
         public static readonly StyledProperty<Thickness> AreaMarginProperty =
 	        AvaloniaProperty.Register<LineChart, Thickness>(nameof(AreaMargin));
 
-        public static readonly StyledProperty<IBrush?> FillProperty =
-            AvaloniaProperty.Register<LineChart, IBrush?>(nameof(Fill));
+        public static readonly StyledProperty<IBrush?> AreaFillProperty =
+            AvaloniaProperty.Register<LineChart, IBrush?>(nameof(AreaFill));
 
-        public static readonly StyledProperty<IBrush?> StrokeProperty =
-            AvaloniaProperty.Register<LineChart, IBrush?>(nameof(Stroke));
+        public static readonly StyledProperty<IBrush?> AreaStrokeProperty =
+            AvaloniaProperty.Register<LineChart, IBrush?>(nameof(AreaStroke));
 
-        public static readonly StyledProperty<double> StrokeThicknessProperty =
-            AvaloniaProperty.Register<LineChart, double>(nameof(StrokeThickness), 1.0);
+        public static readonly StyledProperty<double> AreaStrokeThicknessProperty =
+            AvaloniaProperty.Register<LineChart, double>(nameof(AreaStrokeThickness), 1.0);
 
-        public static readonly StyledProperty<IDashStyle?> StrokeDashStyleProperty =
-	        AvaloniaProperty.Register<LineChart, IDashStyle?>(nameof(StrokeDashStyle), null);
+        public static readonly StyledProperty<IDashStyle?> AreaStrokeDashStyleProperty =
+	        AvaloniaProperty.Register<LineChart, IDashStyle?>(nameof(AreaStrokeDashStyle), null);
 
-        public static readonly StyledProperty<PenLineCap> StrokeLineCapProperty =
-	        AvaloniaProperty.Register<LineChart, PenLineCap>(nameof(StrokeLineCap), PenLineCap.Flat);
+        public static readonly StyledProperty<PenLineCap> AreaStrokeLineCapProperty =
+	        AvaloniaProperty.Register<LineChart, PenLineCap>(nameof(AreaStrokeLineCap), PenLineCap.Flat);
 
-        public static readonly StyledProperty<PenLineJoin> StrokeLineJoinProperty =
-	        AvaloniaProperty.Register<LineChart, PenLineJoin>(nameof(StrokeLineJoin), PenLineJoin.Miter);
+        public static readonly StyledProperty<PenLineJoin> AreaStrokeLineJoinProperty =
+	        AvaloniaProperty.Register<LineChart, PenLineJoin>(nameof(AreaStrokeLineJoin), PenLineJoin.Miter);
 
-        public static readonly StyledProperty<double> StrokeMiterLimitProperty =
-	        AvaloniaProperty.Register<LineChart, double>(nameof(StrokeMiterLimit), 10.0);
-
-        #endregion
-
-        #region XAxis Labels
-
-        public static readonly StyledProperty<List<string>?> XAxisLabelsProperty =
-            AvaloniaProperty.Register<LineChart, List<string>?>(nameof(XAxisLabels));
-
-        public static readonly StyledProperty<IBrush?> LabelForegroundProperty =
-            AvaloniaProperty.Register<LineChart, IBrush?>(nameof(LabelForeground));
-
-        public static readonly StyledProperty<double> LabelOpacityProperty =
-	        AvaloniaProperty.Register<LineChart, double>(nameof(LabelOpacity));
-
-        public static readonly StyledProperty<Point> LabelOffsetProperty =
-            AvaloniaProperty.Register<LineChart, Point>(nameof(LabelOffset));
-
-        public static readonly StyledProperty<Size> LabelSizeProperty =
-            AvaloniaProperty.Register<LineChart, Size>(nameof(LabelSize));
-
-        public static readonly StyledProperty<TextAlignment> LabelAlignmentProperty =
-            AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(LabelAlignment));
-
-        public static readonly StyledProperty<double> LabelAngleProperty =
-            AvaloniaProperty.Register<LineChart, double>(nameof(LabelAngle));
-
-        public static readonly StyledProperty<FontFamily> LabelFontFamilyProperty =
-            AvaloniaProperty.Register<LineChart, FontFamily>(nameof(LabelFontFamily));
-
-        public static readonly StyledProperty<FontStyle> LabelFontStyleProperty =
-            AvaloniaProperty.Register<LineChart, FontStyle>(nameof(LabelFontStyle));
-
-        public static readonly StyledProperty<FontWeight> LabelFontWeightProperty =
-            AvaloniaProperty.Register<LineChart, FontWeight>(nameof(LabelFontWeight));
-
-        public static readonly StyledProperty<double> LabelFontSizeProperty =
-            AvaloniaProperty.Register<LineChart, double>(nameof(LabelFontSize));
+        public static readonly StyledProperty<double> AreaStrokeMiterLimitProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(AreaStrokeMiterLimit), 10.0);
 
         #endregion
 
         #region XAxis
+
+        public static readonly StyledProperty<List<double>?> XAxisValuesProperty =
+	        AvaloniaProperty.Register<LineChart, List<double>?>(nameof(XAxisValues));
+
+        public static readonly StyledProperty<List<string>?> XAxisLabelsProperty =
+	        AvaloniaProperty.Register<LineChart, List<string>?>(nameof(XAxisLabels));
 
         public static readonly StyledProperty<IBrush?> XAxisStrokeProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(XAxisStroke));
@@ -105,7 +62,90 @@ namespace WalletWasabi.Fluent.Controls
 
         #endregion
 
+        #region XAxis Label
+
+        public static readonly StyledProperty<IBrush?> XAxisLabelForegroundProperty =
+	        AvaloniaProperty.Register<LineChart, IBrush?>(nameof(XAxisLabelForeground));
+
+        public static readonly StyledProperty<double> XAxisLabelOpacityProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(XAxisLabelOpacity));
+
+        public static readonly StyledProperty<Point> XAxisLabelOffsetProperty =
+	        AvaloniaProperty.Register<LineChart, Point>(nameof(XAxisLabelOffset));
+
+        public static readonly StyledProperty<Size> XAxisLabelSizeProperty =
+	        AvaloniaProperty.Register<LineChart, Size>(nameof(XAxisLabelSize));
+
+        public static readonly StyledProperty<TextAlignment> XAxisLabelAlignmentProperty =
+	        AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(XAxisLabelAlignment));
+
+        public static readonly StyledProperty<double> XAxisLabelAngleProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(XAxisLabelAngle));
+
+        public static readonly StyledProperty<FontFamily> XAxisLabelFontFamilyProperty =
+	        AvaloniaProperty.Register<LineChart, FontFamily>(nameof(XAxisLabelFontFamily));
+
+        public static readonly StyledProperty<FontStyle> XAxisLabelFontStyleProperty =
+	        AvaloniaProperty.Register<LineChart, FontStyle>(nameof(XAxisLabelFontStyle));
+
+        public static readonly StyledProperty<FontWeight> XAxisLabelFontWeightProperty =
+	        AvaloniaProperty.Register<LineChart, FontWeight>(nameof(XAxisLabelFontWeight));
+
+        public static readonly StyledProperty<double> XAxisLabelFontSizeProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(XAxisLabelFontSize));
+
+        #endregion
+
+        #region XAxis Title
+
+        public static readonly StyledProperty<string> XAxisTitleProperty =
+	        AvaloniaProperty.Register<LineChart, string>(nameof(XAxisTitle));
+
+        public static readonly StyledProperty<IBrush?> XAxisTitleForegroundProperty =
+	        AvaloniaProperty.Register<LineChart, IBrush?>(nameof(XAxisTitleForeground));
+
+        public static readonly StyledProperty<double> XAxisTitleOffsetProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(XAxisTitleOffset));
+
+        public static readonly StyledProperty<double> XAxisTitleHeightProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(XAxisTitleHeight));
+
+        public static readonly StyledProperty<TextAlignment> XAxisTitleAlignmentProperty =
+	        AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(XAxisTitleAlignment));
+
+        public static readonly StyledProperty<double> XAxisTitleAngleProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(XAxisTitleAngle));
+
+        public static readonly StyledProperty<FontFamily> XAxisTitleFontFamilyProperty =
+	        AvaloniaProperty.Register<LineChart, FontFamily>(nameof(XAxisTitleFontFamily));
+
+        public static readonly StyledProperty<FontStyle> XAxisTitleFontStyleProperty =
+	        AvaloniaProperty.Register<LineChart, FontStyle>(nameof(XAxisTitleFontStyle));
+
+        public static readonly StyledProperty<FontWeight> XAxisTitleFontWeightProperty =
+	        AvaloniaProperty.Register<LineChart, FontWeight>(nameof(XAxisTitleFontWeight));
+
+        public static readonly StyledProperty<double> XAxisTitleFontSizeProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(XAxisTitleFontSize));
+
+        #endregion
+
         #region YAxis
+
+        public static readonly StyledProperty<List<double>?> YAxisValuesProperty =
+	        AvaloniaProperty.Register<LineChart, List<double>?>(nameof(YValues));
+
+        public static readonly StyledProperty<bool> YAxisLogarithmicScaleProperty =
+	        AvaloniaProperty.Register<LineChart, bool>(nameof(YAxisLogarithmicScale));
+
+        public static readonly StyledProperty<double> XAxisCurrentValueProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(XCurrentValue));
+
+        public static readonly StyledProperty<double> XAxisMinValueProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(XMinValue));
+
+        public static readonly StyledProperty<double> XAxisMaxValueProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(XMaxValue));
 
         public static readonly StyledProperty<IBrush?> YAxisStrokeProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(YAxisStroke));
@@ -118,41 +158,7 @@ namespace WalletWasabi.Fluent.Controls
 
         #endregion
 
-        #region XAxisTitle
-
-        public static readonly StyledProperty<string> XAxisTitleProperty =
-	        AvaloniaProperty.Register<LineChart, string>(nameof(XAxisTitle));
-
-        public static readonly StyledProperty<IBrush?> XAxisTitleForegroundProperty =
-            AvaloniaProperty.Register<LineChart, IBrush?>(nameof(XAxisTitleForeground));
-
-        public static readonly StyledProperty<double> XAxisTitleOffsetProperty =
-            AvaloniaProperty.Register<LineChart, double>(nameof(XAxisTitleOffset));
-
-        public static readonly StyledProperty<double> XAxisTitleHeightProperty =
-            AvaloniaProperty.Register<LineChart, double>(nameof(XAxisTitleHeight));
-
-        public static readonly StyledProperty<TextAlignment> XAxisTitleAlignmentProperty =
-            AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(XAxisTitleAlignment));
-
-        public static readonly StyledProperty<double> XAxisTitleAngleProperty =
-            AvaloniaProperty.Register<LineChart, double>(nameof(XAxisTitleAngle));
-
-        public static readonly StyledProperty<FontFamily> XAxisTitleFontFamilyProperty =
-            AvaloniaProperty.Register<LineChart, FontFamily>(nameof(XAxisTitleFontFamily));
-
-        public static readonly StyledProperty<FontStyle> XAxisTitleFontStyleProperty =
-            AvaloniaProperty.Register<LineChart, FontStyle>(nameof(XAxisTitleFontStyle));
-
-        public static readonly StyledProperty<FontWeight> XAxisTitleFontWeightProperty =
-            AvaloniaProperty.Register<LineChart, FontWeight>(nameof(XAxisTitleFontWeight));
-
-        public static readonly StyledProperty<double> XAxisTitleFontSizeProperty =
-            AvaloniaProperty.Register<LineChart, double>(nameof(XAxisTitleFontSize));
-
-        #endregion
-
-        #region YAxisTitle
+        #region YAxis Title
 
         public static readonly StyledProperty<string> YAxisTitleProperty =
 	        AvaloniaProperty.Register<LineChart, string>(nameof(YAxisTitle));
@@ -187,9 +193,6 @@ namespace WalletWasabi.Fluent.Controls
         #endregion
 
         #region Cursor
-
-        public static readonly StyledProperty<double> CursorValueProperty =
-	        AvaloniaProperty.Register<LineChart, double>(nameof(CursorValue));
 
         public static readonly StyledProperty<IBrush?> CursorStrokeProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(CursorStroke));
@@ -241,11 +244,11 @@ namespace WalletWasabi.Fluent.Controls
         {
 	        AffectsMeasure<LineChart>(AreaMarginProperty);
 	        AffectsRender<LineChart>(
-		        ValuesProperty,
+		        YAxisValuesProperty,
 		        XAxisLabelsProperty,
-		        MinValueProperty,
-		        MaxValueProperty,
-		        CursorValueProperty);
+		        XAxisMinValueProperty,
+		        XAxisMaxValueProperty,
+		        XAxisCurrentValueProperty);
         }
 
         #endregion
@@ -265,173 +268,249 @@ namespace WalletWasabi.Fluent.Controls
 
         #region Area
 
-        public List<double>? Values
-        {
-            get => GetValue(ValuesProperty);
-            set => SetValue(ValuesProperty, value);
-        }
-
-        public double MinValue
-        {
-            get => GetValue(MinValueProperty);
-            set => SetValue(MinValueProperty, value);
-        }
-
-        public double MaxValue
-        {
-            get => GetValue(MaxValueProperty);
-            set => SetValue(MaxValueProperty, value);
-        }
-
-        public bool LogarithmicScale
-        {
-            get => GetValue(LogarithmicScaleProperty);
-            set => SetValue(LogarithmicScaleProperty, value);
-        }
-
         public Thickness AreaMargin
         {
 	        get => GetValue(AreaMarginProperty);
 	        set => SetValue(AreaMarginProperty, value);
         }
 
-        public IBrush? Fill
+        public IBrush? AreaFill
         {
-            get => GetValue(FillProperty);
-            set => SetValue(FillProperty, value);
+            get => GetValue(AreaFillProperty);
+            set => SetValue(AreaFillProperty, value);
         }
 
-        public IBrush? Stroke
+        public IBrush? AreaStroke
         {
-            get => GetValue(StrokeProperty);
-            set => SetValue(StrokeProperty, value);
+            get => GetValue(AreaStrokeProperty);
+            set => SetValue(AreaStrokeProperty, value);
         }
 
-        public double StrokeThickness
+        public double AreaStrokeThickness
         {
-            get => GetValue(StrokeThicknessProperty);
-            set => SetValue(StrokeThicknessProperty, value);
+            get => GetValue(AreaStrokeThicknessProperty);
+            set => SetValue(AreaStrokeThicknessProperty, value);
         }
 
-        public IDashStyle? StrokeDashStyle
+        public IDashStyle? AreaStrokeDashStyle
         {
-	        get => GetValue(StrokeDashStyleProperty);
-	        set => SetValue(StrokeDashStyleProperty, value);
+	        get => GetValue(AreaStrokeDashStyleProperty);
+	        set => SetValue(AreaStrokeDashStyleProperty, value);
         }
 
-        public PenLineCap StrokeLineCap
+        public PenLineCap AreaStrokeLineCap
         {
-	        get => GetValue(StrokeLineCapProperty);
-	        set => SetValue(StrokeLineCapProperty, value);
+	        get => GetValue(AreaStrokeLineCapProperty);
+	        set => SetValue(AreaStrokeLineCapProperty, value);
         }
 
-        public PenLineJoin StrokeLineJoin
+        public PenLineJoin AreaStrokeLineJoin
         {
-	        get => GetValue(StrokeLineJoinProperty);
-	        set => SetValue(StrokeLineJoinProperty, value);
+	        get => GetValue(AreaStrokeLineJoinProperty);
+	        set => SetValue(AreaStrokeLineJoinProperty, value);
         }
 
-        public double StrokeMiterLimit
+        public double AreaStrokeMiterLimit
         {
-	        get => GetValue(StrokeMiterLimitProperty);
-	        set => SetValue(StrokeMiterLimitProperty, value);
-        }
-
-        #endregion
-
-        #region Labels
-
-        public List<string>? XAxisLabels
-        {
-            get => GetValue(XAxisLabelsProperty);
-            set => SetValue(XAxisLabelsProperty, value);
-        }
-
-        public IBrush? LabelForeground
-        {
-            get => GetValue(LabelForegroundProperty);
-            set => SetValue(LabelForegroundProperty, value);
-        }
-
-        public double LabelOpacity
-        {
-	        get => GetValue(LabelOpacityProperty);
-	        set => SetValue(LabelOpacityProperty, value);
-        }
-
-        public double LabelAngle
-        {
-            get => GetValue(LabelAngleProperty);
-            set => SetValue(LabelAngleProperty, value);
-        }
-
-        public Point LabelOffset
-        {
-            get => GetValue(LabelOffsetProperty);
-            set => SetValue(LabelOffsetProperty, value);
-        }
-
-        public Size LabelSize
-        {
-            get => GetValue(LabelSizeProperty);
-            set => SetValue(LabelSizeProperty, value);
-        }
-
-        public TextAlignment LabelAlignment
-        {
-            get => GetValue(LabelAlignmentProperty);
-            set => SetValue(LabelAlignmentProperty, value);
-        }
-
-        public FontFamily LabelFontFamily
-        {
-            get => GetValue(LabelFontFamilyProperty);
-            set => SetValue(LabelFontFamilyProperty, value);
-        }
-
-        public FontStyle LabelFontStyle
-        {
-            get => GetValue(LabelFontStyleProperty);
-            set => SetValue(LabelFontStyleProperty, value);
-        }
-
-        public FontWeight LabelFontWeight
-        {
-            get => GetValue(LabelFontWeightProperty);
-            set => SetValue(LabelFontWeightProperty, value);
-        }
-
-        public double LabelFontSize
-        {
-            get => GetValue(LabelFontSizeProperty);
-            set => SetValue(LabelFontSizeProperty, value);
+	        get => GetValue(AreaStrokeMiterLimitProperty);
+	        set => SetValue(AreaStrokeMiterLimitProperty, value);
         }
 
         #endregion
 
         #region XAxis
 
+        public double XCurrentValue
+        {
+	        get => GetValue(XAxisCurrentValueProperty);
+	        set => SetValue(XAxisCurrentValueProperty, value);
+        }
+
+        public double XMinValue
+        {
+	        get => GetValue(XAxisMinValueProperty);
+	        set => SetValue(XAxisMinValueProperty, value);
+        }
+
+        public double XMaxValue
+        {
+	        get => GetValue(XAxisMaxValueProperty);
+	        set => SetValue(XAxisMaxValueProperty, value);
+        }
+
+        public List<string>? XAxisLabels
+        {
+	        get => GetValue(XAxisLabelsProperty);
+	        set => SetValue(XAxisLabelsProperty, value);
+        }
+
+        public List<double>? XAxisValues
+        {
+	        get => GetValue(XAxisValuesProperty);
+	        set => SetValue(XAxisValuesProperty, value);
+        }
+
         public IBrush? XAxisStroke
         {
-            get => GetValue(XAxisStrokeProperty);
-            set => SetValue(XAxisStrokeProperty, value);
+	        get => GetValue(XAxisStrokeProperty);
+	        set => SetValue(XAxisStrokeProperty, value);
         }
 
         public double XAxisStrokeThickness
         {
-            get => GetValue(XAxisStrokeThicknessProperty);
-            set => SetValue(XAxisStrokeThicknessProperty, value);
+	        get => GetValue(XAxisStrokeThicknessProperty);
+	        set => SetValue(XAxisStrokeThicknessProperty, value);
         }
 
         public double XAxisArrowSize
         {
-            get => GetValue(XAxisArrowSizeProperty);
-            set => SetValue(XAxisArrowSizeProperty, value);
+	        get => GetValue(XAxisArrowSizeProperty);
+	        set => SetValue(XAxisArrowSizeProperty, value);
+        }
+
+        #endregion
+
+        #region XAxis Label
+
+        public IBrush? XAxisLabelForeground
+        {
+            get => GetValue(XAxisLabelForegroundProperty);
+            set => SetValue(XAxisLabelForegroundProperty, value);
+        }
+
+        public double XAxisLabelOpacity
+        {
+	        get => GetValue(XAxisLabelOpacityProperty);
+	        set => SetValue(XAxisLabelOpacityProperty, value);
+        }
+
+        public double XAxisLabelAngle
+        {
+            get => GetValue(XAxisLabelAngleProperty);
+            set => SetValue(XAxisLabelAngleProperty, value);
+        }
+
+        public Point XAxisLabelOffset
+        {
+            get => GetValue(XAxisLabelOffsetProperty);
+            set => SetValue(XAxisLabelOffsetProperty, value);
+        }
+
+        public Size XAxisLabelSize
+        {
+            get => GetValue(XAxisLabelSizeProperty);
+            set => SetValue(XAxisLabelSizeProperty, value);
+        }
+
+        public TextAlignment XAxisLabelAlignment
+        {
+            get => GetValue(XAxisLabelAlignmentProperty);
+            set => SetValue(XAxisLabelAlignmentProperty, value);
+        }
+
+        public FontFamily XAxisLabelFontFamily
+        {
+            get => GetValue(XAxisLabelFontFamilyProperty);
+            set => SetValue(XAxisLabelFontFamilyProperty, value);
+        }
+
+        public FontStyle XAxisLabelFontStyle
+        {
+            get => GetValue(XAxisLabelFontStyleProperty);
+            set => SetValue(XAxisLabelFontStyleProperty, value);
+        }
+
+        public FontWeight XAxisLabelFontWeight
+        {
+            get => GetValue(XAxisLabelFontWeightProperty);
+            set => SetValue(XAxisLabelFontWeightProperty, value);
+        }
+
+        public double XAxisLabelFontSize
+        {
+            get => GetValue(XAxisLabelFontSizeProperty);
+            set => SetValue(XAxisLabelFontSizeProperty, value);
+        }
+
+        #endregion
+
+        #region XAxis Title
+
+        public string XAxisTitle
+        {
+	        get => GetValue(XAxisTitleProperty);
+	        set => SetValue(XAxisTitleProperty, value);
+        }
+
+        public IBrush? XAxisTitleForeground
+        {
+	        get => GetValue(XAxisTitleForegroundProperty);
+	        set => SetValue(XAxisTitleForegroundProperty, value);
+        }
+
+        public double XAxisTitleAngle
+        {
+	        get => GetValue(XAxisTitleAngleProperty);
+	        set => SetValue(XAxisTitleAngleProperty, value);
+        }
+
+        public double XAxisTitleOffset
+        {
+	        get => GetValue(XAxisTitleOffsetProperty);
+	        set => SetValue(XAxisTitleOffsetProperty, value);
+        }
+
+        public double XAxisTitleHeight
+        {
+	        get => GetValue(XAxisTitleHeightProperty);
+	        set => SetValue(XAxisTitleHeightProperty, value);
+        }
+
+        public TextAlignment XAxisTitleAlignment
+        {
+	        get => GetValue(XAxisTitleAlignmentProperty);
+	        set => SetValue(XAxisTitleAlignmentProperty, value);
+        }
+
+        public FontFamily XAxisTitleFontFamily
+        {
+	        get => GetValue(XAxisTitleFontFamilyProperty);
+	        set => SetValue(XAxisTitleFontFamilyProperty, value);
+        }
+
+        public FontStyle XAxisTitleFontStyle
+        {
+	        get => GetValue(XAxisTitleFontStyleProperty);
+	        set => SetValue(XAxisTitleFontStyleProperty, value);
+        }
+
+        public FontWeight XAxisTitleFontWeight
+        {
+	        get => GetValue(XAxisTitleFontWeightProperty);
+	        set => SetValue(XAxisTitleFontWeightProperty, value);
+        }
+
+        public double XAxisTitleFontSize
+        {
+	        get => GetValue(XAxisTitleFontSizeProperty);
+	        set => SetValue(XAxisTitleFontSizeProperty, value);
         }
 
         #endregion
 
         #region YAxis
+
+        public List<double>? YValues
+        {
+	        get => GetValue(YAxisValuesProperty);
+	        set => SetValue(YAxisValuesProperty, value);
+        }
+
+        public bool YAxisLogarithmicScale
+        {
+	        get => GetValue(YAxisLogarithmicScaleProperty);
+	        set => SetValue(YAxisLogarithmicScaleProperty, value);
+        }
 
         public IBrush? YAxisStroke
         {
@@ -449,70 +528,6 @@ namespace WalletWasabi.Fluent.Controls
         {
             get => GetValue(YAxisArrowSizeProperty);
             set => SetValue(YAxisArrowSizeProperty, value);
-        }
-
-        #endregion
-
-        #region XAxisTitle
-
-        public string XAxisTitle
-        {
-	        get => GetValue(XAxisTitleProperty);
-	        set => SetValue(XAxisTitleProperty, value);
-        }
-
-        public IBrush? XAxisTitleForeground
-        {
-            get => GetValue(XAxisTitleForegroundProperty);
-            set => SetValue(XAxisTitleForegroundProperty, value);
-        }
-
-        public double XAxisTitleAngle
-        {
-            get => GetValue(XAxisTitleAngleProperty);
-            set => SetValue(XAxisTitleAngleProperty, value);
-        }
-
-        public double XAxisTitleOffset
-        {
-            get => GetValue(XAxisTitleOffsetProperty);
-            set => SetValue(XAxisTitleOffsetProperty, value);
-        }
-
-        public double XAxisTitleHeight
-        {
-            get => GetValue(XAxisTitleHeightProperty);
-            set => SetValue(XAxisTitleHeightProperty, value);
-        }
-
-        public TextAlignment XAxisTitleAlignment
-        {
-            get => GetValue(XAxisTitleAlignmentProperty);
-            set => SetValue(XAxisTitleAlignmentProperty, value);
-        }
-
-        public FontFamily XAxisTitleFontFamily
-        {
-            get => GetValue(XAxisTitleFontFamilyProperty);
-            set => SetValue(XAxisTitleFontFamilyProperty, value);
-        }
-
-        public FontStyle XAxisTitleFontStyle
-        {
-            get => GetValue(XAxisTitleFontStyleProperty);
-            set => SetValue(XAxisTitleFontStyleProperty, value);
-        }
-
-        public FontWeight XAxisTitleFontWeight
-        {
-            get => GetValue(XAxisTitleFontWeightProperty);
-            set => SetValue(XAxisTitleFontWeightProperty, value);
-        }
-
-        public double XAxisTitleFontSize
-        {
-            get => GetValue(XAxisTitleFontSizeProperty);
-            set => SetValue(XAxisTitleFontSizeProperty, value);
         }
 
         #endregion
@@ -582,12 +597,6 @@ namespace WalletWasabi.Fluent.Controls
         #endregion
 
         #region Cursor
-
-        public double CursorValue
-        {
-	        get => GetValue(CursorValueProperty);
-	        set => SetValue(CursorValueProperty, value);
-        }
 
         public IBrush? CursorStroke
         {
@@ -715,10 +724,10 @@ namespace WalletWasabi.Fluent.Controls
 
         private void UpdateCursorPosition(double x)
         {
-	        var rangeValues = MaxValue - MinValue;
+	        var rangeValues = XMaxValue - XMinValue;
 	        var rangeArea = Bounds.Width - AreaMargin.Left - AreaMargin.Right;
 	        var value = Clamp(x - AreaMargin.Left, 0, rangeArea);
-	        CursorValue = MaxValue - rangeValues / rangeArea * value;
+	        XCurrentValue = XMaxValue - rangeValues / rangeArea * value;
         }
 
         private void PointerMovedHandler(object? sender, PointerEventArgs e)
@@ -751,17 +760,17 @@ namespace WalletWasabi.Fluent.Controls
         {
 	        var state = new LineChartState();
 
-	        state.Width = width;
-	        state.Height = height;
+	        state.ChartWidth = width;
+	        state.ChartHeight = height;
 
 	        state.AreaMargin = AreaMargin;
 	        state.AreaWidth = width - state.AreaMargin.Left - state.AreaMargin.Right;
 	        state.AreaHeight = height - state.AreaMargin.Top - state.AreaMargin.Bottom;
 
-	        var values = Values;
+	        var values = YValues;
 	        if (values is not null)
 	        {
-		        var logarithmicScale = LogarithmicScale;
+		        var logarithmicScale = YAxisLogarithmicScale;
 
 		        var valuesList = logarithmicScale ?
 			        values.Select(y => Math.Log(y)).ToList()
@@ -784,12 +793,12 @@ namespace WalletWasabi.Fluent.Controls
 	        var labels = XAxisLabels;
 	        if (labels is not null)
 	        {
-		        state.Labels = labels.ToList();
+		        state.XLabels = labels.ToList();
 	        }
 
-	        var minValue = MinValue;
-	        var maxValue = MaxValue;
-	        var cursorValue = CursorValue;
+	        var minValue = XMinValue;
+	        var maxValue = XMaxValue;
+	        var cursorValue = XCurrentValue;
 	        state.CursorPosition = ScaleHorizontal(maxValue - cursorValue, maxValue, state.AreaWidth);
 
 	        return state;
@@ -801,7 +810,7 @@ namespace WalletWasabi.Fluent.Controls
 	        {
 		        return;
 	        }
-            var brush = Fill;
+            var brush = AreaFill;
             if (brush is null)
             {
 	            return;
@@ -822,16 +831,16 @@ namespace WalletWasabi.Fluent.Controls
 	        {
 		        return;
 	        }
-            var brush = Stroke;
+            var brush = AreaStroke;
             if (brush is null)
             {
 	            return;
             }
-            var thickness = StrokeThickness;
-            var dashStyle = StrokeDashStyle;
-            var lineCap = StrokeLineCap;
-            var lineJoin = StrokeLineJoin;
-            var miterLimit = StrokeMiterLimit;
+            var thickness = AreaStrokeThickness;
+            var dashStyle = AreaStrokeDashStyle;
+            var lineCap = AreaStrokeLineCap;
+            var lineJoin = AreaStrokeLineJoin;
+            var miterLimit = AreaStrokeMiterLimit;
             var pen = new Pen(brush, thickness, dashStyle, lineCap, lineJoin, miterLimit);
             var deflate = thickness * 0.5;
             var geometry = CreateStrokeGeometry(state.Points);
@@ -891,6 +900,55 @@ namespace WalletWasabi.Fluent.Controls
             var p5 = new Point(p2.X, p2.Y);
             var p6 = new Point(p2.X - size, p2.Y + size);
             context.DrawLine(pen, p5, p6);
+        }
+
+        private void DrawXAxisLabels(DrawingContext context, LineChartState state)
+        {
+	        if (state.XLabels is null)
+	        {
+		        return;
+	        }
+	        var foreground = XAxisLabelForeground;
+	        if (foreground is null)
+	        {
+		        return;
+	        }
+	        var opacity = XAxisLabelOpacity;
+            var fontFamily = XAxisLabelFontFamily;
+            var fontStyle = XAxisLabelFontStyle;
+            var fontWeight = XAxisLabelFontWeight;
+            var typeface = new Typeface(fontFamily, fontStyle, fontWeight);
+            var fontSize = XAxisLabelFontSize;
+            var offset = XAxisLabelOffset;
+            var size = XAxisLabelSize;
+            var angleRadians = Math.PI / 180.0 * XAxisLabelAngle;
+            var alignment = XAxisLabelAlignment;
+            var originTop = state.AreaHeight + state.AreaMargin.Top;
+            var offsetTransform = context.PushPreTransform(Matrix.CreateTranslation(offset.X, offset.Y));
+            for (var i = 0; i < state.XLabels.Count; i++)
+            {
+	            var origin = new Point(i * state.Step - size.Width / 2 + state.AreaMargin.Left, originTop);
+                var constraint = new Size(size.Width, size.Height);
+                var formattedText = CreateFormattedText(state.XLabels[i], typeface, alignment, fontSize, constraint);
+                var xPosition = origin.X + size.Width / 2;
+                var yPosition = origin.Y + size.Height / 2;
+                var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
+                             * Matrix.CreateRotation(angleRadians)
+                             * Matrix.CreateTranslation(xPosition, yPosition);
+                var labelTransform = context.PushPreTransform(matrix);
+                var offsetCenter = new Point(0, size.Height / 2 - formattedText.Bounds.Height / 2);
+                var opacityState = context.PushOpacity(opacity);
+                context.DrawText(foreground, origin + offsetCenter, formattedText);
+#if DEBUG_LABELS
+                context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Magenta)), new Rect(origin, constraint));
+#endif
+	            opacityState.Dispose();
+                labelTransform.Dispose();
+#if DEBUG_LABELS
+                context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Cyan)), new Rect(origin, constraint));
+#endif
+            }
+            offsetTransform.Dispose();
         }
 
         private void DrawYAxis(DrawingContext context, LineChartState state)
@@ -955,63 +1013,18 @@ namespace WalletWasabi.Fluent.Controls
 #endif
         }
 
-        private void DrawLabels(DrawingContext context, LineChartState state)
-        {
-	        if (state.Labels is null)
-	        {
-		        return;
-	        }
-	        var foreground = LabelForeground;
-	        if (foreground is null)
-	        {
-		        return;
-	        }
-	        var opacity = LabelOpacity;
-            var fontFamily = LabelFontFamily;
-            var fontStyle = LabelFontStyle;
-            var fontWeight = LabelFontWeight;
-            var typeface = new Typeface(fontFamily, fontStyle, fontWeight);
-            var fontSize = LabelFontSize;
-            var offset = LabelOffset;
-            var size = LabelSize;
-            var angleRadians = Math.PI / 180.0 * LabelAngle;
-            var alignment = LabelAlignment;
-            var originTop = state.AreaHeight + state.AreaMargin.Top;
-            var offsetTransform = context.PushPreTransform(Matrix.CreateTranslation(offset.X, offset.Y));
-            for (var i = 0; i < state.Labels.Count; i++)
-            {
-	            var origin = new Point(i * state.Step - size.Width / 2 + state.AreaMargin.Left, originTop);
-                var constraint = new Size(size.Width, size.Height);
-                var formattedText = CreateFormattedText(state.Labels[i], typeface, alignment, fontSize, constraint);
-                var xPosition = origin.X + size.Width / 2;
-                var yPosition = origin.Y + size.Height / 2;
-                var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
-                             * Matrix.CreateRotation(angleRadians)
-                             * Matrix.CreateTranslation(xPosition, yPosition);
-                var labelTransform = context.PushPreTransform(matrix);
-                var offsetCenter = new Point(0, size.Height / 2 - formattedText.Bounds.Height / 2);
-                var opacityState = context.PushOpacity(opacity);
-                context.DrawText(foreground, origin + offsetCenter, formattedText);
-#if DEBUG_LABELS
-                context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Magenta)), new Rect(origin, constraint));
-#endif
-	            opacityState.Dispose();
-                labelTransform.Dispose();
-#if DEBUG_LABELS
-                context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Cyan)), new Rect(origin, constraint));
-#endif
-            }
-            offsetTransform.Dispose();
-        }
-
         private void DrawBorder(DrawingContext context, LineChartState state)
         {
             var brush = BorderBrush;
+            if (brush is null)
+            {
+	            return;
+            }
             var thickness = BorderThickness;
             var radiusX = BorderRadiusX;
             var radiusY = BorderRadiusY;
             var pen = new Pen(brush, thickness, null, PenLineCap.Round, PenLineJoin.Miter, 10.0);
-            var rect = new Rect(0, 0, state.Width, state.Height);
+            var rect = new Rect(0, 0, state.ChartWidth, state.ChartHeight);
             var rectDeflate = rect.Deflate(thickness * 0.5);
             context.DrawRectangle(Brushes.Transparent, pen, rectDeflate, radiusX, radiusY);
         }
@@ -1028,19 +1041,19 @@ namespace WalletWasabi.Fluent.Controls
 	        DrawXAxis(context, state);
 	        DrawYAxis(context, state);
 	        DrawYAxisTitle(context, state);
-	        DrawLabels(context, state);
+	        DrawXAxisLabels(context, state);
 	        DrawBorder(context, state);
         }
 
         private class LineChartState
         {
-	        public double Width { get; set; }
-	        public double Height { get; set; }
+	        public double ChartWidth { get; set; }
+	        public double ChartHeight { get; set; }
 	        public double AreaWidth { get; set; }
 	        public double AreaHeight { get; set; }
 	        public Thickness AreaMargin { get; set; }
 	        public Point[]? Points { get; set; }
-	        public List<string>? Labels { get; set; }
+	        public List<string>? XLabels { get; set; }
 	        public double Step { get; set; }
 	        public double CursorPosition { get; set; }
         }
