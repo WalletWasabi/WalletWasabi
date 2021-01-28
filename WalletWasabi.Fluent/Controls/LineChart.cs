@@ -876,7 +876,7 @@ namespace WalletWasabi.Fluent.Controls
             }
             var size = XAxisArrowSize;
             var thickness = XAxisStrokeThickness;
-            var pen = new Pen(brush, thickness);
+            var pen = new Pen(brush, thickness, null, PenLineCap.Round, PenLineJoin.Miter, 10.0);
             var deflate = thickness * 0.5;
             var p1 = new Point(
 	            state.AreaMargin.Left + 0.0,
@@ -902,7 +902,7 @@ namespace WalletWasabi.Fluent.Controls
 	        }
             var size = YAxisArrowSize;
             var thickness = YAxisStrokeThickness;
-            var pen = new Pen(brush, thickness);
+            var pen = new Pen(brush, thickness, null, PenLineCap.Round, PenLineJoin.Miter, 10.0);
             var deflate = thickness * 0.5;
             var p1 = new Point(
 	            state.AreaMargin.Left / 2 + deflate,
@@ -1010,7 +1010,7 @@ namespace WalletWasabi.Fluent.Controls
             var thickness = BorderThickness;
             var radiusX = BorderRadiusX;
             var radiusY = BorderRadiusY;
-            var pen = new Pen(brush, thickness);
+            var pen = new Pen(brush, thickness, null, PenLineCap.Round, PenLineJoin.Miter, 10.0);
             var rect = new Rect(0, 0, state.Width, state.Height);
             var rectDeflate = rect.Deflate(thickness * 0.5);
             context.DrawRectangle(Brushes.Transparent, pen, rectDeflate, radiusX, radiusY);
