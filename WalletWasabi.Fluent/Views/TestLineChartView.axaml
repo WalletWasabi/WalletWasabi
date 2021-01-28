@@ -39,7 +39,7 @@
             <Setter Property="LabelFontFamily" Value="Arial" />
             <Setter Property="LabelFontStyle" Value="Normal" />
             <Setter Property="LabelFontWeight" Value="Normal" />
-            <Setter Property="LabelFontSize" Value="11" />
+            <Setter Property="LabelFontSize" Value="10" />
         </Style>
         <!-- LineChart Cursor -->
         <Style Selector="c|LineChart.cursor">
