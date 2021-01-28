@@ -11,7 +11,7 @@ using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Controls
 {
-	public partial class LineChart : Control
+	public partial class LineChart
     {
 	    // Area
 
