@@ -18,7 +18,7 @@ using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 
 namespace WalletWasabi.Tor.Http
 {
-	public class TorHttpClient : IRelativeHttpClient, IDisposable
+	public class TorHttpClient : IHttpClient, IDisposable
 	{
 		private static DateTimeOffset? TorDoesntWorkSinceBacking = null;
 
@@ -32,10 +32,10 @@ namespace WalletWasabi.Tor.Http
 
 		public TorHttpClient(Func<Uri> baseUriAction, EndPoint? torSocks5EndPoint, bool isolateStream = false)
 		{
-			DestinationUriAction = Guard.NotNull(nameof(baseUriAction), baseUriAction);
+			BaseUriGetter = Guard.NotNull(nameof(baseUriAction), baseUriAction);
 
 			// Connecting to loopback's URIs cannot be done via Tor.
-			TorSocks5EndPoint = DestinationUriAction().IsLoopback ? null : torSocks5EndPoint;
+			TorSocks5EndPoint = BaseUriGetter().IsLoopback ? null : torSocks5EndPoint;
 			TorSocks5Client = null;
 			DefaultIsolateStream = isolateStream;
 		}
@@ -58,7 +58,7 @@ namespace WalletWasabi.Tor.Http
 
 		public static Exception? LatestTorException { get; private set; } = null;
 
-		public Func<Uri> DestinationUriAction { get; }
+		public Func<Uri> BaseUriGetter { get; }
 		public EndPoint? TorSocks5EndPoint { get; private set; }
 
 		/// <inheritdoc/>
@@ -70,7 +70,7 @@ namespace WalletWasabi.Tor.Http
 
 		private Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request, bool isolateStream, CancellationToken cancellationToken = default)
 		{
-			return new ClearnetHttpClient(DestinationUriAction).SendAsync(request, isolateStream, cancellationToken);
+			return new ClearnetHttpClient(BaseUriGetter).SendAsync(request, isolateStream, cancellationToken);
 		}
 
 		/// <exception cref="HttpRequestException">When HTTP request fails to be processed. Inner exception may be an instance of <see cref="TorException"/>.</exception>
@@ -79,7 +79,7 @@ namespace WalletWasabi.Tor.Http
 		{
 			Guard.NotNull(nameof(method), method);
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
-			var requestUri = new Uri(DestinationUriAction(), relativeUri);
+			var requestUri = new Uri(BaseUriGetter(), relativeUri);
 			using var request = new HttpRequestMessage(method, requestUri);
 
 			if (content is { })
