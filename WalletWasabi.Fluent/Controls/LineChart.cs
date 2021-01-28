@@ -29,6 +29,9 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<bool> LogarithmicScaleProperty =
             AvaloniaProperty.Register<LineChart, bool>(nameof(LogarithmicScale));
 
+        public static readonly StyledProperty<Thickness> AreaMarginProperty =
+	        AvaloniaProperty.Register<LineChart, Thickness>(nameof(AreaMargin));
+
         public static readonly StyledProperty<IBrush?> FillProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(Fill));
 
@@ -36,10 +39,19 @@ namespace WalletWasabi.Fluent.Controls
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(Stroke));
 
         public static readonly StyledProperty<double> StrokeThicknessProperty =
-            AvaloniaProperty.Register<LineChart, double>(nameof(StrokeThickness));
+            AvaloniaProperty.Register<LineChart, double>(nameof(StrokeThickness), 1.0);
 
-        public static readonly StyledProperty<Thickness> AreaMarginProperty =
-            AvaloniaProperty.Register<LineChart, Thickness>(nameof(AreaMargin));
+        public static readonly StyledProperty<IDashStyle?> StrokeDashStyleProperty =
+	        AvaloniaProperty.Register<LineChart, IDashStyle?>(nameof(StrokeDashStyle), null);
+
+        public static readonly StyledProperty<PenLineCap> StrokeLineCapProperty =
+	        AvaloniaProperty.Register<LineChart, PenLineCap>(nameof(StrokeLineCap), PenLineCap.Flat);
+
+        public static readonly StyledProperty<PenLineJoin> StrokeLineJoinProperty =
+	        AvaloniaProperty.Register<LineChart, PenLineJoin>(nameof(StrokeLineJoin), PenLineJoin.Miter);
+
+        public static readonly StyledProperty<double> StrokeMiterLimitProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(StrokeMiterLimit), 10.0);
 
         #endregion
 
@@ -176,14 +188,26 @@ namespace WalletWasabi.Fluent.Controls
 
         #region Cursor
 
+        public static readonly StyledProperty<double> CursorValueProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(CursorValue));
+
         public static readonly StyledProperty<IBrush?> CursorStrokeProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(CursorStroke));
 
-        public static readonly StyledProperty<double> CursorThicknessProperty =
-            AvaloniaProperty.Register<LineChart, double>(nameof(CursorThickness));
+        public static readonly StyledProperty<double> CursorStrokeThicknessProperty =
+            AvaloniaProperty.Register<LineChart, double>(nameof(CursorStrokeThickness), 1.0);
 
-        public static readonly StyledProperty<double> CursorValueProperty =
-            AvaloniaProperty.Register<LineChart, double>(nameof(CursorValue));
+        public static readonly StyledProperty<IDashStyle?> CursorStrokeDashStyleProperty =
+	        AvaloniaProperty.Register<LineChart, IDashStyle?>(nameof(CursorStrokeDashStyle), null);
+
+        public static readonly StyledProperty<PenLineCap> CursorStrokeLineCapProperty =
+	        AvaloniaProperty.Register<LineChart, PenLineCap>(nameof(CursorStrokeLineCap), PenLineCap.Flat);
+
+        public static readonly StyledProperty<PenLineJoin> CursorStrokeLineJoinProperty =
+	        AvaloniaProperty.Register<LineChart, PenLineJoin>(nameof(CursorStrokeLineJoin), PenLineJoin.Miter);
+
+        public static readonly StyledProperty<double> CursorStrokeMiterLimitProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(CursorStrokeMiterLimit), 10.0);
 
         #endregion
 
@@ -215,19 +239,12 @@ namespace WalletWasabi.Fluent.Controls
 
         static LineChart()
         {
-	        AffectsMeasure<LineChart>(StrokeThicknessProperty);
+	        AffectsMeasure<LineChart>(AreaMarginProperty);
 	        AffectsRender<LineChart>(
 		        ValuesProperty,
 		        LabelsProperty,
 		        MinValueProperty,
 		        MaxValueProperty,
-		        FillProperty,
-		        StrokeProperty,
-		        StrokeThicknessProperty,
-		        LabelForegroundProperty,
-		        LabelAngleProperty,
-		        CursorStrokeProperty,
-		        CursorThicknessProperty,
 		        CursorValueProperty);
         }
 
@@ -272,6 +289,12 @@ namespace WalletWasabi.Fluent.Controls
             set => SetValue(LogarithmicScaleProperty, value);
         }
 
+        public Thickness AreaMargin
+        {
+	        get => GetValue(AreaMarginProperty);
+	        set => SetValue(AreaMarginProperty, value);
+        }
+
         public IBrush? Fill
         {
             get => GetValue(FillProperty);
@@ -290,10 +313,28 @@ namespace WalletWasabi.Fluent.Controls
             set => SetValue(StrokeThicknessProperty, value);
         }
 
-        public Thickness AreaMargin
+        public IDashStyle? StrokeDashStyle
         {
-            get => GetValue(AreaMarginProperty);
-            set => SetValue(AreaMarginProperty, value);
+	        get => GetValue(StrokeDashStyleProperty);
+	        set => SetValue(StrokeDashStyleProperty, value);
+        }
+
+        public PenLineCap StrokeLineCap
+        {
+	        get => GetValue(StrokeLineCapProperty);
+	        set => SetValue(StrokeLineCapProperty, value);
+        }
+
+        public PenLineJoin StrokeLineJoin
+        {
+	        get => GetValue(StrokeLineJoinProperty);
+	        set => SetValue(StrokeLineJoinProperty, value);
+        }
+
+        public double StrokeMiterLimit
+        {
+	        get => GetValue(StrokeMiterLimitProperty);
+	        set => SetValue(StrokeMiterLimitProperty, value);
         }
 
         #endregion
@@ -542,22 +583,46 @@ namespace WalletWasabi.Fluent.Controls
 
         #region Cursor
 
+        public double CursorValue
+        {
+	        get => GetValue(CursorValueProperty);
+	        set => SetValue(CursorValueProperty, value);
+        }
+
         public IBrush? CursorStroke
         {
             get => GetValue(CursorStrokeProperty);
             set => SetValue(CursorStrokeProperty, value);
         }
 
-        public double CursorThickness
+        public double CursorStrokeThickness
         {
-            get => GetValue(CursorThicknessProperty);
-            set => SetValue(CursorThicknessProperty, value);
+	        get => GetValue(CursorStrokeThicknessProperty);
+	        set => SetValue(CursorStrokeThicknessProperty, value);
         }
 
-        public double CursorValue
+        public IDashStyle? CursorStrokeDashStyle
         {
-            get => GetValue(CursorValueProperty);
-            set => SetValue(CursorValueProperty, value);
+	        get => GetValue(CursorStrokeDashStyleProperty);
+	        set => SetValue(CursorStrokeDashStyleProperty, value);
+        }
+
+        public PenLineCap CursorStrokeLineCap
+        {
+	        get => GetValue(CursorStrokeLineCapProperty);
+	        set => SetValue(CursorStrokeLineCapProperty, value);
+        }
+
+        public PenLineJoin CursorStrokeLineJoin
+        {
+	        get => GetValue(CursorStrokeLineJoinProperty);
+	        set => SetValue(CursorStrokeLineJoinProperty, value);
+        }
+
+        public double CursorStrokeMiterLimit
+        {
+	        get => GetValue(CursorStrokeMiterLimitProperty);
+	        set => SetValue(CursorStrokeMiterLimitProperty, value);
         }
 
         #endregion
@@ -762,10 +827,14 @@ namespace WalletWasabi.Fluent.Controls
             {
 	            return;
             }
-            var strokeThickness = StrokeThickness;
-            var deflate = strokeThickness * 0.5;
+            var thickness = StrokeThickness;
+            var dashStyle = StrokeDashStyle;
+            var lineCap = StrokeLineCap;
+            var lineJoin = StrokeLineJoin;
+            var miterLimit = StrokeMiterLimit;
+            var pen = new Pen(brush, thickness, dashStyle, lineCap, lineJoin, miterLimit);
+            var deflate = thickness * 0.5;
             var geometry = CreateStrokeGeometry(state.Points);
-            var pen = new Pen(brush, strokeThickness);
             var transform = context.PushPreTransform(
 	            Matrix.CreateTranslation(
 		            state.AreaMargin.Left + deflate,
@@ -781,8 +850,12 @@ namespace WalletWasabi.Fluent.Controls
             {
 	            return;
             }
-            var thickness = CursorThickness;
-            var pen = new Pen(brush, thickness);
+            var thickness = CursorStrokeThickness;
+            var dashStyle = CursorStrokeDashStyle;
+            var lineCap = CursorStrokeLineCap;
+            var lineJoin = CursorStrokeLineJoin;
+            var miterLimit = CursorStrokeMiterLimit;
+            var pen = new Pen(brush, thickness, dashStyle, lineCap, lineJoin, miterLimit);
             var deflate = thickness * 0.5;
             var p1 = new Point(state.CursorPosition + deflate, 0);
             var p2 = new Point(state.CursorPosition + deflate, state.AreaHeight);
