@@ -27,11 +27,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public RecoverWalletViewModel(
 			string walletName,
-			Network network,
-			WalletManager walletManager)
+			WalletManagerViewModel walletManagerViewModel)
 		{
 			Title = "Enter recovery words";
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
+			var walletManager = walletManagerViewModel.Model;
+			var network = walletManager.Network;
 
 			Mnemonics.ToObservableChangeSet().ToCollection()
 				.Select(x => x.Count == 12 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
