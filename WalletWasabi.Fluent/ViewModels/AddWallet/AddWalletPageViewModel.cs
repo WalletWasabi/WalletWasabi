@@ -40,13 +40,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		[AutoNotify] private bool _enableCancel;
 
 		public AddWalletPageViewModel(
-			WalletManager walletManager,
-			BitcoinStore store,
-			Network network,
-			ObservableCollection<WalletViewModelBase> wallets)
+			WalletManagerViewModel walletManagerViewModel,
+			BitcoinStore store)
 		{
 			Title = "Add Wallet";
 			SelectionMode = NavBarItemSelectionMode.Button;
+			var walletManager = walletManagerViewModel.Model;
+			var network = walletManager.Network;
 
 			var enableBack = default(IDisposable);
 
@@ -66,7 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
 			RecoverWalletCommand = ReactiveCommand.Create(
-				() => Navigate().To(new RecoverWalletViewModel(WalletName, network, walletManager)));
+				() => Navigate().To(new RecoverWalletViewModel(WalletName, walletManagerViewModel)));
 
 			ImportWalletCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -91,7 +91,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				}
 			});
 
-			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => Navigate().To(new ConnectHardwareWalletViewModel(WalletName, walletManager, wallets)));
+			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => Navigate().To(new ConnectHardwareWalletViewModel(WalletName, walletManagerViewModel)));
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(
 				async () =>

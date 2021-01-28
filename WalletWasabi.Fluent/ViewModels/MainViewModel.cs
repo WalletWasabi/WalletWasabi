@@ -69,10 +69,8 @@ namespace WalletWasabi.Fluent.ViewModels
 			_walletManagerViewModel = new WalletManagerViewModel(global.WalletManager, global.UiConfig);
 
 			_addWalletPage = new AddWalletPageViewModel(
-				global.WalletManager,
-				global.BitcoinStore,
-				global.Network,
-				_walletManagerViewModel.Wallets);
+				_walletManagerViewModel,
+				global.BitcoinStore);
 
 			_settingsPage = new SettingsPageViewModel(global.Config, global.UiConfig);
 			_privacyMode = new PrivacyModeViewModel(global.UiConfig);

@@ -26,13 +26,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		[AutoNotify] private bool _existingWalletFound;
 		[AutoNotify] private bool _nextButtonEnable;
 
-		public ConnectHardwareWalletViewModel(string walletName, WalletManager walletManager, ObservableCollection<WalletViewModelBase> wallets)
+		public ConnectHardwareWalletViewModel(string walletName, WalletManagerViewModel walletManagerViewModel)
 		{
 			Title = "Hardware Wallet";
 			_message = "";
 			WalletName = walletName;
-			WalletManager = walletManager;
-			Wallets = wallets;
+			WalletManager = walletManagerViewModel.Model;
+			Wallets = walletManagerViewModel.Wallets;
 			AbandonedTasks = new AbandonedTasks();
 			CancelCts = new CancellationTokenSource();
 
