@@ -91,6 +91,7 @@
                         Value="{Binding #GradientLineChart.XCurrentValue}"
                         Margin="60,0,30,0"/>
                 <c:LineChart x:Name="GradientLineChart"
+                             Classes="labels cursor border xAxis yAxis yAxisTitle"
                              YValues="{Binding Values}"
                              XAxisLabels="{Binding XAxisLabels}"
                              XCurrentValue="{Binding XCurrentValue}"
