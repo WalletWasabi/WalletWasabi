@@ -1,6 +1,5 @@
 using System;
 using System.Net;
-using System.Net.Http;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.Tor.Http.Helpers;
@@ -51,7 +50,7 @@ namespace WalletWasabi.Tor.Http.Models
 			catch (Exception ex)
 			{
 				Logger.LogTrace(ex); // Often happens when internet connection is lost mid request.
-				throw new HttpRequestException($"Invalid {nameof(StatusLine)}: {statusLineString}.", ex);
+				throw new NotSupportedException($"Invalid {nameof(StatusLine)}: {statusLineString}.", ex);
 			}
 		}
 	}
