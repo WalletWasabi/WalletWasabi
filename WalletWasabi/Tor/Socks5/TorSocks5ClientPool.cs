@@ -56,7 +56,7 @@ namespace WalletWasabi.Tor.Socks5
 		/// This object is responsible for disposing of <paramref name="poolItemManager"/>.
 		/// </remarks>
 		public TorSocks5ClientPool(
-			IRelativeHttpClient httpClient,
+			IHttpClient httpClient,
 			TorPoolItemManager poolItemManager,
 			CreateNewPoolItemDelegateAsync newPoolItemCreator)
 		{
@@ -74,7 +74,7 @@ namespace WalletWasabi.Tor.Socks5
 
 		/// <inheritdoc cref="CreateNewPoolItemDelegateAsync"/>
 		private CreateNewPoolItemDelegateAsync NewPoolItemCreator { get; }
-		private IRelativeHttpClient ClearnetHttpClient { get; }
+		private IHttpClient ClearnetHttpClient { get; }
 
 		/// <summary>TODO: Add locking and wrap in a class.</summary>
 		public DateTimeOffset? TorDoesntWorkSince { get; private set; }

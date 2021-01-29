@@ -26,7 +26,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			IEnumerable<BitcoinAddress> registeredAddresses,
 			IEnumerable<Requester> requesters,
 			Network network,
-			IRelativeHttpClient httpClient)
+			IHttpClient httpClient)
 		{
 			TorClient = httpClient;
 			RoundId = roundId;
@@ -43,7 +43,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		public BitcoinAddress[] RegisteredAddresses { get; }
 		public Requester[] Requesters { get; }
 
-		public IRelativeHttpClient TorClient { get; }
+		public IHttpClient TorClient { get; }
 
 		public static async Task<AliceClient4> CreateNewAsync(
 			long roundId,
@@ -54,7 +54,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			BitcoinAddress changeOutput,
 			IEnumerable<BlindedOutputWithNonceIndex> blindedOutputScriptHashes,
 			IEnumerable<InputProofModel> inputs,
-			IRelativeHttpClient httpClient)
+			IHttpClient httpClient)
 		{
 			var request = new InputsRequest4
 			{

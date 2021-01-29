@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -11,13 +10,9 @@ namespace WalletWasabi.Tor.Http
 	/// HTTP client implementation based on .NET's <see cref="HttpClient"/> which provides least privacy for Wasabi users,
 	/// as HTTP requests are being sent over clearnet.
 	/// </summary>
-	/// <remarks>
-	/// Similarly to <see cref="HttpClient"/>, it is possible to use <see cref="ClearnetHttpClient"/> with or without setting base URI.
-	/// <para>Inner <see cref="HttpClient"/> instance is thread-safe.</para>
-	/// </remarks>
-	public class ClearnetHttpClient : IRelativeHttpClient
+	/// <remarks>Inner <see cref="HttpClient"/> instance is thread-safe.</remarks>
+	public class ClearnetHttpClient : IHttpClient
 	{
-		[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "SocketsHttpHandler and HttpClient lives as long as the application does.")]
 		static ClearnetHttpClient()
 		{
 			var socketHandler = new SocketsHttpHandler()
@@ -30,12 +25,17 @@ namespace WalletWasabi.Tor.Http
 			HttpClient = new HttpClient(socketHandler);
 		}
 
-		public ClearnetHttpClient(Func<Uri>? destinationUriAction = null)
+		public ClearnetHttpClient()
 		{
-			DestinationUriAction = destinationUriAction;
+			BaseUriGetter = () => { return null; };
 		}
 
-		public Func<Uri>? DestinationUriAction { get; }
+		public ClearnetHttpClient(Func<Uri?> baseUriGetter)
+		{
+			BaseUriGetter = baseUriGetter;
+		}
+
+		public Func<Uri?> BaseUriGetter { get; }
 
 		/// <summary>Predefined HTTP client that handles HTTP requests when Tor is disabled.</summary>
 		private static HttpClient HttpClient { get; }

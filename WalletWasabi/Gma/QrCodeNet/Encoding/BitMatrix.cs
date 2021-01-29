@@ -6,15 +6,7 @@ namespace Gma.QrCodeNet.Encoding
 		public abstract int Height { get; }
 		public abstract bool[,] InternalArray { get; }
 
-		internal MatrixSize Size => new MatrixSize(Width, Height);
-
 		public abstract bool this[int i, int j] { get; set; }
-
-		internal bool this[MatrixPoint point]
-		{
-			get => this[point.X, point.Y];
-			set => this[point.X, point.Y] = value;
-		}
 
 		internal void CopyTo(TriStateMatrix target, MatrixRectangle sourceArea, MatrixPoint targetPoint, MatrixStatus mstatus)
 		{

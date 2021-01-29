@@ -1,11 +1,8 @@
 using NBitcoin;
 using System;
-using System.Linq;
 using WalletWasabi.Bases;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionOutputs
@@ -44,7 +41,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 			_hashCode = new Lazy<int>(() => OutPoint.GetHashCode(), true);
 
-			Height = transaction.Height;
+			_height = transaction.Height;
+			_confirmed = _height.Type == HeightType.Chain;
 
 			HdPubKey = pubKey;
 

@@ -32,7 +32,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 		private RegTestFixture RegTestFixture { get; }
 		public SatoshiClient SatoshiClient { get; }
-		public IRelativeHttpClient BackendHttpClient { get; }
+		public IHttpClient BackendHttpClient { get; }
 
 		private async Task WaitForTimeoutAsync()
 		{

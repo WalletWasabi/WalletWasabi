@@ -56,11 +56,11 @@ namespace WalletWasabi.Helpers
 		public static T Same<T>(string parameterName, T expected, T actual)
 		{
 			AssertCorrectParameterName(parameterName);
-			NotNull(nameof(expected), expected);
+			T expected2 = NotNull(nameof(expected), expected);
 
-			if (!expected.Equals(actual))
+			if (!expected2.Equals(actual))
 			{
-				throw new ArgumentException($"Parameter must be {expected}. Actual: {actual}.", parameterName);
+				throw new ArgumentException($"Parameter must be {expected2}. Actual: {actual}.", parameterName);
 			}
 
 			return actual;
@@ -100,7 +100,7 @@ namespace WalletWasabi.Helpers
 			return value;
 		}
 
-		public static Dictionary<TKey, TValue> NotNullOrEmpty<TKey, TValue>(string parameterName, Dictionary<TKey, TValue> value)
+		public static Dictionary<TKey, TValue> NotNullOrEmpty<TKey, TValue>(string parameterName, Dictionary<TKey, TValue> value) where TKey : notnull
 		{
 			NotNull(parameterName, value);
 			if (!value.Any())
@@ -209,6 +209,5 @@ namespace WalletWasabi.Helpers
 				_ when scalar.IsZero => throw new ArgumentException("Value cannot be zero.", parameterName),
 				_ => scalar
 			};
-
 	}
 }

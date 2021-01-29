@@ -45,7 +45,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <summary>
 		/// Creates new <see cref="TorHttpClient"/> or <see cref="ClearnetHttpClient"/> based on user settings.
 		/// </summary>
-		public IRelativeHttpClient NewHttpClient(Func<Uri> baseUriFn, bool isolateStream)
+		public IHttpClient NewHttpClient(Func<Uri> baseUriFn, bool isolateStream)
 		{
 			if (TorSocks5ClientPool is { })
 			{
@@ -60,7 +60,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <summary>
 		/// Creates new <see cref="TorHttpClient"/> instance with correctly set backend URL.
 		/// </summary>
-		public IRelativeHttpClient NewBackendTorHttpClient(bool isolateStream)
+		public IHttpClient NewBackendTorHttpClient(bool isolateStream)
 		{
 			return NewHttpClient(BackendUriGetter, isolateStream);
 		}

@@ -425,7 +425,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			foreach (var activeOutput in shuffledOutputs)
 			{
 				{
-					IRelativeHttpClient httpClient = Synchronizer.WasabiClientFactory.NewBackendTorHttpClient(isolateStream: true);
+					IHttpClient httpClient = Synchronizer.WasabiClientFactory.NewBackendTorHttpClient(isolateStream: true);
 					var bobClient = new BobClient(httpClient);
 					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput).ConfigureAwait(false))
 					{
@@ -1074,7 +1074,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			RoundStateResponse4 state;
 			WasabiClientFactory factory = Synchronizer.WasabiClientFactory;
 
-			IRelativeHttpClient torHttpClient = factory.NewBackendTorHttpClient(isolateStream: true);
+			IHttpClient torHttpClient = factory.NewBackendTorHttpClient(isolateStream: true);
 			var satoshiClient = new SatoshiClient(torHttpClient);
 			state = (RoundStateResponse4)await satoshiClient.GetRoundStateAsync(roundId).ConfigureAwait(false);
 
@@ -1125,7 +1125,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				inputProofs.Add(inputProof);
 			}
 
-			IRelativeHttpClient httpClient = Synchronizer.WasabiClientFactory.NewHttpClient(CcjHostUriAction, isolateStream: true);
+			IHttpClient httpClient = Synchronizer.WasabiClientFactory.NewHttpClient(CcjHostUriAction, isolateStream: true);
 			return await AliceClientBase.CreateNewAsync(roundId, registeredAddresses, signerPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, httpClient).ConfigureAwait(false);
 		}
 	}

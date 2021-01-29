@@ -88,7 +88,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 			Logger.LogInfo("Broadcasting with backend...");
 
 			{
-				IRelativeHttpClient httpClient = Synchronizer.WasabiClientFactory.NewBackendTorHttpClient(isolateStream: true);
+				IHttpClient httpClient = Synchronizer.WasabiClientFactory.NewBackendTorHttpClient(isolateStream: true);
 				var client = new WasabiClient(httpClient);
 
 				try

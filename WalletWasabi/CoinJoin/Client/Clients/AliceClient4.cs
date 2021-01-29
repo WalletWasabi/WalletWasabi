@@ -14,7 +14,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			IEnumerable<PubKey> signerPubKeys,
 			IEnumerable<Requester> requesters,
 			Network network,
-			IRelativeHttpClient httpClient)
+			IHttpClient httpClient)
 			: base(roundId, registeredAddresses, requesters, network, httpClient)
 		{
 			SignerPubKeys = signerPubKeys.ToArray();

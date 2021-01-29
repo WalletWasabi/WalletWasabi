@@ -6,17 +6,17 @@ using WalletWasabi.Tor.Socks5;
 
 namespace WalletWasabi.Tor.Http
 {
-	public class TorHttpClient : IRelativeHttpClient
+	public class TorHttpClient : IHttpClient
 	{
 		public TorHttpClient(TorSocks5ClientPool pool, Func<Uri> baseUriAction, bool isolateStream = false)
 		{
-			DestinationUriAction = baseUriAction;
+			BaseUriGetter = baseUriAction;
 			DefaultIsolateStream = isolateStream;
 			TorSocks5ClientPool = pool;
 		}
 
 		/// <inheritdoc/>
-		public Func<Uri> DestinationUriAction { get; }
+		public Func<Uri> BaseUriGetter { get; }
 
 		/// <inheritdoc/>
 		public bool DefaultIsolateStream { get; }
@@ -27,7 +27,7 @@ namespace WalletWasabi.Tor.Http
 		/// <exception cref="OperationCanceledException">When <paramref name="cancel"/> is canceled by the user.</exception>
 		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken token = default)
 		{
-			var requestUri = new Uri(DestinationUriAction(), relativeUri);
+			var requestUri = new Uri(BaseUriGetter(), relativeUri);
 			using var request = new HttpRequestMessage(method, requestUri);
 
 			if (content is { })
