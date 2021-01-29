@@ -8,7 +8,7 @@ namespace WalletWasabi.Crypto.Groups
 	public static class Generators
 	{
 		private static GroupElement[]? _negateGh2i;
-		private static Scalar[]? _powerOfTwo; 
+		private static Scalar[]? _powerOfTwo;
 
 		/// <summary>
 		/// Base point defined in the secp256k1 standard used in ECDSA public key derivation.
@@ -60,7 +60,7 @@ namespace WalletWasabi.Crypto.Groups
 		/// </summary>
 		public static GroupElement Gs { get; } = FromText("Gs");
 
-		public static GroupElement[] NegateGh2i 
+		public static GroupElement[] NegateGh2i
 		{
 			get
 			{

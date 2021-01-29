@@ -25,10 +25,9 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task MempoolNotifiesAsync()
 		{
-			using var services = new HostedServices();
+			using HostedServices services = new();
 			CoreNode coreNode = await TestNodeBuilder.CreateAsync(services);
 			await services.StartAllAsync();
-			BitcoinStore? bitcoinStore = null;
 
 			using var node = await coreNode.CreateNewP2pNodeAsync();
 			try
@@ -36,13 +35,13 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				string dir = Common.GetWorkDir();
 				var network = coreNode.Network;
 				var rpc = coreNode.RpcClient;
-				var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
-				var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
-				var mempoolService = new MempoolService();
-				var blocks = new FileSystemBlockRepository(Path.Combine(dir, "blocks"), network);
+				await using IndexStore indexStore = new(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
+				await using AllTransactionStore transactionStore = new(Path.Combine(dir, "transactionStore"), network);
+				MempoolService mempoolService = new();
+				FileSystemBlockRepository blocks = new(Path.Combine(dir, "blocks"), network);
 
 				// Construct BitcoinStore.
-				bitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
+				await using BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, blocks);
 				await bitcoinStore.InitializeAsync();
 
 				await rpc.GenerateAsync(blockCount: 101);
@@ -50,17 +49,18 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 				node.VersionHandshake();
 
-				BitcoinWitPubKeyAddress address = new Key().PubKey.GetSegwitAddress(network);
+				using Key k = new Key();
+				BitcoinWitPubKeyAddress address = k.PubKey.GetSegwitAddress(network);
 
 				// Number of transactions to send.
 				const int TransactionsCount = 10;
 
-				var eventAwaiter = new EventsAwaiter<SmartTransaction>(
+				EventsAwaiter<SmartTransaction> eventAwaiter = new(
 					subscribe: h => mempoolService.TransactionReceived += h,
 					unsubscribe: h => mempoolService.TransactionReceived -= h,
 					count: TransactionsCount);
 
-				var txHashesList = new List<Task<uint256>>();
+				List<Task<uint256>> txHashesList = new();
 				IRPCClient rpcBatch = rpc.PrepareBatch();
 
 				// Add to the batch 10 RPC commands: Send 1 coin to the same address.
@@ -88,10 +88,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
-				if (bitcoinStore is { } store)
-				{
-					await store.DisposeAsync();
-				}
 				await services.StopAllAsync();
 				node.Disconnect();
 				await coreNode.TryStopAsync();
@@ -101,7 +97,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task TrustedNotifierNotifiesTxAsync()
 		{
-			using var services = new HostedServices();
+			using HostedServices services = new();
 			var coreNode = await TestNodeBuilder.CreateAsync(services);
 			await services.StartAllAsync();
 			try
@@ -112,16 +108,17 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 				var dir = Common.GetWorkDir();
 
-				var addr = new Key().PubKey.GetSegwitAddress(network);
+				using Key k = new Key();
+				var addr = k.PubKey.GetSegwitAddress(network);
 				var notifier = coreNode.MempoolService;
 
 				var txNum = 10;
-				var txEventAwaiter = new EventsAwaiter<SmartTransaction>(
+				EventsAwaiter<SmartTransaction> txEventAwaiter = new(
 					h => notifier.TransactionReceived += h,
 					h => notifier.TransactionReceived -= h,
 					txNum);
 
-				var txTasks = new List<Task<uint256>>();
+				List<Task<uint256>> txTasks = new();
 				var batch = rpc.PrepareBatch();
 				for (int i = 0; i < txNum; i++)
 				{
@@ -148,7 +145,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task BlockNotifierTestsAsync()
 		{
-			using var services = new HostedServices();
+			using HostedServices services = new();
 			var coreNode = await TestNodeBuilder.CreateAsync(services);
 			await services.StartAllAsync();
 			try
@@ -157,9 +154,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				BlockNotifier notifier = services.FirstOrDefault<BlockNotifier>();
 
 				// Make sure we get notification for one block.
-				var blockEventAwaiter = new EventAwaiter<Block>(
-					h => notifier.OnBlock += h,
-					h => notifier.OnBlock -= h);
+				EventAwaiter<Block> blockEventAwaiter = new(h => notifier.OnBlock += h, h => notifier.OnBlock -= h);
 
 				var hash = (await rpc.GenerateAsync(1)).First();
 				var block = await blockEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
@@ -167,10 +162,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 				// Make sure we get notifications about 10 blocks created at the same time.
 				var blockNum = 10;
-				var blockEventsAwaiter = new EventsAwaiter<Block>(
-					h => notifier.OnBlock += h,
-					h => notifier.OnBlock -= h,
-					blockNum);
+				EventsAwaiter<Block> blockEventsAwaiter = new(h => notifier.OnBlock += h, h => notifier.OnBlock -= h, blockNum);
 
 				var hashes = (await rpc.GenerateAsync(blockNum)).ToArray();
 
@@ -186,11 +178,8 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				// Make sure we get reorg notifications.
 				var reorgNum = 3;
 				var newBlockNum = reorgNum + 1;
-				var reorgEventsAwaiter = new EventsAwaiter<uint256>(
-					h => notifier.OnReorg += h,
-					h => notifier.OnReorg -= h,
-					reorgNum);
-				blockEventsAwaiter = new EventsAwaiter<Block>(
+				EventsAwaiter<uint256> reorgEventsAwaiter = new(h => notifier.OnReorg += h, h => notifier.OnReorg -= h, reorgNum);
+				blockEventsAwaiter = new(
 					h => notifier.OnBlock += h,
 					h => notifier.OnBlock -= h,
 					newBlockNum);

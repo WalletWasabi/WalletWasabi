@@ -152,7 +152,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				builder.SetChange(changeHdPubKey.P2wpkhScript);
 			}
 
-			builder.OptInRBF = new Random().NextDouble() < Constants.TransactionRBFSignalRate;
+			builder.OptInRBF = true;
 
 			FeeRate feeRate = feeRateFetcher();
 			builder.SendEstimatedFees(feeRate);

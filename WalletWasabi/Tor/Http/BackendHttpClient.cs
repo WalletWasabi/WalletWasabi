@@ -14,18 +14,18 @@ namespace WalletWasabi.Tor.Http
 		/// Creates a new instance of the object.
 		/// </summary>
 		/// <param name="httpClient">Use <see cref="ClearnetHttpClient"/> or <see cref="TorHttpClient"/> to initialize.</param>
-		public BackendHttpClient(IRelativeHttpClient httpClient)
+		public BackendHttpClient(IHttpClient httpClient)
 		{
 			HttpClient = httpClient;
 		}
 
-		private IRelativeHttpClient HttpClient { get; }
+		private IHttpClient HttpClient { get; }
 
 		/// <summary>
 		/// Sends an HTTP request to Wasabi Backend.
 		/// </summary>
 		/// <param name="method">HTTP method</param>
-		/// <param name="apiQuery">API query part to append to <see cref="IRelativeHttpClient.DestinationUriAction"/>.</param>
+		/// <param name="apiQuery">API query part to append to <see cref="IHttpClient.BaseUriGetter"/>.</param>
 		/// <param name="content">HTTP request content. Only for <see cref="HttpMethod.Post"/> method.</param>
 		/// <param name="token">Cancellation token to cancel the asynchronous operation.</param>
 		public Task<HttpResponseMessage> SendAsync(HttpMethod method, string apiQuery, HttpContent? content = null, CancellationToken token = default)

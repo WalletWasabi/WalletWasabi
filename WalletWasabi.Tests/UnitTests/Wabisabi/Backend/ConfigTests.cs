@@ -96,10 +96,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var workDir = Common.GetWorkDir();
 			await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
-			var configChangeMonitoringPeriod = TimeSpan.FromMilliseconds(10);
-			var configChangeAwaitDuration = TimeSpan.FromMilliseconds(200);
-
-			CoordinatorParameters coordinatorParameters = new(workDir) { ConfigChangeMonitoringPeriod = configChangeMonitoringPeriod };
+			CoordinatorParameters coordinatorParameters = new(workDir);
 			using WabiSabiCoordinator coordinator = new(coordinatorParameters);
 			await coordinator.StartAsync(CancellationToken.None);
 
@@ -110,9 +107,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			configChanger.ConfirmationTarget = newTarget;
 			Assert.NotEqual(newTarget, coordinator.Config.ConfirmationTarget);
 			configChanger.ToFile();
-
-			// Leave time for the config change to be picked up.
-			await Task.Delay(configChangeAwaitDuration);
+			var configWatcher = coordinator.ConfigWatcher;
+			await configWatcher.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(3));
 			Assert.Equal(newTarget, coordinator.Config.ConfirmationTarget);
 
 			// Do it one more time.
@@ -120,7 +116,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			configChanger.ConfirmationTarget = newTarget;
 			Assert.NotEqual(newTarget, coordinator.Config.ConfirmationTarget);
 			configChanger.ToFile();
-			await Task.Delay(configChangeAwaitDuration);
+			await configWatcher.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(3));
 			Assert.Equal(newTarget, coordinator.Config.ConfirmationTarget);
 
 			await coordinator.StopAsync(CancellationToken.None);
