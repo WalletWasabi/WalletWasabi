@@ -103,7 +103,11 @@
                                                   Content="{TemplateBinding InnerRightContent}" />
                             </Grid>
                         </Border>
-                        <Button x:Name="PART_SwapButton" HorizontalAlignment="Center" Content="Swap" />
+                        <Button x:Name="PART_SwapButton" Focusable="False"
+                                IsVisible="{TemplateBinding ConversionText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                Cursor="Arrow" HorizontalAlignment="Center" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Margin="0">
+                            <PathIcon Data="{StaticResource arrow_swap}" Width="16" />
+                        </Button>
                     </Panel>
                 </DockPanel>
             </ControlTemplate>

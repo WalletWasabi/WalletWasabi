@@ -34,6 +34,8 @@ namespace WalletWasabi.Fluent.Controls
 		public CurrencyEntryBox()
 		{
 			this.GetObservable(TextProperty).Subscribe(_ => DoConversion());
+			this.GetObservable(ConversionRateProperty).Subscribe(_ => DoConversion());
+			Text = "0";
 		}
 
 		private void Reverse()
