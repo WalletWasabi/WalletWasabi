@@ -44,7 +44,7 @@ namespace WalletWasabi.Fluent.Controls
 
 				if (IsConversionReversed)
 				{
-					Text = $"{Conversion:G8}";
+					Text = $"{Conversion:#,0.########}";
 				}
 				else
 				{
@@ -71,7 +71,7 @@ namespace WalletWasabi.Fluent.Controls
 
 						Conversion = result / ConversionRate;
 
-						ConversionText = $"≈ {Conversion:G8} BTC";
+						ConversionText = $"≈ {Conversion:#,0.########} BTC";
 					}
 					else
 					{
