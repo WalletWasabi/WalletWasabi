@@ -12,13 +12,13 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			BlockCount = (int)bcinfo.Blocks;
 			int headerCount = (int)bcinfo.Headers;
 			BlockchainInfoUpdated = DateTimeOffset.UtcNow;
-			IsCoreSynchornized = BlockCount == headerCount;
+			IsCoreSynchronized = BlockCount == headerCount;
 			InitialBlockDownload = bcinfo.InitialBlockDownload;
 		}
 
 		public int BlockCount { get; }
 		public DateTimeOffset BlockchainInfoUpdated { get; }
-		public bool IsCoreSynchornized { get; }
+		public bool IsCoreSynchronized { get; }
 
 		public bool InitialBlockDownload { get; }
 	}

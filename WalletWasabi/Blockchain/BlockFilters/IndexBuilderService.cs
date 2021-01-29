@@ -136,7 +136,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									}
 								}
 
-								var coreNotSynced = !syncInfo.IsCoreSynchornized;
+								var coreNotSynced = !syncInfo.IsCoreSynchronized;
 								var tipReached = syncInfo.BlockCount == currentHeight;
 								var isTimeToRefresh = DateTimeOffset.UtcNow - syncInfo.BlockchainInfoUpdated > TimeSpan.FromMinutes(5);
 								if (coreNotSynced || tipReached || isTimeToRefresh)
@@ -148,7 +148,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 								if (syncInfo.BlockCount == currentHeight)
 								{
 									// Check that core is fully synced
-									if (syncInfo.IsCoreSynchornized && !syncInfo.InitialBlockDownload)
+									if (syncInfo.IsCoreSynchronized && !syncInfo.InitialBlockDownload)
 									{
 										// Mark the process notstarted, so it can be started again
 										// and finally block can mark it as stopped.
