@@ -117,7 +117,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 							{
 								SyncInfo syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
 
-								uint currentHeight = 0;
+								uint currentHeight;
 								uint256? currentHash = null;
 								using (await IndexLock.LockAsync())
 								{
