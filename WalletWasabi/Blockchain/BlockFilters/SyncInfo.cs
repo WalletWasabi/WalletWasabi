@@ -16,7 +16,6 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			InitialBlockDownload = bcinfo.InitialBlockDownload;
 		}
 
-		public BlockchainInfo BlockchainInfo { get; }
 		public int BlockCount { get; }
 		public DateTimeOffset BlockchainInfoUpdated { get; }
 		public bool IsCoreSynchornized { get; }
