@@ -3,6 +3,7 @@ using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 
 namespace WalletWasabi.Fluent.Controls
@@ -58,7 +59,18 @@ namespace WalletWasabi.Fluent.Controls
 				_allowConversions = true;
 
 				DoConversion();
+
+				CaretIndex = Text.Length - 1;
 			}
+		}
+
+		protected override void OnGotFocus(GotFocusEventArgs e)
+		{
+			base.OnGotFocus(e);
+
+			CaretIndex = Text.Length - 1;
+
+			SelectAll();
 		}
 
 		private void DoConversion()
