@@ -15,8 +15,13 @@
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
         <StackPanel Spacing="10">
-            <StackPanel>
-                <Label Content="_To:" Target="toTb" />
+            <StackPanel.Styles>
+                <Style Selector="DockPanel > Label">
+                    <Setter Property="MinWidth" Value="80" />
+                </Style>
+            </StackPanel.Styles>
+            <DockPanel>
+                <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
                 <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}"
                          Watermark="(e.g. Bitcoin address or PayJoin URL)">
                     <TextBox.InnerRightContent>
@@ -29,24 +34,24 @@
                         <behaviors:FocusOnAttachedBehavior />
                     </i:Interaction.Behaviors>
                 </TextBox>
-            </StackPanel>
+            </DockPanel>
 
-            <StackPanel>
-                <Label Content="_Amount:" Target="amountTb" />
+            <DockPanel>
+                <Label DockPanel.Dock="Left" Content="_Amount:" Target="amountTb" />
                 <c:CurrencyEntryBox x:Name="amountTb" ConversionRate="32212.00" ConversionCurrencyCode="USD" />
-            </StackPanel>
+            </DockPanel>
 
-            <StackPanel>
-                <Label Content="_Labels:" Target="LabelTagBox" DockPanel.Dock="Top" />
+            <DockPanel>
+                <Label DockPanel.Dock="Left"  Content="_Labels:" Target="LabelTagBox" />
                 <c:TagsBox x:Name="LabelTagBox"
                            ItemCountLimit="12"
                            RestrictInputToSuggestions="True" />
-            </StackPanel>
+            </DockPanel>
 
-            <StackPanel>
-                <Label Content="_Priority:" Target="PrioritySlider" DockPanel.Dock="Top" />
+            <DockPanel>
+                <Label DockPanel.Dock="Left" Content="_Priority:" Target="PrioritySlider" />
                 <Slider x:Name="PrioritySlider" Minimum="0" Maximum="100" Value="100" />
-            </StackPanel>
+            </DockPanel>
         </StackPanel>
     </c:ContentArea>
 </UserControl>
