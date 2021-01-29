@@ -68,7 +68,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			return Navigate(currentTarget);
 		}
 
-		public INavigationStack<RoutableViewModel> Navigate(NavigationTarget currentTarget)
+		public static INavigationStack<RoutableViewModel> Navigate(NavigationTarget currentTarget)
 		{
 			return currentTarget switch
 			{

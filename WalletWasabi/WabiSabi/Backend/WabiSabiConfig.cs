@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
+using WalletWasabi.JsonConverters.Timing;
 
 namespace WalletWasabi.WabiSabi.Backend
 {
@@ -24,5 +25,10 @@ namespace WalletWasabi.WabiSabi.Backend
 		[DefaultValue(Constants.OneDayConfirmationTarget)]
 		[JsonProperty(PropertyName = "ConfirmationTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public int ConfirmationTarget { get; set; }
+
+		[DefaultValueTimeSpan("0d 3h 0m 0s")]
+		[JsonProperty(PropertyName = "ReleaseUtxoFromPrisonAfter", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonConverter(typeof(TimeSpanJsonConverter))]
+		public TimeSpan ReleaseUtxoFromPrisonAfter { get; set; }
 	}
 }

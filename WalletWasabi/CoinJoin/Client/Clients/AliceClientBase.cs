@@ -46,7 +46,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		public BitcoinAddress[] RegisteredAddresses { get; }
 		public Requester[] Requesters { get; }
 
-		public IRelativeHttpClient TorClient { get; }
+		public IHttpClient TorClient { get; }
 
 		public static async Task<AliceClient4> CreateNewAsync(
 			long roundId,
