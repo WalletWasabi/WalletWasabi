@@ -26,12 +26,13 @@ namespace WalletWasabi.Tests.RegressionTests
 		{
 			RegTestFixture = regTestFixture;
 
-			var httpClient = new ClearnetHttpClient(() => new Uri(RegTestFixture.BackendEndPoint));
-			SatoshiClient = new SatoshiClient(httpClient);
+			BackendHttpClient = new ClearnetHttpClient(() => new Uri(RegTestFixture.BackendEndPoint));
+			SatoshiClient = new SatoshiClient(BackendHttpClient);
 		}
 
 		private RegTestFixture RegTestFixture { get; }
 		public SatoshiClient SatoshiClient { get; }
+		public IHttpClient BackendHttpClient { get; }
 
 		private async Task WaitForTimeoutAsync()
 		{
@@ -125,7 +126,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			foreach (var user in inputRegistrationUsers)
 			{
-				aliceClients.Add(AliceClientBase.CreateNewAsync(round.RoundId, new[] { user.activeOutputAddress }, new[] { round.MixingLevels.GetBaseLevel().SignerKey.PubKey }, new[] { user.requester }, network, user.changeOutputAddress, new[] { user.blinded }, user.inputProofModels, () => baseUri, null));
+				aliceClients.Add(AliceClientBase.CreateNewAsync(round.RoundId, new[] { user.activeOutputAddress }, new[] { round.MixingLevels.GetBaseLevel().SignerKey.PubKey }, new[] { user.requester }, network, user.changeOutputAddress, new[] { user.blinded }, user.inputProofModels, BackendHttpClient));
 			}
 
 			long roundId = 0;
@@ -197,7 +198,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 			foreach (var user in inputRegistrationUsers)
 			{
-				aliceClients.Add(AliceClientBase.CreateNewAsync(round.RoundId, new[] { user.activeOutputAddress }, new[] { round.MixingLevels.GetBaseLevel().SignerKey.PubKey }, new[] { user.requester }, network, user.changeOutputAddress, new[] { user.blinded }, user.inputProofModels, () => baseUri, null));
+				aliceClients.Add(AliceClientBase.CreateNewAsync(round.RoundId, new[] { user.activeOutputAddress }, new[] { round.MixingLevels.GetBaseLevel().SignerKey.PubKey }, new[] { user.requester }, network, user.changeOutputAddress, new[] { user.blinded }, user.inputProofModels, BackendHttpClient));
 			}
 
 			roundId = 0;
@@ -293,7 +294,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				InputProofModel inputProof = new InputProofModel { Input = input, Proof = inputKey.SignCompact(blindedOutputScriptsHash) };
 				InputProofModel[] inputsProofs = new InputProofModel[] { inputProof };
 				registerRequests.Add((changeOutputAddress, blinded, inputsProofs));
-				aliceClientBackup = await AliceClientBase.CreateNewAsync(round.RoundId, new[] { activeOutputAddress }, new[] { round.MixingLevels.GetBaseLevel().SignerKey.PubKey }, new[] { requester }, network, changeOutputAddress, new[] { blinded }, inputsProofs, () => baseUri, null);
+				aliceClientBackup = await AliceClientBase.CreateNewAsync(round.RoundId, new[] { activeOutputAddress }, new[] { round.MixingLevels.GetBaseLevel().SignerKey.PubKey }, new[] { requester }, network, changeOutputAddress, new[] { blinded }, inputsProofs, BackendHttpClient);
 			}
 
 			await WaitForTimeoutAsync();
@@ -307,7 +308,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			foreach (var registerRequest in registerRequests)
 			{
-				await AliceClientBase.CreateNewAsync(round.RoundId, aliceClientBackup.RegisteredAddresses, round.MixingLevels.GetAllLevels().Select(x => x.SignerKey.PubKey), aliceClientBackup.Requesters, network, registerRequest.changeOutputAddress, new[] { registerRequest.blindedData }, registerRequest.inputsProofs, () => baseUri, null);
+				await AliceClientBase.CreateNewAsync(round.RoundId, aliceClientBackup.RegisteredAddresses, round.MixingLevels.GetAllLevels().Select(x => x.SignerKey.PubKey), aliceClientBackup.Requesters, network, registerRequest.changeOutputAddress, new[] { registerRequest.blindedData }, registerRequest.inputsProofs, BackendHttpClient);
 			}
 
 			await WaitForTimeoutAsync();
