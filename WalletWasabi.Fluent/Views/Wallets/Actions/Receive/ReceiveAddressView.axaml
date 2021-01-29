@@ -37,8 +37,8 @@
         <TextBlock Text="{Binding Reference}" FontSize="{StaticResource FontSizeH2}" Opacity="0.6" />
       </StackPanel>
 
-      <DockPanel MaxHeight="250" HorizontalAlignment="Center" Margin="0 0 -30 10">
-        <Button Command="{Binding SaveQrCodeCommand}" Classes="plain" DockPanel.Dock="Right" VerticalAlignment="Bottom" Margin="10 0 0 0">
+      <DockPanel MaxHeight="250" HorizontalAlignment="Center" Margin="0 0 -40 10">
+        <Button Command="{Binding SaveQrCodeCommand}" Classes="plain" DockPanel.Dock="Right" VerticalAlignment="Bottom" Margin="20 0 0 0">
           <PathIcon Data="{StaticResource save_regular}"/>
         </Button>
         <Viewbox HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Left">
