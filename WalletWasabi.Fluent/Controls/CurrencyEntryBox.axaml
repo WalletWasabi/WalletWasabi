@@ -49,13 +49,8 @@
                             <Grid ColumnDefinitions="Auto,*,Auto">
                                 <ContentPresenter Grid.Column="0" Grid.ColumnSpan="1"
                                                   Content="{TemplateBinding InnerLeftContent}" />
-                                <DockPanel x:Name="PART_InnerDockPanel" Grid.Column="1" Grid.ColumnSpan="1"
-                                           Margin="{TemplateBinding Padding}">
-                                    <TextBlock Name="PART_FloatingWatermark"
-                                               Foreground="{DynamicResource SystemAccentColor}"
-                                               FontSize="{TemplateBinding FontSize}"
-                                               Text="{TemplateBinding Watermark}"
-                                               DockPanel.Dock="Top" />
+                                <Panel x:Name="PART_InnerDockPanel" Grid.Column="1" Grid.ColumnSpan="1"
+                                       Margin="{TemplateBinding Padding}">
                                     <ScrollViewer
                                         HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
                                         VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
@@ -63,8 +58,8 @@
                                             <TextBlock Name="PART_ConversionWatermark"
                                                        DockPanel.Dock="Right"
                                                        Opacity="0.5"
-                                                       Text="{TemplateBinding Conversion}"
-                                                       IsVisible="{TemplateBinding Conversion, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                                       Text="{TemplateBinding ConversionText}"
+                                                       IsVisible="{TemplateBinding ConversionText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                                             <Panel>
@@ -96,18 +91,19 @@
                                                                Opacity="0.5"
                                                                Margin="5 0 0 0"
                                                                Text="{TemplateBinding CurrencyCode}"
-                                                               IsVisible="{TemplateBinding CurrencyCode, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                                               IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                                                 </StackPanel>
                                             </Panel>
                                         </DockPanel>
                                     </ScrollViewer>
-                                </DockPanel>
+                                </Panel>
                                 <ContentPresenter Grid.Column="2" Grid.ColumnSpan="1"
                                                   Content="{TemplateBinding InnerRightContent}" />
                             </Grid>
                         </Border>
+                        <Button x:Name="PART_SwapButton" HorizontalAlignment="Center" Content="Swap" />
                     </Panel>
                 </DockPanel>
             </ControlTemplate>
@@ -134,7 +130,7 @@
     </Style>
 
     <Style
-        Selector="c|CurrencyEntryBox:disabled /template/ TextBlock#PART_Watermark, TextBox:disabled /template/ TextBlock#PART_FloatingWatermark">
+        Selector="c|CurrencyEntryBox:disabled /template/ TextBlock#PART_Watermark">
         <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundDisabled}" />
     </Style>
 
@@ -149,7 +145,7 @@
     </Style>
 
     <Style
-        Selector="c|CurrencyEntryBox:pointerover /template/ TextBlock#PART_Watermark, TextBox:pointerover /template/ TextBlock#PART_FloatingWatermark">
+        Selector="c|CurrencyEntryBox:pointerover /template/ TextBlock#PART_Watermark">
         <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundPointerOver}" />
     </Style>
 
@@ -159,7 +155,7 @@
     </Style>
 
     <Style
-        Selector="c|CurrencyEntryBox:focus /template/ TextBlock#PART_Watermark, TextBox:focus /template/ TextBlock#PART_FloatingWatermark">
+        Selector="c|CurrencyEntryBox:focus /template/ TextBlock#PART_Watermark">
         <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
     </Style>
 
@@ -172,5 +168,4 @@
     <Style Selector="c|CurrencyEntryBox:error /template/ Border#PART_BorderElement">
         <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
     </Style>
-
 </Styles>
