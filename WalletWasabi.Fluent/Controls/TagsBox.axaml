@@ -1,6 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls;assembly=WalletWasabi.Fluent">
+        xmlns:c="using:WalletWasabi.Fluent.Controls">
     <Style Selector="c|TagsBox">
         <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
         <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
@@ -41,54 +41,6 @@
             </ControlTemplate>
         </Setter>
         <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
-        <Setter Property="ItemTemplate">
-            <DataTemplate>
-                <Panel>
-                    <Panel.Styles>
-                        <Style Selector="Panel#PART_TagPanel Panel#PART_DeleteTagButton" >
-                            <Setter Property="Opacity" Value="0" />
-                            <Setter Property="RenderTransform" Value="scale(0.8)" />
-                        </Style>
-                        <Style Selector="Panel#PART_TagPanel:pointerover Panel#PART_DeleteTagButton" >
-                            <Setter Property="Opacity" Value="1" />
-                            <Setter Property="RenderTransform" Value="scale(1)" />
-                        </Style>
-                    </Panel.Styles>
-                    <Panel Name="PART_TagPanel">
-                        <Border Name="PART_TagItemBorder"
-                                Background="Transparent"
-                                BorderBrush="{DynamicResource TagsBoxControlForeground}"
-                                BorderThickness="1"
-                                CornerRadius="4"
-                                Margin="4"
-                                Opacity="0.4"
-                                Height="{Binding #PART_DummyPanel.Bounds.Height}"
-                                VerticalAlignment="Top" />
-                        <Panel Name="PART_DummyPanel"
-                               VerticalAlignment="Top">
-                            <ContentPresenter Content="{Binding .}"
-                                              VerticalAlignment="Center"
-                                              Margin="10,8,10,0" />
-                        </Panel>
-                        <Panel
-                            Name="PART_DeleteTagButton"
-                            Width="13"
-                            Height="13"
-                            VerticalAlignment="Top"
-                            HorizontalAlignment="Right">
-                            <Panel.Transitions>
-                                <Transitions>
-                                    <DoubleTransition Property="Opacity" Duration="0:0:0.175" />
-                                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.135" Easing="QuadraticEaseIn" />
-                                </Transitions>
-                            </Panel.Transitions>
-                            <Ellipse Fill="Red"/>
-                            <Button Classes="" Command="{Binding $parent[c:TagsBox].DeleteTagCommand}" CommandParameter="{Binding }">Test</Button>
-                        </Panel>
-                    </Panel>
-                </Panel>
-            </DataTemplate>
-        </Setter>
     </Style>
 
     <Style Selector="c|TagsBox:pointerover /template/ Border#PART_Border">
@@ -128,9 +80,11 @@
     <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
         <Setter Property="IsReadOnly" Value="{Binding !IsInputEnabled}" />
         <Setter Property="ContextMenu">
-          <ContextMenu>
-            <MenuItem Header="Paste" Command="{Binding $parent[TextBox].Paste}" IsEnabled="{Binding $parent[TextBox].CanPaste}" InputGesture="{x:Static TextBox.PasteGesture}"/>
-          </ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="Paste" Command="{Binding $parent[TextBox].Paste}"
+                          IsEnabled="{Binding $parent[TextBox].CanPaste}"
+                          InputGesture="{x:Static TextBox.PasteGesture}" />
+            </ContextMenu>
         </Setter>
     </Style>
 </Styles>

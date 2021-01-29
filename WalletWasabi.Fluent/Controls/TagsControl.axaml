@@ -1,0 +1,92 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:WalletWasabi.Fluent.Controls">
+
+    <Style Selector="Button.TagDelete">
+        <Setter Property="Background" Value="#FF6DB4EF" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Grid>
+                        <Ellipse Fill="{TemplateBinding Background}" />
+                        <Ellipse>
+                            <Ellipse.Fill>
+                                <RadialGradientBrush>
+                                    <GradientStop Offset="0" Color="#00000000" />
+                                    <GradientStop Offset="0.88" Color="#00000000" />
+                                    <GradientStop Offset="1" Color="#80000000" />
+                                </RadialGradientBrush>
+                            </Ellipse.Fill>
+                        </Ellipse>
+                        <Ellipse Margin="10" x:Name="highlightCircle">
+                            <Ellipse.Fill>
+                                <LinearGradientBrush>
+                                    <GradientStop Offset="0" Color="#50FFFFFF" />
+                                    <GradientStop Offset="0.5" Color="#00FFFFFF" />
+                                    <GradientStop Offset="1" Color="#50FFFFFF" />
+                                </LinearGradientBrush>
+                            </Ellipse.Fill>
+                        </Ellipse>
+                        <ContentPresenter x:Name="content" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style Selector="c|TagControl">
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+        <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThickness}" />
+        <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel>
+                    <Panel.Styles>
+                        <Style Selector="Panel#PART_TagPanel Panel#PART_DeleteTagPanel">
+                            <Setter Property="Opacity" Value="0" />
+                            <Setter Property="RenderTransform" Value="scale(0.8)" />
+                        </Style>
+                        <Style Selector="Panel#PART_TagPanel:pointerover Panel#PART_DeleteTagPanel">
+                            <Setter Property="Opacity" Value="1" />
+                            <Setter Property="RenderTransform" Value="scale(1)" />
+                        </Style>
+                    </Panel.Styles>
+                    <Panel Name="PART_TagPanel">
+                        <Border Name="PART_TagItemBorder"
+                                Background="Transparent"
+                                BorderBrush="{DynamicResource TagsBoxControlForeground}"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                Margin="4"
+                                Opacity="0.4"
+                                Height="{Binding #PART_DummyPanel.Bounds.Height}"
+                                VerticalAlignment="Top" />
+                        <Panel Name="PART_DummyPanel"
+                               VerticalAlignment="Top">
+                            <ContentPresenter Content="{Binding .}"
+                                              VerticalAlignment="Center"
+                                              Margin="10,8,10,0" />
+                        </Panel>
+                        <Panel
+                            Name="PART_DeleteTagPanel"
+                            Width="13"
+                            Height="13"
+                            VerticalAlignment="Top"
+                            HorizontalAlignment="Right">
+                            <Panel.Transitions>
+                                <Transitions>
+                                    <DoubleTransition Property="Opacity" Duration="0:0:0.175" />
+                                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.135"
+                                                                   Easing="QuadraticEaseIn" />
+                                </Transitions>
+                            </Panel.Transitions>
+                            <Button Classes="TagDelete" Name="PART_DeleteButton" />
+                        </Panel>
+                    </Panel>
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+</Styles>

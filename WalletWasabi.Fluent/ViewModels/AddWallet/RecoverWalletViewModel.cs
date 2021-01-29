@@ -26,7 +26,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		[AutoNotify] private string? _selectedTag;
 		[AutoNotify] private IEnumerable<string>? _suggestions;
 		[AutoNotify] private Mnemonic? _currentMnemonics;
-		[AutoNotify] private ReactiveCommand<object, Unit>? _deleteSuggestionCommand;
 
 		public RecoverWalletViewModel(
 			string walletName,
@@ -78,14 +77,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				});
 
 			EnableAutoBusyOn(NextCommand);
-
-			DeleteSuggestionCommand = ReactiveCommand.Create<object>((del) =>
-			{
-				if (del is RecoveryWordIndexed word)
-				{
-					Mnemonics.RemoveAt(Mnemonics.IndexOf(word));
-				}
-			});
 		}
 
 		private async Task OnNext(

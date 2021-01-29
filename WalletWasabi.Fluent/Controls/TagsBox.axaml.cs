@@ -3,11 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Generators;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
@@ -44,19 +44,12 @@ namespace WalletWasabi.Fluent.Controls
 		private bool _isInputEnabled = true;
 		private IEnumerable? _suggestions;
 		private ICommand? _completedCommand;
-		private ReactiveCommand<object, Unit>? _deleteTagCommand;
 
 		public static readonly DirectProperty<TagsBox, ICommand?> CompletedCommandProperty =
 			AvaloniaProperty.RegisterDirect<TagsBox, ICommand?>(
 				nameof(CompletedCommand),
 				o => o.CompletedCommand,
 				(o, v) => o.CompletedCommand = v);
-
-		public static readonly DirectProperty<TagsBox, ReactiveCommand<object, Unit>?> DeleteTagCommandProperty =
-			AvaloniaProperty.RegisterDirect<TagsBox, ReactiveCommand<object, Unit>?>(
-				nameof(DeleteTagCommand),
-				o => o.DeleteTagCommand,
-				(o, v) => o.DeleteTagCommand = v);
 
 		static TagsBox()
 		{
@@ -92,12 +85,6 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => _completedCommand;
 			set => SetAndRaise(CompletedCommandProperty, ref _completedCommand, value);
-		}
-
-		public ReactiveCommand<object, Unit>? DeleteTagCommand
-		{
-			get => _deleteTagCommand;
-			set => SetAndRaise(DeleteTagCommandProperty, ref _deleteTagCommand, value);
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -142,6 +129,9 @@ namespace WalletWasabi.Fluent.Controls
 				Dispatcher.UIThread.Post(() => _autoCompleteBox.Focus());
 			}
 		}
+
+		protected override IItemContainerGenerator CreateItemContainerGenerator() =>
+			new ItemContainerGenerator<TagControl>(this,ContentControl.ContentProperty,ContentControl.ContentTemplateProperty);
 
 		private void CheckIsInputEnabled()
 		{
@@ -353,6 +343,17 @@ namespace WalletWasabi.Fluent.Controls
 			if (Items is IList x && x.Count > 0)
 			{
 				x.RemoveAt(Math.Max(0, x.Count - 1));
+			}
+
+			CheckIsInputEnabled();
+		}
+
+
+		internal void RemoveTargetTag(object? tag)
+		{
+			if (Items is IList x && x.Count > 0 && tag is { })
+			{
+				x.RemoveAt(x.IndexOf(tag));
 			}
 
 			CheckIsInputEnabled();
