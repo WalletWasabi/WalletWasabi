@@ -2,128 +2,150 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="using:WalletWasabi.Fluent.Controls"
         xmlns:converters="using:WalletWasabi.Gui.Converters">
-  <Styles.Resources>
-    <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
-    <Thickness x:Key="TextControlBorderThemeThicknessFocused">0,0,0,2</Thickness>
-    <Thickness x:Key="TextControlThemePadding">15,10,15,8</Thickness>
-    <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
-    <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
-  </Styles.Resources>
+    <Styles.Resources>
+        <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
+        <Thickness x:Key="TextControlBorderThemeThicknessFocused">0,0,0,2</Thickness>
+        <Thickness x:Key="TextControlThemePadding">15,10,15,8</Thickness>
+        <converters:ErrorSeverityColorConverter x:Key="ErrorSeverityColorConverter" />
+        <converters:ErrorDescriptorToBorderColorConverter x:Key="ErrorDescriptorToBorderColorConverter" />
+    </Styles.Resources>
 
-  <Style Selector="c|CurrencyEntryBox">
-    <Setter Property="Template">
-      <ControlTemplate>
-        <DockPanel>
+    <Style Selector="c|CurrencyEntryBox">
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+        <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThickness}" />
+        <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
+        <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}" />
+        <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
+        <Setter Property="Padding" Value="{DynamicResource TextControlThemePadding}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <DockPanel>
 
-          <!-- TODO bind Content -> Header and ContentTemplate -> HeaderTemplate -->
-          <ContentPresenter x:Name="PART_HeaderContentPresenter"
-                            DockPanel.Dock="Top"
-                            TextBlock.FontWeight="Normal"
-                            TextBlock.Foreground="{DynamicResource TextControlHeaderForeground}"
-                            IsVisible="False"
-                            Margin="{DynamicResource TextBoxTopHeaderMargin}" />
+                    <!-- TODO bind Content -> Header and ContentTemplate -> HeaderTemplate -->
+                    <ContentPresenter x:Name="PART_HeaderContentPresenter"
+                                      DockPanel.Dock="Top"
+                                      TextBlock.FontWeight="Normal"
+                                      TextBlock.Foreground="{DynamicResource TextControlHeaderForeground}"
+                                      IsVisible="False"
+                                      Margin="{DynamicResource TextBoxTopHeaderMargin}" />
 
-          <DataValidationErrors DockPanel.Dock="Bottom" Margin="0 10 0 0" />
+                    <DataValidationErrors DockPanel.Dock="Bottom" Margin="0 10 0 0" />
 
-          <Panel>
-            <Border
-              Name="PART_BorderElement"
-              Background="{TemplateBinding Background}"
-              BorderBrush="{TemplateBinding BorderBrush}"
-              BorderThickness="{TemplateBinding BorderThickness}"
-              MinWidth="{TemplateBinding MinWidth}"
-              MinHeight="{TemplateBinding MinHeight}">
-            </Border>
+                    <Panel>
+                        <Border
+                            Name="PART_BorderElement"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            MinWidth="{TemplateBinding MinWidth}"
+                            MinHeight="{TemplateBinding MinHeight}" />
 
-            <Border
-              Margin="{TemplateBinding BorderThickness}">
-              <Grid ColumnDefinitions="Auto,*,Auto">
-                <ContentPresenter Grid.Column="0" Grid.ColumnSpan="1" Content="{TemplateBinding InnerLeftContent}" />
-                <DockPanel x:Name="PART_InnerDockPanel" Grid.Column="1" Grid.ColumnSpan="1" Margin="{TemplateBinding Padding}">
-                  <TextBlock Name="PART_FloatingWatermark"
-                             Foreground="{DynamicResource SystemAccentColor}"
-                             FontSize="{TemplateBinding FontSize}"
-                             Text="{TemplateBinding Watermark}"
-                             DockPanel.Dock="Top" />
-                  <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
-                                VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
-                      <Panel>
-                        <TextBlock Name="PART_Watermark"
-                                Opacity="0.5"
-                                Text="{TemplateBinding Watermark}"
-                                TextAlignment="{TemplateBinding TextAlignment}"
-                                TextWrapping="{TemplateBinding TextWrapping}"
-                                IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
-                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                        <!-- TODO eliminate this margin... text layout issue? -->
-                        <TextPresenter Name="PART_TextPresenter"
-                                      Margin="0 1 0 0"
-                                      Text="{TemplateBinding Text, Mode=TwoWay}"
-                                      CaretIndex="{TemplateBinding CaretIndex}"
-                                      SelectionStart="{TemplateBinding SelectionStart}"
-                                      SelectionEnd="{TemplateBinding SelectionEnd}"
-                                      TextAlignment="{TemplateBinding TextAlignment}"
-                                      TextWrapping="{TemplateBinding TextWrapping}"
-                                      PasswordChar="{TemplateBinding PasswordChar}"
-                                      RevealPassword="{TemplateBinding RevealPassword}"
-                                      SelectionBrush="{TemplateBinding SelectionBrush}"
-                                      SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
-                                      CaretBrush="{TemplateBinding CaretBrush}"
-                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                      </Panel>
-                    </ScrollViewer>
+                        <Border
+                            Margin="{TemplateBinding BorderThickness}">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <ContentPresenter Grid.Column="0" Grid.ColumnSpan="1"
+                                                  Content="{TemplateBinding InnerLeftContent}" />
+                                <DockPanel x:Name="PART_InnerDockPanel" Grid.Column="1" Grid.ColumnSpan="1"
+                                           Margin="{TemplateBinding Padding}">
+                                    <TextBlock Name="PART_FloatingWatermark"
+                                               Foreground="{DynamicResource SystemAccentColor}"
+                                               FontSize="{TemplateBinding FontSize}"
+                                               Text="{TemplateBinding Watermark}"
+                                               DockPanel.Dock="Top" />
+                                    <ScrollViewer
+                                        HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                                        VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
+                                        <DockPanel>
+                                            <TextBlock Name="PART_ConversionWatermark"
+                                                       DockPanel.Dock="Right"
+                                                       Opacity="0.5"
+                                                       Text="{TemplateBinding Conversion}"
+                                                       IsVisible="{TemplateBinding Conversion, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                            <Panel>
+                                                <TextBlock Name="PART_Watermark"
+                                                           Opacity="0.5"
+                                                           Text="{TemplateBinding Watermark}"
+                                                           TextAlignment="{TemplateBinding TextAlignment}"
+                                                           TextWrapping="{TemplateBinding TextWrapping}"
+                                                           IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                                                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                                <!-- TODO eliminate this margin... text layout issue? -->
+                                                <TextPresenter Name="PART_TextPresenter"
+                                                               Margin="0 1 0 0"
+                                                               Text="{TemplateBinding Text, Mode=TwoWay}"
+                                                               CaretIndex="{TemplateBinding CaretIndex}"
+                                                               SelectionStart="{TemplateBinding SelectionStart}"
+                                                               SelectionEnd="{TemplateBinding SelectionEnd}"
+                                                               TextAlignment="{TemplateBinding TextAlignment}"
+                                                               TextWrapping="{TemplateBinding TextWrapping}"
+                                                               PasswordChar="{TemplateBinding PasswordChar}"
+                                                               RevealPassword="{TemplateBinding RevealPassword}"
+                                                               SelectionBrush="{TemplateBinding SelectionBrush}"
+                                                               SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                                                               CaretBrush="{TemplateBinding CaretBrush}"
+                                                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                            </Panel>
+                                        </DockPanel>
+                                    </ScrollViewer>
+                                </DockPanel>
+                                <ContentPresenter Grid.Column="2" Grid.ColumnSpan="1"
+                                                  Content="{TemplateBinding InnerRightContent}" />
+                            </Grid>
+                        </Border>
+                    </Panel>
                 </DockPanel>
-                <ContentPresenter Grid.Column="2" Grid.ColumnSpan="1" Content="{TemplateBinding InnerRightContent}" />
-              </Grid>
-            </Border>
-          </Panel>
-        </DockPanel>
-      </ControlTemplate>
-    </Setter>
-  </Style>
+            </ControlTemplate>
+        </Setter>
+    </Style>
 
-  <Style Selector="c|CurrencyEntryBox /template/ Border#PART_BorderElement">
-    <Setter Property="CornerRadius" Value="0" />
-  </Style>
+    <Style Selector="c|CurrencyEntryBox /template/ Border#PART_BorderElement">
+        <Setter Property="CornerRadius" Value="0" />
+    </Style>
 
-  <!-- TODO: temporary fix to prevent layout issue when error occurs  -->
-  <Style Selector="c|CurrencyEntryBox /template/ DataValidationErrors">
-    <Setter Property="MinHeight" Value="20" />
-  </Style>
+    <!-- TODO: temporary fix to prevent layout issue when error occurs  -->
+    <Style Selector="c|CurrencyEntryBox /template/ DataValidationErrors">
+        <Setter Property="MinHeight" Value="20" />
+    </Style>
 
-  <Style Selector="c|CurrencyEntryBox.selectable_text_block">
-    <Setter Property="IsReadOnly" Value="True" />
-    <Setter Property="Margin" Value="0" />
-    <Setter Property="Padding" Value="0" />
-    <Setter Property="ContextMenu">
-      <ContextMenu>
-        <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}" IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}"/>
-      </ContextMenu>
-    </Setter>
-    <Setter Property="Template">
-      <ControlTemplate>
-        <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
-                      VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
-          <Panel>
-            <TextPresenter Name="PART_TextPresenter"
-                           Text="{TemplateBinding Text, Mode=TwoWay}"
-                           CaretIndex="{TemplateBinding CaretIndex}"
-                           SelectionStart="{TemplateBinding SelectionStart}"
-                           SelectionEnd="{TemplateBinding SelectionEnd}"
-                           TextAlignment="{TemplateBinding TextAlignment}"
-                           TextWrapping="{TemplateBinding TextWrapping}"
-                           PasswordChar="{TemplateBinding PasswordChar}"
-                           RevealPassword="{TemplateBinding RevealPassword}"
-                           SelectionBrush="{TemplateBinding SelectionBrush}"
-                           SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
-                           CaretBrush="{TemplateBinding CaretBrush}"
-                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-          </Panel>
-        </ScrollViewer>
-      </ControlTemplate>
-    </Setter>
-  </Style>
+    <Style Selector="c|CurrencyEntryBox.selectable_text_block">
+        <Setter Property="IsReadOnly" Value="True" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="ContextMenu">
+            <ContextMenu>
+                <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}"
+                          IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}" />
+            </ContextMenu>
+        </Setter>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <ScrollViewer
+                    HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                    VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
+                    <Panel>
+                        <TextPresenter Name="PART_TextPresenter"
+                                       Text="{TemplateBinding Text, Mode=TwoWay}"
+                                       CaretIndex="{TemplateBinding CaretIndex}"
+                                       SelectionStart="{TemplateBinding SelectionStart}"
+                                       SelectionEnd="{TemplateBinding SelectionEnd}"
+                                       TextAlignment="{TemplateBinding TextAlignment}"
+                                       TextWrapping="{TemplateBinding TextWrapping}"
+                                       PasswordChar="{TemplateBinding PasswordChar}"
+                                       RevealPassword="{TemplateBinding RevealPassword}"
+                                       SelectionBrush="{TemplateBinding SelectionBrush}"
+                                       SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                                       CaretBrush="{TemplateBinding CaretBrush}"
+                                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Panel>
+                </ScrollViewer>
+            </ControlTemplate>
+        </Setter>
+    </Style>
 </Styles>
