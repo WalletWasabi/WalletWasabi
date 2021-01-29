@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Windows.Input;
 using Avalonia;
@@ -12,6 +13,7 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -42,12 +44,19 @@ namespace WalletWasabi.Fluent.Controls
 		private bool _isInputEnabled = true;
 		private IEnumerable? _suggestions;
 		private ICommand? _completedCommand;
+		private ReactiveCommand<object, Unit>? _deleteTagCommand;
 
 		public static readonly DirectProperty<TagsBox, ICommand?> CompletedCommandProperty =
 			AvaloniaProperty.RegisterDirect<TagsBox, ICommand?>(
 				nameof(CompletedCommand),
 				o => o.CompletedCommand,
 				(o, v) => o.CompletedCommand = v);
+
+		public static readonly DirectProperty<TagsBox, ReactiveCommand<object, Unit>?> DeleteTagCommandProperty =
+			AvaloniaProperty.RegisterDirect<TagsBox, ReactiveCommand<object, Unit>?>(
+				nameof(DeleteTagCommand),
+				o => o.DeleteTagCommand,
+				(o, v) => o.DeleteTagCommand = v);
 
 		static TagsBox()
 		{
@@ -83,6 +92,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => _completedCommand;
 			set => SetAndRaise(CompletedCommandProperty, ref _completedCommand, value);
+		}
+
+		public ReactiveCommand<object, Unit>? DeleteTagCommand
+		{
+			get => _deleteTagCommand;
+			set => SetAndRaise(DeleteTagCommandProperty, ref _deleteTagCommand, value);
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)

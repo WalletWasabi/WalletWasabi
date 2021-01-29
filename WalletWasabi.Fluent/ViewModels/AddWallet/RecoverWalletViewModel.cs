@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
@@ -24,6 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		[AutoNotify] private string? _selectedTag;
 		[AutoNotify] private IEnumerable<string>? _suggestions;
 		[AutoNotify] private Mnemonic? _currentMnemonics;
+		[AutoNotify] private ReactiveCommand<object, Unit>? _deleteSuggestionCommand;
 
 		public RecoverWalletViewModel(
 			string walletName,
@@ -75,6 +78,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				});
 
 			EnableAutoBusyOn(NextCommand);
+
+			DeleteSuggestionCommand = ReactiveCommand.Create<object>((del) =>
+			{
+				if (del is RecoveryWordIndexed word)
+				{
+					Mnemonics.RemoveAt(Mnemonics.IndexOf(word));
+				}
+			});
 		}
 
 		private async Task OnNext(
@@ -135,7 +146,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		private Interaction<(KeyPath, int), (KeyPath?, int?)> AdvancedOptionsInteraction { get; }
 
-		public ObservableCollection<string> Mnemonics { get; } = new ObservableCollection<string>();
+		public ObservableCollection<RecoveryWordIndexed> Mnemonics { get; } =
+			new ObservableCollection<RecoveryWordIndexed>();
 
 		private void ValidateMnemonics(IValidationErrors errors)
 		{
@@ -149,7 +161,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			if (!string.IsNullOrWhiteSpace(tagString) && Mnemonics.Count + 1 <= 12)
 			{
-				Mnemonics.Add(tagString);
+				Mnemonics.Add(new RecoveryWordIndexed(Mnemonics.Count + 1, tagString));
 			}
 
 			SelectedTag = string.Empty;

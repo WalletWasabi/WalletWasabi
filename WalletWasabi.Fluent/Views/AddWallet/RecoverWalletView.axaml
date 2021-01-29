@@ -28,6 +28,7 @@
                            RestrictInputToSuggestions="True"
                            Items="{Binding Mnemonics}"
                            Suggestions="{Binding Suggestions}"
+                           DeleteTagCommand="{Binding DeleteSuggestionCommand}"
                            SelectedTag="{Binding SelectedTag}"
                            CompletedCommand="{Binding NextCommand}">
                     <i:Interaction.Behaviors>
