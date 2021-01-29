@@ -2,33 +2,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="using:WalletWasabi.Fluent.Controls">
 
-    <Style Selector="Button.TagDelete">
-        <Setter Property="Background" Value="#FF6DB4EF" />
+    <Style Selector="Button#PART_DeleteButton">
+        <Setter Property="Background" Value="Transparent" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate>
-                    <Grid>
-                        <Ellipse Fill="{TemplateBinding Background}" />
-                        <Ellipse>
-                            <Ellipse.Fill>
-                                <RadialGradientBrush>
-                                    <GradientStop Offset="0" Color="#00000000" />
-                                    <GradientStop Offset="0.88" Color="#00000000" />
-                                    <GradientStop Offset="1" Color="#80000000" />
-                                </RadialGradientBrush>
-                            </Ellipse.Fill>
-                        </Ellipse>
-                        <Ellipse Margin="10" x:Name="highlightCircle">
-                            <Ellipse.Fill>
-                                <LinearGradientBrush>
-                                    <GradientStop Offset="0" Color="#50FFFFFF" />
-                                    <GradientStop Offset="0.5" Color="#00FFFFFF" />
-                                    <GradientStop Offset="1" Color="#50FFFFFF" />
-                                </LinearGradientBrush>
-                            </Ellipse.Fill>
-                        </Ellipse>
-                        <ContentPresenter x:Name="content" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Grid>
+                    <PathIcon Data="{StaticResource dismiss_light}" />
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -44,13 +23,18 @@
             <ControlTemplate>
                 <Panel>
                     <Panel.Styles>
-                        <Style Selector="Panel#PART_TagPanel Panel#PART_DeleteTagPanel">
-                            <Setter Property="Opacity" Value="0" />
-                            <Setter Property="RenderTransform" Value="scale(0.8)" />
+                        <Style Selector="Panel#PART_TagPanel LayoutTransformControl#PART_DeleteButtonLayoutTransformer">
+                            <Setter Property="LayoutTransform" Value="scaleX(0)" />
                         </Style>
-                        <Style Selector="Panel#PART_TagPanel:pointerover Panel#PART_DeleteTagPanel">
+                        <Style
+                            Selector="Panel#PART_TagPanel:pointerover LayoutTransformControl#PART_DeleteButtonLayoutTransformer">
+                            <Setter Property="LayoutTransform" Value="scaleX(1)" />
+                        </Style>
+                        <Style Selector="Panel#PART_TagPanel Button#PART_DeleteButton">
+                            <Setter Property="Opacity" Value="0" />
+                        </Style>
+                        <Style Selector="Panel#PART_TagPanel:pointerover Button#PART_DeleteButton">
                             <Setter Property="Opacity" Value="1" />
-                            <Setter Property="RenderTransform" Value="scale(1)" />
                         </Style>
                     </Panel.Styles>
                     <Panel Name="PART_TagPanel">
@@ -58,32 +42,36 @@
                                 Background="Transparent"
                                 BorderBrush="{DynamicResource TagsBoxControlForeground}"
                                 BorderThickness="1"
-                                CornerRadius="4"
-                                Margin="4"
-                                Opacity="0.4"
+                                CornerRadius="2"
+                                Opacity="0.25"
                                 Height="{Binding #PART_DummyPanel.Bounds.Height}"
                                 VerticalAlignment="Top" />
-                        <Panel Name="PART_DummyPanel"
-                               VerticalAlignment="Top">
+                        <StackPanel Name="PART_DummyPanel" Orientation="Horizontal"
+                                    VerticalAlignment="Top">
                             <ContentPresenter Content="{Binding .}"
-                                              VerticalAlignment="Center"
-                                              Margin="10,8,10,0" />
-                        </Panel>
-                        <Panel
-                            Name="PART_DeleteTagPanel"
-                            Width="13"
-                            Height="13"
-                            VerticalAlignment="Top"
-                            HorizontalAlignment="Right">
-                            <Panel.Transitions>
-                                <Transitions>
-                                    <DoubleTransition Property="Opacity" Duration="0:0:0.175" />
-                                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.135"
-                                                                   Easing="QuadraticEaseIn" />
-                                </Transitions>
-                            </Panel.Transitions>
-                            <Button Classes="TagDelete" Name="PART_DeleteButton" />
-                        </Panel>
+                                              VerticalAlignment="Center" Margin="12,6,12,6" />
+                            <LayoutTransformControl Name="PART_DeleteButtonLayoutTransformer" Margin="-8,0,3,0">
+
+                                    <Button Name="PART_DeleteButton" VerticalAlignment="Center"
+                                            HorizontalAlignment="Center"
+                                            Width="12"
+                                            Height="12"
+                                            Margin="4">
+                                        <Button.Transitions>
+                                            <Transitions>
+                                                <DoubleTransition Property="Opacity" Duration="0:0:0.135" Easing="{StaticResource FluentEasing}"  />
+                                            </Transitions>
+                                        </Button.Transitions>
+                                    </Button>
+                                <LayoutTransformControl.Transitions>
+                                    <Transitions>
+                                        <TransformOperationsTransition Property="LayoutTransform" Duration="0:0:.135"
+                                                                       Easing="{StaticResource FluentEasing}" />
+                                    </Transitions>
+                                </LayoutTransformControl.Transitions>
+                            </LayoutTransformControl>
+
+                        </StackPanel>
                     </Panel>
                 </Panel>
             </ControlTemplate>

@@ -14,7 +14,7 @@
         <Setter Property="Cursor" Value="IBeam" />
         <Setter Property="Template">
             <ControlTemplate>
-                <DataValidationErrors>
+                <!-- <DataValidationErrors> -->
                     <Border x:Name="PART_Border" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
@@ -37,7 +37,7 @@
                             </ItemsPresenter.ItemsPanel>
                         </ItemsPresenter>
                     </Border>
-                </DataValidationErrors>
+                <!-- </DataValidationErrors> -->
             </ControlTemplate>
         </Setter>
         <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
@@ -62,10 +62,14 @@
         <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
     </Style>
 
+    <Style Selector="c|TagsBox c|TagControl">
+        <Setter Property="Margin" Value="0,0,5,5" />
+    </Style>
+
     <Style Selector="c|TagsBox AutoCompleteBox">
         <Setter Property="Background" Value="{x:Null}" />
-        <Setter Property="Padding" Value="3,0 " />
-        <Setter Property="Margin" Value="0,7,0,0" />
+        <Setter Property="Padding" Value="0,0,3,0 " />
+        <Setter Property="Margin" Value="0,3,0,0" />
     </Style>
 
     <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
