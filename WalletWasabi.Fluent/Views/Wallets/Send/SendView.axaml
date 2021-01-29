@@ -33,7 +33,7 @@
 
             <StackPanel>
                 <Label Content="_Amount:" Target="amountTb" />
-                <TextBox x:Name="amountTb" MaxLength="250" Text="{Binding To}" Watermark="12 BTC" />
+                <c:CurrencyEntryBox x:Name="amountTb" />
             </StackPanel>
 
             <StackPanel>
