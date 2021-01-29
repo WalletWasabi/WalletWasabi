@@ -19,6 +19,7 @@
         <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}" />
         <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
         <Setter Property="Padding" Value="{DynamicResource TextControlThemePadding}" />
+        <Setter Property="CaretBrush" Value="{DynamicResource TextControlForeground}" />
         <Setter Property="Template">
             <ControlTemplate>
                 <DockPanel>
@@ -113,39 +114,51 @@
         <Setter Property="MinHeight" Value="20" />
     </Style>
 
-    <Style Selector="c|CurrencyEntryBox.selectable_text_block">
-        <Setter Property="IsReadOnly" Value="True" />
-        <Setter Property="Margin" Value="0" />
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="ContextMenu">
-            <ContextMenu>
-                <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}"
-                          IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}" />
-            </ContextMenu>
-        </Setter>
-        <Setter Property="Template">
-            <ControlTemplate>
-                <ScrollViewer
-                    HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
-                    VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
-                    <Panel>
-                        <TextPresenter Name="PART_TextPresenter"
-                                       Text="{TemplateBinding Text, Mode=TwoWay}"
-                                       CaretIndex="{TemplateBinding CaretIndex}"
-                                       SelectionStart="{TemplateBinding SelectionStart}"
-                                       SelectionEnd="{TemplateBinding SelectionEnd}"
-                                       TextAlignment="{TemplateBinding TextAlignment}"
-                                       TextWrapping="{TemplateBinding TextWrapping}"
-                                       PasswordChar="{TemplateBinding PasswordChar}"
-                                       RevealPassword="{TemplateBinding RevealPassword}"
-                                       SelectionBrush="{TemplateBinding SelectionBrush}"
-                                       SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
-                                       CaretBrush="{TemplateBinding CaretBrush}"
-                                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                    </Panel>
-                </ScrollViewer>
-            </ControlTemplate>
-        </Setter>
-    </Style>
+    <!-- Disabled State -->
+  <Style Selector="c|CurrencyEntryBox:disabled">
+    <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}" />
+  </Style>
+
+  <Style Selector="c|CurrencyEntryBox:disabled /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{DynamicResource TextControlBackgroundDisabled}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushDisabled}" />
+  </Style>
+
+  <Style Selector="c|CurrencyEntryBox:disabled /template/ TextBlock#PART_Watermark, TextBox:disabled /template/ TextBlock#PART_FloatingWatermark">
+    <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundDisabled}" />
+  </Style>
+
+  <!-- PointerOver State-->
+  <Style Selector="c|CurrencyEntryBox:disabled">
+    <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundPointerOver}" />
+  </Style>
+
+  <Style Selector="c|CurrencyEntryBox:pointerover /template/ Border#PART_BorderElement">
+    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}"/>
+    <Setter Property="Background" Value="{DynamicResource TextControlBackgroundPointerOver}" />
+  </Style>
+
+  <Style Selector="c|CurrencyEntryBox:pointerover /template/ TextBlock#PART_Watermark, TextBox:pointerover /template/ TextBlock#PART_FloatingWatermark">
+    <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundPointerOver}" />
+  </Style>
+
+  <!-- Focused State -->
+  <Style Selector="c|CurrencyEntryBox:focus">
+    <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundFocused}" />
+  </Style>
+
+  <Style Selector="c|CurrencyEntryBox:focus /template/ TextBlock#PART_Watermark, TextBox:focus /template/ TextBlock#PART_FloatingWatermark">
+    <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
+  </Style>
+
+  <Style Selector="c|CurrencyEntryBox:focus /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{DynamicResource TextControlBackgroundFocused}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}"/>
+    <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
+  </Style>
+
+  <Style Selector="c|CurrencyEntryBox:error /template/ Border#PART_BorderElement">
+    <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}"/>
+  </Style>
+
 </Styles>
