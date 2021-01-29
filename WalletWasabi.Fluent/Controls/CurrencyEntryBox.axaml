@@ -175,4 +175,16 @@
     <Style Selector="c|CurrencyEntryBox:error /template/ Border#PART_BorderElement">
         <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
     </Style>
+
+    <Style Selector="c|CurrencyEntryBox /template/ Button#PART_SwapButton">
+        <Setter Property="Opacity" Value="0.5" />
+    </Style>
+
+    <Style Selector="c|CurrencyEntryBox /template/ Button#PART_SwapButton:pointerover">
+        <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="c|CurrencyEntryBox /template/ Button#PART_SwapButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
 </Styles>
