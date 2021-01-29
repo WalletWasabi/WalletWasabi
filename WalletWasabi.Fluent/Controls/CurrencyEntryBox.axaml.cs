@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -60,7 +61,7 @@ namespace WalletWasabi.Fluent.Controls
 
 				DoConversion();
 
-				CaretIndex = Text.Length - 1;
+				CaretIndex = Text.Length;
 			}
 		}
 
@@ -68,9 +69,9 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			base.OnGotFocus(e);
 
-			CaretIndex = Text.Length - 1;
+			CaretIndex = Text.Length;
 
-			SelectAll();
+			Dispatcher.UIThread.Post(() => SelectAll());
 		}
 
 		private void DoConversion()
