@@ -20,6 +20,7 @@
         <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
         <Setter Property="Padding" Value="{DynamicResource TextControlThemePadding}" />
         <Setter Property="CaretBrush" Value="{DynamicResource TextControlForeground}" />
+        <Setter Property="Cursor" Value="IBeam" />
         <Setter Property="Template">
             <ControlTemplate>
                 <DockPanel>
@@ -76,21 +77,29 @@
                                                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                                                 <!-- TODO eliminate this margin... text layout issue? -->
-                                                <TextPresenter Name="PART_TextPresenter"
-                                                               Margin="0 1 0 0"
-                                                               Text="{TemplateBinding Text, Mode=TwoWay}"
-                                                               CaretIndex="{TemplateBinding CaretIndex}"
-                                                               SelectionStart="{TemplateBinding SelectionStart}"
-                                                               SelectionEnd="{TemplateBinding SelectionEnd}"
-                                                               TextAlignment="{TemplateBinding TextAlignment}"
-                                                               TextWrapping="{TemplateBinding TextWrapping}"
-                                                               PasswordChar="{TemplateBinding PasswordChar}"
-                                                               RevealPassword="{TemplateBinding RevealPassword}"
-                                                               SelectionBrush="{TemplateBinding SelectionBrush}"
-                                                               SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
-                                                               CaretBrush="{TemplateBinding CaretBrush}"
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextPresenter Name="PART_TextPresenter"
+                                                                   Text="{TemplateBinding Text, Mode=TwoWay}"
+                                                                   CaretIndex="{TemplateBinding CaretIndex}"
+                                                                   SelectionStart="{TemplateBinding SelectionStart}"
+                                                                   SelectionEnd="{TemplateBinding SelectionEnd}"
+                                                                   TextAlignment="{TemplateBinding TextAlignment}"
+                                                                   TextWrapping="{TemplateBinding TextWrapping}"
+                                                                   PasswordChar="{TemplateBinding PasswordChar}"
+                                                                   RevealPassword="{TemplateBinding RevealPassword}"
+                                                                   SelectionBrush="{TemplateBinding SelectionBrush}"
+                                                                   SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                                                                   CaretBrush="{TemplateBinding CaretBrush}"
+                                                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                                   VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                                    <TextBlock Name="PART_CurrencyCode"
+                                                               Opacity="0.5"
+                                                               Margin="5 0 0 0"
+                                                               Text="{TemplateBinding CurrencyCode}"
+                                                               IsVisible="{TemplateBinding CurrencyCode, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                                </StackPanel>
                                             </Panel>
                                         </DockPanel>
                                     </ScrollViewer>
@@ -115,50 +124,53 @@
     </Style>
 
     <!-- Disabled State -->
-  <Style Selector="c|CurrencyEntryBox:disabled">
-    <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}" />
-  </Style>
+    <Style Selector="c|CurrencyEntryBox:disabled">
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}" />
+    </Style>
 
-  <Style Selector="c|CurrencyEntryBox:disabled /template/ Border#PART_BorderElement">
-    <Setter Property="Background" Value="{DynamicResource TextControlBackgroundDisabled}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushDisabled}" />
-  </Style>
+    <Style Selector="c|CurrencyEntryBox:disabled /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource TextControlBackgroundDisabled}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushDisabled}" />
+    </Style>
 
-  <Style Selector="c|CurrencyEntryBox:disabled /template/ TextBlock#PART_Watermark, TextBox:disabled /template/ TextBlock#PART_FloatingWatermark">
-    <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundDisabled}" />
-  </Style>
+    <Style
+        Selector="c|CurrencyEntryBox:disabled /template/ TextBlock#PART_Watermark, TextBox:disabled /template/ TextBlock#PART_FloatingWatermark">
+        <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundDisabled}" />
+    </Style>
 
-  <!-- PointerOver State-->
-  <Style Selector="c|CurrencyEntryBox:disabled">
-    <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundPointerOver}" />
-  </Style>
+    <!-- PointerOver State-->
+    <Style Selector="c|CurrencyEntryBox:disabled">
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundPointerOver}" />
+    </Style>
 
-  <Style Selector="c|CurrencyEntryBox:pointerover /template/ Border#PART_BorderElement">
-    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}"/>
-    <Setter Property="Background" Value="{DynamicResource TextControlBackgroundPointerOver}" />
-  </Style>
+    <Style Selector="c|CurrencyEntryBox:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushPointerOver}" />
+        <Setter Property="Background" Value="{DynamicResource TextControlBackgroundPointerOver}" />
+    </Style>
 
-  <Style Selector="c|CurrencyEntryBox:pointerover /template/ TextBlock#PART_Watermark, TextBox:pointerover /template/ TextBlock#PART_FloatingWatermark">
-    <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundPointerOver}" />
-  </Style>
+    <Style
+        Selector="c|CurrencyEntryBox:pointerover /template/ TextBlock#PART_Watermark, TextBox:pointerover /template/ TextBlock#PART_FloatingWatermark">
+        <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundPointerOver}" />
+    </Style>
 
-  <!-- Focused State -->
-  <Style Selector="c|CurrencyEntryBox:focus">
-    <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundFocused}" />
-  </Style>
+    <!-- Focused State -->
+    <Style Selector="c|CurrencyEntryBox:focus">
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundFocused}" />
+    </Style>
 
-  <Style Selector="c|CurrencyEntryBox:focus /template/ TextBlock#PART_Watermark, TextBox:focus /template/ TextBlock#PART_FloatingWatermark">
-    <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
-  </Style>
+    <Style
+        Selector="c|CurrencyEntryBox:focus /template/ TextBlock#PART_Watermark, TextBox:focus /template/ TextBlock#PART_FloatingWatermark">
+        <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
+    </Style>
 
-  <Style Selector="c|CurrencyEntryBox:focus /template/ Border#PART_BorderElement">
-    <Setter Property="Background" Value="{DynamicResource TextControlBackgroundFocused}"/>
-    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}"/>
-    <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
-  </Style>
+    <Style Selector="c|CurrencyEntryBox:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource TextControlBackgroundFocused}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
+    </Style>
 
-  <Style Selector="c|CurrencyEntryBox:error /template/ Border#PART_BorderElement">
-    <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}"/>
-  </Style>
+    <Style Selector="c|CurrencyEntryBox:error /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+    </Style>
 
 </Styles>

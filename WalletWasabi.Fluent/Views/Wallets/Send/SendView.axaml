@@ -33,7 +33,7 @@
 
             <StackPanel>
                 <Label Content="_Amount:" Target="amountTb" />
-                <c:CurrencyEntryBox x:Name="amountTb" ConversionRate="32212.00" CurrencyCode="USD" />
+                <c:CurrencyEntryBox x:Name="amountTb" ConversionRate="32212.00" CurrencyCode="BTC" ConversionCurrencyCode="USD" />
             </StackPanel>
 
             <StackPanel>

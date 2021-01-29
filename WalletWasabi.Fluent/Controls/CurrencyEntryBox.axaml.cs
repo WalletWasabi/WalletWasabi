@@ -13,7 +13,10 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(ConversionRate));
 
 		public static readonly StyledProperty<string> CurrencyCodeProperty =
-			AvaloniaProperty.Register<CurrencyEntryBox, string>(nameof(CurrencyCodeProperty));
+			AvaloniaProperty.Register<CurrencyEntryBox, string>(nameof(CurrencyCode));
+
+		public static readonly StyledProperty<string> ConversionCurrencyCodeProperty =
+			AvaloniaProperty.Register<CurrencyEntryBox, string>(nameof(ConversionCurrencyCode));
 
 		public CurrencyEntryBox()
 		{
@@ -22,7 +25,7 @@ namespace WalletWasabi.Fluent.Controls
 				if (decimal.TryParse(x, out var result) && ConversionRate > 0)
 				{
 					Conversion = $"≈ {result * ConversionRate :N}"
-					             + (!string.IsNullOrWhiteSpace(CurrencyCode) ? $" {CurrencyCode}" : "");
+					             + (!string.IsNullOrWhiteSpace(ConversionCurrencyCode) ? $" {ConversionCurrencyCode}" : "");
 				}
 				else
 				{
@@ -47,6 +50,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(CurrencyCodeProperty);
 			set => SetValue(CurrencyCodeProperty, value);
+		}
+
+		public string ConversionCurrencyCode
+		{
+			get => GetValue(ConversionCurrencyCodeProperty);
+			set => SetValue(ConversionCurrencyCodeProperty, value);
 		}
 	}
 }
