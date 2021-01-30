@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
@@ -45,6 +46,48 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		/// </summary>
 		[JsonProperty]
 		public bool IsAccurate { get; }
+
+		/// <returns>
+		/// An estimates based on these estimates, but randomizes each estimation between
+		/// the value of its larger estimation sibling - or 50% more if the largest
+		/// with a probabilistic bias towards the estimate.
+		/// </returns>
+		public AllFeeEstimate? Unfingerprint()
+		{
+			if (Estimations is null)
+			{
+				return null;
+			}
+
+			var rand = new InsecureRandom();
+			var fingerprintless = new Dictionary<int, int>();
+			KeyValuePair<int, int>[] array = Estimations.ToArray();
+			for (int i = 0; i < array.Length; i++)
+			{
+				KeyValuePair<int, int> current = array[i];
+				var minInclusive = current.Value;
+				int maxExclusive = i == 0 ? (int)(current.Value * 1.5d) : array[i - 1].Value;
+				var middle = minInclusive + (maxExclusive - minInclusive) / 2;
+
+				var bias = rand.GetInt(0, 10);
+				int est;
+				if (bias < 3 || minInclusive >= middle)
+				{
+					est = minInclusive;
+				}
+				else if (bias < 7)
+				{
+					est = rand.GetInt(minInclusive, middle);
+				}
+				else
+				{
+					est = rand.GetInt(minInclusive, maxExclusive);
+				}
+
+				fingerprintless.Add(current.Key, est);
+			}
+			return new AllFeeEstimate(Type, fingerprintless, IsAccurate);
+		}
 
 		/// <summary>
 		/// Gets the fee estimations: int: fee target, int: satoshi/vByte

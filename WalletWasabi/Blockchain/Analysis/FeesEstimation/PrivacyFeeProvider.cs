@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {
-	public class FeeProviders : IFeeProvider, IDisposable
+	public class PrivacyFeeProvider : IFeeProvider, IDisposable
 	{
-		public FeeProviders(IFeeProvider baseProvider, params IFeeProvider[]? feeProviders)
+		public PrivacyFeeProvider(IFeeProvider baseProvider, params IFeeProvider[]? feeProviders)
 		{
 			Lock = new object();
 
@@ -25,7 +25,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 				provider.AllFeeEstimateChanged += Provider_AllFeeEstimateChanged;
 			}
 
-			SetAllFeeEstimate();
+			SetEstimate();
 		}
 
 		public event EventHandler<AllFeeEstimate>? AllFeeEstimateChanged;
@@ -38,24 +38,29 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 		private void Provider_AllFeeEstimateChanged(object? sender, AllFeeEstimate e)
 		{
-			SetAllFeeEstimate();
+			SetEstimate();
 		}
 
-		private void SetAllFeeEstimate()
+		private void SetEstimate()
 		{
 			lock (Lock)
 			{
-				AllFeeEstimate? feeEstimateToSet = null;
+				AllFeeEstimate? bestProviderEstimate = null;
 				foreach (IFeeProvider provider in Providers.SkipLast(1))
 				{
 					if (provider.AllFeeEstimate is { IsAccurate: bool isAccurate } af && isAccurate)
 					{
-						feeEstimateToSet = af;
+						bestProviderEstimate = af;
 						break;
 					}
 				}
+				bestProviderEstimate ??= Providers.Last().AllFeeEstimate;
 
-				AllFeeEstimate = feeEstimateToSet ?? Providers.Last().AllFeeEstimate;
+				var privacyEstimate = bestProviderEstimate?.Unfingerprint();
+				if (privacyEstimate is { })
+				{
+					AllFeeEstimate = privacyEstimate;
+				}
 			}
 
 			AllFeeEstimateChanged?.Invoke(this, AllFeeEstimate);

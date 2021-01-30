@@ -58,7 +58,7 @@ namespace WalletWasabi.Gui
 
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
-		public FeeProviders FeeProviders { get; private set; }
+		public PrivacyFeeProvider FeeProviders { get; private set; }
 		public WalletManager WalletManager { get; }
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
@@ -215,7 +215,7 @@ namespace WalletWasabi.Gui
 
 				var rpcFeeProvider = HostedServices.FirstOrDefault<RpcFeeProvider>();
 
-				FeeProviders = new FeeProviders(Synchronizer, rpcFeeProvider);
+				FeeProviders = new PrivacyFeeProvider(Synchronizer, rpcFeeProvider);
 
 				#endregion BitcoinCoreInitialization
 
