@@ -1,11 +1,14 @@
 using System;
 using System.Reactive.Disposables;
+using System.Text.RegularExpressions;
+using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -32,12 +35,22 @@ namespace WalletWasabi.Fluent.Controls
 		private Button? _swapButton;
 		private CompositeDisposable _disposable;
 		private bool _allowConversions = true;
+		private char _currentCultureDecimalSeparator;
+		private char _currentCultureGroupSeparator;
+		private Regex _matchRegexDecimal;
 
 		public CurrencyEntryBox()
 		{
 			this.GetObservable(TextProperty).Subscribe(_ => DoConversion());
 			this.GetObservable(ConversionRateProperty).Subscribe(_ => DoConversion());
 			Text = "0";
+
+			var numFormat = Thread.CurrentThread.CurrentCulture.NumberFormat;
+			_currentCultureDecimalSeparator = Convert.ToChar(numFormat.NumberDecimalSeparator);
+			_currentCultureGroupSeparator = Convert.ToChar(numFormat.NumberGroupSeparator);
+			_matchRegexDecimal =
+				new Regex(
+					$"^(?<Whole>[0-9{_currentCultureGroupSeparator}]*)(\\{_currentCultureDecimalSeparator}?(?<Frac>[0-9]*))$");
 		}
 
 		private void Reverse()
@@ -74,13 +87,102 @@ namespace WalletWasabi.Fluent.Controls
 			Dispatcher.UIThread.Post(() => SelectAll());
 		}
 
+		protected override void OnTextInput(TextInputEventArgs e)
+		{
+			if (_allowConversions)
+			{
+				var inputText = Guard.Correct(e.Text);
+				var inputLength = inputText.Length;
+
+				// Check if it has a decimal separator.
+				var trailingDecimal = inputLength > 0 && inputText[^1] == _currentCultureDecimalSeparator;
+				var match = _matchRegexDecimal.Match(Guard.Correct(PrecomposeText(e)));
+
+				// Ignore group chars on count of the whole part of the decimal.
+				var wholeStr = match.Groups["Whole"].ToString();
+				var whole = wholeStr
+					.Replace(_currentCultureGroupSeparator, char.MinValue)
+					.Replace(_currentCultureDecimalSeparator, char.MinValue)
+					.Length;
+
+				var fracStr = match.Groups["Frac"].ToString();
+				var frac = fracStr.Length;
+
+				// Reject and dont process the input if the string doesnt match.
+				if (!match.Success)
+				{
+					e.Handled = true;
+					base.OnTextInput(e);
+					return;
+				}
+
+				// Passthrough the decimal place char or the group separator.
+				switch (inputLength)
+				{
+					case 1 when inputText[0] == _currentCultureDecimalSeparator && !trailingDecimal:
+					case 1 when inputText[0] == _currentCultureGroupSeparator && !fracStr.Contains(_currentCultureGroupSeparator):
+						base.OnTextInput(e);
+						return;
+				}
+
+				if (IsConversionReversed)
+				{
+					// Fiat input restriction is to only allow 2 decimal places.
+					if (frac > 2)
+					{
+						e.Handled = true;
+					}
+				}
+				else
+				{
+					// Bitcoin input restriction is to only allow 8 decimal places max
+					// and also 8 whole number places.
+					if (whole > 8 && !trailingDecimal || frac > 8)
+					{
+						e.Handled = true;
+					}
+				}
+			}
+
+			base.OnTextInput(e);
+		}
+
+		// Precomposes the TextInputEventArgs to see the Text that is to
+		// be commited to the TextPresenter.
+		private string PrecomposeText(TextInputEventArgs e)
+		{
+			var input = e.Text;
+
+			input = RemoveInvalidCharacters(input);
+			var precomposedText = Text ?? "";
+			var caretIndex = CaretIndex;
+			var selectionStart = SelectionStart;
+			var selectionEnd = SelectionEnd;
+
+			if (!string.IsNullOrEmpty(input) && (MaxLength == 0 ||
+			                                     input.Length + precomposedText.Length -
+			                                     Math.Abs(selectionStart - selectionEnd) <= MaxLength))
+			{
+
+				if (selectionStart != selectionEnd)
+				{
+					var start = Math.Min(selectionStart, selectionEnd);
+					var end = Math.Max(selectionStart, selectionEnd);
+					precomposedText = precomposedText.Substring(0, start) + precomposedText.Substring(end);
+					caretIndex = start;
+				}
+				return precomposedText.Substring(0, caretIndex) + input + precomposedText.Substring(caretIndex);
+			}
+			return "";
+		}
+
 		private void DoConversion()
 		{
 			if (_allowConversions)
 			{
-				if (decimal.TryParse(Text, out var result) && ConversionRate > 0)
+				if (IsConversionReversed)
 				{
-					if (IsConversionReversed)
+					if (decimal.TryParse(Text, out var result) && ConversionRate > 0)
 					{
 						CurrencyCode = ConversionCurrencyCode;
 
@@ -90,6 +192,15 @@ namespace WalletWasabi.Fluent.Controls
 					}
 					else
 					{
+						Conversion = 0;
+						ConversionText = string.Empty;
+						CurrencyCode = "";
+					}
+				}
+				else
+				{
+					if (decimal.TryParse(Text, out var result) && ConversionRate > 0)
+					{
 						CurrencyCode = "BTC";
 
 						Conversion = result * ConversionRate;
@@ -98,12 +209,12 @@ namespace WalletWasabi.Fluent.Controls
 							? $" {ConversionCurrencyCode}"
 							: "");
 					}
-				}
-				else
-				{
-					Conversion = 0;
-					ConversionText = string.Empty;
-					CurrencyCode = "";
+					else
+					{
+						Conversion = 0;
+						ConversionText = string.Empty;
+						CurrencyCode = "";
+					}
 				}
 			}
 		}
