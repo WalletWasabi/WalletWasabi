@@ -149,6 +149,8 @@ namespace WalletWasabi.Fluent.Controls
 
 		// Precomposes the TextInputEventArgs to see the Text that is to
 		// be commited to the TextPresenter.
+
+		// An event in Avalonia's TextBox with this function should be implemented there for brevity.
 		private string PrecomposeText(TextInputEventArgs e)
 		{
 			var input = e.Text;
