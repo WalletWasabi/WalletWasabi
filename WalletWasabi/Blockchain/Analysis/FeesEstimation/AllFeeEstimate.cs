@@ -54,7 +54,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		public Dictionary<int, int> Estimations { get; }
 
 		/// <returns>
-		/// An estimate based on these estimates, but randomizes each estimation between
+		/// An estimates based on these estimates, but randomizes each estimation between
 		/// the value of its larger estimation sibling - or 50% more if the largest
 		/// with a probabilistic bias towards the estimate.
 		/// </returns>
