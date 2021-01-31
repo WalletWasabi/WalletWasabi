@@ -47,6 +47,12 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		[JsonProperty]
 		public bool IsAccurate { get; }
 
+		/// <summary>
+		/// Gets the fee estimations: int: fee target, int: satoshi/vByte
+		/// </summary>
+		[JsonProperty]
+		public Dictionary<int, int> Estimations { get; }
+
 		/// <returns>
 		/// An estimate based on these estimates, but randomizes each estimation between
 		/// the value of its larger estimation sibling - or 50% more if the largest
@@ -88,12 +94,6 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			}
 			return new AllFeeEstimate(Type, fingerprintless, IsAccurate);
 		}
-
-		/// <summary>
-		/// Gets the fee estimations: int: fee target, int: satoshi/vByte
-		/// </summary>
-		[JsonProperty]
-		public Dictionary<int, int> Estimations { get; }
 
 		public FeeRate GetFeeRate(int feeTarget)
 		{
