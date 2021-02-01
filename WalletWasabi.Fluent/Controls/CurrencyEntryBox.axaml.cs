@@ -48,7 +48,12 @@ namespace WalletWasabi.Fluent.Controls
 			this.GetObservable(ConversionRateProperty).Subscribe(_ => DoConversion());
 			Text = "0";
 
-			_cultureNumberFormatInfo = Thread.CurrentThread.CurrentCulture.NumberFormat;
+			_cultureNumberFormatInfo = CultureInfo.CurrentCulture.NumberFormat;
+			_cultureNumberFormatInfo.CurrencyGroupSeparator = " ";
+			_cultureNumberFormatInfo.NumberGroupSeparator = " ";
+			_cultureNumberFormatInfo.CurrencyDecimalSeparator = ".";
+			_cultureNumberFormatInfo.NumberDecimalSeparator = ".";
+
 			_currentCultureDecimalSeparator = Convert.ToChar(_cultureNumberFormatInfo.NumberDecimalSeparator);
 			_currentCultureGroupSeparator = Convert.ToChar(_cultureNumberFormatInfo.NumberGroupSeparator);
 			_matchRegexDecimal =
@@ -68,7 +73,7 @@ namespace WalletWasabi.Fluent.Controls
 
 				if (IsConversionReversed)
 				{
-					Text = $"{FormatBTC(Conversion)}";
+					Text = $"{FormatBtc(Conversion)}";
 				}
 				else
 				{
@@ -194,9 +199,9 @@ namespace WalletWasabi.Fluent.Controls
 			return "";
 		}
 
-		private string FormatBTC(decimal value)
+		private string FormatBtc(decimal value)
 		{
-			return string.Format(_cultureNumberFormatInfo, $"{{0:0{_currentCultureDecimalSeparator}########}}", value);
+			return string.Format(_cultureNumberFormatInfo, "{0:0.########}", value);
 		}
 
 		private string FormatFiat(decimal value)
@@ -216,7 +221,7 @@ namespace WalletWasabi.Fluent.Controls
 
 						Conversion = result / ConversionRate;
 
-						ConversionText = $"≈ {FormatBTC(Conversion)} BTC";
+						ConversionText = $"≈ {FormatBtc(Conversion)} BTC";
 					}
 					else
 					{
