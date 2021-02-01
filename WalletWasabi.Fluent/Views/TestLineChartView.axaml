@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.TestLineChartView">
     <UserControl.DataContext>
         <vm:TestLineChartViewModel/>
@@ -59,27 +59,32 @@
         </Style>
         <!-- LineChart XAxis -->
         <Style Selector="c|LineChart.xAxis">
+            <Setter Property="XAxisOffset" Value="0,0" />
+            <Setter Property="XAxisOpacity" Value="0.5" />
             <Setter Property="XAxisStroke" Value="{DynamicResource TextForegroundColor}" />
-            <Setter Property="XAxisStrokeThickness" Value="1" />
+            <Setter Property="XAxisStrokeThickness" Value="0.7" />
             <Setter Property="XAxisArrowSize" Value="3.5" />
         </Style>
         <!-- LineChart YAxis -->
         <Style Selector="c|LineChart.yAxis">
+            <Setter Property="YAxisOffset" Value="-10,-115" />
+            <Setter Property="YAxisOpacity" Value="0.5" />
             <Setter Property="YAxisStroke" Value="{DynamicResource TextForegroundColor}" />
-            <Setter Property="YAxisStrokeThickness" Value="1" />
+            <Setter Property="YAxisStrokeThickness" Value="0.7" />
             <Setter Property="YAxisArrowSize" Value="3.5" />
         </Style>
         <!-- LineChart YAxis Title -->
         <Style Selector="c|LineChart.yAxisTitle">
             <Setter Property="YAxisTitleForeground" Value="{DynamicResource TextForegroundColor}" />
-            <Setter Property="YAxisTitleAngle" Value="270" />
-            <Setter Property="YAxisTitleOffset" Value="200" />
-            <Setter Property="YAxisTitleHeight" Value="0" />
-            <Setter Property="YAxisTitleAlignment" Value="Right" />
+            <Setter Property="YAxisTitleOpacity" Value="0.5" />
+            <Setter Property="YAxisTitleAngle" Value="-90" />
+            <Setter Property="YAxisTitleOffset" Value="-55,-75" />
+            <Setter Property="YAxisTitleSize" Value="90,20" />
+            <Setter Property="YAxisTitleAlignment" Value="Center" />
             <Setter Property="YAxisTitleFontFamily" Value="Arial" />
             <Setter Property="YAxisTitleFontStyle" Value="Normal" />
             <Setter Property="YAxisTitleFontWeight" Value="Normal" />
-            <Setter Property="YAxisTitleFontSize" Value="18" />
+            <Setter Property="YAxisTitleFontSize" Value="12" />
         </Style>
         <!-- LineChart Border -->
         <Style Selector="c|LineChart.border">
@@ -98,9 +103,10 @@
                         Minimum="{Binding #GradientLineChart.XAxisMinValue}"
                         Maximum="{Binding #GradientLineChart.XAxisMaxValue}"
                         Value="{Binding #GradientLineChart.XAxisCurrentValue}"
-                        Margin="60,0,30,0"/>
+                        Margin="30,0,30,0"/>
                 <c:LineChart x:Name="GradientLineChart"
                              Classes="cursor border xAxisLabels yAxis yAxisTitle"
+                             MinWidth="300" MinHeight="200"
                              XAxisLabels="{Binding XAxisLabels}"
                              XAxisValues="{Binding XAxisValues}"
                              XAxisCurrentValue="{Binding XAxisCurrentValue}"
@@ -108,7 +114,7 @@
                              XAxisMaxValue="{Binding XAxisMaxValue}"
                              YAxisValues="{Binding YAxisValues}"
                              YAxisLogarithmicScale="False"
-                             AreaMargin="60,40,30,30"
+                             AreaMargin="30,40,30,30"
                              AreaStrokeThickness="2"
                              AreaStrokeLineCap="Round"
                              YAxisTitle="More Expensive">
@@ -139,9 +145,10 @@
                         Minimum="{Binding #SolidLineChart.XAxisMinValue}"
                         Maximum="{Binding #SolidLineChart.XAxisMaxValue}"
                         Value="{Binding #SolidLineChart.XAxisCurrentValue}"
-                        Margin="60,0,30,0"/>
+                        Margin="30,0,30,0"/>
                 <c:LineChart x:Name="SolidLineChart"
                              Classes="cursor border xAxisLabels xAxis yAxis yAxisTitle"
+                             MinWidth="300" MinHeight="200"
                              XAxisLabels="{Binding XAxisLabels}"
                              XAxisValues="{Binding XAxisValues}"
                              XAxisCurrentValue="{Binding XAxisCurrentValue}"
@@ -149,7 +156,7 @@
                              XAxisMaxValue="{Binding XAxisMaxValue}"
                              YAxisValues="{Binding YAxisValues}"
                              YAxisLogarithmicScale="False"
-                             AreaMargin="60,40,30,30"
+                             AreaMargin="30,40,30,30"
                              AreaFill="#2872BD81"
                              AreaStroke="#FF72BD81"
                              AreaStrokeThickness="2"

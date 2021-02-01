@@ -47,6 +47,12 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<List<string>?> XAxisLabelsProperty =
 	        AvaloniaProperty.Register<LineChart, List<string>?>(nameof(XAxisLabels));
 
+        public static readonly StyledProperty<double> XAxisOpacityProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(XAxisOpacity));
+
+        public static readonly StyledProperty<Point> XAxisOffsetProperty =
+	        AvaloniaProperty.Register<LineChart, Point>(nameof(XAxisOffset));
+
         public static readonly StyledProperty<IBrush?> XAxisStrokeProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(XAxisStroke));
 
@@ -96,11 +102,14 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<IBrush?> XAxisTitleForegroundProperty =
 	        AvaloniaProperty.Register<LineChart, IBrush?>(nameof(XAxisTitleForeground));
 
-        public static readonly StyledProperty<double> XAxisTitleOffsetProperty =
-	        AvaloniaProperty.Register<LineChart, double>(nameof(XAxisTitleOffset));
+        public static readonly StyledProperty<double> XAxisTitleOpacityProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(XAxisTitleOpacity));
 
-        public static readonly StyledProperty<double> XAxisTitleHeightProperty =
-	        AvaloniaProperty.Register<LineChart, double>(nameof(XAxisTitleHeight));
+        public static readonly StyledProperty<Point> XAxisTitleOffsetProperty =
+	        AvaloniaProperty.Register<LineChart, Point>(nameof(XAxisTitleOffset));
+
+        public static readonly StyledProperty<Size> XAxisTitleSizeProperty =
+	        AvaloniaProperty.Register<LineChart, Size>(nameof(XAxisTitleSize));
 
         public static readonly StyledProperty<TextAlignment> XAxisTitleAlignmentProperty =
 	        AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(XAxisTitleAlignment));
@@ -137,6 +146,12 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<double> XAxisMaxValueProperty =
 	        AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMaxValue));
 
+        public static readonly StyledProperty<double> YAxisOpacityProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(YAxisOpacity));
+
+        public static readonly StyledProperty<Point> YAxisOffsetProperty =
+	        AvaloniaProperty.Register<LineChart, Point>(nameof(YAxisOffset));
+
         public static readonly StyledProperty<IBrush?> YAxisStrokeProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(YAxisStroke));
 
@@ -154,11 +169,14 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<IBrush?> YAxisTitleForegroundProperty =
             AvaloniaProperty.Register<LineChart, IBrush?>(nameof(YAxisTitleForeground));
 
-        public static readonly StyledProperty<double> YAxisTitleOffsetProperty =
-            AvaloniaProperty.Register<LineChart, double>(nameof(YAxisTitleOffset));
+        public static readonly StyledProperty<double> YAxisTitleOpacityProperty =
+	        AvaloniaProperty.Register<LineChart, double>(nameof(YAxisTitleOpacity));
 
-        public static readonly StyledProperty<double> YAxisTitleHeightProperty =
-            AvaloniaProperty.Register<LineChart, double>(nameof(YAxisTitleHeight));
+        public static readonly StyledProperty<Point> YAxisTitleOffsetProperty =
+            AvaloniaProperty.Register<LineChart, Point>(nameof(YAxisTitleOffset));
+
+        public static readonly StyledProperty<Size> YAxisTitleSizeProperty =
+            AvaloniaProperty.Register<LineChart, Size>(nameof(YAxisTitleSize));
 
         public static readonly StyledProperty<TextAlignment> YAxisTitleAlignmentProperty =
             AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(YAxisTitleAlignment));
@@ -318,6 +336,18 @@ namespace WalletWasabi.Fluent.Controls
 	        set => SetValue(XAxisValuesProperty, value);
         }
 
+	    public double XAxisOpacity
+	    {
+		    get => GetValue(XAxisOpacityProperty);
+		    set => SetValue(XAxisOpacityProperty, value);
+	    }
+
+	    public Point XAxisOffset
+	    {
+		    get => GetValue(XAxisOffsetProperty);
+		    set => SetValue(XAxisOffsetProperty, value);
+	    }
+
         public IBrush? XAxisStroke
         {
 	        get => GetValue(XAxisStrokeProperty);
@@ -412,22 +442,28 @@ namespace WalletWasabi.Fluent.Controls
 	        set => SetValue(XAxisTitleForegroundProperty, value);
         }
 
+        public double XAxisTitleOpacity
+        {
+	        get => GetValue(XAxisTitleOpacityProperty);
+	        set => SetValue(XAxisTitleOpacityProperty, value);
+        }
+
         public double XAxisTitleAngle
         {
 	        get => GetValue(XAxisTitleAngleProperty);
 	        set => SetValue(XAxisTitleAngleProperty, value);
         }
 
-        public double XAxisTitleOffset
+        public Point XAxisTitleOffset
         {
 	        get => GetValue(XAxisTitleOffsetProperty);
 	        set => SetValue(XAxisTitleOffsetProperty, value);
         }
 
-        public double XAxisTitleHeight
+        public Size XAxisTitleSize
         {
-	        get => GetValue(XAxisTitleHeightProperty);
-	        set => SetValue(XAxisTitleHeightProperty, value);
+	        get => GetValue(XAxisTitleSizeProperty);
+	        set => SetValue(XAxisTitleSizeProperty, value);
         }
 
         public TextAlignment XAxisTitleAlignment
@@ -474,6 +510,18 @@ namespace WalletWasabi.Fluent.Controls
 	        set => SetValue(YAxisLogarithmicScaleProperty, value);
         }
 
+        public double YAxisOpacity
+        {
+	        get => GetValue(YAxisOpacityProperty);
+	        set => SetValue(YAxisOpacityProperty, value);
+        }
+
+        public Point YAxisOffset
+        {
+	        get => GetValue(YAxisOffsetProperty);
+	        set => SetValue(YAxisOffsetProperty, value);
+        }
+
         public IBrush? YAxisStroke
         {
             get => GetValue(YAxisStrokeProperty);
@@ -492,7 +540,7 @@ namespace WalletWasabi.Fluent.Controls
             set => SetValue(YAxisArrowSizeProperty, value);
         }
 
-        // YAxisTitle
+        // YAxis Title
 
         public string YAxisTitle
         {
@@ -506,22 +554,28 @@ namespace WalletWasabi.Fluent.Controls
             set => SetValue(YAxisTitleForegroundProperty, value);
         }
 
+        public double YAxisTitleOpacity
+        {
+	        get => GetValue(YAxisTitleOpacityProperty);
+	        set => SetValue(YAxisTitleOpacityProperty, value);
+        }
+
         public double YAxisTitleAngle
         {
             get => GetValue(YAxisTitleAngleProperty);
             set => SetValue(YAxisTitleAngleProperty, value);
         }
 
-        public double YAxisTitleOffset
+        public Point YAxisTitleOffset
         {
             get => GetValue(YAxisTitleOffsetProperty);
             set => SetValue(YAxisTitleOffsetProperty, value);
         }
 
-        public double YAxisTitleHeight
+        public Size YAxisTitleSize
         {
-            get => GetValue(YAxisTitleHeightProperty);
-            set => SetValue(YAxisTitleHeightProperty, value);
+            get => GetValue(YAxisTitleSizeProperty);
+            set => SetValue(YAxisTitleSizeProperty, value);
         }
 
         public TextAlignment YAxisTitleAlignment
@@ -839,15 +893,18 @@ namespace WalletWasabi.Fluent.Controls
 	            return;
             }
             var size = XAxisArrowSize;
+            var opacity = XAxisOpacity;
             var thickness = XAxisStrokeThickness;
             var pen = new Pen(brush, thickness, null, PenLineCap.Round, PenLineJoin.Miter, 10.0);
             var deflate = thickness * 0.5;
+            var offset = XAxisOffset;
             var p1 = new Point(
-	            state.AreaMargin.Left + 0.0,
-	            state.AreaMargin.Top + state.AreaHeight + deflate);
+	            state.AreaMargin.Left + offset.X,
+	            state.AreaMargin.Top + state.AreaHeight + offset.Y + deflate);
             var p2 = new Point(
 	            state.AreaMargin.Left + state.AreaWidth,
-	            state.AreaMargin.Top + state.AreaHeight + deflate);
+	            state.AreaMargin.Top + state.AreaHeight + offset.Y + deflate);
+            var opacityState = context.PushOpacity(opacity);
             context.DrawLine(pen, p1, p2);
             var p3 = new Point(p2.X, p2.Y);
             var p4 = new Point(p2.X - size, p2.Y - size);
@@ -855,6 +912,7 @@ namespace WalletWasabi.Fluent.Controls
             var p5 = new Point(p2.X, p2.Y);
             var p6 = new Point(p2.X - size, p2.Y + size);
             context.DrawLine(pen, p5, p6);
+            opacityState.Dispose();
         }
 
         private void DrawXAxisLabels(DrawingContext context, LineChartState state)
@@ -914,15 +972,18 @@ namespace WalletWasabi.Fluent.Controls
 		        return;
 	        }
             var size = YAxisArrowSize;
+            var opacity = YAxisOpacity;
             var thickness = YAxisStrokeThickness;
             var pen = new Pen(brush, thickness, null, PenLineCap.Round, PenLineJoin.Miter, 10.0);
             var deflate = thickness * 0.5;
+            var offset = YAxisOffset;
             var p1 = new Point(
-	            state.AreaMargin.Left / 2 + deflate,
-	            state.AreaMargin.Top + 0.0);
+	            state.AreaMargin.Left + offset.X + deflate,
+	            state.AreaMargin.Top);
             var p2 = new Point(
-	            state.AreaMargin.Left / 2 + deflate,
-	            state.AreaMargin.Top + state.AreaHeight);
+	            state.AreaMargin.Left + offset.X + deflate,
+	            state.AreaMargin.Top + state.AreaHeight + offset.Y);
+            var opacityState = context.PushOpacity(opacity);
             context.DrawLine(pen, p1, p2);
             var p3 = new Point(p1.X, p1.Y);
             var p4 = new Point(p1.X - size, p1.Y + size);
@@ -930,6 +991,7 @@ namespace WalletWasabi.Fluent.Controls
             var p5 = new Point(p1.X, p1.Y);
             var p6 = new Point(p1.X + size, p1.Y + size);
             context.DrawLine(pen, p5, p6);
+            opacityState.Dispose();
         }
 
         private void DrawYAxisTitle(DrawingContext context, LineChartState state)
@@ -939,33 +1001,38 @@ namespace WalletWasabi.Fluent.Controls
 	        {
 		        return;
 	        }
+	        var opacity = YAxisTitleOpacity;
             var fontFamily = YAxisTitleFontFamily;
             var fontStyle = YAxisTitleFontStyle;
             var fontWeight = YAxisTitleFontWeight;
             var typeface = new Typeface(fontFamily, fontStyle, fontWeight);
             var fontSize = YAxisTitleFontSize;
             var offset = YAxisTitleOffset;
-            var constrainHeight = YAxisTitleHeight;
+            var size = YAxisTitleSize;
             var angleRadians = Math.PI / 180.0 * YAxisTitleAngle;
             var alignment = YAxisTitleAlignment;
-            var title = YAxisTitle;
-            var origin = new Point(state.AreaMargin.Left, state.AreaMargin.Top + offset);
-            var constraint = new Size(200, 50);
-            var formattedText = CreateFormattedText(title, typeface, alignment, fontSize, constraint);
-            var xPosition = origin.X;
-            var yPosition = origin.Y;
+            var offsetTransform = context.PushPreTransform(Matrix.CreateTranslation(offset.X, offset.Y));
+            var origin = new Point(state.AreaMargin.Left, state.AreaHeight + state.AreaMargin.Top);
+            var constraint = new Size(size.Width, size.Height);
+            var formattedText = CreateFormattedText(YAxisTitle, typeface, alignment, fontSize, constraint);
+            var xPosition = origin.X + size.Width / 2;
+            var yPosition = origin.Y + size.Height / 2;
             var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
                          * Matrix.CreateRotation(angleRadians)
                          * Matrix.CreateTranslation(xPosition, yPosition);
-            var transform = context.PushPreTransform(matrix);
-            context.DrawText(foreground, origin, formattedText);
+            var labelTransform = context.PushPreTransform(matrix);
+            var offsetCenter = new Point(0, size.Height / 2 - formattedText.Bounds.Height / 2);
+            var opacityState = context.PushOpacity(opacity);
+            context.DrawText(foreground, origin + offsetCenter, formattedText);
 #if DEBUG_AXIS_TITLE
             context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Magenta)), new Rect(origin, constraint));
 #endif
-            transform.Dispose();
+            opacityState.Dispose();
+            labelTransform.Dispose();
 #if DEBUG_AXIS_TITLE
             context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Cyan)), new Rect(origin, constraint));
 #endif
+	        offsetTransform.Dispose();
         }
 
         private void DrawBorder(DrawingContext context, LineChartState state)
