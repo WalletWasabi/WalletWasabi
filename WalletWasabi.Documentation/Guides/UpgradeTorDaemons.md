@@ -1,7 +1,10 @@
 Check if there is a new Tor Browser version.
+
+The Tor Browser changelog can found here: https://gitweb.torproject.org/builders/tor-browser-build.git/plain/projects/tor-browser/Bundle-Data/Docs/ChangeLog.txt
+
 The Tor changelog can found here: https://gitweb.torproject.org/tor.git/plain/ChangeLog
 
-Download the latest stable Tor Browser from here: https://www.torproject.org/download/languages/
+Download the latest stable Tor Browser from here: https://www.torproject.org/download/
 
 - Windows x64
 - Linux x64
