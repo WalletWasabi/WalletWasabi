@@ -11,7 +11,7 @@ namespace WalletWasabi.Tor.Http
 	/// as HTTP requests are being sent over clearnet.
 	/// </summary>
 	/// <remarks>Inner <see cref="HttpClient"/> instance is thread-safe.</remarks>
-	public class ClearnetHttpClient : IRelativeHttpClient
+	public class ClearnetHttpClient : IHttpClient
 	{
 		static ClearnetHttpClient()
 		{
@@ -25,12 +25,12 @@ namespace WalletWasabi.Tor.Http
 			HttpClient = new HttpClient(socketHandler);
 		}
 
-		public ClearnetHttpClient(Func<Uri> destinationUriAction)
+		public ClearnetHttpClient(Func<Uri> baseUriGetter)
 		{
-			DestinationUriAction = destinationUriAction;
+			BaseUriGetter = baseUriGetter;
 		}
 
-		public Func<Uri> DestinationUriAction { get; }
+		public Func<Uri> BaseUriGetter { get; }
 
 		/// <summary>Predefined HTTP client that handles HTTP requests when Tor is disabled.</summary>
 		private static HttpClient HttpClient { get; }
