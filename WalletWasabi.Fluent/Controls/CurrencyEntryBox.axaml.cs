@@ -44,7 +44,8 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			this.GetObservable(TextProperty).Subscribe(_ => DoConversion());
 			this.GetObservable(ConversionRateProperty).Subscribe(_ => DoConversion());
-			Text = "0";
+			Watermark = "0 BTC";
+			Text = string.Empty;
 
 			_customCultureInfo = new CultureInfo("")
 			{
@@ -74,11 +75,21 @@ namespace WalletWasabi.Fluent.Controls
 
 				if (IsConversionReversed)
 				{
-					Text = $"{FormatBtc(Conversion)}";
+					if (!string.IsNullOrWhiteSpace(Text))
+					{
+						Text = $"{FormatBtc(Conversion)}";
+					}
+
+					Watermark = "0 BTC";
 				}
 				else
 				{
-					Text = $"{FormatFiat(Conversion)}";
+					if (!string.IsNullOrWhiteSpace(Text))
+					{
+						Text = $"{FormatFiat(Conversion)}";
+					}
+
+					Watermark = $"0.00 {ConversionCurrencyCode}";
 				}
 
 				IsConversionReversed = !IsConversionReversed;
@@ -95,7 +106,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			base.OnGotFocus(e);
 
-			CaretIndex = Text.Length;
+			CaretIndex = Text?.Length ?? 0;
 
 			Dispatcher.UIThread.Post(() => SelectAll());
 		}
@@ -227,8 +238,8 @@ namespace WalletWasabi.Fluent.Controls
 					else
 					{
 						Conversion = 0;
-						ConversionText = string.Empty;
-						CurrencyCode = "";
+						ConversionText = $"0 BTC";
+						CurrencyCode = ConversionCurrencyCode;
 					}
 				}
 				else
@@ -246,8 +257,8 @@ namespace WalletWasabi.Fluent.Controls
 					else
 					{
 						Conversion = 0;
-						ConversionText = string.Empty;
-						CurrencyCode = "";
+						ConversionText = $"0.00 {ConversionCurrencyCode}";
+						CurrencyCode = "BTC";
 					}
 				}
 			}
