@@ -20,6 +20,11 @@ namespace WalletWasabi.Bases
 			ExceptionTracker = new LastExceptionTracker();
 		}
 
+		/// <summary>
+		/// Action successfully executed. Returns how long it took.
+		/// </summary>
+		public event EventHandler<TimeSpan>? Tick;
+
 		public TimeSpan Period { get; }
 
 		private LastExceptionTracker ExceptionTracker { get; }
@@ -40,6 +45,18 @@ namespace WalletWasabi.Bases
 		}
 
 		/// <summary>
+		/// Triggers and waits for the action to execute.
+		/// </summary>
+		public async Task TriggerAndWaitRoundAsync(TimeSpan timeout)
+		{
+			EventAwaiter<TimeSpan> eventAwaiter = new(
+								h => Tick += h,
+								h => Tick -= h);
+			TriggerRound();
+			await eventAwaiter.WaitAsync(timeout).ConfigureAwait(false);
+		}
+
+		/// <summary>
 		/// Abstract method that is called every <see cref="Period"/> or sooner when <see cref="TriggerRound"/> is called.
 		/// </summary>
 		/// <remarks>Exceptions are handled in <see cref="ExecuteAsync(CancellationToken)"/>.</remarks>
@@ -55,7 +72,9 @@ namespace WalletWasabi.Bases
 				try
 				{
 					// Do user action.
+					var before = DateTimeOffset.UtcNow;
 					await ActionAsync(stoppingToken).ConfigureAwait(false);
+					Tick?.Invoke(this, DateTimeOffset.UtcNow - before);
 
 					ExceptionInfo? info = ExceptionTracker.LastException;
 

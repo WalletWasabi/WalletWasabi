@@ -23,8 +23,6 @@ namespace Gma.QrCodeNet.Encoding
 
 		internal int Count { get; private set; }
 
-		internal int SizeInByte => (Count + 7) >> 3;
-
 		internal bool this[int index]
 		{
 			get

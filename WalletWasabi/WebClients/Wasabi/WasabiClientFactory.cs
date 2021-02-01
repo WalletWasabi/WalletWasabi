@@ -46,7 +46,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		public bool IsTorEnabled => TorEndpoint is { };
 
 		/// <summary>Backend HTTP client, shared instance.</summary>
-		private IRelativeHttpClient BackendHttpClient { get; }
+		private IHttpClient BackendHttpClient { get; }
 
 		/// <summary>Shared instance of <see cref="WasabiClient"/>.</summary>
 		public WasabiClient SharedWasabiClient { get; }
@@ -62,7 +62,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <summary>
 		/// Creates new <see cref="TorHttpClient"/> or <see cref="ClearnetHttpClient"/> based on user settings.
 		/// </summary>
-		public IRelativeHttpClient NewHttpClient(Func<Uri> baseUriFn, bool isolateStream)
+		public IHttpClient NewHttpClient(Func<Uri> baseUriFn, bool isolateStream)
 		{
 			if (TorEndpoint is { })
 			{

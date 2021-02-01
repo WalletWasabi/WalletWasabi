@@ -21,7 +21,7 @@ namespace WalletWasabi.Legal
 		public Version Version { get; }
 		public string Content { get; }
 
-public static async Task<LegalDocuments?> LoadAgreedAsync(string folderPath)
+		public static async Task<LegalDocuments?> LoadAgreedAsync(string folderPath)
 		{
 			if (!Directory.Exists(folderPath))
 			{
@@ -80,12 +80,7 @@ public static async Task<LegalDocuments?> LoadAgreedAsync(string folderPath)
 		{
 			folderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(folderPath), folderPath);
 			IoHelpers.EnsureDirectoryExists(folderPath);
-			var filePath = Path.Combine(folderPath, $"{Version}.txt");
-
-			if (filePath is null)
-			{
-				throw new InvalidOperationException($"Invalid {nameof(folderPath)}.");
-			}
+			string filePath = Path.Combine(folderPath, $"{Version}.txt");
 
 			RemoveCandidates(folderPath);
 			await File.WriteAllTextAsync(filePath, Content).ConfigureAwait(false);

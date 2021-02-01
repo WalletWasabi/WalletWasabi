@@ -2,10 +2,12 @@ using NBitcoin;
 using ReactiveUI;
 using Splat;
 using System;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using WalletWasabi.Fluent.ViewModels.Wallets.Actions;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Gui;
@@ -18,13 +20,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class WalletViewModel : WalletViewModelBase
 	{
-		[AutoNotify] private ObservableCollection<ViewModelBase> _actions;
-
 		protected WalletViewModel(UiConfig uiConfig, Wallet wallet, LegalChecker legalChecker) : base(wallet, legalChecker)
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-
-			_actions = new ObservableCollection<ViewModelBase>();
 
 			uiConfig = Locator.Current.GetService<Global>().UiConfig;
 
@@ -50,14 +48,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					}
 				})
 				.DisposeWith(Disposables);
-
-			if (Wallet.KeyManager.IsHardwareWallet || !Wallet.KeyManager.IsWatchOnly)
-			{
-			}
-
-			if (!Wallet.KeyManager.IsWatchOnly)
-			{
-			}
 		}
 
 		private CompositeDisposable Disposables { get; set; }
@@ -71,11 +61,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				: wallet.KeyManager.IsWatchOnly
 					? new WatchOnlyWalletViewModel(uiConfig, wallet, legalChecker)
 					: new WalletViewModel(uiConfig, wallet, legalChecker);
-		}
-
-		public void OpenWalletTabs()
-		{
-			// TODO: Implement.
 		}
 	}
 }

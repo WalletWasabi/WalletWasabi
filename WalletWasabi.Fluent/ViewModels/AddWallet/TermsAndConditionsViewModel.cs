@@ -1,9 +1,8 @@
-using System.IO;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Legal;
+using WalletWasabi.Services;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet

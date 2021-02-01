@@ -7,7 +7,7 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<OutputType>WinExe</OutputType>
 	</PropertyGroup>
-	
+
 	<PropertyGroup>
 		<TargetFramework>net5.0</TargetFramework>
 		<AnalysisLevel>latest</AnalysisLevel>
@@ -47,8 +47,8 @@
 		<AvaloniaResource Include="Assets\**" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia.Desktop" Version="0.10.0-rc1" />
-		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.0-rc1" />
+		<PackageReference Include="Avalonia.Desktop" Version="0.10.0" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj" />

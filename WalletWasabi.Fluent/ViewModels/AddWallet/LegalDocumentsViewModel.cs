@@ -20,14 +20,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		[AutoNotify] private string? _content;
 
-		private LegalChecker LegalChecker { get; }
-
 		public LegalDocumentsViewModel(LegalChecker legalChecker)
 		{
 			Title = "Terms and Conditions";
 			NextCommand = BackCommand;
 			LegalChecker = legalChecker;
+
+			this.WhenAnyValue(x => x.Content)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(content => IsBusy = content is null);
 		}
+
+		private LegalChecker LegalChecker { get; }
 
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
 		{
@@ -38,27 +42,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				Observable.FromEventPattern<LegalDocuments>(LegalChecker, nameof(LegalChecker.ProvisionalChanged)))
 				.Select(x => x.EventArgs)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(legalDocuments => UpdateContent(legalDocuments))
+				.Subscribe(legalDocuments => Content = legalDocuments.Content)
 				.DisposeWith(disposable);
 
-			if (LegalChecker.TryGetNewLegalDocs(out LegalDocuments? provisional))
-			{
-				UpdateContent(provisional);
-			}
-			else if (LegalChecker.CurrentLegalDocument is { } current)
-			{
-				UpdateContent(current);
-			}
-			else
-			{
-				//TODO: display busy logic.
-				Content = "Loading...";
-			}
-		}
-
-		private void UpdateContent(LegalDocuments legalDocuments)
-		{
-			Content = legalDocuments.Content;
+			Content = LegalChecker.TryGetNewLegalDocs(out LegalDocuments? provisional)
+				? provisional.Content
+				: LegalChecker.CurrentLegalDocument is { } current
+					? current.Content
+					: null;
 		}
 	}
 }

@@ -1,7 +1,4 @@
-using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
-using Avalonia.Threading;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.Protocol;
@@ -30,7 +27,6 @@ using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Rpc;
 using WalletWasabi.Helpers;
-using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
@@ -139,11 +135,12 @@ namespace WalletWasabi.Gui
 
 				var userAgent = Constants.UserAgents.RandomElement();
 				var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
+
 				UpdateChecker updateChecker = new(TimeSpan.FromMinutes(7), Synchronizer);
-
 				await LegalChecker.InitializeAsync(updateChecker).ConfigureAwait(false);
-
 				HostedServices.Register(updateChecker, "Software Update Checker");
+
+				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
 				HostedServices.Register(new SystemAwakeChecker(WalletManager), "System Awake Checker");
 
