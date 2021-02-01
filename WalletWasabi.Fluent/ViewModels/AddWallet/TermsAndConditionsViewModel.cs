@@ -13,9 +13,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public TermsAndConditionsViewModel(LegalChecker legalChecker, RoutableViewModel next)
 		{
-			Title = "Welcome to Wasabi Wallet";
-
-					Navigate().To(legalDocs);
 			ViewTermsCommand = ReactiveCommand.Create(
 				() =>
 				{
