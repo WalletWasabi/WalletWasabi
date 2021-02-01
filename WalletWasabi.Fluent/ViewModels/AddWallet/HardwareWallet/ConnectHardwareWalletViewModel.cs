@@ -25,7 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		[AutoNotify] private string _message;
 		[AutoNotify] private bool _isSearching;
 		[AutoNotify] private bool _existingWalletFound;
-		[AutoNotify] private bool _nextButtonEnable;
+		[AutoNotify] private bool _confirmationRequired;
 
 		public ConnectHardwareWalletViewModel(string walletName, WalletManagerViewModel walletManagerViewModel)
 		{
@@ -36,7 +36,16 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			AbandonedTasks = new AbandonedTasks();
 			CancelCts = new CancellationTokenSource();
 
-			NextCommand = ReactiveCommand.Create(StartDetection);
+			NextCommand = ReactiveCommand.Create(() =>
+			{
+				if (DetectedDevice is { } device)
+				{
+					NavigateToNext(device);
+					return;
+				}
+
+				StartDetection();
+			});
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask(async () =>
 				await IoHelpers.OpenBrowserAsync("https://docs.wasabiwallet.io/using-wasabi/ColdWasabi.html#using-hardware-wallet-step-by-step"));
@@ -55,10 +64,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			this.WhenAnyValue(x => x.Message)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(message => NextButtonEnable = !string.IsNullOrEmpty(message));
+				.Subscribe(message => ConfirmationRequired = !string.IsNullOrEmpty(message));
 		}
 
-		public CancellationTokenSource? CancelCts { get; set; }
+		private HwiEnumerateEntry? DetectedDevice { get; set; }
+
+		public CancellationTokenSource CancelCts { get; set; }
 
 		private AbandonedTasks AbandonedTasks { get; }
 
@@ -76,12 +87,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		private void StartDetection()
 		{
-			var cancelCts = CancelCts;
-			if (cancelCts is null)
-			{
-				return;
-			}
-
 			Message = "";
 
 			if (IsSearching)
@@ -89,8 +94,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				return;
 			}
 
+			DetectedDevice = null;
 			ExistingWalletFound = false;
-			AbandonedTasks.AddAndClearCompleted(DetectionAsync(cancelCts.Token));
+			AbandonedTasks.AddAndClearCompleted(DetectionAsync(CancelCts.Token));
 		}
 
 		private async Task DetectionAsync(CancellationToken cancel)
@@ -185,6 +191,16 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				return;
 			}
 
+			DetectedDevice = device;
+
+			if (!ConfirmationRequired)
+			{
+				NavigateToNext(DetectedDevice);
+			}
+		}
+
+		private void NavigateToNext(HwiEnumerateEntry device)
+		{
 			Navigate().To(new DetectedHardwareWalletViewModel(WalletManager, WalletName, device));
 		}
 
@@ -192,16 +208,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			base.OnNavigatedTo(inStack, disposable);
 
-			CancelCts ??= new CancellationTokenSource();
+			if (inStack)
+			{
+				CancelCts = new CancellationTokenSource();
+			}
 
 			StartDetection();
 
 			Disposable.Create(async () =>
 				{
 					CancelCts.Cancel();
-					CancelCts.Dispose();
-					CancelCts = null;
 					await AbandonedTasks.WhenAllAsync();
+					CancelCts.Dispose();
 				})
 				.DisposeWith(disposable);
 		}
