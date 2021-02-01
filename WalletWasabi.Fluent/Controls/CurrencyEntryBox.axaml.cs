@@ -44,6 +44,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			this.GetObservable(TextProperty).Subscribe(_ => DoConversion());
 			this.GetObservable(ConversionRateProperty).Subscribe(_ => DoConversion());
+			this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => DoConversion());
 			Watermark = "0 BTC";
 			Text = string.Empty;
 
