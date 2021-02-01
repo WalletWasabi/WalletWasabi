@@ -1,9 +1,8 @@
-using System.IO;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Legal;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
@@ -12,20 +11,27 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		[AutoNotify] private bool _isAgreed;
 
-		public TermsAndConditionsViewModel(LegalDocuments legalDocuments, RoutableViewModel next)
+		public TermsAndConditionsViewModel(LegalChecker legalChecker, RoutableViewModel next)
 		{
-			ViewTermsCommand = ReactiveCommand.CreateFromTask(
-				async () =>
-				{
-					var content = await File.ReadAllTextAsync(legalDocuments.FilePath);
-
-					var legalDocs = new LegalDocumentsViewModel(content);
+			Title = "Welcome to Wasabi Wallet";
 
 					Navigate().To(legalDocs);
+			ViewTermsCommand = ReactiveCommand.Create(
+				() =>
+				{
+					if (legalChecker.TryGetNewLegalDocs(out _))
+					{
+						var legalDocs = new LegalDocumentsViewModel(legalChecker);
+						Navigate().To(legalDocs);
+					}
 				});
 
-			NextCommand = ReactiveCommand.Create(
-				() => Navigate().BackTo(next),
+			NextCommand = ReactiveCommand.CreateFromTask(
+				async () =>
+				{
+					await legalChecker.AgreeAsync();
+					Navigate().To(next, NavigationMode.Clear);
+				},
 				this.WhenAnyValue(x => x.IsAgreed).ObserveOn(RxApp.MainThreadScheduler));
 		}
 
