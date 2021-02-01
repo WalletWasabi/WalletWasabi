@@ -174,5 +174,10 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			throw new NotImplementedException();
 		}
+
+		public Task<RPCClient> CreateWalletAsync(string walletNameOrPath, CreateWalletOptions? options = null)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

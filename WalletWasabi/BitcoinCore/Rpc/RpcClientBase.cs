@@ -178,6 +178,11 @@ namespace WalletWasabi.BitcoinCore.Rpc
 			return Rpc.TryEstimateSmartFeeAsync(confirmationTarget, estimateMode: estimateMode);
 		}
 
+		public Task<RPCClient> CreateWalletAsync(string walletNameOrPath, CreateWalletOptions? options = null)
+		{
+			return Rpc.CreateWalletAsync(walletNameOrPath, options);
+		}
+
 		#endregion For Testing Only
 	}
 }
