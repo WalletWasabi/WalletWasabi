@@ -247,13 +247,6 @@ namespace WalletWasabi.Fluent.Controls
 		        XAxisCurrentValueProperty);
         }
 
-        public LineChart()
-        {
-	        AddHandler(PointerPressedEvent, PointerPressedHandler, RoutingStrategies.Tunnel);
-	        AddHandler(PointerReleasedEvent, PointerReleasedHandler, RoutingStrategies.Tunnel);
-	        AddHandler(PointerMovedEvent, PointerMovedHandler, RoutingStrategies.Tunnel);
-        }
-
         // Area
 
         public Thickness AreaMargin
@@ -729,6 +722,13 @@ namespace WalletWasabi.Fluent.Controls
 		        FontSize = fontSize,
 		        Constraint = constraint
 	        };
+        }
+
+        public LineChart()
+        {
+	        AddHandler(PointerPressedEvent, PointerPressedHandler, RoutingStrategies.Tunnel);
+	        AddHandler(PointerReleasedEvent, PointerReleasedHandler, RoutingStrategies.Tunnel);
+	        AddHandler(PointerMovedEvent, PointerMovedHandler, RoutingStrategies.Tunnel);
         }
 
         private void UpdateCursorPosition(double x)
