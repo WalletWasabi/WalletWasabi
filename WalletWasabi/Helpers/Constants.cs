@@ -30,7 +30,13 @@ namespace WalletWasabi.Helpers
 		public const decimal MaximumNumberOfBitcoins = 20999999.9769m;
 
 		public const int TwentyMinutesConfirmationTarget = 2;
+		public const int ThirtyMinutesConfirmationTarget = 3;
+		public const int OneHourConfirmationTarget = 6;
+		public const int ThreeHoursConfirmationTarget = 18;
+		public const int SixHoursConfirmationTarget = 36;
+		public const int TwelveHoursConfirmationTarget = 72;
 		public const int OneDayConfirmationTarget = 144;
+		public const int ThreeDaysConfirmationTarget = 432;
 		public const int SevenDaysConfirmationTarget = 1008;
 
 		public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;

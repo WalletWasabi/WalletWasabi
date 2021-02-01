@@ -18,7 +18,7 @@ namespace WalletWasabi.Backend.Models.Responses
 
 		public IEnumerable<RoundStateResponseBase> CcjRoundStates { get; set; }
 
-		public AllFeeEstimate AllFeeEstimate { get; set; }
+		public BestFeeEstimates AllFeeEstimate { get; set; }
 
 		public IEnumerable<ExchangeRate> ExchangeRates { get; set; }
 

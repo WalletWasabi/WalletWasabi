@@ -8,20 +8,45 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {
+	/// <summary>
+	/// Estimates for 1w, 3d, 1d, 12h, 6h, 3h, 1h, 30m, 20m.
+	/// </summary>
 	[JsonObject(MemberSerialization.OptIn)]
-	public class AllFeeEstimate : IEquatable<AllFeeEstimate>
+	public class BestFeeEstimates : IEquatable<BestFeeEstimates>
 	{
 		[JsonConstructor]
-		public AllFeeEstimate(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
+		public BestFeeEstimates(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
 		{
 			Type = type;
 			IsAccurate = isAccurate;
 			Guard.NotNullOrEmpty(nameof(estimations), estimations);
 			Estimations = new Dictionary<int, int>();
 
+			var orderedEstimations = estimations.OrderByDescending(x => x.Key).ToArray();
+			var m20 = orderedEstimations.First(x => x.Key <= Constants.TwentyMinutesConfirmationTarget).Value;
+			var m30 = orderedEstimations.First(x => x.Key <= Constants.ThirtyMinutesConfirmationTarget).Value;
+			var h1 = orderedEstimations.First(x => x.Key <= Constants.OneHourConfirmationTarget).Value;
+			var h3 = orderedEstimations.First(x => x.Key <= Constants.ThreeHoursConfirmationTarget).Value;
+			var h6 = orderedEstimations.First(x => x.Key <= Constants.SixHoursConfirmationTarget).Value;
+			var h12 = orderedEstimations.First(x => x.Key <= Constants.TwelveHoursConfirmationTarget).Value;
+			var d1 = orderedEstimations.First(x => x.Key <= Constants.OneDayConfirmationTarget).Value;
+			var d3 = orderedEstimations.First(x => x.Key <= Constants.ThreeDaysConfirmationTarget).Value;
+			var w1 = orderedEstimations.First(x => x.Key <= Constants.SevenDaysConfirmationTarget).Value;
+
 			// Make sure values are unique and in the correct order and feerates are consistently decreasing.
 			var lastFeeRate = int.MaxValue;
-			foreach (KeyValuePair<int, int> estimation in estimations.OrderBy(x => x.Key))
+			foreach (KeyValuePair<int, int> estimation in new Dictionary<int, int>
+				{
+					{ Constants.TwentyMinutesConfirmationTarget, m20 },
+					{ Constants.ThirtyMinutesConfirmationTarget, m30 },
+					{ Constants.OneHourConfirmationTarget, h1 },
+					{ Constants.ThreeHoursConfirmationTarget, h3 },
+					{ Constants.SixHoursConfirmationTarget, h6 },
+					{ Constants.TwelveHoursConfirmationTarget, h12 },
+					{ Constants.OneDayConfirmationTarget, d1 },
+					{ Constants.ThreeDaysConfirmationTarget, d3 },
+					{ Constants.SevenDaysConfirmationTarget, w1 }
+				})
 			{
 				// Otherwise it's inconsistent data.
 				if (lastFeeRate > estimation.Value)
@@ -32,7 +57,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			}
 		}
 
-		public AllFeeEstimate(AllFeeEstimate other, bool isAccurate)
+		public BestFeeEstimates(BestFeeEstimates other, bool isAccurate)
 			: this(other.Type, other.Estimations, isAccurate)
 		{
 		}
@@ -64,9 +89,9 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 		#region Equality
 
-		public override bool Equals(object? obj) => Equals(obj as AllFeeEstimate);
+		public override bool Equals(object? obj) => Equals(obj as BestFeeEstimates);
 
-		public bool Equals(AllFeeEstimate? other) => this == other;
+		public bool Equals(BestFeeEstimates? other) => this == other;
 
 		public override int GetHashCode()
 		{
@@ -80,7 +105,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			return hash;
 		}
 
-		public static bool operator ==(AllFeeEstimate? x, AllFeeEstimate? y)
+		public static bool operator ==(BestFeeEstimates? x, BestFeeEstimates? y)
 		{
 			if (ReferenceEquals(x, y))
 			{
@@ -129,7 +154,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			return equal;
 		}
 
-		public static bool operator !=(AllFeeEstimate? x, AllFeeEstimate? y) => !(x == y);
+		public static bool operator !=(BestFeeEstimates? x, BestFeeEstimates? y) => !(x == y);
 
 		#endregion Equality
 	}

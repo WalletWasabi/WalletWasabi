@@ -59,14 +59,34 @@ namespace NBitcoin.RPC
 			return null;
 		}
 
-		public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this IRPCClient rpc, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
+		/// <summary>
+		/// Estimates fees for 1w, 3d, 1d, 12h, 6h, 3h, 1h, 30m, 20m.
+		/// </summary>
+		public static async Task<BestFeeEstimates> EstimateBestFeesAsync(this IRPCClient rpc, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
 		{
 			var rpcStatus = await rpc.GetRpcStatusAsync(CancellationToken.None).ConfigureAwait(false);
 			var mempoolInfo = await rpc.GetMempoolInfoAsync().ConfigureAwait(false);
 			var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
-			var estimations = await rpc.EstimateHalfFeesAsync(new Dictionary<int, int>(), 2, 0, Constants.SevenDaysConfirmationTarget, 0, sanityFeeRate, estimateMode, simulateIfRegTest).ConfigureAwait(false);
-			var allFeeEstimate = new AllFeeEstimate(estimateMode, estimations, rpcStatus.Synchronized);
-			return allFeeEstimate;
+
+			var estimations = new Dictionary<int, int>();
+			foreach (var target in new[] {
+				Constants.TwentyMinutesConfirmationTarget,
+				Constants.ThirtyMinutesConfirmationTarget,
+				Constants.OneHourConfirmationTarget,
+				Constants.ThreeHoursConfirmationTarget,
+				Constants.SixHoursConfirmationTarget,
+				Constants.TwelveHoursConfirmationTarget,
+				Constants.OneDayConfirmationTarget,
+				Constants.ThreeDaysConfirmationTarget,
+				Constants.SevenDaysConfirmationTarget
+			})
+			{
+				var rate = await rpc.EstimateSmartFeeAsync(target, sanityFeeRate, estimateMode, simulateIfRegTest).ConfigureAwait(false);
+				estimations.Add(target, (int)Math.Ceiling(rate.FeeRate.SatoshiPerByte));
+			}
+
+			var bestFeeEstimates = new BestFeeEstimates(estimateMode, estimations, rpcStatus.Synchronized);
+			return bestFeeEstimates;
 		}
 
 		public static async Task<RpcStatus> GetRpcStatusAsync(this IRPCClient rpc, CancellationToken cancel)
@@ -84,64 +104,6 @@ namespace NBitcoin.RPC
 				Logger.LogTrace(ex);
 				return RpcStatus.Unresponsive;
 			}
-		}
-
-		private static async Task<Dictionary<int, int>> EstimateHalfFeesAsync(this IRPCClient rpc, IDictionary<int, int> estimations, int smallTarget, int smallTargetFee, int largeTarget, int largeTargetFee, FeeRate sanityFeeRate, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
-		{
-			var newEstimations = new Dictionary<int, int>();
-			foreach (var est in estimations)
-			{
-				newEstimations.TryAdd(est.Key, est.Value);
-			}
-
-			if (Math.Abs(smallTarget - largeTarget) <= 1)
-			{
-				return newEstimations;
-			}
-
-			if (smallTargetFee == 0)
-			{
-				var smallTargetFeeResult = await rpc.EstimateSmartFeeAsync(smallTarget, sanityFeeRate, estimateMode, simulateIfRegTest).ConfigureAwait(false);
-				smallTargetFee = (int)Math.Ceiling(smallTargetFeeResult.FeeRate.SatoshiPerByte);
-				newEstimations.TryAdd(smallTarget, smallTargetFee);
-			}
-
-			if (largeTargetFee == 0)
-			{
-				var largeTargetFeeResult = await rpc.EstimateSmartFeeAsync(largeTarget, sanityFeeRate, estimateMode, simulateIfRegTest).ConfigureAwait(false);
-				largeTargetFee = (int)Math.Ceiling(largeTargetFeeResult.FeeRate.SatoshiPerByte);
-
-				// Blocks should never be larger than the target that we asked for, so it's just a sanity check.
-				largeTarget = Math.Min(largeTarget, largeTargetFeeResult.Blocks);
-				newEstimations.TryAdd(largeTarget, largeTargetFee);
-			}
-
-			int halfTarget = (smallTarget + largeTarget) / 2;
-			var halfFeeResult = await rpc.EstimateSmartFeeAsync(halfTarget, sanityFeeRate, estimateMode, simulateIfRegTest).ConfigureAwait(false);
-			int halfTargetFee = (int)Math.Ceiling(halfFeeResult.FeeRate.SatoshiPerByte);
-
-			// Blocks should never be larger than the target that we asked for, so it's just a sanity check.
-			halfTarget = Math.Min(halfTarget, halfFeeResult.Blocks);
-			newEstimations.TryAdd(halfTarget, halfTargetFee);
-
-			if (smallTargetFee > halfTargetFee)
-			{
-				var smallEstimations = await rpc.EstimateHalfFeesAsync(newEstimations, smallTarget, smallTargetFee, halfTarget, halfTargetFee, sanityFeeRate, estimateMode, simulateIfRegTest).ConfigureAwait(false);
-				foreach (var est in smallEstimations)
-				{
-					newEstimations.TryAdd(est.Key, est.Value);
-				}
-			}
-			if (largeTargetFee < halfTargetFee)
-			{
-				var largeEstimations = await rpc.EstimateHalfFeesAsync(newEstimations, halfTarget, halfTargetFee, largeTarget, largeTargetFee, sanityFeeRate, estimateMode, simulateIfRegTest).ConfigureAwait(false);
-				foreach (var est in largeEstimations)
-				{
-					newEstimations.TryAdd(est.Key, est.Value);
-				}
-			}
-
-			return newEstimations;
 		}
 
 		public static async Task<(bool accept, string rejectReason)> TestMempoolAcceptAsync(this IRPCClient rpc, IEnumerable<Coin> coins, int fakeOutputCount, Money feePerInputs, Money feePerOutputs)

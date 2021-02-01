@@ -28,15 +28,15 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			SetAllFeeEstimate();
 		}
 
-		public event EventHandler<AllFeeEstimate>? AllFeeEstimateChanged;
+		public event EventHandler<BestFeeEstimates>? AllFeeEstimateChanged;
 
-		public AllFeeEstimate AllFeeEstimate { get; private set; }
+		public BestFeeEstimates AllFeeEstimate { get; private set; }
 
 		private List<IFeeProvider> Providers { get; }
 
 		private object Lock { get; }
 
-		private void Provider_AllFeeEstimateChanged(object? sender, AllFeeEstimate e)
+		private void Provider_AllFeeEstimateChanged(object? sender, BestFeeEstimates e)
 		{
 			SetAllFeeEstimate();
 		}
@@ -45,7 +45,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		{
 			lock (Lock)
 			{
-				AllFeeEstimate? feeEstimateToSet = null;
+				BestFeeEstimates? feeEstimateToSet = null;
 				foreach (IFeeProvider provider in Providers.SkipLast(1))
 				{
 					if (provider.AllFeeEstimate is { IsAccurate: bool isAccurate } af && isAccurate)

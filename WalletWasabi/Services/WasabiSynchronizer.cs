@@ -30,7 +30,7 @@ namespace WalletWasabi.Services
 
 		private decimal _usdExchangeRate;
 
-		private AllFeeEstimate _allFeeEstimate;
+		private BestFeeEstimates _allFeeEstimate;
 
 		private TorStatus _torStatus;
 
@@ -58,7 +58,7 @@ namespace WalletWasabi.Services
 
 		#region EventsPropertiesMembers
 
-		public event EventHandler<AllFeeEstimate>? AllFeeEstimateChanged;
+		public event EventHandler<BestFeeEstimates>? AllFeeEstimateChanged;
 
 		public event EventHandler<bool>? ResponseArrivedIsGenSocksServFail;
 
@@ -82,7 +82,7 @@ namespace WalletWasabi.Services
 			private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value);
 		}
 
-		public AllFeeEstimate AllFeeEstimate
+		public BestFeeEstimates AllFeeEstimate
 		{
 			get => _allFeeEstimate;
 			private set
