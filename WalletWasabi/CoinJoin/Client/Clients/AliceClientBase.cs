@@ -65,7 +65,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				ChangeOutputAddress = changeOutput,
 				Inputs = inputs
 			};
-			var client = new AliceClient4(roundId, registeredAddresses, signerPubKeys, requesters, network, httpClient);
+			AliceClient4 client = new(roundId, registeredAddresses, signerPubKeys, requesters, network, httpClient);
 			try
 			{
 				// Correct it if forgot to set.
@@ -80,7 +80,10 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 						throw new NotSupportedException($"InputRequest {nameof(roundId)} does not match to the provided {nameof(roundId)}: {request.RoundId} != {roundId}.");
 					}
 				}
-				using HttpResponseMessage response = await client.HttpClient.SendAsync(HttpMethod.Post, $"/api/v{WasabiClient.ApiVersion}/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()).ConfigureAwait(false);
+
+				using StringContent content = request.ToHttpStringContent();
+				using HttpResponseMessage response = await client.HttpClient.SendAsync(HttpMethod.Post, $"/api/v{WasabiClient.ApiVersion}/btc/chaumiancoinjoin/inputs/", content).ConfigureAwait(false);
+
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
 					await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
