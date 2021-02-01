@@ -37,8 +37,8 @@ namespace WalletWasabi.Fluent.Controls
 		private CompositeDisposable _disposable;
 		private bool _allowConversions = true;
 		private NumberFormatInfo _cultureNumberFormatInfo;
-		private char _currentCultureDecimalSeparator;
-		private char _currentCultureGroupSeparator;
+		private readonly char _currentCultureDecimalSeparator = '.';
+		private readonly char _currentCultureGroupSeparator = ' ';
 		private Regex _matchRegexDecimal;
 		private Regex _matchRegexDecimalCharsOnly;
 
@@ -49,8 +49,7 @@ namespace WalletWasabi.Fluent.Controls
 			Text = "0";
 
 			_cultureNumberFormatInfo = Thread.CurrentThread.CurrentCulture.NumberFormat;
-			_currentCultureDecimalSeparator = Convert.ToChar(_cultureNumberFormatInfo.NumberDecimalSeparator);
-			_currentCultureGroupSeparator = Convert.ToChar(_cultureNumberFormatInfo.NumberGroupSeparator);
+
 			_matchRegexDecimal =
 				new Regex(
 					$"^(?<Whole>[0-9{_currentCultureGroupSeparator}]*)(\\{_currentCultureDecimalSeparator}?(?<Frac>[0-9]*))$");
