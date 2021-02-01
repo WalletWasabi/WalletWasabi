@@ -240,7 +240,6 @@ namespace WalletWasabi.Fluent.Controls
         {
 	        AffectsMeasure<LineChart>(AreaMarginProperty);
 	        AffectsRender<LineChart>(
-		        // Area
 		        AreaMarginProperty,
 		        AreaFillProperty,
 		        AreaStrokeProperty,
@@ -249,7 +248,6 @@ namespace WalletWasabi.Fluent.Controls
 		        AreaStrokeLineCapProperty,
 		        AreaStrokeLineJoinProperty,
 		        AreaStrokeMiterLimitProperty,
-		        // XAxis
 		        XAxisValuesProperty,
 		        XAxisLabelsProperty,
 		        XAxisOpacityProperty,
@@ -267,7 +265,6 @@ namespace WalletWasabi.Fluent.Controls
 		        XAxisLabelFontStyleProperty,
 		        XAxisLabelFontWeightProperty,
 		        XAxisLabelFontSizeProperty,
-		        // XAxis Title
 		        XAxisTitleProperty,
 		        XAxisTitleForegroundProperty,
 		        XAxisTitleOpacityProperty,
@@ -279,7 +276,6 @@ namespace WalletWasabi.Fluent.Controls
 		        XAxisTitleFontStyleProperty,
 		        XAxisTitleFontWeightProperty,
 		        XAxisTitleFontSizeProperty,
-		        // YAxis
 		        YAxisValuesProperty,
 		        YAxisLogarithmicScaleProperty,
 		        XAxisCurrentValueProperty,
@@ -290,7 +286,6 @@ namespace WalletWasabi.Fluent.Controls
 		        YAxisStrokeProperty,
 		        YAxisStrokeThicknessProperty,
 		        YAxisArrowSizeProperty,
-		        // YAxis Title
 		        YAxisTitleProperty,
 		        YAxisTitleForegroundProperty,
 		        YAxisTitleOpacityProperty,
@@ -302,14 +297,12 @@ namespace WalletWasabi.Fluent.Controls
 		        YAxisTitleFontStyleProperty,
 		        YAxisTitleFontWeightProperty,
 		        YAxisTitleFontSizeProperty,
-		        // Cursor
 		        CursorStrokeProperty,
 		        CursorStrokeThicknessProperty,
 		        CursorStrokeDashStyleProperty,
 		        CursorStrokeLineCapProperty,
 		        CursorStrokeLineJoinProperty,
 		        CursorStrokeMiterLimitProperty,
-		        // Border
 		        BorderBrushProperty,
 		        BorderThicknessProperty,
 		        BorderRadiusXProperty,
