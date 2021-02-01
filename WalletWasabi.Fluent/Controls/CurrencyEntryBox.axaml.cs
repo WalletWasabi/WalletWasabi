@@ -36,7 +36,6 @@ namespace WalletWasabi.Fluent.Controls
 		private Button? _swapButton;
 		private CompositeDisposable _disposable;
 		private bool _allowConversions = true;
-		private NumberFormatInfo _cultureNumberFormatInfo;
 		private readonly char _currentCultureDecimalSeparator = '.';
 		private readonly char _currentCultureGroupSeparator = ' ';
 		private Regex _matchRegexDecimal;
@@ -47,8 +46,6 @@ namespace WalletWasabi.Fluent.Controls
 			this.GetObservable(TextProperty).Subscribe(_ => DoConversion());
 			this.GetObservable(ConversionRateProperty).Subscribe(_ => DoConversion());
 			Text = "0";
-
-			_cultureNumberFormatInfo = Thread.CurrentThread.CurrentCulture.NumberFormat;
 
 			_matchRegexDecimal =
 				new Regex(
