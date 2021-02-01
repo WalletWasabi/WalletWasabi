@@ -1,4 +1,4 @@
-using WalletWasabi.Gui.Validation;
+using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
 

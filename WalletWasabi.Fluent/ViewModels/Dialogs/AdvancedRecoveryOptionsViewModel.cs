@@ -2,7 +2,7 @@ using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Gui.Validation;
+using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
