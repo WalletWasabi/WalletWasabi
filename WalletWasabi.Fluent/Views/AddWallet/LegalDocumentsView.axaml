@@ -12,6 +12,9 @@
   <c:ContentArea Title="{Binding Title}"
                  Caption="Please read the small print."
                  EnableBack="True" FocusCancel="True">
-    <TextBlock TextWrapping="Wrap" Text="{Binding Content}" />
+    <Panel>
+      <TextBlock TextWrapping="Wrap" Text="{Binding Content}" IsVisible="{Binding !IsBusy}" />
+      <c:ProgressRing IsVisible="{Binding IsBusy}" Margin="15" IsIndeterminate="True" Height="100" Width="100" VerticalAlignment="Center" HorizontalAlignment="Center" />
+    </Panel>
   </c:ContentArea>
 </UserControl>
