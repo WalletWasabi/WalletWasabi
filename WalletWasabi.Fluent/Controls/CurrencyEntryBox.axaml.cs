@@ -182,7 +182,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private string FormatBTC(decimal value)
 		{
-			return string.Format(_cultureNumberFormatInfo, "{0:0.########}", value);
+			return string.Format(_cultureNumberFormatInfo, $"{{0:0{_currentCultureDecimalSeparator}########}}", value);
 		}
 
 		private string FormatFiat(decimal value)
