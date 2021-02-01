@@ -668,6 +668,13 @@ namespace WalletWasabi.Fluent.Controls
 
 	public partial class LineChart : Control
     {
+	    public LineChart()
+	    {
+		    AddHandler(PointerPressedEvent, PointerPressedHandler, RoutingStrategies.Tunnel);
+		    AddHandler(PointerReleasedEvent, PointerReleasedHandler, RoutingStrategies.Tunnel);
+		    AddHandler(PointerMovedEvent, PointerMovedHandler, RoutingStrategies.Tunnel);
+	    }
+
 	    private static double Clamp(double val, double min, double max)
         {
 	        return Math.Min(Math.Max(val, min), max);
@@ -722,13 +729,6 @@ namespace WalletWasabi.Fluent.Controls
 		        FontSize = fontSize,
 		        Constraint = constraint
 	        };
-        }
-
-        public LineChart()
-        {
-	        AddHandler(PointerPressedEvent, PointerPressedHandler, RoutingStrategies.Tunnel);
-	        AddHandler(PointerReleasedEvent, PointerReleasedHandler, RoutingStrategies.Tunnel);
-	        AddHandler(PointerMovedEvent, PointerMovedHandler, RoutingStrategies.Tunnel);
         }
 
         private void UpdateCursorPosition(double x)
