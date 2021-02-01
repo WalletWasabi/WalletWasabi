@@ -103,7 +103,7 @@
                         Minimum="{Binding #GradientLineChart.XAxisMinValue}"
                         Maximum="{Binding #GradientLineChart.XAxisMaxValue}"
                         Value="{Binding #GradientLineChart.XAxisCurrentValue}"
-                        Margin="30,0,30,0"/>
+                        Margin="20,0,20,0"/>
                 <c:LineChart x:Name="GradientLineChart"
                              Classes="cursor border xAxisLabels yAxis yAxisTitle"
                              MinWidth="300" MinHeight="200"
@@ -145,7 +145,7 @@
                         Minimum="{Binding #SolidLineChart.XAxisMinValue}"
                         Maximum="{Binding #SolidLineChart.XAxisMaxValue}"
                         Value="{Binding #SolidLineChart.XAxisCurrentValue}"
-                        Margin="30,0,30,0"/>
+                        Margin="20,0,20,0"/>
                 <c:LineChart x:Name="SolidLineChart"
                              Classes="cursor border xAxisLabels xAxis yAxis yAxisTitle"
                              MinWidth="300" MinHeight="200"
