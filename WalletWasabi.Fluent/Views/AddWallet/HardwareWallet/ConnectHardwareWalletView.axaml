@@ -14,7 +14,7 @@
                  Caption="Connect your hardware wallet to the PC"
                  EnableCancel="True" CancelContent="Cancel"
                  EnableBack="True"
-                 EnableNext="{Binding NextButtonEnable}" NextContent="Continue"
+                 EnableNext="{Binding ConfirmationRequired}" NextContent="Continue"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <Grid RowDefinitions="*,3*,Auto">
       <Viewbox MaxHeight="150" Grid.Row="0" DockPanel.Dock="Top" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0 30 0 0">
@@ -30,7 +30,7 @@
           <TextBlock Text="{Binding Message}" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top"/>
           <Button IsVisible="{Binding ExistingWalletFound}" Margin="0 15 0 0" Command="{Binding NavigateToExistingWalletLoginCommand}" Content="Open wallet" Classes="h7 plain activeHyperLink" HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Bottom"/>
         </DockPanel>
-        <c:ProgressRing IsVisible="{Binding !NextButtonEnable}" Margin="15" IsIndeterminate="True" Height="100" Width="100" />
+        <c:ProgressRing IsVisible="{Binding !ConfirmationRequired}" Margin="15" IsIndeterminate="True" Height="100" Width="100" />
       </Panel>
       <Button Command="{Binding OpenBrowserCommand}" Content="More information and help with Hardware Wallets" Classes="h8 plain activeHyperLink" HorizontalAlignment="Center" Grid.Row="2"/>
     </Grid>
