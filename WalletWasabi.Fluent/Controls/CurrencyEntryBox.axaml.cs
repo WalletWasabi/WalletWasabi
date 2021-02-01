@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Reactive.Disposables;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -35,6 +36,7 @@ namespace WalletWasabi.Fluent.Controls
 		private Button? _swapButton;
 		private CompositeDisposable _disposable;
 		private bool _allowConversions = true;
+		private NumberFormatInfo _cultureNumberFormatInfo;
 		private char _currentCultureDecimalSeparator;
 		private char _currentCultureGroupSeparator;
 		private Regex _matchRegexDecimal;
@@ -45,9 +47,9 @@ namespace WalletWasabi.Fluent.Controls
 			this.GetObservable(ConversionRateProperty).Subscribe(_ => DoConversion());
 			Text = "0";
 
-			var numFormat = Thread.CurrentThread.CurrentCulture.NumberFormat;
-			_currentCultureDecimalSeparator = Convert.ToChar(numFormat.NumberDecimalSeparator);
-			_currentCultureGroupSeparator = Convert.ToChar(numFormat.NumberGroupSeparator);
+			_cultureNumberFormatInfo = Thread.CurrentThread.CurrentCulture.NumberFormat;
+			_currentCultureDecimalSeparator = Convert.ToChar(_cultureNumberFormatInfo.NumberDecimalSeparator);
+			_currentCultureGroupSeparator = Convert.ToChar(_cultureNumberFormatInfo.NumberGroupSeparator);
 			_matchRegexDecimal =
 				new Regex(
 					$"^(?<Whole>[0-9{_currentCultureGroupSeparator}]*)(\\{_currentCultureDecimalSeparator}?(?<Frac>[0-9]*))$");
@@ -61,11 +63,11 @@ namespace WalletWasabi.Fluent.Controls
 
 				if (IsConversionReversed)
 				{
-					Text = $"{Conversion:#,0.########}";
+					Text = $"{FormatBTC(Conversion)}";
 				}
 				else
 				{
-					Text = $"{Conversion:N}";
+					Text = $"{FormatFiat(Conversion)}";
 				}
 
 				IsConversionReversed = !IsConversionReversed;
@@ -178,6 +180,16 @@ namespace WalletWasabi.Fluent.Controls
 			return "";
 		}
 
+		private string FormatBTC(decimal value)
+		{
+			return string.Format(_cultureNumberFormatInfo, "{0:0.########}", value);
+		}
+
+		private string FormatFiat(decimal value)
+		{
+			return string.Format(_cultureNumberFormatInfo, "{0:N2}", value);
+		}
+
 		private void DoConversion()
 		{
 			if (_allowConversions)
@@ -190,7 +202,7 @@ namespace WalletWasabi.Fluent.Controls
 
 						Conversion = result / ConversionRate;
 
-						ConversionText = $"≈ {Conversion:#,0.########} BTC";
+						ConversionText = $"≈ {FormatBTC(Conversion)} BTC";
 					}
 					else
 					{
@@ -207,7 +219,7 @@ namespace WalletWasabi.Fluent.Controls
 
 						Conversion = result * ConversionRate;
 
-						ConversionText = $"≈ {Conversion:N}" + (!string.IsNullOrWhiteSpace(ConversionCurrencyCode)
+						ConversionText = $"≈ {FormatFiat(Conversion)}" + (!string.IsNullOrWhiteSpace(ConversionCurrencyCode)
 							? $" {ConversionCurrencyCode}"
 							: "");
 					}
