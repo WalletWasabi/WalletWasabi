@@ -40,6 +40,7 @@ namespace WalletWasabi.Fluent.Controls
 		private char _currentCultureDecimalSeparator;
 		private char _currentCultureGroupSeparator;
 		private Regex _matchRegexDecimal;
+		private Regex _matchRegexDecimalCharsOnly;
 
 		public CurrencyEntryBox()
 		{
@@ -53,6 +54,10 @@ namespace WalletWasabi.Fluent.Controls
 			_matchRegexDecimal =
 				new Regex(
 					$"^(?<Whole>[0-9{_currentCultureGroupSeparator}]*)(\\{_currentCultureDecimalSeparator}?(?<Frac>[0-9]*))$");
+
+			_matchRegexDecimalCharsOnly =
+				new Regex(
+					$"^[0-9{_currentCultureGroupSeparator}{_currentCultureDecimalSeparator}]*$");
 		}
 
 		private void Reverse()
@@ -93,12 +98,21 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			if (_allowConversions)
 			{
-				var inputText = Guard.Correct(e.Text);
+				var inputText = e.Text ?? "";
 				var inputLength = inputText.Length;
 
 				// Check if it has a decimal separator.
 				var trailingDecimal = inputLength > 0 && inputText[^1] == _currentCultureDecimalSeparator;
-				var match = _matchRegexDecimal.Match(Guard.Correct(PrecomposeText(e)));
+				var precompText = PrecomposeText(e) ?? "";
+
+				if (!_matchRegexDecimalCharsOnly.IsMatch(precompText))
+				{
+					e.Handled = true;
+					base.OnTextInput(e);
+					return;
+				}
+
+				var match = _matchRegexDecimal.Match(precompText);
 
 				// Ignore group chars on count of the whole part of the decimal.
 				var wholeStr = match.Groups["Whole"].ToString();
@@ -149,8 +163,8 @@ namespace WalletWasabi.Fluent.Controls
 			base.OnTextInput(e);
 		}
 
-		// Precomposes the TextInputEventArgs to see the Text that is to
-		// be commited to the TextPresenter.
+		// Precomposes the TextInputEventArgs to see the potential Text that is to
+		// be commited to the TextPresenter in this control.
 
 		// An event in Avalonia's TextBox with this function should be implemented there for brevity.
 		private string PrecomposeText(TextInputEventArgs e)
