@@ -10,25 +10,6 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public double XAxisMaxValue { get; set; } = 864;
 
-		// public List<string> XAxisLabels => new List<string>()
-		// {
-		//     "6 days",
-		//     "4 days",
-		//     "3 days",
-		//     "1 day",
-		//     "22 hours",
-		//     "20 hours",
-		//     "18 hours",
-		//     "10 hours",
-		//     "6 hours",
-		//     "4 hours",
-		//     "2 hours",
-		//     "1 hour",
-		//     "50 min",
-		//     "30 min",
-		//     "20 min"
-		// };
-
 		public List<string> XAxisLabels => new List<string>()
 		{
 			"1w",
