@@ -240,11 +240,80 @@ namespace WalletWasabi.Fluent.Controls
         {
 	        AffectsMeasure<LineChart>(AreaMarginProperty);
 	        AffectsRender<LineChart>(
-		        YAxisValuesProperty,
+		        // Area
+		        AreaMarginProperty,
+		        AreaFillProperty,
+		        AreaStrokeProperty,
+		        AreaStrokeThicknessProperty,
+		        AreaStrokeDashStyleProperty,
+		        AreaStrokeLineCapProperty,
+		        AreaStrokeLineJoinProperty,
+		        AreaStrokeMiterLimitProperty,
+		        // XAxis
+		        XAxisValuesProperty,
 		        XAxisLabelsProperty,
+		        XAxisOpacityProperty,
+		        XAxisOffsetProperty,
+		        XAxisStrokeProperty,
+		        XAxisStrokeThicknessProperty,
+		        XAxisArrowSizeProperty,
+		        XAxisLabelForegroundProperty,
+		        XAxisLabelOpacityProperty,
+		        XAxisLabelOffsetProperty,
+		        XAxisLabelSizeProperty,
+		        XAxisLabelAlignmentProperty,
+		        XAxisLabelAngleProperty,
+		        XAxisLabelFontFamilyProperty,
+		        XAxisLabelFontStyleProperty,
+		        XAxisLabelFontWeightProperty,
+		        XAxisLabelFontSizeProperty,
+		        // XAxis Title
+		        XAxisTitleProperty,
+		        XAxisTitleForegroundProperty,
+		        XAxisTitleOpacityProperty,
+		        XAxisTitleOffsetProperty,
+		        XAxisTitleSizeProperty,
+		        XAxisTitleAlignmentProperty,
+		        XAxisTitleAngleProperty,
+		        XAxisTitleFontFamilyProperty,
+		        XAxisTitleFontStyleProperty,
+		        XAxisTitleFontWeightProperty,
+		        XAxisTitleFontSizeProperty,
+		        // YAxis
+		        YAxisValuesProperty,
+		        YAxisLogarithmicScaleProperty,
+		        XAxisCurrentValueProperty,
 		        XAxisMinValueProperty,
 		        XAxisMaxValueProperty,
-		        XAxisCurrentValueProperty);
+		        YAxisOpacityProperty,
+		        YAxisOffsetProperty,
+		        YAxisStrokeProperty,
+		        YAxisStrokeThicknessProperty,
+		        YAxisArrowSizeProperty,
+		        // YAxis Title
+		        YAxisTitleProperty,
+		        YAxisTitleForegroundProperty,
+		        YAxisTitleOpacityProperty,
+		        YAxisTitleOffsetProperty,
+		        YAxisTitleSizeProperty,
+		        YAxisTitleAlignmentProperty,
+		        YAxisTitleAngleProperty,
+		        YAxisTitleFontFamilyProperty,
+		        YAxisTitleFontStyleProperty,
+		        YAxisTitleFontWeightProperty,
+		        YAxisTitleFontSizeProperty,
+		        // Cursor
+		        CursorStrokeProperty,
+		        CursorStrokeThicknessProperty,
+		        CursorStrokeDashStyleProperty,
+		        CursorStrokeLineCapProperty,
+		        CursorStrokeLineJoinProperty,
+		        CursorStrokeMiterLimitProperty,
+		        // Border
+		        BorderBrushProperty,
+		        BorderThicknessProperty,
+		        BorderRadiusXProperty,
+		        BorderRadiusYProperty);
         }
 
         // Area
