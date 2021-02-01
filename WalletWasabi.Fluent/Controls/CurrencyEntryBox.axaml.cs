@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.Controls
 		private Button? _swapButton;
 		private CompositeDisposable _disposable;
 		private bool _allowConversions = true;
-		private NumberFormatInfo _cultureNumberFormatInfo;
+		private CultureInfo _customCultureInfo;
 		private char _currentCultureDecimalSeparator;
 		private char _currentCultureGroupSeparator;
 		private Regex _matchRegexDecimal;
@@ -48,14 +48,14 @@ namespace WalletWasabi.Fluent.Controls
 			this.GetObservable(ConversionRateProperty).Subscribe(_ => DoConversion());
 			Text = "0";
 
-			_cultureNumberFormatInfo = CultureInfo.CurrentCulture.NumberFormat;
-			_cultureNumberFormatInfo.CurrencyGroupSeparator = " ";
-			_cultureNumberFormatInfo.NumberGroupSeparator = " ";
-			_cultureNumberFormatInfo.CurrencyDecimalSeparator = ".";
-			_cultureNumberFormatInfo.NumberDecimalSeparator = ".";
+			_customCultureInfo = new CultureInfo("");
+			_customCultureInfo.NumberFormat.CurrencyGroupSeparator = " ";
+			_customCultureInfo.NumberFormat.NumberGroupSeparator = " ";
+			_customCultureInfo.NumberFormat.CurrencyDecimalSeparator = ".";
+			_customCultureInfo.NumberFormat.NumberDecimalSeparator = ".";
 
-			_currentCultureDecimalSeparator = Convert.ToChar(_cultureNumberFormatInfo.NumberDecimalSeparator);
-			_currentCultureGroupSeparator = Convert.ToChar(_cultureNumberFormatInfo.NumberGroupSeparator);
+			_currentCultureDecimalSeparator = Convert.ToChar(_customCultureInfo.NumberFormat.NumberDecimalSeparator);
+			_currentCultureGroupSeparator = Convert.ToChar(_customCultureInfo.NumberFormat.NumberGroupSeparator);
 			_matchRegexDecimal =
 				new Regex(
 					$"^(?<Whole>[0-9{_currentCultureGroupSeparator}]*)(\\{_currentCultureDecimalSeparator}?(?<Frac>[0-9]*))$");
@@ -201,12 +201,12 @@ namespace WalletWasabi.Fluent.Controls
 
 		private string FormatBtc(decimal value)
 		{
-			return string.Format(_cultureNumberFormatInfo, "{0:0.########}", value);
+			return string.Format(_customCultureInfo.NumberFormat, "{0:0.########}", value);
 		}
 
 		private string FormatFiat(decimal value)
 		{
-			return string.Format(_cultureNumberFormatInfo, "{0:N2}", value);
+			return string.Format(_customCultureInfo.NumberFormat, "{0:N2}", value);
 		}
 
 		private void DoConversion()
@@ -215,7 +215,7 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				if (IsConversionReversed)
 				{
-					if (decimal.TryParse(Text, out var result) && ConversionRate > 0)
+					if (decimal.TryParse(Text, NumberStyles.Number, _customCultureInfo, out var result) && ConversionRate > 0)
 					{
 						CurrencyCode = ConversionCurrencyCode;
 
@@ -232,7 +232,7 @@ namespace WalletWasabi.Fluent.Controls
 				}
 				else
 				{
-					if (decimal.TryParse(Text, out var result) && ConversionRate > 0)
+					if (decimal.TryParse(Text, NumberStyles.Number, _customCultureInfo, out var result) && ConversionRate > 0)
 					{
 						CurrencyCode = "BTC";
 
