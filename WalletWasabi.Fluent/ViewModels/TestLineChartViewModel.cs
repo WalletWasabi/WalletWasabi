@@ -6,9 +6,9 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		public double XAxisCurrentValue { get; set; } = 36;
 
-		public double XAxisMinValue { get; set; } = 2;
+		public double XAxisMinValue { get; set; } = 1;
 
-		public double XAxisMaxValue { get; set; } = 864;
+		public double XAxisMaxValue { get; set; } = 1008;
 
 		public List<string> XAxisLabels => new List<string>()
 		{
