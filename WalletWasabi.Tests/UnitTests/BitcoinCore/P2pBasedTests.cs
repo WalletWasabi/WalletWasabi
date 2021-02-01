@@ -107,11 +107,11 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			try
 			{
 				var rpc = coreNode.RpcClient;
-				await rpc.GenerateAsync(101);
-				var network = rpc.Network;
-
 				var walletName = "wallet.dat";
 				await rpc.CreateWalletAsync(walletName);
+
+				await rpc.GenerateAsync(101);
+				var network = rpc.Network;
 
 				var dir = Common.GetWorkDir();
 
