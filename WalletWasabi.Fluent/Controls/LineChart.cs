@@ -19,6 +19,7 @@ namespace WalletWasabi.Fluent.Controls
 			AddHandler(PointerPressedEvent, PointerPressedHandler, RoutingStrategies.Tunnel);
 			AddHandler(PointerReleasedEvent, PointerReleasedHandler, RoutingStrategies.Tunnel);
 			AddHandler(PointerMovedEvent, PointerMovedHandler, RoutingStrategies.Tunnel);
+			AddHandler(PointerLeaveEvent, PointerLeaveHandler, RoutingStrategies.Tunnel);
 		}
 
 		private static double Clamp(double val, double min, double max)
@@ -87,12 +88,50 @@ namespace WalletWasabi.Fluent.Controls
 			XAxisCurrentValue = XAxisMaxValue - rangeValues / rangeArea * value;
 		}
 
+		private Rect GetCursorHitTestRect()
+		{
+			var chartWidth = Bounds.Width;
+			var chartHeight = Bounds.Height;
+			var areaMargin = AreaMargin;
+			var areaWidth = chartWidth - areaMargin.Left - areaMargin.Right;
+			var areaHeight = chartHeight - areaMargin.Top - areaMargin.Bottom;
+			var areaRect = new Rect(areaMargin.Left, areaMargin.Top, areaWidth, areaHeight);
+			var cursorValue = XAxisCurrentValue;
+			var cursorPosition = ScaleHorizontal(XAxisMaxValue - cursorValue, XAxisMaxValue, areaWidth);
+			var cursorHitTestSize = 5;
+			var cursorStrokeThickness = CursorStrokeThickness;
+			var cursorHitTestRect = new Rect(
+				areaMargin.Left + cursorPosition - cursorHitTestSize + cursorStrokeThickness / 2,
+				areaRect.Top,
+				cursorHitTestSize + cursorHitTestSize,
+				areaRect.Height);
+			return cursorHitTestRect;
+		}
+
+		private void PointerLeaveHandler(object? sender, PointerEventArgs e)
+		{
+			Cursor = new Cursor(StandardCursorType.Arrow);
+		}
+
 		private void PointerMovedHandler(object? sender, PointerEventArgs e)
 		{
+			var position = e.GetPosition(this);
 			if (_captured)
 			{
-				var position = e.GetPosition(this);
 				UpdateCursorPosition(position.X);
+			}
+			else
+			{
+				if (CursorStroke is null)
+				{
+					return;
+				}
+
+				var cursorHitTestRect = GetCursorHitTestRect();
+				var cursorSizeWestEast = cursorHitTestRect.Contains(position);
+				Cursor = cursorSizeWestEast ?
+					new Cursor(StandardCursorType.SizeWestEast)
+					: new Cursor(StandardCursorType.Arrow);
 			}
 		}
 
@@ -100,7 +139,13 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			if (_captured)
 			{
-				Cursor = new Cursor(StandardCursorType.Arrow);
+				var position = e.GetPosition(this);
+				var cursorHitTestRect = GetCursorHitTestRect();
+				var cursorSizeWestEast = cursorHitTestRect.Contains(position);
+				if (!cursorSizeWestEast)
+				{
+					Cursor = new Cursor(StandardCursorType.Arrow);
+				}
 				_captured = false;
 			}
 		}
