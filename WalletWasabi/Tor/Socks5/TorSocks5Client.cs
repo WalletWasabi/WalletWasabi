@@ -176,6 +176,12 @@ namespace WalletWasabi.Tor.Socks5
 					DisposeTcpClient();
 					throw new InvalidOperationException("Wrong username and/or password.");
 				}
+
+				Logger.LogDebug("Handshake succeeded.");
+			}
+			else
+			{
+				Logger.LogDebug($"No-op. Method is '{methodSelection.Method}'.");
 			}
 
 			Logger.LogDebug("<");
