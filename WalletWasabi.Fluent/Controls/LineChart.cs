@@ -752,7 +752,7 @@ namespace WalletWasabi.Fluent.Controls
             return range - value / max * range;
         }
 
-        private static Geometry CreateFllGeometry(IReadOnlyList<Point> points, double width, double height)
+        private static Geometry CreateFillGeometry(IReadOnlyList<Point> points, double width, double height)
         {
 	        var geometry = new StreamGeometry();
 	        using var context = geometry.Open();
@@ -887,7 +887,7 @@ namespace WalletWasabi.Fluent.Controls
 	            return;
             }
             var deflate = 0.5;
-            var geometry = CreateFllGeometry(state.Points, state.AreaWidth, state.AreaHeight);
+            var geometry = CreateFillGeometry(state.Points, state.AreaWidth, state.AreaHeight);
             var transform = context.PushPreTransform(
 	            Matrix.CreateTranslation(
 		            state.AreaMargin.Left + deflate,
