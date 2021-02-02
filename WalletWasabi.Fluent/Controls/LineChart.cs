@@ -66,8 +66,7 @@ namespace WalletWasabi.Fluent.Controls
 			return geometry;
 		}
 
-		private static FormattedText CreateFormattedText(string text, Typeface typeface, TextAlignment alignment,
-			double fontSize, Size constraint)
+		private static FormattedText CreateFormattedText(string text, Typeface typeface, TextAlignment alignment, double fontSize, Size constraint)
 		{
 			return new FormattedText()
 			{
