@@ -128,11 +128,11 @@ namespace WalletWasabi.Tor.Socks5
 			// username / password fields of this message to be empty. This technically
 			// violates RFC1929[4], but ensures interoperability with somewhat broken
 			// SOCKS5 client implementations.
-			var methods = new MethodsField(isolateStream ? MethodField.UsernamePassword : MethodField.NoAuthenticationRequired);
+			MethodsField methods = new(isolateStream ? MethodField.UsernamePassword : MethodField.NoAuthenticationRequired);
 
 			byte[] receiveBuffer = await SendRequestAsync(new VersionMethodRequest(methods), cancellationToken).ConfigureAwait(false);
 
-			var methodSelection = new MethodSelectionResponse(receiveBuffer);
+			MethodSelectionResponse methodSelection = new(receiveBuffer);
 
 			if (methodSelection.Ver != VerField.Socks5)
 			{
@@ -153,14 +153,14 @@ namespace WalletWasabi.Tor.Socks5
 				// Username / Password Authentication protocol, the Username / Password
 				// sub-negotiation begins. This begins with the client producing a
 				// Username / Password request:
-				var identity = RandomString.CapitalAlphaNumeric(21);
-				var uName = new UNameField(uName: identity);
-				var passwd = new PasswdField(password: identity);
-				var usernamePasswordRequest = new UsernamePasswordRequest(uName, passwd);
+				string identity = RandomString.CapitalAlphaNumeric(21);
+				UNameField uName = new(uName: identity);
+				PasswdField passwd = new(password: identity);
+				UsernamePasswordRequest usernamePasswordRequest = new(uName, passwd);
 
 				receiveBuffer = await SendRequestAsync(usernamePasswordRequest, cancellationToken).ConfigureAwait(false);
 
-				var userNamePasswordResponse = new UsernamePasswordResponse(receiveBuffer);
+				UsernamePasswordResponse userNamePasswordResponse = new(receiveBuffer);
 
 				if (userNamePasswordResponse.Ver != usernamePasswordRequest.Ver)
 				{
@@ -222,7 +222,7 @@ namespace WalletWasabi.Tor.Socks5
 				TorSocks5Request connectRequest = new(cmd: CmdField.Connect, new AddrField(host), new PortField(port));
 				byte[] receiveBuffer = await SendRequestAsync(connectRequest, cancellationToken).ConfigureAwait(false);
 
-				var connectionResponse = new TorSocks5Response(receiveBuffer);
+				TorSocks5Response connectionResponse = new(receiveBuffer);
 
 				if (connectionResponse.Rep != RepField.Succeeded)
 				{
