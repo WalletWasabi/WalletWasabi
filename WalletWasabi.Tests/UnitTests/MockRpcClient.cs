@@ -16,6 +16,8 @@ namespace WalletWasabi.Tests.UnitTests
 		public Func<Task<BlockchainInfo>> OnGetBlockchainInfoAsync { get; set; }
 		public Func<uint256, Task<VerboseBlockInfo>> OnGetVerboseBlockAsync { get; set; }
 		public Func<Task<MemPoolInfo>> OnGetMempoolInfoAsync { get; set; }
+		public Func<Transaction, Task<uint256>> OnSendRawTransactionAsync { get; set; }
+		public Func<Task<uint256[]>> OnGetRawMempoolAsync { get; set; }
 
 		public Network Network { get; set; } = Network.RegTest;
 		public RPCCredentialString CredentialString => new RPCCredentialString();
@@ -77,7 +79,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<uint256[]> GetRawMempoolAsync()
 		{
-			throw new NotImplementedException();
+			return OnGetRawMempoolAsync();
 		}
 
 		public Task<Transaction> GetRawTransactionAsync(uint256 txid, bool throwIfNotFound = true)
@@ -122,7 +124,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<uint256> SendRawTransactionAsync(Transaction transaction)
 		{
-			throw new NotImplementedException();
+			return OnSendRawTransactionAsync(transaction);
 		}
 
 		public Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, string? commentTx = null, string? commentDest = null, bool subtractFeeFromAmount = false, bool replaceable = false)

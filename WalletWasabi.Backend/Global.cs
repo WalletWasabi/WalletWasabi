@@ -55,6 +55,13 @@ namespace WalletWasabi.Backend
 			// Make sure P2P works.
 			await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint(), cancel);
 
+			if (config.Network != Network.RegTest)
+			{
+#pragma warning disable CA2000 // Dispose objects before losing scope
+				HostedServices.Register(new MempoolConsistency(TimeSpan.FromHours(1), RpcClient, config.Network), "Mempool Consistency");
+#pragma warning restore CA2000 // Dispose objects before losing scope
+			}
+
 			CoordinatorParameters coordinatorParameters = new(DataDir);
 			WabiSabiCoordinator = new(coordinatorParameters);
 			HostedServices.Register(WabiSabiCoordinator, "WabiSabi Coordinator");
@@ -62,6 +69,7 @@ namespace WalletWasabi.Backend
 			if (roundConfig.FilePath is { })
 			{
 				HostedServices.Register(
+#pragma warning disable CA2000 // Dispose objects before losing scope
 					new ConfigWatcher(
 						TimeSpan.FromSeconds(10), // Every 10 seconds check the config
 						RoundConfig,
@@ -78,6 +86,7 @@ namespace WalletWasabi.Backend
 								Logger.LogDebug(ex);
 							}
 						}),
+#pragma warning restore CA2000 // Dispose objects before losing scope
 					"Config Watcher");
 			}
 
@@ -104,7 +113,9 @@ namespace WalletWasabi.Backend
 			// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
 			P2pNode = new(network, endPoint, new(), $"/WasabiCoordinator:{Constants.BackendMajorVersion}/");
 			await P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
+#pragma warning disable CA2000 // Dispose objects before losing scope
 			HostedServices.Register(new BlockNotifier(TimeSpan.FromSeconds(7), RpcClient, P2pNode), "Block Notifier");
+#pragma warning restore CA2000 // Dispose objects before losing scope
 		}
 
 		private async Task AssertRpcNodeFullyInitializedAsync()

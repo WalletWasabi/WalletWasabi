@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 
@@ -192,6 +193,26 @@ namespace System.Linq
 				throw new InvalidOperationException($"{nameof(source)} and {nameof(otherCollection)} collections must have the same number of elements. {nameof(source)}:{source.Count()}, {nameof(otherCollection)}:{otherCollection.Count()}.");
 			}
 			return source.Zip(otherCollection);
+		}
+
+		/// <summary>
+		/// https://stackoverflow.com/a/1674779/2061103
+		/// </summary>
+		public static ISet<T> IntersectAll<T>(this IEnumerable<IEnumerable<T>> collections)
+		{
+			HashSet<T>? hashSet = null;
+			foreach (var list in collections)
+			{
+				if (hashSet is null)
+				{
+					hashSet = new HashSet<T>(list);
+				}
+				else
+				{
+					hashSet.IntersectWith(list);
+				}
+			}
+			return hashSet ?? new HashSet<T>();
 		}
 	}
 }
