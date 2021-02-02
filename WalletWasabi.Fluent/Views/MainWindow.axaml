@@ -15,6 +15,10 @@
         Title="Wasabi Wallet">
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">
-    <local:MainView />
+    <!-- <local:MainView /> -->
+    <Panel>
+      <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
+      <local:TestLineChartView Margin="20 36 20 20"/>
+    </Panel>
   </Panel>
 </Window>
