@@ -14,7 +14,7 @@
         <!-- Slider Fee -->
         <Style Selector="Slider.cursor">
             <Setter Property="RenderTransform">
-                <RotateTransform Angle="-180"></RotateTransform>
+                <RotateTransform Angle="-180" />
             </Setter>
         </Style>
         <Style Selector="Slider.cursor /template/ RepeatButton#PART_IncreaseButton">
@@ -99,40 +99,41 @@
                    EnableCancel="True"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-        <StackPanel Spacing="10">
-            <StackPanel.Styles>
-                <Style Selector="DockPanel > Label">
-                    <Setter Property="MinWidth" Value="80" />
-                </Style>
-            </StackPanel.Styles>
-            <DockPanel>
-                <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
-                <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}"
-                         Watermark="(e.g. Bitcoin address or PayJoin URL)">
-                    <TextBox.InnerRightContent>
-                        <Button Classes="plain"
-                                ToolTip.Tip="Paste">
-                            <PathIcon Data="{StaticResource paste_regular}" Width="13" />
-                        </Button>
-                    </TextBox.InnerRightContent>
-                    <i:Interaction.Behaviors>
-                        <behaviors:FocusOnAttachedBehavior />
-                    </i:Interaction.Behaviors>
-                </TextBox>
-            </DockPanel>
+        <DockPanel>
+            <StackPanel DockPanel.Dock="Top" Spacing="10">
+                <StackPanel.Styles>
+                    <Style Selector="DockPanel > Label">
+                        <Setter Property="MinWidth" Value="80" />
+                    </Style>
+                </StackPanel.Styles>
+                <DockPanel>
+                    <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
+                    <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}"
+                             Watermark="(e.g. Bitcoin address or PayJoin URL)">
+                        <TextBox.InnerRightContent>
+                            <Button Classes="plain"
+                                    ToolTip.Tip="Paste">
+                                <PathIcon Data="{StaticResource paste_regular}" Width="13" />
+                            </Button>
+                        </TextBox.InnerRightContent>
+                        <i:Interaction.Behaviors>
+                            <behaviors:FocusOnAttachedBehavior />
+                        </i:Interaction.Behaviors>
+                    </TextBox>
+                </DockPanel>
 
-            <DockPanel>
-                <Label DockPanel.Dock="Left" Content="_Amount:" Target="amountTb" />
-                <c:CurrencyEntryBox x:Name="amountTb" ConversionRate="32212.00" ConversionCurrencyCode="USD" />
-            </DockPanel>
+                <DockPanel>
+                    <Label DockPanel.Dock="Left" Content="_Amount:" Target="amountTb" />
+                    <c:CurrencyEntryBox x:Name="amountTb" ConversionRate="32212.00" ConversionCurrencyCode="USD" />
+                </DockPanel>
 
-            <DockPanel>
-                <Label DockPanel.Dock="Left"  Content="_Labels:" Target="LabelTagBox" />
-                <c:TagsBox x:Name="LabelTagBox"
-                           ItemCountLimit="12"
-                           RestrictInputToSuggestions="True" />
-            </DockPanel>
-
+                <DockPanel>
+                    <Label DockPanel.Dock="Left" Content="_Labels:" Target="LabelTagBox" />
+                    <c:TagsBox x:Name="LabelTagBox"
+                               ItemCountLimit="12"
+                               RestrictInputToSuggestions="True" />
+                </DockPanel>
+            </StackPanel>
             <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                 <Slider x:Name="CursorValue2"
                         DockPanel.Dock="Bottom"
@@ -140,7 +141,7 @@
                         Minimum="{Binding #GradientLineChart.XAxisMinValue}"
                         Maximum="{Binding #GradientLineChart.XAxisMaxValue}"
                         Value="{Binding #GradientLineChart.XAxisCurrentValue}"
-                        Margin="20,0,20,0"/>
+                        Margin="20,0,20,0" />
                 <c:LineChart x:Name="GradientLineChart"
                              Classes="cursor border xAxisLabels yAxis yAxisTitle"
                              MinWidth="300" MinHeight="200"
@@ -158,21 +159,21 @@
                     <c:LineChart.AreaFill>
                         <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
                             <LinearGradientBrush.GradientStops>
-                                <GradientStop Offset="0.0" Color="#FF72BD81"/>
-                                <GradientStop Offset="1.0" Color="#0072BD81"/>
+                                <GradientStop Offset="0.0" Color="#FF72BD81" />
+                                <GradientStop Offset="1.0" Color="#0072BD81" />
                             </LinearGradientBrush.GradientStops>
                         </LinearGradientBrush>
                     </c:LineChart.AreaFill>
                     <c:LineChart.AreaStroke>
                         <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
                             <LinearGradientBrush.GradientStops>
-                                <GradientStop Offset="0.0" Color="#72BD81"/>
-                                <GradientStop Offset="1.0" Color="#72BD81"/>
+                                <GradientStop Offset="0.0" Color="#72BD81" />
+                                <GradientStop Offset="1.0" Color="#72BD81" />
                             </LinearGradientBrush.GradientStops>
                         </LinearGradientBrush>
                     </c:LineChart.AreaStroke>
                 </c:LineChart>
             </DockPanel>
-        </StackPanel>
+        </DockPanel>
     </c:ContentArea>
 </UserControl>
