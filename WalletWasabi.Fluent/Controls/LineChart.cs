@@ -219,7 +219,10 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			if (state.AreaWidth <= 0 || state.AreaHeight <= 0)
+			if (state.AreaWidth <= 0
+			    || state.AreaHeight <= 0
+			    || state.AreaWidth < AreaMinViableWidth
+			    || state.AreaHeight < AreaMinViableHeight)
 			{
 				return;
 			}
@@ -247,7 +250,10 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			if (state.AreaWidth <= 0 || state.AreaHeight <= 0)
+			if (state.AreaWidth <= 0
+			    || state.AreaHeight <= 0
+			    || state.AreaWidth < AreaMinViableWidth
+			    || state.AreaHeight < AreaMinViableHeight)
 			{
 				return;
 			}
@@ -306,7 +312,10 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			if (state.AreaWidth <= 0 || state.AreaHeight <= 0)
+			if (state.AreaWidth <= 0
+			    || state.AreaHeight <= 0
+			    || state.AreaWidth < XAxisMinViableWidth
+			    || state.AreaHeight < XAxisMinViableHeight)
 			{
 				return;
 			}
@@ -394,7 +403,10 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			if (state.AreaWidth <= 0 || state.AreaHeight <= 0)
+			if (state.AreaWidth <= 0
+			    || state.AreaHeight <= 0
+			    || state.AreaWidth < YAxisMinViableWidth
+			    || state.AreaHeight < YAxisMinViableHeight)
 			{
 				return;
 			}
@@ -430,7 +442,10 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			if (state.AreaWidth <= 0 || state.AreaHeight <= 0)
+			if (state.AreaWidth <= 0
+			    || state.AreaHeight <= 0
+			    || state.AreaWidth < YAxisMinViableWidth
+			    || state.AreaHeight < YAxisMinViableHeight)
 			{
 				return;
 			}
