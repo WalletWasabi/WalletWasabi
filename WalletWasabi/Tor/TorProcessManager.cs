@@ -42,6 +42,11 @@ namespace WalletWasabi.Tor
 
 		private bool _disposed = false;
 
+		public Task<bool> IsTorRunningAsync()
+		{
+			return TorSocks5Client.IsTorRunningAsync();
+		}
+
 		/// <summary>
 		/// Starts Tor process if it is not running already.
 		/// </summary>
