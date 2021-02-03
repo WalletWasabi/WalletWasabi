@@ -28,10 +28,9 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			IEnumerable<BitcoinAddress> registeredAddresses,
 			IEnumerable<Requester> requesters,
 			Network network,
-			Func<Uri> baseUriAction,
-			EndPoint torSocks5EndPoint)
+			IHttpClient httpClient)
 		{
-			TorClient = new TorHttpClient(baseUriAction, torSocks5EndPoint, isolateStream: true);
+			TorClient = httpClient;
 			RoundId = roundId;
 			RegisteredAddresses = registeredAddresses.ToArray();
 			Requesters = requesters.ToArray();
@@ -46,7 +45,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		public BitcoinAddress[] RegisteredAddresses { get; }
 		public Requester[] Requesters { get; }
 
-		public IRelativeHttpClient TorClient { get; }
+		public IHttpClient TorClient { get; }
 
 		public static async Task<AliceClient4> CreateNewAsync(
 			long roundId,
@@ -57,8 +56,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			BitcoinAddress changeOutput,
 			IEnumerable<BlindedOutputWithNonceIndex> blindedOutputScriptHashes,
 			IEnumerable<InputProofModel> inputs,
-			Func<Uri> baseUriAction,
-			EndPoint torSocks5EndPoint)
+			IHttpClient httpClient)
 		{
 			var request = new InputsRequest4
 			{
@@ -67,7 +65,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				ChangeOutputAddress = changeOutput,
 				Inputs = inputs
 			};
-			var client = new AliceClient4(roundId, registeredAddresses, signerPubKeys, requesters, network, baseUriAction, torSocks5EndPoint);
+			var client = new AliceClient4(roundId, registeredAddresses, signerPubKeys, requesters, network, httpClient);
 			try
 			{
 				// Correct it if forgot to set.
