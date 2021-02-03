@@ -1,5 +1,4 @@
 using WalletWasabi.Fluent.Validation;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
