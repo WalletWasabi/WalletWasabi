@@ -49,7 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			OnNavigatedTo(inStack, _currentDisposable);
 		}
 
-		protected virtual void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		protected virtual void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
 		{
 		}
 

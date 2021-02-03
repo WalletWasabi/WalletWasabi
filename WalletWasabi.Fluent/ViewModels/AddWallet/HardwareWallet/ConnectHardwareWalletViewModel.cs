@@ -204,9 +204,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			Navigate().To(new DetectedHardwareWalletViewModel(WalletManager, WalletName, device));
 		}
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
 		{
-			base.OnNavigatedTo(inStack, disposable);
+			base.OnNavigatedTo(inStack, disposables);
 
 			if (inStack)
 			{
@@ -221,7 +221,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 					await AbandonedTasks.WhenAllAsync();
 					CancelCts.Dispose();
 				})
-				.DisposeWith(disposable);
+				.DisposeWith(disposables);
 		}
 	}
 }

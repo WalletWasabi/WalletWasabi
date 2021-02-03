@@ -30,9 +30,9 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 
 		public PasswordFinderOptions Options { get; }
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
 		{
-			base.OnNavigatedTo(inStack, disposable);
+			base.OnNavigatedTo(inStack, disposables);
 
 			var cancelToken = new CancellationTokenSource();
 
@@ -43,7 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 				cancelToken.Cancel();
 				await t;
 			})
-			.DisposeWith(disposable);
+			.DisposeWith(disposables);
 		}
 
 		private void FindPassword(PasswordFinderOptions options, CancellationToken token)
