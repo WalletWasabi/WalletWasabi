@@ -41,7 +41,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			w.Prison.Punish(i2);
 
 			// Wait until serializes.
-			await w.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(3));
+			await w.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 			await w.StopAsync(CancellationToken.None);
 
 			// See if prev UTXOs are loaded.
@@ -78,11 +78,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			w.Prison.Punish(i2);
 
 			// Wait until serializes.
-			await w.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(3));
+			await w.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 
 			// Make sure it does not serialize again as there was no change.
 			File.Delete(w.PrisonFilePath);
-			await w.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(3));
+			await w.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 			Assert.False(File.Exists(w.PrisonFilePath));
 			await w.StopAsync(CancellationToken.None);
 		}
@@ -107,7 +107,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.NotEmpty(p.GetInmates());
 
 			// Wait until releases from prison.
-			await w.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(3));
+			await w.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 			Assert.Empty(p.GetInmates());
 			await w.StopAsync(CancellationToken.None);
 		}
