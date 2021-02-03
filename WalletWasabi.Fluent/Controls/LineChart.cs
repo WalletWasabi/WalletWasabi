@@ -359,6 +359,13 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
+			if (state.ChartWidth <= 0
+			    || state.ChartHeight <= 0
+			    || state.ChartHeight - state.AreaMargin.Top < state.AreaMargin.Bottom)
+			{
+				return;
+			}
+
 			var opacity = XAxisLabelOpacity;
 			var fontFamily = XAxisLabelFontFamily;
 			var fontStyle = XAxisLabelFontStyle;
