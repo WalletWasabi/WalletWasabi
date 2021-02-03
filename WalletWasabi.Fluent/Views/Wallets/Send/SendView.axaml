@@ -111,11 +111,7 @@
                     </Style>
                 </StackPanel.Styles>
                 <DockPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
-
-                        <PathIcon Data="{StaticResource info_tip}" />
-                    </StackPanel>
+                    <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
                     <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}"
                              Watermark="(e.g. Bitcoin address or PayJoin URL)">
                         <TextBox.InnerRightContent>
@@ -142,7 +138,7 @@
                                RestrictInputToSuggestions="True" />
                 </DockPanel>
             </StackPanel>
-            <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <DockPanel MinHeight="60">
                 <Slider x:Name="CursorValue2"
                         DockPanel.Dock="Bottom"
                         Classes="cursor"
