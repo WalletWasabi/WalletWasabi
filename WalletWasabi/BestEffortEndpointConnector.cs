@@ -97,11 +97,7 @@ namespace WalletWasabi
 				set;
 			}
 
-			public DateTimeOffset LastConnectionTime
-			{
-				get;
-				set;
-			}
+			public DateTimeOffset LastConnectionTime { get; set; } 
 
 			public TimeSpan ElapsedTimeSinceLastConnection => DateTimeOffset.UtcNow - LastConnectionTime;
 
