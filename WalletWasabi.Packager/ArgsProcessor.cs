@@ -14,11 +14,7 @@ namespace WalletWasabi.Packager
 
 		public string[] Args { get; }
 
-		public bool IsReduceOnionsMode() => IsOneOf("reduceonions", "reduceonion");
-
 		public bool IsOnlyBinariesMode() => IsOneOf("onlybinaries");
-
-		public bool IsGetOnionsMode() => IsOneOf("getonions", "getonion");
 
 		public bool IsContinuousDeliveryMode() => IsOneOf("cdelivery");
 

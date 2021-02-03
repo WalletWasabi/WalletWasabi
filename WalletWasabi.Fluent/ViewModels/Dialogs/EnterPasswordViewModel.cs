@@ -1,6 +1,6 @@
 using System.Reactive.Linq;
 using ReactiveUI;
-using WalletWasabi.Gui.Validation;
+using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 
@@ -36,8 +36,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 					this.RaisePropertyChanged(nameof(ConfirmPassword));
 
 					return IsDialogOpen &&
-					       ((enableEmpty && string.IsNullOrEmpty(Password) && string.IsNullOrEmpty(ConfirmPassword)) ||
-					        (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) && !Validations.Any));
+						   ((enableEmpty && string.IsNullOrEmpty(Password) && string.IsNullOrEmpty(ConfirmPassword)) ||
+							(!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) && !Validations.Any));
 				})
 				.ObserveOn(RxApp.MainThreadScheduler);
 

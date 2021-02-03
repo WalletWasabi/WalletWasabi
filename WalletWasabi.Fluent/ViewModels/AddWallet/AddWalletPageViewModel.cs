@@ -1,6 +1,5 @@
 using ReactiveUI;
 using System;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Reactive.Disposables;
 using System.Windows.Input;
@@ -8,16 +7,14 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Wallets;
 using WalletWasabi.Stores;
-using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 using WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
-using WalletWasabi.Gui.Validation;
+using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
