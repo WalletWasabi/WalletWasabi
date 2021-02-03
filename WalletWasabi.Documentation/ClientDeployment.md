@@ -15,34 +15,32 @@
 4. Set description use [previous releases](https://github.com/molnard/WalletWasabi/releases) as a template.
 5. Add the Release Notes, the same as it will be at the final release (can be typofixed).
 6. Make sure local .NET Core version is up to date.
-7. Update the onion seed list to the most reliable ones: in packager run `dotnet run -- --reduceonions`.
-8. Set the version number in the software but only increase the rev number by one to avoid version collision like: 1.1.6.4.
-9. Run tests.
-10. Run packager in publish mode.
-11. Create `.msi`.
-12. Run packager in sign mode. (Set back to publish mode)
-13. Test asc file for `.msi`.
-14. Final `.msi` test on own computer.
-15. Upload the files to the pre-release.
-16. Check `This is a pre-release` and press Publish Release.
-17. Add the pre-release link to the Final Test issue.
-18. Share the Final Test issue link with developers an test it for 24 hours.
-19. Every PR which is contained in the release must be at least 24 hours old.
+7. Set the version number in the software but only increase the rev number by one to avoid version collision like: 1.1.6.4.
+8. Run tests.
+9. Run packager in publish mode.
+10. Create `.msi`.
+11. Run packager in sign mode. (Set back to publish mode)
+12. Test asc file for `.msi`.
+13. Final `.msi` test on own computer.
+14. Upload the files to the pre-release.
+15. Check `This is a pre-release` and press Publish Release.
+16. Add the pre-release link to the Final Test issue.
+17. Share the Final Test issue link with developers an test it for 24 hours.
+18. Every PR which is contained in the release must be at least 24 hours old.
 
 # 3. Packaging
 
 0. Make sure local .NET Core version is up to date.
-1. Update the onion seed list to the most reliable ones: `dotnet run -- --reduceonions`.
-2. Run tests.
-3. Retest every PR since last release on Windows, macOS and Linux.
-4. Bump client version. (WalletWasabi/Helpers/Constants.cs, WalletWasabi.Backend\wwwroot\index.html).
-5. Run packager in publish mode.
-6. [mac sign] Copy Wasabi-osx-version.zip to [macOS release environment](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/MacOsSigning.md) desktop.
-7. [mac sign] Run the packager on macOS.
-8. [mac sign] Copy the final dmg back to dist folder on windows.
-9. Create `.msi`.
-10. Run packager in sign mode. (Set back to publish mode)
-11. Final `.msi` test on own computer.
+1. Run tests.
+2. Retest every PR since last release on Windows, macOS and Linux.
+3. Bump client version. (WalletWasabi/Helpers/Constants.cs, WalletWasabi.Backend\wwwroot\index.html).
+4. Run packager in publish mode.
+5. [mac sign] Copy Wasabi-osx-version.zip to [macOS release environment](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/MacOsSigning.md) desktop.
+6. [mac sign] Run the packager on macOS.
+7. [mac sign] Copy the final dmg back to dist folder on windows.
+8. Create `.msi`.
+9. Run packager in sign mode. (Set back to publish mode)
+10. Final `.msi` test on own computer.
 
 # 4. GitHub Release
 
