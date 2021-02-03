@@ -214,12 +214,12 @@ namespace WalletWasabi.Fluent.Controls
 
 		private string FormatBtc(decimal value)
 		{
-			return string.Format(_customCultureInfo.NumberFormat, "{0:### ### ### ##0.########}", value);
+			return string.Format(_customCultureInfo.NumberFormat, "{0:### ### ### ##0.########}", value).Trim();
 		}
 
 		private string FormatFiat(decimal value)
 		{
-			return string.Format(_customCultureInfo.NumberFormat, "{0:N2}", value);
+			return string.Format(_customCultureInfo.NumberFormat, "{0:N2}", value).Trim();
 		}
 
 		private void DoConversion()
