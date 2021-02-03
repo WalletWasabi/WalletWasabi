@@ -93,9 +93,9 @@ namespace WalletWasabi
 
 			public long ConnectedNodesCount
 			{
-				get; 
+				get;
 				set;
-			} 
+			}
 
 			public DateTimeOffset LastConnectionTime
 			{
@@ -104,13 +104,13 @@ namespace WalletWasabi
 			}
 
 			public TimeSpan ElapsedTimeSinceLastConnection => DateTimeOffset.UtcNow - LastConnectionTime;
-			 
+
 			public bool AllowOnlyTorEndpoints
 			{
 				get
 				{
 					var allowAnyConnetionType = ConnectedNodesCount <= 5 || ElapsedTimeSinceLastConnection > TimeSpan.FromSeconds(30);
-				
+
 					if (_allowAnyConnetionType != allowAnyConnetionType)
 					{
 						_allowAnyConnetionType = allowAnyConnetionType;
