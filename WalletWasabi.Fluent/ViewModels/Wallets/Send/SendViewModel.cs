@@ -62,6 +62,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						}
 						//NotificationHelpers.Warning("PayJoin is not allowed here.");
 					}
+
+					To = url.Address.ToString();
 					//PayjoinEndPoint = null;
 				}
 			});

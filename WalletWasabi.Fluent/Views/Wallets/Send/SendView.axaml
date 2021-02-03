@@ -116,6 +116,7 @@
                              Watermark="(e.g. Bitcoin address or PayJoin URL)">
                         <TextBox.InnerRightContent>
                             <Button Classes="plain"
+                                    Command="{Binding PasteCommand}"
                                     ToolTip.Tip="Paste">
                                 <PathIcon Data="{StaticResource paste_regular}" Width="13" />
                             </Button>

@@ -8,11 +8,15 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Controls
 {
 	public class CurrencyEntryBox : TextBox
 	{
+		public static readonly StyledProperty<decimal> AmountBtcProperty =
+			AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(AmountBtc));
+
 		public static readonly StyledProperty<decimal> ConversionProperty =
 			AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(Conversion));
 
@@ -42,12 +46,6 @@ namespace WalletWasabi.Fluent.Controls
 
 		public CurrencyEntryBox()
 		{
-			this.GetObservable(TextProperty).Subscribe(_ => DoConversion());
-			this.GetObservable(ConversionRateProperty).Subscribe(_ => DoConversion());
-			this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => DoConversion());
-			Watermark = "0 BTC";
-			Text = string.Empty;
-
 			_customCultureInfo = new CultureInfo("")
 			{
 				NumberFormat =
@@ -58,6 +56,29 @@ namespace WalletWasabi.Fluent.Controls
 					NumberDecimalSeparator = _decimalSeparator.ToString()
 				}
 			};
+
+			this.GetObservable(TextProperty).Subscribe(_ => DoConversion());
+			this.GetObservable(ConversionRateProperty).Subscribe(_ => DoConversion());
+			this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => DoConversion());
+			this.GetObservable(AmountBtcProperty).Subscribe(x =>
+			{
+				if (x > 0)
+				{
+					var formatted = FormatBtc(x);
+
+					if (BitcoinInput.TryCorrectAmount(formatted, out var better))
+					{
+						Text = better;
+					}
+					else
+					{
+						Text = formatted;
+					}
+				}
+			});
+
+			Watermark = "0 BTC";
+			Text = string.Empty;
 
 			_matchRegexDecimal =
 				new Regex(
@@ -235,9 +256,12 @@ namespace WalletWasabi.Fluent.Controls
 						Conversion = result / ConversionRate;
 
 						ConversionText = $"≈ {FormatBtc(Conversion)} BTC";
+
+						AmountBtc = Conversion;
 					}
 					else
 					{
+						AmountBtc = 0;
 						Conversion = 0;
 						ConversionText = $"0 BTC";
 						CurrencyCode = ConversionCurrencyCode;
@@ -251,12 +275,15 @@ namespace WalletWasabi.Fluent.Controls
 
 						Conversion = result * ConversionRate;
 
+						AmountBtc = result;
+
 						ConversionText = $"≈ {FormatFiat(Conversion)}" + (!string.IsNullOrWhiteSpace(ConversionCurrencyCode)
 							? $" {ConversionCurrencyCode}"
 							: "");
 					}
 					else
 					{
+						AmountBtc = 0;
 						Conversion = 0;
 						ConversionText = $"0.00 {ConversionCurrencyCode}";
 						CurrencyCode = "BTC";
@@ -282,6 +309,12 @@ namespace WalletWasabi.Fluent.Controls
 		private void SwapButtonOnClick(object? sender, RoutedEventArgs e)
 		{
 			Reverse();
+		}
+
+		public decimal AmountBtc
+		{
+			get => GetValue(AmountBtcProperty);
+			set => SetValue(AmountBtcProperty, value);
 		}
 
 		public decimal Conversion
