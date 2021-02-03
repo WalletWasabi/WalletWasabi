@@ -57,6 +57,7 @@ namespace WalletWasabi
 
 				socketEndpoint = socksSettings.SocksEndpoint;
 			}
+
 			if (socketEndpoint is IPEndPoint mappedv4 && mappedv4.Address.IsIPv4MappedToIPv6Ex())
 			{
 				socketEndpoint = new IPEndPoint(mappedv4.Address.MapToIPv4Ex(), mappedv4.Port);
