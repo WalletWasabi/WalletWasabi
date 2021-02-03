@@ -91,11 +91,7 @@ namespace WalletWasabi
 				LastConnectionTime = lastConnectionTime;
 			}
 
-			public long ConnectedNodesCount
-			{
-				get;
-				set;
-			}
+			public long ConnectedNodesCount { get; set; }
 
 			public DateTimeOffset LastConnectionTime { get; set; } 
 
