@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Reactive.Disposables;
 using System.Windows.Input;
 using Avalonia;
 using NBitcoin;
@@ -20,11 +22,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		NavigationTarget = NavigationTarget.HomeScreen)]
 	public partial class SendViewModel : NavBarItemViewModel
 	{
+		private WalletViewModel _owner;
 		[AutoNotify] private string _to;
 		[AutoNotify] private decimal _amountBtc;
+		[AutoNotify] private decimal _exchangeRate;
 
 		public SendViewModel(WalletViewModel walletVm)
 		{
+			_owner = walletVm;
+
+			ExchangeRate = walletVm.Wallet.Synchronizer.UsdExchangeRate;
+
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var text =  await Application.Current.Clipboard.GetTextAsync();
@@ -57,6 +65,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					//PayjoinEndPoint = null;
 				}
 			});
+		}
+
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
+		{
+			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
+				.Subscribe(x => ExchangeRate = x)
+				.DisposeWith(disposables);
+
+			base.OnNavigatedTo(inStack, disposables);
 		}
 
 		public ICommand PasteCommand { get; }
