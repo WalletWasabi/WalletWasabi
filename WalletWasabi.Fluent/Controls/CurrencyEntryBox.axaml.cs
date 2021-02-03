@@ -39,6 +39,7 @@ namespace WalletWasabi.Fluent.Controls
 		private Button? _swapButton;
 		private CompositeDisposable? _disposable;
 		private bool _allowConversions = true;
+		private bool _allowAmountUpdate = true;
 		private readonly CultureInfo _customCultureInfo;
 		private readonly char _decimalSeparator = '.';
 		private readonly char _groupSeparator = ' ';
@@ -63,18 +64,40 @@ namespace WalletWasabi.Fluent.Controls
 			this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => DoConversion());
 			this.GetObservable(AmountBtcProperty).Subscribe(x =>
 			{
-				if (x > 0)
+				if (_allowAmountUpdate && x > 0)
 				{
-					var formatted = FormatBtc(x);
-
-					if (BitcoinInput.TryCorrectAmount(formatted, out var better))
+					if (IsConversionReversed)
 					{
-						Text = better;
+						_allowConversions = false;
+
+						Conversion = BitcoinToFiat(x);
+						Text = FormatFiatValue(Conversion);
+
+						_allowConversions = true;
 					}
 					else
 					{
+						var formatted = FormatBtcValue(x);
+
+						if (BitcoinInput.TryCorrectAmount(formatted, out var better))
+						{
+							formatted = better;
+						}
+
 						Text = formatted;
 					}
+				}
+			});
+
+			this.GetObservable(ConversionProperty).Subscribe(x =>
+			{
+				if (IsConversionReversed)
+				{
+					ConversionText = FullFormatBtc(x);
+				}
+				else
+				{
+					ConversionText = FullFormatFiat(x);
 				}
 			});
 
@@ -90,6 +113,16 @@ namespace WalletWasabi.Fluent.Controls
 					$"^[0-9{_groupSeparator}{_decimalSeparator}]*$");
 		}
 
+		private decimal FiatToBitcoin(decimal fiatValue)
+		{
+			return fiatValue / ConversionRate;
+		}
+
+		private decimal BitcoinToFiat(decimal btcValue)
+		{
+			return btcValue * ConversionRate;
+		}
+
 		private void Reverse()
 		{
 			if (ConversionText != string.Empty)
@@ -100,7 +133,7 @@ namespace WalletWasabi.Fluent.Controls
 				{
 					if (!string.IsNullOrWhiteSpace(Text))
 					{
-						Text = $"{FormatBtc(Conversion)}";
+						Text = FormatBtcValue(Conversion);
 					}
 
 					Watermark = "0 BTC";
@@ -109,7 +142,7 @@ namespace WalletWasabi.Fluent.Controls
 				{
 					if (!string.IsNullOrWhiteSpace(Text))
 					{
-						Text = $"{FormatFiat(Conversion)}";
+						Text = FormatFiatValue(Conversion);
 					}
 
 					Watermark = $"0.00 {ConversionCurrencyCode}";
@@ -234,14 +267,26 @@ namespace WalletWasabi.Fluent.Controls
 			return "";
 		}
 
-		private string FormatBtc(decimal value)
+		private string FormatBtcValue(decimal value)
 		{
 			return string.Format(_customCultureInfo.NumberFormat, "{0:### ### ### ##0.########}", value).Trim();
 		}
 
-		private string FormatFiat(decimal value)
+		private string FormatFiatValue(decimal value)
 		{
 			return string.Format(_customCultureInfo.NumberFormat, "{0:N2}", value).Trim();
+		}
+
+		private string FullFormatBtc(decimal value)
+		{
+			return $"{FormatBtcValue(value)} BTC";
+		}
+
+		private string FullFormatFiat(decimal value)
+		{
+			return $"≈ {FormatFiatValue(Conversion)}" + (!string.IsNullOrWhiteSpace(ConversionCurrencyCode)
+				? $" {ConversionCurrencyCode}"
+				: "");
 		}
 
 		private void DoConversion()
@@ -254,17 +299,16 @@ namespace WalletWasabi.Fluent.Controls
 					{
 						CurrencyCode = ConversionCurrencyCode;
 
-						Conversion = result / ConversionRate;
+						Conversion = FiatToBitcoin(result);
 
-						ConversionText = $"≈ {FormatBtc(Conversion)} BTC";
-
+						_allowAmountUpdate = false;
 						AmountBtc = Conversion;
+						_allowAmountUpdate = true;
 					}
 					else
 					{
 						AmountBtc = 0;
 						Conversion = 0;
-						ConversionText = $"0 BTC";
 						CurrencyCode = ConversionCurrencyCode;
 					}
 				}
@@ -274,19 +318,16 @@ namespace WalletWasabi.Fluent.Controls
 					{
 						CurrencyCode = "BTC";
 
-						Conversion = result * ConversionRate;
+						Conversion = BitcoinToFiat(result);
 
+						_allowAmountUpdate = false;
 						AmountBtc = result;
-
-						ConversionText = $"≈ {FormatFiat(Conversion)}" + (!string.IsNullOrWhiteSpace(ConversionCurrencyCode)
-							? $" {ConversionCurrencyCode}"
-							: "");
+						_allowAmountUpdate = true;
 					}
 					else
 					{
 						AmountBtc = 0;
 						Conversion = 0;
-						ConversionText = $"0.00 {ConversionCurrencyCode}";
 						CurrencyCode = "BTC";
 					}
 				}
