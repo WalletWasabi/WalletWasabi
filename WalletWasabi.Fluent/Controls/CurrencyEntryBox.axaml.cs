@@ -70,8 +70,10 @@ namespace WalletWasabi.Fluent.Controls
 					{
 						_allowConversions = false;
 
-						Conversion = BitcoinToFiat(x);
-						Text = FormatFiatValue(Conversion);
+						Conversion = x;
+
+						var fiatValue = BitcoinToFiat(x);
+						Text = FormatFiatValue(fiatValue);
 
 						_allowConversions = true;
 					}
