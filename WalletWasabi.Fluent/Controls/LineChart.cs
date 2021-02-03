@@ -219,6 +219,14 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
+			if (state.AreaWidth <= 0
+			    || state.AreaHeight <= 0
+			    || state.AreaWidth < AreaMinViableWidth
+			    || state.AreaHeight < AreaMinViableHeight)
+			{
+				return;
+			}
+
 			var deflate = 0.5;
 			var geometry = CreateFillGeometry(state.Points, state.AreaWidth, state.AreaHeight);
 			var transform = context.PushPreTransform(
@@ -238,6 +246,14 @@ namespace WalletWasabi.Fluent.Controls
 
 			var brush = AreaStroke;
 			if (brush is null)
+			{
+				return;
+			}
+
+			if (state.AreaWidth <= 0
+			    || state.AreaHeight <= 0
+			    || state.AreaWidth < AreaMinViableWidth
+			    || state.AreaHeight < AreaMinViableHeight)
 			{
 				return;
 			}
@@ -266,6 +282,14 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
+			if (state.AreaWidth <= 0
+			    || state.AreaHeight <= 0
+			    || state.AreaWidth < AreaMinViableWidth
+			    || state.AreaHeight < AreaMinViableHeight)
+			{
+				return;
+			}
+
 			var thickness = CursorStrokeThickness;
 			var dashStyle = CursorStrokeDashStyle;
 			var lineCap = CursorStrokeLineCap;
@@ -287,6 +311,14 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var brush = XAxisStroke;
 			if (brush is null)
+			{
+				return;
+			}
+
+			if (state.AreaWidth <= 0
+			    || state.AreaHeight <= 0
+			    || state.AreaWidth < XAxisMinViableWidth
+			    || state.AreaHeight < XAxisMinViableHeight)
 			{
 				return;
 			}
@@ -374,6 +406,14 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
+			if (state.AreaWidth <= 0
+			    || state.AreaHeight <= 0
+			    || state.AreaWidth < YAxisMinViableWidth
+			    || state.AreaHeight < YAxisMinViableHeight)
+			{
+				return;
+			}
+
 			var size = YAxisArrowSize;
 			var opacity = YAxisOpacity;
 			var thickness = YAxisStrokeThickness;
@@ -401,6 +441,14 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var foreground = YAxisTitleForeground;
 			if (foreground is null)
+			{
+				return;
+			}
+
+			if (state.AreaWidth <= 0
+			    || state.AreaHeight <= 0
+			    || state.AreaWidth < YAxisMinViableWidth
+			    || state.AreaHeight < YAxisMinViableHeight)
 			{
 				return;
 			}
@@ -443,6 +491,11 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var brush = BorderBrush;
 			if (brush is null)
+			{
+				return;
+			}
+
+			if (state.AreaWidth <= 0 || state.AreaHeight <= 0)
 			{
 				return;
 			}

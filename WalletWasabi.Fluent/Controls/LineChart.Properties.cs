@@ -32,13 +32,19 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<double> AreaStrokeMiterLimitProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(AreaStrokeMiterLimit), 10.0);
 
+		public static readonly StyledProperty<double> AreaMinViableHeightProperty =
+			AvaloniaProperty.Register<LineChart, double>(nameof(AreaMinViableHeight), double.MinValue);
+
+		public static readonly StyledProperty<double> AreaMinViableWidthProperty =
+			AvaloniaProperty.Register<LineChart, double>(nameof(AreaMinViableWidth), double.MinValue);
+
 		// XAxis
 
-		public static readonly StyledProperty<List<double>?> XAxisValuesProperty =
-			AvaloniaProperty.Register<LineChart, List<double>?>(nameof(XAxisValues));
+		public static readonly StyledProperty<IList<double>?> XAxisValuesProperty =
+			AvaloniaProperty.Register<LineChart, IList<double>?>(nameof(XAxisValues));
 
-		public static readonly StyledProperty<List<string>?> XAxisLabelsProperty =
-			AvaloniaProperty.Register<LineChart, List<string>?>(nameof(XAxisLabels));
+		public static readonly StyledProperty<IList<string>?> XAxisLabelsProperty =
+			AvaloniaProperty.Register<LineChart, IList<string>?>(nameof(XAxisLabels));
 
 		public static readonly StyledProperty<double> XAxisOpacityProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisOpacity));
@@ -54,6 +60,12 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<double> XAxisArrowSizeProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisArrowSize));
+
+		public static readonly StyledProperty<double> XAxisMinViableHeightProperty =
+			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMinViableHeight), double.MinValue);
+
+		public static readonly StyledProperty<double> XAxisMinViableWidthProperty =
+			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMinViableWidth), double.MinValue);
 
 		// XAxis Label
 
@@ -124,8 +136,8 @@ namespace WalletWasabi.Fluent.Controls
 
 		// YAxis
 
-		public static readonly StyledProperty<List<double>?> YAxisValuesProperty =
-			AvaloniaProperty.Register<LineChart, List<double>?>(nameof(YAxisValues));
+		public static readonly StyledProperty<IList<double>?> YAxisValuesProperty =
+			AvaloniaProperty.Register<LineChart, IList<double>?>(nameof(YAxisValues));
 
 		public static readonly StyledProperty<bool> YAxisLogarithmicScaleProperty =
 			AvaloniaProperty.Register<LineChart, bool>(nameof(YAxisLogarithmicScale));
@@ -153,6 +165,12 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<double> YAxisArrowSizeProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisArrowSize));
+
+		public static readonly StyledProperty<double> YAxisMinViableHeightProperty =
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisMinViableHeight), double.MinValue);
+
+		public static readonly StyledProperty<double> YAxisMinViableWidthProperty =
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisMinViableWidth), double.MinValue);
 
 		// YAxis Title
 
@@ -352,6 +370,18 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(AreaStrokeMiterLimitProperty, value);
 		}
 
+		public double AreaMinViableHeight
+		{
+			get => GetValue(AreaMinViableHeightProperty);
+			set => SetValue(AreaMinViableHeightProperty, value);
+		}
+
+		public double AreaMinViableWidth
+		{
+			get => GetValue(AreaMinViableWidthProperty);
+			set => SetValue(AreaMinViableWidthProperty, value);
+		}
+
 		// XAxis
 
 		public double XAxisCurrentValue
@@ -372,13 +402,13 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(XAxisMaxValueProperty, value);
 		}
 
-		public List<string>? XAxisLabels
+		public IList<string>? XAxisLabels
 		{
 			get => GetValue(XAxisLabelsProperty);
 			set => SetValue(XAxisLabelsProperty, value);
 		}
 
-		public List<double>? XAxisValues
+		public IList<double>? XAxisValues
 		{
 			get => GetValue(XAxisValuesProperty);
 			set => SetValue(XAxisValuesProperty, value);
@@ -412,6 +442,18 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(XAxisArrowSizeProperty);
 			set => SetValue(XAxisArrowSizeProperty, value);
+		}
+
+		public double XAxisMinViableHeight
+		{
+			get => GetValue(XAxisMinViableHeightProperty);
+			set => SetValue(XAxisMinViableHeightProperty, value);
+		}
+
+		public double XAxisMinViableWidth
+		{
+			get => GetValue(XAxisMinViableWidthProperty);
+			set => SetValue(XAxisMinViableWidthProperty, value);
 		}
 
 		// XAxis Label
@@ -546,7 +588,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		// YAxis
 
-		public List<double>? YAxisValues
+		public IList<double>? YAxisValues
 		{
 			get => GetValue(YAxisValuesProperty);
 			set => SetValue(YAxisValuesProperty, value);
@@ -586,6 +628,18 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(YAxisArrowSizeProperty);
 			set => SetValue(YAxisArrowSizeProperty, value);
+		}
+
+		public double YAxisMinViableHeight
+		{
+			get => GetValue(YAxisMinViableHeightProperty);
+			set => SetValue(YAxisMinViableHeightProperty, value);
+		}
+
+		public double YAxisMinViableWidth
+		{
+			get => GetValue(YAxisMinViableWidthProperty);
+			set => SetValue(YAxisMinViableWidthProperty, value);
 		}
 
 		// YAxis Title
