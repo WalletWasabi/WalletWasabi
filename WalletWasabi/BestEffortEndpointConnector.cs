@@ -16,7 +16,7 @@ namespace WalletWasabi
 	public class BestEffortEndpointConnector : IEnpointConnector
 	{
 		public BestEffortEndpointConnector()
-			: this(new EffortState(DateTimeOffset.UtcNow))
+			: this(new EffortState())
 		{
 		}
 
@@ -66,8 +66,6 @@ namespace WalletWasabi
 			if (useSocks)
 			{
 				await SocksHelper.Handshake(socket, endpoint, GenerateCredentials(), cancellationToken).ConfigureAwait(false);
-
-				State.ResetConnectionTimeControl();
 			}
 		}
 
@@ -86,42 +84,31 @@ namespace WalletWasabi
 		{
 			private bool _allowAnyConnetionType;
 
-			public EffortState(DateTimeOffset lastConnectionTime)
+			public EffortState()
 			{
-				LastConnectionTime = lastConnectionTime;
 			}
 
 			public long ConnectedNodesCount { get; set; }
-
-			public DateTimeOffset LastConnectionTime { get; set; } 
-
-			public TimeSpan ElapsedTimeSinceLastConnection => DateTimeOffset.UtcNow - LastConnectionTime;
 
 			public bool AllowOnlyTorEndpoints
 			{
 				get
 				{
-					var allowAnyConnetionType = ConnectedNodesCount <= 5 || ElapsedTimeSinceLastConnection > TimeSpan.FromSeconds(30);
+					var allowAnyConnetionType = ConnectedNodesCount <= 6;
 
 					if (_allowAnyConnetionType != allowAnyConnetionType)
 					{
 						_allowAnyConnetionType = allowAnyConnetionType;
 						Logger.LogDebug(ToString());
-						ResetConnectionTimeControl();
 					}
 
 					return !_allowAnyConnetionType;
 				}
 			}
 
-			public void ResetConnectionTimeControl()
-			{
-				LastConnectionTime = DateTimeOffset.UtcNow;
-			}
-
 			public override string ToString()
 			{
-				return $"Connections: {ConnectedNodesCount}, Last connection time: {LastConnectionTime}, Currently allow only onions: {!_allowAnyConnetionType}.";
+				return $"Connections: {ConnectedNodesCount}, Currently allow only onions: {!_allowAnyConnetionType}.";
 			}
 		}
 	}

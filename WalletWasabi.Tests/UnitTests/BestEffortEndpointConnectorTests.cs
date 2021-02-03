@@ -69,18 +69,10 @@ namespace WalletWasabi.Tests.UnitTests
 
 			// Enough peers with recent connection.
 			connector.State.ConnectedNodesCount = 10;
-			connector.State.LastConnectionTime = DateTimeOffset.UtcNow;
 			ex = await Assert.ThrowsAnyAsync<SocketException>(
 				async () => await ConnectAsync(new DnsEndPoint("nec4kn4ghql7p7an.onion", 180)));
 			Assert.Contains("refused", ex.Message);
 			Assert.True(connector.State.AllowOnlyTorEndpoints);
-
-			// Enough peers with no recent connection.
-			connector.State.LastConnectionTime = DateTimeOffset.UtcNow.AddMinutes(-1);
-			ex = await Assert.ThrowsAnyAsync<SocketException>(
-				async () => await ConnectAsync(new DnsEndPoint("nec4kn4ghql7p7an.onion", 180)));
-			Assert.Contains("refused", ex.Message);
-			Assert.False(connector.State.AllowOnlyTorEndpoints);
 		}
 	}
 }
