@@ -343,8 +343,7 @@ namespace WalletWasabi.Gui
 		private NodesGroup CreateAndConfigureNodesGroup(NodeConnectionParameters connectionParameters)
 		{
 			var maximumNodeConnection = 12;
-			var maximumNonOnionConnection = 6;
-			var bestEffortEndpointConnector = new BestEffortEndpointConnector(maximumNonOnionConnection);
+			var bestEffortEndpointConnector = new BestEffortEndpointConnector(maximumNodeConnection / 2);
 			connectionParameters.EndpointConnector = bestEffortEndpointConnector;
 			if (Config.UseTor)
 			{
