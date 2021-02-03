@@ -183,7 +183,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = coin.Outpoint, Proof = dummySignature } };
 			httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest));
-			Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided input is neither confirmed, nor is from an unconfirmed coinjoin.", httpRequestException.Message);
+			Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided input is unconfirmed.", httpRequestException.Message);
 
 			var blocks = await rpc.GenerateAsync(1);
 			httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest));
