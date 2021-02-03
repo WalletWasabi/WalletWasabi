@@ -1,5 +1,13 @@
 using System.Collections.Generic;
+using System.Windows.Input;
+using Avalonia;
+using NBitcoin;
+using NBitcoin.Payment;
+using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Gui;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
@@ -13,11 +21,45 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	public partial class SendViewModel : NavBarItemViewModel
 	{
 		[AutoNotify] private string _to;
+		[AutoNotify] private decimal _amountBtc;
 
-		public SendViewModel()
+		public SendViewModel(WalletViewModel walletVm)
 		{
+			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				var text =  await Application.Current.Clipboard.GetTextAsync();
 
+				var wallet = walletVm.Wallet;
+
+				if (AddressStringParser.TryParse(text, wallet.Network, out BitcoinUrlBuilder? url))
+				{
+					SmartLabel label = url.Label;
+
+					if (!label.IsEmpty)
+					{
+						//LabelSuggestion.Label = label;
+					}
+
+					if (url.Amount is { })
+					{
+						AmountBtc = url.Amount.ToDecimal(MoneyUnit.BTC);
+					}
+
+					if (url.UnknowParameters.TryGetValue("pj", out var endPoint))
+					{
+						if (!wallet.KeyManager.IsWatchOnly)
+						{
+							//PayjoinEndPoint = endPoint;
+							return;
+						}
+						//NotificationHelpers.Warning("PayJoin is not allowed here.");
+					}
+					//PayjoinEndPoint = null;
+				}
+			});
 		}
+
+		public ICommand PasteCommand { get; }
 
 		public double XAxisCurrentValue { get; set; } = 36;
 
@@ -66,7 +108,5 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			123,
 			185
 		};
-
-
 	}
 }
