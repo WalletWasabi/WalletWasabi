@@ -34,11 +34,11 @@ namespace WalletWasabi.Fluent.Controls
 
 		// XAxis
 
-		public static readonly StyledProperty<List<double>?> XAxisValuesProperty =
-			AvaloniaProperty.Register<LineChart, List<double>?>(nameof(XAxisValues));
+		public static readonly StyledProperty<IList<double>?> XAxisValuesProperty =
+			AvaloniaProperty.Register<LineChart, IList<double>?>(nameof(XAxisValues));
 
-		public static readonly StyledProperty<List<string>?> XAxisLabelsProperty =
-			AvaloniaProperty.Register<LineChart, List<string>?>(nameof(XAxisLabels));
+		public static readonly StyledProperty<IList<string>?> XAxisLabelsProperty =
+			AvaloniaProperty.Register<LineChart, IList<string>?>(nameof(XAxisLabels));
 
 		public static readonly StyledProperty<double> XAxisOpacityProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisOpacity));
@@ -124,8 +124,8 @@ namespace WalletWasabi.Fluent.Controls
 
 		// YAxis
 
-		public static readonly StyledProperty<List<double>?> YAxisValuesProperty =
-			AvaloniaProperty.Register<LineChart, List<double>?>(nameof(YAxisValues));
+		public static readonly StyledProperty<IList<double>?> YAxisValuesProperty =
+			AvaloniaProperty.Register<LineChart, IList<double>?>(nameof(YAxisValues));
 
 		public static readonly StyledProperty<bool> YAxisLogarithmicScaleProperty =
 			AvaloniaProperty.Register<LineChart, bool>(nameof(YAxisLogarithmicScale));
@@ -372,13 +372,13 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(XAxisMaxValueProperty, value);
 		}
 
-		public List<string>? XAxisLabels
+		public IList<string>? XAxisLabels
 		{
 			get => GetValue(XAxisLabelsProperty);
 			set => SetValue(XAxisLabelsProperty, value);
 		}
 
-		public List<double>? XAxisValues
+		public IList<double>? XAxisValues
 		{
 			get => GetValue(XAxisValuesProperty);
 			set => SetValue(XAxisValuesProperty, value);
@@ -546,7 +546,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		// YAxis
 
-		public List<double>? YAxisValues
+		public IList<double>? YAxisValues
 		{
 			get => GetValue(YAxisValuesProperty);
 			set => SetValue(YAxisValuesProperty, value);
