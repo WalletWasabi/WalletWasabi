@@ -107,7 +107,11 @@
                     </Style>
                 </StackPanel.Styles>
                 <DockPanel>
-                    <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
+                    <StackPanel Orientation="Horizontal">
+                        <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
+
+                        <PathIcon Data="{StaticResource info_tip}" />
+                    </StackPanel>
                     <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}"
                              Watermark="(e.g. Bitcoin address or PayJoin URL)">
                         <TextBox.InnerRightContent>
@@ -144,7 +148,6 @@
                         Margin="20,0,20,0" />
                 <c:LineChart x:Name="GradientLineChart"
                              Classes="cursor border xAxisLabels yAxis yAxisTitle"
-                             MinWidth="300" MinHeight="200"
                              XAxisLabels="{Binding XAxisLabels}"
                              XAxisValues="{Binding XAxisValues}"
                              XAxisCurrentValue="{Binding XAxisCurrentValue}"
