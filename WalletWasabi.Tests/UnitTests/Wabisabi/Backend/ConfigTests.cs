@@ -108,7 +108,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.NotEqual(newTarget, coordinator.Config.ConfirmationTarget);
 			configChanger.ToFile();
 			var configWatcher = coordinator.ConfigWatcher;
-			await configWatcher.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(3));
+			await configWatcher.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 			Assert.Equal(newTarget, coordinator.Config.ConfirmationTarget);
 
 			// Do it one more time.
@@ -116,7 +116,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			configChanger.ConfirmationTarget = newTarget;
 			Assert.NotEqual(newTarget, coordinator.Config.ConfirmationTarget);
 			configChanger.ToFile();
-			await configWatcher.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(3));
+			await configWatcher.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 			Assert.Equal(newTarget, coordinator.Config.ConfirmationTarget);
 
 			await coordinator.StopAsync(CancellationToken.None);
