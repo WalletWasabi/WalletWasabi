@@ -16,7 +16,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task CanConnectWithDifferentModesAsync()
 		{
-			var connector = new BestEffortEndpointConnector();
+			var connector = new BestEffortEndpointConnector(6);
 			var nodeConnectionParameters = new NodeConnectionParameters();
 			nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(new IPEndPoint(IPAddress.Loopback, 8090), onlyForOnionHosts: true, networkCredential: null, streamIsolation: true));
 

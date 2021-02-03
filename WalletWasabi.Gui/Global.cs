@@ -342,7 +342,9 @@ namespace WalletWasabi.Gui
 
 		private NodesGroup CreateAndConfigureNodesGroup(NodeConnectionParameters connectionParameters)
 		{
-			var bestEffortEndpointConnector = new BestEffortEndpointConnector();
+			var maximumNodeConnection = 12;
+			var maximumNonOnionConnection = 6;
+			var bestEffortEndpointConnector = new BestEffortEndpointConnector(maximumNonOnionConnection);
 			connectionParameters.EndpointConnector = bestEffortEndpointConnector;
 			if (Config.UseTor)
 			{
@@ -351,7 +353,7 @@ namespace WalletWasabi.Gui
 			var nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Added += ConnectedNodes_OnAddedOrRemoved;
 			nodes.ConnectedNodes.Removed += ConnectedNodes_OnAddedOrRemoved;
-			nodes.MaximumNodeConnection = 12;
+			nodes.MaximumNodeConnection = maximumNodeConnection;
 			return nodes;
 		}
 

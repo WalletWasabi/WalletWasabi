@@ -15,8 +15,8 @@ namespace WalletWasabi
 {
 	public class BestEffortEndpointConnector : IEnpointConnector
 	{
-		public BestEffortEndpointConnector()
-			: this(new EffortState())
+		public BestEffortEndpointConnector(long maxNonOnionConnectionCount)
+			: this(new EffortState(maxNonOnionConnectionCount))
 		{
 		}
 
@@ -84,8 +84,9 @@ namespace WalletWasabi
 		{
 			private bool _allowAnyConnetionType;
 
-			public EffortState()
+			public EffortState(long maxNonOnionConnectionCount)
 			{
+				MaxNonOnionConnectionCount = maxNonOnionConnectionCount;
 			}
 
 			public long ConnectedNodesCount { get; set; }
@@ -94,7 +95,7 @@ namespace WalletWasabi
 			{
 				get
 				{
-					var allowAnyConnetionType = ConnectedNodesCount <= 6;
+					var allowAnyConnetionType = ConnectedNodesCount <= MaxNonOnionConnectionCount;
 
 					if (_allowAnyConnetionType != allowAnyConnetionType)
 					{
@@ -105,6 +106,8 @@ namespace WalletWasabi
 					return !_allowAnyConnetionType;
 				}
 			}
+
+			public long MaxNonOnionConnectionCount { get; }
 
 			public override string ToString()
 			{
