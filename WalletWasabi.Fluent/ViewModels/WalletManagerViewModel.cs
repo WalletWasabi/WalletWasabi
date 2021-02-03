@@ -117,7 +117,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			SelectedWallet = walletViewModelItem;
 		}
 
-		private WalletViewModelBase OpenWallet(WalletManager walletManager, UiConfig uiConfig, Wallet wallet)
+		private WalletViewModel OpenWallet(WalletManager walletManager, UiConfig uiConfig, Wallet wallet)
 		{
 			if (_wallets.Any(x => x.Title == wallet.WalletName))
 			{
@@ -150,11 +150,14 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (isLoggedIn)
 			{
-				var actions = _walletActionsDictionary[walletViewModel];
+				if (_walletActionsDictionary.ContainsKey(walletViewModel))
+				{
+					var actions = _walletActionsDictionary[walletViewModel];
 
-				RemoveActions(walletViewModel, actions, true);
+					RemoveActions(walletViewModel, actions, true);
 
-				_walletActionsDictionary.Remove(walletViewModel);
+					_walletActionsDictionary.Remove(walletViewModel);
+				}
 			}
 
 			_walletDictionary.Remove(walletViewModel.Wallet);
@@ -191,7 +194,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				}
 			}
 
-			if (item is WalletViewModelBase { IsLoggedIn: true} walletViewModelItem)
+			if (item is WalletViewModel { IsLoggedIn: true} walletViewModelItem)
 			{
 				if (!_walletActionsDictionary.TryGetValue(walletViewModelItem, out var actions))
 				{
@@ -209,14 +212,14 @@ namespace WalletWasabi.Fluent.ViewModels
 			return result;
 		}
 
-		private List<NavBarItemViewModel> GetWalletActions(WalletViewModelBase walletViewModel)
+		private List<NavBarItemViewModel> GetWalletActions(WalletViewModel walletViewModel)
 		{
 			var wallet = walletViewModel.Wallet;
 			var actions = new List<NavBarItemViewModel>();
 
 			if (wallet.KeyManager.IsHardwareWallet || !wallet.KeyManager.IsWatchOnly)
 			{
-				actions.Add(new SendViewModel());
+				actions.Add(new SendViewModel(walletViewModel));
 			}
 
 			actions.Add(new ReceiveWalletActionViewModel(walletViewModel));
