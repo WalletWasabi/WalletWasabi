@@ -129,7 +129,7 @@
 
                 <DockPanel>
                     <Label DockPanel.Dock="Left" Content="_Amount:" Target="amountTb" />
-                    <c:CurrencyEntryBox x:Name="amountTb" ConversionRate="{Binding ExchangeRate}" ConversionCurrencyCode="USD" />
+                    <c:CurrencyEntryBox x:Name="amountTb" AmountBtc="{Binding AmountBtc}" ConversionRate="{Binding ExchangeRate}" ConversionCurrencyCode="USD" />
                 </DockPanel>
 
                 <DockPanel>

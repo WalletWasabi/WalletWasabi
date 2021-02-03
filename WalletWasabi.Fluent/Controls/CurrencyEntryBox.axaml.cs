@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -15,7 +16,7 @@ namespace WalletWasabi.Fluent.Controls
 	public class CurrencyEntryBox : TextBox
 	{
 		public static readonly StyledProperty<decimal> AmountBtcProperty =
-			AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(AmountBtc));
+			AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(AmountBtc), defaultBindingMode: BindingMode.TwoWay);
 
 		public static readonly StyledProperty<decimal> ConversionProperty =
 			AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(Conversion));
