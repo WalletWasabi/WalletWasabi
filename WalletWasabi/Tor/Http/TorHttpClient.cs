@@ -63,9 +63,7 @@ namespace WalletWasabi.Tor.Http
 
 		/// <summary>
 		/// Whether each HTTP(s) request should use a separate Tor circuit by default or not to increase privacy.
-		/// <para>This property may be set to <c>false</c> and you can still call override the value when sending a single HTTP(s) request using <see cref="IHttpClient"/> API.</para>
 		/// </summary>
-		/// <remarks>The property name make sense only when talking about Tor <see cref="TorHttpClient"/>.</remarks>
 		public bool DefaultIsolateStream { get; }
 
 		private TorSocks5Client? TorSocks5Client { get; set; }
