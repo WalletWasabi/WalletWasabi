@@ -61,7 +61,7 @@ namespace WalletWasabi.Tor
 			try
 			{
 				// Is Tor already running? Either our Tor process from previous Wasabi Wallet run or possibly user's own Tor.
-				bool isAlreadyRunning = await TorSocks5Client.IsTorRunningAsync().ConfigureAwait(false);
+				bool isAlreadyRunning = await IsTorRunningAsync().ConfigureAwait(false);
 
 				if (isAlreadyRunning)
 				{
