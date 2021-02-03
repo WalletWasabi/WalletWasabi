@@ -52,14 +52,6 @@ namespace WalletWasabi.WebClients.Wasabi
 		public WasabiClient SharedWasabiClient { get; }
 
 		/// <summary>
-		/// Creates new <see cref="TorHttpClient"/> instance with correctly set backend URL.
-		/// </summary>
-		public TorHttpClient NewTorHttpClient(bool isolateStream = true)
-		{
-			return new TorHttpClient(BackendUriGetter.Invoke(), TorEndpoint, isolateStream: isolateStream);
-		}
-
-		/// <summary>
 		/// Creates new <see cref="TorHttpClient"/> or <see cref="ClearnetHttpClient"/> based on user settings.
 		/// </summary>
 		public IHttpClient NewHttpClient(Func<Uri> baseUriFn, bool isolateStream)

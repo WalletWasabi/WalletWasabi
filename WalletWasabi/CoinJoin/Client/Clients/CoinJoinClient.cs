@@ -59,7 +59,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			DestinationKeyManager = KeyManager;
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
 			CcjHostUriAction = Synchronizer.WasabiClientFactory.BackendUriGetter;
-			TorSocks5EndPoint = Synchronizer.WasabiClientFactory.TorEndpoint;
 			CoordinatorFeepercentToCheck = null;
 
 			ExposedLinks = new ConcurrentDictionary<OutPoint, IEnumerable<HdPubKeyBlindedPair>>();
@@ -97,7 +96,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public Func<Uri> CcjHostUriAction { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
-		protected EndPoint? TorSocks5EndPoint { get; set; }
 
 		private decimal? CoordinatorFeepercentToCheck { get; set; }
 
@@ -507,7 +505,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				var state = inputRegistrableRound.State;
 				(HdPubKey change, IEnumerable<HdPubKey> actives) outputAddresses = GetOutputsToRegister(state.Denomination, state.MixLevelCount, registrableCoins);
 
-				AliceClientBase aliceClient = null;
+				AliceClientBase? aliceClient = null;
 				try
 				{
 					aliceClient = await CreateAliceClientAsync(inputRegistrableRound.RoundId, registrableCoins, outputAddresses).ConfigureAwait(false);
@@ -1136,7 +1134,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				inputProofs.Add(inputProof);
 			}
 
-			return await AliceClientBase.CreateNewAsync(roundId, registeredAddresses, signerPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, CcjHostUriAction, TorSocks5EndPoint).ConfigureAwait(false);
+			IHttpClient httpClient = Synchronizer.WasabiClientFactory.NewHttpClient(CcjHostUriAction, isolateStream: true);
+			return await AliceClientBase.CreateNewAsync(roundId, registeredAddresses, signerPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, httpClient).ConfigureAwait(false);
 		}
 	}
 }
