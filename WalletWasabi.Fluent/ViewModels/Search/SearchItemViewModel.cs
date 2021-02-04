@@ -31,8 +31,6 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				});
 		}
 
-		public new string Title => _metaData.Title;
-
 		public string Caption => _metaData.Caption;
 
 		public int Order => _metaData.Order;
@@ -42,6 +40,12 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 		public string[] Keywords => _metaData.Keywords;
 
 		public ICommand OpenCommand { get; }
+
+		public override string Title
+		{
+			get => _metaData.Title;
+			protected set { }
+		}
 
 		public override string IconName => _metaData.IconName;
 	}

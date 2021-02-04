@@ -119,9 +119,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			EnableAutoBusyOn(CreateWalletCommand);
 		}
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
 		{
-			base.OnNavigatedTo(inStack, disposable);
+			base.OnNavigatedTo(inStack, disposables);
 
 			_enableCancel = CurrentTarget != NavigationTarget.HomeScreen;
 

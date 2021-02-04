@@ -7,6 +7,7 @@ using System.Reactive.Disposables;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Generators;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
@@ -49,6 +50,9 @@ namespace WalletWasabi.Fluent.Controls
 				o => o.CompletedCommand,
 				(o, v) => o.CompletedCommand = v);
 
+		public static readonly StyledProperty<bool> IsReadOnlyProperty =
+			AvaloniaProperty.Register<TagsBox, bool>("IsReadOnly");
+
 		static TagsBox()
 		{
 			ItemsProperty.OverrideMetadata<TagsBox>(
@@ -83,6 +87,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => _completedCommand;
 			set => SetAndRaise(CompletedCommandProperty, ref _completedCommand, value);
+		}
+
+		public bool IsReadOnly
+		{
+			get => GetValue(IsReadOnlyProperty);
+			set => SetValue(IsReadOnlyProperty, value);
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -127,6 +137,9 @@ namespace WalletWasabi.Fluent.Controls
 				Dispatcher.UIThread.Post(() => _autoCompleteBox.Focus());
 			}
 		}
+
+		protected override IItemContainerGenerator CreateItemContainerGenerator() =>
+			new ItemContainerGenerator<TagControl>(this,ContentControl.ContentProperty,ContentControl.ContentTemplateProperty);
 
 		private void CheckIsInputEnabled()
 		{
@@ -338,6 +351,26 @@ namespace WalletWasabi.Fluent.Controls
 			if (Items is IList x && x.Count > 0)
 			{
 				x.RemoveAt(Math.Max(0, x.Count - 1));
+			}
+
+			CheckIsInputEnabled();
+		}
+
+		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> e)
+		{
+			base.OnPropertyChanged(e);
+
+			if (e.Property == IsReadOnlyProperty)
+			{
+				PseudoClasses.Set(":readonly", IsReadOnly);
+			}
+		}
+
+		internal void RemoveTargetTag(object? tag)
+		{
+			if (Items is IList {Count: > 0} x && tag is { })
+			{
+				x.RemoveAt(x.IndexOf(tag));
 			}
 
 			CheckIsInputEnabled();

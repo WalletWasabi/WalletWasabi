@@ -8,6 +8,7 @@ using WalletWasabi.Wallets.PasswordFinder;
 
 namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 {
+	[NavigationMetaData (Title = "Password Finder")]
 	public partial class SelectCharsetViewModel : RoutableViewModel
 	{
 		[AutoNotify] private Charset? _selectedCharset;
