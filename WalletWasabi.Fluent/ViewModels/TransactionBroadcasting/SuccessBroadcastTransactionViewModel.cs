@@ -1,4 +1,4 @@
-﻿using ReactiveUI;
+using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting

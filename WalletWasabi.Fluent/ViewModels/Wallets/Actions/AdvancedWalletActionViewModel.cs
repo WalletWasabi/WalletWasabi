@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 {
