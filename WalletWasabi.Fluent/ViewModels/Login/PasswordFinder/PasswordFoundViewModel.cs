@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 {
