@@ -18,9 +18,6 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<decimal> AmountBtcProperty =
 			AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(AmountBtc), defaultBindingMode: BindingMode.TwoWay);
 
-		public static readonly StyledProperty<decimal> ConversionProperty =
-			AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(Conversion));
-
 		public static readonly StyledProperty<string> ConversionTextProperty =
 			AvaloniaProperty.Register<CurrencyEntryBox, string>(nameof(ConversionText));
 
@@ -38,8 +35,6 @@ namespace WalletWasabi.Fluent.Controls
 
 		private Button? _swapButton;
 		private CompositeDisposable? _disposable;
-		private bool _allowConversions = true;
-		private bool _allowAmountUpdate = true;
 		private readonly CultureInfo _customCultureInfo;
 		private readonly char _decimalSeparator = '.';
 		private readonly char _groupSeparator = ' ';
@@ -59,49 +54,10 @@ namespace WalletWasabi.Fluent.Controls
 				}
 			};
 
-			this.GetObservable(TextProperty).Subscribe(_ => DoConversion());
-			this.GetObservable(ConversionRateProperty).Subscribe(_ => DoConversion());
-			this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => DoConversion());
-			this.GetObservable(AmountBtcProperty).Subscribe(x =>
-			{
-				if (_allowAmountUpdate && x > 0)
-				{
-					if (IsConversionReversed)
-					{
-						_allowConversions = false;
-
-						Conversion = x;
-
-						var fiatValue = BitcoinToFiat(x);
-						Text = FormatFiatValue(fiatValue);
-
-						_allowConversions = true;
-					}
-					else
-					{
-						var formatted = FormatBtcValue(x);
-
-						if (BitcoinInput.TryCorrectAmount(formatted, out var better))
-						{
-							formatted = better;
-						}
-
-						Text = formatted;
-					}
-				}
-			});
-
-			this.GetObservable(ConversionProperty).Subscribe(x =>
-			{
-				if (IsConversionReversed)
-				{
-					ConversionText = FullFormatBtc(x);
-				}
-				else
-				{
-					ConversionText = FullFormatFiat(x);
-				}
-			});
+			this.GetObservable(TextProperty).Subscribe(InputText);
+			this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay(false));
+			this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => UpdateDisplay(true));
+			this.GetObservable(AmountBtcProperty).Subscribe(_ => UpdateDisplay(true));
 
 			Watermark = "0 BTC";
 			Text = string.Empty;
@@ -125,113 +81,75 @@ namespace WalletWasabi.Fluent.Controls
 			return btcValue * ConversionRate;
 		}
 
-		private void Reverse()
-		{
-			if (ConversionText != string.Empty)
-			{
-				_allowConversions = false;
-
-				if (IsConversionReversed)
-				{
-					if (!string.IsNullOrWhiteSpace(Text))
-					{
-						Text = FormatBtcValue(Conversion);
-					}
-
-					Watermark = "0 BTC";
-				}
-				else
-				{
-					if (!string.IsNullOrWhiteSpace(Text))
-					{
-						Text = FormatFiatValue(Conversion);
-					}
-
-					Watermark = $"0.00 {ConversionCurrencyCode}";
-				}
-
-				IsConversionReversed = !IsConversionReversed;
-
-				_allowConversions = true;
-
-				DoConversion();
-
-				CaretIndex = Text.Length;
-			}
-		}
-
 		protected override void OnGotFocus(GotFocusEventArgs e)
 		{
 			base.OnGotFocus(e);
 
 			CaretIndex = Text?.Length ?? 0;
 
-			Dispatcher.UIThread.Post(() => SelectAll());
+			Dispatcher.UIThread.Post(SelectAll);
 		}
 
 		protected override void OnTextInput(TextInputEventArgs e)
 		{
-			if (_allowConversions)
+			var inputText = e.Text ?? "";
+			var inputLength = inputText.Length;
+
+			// Check if it has a decimal separator.
+			var trailingDecimal = inputLength > 0 && inputText[^1] == _decimalSeparator;
+			var preComposedText = PreComposeText(e);
+
+			if (!_matchRegexDecimalCharsOnly.IsMatch(preComposedText))
 			{
-				var inputText = e.Text ?? "";
-				var inputLength = inputText.Length;
+				e.Handled = true;
+				base.OnTextInput(e);
+				return;
+			}
 
-				// Check if it has a decimal separator.
-				var trailingDecimal = inputLength > 0 && inputText[^1] == _decimalSeparator;
-				var preComposedText = PreComposeText(e);
+			var match = _matchRegexDecimal.Match(preComposedText);
 
-				if (!_matchRegexDecimalCharsOnly.IsMatch(preComposedText))
-				{
-					e.Handled = true;
+			// Ignore group chars on count of the whole part of the decimal.
+			var wholeStr = match.Groups["Whole"].ToString();
+			var whole = wholeStr
+				.Replace(_groupSeparator, char.MinValue)
+				.Replace(_decimalSeparator, char.MinValue)
+				.Length;
+
+			var fracStr = match.Groups["Frac"].ToString();
+			var frac = fracStr.Length;
+
+			// Reject and dont process the input if the string doesnt match.
+			if (!match.Success)
+			{
+				e.Handled = true;
+				base.OnTextInput(e);
+				return;
+			}
+
+			// Passthrough the decimal place char or the group separator.
+			switch (inputLength)
+			{
+				case 1 when inputText[0] == _decimalSeparator && !trailingDecimal:
+				case 1 when inputText[0] == _groupSeparator && !fracStr.Contains(_groupSeparator):
 					base.OnTextInput(e);
 					return;
-				}
+			}
 
-				var match = _matchRegexDecimal.Match(preComposedText);
-
-				// Ignore group chars on count of the whole part of the decimal.
-				var wholeStr = match.Groups["Whole"].ToString();
-				var whole = wholeStr
-					.Replace(_groupSeparator, char.MinValue)
-					.Replace(_decimalSeparator, char.MinValue)
-					.Length;
-
-				var fracStr = match.Groups["Frac"].ToString();
-				var frac = fracStr.Length;
-
-				// Reject and dont process the input if the string doesnt match.
-				if (!match.Success)
+			if (IsConversionReversed)
+			{
+				// Fiat input restriction is to only allow 2 decimal places.
+				if (frac > 2)
 				{
 					e.Handled = true;
-					base.OnTextInput(e);
-					return;
 				}
-
-				// Passthrough the decimal place char or the group separator.
-				switch (inputLength)
+			}
+			else
+			{
+				// Bitcoin input restriction is to only allow 8 decimal places max
+				// and also 8 whole number places.
+				if (whole > 8 && !trailingDecimal || frac > 8)
 				{
-					case 1 when inputText[0] == _decimalSeparator && !trailingDecimal:
-					case 1 when inputText[0] == _groupSeparator && !fracStr.Contains(_groupSeparator):
-						base.OnTextInput(e);
-						return;
-				}
-
-				if (IsConversionReversed)
-				{
-					// Fiat input restriction is to only allow 2 decimal places.
-					if (frac > 2)
-					{
-						e.Handled = true;
-					}
-				}
-				else
-				{
-					// Bitcoin input restriction is to only allow 8 decimal places max
-					// and also 8 whole number places.
-					if (whole > 8 && !trailingDecimal || frac > 8)
-					{
-						e.Handled = true;
-					}
+					e.Handled = true;
 				}
 			}
 
@@ -269,71 +187,26 @@ namespace WalletWasabi.Fluent.Controls
 			return "";
 		}
 
-		private string FormatBtcValue(decimal value)
+		private static string FormatBtcValue(NumberFormatInfo formatInfo, decimal value)
 		{
-			return string.Format(_customCultureInfo.NumberFormat, "{0:### ### ### ##0.########}", value).Trim();
+			return string.Format(formatInfo, "{0:### ### ### ##0.########}", value).Trim();
 		}
 
-		private string FormatFiatValue(decimal value)
+		private static string FormatFiatValue(NumberFormatInfo formatInfo, decimal value)
 		{
-			return string.Format(_customCultureInfo.NumberFormat, "{0:N2}", value).Trim();
+			return string.Format(formatInfo, "{0:N2}", value).Trim();
 		}
 
-		private string FullFormatBtc(decimal value)
+		private static string FullFormatBtc(NumberFormatInfo formatInfo, decimal value)
 		{
-			return $"{FormatBtcValue(value)} BTC";
+			return $"{FormatBtcValue(formatInfo, value)} BTC";
 		}
 
-		private string FullFormatFiat(decimal value)
+		private static string FullFormatFiat(NumberFormatInfo formatInfo, decimal value, string currencyCode)
 		{
-			return $"≈ {FormatFiatValue(Conversion)}" + (!string.IsNullOrWhiteSpace(ConversionCurrencyCode)
-				? $" {ConversionCurrencyCode}"
+			return $"≈ {FormatFiatValue(formatInfo, value)}" + (!string.IsNullOrWhiteSpace(currencyCode)
+				? $" {currencyCode}"
 				: "");
-		}
-
-		private void DoConversion()
-		{
-			if (_allowConversions)
-			{
-				if (IsConversionReversed)
-				{
-					if (decimal.TryParse(Text, NumberStyles.Number, _customCultureInfo, out var result) && ConversionRate > 0)
-					{
-						CurrencyCode = ConversionCurrencyCode;
-
-						Conversion = FiatToBitcoin(result);
-
-						_allowAmountUpdate = false;
-						AmountBtc = Conversion;
-						_allowAmountUpdate = true;
-					}
-					else
-					{
-						AmountBtc = 0;
-						Conversion = 0;
-						CurrencyCode = ConversionCurrencyCode;
-					}
-				}
-				else
-				{
-					if (decimal.TryParse(Text, NumberStyles.Number, _customCultureInfo, out var result) && ConversionRate > 0)
-					{
-						CurrencyCode = "BTC";
-
-						Conversion = BitcoinToFiat(result);
-
-						_allowAmountUpdate = false;
-						AmountBtc = result;
-						_allowAmountUpdate = true;
-					}
-					else
-					{
-						AmountBtc = 0;
-						Conversion = 0;
-						CurrencyCode = "BTC";
-					}
-				}
-			}
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -352,19 +225,90 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void SwapButtonOnClick(object? sender, RoutedEventArgs e)
 		{
-			Reverse();
+			IsConversionReversed = !IsConversionReversed;
+			UpdateDisplay(true);
+		}
+
+		private void InputText(string text)
+		{
+			if (string.IsNullOrWhiteSpace(text))
+			{
+				InputBtcValue(0);
+				UpdateDisplay(false);
+			}
+			else
+			{
+				if (IsConversionReversed)
+				{
+					InputFiatString(text);
+				}
+				else
+				{
+					InputBtcString(text);
+				}
+			}
+		}
+
+		private void InputFiatString(string value)
+		{
+			if (decimal.TryParse(value, NumberStyles.Number, _customCultureInfo, out var decimalValue))
+			{
+				InputBtcValue(FiatToBitcoin(decimalValue));
+			}
+
+			UpdateDisplay(false);
+		}
+
+		private void InputBtcString(string value)
+		{
+			if (BitcoinInput.TryCorrectAmount(value, out var better))
+			{
+				value = better;
+			}
+
+			if (decimal.TryParse(value, NumberStyles.Number, _customCultureInfo, out var decimalValue))
+			{
+				InputBtcValue(decimalValue);
+			}
+
+			UpdateDisplay(false);
+		}
+
+		private void InputBtcValue(decimal value)
+		{
+			AmountBtc = value;
+		}
+
+		private void UpdateDisplay(bool updateTextField)
+		{
+			var conversion = BitcoinToFiat(AmountBtc);
+
+			if (IsConversionReversed)
+			{
+				CurrencyCode = ConversionCurrencyCode;
+				ConversionText = FullFormatBtc(_customCultureInfo.NumberFormat, AmountBtc);
+
+				if (updateTextField)
+				{
+					Text = AmountBtc > 0 ? FormatFiatValue(_customCultureInfo.NumberFormat, conversion) : string.Empty;
+				}
+			}
+			else
+			{
+				CurrencyCode = "BTC";
+				ConversionText = FullFormatFiat(_customCultureInfo.NumberFormat, conversion, CurrencyCode);
+
+				if (updateTextField)
+				{
+					Text = AmountBtc > 0 ? FormatBtcValue(_customCultureInfo.NumberFormat, AmountBtc) : string.Empty;
+				}
+			}
 		}
 
 		public decimal AmountBtc
 		{
 			get => GetValue(AmountBtcProperty);
 			set => SetValue(AmountBtcProperty, value);
-		}
-
-		public decimal Conversion
-		{
-			get => GetValue(ConversionProperty);
-			set => SetValue(ConversionProperty, value);
 		}
 
 		public string ConversionText
