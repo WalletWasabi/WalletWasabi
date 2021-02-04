@@ -22,13 +22,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		NavigationTarget = NavigationTarget.HomeScreen)]
 	public partial class SendViewModel : NavBarItemViewModel
 	{
-		private WalletViewModel _owner;
+		private readonly WalletViewModel _owner;
 		[AutoNotify] private string _to;
 		[AutoNotify] private decimal _amountBtc;
 		[AutoNotify] private decimal _exchangeRate;
+		private string? _payJoinEndPoint;
 
 		public SendViewModel(WalletViewModel walletVm)
 		{
+			_to = "";
 			_owner = walletVm;
 
 			ExchangeRate = walletVm.Wallet.Synchronizer.UsdExchangeRate;
@@ -48,6 +50,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						//LabelSuggestion.Label = label;
 					}
 
+					if (url.Address is { })
+					{
+						To = url.Address.ToString();
+					}
+
 					if (url.Amount is { })
 					{
 						AmountBtc = url.Amount.ToDecimal(MoneyUnit.BTC);
@@ -55,16 +62,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					if (url.UnknowParameters.TryGetValue("pj", out var endPoint))
 					{
-						if (!wallet.KeyManager.IsWatchOnly)
+						if (!wallet.KeyManager.IsHardwareWallet)
 						{
-							//PayjoinEndPoint = endPoint;
-							return;
+							_payJoinEndPoint = endPoint;
 						}
-						//NotificationHelpers.Warning("PayJoin is not allowed here.");
+						else
+						{
+							// Validation error... "Payjoin not available! for hw wallets."
+						}
 					}
-
-					To = url.Address.ToString();
-					//PayjoinEndPoint = null;
+					else
+					{
+						_payJoinEndPoint = null;
+					}
 				}
 			});
 		}
