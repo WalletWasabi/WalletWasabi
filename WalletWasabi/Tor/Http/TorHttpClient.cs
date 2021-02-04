@@ -33,9 +33,9 @@ namespace WalletWasabi.Tor.Http
 		public TorHttpClient(Func<Uri> baseUriAction, EndPoint torSocks5EndPoint, bool isolateStream = false)
 		{
 			BaseUriGetter = Guard.NotNull(nameof(baseUriAction), baseUriAction);
+			Guard.NotNull(nameof(torSocks5EndPoint), torSocks5EndPoint);
 
-			// Connecting to loopback's URIs cannot be done via Tor.
-			TorSocks5EndPoint = BaseUriGetter().IsLoopback ? null : torSocks5EndPoint;
+			TorSocks5EndPoint = torSocks5EndPoint;
 			TorSocks5Client = null;
 			DefaultIsolateStream = isolateStream;
 		}
@@ -59,7 +59,7 @@ namespace WalletWasabi.Tor.Http
 		public static Exception? LatestTorException { get; private set; } = null;
 
 		public Func<Uri> BaseUriGetter { get; }
-		public EndPoint? TorSocks5EndPoint { get; private set; }
+		private EndPoint TorSocks5EndPoint { get; }
 
 		/// <inheritdoc/>
 		public bool DefaultIsolateStream { get; }
@@ -87,15 +87,7 @@ namespace WalletWasabi.Tor.Http
 				request.Content = content;
 			}
 
-			// Use clearnet HTTP client when Tor is disabled.
-			if (TorSocks5EndPoint is null)
-			{
-				return await ClearnetRequestAsync(request, DefaultIsolateStream, cancel).ConfigureAwait(false);
-			}
-			else
-			{
-				return await TorRequestAsync(request, DefaultIsolateStream, cancel).ConfigureAwait(false);
-			}
+			return await TorRequestAsync(request, DefaultIsolateStream, cancel).ConfigureAwait(false);
 		}
 
 		private async Task<HttpResponseMessage> TorRequestAsync(HttpRequestMessage request, bool isolateStream, CancellationToken cancel)
@@ -188,19 +180,6 @@ namespace WalletWasabi.Tor.Http
 		/// <exception cref="OperationCanceledException">If <paramref name="token"/> is set.</exception>
 		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default)
 		{
-			// Use clearnet HTTP client when Tor is disabled.
-			if (TorSocks5EndPoint is null)
-			{
-				return await ClearnetRequestAsync(request, isolateStream, token).ConfigureAwait(false);
-			}
-			else
-			{
-				return await TorRequestCoreAsync(request, isolateStream, token).ConfigureAwait(false);
-			}
-		}
-
-		private async Task<HttpResponseMessage> TorRequestCoreAsync(HttpRequestMessage request, bool isolateStream, CancellationToken cancel)
-		{
 			if (isolateStream != DefaultIsolateStream)
 			{
 				throw new NotSupportedException("This is not supported at the moment.");
@@ -226,9 +205,9 @@ namespace WalletWasabi.Tor.Http
 			if (TorSocks5Client is null || !TorSocks5Client.IsConnected)
 			{
 				TorSocks5Client = new TorSocks5Client(TorSocks5EndPoint!);
-				await TorSocks5Client.ConnectAsync(cancel).ConfigureAwait(false);
-				await TorSocks5Client.HandshakeAsync(isolateStream, cancel).ConfigureAwait(false);
-				await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port, cancel).ConfigureAwait(false);
+				await TorSocks5Client.ConnectAsync(token).ConfigureAwait(false);
+				await TorSocks5Client.HandshakeAsync(isolateStream, token).ConfigureAwait(false);
+				await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port, token).ConfigureAwait(false);
 
 				if (request.RequestUri.Scheme == "https")
 				{
@@ -236,16 +215,16 @@ namespace WalletWasabi.Tor.Http
 				}
 			}
 
-			cancel.ThrowIfCancellationRequested();
+			token.ThrowIfCancellationRequested();
 
-			string requestString = await request.ToHttpStringAsync(cancel).ConfigureAwait(false);
+			string requestString = await request.ToHttpStringAsync(token).ConfigureAwait(false);
 
 			var bytes = Encoding.UTF8.GetBytes(requestString);
 
 			Stream transportStream = TorSocks5Client.GetTransportStream();
 
-			await transportStream.WriteAsync(bytes.AsMemory(0, bytes.Length), cancel).ConfigureAwait(false);
-			await transportStream.FlushAsync(cancel).ConfigureAwait(false);
+			await transportStream.WriteAsync(bytes.AsMemory(0, bytes.Length), token).ConfigureAwait(false);
+			await transportStream.FlushAsync(token).ConfigureAwait(false);
 
 			return await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method).ConfigureAwait(false);
 		}

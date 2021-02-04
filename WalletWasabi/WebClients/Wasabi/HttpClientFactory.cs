@@ -23,7 +23,8 @@ namespace WalletWasabi.WebClients.Wasabi
 			TorEndpoint = torEndPoint;
 			BackendUriGetter = backendUriGetter;
 
-			if (TorEndpoint is { })
+			// Connecting to loopback's URIs cannot be done via Tor.
+			if (TorEndpoint is { } && !BackendUriGetter().IsLoopback)
 			{
 				BackendHttpClient = new TorHttpClient(BackendUriGetter, TorEndpoint, isolateStream: false);
 			}
@@ -56,7 +57,8 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// </summary>
 		public IHttpClient NewHttpClient(Func<Uri> baseUriFn, bool isolateStream)
 		{
-			if (TorEndpoint is { })
+			// Connecting to loopback's URIs cannot be done via Tor.
+			if (TorEndpoint is { } && !BackendUriGetter().IsLoopback)
 			{
 				return new TorHttpClient(baseUriFn, TorEndpoint, isolateStream);
 			}
