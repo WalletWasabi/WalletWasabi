@@ -31,6 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private decimal _exchangeRate;
 		[AutoNotify] private bool _isFixedAmount;
 		private string? _payJoinEndPoint;
+		private bool _parsingUrl;
 
 		public SendViewModel(WalletViewModel walletVm)
 		{
@@ -57,20 +58,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void ParseToField(string s)
 		{
-			Dispatcher.UIThread.Post(() => { TryParseUrl(s); });
-		}
-
-		private bool _parsingUrl;
-
-		private bool TryParseUrl(string text)
-		{
 			if (_parsingUrl)
 			{
-				return false;
+				return;
 			}
 
 			_parsingUrl = true;
 
+			Dispatcher.UIThread.Post(() =>
+			{
+				TryParseUrl(s);
+
+				_parsingUrl = false;
+			});
+		}
+
+		private bool TryParseUrl(string text)
+		{
 			bool result = false;
 
 			var wallet = _owner.Wallet;
@@ -120,8 +124,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				IsFixedAmount = false;
 			}
-
-			_parsingUrl = false;
 
 			return result;
 		}
