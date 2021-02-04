@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Threading;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
@@ -26,6 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private string _to;
 		[AutoNotify] private decimal _amountBtc;
 		[AutoNotify] private decimal _exchangeRate;
+		[AutoNotify] private bool _isFixedAmount;
 		private string? _payJoinEndPoint;
 
 		public SendViewModel(WalletViewModel walletVm)
@@ -35,48 +39,91 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			ExchangeRate = walletVm.Wallet.Synchronizer.UsdExchangeRate;
 
+			this.WhenAnyValue(x => x.To)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(ParseToField);
+
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var text =  await Application.Current.Clipboard.GetTextAsync();
 
-				var wallet = walletVm.Wallet;
-
-				if (AddressStringParser.TryParse(text, wallet.Network, out BitcoinUrlBuilder? url))
+				if (!TryParseUrl(text))
 				{
-					SmartLabel label = url.Label;
+					To = text;
+					// todo validation errors.
+				}
+			});
+		}
 
-					if (!label.IsEmpty)
-					{
-						//LabelSuggestion.Label = label;
-					}
+		private void ParseToField(string s)
+		{
+			Dispatcher.UIThread.Post(() => { TryParseUrl(s); });
+		}
 
-					if (url.Address is { })
-					{
-						To = url.Address.ToString();
-					}
+		private bool _parsingUrl;
 
-					if (url.Amount is { })
-					{
-						AmountBtc = url.Amount.ToDecimal(MoneyUnit.BTC);
-					}
+		private bool TryParseUrl(string text)
+		{
+			if (_parsingUrl)
+			{
+				return false;
+			}
 
-					if (url.UnknowParameters.TryGetValue("pj", out var endPoint))
+			_parsingUrl = true;
+
+			bool result = false;
+
+			var wallet = _owner.Wallet;
+
+			if (AddressStringParser.TryParse(text, wallet.Network, out BitcoinUrlBuilder? url))
+			{
+				result = true;
+				SmartLabel label = url.Label;
+
+				if (!label.IsEmpty)
+				{
+					//LabelSuggestion.Label = label;
+				}
+
+				if (url.Address is { })
+				{
+					To = url.Address.ToString();
+				}
+
+				if (url.Amount is { })
+				{
+					AmountBtc = url.Amount.ToDecimal(MoneyUnit.BTC);
+					IsFixedAmount = true;
+				}
+				else
+				{
+					IsFixedAmount = false;
+				}
+
+				if (url.UnknowParameters.TryGetValue("pj", out var endPoint))
+				{
+					if (!wallet.KeyManager.IsHardwareWallet)
 					{
-						if (!wallet.KeyManager.IsHardwareWallet)
-						{
-							_payJoinEndPoint = endPoint;
-						}
-						else
-						{
-							// Validation error... "Payjoin not available! for hw wallets."
-						}
+						_payJoinEndPoint = endPoint;
 					}
 					else
 					{
-						_payJoinEndPoint = null;
+						// Validation error... "Payjoin not available! for hw wallets."
 					}
 				}
-			});
+				else
+				{
+					_payJoinEndPoint = null;
+				}
+			}
+			else
+			{
+				IsFixedAmount = false;
+			}
+
+			_parsingUrl = false;
+
+			return result;
 		}
 
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
@@ -91,6 +138,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public ICommand PasteCommand { get; }
 
 		public double XAxisCurrentValue { get; set; } = 36;
+
 
 		public double XAxisMinValue { get; set; } = 1;
 

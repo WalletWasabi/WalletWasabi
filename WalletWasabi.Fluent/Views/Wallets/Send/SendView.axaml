@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
@@ -112,7 +111,7 @@
                 </StackPanel.Styles>
                 <DockPanel>
                     <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
-                    <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}"
+                    <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To, Mode=TwoWay}"
                              Watermark="(e.g. Bitcoin address or PayJoin URL)">
                         <TextBox.InnerRightContent>
                             <Button Classes="plain"
@@ -121,15 +120,12 @@
                                 <PathIcon Data="{StaticResource paste_regular}" Width="13" />
                             </Button>
                         </TextBox.InnerRightContent>
-                        <i:Interaction.Behaviors>
-                            <behaviors:FocusOnAttachedBehavior />
-                        </i:Interaction.Behaviors>
                     </TextBox>
                 </DockPanel>
 
                 <DockPanel>
                     <Label DockPanel.Dock="Left" Content="_Amount:" Target="amountTb" />
-                    <c:CurrencyEntryBox x:Name="amountTb" AmountBtc="{Binding AmountBtc}" ConversionRate="{Binding ExchangeRate}" ConversionCurrencyCode="USD" />
+                    <c:CurrencyEntryBox x:Name="amountTb" IsReadOnly="{Binding IsFixedAmount}" AmountBtc="{Binding AmountBtc}" ConversionRate="{Binding ExchangeRate}" ConversionCurrencyCode="USD" />
                 </DockPanel>
 
                 <DockPanel>
