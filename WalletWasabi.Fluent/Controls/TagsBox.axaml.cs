@@ -13,7 +13,6 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
-using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -351,7 +350,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		internal void RemoveTargetTag(object? tag)
 		{
-			if (Items is IList x && x.Count > 0 && tag is { })
+			if (Items is IList {Count: > 0} x && tag is { })
 			{
 				x.RemoveAt(x.IndexOf(tag));
 			}
