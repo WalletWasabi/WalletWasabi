@@ -14,7 +14,7 @@
         <Setter Property="Cursor" Value="IBeam" />
         <Setter Property="Template">
             <ControlTemplate>
-                <!-- <DataValidationErrors> -->
+                <DataValidationErrors>
                     <Border x:Name="PART_Border" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
@@ -37,7 +37,7 @@
                             </ItemsPresenter.ItemsPanel>
                         </ItemsPresenter>
                     </Border>
-                <!-- </DataValidationErrors> -->
+                </DataValidationErrors>
             </ControlTemplate>
         </Setter>
         <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
