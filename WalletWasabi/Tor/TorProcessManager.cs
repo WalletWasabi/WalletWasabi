@@ -107,7 +107,7 @@ namespace WalletWasabi.Tor
 					{
 						i++;
 
-						bool isRunning = await TorSocks5Client.IsTorRunningAsync().ConfigureAwait(false);
+						bool isRunning = await IsTorRunningAsync().ConfigureAwait(false);
 
 						if (isRunning)
 						{
