@@ -413,6 +413,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		}
 
 		private static PayjoinClient NewPayjoinClient(MockTorHttpClient client)
-			=> new PayjoinClient(client.DestinationUriAction.Invoke(), client);
+			=> new PayjoinClient(client.BaseUriGetter.Invoke(), client);
 	}
 }

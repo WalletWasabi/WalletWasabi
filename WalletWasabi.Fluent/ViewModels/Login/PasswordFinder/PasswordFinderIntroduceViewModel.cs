@@ -6,12 +6,11 @@ using WalletWasabi.Wallets.PasswordFinder;
 
 namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 {
-	public class PasswordFinderIntroduceViewModel : RoutableViewModel
+	[NavigationMetaData(Title = "Password Finder")]
+	public partial class PasswordFinderIntroduceViewModel : RoutableViewModel
 	{
 		public PasswordFinderIntroduceViewModel(Wallet wallet)
 		{
-			Title = "Password Finder";
-
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var dialogResult =

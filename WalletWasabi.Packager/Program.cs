@@ -41,17 +41,17 @@ namespace WalletWasabi.Packager
 			"osx-x64"
 		};
 
-		public static string PackagerProjectDirectory { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
-		private static string SolutionDirectory = Path.GetFullPath(Path.Combine(PackagerProjectDirectory, ".."));
-		private static string DesktopProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.Fluent.Desktop"));
-		private static string LibraryProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi"));
-		private static string WixProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller"));
-		private static string BinDistDirectory = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "dist"));
-
 		private static string VersionPrefix = Constants.ClientVersion.Revision == 0 ? Constants.ClientVersion.ToString(3) : Constants.ClientVersion.ToString();
 
 		private static bool OnlyBinaries;
 		private static bool IsContinuousDelivery;
+
+		public static string PackagerProjectDirectory { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
+		public static string SolutionDirectory { get; } = Path.GetFullPath(Path.Combine(PackagerProjectDirectory, ".."));
+		public static string DesktopProjectDirectory { get; } = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.Fluent.Desktop"));
+		public static string LibraryProjectDirectory { get; } = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi"));
+		public static string WixProjectDirectory { get; } = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller"));
+		public static string BinDistDirectory { get; } = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "dist"));
 
 		/// <summary>
 		/// Main entry point.
@@ -65,27 +65,6 @@ namespace WalletWasabi.Packager
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
 				MacSignTools.Sign();
-				return;
-			}
-
-			// If I want a list of up to date onions run it with '--getonions'.
-			if (argsProcessor.IsGetOnionsMode())
-			{
-				var api = new BitnodesApi(Console.Out);
-				await api.PrintOnionsAsync();
-
-				return;
-			}
-
-			// If I want a list of up to date onions run it with '--reduceonions'.
-			if (argsProcessor.IsReduceOnionsMode())
-			{
-				string onionFilePath = Path.Combine(LibraryProjectDirectory, "Tor", "OnionSeeds", "MainOnionSeeds.txt");
-				var currentOnions = File.ReadAllLines(onionFilePath).ToHashSet();
-
-				var api = new BitnodesApi(Console.Out);
-				await api.PrintOnionsAsync(currentOnions);
-
 				return;
 			}
 
@@ -275,26 +254,28 @@ namespace WalletWasabi.Packager
 				// /p:Version=1.2.3.4
 				//		"dotnet publish" supports msbuild command line options like /p:Version=1.2.3.4
 
+				string dotnetProcessArgs = string.Join(
+					" ",
+					$"publish",
+					$"--configuration Release",
+					$"--force",
+					$"--output \"{currentBinDistDirectory}\"",
+					$"--self-contained true",
+					$"--runtime \"{target}\"",
+					$"--disable-parallel",
+					$"--no-cache",
+					$"/p:VersionPrefix={VersionPrefix}",
+					$"/p:DebugType=none",
+					$"/p:DebugSymbols=false",
+					$"/p:ErrorReport=none",
+					$"/p:DocumentationFile=\"\"",
+					$"/p:Deterministic=true",
+					$"/p:RestoreLockedMode=true");
+
 				StartProcessAndWaitForExit(
 					"dotnet",
 					DesktopProjectDirectory,
-					arguments: string.Join(
-						" ",
-						$"publish",
-						$"--configuration Release",
-						$"--force",
-						$"--output \"{currentBinDistDirectory}\"",
-						$"--self-contained true",
-						$"--runtime \"{target}\"",
-						$"--disable-parallel",
-						$"--no-cache",
-						$"/p:VersionPrefix={VersionPrefix}",
-						$"/p:DebugType=none",
-						$"/p:DebugSymbols=false",
-						$"/p:ErrorReport=none",
-						$"/p:DocumentationFile=\"\"",
-						$"/p:Deterministic=true",
-						$"/p:RestoreLockedMode=true"),
+					arguments: dotnetProcessArgs,
 					redirectStandardOutput: true);
 
 				Tools.ClearSha512Tags(currentBinDistDirectory);

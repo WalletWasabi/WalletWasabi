@@ -14,13 +14,14 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Gui.Validation;
+using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
+	[NavigationMetaData (Title = "Enter recovery words")]
 	public partial class RecoverWalletViewModel : RoutableViewModel
 	{
 		[AutoNotify] private string? _selectedTag;
@@ -31,7 +32,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			string walletName,
 			WalletManagerViewModel walletManagerViewModel)
 		{
-			Title = "Enter recovery words";
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 			var walletManager = walletManagerViewModel.Model;
 			var network = walletManager.Network;

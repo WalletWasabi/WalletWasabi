@@ -1,4 +1,6 @@
-﻿namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
+﻿using WalletWasabi.Fluent.ViewModels.NavBar;
+
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 {
 	[NavigationMetaData(
 		Title = "CoinJoin",
@@ -7,9 +9,9 @@
 		NavBarPosition = NavBarPosition.None,
 		Searchable = false,
 		NavigationTarget = NavigationTarget.HomeScreen)]
-	public partial class CoinJoinWalletActionViewModel : WalletActionViewModel
+	public partial class CoinJoinWalletActionViewModel : NavBarItemViewModel
 	{
-		public CoinJoinWalletActionViewModel(WalletViewModelBase wallet) : base(wallet)
+		public CoinJoinWalletActionViewModel(WalletViewModelBase wallet)
 		{
 			Title = "CoinJoin";
 		}
