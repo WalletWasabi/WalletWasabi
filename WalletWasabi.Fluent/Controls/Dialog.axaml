@@ -1,12 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls"
-        xmlns:dialogs="using:WalletWasabi.Fluent.ViewModels.Dialogs">
-  <Design.PreviewWith>
-    <c:Dialog IsDialogOpen="True">
-      <dialogs:TestDialogViewModel/>
-    </c:Dialog>
-  </Design.PreviewWith>
+        xmlns:c="using:WalletWasabi.Fluent.Controls">
   <Styles.Resources>
   </Styles.Resources>
   <Style Selector="c|Dialog">
