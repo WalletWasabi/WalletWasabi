@@ -12,7 +12,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 	public abstract class SettingsTabViewModelBase : RoutableViewModel
 	{
 		protected const int ThrottleTime = 500;
-		public static event EventHandler<RestartNeededEventArgs>? RestartNeeded;
 
 		protected SettingsTabViewModelBase(Config config, UiConfig uiConfig)
 		{
@@ -22,6 +21,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			UiConfigOnOpen = new UiConfig(uiConfig.FilePath);
 			UiConfigOnOpen.LoadFile();
 		}
+
+		public static event EventHandler<RestartNeededEventArgs>? RestartNeeded;
 
 		public static Config? ConfigOnOpen { get; set; }
 

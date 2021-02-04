@@ -17,7 +17,8 @@ namespace WalletWasabi.Fluent.Controls
 	public class CurrencyEntryBox : TextBox
 	{
 		public static readonly StyledProperty<decimal> AmountBtcProperty =
-			AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(AmountBtc),
+			AvaloniaProperty.Register<CurrencyEntryBox, decimal>(
+				nameof(AmountBtc),
 				defaultBindingMode: BindingMode.TwoWay);
 
 		public static readonly StyledProperty<string> ConversionTextProperty =
@@ -84,7 +85,6 @@ namespace WalletWasabi.Fluent.Controls
 				new Regex(
 					$"[{_groupSeparator}{_decimalSeparator}]+", RegexOptions.Compiled);
 		}
-
 
 		public decimal AmountBtc
 		{
@@ -204,7 +204,7 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				// Bitcoin input restriction is to only allow 8 decimal places max
 				// and also 8 whole number places.
-				if (whole > 8 && !trailingDecimal || frac > 8)
+				if ((whole > 8 && !trailingDecimal) || frac > 8)
 				{
 					e.Handled = true;
 				}
@@ -260,7 +260,10 @@ namespace WalletWasabi.Fluent.Controls
 			return $"{FormatBtcValue(formatInfo, value)} BTC";
 		}
 
-		private static string FullFormatFiat(NumberFormatInfo formatInfo, decimal value, string currencyCode,
+		private static string FullFormatFiat(
+			NumberFormatInfo formatInfo,
+			decimal value,
+			string currencyCode,
 			bool approximate)
 		{
 			return (approximate ? "≈ " : "") + $"{FormatFiatValue(formatInfo, value)}" +
@@ -365,8 +368,13 @@ namespace WalletWasabi.Fluent.Controls
 			else
 			{
 				CurrencyCode = "BTC";
-				ConversionText = FullFormatFiat(_customCultureInfo.NumberFormat, conversion, ConversionCurrencyCode,
+
+				ConversionText = FullFormatFiat(
+					_customCultureInfo.NumberFormat,
+					conversion,
+					ConversionCurrencyCode,
 					true);
+
 				Watermark = FullFormatBtc(_customCultureInfo.NumberFormat, 0);
 
 				if (updateTextField)
