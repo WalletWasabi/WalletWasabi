@@ -203,9 +203,9 @@ namespace WalletWasabi.Fluent.Controls
 			return $"{FormatBtcValue(formatInfo, value)} BTC";
 		}
 
-		private static string FullFormatFiat(NumberFormatInfo formatInfo, decimal value, string currencyCode)
+		private static string FullFormatFiat(NumberFormatInfo formatInfo, decimal value, string currencyCode, bool approximate)
 		{
-			return $"≈ {FormatFiatValue(formatInfo, value)}" + (!string.IsNullOrWhiteSpace(currencyCode)
+			return (approximate ? "≈ " : "") + $"{FormatFiatValue(formatInfo, value)}" + (!string.IsNullOrWhiteSpace(currencyCode)
 				? $" {currencyCode}"
 				: "");
 		}
@@ -294,7 +294,7 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				CurrencyCode = ConversionCurrencyCode;
 				ConversionText = FullFormatBtc(_customCultureInfo.NumberFormat, AmountBtc);
-				Watermark = FullFormatFiat(_customCultureInfo.NumberFormat, 0, ConversionCurrencyCode);
+				Watermark = FullFormatFiat(_customCultureInfo.NumberFormat, 0, ConversionCurrencyCode, false);
 
 				if (updateTextField)
 				{
@@ -306,7 +306,7 @@ namespace WalletWasabi.Fluent.Controls
 			else
 			{
 				CurrencyCode = "BTC";
-				ConversionText = FullFormatFiat(_customCultureInfo.NumberFormat, conversion, ConversionCurrencyCode);
+				ConversionText = FullFormatFiat(_customCultureInfo.NumberFormat, conversion, ConversionCurrencyCode, true);
 				Watermark = FullFormatBtc(_customCultureInfo.NumberFormat, 0);
 
 				if (updateTextField)
