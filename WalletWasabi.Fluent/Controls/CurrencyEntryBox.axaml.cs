@@ -39,10 +39,11 @@ namespace WalletWasabi.Fluent.Controls
 		private readonly CultureInfo _customCultureInfo;
 		private readonly char _decimalSeparator = '.';
 		private readonly char _groupSeparator = ' ';
-		private readonly Regex _matchRegexDecimal;
-		private readonly Regex _matchRegexDecimalCharsOnly;
+		private readonly Regex _regexDecimal;
+		private readonly Regex _regexDecimalCharsOnly;
+		private readonly Regex _regexConsecutiveSpaces;
+		private readonly Regex _regexGroupAndDecimal;
 		private bool _canUpdateDisplay = true;
-		private Regex _matchRegexConsecutiveSpaces;
 
 		public CurrencyEntryBox()
 		{
@@ -65,17 +66,21 @@ namespace WalletWasabi.Fluent.Controls
 			Watermark = "0 BTC";
 			Text = string.Empty;
 
-			_matchRegexDecimal =
+			_regexDecimal =
 				new Regex(
-					$"^(?<Whole>[0-9{_groupSeparator}]*)(\\{_decimalSeparator}?(?<Frac>[0-9]*))$");
+					$"^(?<Whole>[0-9{_groupSeparator}]*)(\\{_decimalSeparator}?(?<Frac>[0-9]*))$", RegexOptions.Compiled);
 
-			_matchRegexDecimalCharsOnly =
+			_regexDecimalCharsOnly =
 				new Regex(
-					$"^[0-9{_groupSeparator}{_decimalSeparator}]*$");
+					$"^[0-9{_groupSeparator}{_decimalSeparator}]*$", RegexOptions.Compiled);
 
-			_matchRegexConsecutiveSpaces =
+			_regexConsecutiveSpaces =
 				new Regex(
-					$"{_groupSeparator}{{2,}}");
+					$"{_groupSeparator}{{2,}}", RegexOptions.Compiled);
+
+			_regexGroupAndDecimal =
+				new Regex(
+					$"[{_groupSeparator}{_decimalSeparator}]+", RegexOptions.Compiled);
 		}
 
 		private decimal FiatToBitcoin(decimal fiatValue)
@@ -106,27 +111,24 @@ namespace WalletWasabi.Fluent.Controls
 			var trailingDecimal = inputLength > 0 && inputText[^1] == _decimalSeparator;
 			var preComposedText = PreComposeText(e);
 
-			if ((preComposedText.Length >= 3 && preComposedText[0] == _groupSeparator
-			     || preComposedText.Last() == _groupSeparator
-			     || _matchRegexConsecutiveSpaces.IsMatch(preComposedText))
-			    || !_matchRegexDecimalCharsOnly.IsMatch(preComposedText))
+			var match = _regexDecimal.Match(preComposedText);
+
+			// Ignore group chars on count of the whole part of the decimal.
+			var wholeStr = match.Groups["Whole"].ToString();
+			var whole = _regexGroupAndDecimal.Replace(wholeStr, "").Length;
+
+			var fracStr = match.Groups["Frac"].ToString();
+			var frac = fracStr.Length;
+
+			if (preComposedText.Length > 1 && (preComposedText[0] == _groupSeparator
+			                                || _regexConsecutiveSpaces.IsMatch(preComposedText))
+			    || whole >= 8 && (preComposedText.Last() == _groupSeparator || wholeStr.Last() == _groupSeparator)
+			    || !_regexDecimalCharsOnly.IsMatch(preComposedText))
 			{
 				e.Handled = true;
 				base.OnTextInput(e);
 				return;
 			}
-
-			var match = _matchRegexDecimal.Match(preComposedText);
-
-			// Ignore group chars on count of the whole part of the decimal.
-			var wholeStr = match.Groups["Whole"].ToString();
-			var whole = wholeStr
-				.Replace(_groupSeparator, char.MinValue)
-				.Replace(_decimalSeparator, char.MinValue)
-				.Length;
-
-			var fracStr = match.Groups["Frac"].ToString();
-			var frac = fracStr.Length;
 
 			// Reject and dont process the input if the string doesnt match.
 			if (!match.Success)
