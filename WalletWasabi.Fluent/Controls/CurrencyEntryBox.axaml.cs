@@ -305,7 +305,7 @@ namespace WalletWasabi.Fluent.Controls
 			else
 			{
 				CurrencyCode = "BTC";
-				ConversionText = FullFormatFiat(_customCultureInfo.NumberFormat, conversion, CurrencyCode);
+				ConversionText = FullFormatFiat(_customCultureInfo.NumberFormat, conversion, ConversionCurrencyCode);
 
 				if (updateTextField)
 				{
