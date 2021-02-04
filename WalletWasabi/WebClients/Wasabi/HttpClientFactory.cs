@@ -23,7 +23,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			TorEndpoint = torEndPoint;
 			BackendUriGetter = backendUriGetter;
 
-			if (torEndPoint is { })
+			if (TorEndpoint is { })
 			{
 				BackendHttpClient = new TorHttpClient(BackendUriGetter, TorEndpoint, isolateStream: false);
 			}
