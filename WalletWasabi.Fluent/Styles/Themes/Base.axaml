@@ -26,5 +26,6 @@
     <SolidColorBrush x:Key="WarningMessageForeground">#FFDD00</SolidColorBrush>
     <StaticResource x:Key="SystemControlErrorTextForegroundBrush" ResourceKey="SystemErrorTextColor" />
     <SolidColorBrush x:Key="HyperLinkForeground">#00A2E8</SolidColorBrush>
+    <Thickness x:Key="TagsBoxBorderPadding">4,4,0,0</Thickness>
   </Styles.Resources>
 </Styles>

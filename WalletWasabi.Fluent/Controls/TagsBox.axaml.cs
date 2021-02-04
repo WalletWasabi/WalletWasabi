@@ -50,6 +50,8 @@ namespace WalletWasabi.Fluent.Controls
 				o => o.CompletedCommand,
 				(o, v) => o.CompletedCommand = v);
 
+		public static readonly StyledProperty<bool> IsReadOnlyProperty = AvaloniaProperty.Register<TagsBox, bool>("IsReadOnly");
+
 		static TagsBox()
 		{
 			ItemsProperty.OverrideMetadata<TagsBox>(
@@ -84,6 +86,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => _completedCommand;
 			set => SetAndRaise(CompletedCommandProperty, ref _completedCommand, value);
+		}
+
+		public bool IsReadOnly
+		{
+			get => GetValue(IsReadOnlyProperty);
+			set => SetValue(IsReadOnlyProperty, value);
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)

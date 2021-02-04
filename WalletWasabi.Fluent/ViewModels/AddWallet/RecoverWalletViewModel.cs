@@ -138,7 +138,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private Interaction<(KeyPath, int), (KeyPath?, int?)> AdvancedOptionsInteraction { get; }
 
 		public ObservableCollection<RecoveryWordIndexed> Mnemonics { get; } =
-			new ObservableCollection<RecoveryWordIndexed>();
+			new ObservableCollection<RecoveryWordIndexed>() { new RecoveryWordIndexed(0, "maximum")};
 
 		private void ValidateMnemonics(IValidationErrors errors)
 		{
