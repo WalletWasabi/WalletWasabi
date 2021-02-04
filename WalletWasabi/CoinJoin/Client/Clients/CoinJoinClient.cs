@@ -1079,7 +1079,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		private async Task<AliceClientBase> CreateAliceClientAsync(long roundId, List<OutPoint> registrableCoins, (HdPubKey change, IEnumerable<HdPubKey> actives) outputAddresses)
 		{
 			RoundStateResponse4 state;
-			WasabiClientFactory factory = Synchronizer.WasabiClientFactory;
+			HttpClientFactory factory = Synchronizer.WasabiClientFactory;
 
 			using (TorHttpClient torHttpClient = factory.NewBackendTorHttpClient(isolateStream: true))
 			{

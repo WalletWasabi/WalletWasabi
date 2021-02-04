@@ -85,7 +85,7 @@ namespace WalletWasabi.Blockchain.Mempool
 		/// <summary>
 		/// Tries to perform mempool cleanup with the help of the backend.
 		/// </summary>
-		public async Task<bool> TryPerformMempoolCleanupAsync(WasabiClientFactory wasabiClientFactory)
+		public async Task<bool> TryPerformMempoolCleanupAsync(HttpClientFactory wasabiClientFactory)
 		{
 			// If already cleaning, then no need to run it that often.
 			if (Interlocked.CompareExchange(ref _cleanupInProcess, 1, 0) == 1)

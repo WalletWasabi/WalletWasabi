@@ -52,7 +52,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		{
 			(_, IRPCClient rpc, _, _, _, BitcoinStore bitcoinStore, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
-			var wasabiClientFactory = new WasabiClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+			var wasabiClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, wasabiClientFactory);
 			try
 			{
@@ -138,7 +138,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			var node = RegTestFixture.BackendRegTestNode;
 
-			var wasabiClientFactory = new WasabiClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+			var wasabiClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, wasabiClientFactory);
 
 			try
@@ -243,7 +243,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 2. Create wasabi synchronizer service.
-			var wasabiClientFactory = new WasabiClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+			var wasabiClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, wasabiClientFactory);
 
 			// 3. Create key manager service.

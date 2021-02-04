@@ -44,7 +44,7 @@ namespace WalletWasabi.Services
 		private long _blockRequests; // There are priority requests in queue.
 
 		/// <param name="wasabiClientFactory">The class takes ownership of the instance.</param>
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, WasabiClientFactory wasabiClientFactory)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, HttpClientFactory wasabiClientFactory)
 		{
 			Network = network;
 			LastResponse = null;
@@ -67,7 +67,7 @@ namespace WalletWasabi.Services
 		public SynchronizeResponse? LastResponse { get; private set; }
 
 		/// <summary><see cref="WasabiSynchronizer"/> is responsible for disposing of this object.</summary>
-		public WasabiClientFactory WasabiClientFactory { get; }
+		public HttpClientFactory WasabiClientFactory { get; }
 
 		public WasabiClient WasabiClient { get; }
 
