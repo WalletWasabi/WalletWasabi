@@ -40,6 +40,7 @@ namespace WalletWasabi.Fluent.Controls
 		private readonly char _groupSeparator = ' ';
 		private readonly Regex _matchRegexDecimal;
 		private readonly Regex _matchRegexDecimalCharsOnly;
+		private bool _canUpdateDisplay = true;
 
 		public CurrencyEntryBox()
 		{
@@ -227,10 +228,16 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			IsConversionReversed = !IsConversionReversed;
 			UpdateDisplay(true);
+			ClearSelection();
 		}
 
 		private void InputText(string text)
 		{
+			if(!_canUpdateDisplay)
+			{
+				return;
+			}
+
 			if (string.IsNullOrWhiteSpace(text))
 			{
 				InputBtcValue(0);
@@ -290,7 +297,9 @@ namespace WalletWasabi.Fluent.Controls
 
 				if (updateTextField)
 				{
+					_canUpdateDisplay = false;
 					Text = AmountBtc > 0 ? FormatFiatValue(_customCultureInfo.NumberFormat, conversion) : string.Empty;
+					_canUpdateDisplay = true;
 				}
 			}
 			else
@@ -300,7 +309,9 @@ namespace WalletWasabi.Fluent.Controls
 
 				if (updateTextField)
 				{
+					_canUpdateDisplay = false;
 					Text = AmountBtc > 0 ? FormatBtcValue(_customCultureInfo.NumberFormat, AmountBtc) : string.Empty;
+					_canUpdateDisplay = true;
 				}
 			}
 		}
