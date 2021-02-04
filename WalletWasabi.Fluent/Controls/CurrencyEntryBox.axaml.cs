@@ -106,7 +106,7 @@ namespace WalletWasabi.Fluent.Controls
 			var trailingDecimal = inputLength > 0 && inputText[^1] == _decimalSeparator;
 			var preComposedText = PreComposeText(e);
 
-			if ((preComposedText.Length > 1 && preComposedText[0] == _groupSeparator
+			if ((preComposedText.Length >= 3 && preComposedText[0] == _groupSeparator
 			     || preComposedText.Last() == _groupSeparator
 			     || _matchRegexConsecutiveSpaces.IsMatch(preComposedText))
 			    || !_matchRegexDecimalCharsOnly.IsMatch(preComposedText))
