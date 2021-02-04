@@ -17,7 +17,8 @@ namespace WalletWasabi.Fluent.Controls
 	public class CurrencyEntryBox : TextBox
 	{
 		public static readonly StyledProperty<decimal> AmountBtcProperty =
-			AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(AmountBtc), defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.Register<CurrencyEntryBox, decimal>(nameof(AmountBtc),
+				defaultBindingMode: BindingMode.TwoWay);
 
 		public static readonly StyledProperty<string> ConversionTextProperty =
 			AvaloniaProperty.Register<CurrencyEntryBox, string>(nameof(ConversionText));
@@ -34,8 +35,6 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> IsConversionReversedProperty =
 			AvaloniaProperty.Register<CurrencyEntryBox, bool>(nameof(IsConversionReversed));
 
-		private Button? _swapButton;
-		private CompositeDisposable? _disposable;
 		private readonly CultureInfo _customCultureInfo;
 		private readonly char _decimalSeparator = '.';
 		private readonly char _groupSeparator = ' ';
@@ -43,6 +42,8 @@ namespace WalletWasabi.Fluent.Controls
 		private readonly Regex _regexDecimalCharsOnly;
 		private readonly Regex _regexConsecutiveSpaces;
 		private readonly Regex _regexGroupAndDecimal;
+		private Button? _swapButton;
+		private CompositeDisposable? _disposable;
 		private bool _canUpdateDisplay = true;
 
 		public CurrencyEntryBox()
@@ -68,7 +69,8 @@ namespace WalletWasabi.Fluent.Controls
 
 			_regexDecimal =
 				new Regex(
-					$"^(?<Whole>[0-9{_groupSeparator}]*)(\\{_decimalSeparator}?(?<Frac>[0-9]*))$", RegexOptions.Compiled);
+					$"^(?<Whole>[0-9{_groupSeparator}]*)(\\{_decimalSeparator}?(?<Frac>[0-9]*))$",
+					RegexOptions.Compiled);
 
 			_regexDecimalCharsOnly =
 				new Regex(
@@ -81,6 +83,43 @@ namespace WalletWasabi.Fluent.Controls
 			_regexGroupAndDecimal =
 				new Regex(
 					$"[{_groupSeparator}{_decimalSeparator}]+", RegexOptions.Compiled);
+		}
+
+
+		public decimal AmountBtc
+		{
+			get => GetValue(AmountBtcProperty);
+			set => SetValue(AmountBtcProperty, value);
+		}
+
+		public string ConversionText
+		{
+			get => GetValue(ConversionTextProperty);
+			set => SetValue(ConversionTextProperty, value);
+		}
+
+		public decimal ConversionRate
+		{
+			get => GetValue(ConversionRateProperty);
+			set => SetValue(ConversionRateProperty, value);
+		}
+
+		public string CurrencyCode
+		{
+			get => GetValue(CurrencyCodeProperty);
+			set => SetValue(CurrencyCodeProperty, value);
+		}
+
+		public string ConversionCurrencyCode
+		{
+			get => GetValue(ConversionCurrencyCodeProperty);
+			set => SetValue(ConversionCurrencyCodeProperty, value);
+		}
+
+		public bool IsConversionReversed
+		{
+			get => GetValue(IsConversionReversedProperty);
+			set => SetValue(IsConversionReversedProperty, value);
 		}
 
 		private decimal FiatToBitcoin(decimal fiatValue)
@@ -121,7 +160,8 @@ namespace WalletWasabi.Fluent.Controls
 			var frac = fracStr.Length;
 
 			// Check for consecutive spaces (2 or more) and leading spaces.
-			var rule1 = preComposedText.Length > 1 && (preComposedText[0] == _groupSeparator || _regexConsecutiveSpaces.IsMatch(preComposedText));
+			var rule1 = preComposedText.Length > 1 && (preComposedText[0] == _groupSeparator ||
+			                                           _regexConsecutiveSpaces.IsMatch(preComposedText));
 
 			// Check for trailing spaces in the whole number part and in the last part of the precomp string.
 			var rule2 = whole >= 8 && (preComposedText.Last() == _groupSeparator || wholeStr.Last() == _groupSeparator);
@@ -191,7 +231,6 @@ namespace WalletWasabi.Fluent.Controls
 			                                     input.Length + preComposedText.Length -
 			                                     Math.Abs(selectionStart - selectionEnd) <= MaxLength))
 			{
-
 				if (selectionStart != selectionEnd)
 				{
 					var start = Math.Min(selectionStart, selectionEnd);
@@ -199,8 +238,10 @@ namespace WalletWasabi.Fluent.Controls
 					preComposedText = preComposedText.Substring(0, start) + preComposedText.Substring(end);
 					caretIndex = start;
 				}
+
 				return preComposedText.Substring(0, caretIndex) + input + preComposedText.Substring(caretIndex);
 			}
+
 			return "";
 		}
 
@@ -219,11 +260,13 @@ namespace WalletWasabi.Fluent.Controls
 			return $"{FormatBtcValue(formatInfo, value)} BTC";
 		}
 
-		private static string FullFormatFiat(NumberFormatInfo formatInfo, decimal value, string currencyCode, bool approximate)
+		private static string FullFormatFiat(NumberFormatInfo formatInfo, decimal value, string currencyCode,
+			bool approximate)
 		{
-			return (approximate ? "≈ " : "") + $"{FormatFiatValue(formatInfo, value)}" + (!string.IsNullOrWhiteSpace(currencyCode)
-				? $" {currencyCode}"
-				: "");
+			return (approximate ? "≈ " : "") + $"{FormatFiatValue(formatInfo, value)}" +
+			       (!string.IsNullOrWhiteSpace(currencyCode)
+				       ? $" {currencyCode}"
+				       : "");
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -249,7 +292,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void InputText(string text)
 		{
-			if(!_canUpdateDisplay)
+			if (!_canUpdateDisplay)
 			{
 				return;
 			}
@@ -322,7 +365,8 @@ namespace WalletWasabi.Fluent.Controls
 			else
 			{
 				CurrencyCode = "BTC";
-				ConversionText = FullFormatFiat(_customCultureInfo.NumberFormat, conversion, ConversionCurrencyCode, true);
+				ConversionText = FullFormatFiat(_customCultureInfo.NumberFormat, conversion, ConversionCurrencyCode,
+					true);
 				Watermark = FullFormatBtc(_customCultureInfo.NumberFormat, 0);
 
 				if (updateTextField)
@@ -332,42 +376,6 @@ namespace WalletWasabi.Fluent.Controls
 					_canUpdateDisplay = true;
 				}
 			}
-		}
-
-		public decimal AmountBtc
-		{
-			get => GetValue(AmountBtcProperty);
-			set => SetValue(AmountBtcProperty, value);
-		}
-
-		public string ConversionText
-		{
-			get => GetValue(ConversionTextProperty);
-			set => SetValue(ConversionTextProperty, value);
-		}
-
-		public decimal ConversionRate
-		{
-			get => GetValue(ConversionRateProperty);
-			set => SetValue(ConversionRateProperty, value);
-		}
-
-		public string CurrencyCode
-		{
-			get => GetValue(CurrencyCodeProperty);
-			set => SetValue(CurrencyCodeProperty, value);
-		}
-
-		public string ConversionCurrencyCode
-		{
-			get => GetValue(ConversionCurrencyCodeProperty);
-			set => SetValue(ConversionCurrencyCodeProperty, value);
-		}
-
-		public bool IsConversionReversed
-		{
-			get => GetValue(IsConversionReversedProperty);
-			set => SetValue(IsConversionReversedProperty, value);
 		}
 	}
 }
