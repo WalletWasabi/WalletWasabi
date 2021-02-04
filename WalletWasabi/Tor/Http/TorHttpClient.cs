@@ -37,7 +37,7 @@ namespace WalletWasabi.Tor.Http
 			// Connecting to loopback's URIs cannot be done via Tor.
 			TorSocks5EndPoint = BaseUriGetter().IsLoopback ? null : torSocks5EndPoint;
 			TorSocks5Client = null;
-			DefaultIsolateStream = isolateStream;
+			IsolateStream = isolateStream;
 		}
 
 		public static DateTimeOffset? TorDoesntWorkSince
@@ -62,9 +62,9 @@ namespace WalletWasabi.Tor.Http
 		public EndPoint? TorSocks5EndPoint { get; private set; }
 
 		/// <summary>
-		/// Whether each HTTP(s) request should use a separate Tor circuit by default or not to increase privacy.
+		/// Whether each HTTP(s) request should use a separate Tor circuit or not to increase privacy.
 		/// </summary>
-		public bool DefaultIsolateStream { get; }
+		public bool IsolateStream { get; }
 
 		private TorSocks5Client? TorSocks5Client { get; set; }
 
@@ -181,14 +181,8 @@ namespace WalletWasabi.Tor.Http
 			LatestTorException = ex;
 		}
 
-		/// <exception cref="OperationCanceledException">If <paramref name="cancel"/> is set.</exception>
-		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
-		{
-			return SendAsync(request, DefaultIsolateStream, cancel);
-		}
-
 		/// <exception cref="OperationCanceledException">If <paramref name="token"/> is set.</exception>
-		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token = default)
 		{
 			// Use clearnet HTTP client when Tor is disabled.
 			if (TorSocks5EndPoint is null)
@@ -224,7 +218,7 @@ namespace WalletWasabi.Tor.Http
 			{
 				TorSocks5Client = new TorSocks5Client(TorSocks5EndPoint!);
 				await TorSocks5Client.ConnectAsync(cancel).ConfigureAwait(false);
-				await TorSocks5Client.HandshakeAsync(DefaultIsolateStream, cancel).ConfigureAwait(false);
+				await TorSocks5Client.HandshakeAsync(IsolateStream, cancel).ConfigureAwait(false);
 				await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port, cancel).ConfigureAwait(false);
 
 				if (request.RequestUri.Scheme == "https")
