@@ -67,11 +67,11 @@ namespace WalletWasabi.WebClients.Wasabi
 		}
 
 		/// <summary>
-		/// Creates new <see cref="TorHttpClient"/>.
+		/// Creates a new <see cref="IHttpClient"/> with the base URI is set to Wasabi Backend.
 		/// </summary>
-		public TorHttpClient NewBackendTorHttpClient(bool isolateStream)
+		public IHttpClient NewBackendHttpClient(bool isolateStream)
 		{
-			return new TorHttpClient(BackendUriGetter, TorEndpoint, isolateStream);
+			return NewHttpClient(BackendUriGetter, isolateStream);
 		}
 
 		// Protected implementation of Dispose pattern.
