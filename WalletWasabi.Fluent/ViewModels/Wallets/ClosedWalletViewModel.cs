@@ -1,14 +1,12 @@
-using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
-using System.Reactive;
-using System.Reactive.Linq;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
-using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -20,36 +18,41 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet)
 			: base(wallet)
 		{
+			WalletManager = walletManager;
 			_items = new ObservableCollection<NavBarItemViewModel>();
-
-			OpenWalletCommand = ReactiveCommand.CreateFromTask(
-				async () =>
-				{
-					try
-					{
-						if (wallet.KeyManager.PasswordVerified is true)
-						{
-							// TODO ... new UX will test password earlier...
-						}
-
-						await Task.Run(async () => await walletManager.StartWalletAsync(Wallet));
-					}
-					catch (OperationCanceledException ex)
-					{
-						Logger.LogTrace(ex);
-					}
-					catch (Exception ex)
-					{
-						NotificationHelpers.Error($"Couldn't load wallet. Reason: {ex.ToUserFriendlyString()}", sender: wallet);
-						Logger.LogError(ex);
-					}
-				},
-				this.WhenAnyValue(x => x.WalletState).Select(x => x == WalletState.Uninitialized));
 		}
 
-		public ReactiveCommand<Unit, Unit> OpenWalletCommand { get; }
+		public WalletManager WalletManager { get; }
 
 		public override string IconName => "web_asset_regular";
+
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		{
+			base.OnNavigatedTo(inStack, disposable);
+
+			if (Wallet.State == WalletState.Uninitialized)
+			{
+				AbandonedTasks abandonedTasks = new();
+				abandonedTasks.AddAndClearCompleted(LoadWallet());
+			}
+		}
+
+		private async Task LoadWallet()
+		{
+			try
+			{
+				await Task.Run(async () => await WalletManager.StartWalletAsync(Wallet));
+			}
+			catch (OperationCanceledException ex)
+			{
+				Logger.LogTrace(ex);
+			}
+			catch (Exception ex)
+			{
+				await ShowErrorAsync(ex.ToUserFriendlyString(), "Wasabi was unable to load your wallet");
+				Logger.LogError(ex);
+			}
+		}
 
 		public static WalletViewModelBase Create(WalletManager walletManager, Wallet wallet)
 		{
