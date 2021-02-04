@@ -13,7 +13,23 @@
         </Setter>
     </Style>
 
-    <Style Selector="c|TagControl">
+    <Style Selector="c|TagsBox c|TagControl /template/ Panel#PART_TagPanel LayoutTransformControl#PART_DeleteButtonLayoutTransformer">
+        <Setter Property="LayoutTransform" Value="scaleX(0)" />
+    </Style>
+
+    <Style Selector="c|TagsBox c|TagControl /template/ Panel#PART_TagPanel Button#PART_DeleteButton">
+        <Setter Property="Opacity" Value="0" />
+    </Style>
+
+    <Style Selector="c|TagsBox:not(:readonly) c|TagControl /template/ Panel#PART_TagPanel:pointerover LayoutTransformControl#PART_DeleteButtonLayoutTransformer">
+        <Setter Property="LayoutTransform" Value="scaleX(1)" />
+    </Style>
+
+    <Style Selector="c|TagsBox:not(:readonly) c|TagControl /template/ Panel#PART_TagPanel:pointerover Button#PART_DeleteButton">
+        <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="c|TagsBox c|TagControl">
         <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
         <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
         <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
@@ -23,19 +39,6 @@
             <ControlTemplate>
                 <Panel>
                     <Panel.Styles>
-                        <Style Selector="Panel#PART_TagPanel LayoutTransformControl#PART_DeleteButtonLayoutTransformer">
-                            <Setter Property="LayoutTransform" Value="scaleX(0)" />
-                        </Style>
-                        <Style
-                            Selector="Panel#PART_TagPanel:pointerover LayoutTransformControl#PART_DeleteButtonLayoutTransformer">
-                            <Setter Property="LayoutTransform" Value="scaleX(1)" />
-                        </Style>
-                        <Style Selector="Panel#PART_TagPanel Button#PART_DeleteButton">
-                            <Setter Property="Opacity" Value="0" />
-                        </Style>
-                        <Style Selector="Panel#PART_TagPanel:pointerover Button#PART_DeleteButton">
-                            <Setter Property="Opacity" Value="1" />
-                        </Style>
                     </Panel.Styles>
                     <Panel Name="PART_TagPanel">
                         <Border Name="PART_TagItemBorder"

@@ -50,7 +50,8 @@ namespace WalletWasabi.Fluent.Controls
 				o => o.CompletedCommand,
 				(o, v) => o.CompletedCommand = v);
 
-		public static readonly StyledProperty<bool> IsReadOnlyProperty = AvaloniaProperty.Register<TagsBox, bool>("IsReadOnly");
+		public static readonly StyledProperty<bool> IsReadOnlyProperty =
+			AvaloniaProperty.Register<TagsBox, bool>("IsReadOnly");
 
 		static TagsBox()
 		{
@@ -355,6 +356,15 @@ namespace WalletWasabi.Fluent.Controls
 			CheckIsInputEnabled();
 		}
 
+		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> e)
+		{
+			base.OnPropertyChanged(e);
+
+			if (e.Property == IsReadOnlyProperty)
+			{
+				PseudoClasses.Set(":readonly", IsReadOnly);
+			}
+		}
 
 		internal void RemoveTargetTag(object? tag)
 		{
