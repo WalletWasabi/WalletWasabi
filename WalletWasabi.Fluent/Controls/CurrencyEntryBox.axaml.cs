@@ -120,10 +120,15 @@ namespace WalletWasabi.Fluent.Controls
 			var fracStr = match.Groups["Frac"].ToString();
 			var frac = fracStr.Length;
 
-			if (preComposedText.Length > 1 && (preComposedText[0] == _groupSeparator
-			                                || _regexConsecutiveSpaces.IsMatch(preComposedText))
-			    || whole >= 8 && (preComposedText.Last() == _groupSeparator || wholeStr.Last() == _groupSeparator)
-			    || !_regexDecimalCharsOnly.IsMatch(preComposedText))
+			// Check for consecutive spaces (2 or more) and leading spaces.
+			var rule1 = preComposedText.Length > 1 && (preComposedText[0] == _groupSeparator || _regexConsecutiveSpaces.IsMatch(preComposedText));
+
+			// Check for trailing spaces in the whole number part and in the last part of the precomp string.
+			var rule2 = whole >= 8 && (preComposedText.Last() == _groupSeparator || wholeStr.Last() == _groupSeparator);
+
+			// Check for non-numeric chars.
+			var rule3 = !_regexDecimalCharsOnly.IsMatch(preComposedText);
+			if (rule1 || rule2 || rule3)
 			{
 				e.Handled = true;
 				base.OnTextInput(e);
