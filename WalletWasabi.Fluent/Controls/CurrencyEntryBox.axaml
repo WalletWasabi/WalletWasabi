@@ -1,7 +1,10 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls"
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls;assembly=WalletWasabi.Fluent"
         xmlns:converters="using:WalletWasabi.Gui.Converters">
+    <Design.PreviewWith>
+        <c:CurrencyEntryBox IsReadOnly="True" AmountBtc="1" ConversionCurrencyCode="USD" />
+    </Design.PreviewWith>
     <Styles.Resources>
         <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
         <Thickness x:Key="TextControlBorderThemeThicknessFocused">0,0,0,2</Thickness>
@@ -39,76 +42,119 @@
                     <DataValidationErrors DockPanel.Dock="Bottom" Margin="0 10 0 0" />
 
                     <Panel>
-                        <Border
-                            Name="PART_BorderElement"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            MinWidth="{TemplateBinding MinWidth}"
-                            MinHeight="{TemplateBinding MinHeight}" />
-
-                        <Border
-                            Margin="{TemplateBinding BorderThickness}">
-                            <Grid ColumnDefinitions="Auto,*,Auto">
-                                <ContentPresenter Grid.Column="0" Grid.ColumnSpan="1"
-                                                  Content="{TemplateBinding InnerLeftContent}" />
-                                <Panel x:Name="PART_InnerDockPanel" Grid.Column="1" Grid.ColumnSpan="1"
-                                       Margin="{TemplateBinding Padding}">
-                                    <ScrollViewer
-                                        HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
-                                        VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
-                                        <DockPanel>
-                                            <TextBlock Name="PART_ConversionWatermark"
-                                                       DockPanel.Dock="Right"
+                        <Panel IsVisible="{TemplateBinding IsReadOnly}">
+                            <Border
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                MinWidth="{TemplateBinding MinWidth}"
+                                MinHeight="{TemplateBinding MinHeight}" />
+                            <Panel
+                                Margin="{TemplateBinding BorderThickness}">
+                                <Panel
+                                    Margin="{TemplateBinding Padding}">
+                                    <DockPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Opacity="0.5"
+                                                       Text="{TemplateBinding Text, Mode=TwoWay}"
+                                                       TextAlignment="{TemplateBinding TextAlignment}"
+                                                       TextWrapping="{TemplateBinding TextWrapping}"
+                                                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                            <TextBlock Opacity="0.5"
+                                                       Margin="5 0 0 0"
+                                                       Text="{TemplateBinding CurrencyCode}"
+                                                       IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                            <TextBlock DockPanel.Dock="Right"
+                                                       Margin="20 0 0 0"
                                                        Opacity="0.5"
                                                        Text="{TemplateBinding ConversionText}"
                                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                                            <Panel>
-                                                <TextBlock Name="PART_Watermark"
+                                        </StackPanel>
+
+                                        <Panel>
+
+                                            <!-- TODO eliminate this margin... text layout issue? -->
+
+                                        </Panel>
+                                    </DockPanel>
+                                </Panel>
+                            </Panel>
+                        </Panel>
+                        <Panel IsVisible="{Binding !$parent[c:CurrencyEntryBox].IsReadOnly}">
+                            <Border
+                                Name="PART_BorderElement"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                MinWidth="{TemplateBinding MinWidth}"
+                                MinHeight="{TemplateBinding MinHeight}" />
+
+                            <Panel
+                                Margin="{TemplateBinding BorderThickness}">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <ContentPresenter Grid.Column="0" Grid.ColumnSpan="1"
+                                                      Content="{TemplateBinding InnerLeftContent}" />
+                                    <Panel x:Name="PART_InnerDockPanel" Grid.Column="1" Grid.ColumnSpan="1"
+                                           Margin="{TemplateBinding Padding}">
+                                        <ScrollViewer
+                                            HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                                            VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
+                                            <DockPanel>
+                                                <TextBlock Name="PART_ConversionWatermark"
+                                                           DockPanel.Dock="Right"
                                                            Opacity="0.5"
-                                                           Text="{TemplateBinding Watermark}"
-                                                           TextAlignment="{TemplateBinding TextAlignment}"
-                                                           TextWrapping="{TemplateBinding TextWrapping}"
-                                                           IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                                                           Text="{TemplateBinding ConversionText}"
                                                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                                                <!-- TODO eliminate this margin... text layout issue? -->
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextPresenter Name="PART_TextPresenter"
-                                                                   Text="{TemplateBinding Text, Mode=TwoWay}"
-                                                                   CaretIndex="{TemplateBinding CaretIndex}"
-                                                                   SelectionStart="{TemplateBinding SelectionStart}"
-                                                                   SelectionEnd="{TemplateBinding SelectionEnd}"
-                                                                   TextAlignment="{TemplateBinding TextAlignment}"
-                                                                   TextWrapping="{TemplateBinding TextWrapping}"
-                                                                   PasswordChar="{TemplateBinding PasswordChar}"
-                                                                   RevealPassword="{TemplateBinding RevealPassword}"
-                                                                   SelectionBrush="{TemplateBinding SelectionBrush}"
-                                                                   SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
-                                                                   CaretBrush="{TemplateBinding CaretBrush}"
-                                                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                                   VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                                                    <TextBlock Name="PART_CurrencyCode"
+                                                <Panel>
+                                                    <TextBlock Name="PART_Watermark"
                                                                Opacity="0.5"
-                                                               Margin="5 0 0 0"
-                                                               Text="{TemplateBinding CurrencyCode}"
-                                                               IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                                               Text="{TemplateBinding Watermark}"
+                                                               TextAlignment="{TemplateBinding TextAlignment}"
+                                                               TextWrapping="{TemplateBinding TextWrapping}"
+                                                               IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
                                                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                                                </StackPanel>
-                                            </Panel>
-                                        </DockPanel>
-                                    </ScrollViewer>
-                                </Panel>
-                                <ContentPresenter Grid.Column="2" Grid.ColumnSpan="1"
-                                                  Content="{TemplateBinding InnerRightContent}" />
-                            </Grid>
-                        </Border>
-                        <Button x:Name="PART_SwapButton" Focusable="False"
-                                Cursor="Arrow" HorizontalAlignment="Center" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="0" Margin="0">
-                            <PathIcon Data="{StaticResource arrow_swap}" Width="16" />
-                        </Button>
+                                                    <!-- TODO eliminate this margin... text layout issue? -->
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextPresenter Name="PART_TextPresenter"
+                                                                       Text="{TemplateBinding Text, Mode=TwoWay}"
+                                                                       CaretIndex="{TemplateBinding CaretIndex}"
+                                                                       SelectionStart="{TemplateBinding SelectionStart}"
+                                                                       SelectionEnd="{TemplateBinding SelectionEnd}"
+                                                                       TextAlignment="{TemplateBinding TextAlignment}"
+                                                                       TextWrapping="{TemplateBinding TextWrapping}"
+                                                                       PasswordChar="{TemplateBinding PasswordChar}"
+                                                                       RevealPassword="{TemplateBinding RevealPassword}"
+                                                                       SelectionBrush="{TemplateBinding SelectionBrush}"
+                                                                       SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                                                                       CaretBrush="{TemplateBinding CaretBrush}"
+                                                                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                                        <TextBlock Name="PART_CurrencyCode"
+                                                                   Opacity="0.5"
+                                                                   Margin="5 0 0 0"
+                                                                   Text="{TemplateBinding CurrencyCode}"
+                                                                   IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                                   VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                                    </StackPanel>
+                                                </Panel>
+                                            </DockPanel>
+                                        </ScrollViewer>
+                                    </Panel>
+                                    <ContentPresenter Grid.Column="2" Grid.ColumnSpan="1"
+                                                      Content="{TemplateBinding InnerRightContent}" />
+                                </Grid>
+                            </Panel>
+                            <Button x:Name="PART_SwapButton" Focusable="False"
+                                    Cursor="Arrow" HorizontalAlignment="Center" Background="Transparent"
+                                    BorderBrush="Transparent" BorderThickness="0" Padding="0" Margin="0">
+                                <PathIcon Data="{StaticResource arrow_swap}" Width="16" />
+                            </Button>
+                        </Panel>
                     </Panel>
                 </DockPanel>
             </ControlTemplate>
@@ -182,7 +228,8 @@
         <Setter Property="Opacity" Value="1" />
     </Style>
 
-    <Style Selector="c|CurrencyEntryBox /template/ Button#PART_SwapButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Style
+        Selector="c|CurrencyEntryBox /template/ Button#PART_SwapButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="Transparent" />
     </Style>
 </Styles>
