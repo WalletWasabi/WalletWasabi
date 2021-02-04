@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Text.RegularExpressions;
 using Avalonia;
@@ -41,6 +42,7 @@ namespace WalletWasabi.Fluent.Controls
 		private readonly Regex _matchRegexDecimal;
 		private readonly Regex _matchRegexDecimalCharsOnly;
 		private bool _canUpdateDisplay = true;
+		private Regex _matchRegexConsecutiveSpaces;
 
 		public CurrencyEntryBox()
 		{
@@ -70,6 +72,10 @@ namespace WalletWasabi.Fluent.Controls
 			_matchRegexDecimalCharsOnly =
 				new Regex(
 					$"^[0-9{_groupSeparator}{_decimalSeparator}]*$");
+
+			_matchRegexConsecutiveSpaces =
+				new Regex(
+					$"{_groupSeparator}{{2,}}");
 		}
 
 		private decimal FiatToBitcoin(decimal fiatValue)
@@ -100,7 +106,10 @@ namespace WalletWasabi.Fluent.Controls
 			var trailingDecimal = inputLength > 0 && inputText[^1] == _decimalSeparator;
 			var preComposedText = PreComposeText(e);
 
-			if (!_matchRegexDecimalCharsOnly.IsMatch(preComposedText))
+			if ((preComposedText.Length > 1 && preComposedText[0] == _groupSeparator
+			     || preComposedText.Last() == _groupSeparator
+			     || _matchRegexConsecutiveSpaces.IsMatch(preComposedText))
+			    || !_matchRegexDecimalCharsOnly.IsMatch(preComposedText))
 			{
 				e.Handled = true;
 				base.OnTextInput(e);
