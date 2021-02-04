@@ -96,11 +96,11 @@ namespace WalletWasabi.Gui
 
 				BitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
 
-				HttpClientFactory wasabiClientFactory = Config.UseTor
+				HttpClientFactory httpClientFactory = Config.UseTor
 					? new HttpClientFactory(Config.TorSocks5EndPoint, backendUriGetter: () => Config.GetCurrentBackendUri())
 					: new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
 
-				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, wasabiClientFactory);
+				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, httpClientFactory);
 				LegalChecker = new(DataDir);
 			}
 		}

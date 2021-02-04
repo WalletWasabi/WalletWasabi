@@ -94,8 +94,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			using var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
-			HttpClientFactory wasabiClientFactory = new HttpClientFactory(Common.TorSocks5Endpoint, backendUriGetter: () => new Uri("http://localhost:12345"));
-			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, wasabiClientFactory);
+			HttpClientFactory httpClientFactory = new HttpClientFactory(Common.TorSocks5Endpoint, backendUriGetter: () => new Uri("http://localhost:12345"));
+			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, httpClientFactory);
 			ServiceConfiguration serviceConfig = new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelStrong.ToString(), 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
 				new P2pBlockProvider(nodes, null, syncer, serviceConfig, network),

@@ -47,7 +47,7 @@ namespace WalletWasabi.CoinJoin.Client
 
 					var txsNotKnownByAWallet = WalletManager.FilterUnknownCoinjoins(unconfirmedCoinJoinHashes);
 
-					var client = Synchronizer.WasabiClientFactory.SharedWasabiClient;
+					var client = Synchronizer.HttpClientFactory.SharedWasabiClient;
 					var unconfirmedCoinJoins = await client.GetTransactionsAsync(Synchronizer.Network, txsNotKnownByAWallet, CancellationToken.None).ConfigureAwait(false);
 
 					foreach (var tx in unconfirmedCoinJoins.Select(x => new SmartTransaction(x, Height.Mempool)))
