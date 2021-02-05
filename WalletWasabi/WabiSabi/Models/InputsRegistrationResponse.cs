@@ -9,13 +9,15 @@ namespace WalletWasabi.WabiSabi.Models
 {
 	public class InputsRegistrationResponse
 	{
-		public InputsRegistrationResponse(Guid aliceId, RegistrationResponseMessage credentials)
+		public InputsRegistrationResponse(Guid aliceId, RegistrationResponseMessage amountCredentials, RegistrationResponseMessage weightCredentials)
 		{
 			AliceId = aliceId;
-			Credentials = credentials;
+			AmountCredentials = amountCredentials;
+			WeightCredentials = weightCredentials;
 		}
 
 		public Guid AliceId { get; }
-		public RegistrationResponseMessage Credentials { get; }
+		public RegistrationResponseMessage AmountCredentials { get; }
+		public RegistrationResponseMessage WeightCredentials { get; }
 	}
 }

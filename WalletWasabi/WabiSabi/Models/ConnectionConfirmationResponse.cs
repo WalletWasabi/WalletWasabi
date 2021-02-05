@@ -9,11 +9,13 @@ namespace WalletWasabi.WabiSabi.Models
 {
 	public class ConnectionConfirmationResponse
 	{
-		public ConnectionConfirmationResponse(RegistrationResponseMessage credentials)
+		public ConnectionConfirmationResponse(RegistrationResponseMessage amountCredentials, RegistrationResponseMessage weightCredentials)
 		{
-			Credentials = credentials;
+			AmountCredentials = amountCredentials;
+			WeightCredentials = weightCredentials;
 		}
 
-		public RegistrationResponseMessage Credentials { get; }
+		public RegistrationResponseMessage AmountCredentials { get; }
+		public RegistrationResponseMessage WeightCredentials { get; }
 	}
 }

@@ -10,18 +10,22 @@ namespace WalletWasabi.WabiSabi.Models
 {
 	public class ConnectionConfirmationRequest
 	{
-		public ConnectionConfirmationRequest(Guid roundId, Guid aliceId, RegistrationRequestMessage zeroCredentialRequests, RegistrationRequestMessage realCredentialRequests)
+		public ConnectionConfirmationRequest(Guid roundId, Guid aliceId, RegistrationRequestMessage zeroAmountCredentialRequests, RegistrationRequestMessage realAmountCredentialRequests, RegistrationRequestMessage realWeightCredentialRequests, RegistrationRequestMessage zeroWeightCredentialRequests)
 		{
 			RoundId = roundId;
 			AliceId = aliceId;
-			RealCredentialRequests = realCredentialRequests;
-			ZeroCredentialRequests = zeroCredentialRequests;
+			RealAmountCredentialRequests = realAmountCredentialRequests;
+			ZeroAmountCredentialRequests = zeroAmountCredentialRequests;
+			RealWeightCredentialRequests = realWeightCredentialRequests;
+			ZeroWeightCredentialRequests = zeroWeightCredentialRequests;
 		}
 
 		public Guid RoundId { get; }
 
 		public Guid AliceId { get; }
-		public RegistrationRequestMessage RealCredentialRequests { get; }
-		public RegistrationRequestMessage ZeroCredentialRequests { get; }
+		public RegistrationRequestMessage RealAmountCredentialRequests { get; }
+		public RegistrationRequestMessage ZeroAmountCredentialRequests { get; }
+		public RegistrationRequestMessage RealWeightCredentialRequests { get; }
+		public RegistrationRequestMessage ZeroWeightCredentialRequests { get; }
 	}
 }
