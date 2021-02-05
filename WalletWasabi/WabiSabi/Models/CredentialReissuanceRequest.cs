@@ -9,15 +9,13 @@ namespace WalletWasabi.WabiSabi.Models
 {
 	public class CredentialReissuanceRequest
 	{
-		public CredentialReissuanceRequest(Guid roundId, RegistrationRequestMessage zeroCredentialRequests, RegistrationRequestMessage realCredentialRequests)
+		public CredentialReissuanceRequest(Guid roundId, RegistrationRequestMessage credentialRequests)
 		{
 			RoundId = roundId;
-			ZeroCredentialRequests = zeroCredentialRequests;
-			RealCredentialRequests = realCredentialRequests;
+			CredentialRequests = credentialRequests;
 		}
 
 		public Guid RoundId { get; }
-		public RegistrationRequestMessage ZeroCredentialRequests { get; }
-		public RegistrationRequestMessage RealCredentialRequests { get; }
+		public RegistrationRequestMessage CredentialRequests { get; }
 	}
 }
