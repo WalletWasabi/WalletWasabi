@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -30,6 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private decimal _amountBtc;
 		[AutoNotify] private decimal _exchangeRate;
 		[AutoNotify] private bool _isFixedAmount;
+		[AutoNotify] private ObservableCollection<string> _labels;
 		private string? _payJoinEndPoint;
 		private bool _parsingUrl;
 
@@ -37,6 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			_to = "";
 			_owner = walletVm;
+			_labels = new ObservableCollection<string>();
 
 			ExchangeRate = walletVm.Wallet.Synchronizer.UsdExchangeRate;
 
@@ -86,6 +89,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (!label.IsEmpty)
 				{
+					foreach (var labelString in label.Labels)
+					{
+						Labels.Add(labelString);
+					}
 					//LabelSuggestion.Label = label;
 				}
 

@@ -131,8 +131,9 @@
                 <DockPanel>
                     <Label DockPanel.Dock="Left" Content="_Labels:" Target="LabelTagBox" />
                     <c:TagsBox x:Name="LabelTagBox"
+                               Items="{Binding Labels}"
                                ItemCountLimit="12"
-                               RestrictInputToSuggestions="True" />
+                               RestrictInputToSuggestions="False" />
                 </DockPanel>
             </StackPanel>
             <DockPanel MinHeight="60">
