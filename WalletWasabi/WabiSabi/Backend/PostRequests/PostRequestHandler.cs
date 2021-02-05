@@ -25,11 +25,6 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			throw new NotImplementedException();
 		}
 
-		public CredentialReissuanceResponse ReissueCredentials(CredentialReissuanceRequest request)
-		{
-			throw new NotImplementedException();
-		}
-
 		public OutputRegistrationResponse RegisterOutput(OutputRegistrationRequest request)
 		{
 			throw new NotImplementedException();

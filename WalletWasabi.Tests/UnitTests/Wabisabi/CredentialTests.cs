@@ -14,6 +14,57 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 	public class CredentialTests
 	{
 		[Fact]
+		public void Foo()
+		{
+			// Split 1 BTC into 0.1, 0.1, 0.8
+			var numberOfCredentials = 2;
+			using var rnd = new SecureRandom();
+			var sk = new CredentialIssuerSecretKey(rnd);
+			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), numberOfCredentials, rnd);
+			var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd);
+
+			// Input Reg
+			var (zeroCredentialRequest, zeroValidationData) = client.CreateRequestForZeroAmount();
+			var zeroCredentialResponse = issuer.HandleRequest(zeroCredentialRequest);
+			client.HandleResponse(zeroCredentialResponse, zeroValidationData);
+
+			// Connection Conf
+			var (credentialRequest, validationData) = client.CreateRequest(new[] { Money.Satoshis(1), Money.Satoshis(9) }, Array.Empty<Credential>());
+			var credentialResponse = issuer.HandleRequest(credentialRequest);
+			client.HandleResponse(credentialResponse, validationData);
+
+			(zeroCredentialRequest, zeroValidationData) = client.CreateRequestForZeroAmount();
+			zeroCredentialResponse = issuer.HandleRequest(zeroCredentialRequest);
+			client.HandleResponse(zeroCredentialResponse, zeroValidationData);
+
+			// Output Reg
+			(credentialRequest, validationData) = client.CreateRequest(new[] { Money.Satoshis(1), Money.Satoshis(8) }, client.Credentials.Valuable);
+			credentialResponse = issuer.HandleRequest(credentialRequest);
+			client.HandleResponse(credentialResponse, validationData);
+			var d1 = credentialRequest.DeltaAmount;
+
+			(credentialRequest, validationData) = client.CreateRequest(new[] { Money.Satoshis(1), Money.Satoshis(7) }, client.Credentials.Valuable);
+			credentialResponse = issuer.HandleRequest(credentialRequest);
+			client.HandleResponse(credentialResponse, validationData);
+			var d2 = credentialRequest.DeltaAmount;
+
+			(credentialRequest, validationData) = client.CreateRequest(new[] { Money.Satoshis(1), Money.Satoshis(6) }, client.Credentials.Valuable);
+			credentialResponse = issuer.HandleRequest(credentialRequest);
+			client.HandleResponse(credentialResponse, validationData);
+			var d3 = credentialRequest.DeltaAmount;
+
+			(credentialRequest, validationData) = client.CreateRequest(Array.Empty<Money>(), client.Credentials.Valuable.Take(1));
+			credentialResponse = issuer.HandleRequest(credentialRequest);
+			client.HandleResponse(credentialResponse, validationData);
+			var d4 = credentialRequest.DeltaAmount;
+
+			(credentialRequest, validationData) = client.CreateRequest(Array.Empty<Money>(), client.Credentials.Valuable.Take(1));
+			credentialResponse = issuer.HandleRequest(credentialRequest);
+			client.HandleResponse(credentialResponse, validationData);
+			var d5 = credentialRequest.DeltaAmount;
+		}
+
+		[Fact]
 		[Trait("UnitTest", "UnitTest")]
 		public void CredentialIssuance()
 		{

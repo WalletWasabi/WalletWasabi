@@ -16,6 +16,15 @@ namespace WalletWasabi.WabiSabi.Models
 			InputRoundSignaturePairs = inputRoundSignaturePairs;
 			ZeroAmountCredentialRequests = zeroAmountCredentialRequests;
 			ZeroWeightCredentialRequests = zeroWeightCredentialRequests;
+
+			if (!ZeroAmountCredentialRequests.IsNullRequest)
+			{
+				throw new InvalidOperationException("Only zero credentials can be requested.");
+			}
+			if (!ZeroWeightCredentialRequests.IsNullRequest)
+			{
+				throw new InvalidOperationException("Only zero credentials can be requested.");
+			}
 		}
 
 		public Guid RoundId { get; }

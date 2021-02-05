@@ -18,10 +18,27 @@ namespace WalletWasabi.WabiSabi.Models
 			ZeroAmountCredentialRequests = zeroAmountCredentialRequests;
 			RealWeightCredentialRequests = realWeightCredentialRequests;
 			ZeroWeightCredentialRequests = zeroWeightCredentialRequests;
+
+			if (!ZeroAmountCredentialRequests.IsNullRequest)
+			{
+				throw new InvalidOperationException("Only zero credentials can be requested.");
+			}
+			if (!ZeroWeightCredentialRequests.IsNullRequest)
+			{
+				throw new InvalidOperationException("Only zero credentials can be requested.");
+			}
+
+			if (RealAmountCredentialRequests.IsNullRequest)
+			{
+				throw new InvalidOperationException("Only non-zero credentials can be requested.");
+			}
+			if (RealWeightCredentialRequests.IsNullRequest)
+			{
+				throw new InvalidOperationException("Only non-zero credentials can be requested.");
+			}
 		}
 
 		public Guid RoundId { get; }
-
 		public Guid AliceId { get; }
 		public RegistrationRequestMessage RealAmountCredentialRequests { get; }
 		public RegistrationRequestMessage ZeroAmountCredentialRequests { get; }
