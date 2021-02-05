@@ -1,6 +1,11 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="using:WalletWasabi.Fluent.Controls">
+    <Design.PreviewWith>
+        <Border Padding="10">
+            <c:TagControl Content="Test" Background="Transparent" BorderBrush="Transparent" />
+        </Border>
+    </Design.PreviewWith>
 
     <Style Selector="Button#PART_DeleteButton">
         <Setter Property="Background" Value="Transparent" />
@@ -13,11 +18,11 @@
         </Setter>
     </Style>
 
-    <Style Selector="c|TagsBox c|TagControl /template/ Panel#PART_TagPanel LayoutTransformControl#PART_DeleteButtonLayoutTransformer">
+    <Style Selector="c|TagControl /template/ Panel#PART_TagPanel LayoutTransformControl#PART_DeleteButtonLayoutTransformer">
         <Setter Property="LayoutTransform" Value="scaleX(0)" />
     </Style>
 
-    <Style Selector="c|TagsBox c|TagControl /template/ Panel#PART_TagPanel Button#PART_DeleteButton">
+    <Style Selector="c|TagControl /template/ Panel#PART_TagPanel Button#PART_DeleteButton">
         <Setter Property="Opacity" Value="0" />
     </Style>
 
@@ -29,7 +34,7 @@
         <Setter Property="Opacity" Value="1" />
     </Style>
 
-    <Style Selector="c|TagsBox c|TagControl">
+    <Style Selector="c|TagControl">
         <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
         <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
         <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
@@ -38,8 +43,6 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <Panel>
-                    <Panel.Styles>
-                    </Panel.Styles>
                     <Panel Name="PART_TagPanel">
                         <Border Name="PART_TagItemBorder"
                                 Background="Transparent"
@@ -51,8 +54,16 @@
                                 VerticalAlignment="Top" />
                         <StackPanel Name="PART_DummyPanel" Orientation="Horizontal"
                                     VerticalAlignment="Top">
-                            <ContentPresenter Content="{Binding .}"
-                                              VerticalAlignment="Center" Margin="12,6,12,6" />
+                            <ContentPresenter Name="PART_ContentPresenter"
+                                              Background="{TemplateBinding Background}"
+                                              BorderBrush="{TemplateBinding BorderBrush}"
+                                              BorderThickness="{TemplateBinding BorderThickness}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              Content="{TemplateBinding Content}"
+                                              Padding="{TemplateBinding Padding}"
+                                              VerticalAlignment="Center" Margin="12,6,12,6"
+                                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"/>
                             <LayoutTransformControl Name="PART_DeleteButtonLayoutTransformer" Margin="-8,0,3,0">
 
                                     <Button Name="PART_DeleteButton" VerticalAlignment="Center"

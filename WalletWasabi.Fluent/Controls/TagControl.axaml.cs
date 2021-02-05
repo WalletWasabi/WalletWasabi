@@ -6,7 +6,7 @@ using Avalonia.Interactivity;
 
 namespace WalletWasabi.Fluent.Controls
 {
-	public class TagControl : TemplatedControl
+	public class TagControl : ContentControl
 	{
 		private IDisposable? _subscription;
 		private TagsBox? _parentTagBox;
@@ -21,9 +21,12 @@ namespace WalletWasabi.Fluent.Controls
 
 			var deleteButton = e.NameScope.Find<Button>("PART_DeleteButton");
 
-			deleteButton.Click += OnDeleteTagClicked;
+			if (deleteButton is { })
+			{
+				deleteButton.Click += OnDeleteTagClicked;
 
-			_subscription = Disposable.Create(() => deleteButton.Click -= OnDeleteTagClicked);
+				_subscription = Disposable.Create(() => deleteButton.Click -= OnDeleteTagClicked);
+			}
 		}
 
 		private void OnDeleteTagClicked(object? sender, RoutedEventArgs e)
