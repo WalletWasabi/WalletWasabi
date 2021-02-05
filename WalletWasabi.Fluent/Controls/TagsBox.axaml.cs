@@ -256,7 +256,7 @@ namespace WalletWasabi.Fluent.Controls
 					return;
 				}
 			}
-			else if (suggestions != null)
+			else
 			{
 				foreach (var tag in splitTags)
 				{
@@ -266,13 +266,16 @@ namespace WalletWasabi.Fluent.Controls
 						continue;
 					}
 
-					var keywordIsInSuggestions =
-						suggestions.Any(
-							x => x.Equals(tag, StringComparison.InvariantCultureIgnoreCase));
-
-					if (keywordIsInSuggestions)
+					if (suggestions != null)
 					{
-						SelectTag(tag);
+						var keywordIsInSuggestions =
+							suggestions.Any(
+								x => x.Equals(tag, StringComparison.InvariantCultureIgnoreCase));
+
+						if (keywordIsInSuggestions)
+						{
+							SelectTag(tag);
+						}
 					}
 				}
 
