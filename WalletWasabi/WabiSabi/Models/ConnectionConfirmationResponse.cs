@@ -9,14 +9,14 @@ namespace WalletWasabi.WabiSabi.Models
 {
 	public class ConnectionConfirmationResponse
 	{
-		public ConnectionConfirmationResponse(IEnumerable<RegistrationResponseMessage> zeroCredentials, IEnumerable<RegistrationResponseMessage> realCredentials)
+		public ConnectionConfirmationResponse(RegistrationResponseMessage zeroCredentials, RegistrationResponseMessage realCredentials)
 		{
 			ZeroCredentials = zeroCredentials;
 			RealCredentials = realCredentials;
 		}
 
-		public IEnumerable<RegistrationResponseMessage> ZeroCredentials { get; }
+		public RegistrationResponseMessage ZeroCredentials { get; }
 
-		public IEnumerable<RegistrationResponseMessage> RealCredentials { get; }
+		public RegistrationResponseMessage RealCredentials { get; }
 	}
 }

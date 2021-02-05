@@ -10,7 +10,7 @@ namespace WalletWasabi.WabiSabi.Models
 {
 	public class InputsRegistrationRequest
 	{
-		public InputsRegistrationRequest(Guid roundId, IEnumerable<InputRoundSignaturePair> inputRoundSignaturePairs, IEnumerable<RegistrationRequestMessage> zeroCredentialRequests)
+		public InputsRegistrationRequest(Guid roundId, IEnumerable<InputRoundSignaturePair> inputRoundSignaturePairs, RegistrationRequestMessage zeroCredentialRequests)
 		{
 			RoundId = roundId;
 			InputRoundSignaturePairs = inputRoundSignaturePairs;
@@ -19,6 +19,6 @@ namespace WalletWasabi.WabiSabi.Models
 
 		public Guid RoundId { get; }
 		public IEnumerable<InputRoundSignaturePair> InputRoundSignaturePairs { get; }
-		public IEnumerable<RegistrationRequestMessage> ZeroCredentialRequests { get; }
+		public RegistrationRequestMessage ZeroCredentialRequests { get; }
 	}
 }
