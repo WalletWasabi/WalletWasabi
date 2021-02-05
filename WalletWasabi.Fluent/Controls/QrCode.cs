@@ -112,17 +112,17 @@ namespace WalletWasabi.Fluent.Controls
 			return Unit.Default;
 		}
 
-		private bool[,] AddPaddingToMatrix(bool[,] matrix)
+		private static bool[,] AddPaddingToMatrix(bool[,] matrix)
 		{
-			var dims = GetMatrixDimensions(matrix);
-			var nW = dims.w + (MatrixPadding * 2);
-			var nH = dims.h + (MatrixPadding * 2);
+			var (width, height) = GetMatrixDimensions(matrix);
+			var nW = width + (MatrixPadding * 2);
+			var nH = height + (MatrixPadding * 2);
 
 			var paddedMatrix = new bool[nH, nW];
 
-			for (var i = 0; i < dims.h; i++)
+			for (var i = 0; i < height; i++)
 			{
-				for (var j = 0; j < dims.w; j++)
+				for (var j = 0; j < width; j++)
 				{
 					paddedMatrix[i + MatrixPadding, j + MatrixPadding] = matrix[i, j];
 				}
@@ -140,13 +140,13 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			var dims = GetMatrixDimensions(source);
+			var (width, height) = GetMatrixDimensions(source);
 
-			context.FillRectangle(Brushes.White, new Rect(0, 0, GridCellFactor * dims.w, GridCellFactor * dims.h));
+			context.FillRectangle(Brushes.White, new Rect(0, 0, GridCellFactor * width, GridCellFactor * height));
 
-			for (var i = 0; i < dims.h; i++)
+			for (var i = 0; i < height; i++)
 			{
-				for (var j = 0; j < dims.w; j++)
+				for (var j = 0; j < width; j++)
 				{
 					var cellValue = source[i, j];
 					var rect = new Rect(i * GridCellFactor, j * GridCellFactor, GridCellFactor + 1, GridCellFactor + 1);
@@ -156,7 +156,7 @@ namespace WalletWasabi.Fluent.Controls
 			}
 		}
 
-		private (int w, int h) GetMatrixDimensions(bool[,] source)
+		private static (int w, int h) GetMatrixDimensions(bool[,] source)
 		{
 			return (source.GetUpperBound(0) + 1, source.GetUpperBound(1) + 1);
 		}
@@ -170,8 +170,8 @@ namespace WalletWasabi.Fluent.Controls
 				return new Size();
 			}
 
-			var dims = GetMatrixDimensions(source);
-			var minDimension = Math.Min(dims.w, dims.h);
+			var (width, height) = GetMatrixDimensions(source);
+			var minDimension = Math.Min(width, height);
 			var availMax = Math.Min(availableSize.Width, availableSize.Height);
 
 			GridCellFactor = Math.Floor(availMax / minDimension);
