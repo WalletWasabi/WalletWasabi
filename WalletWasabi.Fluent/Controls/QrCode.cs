@@ -55,9 +55,8 @@ namespace WalletWasabi.Fluent.Controls
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(_ =>
 				{
-					// The error is thrown also in ReceiveTabViewModel -> SaveQRCodeCommand.ThrownExceptions.
-					// However we need to catch it here too but to avoid duplicate logging the following line commented out.
-					// Logger.LogWarning(ex);
+					// The error is thrown also in ReceiveAddressViewModel -> SaveQrCodeCommand.ThrownExceptions.
+					// However we need to catch it here too but to avoid duplicate logging we don't do anything here.
 				});
 		}
 

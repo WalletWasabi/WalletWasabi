@@ -65,6 +65,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 				}
 			});
 
+			SaveQrCodeCommand.ThrownExceptions
+				.ObserveOn(RxApp.TaskpoolScheduler)
+				.Subscribe(ex => Logger.LogError(ex));
+
 			NextCommand = CancelCommand;
 		}
 
@@ -72,7 +76,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 		public ICommand CopyAddressCommand { get; }
 
-		public ICommand SaveQrCodeCommand { get; }
+		public ReactiveCommand<Unit, Unit> SaveQrCodeCommand { get; }
 
 		public ICommand ShowOnHwWalletCommand { get; }
 
