@@ -34,7 +34,7 @@
         </AutoCompleteBox>
       </StackPanel>
 
-      <Button Content="Previous unused addresses" Classes="h8 plain activeHyperLink" Command="{Binding ShowExistingAddressesCommand}" HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Bottom"/>
+      <Button Content="Previous unused addresses" IsVisible="{Binding IsExistingAddressesButtonVisible}" Classes="h8 plain activeHyperLink" Command="{Binding ShowExistingAddressesCommand}" HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Bottom"/>
     </DockPanel>
   </c:ContentArea>
 </UserControl>
