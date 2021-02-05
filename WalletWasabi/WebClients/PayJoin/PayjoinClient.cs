@@ -79,7 +79,7 @@ namespace WalletWasabi.WebClients.PayJoin
 
 			var endpoint = ApplyOptionalParameters(PaymentUrl, optionalParameters);
 
-			var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
+			using var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
 			{
 				Content = new StringContent(cloned.ToBase64(), Encoding.UTF8, "text/plain")
 			};
