@@ -32,6 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private decimal _exchangeRate;
 		[AutoNotify] private bool _isFixedAmount;
 		[AutoNotify] private ObservableCollection<string> _labels;
+		[AutoNotify] private bool _isPayJoin;
 		private string? _payJoinEndPoint;
 		private bool _parsingUrl;
 
@@ -94,7 +95,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				if (!label.IsEmpty)
 				{
 					Labels.Clear();
-					
+
 					foreach (var labelString in label.Labels)
 					{
 						Labels.Add(labelString);
@@ -135,7 +136,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			else
 			{
 				IsFixedAmount = false;
+				_payJoinEndPoint = null;
 			}
+
+			IsPayJoin = _payJoinEndPoint is { };
 
 			return result;
 		}

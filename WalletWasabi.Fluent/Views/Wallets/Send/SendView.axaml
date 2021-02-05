@@ -114,11 +114,14 @@
                     <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To, Mode=TwoWay}"
                              Watermark="(e.g. Bitcoin address or PayJoin URL)">
                         <TextBox.InnerRightContent>
-                            <Button Classes="plain"
-                                    Command="{Binding PasteCommand}"
-                                    ToolTip.Tip="Paste">
-                                <PathIcon Data="{StaticResource paste_regular}" Width="13" />
-                            </Button>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
+                                <c:TagControl IsVisible="{Binding IsPayJoin}" Content="PJ" Padding="0" Margin="0" Opacity="0.5" DockPanel.Dock="Left" />
+                                <Button Classes="plain"
+                                        Command="{Binding PasteCommand}"
+                                        ToolTip.Tip="Paste">
+                                    <PathIcon Data="{StaticResource paste_regular}" Width="13" />
+                                </Button>
+                            </StackPanel>
                         </TextBox.InnerRightContent>
                     </TextBox>
                 </DockPanel>
