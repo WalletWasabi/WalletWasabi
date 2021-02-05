@@ -49,11 +49,11 @@ namespace WalletWasabi.Fluent.Controls
 					}
 				});
 
-			_saveCommand = ReactiveCommand.CreateFromTask<string, Unit>(SaveQRCodeAsync);
+			_saveCommand = ReactiveCommand.CreateFromTask<string, Unit>(SaveQrCode);
 
 			SaveCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex =>
+				.Subscribe(_ =>
 				{
 					// The error is thrown also in ReceiveTabViewModel -> SaveQRCodeCommand.ThrownExceptions.
 					// However we need to catch it here too but to avoid duplicate logging the following line commented out.
@@ -78,7 +78,7 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetAndRaise(MatrixProperty, ref _matrix, value);
 		}
 
-		public async Task<Unit> SaveQRCodeAsync(string address)
+		public async Task<Unit> SaveQrCode(string address)
 		{
 			if (FinalMatrix is null)
 			{
