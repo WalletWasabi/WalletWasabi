@@ -3,7 +3,7 @@
         xmlns:c="using:WalletWasabi.Fluent.Controls">
     <Design.PreviewWith>
         <Border Padding="10">
-            <c:TagControl Content="Test" Background="Transparent" BorderBrush="Transparent" />
+            <c:TagControl Content="Test" />
         </Border>
     </Design.PreviewWith>
 
@@ -36,28 +36,22 @@
 
     <Style Selector="c|TagControl">
         <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
-        <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
-        <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThickness}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxControlForeground}" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
         <Setter Property="Template">
             <ControlTemplate>
                 <Panel>
                     <Panel Name="PART_TagPanel">
                         <Border Name="PART_TagItemBorder"
-                                Background="Transparent"
-                                BorderBrush="{DynamicResource TagsBoxControlForeground}"
-                                BorderThickness="1"
-                                CornerRadius="2"
-                                Opacity="0.25"
-                                Height="{Binding #PART_DummyPanel.Bounds.Height}"
-                                VerticalAlignment="Top" />
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="2" />
                         <StackPanel Name="PART_DummyPanel" Orientation="Horizontal"
                                     VerticalAlignment="Top">
                             <ContentPresenter Name="PART_ContentPresenter"
-                                              Background="{TemplateBinding Background}"
-                                              BorderBrush="{TemplateBinding BorderBrush}"
-                                              BorderThickness="{TemplateBinding BorderThickness}"
                                               ContentTemplate="{TemplateBinding ContentTemplate}"
                                               Content="{TemplateBinding Content}"
                                               Padding="{TemplateBinding Padding}"

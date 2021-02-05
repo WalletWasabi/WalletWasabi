@@ -37,7 +37,7 @@
                                 </ItemsPanelTemplate>
                             </ItemsPresenter.ItemsPanel>
                             <ItemsPresenter.ItemTemplate>
-                                <DataTemplate x:DataType="x:String">
+                                <DataTemplate>
                                     <c:TagControl Content="{Binding .}"/>
                                 </DataTemplate>
                             </ItemsPresenter.ItemTemplate>
