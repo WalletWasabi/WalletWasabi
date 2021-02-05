@@ -19,13 +19,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		NavBarPosition = NavBarPosition.None,
 		Searchable = false,
 		NavigationTarget = NavigationTarget.DialogScreen)]
-	public partial class ReceiveWalletActionViewModel : NavBarItemViewModel
+	public partial class ReceiveViewModel : NavBarItemViewModel
 	{
 		[AutoNotify] private string _reference;
 		[AutoNotify] private HashSet<string> _suggestions;
 		[AutoNotify] private bool _isExistingAddressesButtonVisible;
 
-		public ReceiveWalletActionViewModel(WalletViewModelBase wallet, WalletManager walletManager, BitcoinStore bitcoinStore)
+		public ReceiveViewModel(WalletViewModelBase wallet, WalletManager walletManager, BitcoinStore bitcoinStore)
 		{
 			SelectionMode = NavBarItemSelectionMode.Button;
 			WasabiWallet = wallet.Wallet;
@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			_suggestions = GetLabels(walletManager, bitcoinStore);
 
 			var nextCommandCanExecute =
-				this.WhenAnyValue<ReceiveWalletActionViewModel, string>(x => x.Reference)
+				this.WhenAnyValue<ReceiveViewModel, string>(x => x.Reference)
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Select(reference => !string.IsNullOrEmpty(reference));
 

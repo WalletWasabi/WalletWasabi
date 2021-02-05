@@ -7,9 +7,9 @@
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
-             x:DataType="receive:ReceiveWalletActionViewModel"
+             x:DataType="receive:ReceiveViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveWalletActionView">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveView">
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Continue"
                  EnableCancel="True">

@@ -10,12 +10,12 @@ using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Actions;
+using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
-using ReceiveWalletActionViewModel = WalletWasabi.Fluent.ViewModels.Wallets.Receive.ReceiveWalletActionViewModel;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -227,7 +227,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				actions.Add(new SendViewModel(walletViewModel));
 			}
 
-			actions.Add(new ReceiveWalletActionViewModel(walletViewModel, Model, BitcoinStore));
+			actions.Add(new ReceiveViewModel(walletViewModel, Model, BitcoinStore));
 
 			if (!wallet.KeyManager.IsWatchOnly)
 			{
