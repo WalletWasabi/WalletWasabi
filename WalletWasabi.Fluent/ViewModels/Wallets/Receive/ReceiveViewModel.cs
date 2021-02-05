@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			_suggestions = GetLabels(walletManager, bitcoinStore);
 
 			var nextCommandCanExecute =
-				this.WhenAnyValue<ReceiveViewModel, string>(x => x.Reference)
+				this.WhenAnyValue(x => x.Reference)
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Select(reference => !string.IsNullOrEmpty(reference));
 
