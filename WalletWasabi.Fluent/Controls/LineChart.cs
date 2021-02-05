@@ -1,4 +1,4 @@
-﻿// #define DEBUG_LABELS
+// #define DEBUG_LABELS
 // #define DEBUG_AXIS_TITLE
 
 using System;

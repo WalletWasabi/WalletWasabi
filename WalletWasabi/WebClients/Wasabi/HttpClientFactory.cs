@@ -5,9 +5,9 @@ using WalletWasabi.Tor.Http;
 namespace WalletWasabi.WebClients.Wasabi
 {
 	/// <summary>
-	/// Factory class to create <see cref="WasabiClient"/> instances.
+	/// Factory class to get proper <see cref="IHttpClient"/> client which is set up based on user settings.
 	/// </summary>
-	public class WasabiClientFactory
+	public class HttpClientFactory
 	{
 		/// <summary>
 		/// To detect redundant calls.
@@ -18,7 +18,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// Creates a new instance of the object.
 		/// </summary>
 		/// <param name="torEndPoint">If <c>null</c> then clearnet (not over Tor) is used, otherwise HTTP requests are routed through provided Tor endpoint.</param>
-		public WasabiClientFactory(EndPoint? torEndPoint, Func<Uri> backendUriGetter)
+		public HttpClientFactory(EndPoint? torEndPoint, Func<Uri> backendUriGetter)
 		{
 			TorEndpoint = torEndPoint;
 			BackendUriGetter = backendUriGetter;

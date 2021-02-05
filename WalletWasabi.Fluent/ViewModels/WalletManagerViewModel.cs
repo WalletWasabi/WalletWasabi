@@ -10,6 +10,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Actions;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
@@ -19,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels
 	public partial class WalletManagerViewModel : ViewModelBase
 	{
 		private readonly Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
-		private readonly Dictionary<WalletViewModelBase, List<WalletActionViewModel>> _walletActionsDictionary;
+		private readonly Dictionary<WalletViewModelBase, List<NavBarItemViewModel>> _walletActionsDictionary;
 		private readonly ReadOnlyObservableCollection<NavBarItemViewModel> _items;
 		[AutoNotify] private WalletViewModelBase? _selectedWallet;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
@@ -32,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			Model = walletManager;
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
-			_walletActionsDictionary = new Dictionary<WalletViewModelBase, List<WalletActionViewModel>>();
+			_walletActionsDictionary = new Dictionary<WalletViewModelBase, List<NavBarItemViewModel>>();
 			_actions = new ObservableCollection<NavBarItemViewModel>();
 			_wallets = new ObservableCollection<WalletViewModelBase>();
 			_loggedInAndSelectedAlwaysFirst = true;
@@ -67,7 +68,7 @@ namespace WalletWasabi.Fluent.ViewModels
 						{
 							RemoveWallet(_walletDictionary[wallet]);
 						}
-						else if (_walletDictionary[wallet] is ClosedWalletViewModel cwvm && wallet.State == WalletState.Started)
+						else if (_walletDictionary[wallet] is ClosedWalletViewModel { IsLoggedIn: true } cwvm && wallet.State == WalletState.Started)
 						{
 							IsLoadingWallet = true;
 							OpenClosedWallet(walletManager, uiConfig, cwvm);
@@ -116,7 +117,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			SelectedWallet = walletViewModelItem;
 		}
 
-		private WalletViewModelBase OpenWallet(WalletManager walletManager, UiConfig uiConfig, Wallet wallet)
+		private WalletViewModel OpenWallet(WalletManager walletManager, UiConfig uiConfig, Wallet wallet)
 		{
 			if (_wallets.Any(x => x.Title == wallet.WalletName))
 			{
@@ -149,11 +150,14 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (isLoggedIn)
 			{
-				var actions = _walletActionsDictionary[walletViewModel];
+				if (_walletActionsDictionary.ContainsKey(walletViewModel))
+				{
+					var actions = _walletActionsDictionary[walletViewModel];
 
-				RemoveActions(walletViewModel, actions, true);
+					RemoveActions(walletViewModel, actions, true);
 
-				_walletActionsDictionary.Remove(walletViewModel);
+					_walletActionsDictionary.Remove(walletViewModel);
+				}
 			}
 
 			_walletDictionary.Remove(walletViewModel.Wallet);
@@ -178,7 +182,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (SelectedWallet is { IsLoggedIn: true } walletViewModelPrevious && (item is WalletViewModelBase && SelectedWallet != item))
 			{
-				if (item is not WalletActionViewModel && SelectedWallet != item)
+				if (/*item is not WalletActionViewModel &&*/ SelectedWallet != item)
 				{
 					var actions = _walletActionsDictionary[walletViewModelPrevious];
 
@@ -190,7 +194,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				}
 			}
 
-			if (item is WalletViewModelBase { IsLoggedIn: true} walletViewModelItem)
+			if (item is WalletViewModel { IsLoggedIn: true} walletViewModelItem)
 			{
 				if (!_walletActionsDictionary.TryGetValue(walletViewModelItem, out var actions))
 				{
@@ -208,14 +212,14 @@ namespace WalletWasabi.Fluent.ViewModels
 			return result;
 		}
 
-		private List<WalletActionViewModel> GetWalletActions(WalletViewModelBase walletViewModel)
+		private List<NavBarItemViewModel> GetWalletActions(WalletViewModel walletViewModel)
 		{
 			var wallet = walletViewModel.Wallet;
-			var actions = new List<WalletActionViewModel>();
+			var actions = new List<NavBarItemViewModel>();
 
 			if (wallet.KeyManager.IsHardwareWallet || !wallet.KeyManager.IsWatchOnly)
 			{
-				actions.Add(new SendWalletActionViewModel(walletViewModel));
+				actions.Add(new SendViewModel(walletViewModel));
 			}
 
 			actions.Add(new ReceiveWalletActionViewModel(walletViewModel));

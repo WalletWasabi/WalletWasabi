@@ -9,12 +9,12 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
-	public class AddedWalletPageViewModel : RoutableViewModel
+	[NavigationMetaData(Title = "Success")]
+	public partial class AddedWalletPageViewModel : RoutableViewModel
 	{
 		public AddedWalletPageViewModel(WalletManager walletManager, KeyManager keyManager)
 		{
 			KeyManager = keyManager;
-			Title = "Success";
 			WalletName = keyManager.WalletName;
 
 			NextCommand = ReactiveCommand.Create(
@@ -30,7 +30,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 					if (wallet is { } && navBar is { })
 					{
-						Navigate(NavigationTarget.HomeScreen).To(wallet, NavigationMode.Clear);
+						navBar.SelectedItem = wallet;
+						wallet.OpenCommand.Execute(default);
 					}
 				});
 		}

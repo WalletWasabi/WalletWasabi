@@ -8,6 +8,7 @@ using WalletWasabi.Wallets.PasswordFinder;
 
 namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 {
+	[NavigationMetaData(Title = "Password Finder")]
 	public partial class SearchPasswordViewModel : RoutableViewModel
 	{
 		[AutoNotify] private int _percentage;
@@ -21,7 +22,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 
 		public SearchPasswordViewModel(PasswordFinderOptions options)
 		{
-			Title = "Password Finder";
 			Options = options;
 			_hourText = "";
 			_minText = "";
@@ -30,9 +30,9 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 
 		public PasswordFinderOptions Options { get; }
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
 		{
-			base.OnNavigatedTo(inStack, disposable);
+			base.OnNavigatedTo(inStack, disposables);
 
 			var cancelToken = new CancellationTokenSource();
 
@@ -43,7 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 				cancelToken.Cancel();
 				await t;
 			})
-			.DisposeWith(disposable);
+			.DisposeWith(disposables);
 		}
 
 		private void FindPassword(PasswordFinderOptions options, CancellationToken token)
