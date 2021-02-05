@@ -3,7 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:ReceiveAddressViewModel"
@@ -42,7 +41,7 @@
           <PathIcon Data="{StaticResource save_regular}"/>
         </Button>
         <Viewbox HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Left">
-          <controls:QrCode Height="250" Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" Margin="0 0 0 -18"/>
+          <c:QrCode Height="250" Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" Margin="0 0 0 -18"/>
         </Viewbox>
       </DockPanel>
 
