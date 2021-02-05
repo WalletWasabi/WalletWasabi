@@ -68,7 +68,7 @@ namespace WalletWasabi.Fluent.ViewModels
 						{
 							RemoveWallet(_walletDictionary[wallet]);
 						}
-						else if (_walletDictionary[wallet] is ClosedWalletViewModel cwvm && wallet.State == WalletState.Started)
+						else if (_walletDictionary[wallet] is ClosedWalletViewModel { IsLoggedIn: true } cwvm && wallet.State == WalletState.Started)
 						{
 							IsLoadingWallet = true;
 							OpenClosedWallet(walletManager, uiConfig, cwvm);
