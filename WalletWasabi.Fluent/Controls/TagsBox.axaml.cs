@@ -8,15 +8,17 @@ using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Generators;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Metadata;
 using Avalonia.Threading;
 
 namespace WalletWasabi.Fluent.Controls
 {
-	public class TagsBox : ItemsControl
+	public class TagsBox : TemplatedControl
 	{
 		public static readonly StyledProperty<bool> RestrictInputToSuggestionsProperty =
 			AvaloniaProperty.Register<TagsBox, bool>(nameof(RestrictInputToSuggestions));
@@ -27,6 +29,15 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<object> SelectedTagProperty =
 			AvaloniaProperty.Register<TagsBox, object>(nameof(SelectedTag), defaultBindingMode: BindingMode.TwoWay);
 
+		public static readonly StyledProperty<char> TagSeparatorProperty =
+			AvaloniaProperty.Register<TagsBox, char>(nameof(TagSeparator), defaultValue: ' ');
+
+		public static readonly DirectProperty<TagsBox, IEnumerable<string>> ItemsProperty =
+			AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable<string>>(nameof(Items),
+				o => o.Items,
+				(o, v) => o.Items = v,
+				enableDataValidation: true);
+
 		public static readonly DirectProperty<TagsBox, IEnumerable?> SuggestionsProperty =
 			AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable?>(
 				nameof(Suggestions),
@@ -34,15 +45,14 @@ namespace WalletWasabi.Fluent.Controls
 				(o, v) => o.Suggestions = v);
 
 		private CompositeDisposable? _compositeDisposable;
-
 		private AutoCompleteBox? _autoCompleteBox;
-
 		private bool _backspaceEmptyField1;
 		private bool _backspaceEmptyField2;
 		private bool _isFocused;
 		private bool _isInputEnabled = true;
 		private IEnumerable? _suggestions;
 		private ICommand? _completedCommand;
+		private IEnumerable<string> _items;
 
 		public static readonly DirectProperty<TagsBox, ICommand?> CompletedCommandProperty =
 			AvaloniaProperty.RegisterDirect<TagsBox, ICommand?>(
@@ -53,10 +63,11 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> IsReadOnlyProperty =
 			AvaloniaProperty.Register<TagsBox, bool>("IsReadOnly");
 
-		static TagsBox()
+		[Content]
+		public IEnumerable<string> Items
 		{
-			ItemsProperty.OverrideMetadata<TagsBox>(
-				new DirectPropertyMetadata<IEnumerable?>(enableDataValidation: true));
+			get => _items;
+			set => SetAndRaise(ItemsProperty, ref _items, value);
 		}
 
 		public bool RestrictInputToSuggestions
@@ -75,6 +86,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(ItemCountLimitProperty);
 			set => SetValue(ItemCountLimitProperty, value);
+		}
+
+		public char TagSeparator
+		{
+			get => GetValue(TagSeparatorProperty);
+			set => SetValue(TagSeparatorProperty, value);
 		}
 
 		public IEnumerable? Suggestions
@@ -99,11 +116,13 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			base.OnApplyTemplate(e);
 
-			Presenter.ApplyTemplate();
-
 			_compositeDisposable?.Dispose();
 
 			_compositeDisposable = new CompositeDisposable();
+
+			var Presenter = e.NameScope.Find<ItemsPresenter>("PART_ItemsPresenter");
+
+			Presenter.ApplyTemplate();
 
 			_autoCompleteBox = (Presenter.Panel as ConcatenatingWrapPanel)?.ConcatenatedChildren
 				.OfType<AutoCompleteBox>().FirstOrDefault();
@@ -137,9 +156,6 @@ namespace WalletWasabi.Fluent.Controls
 				Dispatcher.UIThread.Post(() => _autoCompleteBox.Focus());
 			}
 		}
-
-		protected override IItemContainerGenerator CreateItemContainerGenerator() =>
-			new ItemContainerGenerator<TagControl>(this,ContentControl.ContentProperty,ContentControl.ContentTemplateProperty);
 
 		private void CheckIsInputEnabled()
 		{
@@ -240,34 +256,33 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			var currentText = autoCompleteBox.Text ?? "";
-			var endsWithSpace = currentText.EndsWith(' ');
+			var endsWithSeparator = currentText.EndsWith(TagSeparator);
 			currentText = currentText.Trim();
 
-			var splitTags = currentText.Split(' ');
-			var suggestions = Suggestions as IList<string>;
-			if (splitTags.Length == 1 && suggestions != null && RestrictInputToSuggestions)
+			var splitTags = currentText.Split(TagSeparator);
+			if (splitTags.Length == 1 && Suggestions is IList<string> suggestions)
 			{
-				var keywordIsInSuggestions =
-					suggestions.Any(
-						x => x.Equals(currentText, StringComparison.InvariantCultureIgnoreCase));
+				if (RestrictInputToSuggestions)
+				{
+					var keywordIsInSuggestions =
+						suggestions.Any(
+							x => x.Equals(currentText, StringComparison.InvariantCultureIgnoreCase));
 
-				if (!keywordIsInSuggestions)
-				{
-					return;
-				}
-			}
-			else
-			{
-				foreach (var tag in splitTags)
-				{
-					if (!RestrictInputToSuggestions)
+					if (!keywordIsInSuggestions)
 					{
-						SelectTag(tag);
-						continue;
+						return;
 					}
-
-					if (suggestions != null)
+				}
+				else if (endsWithSeparator)
+				{
+					foreach (var tag in splitTags)
 					{
+						if (!RestrictInputToSuggestions)
+						{
+							SelectTag(tag);
+							continue;
+						}
+
 						var keywordIsInSuggestions =
 							suggestions.Any(
 								x => x.Equals(tag, StringComparison.InvariantCultureIgnoreCase));
@@ -277,16 +292,16 @@ namespace WalletWasabi.Fluent.Controls
 							SelectTag(tag);
 						}
 					}
-				}
 
-				Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
-				return;
+					Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
+					return;
+				}
 			}
 
 			if (!_isInputEnabled ||
 				currentText.Length < 1 ||
 				string.IsNullOrEmpty(currentText) ||
-				!endsWithSpace)
+				!endsWithSeparator)
 			{
 				return;
 			}
