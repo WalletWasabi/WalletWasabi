@@ -8,7 +8,8 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView"
+             ClipToBounds="False">
     <UserControl.Styles>
         <!-- Slider Fee -->
         <Style Selector="Slider.cursor">
@@ -100,9 +101,10 @@
     </UserControl.Styles>
     <c:ContentArea Title="Send" Caption=""
                    EnableCancel="True"
+                   ClipToBounds="False"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-        <DockPanel>
+        <DockPanel ClipToBounds="False">
             <StackPanel DockPanel.Dock="Top" Spacing="10">
                 <StackPanel.Styles>
                     <Style Selector="DockPanel > Label">
@@ -135,6 +137,11 @@
                                RestrictInputToSuggestions="True" />
                 </DockPanel>
             </StackPanel>
+            <Separator DockPanel.Dock="Top"
+                       HorizontalAlignment="Stretch"
+                       Margin="-200,0,0,0"
+                       Height="1"
+                       Background="Blue"/>
             <DockPanel MinHeight="60">
                 <Slider x:Name="CursorValue2"
                         DockPanel.Dock="Bottom"
