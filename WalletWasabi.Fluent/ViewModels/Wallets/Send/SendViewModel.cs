@@ -52,7 +52,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				var text =  await Application.Current.Clipboard.GetTextAsync();
 
 				_parsingUrl = true;
-				
+
 				if (!TryParseUrl(text))
 				{
 					To = text;
@@ -93,6 +93,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (!label.IsEmpty)
 				{
+					Labels.Clear();
+					
 					foreach (var labelString in label.Labels)
 					{
 						Labels.Add(labelString);
