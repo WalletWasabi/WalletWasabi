@@ -137,7 +137,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		private Interaction<(KeyPath, int), (KeyPath?, int?)> AdvancedOptionsInteraction { get; }
 
-		public ObservableCollection<RecoveryWordIndexed> Mnemonics { get; } = new();
+		public ObservableCollection<string> Mnemonics { get; } = new();
 
 		private void ValidateMnemonics(IValidationErrors errors)
 		{
@@ -151,7 +151,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			if (!string.IsNullOrWhiteSpace(tagString) && Mnemonics.Count + 1 <= 12)
 			{
-				Mnemonics.Add(new RecoveryWordIndexed(Mnemonics.Count + 1, tagString));
+				Mnemonics.Add(tagString);
 			}
 
 			SelectedTag = string.Empty;

@@ -348,9 +348,9 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void RemoveTag()
 		{
-			if (Items is IList x && x.Count > 0)
+			if (Items is IList {Count: > 0} list)
 			{
-				x.RemoveAt(Math.Max(0, x.Count - 1));
+				list.RemoveAt(list.Count - 1);
 			}
 
 			CheckIsInputEnabled();
@@ -368,9 +368,9 @@ namespace WalletWasabi.Fluent.Controls
 
 		internal void RemoveTargetTag(object? tag)
 		{
-			if (Items is IList {Count: > 0} x && tag is { })
+			if (Items is IList list)
 			{
-				x.RemoveAt(x.IndexOf(tag));
+				list.Remove(tag);
 			}
 
 			CheckIsInputEnabled();
