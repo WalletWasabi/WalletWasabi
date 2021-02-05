@@ -30,7 +30,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 					if (wallet is { } && navBar is { })
 					{
-						Navigate(NavigationTarget.HomeScreen).To(wallet, NavigationMode.Clear);
+						navBar.SelectedItem = wallet;
+						wallet.OpenCommand.Execute(default);
 					}
 				});
 		}
