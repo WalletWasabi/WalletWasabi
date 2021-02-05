@@ -129,7 +129,7 @@
                 <DockPanel>
                     <Label DockPanel.Dock="Left" Content="_Amount:" Target="amountTb" />
                     <DockPanel>
-                        <c:TagControl Foreground="{DynamicResource SystemAccentColor}" DockPanel.Dock="Right" IsVisible="{Binding IsPayJoin}" Content="PayJoin" Margin="0 4 0 0" VerticalAlignment="Top"  />
+                        <c:TagControl Background="{DynamicResource SystemAccentColor}" Foreground="Black" BorderThickness="0" DockPanel.Dock="Right" IsVisible="{Binding IsPayJoin}" Content="PayJoin" Margin="0 4 0 0" VerticalAlignment="Top"  />
                         <c:CurrencyEntryBox x:Name="amountTb" IsReadOnly="{Binding IsFixedAmount}" AmountBtc="{Binding AmountBtc}" ConversionRate="{Binding ExchangeRate}" ConversionCurrencyCode="USD" />
                     </DockPanel>
                 </DockPanel>
