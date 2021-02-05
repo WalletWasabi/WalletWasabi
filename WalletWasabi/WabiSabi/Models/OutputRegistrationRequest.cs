@@ -19,7 +19,6 @@ namespace WalletWasabi.WabiSabi.Models
 		}
 
 		public Guid RoundId { get; }
-
 		public TxOut Output { get; }
 		public IEnumerable<Credential> PresentedAmountCredentials { get; }
 		public IEnumerable<Credential> PresentedWeighCredentials { get; }
