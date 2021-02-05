@@ -93,7 +93,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					{
 						Labels.Add(labelString);
 					}
-					//LabelSuggestion.Label = label;
 				}
 
 				if (url.Address is { })
