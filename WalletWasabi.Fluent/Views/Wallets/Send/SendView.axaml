@@ -1,0 +1,182 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="vm:SendViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
+    <UserControl.Styles>
+        <!-- Slider Fee -->
+        <Style Selector="Slider.cursor">
+            <Setter Property="RenderTransform">
+                <RotateTransform Angle="-180" />
+            </Setter>
+        </Style>
+        <Style Selector="Slider.cursor /template/ RepeatButton#PART_IncreaseButton">
+            <Setter Property="Background" Value="{DynamicResource SliderTrackValueFill}" />
+        </Style>
+        <Style Selector="Slider:pressed.cursor /template/ RepeatButton#PART_IncreaseButton">
+            <Setter Property="Background" Value="{DynamicResource SliderTrackValueFillPressed}" />
+        </Style>
+        <Style Selector="Slider:pointerover.cursor /template/ RepeatButton#PART_IncreaseButton">
+            <Setter Property="Background" Value="{DynamicResource SliderTrackValueFillPointerOver}" />
+        </Style>
+        <Style Selector="Slider.cursor /template/ RepeatButton#PART_DecreaseButton">
+            <Setter Property="Background" Value="{DynamicResource SliderTrackFill}" />
+        </Style>
+        <Style Selector="Slider:pressed.cursor /template/ RepeatButton#PART_DecreaseButton">
+            <Setter Property="Background" Value="{DynamicResource SliderTrackFillPressed}" />
+        </Style>
+        <Style Selector="Slider:pointerover.cursor /template/ RepeatButton#PART_DecreaseButton">
+            <Setter Property="Background" Value="{DynamicResource SliderTrackFillPointerOver}" />
+        </Style>
+        <Style Selector="Slider:horizontal.cursor">
+            <Setter Property="Background" Value="{DynamicResource SliderTrackFill}" />
+        </Style>
+        <!-- LineChart Labels -->
+        <Style Selector="c|LineChart.xAxisLabels">
+            <Setter Property="XAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
+            <Setter Property="XAxisLabelOpacity" Value="0.5" />
+            <Setter Property="XAxisLabelAngle" Value="0" />
+            <Setter Property="XAxisLabelOffset" Value="0,10" />
+            <Setter Property="XAxisLabelSize" Value="50,30" />
+            <Setter Property="XAxisLabelAlignment" Value="Center" />
+            <Setter Property="XAxisLabelFontFamily" Value="Arial" />
+            <Setter Property="XAxisLabelFontStyle" Value="Normal" />
+            <Setter Property="XAxisLabelFontWeight" Value="Normal" />
+            <Setter Property="XAxisLabelFontSize" Value="10" />
+        </Style>
+        <!-- LineChart Cursor -->
+        <Style Selector="c|LineChart.cursor">
+            <Setter Property="CursorStroke" Value="#72BD81" />
+            <Setter Property="CursorStrokeThickness" Value="2" />
+            <!-- <Setter Property="CursorStrokeDashStyle" Value="{x:Static DashStyle.Dash}" /> -->
+            <Setter Property="CursorStrokeLineCap" Value="Round" />
+        </Style>
+        <!-- LineChart XAxis -->
+        <Style Selector="c|LineChart.xAxis">
+            <Setter Property="XAxisOffset" Value="0,0" />
+            <Setter Property="XAxisOpacity" Value="0.5" />
+            <Setter Property="XAxisStroke" Value="{DynamicResource TextForegroundColor}" />
+            <Setter Property="XAxisStrokeThickness" Value="0.7" />
+            <Setter Property="XAxisArrowSize" Value="3.5" />
+            <Setter Property="XAxisMinViableWidth" Value="0"/>
+            <Setter Property="XAxisMinViableHeight" Value="0"/>
+        </Style>
+        <!-- LineChart YAxis -->
+        <Style Selector="c|LineChart.yAxis">
+            <Setter Property="YAxisOffset" Value="-10,-115" />
+            <Setter Property="YAxisOpacity" Value="0.5" />
+            <Setter Property="YAxisStroke" Value="{DynamicResource TextForegroundColor}" />
+            <Setter Property="YAxisStrokeThickness" Value="0.7" />
+            <Setter Property="YAxisArrowSize" Value="3.5" />
+            <Setter Property="YAxisMinViableWidth" Value="0"/>
+            <Setter Property="YAxisMinViableHeight" Value="140"/>
+        </Style>
+        <!-- LineChart YAxis Title -->
+        <Style Selector="c|LineChart.yAxisTitle">
+            <Setter Property="YAxisTitleForeground" Value="{DynamicResource TextForegroundColor}" />
+            <Setter Property="YAxisTitleOpacity" Value="0.5" />
+            <Setter Property="YAxisTitleAngle" Value="-90" />
+            <Setter Property="YAxisTitleOffset" Value="-55,-75" />
+            <Setter Property="YAxisTitleSize" Value="90,20" />
+            <Setter Property="YAxisTitleAlignment" Value="Center" />
+            <Setter Property="YAxisTitleFontFamily" Value="Arial" />
+            <Setter Property="YAxisTitleFontStyle" Value="Normal" />
+            <Setter Property="YAxisTitleFontWeight" Value="Normal" />
+            <Setter Property="YAxisTitleFontSize" Value="12" />
+        </Style>
+        <!-- LineChart Border -->
+        <Style Selector="c|LineChart.border">
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderRadiusX" Value="4" />
+            <Setter Property="BorderRadiusY" Value="4" />
+        </Style>
+    </UserControl.Styles>
+    <c:ContentArea Title="Send" Caption=""
+                   EnableCancel="True"
+                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
+
+        <DockPanel>
+            <StackPanel DockPanel.Dock="Top" Spacing="10">
+                <StackPanel.Styles>
+                    <Style Selector="DockPanel > Label">
+                        <Setter Property="MinWidth" Value="80" />
+                    </Style>
+                </StackPanel.Styles>
+                <DockPanel>
+                    <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
+                    <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To, Mode=TwoWay}"
+                             Watermark="(e.g. Bitcoin address or PayJoin URL)">
+                        <TextBox.InnerRightContent>
+                            <Button Classes="plain"
+                                    Command="{Binding PasteCommand}"
+                                    ToolTip.Tip="Paste">
+                                <PathIcon Data="{StaticResource paste_regular}" Width="13" />
+                            </Button>
+                        </TextBox.InnerRightContent>
+                    </TextBox>
+                </DockPanel>
+
+                <DockPanel>
+                    <Label DockPanel.Dock="Left" Content="_Amount:" Target="amountTb" />
+                    <c:CurrencyEntryBox x:Name="amountTb" IsReadOnly="{Binding IsFixedAmount}" AmountBtc="{Binding AmountBtc}" ConversionRate="{Binding ExchangeRate}" ConversionCurrencyCode="USD" />
+                </DockPanel>
+
+                <DockPanel>
+                    <Label DockPanel.Dock="Left" Content="_Labels:" Target="LabelTagBox" />
+                    <c:TagsBox x:Name="LabelTagBox"
+                               ItemCountLimit="12"
+                               RestrictInputToSuggestions="True" />
+                </DockPanel>
+            </StackPanel>
+            <DockPanel MinHeight="60">
+                <Slider x:Name="CursorValue2"
+                        DockPanel.Dock="Bottom"
+                        Classes="cursor"
+                        Minimum="{Binding #GradientLineChart.XAxisMinValue}"
+                        Maximum="{Binding #GradientLineChart.XAxisMaxValue}"
+                        Value="{Binding #GradientLineChart.XAxisCurrentValue}"
+                        Margin="20,0,20,0" />
+                <c:LineChart x:Name="GradientLineChart"
+                             Classes="cursor border xAxisLabels yAxis yAxisTitle"
+                             MinHeight="30"
+                             XAxisLabels="{Binding XAxisLabels}"
+                             XAxisValues="{Binding XAxisValues}"
+                             XAxisCurrentValue="{Binding XAxisCurrentValue}"
+                             XAxisMinValue="{Binding XAxisMinValue}"
+                             XAxisMaxValue="{Binding XAxisMaxValue}"
+                             YAxisValues="{Binding YAxisValues}"
+                             YAxisLogarithmicScale="False"
+                             AreaMargin="30,40,30,30"
+                             AreaStrokeThickness="2"
+                             AreaStrokeLineCap="Round"
+                             AreaMinViableWidth="40"
+                             AreaMinViableHeight="20"
+                             YAxisTitle="More Expensive">
+                    <c:LineChart.AreaFill>
+                        <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
+                            <LinearGradientBrush.GradientStops>
+                                <GradientStop Offset="0.0" Color="#FF72BD81" />
+                                <GradientStop Offset="1.0" Color="#0072BD81" />
+                            </LinearGradientBrush.GradientStops>
+                        </LinearGradientBrush>
+                    </c:LineChart.AreaFill>
+                    <c:LineChart.AreaStroke>
+                        <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
+                            <LinearGradientBrush.GradientStops>
+                                <GradientStop Offset="0.0" Color="#72BD81" />
+                                <GradientStop Offset="1.0" Color="#72BD81" />
+                            </LinearGradientBrush.GradientStops>
+                        </LinearGradientBrush>
+                    </c:LineChart.AreaStroke>
+                </c:LineChart>
+            </DockPanel>
+        </DockPanel>
+    </c:ContentArea>
+</UserControl>

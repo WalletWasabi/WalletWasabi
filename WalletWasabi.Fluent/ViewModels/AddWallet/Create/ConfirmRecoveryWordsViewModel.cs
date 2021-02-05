@@ -13,6 +13,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 {
+	[NavigationMetaData(Title = "Confirm recovery words")]
 	public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	{
 		private readonly ReadOnlyObservableCollection<RecoveryWordViewModel> _confirmationWords;
@@ -20,7 +21,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 
 		public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
 		{
-			Title = "Confirm recovery words";
 			var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 			_isSkipEnable = walletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
 

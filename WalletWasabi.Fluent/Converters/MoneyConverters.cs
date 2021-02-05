@@ -1,4 +1,4 @@
-﻿using Avalonia.Data.Converters;
+using Avalonia.Data.Converters;
 using NBitcoin;
 
 namespace WalletWasabi.Fluent.Converters
