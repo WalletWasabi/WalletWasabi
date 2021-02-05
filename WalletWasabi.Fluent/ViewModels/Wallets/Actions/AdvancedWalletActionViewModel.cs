@@ -1,4 +1,6 @@
-﻿namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
+using WalletWasabi.Fluent.ViewModels.NavBar;
+
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 {
 	[NavigationMetaData(
 		Title = "Advanced",
@@ -7,9 +9,9 @@
 		NavBarPosition = NavBarPosition.None,
 		Searchable = false,
 		NavigationTarget = NavigationTarget.HomeScreen)]
-	public partial class AdvancedWalletActionViewModel : WalletActionViewModel
+	public partial class AdvancedWalletActionViewModel : NavBarItemViewModel
 	{
-		public AdvancedWalletActionViewModel(WalletViewModelBase wallet) : base(wallet)
+		public AdvancedWalletActionViewModel(WalletViewModelBase wallet)
 		{
 			Title = "Advanced";
 		}

@@ -7,15 +7,14 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 {
-	public class RecoveryWordsViewModel : RoutableViewModel
+	[NavigationMetaData(Title = "Recovery words")]
+	public partial class RecoveryWordsViewModel : RoutableViewModel
 	{
 		public RecoveryWordsViewModel(
 			KeyManager keyManager,
 			Mnemonic mnemonic,
 			WalletManager walletManager)
 		{
-			Title = "Recovery words";
-			
 			MnemonicWords = new List<RecoveryWordViewModel>();
 
 			for (int i = 0; i < mnemonic.Words.Length; i++)

@@ -12,11 +12,11 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
-	public class DetectedHardwareWalletViewModel : RoutableViewModel
+	[NavigationMetaData(Title = "Hardware Wallet")]
+	public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 	{
 		public DetectedHardwareWalletViewModel(WalletManager walletManager, string walletName, HwiEnumerateEntry device)
 		{
-			Title = "Hardware Wallet";
 			WalletManager = walletManager;
 			WalletName = walletName;
 			CancelCts = new CancellationTokenSource();
@@ -66,16 +66,16 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public ICommand NoCommand { get; }
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
 		{
-			base.OnNavigatedTo(inStack, disposable);
+			base.OnNavigatedTo(inStack, disposables);
 
 			Disposable.Create(() =>
 				{
 					CancelCts.Cancel();
 					CancelCts.Dispose();
 				})
-				.DisposeWith(disposable);
+				.DisposeWith(disposables);
 		}
 	}
 }

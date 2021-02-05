@@ -73,7 +73,7 @@ namespace WalletWasabi.Fluent.Desktop
 					Locator.CurrentMutable.RegisterConstant(Global);
 
 					Logger.LogSoftwareStarted("Wasabi GUI");
-					BuildAvaloniaApp(Global)
+					BuildAvaloniaApp()
 						.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled))
 						.StartWithClassicDesktopLifetime(args);
 				}
@@ -192,11 +192,11 @@ namespace WalletWasabi.Fluent.Desktop
 		}
 
 		// Avalonia configuration, don't remove; also used by visual designer.
-		private static AppBuilder BuildAvaloniaApp(Global global)
+		private static AppBuilder BuildAvaloniaApp()
 		{
 			bool useGpuLinux = true;
 
-			var result = AppBuilder.Configure(() => new App(global, async () => await global.InitializeNoWalletAsync(TerminateService)))
+			var result = AppBuilder.Configure(() => new App(Program.Global, async () => await Program.Global.InitializeNoWalletAsync(TerminateService)))
 				.UseReactiveUI();
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

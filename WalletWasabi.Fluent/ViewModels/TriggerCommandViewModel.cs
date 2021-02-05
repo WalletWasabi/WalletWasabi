@@ -8,14 +8,14 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		public abstract ICommand TargetCommand { get; }
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
 		{
 			if (TargetCommand.CanExecute(null))
 			{
 				TargetCommand.Execute(null);
 			}
 			Navigate().Back();
-			base.OnNavigatedTo(inStack, disposable);
+			base.OnNavigatedTo(inStack, disposables);
 		}
 	}
 }

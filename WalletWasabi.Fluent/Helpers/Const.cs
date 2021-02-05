@@ -1,4 +1,4 @@
-﻿namespace WalletWasabi.Fluent.Helpers
+namespace WalletWasabi.Fluent.Helpers
 {
 	public static class Const
 	{

@@ -12,7 +12,8 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 	public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	{
 		[AutoNotify] private bool _isBusy;
-		[AutoNotify] private string _title;
+
+		public abstract string Title { get; protected set; }
 
 		private CompositeDisposable? _currentDisposable;
 
@@ -22,7 +23,6 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		protected RoutableViewModel()
 		{
-			_title = "";
 			BackCommand = ReactiveCommand.Create(() => Navigate().Back());
 			CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 		}
@@ -49,7 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			OnNavigatedTo(inStack, _currentDisposable);
 		}
 
-		protected virtual void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		protected virtual void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
 		{
 		}
 

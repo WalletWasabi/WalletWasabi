@@ -33,9 +33,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		private LegalChecker LegalChecker { get; }
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
 		{
-			base.OnNavigatedTo(inStack, disposable);
+			base.OnNavigatedTo(inStack, disposables);
 
 			Observable.Merge(
 				Observable.FromEventPattern<LegalDocuments>(LegalChecker, nameof(LegalChecker.AgreedChanged)),
@@ -43,7 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Select(x => x.EventArgs)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(legalDocuments => Content = legalDocuments.Content)
-				.DisposeWith(disposable);
+				.DisposeWith(disposables);
 
 			Content = LegalChecker.TryGetNewLegalDocs(out LegalDocuments? provisional)
 				? provisional.Content

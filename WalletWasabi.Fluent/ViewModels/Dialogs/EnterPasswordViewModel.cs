@@ -6,6 +6,7 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
+	[NavigationMetaData (Title = "Enter a password")]
 	public partial class EnterPasswordViewModel : DialogViewModelBase<string?>
 	{
 		[AutoNotify] private string? _confirmPassword;
@@ -13,7 +14,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 		public EnterPasswordViewModel(string caption, bool enableEmpty = true)
 		{
-			Title = "Enter a password";
 			Caption = caption;
 
 			// This means pressing continue will make the password empty string.

@@ -1,17 +1,17 @@
-﻿using System;
+using System;
 using System.Reactive.Concurrency;
 using ReactiveUI;
 using WalletWasabi.Fluent.Model;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
-	public abstract class SettingsTabViewModelBase : ViewModelBase
+	public abstract class SettingsTabViewModelBase : RoutableViewModel
 	{
 		protected const int ThrottleTime = 500;
-		public static event EventHandler<RestartNeededEventArgs>? RestartNeeded;
 
 		protected SettingsTabViewModelBase(Config config, UiConfig uiConfig)
 		{
@@ -21,6 +21,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			UiConfigOnOpen = new UiConfig(uiConfig.FilePath);
 			UiConfigOnOpen.LoadFile();
 		}
+
+		public static event EventHandler<RestartNeededEventArgs>? RestartNeeded;
 
 		public static Config? ConfigOnOpen { get; set; }
 
