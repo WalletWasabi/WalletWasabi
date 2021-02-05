@@ -14,9 +14,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 	public class CredentialTests
 	{
 		[Fact]
-		public void Foo()
+		[Trait("UnitTest", "UnitTest")]
+		public void Splitting()
 		{
-			// Split 1 BTC into 0.1, 0.1, 0.8
+			// Split 10 sats into 1, 1, 1, 1, 6.
 			var numberOfCredentials = 2;
 			using var rnd = new SecureRandom();
 			var sk = new CredentialIssuerSecretKey(rnd);
@@ -30,38 +31,40 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 
 			// Connection Conf
 			var (credentialRequest, validationData) = client.CreateRequest(new[] { Money.Satoshis(1), Money.Satoshis(9) }, Array.Empty<Credential>());
-			var credentialResponse = issuer.HandleRequest(credentialRequest);
-			client.HandleResponse(credentialResponse, validationData);
-
 			(zeroCredentialRequest, zeroValidationData) = client.CreateRequestForZeroAmount();
+
+			Assert.Equal(Money.Satoshis(10), credentialRequest.DeltaAmount);
 			zeroCredentialResponse = issuer.HandleRequest(zeroCredentialRequest);
+			var credentialResponse = issuer.HandleRequest(credentialRequest);
+
 			client.HandleResponse(zeroCredentialResponse, zeroValidationData);
+			client.HandleResponse(credentialResponse, validationData);
 
 			// Output Reg
 			(credentialRequest, validationData) = client.CreateRequest(new[] { Money.Satoshis(1), Money.Satoshis(8) }, client.Credentials.Valuable);
 			credentialResponse = issuer.HandleRequest(credentialRequest);
 			client.HandleResponse(credentialResponse, validationData);
-			var d1 = credentialRequest.DeltaAmount;
+			Assert.Equal(Money.Satoshis(1), credentialRequest.DeltaAmount.Abs());
 
 			(credentialRequest, validationData) = client.CreateRequest(new[] { Money.Satoshis(1), Money.Satoshis(7) }, client.Credentials.Valuable);
 			credentialResponse = issuer.HandleRequest(credentialRequest);
 			client.HandleResponse(credentialResponse, validationData);
-			var d2 = credentialRequest.DeltaAmount;
+			Assert.Equal(Money.Satoshis(1), credentialRequest.DeltaAmount.Abs());
 
 			(credentialRequest, validationData) = client.CreateRequest(new[] { Money.Satoshis(1), Money.Satoshis(6) }, client.Credentials.Valuable);
 			credentialResponse = issuer.HandleRequest(credentialRequest);
 			client.HandleResponse(credentialResponse, validationData);
-			var d3 = credentialRequest.DeltaAmount;
+			Assert.Equal(Money.Satoshis(1), credentialRequest.DeltaAmount.Abs());
+
+			(credentialRequest, validationData) = client.CreateRequest(Array.Empty<Money>(), client.Credentials.Valuable.Where(x => x.Amount == Scalar.One).Take(1));
+			credentialResponse = issuer.HandleRequest(credentialRequest);
+			client.HandleResponse(credentialResponse, validationData);
+			Assert.Equal(Money.Satoshis(1), credentialRequest.DeltaAmount.Abs());
 
 			(credentialRequest, validationData) = client.CreateRequest(Array.Empty<Money>(), client.Credentials.Valuable.Take(1));
 			credentialResponse = issuer.HandleRequest(credentialRequest);
 			client.HandleResponse(credentialResponse, validationData);
-			var d4 = credentialRequest.DeltaAmount;
-
-			(credentialRequest, validationData) = client.CreateRequest(Array.Empty<Money>(), client.Credentials.Valuable.Take(1));
-			credentialResponse = issuer.HandleRequest(credentialRequest);
-			client.HandleResponse(credentialResponse, validationData);
-			var d5 = credentialRequest.DeltaAmount;
+			Assert.Equal(Money.Satoshis(6), credentialRequest.DeltaAmount.Abs());
 		}
 
 		[Fact]
