@@ -253,40 +253,42 @@ namespace WalletWasabi.Fluent.Controls
 			currentText = currentText.Trim();
 
 			var splitTags = currentText.Split(TagSeparator);
-			var suggestions = Suggestions as IList<string>;
-			if (splitTags.Length == 1 && suggestions != null && RestrictInputToSuggestions)
+			if (splitTags.Length == 1 && Suggestions is IList<string> suggestions)
 			{
-				var keywordIsInSuggestions =
-					suggestions.Any(
-						x => x.Equals(currentText, StringComparison.InvariantCultureIgnoreCase));
-
-				if (!keywordIsInSuggestions)
+				if (RestrictInputToSuggestions)
 				{
-					return;
-				}
-			}
-			else if (suggestions != null)
-			{
-				foreach (var tag in splitTags)
-				{
-					if (!RestrictInputToSuggestions)
-					{
-						SelectTag(tag);
-						continue;
-					}
-
 					var keywordIsInSuggestions =
 						suggestions.Any(
-							x => x.Equals(tag, StringComparison.InvariantCultureIgnoreCase));
+							x => x.Equals(currentText, StringComparison.InvariantCultureIgnoreCase));
 
-					if (keywordIsInSuggestions)
+					if (!keywordIsInSuggestions)
 					{
-						SelectTag(tag);
+						return;
 					}
 				}
+				else if (endsWithSeparator)
+				{
+					foreach (var tag in splitTags)
+					{
+						if (!RestrictInputToSuggestions)
+						{
+							SelectTag(tag);
+							continue;
+						}
 
-				Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
-				return;
+						var keywordIsInSuggestions =
+							suggestions.Any(
+								x => x.Equals(tag, StringComparison.InvariantCultureIgnoreCase));
+
+						if (keywordIsInSuggestions)
+						{
+							SelectTag(tag);
+						}
+					}
+
+					Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
+					return;
+				}
 			}
 
 			if (!_isInputEnabled ||
