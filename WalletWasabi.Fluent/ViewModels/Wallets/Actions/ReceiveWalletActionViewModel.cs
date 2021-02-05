@@ -7,6 +7,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
