@@ -23,12 +23,12 @@ namespace WalletWasabi.Fluent.Controls
 				o => o.SaveCommand,
 				(o, v) => o.SaveCommand = v);
 
+		public static readonly DirectProperty<QrCode, bool[,]?> MatrixProperty =
+			AvaloniaProperty.RegisterDirect<QrCode, bool[,]?>(nameof(Matrix), o => o.Matrix, (o, v) => o.Matrix = v);
+
 		private ReactiveCommand<string, Unit> _saveCommand;
 
-		public static readonly DirectProperty<QrCode, bool[,]> MatrixProperty =
-			AvaloniaProperty.RegisterDirect<QrCode, bool[,]>(nameof(Matrix), o => o.Matrix, (o, v) => o.Matrix = v);
-
-		private bool[,] _matrix;
+		private bool[,]? _matrix;
 
 		static QrCode()
 		{
@@ -40,9 +40,14 @@ namespace WalletWasabi.Fluent.Controls
 			CoercedSize = new Size();
 
 			this.WhenAnyValue(x => x.Matrix)
-				.Where(x => x is { })
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => FinalMatrix = AddPaddingToMatrix(x));
+				.Subscribe(matrix =>
+				{
+					if (matrix is { })
+					{
+						FinalMatrix = AddPaddingToMatrix(matrix);
+					}
+				});
 
 			_saveCommand = ReactiveCommand.CreateFromTask<string, Unit>(SaveQRCodeAsync);
 
@@ -58,7 +63,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private Size CoercedSize { get; set; }
 		private double GridCellFactor { get; set; }
-		private bool[,] FinalMatrix { get; set; }
+		private bool[,]? FinalMatrix { get; set; }
 
 		public ReactiveCommand<string, Unit> SaveCommand
 		{
@@ -67,7 +72,7 @@ namespace WalletWasabi.Fluent.Controls
 		}
 
 		[Content]
-		public bool[,] Matrix
+		public bool[,]? Matrix
 		{
 			get => _matrix;
 			set => SetAndRaise(MatrixProperty, ref _matrix, value);
