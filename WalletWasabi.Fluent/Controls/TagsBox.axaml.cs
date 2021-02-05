@@ -27,6 +27,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<object> SelectedTagProperty =
 			AvaloniaProperty.Register<TagsBox, object>(nameof(SelectedTag), defaultBindingMode: BindingMode.TwoWay);
 
+		public static readonly StyledProperty<char> TagSeparatorProperty =
+			AvaloniaProperty.Register<TagsBox, char>(nameof(TagSeparator), defaultValue: ' ');
+
 		public static readonly DirectProperty<TagsBox, IEnumerable?> SuggestionsProperty =
 			AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable?>(
 				nameof(Suggestions),
@@ -75,6 +78,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(ItemCountLimitProperty);
 			set => SetValue(ItemCountLimitProperty, value);
+		}
+
+		public char TagSeparator
+		{
+			get => GetValue(TagSeparatorProperty);
+			set => SetValue(TagSeparatorProperty, value);
 		}
 
 		public IEnumerable? Suggestions
@@ -240,10 +249,10 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			var currentText = autoCompleteBox.Text ?? "";
-			var endsWithSpace = currentText.EndsWith(' ');
+			var endsWithSeparator = currentText.EndsWith(TagSeparator);
 			currentText = currentText.Trim();
 
-			var splitTags = currentText.Split(' ');
+			var splitTags = currentText.Split(TagSeparator);
 			var suggestions = Suggestions as IList<string>;
 			if (splitTags.Length == 1 && suggestions != null && RestrictInputToSuggestions)
 			{
@@ -283,7 +292,7 @@ namespace WalletWasabi.Fluent.Controls
 			if (!_isInputEnabled ||
 				currentText.Length < 1 ||
 				string.IsNullOrEmpty(currentText) ||
-				!endsWithSpace)
+				!endsWithSeparator)
 			{
 				return;
 			}
