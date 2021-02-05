@@ -1,8 +1,8 @@
 Check if there is a new Tor Browser version.
 
-The Tor Browser changelog can found here: https://gitweb.torproject.org/builders/tor-browser-build.git/plain/projects/tor-browser/Bundle-Data/Docs/ChangeLog.txt
+The Tor Browser changelog can be found here: https://gitweb.torproject.org/builders/tor-browser-build.git/plain/projects/tor-browser/Bundle-Data/Docs/ChangeLog.txt
 
-The Tor changelog can found here: https://gitweb.torproject.org/tor.git/plain/ChangeLog
+The Tor changelog can be found here: https://gitweb.torproject.org/tor.git/plain/ChangeLog
 
 Download the latest stable Tor Browser from here: https://www.torproject.org/download/
 
@@ -10,7 +10,7 @@ Download the latest stable Tor Browser from here: https://www.torproject.org/dow
 - Linux x64
 - macOS x64
 
-Do not copy PluggableTransports folder!
+Do not copy the PluggableTransports folder!
 
 ## Windows
 msi => Browser\TorBrowser\Tor
@@ -21,7 +21,7 @@ tar.gz => tor-browser_en-US\Browser\TorBrowser\Tor
 ## macOS
 dmg => Tor Browser.app\Contents\MacOS\Tor
 
-Do not delete Tor file from the original folder!
+Do not delete the Tor file from the original folder!
 
 ## Geoip files
 
