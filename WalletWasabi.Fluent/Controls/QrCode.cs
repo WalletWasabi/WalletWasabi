@@ -145,7 +145,7 @@ namespace WalletWasabi.Fluent.Controls
 				for (var j = 0; j < dims.w; j++)
 				{
 					var cellValue = source[i, j];
-					var rect = new Rect(i * GridCellFactor, j * GridCellFactor, GridCellFactor, GridCellFactor);
+					var rect = new Rect(i * GridCellFactor, j * GridCellFactor, GridCellFactor + 1, GridCellFactor + 1);
 					var color = cellValue ? Brushes.Black : Brushes.White;
 					context.FillRectangle(color, rect);
 				}
