@@ -17,6 +17,15 @@ namespace WalletWasabi.WabiSabi.Models
 			Output = output;
 			PresentedAmountCredentials = presentedAmountCredentials;
 			PresentedWeighCredentials = presentedWeighCredentials;
+
+			if (PresentedAmountCredentials.IsNullRequest)
+			{
+				throw new InvalidOperationException("Only non-zero credentials can be requested.");
+			}
+			if (PresentedWeighCredentials.IsNullRequest)
+			{
+				throw new InvalidOperationException("Only non-zero credentials can be requested.");
+			}
 		}
 
 		public Guid RoundId { get; }
