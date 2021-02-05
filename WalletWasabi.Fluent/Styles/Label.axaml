@@ -2,6 +2,6 @@
   <Style Selector="Label">
     <Setter Property="(TextBlock.FontSize)" Value="{StaticResource FontSizeH7}" />
     <Setter Property="(TextBlock.FontWeight)" Value="Bold" />
-    <Setter Property="Margin" Value="0 0 0 10" />
+    <Setter Property="Margin" Value="0 7 0 10" />
   </Style>
 </Styles>

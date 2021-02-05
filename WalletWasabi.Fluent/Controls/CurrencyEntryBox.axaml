@@ -53,13 +53,13 @@
                                     Margin="{TemplateBinding Padding}">
                                     <DockPanel>
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock Opacity="0.5"
+                                            <TextBlock Opacity="1"
                                                        Text="{TemplateBinding Text, Mode=TwoWay}"
                                                        TextAlignment="{TemplateBinding TextAlignment}"
                                                        TextWrapping="{TemplateBinding TextWrapping}"
                                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                                            <TextBlock Opacity="0.5"
+                                            <TextBlock Opacity="1"
                                                        Margin="5 0 0 0"
                                                        Text="{TemplateBinding CurrencyCode}"
                                                        IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
