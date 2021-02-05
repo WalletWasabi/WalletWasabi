@@ -1,0 +1,51 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="receive:ReceiveAddressViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressView">
+  <c:ContentArea Title="{Binding Title}"
+                 EnableNext="True" NextContent="OK"
+                 EnableBack="True"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <DockPanel LastChildFill="True">
+      <DockPanel.Styles>
+        <Style Selector="TextBlock">
+          <Setter Property="FontWeight" Value="ExtraLight"/>
+          <Setter Property="TextWrapping" Value="Wrap"/>
+          <Setter Property="TextAlignment" Value="Center"/>
+          <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+      </DockPanel.Styles>
+      <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="30">
+        <DockPanel HorizontalAlignment="Center">
+          <DockPanel>
+            <Button Margin="5 0 0 0" ToolTip.Tip="Show on the hardware wallet" DockPanel.Dock="Right" Classes="plain" Command="{Binding ShowOnHwWalletCommand}" IsVisible="{Binding IsHardwareWallet}">
+              <PathIcon Data="{StaticResource share_regular}"/>
+            </Button>
+            <Button Margin="20 0 0 0" ToolTip.Tip="Copy" DockPanel.Dock="Right" Classes="plain" Command="{Binding CopyAddressCommand}">
+              <PathIcon Data="{StaticResource copy_regular}"/>
+            </Button>
+            <TextBlock Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
+          </DockPanel>
+        </DockPanel>
+        <TextBlock Text="{Binding Reference}" FontSize="{StaticResource FontSizeH2}" Opacity="0.6" />
+      </StackPanel>
+
+      <DockPanel MaxHeight="250" HorizontalAlignment="Center" Margin="0 0 -40 10">
+        <Button Command="{Binding SaveQrCodeCommand}" Classes="plain" DockPanel.Dock="Right" VerticalAlignment="Bottom" Margin="20 0 0 0">
+          <PathIcon Data="{StaticResource save_regular}"/>
+        </Button>
+        <Viewbox HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Left">
+          <controls:QrCode Height="250" Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" Margin="0 0 0 -18"/>
+        </Viewbox>
+      </DockPanel>
+
+    </DockPanel>
+  </c:ContentArea>
+</UserControl>
