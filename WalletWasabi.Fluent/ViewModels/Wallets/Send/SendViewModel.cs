@@ -51,11 +51,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				var text =  await Application.Current.Clipboard.GetTextAsync();
 
+				_parsingUrl = true;
+				
 				if (!TryParseUrl(text))
 				{
 					To = text;
 					// todo validation errors.
 				}
+
+				_parsingUrl = false;
 			});
 		}
 
