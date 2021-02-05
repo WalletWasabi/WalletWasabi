@@ -23,9 +23,7 @@
                             BorderThickness="{TemplateBinding BorderThickness}"
                             Padding="{TemplateBinding Padding}" Focusable="False">
                         <ItemsPresenter Name="PART_ItemsPresenter"
-                                        Items="{TemplateBinding Items}"
-                                        ItemTemplate="{TemplateBinding ItemTemplate}">
-
+                                        Items="{TemplateBinding Items}">
                             <ItemsPresenter.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <c:ConcatenatingWrapPanel>
@@ -38,6 +36,11 @@
                                     </c:ConcatenatingWrapPanel>
                                 </ItemsPanelTemplate>
                             </ItemsPresenter.ItemsPanel>
+                            <ItemsPresenter.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <c:TagControl Content="{Binding .}"/>
+                                </DataTemplate>
+                            </ItemsPresenter.ItemTemplate>
                         </ItemsPresenter>
                     </Border>
                 </DataValidationErrors>
