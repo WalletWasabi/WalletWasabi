@@ -64,6 +64,7 @@ namespace WalletWasabi.Fluent.Controls
 			this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay(false));
 			this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => UpdateDisplay(true));
 			this.GetObservable(AmountBtcProperty).Subscribe(_ => UpdateDisplay(true));
+			this.GetObservable(IsReadOnlyProperty).Subscribe(_ => UpdateDisplay(true));
 
 			Watermark = "0 BTC";
 			Text = string.Empty;
@@ -352,7 +353,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var conversion = BitcoinToFiat(AmountBtc);
 
-			if (IsConversionReversed)
+			if (IsConversionReversed && !IsReadOnly)
 			{
 				CurrencyCode = ConversionCurrencyCode;
 				ConversionText = FullFormatBtc(_customCultureInfo.NumberFormat, AmountBtc);
