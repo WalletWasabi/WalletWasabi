@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
@@ -9,6 +9,7 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Login
 {
+	[NavigationMetaData(Title = "Login")]
 	public partial class LoginViewModel : RoutableViewModel
 	{
 		[AutoNotify] private string _password;
@@ -18,7 +19,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 		public LoginViewModel(WalletViewModelBase walletViewModelBase)
 		{
-			Title = "Login";
 			KeyManager = walletViewModelBase.Wallet.KeyManager;
 			IsPasswordNeeded = !KeyManager.IsWatchOnly;
 			_walletName = walletViewModelBase.WalletName;

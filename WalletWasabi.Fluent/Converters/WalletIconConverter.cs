@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;

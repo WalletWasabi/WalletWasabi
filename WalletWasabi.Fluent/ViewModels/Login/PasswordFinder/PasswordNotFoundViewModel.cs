@@ -1,15 +1,14 @@
-﻿using ReactiveUI;
+using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 {
-	public class PasswordNotFoundViewModel : RoutableViewModel
+	[NavigationMetaData(Title = "Password Finder")]
+	public partial class PasswordNotFoundViewModel : RoutableViewModel
 	{
 		public PasswordNotFoundViewModel(Wallet wallet)
 		{
-			Title = "Password Finder";
-
 			NextCommand = ReactiveCommand.Create(() =>
 			{
 				var page = new PasswordFinderIntroduceViewModel(wallet);

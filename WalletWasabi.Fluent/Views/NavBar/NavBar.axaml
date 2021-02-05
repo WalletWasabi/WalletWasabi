@@ -151,7 +151,7 @@
               <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
             </Panel>
           </DataTemplate>
-          <DataTemplate DataType="vmwa:WalletActionViewModel">
+          <DataTemplate DataType="vm:NavBarItemViewModel">
             <Panel>
               <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
                 <PathIcon HorizontalAlignment="Left">

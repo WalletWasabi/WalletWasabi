@@ -1,4 +1,4 @@
-﻿namespace WalletWasabi.Fluent.ViewModels.Search
+namespace WalletWasabi.Fluent.ViewModels.Search
 {
 	public class SearchCategory
 	{

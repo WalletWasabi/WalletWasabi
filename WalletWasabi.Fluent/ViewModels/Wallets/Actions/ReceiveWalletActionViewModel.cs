@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 {
@@ -9,9 +9,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 		NavBarPosition = NavBarPosition.None,
 		Searchable = false,
 		NavigationTarget = NavigationTarget.DialogScreen)]
-	public partial class ReceiveWalletActionViewModel : WalletActionViewModel
+	public partial class ReceiveWalletActionViewModel : NavBarItemViewModel
 	{
-		public ReceiveWalletActionViewModel(WalletViewModelBase wallet) : base(wallet)
+		public ReceiveWalletActionViewModel(WalletViewModelBase wallet)
 		{
 			Title = "Receive";
 			SelectionMode = NavBarItemSelectionMode.Button;

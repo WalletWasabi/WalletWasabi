@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
@@ -8,6 +8,7 @@ using WalletWasabi.Wallets.PasswordFinder;
 
 namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 {
+	[NavigationMetaData (Title = "Password Finder")]
 	public partial class SelectCharsetViewModel : RoutableViewModel
 	{
 		[AutoNotify] private Charset? _selectedCharset;

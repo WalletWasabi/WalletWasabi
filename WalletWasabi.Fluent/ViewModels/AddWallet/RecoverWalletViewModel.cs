@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
@@ -19,6 +21,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
+	[NavigationMetaData (Title = "Enter recovery words")]
 	public partial class RecoverWalletViewModel : RoutableViewModel
 	{
 		[AutoNotify] private string? _selectedTag;
@@ -29,7 +32,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			string walletName,
 			WalletManagerViewModel walletManagerViewModel)
 		{
-			Title = "Enter recovery words";
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 			var walletManager = walletManagerViewModel.Model;
 			var network = walletManager.Network;
@@ -135,7 +137,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		private Interaction<(KeyPath, int), (KeyPath?, int?)> AdvancedOptionsInteraction { get; }
 
-		public ObservableCollection<string> Mnemonics { get; } = new ObservableCollection<string>();
+		public ObservableCollection<RecoveryWordIndexed> Mnemonics { get; } = new();
 
 		private void ValidateMnemonics(IValidationErrors errors)
 		{
@@ -149,7 +151,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			if (!string.IsNullOrWhiteSpace(tagString) && Mnemonics.Count + 1 <= 12)
 			{
-				Mnemonics.Add(tagString);
+				Mnemonics.Add(new RecoveryWordIndexed(Mnemonics.Count + 1, tagString));
 			}
 
 			SelectedTag = string.Empty;
