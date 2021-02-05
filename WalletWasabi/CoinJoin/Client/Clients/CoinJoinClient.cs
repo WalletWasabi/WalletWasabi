@@ -58,7 +58,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			DestinationKeyManager = KeyManager;
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
-			CcjHostUriAction = Synchronizer.WasabiClientFactory.BackendUriGetter;
+			CcjHostUriAction = Synchronizer.HttpClientFactory.BackendUriGetter;
 			CoordinatorFeepercentToCheck = null;
 
 			ExposedLinks = new ConcurrentDictionary<OutPoint, IEnumerable<HdPubKeyBlindedPair>>();
@@ -425,7 +425,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			shuffledOutputs.Shuffle();
 			foreach (var activeOutput in shuffledOutputs)
 			{
-				using (TorHttpClient torHttpClient = Synchronizer.WasabiClientFactory.NewBackendTorHttpClient(isolateStream: true))
+				using (TorHttpClient torHttpClient = Synchronizer.HttpClientFactory.NewBackendTorHttpClient(isolateStream: true))
 				{
 					var bobClient = new BobClient(torHttpClient);
 					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput).ConfigureAwait(false))
@@ -1079,7 +1079,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		private async Task<AliceClientBase> CreateAliceClientAsync(long roundId, List<OutPoint> registrableCoins, (HdPubKey change, IEnumerable<HdPubKey> actives) outputAddresses)
 		{
 			RoundStateResponse4 state;
-			WasabiClientFactory factory = Synchronizer.WasabiClientFactory;
+			HttpClientFactory factory = Synchronizer.HttpClientFactory;
 
 			using (TorHttpClient torHttpClient = factory.NewBackendTorHttpClient(isolateStream: true))
 			{
@@ -1134,7 +1134,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				inputProofs.Add(inputProof);
 			}
 
-			IHttpClient httpClient = Synchronizer.WasabiClientFactory.NewHttpClient(CcjHostUriAction, isolateStream: true);
+			IHttpClient httpClient = Synchronizer.HttpClientFactory.NewHttpClient(CcjHostUriAction, isolateStream: true);
 			return await AliceClientBase.CreateNewAsync(roundId, registeredAddresses, signerPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, httpClient).ConfigureAwait(false);
 		}
 	}
