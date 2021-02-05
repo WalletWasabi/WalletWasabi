@@ -7,11 +7,10 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 {
 	[NavigationMetaData(
 		Title = "Receive",
@@ -34,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 			_suggestions = GetLabels(walletManager, bitcoinStore);
 
 			var nextCommandCanExecute =
-				this.WhenAnyValue(x => x.Reference)
+				this.WhenAnyValue<ReceiveWalletActionViewModel, string>(x => x.Reference)
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Select(reference => !string.IsNullOrEmpty(reference));
 

@@ -15,6 +15,7 @@ using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
+using ReceiveWalletActionViewModel = WalletWasabi.Fluent.ViewModels.Wallets.Receive.ReceiveWalletActionViewModel;
 
 namespace WalletWasabi.Fluent.ViewModels
 {

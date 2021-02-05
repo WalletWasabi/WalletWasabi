@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
+             x:DataType="receive:ReceiveWalletActionViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveWalletActionView">
+  <c:ContentArea Title="{Binding Title}"
+                 EnableNext="True" NextContent="Continue"
+                 EnableCancel="True">
+    <DockPanel>
+      <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
+        <Label Content="_Reference" Target="ReferenceTbx" HorizontalAlignment="Left" FontWeight="Normal" />
+        <AutoCompleteBox Text="{Binding Reference}"
+                         x:Name="ReferenceTbx"
+                         Watermark='Who knows this address is yours? E.g.: "Max, BitPay"'
+                         HorizontalAlignment="Stretch"
+                         MinimumPrefixLength="1"
+                         IsTextCompletionEnabled="True"
+                         Items="{Binding Suggestions}">
+          <AutoCompleteBox.Styles>
+            <Style Selector="AutoCompleteBox /template/ Popup#PART_Popup">
+              <Setter Property="MaxWidth" Value="{Binding #ReferenceTbx.Bounds.Width}"/>
+            </Style>
+          </AutoCompleteBox.Styles>
+          <i:Interaction.Behaviors>
+            <behaviors:FocusOnAttachedBehavior IsEnabled="True"/>
+          </i:Interaction.Behaviors>
+        </AutoCompleteBox>
+      </StackPanel>
+
+      <Button Content="Previous unused addresses" Classes="h8 plain activeHyperLink" Command="{Binding ShowExistingAddressesCommand}" HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Bottom"/>
+    </DockPanel>
+  </c:ContentArea>
+</UserControl>
