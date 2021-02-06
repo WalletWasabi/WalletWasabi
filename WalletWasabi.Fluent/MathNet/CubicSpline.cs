@@ -264,9 +264,7 @@ namespace MathNet.Numerics.Interpolation
 
 			// Special case end-points.
 			dd[0] = PchipEndPoints(x[1] - x[0], x[2] - x[1], m[0], m[1]);
-			dd[dd.Length - 1] = PchipEndPoints(
-				x[x.Length - 1] - x[x.Length - 2], x[x.Length - 2] - x[x.Length - 3],
-				m[m.Length - 1], m[m.Length - 2]);
+			dd[dd.Length - 1] = PchipEndPoints(x[x.Length - 1] - x[x.Length - 2], x[x.Length - 2] - x[x.Length - 3], m[m.Length - 1], m[m.Length - 2]);
 
 			return InterpolateHermiteSorted(x, y, dd);
 		}
@@ -439,8 +437,7 @@ namespace MathNet.Numerics.Interpolation
 			}
 
 			Sorting.Sort(x, y);
-			return InterpolateBoundariesSorted(x, y, leftBoundaryCondition, leftBoundary, rightBoundaryCondition,
-				rightBoundary);
+			return InterpolateBoundariesSorted(x, y, leftBoundaryCondition, leftBoundary, rightBoundaryCondition, rightBoundary);
 		}
 
 		/// <summary>
@@ -449,8 +446,7 @@ namespace MathNet.Numerics.Interpolation
 		public static CubicSpline InterpolateBoundaries(IEnumerable<double> x, IEnumerable<double> y, SplineBoundaryCondition leftBoundaryCondition, double leftBoundary, SplineBoundaryCondition rightBoundaryCondition, double rightBoundary)
 		{
 			// note: we must make a copy, even if the input was arrays already
-			return InterpolateBoundariesInplace(x.ToArray(), y.ToArray(), leftBoundaryCondition, leftBoundary,
-				rightBoundaryCondition, rightBoundary);
+			return InterpolateBoundariesInplace(x.ToArray(), y.ToArray(), leftBoundaryCondition, leftBoundary, rightBoundaryCondition, rightBoundary);
 		}
 
 		/// <summary>
@@ -459,8 +455,7 @@ namespace MathNet.Numerics.Interpolation
 		/// </summary>
 		public static CubicSpline InterpolateNaturalSorted(double[] x, double[] y)
 		{
-			return InterpolateBoundariesSorted(x, y, SplineBoundaryCondition.SecondDerivative, 0.0,
-				SplineBoundaryCondition.SecondDerivative, 0.0);
+			return InterpolateBoundariesSorted(x, y, SplineBoundaryCondition.SecondDerivative, 0.0, SplineBoundaryCondition.SecondDerivative, 0.0);
 		}
 
 		/// <summary>
@@ -470,8 +465,7 @@ namespace MathNet.Numerics.Interpolation
 		/// </summary>
 		public static CubicSpline InterpolateNaturalInplace(double[] x, double[] y)
 		{
-			return InterpolateBoundariesInplace(x, y, SplineBoundaryCondition.SecondDerivative, 0.0,
-				SplineBoundaryCondition.SecondDerivative, 0.0);
+			return InterpolateBoundariesInplace(x, y, SplineBoundaryCondition.SecondDerivative, 0.0, SplineBoundaryCondition.SecondDerivative, 0.0);
 		}
 
 		/// <summary>
@@ -480,8 +474,7 @@ namespace MathNet.Numerics.Interpolation
 		/// </summary>
 		public static CubicSpline InterpolateNatural(IEnumerable<double> x, IEnumerable<double> y)
 		{
-			return InterpolateBoundaries(x, y, SplineBoundaryCondition.SecondDerivative, 0.0,
-				SplineBoundaryCondition.SecondDerivative, 0.0);
+			return InterpolateBoundaries(x, y, SplineBoundaryCondition.SecondDerivative, 0.0, SplineBoundaryCondition.SecondDerivative, 0.0);
 		}
 
 		/// <summary>
