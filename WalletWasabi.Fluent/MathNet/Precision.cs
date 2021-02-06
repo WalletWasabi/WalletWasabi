@@ -29,8 +29,6 @@
 
 using System;
 
-// NOTE: File edited to remove unused code.
-
 namespace MathNet.Numerics
 {
     /// <summary>
