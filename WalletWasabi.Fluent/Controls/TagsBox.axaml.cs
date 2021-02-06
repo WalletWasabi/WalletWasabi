@@ -321,7 +321,7 @@ namespace WalletWasabi.Fluent.Controls
 			switch (e.Key)
 			{
 				case Key.Back when _backspaceEmptyField1 && _backspaceEmptyField2:
-					RemoveTag();
+					RemoveLastTag();
 					break;
 				case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(currentText):
 					// Reject entry of the tag when user pressed enter and
@@ -358,7 +358,7 @@ namespace WalletWasabi.Fluent.Controls
 			}
 		}
 
-		private void RemoveTag()
+		private void RemoveLastTag()
 		{
 			if (Items is IList x && x.Count > 0)
 			{
