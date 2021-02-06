@@ -127,8 +127,7 @@ namespace MathNet.Numerics.Interpolation
 		/// <summary>
 		/// Create a Hermite cubic spline interpolation from an unsorted set of (x,y) value pairs and their slope (first derivative).
 		/// </summary>
-		public static CubicSpline InterpolateHermite(IEnumerable<double> x, IEnumerable<double> y,
-			IEnumerable<double> firstDerivatives)
+		public static CubicSpline InterpolateHermite(IEnumerable<double> x, IEnumerable<double> y, IEnumerable<double> firstDerivatives)
 		{
 			// note: we must make a copy, even if the input was arrays already
 			return InterpolateHermiteInplace(x.ToArray(), y.ToArray(), firstDerivatives.ToArray());
@@ -320,9 +319,7 @@ namespace MathNet.Numerics.Interpolation
 		/// Create a cubic spline interpolation from a set of (x,y) value pairs, sorted ascendingly by x,
 		/// and custom boundary/termination conditions.
 		/// </summary>
-		public static CubicSpline InterpolateBoundariesSorted(double[] x, double[] y,
-			SplineBoundaryCondition leftBoundaryCondition, double leftBoundary,
-			SplineBoundaryCondition rightBoundaryCondition, double rightBoundary)
+		public static CubicSpline InterpolateBoundariesSorted(double[] x, double[] y, SplineBoundaryCondition leftBoundaryCondition, double leftBoundary, SplineBoundaryCondition rightBoundaryCondition, double rightBoundary)
 		{
 			if (x.Length != y.Length)
 			{
@@ -434,9 +431,7 @@ namespace MathNet.Numerics.Interpolation
 		/// Create a cubic spline interpolation from an unsorted set of (x,y) value pairs and custom boundary/termination conditions.
 		/// WARNING: Works in-place and can thus causes the data array to be reordered.
 		/// </summary>
-		public static CubicSpline InterpolateBoundariesInplace(double[] x, double[] y,
-			SplineBoundaryCondition leftBoundaryCondition, double leftBoundary,
-			SplineBoundaryCondition rightBoundaryCondition, double rightBoundary)
+		public static CubicSpline InterpolateBoundariesInplace(double[] x, double[] y, SplineBoundaryCondition leftBoundaryCondition, double leftBoundary, SplineBoundaryCondition rightBoundaryCondition, double rightBoundary)
 		{
 			if (x.Length != y.Length)
 			{
@@ -451,9 +446,7 @@ namespace MathNet.Numerics.Interpolation
 		/// <summary>
 		/// Create a cubic spline interpolation from an unsorted set of (x,y) value pairs and custom boundary/termination conditions.
 		/// </summary>
-		public static CubicSpline InterpolateBoundaries(IEnumerable<double> x, IEnumerable<double> y,
-			SplineBoundaryCondition leftBoundaryCondition, double leftBoundary,
-			SplineBoundaryCondition rightBoundaryCondition, double rightBoundary)
+		public static CubicSpline InterpolateBoundaries(IEnumerable<double> x, IEnumerable<double> y, SplineBoundaryCondition leftBoundaryCondition, double leftBoundary, SplineBoundaryCondition rightBoundaryCondition, double rightBoundary)
 		{
 			// note: we must make a copy, even if the input was arrays already
 			return InterpolateBoundariesInplace(x.ToArray(), y.ToArray(), leftBoundaryCondition, leftBoundary,

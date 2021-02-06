@@ -178,8 +178,7 @@ namespace MathNet.Numerics
 		/// <param name="items1">First list to permute the same way as the key list.</param>
 		/// <param name="items2">Second list to permute the same way as the key list.</param>
 		/// <param name="comparer">Comparison, defining the sort order.</param>
-		public static void Sort<TKey, TItem1, TItem2>(IList<TKey> keys, IList<TItem1> items1, IList<TItem2> items2,
-			IComparer<TKey> comparer = null)
+		public static void Sort<TKey, TItem1, TItem2>(IList<TKey> keys, IList<TItem1> items1, IList<TItem2> items2, IComparer<TKey> comparer = null)
 		{
 			int count = keys.Count;
 			if (count <= 1)
@@ -321,8 +320,7 @@ namespace MathNet.Numerics
 		/// <param name="index">The zero-based starting index of the range to sort.</param>
 		/// <param name="count">The length of the range to sort.</param>
 		/// <param name="comparer">Comparison, defining the sort order.</param>
-		public static void Sort<TKey, TItem>(IList<TKey> keys, IList<TItem> items, int index, int count,
-			IComparer<TKey> comparer = null)
+		public static void Sort<TKey, TItem>(IList<TKey> keys, IList<TItem> items, int index, int count, IComparer<TKey> comparer = null)
 		{
 			if (index < 0)
 			{
@@ -401,8 +399,7 @@ namespace MathNet.Numerics
 		/// <param name="index">The zero-based starting index of the range to sort.</param>
 		/// <param name="count">The length of the range to sort.</param>
 		/// <param name="comparer">Comparison, defining the sort order.</param>
-		public static void Sort<TKey, TItem1, TItem2>(IList<TKey> keys, IList<TItem1> items1, IList<TItem2> items2,
-			int index, int count, IComparer<TKey> comparer = null)
+		public static void Sort<TKey, TItem1, TItem2>(IList<TKey> keys, IList<TItem1> items1, IList<TItem2> items2, int index, int count, IComparer<TKey> comparer = null)
 		{
 			if (index < 0)
 			{
@@ -475,8 +472,7 @@ namespace MathNet.Numerics
 		/// <param name="secondary">List to sort on duplicate primary items, and permute the same way as the key list.</param>
 		/// <param name="primaryComparer">Comparison, defining the primary sort order.</param>
 		/// <param name="secondaryComparer">Comparison, defining the secondary sort order.</param>
-		public static void SortAll<T1, T2>(IList<T1> primary, IList<T2> secondary, IComparer<T1> primaryComparer = null,
-			IComparer<T2> secondaryComparer = null)
+		public static void SortAll<T1, T2>(IList<T1> primary, IList<T2> secondary, IComparer<T1> primaryComparer = null, IComparer<T2> secondaryComparer = null)
 		{
 			if (null == primaryComparer)
 			{
@@ -491,7 +487,6 @@ namespace MathNet.Numerics
 			// local sort implementation
 			QuickSortAll(primary, secondary, primaryComparer, secondaryComparer, 0, primary.Count - 1);
 		}
-
 
 		/// <summary>
 		/// Recursive implementation for an in place quick sort on a list.
@@ -679,10 +674,7 @@ namespace MathNet.Numerics
 		/// <param name="comparer">The method with which to compare two elements of the quick sort.</param>
 		/// <param name="left">The left boundary of the quick sort.</param>
 		/// <param name="right">The right boundary of the quick sort.</param>
-		static void QuickSort<T, TItems1, TItems2>(
-			IList<T> keys, IList<TItems1> items1, IList<TItems2> items2,
-			IComparer<T> comparer,
-			int left, int right)
+		static void QuickSort<T, TItems1, TItems2>(IList<T> keys, IList<TItems1> items1, IList<TItems2> items2, IComparer<T> comparer, int left, int right)
 		{
 			do
 			{
@@ -777,10 +769,7 @@ namespace MathNet.Numerics
 		/// <param name="secondaryComparer">The method with which to compare two elements of the secondary list.</param>
 		/// <param name="left">The left boundary of the quick sort.</param>
 		/// <param name="right">The right boundary of the quick sort.</param>
-		static void QuickSortAll<T1, T2>(
-			IList<T1> primary, IList<T2> secondary,
-			IComparer<T1> primaryComparer, IComparer<T2> secondaryComparer,
-			int left, int right)
+		static void QuickSortAll<T1, T2>(IList<T1> primary, IList<T2> secondary, IComparer<T1> primaryComparer, IComparer<T2> secondaryComparer, int left, int right)
 		{
 			do
 			{
