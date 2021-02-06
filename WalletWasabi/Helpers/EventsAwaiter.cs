@@ -48,11 +48,5 @@ namespace System
 
 		public async Task<IEnumerable<TEventArgs>> WaitAsync(TimeSpan timeout)
 			=> await Task.WhenAll(Tasks).WithAwaitCancellationAsync(timeout).ConfigureAwait(false);
-
-		public async Task<IEnumerable<TEventArgs>> WaitAsync(int millisecondsTimeout)
-			=> await Task.WhenAll(Tasks).WithAwaitCancellationAsync(millisecondsTimeout).ConfigureAwait(false);
-
-		public async Task<IEnumerable<TEventArgs>> WaitAsync(CancellationToken cancel, int waitForGracefulTerminationMilliseconds = 0)
-			=> await Task.WhenAll(Tasks).WithAwaitCancellationAsync(cancel, waitForGracefulTerminationMilliseconds).ConfigureAwait(false);
 	}
 }

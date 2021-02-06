@@ -65,9 +65,6 @@ namespace System.Threading.Tasks
 			await me.ConfigureAwait(false);
 		}
 
-		public static async Task<T> WithAwaitCancellationAsync<T>(this Task<T> me, int millisecondsDelay)
-			=> await me.WithAwaitCancellationAsync(ThreadingHelpers.Cancelled, millisecondsDelay).ConfigureAwait(false);
-
 		public static async Task<T> WithAwaitCancellationAsync<T>(this Task<T> me, TimeSpan timeout)
 			=> await me.WithAwaitCancellationAsync(ThreadingHelpers.Cancelled, (int)timeout.TotalMilliseconds).ConfigureAwait(false);
 
