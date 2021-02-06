@@ -37,7 +37,7 @@ namespace MathNet.Numerics.Interpolation
     /// Cubic Spline Interpolation.
     /// </summary>
     /// <remarks>Supports both differentiation and integration.</remarks>
-    public class CubicSpline : IInterpolation
+    public class CubicSpline
     {
         readonly double[] _x;
         readonly double[] _c0;
@@ -229,7 +229,7 @@ namespace MathNet.Numerics.Interpolation
             }
 
             var m = new double[x.Length - 1];
-            
+
             for (int i = 0; i < m.Length; i++)
             {
                 m[i] = (y[i + 1] - y[i])/(x[i + 1] - x[i]);
@@ -260,7 +260,7 @@ namespace MathNet.Numerics.Interpolation
                 hPrev = h;
                 mPrevIs0 = mIs0;
             }
-            
+
             // Special case end-points.
             dd[0] = PchipEndPoints(x[1] - x[0], x[2] - x[1], m[0], m[1]);
             dd[dd.Length - 1] = PchipEndPoints(
@@ -533,16 +533,6 @@ namespace MathNet.Numerics.Interpolation
 
             return x;
         }
-
-        /// <summary>
-        /// Gets a value indicating whether the algorithm supports differentiation (interpolated derivative).
-        /// </summary>
-        bool IInterpolation.SupportsDifferentiation => true;
-
-        /// <summary>
-        /// Gets a value indicating whether the algorithm supports integration (interpolated quadrature).
-        /// </summary>
-        bool IInterpolation.SupportsIntegration => true;
 
         /// <summary>
         /// Interpolate at point t.
