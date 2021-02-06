@@ -26,9 +26,6 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<int> ItemCountLimitProperty =
 			AvaloniaProperty.Register<TagsBox, int>(nameof(ItemCountLimit));
 
-		public static readonly StyledProperty<object> SelectedTagProperty =
-			AvaloniaProperty.Register<TagsBox, object>(nameof(SelectedTag), defaultBindingMode: BindingMode.TwoWay);
-
 		public static readonly StyledProperty<char> TagSeparatorProperty =
 			AvaloniaProperty.Register<TagsBox, char>(nameof(TagSeparator), defaultValue: ' ');
 
@@ -74,12 +71,6 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(RestrictInputToSuggestionsProperty);
 			set => SetValue(RestrictInputToSuggestionsProperty, value);
-		}
-
-		public object SelectedTag
-		{
-			get => GetValue(SelectedTagProperty);
-			set => SetValue(SelectedTagProperty, value);
 		}
 
 		public int ItemCountLimit
@@ -236,7 +227,7 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			SelectTag(currentText);
+			AddTag(currentText);
 			BackspaceLogicClear();
 			autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
 
@@ -279,7 +270,7 @@ namespace WalletWasabi.Fluent.Controls
 					{
 						if (!RestrictInputToSuggestions)
 						{
-							SelectTag(tag);
+							AddTag(tag);
 							continue;
 						}
 
@@ -289,7 +280,7 @@ namespace WalletWasabi.Fluent.Controls
 
 						if (keywordIsInSuggestions)
 						{
-							SelectTag(tag);
+							AddTag(tag);
 						}
 					}
 
@@ -306,7 +297,7 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			SelectTag(currentText);
+			AddTag(currentText);
 
 			BackspaceLogicClear();
 
@@ -333,20 +324,23 @@ namespace WalletWasabi.Fluent.Controls
 					RemoveTag();
 					break;
 				case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(currentText):
-					if (RestrictInputToSuggestions &&
-						Suggestions is { } &&
-						!Suggestions.Cast<string>().Any(
-							x => x.Equals(currentText, StringComparison.InvariantCultureIgnoreCase)))
+					// Reject entry of the tag when user pressed enter and
+					// the input tag is not on the suggestions list.
+					if (RestrictInputToSuggestions && Suggestions is { } &&
+					    !Suggestions.Cast<string>().Any(
+						    x => x.Equals(currentText, StringComparison.InvariantCultureIgnoreCase)))
 					{
+
 						break;
 					}
 
 					BackspaceLogicClear();
-					SelectTag(currentText);
+					AddTag(currentText);
 					ExecuteCompletedCommand();
 
 					Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 					break;
+
 				case Key.Enter:
 					ExecuteCompletedCommand();
 					break;
@@ -394,9 +388,13 @@ namespace WalletWasabi.Fluent.Controls
 			CheckIsInputEnabled();
 		}
 
-		private void SelectTag(string tagString)
+		private void AddTag(string tag)
 		{
-			SelectedTag = tagString;
+			if (Items is IList x && x.Count + 1 <= ItemCountLimit)
+			{
+				x.Add(tag);
+			}
+
 			CheckIsInputEnabled();
 		}
 	}
