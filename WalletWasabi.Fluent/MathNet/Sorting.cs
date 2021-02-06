@@ -51,7 +51,7 @@ namespace MathNet.Numerics
 				return;
 			}
 
-			if (null == comparer)
+			if (comparer == null)
 			{
 				comparer = Comparer<T>.Default;
 			}
@@ -119,7 +119,7 @@ namespace MathNet.Numerics
 				return;
 			}
 
-			if (null == comparer)
+			if (comparer == null)
 			{
 				comparer = Comparer<TKey>.Default;
 			}
@@ -186,7 +186,7 @@ namespace MathNet.Numerics
 				return;
 			}
 
-			if (null == comparer)
+			if (comparer == null)
 			{
 				comparer = Comparer<TKey>.Default;
 			}
@@ -257,7 +257,7 @@ namespace MathNet.Numerics
 				return;
 			}
 
-			if (null == comparer)
+			if (comparer == null)
 			{
 				comparer = Comparer<T>.Default;
 			}
@@ -337,7 +337,7 @@ namespace MathNet.Numerics
 				return;
 			}
 
-			if (null == comparer)
+			if (comparer == null)
 			{
 				comparer = Comparer<TKey>.Default;
 			}
@@ -416,7 +416,7 @@ namespace MathNet.Numerics
 				return;
 			}
 
-			if (null == comparer)
+			if (comparer == null)
 			{
 				comparer = Comparer<TKey>.Default;
 			}
@@ -474,12 +474,12 @@ namespace MathNet.Numerics
 		/// <param name="secondaryComparer">Comparison, defining the secondary sort order.</param>
 		public static void SortAll<T1, T2>(IList<T1> primary, IList<T2> secondary, IComparer<T1> primaryComparer = null, IComparer<T2> secondaryComparer = null)
 		{
-			if (null == primaryComparer)
+			if (primaryComparer == null)
 			{
 				primaryComparer = Comparer<T1>.Default;
 			}
 
-			if (null == secondaryComparer)
+			if (secondaryComparer == null)
 			{
 				secondaryComparer = Comparer<T2>.Default;
 			}
