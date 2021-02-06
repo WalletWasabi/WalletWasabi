@@ -785,21 +785,21 @@ namespace MathNet.Numerics
 				int p = a + ((b - a) >> 1); // midpoint
 
 				int ap = primaryComparer.Compare(primary[a], primary[p]);
-				if (ap > 0 || ap == 0 && secondaryComparer.Compare(secondary[a], secondary[p]) > 0)
+				if (ap > 0 || (ap == 0 && secondaryComparer.Compare(secondary[a], secondary[p]) > 0))
 				{
 					Swap(primary, a, p);
 					Swap(secondary, a, p);
 				}
 
 				int ab = primaryComparer.Compare(primary[a], primary[b]);
-				if (ab > 0 || ab == 0 && secondaryComparer.Compare(secondary[a], secondary[b]) > 0)
+				if (ab > 0 || (ab == 0 && secondaryComparer.Compare(secondary[a], secondary[b]) > 0))
 				{
 					Swap(primary, a, b);
 					Swap(secondary, a, b);
 				}
 
 				int pb = primaryComparer.Compare(primary[p], primary[b]);
-				if (pb > 0 || pb == 0 && secondaryComparer.Compare(secondary[p], secondary[b]) > 0)
+				if (pb > 0 || (pb == 0 && secondaryComparer.Compare(secondary[p], secondary[b]) > 0))
 				{
 					Swap(primary, p, b);
 					Swap(secondary, p, b);
@@ -813,14 +813,14 @@ namespace MathNet.Numerics
 				{
 					int ax;
 					while ((ax = primaryComparer.Compare(primary[a], pivot1)) < 0 ||
-					       ax == 0 && secondaryComparer.Compare(secondary[a], pivot2) < 0)
+					       (ax == 0 && secondaryComparer.Compare(secondary[a], pivot2) < 0))
 					{
 						a++;
 					}
 
 					int xb;
 					while ((xb = primaryComparer.Compare(pivot1, primary[b])) < 0 ||
-					       xb == 0 && secondaryComparer.Compare(pivot2, secondary[b]) < 0)
+					       (xb == 0 && secondaryComparer.Compare(pivot2, secondary[b]) < 0))
 					{
 						b--;
 					}
