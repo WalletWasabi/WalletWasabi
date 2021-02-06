@@ -54,7 +54,7 @@ namespace MathNet.Numerics
 		/// point value. i.e. there are this many digits used to represent the
 		/// actual number, where in a number as: 0.134556 * 10^5 the digits are 0.134556 and the exponent is 5.
 		/// </summary>
-		const int DoubleWidth = 53;
+		private const int DoubleWidth = 53;
 
 		/// <summary>
 		/// Standard epsilon, the maximum relative precision of IEEE 754 double-precision floating numbers (64 bit).
@@ -65,6 +65,6 @@ namespace MathNet.Numerics
 		/// <summary>
 		/// Value representing 10 * 2^(-53) = 1.11022302462516E-15
 		/// </summary>
-		static readonly double DefaultDoubleAccuracy = DoublePrecision * 10;
+		private static readonly double DefaultDoubleAccuracy = DoublePrecision * 10;
 	}
 }

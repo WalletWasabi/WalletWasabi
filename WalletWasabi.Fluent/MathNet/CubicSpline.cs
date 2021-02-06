@@ -39,12 +39,12 @@ namespace MathNet.Numerics.Interpolation
 	/// <remarks>Supports both differentiation and integration.</remarks>
 	public class CubicSpline
 	{
-		readonly double[] _x;
-		readonly double[] _c0;
-		readonly double[] _c1;
-		readonly double[] _c2;
-		readonly double[] _c3;
-		readonly Lazy<double[]> _indefiniteIntegral;
+		private readonly double[] _x;
+		private readonly double[] _c0;
+		private readonly double[] _c1;
+		private readonly double[] _c2;
+		private readonly double[] _c3;
+		private readonly Lazy<double[]> _indefiniteIntegral;
 
 		/// <param name="x">sample points (N+1), sorted ascending</param>
 		/// <param name="c0">Zero order spline coefficients (N)</param>
@@ -494,7 +494,7 @@ namespace MathNet.Numerics.Interpolation
 		/// <param name="index1">Index of the second sample.</param>
 		/// <param name="index2">Index of the third sample.</param>
 		/// <returns>The derivative approximation.</returns>
-		static double DifferentiateThreePoint(double[] xx, double[] yy, int indexT, int index0, int index1, int index2)
+		private static double DifferentiateThreePoint(double[] xx, double[] yy, int indexT, int index0, int index1, int index2)
 		{
 			double x0 = yy[index0];
 			double x1 = yy[index1];
@@ -517,7 +517,7 @@ namespace MathNet.Numerics.Interpolation
 		/// <param name="c">The c-vector[n].</param>
 		/// <param name="d">The d-vector[n], will be modified by this function.</param>
 		/// <returns>The x-vector[n]</returns>
-		static double[] SolveTridiagonal(double[] a, double[] b, double[] c, double[] d)
+		private static double[] SolveTridiagonal(double[] a, double[] b, double[] c, double[] d)
 		{
 			for (int k = 1; k < a.Length; k++)
 			{
@@ -593,7 +593,7 @@ namespace MathNet.Numerics.Interpolation
 			return Integrate(b) - Integrate(a);
 		}
 
-		double[] ComputeIndefiniteIntegral()
+		private double[] ComputeIndefiniteIntegral()
 		{
 			var integral = new double[_c1.Length];
 			for (int i = 0; i < integral.Length - 1; i++)
@@ -609,7 +609,7 @@ namespace MathNet.Numerics.Interpolation
 		/// Find the index of the greatest sample point smaller than t,
 		/// or the left index of the closest segment for extrapolation.
 		/// </summary>
-		int LeftSegmentIndex(double t)
+		private int LeftSegmentIndex(double t)
 		{
 			int index = Array.BinarySearch(_x, t);
 			if (index < 0)
