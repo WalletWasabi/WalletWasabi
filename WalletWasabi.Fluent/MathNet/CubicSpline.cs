@@ -269,7 +269,7 @@ namespace MathNet.Numerics.Interpolation
 			return InterpolateHermiteSorted(x, y, dd);
 		}
 
-		static double PchipEndPoints(double h0, double h1, double m0, double m1)
+		private static double PchipEndPoints(double h0, double h1, double m0, double m1)
 		{
 			// One-sided, shape-preserving, three-point estimate for the derivative.
 			var d = ((2 * h0 + h1) * m0 - h0 * m1) / (h0 + h1);
