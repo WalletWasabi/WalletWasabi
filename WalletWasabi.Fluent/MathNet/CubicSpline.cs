@@ -46,7 +46,7 @@ namespace MathNet.Numerics.Interpolation
 		private readonly double[] _c3;
 		private readonly Lazy<double[]> _indefiniteIntegral;
 
-		/// <param name="x">sample points (N+1), sorted ascending</param>
+		/// <param name="x">Sample points (N+1), sorted ascending</param>
 		/// <param name="c0">Zero order spline coefficients (N)</param>
 		/// <param name="c1">First order spline coefficients (N)</param>
 		/// <param name="c2">second order spline coefficients (N)</param>
