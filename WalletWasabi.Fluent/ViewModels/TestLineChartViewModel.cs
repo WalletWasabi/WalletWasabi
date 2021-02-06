@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using MathNet.Numerics.Interpolation;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -51,5 +53,23 @@ namespace WalletWasabi.Fluent.ViewModels
 			123,
 			185
 		};
+
+		public void TestCubicSplineInterpolation()
+		{
+			double[] x = new double[13];
+			double[] y = new double[13];
+			Console.WriteLine($"X Y");
+			for (int i = 0; i <= 12; i++)
+			{
+				x[i] = i * Math.PI / 12;
+				y[i] = Math.Sin(x[i]);
+				Console.WriteLine($"{x[i]} {y[i]}");
+			}
+			var spline = CubicSpline.InterpolateNatural(x, y);
+			double testX = 1.5 * Math.PI / 12;
+			double testY = spline.Interpolate(testX);
+			Console.WriteLine($"Interpolated:");
+			Console.WriteLine($"{testX} {testY}");
+		}
 	}
 }
