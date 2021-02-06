@@ -143,13 +143,16 @@
                                ItemCountLimit="12"
                                RestrictInputToSuggestions="False" />
                 </DockPanel>
+                <Separator DockPanel.Dock="Top"
+                           HorizontalAlignment="Stretch"
+                           Margin="-200 20 -200 0"
+                           Height="0.55"
+                           Background="#7FFFFFFF"/>
+                <Label Margin="0 10 0 0" Content="_Priority:" Target="CursorValue2" />
             </StackPanel>
-            <Separator DockPanel.Dock="Top"
-                       HorizontalAlignment="Stretch"
-                       Margin="-200,0,0,0"
-                       Height="1"
-                       Background="Blue"/>
-            <DockPanel MinHeight="60">
+
+            <DockPanel MinHeight="60" Margin="0 50 0 0">
+
                 <Slider x:Name="CursorValue2"
                         DockPanel.Dock="Bottom"
                         Classes="cursor"
