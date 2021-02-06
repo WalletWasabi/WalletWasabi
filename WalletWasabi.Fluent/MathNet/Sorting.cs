@@ -547,7 +547,8 @@ namespace MathNet.Numerics
 
 					a++;
 					b--;
-				} while (a <= b);
+				}
+				while (a <= b);
 
 				// In order to limit the recursion depth to log(n), we sort the
 				// shorter partition recursively and the longer partition iteratively.
@@ -569,7 +570,8 @@ namespace MathNet.Numerics
 
 					right = b;
 				}
-			} while (left < right);
+			}
+			while (left < right);
 		}
 
 		/// <summary>
@@ -637,7 +639,8 @@ namespace MathNet.Numerics
 
 					a++;
 					b--;
-				} while (a <= b);
+				}
+				while (a <= b);
 
 				// In order to limit the recursion depth to log(n), we sort the
 				// shorter partition recursively and the longer partition iteratively.
@@ -659,7 +662,8 @@ namespace MathNet.Numerics
 
 					right = b;
 				}
-			} while (left < right);
+			}
+			while (left < right);
 		}
 
 		/// <summary>
@@ -733,7 +737,8 @@ namespace MathNet.Numerics
 
 					a++;
 					b--;
-				} while (a <= b);
+				}
+				while (a <= b);
 
 				// In order to limit the recursion depth to log(n), we sort the
 				// shorter partition recursively and the longer partition iteratively.
@@ -755,7 +760,8 @@ namespace MathNet.Numerics
 
 					right = b;
 				}
-			} while (left < right);
+			}
+			while (left < right);
 		}
 
 		/// <summary>
@@ -832,7 +838,8 @@ namespace MathNet.Numerics
 
 					a++;
 					b--;
-				} while (a <= b);
+				}
+				while (a <= b);
 
 				// In order to limit the recursion depth to log(n), we sort the
 				// shorter partition recursively and the longer partition iteratively.
@@ -854,7 +861,8 @@ namespace MathNet.Numerics
 
 					right = b;
 				}
-			} while (left < right);
+			}
+			while (left < right);
 		}
 
 		/// <summary>
