@@ -49,8 +49,8 @@ namespace MathNet.Numerics.Interpolation
 		/// <param name="x">Sample points (N+1), sorted ascending</param>
 		/// <param name="c0">Zero order spline coefficients (N)</param>
 		/// <param name="c1">First order spline coefficients (N)</param>
-		/// <param name="c2">second order spline coefficients (N)</param>
-		/// <param name="c3">third order spline coefficients (N)</param>
+		/// <param name="c2">Second order spline coefficients (N)</param>
+		/// <param name="c3">Third order spline coefficients (N)</param>
 		public CubicSpline(double[] x, double[] c0, double[] c1, double[] c2, double[] c3)
 		{
 			if (x.Length != c0.Length + 1 || x.Length != c1.Length + 1 || x.Length != c2.Length + 1 ||
