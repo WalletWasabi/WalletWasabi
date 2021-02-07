@@ -28,6 +28,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<char> TagSeparatorProperty =
 			AvaloniaProperty.Register<TagsBox, char>(nameof(TagSeparator), defaultValue: ' ');
 
+		public static readonly StyledProperty<bool> SuggestionsAreCaseSensitiveProperty =
+			AvaloniaProperty.Register<TagsBox, bool>(nameof(SuggestionsAreCaseSensitive), defaultValue: true);
+
 		public static readonly DirectProperty<TagsBox, IEnumerable<string>> ItemsProperty =
 			AvaloniaProperty.RegisterDirect<TagsBox, IEnumerable<string>>(nameof(Items),
 				o => o.Items,
@@ -60,6 +63,7 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<TagsBox, bool>("IsReadOnly");
 
 		private TextBox _InternalACBTextBox;
+		private StringComparison _stringComparison;
 
 		[Content]
 		public IEnumerable<string> Items
@@ -102,6 +106,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(IsReadOnlyProperty);
 			set => SetValue(IsReadOnlyProperty, value);
+		}
+
+		public bool SuggestionsAreCaseSensitive
+		{
+			get => GetValue(SuggestionsAreCaseSensitiveProperty);
+			set => SetValue(SuggestionsAreCaseSensitiveProperty, value);
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -220,7 +230,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void OnAutoCompleteBoxDropDownClosed(object? sender, EventArgs e)
 		{
-			if (sender is not AutoCompleteBox autoCompleteBox  )
+			if (sender is not AutoCompleteBox autoCompleteBox)
 			{
 				return;
 			}
@@ -376,6 +386,12 @@ namespace WalletWasabi.Fluent.Controls
 			if (e.Property == IsReadOnlyProperty)
 			{
 				PseudoClasses.Set(":readonly", IsReadOnly);
+			}
+			else if (e.Property == SuggestionsAreCaseSensitiveProperty)
+			{
+				_stringComparison = SuggestionsAreCaseSensitive
+					? StringComparison.InvariantCultureIgnoreCase
+					: StringComparison.InvariantCulture;
 			}
 		}
 
