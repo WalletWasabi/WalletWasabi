@@ -240,13 +240,9 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-
 			var currentText = (autoCompleteBox.Text ?? "").Trim();
-			var selectedTextLength = Math.Max(0, _internalTextBox.SelectionEnd - _internalTextBox.SelectionStart);
-
 
 			if (currentText.Length == 0 ||
-			    selectedTextLength == 0 ||
 			    autoCompleteBox.SelectedItem is not string selItem ||
 			    selItem.Length == 0 ||
 			    currentText != selItem)
@@ -332,6 +328,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			_backspaceEmptyField2 = _backspaceEmptyField1;
 			_backspaceEmptyField1 = currentText.Length == 0;
+			var selectedTextLength = Math.Max(0, _internalTextBox.SelectionEnd - _internalTextBox.SelectionStart);
 
 			currentText = currentText.Trim();
 
@@ -340,7 +337,8 @@ namespace WalletWasabi.Fluent.Controls
 				case Key.Back when _backspaceEmptyField1 && _backspaceEmptyField2:
 					RemoveLastTag();
 					break;
-				case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(currentText):
+
+				case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(currentText) && selectedTextLength == 0:
 					// Reject entry of the tag when user pressed enter and
 					// the input tag is not on the suggestions list.
 					if (RestrictInputToSuggestions && Suggestions is { } &&
