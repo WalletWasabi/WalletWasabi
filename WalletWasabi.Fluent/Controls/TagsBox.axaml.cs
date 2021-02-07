@@ -302,7 +302,7 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				foreach (var tag in splitTags)
 				{
-					if (RestrictInputToSuggestions && Suggestions is { } &&
+					if (RestrictInputToSuggestions && Suggestions is { } && !string.IsNullOrWhiteSpace(tag)
 					    !Suggestions.Cast<string>().Any(
 						    x => x.Equals(tag, StringComparison.InvariantCultureIgnoreCase)))
 					{
