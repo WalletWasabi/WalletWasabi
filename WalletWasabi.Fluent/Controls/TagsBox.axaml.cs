@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -15,6 +16,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Metadata;
 using Avalonia.Threading;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -59,6 +61,8 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<bool> IsReadOnlyProperty =
 			AvaloniaProperty.Register<TagsBox, bool>("IsReadOnly");
+
+		private TextBox _InternalACBTextBox;
 
 		[Content]
 		public IEnumerable<string> Items
@@ -123,14 +127,15 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			_autoCompleteBox.TextChanged += OnTextChanged;
-			_autoCompleteBox.DropDownClosed += OnDropDownClosed;
+			_autoCompleteBox.TextChanged += OnAutoCompleteBoxTextChanged;
+			_autoCompleteBox.DropDownClosed += OnAutoCompleteBoxDropDownClosed;
+			_autoCompleteBox.TemplateApplied += OnAutoCompleteBoxTemplateApplied;
 
 			Disposable.Create(
 					() =>
 					{
-						_autoCompleteBox.TextChanged -= OnTextChanged;
-						_autoCompleteBox.DropDownClosed -= OnDropDownClosed;
+						_autoCompleteBox.TextChanged -= OnAutoCompleteBoxTextChanged;
+						_autoCompleteBox.DropDownClosed -= OnAutoCompleteBoxDropDownClosed;
 					})
 				.DisposeWith(_compositeDisposable);
 
@@ -146,6 +151,11 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				Dispatcher.UIThread.Post(() => _autoCompleteBox.Focus());
 			}
+		}
+
+		private void OnAutoCompleteBoxTemplateApplied(object? sender, TemplateAppliedEventArgs e)
+		{
+			_InternalACBTextBox = e.NameScope.Find<TextBox>("PART_TextBox");
 		}
 
 		private void CheckIsInputEnabled()
@@ -170,8 +180,9 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			if (RestrictInputToSuggestions &&
-				Suggestions is IList<string> suggestions &&
-				!suggestions.Any(x => x.StartsWith(autoCompleteBox.SearchText ?? "", true, CultureInfo.CurrentCulture)))
+			    Suggestions is IList<string> suggestions &&
+			    !suggestions.Any(x =>
+				    x.StartsWith(autoCompleteBox.SearchText, StringComparison.InvariantCultureIgnoreCase)))
 			{
 				e.Handled = true;
 			}
@@ -210,16 +221,25 @@ namespace WalletWasabi.Fluent.Controls
 			_isFocused = IsKeyboardFocusWithin;
 		}
 
-		private void OnDropDownClosed(object? sender, EventArgs e)
+		private void OnAutoCompleteBoxDropDownClosed(object? sender, EventArgs e)
 		{
-			if (sender is not AutoCompleteBox autoCompleteBox)
+			if (sender is not AutoCompleteBox autoCompleteBox  )
 			{
 				return;
 			}
 
+			if (_InternalACBTextBox is null)
+			{
+				return;
+			}
+
+
 			var currentText = (autoCompleteBox.Text ?? "").Trim();
+			var selectedTextLength = Math.Max(0, _InternalACBTextBox.SelectionEnd - _InternalACBTextBox.SelectionStart);
+
 
 			if (currentText.Length == 0 ||
+			    selectedTextLength == 0 ||
 			    autoCompleteBox.SelectedItem is not string selItem ||
 			    selItem.Length == 0 ||
 			    currentText != selItem)
@@ -230,7 +250,6 @@ namespace WalletWasabi.Fluent.Controls
 			AddTag(currentText);
 			BackspaceLogicClear();
 			autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
-
 			Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 		}
 
@@ -239,9 +258,10 @@ namespace WalletWasabi.Fluent.Controls
 			_backspaceEmptyField2 = _backspaceEmptyField1 = true;
 		}
 
-		private void OnTextChanged(object? sender, EventArgs e)
+		private void OnAutoCompleteBoxTextChanged(object? sender, EventArgs e)
 		{
-			if (sender is not AutoCompleteBox autoCompleteBox)
+			if (sender is not AutoCompleteBox autoCompleteBox ||
+			    string.IsNullOrEmpty(Guard.Correct(autoCompleteBox.Text)))
 			{
 				return;
 			}
@@ -251,57 +271,40 @@ namespace WalletWasabi.Fluent.Controls
 			currentText = currentText.Trim();
 
 			var splitTags = currentText.Split(TagSeparator);
-			if (splitTags.Length == 1 && Suggestions is IList<string> suggestions)
-			{
-				if (RestrictInputToSuggestions)
-				{
-					var keywordIsInSuggestions =
-						suggestions.Any(
-							x => x.Equals(currentText, StringComparison.InvariantCultureIgnoreCase));
 
-					if (!keywordIsInSuggestions)
+			if (splitTags.Length > 1)
+			{
+				foreach (var tag in splitTags)
+				{
+					if (RestrictInputToSuggestions && Suggestions is { } &&
+					    Suggestions.Cast<string>().Any(
+						    x => x.Equals(tag, StringComparison.InvariantCultureIgnoreCase)))
 					{
-						return;
+						AddTag(tag);
+						Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 					}
 				}
-				else if (endsWithSeparator)
+			}
+			else
+			{
+				var tag = splitTags[0];
+
+				if (!_isInputEnabled ||
+				    !endsWithSeparator)
 				{
-					foreach (var tag in splitTags)
-					{
-						if (!RestrictInputToSuggestions)
-						{
-							AddTag(tag);
-							continue;
-						}
-
-						var keywordIsInSuggestions =
-							suggestions.Any(
-								x => x.Equals(tag, StringComparison.InvariantCultureIgnoreCase));
-
-						if (keywordIsInSuggestions)
-						{
-							AddTag(tag);
-						}
-					}
-
-					Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 					return;
 				}
+
+				if (RestrictInputToSuggestions && Suggestions is { } &&
+				    !Suggestions.Cast<string>().Any(
+					    x => x.Equals(tag, StringComparison.InvariantCultureIgnoreCase)))
+				{
+					return;
+				}
+
+				AddTag(tag);
+				Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 			}
-
-			if (!_isInputEnabled ||
-				currentText.Length < 1 ||
-				string.IsNullOrEmpty(currentText) ||
-				!endsWithSeparator)
-			{
-				return;
-			}
-
-			AddTag(currentText);
-
-			BackspaceLogicClear();
-
-			Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 		}
 
 		private void OnKeyUp(object? sender, KeyEventArgs e)
@@ -330,7 +333,6 @@ namespace WalletWasabi.Fluent.Controls
 					    !Suggestions.Cast<string>().Any(
 						    x => x.Equals(currentText, StringComparison.InvariantCultureIgnoreCase)))
 					{
-
 						break;
 					}
 
