@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reflection.Metadata.Ecma335;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -272,20 +273,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			var splitTags = currentText.Split(TagSeparator);
 
-			if (splitTags.Length > 1)
-			{
-				foreach (var tag in splitTags)
-				{
-					if (RestrictInputToSuggestions && Suggestions is { } &&
-					    Suggestions.Cast<string>().Any(
-						    x => x.Equals(tag, StringComparison.InvariantCultureIgnoreCase)))
-					{
-						AddTag(tag);
-						Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
-					}
-				}
-			}
-			else
+			if (splitTags.Length <= 1)
 			{
 				var tag = splitTags[0];
 
@@ -304,6 +292,21 @@ namespace WalletWasabi.Fluent.Controls
 
 				AddTag(tag);
 				Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
+			}
+			else
+			{
+				foreach (var tag in splitTags)
+				{
+					if (RestrictInputToSuggestions && Suggestions is { } &&
+					    !Suggestions.Cast<string>().Any(
+						    x => x.Equals(tag, StringComparison.InvariantCultureIgnoreCase)))
+					{
+						continue;
+					}
+
+					AddTag(tag);
+					Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
+				}
 			}
 		}
 
