@@ -172,6 +172,38 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<double> YAxisMinViableWidthProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisMinViableWidth), double.MinValue);
 
+		// YAxis Label
+
+		public static readonly StyledProperty<IBrush?> YAxisLabelForegroundProperty =
+			AvaloniaProperty.Register<LineChart, IBrush?>(nameof(YAxisLabelForeground));
+
+		public static readonly StyledProperty<double> YAxisLabelOpacityProperty =
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisLabelOpacity));
+
+		public static readonly StyledProperty<Point> YAxisLabelOffsetProperty =
+			AvaloniaProperty.Register<LineChart, Point>(nameof(YAxisLabelOffset));
+
+		public static readonly StyledProperty<Size> YAxisLabelSizeProperty =
+			AvaloniaProperty.Register<LineChart, Size>(nameof(YAxisLabelSize));
+
+		public static readonly StyledProperty<TextAlignment> YAxisLabelAlignmentProperty =
+			AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(YAxisLabelAlignment));
+
+		public static readonly StyledProperty<double> YAxisLabelAngleProperty =
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisLabelAngle));
+
+		public static readonly StyledProperty<FontFamily> YAxisLabelFontFamilyProperty =
+			AvaloniaProperty.Register<LineChart, FontFamily>(nameof(YAxisLabelFontFamily));
+
+		public static readonly StyledProperty<FontStyle> YAxisLabelFontStyleProperty =
+			AvaloniaProperty.Register<LineChart, FontStyle>(nameof(YAxisLabelFontStyle));
+
+		public static readonly StyledProperty<FontWeight> YAxisLabelFontWeightProperty =
+			AvaloniaProperty.Register<LineChart, FontWeight>(nameof(YAxisLabelFontWeight));
+
+		public static readonly StyledProperty<double> YAxisLabelFontSizeProperty =
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisLabelFontSize));
+
 		// YAxis Title
 
 		public static readonly StyledProperty<string> YAxisTitleProperty =
@@ -640,6 +672,68 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(YAxisMinViableWidthProperty);
 			set => SetValue(YAxisMinViableWidthProperty, value);
+		}
+
+		// YAxis Label
+
+		public IBrush? YAxisLabelForeground
+		{
+			get => GetValue(YAxisLabelForegroundProperty);
+			set => SetValue(YAxisLabelForegroundProperty, value);
+		}
+
+		public double YAxisLabelOpacity
+		{
+			get => GetValue(YAxisLabelOpacityProperty);
+			set => SetValue(YAxisLabelOpacityProperty, value);
+		}
+
+		public double YAxisLabelAngle
+		{
+			get => GetValue(YAxisLabelAngleProperty);
+			set => SetValue(YAxisLabelAngleProperty, value);
+		}
+
+		public Point YAxisLabelOffset
+		{
+			get => GetValue(YAxisLabelOffsetProperty);
+			set => SetValue(YAxisLabelOffsetProperty, value);
+		}
+
+		public Size YAxisLabelSize
+		{
+			get => GetValue(YAxisLabelSizeProperty);
+			set => SetValue(YAxisLabelSizeProperty, value);
+		}
+
+		public TextAlignment YAxisLabelAlignment
+		{
+			get => GetValue(YAxisLabelAlignmentProperty);
+			set => SetValue(YAxisLabelAlignmentProperty, value);
+		}
+
+		public FontFamily YAxisLabelFontFamily
+		{
+			get => GetValue(YAxisLabelFontFamilyProperty);
+			set => SetValue(YAxisLabelFontFamilyProperty, value);
+		}
+
+		public FontStyle YAxisLabelFontStyle
+		{
+			get => GetValue(YAxisLabelFontStyleProperty);
+			set => SetValue(YAxisLabelFontStyleProperty, value);
+		}
+
+		public FontWeight YAxisLabelFontWeight
+		{
+			get => GetValue(YAxisLabelFontWeightProperty);
+			set => SetValue(YAxisLabelFontWeightProperty, value);
+		}
+
+		public double YAxisLabelFontSize
+		{
+			get => GetValue(YAxisLabelFontSizeProperty);
+			set => SetValue(YAxisLabelFontSizeProperty, value);
 		}
 
 		// YAxis Title
