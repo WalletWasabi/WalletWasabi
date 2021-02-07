@@ -189,7 +189,7 @@ namespace WalletWasabi.Fluent.Controls
 			if (RestrictInputToSuggestions &&
 			    Suggestions is IList<string> suggestions &&
 			    !suggestions.Any(x =>
-				    x.StartsWith(autoCompleteBox.SearchText, StringComparison.InvariantCultureIgnoreCase)))
+				    x.StartsWith(autoCompleteBox.SearchText, _stringComparison)))
 			{
 				e.Handled = true;
 			}
@@ -291,7 +291,7 @@ namespace WalletWasabi.Fluent.Controls
 
 				if (RestrictInputToSuggestions && Suggestions is { } &&
 				    !Suggestions.Cast<string>().Any(
-					    x => x.Equals(tag, StringComparison.InvariantCultureIgnoreCase)))
+					    x => x.Equals(tag, _stringComparison)))
 				{
 					return;
 				}
@@ -310,7 +310,7 @@ namespace WalletWasabi.Fluent.Controls
 
 					if (RestrictInputToSuggestions && Suggestions is { } &&
 					    !Suggestions.Cast<string>().Any(
-						    x => x.Equals(tag, StringComparison.InvariantCultureIgnoreCase)))
+						    x => x.Equals(tag, _stringComparison)))
 					{
 						continue;
 					}
@@ -345,7 +345,7 @@ namespace WalletWasabi.Fluent.Controls
 					// the input tag is not on the suggestions list.
 					if (RestrictInputToSuggestions && Suggestions is { } &&
 					    !Suggestions.Cast<string>().Any(
-						    x => x.Equals(currentText, StringComparison.InvariantCultureIgnoreCase)))
+						    x => x.Equals(currentText, _stringComparison)))
 					{
 						break;
 					}
