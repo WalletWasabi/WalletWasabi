@@ -24,7 +24,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	[NavigationMetaData (Title = "Enter recovery words")]
 	public partial class RecoverWalletViewModel : RoutableViewModel
 	{
-		[AutoNotify] private string? _selectedTag;
 		[AutoNotify] private IEnumerable<string>? _suggestions;
 		[AutoNotify] private Mnemonic? _currentMnemonics;
 
@@ -39,10 +38,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			Mnemonics.ToObservableChangeSet().ToCollection()
 				.Select(x => x.Count == 12 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
 				.Subscribe(x => CurrentMnemonics = x);
-
-			this.WhenAnyValue(x => x.SelectedTag)
-				.Where(x => !string.IsNullOrEmpty(x))
-				.Subscribe(AddMnemonic);
 
 			this.WhenAnyValue(x => x.CurrentMnemonics)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(Mnemonics)));
@@ -145,16 +140,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			{
 				errors.Add(ErrorSeverity.Error, "Recovery words are not valid.");
 			}
-		}
-
-		private void AddMnemonic(string? tagString)
-		{
-			if (!string.IsNullOrWhiteSpace(tagString) && Mnemonics.Count + 1 <= 12)
-			{
-				Mnemonics.Add( tagString);
-			}
-
-			SelectedTag = string.Empty;
 		}
 
 		private string GetTagsAsConcatString()
