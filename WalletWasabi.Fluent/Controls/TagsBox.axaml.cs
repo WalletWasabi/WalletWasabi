@@ -412,7 +412,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			if (Items is IList x)
 			{
-				if (ItemCountLimit > 0 && x.Count + 1 >= ItemCountLimit)
+				if (ItemCountLimit > 0 && x.Count + 1 > ItemCountLimit)
 				{
 					return;
 				}
