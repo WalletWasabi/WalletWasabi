@@ -306,7 +306,9 @@ namespace WalletWasabi.Fluent.Controls
 				AreaStrokeDashStyleProperty,
 				AreaStrokeLineCapProperty,
 				AreaStrokeLineJoinProperty,
-				AreaStrokeMiterLimitProperty,
+				AreaStrokeMiterLimitProperty);
+
+			AffectsRender<LineChart>(
 				XAxisValuesProperty,
 				XAxisLogarithmicScaleProperty,
 				XAxisMinValueProperty,
@@ -338,7 +340,9 @@ namespace WalletWasabi.Fluent.Controls
 				XAxisTitleFontFamilyProperty,
 				XAxisTitleFontStyleProperty,
 				XAxisTitleFontWeightProperty,
-				XAxisTitleFontSizeProperty,
+				XAxisTitleFontSizeProperty);
+
+			AffectsRender<LineChart>(
 				YAxisValuesProperty,
 				YAxisLogarithmicScaleProperty,
 				YAxisMinValueProperty,
@@ -370,13 +374,17 @@ namespace WalletWasabi.Fluent.Controls
 				YAxisTitleFontFamilyProperty,
 				YAxisTitleFontStyleProperty,
 				YAxisTitleFontWeightProperty,
-				YAxisTitleFontSizeProperty,
+				YAxisTitleFontSizeProperty);
+
+			AffectsRender<LineChart>(
 				CursorStrokeProperty,
 				CursorStrokeThicknessProperty,
 				CursorStrokeDashStyleProperty,
 				CursorStrokeLineCapProperty,
 				CursorStrokeLineJoinProperty,
-				CursorStrokeMiterLimitProperty,
+				CursorStrokeMiterLimitProperty);
+
+			AffectsRender<LineChart>(
 				BorderBrushProperty,
 				BorderThicknessProperty,
 				BorderRadiusXProperty,
