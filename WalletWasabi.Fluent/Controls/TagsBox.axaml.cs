@@ -389,8 +389,8 @@ namespace WalletWasabi.Fluent.Controls
 			else if (e.Property == SuggestionsAreCaseSensitiveProperty)
 			{
 				_stringComparison = SuggestionsAreCaseSensitive
-					? StringComparison.InvariantCultureIgnoreCase
-					: StringComparison.InvariantCulture;
+					? StringComparison.CurrentCulture
+					: StringComparison.CurrentCultureIgnoreCase;
 			}
 		}
 
