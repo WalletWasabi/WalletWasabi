@@ -142,6 +142,7 @@ namespace WalletWasabi.Fluent.Controls
 					{
 						_autoCompleteBox.TextChanged -= OnAutoCompleteBoxTextChanged;
 						_autoCompleteBox.DropDownClosed -= OnAutoCompleteBoxDropDownClosed;
+						_autoCompleteBox.TemplateApplied -= OnAutoCompleteBoxTemplateApplied;
 					})
 				.DisposeWith(_compositeDisposable);
 
