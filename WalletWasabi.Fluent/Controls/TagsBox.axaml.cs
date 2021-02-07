@@ -45,6 +45,8 @@ namespace WalletWasabi.Fluent.Controls
 
 		private CompositeDisposable? _compositeDisposable;
 		private AutoCompleteBox? _autoCompleteBox;
+		private TextBox _internalTextBox;
+		private StringComparison _stringComparison;
 		private bool _backspaceEmptyField1;
 		private bool _backspaceEmptyField2;
 		private bool _isFocused;
@@ -61,9 +63,6 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<bool> IsReadOnlyProperty =
 			AvaloniaProperty.Register<TagsBox, bool>("IsReadOnly");
-
-		private TextBox _InternalACBTextBox;
-		private StringComparison _stringComparison;
 
 		[Content]
 		public IEnumerable<string> Items
@@ -162,7 +161,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void OnAutoCompleteBoxTemplateApplied(object? sender, TemplateAppliedEventArgs e)
 		{
-			_InternalACBTextBox = e.NameScope.Find<TextBox>("PART_TextBox");
+			_internalTextBox = e.NameScope.Find<TextBox>("PART_TextBox");
 		}
 
 		private void CheckIsInputEnabled()
@@ -235,14 +234,14 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			if (_InternalACBTextBox is null)
+			if (_internalTextBox is null)
 			{
 				return;
 			}
 
 
 			var currentText = (autoCompleteBox.Text ?? "").Trim();
-			var selectedTextLength = Math.Max(0, _InternalACBTextBox.SelectionEnd - _InternalACBTextBox.SelectionStart);
+			var selectedTextLength = Math.Max(0, _internalTextBox.SelectionEnd - _internalTextBox.SelectionStart);
 
 
 			if (currentText.Length == 0 ||
