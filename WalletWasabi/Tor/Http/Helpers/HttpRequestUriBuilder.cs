@@ -58,11 +58,5 @@ namespace WalletWasabi.Tor.Http.Helpers
 
 			Path = path;
 		}
-
-		public Uri BuildUri(string path)
-		{
-			Path = path;
-			return Uri;
-		}
 	}
 }
