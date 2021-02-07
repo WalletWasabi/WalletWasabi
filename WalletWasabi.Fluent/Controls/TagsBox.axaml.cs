@@ -407,8 +407,13 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void AddTag(string tag)
 		{
-			if (Items is IList x && x.Count + 1 <= ItemCountLimit)
+			if (Items is IList x)
 			{
+				if (ItemCountLimit > 0 && x.Count + 1 >= ItemCountLimit)
+				{
+					return;
+				}
+
 				x.Add(tag);
 			}
 
