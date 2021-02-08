@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
@@ -15,7 +13,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Gui;
+using WalletWasabi.Gui.Converters;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
@@ -37,8 +35,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private ObservableCollection<string> _priorLabels;
 		[AutoNotify] private ObservableCollection<string> _labels;
 		[AutoNotify] private bool _isPayJoin;
-		[AutoNotify] private int[] _xAxisValues;
-		[AutoNotify] private int[] _yAxisValues;
+		[AutoNotify] private double[] _xAxisValues;
+		[AutoNotify] private double[] _yAxisValues;
 		[AutoNotify] private string[] _xAxisLabels;
 
 		private string? _payJoinEndPoint;
@@ -182,9 +180,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void UpdateFeeEstimates(AllFeeEstimate feeEstimate)
 		{
-			XAxisValues = feeEstimate.Estimations.Select(x => x.Key * 10).ToArray();
-			XAxisLabels = XAxisValues.Select(x => x.ToString()).ToArray();
-			YAxisValues = feeEstimate.Estimations.Select(x => x.Value).ToArray();
+			var estimates = feeEstimate.Estimations.Reverse();
+
+			XAxisValues = estimates.Select(x => (double)x.Key).ToArray();
+			XAxisLabels = estimates.Select(x=>x.Key).Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d")).ToArray();
+			YAxisValues = estimates.Select(x => (double)x.Value).ToArray();
 		}
 
 		public ICommand PasteCommand { get; }
