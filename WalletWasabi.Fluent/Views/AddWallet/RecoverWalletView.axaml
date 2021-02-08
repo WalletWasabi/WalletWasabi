@@ -25,10 +25,10 @@
                 <c:TagsBox x:Name="SeedTagsBox"
                            DockPanel.Dock="Top"
                            ItemCountLimit="12"
+                           SuggestionsAreCaseSensitive="False"
                            RestrictInputToSuggestions="True"
                            Items="{Binding Mnemonics}"
                            Suggestions="{Binding Suggestions}"
-                           SelectedTag="{Binding SelectedTag}"
                            CompletedCommand="{Binding NextCommand}">
                     <i:Interaction.Behaviors>
                         <behaviors:FocusOnAttachedBehavior />

@@ -322,7 +322,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			// Remove Trailer from existing header fields
 			long length = 0;
 			var firstChunkLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken: ctsToken).ConfigureAwait(false);
-			ParseFistChunkLine(firstChunkLine, out long chunkSize, out _);
+			ParseFirstChunkLine(firstChunkLine, out long chunkSize, out _);
 			// We will not do anything with the chunk extensions, because:
 			// https://tools.ietf.org/html/rfc7230#section-4.1.1
 			// A recipient MUST ignore unrecognized chunk extensions.
@@ -346,7 +346,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 				length += chunkSize;
 
 				firstChunkLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken: ctsToken).ConfigureAwait(false);
-				ParseFistChunkLine(firstChunkLine, out long cs, out _);
+				ParseFirstChunkLine(firstChunkLine, out long cs, out _);
 				chunkSize = cs;
 			}
 
@@ -441,7 +441,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Trailer");
 		}
 
-		public static void ParseFistChunkLine(string firstChunkLine, out long chunkSize, out IEnumerable<string> chunkExtensions)
+		public static void ParseFirstChunkLine(string firstChunkLine, out long chunkSize, out IEnumerable<string> chunkExtensions)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-4.1
 			// chunk          = chunk-size [ chunk-ext ] CRLF
