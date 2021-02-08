@@ -109,7 +109,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 
 			// Don't allow balance to go negative. In case this goes below zero
 			// then there is a problem somewhere because this should not be possible.
-			if (Balance + registrationRequest.DeltaAmount < Money.Zero)
+			if (Balance.Satoshi + registrationRequest.Delta < 0)
 			{
 				throw new WabiSabiException(WabiSabiErrorCode.NegativeBalance);
 			}
@@ -167,8 +167,8 @@ namespace WalletWasabi.WabiSabi.Crypto
 				// balance correspond to output registration). The equation requires a
 				// commitment to 0, so the sum of the presented attributes and the
 				// negated requested attributes are tweaked by delta_a.
-				var absAmountDelta = new Scalar(registrationRequest.DeltaAmount.Abs());
-				var deltaA = registrationRequest.DeltaAmount < Money.Zero ? absAmountDelta.Negate() : absAmountDelta;
+				var absAmountDelta = new Scalar((ulong)Math.Abs(registrationRequest.Delta));
+				var deltaA = registrationRequest.Delta < 0 ? absAmountDelta.Negate() : absAmountDelta;
 				var balanceTweak = deltaA * Generators.Gg;
 				statements.Add(ProofSystem.BalanceProofStatement(balanceTweak + sumCa - sumMa));
 			}
@@ -195,7 +195,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			{
 				SerialNumbers.Add(presentation.S);
 			}
-			Balance += registrationRequest.DeltaAmount;
+			Balance += Money.Satoshis(registrationRequest.Delta);
 
 			return response;
 		}

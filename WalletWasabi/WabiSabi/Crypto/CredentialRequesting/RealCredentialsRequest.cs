@@ -1,4 +1,5 @@
 using NBitcoin;
+using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,12 @@ namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 {
 	public class RealCredentialsRequest : CredentialsRequest
 	{
-		public RealCredentialsRequest(Money deltaAmount, IEnumerable<CredentialPresentation> presented, IEnumerable<IssuanceRequest> requested, IEnumerable<Proof> proofs) : base(deltaAmount, presented, requested, proofs)
+		public RealCredentialsRequest(
+			long delta,
+			IEnumerable<CredentialPresentation> presented,
+			IEnumerable<IssuanceRequest> requested,
+			IEnumerable<Proof> proofs)
+			: base(delta, presented, requested, proofs)
 		{
 			if (IsNullRequest)
 			{
