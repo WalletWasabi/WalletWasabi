@@ -73,9 +73,5 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 		public ICommand ForgotPasswordCommand { get; }
 
 		public KeyManager KeyManager { get; }
-
-		private async Task ShowLegalDocs()
-		{
-		}
 	}
 }
