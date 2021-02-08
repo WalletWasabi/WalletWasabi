@@ -62,7 +62,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		private HashSet<GroupElement> SerialNumbers { get; } = new HashSet<GroupElement>();
 
 		// Canary test check to ensure credential balance is never negative
-		private Money Balance { get; set; } = Money.Zero;
+		private long Balance { get; set; } = 0;
 
 		private WasabiRandom RandomNumberGenerator { get; }
 
@@ -109,7 +109,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 
 			// Don't allow balance to go negative. In case this goes below zero
 			// then there is a problem somewhere because this should not be possible.
-			if (Balance.Satoshi + registrationRequest.Delta < 0)
+			if (Balance + registrationRequest.Delta < 0)
 			{
 				throw new WabiSabiException(WabiSabiErrorCode.NegativeBalance);
 			}
@@ -195,7 +195,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			{
 				SerialNumbers.Add(presentation.S);
 			}
-			Balance += Money.Satoshis(registrationRequest.Delta);
+			Balance += registrationRequest.Delta;
 
 			return response;
 		}
