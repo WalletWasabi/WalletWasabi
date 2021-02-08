@@ -139,8 +139,11 @@
                 <DockPanel>
                     <Label DockPanel.Dock="Left" Content="_Labels:" Target="LabelTagBox" />
                     <c:TagsBox x:Name="LabelTagBox"
+                               TagSeparator=","
                                Items="{Binding Labels}"
                                ItemCountLimit="12"
+                               Suggestions="{Binding PriorLabels}"
+                               SuggestionsAreCaseSensitive="True"
                                RestrictInputToSuggestions="False" />
                 </DockPanel>
                 <Separator DockPanel.Dock="Top"

@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Threading;
+using DynamicData;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
@@ -31,6 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private decimal _amountBtc;
 		[AutoNotify] private decimal _exchangeRate;
 		[AutoNotify] private bool _isFixedAmount;
+		[AutoNotify] private ObservableCollection<string> _priorLabels;
 		[AutoNotify] private ObservableCollection<string> _labels;
 		[AutoNotify] private bool _isPayJoin;
 		private string? _payJoinEndPoint;
@@ -43,6 +46,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_labels = new ObservableCollection<string>();
 
 			ExchangeRate = walletVm.Wallet.Synchronizer.UsdExchangeRate;
+			PriorLabels = new();
+
+			walletVm.Wallet.TransactionProcessor.WhenAnyValue(x => x.Coins)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					PriorLabels.Clear();
+					PriorLabels.AddRange(x.SelectMany(x => x.HdPubKey.Label.Labels).Distinct());
+				});
 
 			this.WhenAnyValue(x => x.To)
 				.ObserveOn(RxApp.MainThreadScheduler)
