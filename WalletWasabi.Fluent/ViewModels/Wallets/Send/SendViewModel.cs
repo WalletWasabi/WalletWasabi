@@ -13,6 +13,7 @@ using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui;
 using WalletWasabi.Userfacing;
@@ -165,7 +166,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				})
 				.DisposeWith(disposables);
 
+			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(UpdateFeeEstimates)
+				.DisposeWith(disposables);
+
+			UpdateFeeEstimates(_owner.Wallet.Synchronizer.AllFeeEstimate);
+
 			base.OnNavigatedTo(inStack, disposables);
+		}
+
+		private void UpdateFeeEstimates(AllFeeEstimate feeEstimate)
+		{
+			// TODO process feeEstimate.Estimates
 		}
 
 		public ICommand PasteCommand { get; }
