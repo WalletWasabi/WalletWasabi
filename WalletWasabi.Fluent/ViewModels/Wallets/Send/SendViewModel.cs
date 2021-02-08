@@ -178,7 +178,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void UpdateFeeEstimates(AllFeeEstimate feeEstimate)
 		{
-			// TODO process feeEstimate.Estimates
+			XAxisValues.Clear();
+			XAxisLabels.Clear();
+
+			YAxisValues.Clear();
+
+			foreach (var estimate in feeEstimate.Estimations)
+			{
+				var target = estimate.Key;
+				var fee = estimate.Value;
+
+				XAxisLabels.Add(target.ToString());
+				XAxisValues.Add(target);
+
+				YAxisValues.Add(fee);
+			}
 		}
 
 		public ICommand PasteCommand { get; }
@@ -190,7 +204,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public double XAxisMaxValue { get; set; } = 1008;
 
-		public List<string> XAxisLabels => new List<string>()
+		public ObservableCollection<string> XAxisLabels => new ObservableCollection<string>()
 		{
 			"1w",
 			"3d",
@@ -204,7 +218,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			"fastest"
 		};
 
-		public List<double> XAxisValues => new List<double>()
+		public ObservableCollection<double> XAxisValues => new ObservableCollection<double>()
 		{
 			1008,
 			432,
@@ -218,7 +232,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			1,
 		};
 
-		public List<double> YAxisValues => new List<double>()
+		public ObservableCollection<double> YAxisValues => new ObservableCollection<double>()
 		{
 			4,
 			4,
