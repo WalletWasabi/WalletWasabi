@@ -52,7 +52,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 					wallet.Login();
 					walletViewModelBase.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
 
-					// TODO: navigate to the wallet welcome page
 					Navigate().To(walletViewModelBase, NavigationMode.Clear);
 				}
 			});
@@ -74,5 +73,9 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 		public ICommand ForgotPasswordCommand { get; }
 
 		public KeyManager KeyManager { get; }
+
+		private async Task ShowLegalDocs()
+		{
+		}
 	}
 }

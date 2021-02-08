@@ -2,7 +2,9 @@ using System;
 using System.Collections.ObjectModel;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Logging;
@@ -33,8 +35,33 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			if (Wallet.State == WalletState.Uninitialized)
 			{
 				AbandonedTasks abandonedTasks = new();
-				abandonedTasks.AddAndClearCompleted(LoadWallet());
+				abandonedTasks.AddAndClearCompleted(ShowLegalOrLoad());
 			}
+		}
+
+		private async Task ShowLegalOrLoad()
+		{
+			var legalShowed = await CheckLegal();
+
+			if (!legalShowed)
+			{
+				await LoadWallet();
+			}
+		}
+
+		private async Task<bool> CheckLegal()
+		{
+			var legalChecker = (await NavigationManager.MaterialiseViewModel(LegalDocumentsViewModel.MetaData) as LegalDocumentsViewModel)?.LegalChecker;
+
+			if (legalChecker is { } lc && lc.TryGetNewLegalDocs(out _))
+			{
+				var legalDocs = new TermsAndConditionsViewModel(legalChecker, this);
+				Navigate().To(legalDocs);
+
+				return true;
+			}
+
+			return false;
 		}
 
 		private async Task LoadWallet()
