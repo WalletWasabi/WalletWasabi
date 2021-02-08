@@ -100,11 +100,14 @@
         </Style>
     </UserControl.Styles>
     <c:ContentArea Title="Send" Caption=""
-                   EnableCancel="True"
+                  HorizontalAlignment="Left"
+                   EnableCancel="False"
+                   EnableNext="True"
+                   NextContent="Continue"
                    ClipToBounds="False"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-        <DockPanel ClipToBounds="False">
+        <DockPanel ClipToBounds="False" Width="500" HorizontalAlignment="Stretch">
             <StackPanel DockPanel.Dock="Top" Spacing="10">
                 <StackPanel.Styles>
                     <Style Selector="DockPanel > Label">
@@ -148,21 +151,19 @@
                 </DockPanel>
                 <Separator DockPanel.Dock="Top"
                            HorizontalAlignment="Stretch"
-                           Margin="-200 20 -200 0"
+                           Margin="-200 20 0 0"
                            Height="0.55"
                            Background="#7FFFFFFF"/>
-                <Label Margin="0 10 0 0" Content="_Priority:" Target="CursorValue2" />
+                <Label Margin="0 10 0 20" Content="_Priority:" Target="CursorValue2" />
             </StackPanel>
 
-            <DockPanel MinHeight="60" Margin="0 50 0 0">
-
+            <DockPanel MinHeight="80">
                 <Slider x:Name="CursorValue2"
                         DockPanel.Dock="Bottom"
                         Classes="cursor"
                         Minimum="{Binding #GradientLineChart.XAxisMinValue}"
                         Maximum="{Binding #GradientLineChart.XAxisMaxValue}"
-                        Value="{Binding #GradientLineChart.XAxisCurrentValue}"
-                        Margin="20,0,20,0" />
+                        Value="{Binding #GradientLineChart.XAxisCurrentValue}" />
                 <c:LineChart x:Name="GradientLineChart"
                              Classes="cursor border xAxisLabels yAxis yAxisTitle"
                              MinHeight="30"
@@ -173,7 +174,7 @@
                              XAxisMaxValue="{Binding XAxisMaxValue}"
                              YAxisValues="{Binding YAxisValues}"
                              YAxisLogarithmicScale="False"
-                             AreaMargin="30,40,30,30"
+                             AreaMargin="10,0,10,30"
                              AreaStrokeThickness="2"
                              AreaStrokeLineCap="Round"
                              AreaMinViableWidth="40"
