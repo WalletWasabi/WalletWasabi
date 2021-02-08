@@ -108,7 +108,7 @@
                    ClipToBounds="False"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-        <DockPanel ClipToBounds="False" Width="500" HorizontalAlignment="Stretch">
+        <DockPanel ClipToBounds="False" Width="500" HorizontalAlignment="Stretch" Margin="0 0 0 -32">
             <StackPanel DockPanel.Dock="Top" Spacing="10">
                 <StackPanel.Styles>
                     <Style Selector="DockPanel > Label">
