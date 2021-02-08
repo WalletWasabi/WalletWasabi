@@ -7,35 +7,8 @@
         </Border>
     </Design.PreviewWith>
 
-    <Style Selector="Button#PART_DeleteButton">
-        <Setter Property="Cursor" Value="Arrow"/>
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate>
-                    <PathIcon Data="{StaticResource dismiss_light}" />
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <Style Selector="c|TagControl /template/ Panel#PART_TagPanel LayoutTransformControl#PART_DeleteButtonLayoutTransformer">
-        <Setter Property="LayoutTransform" Value="scaleX(0)" />
-    </Style>
-
-    <Style Selector="c|TagControl /template/ Panel#PART_TagPanel Button#PART_DeleteButton">
-        <Setter Property="Opacity" Value="0" />
-    </Style>
-
-    <Style Selector="c|TagsBox:not(:readonly) c|TagControl /template/ Panel#PART_TagPanel:pointerover LayoutTransformControl#PART_DeleteButtonLayoutTransformer">
-        <Setter Property="LayoutTransform" Value="scaleX(1)" />
-    </Style>
-
-    <Style Selector="c|TagsBox:not(:readonly) c|TagControl /template/ Panel#PART_TagPanel:pointerover Button#PART_DeleteButton">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-
     <Style Selector="c|TagControl">
+        <Setter Property="Cursor" Value="Arrow"/>
         <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxControlForeground}" />
@@ -85,5 +58,32 @@
                 </Panel>
             </ControlTemplate>
         </Setter>
+    </Style>
+
+    <Style Selector="c|TagControl Button#PART_DeleteButton">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <PathIcon Data="{StaticResource dismiss_light}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style Selector="c|TagControl /template/ Panel#PART_TagPanel LayoutTransformControl#PART_DeleteButtonLayoutTransformer">
+        <Setter Property="LayoutTransform" Value="scaleX(0)" />
+    </Style>
+
+    <Style Selector="c|TagControl /template/ Panel#PART_TagPanel Button#PART_DeleteButton">
+        <Setter Property="Opacity" Value="0" />
+    </Style>
+
+    <Style Selector="c|TagsBox:not(:readonly) c|TagControl /template/ Panel#PART_TagPanel:pointerover LayoutTransformControl#PART_DeleteButtonLayoutTransformer">
+        <Setter Property="LayoutTransform" Value="scaleX(1)" />
+    </Style>
+
+    <Style Selector="c|TagsBox:not(:readonly) c|TagControl /template/ Panel#PART_TagPanel:pointerover Button#PART_DeleteButton">
+        <Setter Property="Opacity" Value="1" />
     </Style>
 </Styles>
