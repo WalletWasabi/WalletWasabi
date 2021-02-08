@@ -36,18 +36,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		{
 			base.OnNavigatedTo(inStack, disposable);
 
-			if (Wallet.State == WalletState.Uninitialized)
+			if (LegalChecker.TryGetNewLegalDocs(out _))
 			{
-				if (LegalChecker.TryGetNewLegalDocs(out _))
-				{
-					var legalDocs = new TermsAndConditionsViewModel(LegalChecker, this);
-					Navigate().To(legalDocs);
-				}
-				else
-				{
-					AbandonedTasks abandonedTasks = new();
-					abandonedTasks.AddAndClearCompleted(LoadWallet());
-				}
+				var legalDocs = new TermsAndConditionsViewModel(LegalChecker, this);
+				Navigate().To(legalDocs);
+			}
+			else if (Wallet.State == WalletState.Uninitialized)
+			{
+				AbandonedTasks abandonedTasks = new();
+				abandonedTasks.AddAndClearCompleted(LoadWallet());
 			}
 		}
 
