@@ -37,6 +37,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private ObservableCollection<string> _priorLabels;
 		[AutoNotify] private ObservableCollection<string> _labels;
 		[AutoNotify] private bool _isPayJoin;
+		[AutoNotify] private int[] _xAxisValues;
+		[AutoNotify] private int[] _yAxisValues;
+		[AutoNotify] private string[] _xAxisLabels;
+
 		private string? _payJoinEndPoint;
 		private bool _parsingUrl;
 
@@ -178,21 +182,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void UpdateFeeEstimates(AllFeeEstimate feeEstimate)
 		{
-			XAxisValues.Clear();
-			XAxisLabels.Clear();
-
-			YAxisValues.Clear();
-
-			foreach (var estimate in feeEstimate.Estimations)
-			{
-				var target = estimate.Key;
-				var fee = estimate.Value;
-
-				XAxisLabels.Add(target.ToString());
-				XAxisValues.Add(target);
-
-				YAxisValues.Add(fee);
-			}
+			XAxisValues = feeEstimate.Estimations.Select(x => x.Key * 10).ToArray();
+			XAxisLabels = XAxisValues.Select(x => x.ToString()).ToArray();
+			YAxisValues = feeEstimate.Estimations.Select(x => x.Value).ToArray();
 		}
 
 		public ICommand PasteCommand { get; }
@@ -203,47 +195,5 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public double XAxisMinValue { get; set; } = 1;
 
 		public double XAxisMaxValue { get; set; } = 1008;
-
-		public ObservableCollection<string> XAxisLabels => new ObservableCollection<string>()
-		{
-			"1w",
-			"3d",
-			"1d",
-			"12h",
-			"6h",
-			"3h",
-			"1h",
-			"30m",
-			"20m",
-			"fastest"
-		};
-
-		public ObservableCollection<double> XAxisValues => new ObservableCollection<double>()
-		{
-			1008,
-			432,
-			144,
-			72,
-			36,
-			18,
-			6,
-			3,
-			2,
-			1,
-		};
-
-		public ObservableCollection<double> YAxisValues => new ObservableCollection<double>()
-		{
-			4,
-			4,
-			7,
-			22,
-			57,
-			97,
-			102,
-			123,
-			123,
-			185
-		};
 	}
 }
