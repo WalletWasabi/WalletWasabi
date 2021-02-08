@@ -4,45 +4,27 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto.ZeroKnowledge;
-using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 
 namespace WalletWasabi.WabiSabi.Models
 {
 	public class ConnectionConfirmationRequest
 	{
-		public ConnectionConfirmationRequest(Guid roundId, Guid aliceId, RegistrationRequestMessage zeroAmountCredentialRequests, RegistrationRequestMessage realAmountCredentialRequests, RegistrationRequestMessage realWeightCredentialRequests, RegistrationRequestMessage zeroWeightCredentialRequests)
+		public ConnectionConfirmationRequest(Guid roundId, Guid aliceId, ZeroCredentialsRequest zeroAmountCredentialRequests, RealCredentialsRequest realAmountCredentialRequests, ZeroCredentialsRequest zeroWeightCredentialRequests, RealCredentialsRequest realWeightCredentialRequests)
 		{
 			RoundId = roundId;
 			AliceId = aliceId;
-			RealAmountCredentialRequests = realAmountCredentialRequests;
 			ZeroAmountCredentialRequests = zeroAmountCredentialRequests;
-			RealWeightCredentialRequests = realWeightCredentialRequests;
+			RealAmountCredentialRequests = realAmountCredentialRequests;
 			ZeroWeightCredentialRequests = zeroWeightCredentialRequests;
-
-			if (!ZeroAmountCredentialRequests.IsNullRequest)
-			{
-				throw new InvalidOperationException("Only zero credentials can be requested.");
-			}
-			if (!ZeroWeightCredentialRequests.IsNullRequest)
-			{
-				throw new InvalidOperationException("Only zero credentials can be requested.");
-			}
-
-			if (RealAmountCredentialRequests.IsNullRequest)
-			{
-				throw new InvalidOperationException("Only non-zero credentials can be requested.");
-			}
-			if (RealWeightCredentialRequests.IsNullRequest)
-			{
-				throw new InvalidOperationException("Only non-zero credentials can be requested.");
-			}
+			RealWeightCredentialRequests = realWeightCredentialRequests;
 		}
 
 		public Guid RoundId { get; }
 		public Guid AliceId { get; }
-		public RegistrationRequestMessage RealAmountCredentialRequests { get; }
-		public RegistrationRequestMessage ZeroAmountCredentialRequests { get; }
-		public RegistrationRequestMessage RealWeightCredentialRequests { get; }
-		public RegistrationRequestMessage ZeroWeightCredentialRequests { get; }
+		public ZeroCredentialsRequest ZeroAmountCredentialRequests { get; }
+		public RealCredentialsRequest RealAmountCredentialRequests { get; }
+		public ZeroCredentialsRequest ZeroWeightCredentialRequests { get; }
+		public RealCredentialsRequest RealWeightCredentialRequests { get; }
 	}
 }

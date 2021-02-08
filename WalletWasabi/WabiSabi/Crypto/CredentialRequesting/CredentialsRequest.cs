@@ -5,7 +5,7 @@ using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using Newtonsoft.Json;
 
-namespace WalletWasabi.WabiSabi.Crypto
+namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 {
 	/// <summary>
 	/// Represents a request message for the WabiSabi unified registration protocol.
@@ -15,10 +15,10 @@ namespace WalletWasabi.WabiSabi.Crypto
 	/// inputs registration and outputs registration and it is designed to support
 	/// credentials reissuance.
 	/// </remarks>
-	public class RegistrationRequestMessage
+	public abstract class CredentialsRequest
 	{
 		[JsonConstructor]
-		internal RegistrationRequestMessage(
+		internal CredentialsRequest(
 			Money deltaAmount,
 			IEnumerable<CredentialPresentation> presented,
 			IEnumerable<IssuanceRequest> requested,

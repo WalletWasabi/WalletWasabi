@@ -7,6 +7,7 @@ using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi
@@ -192,7 +193,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 
 				// Test incorrect number of presentations (one instead of 3.)
 				var presented = validCredentialRequest.Presented.ToArray();
-				var invalidCredentialRequest = new RegistrationRequestMessage(
+				var invalidCredentialRequest = new RealCredentialsRequest(
 					validCredentialRequest.DeltaAmount,
 					new[] { presented[0] }, // Should present 3 credentials.
 					validCredentialRequest.Requested,
@@ -204,7 +205,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 
 				// Test incorrect number of presentations (0 instead of 3.)
 				presented = credentialRequest.Presented.ToArray();
-				invalidCredentialRequest = new RegistrationRequestMessage(
+				invalidCredentialRequest = new RealCredentialsRequest(
 					Money.Coins(2),
 					Array.Empty<CredentialPresentation>(), // Should present 3 credentials.
 					validCredentialRequest.Requested,
@@ -217,7 +218,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 				(validCredentialRequest, _) = client.CreateRequest(Array.Empty<Money>(), client.Credentials.All);
 
 				// Test incorrect number of credential requests.
-				invalidCredentialRequest = new RegistrationRequestMessage(
+				invalidCredentialRequest = new RealCredentialsRequest(
 					validCredentialRequest.DeltaAmount,
 					validCredentialRequest.Presented,
 					validCredentialRequest.Requested.Take(1),
@@ -228,7 +229,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 				Assert.Equal("3 credential requests were expected but 1 were received.", ex.Message);
 
 				// Test incorrect number of credential requests.
-				invalidCredentialRequest = new RegistrationRequestMessage(
+				invalidCredentialRequest = new RealCredentialsRequest(
 					Money.Coins(2),
 					Array.Empty<CredentialPresentation>(),
 					validCredentialRequest.Requested.Take(1),
@@ -241,7 +242,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 				// Test invalid range proof.
 				var requested = validCredentialRequest.Requested.ToArray();
 
-				invalidCredentialRequest = new RegistrationRequestMessage(
+				invalidCredentialRequest = new RealCredentialsRequest(
 					validCredentialRequest.DeltaAmount,
 					validCredentialRequest.Presented,
 					new[] { requested[0], requested[1], new IssuanceRequest(requested[2].Ma, new[] { GroupElement.Infinity }) },
@@ -258,7 +259,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 				// Test invalid proofs.
 				var proofs = validCredentialRequest.Proofs.ToArray();
 				proofs[0] = proofs[1];
-				var invalidCredentialRequest = new RegistrationRequestMessage(
+				var invalidCredentialRequest = new RealCredentialsRequest(
 					validCredentialRequest.DeltaAmount,
 					validCredentialRequest.Presented,
 					validCredentialRequest.Requested,

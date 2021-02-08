@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 
 namespace WalletWasabi.WabiSabi.Models
 {
 	public class ConnectionConfirmationResponse
 	{
-		public ConnectionConfirmationResponse(RegistrationResponseMessage zeroAmountCredentials, RegistrationResponseMessage zeroWeightCredentials, RegistrationResponseMessage? realAmountCredentials = null, RegistrationResponseMessage? realWeightCredentials = null)
+		public ConnectionConfirmationResponse(CredentialsResponse zeroAmountCredentials, CredentialsResponse zeroWeightCredentials, CredentialsResponse? realAmountCredentials = null, CredentialsResponse? realWeightCredentials = null)
 		{
 			ZeroAmountCredentials = zeroAmountCredentials;
 			ZeroWeightCredentials = zeroWeightCredentials;
@@ -17,9 +17,9 @@ namespace WalletWasabi.WabiSabi.Models
 			RealWeightCredentials = realWeightCredentials;
 		}
 
-		public RegistrationResponseMessage ZeroAmountCredentials { get; }
-		public RegistrationResponseMessage ZeroWeightCredentials { get; }
-		public RegistrationResponseMessage? RealAmountCredentials { get; }
-		public RegistrationResponseMessage? RealWeightCredentials { get; }
+		public CredentialsResponse ZeroAmountCredentials { get; }
+		public CredentialsResponse ZeroWeightCredentials { get; }
+		public CredentialsResponse? RealAmountCredentials { get; }
+		public CredentialsResponse? RealWeightCredentials { get; }
 	}
 }

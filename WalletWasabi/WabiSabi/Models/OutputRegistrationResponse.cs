@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 
 namespace WalletWasabi.WabiSabi.Models
 {
 	public class OutputRegistrationResponse
 	{
-		public OutputRegistrationResponse(byte[] unsignedTransactionSecret, RegistrationResponseMessage amountCredentials, RegistrationResponseMessage weightCredentials)
+		public OutputRegistrationResponse(byte[] unsignedTransactionSecret, CredentialsResponse amountCredentials, CredentialsResponse weightCredentials)
 		{
 			UnsignedTransactionSecret = unsignedTransactionSecret;
 			AmountCredentials = amountCredentials;
@@ -17,7 +17,7 @@ namespace WalletWasabi.WabiSabi.Models
 		}
 
 		public byte[] UnsignedTransactionSecret { get; }
-		public RegistrationResponseMessage AmountCredentials { get; }
-		public RegistrationResponseMessage WeightCredentials { get; }
+		public CredentialsResponse AmountCredentials { get; }
+		public CredentialsResponse WeightCredentials { get; }
 	}
 }

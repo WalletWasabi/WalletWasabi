@@ -9,6 +9,7 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Crypto.Serialization;
 using Xunit;
 
@@ -166,13 +167,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 
 			// Registration request message.
 			var serializedRequestMessage = JsonConvert.SerializeObject(credentialRequest, converters);
-			var deserializedRequestMessage = JsonConvert.DeserializeObject<RegistrationRequestMessage>(serializedRequestMessage, converters);
+			var deserializedRequestMessage = JsonConvert.DeserializeObject<CredentialsRequest>(serializedRequestMessage, converters);
 			var reserializedRequestMessage = JsonConvert.SerializeObject(deserializedRequestMessage, converters);
 			Assert.Equal(serializedRequestMessage, reserializedRequestMessage);
 
 			// Registration response message.
 			var serializedResponseMessage = JsonConvert.SerializeObject(credentialResponse, converters);
-			var deserializedResponseMessage = JsonConvert.DeserializeObject<RegistrationResponseMessage>(serializedResponseMessage, converters);
+			var deserializedResponseMessage = JsonConvert.DeserializeObject<CredentialsResponse>(serializedResponseMessage, converters);
 			var reserializedResponseMessage = JsonConvert.SerializeObject(deserializedResponseMessage, converters);
 			Assert.Equal(serializedResponseMessage, reserializedResponseMessage);
 		}

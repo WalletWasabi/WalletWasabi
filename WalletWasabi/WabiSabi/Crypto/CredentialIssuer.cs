@@ -10,6 +10,7 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Helpers;
+using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 
 namespace WalletWasabi.WabiSabi.Crypto
 {
@@ -19,7 +20,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 	/// <remarks>
 	/// CredentialIssuer is the coordinator's component used to issue anonymous credentials
 	/// requested by a WabiSabi client. This means this component abstracts receives
-	/// <see cref="RegistrationRequestMessage">RegistrationRequests</see>, validates the requested
+	/// <see cref="CredentialsRequest">RegistrationRequests</see>, validates the requested
 	/// amounts are in the valid range, serial numbers are not duplicated nor reused,
 	/// and finally issues the credentials using the coordinator's secret key (and also
 	/// proving to the WabiSabi client that the credentials were issued with the right
@@ -32,7 +33,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 	/// that the same instance has to be used for a given round (the coordinator needs to
 	/// maintain only one instance of this class per round)
 	///
-	/// About replay requests: a replay request is a <see cref="RegistrationRequestMessage">request</see>
+	/// About replay requests: a replay request is a <see cref="CredentialsRequest">request</see>
 	/// that has already been seen before. These kind of requests can be the result of misbehaving
 	/// clients or simply clients using a retry communication mechanism.
 	/// Reply requests are not handled by this component and they have to be handled by a different
@@ -76,13 +77,13 @@ namespace WalletWasabi.WabiSabi.Crypto
 		public int NumberOfCredentials { get; }
 
 		/// <summary>
-		/// Process the <see cref="RegistrationRequestMessage">credentials registration requests</see> and
+		/// Process the <see cref="CredentialsRequest">credentials registration requests</see> and
 		/// issues the credentials.
 		/// </summary>
 		/// <param name="registrationRequest">The request containing the credentials presentations, credential requests and the proofs.</param>
-		/// <returns>The <see cref="RegistrationResponseMessage">registration response</see> containing the requested credentials and the proofs.</returns>
+		/// <returns>The <see cref="CredentialsResponse">registration response</see> containing the requested credentials and the proofs.</returns>
 		/// <exception cref="WabiSabiException">Error code: <see cref="WabiSabiErrorCode">WabiSabiErrorCode</see></exception>
-		public RegistrationResponseMessage HandleRequest(RegistrationRequestMessage registrationRequest)
+		public CredentialsResponse HandleRequest(CredentialsRequest registrationRequest)
 		{
 			Guard.NotNull(nameof(registrationRequest), registrationRequest);
 
@@ -187,7 +188,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			// Construct response.
 			var proofs = ProofSystem.Prove(transcript, credentials.Select(x => x.Knowledge), RandomNumberGenerator);
 			var macs = credentials.Select(x => x.Mac);
-			var response = new RegistrationResponseMessage(macs, proofs);
+			var response = new CredentialsResponse(macs, proofs);
 
 			// Register the serial numbers to prevent credential reuse.
 			foreach (var presentation in presented)

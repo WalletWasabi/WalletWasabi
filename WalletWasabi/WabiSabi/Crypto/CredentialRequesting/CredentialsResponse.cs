@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.ZeroKnowledge;
 
-namespace WalletWasabi.WabiSabi.Crypto
+namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 {
 	/// <summary>
 	/// Represents a response message for the WabiSabi unified registration protocol.
@@ -13,9 +13,9 @@ namespace WalletWasabi.WabiSabi.Crypto
 	/// inputs registration and outputs registration. It contains the collection of `k` issued
 	/// credentials and the corresponding proofs.
 	/// </remarks>
-	public class RegistrationResponseMessage
+	public class CredentialsResponse
 	{
-		public RegistrationResponseMessage(IEnumerable<MAC> issuedCredentials, IEnumerable<Proof> proofs)
+		public CredentialsResponse(IEnumerable<MAC> issuedCredentials, IEnumerable<Proof> proofs)
 		{
 			IssuedCredentials = issuedCredentials;
 			Proofs = proofs;

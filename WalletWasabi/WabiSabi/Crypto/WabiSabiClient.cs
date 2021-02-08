@@ -9,12 +9,13 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Helpers;
+using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 
 namespace WalletWasabi.WabiSabi.Crypto
 {
 	/// <summary>
-	/// Provides the methods for creating <see cref="RegistrationRequestMessage">unified WabiSabi credential registration request messages</see>
-	/// and for handling the <see cref="RegistrationResponseMessage">credential registration responses</see> received from the coordinator.
+	/// Provides the methods for creating <see cref="CredentialsRequest">unified WabiSabi credential registration request messages</see>
+	/// and for handling the <see cref="CredentialsResponse">credential registration responses</see> received from the coordinator.
 	/// </summary>
 	public class WabiSabiClient
 	{
@@ -41,7 +42,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		public CredentialPool Credentials { get; }
 
 		/// <summary>
-		/// Creates a <see cref="RegistrationRequestMessage">credential registration request messages</see>
+		/// Creates a <see cref="CredentialsRequest">credential registration request messages</see>
 		/// for requesting `k` zero-value credentials.
 		/// </summary>
 		/// <remarks>
@@ -49,7 +50,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// registration request message that has to be sent to the coordinator is a null request, in this
 		/// way the coordinator issues `k` zero-value credentials that can be used in following requests.
 		/// </remarks>
-		public (RegistrationRequestMessage, RegistrationValidationData) CreateRequestForZeroAmount()
+		public (CredentialsRequest, CredentialsResponseValidation) CreateRequestForZeroAmount()
 		{
 			var credentialsToRequest = new IssuanceRequest[NumberOfCredentials];
 			var knowledge = new Knowledge[NumberOfCredentials];
@@ -68,19 +69,19 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var transcript = BuildTransnscript(isNullRequest: true);
 
 			return (
-				new RegistrationRequestMessage(
+				new ZeroCredentialsRequest(
 					Money.Zero,
 					Enumerable.Empty<CredentialPresentation>(),
 					credentialsToRequest,
 					ProofSystem.Prove(transcript, knowledge, RandomNumberGenerator)),
-				new RegistrationValidationData(
+				new CredentialsResponseValidation(
 					transcript,
 					Enumerable.Empty<Credential>(),
 					validationData));
 		}
 
 		/// <summary>
-		/// Creates a <see cref="RegistrationRequestMessage">credential registration request messages</see>
+		/// Creates a <see cref="CredentialsRequest">credential registration request messages</see>
 		/// for requesting `k` non-zero-value credentials.
 		/// </summary>
 		/// <param name="amountsToRequest">List of amounts requested in credentials.</param>
@@ -89,7 +90,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// A tuple containing the registration request message instance and the registration validation data
 		/// to be used to validate the coordinator response message (the issued credentials).
 		/// </returns>
-		public (RegistrationRequestMessage, RegistrationValidationData) CreateRequest(
+		public (CredentialsRequest, CredentialsResponseValidation) CreateRequest(
 			IEnumerable<Money> amountsToRequest,
 			IEnumerable<Credential> credentialsToPresent)
 		{
@@ -165,12 +166,12 @@ namespace WalletWasabi.WabiSabi.Crypto
 
 			var transcript = BuildTransnscript(isNullRequest: false);
 			return (
-				new RegistrationRequestMessage(
+				new RealCredentialsRequest(
 					amountsToRequest.Sum() - credentialsToPresent.Sum(x => x.Amount.ToMoney()),
 					presentations,
 					credentialsToRequest,
 					ProofSystem.Prove(transcript, knowledgeToProve, RandomNumberGenerator)),
-				new RegistrationValidationData(
+				new CredentialsResponseValidation(
 					transcript,
 					credentialsToPresent,
 					validationData));
@@ -186,7 +187,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// </remarks>
 		/// <param name="registrationResponse">The registration response message received from the coordinator.</param>
 		/// <param name="registrationValidationData">The state data required to validate the issued credentials and the proofs.</param>
-		public void HandleResponse(RegistrationResponseMessage registrationResponse, RegistrationValidationData registrationValidationData)
+		public void HandleResponse(CredentialsResponse registrationResponse, CredentialsResponseValidation registrationValidationData)
 		{
 			Guard.NotNull(nameof(registrationResponse), registrationResponse);
 			Guard.NotNull(nameof(registrationValidationData), registrationValidationData);
