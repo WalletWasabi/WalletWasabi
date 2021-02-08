@@ -9,6 +9,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Logging;
 using WalletWasabi.Nito.AsyncEx;
+using WalletWasabi.Services;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -17,14 +18,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	{
 		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
 
-		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet)
+		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet, LegalChecker legalChecker)
 			: base(wallet)
 		{
 			WalletManager = walletManager;
+			LegalChecker = legalChecker;
 			_items = new ObservableCollection<NavBarItemViewModel>();
 		}
 
 		public WalletManager WalletManager { get; }
+
+		private LegalChecker LegalChecker { get; }
 
 		public override string IconName => "web_asset_regular";
 
@@ -34,28 +38,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			if (Wallet.State == WalletState.Uninitialized)
 			{
-				AbandonedTasks abandonedTasks = new();
-				abandonedTasks.AddAndClearCompleted(ShowLegalOrLoad());
+				var newLegalAvailable = CheckLegal();
+
+				if (!newLegalAvailable)
+				{
+					AbandonedTasks abandonedTasks = new();
+					abandonedTasks.AddAndClearCompleted(LoadWallet());
+				}
 			}
 		}
 
-		private async Task ShowLegalOrLoad()
+		private bool CheckLegal()
 		{
-			var legalShowed = await CheckLegal();
-
-			if (!legalShowed)
+			if (LegalChecker.TryGetNewLegalDocs(out _))
 			{
-				await LoadWallet();
-			}
-		}
-
-		private async Task<bool> CheckLegal()
-		{
-			var legalChecker = (await NavigationManager.MaterialiseViewModel(LegalDocumentsViewModel.MetaData) as LegalDocumentsViewModel)?.LegalChecker;
-
-			if (legalChecker is { } lc && lc.TryGetNewLegalDocs(out _))
-			{
-				var legalDocs = new TermsAndConditionsViewModel(legalChecker, this);
+				var legalDocs = new TermsAndConditionsViewModel(LegalChecker, this);
 				Navigate().To(legalDocs);
 
 				return true;
@@ -81,13 +78,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			}
 		}
 
-		public static WalletViewModelBase Create(WalletManager walletManager, Wallet wallet)
+		public static WalletViewModelBase Create(WalletManager walletManager, Wallet wallet, LegalChecker legalChecker)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new ClosedHardwareWalletViewModel(walletManager, wallet)
+				? new ClosedHardwareWalletViewModel(walletManager, wallet, legalChecker)
 				: wallet.KeyManager.IsWatchOnly
-					? new ClosedWatchOnlyWalletViewModel(walletManager, wallet)
-					: new ClosedWalletViewModel(walletManager, wallet);
+					? new ClosedWatchOnlyWalletViewModel(walletManager, wallet, legalChecker)
+					: new ClosedWalletViewModel(walletManager, wallet, legalChecker);
 		}
 	}
 }
