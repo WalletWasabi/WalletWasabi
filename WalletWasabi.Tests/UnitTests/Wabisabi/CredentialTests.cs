@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			client.HandleResponse(zeroCredentialResponse, zeroValidationData);
 
 			// Connection Conf
-			var (credentialRequest, validationData) = client.CreateRequest(new[] { Money.Satoshis(1), Money.Satoshis(9) }, Array.Empty<Credential>());
+			var (credentialRequest, validationData) = client.CreateRequest(new[] { 1L, 9L }, Array.Empty<Credential>());
 			(zeroCredentialRequest, zeroValidationData) = client.CreateRequestForZeroAmount();
 
 			Assert.Equal(10, credentialRequest.Delta);
@@ -42,27 +42,27 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			client.HandleResponse(credentialResponse, validationData);
 
 			// Output Reg
-			(credentialRequest, validationData) = client.CreateRequest(new[] { Money.Satoshis(1), Money.Satoshis(8) }, client.Credentials.Valuable);
+			(credentialRequest, validationData) = client.CreateRequest(new[] { 1L, 8L }, client.Credentials.Valuable);
 			credentialResponse = issuer.HandleRequest(credentialRequest);
 			client.HandleResponse(credentialResponse, validationData);
 			Assert.Equal(-1, credentialRequest.Delta);
 
-			(credentialRequest, validationData) = client.CreateRequest(new[] { Money.Satoshis(1), Money.Satoshis(7) }, client.Credentials.Valuable);
+			(credentialRequest, validationData) = client.CreateRequest(new[] { 1L, 7L }, client.Credentials.Valuable);
 			credentialResponse = issuer.HandleRequest(credentialRequest);
 			client.HandleResponse(credentialResponse, validationData);
 			Assert.Equal(-1, credentialRequest.Delta);
 
-			(credentialRequest, validationData) = client.CreateRequest(new[] { Money.Satoshis(1), Money.Satoshis(6) }, client.Credentials.Valuable);
+			(credentialRequest, validationData) = client.CreateRequest(new[] { 1L, 6L }, client.Credentials.Valuable);
 			credentialResponse = issuer.HandleRequest(credentialRequest);
 			client.HandleResponse(credentialResponse, validationData);
 			Assert.Equal(-1, credentialRequest.Delta);
 
-			(credentialRequest, validationData) = client.CreateRequest(Array.Empty<Money>(), client.Credentials.Valuable.Where(x => x.Amount == Scalar.One).Take(1));
+			(credentialRequest, validationData) = client.CreateRequest(Array.Empty<long>(), client.Credentials.Valuable.Where(x => x.Amount == Scalar.One).Take(1));
 			credentialResponse = issuer.HandleRequest(credentialRequest);
 			client.HandleResponse(credentialResponse, validationData);
 			Assert.Equal(-1, credentialRequest.Delta);
 
-			(credentialRequest, validationData) = client.CreateRequest(Array.Empty<Money>(), client.Credentials.Valuable.Take(1));
+			(credentialRequest, validationData) = client.CreateRequest(Array.Empty<long>(), client.Credentials.Valuable.Take(1));
 			credentialResponse = issuer.HandleRequest(credentialRequest);
 			client.HandleResponse(credentialResponse, validationData);
 			Assert.Equal(-6, credentialRequest.Delta);
@@ -103,7 +103,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 
 			{
 				var present = client.Credentials.ZeroValue.Take(numberOfCredentials);
-				var (credentialRequest, validationData) = client.CreateRequest(new[] { Money.Coins(1) }, present);
+				var (credentialRequest, validationData) = client.CreateRequest(new[] { 100_000_000L }, present);
 
 				Assert.False(credentialRequest.IsNullRequest);
 				var credentialRequested = credentialRequest.Requested.ToArray();
@@ -125,7 +125,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 
 			{
 				var valuableCredential = client.Credentials.Valuable.Take(1);
-				var amounts = Enumerable.Repeat(Money.Coins(0.5m), 2);
+				var amounts = Enumerable.Repeat(50_000_000L, 2);
 				var (credentialRequest, validationData) = client.CreateRequest(amounts, valuableCredential);
 
 				Assert.False(credentialRequest.IsNullRequest);
@@ -157,12 +157,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 				var credentialResponse = issuer.HandleRequest(credentialRequest);
 				client0.HandleResponse(credentialResponse, validationData);
 
-				(credentialRequest, validationData) = client0.CreateRequest(new[] { Money.Coins(1m) }, Enumerable.Empty<Credential>());
+				(credentialRequest, validationData) = client0.CreateRequest(new[] { 1L }, Enumerable.Empty<Credential>());
 
 				credentialResponse = issuer.HandleRequest(credentialRequest);
 				client0.HandleResponse(credentialResponse, validationData);
 
-				(credentialRequest, validationData) = client0.CreateRequest(Array.Empty<Money>(), client0.Credentials.Valuable);
+				(credentialRequest, validationData) = client0.CreateRequest(Array.Empty<long>(), client0.Credentials.Valuable);
 
 				credentialResponse = issuer.HandleRequest(credentialRequest);
 				client0.HandleResponse(credentialResponse, validationData);
@@ -189,7 +189,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 				var credentialResponse = issuer.HandleRequest(credentialRequest);
 				client.HandleResponse(credentialResponse, validationData);
 
-				var (validCredentialRequest, _) = client.CreateRequest(Array.Empty<Money>(), client.Credentials.ZeroValue.Take(1));
+				var (validCredentialRequest, _) = client.CreateRequest(Array.Empty<long>(), client.Credentials.ZeroValue.Take(1));
 
 				// Test incorrect number of presentations (one instead of 3.)
 				var presented = validCredentialRequest.Presented.ToArray();
@@ -215,7 +215,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 				Assert.Equal(WabiSabiErrorCode.InvalidNumberOfPresentedCredentials, ex.ErrorCode);
 				Assert.Equal("3 credential presentations were expected but 0 were received.", ex.Message);
 
-				(validCredentialRequest, _) = client.CreateRequest(Array.Empty<Money>(), client.Credentials.All);
+				(validCredentialRequest, _) = client.CreateRequest(Array.Empty<long>(), client.Credentials.All);
 
 				// Test incorrect number of credential requests.
 				invalidCredentialRequest = new RealCredentialsRequest(
@@ -276,7 +276,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 				var credentialResponse = issuer.HandleRequest(validCredentialRequest);
 				client.HandleResponse(credentialResponse, validationData);
 
-				(validCredentialRequest, validationData) = client.CreateRequest(Enumerable.Empty<Money>(), client.Credentials.All);
+				(validCredentialRequest, validationData) = client.CreateRequest(Enumerable.Empty<long>(), client.Credentials.All);
 
 				issuer.HandleRequest(validCredentialRequest);
 				var ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(validCredentialRequest));

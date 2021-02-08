@@ -63,14 +63,14 @@ namespace WalletWasabi.WabiSabi.Crypto
 
 				knowledge[i] = ProofSystem.ZeroProofKnowledge(ma, randomness);
 				credentialsToRequest[i] = new IssuanceRequest(ma, Enumerable.Empty<GroupElement>());
-				validationData[i] = new IssuanceValidationData(Money.Zero, randomness, ma);
+				validationData[i] = new IssuanceValidationData(0, randomness, ma);
 			}
 
 			var transcript = BuildTransnscript(isNullRequest: true);
 
 			return (
 				new ZeroCredentialsRequest(
-					Money.Zero,
+					0,
 					Enumerable.Empty<CredentialPresentation>(),
 					credentialsToRequest,
 					ProofSystem.Prove(transcript, knowledge, RandomNumberGenerator)),
@@ -91,7 +91,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// to be used to validate the coordinator response message (the issued credentials).
 		/// </returns>
 		public (CredentialsRequest, CredentialsResponseValidation) CreateRequest(
-			IEnumerable<Money> amountsToRequest,
+			IEnumerable<long> amountsToRequest,
 			IEnumerable<Credential> credentialsToPresent)
 		{
 			// Make sure we request always the same number of credentials
@@ -99,7 +99,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var missingCredentialRequests = NumberOfCredentials - amountsToRequest.Count();
 			for (var i = 0; i < missingCredentialRequests; i++)
 			{
-				credentialAmountsToRequest.Add(Money.Zero);
+				credentialAmountsToRequest.Add(0);
 			}
 
 			// Make sure we present always the same number of credentials (except for Null requests)
@@ -142,7 +142,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			for (var i = 0; i < NumberOfCredentials; i++)
 			{
 				var amount = credentialAmountsToRequest[i];
-				var scalarAmount = new Scalar((ulong)amount.Satoshi);
+				var scalarAmount = new Scalar((ulong)amount);
 
 				var randomness = RandomNumberGenerator.GetScalar(allowZero: false);
 				var ma = ProofSystem.PedersenCommitment(scalarAmount, randomness);
@@ -167,7 +167,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var transcript = BuildTransnscript(isNullRequest: false);
 			return (
 				new RealCredentialsRequest(
-					amountsToRequest.Sum() - credentialsToPresent.Sum(x => x.Amount.ToMoney()),
+					amountsToRequest.Sum() - credentialsToPresent.Sum(x => (long)x.Amount.ToUlong()),
 					presentations,
 					credentialsToRequest,
 					ProofSystem.Prove(transcript, knowledgeToProve, RandomNumberGenerator)),
@@ -215,7 +215,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			}
 
 			var credentialReceived = credentials.Select(x =>
-				new Credential(new Scalar((ulong)x.Requested.Amount.Satoshi), x.Requested.Randomness, x.Issued));
+				new Credential(new Scalar((ulong)x.Requested.Amount), x.Requested.Randomness, x.Issued));
 
 			Credentials.UpdateCredentials(credentialReceived, registrationValidationData.Presented);
 		}

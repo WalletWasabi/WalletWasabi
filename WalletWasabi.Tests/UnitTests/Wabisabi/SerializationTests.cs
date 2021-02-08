@@ -163,7 +163,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			var credentialResponse = issuer.HandleRequest(credentialRequest);
 			client.HandleResponse(credentialResponse, validationData);
 			var present = client.Credentials.ZeroValue.Take(numberOfCredentials);
-			(credentialRequest, _) = client.CreateRequest(new[] { Money.Coins(1) }, present);
+			(credentialRequest, _) = client.CreateRequest(new[] { 1L }, present);
 
 			// Registration request message.
 			var serializedRequestMessage = JsonConvert.SerializeObject(credentialRequest, converters);
