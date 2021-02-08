@@ -48,16 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			ExchangeRate = walletVm.Wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();
 
-			walletVm.Wallet.TransactionProcessor.WhenAnyValue(x => x.Coins)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					PriorLabels.Clear();
-					PriorLabels.AddRange(x.SelectMany(x => x.HdPubKey.Label.Labels).Distinct());
-				});
-
 			this.WhenAnyValue(x => x.To)
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(ParseToField);
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -75,6 +66,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				_parsingUrl = false;
 			});
 		}
+
+
 
 		private void ParseToField(string s)
 		{
@@ -159,7 +152,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
 		{
 			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => ExchangeRate = x)
+				.DisposeWith(disposables);
+
+			_owner.Wallet.TransactionProcessor.WhenAnyValue(x => x.Coins)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					PriorLabels.Clear();
+					PriorLabels.AddRange(x.SelectMany(coin => coin.HdPubKey.Label.Labels).Distinct());
+				})
 				.DisposeWith(disposables);
 
 			base.OnNavigatedTo(inStack, disposables);
