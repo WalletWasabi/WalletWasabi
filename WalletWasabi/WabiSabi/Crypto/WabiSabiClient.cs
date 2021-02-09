@@ -70,8 +70,6 @@ namespace WalletWasabi.WabiSabi.Crypto
 
 			return (
 				new ZeroCredentialsRequest(
-					0,
-					Enumerable.Empty<CredentialPresentation>(),
 					credentialsToRequest,
 					ProofSystem.Prove(transcript, knowledge, RandomNumberGenerator)),
 				new CredentialsResponseValidation(

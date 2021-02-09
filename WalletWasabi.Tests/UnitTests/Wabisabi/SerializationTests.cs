@@ -167,7 +167,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 
 			// Registration request message.
 			var serializedRequestMessage = JsonConvert.SerializeObject(credentialRequest, converters);
-			Assert.Throws<InvalidOperationException>(() => JsonConvert.DeserializeObject<ZeroCredentialsRequest>(serializedRequestMessage, converters));
+			Assert.Throws<NotSupportedException>(() => JsonConvert.DeserializeObject<ZeroCredentialsRequest>(serializedRequestMessage, converters));
 			var deserializedRequestMessage = JsonConvert.DeserializeObject<RealCredentialsRequest>(serializedRequestMessage, converters);
 			var reserializedRequestMessage = JsonConvert.SerializeObject(deserializedRequestMessage, converters);
 			Assert.Equal(serializedRequestMessage, reserializedRequestMessage);

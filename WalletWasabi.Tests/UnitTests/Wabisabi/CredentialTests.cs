@@ -260,8 +260,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 				var proofs = validCredentialRequest.Proofs.ToArray();
 				proofs[0] = proofs[1];
 				var invalidCredentialRequest = new ZeroCredentialsRequest(
-					validCredentialRequest.Delta,
-					validCredentialRequest.Presented,
 					validCredentialRequest.Requested,
 					proofs);
 

@@ -12,11 +12,9 @@ namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 	public class ZeroCredentialsRequest : CredentialsRequest
 	{
 		public ZeroCredentialsRequest(
-			long delta,
-			IEnumerable<CredentialPresentation> presented,
 			IEnumerable<IssuanceRequest> requested,
 			IEnumerable<Proof> proofs)
-			: base(delta, presented, requested, proofs)
+			: base(0, Array.Empty<CredentialPresentation>(), requested, proofs)
 		{
 			if (!IsNullRequest)
 			{
