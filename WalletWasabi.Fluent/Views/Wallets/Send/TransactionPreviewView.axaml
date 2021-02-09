@@ -9,7 +9,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:OptimisePrivacyViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.OptimisePrivacyView">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionPreviewView">
     <c:ContentArea Title="Send" Caption=""
                    HorizontalAlignment="Left"
                    EnableCancel="False"

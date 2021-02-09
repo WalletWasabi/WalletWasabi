@@ -1,7 +1,10 @@
+using WalletWasabi.Fluent.ViewModels.Navigation;
+
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
-	public partial class OptimisePrivacyViewModel : ViewModelBase
+	[NavigationMetaData(Title = "Optimise your privacy")]
+	public partial class OptimisePrivacyViewModel : RoutableViewModel
 	{
-		
+
 	}
 }
