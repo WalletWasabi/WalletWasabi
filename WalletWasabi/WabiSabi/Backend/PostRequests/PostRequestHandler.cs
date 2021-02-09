@@ -4,12 +4,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.PostRequests
 {
 	public class PostRequestHandler
 	{
+		public PostRequestHandler(WabiSabiConfig config, Prison prison)
+		{
+			Config = config;
+			Prison = prison;
+		}
+
+		public WabiSabiConfig Config { get; }
+		public Prison Prison { get; }
+
 		public InputsRegistrationResponse RegisterInput(InputsRegistrationRequest request)
 		{
 			throw new NotImplementedException();
