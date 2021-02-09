@@ -112,9 +112,12 @@ namespace WalletWasabi.Fluent.ViewModels
 				_walletActionsDictionary[walletViewModelItem] = actions;
 			}
 
-			InsertActions(walletViewModelItem, actions);
+			if (walletViewModelItem == SelectedWallet)
+			{
+				InsertActions(walletViewModelItem, actions);
 
-			SelectedWallet = walletViewModelItem;
+				// SelectedWallet = walletViewModelItem;
+			}
 		}
 
 		private WalletViewModel OpenWallet(WalletManager walletManager, UiConfig uiConfig, Wallet wallet)
