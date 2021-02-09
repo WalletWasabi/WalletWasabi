@@ -10,7 +10,6 @@ using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.Hwi.ProcessBridge;
-using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Hwi
 {
@@ -96,9 +95,6 @@ namespace WalletWasabi.Hwi
 		public async Task PromptPinAsync(HardwareWalletModels deviceType, string devicePath, CancellationToken cancel)
 			=> await PromptPinImplAsync(deviceType, devicePath, null, cancel).ConfigureAwait(false);
 
-		public async Task PromptPinAsync(HDFingerprint fingerprint, CancellationToken cancel)
-			=> await PromptPinImplAsync(null, null, fingerprint, cancel).ConfigureAwait(false);
-
 		private async Task PromptPinImplAsync(HardwareWalletModels? deviceType, string devicePath, HDFingerprint? fingerprint, CancellationToken cancel)
 		{
 			await SendCommandAsync(
@@ -112,9 +108,6 @@ namespace WalletWasabi.Hwi
 		public async Task SendPinAsync(HardwareWalletModels deviceType, string devicePath, int pin, CancellationToken cancel)
 			=> await SendPinImplAsync(deviceType, devicePath, null, pin, cancel).ConfigureAwait(false);
 
-		public async Task SendPinAsync(HDFingerprint fingerprint, int pin, CancellationToken cancel)
-			=> await SendPinImplAsync(null, null, fingerprint, pin, cancel).ConfigureAwait(false);
-
 		private async Task SendPinImplAsync(HardwareWalletModels? deviceType, string devicePath, HDFingerprint? fingerprint, int pin, CancellationToken cancel)
 		{
 			await SendCommandAsync(
@@ -127,9 +120,6 @@ namespace WalletWasabi.Hwi
 
 		public async Task<ExtPubKey> GetXpubAsync(HardwareWalletModels deviceType, string devicePath, KeyPath keyPath, CancellationToken cancel)
 			=> await GetXpubImplAsync(deviceType, devicePath, null, keyPath, cancel).ConfigureAwait(false);
-
-		public async Task<ExtPubKey> GetXpubAsync(HDFingerprint fingerprint, KeyPath keyPath, CancellationToken cancel)
-			=> await GetXpubImplAsync(null, null, fingerprint, keyPath, cancel).ConfigureAwait(false);
 
 		private async Task<ExtPubKey> GetXpubImplAsync(HardwareWalletModels? deviceType, string devicePath, HDFingerprint? fingerprint, KeyPath keyPath, CancellationToken cancel)
 		{

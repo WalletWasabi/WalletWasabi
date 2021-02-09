@@ -56,19 +56,6 @@ namespace System.IO
 			return false;
 		}
 
-		public static async Task BetterExtractZipToDirectoryAsync(string src, string dest)
-		{
-			try
-			{
-				ZipFile.ExtractToDirectory(src, dest);
-			}
-			catch (UnauthorizedAccessException)
-			{
-				await Task.Delay(100).ConfigureAwait(false);
-				ZipFile.ExtractToDirectory(src, dest);
-			}
-		}
-
 		public static void EnsureContainingDirectoryExists(string fileNameOrPath)
 		{
 			string fullPath = Path.GetFullPath(fileNameOrPath); // No matter if relative or absolute path is given to this.
