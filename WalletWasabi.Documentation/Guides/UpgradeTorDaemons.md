@@ -26,8 +26,3 @@ Do not delete Tor file from the original folder!
 ## Geoip files
 
 msi => Browser\TorBrowser\Data\Tor
-
-## Digest creation 
-
-WalletWasabi\WalletWasabi.Packager> dotnet run -- onlycreatedigests
-Copy hashes (SHA256) without file names into WalletWasabi\WalletWasabi\TorDaemons\digests.txt (order of the hashes doesn't matter)
