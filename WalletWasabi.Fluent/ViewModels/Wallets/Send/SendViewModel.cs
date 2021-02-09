@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -11,7 +12,6 @@ using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Userfacing;
@@ -169,22 +169,27 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.DisposeWith(disposables);
 
 			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate)
+				.Where(x=>x is {})
+				.Select(x=>x.Estimations)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(UpdateFeeEstimates)
 				.DisposeWith(disposables);
 
-			UpdateFeeEstimates(_owner.Wallet.Synchronizer.AllFeeEstimate);
+			UpdateFeeEstimates(_owner.Wallet.Synchronizer.AllFeeEstimate.Estimations);
 
 			base.OnNavigatedTo(inStack, disposables);
 		}
 
-		private void UpdateFeeEstimates(AllFeeEstimate feeEstimate)
+		private void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
 		{
-			var estimates = feeEstimate.Estimations.Reverse();
+			XAxisValues = feeEstimates.Select(x => (double)x.Key).Reverse().ToArray();
 
-			XAxisValues = estimates.Select(x => (double)x.Key).ToArray();
-			XAxisLabels = estimates.Select(x=>x.Key).Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d")).ToArray();
-			YAxisValues = estimates.Select(x => (double)x.Value).ToArray();
+			XAxisLabels = feeEstimates.Select(x=>x.Key)
+				.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
+				.Reverse()
+				.ToArray();
+
+			YAxisValues = feeEstimates.Select(x => (double)x.Value).Reverse().ToArray();
 		}
 
 		public ICommand PasteCommand { get; }
