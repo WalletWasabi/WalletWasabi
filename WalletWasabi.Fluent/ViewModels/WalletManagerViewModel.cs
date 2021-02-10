@@ -30,10 +30,9 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private ObservableCollection<WalletViewModelBase> _wallets;
 		[AutoNotify] private bool _anyWalletStarted;
 
-		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig, LegalChecker legalChecker)
+		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig)
 		{
 			Model = walletManager;
-			LegalChecker = legalChecker;
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 			_walletActionsDictionary = new Dictionary<WalletViewModelBase, List<NavBarItemViewModel>>();
 			_actions = new ObservableCollection<NavBarItemViewModel>();
@@ -101,8 +100,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _items;
 
 		public WalletManager Model { get; }
-
-		private LegalChecker LegalChecker { get; }
 
 		private void OpenClosedWallet(WalletManager walletManager, UiConfig uiConfig, ClosedWalletViewModel closedWalletViewModel)
 		{
