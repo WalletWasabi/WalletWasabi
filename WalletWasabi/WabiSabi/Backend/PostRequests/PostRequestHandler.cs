@@ -4,12 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.PostRequests
 {
-	public class PostRequestHandler
+	public class PostRequestHandler : IAsyncDisposable
 	{
 		public PostRequestHandler(WabiSabiConfig config, Prison prison)
 		{
@@ -17,32 +18,75 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			Prison = prison;
 		}
 
+		private bool DisposeStarted { get; set; } = false;
+		private object DisposeStartedLock { get; } = new();
+		private AbandonedTasks RunningRequests { get; } = new();
 		public WabiSabiConfig Config { get; }
 		public Prison Prison { get; }
 
 		public InputsRegistrationResponse RegisterInput(InputsRegistrationRequest request)
 		{
-			throw new NotImplementedException();
+			DisposeGuard();
+			using (RunningTasks.RememberWith(RunningRequests))
+			{
+				throw new NotImplementedException();
+			}
 		}
 
 		public void RemoveInput(InputsRemovalRequest request)
 		{
-			throw new NotImplementedException();
+			DisposeGuard();
+			using (RunningTasks.RememberWith(RunningRequests))
+			{
+				throw new NotImplementedException();
+			}
 		}
 
 		public ConnectionConfirmationResponse ConfirmConnection(ConnectionConfirmationRequest request)
 		{
-			throw new NotImplementedException();
+			DisposeGuard();
+			using (RunningTasks.RememberWith(RunningRequests))
+			{
+				throw new NotImplementedException();
+			}
 		}
 
 		public OutputRegistrationResponse RegisterOutput(OutputRegistrationRequest request)
 		{
-			throw new NotImplementedException();
+			DisposeGuard();
+			using (RunningTasks.RememberWith(RunningRequests))
+			{
+				throw new NotImplementedException();
+			}
 		}
 
 		public void SignTransaction(TransactionSignaturesRequest request)
 		{
-			throw new NotImplementedException();
+			DisposeGuard();
+			using (RunningTasks.RememberWith(RunningRequests))
+			{
+				throw new NotImplementedException();
+			}
+		}
+
+		private void DisposeGuard()
+		{
+			lock (DisposeStartedLock)
+			{
+				if (DisposeStarted)
+				{
+					throw new ObjectDisposedException(nameof(PostRequestHandler));
+				}
+			}
+		}
+
+		public async ValueTask DisposeAsync()
+		{
+			lock (DisposeStartedLock)
+			{
+				DisposeStarted = true;
+			}
+			await RunningRequests.WhenAllAsync().ConfigureAwait(false);
 		}
 	}
 }

@@ -44,6 +44,7 @@ namespace WalletWasabi.WabiSabi
 
 		public override async Task StopAsync(CancellationToken cancellationToken)
 		{
+			await Postman.DisposeAsync().ConfigureAwait(false);
 			await base.StopAsync(cancellationToken).ConfigureAwait(false);
 			await ConfigWatcher.StopAsync(cancellationToken).ConfigureAwait(false);
 			await Warden.StopAsync(cancellationToken).ConfigureAwait(false);

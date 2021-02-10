@@ -14,7 +14,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		[Fact]
 		public void EmptyPrison()
 		{
-			var p = new Prison(Enumerable.Empty<Inmate>());
+			var p = new Prison();
 			Assert.Empty(p.GetInmates());
 			Assert.Equal(0, p.CountInmates().noted);
 			Assert.Equal(0, p.CountInmates().banned);
@@ -24,7 +24,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		[Fact]
 		public void PrisonChangeTracking()
 		{
-			var p = new Prison(Enumerable.Empty<Inmate>());
+			var p = new Prison();
 			var currentChangeId = p.ChangeId;
 
 			// Make sure we set them to the past so the release method that looks at the time evaluates to true.
@@ -60,7 +60,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		[Fact]
 		public void PrisonOperations()
 		{
-			var p = new Prison(Enumerable.Empty<Inmate>());
+			var p = new Prison();
 
 			var guid1 = Guid.NewGuid();
 
