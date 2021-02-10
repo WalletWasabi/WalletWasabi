@@ -113,11 +113,10 @@ namespace WalletWasabi.Fluent.ViewModels
 				_walletActionsDictionary[walletViewModelItem] = actions;
 			}
 
-			if (walletViewModelItem == SelectedWallet)
+			if (_currentSelection == closedWalletViewModel)
 			{
+				SelectedWallet = walletViewModelItem;
 				InsertActions(walletViewModelItem, actions);
-
-				// SelectedWallet = walletViewModelItem;
 			}
 
 			IsLoadingWallet = false;
