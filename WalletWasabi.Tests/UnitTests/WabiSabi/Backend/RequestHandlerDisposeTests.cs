@@ -11,16 +11,14 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 {
-	public class InputRegistrationTests
+	public class RequestHandlerDisposeTests
 	{
-		//[Fact]
-		//public async Task FooAsync()
-		//{
-		//	PostRequestHandler postRequestHandler;
-		//	await using (postRequestHandler = new(new WabiSabiConfig(), new Prison()))
-		//	{
-		//		postRequestHandler.RegisterInput(new InputsRegistrationRequest(Guid.NewGuid(), null, null, null));
-		//	}
-		//}
+		[Fact]
+		public async Task DisposeGuardAsync()
+		{
+			PostRequestHandler handler = new(new WabiSabiConfig(), new Prison());
+			await handler.DisposeAsync();
+			Assert.Throws<ObjectDisposedException>(() => handler.RegisterInput(null!));
+		}
 	}
 }
