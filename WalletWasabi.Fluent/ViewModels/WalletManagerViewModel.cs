@@ -70,9 +70,7 @@ namespace WalletWasabi.Fluent.ViewModels
 						}
 						else if (_walletDictionary[wallet] is ClosedWalletViewModel { IsLoggedIn: true } cwvm && wallet.State == WalletState.Started)
 						{
-							IsLoadingWallet = true;
 							OpenClosedWallet(walletManager, uiConfig, cwvm);
-							IsLoadingWallet = false;
 						}
 					}
 
@@ -102,6 +100,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private void OpenClosedWallet(WalletManager walletManager, UiConfig uiConfig, ClosedWalletViewModel closedWalletViewModel)
 		{
+			IsLoadingWallet = true;
+
 			RemoveWallet(closedWalletViewModel);
 
 			var walletViewModelItem = OpenWallet(walletManager, uiConfig, closedWalletViewModel.Wallet);
@@ -118,6 +118,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 				// SelectedWallet = walletViewModelItem;
 			}
+
+			IsLoadingWallet = false;
 		}
 
 		private WalletViewModel OpenWallet(WalletManager walletManager, UiConfig uiConfig, Wallet wallet)
