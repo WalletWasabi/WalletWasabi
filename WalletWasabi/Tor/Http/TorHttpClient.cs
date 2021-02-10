@@ -68,12 +68,7 @@ namespace WalletWasabi.Tor.Http
 
 		private TorSocks5Client? TorSocks5Client { get; set; }
 
-		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable.
-
-		private Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
-		{
-			return new ClearnetHttpClient(BaseUriGetter).SendAsync(request, cancellationToken);
-		}
+		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable.	
 
 		/// <exception cref="HttpRequestException">When HTTP request fails to be processed. Inner exception may be an instance of <see cref="TorException"/>.</exception>
 		/// <exception cref="OperationCanceledException">When <paramref name="cancel"/> is canceled by the user.</exception>
