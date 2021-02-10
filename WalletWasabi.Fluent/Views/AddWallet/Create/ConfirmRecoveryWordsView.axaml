@@ -6,7 +6,7 @@
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:create="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="create:ConfirmRecoveryWordsViewModel"
              x:CompileBindings="True"

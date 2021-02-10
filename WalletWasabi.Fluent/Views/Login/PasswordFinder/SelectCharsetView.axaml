@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Login.PasswordFinder"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:conv="using:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:SelectCharsetViewModel"
              x:CompileBindings="True"
