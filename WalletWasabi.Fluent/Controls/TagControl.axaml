@@ -13,6 +13,7 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxControlForeground}" />
         <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="(ToolTip.Tip)" Value="{Binding .}" />
         <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
         <Setter Property="Template">
             <ControlTemplate>
@@ -26,13 +27,14 @@
                         <StackPanel Name="PART_DummyPanel" Orientation="Horizontal"
                                     VerticalAlignment="Top">
                             <ContentPresenter Name="PART_ContentPresenter"
-                                              ContentTemplate="{TemplateBinding ContentTemplate}"
                                               Content="{TemplateBinding Content}"
                                               Padding="{TemplateBinding Padding}"
                                               VerticalAlignment="Center" Margin="12,6,12,6"
                                               VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                                               HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"/>
-                            <LayoutTransformControl Name="PART_DeleteButtonLayoutTransformer" Margin="-8,0,3,0">
+                            <LayoutTransformControl Name="PART_DeleteButtonLayoutTransformer"
+                                                    ToolTip.Tip="Delete"
+                                                    Margin="-8,0,3,0">
 
                                     <Button Name="PART_DeleteButton" VerticalAlignment="Center"
                                             HorizontalAlignment="Center"
@@ -52,11 +54,20 @@
                                     </Transitions>
                                 </LayoutTransformControl.Transitions>
                             </LayoutTransformControl>
-
                         </StackPanel>
                     </Panel>
                 </Panel>
             </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="c|TagControl /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="ContentTemplate">
+            <DataTemplate DataType="x:String">
+                <TextBlock Text="{Binding .}"
+                           TextTrimming="CharacterEllipsis"
+                           MaxWidth="260"/>
+            </DataTemplate>
         </Setter>
     </Style>
 
