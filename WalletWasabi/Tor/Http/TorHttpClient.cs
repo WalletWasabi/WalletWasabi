@@ -208,22 +208,25 @@ namespace WalletWasabi.Tor.Http
 			request.Version = HttpProtocol.HTTP11.Version;
 			request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
-			if (TorSocks5Client is { } && !TorSocks5Client.IsConnected)
+			if (TorSocks5Client is null)
 			{
-				TorSocks5Client?.Dispose();
-				TorSocks5Client = null;
-			}
-
-			if (TorSocks5Client is null || !TorSocks5Client.IsConnected)
-			{
-				TorSocks5Client = new TorSocks5Client(TorSocks5EndPoint!);
-				await TorSocks5Client.ConnectAsync(cancel).ConfigureAwait(false);
-				await TorSocks5Client.HandshakeAsync(IsolateStream, cancel).ConfigureAwait(false);
-				await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port, cancel).ConfigureAwait(false);
-
-				if (request.RequestUri.Scheme == "https")
+				try
 				{
-					await TorSocks5Client.UpgradeToSslAsync(host).ConfigureAwait(false);
+					TorSocks5Client = new TorSocks5Client(TorSocks5EndPoint!);
+					await TorSocks5Client.ConnectAsync(cancel).ConfigureAwait(false);
+					await TorSocks5Client.HandshakeAsync(IsolateStream, cancel).ConfigureAwait(false);
+					await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port, cancel).ConfigureAwait(false);
+
+					if (request.RequestUri.Scheme == "https")
+					{
+						await TorSocks5Client.UpgradeToSslAsync(host).ConfigureAwait(false);
+					}
+				}
+				catch
+				{
+					TorSocks5Client?.Dispose();
+					TorSocks5Client = null;
+					throw;
 				}
 			}
 
