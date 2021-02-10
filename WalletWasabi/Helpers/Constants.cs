@@ -75,6 +75,8 @@ namespace WalletWasabi.Helpers
 
 		public static readonly string[] UserAgents = new[]
 		{
+			"/Satoshi:0.21.0/",
+			"/Satoshi:0.20.1/",
 			"/Satoshi:0.20.0/",
 			"/Satoshi:0.19.1/",
 			"/Satoshi:0.19.0.1/",
