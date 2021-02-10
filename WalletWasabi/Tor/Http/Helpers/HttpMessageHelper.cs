@@ -153,50 +153,6 @@ namespace WalletWasabi.Tor.Http.Helpers
 			return decodedBodyArray;
 		}
 
-		public static async Task<byte[]?> GetContentBytesAsync(Stream stream, HttpRequestContentHeaders headerStruct, CancellationToken ctsToken = default)
-		{
-			if (headerStruct.RequestHeaders is { } && headerStruct.RequestHeaders.Contains("Transfer-Encoding"))
-			{
-				// https://tools.ietf.org/html/rfc7230#section-4
-				// All transfer-coding names are case-insensitive
-				if ("chunked".Equals(headerStruct.RequestHeaders.TransferEncoding.Last().Value, StringComparison.OrdinalIgnoreCase))
-				{
-					return await GetDecodedChunkedContentBytesAsync(stream, headerStruct, ctsToken).ConfigureAwait(false);
-				}
-				// https://tools.ietf.org/html/rfc7230#section-3.3.3
-				// If a Transfer - Encoding header field is present in a response and
-				// the chunked transfer coding is not the final encoding, the
-				// message body length is determined by reading the connection until
-				// it is closed by the server. If a Transfer - Encoding header field
-				// is present in a request and the chunked transfer coding is not
-				// the final encoding, the message body length cannot be determined
-				// reliably; the server MUST respond with the 400(Bad Request)
-				// status code and then close the connection.
-				return await GetBytesTillEndAsync(stream, ctsToken).ConfigureAwait(false);
-			}
-			// https://tools.ietf.org/html/rfc7230#section-3.3.3
-			// 5.If a valid Content - Length header field is present without
-			// Transfer - Encoding, its decimal value defines the expected message
-			// body length in octets.If the sender closes the connection or
-			// the recipient times out before the indicated number of octets are
-			// received, the recipient MUST consider the message to be
-			// incomplete and close the connection.
-			if (headerStruct.ContentHeaders.Contains("Content-Length"))
-			{
-				long? contentLength = headerStruct.ContentHeaders?.ContentLength;
-				return await ReadBytesTillLengthAsync(stream, contentLength, ctsToken).ConfigureAwait(false);
-			}
-
-			// https://tools.ietf.org/html/rfc7230#section-3.3.3
-			// 6.If this is a request message and none of the above are true, then
-			// the message body length is zero (no message body is present).
-			// 7. Otherwise, this is a response message without a declared message
-			// body length, so the message body length is determined by the
-			// number of octets received prior to the server closing the
-			// connection.
-			return GetDummyOrNullContentBytes(headerStruct.ContentHeaders);
-		}
-
 		public static async Task<byte[]?> GetContentBytesAsync(Stream stream, HttpResponseContentHeaders headerStruct, HttpMethod requestMethod, StatusLine statusLine, CancellationToken ctsToken = default)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
