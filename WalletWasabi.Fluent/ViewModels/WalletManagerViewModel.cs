@@ -22,6 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private readonly Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 		private readonly Dictionary<WalletViewModelBase, List<NavBarItemViewModel>> _walletActionsDictionary;
 		private readonly ReadOnlyObservableCollection<NavBarItemViewModel> _items;
+		private NavBarItemViewModel? _currentSelection;
 		[AutoNotify] private WalletViewModelBase? _selectedWallet;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
 		[AutoNotify] private bool _loggedInAndSelectedAlwaysFirst;
@@ -179,6 +180,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		public NavBarItemViewModel? SelectionChanged(NavBarItemViewModel item)
 		{
 			var result = default(NavBarItemViewModel);
+			_currentSelection = item;
 
 			if (SelectedWallet == item)
 			{
