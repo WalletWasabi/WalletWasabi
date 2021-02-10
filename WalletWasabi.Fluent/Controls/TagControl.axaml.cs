@@ -22,12 +22,14 @@ namespace WalletWasabi.Fluent.Controls
 
 			var deleteButton = e.NameScope.Find<Button>("PART_DeleteButton");
 
-			if (deleteButton is { })
+			if (deleteButton is null)
 			{
-				deleteButton.Click += OnDeleteTagClicked;
-
-				_subscription = Disposable.Create(() => deleteButton.Click -= OnDeleteTagClicked);
+				return;
 			}
+
+			deleteButton.Click += OnDeleteTagClicked;
+
+			_subscription = Disposable.Create(() => deleteButton.Click -= OnDeleteTagClicked);
 		}
 
 		private void OnDeleteTagClicked(object? sender, RoutedEventArgs e)
