@@ -18,9 +18,9 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 
 			Dictionary<OSPlatform, string> expectedHashes = new()
 			{
-				{ OSPlatform.Windows, "d244a89f7ca9da2259925affa0bd008d3cdea1d9dfd24cf53efffb7c1eadc169" },
-				{ OSPlatform.Linux, "af7302d62fc1e47f79af8860541365f77547233404302a1e601e1f367e6e2888" },
-				{ OSPlatform.OSX, "fe6d719e18bf3a963f0274de259b7e029f40e4fe778f4d170bba343eb491af00" },
+				{ OSPlatform.Windows, "886960e5698cd275f81e2ad3b9654275172a30f6e9f16ddf09b6b96ad4b50403" },
+				{ OSPlatform.Linux, "ed212d0d7dcfd3cd3736333f1c8932698db5a61e9989f1b7fd65ccc9c03ecd31" },
+				{ OSPlatform.OSX, "5d91f26f547ec7c341bb9fae556c3af2582608f221b085c71a258d806fc2f085" },
 			};
 
 			foreach ((OSPlatform platform, string expectedHash) in expectedHashes)

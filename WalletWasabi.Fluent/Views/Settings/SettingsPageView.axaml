@@ -4,9 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:v="using:WalletWasabi.Fluent.Views.Settings"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:settings="clr-namespace:WalletWasabi.Fluent.ViewModels.Settings"
-             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
+             xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="settings:SettingsPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Settings.SettingsPageView">

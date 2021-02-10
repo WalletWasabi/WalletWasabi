@@ -170,7 +170,7 @@ namespace WalletWasabi.Fluent.Controls
 			state.AreaHeight = height - state.AreaMargin.Top - state.AreaMargin.Bottom;
 
 			var values = YAxisValues;
-			if (values is not null)
+			if (values is not null && values.Count > 1)
 			{
 				var logarithmicScale = YAxisLogarithmicScale;
 
@@ -190,6 +190,11 @@ namespace WalletWasabi.Fluent.Controls
 				{
 					state.Points[i] = new Point(i * state.Step, scaledValues[i]);
 				}
+			}
+			else
+			{
+				state.Step = double.NaN;
+				state.Points = null;
 			}
 
 			var labels = XAxisLabels;
@@ -349,6 +354,11 @@ namespace WalletWasabi.Fluent.Controls
 		private void DrawXAxisLabels(DrawingContext context, LineChartState state)
 		{
 			if (state.XLabels is null)
+			{
+				return;
+			}
+
+			if (double.IsNaN(state.Step))
 			{
 				return;
 			}
