@@ -24,15 +24,10 @@
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="2" />
-                        <StackPanel Name="PART_DummyPanel" Orientation="Horizontal"
-                                    VerticalAlignment="Top">
-                            <ContentPresenter Name="PART_ContentPresenter"
-                                              Content="{TemplateBinding Content}"
-                                              Padding="{TemplateBinding Padding}"
-                                              VerticalAlignment="Center" Margin="12,6,12,6"
-                                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"/>
-                            <LayoutTransformControl Name="PART_DeleteButtonLayoutTransformer"
+                        <DockPanel Name="PART_DummyPanel"
+                                   MaxWidth="260"
+                                    VerticalAlignment="Top" LastChildFill="True">
+                            <LayoutTransformControl DockPanel.Dock="Right" Name="PART_DeleteButtonLayoutTransformer"
                                                     ToolTip.Tip="Delete"
                                                     Margin="-8,0,3,0">
 
@@ -54,7 +49,15 @@
                                     </Transitions>
                                 </LayoutTransformControl.Transitions>
                             </LayoutTransformControl>
-                        </StackPanel>
+                            <ContentPresenter Name="PART_ContentPresenter"
+                                              Content="{TemplateBinding Content}"
+                                              Padding="{TemplateBinding Padding}"
+                                              Margin="12,6,12,6"
+                                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              DockPanel.Dock="Left"
+                                              />
+                        </DockPanel>
                     </Panel>
                 </Panel>
             </ControlTemplate>
@@ -65,8 +68,7 @@
         <Setter Property="ContentTemplate">
             <DataTemplate DataType="x:String">
                 <TextBlock Text="{Binding .}"
-                           TextTrimming="CharacterEllipsis"
-                           MaxWidth="260"/>
+                           TextTrimming="CharacterEllipsis"/>
             </DataTemplate>
         </Setter>
     </Style>
