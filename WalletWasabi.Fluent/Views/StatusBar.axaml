@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:converters="using:WalletWasabi.Gui.Converters"
              xmlns:vm="using:WalletWasabi.Gui.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="671" d:DesignHeight="32"
              x:DataType="vm:StatusBarViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.StatusBar">

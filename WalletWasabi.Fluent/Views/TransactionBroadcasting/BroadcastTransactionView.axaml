@@ -5,7 +5,7 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:transactionBroadcasting="clr-namespace:WalletWasabi.Fluent.ViewModels.TransactionBroadcasting"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="transactionBroadcasting:BroadcastTransactionViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.TransactionBroadcasting.BroadcastTransactionView">

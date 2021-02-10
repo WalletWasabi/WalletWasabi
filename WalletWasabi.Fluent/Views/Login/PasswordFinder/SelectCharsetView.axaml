@@ -5,7 +5,7 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Login.PasswordFinder"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:SelectCharsetViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Login.PasswordFinder.SelectCharsetView">
