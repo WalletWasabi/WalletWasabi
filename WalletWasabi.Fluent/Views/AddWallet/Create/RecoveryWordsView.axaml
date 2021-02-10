@@ -4,8 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
-             mc:Ignorable="d"
-             d:DesignWidth="600" d:DesignHeight="500"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:CompileBindings="True"
              x:DataType="create:RecoveryWordsViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.RecoveryWordsView">

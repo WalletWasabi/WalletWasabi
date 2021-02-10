@@ -7,8 +7,7 @@
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
-             mc:Ignorable="d"
-             d:DesignWidth="600" d:DesignHeight="500"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="create:ConfirmRecoveryWordsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.ConfirmRecoveryWordsView">
