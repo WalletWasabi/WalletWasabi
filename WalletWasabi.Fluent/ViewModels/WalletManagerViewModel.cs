@@ -179,13 +179,14 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public NavBarItemViewModel? SelectionChanged(NavBarItemViewModel item)
 		{
-			var result = default(NavBarItemViewModel);
 			_currentSelection = item;
 
-			if (SelectedWallet == item)
+			if (IsLoadingWallet || SelectedWallet == item)
 			{
-				return result;
+				return default;
 			}
+
+			var result = default(NavBarItemViewModel);
 
 			if (SelectedWallet is { IsLoggedIn: true } walletViewModelPrevious && (item is WalletViewModelBase && SelectedWallet != item))
 			{
