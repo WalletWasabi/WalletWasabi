@@ -9,7 +9,7 @@
              xmlns:vmwa="using:WalletWasabi.Fluent.ViewModels.Wallets.Actions"
              x:DataType="vm:NavBarViewModel"
              x:CompileBindings="True"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
              x:Class="WalletWasabi.Fluent.Views.NavBar.NavBar" UseLayoutRounding="False">
   <UserControl.Styles>
     <Style Selector="PathIcon">

@@ -13,25 +13,10 @@ namespace WalletWasabi.Tor.Http
 	{
 		Func<Uri?> BaseUriGetter { get; }
 
-		/// <summary>
-		/// Whether each HTTP(s) request should use a separate Tor circuit by default or not to increase privacy.
-		/// <para>This property may be set to <c>false</c> and you can still call override the value when sending a single HTTP(s) request using <see cref="IHttpClient"/> API.</para>
-		/// </summary>
-		/// <remarks>The property name make sense only when talking about Tor <see cref="TorHttpClient"/>.</remarks>
-		bool DefaultIsolateStream { get; }
-
 		/// <summary>Sends an HTTP(s) request.</summary>
 		/// <param name="request">HTTP request message to send.</param>
-		/// <param name="isolateStream"><c>true</c> value is only available for Tor HTTP client to use a new Tor circuit
-		/// for this single HTTP(s) request, otherwise <c>false</c> when no new Tor circuit is required or when <see cref="IHttpClient"/>
-		/// implementation does not support this option (e.g. clearnet).</param>
 		/// <param name="token">Cancellation token to cancel the asynchronous operation.</param>
-		Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default);
-
-		Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
-		{
-			return SendAsync(request, DefaultIsolateStream, token);
-		}
+		Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default);
 
 		/// <exception cref="InvalidOperationException"/>
 		async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
@@ -51,7 +36,7 @@ namespace WalletWasabi.Tor.Http
 				httpRequestMessage.Content = content;
 			}
 
-			return await SendAsync(httpRequestMessage, DefaultIsolateStream, cancel).ConfigureAwait(false);
+			return await SendAsync(httpRequestMessage, cancel).ConfigureAwait(false);
 		}
 	}
 }

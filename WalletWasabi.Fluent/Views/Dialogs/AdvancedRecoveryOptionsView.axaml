@@ -9,7 +9,7 @@
              x:Class="WalletWasabi.Fluent.Views.Dialogs.AdvancedRecoveryOptionsView"
              x:DataType="dialogs:AdvancedRecoveryOptionsViewModel"
              x:CompileBindings="True"
-             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500">
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371">
   <UserControl.KeyBindings>
     <KeyBinding Gesture="Enter" Command="{Binding NextCommand}" />
   </UserControl.KeyBindings>
