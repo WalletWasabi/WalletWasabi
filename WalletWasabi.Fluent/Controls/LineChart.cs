@@ -358,6 +358,11 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
+			if (double.IsNaN(state.Step))
+			{
+				return;
+			}
+
 			var foreground = XAxisLabelForeground;
 			if (foreground is null)
 			{
