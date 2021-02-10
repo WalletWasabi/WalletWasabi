@@ -30,9 +30,9 @@ namespace WalletWasabi.Tor.Http
 			baseUri = Guard.NotNull(nameof(baseUri), baseUri);
 		}
 
-		public TorHttpClient(Func<Uri> baseUriAction, EndPoint torSocks5EndPoint, bool isolateStream = false)
+		public TorHttpClient(Func<Uri> baseUriGetter, EndPoint torSocks5EndPoint, bool isolateStream = false)
 		{
-			BaseUriGetter = Guard.NotNull(nameof(baseUriAction), baseUriAction);
+			BaseUriGetter = Guard.NotNull(nameof(baseUriGetter), baseUriGetter);
 			Guard.NotNull(nameof(torSocks5EndPoint), torSocks5EndPoint);
 
 			TorSocks5EndPoint = torSocks5EndPoint;
