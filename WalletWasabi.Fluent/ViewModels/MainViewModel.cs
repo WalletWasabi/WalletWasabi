@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Reactive.Concurrency;
 using NBitcoin;
 using ReactiveUI;
@@ -15,7 +14,6 @@ using WalletWasabi.Fluent.ViewModels.Search;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
-using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 
 namespace WalletWasabi.Fluent.ViewModels

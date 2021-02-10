@@ -2,14 +2,11 @@ using System;
 using System.Collections.ObjectModel;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
-using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Logging;
 using WalletWasabi.Nito.AsyncEx;
-using WalletWasabi.Services;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -18,17 +15,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	{
 		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
 
-		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet, LegalChecker legalChecker)
-			: base(wallet, legalChecker)
+		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet)
+			: base(wallet)
 		{
 			WalletManager = walletManager;
-			LegalChecker = legalChecker;
 			_items = new ObservableCollection<NavBarItemViewModel>();
 		}
 
 		public WalletManager WalletManager { get; }
-
-		private LegalChecker LegalChecker { get; }
 
 		public override string IconName => "web_asset_regular";
 
@@ -60,13 +54,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			}
 		}
 
-		public static WalletViewModelBase Create(WalletManager walletManager, Wallet wallet, LegalChecker legalChecker)
+		public static WalletViewModelBase Create(WalletManager walletManager, Wallet wallet)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new ClosedHardwareWalletViewModel(walletManager, wallet, legalChecker)
+				? new ClosedHardwareWalletViewModel(walletManager, wallet)
 				: wallet.KeyManager.IsWatchOnly
-					? new ClosedWatchOnlyWalletViewModel(walletManager, wallet, legalChecker)
-					: new ClosedWalletViewModel(walletManager, wallet, legalChecker);
+					? new ClosedWatchOnlyWalletViewModel(walletManager, wallet)
+					: new ClosedWalletViewModel(walletManager, wallet);
 		}
 	}
 }

@@ -31,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Subscribe(content => IsBusy = content is null);
 		}
 
-		private LegalChecker LegalChecker { get; }
+		public  LegalChecker LegalChecker { get; }
 
 		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
 		{

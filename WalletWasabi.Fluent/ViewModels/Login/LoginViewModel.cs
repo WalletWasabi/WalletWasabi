@@ -6,7 +6,6 @@ using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Login
@@ -19,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 		[AutoNotify] private bool _isPasswordNeeded;
 		[AutoNotify] private string _walletName;
 
-		public LoginViewModel(WalletViewModelBase walletViewModelBase, LegalChecker legalChecker)
+		public LoginViewModel(WalletViewModelBase walletViewModelBase)
 		{
 			WalletViewModelBase = walletViewModelBase;
 			KeyManager = walletViewModelBase.Wallet.KeyManager;
@@ -52,7 +51,10 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 				if (!IsPasswordIncorrect)
 				{
-					if (legalChecker.TryGetNewLegalDocs(out _))
+
+					var legalChecker = (await NavigationManager.MaterialiseViewModel(LegalDocumentsViewModel.MetaData) as LegalDocumentsViewModel)?.LegalChecker;
+
+					if (legalChecker is { } lc && lc.TryGetNewLegalDocs(out _))
 					{
 						var legalDocs = new TermsAndConditionsViewModel(legalChecker, LoginWallet);
 						Navigate(NavigationTarget.DialogScreen).To(legalDocs);

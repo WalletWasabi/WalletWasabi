@@ -2,25 +2,20 @@ using NBitcoin;
 using ReactiveUI;
 using Splat;
 using System;
-using System.Collections;
-using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using WalletWasabi.Fluent.ViewModels.Wallets.Actions;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Gui;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
-using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class WalletViewModel : WalletViewModelBase
 	{
-		protected WalletViewModel(UiConfig uiConfig, Wallet wallet, LegalChecker legalChecker) : base(wallet, legalChecker)
+		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
@@ -54,13 +49,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		public override string IconName => "web_asset_regular";
 
-		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet, LegalChecker legalChecker)
+		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new HardwareWalletViewModel(uiConfig, wallet, legalChecker)
+				? new HardwareWalletViewModel(uiConfig, wallet)
 				: wallet.KeyManager.IsWatchOnly
-					? new WatchOnlyWalletViewModel(uiConfig, wallet, legalChecker)
-					: new WalletViewModel(uiConfig, wallet, legalChecker);
+					? new WatchOnlyWalletViewModel(uiConfig, wallet)
+					: new WalletViewModel(uiConfig, wallet);
 		}
 	}
 }
