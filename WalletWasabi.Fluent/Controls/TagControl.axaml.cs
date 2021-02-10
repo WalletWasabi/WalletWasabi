@@ -34,7 +34,6 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void OnDeleteTagClicked(object? sender, RoutedEventArgs e)
 		{
-
 			_parentTagBox?.RemoveTargetTag(DataContext);
 		}
 	}
