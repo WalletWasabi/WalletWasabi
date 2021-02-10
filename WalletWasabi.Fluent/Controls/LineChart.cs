@@ -170,7 +170,7 @@ namespace WalletWasabi.Fluent.Controls
 			state.AreaHeight = height - state.AreaMargin.Top - state.AreaMargin.Bottom;
 
 			var values = YAxisValues;
-			if (values is not null)
+			if (values is not null && values.Count > 1)
 			{
 				var logarithmicScale = YAxisLogarithmicScale;
 
