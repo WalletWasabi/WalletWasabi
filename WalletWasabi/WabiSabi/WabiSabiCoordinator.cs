@@ -11,6 +11,7 @@ using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi
 {
@@ -23,7 +24,8 @@ namespace WalletWasabi.WabiSabi
 			Warden = new(parameters.UtxoWardenPeriod, parameters.PrisonFilePath, Config);
 			ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
 
-			Postman = new(Config, Prison);
+			Rounds = new();
+			Postman = new(Config, Prison, Rounds);
 		}
 
 		public ConfigWatcher ConfigWatcher { get; }
@@ -31,6 +33,7 @@ namespace WalletWasabi.WabiSabi
 
 		public CoordinatorParameters Parameters { get; }
 		public PostRequestHandler Postman { get; }
+		public RoundCollection Rounds { get; }
 
 		public string WorkDir => Parameters.CoordinatorDataDir;
 		public Prison Prison => Warden.Prison;
