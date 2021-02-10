@@ -13,6 +13,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Metadata;
 using Avalonia.Threading;
+using ReactiveUI;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Controls
@@ -163,6 +164,30 @@ namespace WalletWasabi.Fluent.Controls
 		private void OnAutoCompleteBoxTemplateApplied(object? sender, TemplateAppliedEventArgs e)
 		{
 			_internalTextBox = e.NameScope.Find<TextBox>("PART_TextBox");
+			_internalTextBox.WhenAnyValue(x => x.IsFocused)
+				.Subscribe(isFocused =>
+				{
+					if (isFocused || !_isInputEnabled || string.IsNullOrWhiteSpace(_internalTextBox.Text))
+					{
+						return;
+					}
+
+					var currentText = (_autoCompleteBox.Text ?? "").Trim();
+
+					if (RestrictInputToSuggestions &&
+					    Suggestions is IList<string> suggestions &&
+					    !suggestions.Any(x =>
+						    x.StartsWith(currentText, _stringComparison)))
+					{
+						return;
+					}
+
+					AddTag(currentText);
+					BackspaceLogicClear();
+					_autoCompleteBox.ClearValue(AutoCompleteBox.SelectedItemProperty);
+					Dispatcher.UIThread.Post(() => _autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
+				})
+				.DisposeWith(_compositeDisposable);
 		}
 
 		private void CheckIsInputEnabled()
@@ -236,7 +261,8 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			// Deal with a nasty corner case...
-			var disableDropDownCommit = _internalTextBox.CaretIndex == _internalTextBox.Text.Length && _internalTextBox.SelectionEnd == _internalTextBox.SelectionStart ;
+			var disableDropDownCommit = _internalTextBox.CaretIndex == _internalTextBox.Text.Length &&
+			                            _internalTextBox.SelectionEnd == _internalTextBox.SelectionStart;
 
 			if (_internalTextBox is null || disableDropDownCommit)
 			{
@@ -296,6 +322,7 @@ namespace WalletWasabi.Fluent.Controls
 				}
 
 				AddTag(tag);
+				BackspaceLogicClear();
 				Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 			}
 			else
@@ -315,6 +342,7 @@ namespace WalletWasabi.Fluent.Controls
 					}
 
 					AddTag(tag);
+					BackspaceLogicClear();
 					Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
 				}
 			}
