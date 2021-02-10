@@ -14,12 +14,13 @@ using WalletWasabi.Gui;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class WalletViewModel : WalletViewModelBase
 	{
-		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
+		protected WalletViewModel(UiConfig uiConfig, Wallet wallet, LegalChecker legalChecker) : base(wallet, legalChecker)
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
@@ -53,13 +54,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		public override string IconName => "web_asset_regular";
 
-		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet)
+		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet, LegalChecker legalChecker)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new HardwareWalletViewModel(uiConfig, wallet)
+				? new HardwareWalletViewModel(uiConfig, wallet, legalChecker)
 				: wallet.KeyManager.IsWatchOnly
-					? new WatchOnlyWalletViewModel(uiConfig, wallet)
-					: new WalletViewModel(uiConfig, wallet);
+					? new WatchOnlyWalletViewModel(uiConfig, wallet, legalChecker)
+					: new WalletViewModel(uiConfig, wallet, legalChecker);
 		}
 	}
 }

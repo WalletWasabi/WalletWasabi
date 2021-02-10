@@ -1,3 +1,4 @@
+using System;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using ReactiveUI;
@@ -6,12 +7,12 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
-	[NavigationMetaData(Title = "Welcome to Wasabi Wallet")]
+	[NavigationMetaData(Title = "Terms and conditions")]
 	public partial class TermsAndConditionsViewModel : RoutableViewModel
 	{
 		[AutoNotify] private bool _isAgreed;
 
-		public TermsAndConditionsViewModel(LegalChecker legalChecker, RoutableViewModel next)
+		public TermsAndConditionsViewModel(LegalChecker legalChecker, Action loginAction)
 		{
 			ViewTermsCommand = ReactiveCommand.Create(
 				() =>
@@ -27,7 +28,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				async () =>
 				{
 					await legalChecker.AgreeAsync();
-					Navigate().To(next, NavigationMode.Clear);
+					Navigate().Clear();
+					loginAction.Invoke();
 				},
 				this.WhenAnyValue(x => x.IsAgreed).ObserveOn(RxApp.MainThreadScheduler));
 		}

@@ -73,7 +73,7 @@ namespace WalletWasabi.Fluent.ViewModels
 						else if (_walletDictionary[wallet] is ClosedWalletViewModel { IsLoggedIn: true } cwvm && wallet.State == WalletState.Started)
 						{
 							IsLoadingWallet = true;
-							OpenClosedWallet(walletManager, uiConfig, cwvm);
+							OpenClosedWallet(walletManager, uiConfig, cwvm, legalChecker);
 							IsLoadingWallet = false;
 						}
 					}
@@ -90,7 +90,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				{
 					WalletViewModelBase vm = (wallet.State <= WalletState.Starting)
 						? ClosedWalletViewModel.Create(walletManager, wallet, LegalChecker)
-						: WalletViewModel.Create(uiConfig, wallet);
+						: WalletViewModel.Create(uiConfig, wallet, legalChecker);
 
 					InsertWallet(vm);
 				});
@@ -104,11 +104,11 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private LegalChecker LegalChecker { get; }
 
-		private void OpenClosedWallet(WalletManager walletManager, UiConfig uiConfig, ClosedWalletViewModel closedWalletViewModel)
+		private void OpenClosedWallet(WalletManager walletManager, UiConfig uiConfig, ClosedWalletViewModel closedWalletViewModel, LegalChecker legalChecker)
 		{
 			RemoveWallet(closedWalletViewModel);
 
-			var walletViewModelItem = OpenWallet(walletManager, uiConfig, closedWalletViewModel.Wallet);
+			var walletViewModelItem = OpenWallet(walletManager, uiConfig, closedWalletViewModel.Wallet, legalChecker);
 
 			if (!_walletActionsDictionary.TryGetValue(walletViewModelItem, out var actions))
 			{
@@ -121,14 +121,14 @@ namespace WalletWasabi.Fluent.ViewModels
 			SelectedWallet = walletViewModelItem;
 		}
 
-		private WalletViewModel OpenWallet(WalletManager walletManager, UiConfig uiConfig, Wallet wallet)
+		private WalletViewModel OpenWallet(WalletManager walletManager, UiConfig uiConfig, Wallet wallet, LegalChecker legalChecker)
 		{
 			if (_wallets.Any(x => x.Title == wallet.WalletName))
 			{
 				throw new Exception("Wallet already opened.");
 			}
 
-			var walletViewModel = WalletViewModel.Create(uiConfig, wallet);
+			var walletViewModel = WalletViewModel.Create(uiConfig, wallet, legalChecker);
 
 			InsertWallet(walletViewModel);
 

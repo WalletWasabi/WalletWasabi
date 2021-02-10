@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
 
 		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet, LegalChecker legalChecker)
-			: base(wallet)
+			: base(wallet, legalChecker)
 		{
 			WalletManager = walletManager;
 			LegalChecker = legalChecker;
@@ -36,12 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		{
 			base.OnNavigatedTo(inStack, disposable);
 
-			if (LegalChecker.TryGetNewLegalDocs(out _))
-			{
-				var legalDocs = new TermsAndConditionsViewModel(LegalChecker, this);
-				Navigate().To(legalDocs);
-			}
-			else if (Wallet.State == WalletState.Uninitialized)
+			if (Wallet.State == WalletState.Uninitialized)
 			{
 				AbandonedTasks abandonedTasks = new();
 				abandonedTasks.AddAndClearCompleted(LoadWallet());

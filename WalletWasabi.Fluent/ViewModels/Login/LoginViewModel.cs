@@ -2,9 +2,11 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Login
@@ -17,8 +19,9 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 		[AutoNotify] private bool _isPasswordNeeded;
 		[AutoNotify] private string _walletName;
 
-		public LoginViewModel(WalletViewModelBase walletViewModelBase)
+		public LoginViewModel(WalletViewModelBase walletViewModelBase, LegalChecker legalChecker)
 		{
+			WalletViewModelBase = walletViewModelBase;
 			KeyManager = walletViewModelBase.Wallet.KeyManager;
 			IsPasswordNeeded = !KeyManager.IsWatchOnly;
 			_walletName = walletViewModelBase.WalletName;
@@ -49,10 +52,15 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 				if (!IsPasswordIncorrect)
 				{
-					wallet.Login();
-					walletViewModelBase.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
-
-					Navigate().To(walletViewModelBase, NavigationMode.Clear);
+					if (legalChecker.TryGetNewLegalDocs(out _))
+					{
+						var legalDocs = new TermsAndConditionsViewModel(legalChecker, LoginWallet);
+						Navigate(NavigationTarget.DialogScreen).To(legalDocs);
+					}
+					else
+					{
+						LoginWallet();
+					}
 				}
 			});
 
@@ -68,10 +76,19 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			EnableAutoBusyOn(NextCommand);
 		}
 
+		private WalletViewModelBase WalletViewModelBase { get; }
+
 		public ICommand OkCommand { get; }
 
 		public ICommand ForgotPasswordCommand { get; }
 
 		public KeyManager KeyManager { get; }
+
+		private void LoginWallet()
+		{
+			WalletViewModelBase.Wallet.Login();
+			WalletViewModelBase.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
+			Navigate().To(WalletViewModelBase, NavigationMode.Clear);
+		}
 	}
 }
