@@ -37,7 +37,7 @@ namespace WalletWasabi.Tor.Http
 			// Connecting to loopback's URIs cannot be done via Tor.
 			TorSocks5EndPoint = BaseUriGetter().IsLoopback ? null : torSocks5EndPoint;
 			TorSocks5Client = null;
-			DefaultIsolateStream = isolateStream;
+			IsolateStream = isolateStream;
 		}
 
 		public static DateTimeOffset? TorDoesntWorkSince
@@ -61,16 +61,18 @@ namespace WalletWasabi.Tor.Http
 		public Func<Uri> BaseUriGetter { get; }
 		public EndPoint? TorSocks5EndPoint { get; private set; }
 
-		/// <inheritdoc/>
-		public bool DefaultIsolateStream { get; }
+		/// <summary>
+		/// Whether each HTTP(s) request should use a separate Tor circuit or not to increase privacy.
+		/// </summary>
+		public bool IsolateStream { get; }
 
 		private TorSocks5Client? TorSocks5Client { get; set; }
 
 		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable.
 
-		private Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request, bool isolateStream, CancellationToken cancellationToken = default)
+		private Task<HttpResponseMessage> ClearnetRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
 		{
-			return new ClearnetHttpClient(BaseUriGetter).SendAsync(request, isolateStream, cancellationToken);
+			return new ClearnetHttpClient(BaseUriGetter).SendAsync(request, cancellationToken);
 		}
 
 		/// <exception cref="HttpRequestException">When HTTP request fails to be processed. Inner exception may be an instance of <see cref="TorException"/>.</exception>
@@ -90,15 +92,15 @@ namespace WalletWasabi.Tor.Http
 			// Use clearnet HTTP client when Tor is disabled.
 			if (TorSocks5EndPoint is null)
 			{
-				return await ClearnetRequestAsync(request, DefaultIsolateStream, cancel).ConfigureAwait(false);
+				return await ClearnetRequestAsync(request, cancel).ConfigureAwait(false);
 			}
 			else
 			{
-				return await TorRequestAsync(request, DefaultIsolateStream, cancel).ConfigureAwait(false);
+				return await TorRequestAsync(request, cancel).ConfigureAwait(false);
 			}
 		}
 
-		private async Task<HttpResponseMessage> TorRequestAsync(HttpRequestMessage request, bool isolateStream, CancellationToken cancel)
+		private async Task<HttpResponseMessage> TorRequestAsync(HttpRequestMessage request, CancellationToken cancel)
 		{
 			try
 			{
@@ -106,7 +108,7 @@ namespace WalletWasabi.Tor.Http
 				{
 					try
 					{
-						HttpResponseMessage ret = await SendAsync(request, isolateStream, cancel).ConfigureAwait(false);
+						HttpResponseMessage ret = await SendAsync(request, cancel).ConfigureAwait(false);
 						TorDoesntWorkSince = null;
 						return ret;
 					}
@@ -120,7 +122,7 @@ namespace WalletWasabi.Tor.Http
 						cancel.ThrowIfCancellationRequested();
 						try
 						{
-							HttpResponseMessage ret2 = await SendAsync(request, isolateStream, cancel).ConfigureAwait(false);
+							HttpResponseMessage ret2 = await SendAsync(request, cancel).ConfigureAwait(false);
 							TorDoesntWorkSince = null;
 							return ret2;
 						}
@@ -148,7 +150,7 @@ namespace WalletWasabi.Tor.Http
 
 						cancel.ThrowIfCancellationRequested();
 
-						HttpResponseMessage ret3 = await SendAsync(request, isolateStream, cancel).ConfigureAwait(false);
+						HttpResponseMessage ret3 = await SendAsync(request, cancel).ConfigureAwait(false);
 						TorDoesntWorkSince = null;
 						return ret3;
 					}
@@ -179,33 +181,22 @@ namespace WalletWasabi.Tor.Http
 			LatestTorException = ex;
 		}
 
-		/// <exception cref="OperationCanceledException">If <paramref name="cancel"/> is set.</exception>
-		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
-		{
-			return SendAsync(request, DefaultIsolateStream, cancel);
-		}
-
 		/// <exception cref="OperationCanceledException">If <paramref name="token"/> is set.</exception>
-		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token = default)
 		{
 			// Use clearnet HTTP client when Tor is disabled.
 			if (TorSocks5EndPoint is null)
 			{
-				return await ClearnetRequestAsync(request, isolateStream, token).ConfigureAwait(false);
+				return await ClearnetRequestAsync(request, token).ConfigureAwait(false);
 			}
 			else
 			{
-				return await TorRequestCoreAsync(request, isolateStream, token).ConfigureAwait(false);
+				return await TorRequestCoreAsync(request, token).ConfigureAwait(false);
 			}
 		}
 
-		private async Task<HttpResponseMessage> TorRequestCoreAsync(HttpRequestMessage request, bool isolateStream, CancellationToken cancel)
+		private async Task<HttpResponseMessage> TorRequestCoreAsync(HttpRequestMessage request, CancellationToken cancel)
 		{
-			if (isolateStream != DefaultIsolateStream)
-			{
-				throw new NotSupportedException("This is not supported at the moment.");
-			}
-
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
 			// A sender MUST NOT generate an "http" URI with an empty host identifier.
 			string host = Guard.NotNullOrEmptyOrWhitespace($"{nameof(request)}.{nameof(request.RequestUri)}.{nameof(request.RequestUri.DnsSafeHost)}", request.RequestUri!.DnsSafeHost, trim: true);
@@ -227,7 +218,7 @@ namespace WalletWasabi.Tor.Http
 			{
 				TorSocks5Client = new TorSocks5Client(TorSocks5EndPoint!);
 				await TorSocks5Client.ConnectAsync(cancel).ConfigureAwait(false);
-				await TorSocks5Client.HandshakeAsync(isolateStream, cancel).ConfigureAwait(false);
+				await TorSocks5Client.HandshakeAsync(IsolateStream, cancel).ConfigureAwait(false);
 				await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port, cancel).ConfigureAwait(false);
 
 				if (request.RequestUri.Scheme == "https")
