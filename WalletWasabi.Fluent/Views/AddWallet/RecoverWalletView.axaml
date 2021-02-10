@@ -6,7 +6,7 @@
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:recoverWallet="using:WalletWasabi.Fluent.ViewModels.AddWallet"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="recoverWallet:RecoverWalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoverWalletView">
@@ -25,10 +25,10 @@
                 <c:TagsBox x:Name="SeedTagsBox"
                            DockPanel.Dock="Top"
                            ItemCountLimit="12"
+                           SuggestionsAreCaseSensitive="False"
                            RestrictInputToSuggestions="True"
                            Items="{Binding Mnemonics}"
                            Suggestions="{Binding Suggestions}"
-                           SelectedTag="{Binding SelectedTag}"
                            CompletedCommand="{Binding NextCommand}">
                     <i:Interaction.Behaviors>
                         <behaviors:FocusOnAttachedBehavior />
