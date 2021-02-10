@@ -191,6 +191,11 @@ namespace WalletWasabi.Fluent.Controls
 					state.Points[i] = new Point(i * state.Step, scaledValues[i]);
 				}
 			}
+			else
+			{
+				state.Step = double.NaN;
+				state.Points = null;
+			}
 
 			var labels = XAxisLabels;
 			if (labels is not null)
