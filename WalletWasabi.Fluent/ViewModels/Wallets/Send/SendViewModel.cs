@@ -182,14 +182,61 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
 		{
-			XAxisValues = feeEstimates.Select(x => (double)x.Key).Reverse().ToArray();
+			if (_owner.Wallet.Network != Network.TestNet)
+			{
+				XAxisValues = feeEstimates.Select(x => (double) x.Key).Reverse().ToArray();
 
-			XAxisLabels = feeEstimates.Select(x=>x.Key)
-				.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
-				.Reverse()
-				.ToArray();
+				XAxisLabels = feeEstimates.Select(x => x.Key)
+					.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
+					.Reverse()
+					.ToArray();
 
-			YAxisValues = feeEstimates.Select(x => (double)x.Value).Reverse().ToArray();
+				YAxisValues = feeEstimates.Select(x => (double) x.Value).Reverse().ToArray();
+			}
+			else
+			{
+				XAxisLabels = new string[]
+				{
+					"1w",
+					"3d",
+					"1d",
+					"12h",
+					"6h",
+					"3h",
+					"1h",
+					"30m",
+					"20m",
+					"fastest"
+				};
+
+				XAxisValues = new double[]
+				{
+					1008,
+					432,
+					144,
+					72,
+					36,
+					18,
+					6,
+					3,
+					2,
+					1,
+				};
+
+				YAxisValues = new double[]
+				{
+					4,
+					4,
+					7,
+					22,
+					57,
+					97,
+					102,
+					123,
+					123,
+					185
+				};
+			}
 		}
 
 		public ICommand PasteCommand { get; }
