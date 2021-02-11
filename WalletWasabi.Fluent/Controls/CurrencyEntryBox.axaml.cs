@@ -348,7 +348,10 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			if (BitcoinInput.TryCorrectAmount(value, out var better))
 			{
-				value = better;
+				if (better != Constants.MaximumNumberOfBitcoins.ToString())
+				{
+					value = better;
+				}
 			}
 
 			if (decimal.TryParse(value, NumberStyles.Number, _customCultureInfo, out var decimalValue))
