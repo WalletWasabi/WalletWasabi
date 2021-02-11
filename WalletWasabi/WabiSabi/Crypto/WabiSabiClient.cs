@@ -110,8 +110,8 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var availableZeroCredentialCount = availableZeroCredentials.Count();
 			if (availableZeroCredentialCount < missingCredentialPresent)
 			{
-				throw new WabiSabiException(
-					WabiSabiErrorCode.NotEnoughZeroCredentialToFillTheRequest,
+				throw new WabiSabiCryptoException(
+					WabiSabiCryptoErrorCode.NotEnoughZeroCredentialToFillTheRequest,
 					$"{missingCredentialPresent} credentials are missing but there are only {availableZeroCredentialCount} zero-value credentials available.");
 			}
 
@@ -119,7 +119,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var macsToPresent = credentialsToPresent.Select(x => x.Mac);
 			if (macsToPresent.Distinct().Count() < macsToPresent.Count())
 			{
-				throw new WabiSabiException(WabiSabiErrorCode.CredentialToPresentDuplicated);
+				throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.CredentialToPresentDuplicated);
 			}
 
 			var zs = new List<Scalar>();
@@ -194,8 +194,8 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var requestedCredentialCount = registrationValidationData.Requested.Count();
 			if (issuedCredentialCount != NumberOfCredentials)
 			{
-				throw new WabiSabiException(
-					WabiSabiErrorCode.IssuedCredentialNumberMismatch,
+				throw new WabiSabiCryptoException(
+					WabiSabiCryptoErrorCode.IssuedCredentialNumberMismatch,
 					$"{issuedCredentialCount} issued but {requestedCredentialCount} were requested.");
 			}
 
@@ -209,7 +209,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var areCorrectlyIssued = ProofSystem.Verify(registrationValidationData.Transcript, statements, registrationResponse.Proofs);
 			if (!areCorrectlyIssued)
 			{
-				throw new WabiSabiException(WabiSabiErrorCode.ClientReceivedInvalidProofs);
+				throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.ClientReceivedInvalidProofs);
 			}
 
 			var credentialReceived = credentials.Select(x =>

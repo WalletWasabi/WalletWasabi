@@ -199,8 +199,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 					validCredentialRequest.Requested,
 					validCredentialRequest.Proofs);
 
-				var ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(invalidCredentialRequest));
-				Assert.Equal(WabiSabiErrorCode.InvalidNumberOfPresentedCredentials, ex.ErrorCode);
+				var ex = Assert.Throws<WabiSabiCryptoException>(() => issuer.HandleRequest(invalidCredentialRequest));
+				Assert.Equal(WabiSabiCryptoErrorCode.InvalidNumberOfPresentedCredentials, ex.ErrorCode);
 				Assert.Equal("3 credential presentations were expected but 1 were received.", ex.Message);
 
 				// Test incorrect number of presentations (0 instead of 3.)
@@ -211,8 +211,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 					validCredentialRequest.Requested,
 					validCredentialRequest.Proofs);
 
-				ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(invalidCredentialRequest));
-				Assert.Equal(WabiSabiErrorCode.InvalidNumberOfPresentedCredentials, ex.ErrorCode);
+				ex = Assert.Throws<WabiSabiCryptoException>(() => issuer.HandleRequest(invalidCredentialRequest));
+				Assert.Equal(WabiSabiCryptoErrorCode.InvalidNumberOfPresentedCredentials, ex.ErrorCode);
 				Assert.Equal("3 credential presentations were expected but 0 were received.", ex.Message);
 
 				(validCredentialRequest, _) = client.CreateRequest(Array.Empty<long>(), client.Credentials.All);
@@ -224,8 +224,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 					validCredentialRequest.Requested.Take(1),
 					validCredentialRequest.Proofs);
 
-				ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(invalidCredentialRequest));
-				Assert.Equal(WabiSabiErrorCode.InvalidNumberOfRequestedCredentials, ex.ErrorCode);
+				ex = Assert.Throws<WabiSabiCryptoException>(() => issuer.HandleRequest(invalidCredentialRequest));
+				Assert.Equal(WabiSabiCryptoErrorCode.InvalidNumberOfRequestedCredentials, ex.ErrorCode);
 				Assert.Equal("3 credential requests were expected but 1 were received.", ex.Message);
 
 				// Test incorrect number of credential requests.
@@ -235,8 +235,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 					validCredentialRequest.Requested.Take(1),
 					validCredentialRequest.Proofs);
 
-				ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(invalidCredentialRequest));
-				Assert.Equal(WabiSabiErrorCode.InvalidNumberOfRequestedCredentials, ex.ErrorCode);
+				ex = Assert.Throws<WabiSabiCryptoException>(() => issuer.HandleRequest(invalidCredentialRequest));
+				Assert.Equal(WabiSabiCryptoErrorCode.InvalidNumberOfRequestedCredentials, ex.ErrorCode);
 				Assert.Equal("3 credential requests were expected but 1 were received.", ex.Message);
 
 				// Test invalid range proof.
@@ -248,8 +248,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 					new[] { requested[0], requested[1], new IssuanceRequest(requested[2].Ma, new[] { GroupElement.Infinity }) },
 					validCredentialRequest.Proofs);
 
-				ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(invalidCredentialRequest));
-				Assert.Equal(WabiSabiErrorCode.InvalidBitCommitment, ex.ErrorCode);
+				ex = Assert.Throws<WabiSabiCryptoException>(() => issuer.HandleRequest(invalidCredentialRequest));
+				Assert.Equal(WabiSabiCryptoErrorCode.InvalidBitCommitment, ex.ErrorCode);
 			}
 
 			{
@@ -263,8 +263,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 					validCredentialRequest.Requested,
 					proofs);
 
-				var ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(invalidCredentialRequest));
-				Assert.Equal(WabiSabiErrorCode.CoordinatorReceivedInvalidProofs, ex.ErrorCode);
+				var ex = Assert.Throws<WabiSabiCryptoException>(() => issuer.HandleRequest(invalidCredentialRequest));
+				Assert.Equal(WabiSabiCryptoErrorCode.CoordinatorReceivedInvalidProofs, ex.ErrorCode);
 			}
 
 			{
@@ -277,8 +277,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 				(validCredentialRequest, validationData) = client.CreateRequest(Enumerable.Empty<long>(), client.Credentials.All);
 
 				issuer.HandleRequest(validCredentialRequest);
-				var ex = Assert.Throws<WabiSabiException>(() => issuer.HandleRequest(validCredentialRequest));
-				Assert.Equal(WabiSabiErrorCode.SerialNumberAlreadyUsed, ex.ErrorCode);
+				var ex = Assert.Throws<WabiSabiCryptoException>(() => issuer.HandleRequest(validCredentialRequest));
+				Assert.Equal(WabiSabiCryptoErrorCode.SerialNumberAlreadyUsed, ex.ErrorCode);
 			}
 		}
 	}

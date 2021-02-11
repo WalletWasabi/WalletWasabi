@@ -82,7 +82,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// </summary>
 		/// <param name="registrationRequest">The request containing the credentials presentations, credential requests and the proofs.</param>
 		/// <returns>The <see cref="CredentialsResponse">registration response</see> containing the requested credentials and the proofs.</returns>
-		/// <exception cref="WabiSabiException">Error code: <see cref="WabiSabiErrorCode">WabiSabiErrorCode</see></exception>
+		/// <exception cref="WabiSabiCryptoException">Error code: <see cref="WabiSabiCryptoErrorCode">WabiSabiErrorCode</see></exception>
 		public CredentialsResponse HandleRequest(CredentialsRequest registrationRequest)
 		{
 			Guard.NotNull(nameof(registrationRequest), registrationRequest);
@@ -93,8 +93,8 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var requestedCount = requested.Count();
 			if (requestedCount != NumberOfCredentials)
 			{
-				throw new WabiSabiException(
-					WabiSabiErrorCode.InvalidNumberOfRequestedCredentials,
+				throw new WabiSabiCryptoException(
+					WabiSabiCryptoErrorCode.InvalidNumberOfRequestedCredentials,
 					$"{NumberOfCredentials} credential requests were expected but {requestedCount} were received.");
 			}
 
@@ -102,8 +102,8 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var requiredNumberOfPresentations = registrationRequest.IsNullRequest ? 0 : NumberOfCredentials;
 			if (presentedCount != requiredNumberOfPresentations)
 			{
-				throw new WabiSabiException(
-					WabiSabiErrorCode.InvalidNumberOfPresentedCredentials,
+				throw new WabiSabiCryptoException(
+					WabiSabiCryptoErrorCode.InvalidNumberOfPresentedCredentials,
 					$"{requiredNumberOfPresentations} credential presentations were expected but {presentedCount} were received.");
 			}
 
@@ -111,7 +111,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			// then there is a problem somewhere because this should not be possible.
 			if (Balance + registrationRequest.Delta < 0)
 			{
-				throw new WabiSabiException(WabiSabiErrorCode.NegativeBalance);
+				throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.NegativeBalance);
 			}
 
 			// Check that the range proofs are of the appropriate bitwidth
@@ -119,7 +119,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var allRangeProofsAreCorrectSize = requested.All(x => x.BitCommitments.Count() == rangeProofWidth);
 			if (!allRangeProofsAreCorrectSize)
 			{
-				throw new WabiSabiException(WabiSabiErrorCode.InvalidBitCommitment);
+				throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.InvalidBitCommitment);
 			}
 
 			// Check all the serial numbers are unique. Note that this is checked separately from
@@ -127,7 +127,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			// unused credential more than once in the same request is still a double spend.
 			if (registrationRequest.AreThereDuplicatedSerialNumbers)
 			{
-				throw new WabiSabiException(WabiSabiErrorCode.SerialNumberDuplicated);
+				throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.SerialNumberDuplicated);
 			}
 
 			var statements = new List<Statement>();
@@ -145,7 +145,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 				// rejected.
 				if (SerialNumbers.Contains(presentation.S))
 				{
-					throw new WabiSabiException(WabiSabiErrorCode.SerialNumberAlreadyUsed, $"Serial number reused {presentation.S}");
+					throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.SerialNumberAlreadyUsed, $"Serial number reused {presentation.S}");
 				}
 			}
 
@@ -179,7 +179,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var areProofsValid = ProofSystem.Verify(transcript, statements, registrationRequest.Proofs);
 			if (!areProofsValid)
 			{
-				throw new WabiSabiException(WabiSabiErrorCode.CoordinatorReceivedInvalidProofs);
+				throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.CoordinatorReceivedInvalidProofs);
 			}
 
 			// Issue credentials.

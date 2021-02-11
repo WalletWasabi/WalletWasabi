@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.WabiSabi.Backend.Banning;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 
@@ -37,11 +38,11 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			{
 				if (!Arena.TryGetRound(request.RoundId, out var round))
 				{
-					throw new InvalidOperationException("Round not found.");
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 				}
 				if (round.Phase != Phase.InputRegistration)
 				{
-					throw new InvalidOperationException("Wrong phase.");
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 				}
 
 				foreach (var inputRoundSignaturePair in request.InputRoundSignaturePairs)
@@ -50,19 +51,19 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true).ConfigureAwait(false);
 					if (txOutResponse is null)
 					{
-						throw new InvalidOperationException("Input spent.");
+						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);
 					}
 					if (txOutResponse.Confirmations == 0)
 					{
-						throw new InvalidOperationException("Input unconfirmed.");
+						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputUnconfirmed);
 					}
 					if (txOutResponse.IsCoinBase && txOutResponse.Confirmations <= 100)
 					{
-						throw new InvalidOperationException("Input immature.");
+						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputImmature);
 					}
 					if (txOutResponse.ScriptPubKeyType != "witness_v0_keyhash")
 					{
-						throw new InvalidOperationException("Input nonsegwit.");
+						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNonSegwit);
 					}
 				}
 
