@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
+using WalletWasabi.JsonConverters.Collections;
 using WalletWasabi.JsonConverters.Timing;
 
 namespace WalletWasabi.WabiSabi.Backend
@@ -24,11 +25,15 @@ namespace WalletWasabi.WabiSabi.Backend
 
 		[DefaultValue(Constants.OneDayConfirmationTarget)]
 		[JsonProperty(PropertyName = "ConfirmationTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int ConfirmationTarget { get; set; }
+		public int ConfirmationTarget { get; set; } = Constants.OneDayConfirmationTarget;
 
 		[DefaultValueTimeSpan("0d 3h 0m 0s")]
 		[JsonProperty(PropertyName = "ReleaseUtxoFromPrisonAfter", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(TimeSpanJsonConverter))]
-		public TimeSpan ReleaseUtxoFromPrisonAfter { get; set; }
+		public TimeSpan ReleaseUtxoFromPrisonAfter { get; set; } = TimeSpan.FromHours(3);
+
+		[DefaultValueStringCollection("[\"witness_v0_keyhash\"]")]
+		[JsonProperty(PropertyName = "AllowedScriptTypes", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public IEnumerable<string> AllowedScriptTypes { get; set; } = new[] { "witness_v0_keyhash" };
 	}
 }

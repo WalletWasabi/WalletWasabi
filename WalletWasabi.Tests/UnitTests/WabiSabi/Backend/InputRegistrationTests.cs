@@ -120,7 +120,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		}
 
 		[Fact]
-		public async Task InputNonSegwitAsync()
+		public async Task InputScriptNotAllowedAsync()
 		{
 			MockArena arena = new();
 			Round round = new();
@@ -136,7 +136,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				null!,
 				null!);
 			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
-			Assert.Equal(WabiSabiProtocolErrorCode.InputNonSegwit, ex.ErrorCode);
+			Assert.Equal(WabiSabiProtocolErrorCode.InputScriptNotAllowed, ex.ErrorCode);
 		}
 	}
 }

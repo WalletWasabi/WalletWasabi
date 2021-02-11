@@ -61,9 +61,9 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					{
 						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputImmature);
 					}
-					if (txOutResponse.ScriptPubKeyType != "witness_v0_keyhash")
+					if (!Config.AllowedScriptTypes.Contains(txOutResponse.ScriptPubKeyType))
 					{
-						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNonSegwit);
+						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputScriptNotAllowed);
 					}
 				}
 
