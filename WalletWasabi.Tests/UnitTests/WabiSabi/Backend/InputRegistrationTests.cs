@@ -57,6 +57,30 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				}
 			}
 		}
+		[Fact]
+		public async Task NonUniqueInputsAsync()
+		{
+			MockArena arena = new();
+			Round round = new();
+			arena.OnTryGetRound = _ => round;
+			var inputSigPair = WabiSabiFactory.CreateInputRoundSignaturePair();
+
+			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
+			{
+				if (phase != Phase.InputRegistration)
+				{
+					round.Phase = phase;
+					await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
+					var req = new InputsRegistrationRequest(
+						round.Id,
+						new[] { inputSigPair, inputSigPair },
+						null!,
+						null!);
+					var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
+				}
+			}
+		}
 
 		[Fact]
 		public async Task TooManyInputsAsync()
