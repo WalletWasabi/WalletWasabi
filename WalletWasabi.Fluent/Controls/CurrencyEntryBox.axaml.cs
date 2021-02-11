@@ -64,6 +64,7 @@ namespace WalletWasabi.Fluent.Controls
 			this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay(false));
 			this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => UpdateDisplay(true));
 			this.GetObservable(AmountBtcProperty).Subscribe(_ => UpdateDisplay(true));
+			this.GetObservable(IsReadOnlyProperty).Subscribe(_ => UpdateDisplay(true));
 
 			Watermark = "0 BTC";
 			Text = string.Empty;
@@ -281,9 +282,12 @@ namespace WalletWasabi.Fluent.Controls
 
 			_swapButton = e.NameScope.Find<Button>("PART_SwapButton");
 
-			_swapButton.Click += SwapButtonOnClick;
+			if (_swapButton is { })
+			{
+				_swapButton.Click += SwapButtonOnClick;
 
-			_disposable.Add(Disposable.Create(() => _swapButton.Click -= SwapButtonOnClick));
+				_disposable.Add(Disposable.Create(() => _swapButton.Click -= SwapButtonOnClick));
+			}
 		}
 
 		private void SwapButtonOnClick(object? sender, RoutedEventArgs e)
@@ -352,7 +356,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var conversion = BitcoinToFiat(AmountBtc);
 
-			if (IsConversionReversed)
+			if (IsConversionReversed && !IsReadOnly)
 			{
 				CurrencyCode = ConversionCurrencyCode;
 				ConversionText = FullFormatBtc(_customCultureInfo.NumberFormat, AmountBtc);
@@ -383,6 +387,16 @@ namespace WalletWasabi.Fluent.Controls
 					Text = AmountBtc > 0 ? FormatBtcValue(_customCultureInfo.NumberFormat, AmountBtc) : string.Empty;
 					_canUpdateDisplay = true;
 				}
+			}
+		}
+
+		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+		{
+			base.OnPropertyChanged(change);
+
+			if (change.Property == IsReadOnlyProperty)
+			{
+				PseudoClasses.Set(":readonly", change.NewValue.GetValueOrDefault<bool>());
 			}
 		}
 	}
