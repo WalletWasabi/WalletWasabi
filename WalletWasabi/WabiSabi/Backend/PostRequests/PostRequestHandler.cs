@@ -52,6 +52,18 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					{
 						throw new InvalidOperationException("Input spent.");
 					}
+					if (txOutResponse.Confirmations == 0)
+					{
+						throw new InvalidOperationException("Input unconfirmed.");
+					}
+					if (txOutResponse.IsCoinBase && txOutResponse.Confirmations <= 100)
+					{
+						throw new InvalidOperationException("Input immature.");
+					}
+					if (txOutResponse.ScriptPubKeyType != "witness_v0_keyhash")
+					{
+						throw new InvalidOperationException("Input nonsegwit.");
+					}
 				}
 
 				throw new NotImplementedException();

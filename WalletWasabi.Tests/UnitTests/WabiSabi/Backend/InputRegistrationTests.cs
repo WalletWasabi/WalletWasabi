@@ -72,5 +72,64 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				null!);
 			await Assert.ThrowsAnyAsync<InvalidOperationException>(async () => await handler.RegisterInputAsync(req));
 		}
+
+		[Fact]
+		public async Task InputUnconfirmedAsync()
+		{
+			MockArena arena = new();
+			Round round = new();
+			arena.OnTryGetRound = _ => round;
+			MockRpcClient rpc = new();
+			rpc.OnGetTxOutAsync = (_, _, _) => new GetTxOutResponse { Confirmations = 0 };
+
+			await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, rpc);
+			var req = new InputsRegistrationRequest(
+				round.Id,
+				WabiSabiFactory.CreateInputRoundSignaturePairs(1),
+				null!,
+				null!);
+			await Assert.ThrowsAnyAsync<InvalidOperationException>(async () => await handler.RegisterInputAsync(req));
+		}
+
+		[Fact]
+		public async Task InputImmatureAsync()
+		{
+			MockArena arena = new();
+			Round round = new();
+			arena.OnTryGetRound = _ => round;
+			MockRpcClient rpc = new();
+
+			for (int i = 1; i <= 100; i++)
+			{
+				rpc.OnGetTxOutAsync = (_, _, _) => new GetTxOutResponse { Confirmations = i, IsCoinBase = true };
+
+				await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, rpc);
+				var req = new InputsRegistrationRequest(
+					round.Id,
+					WabiSabiFactory.CreateInputRoundSignaturePairs(1),
+					null!,
+					null!);
+				await Assert.ThrowsAnyAsync<InvalidOperationException>(async () => await handler.RegisterInputAsync(req));
+			}
+		}
+
+		[Fact]
+		public async Task InputNonSegwitAsync()
+		{
+			MockArena arena = new();
+			Round round = new();
+			arena.OnTryGetRound = _ => round;
+			MockRpcClient rpc = new();
+
+			rpc.OnGetTxOutAsync = (_, _, _) => new GetTxOutResponse { Confirmations = 1, ScriptPubKeyType = "foo" };
+
+			await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, rpc);
+			var req = new InputsRegistrationRequest(
+				round.Id,
+				WabiSabiFactory.CreateInputRoundSignaturePairs(1),
+				null!,
+				null!);
+			await Assert.ThrowsAnyAsync<InvalidOperationException>(async () => await handler.RegisterInputAsync(req));
+		}
 	}
 }
