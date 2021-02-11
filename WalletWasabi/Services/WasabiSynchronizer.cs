@@ -30,7 +30,7 @@ namespace WalletWasabi.Services
 
 		private decimal _usdExchangeRate;
 
-		private AllFeeEstimate _allFeeEstimate;
+		private AllFeeEstimate? _allFeeEstimate;
 
 		private TorStatus _torStatus;
 
@@ -82,7 +82,7 @@ namespace WalletWasabi.Services
 			private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value);
 		}
 
-		public AllFeeEstimate AllFeeEstimate
+		public AllFeeEstimate? AllFeeEstimate
 		{
 			get => _allFeeEstimate;
 			private set
