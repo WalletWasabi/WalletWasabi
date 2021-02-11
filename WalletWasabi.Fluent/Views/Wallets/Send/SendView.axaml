@@ -126,6 +126,7 @@
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
 
                                 <Button Classes="plain"
+                                        KeyboardNavigation.IsTabStop="False"
                                         Command="{Binding PasteCommand}"
                                         ToolTip.Tip="Paste">
                                     <PathIcon Data="{StaticResource paste_regular}" Width="13" />
@@ -139,7 +140,7 @@
                     <Label DockPanel.Dock="Left" Content="_Amount:" Target="amountTb" />
                     <DockPanel>
                         <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png" DockPanel.Dock="Right" IsVisible="{Binding IsPayJoin}"  Margin="0 8 8 0" VerticalAlignment="Top"/>
-                        <c:CurrencyEntryBox x:Name="amountTb" IsReadOnly="{Binding IsFixedAmount}" AmountBtc="{Binding AmountBtc}" ConversionRate="{Binding ExchangeRate}" ConversionCurrencyCode="USD" />
+                        <c:CurrencyEntryBox KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}" x:Name="amountTb" IsReadOnly="{Binding IsFixedAmount}" AmountBtc="{Binding AmountBtc}" ConversionRate="{Binding ExchangeRate}" ConversionCurrencyCode="USD" />
                     </DockPanel>
                 </DockPanel>
 
@@ -163,6 +164,7 @@
 
             <DockPanel MinHeight="80">
                 <Slider x:Name="CursorValue2"
+                        KeyboardNavigation.IsTabStop="False"
                         DockPanel.Dock="Bottom"
                         Classes="cursor"
                         Minimum="{Binding #GradientLineChart.XAxisMinValue}"
