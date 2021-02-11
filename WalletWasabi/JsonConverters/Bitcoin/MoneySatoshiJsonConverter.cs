@@ -2,7 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 
-namespace WalletWasabi.JsonConverters
+namespace WalletWasabi.JsonConverters.Bitcoin
 {
 	public class MoneySatoshiJsonConverter : JsonConverter
 	{

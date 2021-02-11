@@ -188,5 +188,57 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.WrongRoundSignature, ex.ErrorCode);
 		}
+
+		[Fact]
+		public async Task NotEnoughFundsAsync()
+		{
+			MockArena arena = new();
+			Round round = new();
+			arena.OnTryGetRound = _ => round;
+			MockRpcClient rpc = new();
+			using Key key = new();
+
+			rpc.OnGetTxOutAsync = (_, _, _) => new GetTxOutResponse
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
+			};
+
+			await using PostRequestHandler handler = new(new WabiSabiConfig() { MinRegistrableAmount = Money.Coins(2) }, new Prison(), arena, rpc);
+			var req = new InputsRegistrationRequest(
+				round.Id,
+				WabiSabiFactory.CreateInputRoundSignaturePairs(new[] { key }, round.Hash),
+				null!,
+				null!);
+			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			Assert.Equal(WabiSabiProtocolErrorCode.NotEnoughFunds, ex.ErrorCode);
+		}
+
+		[Fact]
+		public async Task TooMuchFundsAsync()
+		{
+			MockArena arena = new();
+			Round round = new();
+			arena.OnTryGetRound = _ => round;
+			MockRpcClient rpc = new();
+			using Key key = new();
+
+			rpc.OnGetTxOutAsync = (_, _, _) => new GetTxOutResponse
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
+			};
+
+			await using PostRequestHandler handler = new(new WabiSabiConfig() { MaxRegistrableAmount = Money.Coins(0.9m) }, new Prison(), arena, rpc);
+			var req = new InputsRegistrationRequest(
+				round.Id,
+				WabiSabiFactory.CreateInputRoundSignaturePairs(new[] { key }, round.Hash),
+				null!,
+				null!);
+			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			Assert.Equal(WabiSabiProtocolErrorCode.TooMuchFunds, ex.ErrorCode);
+		}
 	}
 }

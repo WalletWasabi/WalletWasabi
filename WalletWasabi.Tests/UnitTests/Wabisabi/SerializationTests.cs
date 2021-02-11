@@ -7,6 +7,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;

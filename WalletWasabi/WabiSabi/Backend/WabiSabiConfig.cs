@@ -1,3 +1,4 @@
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
+using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.JsonConverters.Collections;
 using WalletWasabi.JsonConverters.Timing;
 
@@ -39,5 +41,15 @@ namespace WalletWasabi.WabiSabi.Backend
 		[DefaultValue(2)]
 		[JsonProperty(PropertyName = "MaxInputCountByAlice", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public uint MaxInputCountByAlice { get; set; } = 2;
+
+		[DefaultValueMoneyBtc("0.00005")]
+		[JsonProperty(PropertyName = "MinRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonConverter(typeof(MoneyBtcJsonConverter))]
+		public Money MinRegistrableAmount { get; set; } = Money.Coins(0.00005m);
+
+		[DefaultValueMoneyBtc("1000")]
+		[JsonProperty(PropertyName = "MaxRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonConverter(typeof(MoneyBtcJsonConverter))]
+		public Money MaxRegistrableAmount { get; set; } = Money.Coins(1000m);
 	}
 }

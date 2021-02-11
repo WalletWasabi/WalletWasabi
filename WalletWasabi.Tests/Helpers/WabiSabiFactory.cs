@@ -10,19 +10,37 @@ namespace WalletWasabi.Tests.Helpers
 {
 	public static class WabiSabiFactory
 	{
-		public static InputRoundSignaturePair CreateInputRoundSignaturePair()
+		public static InputRoundSignaturePair CreateInputRoundSignaturePair(Key? key = null, uint256? roundHash = null)
 		{
-			using Key key = new();
-			return new InputRoundSignaturePair(
-					BitcoinFactory.CreateOutPoint(),
-					key.SignCompact(BitcoinFactory.CreateUint256()));
+			var rh = roundHash ?? BitcoinFactory.CreateUint256();
+			if (key is null)
+			{
+				using Key k = new();
+				return new InputRoundSignaturePair(
+						BitcoinFactory.CreateOutPoint(),
+						k.SignCompact(rh));
+			}
+			else
+			{
+				return new InputRoundSignaturePair(
+						BitcoinFactory.CreateOutPoint(),
+						key.SignCompact(rh));
+			}
 		}
 
-		public static IEnumerable<InputRoundSignaturePair> CreateInputRoundSignaturePairs(int count)
+		public static IEnumerable<InputRoundSignaturePair> CreateInputRoundSignaturePairs(int count, uint256? roundHash = null)
 		{
 			for (int i = 0; i < count; i++)
 			{
-				yield return CreateInputRoundSignaturePair();
+				yield return CreateInputRoundSignaturePair(null, roundHash);
+			}
+		}
+
+		public static IEnumerable<InputRoundSignaturePair> CreateInputRoundSignaturePairs(IEnumerable<Key> keys, uint256? roundHash = null)
+		{
+			foreach (var key in keys)
+			{
+				yield return CreateInputRoundSignaturePair(key, roundHash);
 			}
 		}
 	}

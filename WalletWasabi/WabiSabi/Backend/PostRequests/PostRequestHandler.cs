@@ -51,6 +51,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooManyInputs);
 				}
 
+				var inputSum = Money.Zero;
 				foreach (var inputRoundSignaturePair in request.InputRoundSignaturePairs)
 				{
 					OutPoint input = inputRoundSignaturePair.Input;
@@ -76,6 +77,16 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					{
 						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongRoundSignature);
 					}
+					inputSum += txOutResponse.TxOut.Value;
+				}
+
+				if (inputSum < Config.MinRegistrableAmount)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
+				}
+				if (inputSum > Config.MaxRegistrableAmount)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 				}
 
 				throw new NotImplementedException();
