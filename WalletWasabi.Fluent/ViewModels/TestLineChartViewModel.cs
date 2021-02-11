@@ -65,7 +65,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				y[i] = Math.Sin(x[i]);
 				Console.WriteLine($"{x[i]} {y[i]}");
 			}
-			var spline = CubicSpline.InterpolateNatural(x, y);
+			var spline = CubicSpline.InterpolateNaturalSorted(x, y);
 			double testX = 1.5 * Math.PI / 12;
 			double testY = spline.Interpolate(testX);
 			Console.WriteLine($"Interpolated:");
