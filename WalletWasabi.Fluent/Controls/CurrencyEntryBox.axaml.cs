@@ -282,9 +282,12 @@ namespace WalletWasabi.Fluent.Controls
 
 			_swapButton = e.NameScope.Find<Button>("PART_SwapButton");
 
-			_swapButton.Click += SwapButtonOnClick;
+			if (_swapButton is { })
+			{
+				_swapButton.Click += SwapButtonOnClick;
 
-			_disposable.Add(Disposable.Create(() => _swapButton.Click -= SwapButtonOnClick));
+				_disposable.Add(Disposable.Create(() => _swapButton.Click -= SwapButtonOnClick));
+			}
 		}
 
 		private void SwapButtonOnClick(object? sender, RoutedEventArgs e)

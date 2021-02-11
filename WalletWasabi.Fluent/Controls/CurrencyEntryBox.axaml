@@ -142,11 +142,20 @@
                                 Margin="{TemplateBinding Padding}">
                                 <DockPanel>
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{TemplateBinding Text}"
-                                                   TextAlignment="{TemplateBinding TextAlignment}"
-                                                   TextWrapping="{TemplateBinding TextWrapping}"
-                                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                   VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                        <TextPresenter Name="PART_TextPresenter"
+                                                       Text="{TemplateBinding Text, Mode=TwoWay}"
+                                                       CaretIndex="{TemplateBinding CaretIndex}"
+                                                       SelectionStart="{TemplateBinding SelectionStart}"
+                                                       SelectionEnd="{TemplateBinding SelectionEnd}"
+                                                       TextAlignment="{TemplateBinding TextAlignment}"
+                                                       TextWrapping="{TemplateBinding TextWrapping}"
+                                                       PasswordChar="{TemplateBinding PasswordChar}"
+                                                       RevealPassword="{TemplateBinding RevealPassword}"
+                                                       SelectionBrush="{TemplateBinding SelectionBrush}"
+                                                       SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                                                       CaretBrush="{TemplateBinding CaretBrush}"
+                                                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                                         <TextBlock Margin="5 0 0 0"
                                                    Text="{TemplateBinding CurrencyCode}"
                                                    IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
