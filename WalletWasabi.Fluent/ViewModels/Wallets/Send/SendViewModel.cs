@@ -57,6 +57,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			this.WhenAnyValue(x => x.To)
 				.Subscribe(ParseToField);
 
+			this.WhenAnyValue(x => x.AmountBtc)
+				.Subscribe(x=>  _transactionInfo.Amount = new Money(x, MoneyUnit.BTC));
+
+			Labels.ToObservableChangeSet().Subscribe(x =>
+			{
+				_transactionInfo.Labels = new SmartLabel(_labels.ToArray());
+			});
+
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var text =  await Application.Current.Clipboard.GetTextAsync();
@@ -72,14 +80,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				_parsingUrl = false;
 			});
 
-			this.WhenAnyValue(x => x.AmountBtc)
-				.Subscribe(x=>  _transactionInfo.Amount = new Money(x, MoneyUnit.BTC));
-
-			Labels.ToObservableChangeSet().Subscribe(x =>
+			NextCommand = ReactiveCommand.Create(() =>
 			{
-				_transactionInfo.Labels = new SmartLabel(_labels.ToArray());
-			});
+				var transactionInfo = _transactionInfo;
+				var wallet = _owner.Wallet;
 
+				if (true) // private coins enough.
+				{
+					Navigate().To(new OptimisePrivacyViewModel());
+				}
+				else // not enough private coins
+				{
+					Navigate().To(new PrivacyControlViewModel());
+				}
+			});
 		}
 
 		private void ParseToField(string s)
