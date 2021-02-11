@@ -65,7 +65,7 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 
 		public static string StatusPageLink => "https://stats.uptimerobot.com/YQqGyUL8A7";
 
-		public static string UserSupportLink => "https://www.reddit.com/r/WasabiWallet/";
+		public static string UserSupportLink => "https://github.com/zkSNACKs/WalletWasabi/discussions/categories/support";
 
 		public static string BugReportLink => "https://github.com/zkSNACKs/WalletWasabi/issues/";
 
