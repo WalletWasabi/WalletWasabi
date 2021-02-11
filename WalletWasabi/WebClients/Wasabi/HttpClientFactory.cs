@@ -13,10 +13,13 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <summary>
 		/// To detect redundant calls.
 		/// </summary>
-		private bool _disposed = false;
+		private bool _disposed = false;	
 
-		/// <summary>Temporary solution until #4738 PR is merged. Static constructor will be removed then.</summary>
-		static HttpClientFactory()
+		/// <summary>
+		/// Creates a new instance of the object.
+		/// </summary>
+		/// <param name="torEndPoint">If <c>null</c> then clearnet (not over Tor) is used, otherwise HTTP requests are routed through provided Tor endpoint.</param>
+		public HttpClientFactory(EndPoint? torEndPoint, Func<Uri> backendUriGetter)
 		{
 			SocketHandler = new SocketsHttpHandler()
 			{
@@ -26,14 +29,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			};
 
 			HttpClient = new HttpClient(SocketHandler);
-		}
 
-		/// <summary>
-		/// Creates a new instance of the object.
-		/// </summary>
-		/// <param name="torEndPoint">If <c>null</c> then clearnet (not over Tor) is used, otherwise HTTP requests are routed through provided Tor endpoint.</param>
-		public HttpClientFactory(EndPoint? torEndPoint, Func<Uri> backendUriGetter)
-		{
 			TorEndpoint = torEndPoint;
 			BackendUriGetter = backendUriGetter;
 
@@ -61,11 +57,11 @@ namespace WalletWasabi.WebClients.Wasabi
 		public bool IsTorEnabled => TorEndpoint is { };
 
 		/// <remarks>The goal is to make this field non-static when #4738 PR is merged.</remarks>
-		private static SocketsHttpHandler SocketHandler;
+		private SocketsHttpHandler SocketHandler { get; }
 
 		/// <summary>.NET HTTP client to be used by <see cref="ClearnetHttpClient"/> instances.</summary>
 		/// <remarks>The goal is to make this field non-static when #4738 PR is merged.</remarks>
-		public static HttpClient HttpClient { get; }
+		private HttpClient HttpClient { get; }
 
 		/// <summary>Backend HTTP client, shared instance.</summary>
 		private IHttpClient BackendHttpClient { get; }
