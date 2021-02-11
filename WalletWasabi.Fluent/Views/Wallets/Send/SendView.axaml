@@ -148,7 +148,6 @@
                     <c:TagsBox x:Name="LabelTagBox"
                                TagSeparator=","
                                Items="{Binding Labels}"
-                               ItemCountLimit="12"
                                Suggestions="{Binding PriorLabels}"
                                SuggestionsAreCaseSensitive="True"
                                RestrictInputToSuggestions="False" />
