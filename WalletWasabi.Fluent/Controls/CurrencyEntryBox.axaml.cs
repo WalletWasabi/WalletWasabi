@@ -16,9 +16,12 @@ namespace WalletWasabi.Fluent.Controls
 {
 	public class CurrencyEntryBox : TextBox
 	{
-		public static readonly StyledProperty<decimal> AmountBtcProperty =
-			AvaloniaProperty.Register<CurrencyEntryBox, decimal>(
+		public static readonly DirectProperty<CurrencyEntryBox, decimal> AmountBtcProperty =
+			AvaloniaProperty.RegisterDirect<CurrencyEntryBox, decimal>(
 				nameof(AmountBtc),
+				o => o.AmountBtc,
+				(o, v) => o.AmountBtc = v,
+				enableDataValidation: true,
 				defaultBindingMode: BindingMode.TwoWay);
 
 		public static readonly StyledProperty<string> ConversionTextProperty =
@@ -46,6 +49,7 @@ namespace WalletWasabi.Fluent.Controls
 		private Button? _swapButton;
 		private CompositeDisposable? _disposable;
 		private bool _canUpdateDisplay = true;
+		private decimal _amountBtc;
 
 		public CurrencyEntryBox()
 		{
@@ -89,8 +93,8 @@ namespace WalletWasabi.Fluent.Controls
 
 		public decimal AmountBtc
 		{
-			get => GetValue(AmountBtcProperty);
-			set => SetValue(AmountBtcProperty, value);
+			get => _amountBtc;
+			set => SetAndRaise(AmountBtcProperty, ref _amountBtc, value);
 		}
 
 		public string ConversionText
@@ -131,6 +135,14 @@ namespace WalletWasabi.Fluent.Controls
 		private decimal BitcoinToFiat(decimal btcValue)
 		{
 			return btcValue * ConversionRate;
+		}
+
+		protected override void UpdateDataValidation<T>(AvaloniaProperty<T> property, BindingValue<T> value)
+		{
+			if (property == AmountBtcProperty)
+			{
+				DataValidationErrors.SetError(this, value.Error);
+			}
 		}
 
 		protected override void OnGotFocus(GotFocusEventArgs e)
