@@ -425,14 +425,19 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			shuffledOutputs.Shuffle();
 			foreach (var activeOutput in shuffledOutputs)
 			{
-				using (TorHttpClient torHttpClient = Synchronizer.HttpClientFactory.NewBackendTorHttpClient(isolateStream: true))
+				IHttpClient httpClient = Synchronizer.HttpClientFactory.NewBackendHttpClient(isolateStream: true);
+				try
 				{
-					var bobClient = new BobClient(torHttpClient);
+					var bobClient = new BobClient(httpClient);
 					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput).ConfigureAwait(false))
 					{
 						Logger.LogWarning($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.");
 						break;
 					}
+				}
+				finally
+				{
+					(httpClient as IDisposable)?.Dispose();
 				}
 
 				// Unblind our exposed links.
@@ -1081,10 +1086,15 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			RoundStateResponse4 state;
 			HttpClientFactory factory = Synchronizer.HttpClientFactory;
 
-			using (TorHttpClient torHttpClient = factory.NewBackendTorHttpClient(isolateStream: true))
+			IHttpClient satoshiHttpClient = factory.NewBackendHttpClient(isolateStream: true);
+			try
 			{
-				var satoshiClient = new SatoshiClient(torHttpClient);
+				var satoshiClient = new SatoshiClient(satoshiHttpClient);
 				state = (RoundStateResponse4)await satoshiClient.GetRoundStateAsync(roundId).ConfigureAwait(false);
+			}
+			finally
+			{
+				(satoshiHttpClient as IDisposable)?.Dispose();
 			}
 
 			PubKey[] signerPubKeys = state.SignerPubKeys.ToArray();

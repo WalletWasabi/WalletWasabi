@@ -29,6 +29,7 @@
                                     <c:ConcatenatingWrapPanel>
                                         <c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                             <AutoCompleteBox x:Name="PART_AutoCompleteBox"
+                                                             KeyboardNavigation.IsTabStop="False"
                                                              MinimumPrefixLength="1"
                                                              IsTextCompletionEnabled="True"
                                                              Items="{Binding #PART_Border.TemplatedParent.Suggestions}" />

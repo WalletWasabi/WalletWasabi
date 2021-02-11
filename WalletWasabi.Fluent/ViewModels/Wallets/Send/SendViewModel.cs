@@ -169,13 +169,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.DisposeWith(disposables);
 
 			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate)
-				.Where(x=>x is {})
-				.Select(x=>x.Estimations)
+				.Where(x=>x is { })
+				.Select(x=>x!.Estimations)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(UpdateFeeEstimates)
 				.DisposeWith(disposables);
 
-			UpdateFeeEstimates(_owner.Wallet.Synchronizer.AllFeeEstimate.Estimations);
+			if (_owner.Wallet.Synchronizer.AllFeeEstimate is { })
+			{
+				UpdateFeeEstimates(_owner.Wallet.Synchronizer.AllFeeEstimate.Estimations);
+			}
 
 			base.OnNavigatedTo(inStack, disposables);
 		}
