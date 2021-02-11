@@ -1,7 +1,8 @@
 ﻿// Copyright (c) 2009-2014 Math.NET Taken from http://github.com/mathnet/mathnet-numerics and modified for Wasabi Wallet
+
 using System;
 
-namespace MathNet.Numerics.Interpolation
+namespace WalletWasabi.Fluent.MathNet
 {
 	/// <summary>
 	/// Cubic Spline Interpolation.

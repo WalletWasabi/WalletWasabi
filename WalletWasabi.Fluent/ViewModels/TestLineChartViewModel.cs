@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using MathNet.Numerics.Interpolation;
+using WalletWasabi.Fluent.MathNet;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
