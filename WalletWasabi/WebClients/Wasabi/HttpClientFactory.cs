@@ -13,7 +13,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <summary>
 		/// To detect redundant calls.
 		/// </summary>
-		private bool _disposed = false;	
+		private bool _disposed = false;
 
 		/// <summary>
 		/// Creates a new instance of the object.
@@ -56,11 +56,9 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <summary>Whether Tor is enabled or disabled.</summary>
 		public bool IsTorEnabled => TorEndpoint is { };
 
-		/// <remarks>The goal is to make this field non-static when #4738 PR is merged.</remarks>
 		private SocketsHttpHandler SocketHandler { get; }
 
 		/// <summary>.NET HTTP client to be used by <see cref="ClearnetHttpClient"/> instances.</summary>
-		/// <remarks>The goal is to make this field non-static when #4738 PR is merged.</remarks>
 		private HttpClient HttpClient { get; }
 
 		/// <summary>Backend HTTP client, shared instance.</summary>

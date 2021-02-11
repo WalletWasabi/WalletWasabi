@@ -29,6 +29,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		public BackendTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
+			BackendHttpClient = regTestFixture.BackendHttpClient;
 			BackendApiHttpClient = new ClearnetHttpClient(regTestFixture.HttpClient, () => RegTestFixture.BackendEndPointApiUri);
 		}
 
@@ -59,7 +60,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task GetClientVersionAsync()
 		{
-			var client = new WasabiClient(RegTestFixture.BackendHttpClient);
+			var client = new WasabiClient(BackendHttpClient);
 			var uptodate = await client.CheckUpdatesAsync(CancellationToken.None);
 			Assert.True(uptodate.BackendCompatible);
 			Assert.True(uptodate.ClientUpToDate);

@@ -17,6 +17,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Http;
+using Constants = WalletWasabi.Helpers.Constants;
 
 namespace WalletWasabi.Tests.XunitConfiguration
 {
@@ -52,7 +53,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			config.SetFilePath(configFilePath);
 			config.ToFile();
 
-			var roundConfig = CreateRoundConfig(Money.Coins(0.1m), WalletWasabi.Helpers.Constants.OneDayConfirmationTarget, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
+			var roundConfig = CreateRoundConfig(Money.Coins(0.1m), Constants.OneDayConfirmationTarget, 0.7, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
 			var roundConfigFilePath = Path.Combine(testnetBackendDir, "CcjRoundConfig.json");
 			roundConfig.SetFilePath(roundConfigFilePath);
 			roundConfig.ToFile();
@@ -62,7 +63,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 				.Build();
 			BackendEndPoint = $"http://localhost:{CryptoHelpers.RandomInt(37130, 37999)}/";
 			BackendEndPointUri = new Uri(BackendEndPoint);
-			BackendEndPointApiUri = new Uri(BackendEndPointUri, $"/api/v{WalletWasabi.Helpers.Constants.BackendMajorVersion}/");
+			BackendEndPointApiUri = new Uri(BackendEndPointUri, $"/api/v{Constants.BackendMajorVersion}/");
 
 			BackendHost = Host.CreateDefaultBuilder()
 					.ConfigureWebHostDefaults(webBuilder => webBuilder
