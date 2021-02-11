@@ -8,6 +8,7 @@ using System.Windows.Input;
 using Avalonia;
 using Avalonia.Threading;
 using DynamicData;
+using DynamicData.Binding;
 using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
@@ -28,6 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	public partial class SendViewModel : NavBarItemViewModel
 	{
 		private readonly WalletViewModel _owner;
+		private readonly TransactionInfo _transactionInfo;
 		[AutoNotify] private string _to;
 		[AutoNotify] private decimal _amountBtc;
 		[AutoNotify] private decimal _exchangeRate;
@@ -46,6 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			_to = "";
 			_owner = walletVm;
+			_transactionInfo = new TransactionInfo();
 			_labels = new ObservableCollection<string>();
 
 			ExchangeRate = walletVm.Wallet.Synchronizer.UsdExchangeRate;
@@ -53,6 +56,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			this.WhenAnyValue(x => x.To)
 				.Subscribe(ParseToField);
+
+			this.WhenAnyValue(x => x.AmountBtc)
+				.Subscribe(x=>  _transactionInfo.Amount = new Money(x, MoneyUnit.BTC));
+
+			Labels.ToObservableChangeSet().Subscribe(x =>
+			{
+				_transactionInfo.Labels = new SmartLabel(_labels.ToArray());
+			});
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -68,9 +79,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				_parsingUrl = false;
 			});
+
+			NextCommand = ReactiveCommand.Create(() =>
+			{
+				var transactionInfo = _transactionInfo;
+				var wallet = _owner.Wallet;
+
+				if (true) // private coins enough.
+				{
+					Navigate().To(new OptimisePrivacyViewModel());
+				}
+				else // not enough private coins
+				{
+					Navigate().To(new PrivacyControlViewModel());
+				}
+			});
 		}
-
-
 
 		private void ParseToField(string s)
 		{
@@ -112,6 +136,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (url.Address is { })
 				{
+					_transactionInfo.Address = url.Address;
 					To = url.Address.ToString();
 				}
 
