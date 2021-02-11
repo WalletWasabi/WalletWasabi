@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
-	public class RoundCollection : IRoundCollection
+	public class Arena : IArena
 	{
 		public bool TryGetRound(Guid roundId, [NotNullWhen(true)] out Round? round)
 		{

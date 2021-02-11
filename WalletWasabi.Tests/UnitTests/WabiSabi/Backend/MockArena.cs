@@ -8,7 +8,7 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 {
-	public class MockRoundCollection : IRoundCollection
+	public class MockArena : IArena
 	{
 		public Func<Guid, Round?> OnTryGetRound { get; set; } = (roundId) => null;
 

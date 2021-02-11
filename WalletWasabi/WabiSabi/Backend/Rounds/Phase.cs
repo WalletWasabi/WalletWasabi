@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
-	public class Round
+	public enum Phase
 	{
-		public Guid Id { get; } = Guid.NewGuid();
-		public Phase Phase { get; set; } = Phase.InputRegistration;
+		InputRegistration,
+		ConnectionConfirmation,
+		OutputRegistration,
+		TransactionSigning
 	}
 }

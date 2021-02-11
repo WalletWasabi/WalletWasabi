@@ -13,11 +13,11 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 {
 	public class PostRequestHandler : IAsyncDisposable
 	{
-		public PostRequestHandler(WabiSabiConfig config, Prison prison, IRoundCollection roundCollection)
+		public PostRequestHandler(WabiSabiConfig config, Prison prison, IArena arena)
 		{
 			Config = config;
 			Prison = prison;
-			RoundCollection = roundCollection;
+			Arena = arena;
 		}
 
 		private bool DisposeStarted { get; set; } = false;
@@ -25,16 +25,20 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 		private AbandonedTasks RunningRequests { get; } = new();
 		public WabiSabiConfig Config { get; }
 		public Prison Prison { get; }
-		public IRoundCollection RoundCollection { get; }
+		public IArena Arena { get; }
 
 		public InputsRegistrationResponse RegisterInput(InputsRegistrationRequest request)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				if (!RoundCollection.TryGetRound(request.RoundId, out Round round))
+				if (!Arena.TryGetRound(request.RoundId, out var round))
 				{
 					throw new InvalidOperationException("Round not found.");
+				}
+				if (round.Phase != Phase.InputRegistration)
+				{
+					throw new InvalidOperationException("Wrong phase.");
 				}
 
 				throw new NotImplementedException();

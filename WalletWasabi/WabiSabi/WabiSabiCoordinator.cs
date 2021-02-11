@@ -33,7 +33,7 @@ namespace WalletWasabi.WabiSabi
 
 		public CoordinatorParameters Parameters { get; }
 		public PostRequestHandler Postman { get; }
-		public RoundCollection Rounds { get; }
+		public Arena Rounds { get; }
 
 		public string WorkDir => Parameters.CoordinatorDataDir;
 		public Prison Prison => Warden.Prison;
