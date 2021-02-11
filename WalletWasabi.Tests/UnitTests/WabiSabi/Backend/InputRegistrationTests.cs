@@ -1,8 +1,11 @@
+using NBitcoin;
+using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
@@ -17,39 +20,57 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		[Fact]
 		public async Task RoundNotFoundAsync()
 		{
-			var arena = new MockArena();
-			arena.OnTryGetRound = (roundId) => null;
+			MockArena arena = new();
+			arena.OnTryGetRound = _ => null;
 
-			await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena);
+			await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
 			var req = new InputsRegistrationRequest(
 				Guid.NewGuid(),
-				null!,
+				WabiSabiFactory.CreateInputRoundSignaturePairs(1),
 				null!,
 				null!);
-			Assert.Throws<InvalidOperationException>(() => handler.RegisterInput(req));
+			await Assert.ThrowsAnyAsync<InvalidOperationException>(async () => await handler.RegisterInputAsync(req));
 		}
 
 		[Fact]
 		public async Task WrongPhaseAsync()
 		{
-			var arena = new MockArena();
-			var round = new Round();
-			arena.OnTryGetRound = (roundId) => round;
+			MockArena arena = new();
+			Round round = new();
+			arena.OnTryGetRound = _ => round;
 
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
 			{
 				if (phase != Phase.InputRegistration)
 				{
 					round.Phase = phase;
-					await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena);
+					await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
 					var req = new InputsRegistrationRequest(
 						round.Id,
-						null!,
+						WabiSabiFactory.CreateInputRoundSignaturePairs(1),
 						null!,
 						null!);
-					Assert.Throws<InvalidOperationException>(() => handler.RegisterInput(req));
+					await Assert.ThrowsAnyAsync<InvalidOperationException>(async () => await handler.RegisterInputAsync(req));
 				}
 			}
+		}
+
+		[Fact]
+		public async Task InputSpentAsync()
+		{
+			MockArena arena = new();
+			Round round = new();
+			arena.OnTryGetRound = _ => round;
+			MockRpcClient rpc = new();
+			rpc.OnGetTxOutAsync = (_, _, _) => null;
+
+			await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, rpc);
+			var req = new InputsRegistrationRequest(
+				round.Id,
+				WabiSabiFactory.CreateInputRoundSignaturePairs(1),
+				null!,
+				null!);
+			await Assert.ThrowsAnyAsync<InvalidOperationException>(async () => await handler.RegisterInputAsync(req));
 		}
 	}
 }

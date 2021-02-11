@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -13,11 +14,12 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 {
 	public class PostRequestHandler : IAsyncDisposable
 	{
-		public PostRequestHandler(WabiSabiConfig config, Prison prison, IArena arena)
+		public PostRequestHandler(WabiSabiConfig config, Prison prison, IArena arena, IRPCClient rpc)
 		{
 			Config = config;
 			Prison = prison;
 			Arena = arena;
+			Rpc = rpc;
 		}
 
 		private bool DisposeStarted { get; set; } = false;
@@ -26,8 +28,9 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 		public WabiSabiConfig Config { get; }
 		public Prison Prison { get; }
 		public IArena Arena { get; }
+		public IRPCClient Rpc { get; }
 
-		public InputsRegistrationResponse RegisterInput(InputsRegistrationRequest request)
+		public async Task<InputsRegistrationResponse> RegisterInputAsync(InputsRegistrationRequest request)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
@@ -39,6 +42,16 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				if (round.Phase != Phase.InputRegistration)
 				{
 					throw new InvalidOperationException("Wrong phase.");
+				}
+
+				foreach (var inputRoundSignaturePair in request.InputRoundSignaturePairs)
+				{
+					OutPoint input = inputRoundSignaturePair.Input;
+					var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true).ConfigureAwait(false);
+					if (txOutResponse is null)
+					{
+						throw new InvalidOperationException("Input spent.");
+					}
 				}
 
 				throw new NotImplementedException();

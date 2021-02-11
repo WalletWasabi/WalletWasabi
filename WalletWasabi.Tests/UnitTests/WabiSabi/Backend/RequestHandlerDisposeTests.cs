@@ -16,9 +16,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		[Fact]
 		public async Task DisposeGuardAsync()
 		{
-			PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), new MockArena());
+			PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), new MockArena(), new MockRpcClient());
 			await handler.DisposeAsync();
-			Assert.Throws<ObjectDisposedException>(() => handler.RegisterInput(null!));
+			await Assert.ThrowsAnyAsync<ObjectDisposedException>(async () => await handler.RegisterInputAsync(null!));
 		}
 	}
 }

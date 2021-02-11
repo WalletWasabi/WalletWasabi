@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Backend;
@@ -17,21 +18,23 @@ namespace WalletWasabi.WabiSabi
 {
 	public class WabiSabiCoordinator : BackgroundService
 	{
-		public WabiSabiCoordinator(CoordinatorParameters parameters)
+		public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc)
 		{
 			Parameters = parameters;
+			Rpc = rpc;
 
 			Warden = new(parameters.UtxoWardenPeriod, parameters.PrisonFilePath, Config);
 			ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
 
 			Rounds = new();
-			Postman = new(Config, Prison, Rounds);
+			Postman = new(Config, Prison, Rounds, Rpc);
 		}
 
 		public ConfigWatcher ConfigWatcher { get; }
 		public Warden Warden { get; }
 
 		public CoordinatorParameters Parameters { get; }
+		public IRPCClient Rpc { get; }
 		public PostRequestHandler Postman { get; }
 		public Arena Rounds { get; }
 

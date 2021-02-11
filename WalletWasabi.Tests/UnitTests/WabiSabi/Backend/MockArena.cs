@@ -10,7 +10,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 {
 	public class MockArena : IArena
 	{
-		public Func<Guid, Round?> OnTryGetRound { get; set; } = (roundId) => null;
+		public Func<Guid, Round?> OnTryGetRound { get; set; } = _ => null;
 
 		public bool TryGetRound(Guid roundId, [NotNullWhen(true)] out Round? round)
 		{
