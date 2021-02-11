@@ -39,7 +39,7 @@
     <!-- any comments -->
     <Property Id='ARPCOMMENTS'>!(loc.Description)</Property>
     <!-- URL for technical support -->
-    <Property Id='ARPHELPLINK'>https://www.reddit.com/r/WasabiWallet/</Property>
+    <Property Id='ARPHELPLINK'>https://github.com/zkSNACKs/WalletWasabi/discussions/categories/support</Property>
     <!-- URL for general info about the product -->
     <Property Id="ARPURLINFOABOUT">https://github.com/zkSNACKs/WalletWasabi/</Property>
     <!-- Use the icon.ico icon for this installer. -->

@@ -53,7 +53,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		public string StatusPageLink => "https://stats.uptimerobot.com/YQqGyUL8A7";
 
-		public string UserSupportLink => "https://www.reddit.com/r/WasabiWallet/";
+		public string UserSupportLink => "https://github.com/zkSNACKs/WalletWasabi/discussions/categories/support";
 
 		public string BugReportLink => "https://github.com/zkSNACKs/WalletWasabi/issues/";
 

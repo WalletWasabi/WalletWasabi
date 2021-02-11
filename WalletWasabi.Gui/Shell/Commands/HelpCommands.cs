@@ -34,7 +34,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 					{
 						try
 						{
-							await IoHelpers.OpenBrowserAsync("https://www.reddit.com/r/WasabiWallet/");
+							await IoHelpers.OpenBrowserAsync("https://github.com/zkSNACKs/WalletWasabi/discussions/categories/support");
 						}
 						catch (Exception ex)
 						{
