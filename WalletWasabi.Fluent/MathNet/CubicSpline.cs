@@ -14,7 +14,6 @@ namespace MathNet.Numerics.Interpolation
 		private readonly double[] _c1;
 		private readonly double[] _c2;
 		private readonly double[] _c3;
-		private readonly Lazy<double[]> _indefiniteIntegral;
 
 		/// <param name="x">Sample points (N+1), sorted ascending</param>
 		/// <param name="c0">Zero order spline coefficients (N)</param>
@@ -39,7 +38,6 @@ namespace MathNet.Numerics.Interpolation
 			_c1 = c1;
 			_c2 = c2;
 			_c3 = c3;
-			_indefiniteIntegral = new Lazy<double[]>(ComputeIndefiniteIntegral);
 		}
 
 		/// <summary>
@@ -232,18 +230,6 @@ namespace MathNet.Numerics.Interpolation
 			int k = LeftSegmentIndex(t);
 			var x = t - _x[k];
 			return _c0[k] + x * (_c1[k] + x * (_c2[k] + x * _c3[k]));
-		}
-
-		private double[] ComputeIndefiniteIntegral()
-		{
-			var integral = new double[_c1.Length];
-			for (int i = 0; i < integral.Length - 1; i++)
-			{
-				double w = _x[i + 1] - _x[i];
-				integral[i + 1] = integral[i] + w * (_c0[i] + w * (_c1[i] / 2 + w * (_c2[i] / 3 + w * _c3[i] / 4)));
-			}
-
-			return integral;
 		}
 
 		/// <summary>
