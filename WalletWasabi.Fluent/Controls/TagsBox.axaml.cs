@@ -369,6 +369,7 @@ namespace WalletWasabi.Fluent.Controls
 					RemoveLastTag();
 					break;
 
+				case Key.Tab when _isInputEnabled && !string.IsNullOrEmpty(currentText) && selectedTextLength == 0:
 				case Key.Enter when _isInputEnabled && !string.IsNullOrEmpty(currentText) && selectedTextLength == 0:
 					// Reject entry of the tag when user pressed enter and
 					// the input tag is not on the suggestions list.
@@ -384,6 +385,8 @@ namespace WalletWasabi.Fluent.Controls
 					ExecuteCompletedCommand();
 
 					Dispatcher.UIThread.Post(() => autoCompleteBox.ClearValue(AutoCompleteBox.TextProperty));
+					e.Handled = true;
+
 					break;
 
 				case Key.Enter:
