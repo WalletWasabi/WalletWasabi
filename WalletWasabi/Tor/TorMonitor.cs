@@ -49,7 +49,7 @@ namespace WalletWasabi.Tor
 							Uri baseUri = new Uri($"{FallBackTestRequestUri.Scheme}://{FallBackTestRequestUri.DnsSafeHost}");
 							using (var client = new TorHttpClient(baseUri, TorSocks5EndPoint))
 							{
-								using var message = new HttpRequestMessage(HttpMethod.Get, FallBackTestRequestUri);
+								using HttpRequestMessage message = new(HttpMethod.Get, FallBackTestRequestUri);
 								await client.SendAsync(message, token).ConfigureAwait(false);
 							}
 
@@ -63,12 +63,21 @@ namespace WalletWasabi.Tor
 					}
 					else
 					{
-						Logger.LogInfo($"Tor did not work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Maybe it crashed. Attempting to start it...");
+						bool isRunning = await TorProcessManager.IsTorRunningAsync().ConfigureAwait(false);
 
-						// Try starting Tor, if it does not work it'll be another issue.
-						bool started = await TorProcessManager.StartAsync(ensureRunning: true).ConfigureAwait(false);
+						if (!isRunning)
+						{
+							Logger.LogInfo($"Tor did not work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Maybe it crashed. Attempting to start it...");
 
-						Logger.LogInfo($"Tor re-starting attempt {(started ? "succeeded." : "FAILED. Will try again later.")}");
+							// Try starting Tor, if it does not work it'll be another issue.
+							bool started = await TorProcessManager.StartAsync(ensureRunning: true).ConfigureAwait(false);
+
+							Logger.LogInfo($"Tor re-starting attempt {(started ? "succeeded." : "FAILED. Will try again later.")}");
+						}
+						else
+						{
+							Logger.LogInfo($"Tor is running. Waiting for a confirmation that HTTP requests can pass through.");
+						}
 					}
 				}
 			}

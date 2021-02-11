@@ -16,7 +16,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		private bool _disposed = false;
 
 		/// <summary>Temporary solution until #4738 PR is merged. Static constructor will be removed then.</summary>
-		static WasabiClientFactory()
+		static HttpClientFactory()
 		{
 			SocketHandler = new SocketsHttpHandler()
 			{
