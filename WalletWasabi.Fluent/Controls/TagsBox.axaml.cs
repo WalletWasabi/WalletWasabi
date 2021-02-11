@@ -152,7 +152,7 @@ namespace WalletWasabi.Fluent.Controls
 				.DisposeWith(_compositeDisposable);
 
 			_autoCompleteBox
-				.AddDisposableHandler(KeyUpEvent, OnKeyUp, RoutingStrategies.Tunnel)
+				.AddDisposableHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel)
 				.DisposeWith(_compositeDisposable);
 
 			if (_isFocused)
@@ -348,7 +348,7 @@ namespace WalletWasabi.Fluent.Controls
 			}
 		}
 
-		private void OnKeyUp(object? sender, KeyEventArgs e)
+		private void OnKeyDown(object? sender, KeyEventArgs e)
 		{
 			if (sender is not AutoCompleteBox autoCompleteBox)
 			{
