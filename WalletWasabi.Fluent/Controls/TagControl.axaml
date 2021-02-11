@@ -33,6 +33,7 @@
                                         HorizontalAlignment="Center"
                                         Width="12"
                                         Height="12"
+                                        KeyboardNavigation.IsTabStop="False"
                                         Margin="4">
                                         <Button.Transitions>
                                             <Transitions>
