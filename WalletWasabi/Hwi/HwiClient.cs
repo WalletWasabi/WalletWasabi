@@ -163,7 +163,7 @@ namespace WalletWasabi.Hwi
 
 			var address = HwiParser.ParseAddress(response, Network) as BitcoinWitPubKeyAddress;
 
-			address = address.TransformToNetworkNetwork(Network);
+			address = address.TransformToNetwork(Network);
 
 			return address;
 		}

@@ -17,6 +17,12 @@ namespace NBitcoin
 {
 	public static class NBitcoinExtensions
 	{
+		private static NumberFormatInfo CurrencyNumberFormat = new NumberFormatInfo()
+		{
+			NumberGroupSeparator = " ",
+			NumberDecimalDigits = 0
+		};
+
 		public static async Task<Block> DownloadBlockAsync(this Node node, uint256 hash, CancellationToken cancellationToken)
 		{
 			if (node.State == NodeState.Connected)
@@ -144,7 +150,7 @@ namespace NBitcoin
 		}
 
 		public static bool IsLikelyCoinjoin(this Transaction me)
-		=> me.Inputs.Count > 1 // The tx must have more than one input in order to be a coinjoin.
+			=> me.Inputs.Count > 1 // The tx must have more than one input in order to be a coinjoin.
 			&& me.HasIndistinguishableOutputs(); // The tx must have more than one equal output in order to be a coinjoin.
 
 		/// <summary>
@@ -253,7 +259,7 @@ namespace NBitcoin
 			return toStringBuilder.ToString();
 		}
 
-		public static BitcoinWitPubKeyAddress TransformToNetworkNetwork(this BitcoinWitPubKeyAddress me, Network desiredNetwork)
+		public static BitcoinWitPubKeyAddress TransformToNetwork(this BitcoinWitPubKeyAddress me, Network desiredNetwork)
 		{
 			Network originalNetwork = me.Network;
 
@@ -363,12 +369,6 @@ namespace NBitcoin
 
 			return null;
 		}
-
-		private static NumberFormatInfo CurrencyNumberFormat = new NumberFormatInfo()
-		{
-			NumberGroupSeparator = " ",
-			NumberDecimalDigits = 0
-		};
 
 		private static string ToCurrency(this Money btc, string currency, decimal exchangeRate, bool privacyMode = false)
 		{
