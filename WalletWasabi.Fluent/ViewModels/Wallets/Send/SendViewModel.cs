@@ -58,7 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.Subscribe(ParseToField);
 
 			this.WhenAnyValue(x => x.AmountBtc)
-				.Subscribe(x=>  _transactionInfo.Amount = new Money(x, MoneyUnit.BTC));
+				.Subscribe(x => _transactionInfo.Amount = new Money(x, MoneyUnit.BTC));
 
 			Labels.ToObservableChangeSet().Subscribe(x =>
 			{
@@ -67,7 +67,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				var text =  await Application.Current.Clipboard.GetTextAsync();
+				var text = await Application.Current.Clipboard.GetTextAsync();
 
 				_parsingUrl = true;
 
@@ -82,8 +82,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.Create(() =>
 			{
+				var password = "foo";
 				var transactionInfo = _transactionInfo;
 				var wallet = _owner.Wallet;
+				var targetAnonset = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+				var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonset);
+				wallet.BuildTransaction()
 
 				if (true) // private coins enough.
 				{
@@ -194,8 +198,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.DisposeWith(disposables);
 
 			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate)
-				.Where(x=>x is { })
-				.Select(x=>x!.Estimations)
+				.Where(x => x is { })
+				.Select(x => x!.Estimations)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(UpdateFeeEstimates)
 				.DisposeWith(disposables);
@@ -212,14 +216,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			if (_owner.Wallet.Network != Network.TestNet)
 			{
-				XAxisValues = feeEstimates.Select(x => (double) x.Key).Reverse().ToArray();
+				XAxisValues = feeEstimates.Select(x => (double)x.Key).Reverse().ToArray();
 
 				XAxisLabels = feeEstimates.Select(x => x.Key)
 					.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
 					.Reverse()
 					.ToArray();
 
-				YAxisValues = feeEstimates.Select(x => (double) x.Value).Reverse().ToArray();
+				YAxisValues = feeEstimates.Select(x => (double)x.Value).Reverse().ToArray();
 			}
 			else
 			{
@@ -270,7 +274,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public ICommand PasteCommand { get; }
 
 		public double XAxisCurrentValue { get; set; } = 36;
-
 
 		public double XAxisMinValue { get; set; } = 1;
 
