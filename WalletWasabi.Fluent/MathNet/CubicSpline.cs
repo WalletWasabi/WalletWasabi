@@ -6,7 +6,6 @@ namespace MathNet.Numerics.Interpolation
 	/// <summary>
 	/// Cubic Spline Interpolation.
 	/// </summary>
-	/// <remarks>Supports both differentiation and integration.</remarks>
 	public class CubicSpline
 	{
 		private readonly double[] _x;
