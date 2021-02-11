@@ -386,5 +386,15 @@ namespace WalletWasabi.Fluent.Controls
 				}
 			}
 		}
+
+		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+		{
+			base.OnPropertyChanged(change);
+
+			if (change.Property == IsReadOnlyProperty)
+			{
+				PseudoClasses.Set(":readonly", change.NewValue.GetValueOrDefault<bool>());
+			}
+		}
 	}
 }
