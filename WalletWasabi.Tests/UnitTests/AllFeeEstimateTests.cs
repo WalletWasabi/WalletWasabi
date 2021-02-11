@@ -1,5 +1,7 @@
+using NBitcoin;
 using NBitcoin.RPC;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using Xunit;
@@ -84,6 +86,187 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(2, allFee.Estimations.Count);
 			Assert.Equal(estimations[2], allFee.Estimations[2]);
 			Assert.Equal(estimations[6], allFee.Estimations[6]);
+		}
+
+		[Fact]
+		public async Task RpcNoEnoughEstimationsAsync()
+		{
+			var rpc = new MockRpcClient();
+			rpc.OnGetBlockchainInfoAsync = async () =>
+				await Task.FromResult(new BlockchainInfo
+				{
+					Blocks = 100,
+					Headers = 100
+				});
+			rpc.OnGetPeersInfoAsync = async () =>
+				await Task.FromResult(new PeerInfo[0]);
+			rpc.OnGetMempoolInfoAsync = async () =>
+				await Task.FromResult(new MemPoolInfo
+				{
+					MemPoolMinFee = 0.00001000 // 1 s/b (default value) 
+				});
+			rpc.OnEstimateSmartFeeAsync = (target, _) =>
+				throw new NoEstimationException(target);
+
+			await Assert.ThrowsAsync<NoEstimationException>(async () => await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative));
+		}
+
+		[Fact]
+		public async Task RpcFailures()
+		{
+			var rpc = new MockRpcClient();
+			rpc.OnGetBlockchainInfoAsync = () =>
+				throw new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Error", null);
+
+			rpc.OnEstimateSmartFeeAsync = (target, _) =>
+				throw new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Error", null);
+
+			rpc.OnGetMempoolInfoAsync = async () =>
+				await Task.FromResult(new MemPoolInfo
+				{
+					MemPoolMinFee = 0.00001000 // 1 s/b (default value) 
+				});
+
+			var ex = await Assert.ThrowsAsync<RPCException>(async () => await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative));
+			Assert.Equal(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, ex.RPCCode);
+			Assert.Equal("Error", ex.Message);
+		}
+
+		[Fact]
+		public async Task ToleratesRpcFailures()
+		{
+			var rpc = new MockRpcClient();
+			rpc.OnGetBlockchainInfoAsync = async () =>
+				await Task.FromResult(new BlockchainInfo
+				{
+					Blocks = 100,
+					Headers = 100
+				});
+
+			rpc.OnGetPeersInfoAsync = async () =>
+				await Task.FromResult(new PeerInfo[0]);
+
+			rpc.OnGetMempoolInfoAsync = async () =>
+				await Task.FromResult(new MemPoolInfo
+				{
+					MemPoolMinFee = 0.00001000 // 1 s/b (default value) 
+				});
+
+			rpc.OnEstimateSmartFeeAsync = async (target, _) =>
+				await Task.FromResult(new EstimateSmartFeeResponse
+				{
+					Blocks = target,
+					FeeRate= target switch
+					{
+						2 => new FeeRate(100m),
+						3 => throw new RPCException(RPCErrorCode.RPC_INTERNAL_ERROR, "Error", null),
+						5 => new FeeRate(89m),
+						6 => new FeeRate(75m),
+						8 => new FeeRate(70m),
+						_ => throw new NoEstimationException(target)
+					}
+				});
+
+			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
+			Assert.Equal(2, allFee.Estimations.Count);
+			Assert.False(allFee.Estimations.ContainsKey(3));
+			Assert.False(allFee.Estimations.ContainsKey(5));
+			Assert.False(allFee.Estimations.ContainsKey(8));
+		}
+
+		[Fact]
+		public async Task InaccurateEstimations()
+		{
+			var rpc = new MockRpcClient();
+			rpc.OnGetBlockchainInfoAsync = async () =>
+				await Task.FromResult(new BlockchainInfo
+				{
+					Blocks = 1,
+					Headers = 2  // the node is not synchronized.
+				});
+
+			rpc.OnGetPeersInfoAsync = async () =>
+				await Task.FromResult(new[] { new PeerInfo() });
+
+			rpc.OnGetMempoolInfoAsync = async () =>
+				await Task.FromResult(new MemPoolInfo
+				{
+					MemPoolMinFee = 0.00001000 // 1 s/b (default value) 
+				});
+
+			rpc.OnEstimateSmartFeeAsync = async (target, _) =>
+				await Task.FromResult(new EstimateSmartFeeResponse
+				{
+					Blocks = target,
+					FeeRate= target switch
+					{
+						2 => new FeeRate(100m),
+						3 => new FeeRate(100m),
+						5 => new FeeRate(89m),
+						6 => new FeeRate(75m),
+						8 => new FeeRate(70m),
+						_ => throw new NoEstimationException(target)
+					}
+				});
+
+			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Economical);
+			Assert.False(allFee.IsAccurate);
+			Assert.Equal(2, allFee.Estimations.Count);
+			Assert.Equal(100, allFee.Estimations[2]);
+			Assert.Equal(75, allFee.Estimations[6]);
+			Assert.False(allFee.Estimations.ContainsKey(3));
+			Assert.False(allFee.Estimations.ContainsKey(5));
+			Assert.False(allFee.Estimations.ContainsKey(8));
+		}
+
+		[Fact]
+		public async Task AccurateEstimations()
+		{
+			var rpc = new MockRpcClient();
+			rpc.OnGetBlockchainInfoAsync = async () =>
+				await Task.FromResult(new BlockchainInfo
+				{
+					Blocks = 600_000,
+					Headers = 600_000
+				});
+
+			rpc.OnGetPeersInfoAsync = async () =>
+				await Task.FromResult(new[] { new PeerInfo() });
+
+			rpc.OnGetMempoolInfoAsync = async () =>
+				await Task.FromResult(new MemPoolInfo
+				{
+					MemPoolMinFee = 0.00001000 // 1 s/b (default value) 
+				});
+
+			rpc.OnEstimateSmartFeeAsync = async (target, _) =>
+				await Task.FromResult(new EstimateSmartFeeResponse
+				{
+					Blocks = target,
+					FeeRate= target switch
+					{
+						2 => new FeeRate(100m),
+						3 => new FeeRate(100m),
+						5 => new FeeRate(89m),
+						6 => new FeeRate(75m),
+						8 => new FeeRate(30m),
+						11 => new FeeRate(30m),
+						13 => new FeeRate(30m),
+						15 => new FeeRate(30m),
+						1008  => new FeeRate(35m),
+						_ => throw new NoEstimationException(target)
+					}
+				});
+
+			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
+			Assert.True(allFee.IsAccurate);
+			Assert.False(allFee.Estimations.ContainsKey(5));
+			Assert.False(allFee.Estimations.ContainsKey(8));
+			Assert.False(allFee.Estimations.ContainsKey(13));
+
+			Assert.Equal(100, allFee.Estimations[2]);
+			Assert.Equal(75, allFee.Estimations[6]);
+			Assert.Equal(35, allFee.Estimations[1008]);
 		}
 	}
 }

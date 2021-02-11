@@ -42,6 +42,11 @@ namespace NBitcoin.RPC
 			return resp;
 		}
 
+		private static Dictionary<int, int> SimulateRegTestFeeEstimation(EstimateSmartFeeMode estimateMode) =>
+			Constants.ConfirmationTargets
+			.Select(target => SimulateRegTestFeeEstimation(target, estimateMode))
+			.ToDictionary(x => x.Blocks, x => (int)Math.Ceiling(x.FeeRate.SatoshiPerByte));
+
 		/// <summary>
 		/// If null is returned, no exception is thrown, so the test was successful.
 		/// </summary>
@@ -68,15 +73,45 @@ namespace NBitcoin.RPC
 			var mempoolInfo = await rpc.GetMempoolInfoAsync().ConfigureAwait(false);
 			var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
 
-			var estimations = new Dictionary<int, int>();
-			foreach (var target in Constants.ConfirmationTargets)
+			var estmimations = (simulateIfRegTest && rpc.Network == Network.RegTest)
+				? SimulateRegTestFeeEstimation(estimateMode)
+				: await GetFeeEstimationsAsync(rpc, estimateMode);
+
+			return new AllFeeEstimate(
+				estimateMode,
+				estmimations,
+				rpcStatus.Synchronized);
+		}
+
+		private static async Task<Dictionary<int, int>> GetFeeEstimationsAsync(IRPCClient rpc, EstimateSmartFeeMode estimateMode)
+		{
+			var batchClient = rpc.PrepareBatch();
+
+			var rpcFeeEstimationTasks = Constants.ConfirmationTargets
+				.Select(target => batchClient.EstimateSmartFeeAsync(target, estimateMode))
+				.ToList();
+
+			await batchClient.SendBatchAsync().ConfigureAwait(false);
+
+			var allTask = Task.WhenAll(rpcFeeEstimationTasks);
+
+			try
 			{
-				var rate = await rpc.EstimateSmartFeeAsync(target, sanityFeeRate, estimateMode, simulateIfRegTest).ConfigureAwait(false);
-				estimations.Add(target, (int)Math.Ceiling(rate.FeeRate.SatoshiPerByte));
+				await allTask;
+			}
+			catch
+			{
+				if (rpcFeeEstimationTasks.All(x => x.IsFaulted))
+				{
+					throw rpcFeeEstimationTasks[0].Exception?.InnerExceptions[0] 
+						?? new Exception($"{nameof(GetFeeEstimationsAsync)} failed to fetch fee estimations.");
+				}
 			}
 
-			var bestFeeEstimates = new AllFeeEstimate(estimateMode, estimations, rpcStatus.Synchronized);
-			return bestFeeEstimates;
+			return rpcFeeEstimationTasks
+				.Where(x => x.IsCompletedSuccessfully)
+				.Select(x => x.Result)
+				.ToDictionary(x => x.Blocks, x => (int)Math.Ceiling(x.FeeRate.SatoshiPerByte));
 		}
 
 		public static async Task<RpcStatus> GetRpcStatusAsync(this IRPCClient rpc, CancellationToken cancel)
