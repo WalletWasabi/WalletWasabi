@@ -138,5 +138,31 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputScriptNotAllowed, ex.ErrorCode);
 		}
+
+		[Fact]
+		public async Task WrongRoundSignatureAsync()
+		{
+			MockArena arena = new();
+			Round round = new();
+			arena.OnTryGetRound = _ => round;
+			MockRpcClient rpc = new();
+			using Key key = new();
+
+			rpc.OnGetTxOutAsync = (_, _, _) => new GetTxOutResponse
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
+			};
+
+			await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, rpc);
+			var req = new InputsRegistrationRequest(
+				round.Id,
+				WabiSabiFactory.CreateInputRoundSignaturePairs(1),
+				null!,
+				null!);
+			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			Assert.Equal(WabiSabiProtocolErrorCode.WrongRoundSignature, ex.ErrorCode);
+		}
 	}
 }

@@ -21,6 +21,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			Prison = prison;
 			Arena = arena;
 			Rpc = rpc;
+			Network = rpc.Network;
 		}
 
 		private bool DisposeStarted { get; set; } = false;
@@ -30,6 +31,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 		public Prison Prison { get; }
 		public IArena Arena { get; }
 		public IRPCClient Rpc { get; }
+		public Network Network { get; }
 
 		public async Task<InputsRegistrationResponse> RegisterInputAsync(InputsRegistrationRequest request)
 		{
@@ -64,6 +66,11 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					if (!Config.AllowedScriptTypes.Contains(txOutResponse.ScriptPubKeyType))
 					{
 						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputScriptNotAllowed);
+					}
+					var address = (BitcoinWitPubKeyAddress)txOutResponse.TxOut.ScriptPubKey.GetDestinationAddress(Network);
+					if (!address.VerifyMessage(round.Hash, inputRoundSignaturePair.RoundSignature))
+					{
+						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongRoundSignature);
 					}
 				}
 
