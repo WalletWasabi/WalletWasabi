@@ -12,7 +12,6 @@ using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Actions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Gui;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels
