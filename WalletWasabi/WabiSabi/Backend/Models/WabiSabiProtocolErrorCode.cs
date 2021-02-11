@@ -14,6 +14,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		InputUnconfirmed,
 		InputImmature,
 		InputScriptNotAllowed,
-		WrongRoundSignature
+		WrongRoundSignature,
+		TooManyInputs
 	}
 }

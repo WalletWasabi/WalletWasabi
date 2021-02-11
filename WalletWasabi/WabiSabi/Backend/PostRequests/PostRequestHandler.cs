@@ -46,6 +46,10 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 				}
+				if (Config.MaxInputCountByAlice < request.InputRoundSignaturePairs.Count())
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooManyInputs);
+				}
 
 				foreach (var inputRoundSignaturePair in request.InputRoundSignaturePairs)
 				{

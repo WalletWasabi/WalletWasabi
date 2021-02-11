@@ -35,5 +35,9 @@ namespace WalletWasabi.WabiSabi.Backend
 		[DefaultValueStringCollection("[\"witness_v0_keyhash\"]")]
 		[JsonProperty(PropertyName = "AllowedScriptTypes", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public IEnumerable<string> AllowedScriptTypes { get; set; } = new[] { "witness_v0_keyhash" };
+
+		[DefaultValue(2)]
+		[JsonProperty(PropertyName = "MaxInputCountByAlice", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public uint MaxInputCountByAlice { get; set; } = 2;
 	}
 }
