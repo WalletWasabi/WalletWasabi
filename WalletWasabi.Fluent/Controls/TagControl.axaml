@@ -28,14 +28,12 @@
                                    MaxWidth="260"
                                     VerticalAlignment="Top" LastChildFill="True">
                             <LayoutTransformControl DockPanel.Dock="Right" Name="PART_DeleteButtonLayoutTransformer"
-                                                    ToolTip.Tip="Delete"
                                                     Margin="-8,0,3,0">
-
-                                    <Button Name="PART_DeleteButton" VerticalAlignment="Center"
-                                            HorizontalAlignment="Center"
-                                            Width="12"
-                                            Height="12"
-                                            Margin="4">
+                                <Button Name="PART_DeleteButton" VerticalAlignment="Center"
+                                        HorizontalAlignment="Center"
+                                        Width="12"
+                                        Height="12"
+                                        Margin="4">
                                         <Button.Transitions>
                                             <Transitions>
                                                 <DoubleTransition Property="Opacity" Duration="0:0:0.135" Easing="{StaticResource FluentEasing}"  />
