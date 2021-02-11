@@ -14,6 +14,31 @@ namespace MathNet.Numerics.Interpolation
 		private readonly double[] _c2;
 		private readonly double[] _c3;
 
+		/// <param name="x">Sample points (N+1), sorted ascending</param>
+		/// <param name="c0">Zero order spline coefficients (N)</param>
+		/// <param name="c1">First order spline coefficients (N)</param>
+		/// <param name="c2">Second order spline coefficients (N)</param>
+		/// <param name="c3">Third order spline coefficients (N)</param>
+		private CubicSpline(double[] x, double[] c0, double[] c1, double[] c2, double[] c3)
+		{
+			if (x.Length != c0.Length + 1 || x.Length != c1.Length + 1 || x.Length != c2.Length + 1 ||
+			    x.Length != c3.Length + 1)
+			{
+				throw new ArgumentException("All vectors must have the same dimensionality.");
+			}
+
+			if (x.Length < 2)
+			{
+				throw new ArgumentException("The given array is too small. It must be at least 2 long.", nameof(x));
+			}
+
+			_x = x;
+			_c0 = c0;
+			_c1 = c1;
+			_c2 = c2;
+			_c3 = c3;
+		}
+
 		/// <summary>
 		/// Left and right boundary conditions.
 		/// </summary>
@@ -38,31 +63,6 @@ namespace MathNet.Numerics.Interpolation
 			/// Fixed second derivative at the boundary.
 			/// </summary>
 			SecondDerivative
-		}
-
-		/// <param name="x">Sample points (N+1), sorted ascending</param>
-		/// <param name="c0">Zero order spline coefficients (N)</param>
-		/// <param name="c1">First order spline coefficients (N)</param>
-		/// <param name="c2">Second order spline coefficients (N)</param>
-		/// <param name="c3">Third order spline coefficients (N)</param>
-		private CubicSpline(double[] x, double[] c0, double[] c1, double[] c2, double[] c3)
-		{
-			if (x.Length != c0.Length + 1 || x.Length != c1.Length + 1 || x.Length != c2.Length + 1 ||
-			    x.Length != c3.Length + 1)
-			{
-				throw new ArgumentException("All vectors must have the same dimensionality.");
-			}
-
-			if (x.Length < 2)
-			{
-				throw new ArgumentException("The given array is too small. It must be at least 2 long.", nameof(x));
-			}
-
-			_x = x;
-			_c0 = c0;
-			_c1 = c1;
-			_c2 = c2;
-			_c3 = c3;
 		}
 
 		/// <summary>
