@@ -197,7 +197,7 @@ Handling Information
 ====================
 
     Since we are working on privacy, and our mission is to regain personal privacy, our Services are designed to be used without indication of any personal data. For this reason we do not have any kind of data collecting solutions built into our products. There may only be one personal data processing in our Service, for customer support in case of technical problems: visitors may, indicate their email addresses voluntarily to get notifications in case of any potential technical problems or other inquiries. These e-mail addresses are solely used to answer users’ questions and are erased after 100 days. In this case, the processing of the data is based on a freely given consent to Article 6 (1) (a) of the GDPR and is aimed at the effective handling of the complaint.
-    We use Reddit as the main platform for users’ technical questions and issues, and we do not retain any data that can be subsequently identified / associated with the user.
+    We use GitHub as the main platform for users’ technical questions and issues, and we do not retain any data that can be subsequently identified / associated with the user.
     We expressly declare that we do not manage or store any other personally identifiable information.
     By visiting the Website and using our Services, You agree with this policy, in accordance with Section 1.2 of the Terms and Conditions
 
