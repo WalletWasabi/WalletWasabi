@@ -15,12 +15,38 @@ namespace MathNet.Numerics.Interpolation
 		private readonly double[] _c2;
 		private readonly double[] _c3;
 
+		/// <summary>
+		/// Left and right boundary conditions.
+		/// </summary>
+		private enum SplineBoundaryCondition
+		{
+			/// <summary>
+			/// Natural Boundary (Zero second derivative).
+			/// </summary>
+			Natural = 0,
+
+			/// <summary>
+			/// Parabolically Terminated boundary.
+			/// </summary>
+			ParabolicallyTerminated,
+
+			/// <summary>
+			/// Fixed first derivative at the boundary.
+			/// </summary>
+			FirstDerivative,
+
+			/// <summary>
+			/// Fixed second derivative at the boundary.
+			/// </summary>
+			SecondDerivative
+		}
+
 		/// <param name="x">Sample points (N+1), sorted ascending</param>
 		/// <param name="c0">Zero order spline coefficients (N)</param>
 		/// <param name="c1">First order spline coefficients (N)</param>
 		/// <param name="c2">Second order spline coefficients (N)</param>
 		/// <param name="c3">Third order spline coefficients (N)</param>
-		public CubicSpline(double[] x, double[] c0, double[] c1, double[] c2, double[] c3)
+		private CubicSpline(double[] x, double[] c0, double[] c1, double[] c2, double[] c3)
 		{
 			if (x.Length != c0.Length + 1 || x.Length != c1.Length + 1 || x.Length != c2.Length + 1 ||
 			    x.Length != c3.Length + 1)
@@ -43,7 +69,7 @@ namespace MathNet.Numerics.Interpolation
 		/// <summary>
 		/// Create a Hermite cubic spline interpolation from a set of (x,y) value pairs and their slope (first derivative), sorted ascendingly by x.
 		/// </summary>
-		public static CubicSpline InterpolateHermiteSorted(double[] x, double[] y, double[] firstDerivatives)
+		private static CubicSpline InterpolateHermiteSorted(double[] x, double[] y, double[] firstDerivatives)
 		{
 			if (x.Length != y.Length || x.Length != firstDerivatives.Length)
 			{
@@ -76,7 +102,7 @@ namespace MathNet.Numerics.Interpolation
 		/// Create a cubic spline interpolation from a set of (x,y) value pairs, sorted ascendingly by x,
 		/// and custom boundary/termination conditions.
 		/// </summary>
-		public static CubicSpline InterpolateBoundariesSorted(double[] x, double[] y, SplineBoundaryCondition leftBoundaryCondition, double leftBoundary, SplineBoundaryCondition rightBoundaryCondition, double rightBoundary)
+		private static CubicSpline InterpolateBoundariesSorted(double[] x, double[] y, SplineBoundaryCondition leftBoundaryCondition, double leftBoundary, SplineBoundaryCondition rightBoundaryCondition, double rightBoundary)
 		{
 			if (x.Length != y.Length)
 			{
