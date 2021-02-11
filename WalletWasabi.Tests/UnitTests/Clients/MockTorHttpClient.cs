@@ -12,8 +12,6 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 	{
 		public Func<Uri> BaseUriGetter => () => new Uri("https://payment.server.org/pj");
 
-		public bool DefaultIsolateStream => false;
-
 		public Func<HttpMethod, string, NameValueCollection, string, Task<HttpResponseMessage>> OnSendAsync { get; set; }
 
 		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
@@ -30,7 +28,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			return await OnSendAsync(method, uri.AbsolutePath, parameters, body).ConfigureAwait(false);
 		}
 
-		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
 		{
 			string body = (request.Content is { })
 				? await request.Content.ReadAsStringAsync(token).ConfigureAwait(false)

@@ -100,16 +100,6 @@ namespace WalletWasabi.Helpers
 			return value;
 		}
 
-		public static Dictionary<TKey, TValue> NotNullOrEmpty<TKey, TValue>(string parameterName, Dictionary<TKey, TValue> value) where TKey : notnull
-		{
-			NotNull(parameterName, value);
-			if (!value.Any())
-			{
-				throw new ArgumentException("Parameter cannot be empty.", parameterName);
-			}
-			return value;
-		}
-
 		public static string NotNullOrEmptyOrWhitespace(string parameterName, string value, bool trim = false)
 		{
 			NotNullOrEmpty(parameterName, value);
@@ -137,18 +127,6 @@ namespace WalletWasabi.Helpers
 			if (value.CompareTo(smallest) < 0)
 			{
 				throw new ArgumentOutOfRangeException(parameterName, value, $"Parameter cannot be less than {smallest}.");
-			}
-
-			return value;
-		}
-
-		public static T MaximumAndNotNull<T>(string parameterName, T value, T greatest) where T : IComparable
-		{
-			NotNull(parameterName, value);
-
-			if (value.CompareTo(greatest) > 0)
-			{
-				throw new ArgumentOutOfRangeException(parameterName, value, $"Parameter cannot be greater than {greatest}.");
 			}
 
 			return value;

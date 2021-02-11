@@ -97,34 +97,6 @@ namespace System.IO
 			}
 		}
 
-		public static byte[] GetHashFile(string filePath)
-		{
-			var bytes = File.ReadAllBytes(filePath);
-			return HashHelpers.GenerateSha256Hash(bytes);
-		}
-
-		public static bool CheckExpectedHash(string filePath, string sourceFolderPath)
-		{
-			var fileHash = GetHashFile(filePath);
-			try
-			{
-				var digests = File.ReadAllLines(Path.Combine(sourceFolderPath, "digests.txt"));
-				foreach (var digest in digests)
-				{
-					var expectedHash = ByteHelpers.FromHex(digest);
-					if (ByteHelpers.CompareFastUnsafe(fileHash, expectedHash))
-					{
-						return true;
-					}
-				}
-				return false;
-			}
-			catch
-			{
-				return false;
-			}
-		}
-
 		public static void OpenFolderInFileExplorer(string dirPath)
 		{
 			if (Directory.Exists(dirPath))
