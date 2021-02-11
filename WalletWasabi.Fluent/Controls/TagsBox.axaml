@@ -1,6 +1,9 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="using:WalletWasabi.Fluent.Controls">
+    <Styles.Resources>
+        <Thickness x:Key="TagsBoxBorderPadding">4,4,0,0</Thickness>
+    </Styles.Resources>
     <Style Selector="c|TagsBox">
         <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
         <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
@@ -9,7 +12,7 @@
         <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
         <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}" />
         <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
-        <Setter Property="Padding" Value="{DynamicResource TextControlThemePadding}" />
+        <Setter Property="Padding" Value="{DynamicResource TagsBoxBorderPadding}" />
         <Setter Property="Focusable" Value="True" />
         <Setter Property="Cursor" Value="IBeam" />
         <Setter Property="Template">
@@ -20,9 +23,7 @@
                             BorderThickness="{TemplateBinding BorderThickness}"
                             Padding="{TemplateBinding Padding}" Focusable="False">
                         <ItemsPresenter Name="PART_ItemsPresenter"
-                                        Items="{TemplateBinding Items}"
-                                        ItemTemplate="{TemplateBinding ItemTemplate}">
-
+                                        Items="{TemplateBinding Items}">
                             <ItemsPresenter.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <c:ConcatenatingWrapPanel>
@@ -35,34 +36,17 @@
                                     </c:ConcatenatingWrapPanel>
                                 </ItemsPanelTemplate>
                             </ItemsPresenter.ItemsPanel>
+                            <ItemsPresenter.ItemTemplate>
+                                <DataTemplate>
+                                    <c:TagControl Content="{Binding .}"/>
+                                </DataTemplate>
+                            </ItemsPresenter.ItemTemplate>
                         </ItemsPresenter>
                     </Border>
                 </DataValidationErrors>
             </ControlTemplate>
         </Setter>
-    </Style>
-
-    <Style Selector="c|TagsBox">
         <Setter Property="(ScrollViewer.HorizontalScrollBarVisibility)" Value="Disabled" />
-        <Setter Property="ItemTemplate">
-            <DataTemplate>
-                <Panel>
-                    <Border BorderBrush="{DynamicResource TagsBoxControlForeground}"
-                            BorderThickness="1"
-                            CornerRadius="4"
-                            Margin="4"
-                            Opacity="0.4"
-                            Height="{Binding #PART_DummyPanel.Bounds.Height}"
-                            VerticalAlignment="Top" />
-                    <Panel Name="PART_DummyPanel"
-                           VerticalAlignment="Top">
-                        <ContentPresenter Content="{Binding .}"
-                                          VerticalAlignment="Center"
-                                          Margin="10,8,10,0" />
-                    </Panel>
-                </Panel>
-            </DataTemplate>
-        </Setter>
     </Style>
 
     <Style Selector="c|TagsBox:pointerover /template/ Border#PART_Border">
@@ -84,15 +68,41 @@
         <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
     </Style>
 
-    <Style Selector="c|TagsBox AutoCompleteBox">
-        <Setter Property="Background" Value="{x:Null}" />
-        <Setter Property="Padding" Value="3,0 " />
-        <Setter Property="Margin" Value="0,7,0,0" />
+    <Style Selector="c|TagsBox:readonly /template/ Border#PART_Border">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+
+    <Style Selector="c|TagsBox:readonly AutoCompleteBox">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <Style Selector="c|TagsBox:readonly">
+        <Setter Property="Cursor" Value="Arrow" />
+    </Style>
+
+    <Style Selector="c|TagsBox c|TagControl">
+        <Setter Property="Margin" Value="0,0,4,4" />
     </Style>
 
     <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
         <Setter Property="Padding" Value="0" />
         <Setter Property="Margin" Value="0" />
+    </Style>
+
+    <Style Selector="c|TagsBox AutoCompleteBox">
+        <Setter Property="Background" Value="{x:Null}" />
+        <Setter Property="Padding" Value="4,5,0,0 " />
+        <Setter Property="Margin" Value="0,0,0,0" />
+    </Style>
+
+    <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0" />
+    </Style>
+
+    <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox /template/ DataValidationErrors">
+        <Setter Property="IsVisible" Value="False" />
     </Style>
 
     <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox /template/ Border#PART_BorderElement">
@@ -102,9 +112,13 @@
     <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
         <Setter Property="IsReadOnly" Value="{Binding !IsInputEnabled}" />
         <Setter Property="ContextMenu">
-          <ContextMenu>
-            <MenuItem Header="Paste" Command="{Binding $parent[TextBox].Paste}" IsEnabled="{Binding $parent[TextBox].CanPaste}" InputGesture="{x:Static TextBox.PasteGesture}"/>
-          </ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="Paste" Command="{Binding $parent[TextBox].Paste}"
+                          IsEnabled="{Binding $parent[TextBox].CanPaste}"
+                          InputGesture="{x:Static TextBox.PasteGesture}" />
+            </ContextMenu>
         </Setter>
     </Style>
+
+
 </Styles>

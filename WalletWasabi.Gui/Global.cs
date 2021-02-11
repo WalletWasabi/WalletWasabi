@@ -1,7 +1,4 @@
-using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
-using Avalonia.Threading;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.Protocol;
@@ -30,7 +27,6 @@ using WalletWasabi.Gui.Helpers;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Rpc;
 using WalletWasabi.Helpers;
-using WalletWasabi.Legal;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
@@ -50,7 +46,7 @@ namespace WalletWasabi.Gui
 		public string DataDir { get; }
 		public TorSettings TorSettings { get; }
 		public BitcoinStore BitcoinStore { get; }
-		public LegalDocuments LegalDocuments { get; set; }
+		public LegalChecker LegalChecker { get; private set; }
 		public Config Config { get; }
 
 		public string AddressManagerFilePath { get; private set; }
@@ -89,8 +85,6 @@ namespace WalletWasabi.Gui
 				HostedServices = new HostedServices();
 				WalletManager = walletManager;
 
-				LegalDocuments = LegalDocuments.TryLoadAgreed(DataDir);
-
 				WalletManager.OnDequeue += WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
 
@@ -102,11 +96,12 @@ namespace WalletWasabi.Gui
 
 				BitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
 
-				WasabiClientFactory wasabiClientFactory = Config.UseTor
-					? new WasabiClientFactory(Config.TorSocks5EndPoint, backendUriGetter: () => Config.GetCurrentBackendUri())
-					: new WasabiClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
+				HttpClientFactory httpClientFactory = Config.UseTor
+					? new HttpClientFactory(Config.TorSocks5EndPoint, backendUriGetter: () => Config.GetCurrentBackendUri())
+					: new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
 
-				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, wasabiClientFactory);
+				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, httpClientFactory);
+				LegalChecker = new(DataDir);
 			}
 		}
 
@@ -140,6 +135,10 @@ namespace WalletWasabi.Gui
 
 				var userAgent = Constants.UserAgents.RandomElement();
 				var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
+
+				UpdateChecker updateChecker = new(TimeSpan.FromMinutes(7), Synchronizer);
+				await LegalChecker.InitializeAsync(updateChecker).ConfigureAwait(false);
+				HostedServices.Register(updateChecker, "Software Update Checker");
 
 				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
@@ -262,18 +261,7 @@ namespace WalletWasabi.Gui
 				}
 				else
 				{
-					if (Config.UseTor)
-					{
-						// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
-						connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
-						// allowOnlyTorEndpoints: true - Connect only to onions and do not connect to clearnet IPs at all.
-						// This of course makes the first setting unnecessary, but it's better if that's around, in case someone wants to tinker here.
-						connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: Network == Network.Main);
-
-						await AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager).ConfigureAwait(false);
-					}
-					Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
-					Nodes.MaximumNodeConnection = 12;
+					Nodes = CreateAndConfigureNodesGroup(connectionParameters);
 					RegTestMempoolServingNode = null;
 				}
 
@@ -352,6 +340,22 @@ namespace WalletWasabi.Gui
 			}
 		}
 
+		private NodesGroup CreateAndConfigureNodesGroup(NodeConnectionParameters connectionParameters)
+		{
+			var maximumNodeConnection = 12;
+			var bestEffortEndpointConnector = new BestEffortEndpointConnector(maximumNodeConnection / 2);
+			connectionParameters.EndpointConnector = bestEffortEndpointConnector;
+			if (Config.UseTor)
+			{
+				connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
+			}
+			var nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
+			nodes.ConnectedNodes.Added += ConnectedNodes_OnAddedOrRemoved;
+			nodes.ConnectedNodes.Removed += ConnectedNodes_OnAddedOrRemoved;
+			nodes.MaximumNodeConnection = maximumNodeConnection;
+			return nodes;
+		}
+
 		private async Task<AddressManagerBehavior> InitializeAddressManagerBehaviorAsync()
 		{
 			var needsToDiscoverPeers = true;
@@ -416,25 +420,13 @@ namespace WalletWasabi.Gui
 			return addressManagerBehavior;
 		}
 
-		private async Task AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager addressManager)
+		private void ConnectedNodes_OnAddedOrRemoved(object? sender, NodeEventArgs e)
 		{
-			if (Network == Network.RegTest)
+			if (Nodes.NodeConnectionParameters.EndpointConnector is BestEffortEndpointConnector bestEffortEndPointConnector)
 			{
-				return;
-			}
-
-			// curl -s https://bitnodes.21.co/api/v1/snapshots/latest/ | egrep -o '[a-z0-9]{16}\.onion:?[0-9]*' | sort -ru
-			// Then filtered to include only /Satoshi:0.17.x
-			var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
-
-			var onions = await File.ReadAllLinesAsync(Path.Combine(fullBaseDirectory, "Tor", "OnionSeeds", $"{Network}OnionSeeds.txt")).ConfigureAwait(false);
-
-			onions.Shuffle();
-			foreach (var onion in onions.Take(60))
-			{
-				if (EndPointParser.TryParse(onion, Network.DefaultPort, out var endpoint))
+				if (sender is NodesCollection nodesCollection)
 				{
-					await addressManager.AddAsync(endpoint).ConfigureAwait(false);
+					bestEffortEndPointConnector.UpdateConnectedNodesCounter(nodesCollection.Count);
 				}
 			}
 		}
@@ -645,6 +637,14 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(CoinJoinProcessor)} is disposed.");
 				}
 
+				Logger.LogDebug($"Step: {nameof(LegalChecker)}.", nameof(Global));
+
+				if (LegalChecker is { } legalChecker)
+				{
+					legalChecker.Dispose();
+					Logger.LogInfo($"Disposed {nameof(LegalChecker)}.");
+				}
+
 				Logger.LogDebug($"Step: {nameof(HostedServices)}.", nameof(Global));
 
 				if (HostedServices is { } backgroundServices)
@@ -680,6 +680,8 @@ namespace WalletWasabi.Gui
 
 				if (Nodes is { } nodes)
 				{
+					Nodes.ConnectedNodes.Added -= ConnectedNodes_OnAddedOrRemoved;
+					Nodes.ConnectedNodes.Removed -= ConnectedNodes_OnAddedOrRemoved;
 					nodes.Disconnect();
 					while (nodes.ConnectedNodes.Any(x => x.IsConnected))
 					{

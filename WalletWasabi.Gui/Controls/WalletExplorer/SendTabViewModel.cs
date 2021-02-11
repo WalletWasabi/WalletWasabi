@@ -101,7 +101,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 
-				IRelativeHttpClient httpClient = Global.Synchronizer.WasabiClientFactory.NewHttpClient(() => payjoinEndPointUri, isolateStream: false);
+				IHttpClient httpClient = Global.Synchronizer.HttpClientFactory.NewHttpClient(() => payjoinEndPointUri, isolateStream: false);
 				return new PayjoinClient(payjoinEndPointUri, httpClient);
 			}
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -13,13 +13,13 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 {
+	[NavigationMetaData(Title = "Transaction Broadcaster")]
 	public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransaction?>
 	{
 		[AutoNotify] private SmartTransaction? _finalTransaction;
 
 		public LoadTransactionViewModel(Network network)
 		{
-			Title = "Transaction Broadcaster";
 			Network = network;
 
 			this.WhenAnyValue(x => x.FinalTransaction)

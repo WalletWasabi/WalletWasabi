@@ -36,8 +36,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		[Fact]
 		public void ConstructorDoesntThrow()
 		{
-			new GroupElement(GE.Infinity);
-			new GroupElement(EC.G);
+			Assert.NotNull(new GroupElement(GE.Infinity));
+			Assert.NotNull(new GroupElement(EC.G));
 		}
 
 		[Fact]
@@ -302,6 +302,14 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			var ge = Generators.FromText(text);
 			var hex = ByteHelpers.ToHex(ge.ToBytes());
 			Assert.Equal(expectedHex, hex);
+		}
+
+		[Fact]
+		public void ToHex()
+		{
+			Assert.Throws<NullReferenceException>(() => ByteHelpers.ToHex(null!));
+			Assert.Equal("", ByteHelpers.ToHex(Array.Empty<byte>()));
+			Assert.Equal("0102", ByteHelpers.ToHex(0x01, 0x02));
 		}
 	}
 }

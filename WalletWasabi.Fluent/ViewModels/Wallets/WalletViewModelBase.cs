@@ -16,6 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private WalletState _walletState;
 		private CompositeDisposable? _disposables;
 		private bool _disposedValue;
+		private string _title;
 
 		protected WalletViewModelBase(Wallet wallet)
 		{
@@ -49,9 +50,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			});
 		}
 
+		public override string Title
+		{
+			get => _title;
+			protected set => this.RaiseAndSetIfChanged(ref _title, value);
+		}
+
 		public Wallet Wallet { get; }
 
 		public string WalletName => Wallet.WalletName;
+
+		public bool IsLoggedIn => Wallet.IsLoggedIn;
 
 		public int CompareTo([AllowNull] WalletViewModelBase other)
 		{

@@ -1,38 +1,42 @@
 using System;
+using System.Reactive.Disposables;
+using System.Threading;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 {
-	public class DetectedHardwareWalletViewModel : RoutableViewModel
+	[NavigationMetaData(Title = "Hardware Wallet")]
+	public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 	{
-		public DetectedHardwareWalletViewModel(HardwareWalletOperations hardwareWalletOperations, string walletName)
+		public DetectedHardwareWalletViewModel(WalletManager walletManager, string walletName, HwiEnumerateEntry device)
 		{
-			Title = "Hardware Wallet";
+			WalletManager = walletManager;
 			WalletName = walletName;
+			CancelCts = new CancellationTokenSource();
 
-			Type = hardwareWalletOperations.SelectedDevice!.Model switch
+			Type = device.Model switch
 			{
 				HardwareWalletModels.Coldcard or HardwareWalletModels.Coldcard_Simulator => WalletType.Coldcard,
 				HardwareWalletModels.Ledger_Nano_S => WalletType.Ledger,
 				HardwareWalletModels.Trezor_1 or HardwareWalletModels.Trezor_1_Simulator or HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_T_Simulator => WalletType.Trezor,
-				_ => WalletType.Hardware,
+				_ => WalletType.Hardware
 			};
 
-			TypeName = hardwareWalletOperations.SelectedDevice.Model.FriendlyName();
+			TypeName = device.Model.FriendlyName();
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				try
 				{
-					var km = await hardwareWalletOperations.GenerateWalletAsync(WalletName);
-					var walletManager = hardwareWalletOperations.WalletManager;
-					hardwareWalletOperations.Dispose();
+					var walletFilePath = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
+					var km = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, WalletManager.Network, CancelCts.Token);
 					km.SetIcon(Type);
 
 					Navigate().To(new AddedWalletPageViewModel(walletManager, km));
@@ -50,6 +54,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			EnableAutoBusyOn(NextCommand);
 		}
 
+		public CancellationTokenSource CancelCts { get; }
+
+		public WalletManager WalletManager { get; }
+
 		public string WalletName { get; }
 
 		public WalletType Type { get; }
@@ -57,5 +65,17 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		public string TypeName { get; }
 
 		public ICommand NoCommand { get; }
+
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
+		{
+			base.OnNavigatedTo(inStack, disposables);
+
+			Disposable.Create(() =>
+				{
+					CancelCts.Cancel();
+					CancelCts.Dispose();
+				})
+				.DisposeWith(disposables);
+		}
 	}
 }

@@ -1,13 +1,15 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Login
 {
+	[NavigationMetaData(Title = "Login")]
 	public partial class LoginViewModel : RoutableViewModel
 	{
 		[AutoNotify] private string _password;
@@ -17,16 +19,14 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 		public LoginViewModel(WalletViewModelBase walletViewModelBase)
 		{
-			Title = "Login";
 			KeyManager = walletViewModelBase.Wallet.KeyManager;
 			IsPasswordNeeded = !KeyManager.IsWatchOnly;
 			_walletName = walletViewModelBase.WalletName;
 			_password = "";
+			var wallet = walletViewModelBase.Wallet;
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				var wallet = walletViewModelBase.Wallet;
-
 				IsPasswordIncorrect = await Task.Run(async () =>
 				{
 					if (!IsPasswordNeeded)
@@ -50,6 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 				if (!IsPasswordIncorrect)
 				{
 					wallet.Login();
+					walletViewModelBase.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
 
 					// TODO: navigate to the wallet welcome page
 					Navigate().To(walletViewModelBase, NavigationMode.Clear);
@@ -62,10 +63,15 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 				IsPasswordIncorrect = false;
 			});
 
+			ForgotPasswordCommand = ReactiveCommand.Create(() =>
+				Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet)));
+
 			EnableAutoBusyOn(NextCommand);
 		}
 
 		public ICommand OkCommand { get; }
+
+		public ICommand ForgotPasswordCommand { get; }
 
 		public KeyManager KeyManager { get; }
 	}

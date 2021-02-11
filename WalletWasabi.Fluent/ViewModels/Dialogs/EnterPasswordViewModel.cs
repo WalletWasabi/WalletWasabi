@@ -1,19 +1,19 @@
 using System.Reactive.Linq;
 using ReactiveUI;
-using WalletWasabi.Gui.Validation;
+using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
+	[NavigationMetaData (Title = "Enter a password")]
 	public partial class EnterPasswordViewModel : DialogViewModelBase<string?>
 	{
 		[AutoNotify] private string? _confirmPassword;
 		[AutoNotify] private string? _password;
 
-		public EnterPasswordViewModel(string caption)
+		public EnterPasswordViewModel(string caption, bool enableEmpty = true)
 		{
-			Title = "Enter a password";
 			Caption = caption;
 
 			// This means pressing continue will make the password empty string.
@@ -35,7 +35,9 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 					this.RaisePropertyChanged(nameof(Password));
 					this.RaisePropertyChanged(nameof(ConfirmPassword));
 
-					return IsDialogOpen && ((string.IsNullOrEmpty(Password) && string.IsNullOrEmpty(ConfirmPassword)) || (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) && !Validations.Any));
+					return IsDialogOpen &&
+						   ((enableEmpty && string.IsNullOrEmpty(Password) && string.IsNullOrEmpty(ConfirmPassword)) ||
+							(!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) && !Validations.Any));
 				})
 				.ObserveOn(RxApp.MainThreadScheduler);
 

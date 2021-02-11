@@ -29,13 +29,16 @@ namespace WalletWasabi.Tests.RegressionTests
 		public BackendTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
-			BackendApiHttpClient = new BackendHttpClient(new ClearnetHttpClient(regTestFixture.HttpClient, () => RegTestFixture.BackendEndPointApiUri));
+			BackendApiHttpClient = new ClearnetHttpClient(regTestFixture.HttpClient, () => RegTestFixture.BackendEndPointApiUri));
 		}
 
 		private RegTestFixture RegTestFixture { get; }
 
+		/// <summary>Clearnet HTTP client with predefined base URI for Wasabi Backend (note: <c>/api</c> is not part of base URI).</summary>
+		public IHttpClient BackendHttpClient { get; }
+
 		/// <summary>Clearnet HTTP client with predefined base URI for Wasabi Backend API queries.</summary>
-		private BackendHttpClient BackendApiHttpClient { get; }
+		private IHttpClient BackendApiHttpClient { get; }
 
 		#region BackendTests
 

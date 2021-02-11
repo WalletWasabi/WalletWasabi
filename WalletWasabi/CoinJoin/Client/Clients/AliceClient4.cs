@@ -2,7 +2,7 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
+using WalletWasabi.Tor.Http;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.CoinJoin.Client.Clients
@@ -15,9 +15,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			IEnumerable<PubKey> signerPubKeys,
 			IEnumerable<Requester> requesters,
 			Network network,
-			Func<Uri> baseUriAction,
-			EndPoint torSocks5EndPoint)
-			: base(roundId, registeredAddresses, requesters, network, baseUriAction, torSocks5EndPoint)
+			IHttpClient httpClient)
+			: base(roundId, registeredAddresses, requesters, network, httpClient)
 		{
 			SignerPubKeys = signerPubKeys.ToArray();
 		}

@@ -181,7 +181,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = coin.Outpoint, Proof = dummySignature } };
 			httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest));
-			Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided input is neither confirmed, nor is from an unconfirmed coinjoin.", httpRequestException.Message);
+			Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided input is unconfirmed.", httpRequestException.Message);
 
 			var blocks = await rpc.GenerateAsync(1);
 			httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest));
@@ -1071,8 +1071,8 @@ namespace WalletWasabi.Tests.RegressionTests
 		{
 			(string password, IRPCClient rpc, Network network, Coordinator coordinator, _, BitcoinStore bitcoinStore, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
-			var wasabiClientFactory = new WasabiClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, wasabiClientFactory);
+			var httpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, httpClientFactory);
 			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
 
 			Money denomination = Money.Coins(0.9m);
@@ -1177,8 +1177,8 @@ namespace WalletWasabi.Tests.RegressionTests
 		{
 			(string password, IRPCClient rpc, Network network, Coordinator coordinator, _, BitcoinStore bitcoinStore, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
-			var wasabiClientFactory = new WasabiClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, wasabiClientFactory);
+			var httpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, httpClientFactory);
 			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
 
 			Money denomination = Money.Coins(0.1m);
@@ -1375,11 +1375,11 @@ namespace WalletWasabi.Tests.RegressionTests
 			node2.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 3. Create wasabi synchronizer service.
-			var wasabiClientFactory = new WasabiClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, wasabiClientFactory);
+			var httpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, httpClientFactory);
 
 			var indexFilePath2 = Path.Combine(Helpers.Common.GetWorkDir(), $"Index{network}2.dat");
-			var synchronizer2 = new WasabiSynchronizer(network, bitcoinStore, wasabiClientFactory);
+			var synchronizer2 = new WasabiSynchronizer(network, bitcoinStore, httpClientFactory);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -1556,8 +1556,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				request.ChangeOutputAddress,
 				request.BlindedOutputScripts,
 				request.Inputs,
-				() => BaseUri,
-				null);
+				BackendClearnetHttpClient);
 		}
 	}
 }

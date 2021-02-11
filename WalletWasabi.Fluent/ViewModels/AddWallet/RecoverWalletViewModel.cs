@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
@@ -12,34 +14,30 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Gui.Validation;
+using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
+	[NavigationMetaData (Title = "Enter recovery words")]
 	public partial class RecoverWalletViewModel : RoutableViewModel
 	{
-		[AutoNotify] private string? _selectedTag;
 		[AutoNotify] private IEnumerable<string>? _suggestions;
 		[AutoNotify] private Mnemonic? _currentMnemonics;
 
 		public RecoverWalletViewModel(
 			string walletName,
-			Network network,
-			WalletManager walletManager)
+			WalletManagerViewModel walletManagerViewModel)
 		{
-			Title = "Enter recovery words";
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
+			var walletManager = walletManagerViewModel.Model;
+			var network = walletManager.Network;
 
 			Mnemonics.ToObservableChangeSet().ToCollection()
 				.Select(x => x.Count == 12 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
 				.Subscribe(x => CurrentMnemonics = x);
-
-			this.WhenAnyValue(x => x.SelectedTag)
-				.Where(x => !string.IsNullOrEmpty(x))
-				.Subscribe(AddMnemonic);
 
 			this.WhenAnyValue(x => x.CurrentMnemonics)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(Mnemonics)));
@@ -134,7 +132,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		private Interaction<(KeyPath, int), (KeyPath?, int?)> AdvancedOptionsInteraction { get; }
 
-		public ObservableCollection<string> Mnemonics { get; } = new ObservableCollection<string>();
+		public ObservableCollection<string> Mnemonics { get; } = new();
 
 		private void ValidateMnemonics(IValidationErrors errors)
 		{
@@ -142,16 +140,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			{
 				errors.Add(ErrorSeverity.Error, "Recovery words are not valid.");
 			}
-		}
-
-		private void AddMnemonic(string? tagString)
-		{
-			if (!string.IsNullOrWhiteSpace(tagString) && Mnemonics.Count + 1 <= 12)
-			{
-				Mnemonics.Add(tagString);
-			}
-
-			SelectedTag = string.Empty;
 		}
 
 		private string GetTagsAsConcatString()

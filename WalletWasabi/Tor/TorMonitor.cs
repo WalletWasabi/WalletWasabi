@@ -49,7 +49,7 @@ namespace WalletWasabi.Tor
 							Uri baseUri = new Uri($"{FallBackTestRequestUri.Scheme}://{FallBackTestRequestUri.DnsSafeHost}");
 							using (var client = new TorHttpClient(baseUri, TorSocks5EndPoint))
 							{
-								var message = new HttpRequestMessage(HttpMethod.Get, FallBackTestRequestUri);
+								using var message = new HttpRequestMessage(HttpMethod.Get, FallBackTestRequestUri);
 								await client.SendAsync(message, token).ConfigureAwait(false);
 							}
 

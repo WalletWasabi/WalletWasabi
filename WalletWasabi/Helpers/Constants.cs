@@ -45,8 +45,6 @@ namespace WalletWasabi.Helpers
 		public const int DefaultTestNetBitcoinCoreRpcPort = 18332;
 		public const int DefaultRegTestBitcoinCoreRpcPort = 18443;
 
-		public const double TransactionRBFSignalRate = 0.02; // 2% RBF transactions
-
 		public const decimal DefaultDustThreshold = 0.00005m;
 
 		public const string AlphaNumericCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -56,7 +54,7 @@ namespace WalletWasabi.Helpers
 
 		public static readonly Version ClientVersion = new Version(1, 1, 12, 3);
 		public static readonly Version HwiVersion = new Version("1.2.1");
-		public static readonly Version BitcoinCoreVersion = new Version("0.20.0");
+		public static readonly Version BitcoinCoreVersion = new Version("0.21.0");
 		public static readonly Version LegalDocumentsVersion = new Version(2, 0);
 
 		public static readonly NodeRequirement NodeRequirements = new NodeRequirement
@@ -77,6 +75,8 @@ namespace WalletWasabi.Helpers
 
 		public static readonly string[] UserAgents = new[]
 		{
+			"/Satoshi:0.21.0/",
+			"/Satoshi:0.20.1/",
 			"/Satoshi:0.20.0/",
 			"/Satoshi:0.19.1/",
 			"/Satoshi:0.19.0.1/",

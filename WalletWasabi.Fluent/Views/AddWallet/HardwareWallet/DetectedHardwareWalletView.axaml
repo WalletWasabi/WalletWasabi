@@ -2,11 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
-             xmlns:hardwareWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet"
-             mc:Ignorable="d"
-             d:DesignWidth="600" d:DesignHeight="500"
+             xmlns:hardwareWallet="using:WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="hardwareWallet:DetectedHardwareWalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.HardwareWallet.DetectedHardwareWalletView">
@@ -14,30 +13,13 @@
                  IsBusy="{Binding IsBusy}"
                  EnableCancel="False"
                  EnableBack="False"
-                 EnableNext="False">
-    <DockPanel>
-      <DockPanel.Styles>
-        <Style Selector="Button.yesNo">
-          <Setter Property="Width" Value="150"/>
-          <Setter Property="Height" Value="40"/>
-          <Setter Property="HorizontalAlignment" Value="Center"/>
-          <Setter Property="HorizontalContentAlignment" Value="Center"/>
-          <Setter Property="VerticalContentAlignment" Value="Center"/>
-          <Setter Property="FontSize" Value="{StaticResource FontSizeH6}"/>
-          <Setter Property="Padding" Value="0"/>
-        </Style>
-      </DockPanel.Styles>
+                 EnableNext="False"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-      <StackPanel Spacing="200" HorizontalAlignment="Center" Orientation="Horizontal" DockPanel.Dock="Bottom" Margin="0 0 0 30">
-        <Button Content="No" Classes="yesNo" Command="{Binding NoCommand}" />
-        <Button Content="Yes" Classes="action yesNo" IsDefault="True" Command="{Binding NextCommand}" />
-      </StackPanel>
-
-      <StackPanel VerticalAlignment="Center" Spacing="40">
-        <Image Height="180" Source="{Binding Type, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}" />
-        <TextBlock Text="{Binding TypeName, StringFormat={}{0}  was detected. Is this correct?}" HorizontalAlignment="Center" />
-      </StackPanel>
-
-    </DockPanel>
+    <c:QuestionControl Text="{Binding TypeName, StringFormat={}{0}  was detected. Is this correct?}"
+                       YesCommand="{Binding NextCommand}"
+                       NoCommand="{Binding NoCommand}"
+                       Icon="{Binding Type, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}"
+                       HighlightButton="YesButton"/>
   </c:ContentArea>
 </UserControl>

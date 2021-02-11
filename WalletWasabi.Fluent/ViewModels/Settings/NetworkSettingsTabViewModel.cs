@@ -3,7 +3,7 @@ using System.Net;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Gui;
-using WalletWasabi.Gui.Validation;
+using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
@@ -47,7 +47,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		private void ValidateTorSocks5EndPoint(IValidationErrors errors)
 			=> ValidateEndPoint(errors, TorSocks5EndPoint, Constants.DefaultTorSocksPort, whiteSpaceOk: true);
 
-		private void ValidateEndPoint(IValidationErrors errors, string endPoint, int defaultPort, bool whiteSpaceOk)
+		private static void ValidateEndPoint(IValidationErrors errors, string endPoint, int defaultPort, bool whiteSpaceOk)
 		{
 			if (!whiteSpaceOk || !string.IsNullOrWhiteSpace(endPoint))
 			{

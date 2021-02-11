@@ -6,7 +6,7 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="vm:AddWalletPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.AddWalletPageView">

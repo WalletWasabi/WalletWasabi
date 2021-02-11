@@ -62,17 +62,17 @@
       },
       "NBitcoin": {
         "type": "Transitive",
-        "resolved": "5.0.65",
-        "contentHash": "zAOCXQ1aoaFOGAGT2WTpGYayB2jVkHd+hYbLFRtbj8UhvrYMDnk1jxVLnmbHDVXy1+Hcn7zyz08F07ZBOLLBZQ==",
+        "resolved": "5.0.73",
+        "contentHash": "Vre+l+Hx8uo+5Eq2T2uvq5kY+7YeccfvvUpfIj9YJrXI0j89gxsobfKfDhCw35gOIfSwIEDGv2N7LVbSA8w6HQ==",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
-          "Newtonsoft.Json": "11.0.1"
+          "Newtonsoft.Json": "11.0.2"
         }
       },
       "NBitcoin.Secp256k1": {
         "type": "Transitive",
-        "resolved": "1.0.8",
-        "contentHash": "X96liPg7Xr3qUMq3Js/+Ochq/aCR0DnwkXwzS63rlkL6w2YkYH7V88ngGQe3qNv7HAr9pe+v6Qkn/GF2ggEzsQ=="
+        "resolved": "1.0.10",
+        "contentHash": "+CbOOtba1tv4p0G8uKRmwH4he5LXNtqfxdIrDi0RcVViR7HRTbaoDE7tJ7cAkg7pxuiNHGkpvtn+rFgkPxYgYw=="
       },
       "Newtonsoft.Json": {
         "type": "Transitive",
@@ -278,8 +278,8 @@
         "dependencies": {
           "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "5.0.0",
           "Microsoft.Win32.SystemEvents": "5.0.0",
-          "NBitcoin": "5.0.65",
-          "NBitcoin.Secp256k1": "1.0.8"
+          "NBitcoin": "5.0.73",
+          "NBitcoin.Secp256k1": "1.0.10"
         }
       }
     },

@@ -188,6 +188,7 @@ namespace {namespaceName}
 			source.AppendLine($@"        public static void RegisterAsyncLazy(Func<Task<RoutableViewModel?>> createInstance) => NavigationManager.RegisterAsyncLazy(MetaData, createInstance);");
 			source.AppendLine($@"        public static void RegisterLazy(Func<RoutableViewModel?> createInstance) => NavigationManager.RegisterLazy(MetaData, createInstance);");
 			source.AppendLine($@"        public static void Register(RoutableViewModel createInstance) => NavigationManager.Register(MetaData, createInstance);");
+			source.AppendLine($@"        public override string Title {{get => MetaData.Title; protected set {{}} }} ");
 
 			var routeableClass = compilation.GetTypeByMetadataName("WalletWasabi.Fluent.ViewModels.Navigation.RoutableViewModel");
 

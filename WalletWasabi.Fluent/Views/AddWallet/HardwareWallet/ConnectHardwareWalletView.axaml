@@ -2,10 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:hardwareWallet="clr-namespace:WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet"
-             mc:Ignorable="d"
-             d:DesignWidth="600" d:DesignHeight="500"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:hardwareWallet="using:WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="hardwareWallet:ConnectHardwareWalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.HardwareWallet.ConnectHardwareWalletView">
@@ -14,11 +13,10 @@
                  Caption="Connect your hardware wallet to the PC"
                  EnableCancel="True" CancelContent="Cancel"
                  EnableBack="True"
-                 EnableNext="{Binding ContinueButtonEnable}" NextContent="Continue"
-                 IsBusy="{Binding IsBusy}">
-    <DockPanel LastChildFill="True">
-
-      <Viewbox MaxHeight="150" DockPanel.Dock="Top" VerticalAlignment="Top" HorizontalAlignment="Center">
+                 EnableNext="{Binding ConfirmationRequired}" NextContent="Continue"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <Grid RowDefinitions="*,3*,Auto">
+      <Viewbox MaxHeight="150" Grid.Row="0" DockPanel.Dock="Top" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0 30 0 0">
         <StackPanel Spacing="40" Orientation="Horizontal">
           <Image Height="100" Source="/Assets/HardwareIcons/ledger.png" />
           <Image Height="100" Source="/Assets/HardwareIcons/coldcard.png" />
@@ -26,13 +24,14 @@
           <Image Height="100" Source="/Assets/HardwareIcons/generic.png" />
         </StackPanel>
       </Viewbox>
-
-      <DockPanel DockPanel.Dock="Bottom" LastChildFill="True" Margin="0 50 0 0">
-        <TextBlock Text="{Binding Message}" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top"/>
-        <Button Command="{Binding OpenBrowserCommand}" Content="More information and help with Hardware Wallets" Classes="h8 plain activeHyperLink" HorizontalAlignment="Center" DockPanel.Dock="Bottom"/>
-        <c:ProgressRing IsVisible="{Binding !ContinueButtonEnable}" Margin="15" IsIndeterminate="True" VerticalAlignment="Center" HorizontalAlignment="Center" Height="100" Width="100" />
-      </DockPanel>
-
-    </DockPanel>
+      <Panel HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="1">
+        <DockPanel>
+          <TextBlock Text="{Binding Message}" TextWrapping="Wrap" TextAlignment="Center" DockPanel.Dock="Top"/>
+          <Button IsVisible="{Binding ExistingWalletFound}" Margin="0 15 0 0" Command="{Binding NavigateToExistingWalletLoginCommand}" Content="Open wallet" Classes="h7 plain activeHyperLink" HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Bottom"/>
+        </DockPanel>
+        <c:ProgressRing IsVisible="{Binding !ConfirmationRequired}" Margin="15" IsIndeterminate="True" Height="100" Width="100" />
+      </Panel>
+      <Button Command="{Binding OpenBrowserCommand}" Content="More information and help with Hardware Wallets" Classes="h8 plain activeHyperLink" HorizontalAlignment="Center" Grid.Row="2"/>
+    </Grid>
   </c:ContentArea>
 </UserControl>
