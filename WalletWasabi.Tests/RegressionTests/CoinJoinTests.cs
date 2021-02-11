@@ -51,7 +51,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 		private RegTestFixture RegTestFixture { get; }
 		public Uri BaseUri { get; }
-		public IHttpClient BackendClearnetHttpClient { get; }
+		public ClearnetHttpClient BackendClearnetHttpClient { get; }
 
 		[Fact]
 		public async Task CoordinatorCtorTestsAsync()
