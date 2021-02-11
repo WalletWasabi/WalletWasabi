@@ -47,9 +47,9 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money MinRegistrableAmount { get; set; } = Money.Coins(0.00005m);
 
-		[DefaultValueMoneyBtc("1000")]
+		[DefaultValueMoneyBtc("44000")]
 		[JsonProperty(PropertyName = "MaxRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
-		public Money MaxRegistrableAmount { get; set; } = Money.Coins(1000m);
+		public Money MaxRegistrableAmount { get; set; } = Money.Coins(44000m);
 	}
 }
