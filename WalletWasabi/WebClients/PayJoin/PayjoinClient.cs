@@ -21,11 +21,11 @@ namespace WalletWasabi.WebClients.PayJoin
 		public PayjoinClient(Uri paymentUrl, IHttpClient httpClient)
 		{
 			PaymentUrl = paymentUrl;
-			TorHttpClient = httpClient;
+			HttpClient = httpClient;
 		}
 
 		public Uri PaymentUrl { get; }
-		private IHttpClient TorHttpClient { get; }
+		private IHttpClient HttpClient { get; }
 
 		public async Task<PSBT?> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey changeHdPubKey, CancellationToken cancellationToken)
 		{
@@ -79,12 +79,12 @@ namespace WalletWasabi.WebClients.PayJoin
 
 			var endpoint = ApplyOptionalParameters(PaymentUrl, optionalParameters);
 
-			var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
+			using var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
 			{
 				Content = new StringContent(cloned.ToBase64(), Encoding.UTF8, "text/plain")
 			};
 
-			HttpResponseMessage bpuResponse = await TorHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+			HttpResponseMessage bpuResponse = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
 			if (!bpuResponse.IsSuccessStatusCode)
 			{
