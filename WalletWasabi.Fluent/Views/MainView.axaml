@@ -42,7 +42,7 @@
           <local:StatusBar DockPanel.Dock="Bottom" Classes="h8" DataContext="{Binding StatusBar}" VerticalAlignment="Bottom" Height="32" />
           <Panel>
             <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
-            <ContentControl Content="{Binding MainScreen.CurrentPage}" Margin="20 36 20 20" />
+            <ContentControl Content="{Binding MainScreen.CurrentPage}" ClipToBounds="False" Margin="20 36 20 20" />
           </Panel>
         </DockPanel>
       </Panel>

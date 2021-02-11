@@ -23,7 +23,8 @@ namespace WalletWasabi.WebClients.Wasabi
 			TorEndpoint = torEndPoint;
 			BackendUriGetter = backendUriGetter;
 
-			if (torEndPoint is { })
+			// Connecting to loopback's URIs cannot be done via Tor.
+			if (TorEndpoint is { } && !BackendUriGetter().IsLoopback)
 			{
 				BackendHttpClient = new TorHttpClient(BackendUriGetter, TorEndpoint, isolateStream: false);
 			}
@@ -56,7 +57,8 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// </summary>
 		public IHttpClient NewHttpClient(Func<Uri> baseUriFn, bool isolateStream)
 		{
-			if (TorEndpoint is { })
+			// Connecting to loopback's URIs cannot be done via Tor.
+			if (TorEndpoint is { } && !BackendUriGetter().IsLoopback)
 			{
 				return new TorHttpClient(baseUriFn, TorEndpoint, isolateStream);
 			}
@@ -67,11 +69,11 @@ namespace WalletWasabi.WebClients.Wasabi
 		}
 
 		/// <summary>
-		/// Creates new <see cref="TorHttpClient"/>.
+		/// Creates a new <see cref="IHttpClient"/> with the base URI is set to Wasabi Backend.
 		/// </summary>
-		public TorHttpClient NewBackendTorHttpClient(bool isolateStream)
+		public IHttpClient NewBackendHttpClient(bool isolateStream)
 		{
-			return new TorHttpClient(BackendUriGetter, TorEndpoint, isolateStream);
+			return NewHttpClient(BackendUriGetter, isolateStream);
 		}
 
 		// Protected implementation of Dispose pattern.

@@ -86,9 +86,11 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		private async Task BroadcastTransactionToBackendAsync(SmartTransaction transaction)
 		{
 			Logger.LogInfo("Broadcasting with backend...");
-			using (TorHttpClient torHttpClient = Synchronizer.HttpClientFactory.NewBackendTorHttpClient(isolateStream: true))
+			IHttpClient httpClient = Synchronizer.HttpClientFactory.NewBackendHttpClient(isolateStream: true);
+
+			try
 			{
-				var client = new WasabiClient(torHttpClient);
+				var client = new WasabiClient(httpClient);
 
 				try
 				{
@@ -107,6 +109,10 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 
 					throw;
 				}
+			}
+			finally
+			{
+				(httpClient as IDisposable)?.Dispose();
 			}
 
 			BelieveTransaction(transaction);
