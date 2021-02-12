@@ -37,18 +37,6 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 
 		private byte[] Bytes { get; }
 
-		public IEnumerable<MethodField> Methods
-		{
-			get
-			{
-				foreach (var b in Bytes)
-				{
-					var method = new MethodField(b);
-					yield return method;
-				}
-			}
-		}
-
 		public override byte[] ToBytes() => Bytes;
 	}
 }
