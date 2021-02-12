@@ -27,7 +27,7 @@ namespace WalletWasabi.WabiSabi.Backend
 
 		[DefaultValue(Constants.OneDayConfirmationTarget)]
 		[JsonProperty(PropertyName = "ConfirmationTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public int ConfirmationTarget { get; set; } = Constants.OneDayConfirmationTarget;
+		public uint ConfirmationTarget { get; set; } = Constants.OneDayConfirmationTarget;
 
 		[DefaultValueTimeSpan("0d 3h 0m 0s")]
 		[JsonProperty(PropertyName = "ReleaseUtxoFromPrisonAfter", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -54,5 +54,18 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonProperty(PropertyName = "MaxRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money MaxRegistrableAmount { get; set; } = Money.Coins(43000m);
+
+		[DefaultValue(1)]
+		[JsonProperty(PropertyName = "MinRegistrableWeight", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public uint MinRegistrableWeight { get; set; } = 1;
+
+		/// <summary>
+		/// The width of the rangeproofs are calculated from this, so don't choose stupid numbers.
+		/// Consider that it applies to registrations, not for inputs. This usually consists one input, but can be more.
+		/// 1000 / inputs looks good, so for 2 inputs it'd be 2000.
+		/// </summary>
+		[DefaultValue(2000)]
+		[JsonProperty(PropertyName = "MaxRegistrableWeight", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public uint MaxRegistrableWeight { get; set; } = 2000;
 	}
 }

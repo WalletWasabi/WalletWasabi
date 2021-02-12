@@ -45,7 +45,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var configPath = Path.Combine(workDir, "WabiSabiConfig.json");
 			WabiSabiConfig configChanger = new(configPath);
 			configChanger.LoadOrCreateDefaultFile();
-			var newTarget = 729;
+			var newTarget = 729u;
 			configChanger.ConfirmationTarget = newTarget;
 			Assert.NotEqual(newTarget, coordinator.Config.ConfirmationTarget);
 			configChanger.ToFile();
@@ -103,7 +103,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var configPath = Path.Combine(workDir, "WabiSabiConfig.json");
 			WabiSabiConfig configChanger = new(configPath);
 			configChanger.LoadOrCreateDefaultFile();
-			var newTarget = 729;
+			var newTarget = 729u;
 			configChanger.ConfirmationTarget = newTarget;
 			Assert.NotEqual(newTarget, coordinator.Config.ConfirmationTarget);
 			configChanger.ToFile();
