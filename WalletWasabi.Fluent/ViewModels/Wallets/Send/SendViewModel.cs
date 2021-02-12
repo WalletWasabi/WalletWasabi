@@ -13,6 +13,7 @@ using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui.Converters;
@@ -296,6 +297,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					185
 				};
 			}
+		}
+
+		private double GetYAxisValueFromXAxisCurrentValue()
+		{
+			var x = _xAxisValues.Reverse().ToArray();
+			var y = _yAxisValues;
+			double t = XAxisCurrentValue;
+			var spline = CubicSpline.InterpolateNaturalSorted(x, y);
+			return spline.Interpolate(t);
 		}
 
 		public ICommand PasteCommand { get; }
