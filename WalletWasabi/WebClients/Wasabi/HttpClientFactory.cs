@@ -5,9 +5,9 @@ using WalletWasabi.Tor.Http;
 namespace WalletWasabi.WebClients.Wasabi
 {
 	/// <summary>
-	/// Factory class to create <see cref="WasabiClient"/> instances.
+	/// Factory class to get proper <see cref="IHttpClient"/> client which is set up based on user settings.
 	/// </summary>
-	public class WasabiClientFactory
+	public class HttpClientFactory
 	{
 		/// <summary>
 		/// To detect redundant calls.
@@ -18,12 +18,13 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// Creates a new instance of the object.
 		/// </summary>
 		/// <param name="torEndPoint">If <c>null</c> then clearnet (not over Tor) is used, otherwise HTTP requests are routed through provided Tor endpoint.</param>
-		public WasabiClientFactory(EndPoint? torEndPoint, Func<Uri> backendUriGetter)
+		public HttpClientFactory(EndPoint? torEndPoint, Func<Uri> backendUriGetter)
 		{
 			TorEndpoint = torEndPoint;
 			BackendUriGetter = backendUriGetter;
 
-			if (torEndPoint is { })
+			// Connecting to loopback's URIs cannot be done via Tor.
+			if (TorEndpoint is { } && !BackendUriGetter().IsLoopback)
 			{
 				BackendHttpClient = new TorHttpClient(BackendUriGetter, TorEndpoint, isolateStream: false);
 			}
@@ -56,7 +57,8 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// </summary>
 		public IHttpClient NewHttpClient(Func<Uri> baseUriFn, bool isolateStream)
 		{
-			if (TorEndpoint is { })
+			// Connecting to loopback's URIs cannot be done via Tor.
+			if (TorEndpoint is { } && !BackendUriGetter().IsLoopback)
 			{
 				return new TorHttpClient(baseUriFn, TorEndpoint, isolateStream);
 			}
@@ -67,11 +69,11 @@ namespace WalletWasabi.WebClients.Wasabi
 		}
 
 		/// <summary>
-		/// Creates new <see cref="TorHttpClient"/>.
+		/// Creates a new <see cref="IHttpClient"/> with the base URI is set to Wasabi Backend.
 		/// </summary>
-		public TorHttpClient NewBackendTorHttpClient(bool isolateStream)
+		public IHttpClient NewBackendHttpClient(bool isolateStream)
 		{
-			return new TorHttpClient(BackendUriGetter, TorEndpoint, isolateStream);
+			return NewHttpClient(BackendUriGetter, isolateStream);
 		}
 
 		// Protected implementation of Dispose pattern.

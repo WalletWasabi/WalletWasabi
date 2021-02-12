@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="vm:OptimisePrivacyViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.OptimisePrivacyView">
+    <c:ContentArea Title="Send" Caption=""
+                   HorizontalAlignment="Left"
+                   EnableCancel="False"
+                   EnableNext="True"
+                   NextContent="Continue"
+                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    </c:ContentArea>
+</UserControl>

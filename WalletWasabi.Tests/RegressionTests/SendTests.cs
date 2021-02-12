@@ -49,8 +49,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 3. Create wasabi synchronizer service.
-			var wasabiClientFactory = new WasabiClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, wasabiClientFactory);
+			var httpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, httpClientFactory);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -529,8 +529,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 3. Create wasabi synchronizer service.
-			var wasabiClientFactory = new WasabiClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, wasabiClientFactory);
+			var httpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, httpClientFactory);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -703,8 +703,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 3. Create wasabi synchronizer service.
-			var wasabiClientFactory = new WasabiClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, wasabiClientFactory);
+			var httpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, httpClientFactory);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);

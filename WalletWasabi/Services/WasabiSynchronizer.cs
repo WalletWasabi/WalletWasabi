@@ -30,7 +30,7 @@ namespace WalletWasabi.Services
 
 		private decimal _usdExchangeRate;
 
-		private AllFeeEstimate _allFeeEstimate;
+		private AllFeeEstimate? _allFeeEstimate;
 
 		private TorStatus _torStatus;
 
@@ -43,15 +43,15 @@ namespace WalletWasabi.Services
 
 		private long _blockRequests; // There are priority requests in queue.
 
-		/// <param name="wasabiClientFactory">The class takes ownership of the instance.</param>
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, WasabiClientFactory wasabiClientFactory)
+		/// <param name="httpClientFactory">The class takes ownership of the instance.</param>
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, HttpClientFactory httpClientFactory)
 		{
 			Network = network;
 			LastResponse = null;
 			_running = StateNotStarted;
 			BitcoinStore = bitcoinStore;
-			WasabiClientFactory = wasabiClientFactory;
-			WasabiClient = wasabiClientFactory.SharedWasabiClient;
+			HttpClientFactory = httpClientFactory;
+			WasabiClient = httpClientFactory.SharedWasabiClient;
 
 			StopCts = new CancellationTokenSource();
 		}
@@ -67,7 +67,7 @@ namespace WalletWasabi.Services
 		public SynchronizeResponse? LastResponse { get; private set; }
 
 		/// <summary><see cref="WasabiSynchronizer"/> is responsible for disposing of this object.</summary>
-		public WasabiClientFactory WasabiClientFactory { get; }
+		public HttpClientFactory HttpClientFactory { get; }
 
 		public WasabiClient WasabiClient { get; }
 
@@ -82,7 +82,7 @@ namespace WalletWasabi.Services
 			private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value);
 		}
 
-		public AllFeeEstimate AllFeeEstimate
+		public AllFeeEstimate? AllFeeEstimate
 		{
 			get => _allFeeEstimate;
 			private set
@@ -408,7 +408,7 @@ namespace WalletWasabi.Services
 				await Task.Delay(50).ConfigureAwait(false);
 			}
 
-			WasabiClientFactory.Dispose();
+			HttpClientFactory.Dispose();
 			StopCts.Dispose();
 
 			EnableRequests(); // Enable requests (it's possible something is being blocked outside the class by AreRequestsBlocked.

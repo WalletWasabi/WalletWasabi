@@ -1,65 +1,39 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="using:WalletWasabi.Fluent.Controls">
+    <Design.PreviewWith>
+        <Border Padding="10">
+            <c:TagControl Content="Test" />
+        </Border>
+    </Design.PreviewWith>
 
-    <Style Selector="Button#PART_DeleteButton">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate>
-                    <PathIcon Data="{StaticResource dismiss_light}" />
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <Style Selector="c|TagsBox c|TagControl /template/ Panel#PART_TagPanel LayoutTransformControl#PART_DeleteButtonLayoutTransformer">
-        <Setter Property="LayoutTransform" Value="scaleX(0)" />
-    </Style>
-
-    <Style Selector="c|TagsBox c|TagControl /template/ Panel#PART_TagPanel Button#PART_DeleteButton">
-        <Setter Property="Opacity" Value="0" />
-    </Style>
-
-    <Style Selector="c|TagsBox:not(:readonly) c|TagControl /template/ Panel#PART_TagPanel:pointerover LayoutTransformControl#PART_DeleteButtonLayoutTransformer">
-        <Setter Property="LayoutTransform" Value="scaleX(1)" />
-    </Style>
-
-    <Style Selector="c|TagsBox:not(:readonly) c|TagControl /template/ Panel#PART_TagPanel:pointerover Button#PART_DeleteButton">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-
-    <Style Selector="c|TagsBox c|TagControl">
+    <Style Selector="c|TagControl">
+        <Setter Property="Cursor" Value="Arrow"/>
         <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
-        <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
-        <Setter Property="BorderThickness" Value="{DynamicResource TextControlBorderThemeThickness}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TagsBoxControlForeground}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="(ToolTip.Tip)" Value="{Binding .}" />
         <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
         <Setter Property="Template">
             <ControlTemplate>
                 <Panel>
-                    <Panel.Styles>
-                    </Panel.Styles>
                     <Panel Name="PART_TagPanel">
                         <Border Name="PART_TagItemBorder"
-                                Background="Transparent"
-                                BorderBrush="{DynamicResource TagsBoxControlForeground}"
-                                BorderThickness="1"
-                                CornerRadius="2"
-                                Opacity="0.25"
-                                Height="{Binding #PART_DummyPanel.Bounds.Height}"
-                                VerticalAlignment="Top" />
-                        <StackPanel Name="PART_DummyPanel" Orientation="Horizontal"
-                                    VerticalAlignment="Top">
-                            <ContentPresenter Content="{Binding .}"
-                                              VerticalAlignment="Center" Margin="12,6,12,6" />
-                            <LayoutTransformControl Name="PART_DeleteButtonLayoutTransformer" Margin="-8,0,3,0">
-
-                                    <Button Name="PART_DeleteButton" VerticalAlignment="Center"
-                                            HorizontalAlignment="Center"
-                                            Width="12"
-                                            Height="12"
-                                            Margin="4">
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="2" />
+                        <DockPanel Name="PART_DummyPanel"
+                                   MaxWidth="260"
+                                    VerticalAlignment="Top" LastChildFill="True">
+                            <LayoutTransformControl DockPanel.Dock="Right" Name="PART_DeleteButtonLayoutTransformer"
+                                                    Margin="-8,0,3,0">
+                                <Button Name="PART_DeleteButton" VerticalAlignment="Center"
+                                        HorizontalAlignment="Center"
+                                        Width="12"
+                                        Height="12"
+                                        Margin="4">
                                         <Button.Transitions>
                                             <Transitions>
                                                 <DoubleTransition Property="Opacity" Duration="0:0:0.135" Easing="{StaticResource FluentEasing}"  />
@@ -73,11 +47,54 @@
                                     </Transitions>
                                 </LayoutTransformControl.Transitions>
                             </LayoutTransformControl>
-
-                        </StackPanel>
+                            <ContentPresenter Name="PART_ContentPresenter"
+                                              Content="{TemplateBinding Content}"
+                                              Padding="{TemplateBinding Padding}"
+                                              Margin="12,6,12,6"
+                                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              DockPanel.Dock="Left"
+                                              />
+                        </DockPanel>
                     </Panel>
                 </Panel>
             </ControlTemplate>
         </Setter>
+    </Style>
+
+    <Style Selector="c|TagControl /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="ContentTemplate">
+            <DataTemplate DataType="x:String">
+                <TextBlock Text="{Binding .}"
+                           TextTrimming="CharacterEllipsis"/>
+            </DataTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="c|TagControl Button#PART_DeleteButton">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <PathIcon Data="{StaticResource dismiss_light}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style Selector="c|TagControl /template/ Panel#PART_TagPanel LayoutTransformControl#PART_DeleteButtonLayoutTransformer">
+        <Setter Property="LayoutTransform" Value="scaleX(0)" />
+    </Style>
+
+    <Style Selector="c|TagControl /template/ Panel#PART_TagPanel Button#PART_DeleteButton">
+        <Setter Property="Opacity" Value="0" />
+    </Style>
+
+    <Style Selector="c|TagsBox:not(:readonly) c|TagControl /template/ Panel#PART_TagPanel:pointerover LayoutTransformControl#PART_DeleteButtonLayoutTransformer">
+        <Setter Property="LayoutTransform" Value="scaleX(1)" />
+    </Style>
+
+    <Style Selector="c|TagsBox:not(:readonly) c|TagControl /template/ Panel#PART_TagPanel:pointerover Button#PART_DeleteButton">
+        <Setter Property="Opacity" Value="1" />
     </Style>
 </Styles>

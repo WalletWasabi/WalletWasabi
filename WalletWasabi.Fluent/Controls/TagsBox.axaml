@@ -13,7 +13,6 @@
         <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}" />
         <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
         <Setter Property="Padding" Value="{DynamicResource TagsBoxBorderPadding}" />
-        <Setter Property="Focusable" Value="True" />
         <Setter Property="Cursor" Value="IBeam" />
         <Setter Property="Template">
             <ControlTemplate>
@@ -21,23 +20,29 @@
                     <Border x:Name="PART_Border" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            Padding="{TemplateBinding Padding}" Focusable="False">
+                            Padding="{TemplateBinding Padding}">
                         <ItemsPresenter Name="PART_ItemsPresenter"
-                                        Items="{TemplateBinding Items}"
-                                        ItemTemplate="{TemplateBinding ItemTemplate}">
-
+                                        Focusable="False"
+                                        KeyboardNavigation.IsTabStop="False"
+                                        Items="{TemplateBinding Items}">
                             <ItemsPresenter.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <c:ConcatenatingWrapPanel>
+                                    <c:ConcatenatingWrapPanel Focusable="False">
                                         <c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                             <AutoCompleteBox x:Name="PART_AutoCompleteBox"
                                                              MinimumPrefixLength="1"
+                                                             Focusable="False"
                                                              IsTextCompletionEnabled="True"
                                                              Items="{Binding #PART_Border.TemplatedParent.Suggestions}" />
                                         </c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                     </c:ConcatenatingWrapPanel>
                                 </ItemsPanelTemplate>
                             </ItemsPresenter.ItemsPanel>
+                            <ItemsPresenter.ItemTemplate>
+                                <DataTemplate>
+                                    <c:TagControl Content="{Binding .}"/>
+                                </DataTemplate>
+                            </ItemsPresenter.ItemTemplate>
                         </ItemsPresenter>
                     </Border>
                 </DataValidationErrors>

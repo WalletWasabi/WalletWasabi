@@ -85,7 +85,7 @@ namespace WalletWasabi.Blockchain.Mempool
 		/// <summary>
 		/// Tries to perform mempool cleanup with the help of the backend.
 		/// </summary>
-		public async Task<bool> TryPerformMempoolCleanupAsync(WasabiClientFactory wasabiClientFactory)
+		public async Task<bool> TryPerformMempoolCleanupAsync(HttpClientFactory httpClientFactory)
 		{
 			// If already cleaning, then no need to run it that often.
 			if (Interlocked.CompareExchange(ref _cleanupInProcess, 1, 0) == 1)
@@ -106,7 +106,7 @@ namespace WalletWasabi.Blockchain.Mempool
 				Logger.LogInfo("Start cleaning out mempool...");
 				{
 					var compactness = 10;
-					var allMempoolHashes = await wasabiClientFactory.SharedWasabiClient.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
+					var allMempoolHashes = await httpClientFactory.SharedWasabiClient.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
 
 					lock (ProcessedLock)
 					{

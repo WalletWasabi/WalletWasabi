@@ -10,18 +10,6 @@ namespace WalletWasabi.JsonConverters
 	public class GuidJsonConverter : JsonConverter
 	{
 		/// <summary>
-		///     Gets the instance.
-		/// </summary>
-		public static GuidJsonConverter Instance { get; } = new GuidJsonConverter();
-
-		/// <summary>
-		///     Gets a value indicating whether this <see cref="T:Newtonsoft.Json.JsonConverter"/> can read JSON.
-		/// </summary>
-		/// <value><see langword="true"/> if this <see cref="T:Newtonsoft.Json.JsonConverter"/> can read JSON; otherwise, <see langword="false"/>.
-		/// </value>
-		public override bool CanRead => true;
-
-		/// <summary>
 		///     Gets a value indicating whether this <see cref="T:Newtonsoft.Json.JsonConverter"/> can write JSON.
 		/// </summary>
 		/// <value><see langword="true"/> if this <see cref="T:Newtonsoft.Json.JsonConverter"/> can write JSON; otherwise, <see langword="false"/>.

@@ -14,7 +14,7 @@ namespace WalletWasabi.Services
 		{
 			Synchronizer = synchronizer;
 			UpdateStatus = new UpdateStatus(true, true, new Version(), 0);
-			WasabiClient = Synchronizer.WasabiClientFactory.SharedWasabiClient;
+			WasabiClient = Synchronizer.HttpClientFactory.SharedWasabiClient;
 			Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
 		}
 

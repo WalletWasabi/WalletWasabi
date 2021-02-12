@@ -3,10 +3,11 @@ using System.Reactive.Disposables;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 
 namespace WalletWasabi.Fluent.Controls
 {
-	public class TagControl : TemplatedControl
+	public class TagControl : ContentControl
 	{
 		private IDisposable? _subscription;
 		private TagsBox? _parentTagBox;
@@ -15,11 +16,16 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			base.OnApplyTemplate(e);
 
-			_parentTagBox = Parent as TagsBox;
+			_parentTagBox = this.FindLogicalAncestorOfType<TagsBox>();
 
 			_subscription?.Dispose();
 
 			var deleteButton = e.NameScope.Find<Button>("PART_DeleteButton");
+
+			if (deleteButton is null)
+			{
+				return;
+			}
 
 			deleteButton.Click += OnDeleteTagClicked;
 

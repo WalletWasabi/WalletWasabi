@@ -58,7 +58,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			DestinationKeyManager = KeyManager;
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
-			CcjHostUriAction = Synchronizer.WasabiClientFactory.BackendUriGetter;
+			CcjHostUriAction = Synchronizer.HttpClientFactory.BackendUriGetter;
 			CoordinatorFeepercentToCheck = null;
 
 			ExposedLinks = new ConcurrentDictionary<OutPoint, IEnumerable<HdPubKeyBlindedPair>>();
@@ -425,14 +425,19 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			shuffledOutputs.Shuffle();
 			foreach (var activeOutput in shuffledOutputs)
 			{
-				using (TorHttpClient torHttpClient = Synchronizer.WasabiClientFactory.NewBackendTorHttpClient(isolateStream: true))
+				IHttpClient httpClient = Synchronizer.HttpClientFactory.NewBackendHttpClient(isolateStream: true);
+				try
 				{
-					var bobClient = new BobClient(torHttpClient);
+					var bobClient = new BobClient(httpClient);
 					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput).ConfigureAwait(false))
 					{
 						Logger.LogWarning($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.");
 						break;
 					}
+				}
+				finally
+				{
+					(httpClient as IDisposable)?.Dispose();
 				}
 
 				// Unblind our exposed links.
@@ -1079,12 +1084,17 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		private async Task<AliceClientBase> CreateAliceClientAsync(long roundId, List<OutPoint> registrableCoins, (HdPubKey change, IEnumerable<HdPubKey> actives) outputAddresses)
 		{
 			RoundStateResponse4 state;
-			WasabiClientFactory factory = Synchronizer.WasabiClientFactory;
+			HttpClientFactory factory = Synchronizer.HttpClientFactory;
 
-			using (TorHttpClient torHttpClient = factory.NewBackendTorHttpClient(isolateStream: true))
+			IHttpClient satoshiHttpClient = factory.NewBackendHttpClient(isolateStream: true);
+			try
 			{
-				var satoshiClient = new SatoshiClient(torHttpClient);
+				var satoshiClient = new SatoshiClient(satoshiHttpClient);
 				state = (RoundStateResponse4)await satoshiClient.GetRoundStateAsync(roundId).ConfigureAwait(false);
+			}
+			finally
+			{
+				(satoshiHttpClient as IDisposable)?.Dispose();
 			}
 
 			PubKey[] signerPubKeys = state.SignerPubKeys.ToArray();
@@ -1134,7 +1144,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				inputProofs.Add(inputProof);
 			}
 
-			IHttpClient httpClient = Synchronizer.WasabiClientFactory.NewHttpClient(CcjHostUriAction, isolateStream: true);
+			IHttpClient httpClient = Synchronizer.HttpClientFactory.NewHttpClient(CcjHostUriAction, isolateStream: true);
 			return await AliceClientBase.CreateNewAsync(roundId, registeredAddresses, signerPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, httpClient).ConfigureAwait(false);
 		}
 	}
