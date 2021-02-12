@@ -1,6 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Styles.Resources>
+    <SolidColorBrush x:Key="DataGridColumnHeaderBackgroundBrush" Color="Transparent"/>
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
 
