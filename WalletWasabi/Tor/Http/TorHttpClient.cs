@@ -193,6 +193,7 @@ namespace WalletWasabi.Tor.Http
 				}
 			}
 
+			// At this point Tor SOCKS5 client is always non-null.
 			token.ThrowIfCancellationRequested();
 
 			string requestString = await request.ToHttpStringAsync(token).ConfigureAwait(false);
