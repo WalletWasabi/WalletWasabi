@@ -21,6 +21,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		NonUniqueInputs,
 		NotEnoughWeight,
 		TooMuchWeight,
-		InputBanned
+		InputBanned,
+		InputNotWhitelisted
 	}
 }

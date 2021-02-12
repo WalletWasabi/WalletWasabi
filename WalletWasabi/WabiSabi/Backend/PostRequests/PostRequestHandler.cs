@@ -39,10 +39,6 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				if (request.InputRoundSignaturePairs.Select(x => x.Input).Any(x => Prison.TryGet(x, out var inmate) && (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted)))
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned);
-				}
 				if (!Arena.TryGetRound(request.RoundId, out var round))
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
@@ -51,9 +47,11 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 				}
+				var inputRoundSignaturePairs = request.InputRoundSignaturePairs;
+				var inputs = inputRoundSignaturePairs.Select(x => x.Input);
 
-				int inputCount = request.InputRoundSignaturePairs.Count();
-				if (inputCount != request.InputRoundSignaturePairs.Select(x => x.Input).Distinct().Count())
+				int inputCount = inputs.Count();
+				if (inputCount != inputs.Distinct().Count())
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NonUniqueInputs);
 				}
@@ -61,10 +59,18 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooManyInputs);
 				}
+				if (inputs.Any(x => Prison.TryGet(x, out var inmate) && (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted)))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned);
+				}
+				if (round.IsBlameRound && inputs.Any(x => !round.BlameWhitelist.Contains(x)))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNotWhitelisted);
+				}
 
 				var inputValueSum = Money.Zero;
 				var inputWeightSum = 0;
-				foreach (var inputRoundSignaturePair in request.InputRoundSignaturePairs)
+				foreach (var inputRoundSignaturePair in inputRoundSignaturePairs)
 				{
 					OutPoint input = inputRoundSignaturePair.Input;
 					var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true).ConfigureAwait(false);
