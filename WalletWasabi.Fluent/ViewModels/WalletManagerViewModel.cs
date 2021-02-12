@@ -183,7 +183,10 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public NavBarItemViewModel? SelectionChanged(NavBarItemViewModel item)
 		{
-			_currentSelection = item;
+			if (item.SelectionMode == NavBarItemSelectionMode.Selected)
+			{
+				_currentSelection = item;
+			}
 
 			if (IsLoadingWallet || SelectedWallet == item)
 			{
