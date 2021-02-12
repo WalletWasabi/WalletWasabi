@@ -55,4 +55,5 @@ Run Wasabi with `dotnet run` from the `WalletWasabi.Gui` folder.
 
 ```sh
 git pull
+git clean -xdf
 ```
