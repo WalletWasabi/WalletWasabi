@@ -57,7 +57,8 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooManyInputs);
 				}
 
-				var inputSum = Money.Zero;
+				var inputValueSum = Money.Zero;
+				var inputWeightSum = 0;
 				foreach (var inputRoundSignaturePair in request.InputRoundSignaturePairs)
 				{
 					OutPoint input = inputRoundSignaturePair.Input;
@@ -83,14 +84,15 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					{
 						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongRoundSignature);
 					}
-					inputSum += txOutResponse.TxOut.Value;
+					inputValueSum += txOutResponse.TxOut.Value;
+					// inputWeightSum+=txOutResponse.TxOut.ScriptPubKey what to do with this?
 				}
 
-				if (inputSum < round.MinRegistrableAmount)
+				if (inputValueSum < round.MinRegistrableAmount)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
 				}
-				if (inputSum > round.MaxRegistrableAmount)
+				if (inputValueSum > round.MaxRegistrableAmount)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 				}
