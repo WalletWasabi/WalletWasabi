@@ -56,19 +56,6 @@ namespace System.IO
 			return false;
 		}
 
-		public static async Task BetterExtractZipToDirectoryAsync(string src, string dest)
-		{
-			try
-			{
-				ZipFile.ExtractToDirectory(src, dest);
-			}
-			catch (UnauthorizedAccessException)
-			{
-				await Task.Delay(100).ConfigureAwait(false);
-				ZipFile.ExtractToDirectory(src, dest);
-			}
-		}
-
 		public static void EnsureContainingDirectoryExists(string fileNameOrPath)
 		{
 			string fullPath = Path.GetFullPath(fileNameOrPath); // No matter if relative or absolute path is given to this.
@@ -94,34 +81,6 @@ namespace System.IO
 				EnsureContainingDirectoryExists(filePath);
 
 				File.Create(filePath)?.Dispose();
-			}
-		}
-
-		public static byte[] GetHashFile(string filePath)
-		{
-			var bytes = File.ReadAllBytes(filePath);
-			return HashHelpers.GenerateSha256Hash(bytes);
-		}
-
-		public static bool CheckExpectedHash(string filePath, string sourceFolderPath)
-		{
-			var fileHash = GetHashFile(filePath);
-			try
-			{
-				var digests = File.ReadAllLines(Path.Combine(sourceFolderPath, "digests.txt"));
-				foreach (var digest in digests)
-				{
-					var expectedHash = ByteHelpers.FromHex(digest);
-					if (ByteHelpers.CompareFastUnsafe(fileHash, expectedHash))
-					{
-						return true;
-					}
-				}
-				return false;
-			}
-			catch
-			{
-				return false;
 			}
 		}
 

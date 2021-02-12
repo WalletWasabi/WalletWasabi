@@ -32,20 +32,6 @@ namespace WalletWasabi.Io
 			}
 		}
 
-		public bool TryReplaceMeWith(string sourcePath)
-		{
-			if (File.Exists(sourcePath))
-			{
-				File.Move(sourcePath, FilePath);
-
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-
 		public bool Exists()
 		{
 			return File.Exists(FilePath);
@@ -59,17 +45,6 @@ namespace WalletWasabi.Io
 		protected static async Task<string[]> ReadAllLinesAsync(string filePath, CancellationToken cancellationToken)
 		{
 			return await File.ReadAllLinesAsync(filePath, cancellationToken).ConfigureAwait(false);
-		}
-
-		/// <summary>
-		/// Open text file and read a specified amount of data. This method is useful when you want async/await read/write
-		/// but in a performant way.
-		/// </summary>
-		/// <returns>The StreamReader where you can use ReadLineAsync() for example.</returns>
-		/// <param name="bufferSize">Size of the bytes to handle sync way. The default is 1Mb.</param>
-		public StreamReader OpenText(int bufferSize = Constants.BigFileReadWriteBufferSize)
-		{
-			return OpenText(FilePath, bufferSize);
 		}
 
 		protected static StreamReader OpenText(string filePath, int bufferSize = Constants.BigFileReadWriteBufferSize)
