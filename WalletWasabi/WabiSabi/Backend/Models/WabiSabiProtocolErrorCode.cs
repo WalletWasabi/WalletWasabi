@@ -18,6 +18,8 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		TooManyInputs,
 		NotEnoughFunds,
 		TooMuchFunds,
-		NonUniqueInputs
+		NonUniqueInputs,
+		NotEnoughWeight,
+		TooMuchWeight
 	}
 }

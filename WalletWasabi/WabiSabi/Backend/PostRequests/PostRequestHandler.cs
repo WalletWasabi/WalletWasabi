@@ -85,7 +85,15 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongRoundSignature);
 					}
 					inputValueSum += txOutResponse.TxOut.Value;
-					// inputWeightSum+=txOutResponse.TxOut.ScriptPubKey what to do with this?
+
+					if (txOutResponse.ScriptPubKeyType == "witness_v0_keyhash")
+					{
+						inputWeightSum += 160;
+					}
+					else
+					{
+						throw new NotImplementedException($"{txOutResponse.ScriptPubKeyType} weight estimation isn't implemented.");
+					}
 				}
 
 				if (inputValueSum < round.MinRegistrableAmount)
@@ -95,6 +103,15 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				if (inputValueSum > round.MaxRegistrableAmount)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
+				}
+
+				if (inputWeightSum < round.MinRegistrableWeight)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughWeight);
+				}
+				if (inputWeightSum > round.MaxRegistrableWeight)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchWeight);
 				}
 
 				throw new NotImplementedException();
