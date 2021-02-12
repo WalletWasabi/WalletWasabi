@@ -23,7 +23,7 @@
   </Style>
 
   <Style Selector="DataGridColumnHeader">
-    <Setter Property="FontSize" Value="{StaticResource FontSizeH6}"/>
+    <Setter Property="FontSize" Value="{StaticResource FontSizeH7}"/>
     <Setter Property="FontWeight" Value="Bold"/>
     <Setter Property="Padding" Value="12 10 10 10"/>
   </Style>
