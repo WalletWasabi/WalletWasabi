@@ -8,4 +8,10 @@
   <Style Selector="DataGrid">
     <Setter Property="GridLinesVisibility" Value="Horizontal"/>
   </Style>
+
+  <Style Selector="DataGridColumnHeader">
+    <Setter Property="FontSize" Value="{StaticResource FontSizeH7}"/>
+    <Setter Property="FontWeight" Value="Bold"/>
+    <Setter Property="Padding" Value="10"/>
+  </Style>
 </Styles>
