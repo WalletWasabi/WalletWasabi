@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Helpers;
 using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -88,7 +89,8 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 
 					if (txOutResponse.ScriptPubKeyType == "witness_v0_keyhash")
 					{
-						inputWeightSum += 69 * 4;
+						// Convert conservative P2WPKH size in virtual bytes to weight units.
+						inputWeightSum += Constants.P2wpkhInputVirtualSize * 4;
 					}
 					else
 					{
