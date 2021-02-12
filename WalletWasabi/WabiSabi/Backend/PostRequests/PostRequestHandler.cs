@@ -86,11 +86,11 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					inputSum += txOutResponse.TxOut.Value;
 				}
 
-				if (inputSum < Config.MinRegistrableAmount)
+				if (inputSum < round.MinRegistrableAmount)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
 				}
-				if (inputSum > Config.MaxRegistrableAmount)
+				if (inputSum > round.MaxRegistrableAmount)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 				}
