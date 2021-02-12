@@ -9,14 +9,14 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		public ShowErrorDialogViewModel(string message, string title, string caption)
 		{
 			Message = message;
-			Title = title;
+			_title = title;
 			Caption = caption;
 
-			NextCommand = ReactiveCommand.Create(() => Navigate().Back());
+			NextCommand = ReactiveCommand.Create(() => Close());
 		}
 
 		public string Message { get; }
-		
+
 		public string Caption { get; }
 
 		public override string Title
