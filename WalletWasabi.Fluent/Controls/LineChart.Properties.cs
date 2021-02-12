@@ -43,8 +43,17 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<IList<double>?> XAxisValuesProperty =
 			AvaloniaProperty.Register<LineChart, IList<double>?>(nameof(XAxisValues));
 
-		public static readonly StyledProperty<IList<string>?> XAxisLabelsProperty =
-			AvaloniaProperty.Register<LineChart, IList<string>?>(nameof(XAxisLabels));
+		public static readonly StyledProperty<bool> XAxisLogarithmicScaleProperty =
+			AvaloniaProperty.Register<LineChart, bool>(nameof(XAxisLogarithmicScale));
+
+		public static readonly StyledProperty<double> XAxisMinValueProperty =
+			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMinValue));
+
+		public static readonly StyledProperty<double> XAxisMaxValueProperty =
+			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMaxValue));
+
+		public static readonly StyledProperty<double> XAxisCurrentValueProperty =
+			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisCurrentValue));
 
 		public static readonly StyledProperty<double> XAxisOpacityProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisOpacity));
@@ -68,6 +77,9 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMinViableWidth), double.MinValue);
 
 		// XAxis Label
+
+		public static readonly StyledProperty<IList<string>?> XAxisLabelsProperty =
+			AvaloniaProperty.Register<LineChart, IList<string>?>(nameof(XAxisLabels));
 
 		public static readonly StyledProperty<IBrush?> XAxisLabelForegroundProperty =
 			AvaloniaProperty.Register<LineChart, IBrush?>(nameof(XAxisLabelForeground));
@@ -142,14 +154,14 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> YAxisLogarithmicScaleProperty =
 			AvaloniaProperty.Register<LineChart, bool>(nameof(YAxisLogarithmicScale));
 
-		public static readonly StyledProperty<double> XAxisCurrentValueProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisCurrentValue));
+		public static readonly StyledProperty<double> YAxisMinValueProperty =
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisMinValue));
 
-		public static readonly StyledProperty<double> XAxisMinValueProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMinValue));
+		public static readonly StyledProperty<double> YAxisMaxValueProperty =
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisMaxValue));
 
-		public static readonly StyledProperty<double> XAxisMaxValueProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMaxValue));
+		public static readonly StyledProperty<double> YAxisCurrentValueProperty =
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisCurrentValue));
 
 		public static readonly StyledProperty<double> YAxisOpacityProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisOpacity));
@@ -171,6 +183,41 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<double> YAxisMinViableWidthProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisMinViableWidth), double.MinValue);
+
+		// YAxis Label
+
+		public static readonly StyledProperty<IList<string>?> YAxisLabelsProperty =
+			AvaloniaProperty.Register<LineChart, IList<string>?>(nameof(YAxisLabels));
+
+		public static readonly StyledProperty<IBrush?> YAxisLabelForegroundProperty =
+			AvaloniaProperty.Register<LineChart, IBrush?>(nameof(YAxisLabelForeground));
+
+		public static readonly StyledProperty<double> YAxisLabelOpacityProperty =
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisLabelOpacity));
+
+		public static readonly StyledProperty<Point> YAxisLabelOffsetProperty =
+			AvaloniaProperty.Register<LineChart, Point>(nameof(YAxisLabelOffset));
+
+		public static readonly StyledProperty<Size> YAxisLabelSizeProperty =
+			AvaloniaProperty.Register<LineChart, Size>(nameof(YAxisLabelSize));
+
+		public static readonly StyledProperty<TextAlignment> YAxisLabelAlignmentProperty =
+			AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(YAxisLabelAlignment));
+
+		public static readonly StyledProperty<double> YAxisLabelAngleProperty =
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisLabelAngle));
+
+		public static readonly StyledProperty<FontFamily> YAxisLabelFontFamilyProperty =
+			AvaloniaProperty.Register<LineChart, FontFamily>(nameof(YAxisLabelFontFamily));
+
+		public static readonly StyledProperty<FontStyle> YAxisLabelFontStyleProperty =
+			AvaloniaProperty.Register<LineChart, FontStyle>(nameof(YAxisLabelFontStyle));
+
+		public static readonly StyledProperty<FontWeight> YAxisLabelFontWeightProperty =
+			AvaloniaProperty.Register<LineChart, FontWeight>(nameof(YAxisLabelFontWeight));
+
+		public static readonly StyledProperty<double> YAxisLabelFontSizeProperty =
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisLabelFontSize));
 
 		// YAxis Title
 
@@ -250,6 +297,7 @@ namespace WalletWasabi.Fluent.Controls
 		static LineChart()
 		{
 			AffectsMeasure<LineChart>(AreaMarginProperty);
+
 			AffectsRender<LineChart>(
 				AreaMarginProperty,
 				AreaFillProperty,
@@ -258,14 +306,20 @@ namespace WalletWasabi.Fluent.Controls
 				AreaStrokeDashStyleProperty,
 				AreaStrokeLineCapProperty,
 				AreaStrokeLineJoinProperty,
-				AreaStrokeMiterLimitProperty,
+				AreaStrokeMiterLimitProperty);
+
+			AffectsRender<LineChart>(
 				XAxisValuesProperty,
-				XAxisLabelsProperty,
+				XAxisLogarithmicScaleProperty,
+				XAxisMinValueProperty,
+				XAxisMaxValueProperty,
+				XAxisCurrentValueProperty,
 				XAxisOpacityProperty,
 				XAxisOffsetProperty,
 				XAxisStrokeProperty,
 				XAxisStrokeThicknessProperty,
 				XAxisArrowSizeProperty,
+				XAxisLabelsProperty,
 				XAxisLabelForegroundProperty,
 				XAxisLabelOpacityProperty,
 				XAxisLabelOffsetProperty,
@@ -286,17 +340,30 @@ namespace WalletWasabi.Fluent.Controls
 				XAxisTitleFontFamilyProperty,
 				XAxisTitleFontStyleProperty,
 				XAxisTitleFontWeightProperty,
-				XAxisTitleFontSizeProperty,
+				XAxisTitleFontSizeProperty);
+
+			AffectsRender<LineChart>(
 				YAxisValuesProperty,
 				YAxisLogarithmicScaleProperty,
-				XAxisCurrentValueProperty,
-				XAxisMinValueProperty,
-				XAxisMaxValueProperty,
+				YAxisMinValueProperty,
+				YAxisMaxValueProperty,
+				YAxisCurrentValueProperty,
 				YAxisOpacityProperty,
 				YAxisOffsetProperty,
 				YAxisStrokeProperty,
 				YAxisStrokeThicknessProperty,
 				YAxisArrowSizeProperty,
+				YAxisLabelsProperty,
+				YAxisLabelForegroundProperty,
+				YAxisLabelOpacityProperty,
+				YAxisLabelOffsetProperty,
+				YAxisLabelSizeProperty,
+				YAxisLabelAlignmentProperty,
+				YAxisLabelAngleProperty,
+				YAxisLabelFontFamilyProperty,
+				YAxisLabelFontStyleProperty,
+				YAxisLabelFontWeightProperty,
+				YAxisLabelFontSizeProperty,
 				YAxisTitleProperty,
 				YAxisTitleForegroundProperty,
 				YAxisTitleOpacityProperty,
@@ -307,13 +374,17 @@ namespace WalletWasabi.Fluent.Controls
 				YAxisTitleFontFamilyProperty,
 				YAxisTitleFontStyleProperty,
 				YAxisTitleFontWeightProperty,
-				YAxisTitleFontSizeProperty,
+				YAxisTitleFontSizeProperty);
+
+			AffectsRender<LineChart>(
 				CursorStrokeProperty,
 				CursorStrokeThicknessProperty,
 				CursorStrokeDashStyleProperty,
 				CursorStrokeLineCapProperty,
 				CursorStrokeLineJoinProperty,
-				CursorStrokeMiterLimitProperty,
+				CursorStrokeMiterLimitProperty);
+
+			AffectsRender<LineChart>(
 				BorderBrushProperty,
 				BorderThicknessProperty,
 				BorderRadiusXProperty,
@@ -384,10 +455,16 @@ namespace WalletWasabi.Fluent.Controls
 
 		// XAxis
 
-		public double XAxisCurrentValue
+		public IList<double>? XAxisValues
 		{
-			get => GetValue(XAxisCurrentValueProperty);
-			set => SetValue(XAxisCurrentValueProperty, value);
+			get => GetValue(XAxisValuesProperty);
+			set => SetValue(XAxisValuesProperty, value);
+		}
+
+		public bool XAxisLogarithmicScale
+		{
+			get => GetValue(XAxisLogarithmicScaleProperty);
+			set => SetValue(XAxisLogarithmicScaleProperty, value);
 		}
 
 		public double XAxisMinValue
@@ -402,16 +479,10 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(XAxisMaxValueProperty, value);
 		}
 
-		public IList<string>? XAxisLabels
+		public double XAxisCurrentValue
 		{
-			get => GetValue(XAxisLabelsProperty);
-			set => SetValue(XAxisLabelsProperty, value);
-		}
-
-		public IList<double>? XAxisValues
-		{
-			get => GetValue(XAxisValuesProperty);
-			set => SetValue(XAxisValuesProperty, value);
+			get => GetValue(XAxisCurrentValueProperty);
+			set => SetValue(XAxisCurrentValueProperty, value);
 		}
 
 		public double XAxisOpacity
@@ -457,6 +528,12 @@ namespace WalletWasabi.Fluent.Controls
 		}
 
 		// XAxis Label
+
+		public IList<string>? XAxisLabels
+		{
+			get => GetValue(XAxisLabelsProperty);
+			set => SetValue(XAxisLabelsProperty, value);
+		}
 
 		public IBrush? XAxisLabelForeground
 		{
@@ -600,6 +677,24 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(YAxisLogarithmicScaleProperty, value);
 		}
 
+		public double YAxisMinValue
+		{
+			get => GetValue(YAxisMinValueProperty);
+			set => SetValue(YAxisMinValueProperty, value);
+		}
+
+		public double YAxisMaxValue
+		{
+			get => GetValue(YAxisMaxValueProperty);
+			set => SetValue(YAxisMaxValueProperty, value);
+		}
+
+		public double YAxisCurrentValue
+		{
+			get => GetValue(YAxisCurrentValueProperty);
+			set => SetValue(YAxisCurrentValueProperty, value);
+		}
+
 		public double YAxisOpacity
 		{
 			get => GetValue(YAxisOpacityProperty);
@@ -640,6 +735,74 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(YAxisMinViableWidthProperty);
 			set => SetValue(YAxisMinViableWidthProperty, value);
+		}
+
+		// YAxis Label
+
+		public IList<string>? YAxisLabels
+		{
+			get => GetValue(YAxisLabelsProperty);
+			set => SetValue(YAxisLabelsProperty, value);
+		}
+
+		public IBrush? YAxisLabelForeground
+		{
+			get => GetValue(YAxisLabelForegroundProperty);
+			set => SetValue(YAxisLabelForegroundProperty, value);
+		}
+
+		public double YAxisLabelOpacity
+		{
+			get => GetValue(YAxisLabelOpacityProperty);
+			set => SetValue(YAxisLabelOpacityProperty, value);
+		}
+
+		public double YAxisLabelAngle
+		{
+			get => GetValue(YAxisLabelAngleProperty);
+			set => SetValue(YAxisLabelAngleProperty, value);
+		}
+
+		public Point YAxisLabelOffset
+		{
+			get => GetValue(YAxisLabelOffsetProperty);
+			set => SetValue(YAxisLabelOffsetProperty, value);
+		}
+
+		public Size YAxisLabelSize
+		{
+			get => GetValue(YAxisLabelSizeProperty);
+			set => SetValue(YAxisLabelSizeProperty, value);
+		}
+
+		public TextAlignment YAxisLabelAlignment
+		{
+			get => GetValue(YAxisLabelAlignmentProperty);
+			set => SetValue(YAxisLabelAlignmentProperty, value);
+		}
+
+		public FontFamily YAxisLabelFontFamily
+		{
+			get => GetValue(YAxisLabelFontFamilyProperty);
+			set => SetValue(YAxisLabelFontFamilyProperty, value);
+		}
+
+		public FontStyle YAxisLabelFontStyle
+		{
+			get => GetValue(YAxisLabelFontStyleProperty);
+			set => SetValue(YAxisLabelFontStyleProperty, value);
+		}
+
+		public FontWeight YAxisLabelFontWeight
+		{
+			get => GetValue(YAxisLabelFontWeightProperty);
+			set => SetValue(YAxisLabelFontWeightProperty, value);
+		}
+
+		public double YAxisLabelFontSize
+		{
+			get => GetValue(YAxisLabelFontSizeProperty);
+			set => SetValue(YAxisLabelFontSizeProperty, value);
 		}
 
 		// YAxis Title

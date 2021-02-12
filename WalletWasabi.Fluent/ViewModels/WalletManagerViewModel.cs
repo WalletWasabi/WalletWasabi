@@ -22,6 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private readonly Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 		private readonly Dictionary<WalletViewModelBase, List<NavBarItemViewModel>> _walletActionsDictionary;
 		private readonly ReadOnlyObservableCollection<NavBarItemViewModel> _items;
+		private NavBarItemViewModel? _currentSelection;
 		[AutoNotify] private WalletViewModelBase? _selectedWallet;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
 		[AutoNotify] private bool _loggedInAndSelectedAlwaysFirst;
@@ -70,9 +71,7 @@ namespace WalletWasabi.Fluent.ViewModels
 						}
 						else if (_walletDictionary[wallet] is ClosedWalletViewModel { IsLoggedIn: true } cwvm && wallet.State == WalletState.Started)
 						{
-							IsLoadingWallet = true;
 							OpenClosedWallet(walletManager, uiConfig, cwvm);
-							IsLoadingWallet = false;
 						}
 					}
 
@@ -102,6 +101,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private void OpenClosedWallet(WalletManager walletManager, UiConfig uiConfig, ClosedWalletViewModel closedWalletViewModel)
 		{
+			IsLoadingWallet = true;
+
 			RemoveWallet(closedWalletViewModel);
 
 			var walletViewModelItem = OpenWallet(walletManager, uiConfig, closedWalletViewModel.Wallet);
@@ -112,9 +113,13 @@ namespace WalletWasabi.Fluent.ViewModels
 				_walletActionsDictionary[walletViewModelItem] = actions;
 			}
 
-			InsertActions(walletViewModelItem, actions);
+			if (_currentSelection == closedWalletViewModel)
+			{
+				SelectedWallet = walletViewModelItem;
+				InsertActions(walletViewModelItem, actions);
+			}
 
-			SelectedWallet = walletViewModelItem;
+			IsLoadingWallet = false;
 		}
 
 		private WalletViewModel OpenWallet(WalletManager walletManager, UiConfig uiConfig, Wallet wallet)
@@ -173,12 +178,14 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public NavBarItemViewModel? SelectionChanged(NavBarItemViewModel item)
 		{
-			var result = default(NavBarItemViewModel);
+			_currentSelection = item;
 
-			if (SelectedWallet == item)
+			if (IsLoadingWallet || SelectedWallet == item)
 			{
-				return result;
+				return default;
 			}
+
+			var result = default(NavBarItemViewModel);
 
 			if (SelectedWallet is { IsLoggedIn: true } walletViewModelPrevious && (item is WalletViewModelBase && SelectedWallet != item))
 			{
