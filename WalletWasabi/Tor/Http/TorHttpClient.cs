@@ -202,10 +202,19 @@ namespace WalletWasabi.Tor.Http
 
 			Stream transportStream = TorSocks5Client.GetTransportStream();
 
-			await transportStream.WriteAsync(bytes.AsMemory(0, bytes.Length), token).ConfigureAwait(false);
-			await transportStream.FlushAsync(token).ConfigureAwait(false);
+			try
+			{
+				await transportStream.WriteAsync(bytes.AsMemory(0, bytes.Length), token).ConfigureAwait(false);
+				await transportStream.FlushAsync(token).ConfigureAwait(false);
 
-			return await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method).ConfigureAwait(false);
+				return await HttpResponseMessageExtensions.CreateNewAsync(transportStream, request.Method).ConfigureAwait(false);
+			}
+			catch
+			{
+				TorSocks5Client?.Dispose();
+				TorSocks5Client = null;
+				throw;
+			}
 		}
 
 		#region IDisposable Support
