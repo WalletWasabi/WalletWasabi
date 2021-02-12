@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.JsonConverters.Collections
 {
-	public class DefaultValueStringCollectionAttribute : DefaultValueAttribute
+	public class DefaultValueStringSetAttribute : DefaultValueAttribute
 	{
-		public DefaultValueStringCollectionAttribute(string json)
-			: base(JsonConvert.DeserializeObject<IEnumerable<string>>(json))
+		public DefaultValueStringSetAttribute(string json)
+			: base(JsonConvert.DeserializeObject<ISet<string>>(json))
 		{
 		}
 	}

@@ -34,9 +34,9 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonConverter(typeof(TimeSpanJsonConverter))]
 		public TimeSpan ReleaseUtxoFromPrisonAfter { get; set; } = TimeSpan.FromHours(3);
 
-		[DefaultValueStringCollection("[\"witness_v0_keyhash\"]")]
+		[DefaultValueStringSet("[\"witness_v0_keyhash\"]")]
 		[JsonProperty(PropertyName = "AllowedScriptTypes", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public IEnumerable<string> AllowedScriptTypes { get; set; } = new[] { "witness_v0_keyhash" };
+		public ISet<string> AllowedScriptTypes { get; set; } = new[] { "witness_v0_keyhash" }.ToHashSet();
 
 		[DefaultValue(2)]
 		[JsonProperty(PropertyName = "MaxInputCountByAlice", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -67,5 +67,9 @@ namespace WalletWasabi.WabiSabi.Backend
 		[DefaultValue(2000)]
 		[JsonProperty(PropertyName = "MaxRegistrableWeight", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public uint MaxRegistrableWeight { get; set; } = 2000;
+
+		[DefaultValue(true)]
+		[JsonProperty(PropertyName = "AllowNotedInputRegistration", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public bool AllowNotedInputRegistration { get; set; } = true;
 	}
 }

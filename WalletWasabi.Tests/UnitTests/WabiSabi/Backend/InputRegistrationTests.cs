@@ -19,6 +19,60 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 	public class InputRegistrationTests
 	{
 		[Fact]
+		public async Task InputbannedAsync()
+		{
+			MockArena arena = new();
+			Prison prison = new();
+			var pair = WabiSabiFactory.CreateInputRoundSignaturePair();
+			prison.Punish(pair.Input, Punishment.Banned, Guid.NewGuid());
+
+			await using PostRequestHandler handler = new(new WabiSabiConfig(), prison, arena, new MockRpcClient());
+			var req = new InputsRegistrationRequest(
+				Guid.NewGuid(),
+				new[] { pair },
+				null!,
+				null!);
+			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			Assert.Equal(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
+		}
+
+		[Fact]
+		public async Task InputCanBeNotedAsync()
+		{
+			MockArena arena = new();
+			Prison prison = new();
+			var pair = WabiSabiFactory.CreateInputRoundSignaturePair();
+			prison.Punish(pair.Input, Punishment.Noted, Guid.NewGuid());
+
+			await using PostRequestHandler handler = new(new WabiSabiConfig(), prison, arena, new MockRpcClient());
+			var req = new InputsRegistrationRequest(
+				Guid.NewGuid(),
+				new[] { pair },
+				null!,
+				null!);
+			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			Assert.NotEqual(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
+		}
+
+		[Fact]
+		public async Task InputCantBeNotedAsync()
+		{
+			MockArena arena = new();
+			Prison prison = new();
+			var pair = WabiSabiFactory.CreateInputRoundSignaturePair();
+			prison.Punish(pair.Input, Punishment.Noted, Guid.NewGuid());
+
+			await using PostRequestHandler handler = new(new WabiSabiConfig() { AllowNotedInputRegistration = false }, prison, arena, new MockRpcClient());
+			var req = new InputsRegistrationRequest(
+				Guid.NewGuid(),
+				new[] { pair },
+				null!,
+				null!);
+			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			Assert.Equal(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
+		}
+
+		[Fact]
 		public async Task RoundNotFoundAsync()
 		{
 			MockArena arena = new();

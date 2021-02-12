@@ -39,6 +39,10 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
+				if (request.InputRoundSignaturePairs.Select(x => x.Input).Any(x => Prison.TryGet(x, out var inmate) && (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted)))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned);
+				}
 				if (!Arena.TryGetRound(request.RoundId, out var round))
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
