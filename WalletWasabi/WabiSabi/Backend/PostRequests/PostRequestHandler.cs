@@ -88,7 +88,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 
 					if (txOutResponse.ScriptPubKeyType == "witness_v0_keyhash")
 					{
-						inputWeightSum += 160;
+						inputWeightSum += 69 * 4;
 					}
 					else
 					{
