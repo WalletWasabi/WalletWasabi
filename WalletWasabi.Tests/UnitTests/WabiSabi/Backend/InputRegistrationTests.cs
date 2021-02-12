@@ -38,7 +38,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task WrongPhaseAsync()
 		{
 			MockArena arena = new();
-			Round round = new();
+			var cfg = new WabiSabiConfig();
+			var round = WabiSabiFactory.CreateRound(cfg);
 			arena.OnTryGetRound = _ => round;
 
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
@@ -46,7 +47,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				if (phase != Phase.InputRegistration)
 				{
 					round.Phase = phase;
-					await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
+					await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 					var req = new InputsRegistrationRequest(
 						round.Id,
 						WabiSabiFactory.CreateInputRoundSignaturePairs(1),
@@ -57,11 +58,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				}
 			}
 		}
+
 		[Fact]
 		public async Task NonUniqueInputsAsync()
 		{
 			MockArena arena = new();
-			Round round = new();
+			var cfg = new WabiSabiConfig();
+			var round = WabiSabiFactory.CreateRound(cfg);
 			arena.OnTryGetRound = _ => round;
 			var inputSigPair = WabiSabiFactory.CreateInputRoundSignaturePair();
 
@@ -70,7 +73,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				if (phase != Phase.InputRegistration)
 				{
 					round.Phase = phase;
-					await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
+					await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 					var req = new InputsRegistrationRequest(
 						round.Id,
 						new[] { inputSigPair, inputSigPair },
@@ -86,7 +89,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task TooManyInputsAsync()
 		{
 			MockArena arena = new();
-			Round round = new();
+			var cfg = new WabiSabiConfig() { MaxInputCountByAlice = 3 };
+			var round = WabiSabiFactory.CreateRound(cfg);
 			arena.OnTryGetRound = _ => round;
 
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
@@ -94,7 +98,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				if (phase != Phase.InputRegistration)
 				{
 					round.Phase = phase;
-					await using PostRequestHandler handler = new(new WabiSabiConfig() { MaxInputCountByAlice = 3 }, new Prison(), arena, new MockRpcClient());
+					await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 					var req = new InputsRegistrationRequest(
 						round.Id,
 						WabiSabiFactory.CreateInputRoundSignaturePairs(4),
@@ -110,12 +114,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task InputSpentAsync()
 		{
 			MockArena arena = new();
-			Round round = new();
+			var cfg = new WabiSabiConfig();
+			var round = WabiSabiFactory.CreateRound(cfg);
 			arena.OnTryGetRound = _ => round;
 			MockRpcClient rpc = new();
 			rpc.OnGetTxOutAsync = (_, _, _) => null;
 
-			await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, rpc);
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var req = new InputsRegistrationRequest(
 				round.Id,
 				WabiSabiFactory.CreateInputRoundSignaturePairs(1),
@@ -129,12 +134,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task InputUnconfirmedAsync()
 		{
 			MockArena arena = new();
-			Round round = new();
+			var cfg = new WabiSabiConfig();
+			var round = WabiSabiFactory.CreateRound(cfg);
 			arena.OnTryGetRound = _ => round;
 			MockRpcClient rpc = new();
 			rpc.OnGetTxOutAsync = (_, _, _) => new GetTxOutResponse { Confirmations = 0 };
 
-			await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, rpc);
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var req = new InputsRegistrationRequest(
 				round.Id,
 				WabiSabiFactory.CreateInputRoundSignaturePairs(1),
@@ -148,7 +154,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task InputImmatureAsync()
 		{
 			MockArena arena = new();
-			Round round = new();
+			var cfg = new WabiSabiConfig();
+			var round = WabiSabiFactory.CreateRound(cfg);
 			arena.OnTryGetRound = _ => round;
 			MockRpcClient rpc = new();
 
@@ -156,7 +163,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			{
 				rpc.OnGetTxOutAsync = (_, _, _) => new GetTxOutResponse { Confirmations = i, IsCoinBase = true };
 
-				await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, rpc);
+				await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 				var req = new InputsRegistrationRequest(
 					round.Id,
 					WabiSabiFactory.CreateInputRoundSignaturePairs(1),
@@ -171,13 +178,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task InputScriptNotAllowedAsync()
 		{
 			MockArena arena = new();
-			Round round = new();
+			var cfg = new WabiSabiConfig();
+			var round = WabiSabiFactory.CreateRound(cfg);
 			arena.OnTryGetRound = _ => round;
 			MockRpcClient rpc = new();
 
 			rpc.OnGetTxOutAsync = (_, _, _) => new GetTxOutResponse { Confirmations = 1, ScriptPubKeyType = "foo" };
 
-			await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, rpc);
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var req = new InputsRegistrationRequest(
 				round.Id,
 				WabiSabiFactory.CreateInputRoundSignaturePairs(1),
@@ -191,7 +199,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task WrongRoundSignatureAsync()
 		{
 			MockArena arena = new();
-			Round round = new();
+			var cfg = new WabiSabiConfig();
+			var round = WabiSabiFactory.CreateRound(cfg);
 			arena.OnTryGetRound = _ => round;
 			MockRpcClient rpc = new();
 			using Key key = new();
@@ -203,7 +212,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
 			};
 
-			await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, rpc);
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var req = new InputsRegistrationRequest(
 				round.Id,
 				WabiSabiFactory.CreateInputRoundSignaturePairs(1),
@@ -217,7 +226,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task NotEnoughFundsAsync()
 		{
 			MockArena arena = new();
-			Round round = new();
+			var cfg = new WabiSabiConfig() { MinRegistrableAmount = Money.Coins(2) };
+			var round = WabiSabiFactory.CreateRound(cfg);
 			arena.OnTryGetRound = _ => round;
 			MockRpcClient rpc = new();
 			using Key key = new();
@@ -229,7 +239,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
 			};
 
-			await using PostRequestHandler handler = new(new WabiSabiConfig() { MinRegistrableAmount = Money.Coins(2) }, new Prison(), arena, rpc);
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var req = new InputsRegistrationRequest(
 				round.Id,
 				WabiSabiFactory.CreateInputRoundSignaturePairs(new[] { key }, round.Hash),
@@ -243,7 +253,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task TooMuchFundsAsync()
 		{
 			MockArena arena = new();
-			Round round = new();
+			var cfg = new WabiSabiConfig() { MaxRegistrableAmount = Money.Coins(0.9m) };
+			var round = WabiSabiFactory.CreateRound(cfg);
 			arena.OnTryGetRound = _ => round;
 			MockRpcClient rpc = new();
 			using Key key = new();
@@ -255,7 +266,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
 			};
 
-			await using PostRequestHandler handler = new(new WabiSabiConfig() { MaxRegistrableAmount = Money.Coins(0.9m) }, new Prison(), arena, rpc);
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var req = new InputsRegistrationRequest(
 				round.Id,
 				WabiSabiFactory.CreateInputRoundSignaturePairs(new[] { key }, round.Hash),

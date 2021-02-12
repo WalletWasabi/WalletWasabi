@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Tests.Helpers
@@ -43,5 +45,13 @@ namespace WalletWasabi.Tests.Helpers
 				yield return CreateInputRoundSignaturePair(key, roundHash);
 			}
 		}
+
+		public static Round CreateRound(WabiSabiConfig cfg)
+			=> new Round(
+				cfg.MaxInputCountByAlice,
+				cfg.MinRegistrableAmount,
+				cfg.MaxRegistrableAmount,
+				cfg.MinRegistrableWeight,
+				cfg.MaxRegistrableWeight);
 	}
 }

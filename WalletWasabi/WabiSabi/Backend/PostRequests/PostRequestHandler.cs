@@ -52,7 +52,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NonUniqueInputs);
 				}
-				if (Config.MaxInputCountByAlice < inputCount)
+				if (round.MaxInputCountByAlice < inputCount)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooManyInputs);
 				}
