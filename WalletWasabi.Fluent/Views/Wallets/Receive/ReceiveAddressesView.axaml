@@ -12,18 +12,16 @@
   <c:ContentArea Title="{Binding Title}"
                  EnableBack="True"
                  EnableCancel="True">
-    <DataGrid Items="{Binding Addresses}"
-              AutoGenerateColumns="False"
-              GridLinesVisibility="Horizontal">
+    <DataGrid Items="{Binding Addresses}">
       <DataGrid.Columns>
         <DataGridTextColumn Header="Label"
                             x:DataType="keys:HdPubKey"
                             Binding="{Binding Label}"
-                            Width="*" />
+                            Width="*"/>
         <DataGridTextColumn Header="P2pkScript"
                             x:DataType="keys:HdPubKey"
                             Binding="{Binding P2pkScript}"
-                            Width="*" />
+                            Width="*"/>
       </DataGrid.Columns>
     </DataGrid>
              <!-- SelectedItem="{Binding SelectedAddress}"  -->
