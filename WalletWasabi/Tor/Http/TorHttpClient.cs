@@ -84,7 +84,6 @@ namespace WalletWasabi.Tor.Http
 				request.Content = content;
 			}
 
-
 			try
 			{
 				using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
@@ -99,9 +98,6 @@ namespace WalletWasabi.Tor.Http
 					{
 						Logger.LogTrace(ex);
 
-						TorSocks5Client?.Dispose(); // rebuild the connection and retry
-						TorSocks5Client = null;
-
 						cancel.ThrowIfCancellationRequested();
 						try
 						{
@@ -113,9 +109,6 @@ namespace WalletWasabi.Tor.Http
 						catch (TorConnectCommandFailedException ex2) when (ex2.RepField == RepField.TtlExpired)
 						{
 							Logger.LogTrace(ex);
-
-							TorSocks5Client?.Dispose(); // rebuild the connection and retry
-							TorSocks5Client = null;
 
 							try
 							{
