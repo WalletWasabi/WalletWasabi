@@ -32,7 +32,7 @@ sudo service nginx start
 # Start Wasabi
 rm -rf WalletWasabi/WalletWasabi.Backend/bin && dotnet publish ~/WalletWasabi/WalletWasabi.Backend --configuration Release --self-contained false
 sudo systemctl start walletwasabi.service
-systemctl is-active tor && systemctl is-active walletwasabi && systemctl is-active nginx && ps -C bitcoind >/dev/null && echo "active" || echo "incative"
+systemctl is-active tor && systemctl is-active walletwasabi && systemctl is-active nginx && ps -C bitcoind >/dev/null && echo "active" || echo "inactive"
 tail -10000 ~/.walletwasabi/backend/Logs.txt
 
 # Advanced status checks
