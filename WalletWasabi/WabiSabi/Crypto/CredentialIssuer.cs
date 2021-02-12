@@ -49,13 +49,23 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// <param name="credentialIssuerSecretKey">The <see cref="CredentialIssuerSecretKey">coordinator's secret key</see> used to issue the credentials.</param>
 		/// <param name="numberOfCredentials">The number of credentials that the protocol handles in each request/response.</param>
 		/// <param name="randomNumberGenerator">The random number generator.</param>
-		public CredentialIssuer(CredentialIssuerSecretKey credentialIssuerSecretKey, int numberOfCredentials, WasabiRandom randomNumberGenerator)
+		public CredentialIssuer(
+			CredentialIssuerSecretKey credentialIssuerSecretKey,
+			int numberOfCredentials,
+			WasabiRandom randomNumberGenerator,
+			ulong maxAmount)
 		{
+			MaxAmount = maxAmount;
+			RangeProofWidth = (int)Math.Log2(MaxAmount);
 			CredentialIssuerSecretKey = Guard.NotNull(nameof(credentialIssuerSecretKey), credentialIssuerSecretKey);
 			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
 			CredentialIssuerParameters = CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 		}
+
+		public ulong MaxAmount { get; }
+
+		public int RangeProofWidth { get; }
 
 		// Keeps track of the used serial numbers. This is part of
 		// the double-spending prevention mechanism.
@@ -115,7 +125,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			}
 
 			// Check that the range proofs are of the appropriate bitwidth
-			var rangeProofWidth = registrationRequest.IsNullRequest ? 0 : Constants.RangeProofWidth;
+			var rangeProofWidth = registrationRequest.IsNullRequest ? 0 : RangeProofWidth;
 			var allRangeProofsAreCorrectSize = requested.All(x => x.BitCommitments.Count() == rangeProofWidth);
 			if (!allRangeProofsAreCorrectSize)
 			{
@@ -152,8 +162,8 @@ namespace WalletWasabi.WabiSabi.Crypto
 			foreach (var credentialRequest in requested)
 			{
 				statements.Add(registrationRequest.IsNullRequest
-					? ProofSystem.ZeroProofStatement(credentialRequest.Ma)
-					: ProofSystem.RangeProofStatement(credentialRequest.Ma, credentialRequest.BitCommitments));
+					? ProofSystem.ZeroProofStatement(credentialRequest.Ma, rangeProofWidth)
+					: ProofSystem.RangeProofStatement(credentialRequest.Ma, credentialRequest.BitCommitments, rangeProofWidth));
 			}
 
 			// Balance proof

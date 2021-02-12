@@ -92,15 +92,6 @@ namespace WalletWasabi.Helpers
 			"/Satoshi:0.16.0/",
 		};
 
-		/// <summary>
-		/// This limits the max amount to 44 000.
-		/// </summary>
-		public static readonly int RangeProofWidth = 42;
-
-		public static Money MinimumCredentailAmount = Money.Satoshis(10_000);
-
-		public static Money MaximumCredentailAmount = Money.Satoshis(MaximumNumberOfSatoshis);
-
 		public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
 				? ClientSupportBackendVersionMin
 				: $"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";

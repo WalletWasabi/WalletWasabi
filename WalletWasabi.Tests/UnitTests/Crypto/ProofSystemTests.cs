@@ -203,15 +203,15 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var commitment = amountScalar * Generators.Gg + randomness * Generators.Gh;
 
 			var maskedScalar = new Scalar(amount & ((1ul << width) - 1));
-			var (knowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(maskedScalar, randomness, width, rnd);
+			var (knowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(maskedScalar, randomness, width, rnd, 42);
 
 			var rangeProof = ProofSystemHelpers.Prove(knowledge, rnd);
 
-			Assert.Equal(pass, ProofSystemHelpers.Verify(ProofSystem.RangeProofStatement(commitment, bitCommitments), rangeProof));
+			Assert.Equal(pass, ProofSystemHelpers.Verify(ProofSystem.RangeProofStatement(commitment, bitCommitments, 42), rangeProof));
 
 			if (!pass)
 			{
-				Assert.Throws<ArgumentException>(() => ProofSystem.RangeProofKnowledge(amountScalar, randomness, width, rnd));
+				Assert.Throws<ArgumentException>(() => ProofSystem.RangeProofKnowledge(amountScalar, randomness, width, rnd, 42));
 			}
 		}
 
@@ -231,16 +231,16 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			var knowledge = new[]
 			{
-				ProofSystem.ZeroProofKnowledge(ma0, r0),
-				ProofSystem.ZeroProofKnowledge(ma1, r1)
+				ProofSystem.ZeroProofKnowledge(ma0, r0, 42),
+				ProofSystem.ZeroProofKnowledge(ma1, r1, 42)
 			};
 
 			var proofs = ProofSystem.Prove(new Transcript(Array.Empty<byte>()), knowledge, rnd);
 
 			var statements = new[]
 			{
-				ProofSystem.ZeroProofStatement(ma0),
-				ProofSystem.ZeroProofStatement(ma1)
+				ProofSystem.ZeroProofStatement(ma0, 42),
+				ProofSystem.ZeroProofStatement(ma1, 42)
 			};
 
 			Assert.True(ProofSystem.Verify(new Transcript(Array.Empty<byte>()), statements, proofs));

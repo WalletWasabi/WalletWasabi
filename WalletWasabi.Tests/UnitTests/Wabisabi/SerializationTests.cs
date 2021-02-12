@@ -158,8 +158,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			using var rnd = new SecureRandom();
 			var sk = new CredentialIssuerSecretKey(rnd);
 
-			var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd);
-			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), numberOfCredentials, rnd);
+			var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd, 4400000000000);
+			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), numberOfCredentials, rnd, 4400000000000);
 			var (credentialRequest, validationData) = client.CreateRequestForZeroAmount();
 			var credentialResponse = issuer.HandleRequest(credentialRequest);
 			client.HandleResponse(credentialResponse, validationData);

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,13 +23,20 @@ namespace WalletWasabi.WabiSabi.Crypto
 		public WabiSabiClient(
 			CredentialIssuerParameters credentialIssuerParameters,
 			int numberOfCredentials,
-			WasabiRandom randomNumberGenerator)
+			WasabiRandom randomNumberGenerator,
+			ulong maxAmount)
 		{
+			MaxAmount = maxAmount;
+			RangeProofWidth = (int)Math.Log2(MaxAmount);
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
 			CredentialIssuerParameters = Guard.NotNull(nameof(credentialIssuerParameters), credentialIssuerParameters);
 			Credentials = new CredentialPool();
 		}
+
+		public ulong MaxAmount { get; }
+
+		public int RangeProofWidth { get; }
 
 		private int NumberOfCredentials { get; }
 
@@ -61,7 +69,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 				var randomness = RandomNumberGenerator.GetScalar(allowZero: false);
 				var ma = randomness * Generators.Gh;
 
-				knowledge[i] = ProofSystem.ZeroProofKnowledge(ma, randomness);
+				knowledge[i] = ProofSystem.ZeroProofKnowledge(ma, randomness, RangeProofWidth);
 				credentialsToRequest[i] = new IssuanceRequest(ma, Enumerable.Empty<GroupElement>());
 				validationData[i] = new IssuanceValidationData(0, randomness, ma);
 			}
@@ -145,7 +153,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 				var randomness = RandomNumberGenerator.GetScalar(allowZero: false);
 				var ma = ProofSystem.PedersenCommitment(scalarAmount, randomness);
 
-				var (rangeKnowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(scalarAmount, randomness, Constants.RangeProofWidth, RandomNumberGenerator);
+				var (rangeKnowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(scalarAmount, randomness, RangeProofWidth, RandomNumberGenerator, RangeProofWidth);
 				knowledgeToProve.Add(rangeKnowledge);
 
 				var credentialRequest = new IssuanceRequest(ma, bitCommitments);
