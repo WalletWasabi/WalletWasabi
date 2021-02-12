@@ -13,6 +13,7 @@ using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui.Converters;
@@ -88,14 +89,27 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				var wallet = _owner.Wallet;
 				var targetAnonset = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 				var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonset);
-				wallet.BuildTransaction()
 
-				if (true) // private coins enough.
+				var intent = new PaymentIntent(
+					destination: transactionInfo.Address,
+					amount: transactionInfo.Amount,
+					subtractFee: false,
+					label: transactionInfo.Labels);
+
+				try
 				{
+					var txRes = wallet.BuildTransaction(
+						password,
+						intent,
+						FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
+						allowUnconfirmed: true,
+						mixedCoins.Select(x => x.OutPoint));
+					// private coins enough.
 					Navigate().To(new OptimisePrivacyViewModel());
 				}
-				else // not enough private coins
+				catch (NotEnoughFundsException)
 				{
+					// not enough private coins
 					Navigate().To(new PrivacyControlViewModel());
 				}
 			});
