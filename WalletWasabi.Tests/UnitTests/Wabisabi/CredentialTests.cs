@@ -16,6 +16,25 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 	{
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
+		public void CorrectRangeProof()
+		{
+			var numberOfCredentials = 2;
+			using var rnd = new SecureRandom();
+			var sk = new CredentialIssuerSecretKey(rnd);
+
+			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), numberOfCredentials, rnd, 4400000000000);
+			var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd, 4400000000000);
+			Assert.Equal(42, client.RangeProofWidth);
+			Assert.Equal(42, issuer.RangeProofWidth);
+
+			client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), numberOfCredentials, rnd, 4400000000001);
+			issuer = new CredentialIssuer(sk, numberOfCredentials, rnd, 4400000000001);
+			Assert.Equal(43, client.RangeProofWidth);
+			Assert.Equal(43, issuer.RangeProofWidth);
+		}
+
+		[Fact]
+		[Trait("UnitTest", "UnitTest")]
 		public void Splitting()
 		{
 			// Split 10 sats into 1, 1, 1, 1, 6.

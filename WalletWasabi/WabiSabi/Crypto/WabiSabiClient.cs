@@ -27,7 +27,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			ulong maxAmount)
 		{
 			MaxAmount = maxAmount;
-			RangeProofWidth = (int)Math.Log2(MaxAmount);
+			RangeProofWidth = (int)Math.Ceiling(Math.Log2(MaxAmount));
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
 			CredentialIssuerParameters = Guard.NotNull(nameof(credentialIssuerParameters), credentialIssuerParameters);
