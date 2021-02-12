@@ -50,9 +50,9 @@ namespace WalletWasabi.WabiSabi.Backend
 		/// <summary>
 		/// The width of the rangeproofs are calculated from this, so don't choose stupid numbers.
 		/// </summary>
-		[DefaultValueMoneyBtc("44000")]
+		[DefaultValueMoneyBtc("43000")]
 		[JsonProperty(PropertyName = "MaxRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
-		public Money MaxRegistrableAmount { get; set; } = Money.Coins(44000m);
+		public Money MaxRegistrableAmount { get; set; } = Money.Coins(43000m);
 	}
 }
