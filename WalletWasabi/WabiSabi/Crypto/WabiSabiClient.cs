@@ -58,7 +58,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// registration request message that has to be sent to the coordinator is a null request, in this
 		/// way the coordinator issues `k` zero-value credentials that can be used in following requests.
 		/// </remarks>
-		public (CredentialsRequest, CredentialsResponseValidation) CreateRequestForZeroAmount()
+		public (ZeroCredentialsRequest, CredentialsResponseValidation) CreateRequestForZeroAmount()
 		{
 			var credentialsToRequest = new IssuanceRequest[NumberOfCredentials];
 			var knowledge = new Knowledge[NumberOfCredentials];
