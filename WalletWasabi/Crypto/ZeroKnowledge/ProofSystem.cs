@@ -132,9 +132,12 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			=> new Knowledge(ZeroProofStatement(ma), new ScalarVector(r));
 
 		public static GroupElement PedersenCommitment(Scalar s, Scalar b)
-		 	=> new GroupElement(ECMultContext.Instance.MultBatch(
-				new[] { s, b },
-				new[] { Generators.Gg.Ge, Generators.Gh.Ge }));
+		{
+			var gej = ECMultContext.Instance.MultBatch(
+									   new[] { s, b },
+									   new[] { Generators.Gg.Ge, Generators.Gh.Ge });
+			return new GroupElement(gej);
+		}
 
 		// TODO swap return value order, remove GroupElement argument
 		// expect nonce provider instead of WasabiRandom?
