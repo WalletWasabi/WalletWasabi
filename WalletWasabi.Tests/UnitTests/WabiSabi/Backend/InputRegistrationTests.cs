@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				WabiSabiFactory.CreateInputRoundSignaturePairs(1),
 				null!,
 				null!);
-			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
 		}
 
@@ -53,7 +53,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 						WabiSabiFactory.CreateInputRoundSignaturePairs(1),
 						null!,
 						null!);
-					var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 				}
 			}
@@ -74,7 +74,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				new[] { inputSigPair, inputSigPair },
 				null!,
 				null!);
-			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.NonUniqueInputs, ex.ErrorCode);
 		}
 
@@ -92,7 +92,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				WabiSabiFactory.CreateInputRoundSignaturePairs(4),
 				null!,
 				null!);
-			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.TooManyInputs, ex.ErrorCode);
 		}
 
@@ -113,7 +113,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				new[] { pair },
 				null!,
 				null!);
-			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
 		}
 
@@ -158,7 +158,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				new[] { pair },
 				null!,
 				null!);
-			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
 		}
 
@@ -178,7 +178,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				new[] { WabiSabiFactory.CreateInputRoundSignaturePair() },
 				null!,
 				null!);
-			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputNotWhitelisted, ex.ErrorCode);
 		}
 
@@ -227,7 +227,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				null!,
 				null!);
 
-			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
 		}
 
@@ -247,7 +247,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				WabiSabiFactory.CreateInputRoundSignaturePairs(1),
 				null!,
 				null!);
-			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputSpent, ex.ErrorCode);
 		}
 
@@ -267,7 +267,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				WabiSabiFactory.CreateInputRoundSignaturePairs(1),
 				null!,
 				null!);
-			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputUnconfirmed, ex.ErrorCode);
 		}
 
@@ -290,7 +290,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 					WabiSabiFactory.CreateInputRoundSignaturePairs(1),
 					null!,
 					null!);
-				var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+				var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 				Assert.Equal(WabiSabiProtocolErrorCode.InputImmature, ex.ErrorCode);
 			}
 		}
@@ -312,7 +312,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				WabiSabiFactory.CreateInputRoundSignaturePairs(1),
 				null!,
 				null!);
-			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputScriptNotAllowed, ex.ErrorCode);
 		}
 
@@ -339,7 +339,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				WabiSabiFactory.CreateInputRoundSignaturePairs(1),
 				null!,
 				null!);
-			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.WrongRoundSignature, ex.ErrorCode);
 		}
 
@@ -366,7 +366,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				WabiSabiFactory.CreateInputRoundSignaturePairs(new[] { key }, round.Hash),
 				null!,
 				null!);
-			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.NotEnoughFunds, ex.ErrorCode);
 		}
 
@@ -393,7 +393,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				WabiSabiFactory.CreateInputRoundSignaturePairs(new[] { key }, round.Hash),
 				null!,
 				null!);
-			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.TooMuchFunds, ex.ErrorCode);
 		}
 
@@ -420,7 +420,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				WabiSabiFactory.CreateInputRoundSignaturePairs(new[] { key }, round.Hash),
 				null!,
 				null!);
-			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.NotEnoughWeight, ex.ErrorCode);
 		}
 
@@ -447,7 +447,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				WabiSabiFactory.CreateInputRoundSignaturePairs(new[] { key }, round.Hash),
 				null!,
 				null!);
-			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.TooMuchWeight, ex.ErrorCode);
 		}
 	}
