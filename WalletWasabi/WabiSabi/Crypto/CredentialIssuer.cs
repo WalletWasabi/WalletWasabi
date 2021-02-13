@@ -162,7 +162,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			foreach (var credentialRequest in requested)
 			{
 				statements.Add(registrationRequest.IsNullRequest
-					? ProofSystem.ZeroProofStatement(credentialRequest.Ma, rangeProofWidth)
+					? ProofSystem.ZeroProofStatement(credentialRequest.Ma)
 					: ProofSystem.RangeProofStatement(credentialRequest.Ma, credentialRequest.BitCommitments, rangeProofWidth));
 			}
 

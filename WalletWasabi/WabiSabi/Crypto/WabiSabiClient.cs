@@ -69,7 +69,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 				var randomness = RandomNumberGenerator.GetScalar(allowZero: false);
 				var ma = randomness * Generators.Gh;
 
-				knowledge[i] = ProofSystem.ZeroProofKnowledge(ma, randomness, RangeProofWidth);
+				knowledge[i] = ProofSystem.ZeroProofKnowledge(ma, randomness);
 				credentialsToRequest[i] = new IssuanceRequest(ma, Enumerable.Empty<GroupElement>());
 				validationData[i] = new IssuanceValidationData(0, randomness, ma);
 			}

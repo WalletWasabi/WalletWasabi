@@ -128,8 +128,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		// overload for bootstrap credential request proofs.
 		// this is just a range proof with width=0
 		// equivalent to proof of representation w/ Gh
-		public static Knowledge ZeroProofKnowledge(GroupElement ma, Scalar r, int rangeProofWidth)
-			=> new Knowledge(ZeroProofStatement(ma, rangeProofWidth), new ScalarVector(r));
+		public static Knowledge ZeroProofKnowledge(GroupElement ma, Scalar r)
+			=> new Knowledge(ZeroProofStatement(ma), new ScalarVector(r));
 
 		public static GroupElement PedersenCommitment(Scalar s, Scalar b)
 		 	=> new GroupElement(ECMultContext.Instance.MultBatch(new[] { s, b }, new[] { Generators.Gg.Ge, Generators.Gh.Ge }));
@@ -178,8 +178,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		// overload for bootstrap credential request proofs.
 		// this is just a range proof with width=0
 		// equivalent to new Statement(ma, Generators.Gh)
-		public static Statement ZeroProofStatement(GroupElement ma, int rangeProofWidth)
-			=> RangeProofStatement(ma, Array.Empty<GroupElement>(), rangeProofWidth);
+		public static Statement ZeroProofStatement(GroupElement ma)
+			=> RangeProofStatement(ma, Array.Empty<GroupElement>(), 0);
 
 		public static Statement RangeProofStatement(GroupElement ma, IEnumerable<GroupElement> bitCommitments, int rangeProofWidth)
 		{

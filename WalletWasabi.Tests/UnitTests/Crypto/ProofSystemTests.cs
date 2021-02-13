@@ -231,16 +231,16 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			var knowledge = new[]
 			{
-				ProofSystem.ZeroProofKnowledge(ma0, r0, 42),
-				ProofSystem.ZeroProofKnowledge(ma1, r1, 42)
+				ProofSystem.ZeroProofKnowledge(ma0, r0),
+				ProofSystem.ZeroProofKnowledge(ma1, r1)
 			};
 
 			var proofs = ProofSystem.Prove(new Transcript(Array.Empty<byte>()), knowledge, rnd);
 
 			var statements = new[]
 			{
-				ProofSystem.ZeroProofStatement(ma0, 42),
-				ProofSystem.ZeroProofStatement(ma1, 42)
+				ProofSystem.ZeroProofStatement(ma0),
+				ProofSystem.ZeroProofStatement(ma1)
 			};
 
 			Assert.True(ProofSystem.Verify(new Transcript(Array.Empty<byte>()), statements, proofs));
