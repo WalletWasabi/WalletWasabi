@@ -137,8 +137,6 @@ namespace WalletWasabi.Tests.UnitTests
 		public async Task ToleratesRpcFailuresAsync()
 		{
 			var rpc = CreateAndConfigureRpcClient(
-				blocks: 100,
-				headers: 100,
 				estimator: target => target switch
 				{
 					2 => new FeeRate(100m),
@@ -161,8 +159,6 @@ namespace WalletWasabi.Tests.UnitTests
 		public async Task InaccurateEstimationsAsync()
 		{
 			var rpc = CreateAndConfigureRpcClient(
-				blocks: 1,
-				headers: 2,
 				estimator: target => target switch
 				{
 					2 => new FeeRate(100m),
@@ -172,6 +168,7 @@ namespace WalletWasabi.Tests.UnitTests
 					8 => new FeeRate(70m),
 					_ => throw new NoEstimationException(target)
 				},
+				isSynchronized: false,
 				hasPeersInfo: true
 			);
 
@@ -186,19 +183,17 @@ namespace WalletWasabi.Tests.UnitTests
 		public async Task AccurateEstimationsAsync()
 		{
 			var rpc = CreateAndConfigureRpcClient(
-				blocks: 600_000,
-				headers: 600_000,
 				estimator: target => target switch
 				{
-					2 => new FeeRate(100m),
-					3 => new FeeRate(100m),
+					2 => new FeeRate(99m),
+					3 => new FeeRate(99m),
 					5 => new FeeRate(89m),
 					6 => new FeeRate(75m),
 					8 => new FeeRate(30m),
 					11 => new FeeRate(30m),
 					13 => new FeeRate(30m),
 					15 => new FeeRate(30m),
-					1008 => new FeeRate(35m),
+					1008 => new FeeRate(31m),
 					_ => throw new NoEstimationException(target)
 				},
 				hasPeersInfo: true
@@ -207,19 +202,19 @@ namespace WalletWasabi.Tests.UnitTests
 			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 			Assert.True(allFee.IsAccurate);
 			Assert.Equal(3, allFee.Estimations.Count);
-			Assert.Equal(100, allFee.Estimations[2]);
+			Assert.Equal(99, allFee.Estimations[2]);
 			Assert.Equal(75, allFee.Estimations[6]);
-			Assert.Equal(35, allFee.Estimations[1008]);
+			Assert.Equal(31, allFee.Estimations[1008]);
 		}
 
-		private static MockRpcClient CreateAndConfigureRpcClient(ulong blocks, ulong headers, Func<int, FeeRate> estimator, bool hasPeersInfo = false, double memPoolMinFee = 0.00001000)
+		private static MockRpcClient CreateAndConfigureRpcClient(Func<int, FeeRate> estimator, bool isSynchronized = true, bool hasPeersInfo = false, double memPoolMinFee = 0.00001000)
 			=> new MockRpcClient()
 			{
 				OnGetBlockchainInfoAsync = async () =>
 					await Task.FromResult(new BlockchainInfo
 					{
-						Blocks = blocks,
-						Headers = headers
+						Blocks = isSynchronized ? 100_000L : 89_765L,
+						Headers = 100_000L
 					}),
 				OnGetPeersInfoAsync = async () =>
 					await Task.FromResult(hasPeersInfo ? new[] { new PeerInfo() } : Array.Empty<PeerInfo>()),
