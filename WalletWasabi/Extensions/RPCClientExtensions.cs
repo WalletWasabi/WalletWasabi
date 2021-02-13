@@ -70,8 +70,6 @@ namespace NBitcoin.RPC
 		public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this IRPCClient rpc, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
 		{
 			var rpcStatus = await rpc.GetRpcStatusAsync(CancellationToken.None).ConfigureAwait(false);
-			var mempoolInfo = await rpc.GetMempoolInfoAsync().ConfigureAwait(false);
-			var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
 
 			var estimations = (simulateIfRegTest && rpc.Network == Network.RegTest)
 				? SimulateRegTestFeeEstimation(estimateMode)
