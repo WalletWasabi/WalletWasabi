@@ -1,6 +1,6 @@
 namespace WalletWasabi.WabiSabi.Crypto
 {
-	public enum WabiSabiErrorCode
+	public enum WabiSabiCryptoErrorCode
 	{
 		Unspecified = 0,
 		SerialNumberAlreadyUsed = 1,
@@ -13,6 +13,6 @@ namespace WalletWasabi.WabiSabi.Crypto
 		NotEnoughZeroCredentialToFillTheRequest = 8,
 		InvalidNumberOfRequestedCredentials = 9,
 		InvalidNumberOfPresentedCredentials = 10,
-		CredentialToPresentDuplicated = 11,
+		CredentialToPresentDuplicated = 11
 	}
 }

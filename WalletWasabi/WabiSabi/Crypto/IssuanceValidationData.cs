@@ -6,7 +6,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 {
 	public class IssuanceValidationData
 	{
-		internal IssuanceValidationData(Money amount, Scalar r, GroupElement ma)
+		internal IssuanceValidationData(long amount, Scalar r, GroupElement ma)
 		{
 			Amount = amount;
 			Randomness = r;
@@ -16,7 +16,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// <summary>
 		/// Amount committed in the pedersen commitment (<see cref="Ma">Ma</see>).
 		/// </summary>
-		public Money Amount { get; }
+		public long Amount { get; }
 
 		/// <summary>
 		/// Randomness used as blinding factor in the pedersen commitment (<see cref="Ma">Ma</see>).
