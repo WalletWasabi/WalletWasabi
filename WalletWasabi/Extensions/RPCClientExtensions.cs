@@ -73,13 +73,13 @@ namespace NBitcoin.RPC
 			var mempoolInfo = await rpc.GetMempoolInfoAsync().ConfigureAwait(false);
 			var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
 
-			var estmimations = (simulateIfRegTest && rpc.Network == Network.RegTest)
+			var estimations = (simulateIfRegTest && rpc.Network == Network.RegTest)
 				? SimulateRegTestFeeEstimation(estimateMode)
 				: await GetFeeEstimationsAsync(rpc, estimateMode);
 
 			return new AllFeeEstimate(
 				estimateMode,
-				estmimations,
+				estimations,
 				rpcStatus.Synchronized);
 		}
 
@@ -103,7 +103,7 @@ namespace NBitcoin.RPC
 			{
 				if (rpcFeeEstimationTasks.All(x => x.IsFaulted))
 				{
-					throw rpcFeeEstimationTasks[0].Exception?.InnerExceptions[0] 
+					throw rpcFeeEstimationTasks[0].Exception?.InnerExceptions[0]
 						?? new Exception($"{nameof(GetFeeEstimationsAsync)} failed to fetch fee estimations.");
 				}
 			}

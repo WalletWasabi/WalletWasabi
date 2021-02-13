@@ -89,7 +89,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task RpcNoEnoughEstimationsAsync()
+		public async Task RpcNotEnoughEstimationsAsync()
 		{
 			var rpc = new MockRpcClient();
 			rpc.OnGetBlockchainInfoAsync = async () =>
@@ -103,7 +103,7 @@ namespace WalletWasabi.Tests.UnitTests
 			rpc.OnGetMempoolInfoAsync = async () =>
 				await Task.FromResult(new MemPoolInfo
 				{
-					MemPoolMinFee = 0.00001000 // 1 s/b (default value) 
+					MemPoolMinFee = 0.00001000 // 1 s/b (default value)
 				});
 			rpc.OnEstimateSmartFeeAsync = (target, _) =>
 				throw new NoEstimationException(target);
@@ -112,7 +112,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task RpcFailures()
+		public async Task RpcFailuresAsync()
 		{
 			var rpc = new MockRpcClient();
 			rpc.OnGetBlockchainInfoAsync = () =>
@@ -124,7 +124,7 @@ namespace WalletWasabi.Tests.UnitTests
 			rpc.OnGetMempoolInfoAsync = async () =>
 				await Task.FromResult(new MemPoolInfo
 				{
-					MemPoolMinFee = 0.00001000 // 1 s/b (default value) 
+					MemPoolMinFee = 0.00001000 // 1 s/b (default value)
 				});
 
 			var ex = await Assert.ThrowsAsync<RPCException>(async () => await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative));
@@ -133,7 +133,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task ToleratesRpcFailures()
+		public async Task ToleratesRpcFailuresAsync()
 		{
 			var rpc = new MockRpcClient();
 			rpc.OnGetBlockchainInfoAsync = async () =>
@@ -149,14 +149,14 @@ namespace WalletWasabi.Tests.UnitTests
 			rpc.OnGetMempoolInfoAsync = async () =>
 				await Task.FromResult(new MemPoolInfo
 				{
-					MemPoolMinFee = 0.00001000 // 1 s/b (default value) 
+					MemPoolMinFee = 0.00001000 // 1 s/b (default value)
 				});
 
 			rpc.OnEstimateSmartFeeAsync = async (target, _) =>
 				await Task.FromResult(new EstimateSmartFeeResponse
 				{
 					Blocks = target,
-					FeeRate= target switch
+					FeeRate = target switch
 					{
 						2 => new FeeRate(100m),
 						3 => throw new RPCException(RPCErrorCode.RPC_INTERNAL_ERROR, "Error", null),
@@ -175,7 +175,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task InaccurateEstimations()
+		public async Task InaccurateEstimationsAsync()
 		{
 			var rpc = new MockRpcClient();
 			rpc.OnGetBlockchainInfoAsync = async () =>
@@ -191,14 +191,14 @@ namespace WalletWasabi.Tests.UnitTests
 			rpc.OnGetMempoolInfoAsync = async () =>
 				await Task.FromResult(new MemPoolInfo
 				{
-					MemPoolMinFee = 0.00001000 // 1 s/b (default value) 
+					MemPoolMinFee = 0.00001000 // 1 s/b (default value)
 				});
 
 			rpc.OnEstimateSmartFeeAsync = async (target, _) =>
 				await Task.FromResult(new EstimateSmartFeeResponse
 				{
 					Blocks = target,
-					FeeRate= target switch
+					FeeRate = target switch
 					{
 						2 => new FeeRate(100m),
 						3 => new FeeRate(100m),
@@ -220,7 +220,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task AccurateEstimations()
+		public async Task AccurateEstimationsAsync()
 		{
 			var rpc = new MockRpcClient();
 			rpc.OnGetBlockchainInfoAsync = async () =>
@@ -236,14 +236,14 @@ namespace WalletWasabi.Tests.UnitTests
 			rpc.OnGetMempoolInfoAsync = async () =>
 				await Task.FromResult(new MemPoolInfo
 				{
-					MemPoolMinFee = 0.00001000 // 1 s/b (default value) 
+					MemPoolMinFee = 0.00001000 // 1 s/b (default value)
 				});
 
 			rpc.OnEstimateSmartFeeAsync = async (target, _) =>
 				await Task.FromResult(new EstimateSmartFeeResponse
 				{
 					Blocks = target,
-					FeeRate= target switch
+					FeeRate = target switch
 					{
 						2 => new FeeRate(100m),
 						3 => new FeeRate(100m),
@@ -253,7 +253,7 @@ namespace WalletWasabi.Tests.UnitTests
 						11 => new FeeRate(30m),
 						13 => new FeeRate(30m),
 						15 => new FeeRate(30m),
-						1008  => new FeeRate(35m),
+						1008 => new FeeRate(35m),
 						_ => throw new NoEstimationException(target)
 					}
 				});
