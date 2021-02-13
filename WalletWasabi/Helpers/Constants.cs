@@ -105,12 +105,6 @@ namespace WalletWasabi.Helpers
 			1008, // Seven Days
 		};
 
-		public static readonly int RangeProofWidth = (int)Math.Log2(MaximumNumberOfSatoshis);
-
-		public static Money MinimumCredentailAmount = Money.Satoshis(10_000);
-
-		public static Money MaximumCredentailAmount = Money.Satoshis(MaximumNumberOfSatoshis);
-
 		public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
 				? ClientSupportBackendVersionMin
 				: $"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";

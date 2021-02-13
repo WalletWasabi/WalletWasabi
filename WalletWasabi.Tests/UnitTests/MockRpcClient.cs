@@ -10,6 +10,7 @@ namespace WalletWasabi.Tests.UnitTests
 	internal class MockRpcClient : IRPCClient
 	{
 		public Func<Task<uint256>> OnGetBestBlockHashAsync { get; set; }
+		public Func<uint256, int, bool, GetTxOutResponse?> OnGetTxOutAsync { get; set; }
 		public Func<uint256, Task<Block>> OnGetBlockAsync { get; set; }
 		public Func<int, Task<uint256>> OnGetBlockHashAsync { get; set; }
 		public Func<uint256, Task<BlockHeader>> OnGetBlockHeaderAsync { get; set; }
@@ -87,9 +88,10 @@ namespace WalletWasabi.Tests.UnitTests
 			throw new NotImplementedException();
 		}
 
-		public Task<GetTxOutResponse> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true)
+		public Task<GetTxOutResponse?> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true)
 		{
-			throw new NotImplementedException();
+			var resp = OnGetTxOutAsync(txid, index, includeMempool);
+			return Task.FromResult(resp);
 		}
 
 		public Task InvalidateBlockAsync(uint256 blockHash)

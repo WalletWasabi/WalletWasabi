@@ -13,6 +13,8 @@ using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Userfacing;
@@ -58,7 +60,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.Subscribe(ParseToField);
 
 			this.WhenAnyValue(x => x.AmountBtc)
-				.Subscribe(x=>  _transactionInfo.Amount = new Money(x, MoneyUnit.BTC));
+				.Subscribe(x => _transactionInfo.Amount = new Money(x, MoneyUnit.BTC));
 
 			Labels.ToObservableChangeSet().Subscribe(x =>
 			{
@@ -67,7 +69,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				var text =  await Application.Current.Clipboard.GetTextAsync();
+				var text = await Application.Current.Clipboard.GetTextAsync();
 
 				_parsingUrl = true;
 
@@ -82,15 +84,32 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.Create(() =>
 			{
+				var password = "foo";
 				var transactionInfo = _transactionInfo;
 				var wallet = _owner.Wallet;
+				var targetAnonset = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+				var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonset);
 
-				if (true) // private coins enough.
+				var intent = new PaymentIntent(
+					destination: transactionInfo.Address,
+					amount: transactionInfo.Amount,
+					subtractFee: false,
+					label: transactionInfo.Labels);
+
+				try
 				{
+					var txRes = wallet.BuildTransaction(
+						password,
+						intent,
+						FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
+						allowUnconfirmed: true,
+						mixedCoins.Select(x => x.OutPoint));
+					// private coins enough.
 					Navigate().To(new OptimisePrivacyViewModel());
 				}
-				else // not enough private coins
+				catch (NotEnoughFundsException)
 				{
+					// not enough private coins
 					Navigate().To(new PrivacyControlViewModel());
 				}
 			});
@@ -194,8 +213,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.DisposeWith(disposables);
 
 			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate)
-				.Where(x=>x is { })
-				.Select(x=>x!.Estimations)
+				.Where(x => x is { })
+				.Select(x => x!.Estimations)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(UpdateFeeEstimates)
 				.DisposeWith(disposables);
@@ -212,14 +231,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			if (_owner.Wallet.Network != Network.TestNet)
 			{
-				XAxisValues = feeEstimates.Select(x => (double) x.Key).Reverse().ToArray();
+				XAxisValues = feeEstimates.Select(x => (double)x.Key).Reverse().ToArray();
 
 				XAxisLabels = feeEstimates.Select(x => x.Key)
 					.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
 					.Reverse()
 					.ToArray();
 
-				YAxisValues = feeEstimates.Select(x => (double) x.Value).Reverse().ToArray();
+				YAxisValues = feeEstimates.Select(x => (double)x.Value).Reverse().ToArray();
 			}
 			else
 			{
@@ -267,10 +286,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
+		private double GetYAxisValueFromXAxisCurrentValue()
+		{
+			var x = _xAxisValues.Reverse().ToArray();
+			var y = _yAxisValues;
+			double t = XAxisCurrentValue;
+			var spline = CubicSpline.InterpolateNaturalSorted(x, y);
+			return spline.Interpolate(t);
+		}
+
 		public ICommand PasteCommand { get; }
 
 		public double XAxisCurrentValue { get; set; } = 36;
-
 
 		public double XAxisMinValue { get; set; } = 1;
 

@@ -232,11 +232,6 @@ namespace WalletWasabi.Tor.Http.Helpers
 			return await GetBytesTillEndAsync(stream, ctsToken).ConfigureAwait(false);
 		}
 
-		private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpRequestContentHeaders headerStruct, CancellationToken ctsToken = default)
-		{
-			return await GetDecodedChunkedContentBytesAsync(stream, headerStruct, null, ctsToken).ConfigureAwait(false);
-		}
-
 		private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpResponseContentHeaders headerStruct, CancellationToken ctsToken = default)
 		{
 			return await GetDecodedChunkedContentBytesAsync(stream, null, headerStruct, ctsToken).ConfigureAwait(false);

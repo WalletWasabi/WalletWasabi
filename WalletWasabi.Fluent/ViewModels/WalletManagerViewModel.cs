@@ -10,9 +10,11 @@ using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Actions;
+using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels
@@ -30,9 +32,10 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private ObservableCollection<WalletViewModelBase> _wallets;
 		[AutoNotify] private bool _anyWalletStarted;
 
-		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig)
+		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig, BitcoinStore bitcoinStore)
 		{
 			Model = walletManager;
+			BitcoinStore = bitcoinStore;
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 			_walletActionsDictionary = new Dictionary<WalletViewModelBase, List<NavBarItemViewModel>>();
 			_actions = new ObservableCollection<NavBarItemViewModel>();
@@ -98,6 +101,8 @@ namespace WalletWasabi.Fluent.ViewModels
 		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _items;
 
 		public WalletManager Model { get; }
+
+		public BitcoinStore BitcoinStore { get; }
 
 		private void OpenClosedWallet(WalletManager walletManager, UiConfig uiConfig, ClosedWalletViewModel closedWalletViewModel)
 		{
@@ -178,7 +183,10 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public NavBarItemViewModel? SelectionChanged(NavBarItemViewModel item)
 		{
-			_currentSelection = item;
+			if (item.SelectionMode == NavBarItemSelectionMode.Selected)
+			{
+				_currentSelection = item;
+			}
 
 			if (IsLoadingWallet || SelectedWallet == item)
 			{
@@ -229,7 +237,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				actions.Add(new SendViewModel(walletViewModel));
 			}
 
-			actions.Add(new ReceiveWalletActionViewModel(walletViewModel));
+			actions.Add(new ReceiveViewModel(walletViewModel, Model, BitcoinStore));
 
 			if (!wallet.KeyManager.IsWatchOnly)
 			{
