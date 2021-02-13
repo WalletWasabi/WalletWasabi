@@ -73,7 +73,7 @@ namespace NBitcoin.RPC
 
 			var estimations = (simulateIfRegTest && rpc.Network == Network.RegTest)
 				? SimulateRegTestFeeEstimation(estimateMode)
-				: await GetFeeEstimationsAsync(rpc, estimateMode);
+				: await GetFeeEstimationsAsync(rpc, estimateMode).ConfigureAwait(false);
 
 			return new AllFeeEstimate(
 				estimateMode,
@@ -91,11 +91,9 @@ namespace NBitcoin.RPC
 
 			await batchClient.SendBatchAsync().ConfigureAwait(false);
 
-			var allTask = Task.WhenAll(rpcFeeEstimationTasks);
-
 			try
 			{
-				await allTask;
+				await Task.WhenAll(rpcFeeEstimationTasks).ConfigureAwait(false);
 			}
 			catch
 			{
