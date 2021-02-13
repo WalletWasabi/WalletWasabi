@@ -117,10 +117,10 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var rpc = new MockRpcClient();
 			rpc.OnGetBlockchainInfoAsync = () =>
-				throw new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Error", null);
+				throw new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Error-GetBlockchainInfo", null);
 
 			rpc.OnEstimateSmartFeeAsync = (target, _) =>
-				throw new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Error", null);
+				throw new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Error-EstimateSmartFee", null);
 
 			rpc.OnGetMempoolInfoAsync = async () =>
 				await Task.FromResult(new MemPoolInfo
@@ -130,7 +130,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			var ex = await Assert.ThrowsAsync<RPCException>(async () => await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative));
 			Assert.Equal(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, ex.RPCCode);
-			Assert.Equal("Error", ex.Message);
+			Assert.Equal("Error-EstimateSmartFee", ex.Message);
 		}
 
 		[Fact]
