@@ -68,21 +68,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			arena.OnTryGetRound = _ => round;
 			var inputSigPair = WabiSabiFactory.CreateInputRoundSignaturePair();
 
-			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
-			{
-				if (phase != Phase.InputRegistration)
-				{
-					round.Phase = phase;
-					await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
-					InputsRegistrationRequest req = new(
-						round.Id,
-						new[] { inputSigPair, inputSigPair },
-						null!,
-						null!);
-					var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
-					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
-				}
-			}
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			InputsRegistrationRequest req = new(
+				round.Id,
+				new[] { inputSigPair, inputSigPair },
+				null!,
+				null!);
+			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			Assert.Equal(WabiSabiProtocolErrorCode.NonUniqueInputs, ex.ErrorCode);
 		}
 
 		[Fact]
@@ -93,21 +86,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var round = WabiSabiFactory.CreateRound(cfg);
 			arena.OnTryGetRound = _ => round;
 
-			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
-			{
-				if (phase != Phase.InputRegistration)
-				{
-					round.Phase = phase;
-					await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
-					InputsRegistrationRequest req = new(
-						round.Id,
-						WabiSabiFactory.CreateInputRoundSignaturePairs(4),
-						null!,
-						null!);
-					var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
-					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
-				}
-			}
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			InputsRegistrationRequest req = new(
+				round.Id,
+				WabiSabiFactory.CreateInputRoundSignaturePairs(4),
+				null!,
+				null!);
+			var ex = await Assert.ThrowsAnyAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			Assert.Equal(WabiSabiProtocolErrorCode.TooManyInputs, ex.ErrorCode);
 		}
 
 		[Fact]
