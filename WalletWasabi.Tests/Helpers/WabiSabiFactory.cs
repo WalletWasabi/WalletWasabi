@@ -57,10 +57,10 @@ namespace WalletWasabi.Tests.Helpers
 				cfg.MinRegistrableWeight,
 				cfg.MaxRegistrableWeight);
 
-		public static InputsRegistrationRequest CreateInputsRegistrationRequest(Key key, Round? round = null)
+		public static InputsRegistrationRequest CreateInputsRegistrationRequest(Key key, Round? round)
 			=> CreateInputsRegistrationRequest(new[] { key }, round);
 
-		public static InputsRegistrationRequest CreateInputsRegistrationRequest(IEnumerable<Key>? keys = null, Round? round = null)
+		public static InputsRegistrationRequest CreateInputsRegistrationRequest(IEnumerable<Key>? keys, Round? round)
 		{
 			var pairs = keys is null
 				? CreateInputRoundSignaturePairs(1, round?.Hash)
