@@ -136,37 +136,19 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task ToleratesRpcFailuresAsync()
 		{
-			var rpc = new MockRpcClient();
-			rpc.OnGetBlockchainInfoAsync = async () =>
-				await Task.FromResult(new BlockchainInfo
+			var rpc = CreateAndConfigureRpcClient(
+				blocks: 100,
+				headers: 100,
+				estimator: target => target switch
 				{
-					Blocks = 100,
-					Headers = 100
-				});
-
-			rpc.OnGetPeersInfoAsync = async () =>
-				await Task.FromResult(Array.Empty<PeerInfo>());
-
-			rpc.OnGetMempoolInfoAsync = async () =>
-				await Task.FromResult(new MemPoolInfo
-				{
-					MemPoolMinFee = 0.00001000 // 1 s/b (default value)
-				});
-
-			rpc.OnEstimateSmartFeeAsync = async (target, _) =>
-				await Task.FromResult(new EstimateSmartFeeResponse
-				{
-					Blocks = target,
-					FeeRate = target switch
-					{
-						2 => new FeeRate(100m),
-						3 => throw new RPCException(RPCErrorCode.RPC_INTERNAL_ERROR, "Error", null),
-						5 => new FeeRate(89m),
-						6 => new FeeRate(75m),
-						8 => new FeeRate(70m),
-						_ => throw new NoEstimationException(target)
-					}
-				});
+					2 => new FeeRate(100m),
+					3 => throw new RPCException(RPCErrorCode.RPC_INTERNAL_ERROR, "Error", null),
+					5 => new FeeRate(89m),
+					6 => new FeeRate(75m),
+					8 => new FeeRate(70m),
+					_ => throw new NoEstimationException(target)
+				}
+			);
 
 			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 			Assert.Equal(2, allFee.Estimations.Count);
@@ -178,96 +160,81 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task InaccurateEstimationsAsync()
 		{
-			var rpc = new MockRpcClient();
-			rpc.OnGetBlockchainInfoAsync = async () =>
-				await Task.FromResult(new BlockchainInfo
+			var rpc = CreateAndConfigureRpcClient(
+				blocks: 1,
+				headers: 2,
+				estimator: target => target switch
 				{
-					Blocks = 1,
-					Headers = 2  // the node is not synchronized.
-				});
-
-			rpc.OnGetPeersInfoAsync = async () =>
-				await Task.FromResult(new[] { new PeerInfo() });
-
-			rpc.OnGetMempoolInfoAsync = async () =>
-				await Task.FromResult(new MemPoolInfo
-				{
-					MemPoolMinFee = 0.00001000 // 1 s/b (default value)
-				});
-
-			rpc.OnEstimateSmartFeeAsync = async (target, _) =>
-				await Task.FromResult(new EstimateSmartFeeResponse
-				{
-					Blocks = target,
-					FeeRate = target switch
-					{
-						2 => new FeeRate(100m),
-						3 => new FeeRate(100m),
-						5 => new FeeRate(89m),
-						6 => new FeeRate(75m),
-						8 => new FeeRate(70m),
-						_ => throw new NoEstimationException(target)
-					}
-				});
+					2 => new FeeRate(100m),
+					3 => new FeeRate(100m),
+					5 => new FeeRate(89m),
+					6 => new FeeRate(75m),
+					8 => new FeeRate(70m),
+					_ => throw new NoEstimationException(target)
+				},
+				hasPeersInfo: true
+			);
 
 			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Economical);
 			Assert.False(allFee.IsAccurate);
 			Assert.Equal(2, allFee.Estimations.Count);
 			Assert.Equal(100, allFee.Estimations[2]);
 			Assert.Equal(75, allFee.Estimations[6]);
-			Assert.False(allFee.Estimations.ContainsKey(3));
-			Assert.False(allFee.Estimations.ContainsKey(5));
-			Assert.False(allFee.Estimations.ContainsKey(8));
 		}
 
 		[Fact]
 		public async Task AccurateEstimationsAsync()
 		{
-			var rpc = new MockRpcClient();
-			rpc.OnGetBlockchainInfoAsync = async () =>
-				await Task.FromResult(new BlockchainInfo
+			var rpc = CreateAndConfigureRpcClient(
+				blocks: 600_000,
+				headers: 600_000,
+				estimator: target => target switch
 				{
-					Blocks = 600_000,
-					Headers = 600_000
-				});
-
-			rpc.OnGetPeersInfoAsync = async () =>
-				await Task.FromResult(new[] { new PeerInfo() });
-
-			rpc.OnGetMempoolInfoAsync = async () =>
-				await Task.FromResult(new MemPoolInfo
-				{
-					MemPoolMinFee = 0.00001000 // 1 s/b (default value)
-				});
-
-			rpc.OnEstimateSmartFeeAsync = async (target, _) =>
-				await Task.FromResult(new EstimateSmartFeeResponse
-				{
-					Blocks = target,
-					FeeRate = target switch
-					{
-						2 => new FeeRate(100m),
-						3 => new FeeRate(100m),
-						5 => new FeeRate(89m),
-						6 => new FeeRate(75m),
-						8 => new FeeRate(30m),
-						11 => new FeeRate(30m),
-						13 => new FeeRate(30m),
-						15 => new FeeRate(30m),
-						1008 => new FeeRate(35m),
-						_ => throw new NoEstimationException(target)
-					}
-				});
+					2 => new FeeRate(100m),
+					3 => new FeeRate(100m),
+					5 => new FeeRate(89m),
+					6 => new FeeRate(75m),
+					8 => new FeeRate(30m),
+					11 => new FeeRate(30m),
+					13 => new FeeRate(30m),
+					15 => new FeeRate(30m),
+					1008 => new FeeRate(35m),
+					_ => throw new NoEstimationException(target)
+				},
+				hasPeersInfo: true
+			);
 
 			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 			Assert.True(allFee.IsAccurate);
-			Assert.False(allFee.Estimations.ContainsKey(5));
-			Assert.False(allFee.Estimations.ContainsKey(8));
-			Assert.False(allFee.Estimations.ContainsKey(13));
-
+			Assert.Equal(3, allFee.Estimations.Count);
 			Assert.Equal(100, allFee.Estimations[2]);
 			Assert.Equal(75, allFee.Estimations[6]);
 			Assert.Equal(35, allFee.Estimations[1008]);
 		}
+
+		private static MockRpcClient CreateAndConfigureRpcClient(ulong blocks, ulong headers, Func<int, FeeRate> estimator, bool hasPeersInfo = false, double memPoolMinFee = 0.00001000)
+			=> new MockRpcClient()
+			{
+				OnGetBlockchainInfoAsync = async () =>
+					await Task.FromResult(new BlockchainInfo
+					{
+						Blocks = blocks,
+						Headers = headers
+					}),
+				OnGetPeersInfoAsync = async () =>
+					await Task.FromResult(hasPeersInfo ? new[] { new PeerInfo() } : Array.Empty<PeerInfo>()),
+
+				OnGetMempoolInfoAsync = async () =>
+					await Task.FromResult(new MemPoolInfo
+					{
+						MemPoolMinFee = memPoolMinFee // 1 s/b (default value)
+					}),
+				OnEstimateSmartFeeAsync = async (target, _) =>
+					await Task.FromResult(new EstimateSmartFeeResponse
+					{
+						Blocks = target,
+						FeeRate = estimator(target)
+					})
+			};
 	}
 }
