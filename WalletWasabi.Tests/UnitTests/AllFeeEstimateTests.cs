@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using Xunit;
+using System;
 
 namespace WalletWasabi.Tests.UnitTests
 {
@@ -99,7 +100,7 @@ namespace WalletWasabi.Tests.UnitTests
 					Headers = 100
 				});
 			rpc.OnGetPeersInfoAsync = async () =>
-				await Task.FromResult(new PeerInfo[0]);
+				await Task.FromResult(Array.Empty<PeerInfo>());
 			rpc.OnGetMempoolInfoAsync = async () =>
 				await Task.FromResult(new MemPoolInfo
 				{
@@ -144,7 +145,7 @@ namespace WalletWasabi.Tests.UnitTests
 				});
 
 			rpc.OnGetPeersInfoAsync = async () =>
-				await Task.FromResult(new PeerInfo[0]);
+				await Task.FromResult(Array.Empty<PeerInfo>());
 
 			rpc.OnGetMempoolInfoAsync = async () =>
 				await Task.FromResult(new MemPoolInfo
