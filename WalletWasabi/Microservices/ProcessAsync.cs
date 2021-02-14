@@ -75,12 +75,6 @@ namespace WalletWasabi.Microservices
 			Process.Kill();
 		}
 
-		/// <inheritdoc cref="Process.Kill(bool)"/>
-		public void Kill(bool entireProcessTree)
-		{
-			Process.Kill(entireProcessTree);
-		}
-
 		/// <summary>
 		/// Waits until the process either finishes on its own or when user cancels the action.
 		/// </summary>
