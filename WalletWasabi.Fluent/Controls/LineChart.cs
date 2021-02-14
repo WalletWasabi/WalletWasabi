@@ -169,44 +169,44 @@ namespace WalletWasabi.Fluent.Controls
 			state.AreaWidth = width - state.AreaMargin.Left - state.AreaMargin.Right;
 			state.AreaHeight = height - state.AreaMargin.Top - state.AreaMargin.Bottom;
 
-			var values = YAxisValues;
-			if (values is not null && values.Count > 1)
+			var yAxisValues = YAxisValues;
+			if (yAxisValues is not null && yAxisValues.Count > 1)
 			{
 				var logarithmicScale = YAxisLogarithmicScale;
 
 				var valuesList = logarithmicScale
-					? values.Select(y => Math.Log(y)).ToList()
-					: values.ToList();
+					? yAxisValues.Select(y => Math.Log(y)).ToList()
+					: yAxisValues.ToList();
 
 				var valuesListMax = valuesList.Max();
 				var scaledValues = valuesList
 					.Select(y => ScaleVertical(y, valuesListMax, state.AreaHeight))
 					.ToList();
 
-				state.Step = state.AreaWidth / (scaledValues.Count - 1);
+				state.XAxisStep = state.AreaWidth / (scaledValues.Count - 1);
 				state.Points = new Point[scaledValues.Count];
 
 				for (var i = 0; i < scaledValues.Count; i++)
 				{
-					state.Points[i] = new Point(i * state.Step, scaledValues[i]);
+					state.Points[i] = new Point(i * state.XAxisStep, scaledValues[i]);
 				}
 			}
 			else
 			{
-				state.Step = double.NaN;
+				state.XAxisStep = double.NaN;
 				state.Points = null;
 			}
 
-			var labels = XAxisLabels;
-			if (labels is not null)
+			var xAxisLabels = XAxisLabels;
+			if (xAxisLabels is not null)
 			{
-				state.XLabels = labels.ToList();
+				state.XAxisLabels = xAxisLabels.ToList();
 			}
 
-			var minValue = XAxisMinValue;
-			var maxValue = XAxisMaxValue;
-			var cursorValue = XAxisCurrentValue;
-			state.CursorPosition = ScaleHorizontal(maxValue - cursorValue, maxValue, state.AreaWidth);
+			var xAxisMinValue = XAxisMinValue;
+			var xAxisMaxValue = XAxisMaxValue;
+			var xAxisCurrentValue = XAxisCurrentValue;
+			state.XAxisCursorPosition = ScaleHorizontal(xAxisMaxValue - xAxisCurrentValue, xAxisMaxValue, state.AreaWidth);
 
 			return state;
 		}
@@ -302,8 +302,8 @@ namespace WalletWasabi.Fluent.Controls
 			var miterLimit = CursorStrokeMiterLimit;
 			var pen = new Pen(brush, thickness, dashStyle, lineCap, lineJoin, miterLimit);
 			var deflate = thickness * 0.5;
-			var p1 = new Point(state.CursorPosition + deflate, 0);
-			var p2 = new Point(state.CursorPosition + deflate, state.AreaHeight);
+			var p1 = new Point(state.XAxisCursorPosition + deflate, 0);
+			var p2 = new Point(state.XAxisCursorPosition + deflate, state.AreaHeight);
 			var transform = context.PushPreTransform(
 				Matrix.CreateTranslation(
 					state.AreaMargin.Left,
@@ -353,12 +353,12 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void DrawXAxisLabels(DrawingContext context, LineChartState state)
 		{
-			if (state.XLabels is null)
+			if (state.XAxisLabels is null)
 			{
 				return;
 			}
 
-			if (double.IsNaN(state.Step))
+			if (double.IsNaN(state.XAxisStep))
 			{
 				return;
 			}
@@ -388,11 +388,11 @@ namespace WalletWasabi.Fluent.Controls
 			var alignment = XAxisLabelAlignment;
 			var originTop = state.AreaHeight + state.AreaMargin.Top;
 			var offsetTransform = context.PushPreTransform(Matrix.CreateTranslation(offset.X, offset.Y));
-			for (var i = 0; i < state.XLabels.Count; i++)
+			for (var i = 0; i < state.XAxisLabels.Count; i++)
 			{
-				var origin = new Point(i * state.Step - size.Width / 2 + state.AreaMargin.Left, originTop);
+				var origin = new Point(i * state.XAxisStep - size.Width / 2 + state.AreaMargin.Left, originTop);
 				var constraint = new Size(size.Width, size.Height);
-				var formattedText = CreateFormattedText(state.XLabels[i], typeface, alignment, fontSize, constraint);
+				var formattedText = CreateFormattedText(state.XAxisLabels[i], typeface, alignment, fontSize, constraint);
 				var xPosition = origin.X + size.Width / 2;
 				var yPosition = origin.Y + size.Height / 2;
 				var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
@@ -565,9 +565,11 @@ namespace WalletWasabi.Fluent.Controls
 			public double AreaHeight { get; set; }
 			public Thickness AreaMargin { get; set; }
 			public Point[]? Points { get; set; }
-			public List<string>? XLabels { get; set; }
-			public double Step { get; set; }
-			public double CursorPosition { get; set; }
+			public List<string>? XAxisLabels { get; set; }
+			public double XAxisStep { get; set; }
+			public List<string>? YAxisLabels { get; set; }
+			public double YAxisStep { get; set; }
+			public double XAxisCursorPosition { get; set; }
 		}
 	}
 }
