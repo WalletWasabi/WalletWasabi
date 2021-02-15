@@ -14,12 +14,11 @@
                  EnableCancel="True">
     <DataGrid Items="{Binding Addresses}">
       <DataGrid.Columns>
-        <DataGridTextColumn Header="Label"
+        <DataGridTextColumn Header="Header 1"
                             x:DataType="keys:HdPubKey"
                             Binding="{Binding Label}"
-                            Width="*"
-                            />
-        <DataGridTextColumn Header="P2pkScript"
+                            Width="*"/>
+        <DataGridTextColumn Header="Header 2"
                             x:DataType="keys:HdPubKey"
                             Binding="{Binding P2pkScript}"
                             Width="*"
