@@ -3,11 +3,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.LineChartDemo"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
-             x:Class="WalletWasabi.Fluent.Views.TestLineChartView">
+             x:Class="WalletWasabi.Fluent.Views.LineChartDemo.SendLineChartView">
     <UserControl.DataContext>
-        <vm:TestLineChartViewModel/>
+        <vm:SendLineChartViewModel/>
     </UserControl.DataContext>
     <UserControl.Styles>
         <!-- Slider Fee -->
