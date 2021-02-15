@@ -132,11 +132,16 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			=> new Knowledge(ZeroProofStatement(ma), new ScalarVector(r));
 
 		public static GroupElement PedersenCommitment(Scalar s, Scalar b)
-		 	=> new GroupElement(ECMultContext.Instance.MultBatch(new[] { s, b }, new[] { Generators.Gg.Ge, Generators.Gh.Ge }));
+		{
+			var gej = ECMultContext.Instance.MultBatch(
+									   new[] { s, b },
+									   new[] { Generators.Gg.Ge, Generators.Gh.Ge });
+			return new GroupElement(gej);
+		}
 
 		// TODO swap return value order, remove GroupElement argument
 		// expect nonce provider instead of WasabiRandom?
-		public static (Knowledge knowledge, IEnumerable<GroupElement> bitCommitments) RangeProofKnowledge(Scalar a, Scalar r, int width, WasabiRandom rnd)
+		public static (Knowledge knowledge, IEnumerable<GroupElement> bitCommitments) RangeProofKnowledge(Scalar a, Scalar r, int width, WasabiRandom rnd, int rangeProofWidth)
 		{
 			var ma = PedersenCommitment(a, r);
 			var bits = Enumerable.Range(0, width).Select(i => a.GetBits(i, 1) == 0 ? Scalar.Zero : Scalar.One);
@@ -172,20 +177,20 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 				witness[ProductColumn(i)] = r_i * b_i;
 			}
 
-			return (new Knowledge(RangeProofStatement(ma, bitCommitments), new ScalarVector(witness)), bitCommitments);
+			return (new Knowledge(RangeProofStatement(ma, bitCommitments, rangeProofWidth), new ScalarVector(witness)), bitCommitments);
 		}
 
 		// overload for bootstrap credential request proofs.
 		// this is just a range proof with width=0
 		// equivalent to new Statement(ma, Generators.Gh)
 		public static Statement ZeroProofStatement(GroupElement ma)
-			=> RangeProofStatement(ma, Array.Empty<GroupElement>());
+			=> RangeProofStatement(ma, Array.Empty<GroupElement>(), 0);
 
-		public static Statement RangeProofStatement(GroupElement ma, IEnumerable<GroupElement> bitCommitments)
+		public static Statement RangeProofStatement(GroupElement ma, IEnumerable<GroupElement> bitCommitments, int rangeProofWidth)
 		{
 			var b = bitCommitments.ToArray();
 			var width = b.Length; // can be 0
-			Guard.InRangeAndNotNull(nameof(width), width, 0, Constants.RangeProofWidth);
+			Guard.InRangeAndNotNull(nameof(width), width, 0, rangeProofWidth);
 
 			var rows = width * 2 + 1; // two equations per bit, and one for the sum
 			var columns = width * 3 + 1 + 1; // three witness components per bit and one for the Ma randomness, plus one for the public inputs
@@ -199,7 +204,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			// Ma, proven by showing that the public input is a commitment to 0 (only
 			// Gh term required to represent it). The per-bit witness terms of this
 			// equation are added in the loop below.
-			var powersOfTwo = Generators.PowersOfTwo.AsSpan(0, width);
+			var powersOfTwo = Generators.GetPowersOfTwo(rangeProofWidth).AsSpan(0, width);
 			var bitsTotal = new GroupElement(ECMultContext.Instance.MultBatch(powersOfTwo, b.Select(x => x.Ge).ToArray()));
 
 			equations[0, 0] = ma - bitsTotal;
@@ -222,7 +227,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			for (int i = 0; i < width; i++)
 			{
 				// Add [ -r_i * 2^i * Gh ] term to first equation.
-				equations[0, RndColumn(i)] = Generators.NegateGh2i[i];
+				equations[0, RndColumn(i)] = Generators.GetNegateGh2i(rangeProofWidth)[i];
 
 				// Add equation proving B is a Pedersen commitment to b:
 				//   [ B = b*Gg + r*Gh ]

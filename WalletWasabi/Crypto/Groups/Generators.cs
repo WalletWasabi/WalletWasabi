@@ -1,4 +1,5 @@
 using NBitcoin.Secp256k1;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
@@ -7,8 +8,10 @@ namespace WalletWasabi.Crypto.Groups
 {
 	public static class Generators
 	{
-		private static GroupElement[]? _negateGh2i;
-		private static Scalar[]? _powerOfTwo;
+		private static Dictionary<int, GroupElement[]> RangeProofWidthNegateGh2iPairs { get; } = new();
+		private static object RangeProofWidthNegateGh2iPairsLock { get; } = new();
+		private static Dictionary<int, Scalar[]> RangeProofWidthPowersOfTwoPairs { get; } = new();
+		private static object RangeProofWidthPowersOfTwoPairsLock { get; } = new();
 
 		/// <summary>
 		/// Base point defined in the secp256k1 standard used in ECDSA public key derivation.
@@ -60,28 +63,30 @@ namespace WalletWasabi.Crypto.Groups
 		/// </summary>
 		public static GroupElement Gs { get; } = FromText("Gs");
 
-		public static GroupElement[] NegateGh2i
+		public static GroupElement[] GetNegateGh2i(int rangeProofWidth)
 		{
-			get
+			lock (RangeProofWidthNegateGh2iPairsLock)
 			{
-				if (_negateGh2i is null)
+				if (!RangeProofWidthNegateGh2iPairs.TryGetValue(rangeProofWidth, out var negateGh2i))
 				{
 					var negatedGh = Gh.Negate();
-					_negateGh2i = PowersOfTwo.Select(b => b * negatedGh).ToArray();
+					negateGh2i = GetPowersOfTwo(rangeProofWidth).Select(b => b * negatedGh).ToArray();
+					RangeProofWidthNegateGh2iPairs.Add(rangeProofWidth, negateGh2i);
 				}
-				return _negateGh2i;
+				return negateGh2i;
 			}
 		}
 
-		public static Scalar[] PowersOfTwo
+		public static Scalar[] GetPowersOfTwo(int rangeProofWidth)
 		{
-			get
+			lock (RangeProofWidthPowersOfTwoPairsLock)
 			{
-				if (_powerOfTwo is null)
+				if (!RangeProofWidthPowersOfTwoPairs.TryGetValue(rangeProofWidth, out var powerOfTwo))
 				{
-					_powerOfTwo = Enumerable.Range(0, Constants.RangeProofWidth).Select(i => Scalar.Zero.CAddBit((uint)i, 1)).ToArray();
+					powerOfTwo = Enumerable.Range(0, rangeProofWidth).Select(i => Scalar.Zero.CAddBit((uint)i, 1)).ToArray();
+					RangeProofWidthPowersOfTwoPairs.Add(rangeProofWidth, powerOfTwo);
 				}
-				return _powerOfTwo;
+				return powerOfTwo;
 			}
 		}
 

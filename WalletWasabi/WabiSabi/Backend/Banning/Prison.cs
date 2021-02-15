@@ -11,6 +11,10 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 	/// </summary>
 	public class Prison
 	{
+		public Prison() : this(Enumerable.Empty<Inmate>())
+		{
+		}
+
 		public Prison(IEnumerable<Inmate> inmates)
 		{
 			Inmates = inmates.ToDictionary(x => x.Utxo, x => x);

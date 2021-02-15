@@ -1,15 +1,15 @@
 using System.Collections.Generic;
 using WalletWasabi.Crypto.ZeroKnowledge;
 
-namespace WalletWasabi.WabiSabi.Crypto
+namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 {
 	/// <summary>
 	/// Maintains the state needed to validate the credentials once the coordinator
 	/// issues them.
 	/// </summary>
-	public class RegistrationValidationData
+	public class CredentialsResponseValidation
 	{
-		internal RegistrationValidationData(
+		internal CredentialsResponseValidation(
 			Transcript transcript,
 			IEnumerable<Credential> presented,
 			IEnumerable<IssuanceValidationData> requested)

@@ -56,15 +56,18 @@ namespace WalletWasabi.Tor.Http.Models
 
 			using var reader = new StringReader(fieldString);
 			var name = reader.ReadPart(':');
+
 			// if empty
 			if (string.IsNullOrEmpty(name?.Trim()))
 			{
 				throw new FormatException($"Wrong {nameof(HeaderField)}: {fieldString}.");
 			}
+
 			// https://tools.ietf.org/html/rfc7230#section-3.2.4
 			// No whitespace is allowed between the header field-name and colon.
 			// A proxy MUST remove any such whitespace from a response message before forwarding the message downstream.
 			name = name.TrimEnd();
+
 			// whitespace not allowed
 			if (name != name.Trim())
 			{

@@ -4,8 +4,9 @@ using NBitcoin;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using Newtonsoft.Json;
+using NBitcoin.Secp256k1;
 
-namespace WalletWasabi.WabiSabi.Crypto
+namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 {
 	/// <summary>
 	/// Represents a request message for the WabiSabi unified registration protocol.
@@ -15,16 +16,16 @@ namespace WalletWasabi.WabiSabi.Crypto
 	/// inputs registration and outputs registration and it is designed to support
 	/// credentials reissuance.
 	/// </remarks>
-	public class RegistrationRequestMessage
+	public abstract class CredentialsRequest
 	{
 		[JsonConstructor]
-		internal RegistrationRequestMessage(
-			Money deltaAmount,
+		internal CredentialsRequest(
+			long delta,
 			IEnumerable<CredentialPresentation> presented,
 			IEnumerable<IssuanceRequest> requested,
 			IEnumerable<Proof> proofs)
 		{
-			DeltaAmount = deltaAmount;
+			Delta = delta;
 			Presented = presented;
 			Requested = requested;
 			Proofs = proofs;
@@ -38,7 +39,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// a negative value indicates it is an outputs registration request, while finally a zero value
 		/// indicates it is a reissuance request or a request for zero-value credentials.
 		/// </remarks>
-		public Money DeltaAmount { get; }
+		public long Delta { get; }
 
 		/// <summary>
 		/// Randomized credentials presented for output registration or reissuance.
@@ -58,7 +59,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// <summary>
 		/// Is request for zero-value credentials only.
 		/// </summary>
-		internal bool IsNullRequest => DeltaAmount == Money.Zero && !Presented.Any();
+		internal bool IsNullRequest => Delta == 0 && !Presented.Any();
 
 		/// <summary>
 		/// Serial numbers used in the credential presentations.
