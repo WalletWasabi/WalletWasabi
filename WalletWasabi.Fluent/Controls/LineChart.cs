@@ -405,7 +405,6 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-
 			if (state.ChartWidth <= 0
 			    || state.ChartHeight <= 0
 			    || state.ChartHeight - state.AreaMargin.Top < state.AreaMargin.Bottom)
