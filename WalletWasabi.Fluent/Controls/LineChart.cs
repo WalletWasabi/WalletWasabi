@@ -161,93 +161,100 @@ namespace WalletWasabi.Fluent.Controls
 
 		private LineChartState CreateChartState(double width, double height)
 		{
-			var state = new LineChartState();
+			var state = new LineChartState
+			{
+				ChartWidth = width,
+				ChartHeight = height,
+				AreaMargin = AreaMargin
+			};
 
-			// Char Size
-
-			state.ChartWidth = width;
-			state.ChartHeight = height;
-
-			// Char Area
-
-			state.AreaMargin = AreaMargin;
 			state.AreaWidth = width - state.AreaMargin.Left - state.AreaMargin.Right;
 			state.AreaHeight = height - state.AreaMargin.Top - state.AreaMargin.Bottom;
 
-			// X & Y Axis Values
+			SetStateAreaPoints(state);
 
+			SetStateXAxisLabels(state);
+			SetStateYAxisLabels(state);
+
+			SetStateXAxisCursor(state);
+
+			return state;
+		}
+
+		private void SetStateAreaPoints(LineChartState state)
+		{
 			var xAxisValues = XAxisValues;
 			var yAxisValues = YAxisValues;
 
-			if (xAxisValues is not null && xAxisValues.Count > 1 && yAxisValues is not null && yAxisValues.Count > 1)
-			{
-				state.XAxisStep = state.AreaWidth / (xAxisValues.Count - 1);
-				state.YAxisStep = state.AreaHeight / (yAxisValues.Count - 1);
-
-				var logarithmicScale = YAxisLogarithmicScale;
-
-				var yAxisValuesLogScaled = logarithmicScale
-					? yAxisValues.Select(y => Math.Log(y)).ToList()
-					: yAxisValues.ToList();
-
-				var yAxisValuesLogScaledMax = yAxisValuesLogScaled.Max();
-
-				var yAxisValuesScaled = yAxisValuesLogScaled
-					.Select(y => ScaleVertical(y, yAxisValuesLogScaledMax, state.AreaHeight))
-					.ToList();
-
-				state.Points = new Point[yAxisValues.Count];
-
-				for (var i = 0; i < yAxisValuesScaled.Count; i++)
-				{
-					state.Points[i] = new Point(i * state.XAxisStep, yAxisValuesScaled[i]);
-				}
-			}
-			else
+			if (xAxisValues is null || xAxisValues.Count <= 1 || yAxisValues is null || yAxisValues.Count <= 1)
 			{
 				state.XAxisStep = double.NaN;
 				state.YAxisStep = double.NaN;
 				state.Points = null;
+				return;
 			}
 
-			// X Axis Labels
+			state.XAxisStep = state.AreaWidth / (xAxisValues.Count - 1);
+			state.YAxisStep = state.AreaHeight / (yAxisValues.Count - 1);
 
-			var xAxisLabels = XAxisLabels;
-			if (xAxisLabels is not null)
+			var logarithmicScale = YAxisLogarithmicScale;
+
+			var yAxisValuesLogScaled = logarithmicScale
+				? yAxisValues.Select(y => Math.Log(y)).ToList()
+				: yAxisValues.ToList();
+
+			var yAxisValuesLogScaledMax = yAxisValuesLogScaled.Max();
+
+			var yAxisValuesScaled = yAxisValuesLogScaled
+				.Select(y => ScaleVertical(y, yAxisValuesLogScaledMax, state.AreaHeight))
+				.ToList();
+
+			state.Points = new Point[yAxisValues.Count];
+
+			for (var i = 0; i < yAxisValuesScaled.Count; i++)
 			{
-				state.XAxisLabels = xAxisLabels.ToList();
+				state.Points[i] = new Point(i * state.XAxisStep, yAxisValuesScaled[i]);
 			}
-			else
+		}
+
+		private void SetStateXAxisLabels(LineChartState state)
+		{
+			var xAxisLabels = XAxisLabels;
+			if (xAxisLabels is null)
 			{
 				if (XAxisStroke is not null && XAxisValues is not null)
 				{
 					state.XAxisLabels = XAxisValues.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToList();
 				}
 			}
-
-			// Y Axis Labels
-
-			var yAxisLabels = YAxisLabels;
-			if (yAxisLabels is not null)
-			{
-				state.YAxisLabels = yAxisLabels.ToList();
-			}
 			else
+			{
+				state.XAxisLabels = xAxisLabels.ToList();
+			}
+		}
+
+		private void SetStateYAxisLabels(LineChartState state)
+		{
+			var yAxisLabels = YAxisLabels;
+			if (yAxisLabels is null)
 			{
 				if (YAxisStroke is not null && YAxisValues is not null)
 				{
 					state.YAxisLabels = YAxisValues.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToList();
 				}
 			}
+			else
+			{
+				state.YAxisLabels = yAxisLabels.ToList();
+			}
+		}
 
-			// X Axis Cursor Position
-
+		private void SetStateXAxisCursor(LineChartState state)
+		{
 			var xAxisMinValue = XAxisMinValue;
 			var xAxisMaxValue = XAxisMaxValue;
 			var xAxisCurrentValue = XAxisCurrentValue;
 			state.XAxisCursorPosition = ScaleHorizontal(xAxisMaxValue - xAxisCurrentValue, xAxisMaxValue, state.AreaWidth);
-
-			return state;
 		}
 
 		private void DrawAreaFill(DrawingContext context, LineChartState state)
