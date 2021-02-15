@@ -56,3 +56,5 @@ Run Wasabi with `dotnet run` from the `WalletWasabi.Gui` folder.
 ```sh
 git pull
 ```
+## Wasabi Wallet Telegram Bot
+Just testing some features :)
