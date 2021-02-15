@@ -222,6 +222,20 @@ namespace WalletWasabi.Fluent.Controls
 				}
 			}
 
+			// Y Axis Labels
+
+			var yAxisLabels = YAxisLabels;
+			if (yAxisLabels is not null)
+			{
+				state.YAxisLabels = yAxisLabels.ToList();
+			}
+			else
+			{
+				if (YAxisStroke is not null && YAxisValues is not null)
+				{
+					state.YAxisLabels = YAxisValues.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToList();
+				}
+			}
 
 			// X Axis Cursor Position
 
