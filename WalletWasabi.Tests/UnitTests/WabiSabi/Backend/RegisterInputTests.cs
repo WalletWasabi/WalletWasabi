@@ -24,7 +24,17 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			MockArena arena = new();
 			arena.OnTryGetRound = _ => null;
 
-			await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
+			MockRpcClient rpc = new();
+			using Key key = new();
+
+			rpc.OnGetTxOutAsync = (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
+			};
+
+			await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, rpc);
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest();
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
@@ -37,14 +47,23 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			arena.OnTryGetRound = _ => round;
+			MockRpcClient rpc = new();
+			using Key key = new();
 
-			var req = WabiSabiFactory.CreateInputsRegistrationRequest(round);
+			rpc.OnGetTxOutAsync = (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
+			};
+
+			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
 			{
 				if (phase != Phase.InputRegistration)
 				{
 					round.Phase = phase;
-					await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 				}
@@ -74,7 +93,17 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var round = WabiSabiFactory.CreateRound(cfg);
 			arena.OnTryGetRound = _ => round;
 
-			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			MockRpcClient rpc = new();
+			using Key key = new();
+
+			rpc.OnGetTxOutAsync = (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
+			};
+
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(WabiSabiFactory.CreateInputRoundSignaturePairs(4), round);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.TooManyInputs, ex.ErrorCode);
@@ -140,11 +169,20 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			MockArena arena = new();
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			round.Alices.Add(new Alice(BitcoinFactory.CreateOutPoint()));
+			round.Alices.Add(WabiSabiFactory.CreateAlice());
 			Round blameRound = new(round);
 			arena.OnTryGetRound = _ => blameRound;
 
-			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			MockRpcClient rpc = new();
+			using Key key = new();
+			rpc.OnGetTxOutAsync = (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
+			};
+
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(blameRound);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputNotWhitelisted, ex.ErrorCode);
@@ -157,7 +195,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var pair = WabiSabiFactory.CreateInputRoundSignaturePair();
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			round.Alices.Add(new Alice(pair.Input));
+			round.Alices.Add(WabiSabiFactory.CreateAlice(pair));
 			Round blameRound = new(round);
 			arena.OnTryGetRound = _ => blameRound;
 
@@ -180,7 +218,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			prison.Punish(pair.Input, Punishment.Banned, Guid.NewGuid());
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			round.Alices.Add(new Alice(pair.Input));
+			round.Alices.Add(WabiSabiFactory.CreateAlice(pair));
 			Round blameRound = new(round);
 			arena.OnTryGetRound = _ => blameRound;
 

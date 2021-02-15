@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
@@ -51,11 +52,28 @@ namespace WalletWasabi.Tests.Helpers
 
 		public static Round CreateRound(WabiSabiConfig cfg)
 			=> new Round(
+				Network.Main,
 				cfg.MaxInputCountByAlice,
 				cfg.MinRegistrableAmount,
 				cfg.MaxRegistrableAmount,
 				cfg.MinRegistrableWeight,
-				cfg.MaxRegistrableWeight);
+				cfg.MaxRegistrableWeight,
+				new InsecureRandom());
+
+		public static Alice CreateAlice(InputRoundSignaturePair inputSigPairs) => CreateAlice(new[] { inputSigPairs });
+
+		public static Alice CreateAlice(IEnumerable<InputRoundSignaturePair>? inputSigPairs = null)
+		{
+			var pairs = inputSigPairs ?? CreateInputRoundSignaturePairs(1);
+			var myDic = new Dictionary<Coin, byte[]>();
+
+			foreach (var pair in pairs)
+			{
+				var coin = new Coin(pair.Input, new TxOut(Money.Coins(1), BitcoinFactory.CreateScript()));
+				myDic.Add(coin, pair.RoundSignature);
+			}
+			return new Alice(myDic);
+		}
 
 		public static InputsRegistrationRequest CreateInputsRegistrationRequest(Key key, Round? round)
 			=> CreateInputsRegistrationRequest(new[] { key }, round);

@@ -9,12 +9,14 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 {
 	public class Alice
 	{
-		public Alice(OutPoint outPoint)
+		public Alice(IDictionary<Coin, byte[]> coinRoundSignaturePairs)
 		{
-			OutPoint = outPoint;
+			Coins = coinRoundSignaturePairs.Keys;
+			CoinRoundSignaturePairs = coinRoundSignaturePairs;
 		}
 
 		public Guid Id { get; } = Guid.NewGuid();
-		public OutPoint OutPoint { get; }
+		public IEnumerable<Coin> Coins { get; }
+		public IDictionary<Coin, byte[]> CoinRoundSignaturePairs { get; }
 	}
 }
