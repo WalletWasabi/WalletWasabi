@@ -108,8 +108,7 @@
 
               <Popup Name="PART_Popup"
                      WindowManagerAddShadowHint="False"
-                     MaxHeight="{TemplateBinding MaxDropDownHeight}"
-                     MinHeight="120"
+                     MaxHeight="120"
                      IsLightDismissEnabled="True"
                      PlacementTarget="{TemplateBinding}">
                 <Border Name="PART_SuggestionsContainer"
