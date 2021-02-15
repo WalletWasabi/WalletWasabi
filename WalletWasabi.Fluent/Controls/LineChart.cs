@@ -256,18 +256,10 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void DrawAreaFill(DrawingContext context, LineChartState state)
 		{
-			if (state.Points is null)
-			{
-				return;
-			}
-
 			var brush = AreaFill;
-			if (brush is null)
-			{
-				return;
-			}
-
-			if (state.AreaWidth <= 0
+			if (brush is null
+			    || state.Points is null
+			    || state.AreaWidth <= 0
 			    || state.AreaHeight <= 0
 			    || state.AreaWidth < AreaMinViableWidth
 			    || state.AreaHeight < AreaMinViableHeight)
@@ -287,18 +279,10 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void DrawAreaStroke(DrawingContext context, LineChartState state)
 		{
-			if (state.Points is null)
-			{
-				return;
-			}
-
 			var brush = AreaStroke;
-			if (brush is null)
-			{
-				return;
-			}
-
-			if (state.AreaWidth <= 0
+			if (brush is null
+			    || state.Points is null
+			    || state.AreaWidth <= 0
 			    || state.AreaHeight <= 0
 			    || state.AreaWidth < AreaMinViableWidth
 			    || state.AreaHeight < AreaMinViableHeight)
@@ -325,12 +309,8 @@ namespace WalletWasabi.Fluent.Controls
 		private void DrawCursor(DrawingContext context, LineChartState state)
 		{
 			var brush = CursorStroke;
-			if (brush is null)
-			{
-				return;
-			}
-
-			if (state.AreaWidth <= 0
+			if (brush is null
+			    || state.AreaWidth <= 0
 			    || state.AreaHeight <= 0
 			    || state.AreaWidth < AreaMinViableWidth
 			    || state.AreaHeight < AreaMinViableHeight)
@@ -358,12 +338,8 @@ namespace WalletWasabi.Fluent.Controls
 		private void DrawXAxis(DrawingContext context, LineChartState state)
 		{
 			var brush = XAxisStroke;
-			if (brush is null)
-			{
-				return;
-			}
-
-			if (state.AreaWidth <= 0
+			if (brush is null
+			    || state.AreaWidth <= 0
 			    || state.AreaHeight <= 0
 			    || state.AreaWidth < XAxisMinViableWidth
 			    || state.AreaHeight < XAxisMinViableHeight)
@@ -397,17 +373,10 @@ namespace WalletWasabi.Fluent.Controls
 		private void DrawXAxisLabels(DrawingContext context, LineChartState state)
 		{
 			var foreground = XAxisLabelForeground;
-			if (foreground is null)
-			{
-				return;
-			}
-
-			if (state.XAxisLabels is null || double.IsNaN(state.XAxisStep))
-			{
-				return;
-			}
-
-			if (state.ChartWidth <= 0
+			if (foreground is null
+			    || state.XAxisLabels is null
+			    || double.IsNaN(state.XAxisStep)
+			    || state.ChartWidth <= 0
 			    || state.ChartHeight <= 0
 			    || state.ChartHeight - state.AreaMargin.Top < state.AreaMargin.Bottom)
 			{
@@ -470,12 +439,8 @@ namespace WalletWasabi.Fluent.Controls
 		private void DrawYAxis(DrawingContext context, LineChartState state)
 		{
 			var brush = YAxisStroke;
-			if (brush is null)
-			{
-				return;
-			}
-
-			if (state.AreaWidth <= 0
+			if (brush is null
+			    || state.AreaWidth <= 0
 			    || state.AreaHeight <= 0
 			    || state.AreaWidth < YAxisMinViableWidth
 			    || state.AreaHeight < YAxisMinViableHeight)
@@ -509,17 +474,10 @@ namespace WalletWasabi.Fluent.Controls
 		private void DrawYAxisLabels(DrawingContext context, LineChartState state)
 		{
 			var foreground = YAxisLabelForeground;
-			if (foreground is null)
-			{
-				return;
-			}
-
-			if (state.YAxisLabels is null || double.IsNaN(state.YAxisStep))
-			{
-				return;
-			}
-
-			if (state.ChartWidth <= 0
+			if (foreground is null
+			    || state.YAxisLabels is null
+			    || double.IsNaN(state.YAxisStep)
+			    || state.ChartWidth <= 0
 			    || state.ChartWidth - state.AreaMargin.Right < state.AreaMargin.Left
 			    || state.ChartHeight <= 0)
 			{
