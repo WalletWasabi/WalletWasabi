@@ -435,25 +435,23 @@ namespace WalletWasabi.Fluent.Controls
 				constrainHeightMax = Math.Max(constrainHeightMax, formattedText.Bounds.Height);
 			}
 
-			var constraint = new Size(constrainWidthMax, constrainHeightMax);
-
-			for (var i = 0; i < formattedTextLabels.Count; i++)
-			{
-				formattedTextLabels[i].Constraint = constraint;
-			}
+			var constraintMax = new Size(constrainWidthMax, constrainHeightMax);
 
 			var offsetTransform = context.PushPreTransform(Matrix.CreateTranslation(offset.X, offset.Y));
 
 			for (var i = 0; i < formattedTextLabels.Count; i++)
 			{
-				var origin = new Point(i * state.XAxisStep - constraint.Width / 2 + state.AreaMargin.Left, originTop);
-				var xPosition = origin.X + constraint.Width / 2;
-				var yPosition = origin.Y + constraint.Height / 2;
+				formattedTextLabels[i].Constraint = constraintMax;
+
+				var origin = new Point(i * state.XAxisStep - constraintMax.Width / 2 + state.AreaMargin.Left, originTop);
+				var xPosition = origin.X + constraintMax.Width / 2;
+				var yPosition = origin.Y + constraintMax.Height / 2;
 				var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
 				             * Matrix.CreateRotation(angleRadians)
 				             * Matrix.CreateTranslation(xPosition, yPosition);
 				var labelTransform = context.PushPreTransform(matrix);
-				var offsetCenter = new Point(constraint.Width / 2 - constraint.Width / 2, 0);
+
+				var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
 				var opacityState = context.PushOpacity(opacity);
 				context.DrawText(foreground, origin + offsetCenter, formattedTextLabels[i]);
 #if DEBUG_LABELS
@@ -551,25 +549,23 @@ namespace WalletWasabi.Fluent.Controls
 				constrainHeightMax = Math.Max(constrainHeightMax, formattedText.Bounds.Height);
 			}
 
-			var constraint = new Size(constrainWidthMax, constrainHeightMax);
-
-			for (var i = 0; i < formattedTextLabels.Count; i++)
-			{
-				formattedTextLabels[i].Constraint = constraint;
-			}
+			var constraintMax = new Size(constrainWidthMax, constrainHeightMax);
 
 			var offsetTransform = context.PushPreTransform(Matrix.CreateTranslation(offset.X, offset.Y));
 
 			for (var i = 0; i < formattedTextLabels.Count; i++)
 			{
-				var origin = new Point(originLeft - constraint.Width, i * state.YAxisStep - constraint.Height / 2 + state.AreaMargin.Top);
-				var xPosition = origin.X + constraint.Width / 2;
-				var yPosition = origin.Y + constraint.Height / 2;
+				formattedTextLabels[i].Constraint = constraintMax;
+
+				var origin = new Point(originLeft - constraintMax.Width, i * state.YAxisStep - constraintMax.Height / 2 + state.AreaMargin.Top);
+				var xPosition = origin.X + constraintMax.Width / 2;
+				var yPosition = origin.Y + constraintMax.Height / 2;
 				var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
 				             * Matrix.CreateRotation(angleRadians)
 				             * Matrix.CreateTranslation(xPosition, yPosition);
 				var labelTransform = context.PushPreTransform(matrix);
-				var offsetCenter = new Point(constraint.Width / 2 - constraint.Width / 2, 0);
+
+				var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
 				var opacityState = context.PushOpacity(opacity);
 				context.DrawText(foreground, origin + offsetCenter, formattedTextLabels[i]);
 #if DEBUG_LABELS
