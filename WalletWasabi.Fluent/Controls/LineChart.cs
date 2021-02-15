@@ -517,7 +517,83 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void DrawYAxisLabels(DrawingContext context, LineChartState state)
 		{
-			// TODO: Draw YAxis labels.
+			if (state.YAxisLabels is null)
+			{
+				return;
+			}
+
+			if (double.IsNaN(state.YAxisStep))
+			{
+				return;
+			}
+
+			var foreground = YAxisLabelForeground;
+			if (foreground is null)
+			{
+				return;
+			}
+
+			if (state.ChartWidth <= 0
+			    || state.ChartWidth - state.AreaMargin.Right < state.AreaMargin.Left
+			    || state.ChartHeight <= 0)
+			{
+				return;
+			}
+
+			var opacity = YAxisLabelOpacity;
+			var fontFamily = YAxisLabelFontFamily;
+			var fontStyle = YAxisLabelFontStyle;
+			var fontWeight = YAxisLabelFontWeight;
+			var typeface = new Typeface(fontFamily, fontStyle, fontWeight);
+			var fontSize = YAxisLabelFontSize;
+			var offset = YAxisLabelOffset;
+			var angleRadians = Math.PI / 180.0 * YAxisLabelAngle;
+			var alignment = YAxisLabelAlignment;
+			var originLeft = state.AreaMargin.Left;
+			var offsetTransform = context.PushPreTransform(Matrix.CreateTranslation(offset.X, offset.Y));
+
+			var formattedTextLabels = new List<FormattedText>();
+			var constrainWidthMax = 0.0;
+			var constrainHeightMax = 0.0;
+
+			for (var i = 0; i < state.YAxisLabels.Count; i++)
+			{
+				var formattedText = CreateFormattedText(state.YAxisLabels[i], typeface, alignment, fontSize, Size.Empty);
+				formattedTextLabels.Add(formattedText);
+				constrainWidthMax = Math.Max(constrainWidthMax, formattedText.Bounds.Width);
+				constrainHeightMax = Math.Max(constrainHeightMax, formattedText.Bounds.Height);
+			}
+
+			var constraint = new Size(constrainWidthMax, constrainHeightMax);
+
+			for (var i = 0; i < state.YAxisLabels.Count; i++)
+			{
+				formattedTextLabels[i].Constraint = constraint;
+			}
+
+			for (var i = 0; i < state.YAxisLabels.Count; i++)
+			{
+				var origin = new Point(originLeft - constraint.Width, i * state.YAxisStep - constraint.Height / 2 + state.AreaMargin.Top);
+				var xPosition = origin.X + constraint.Width / 2;
+				var yPosition = origin.Y + constraint.Height / 2;
+				var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
+				             * Matrix.CreateRotation(angleRadians)
+				             * Matrix.CreateTranslation(xPosition, yPosition);
+				var labelTransform = context.PushPreTransform(matrix);
+				var offsetCenter = new Point(constraint.Width / 2 - constraint.Width / 2, 0);
+				var opacityState = context.PushOpacity(opacity);
+				context.DrawText(foreground, origin + offsetCenter, formattedTextLabels[i]);
+#if DEBUG_LABELS
+                context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Magenta)), new Rect(origin, constraint));
+#endif
+				opacityState.Dispose();
+				labelTransform.Dispose();
+#if DEBUG_LABELS
+                context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Cyan)), new Rect(origin, constraint));
+#endif
+			}
+
+			offsetTransform.Dispose();
 		}
 
 		private void DrawYAxisTitle(DrawingContext context, LineChartState state)
