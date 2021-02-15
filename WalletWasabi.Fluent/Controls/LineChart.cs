@@ -588,7 +588,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			DrawYAxis(context, state);
 			DrawYAxisTitle(context, state);
-			DrawXAxisLabels(context, state);
+			DrawYAxisLabels(context, state);
 
 			DrawBorder(context, state);
 		}
