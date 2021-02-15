@@ -444,14 +444,13 @@ namespace WalletWasabi.Fluent.Controls
 				formattedTextLabels[i].Constraint = constraintMax;
 
 				var origin = new Point(i * state.XAxisStep - constraintMax.Width / 2 + state.AreaMargin.Left, originTop);
+				var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
 				var xPosition = origin.X + constraintMax.Width / 2;
 				var yPosition = origin.Y + constraintMax.Height / 2;
 				var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
 				             * Matrix.CreateRotation(angleRadians)
 				             * Matrix.CreateTranslation(xPosition, yPosition);
 				var labelTransform = context.PushPreTransform(matrix);
-
-				var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
 				var opacityState = context.PushOpacity(opacity);
 				context.DrawText(foreground, origin + offsetCenter, formattedTextLabels[i]);
 #if DEBUG_LABELS
@@ -558,14 +557,13 @@ namespace WalletWasabi.Fluent.Controls
 				formattedTextLabels[i].Constraint = constraintMax;
 
 				var origin = new Point(originLeft - constraintMax.Width, i * state.YAxisStep - constraintMax.Height / 2 + state.AreaMargin.Top);
+				var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
 				var xPosition = origin.X + constraintMax.Width / 2;
 				var yPosition = origin.Y + constraintMax.Height / 2;
 				var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
 				             * Matrix.CreateRotation(angleRadians)
 				             * Matrix.CreateTranslation(xPosition, yPosition);
 				var labelTransform = context.PushPreTransform(matrix);
-
-				var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
 				var opacityState = context.PushOpacity(opacity);
 				context.DrawText(foreground, origin + offsetCenter, formattedTextLabels[i]);
 #if DEBUG_LABELS
