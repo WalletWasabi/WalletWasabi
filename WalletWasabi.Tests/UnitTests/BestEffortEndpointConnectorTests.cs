@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Exception ex;
 
 			// Try to connect to a non-onion address.
-			ex = await Assert.ThrowsAsync<SocketException>(
+			ex = await Assert.ThrowsAnyAsync<SocketException>(
 				async () => await ConnectAsync(new IPEndPoint(IPAddress.Loopback, 180)));
 			Assert.Contains("refused", ex.Message);
 			Assert.False(connector.State.AllowOnlyTorEndpoints);
