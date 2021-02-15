@@ -12,7 +12,7 @@
     <UserControl.Styles>
         <!-- LineChart Area -->
         <Style Selector="c|LineChart.area">
-            <Setter Property="AreaMargin" Value="50,30,30,30"/>
+            <Setter Property="AreaMargin" Value="50,40,30,40"/>
             <Setter Property="AreaStrokeThickness" Value="2"/>
             <Setter Property="AreaStrokeLineCap" Value="Round"/>
             <Setter Property="AreaMinViableWidth" Value="40"/>
@@ -28,8 +28,8 @@
         <Style Selector="c|LineChart.border">
             <Setter Property="BorderBrush" Value="{DynamicResource TextForegroundColor}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderRadiusX" Value="0" />
-            <Setter Property="BorderRadiusY" Value="0" />
+            <Setter Property="BorderRadiusX" Value="10" />
+            <Setter Property="BorderRadiusY" Value="10" />
         </Style>
         <!-- LineChart XAxis -->
         <Style Selector="c|LineChart.xAxis">
@@ -45,7 +45,7 @@
         <Style Selector="c|LineChart.xAxisLabels">
             <Setter Property="XAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
             <Setter Property="XAxisLabelAngle" Value="0" />
-            <Setter Property="XAxisLabelOffset" Value="0,5" />
+            <Setter Property="XAxisLabelOffset" Value="0,10" />
             <Setter Property="XAxisLabelAlignment" Value="Center" />
             <Setter Property="XAxisLabelFontSize" Value="10" />
         </Style>
@@ -63,7 +63,7 @@
         <Style Selector="c|LineChart.yAxisLabels">
             <Setter Property="YAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
             <Setter Property="YAxisLabelAngle" Value="0" />
-            <Setter Property="YAxisLabelOffset" Value="-5,0" />
+            <Setter Property="YAxisLabelOffset" Value="-10,0" />
             <Setter Property="YAxisLabelAlignment" Value="Right" />
             <Setter Property="YAxisLabelFontSize" Value="10" />
         </Style>
