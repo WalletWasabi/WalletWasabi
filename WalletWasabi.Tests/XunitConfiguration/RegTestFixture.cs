@@ -73,7 +73,12 @@ namespace WalletWasabi.Tests.XunitConfiguration
 							.UseUrls(BackendEndPoint))
 					.Build();
 
-			Global = (Global)BackendHost.Services.GetService(typeof(Global))!;
+			if (BackendHost.Services.GetService(typeof(Global)) is not Global global)
+			{
+				throw new InvalidOperationException($"Service {nameof(Global)} is not registered.");
+			}
+
+			Global = global;
 			Global.HostedServices = hostedServices;
 			var hostInitializationTask = BackendHost.RunWithTasksAsync();
 			Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}");
