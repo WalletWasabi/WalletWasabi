@@ -83,8 +83,7 @@
             <Setter Property="XAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
             <Setter Property="XAxisLabelOpacity" Value="0.5" />
             <Setter Property="XAxisLabelAngle" Value="0" />
-            <Setter Property="XAxisLabelOffset" Value="0,10" />
-            <Setter Property="XAxisLabelSize" Value="50,30" />
+            <Setter Property="XAxisLabelOffset" Value="0,20" />
             <Setter Property="XAxisLabelAlignment" Value="Center" />
             <Setter Property="XAxisLabelFontFamily" Value="Arial" />
             <Setter Property="XAxisLabelFontStyle" Value="Normal" />
@@ -106,8 +105,7 @@
             <Setter Property="YAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
             <Setter Property="YAxisLabelOpacity" Value="0.5" />
             <Setter Property="YAxisLabelAngle" Value="0" />
-            <Setter Property="YAxisLabelOffset" Value="0,10" />
-            <Setter Property="YAxisLabelSize" Value="50,30" />
+            <Setter Property="YAxisLabelOffset" Value="0,5" />
             <Setter Property="YAxisLabelAlignment" Value="Center" />
             <Setter Property="YAxisLabelFontFamily" Value="Arial" />
             <Setter Property="YAxisLabelFontStyle" Value="Normal" />

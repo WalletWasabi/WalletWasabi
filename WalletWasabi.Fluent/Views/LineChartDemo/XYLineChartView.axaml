@@ -45,6 +45,9 @@
         <Style Selector="c|LineChart.xAxisLabels">
             <Setter Property="XAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
             <Setter Property="XAxisLabelAngle" Value="0" />
+            <Setter Property="XAxisLabelOffset" Value="0,5" />
+            <Setter Property="XAxisLabelAlignment" Value="Center" />
+            <Setter Property="XAxisLabelFontSize" Value="10" />
         </Style>
         <!-- LineChart YAxis -->
         <Style Selector="c|LineChart.yAxis">
@@ -60,6 +63,9 @@
         <Style Selector="c|LineChart.yAxisLabels">
             <Setter Property="YAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
             <Setter Property="YAxisLabelAngle" Value="0" />
+            <Setter Property="YAxisLabelOffset" Value="-5,0" />
+            <Setter Property="YAxisLabelAlignment" Value="Right" />
+            <Setter Property="YAxisLabelFontSize" Value="10" />
         </Style>
     </UserControl.Styles>
     <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="20">

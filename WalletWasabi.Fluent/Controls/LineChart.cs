@@ -176,36 +176,39 @@ namespace WalletWasabi.Fluent.Controls
 
 			// X & Y Axis Values
 
+			var xAxisValues = XAxisValues;
 			var yAxisValues = YAxisValues;
-			if (yAxisValues is not null && yAxisValues.Count > 1)
+
+			if (xAxisValues is not null && xAxisValues.Count > 1 && yAxisValues is not null && yAxisValues.Count > 1)
 			{
+				state.XAxisStep = state.AreaWidth / (xAxisValues.Count - 1);
+				state.YAxisStep = state.AreaHeight / (yAxisValues.Count - 1);
+
 				var logarithmicScale = YAxisLogarithmicScale;
 
-				var valuesList = logarithmicScale
+				var yAxisValuesLogScaled = logarithmicScale
 					? yAxisValues.Select(y => Math.Log(y)).ToList()
 					: yAxisValues.ToList();
 
-				var valuesListMax = valuesList.Max();
-				var scaledValues = valuesList
-					.Select(y => ScaleVertical(y, valuesListMax, state.AreaHeight))
+				var yAxisValuesLogScaledMax = yAxisValuesLogScaled.Max();
+
+				var yAxisValuesScaled = yAxisValuesLogScaled
+					.Select(y => ScaleVertical(y, yAxisValuesLogScaledMax, state.AreaHeight))
 					.ToList();
 
-				state.XAxisStep = state.AreaWidth / (scaledValues.Count - 1);
-				state.Points = new Point[scaledValues.Count];
+				state.Points = new Point[yAxisValues.Count];
 
-				for (var i = 0; i < scaledValues.Count; i++)
+				for (var i = 0; i < yAxisValuesScaled.Count; i++)
 				{
-					state.Points[i] = new Point(i * state.XAxisStep, scaledValues[i]);
+					state.Points[i] = new Point(i * state.XAxisStep, yAxisValuesScaled[i]);
 				}
 			}
 			else
 			{
 				state.XAxisStep = double.NaN;
+				state.YAxisStep = double.NaN;
 				state.Points = null;
 			}
-
-			// TODO: XAxisValues
-			// TODO: YAxisStep
 
 			// X Axis Labels
 
@@ -419,25 +422,42 @@ namespace WalletWasabi.Fluent.Controls
 			var typeface = new Typeface(fontFamily, fontStyle, fontWeight);
 			var fontSize = XAxisLabelFontSize;
 			var offset = XAxisLabelOffset;
-			var size = XAxisLabelSize;
 			var angleRadians = Math.PI / 180.0 * XAxisLabelAngle;
 			var alignment = XAxisLabelAlignment;
-			var originTop = state.AreaHeight + state.AreaMargin.Top;
+			var originTop = state.AreaMargin.Top + state.AreaHeight;
 			var offsetTransform = context.PushPreTransform(Matrix.CreateTranslation(offset.X, offset.Y));
+
+			var formattedTextLabels = new List<FormattedText>();
+			var constrainWidthMax = 0.0;
+			var constrainHeightMax = 0.0;
+
 			for (var i = 0; i < state.XAxisLabels.Count; i++)
 			{
-				var origin = new Point(i * state.XAxisStep - size.Width / 2 + state.AreaMargin.Left, originTop);
-				var constraint = new Size(size.Width, size.Height);
-				var formattedText = CreateFormattedText(state.XAxisLabels[i], typeface, alignment, fontSize, constraint);
-				var xPosition = origin.X + size.Width / 2;
-				var yPosition = origin.Y + size.Height / 2;
+				var formattedText = CreateFormattedText(state.XAxisLabels[i], typeface, alignment, fontSize, Size.Empty);
+				formattedTextLabels.Add(formattedText);
+				constrainWidthMax = Math.Max(constrainWidthMax, formattedText.Bounds.Width);
+				constrainHeightMax = Math.Max(constrainHeightMax, formattedText.Bounds.Height);
+			}
+
+			var constraint = new Size(constrainWidthMax, constrainHeightMax);
+
+			for (var i = 0; i < state.XAxisLabels.Count; i++)
+			{
+				formattedTextLabels[i].Constraint = constraint;
+			}
+
+			for (var i = 0; i < state.XAxisLabels.Count; i++)
+			{
+				var origin = new Point(i * state.XAxisStep - constraint.Width / 2 + state.AreaMargin.Left, originTop);
+				var xPosition = origin.X + constraint.Width / 2;
+				var yPosition = origin.Y + constraint.Height / 2;
 				var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
 				             * Matrix.CreateRotation(angleRadians)
 				             * Matrix.CreateTranslation(xPosition, yPosition);
 				var labelTransform = context.PushPreTransform(matrix);
-				var offsetCenter = new Point(0, size.Height / 2 - formattedText.Bounds.Height / 2);
+				var offsetCenter = new Point(constraint.Width / 2 - constraint.Width / 2, 0);
 				var opacityState = context.PushOpacity(opacity);
-				context.DrawText(foreground, origin + offsetCenter, formattedText);
+				context.DrawText(foreground, origin + offsetCenter, formattedTextLabels[i]);
 #if DEBUG_LABELS
                 context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Magenta)), new Rect(origin, constraint));
 #endif

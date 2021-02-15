@@ -88,10 +88,7 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisLabelOpacity), 1.0);
 
 		public static readonly StyledProperty<Point> XAxisLabelOffsetProperty =
-			AvaloniaProperty.Register<LineChart, Point>(nameof(XAxisLabelOffset), new Point(0, 10));
-
-		public static readonly StyledProperty<Size> XAxisLabelSizeProperty =
-			AvaloniaProperty.Register<LineChart, Size>(nameof(XAxisLabelSize), new Size(20, 0));
+			AvaloniaProperty.Register<LineChart, Point>(nameof(XAxisLabelOffset), new Point(0, 5));
 
 		public static readonly StyledProperty<TextAlignment> XAxisLabelAlignmentProperty =
 			AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(XAxisLabelAlignment), TextAlignment.Center);
@@ -196,10 +193,7 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisLabelOpacity), 1.0);
 
 		public static readonly StyledProperty<Point> YAxisLabelOffsetProperty =
-			AvaloniaProperty.Register<LineChart, Point>(nameof(YAxisLabelOffset), new Point(-10, 0));
-
-		public static readonly StyledProperty<Size> YAxisLabelSizeProperty =
-			AvaloniaProperty.Register<LineChart, Size>(nameof(YAxisLabelSize), new Size(0, 20));
+			AvaloniaProperty.Register<LineChart, Point>(nameof(YAxisLabelOffset), new Point(-5, 0));
 
 		public static readonly StyledProperty<TextAlignment> YAxisLabelAlignmentProperty =
 			AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(YAxisLabelAlignment), TextAlignment.Right);
@@ -323,7 +317,6 @@ namespace WalletWasabi.Fluent.Controls
 				XAxisLabelForegroundProperty,
 				XAxisLabelOpacityProperty,
 				XAxisLabelOffsetProperty,
-				XAxisLabelSizeProperty,
 				XAxisLabelAlignmentProperty,
 				XAxisLabelAngleProperty,
 				XAxisLabelFontFamilyProperty,
@@ -357,7 +350,6 @@ namespace WalletWasabi.Fluent.Controls
 				YAxisLabelForegroundProperty,
 				YAxisLabelOpacityProperty,
 				YAxisLabelOffsetProperty,
-				YAxisLabelSizeProperty,
 				YAxisLabelAlignmentProperty,
 				YAxisLabelAngleProperty,
 				YAxisLabelFontFamilyProperty,
@@ -557,12 +549,6 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(XAxisLabelOffsetProperty);
 			set => SetValue(XAxisLabelOffsetProperty, value);
-		}
-
-		public Size XAxisLabelSize
-		{
-			get => GetValue(XAxisLabelSizeProperty);
-			set => SetValue(XAxisLabelSizeProperty, value);
 		}
 
 		public TextAlignment XAxisLabelAlignment
@@ -767,12 +753,6 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(YAxisLabelOffsetProperty);
 			set => SetValue(YAxisLabelOffsetProperty, value);
-		}
-
-		public Size YAxisLabelSize
-		{
-			get => GetValue(YAxisLabelSizeProperty);
-			set => SetValue(YAxisLabelSizeProperty, value);
 		}
 
 		public TextAlignment YAxisLabelAlignment
