@@ -397,7 +397,12 @@ namespace WalletWasabi.Fluent.Controls
 		private void DrawXAxisLabels(DrawingContext context, LineChartState state)
 		{
 			var foreground = XAxisLabelForeground;
-			if (foreground is null || state.XAxisLabels is null || double.IsNaN(state.XAxisStep))
+			if (foreground is null)
+			{
+				return;
+			}
+
+			if (state.XAxisLabels is null || double.IsNaN(state.XAxisStep))
 			{
 				return;
 			}
@@ -504,7 +509,12 @@ namespace WalletWasabi.Fluent.Controls
 		private void DrawYAxisLabels(DrawingContext context, LineChartState state)
 		{
 			var foreground = YAxisLabelForeground;
-			if (foreground is null || state.YAxisLabels is null || double.IsNaN(state.YAxisStep))
+			if (foreground is null)
+			{
+				return;
+			}
+
+			if (state.YAxisLabels is null || double.IsNaN(state.YAxisStep))
 			{
 				return;
 			}
