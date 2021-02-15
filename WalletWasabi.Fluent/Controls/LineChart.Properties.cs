@@ -88,10 +88,10 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisLabelOpacity), 1.0);
 
 		public static readonly StyledProperty<Point> XAxisLabelOffsetProperty =
-			AvaloniaProperty.Register<LineChart, Point>(nameof(XAxisLabelOffset));
+			AvaloniaProperty.Register<LineChart, Point>(nameof(XAxisLabelOffset), new Point(0, 10));
 
 		public static readonly StyledProperty<Size> XAxisLabelSizeProperty =
-			AvaloniaProperty.Register<LineChart, Size>(nameof(XAxisLabelSize));
+			AvaloniaProperty.Register<LineChart, Size>(nameof(XAxisLabelSize), new Size(20, 0));
 
 		public static readonly StyledProperty<TextAlignment> XAxisLabelAlignmentProperty =
 			AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(XAxisLabelAlignment), TextAlignment.Center);
@@ -196,13 +196,13 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisLabelOpacity), 1.0);
 
 		public static readonly StyledProperty<Point> YAxisLabelOffsetProperty =
-			AvaloniaProperty.Register<LineChart, Point>(nameof(YAxisLabelOffset));
+			AvaloniaProperty.Register<LineChart, Point>(nameof(YAxisLabelOffset), new Point(-10, 0));
 
 		public static readonly StyledProperty<Size> YAxisLabelSizeProperty =
-			AvaloniaProperty.Register<LineChart, Size>(nameof(YAxisLabelSize));
+			AvaloniaProperty.Register<LineChart, Size>(nameof(YAxisLabelSize), new Size(0, 20));
 
 		public static readonly StyledProperty<TextAlignment> YAxisLabelAlignmentProperty =
-			AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(YAxisLabelAlignment), TextAlignment.Center);
+			AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(YAxisLabelAlignment), TextAlignment.Right);
 
 		public static readonly StyledProperty<double> YAxisLabelAngleProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisLabelAngle));
