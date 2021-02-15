@@ -2,7 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 
-namespace WalletWasabi.JsonConverters
+namespace WalletWasabi.JsonConverters.Bitcoin
 {
 	public class MoneyBtcJsonConverter : JsonConverter
 	{
@@ -13,11 +13,22 @@ namespace WalletWasabi.JsonConverters
 		}
 
 		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			var serialized = (string)reader.Value;
+			var stringValue = reader.Value as string;
+			return Parse(stringValue);
+		}
 
-			return Money.Parse(serialized);
+		public static Money? Parse(string? stringValue)
+		{
+			if (string.IsNullOrWhiteSpace(stringValue))
+			{
+				return null;
+			}
+			else
+			{
+				return Money.Parse(stringValue);
+			}
 		}
 
 		/// <inheritdoc />

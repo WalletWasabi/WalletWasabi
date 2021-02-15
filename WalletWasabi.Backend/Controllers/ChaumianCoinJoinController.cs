@@ -165,7 +165,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 
 					var alicesToRemove = new HashSet<Guid>();
-					var getTxOutResponses = new List<(InputProofModel inputModel, Task<GetTxOutResponse> getTxOutTask)>();
+					var getTxOutResponses = new List<(InputProofModel inputModel, Task<GetTxOutResponse?> getTxOutTask)>();
 
 					var batch = RpcClient.PrepareBatch();
 

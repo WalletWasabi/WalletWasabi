@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 				var response = new HttpResponseMessage(HttpStatusCode.OK);
 				response.Content = new StringContent(JsonConvert.SerializeObject(result));
 				return Task.FromResult(response);
-			};
+			}
 
 			var torHttpClient = new MockTorHttpClient();
 			torHttpClient.OnSendAsync = FakeServerCode;

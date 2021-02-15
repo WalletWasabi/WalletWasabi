@@ -29,6 +29,7 @@
                                     <c:ConcatenatingWrapPanel Focusable="False">
                                         <c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                             <AutoCompleteBox x:Name="PART_AutoCompleteBox"
+                                                             MaxDropDownHeight="90"
                                                              MinimumPrefixLength="1"
                                                              Focusable="False"
                                                              IsTextCompletionEnabled="True"
@@ -86,6 +87,47 @@
         <Setter Property="Margin" Value="0,0,4,4" />
     </Style>
 
+    <Style Selector="c|TagsBox AutoCompleteBox">
+        <Setter Property="Template">
+          <ControlTemplate>
+            <Grid Name="PART_LayoutRoot">
+              <TextBox Name="PART_TextBox"
+                       Watermark="{TemplateBinding Watermark}"
+                       Width="{TemplateBinding Width}"
+                       Foreground="{TemplateBinding Foreground}"
+                       Background="{TemplateBinding Background}"
+                       BorderBrush="{TemplateBinding BorderBrush}"
+                       BorderThickness="{TemplateBinding BorderThickness}"
+                       FontSize="{TemplateBinding FontSize}"
+                       FontFamily="{TemplateBinding FontFamily}"
+                       FontWeight="{TemplateBinding FontWeight}"
+                       Padding="{TemplateBinding Padding}"
+                       Margin="0"
+                       DataValidationErrors.Errors="{TemplateBinding (DataValidationErrors.Errors)}" />
+
+              <Popup Name="PART_Popup"
+                     WindowManagerAddShadowHint="False"
+                     MaxHeight="120"
+                     IsLightDismissEnabled="True"
+                     PlacementTarget="{TemplateBinding}">
+                <Border Name="PART_SuggestionsContainer"
+                        Padding="{DynamicResource AutoCompleteListMargin}"
+                        BorderThickness="{DynamicResource AutoCompleteListBorderThemeThickness}"
+                        BorderBrush="{DynamicResource AutoCompleteBoxSuggestionsListBorderBrush}"
+                        Background="{DynamicResource AutoCompleteBoxSuggestionsListBackground}"
+                        CornerRadius="{DynamicResource OverlayCornerRadius}">
+                  <ListBox Name="PART_SelectingItemsControl"
+                           BorderThickness="0"
+                           Background="Transparent"
+                           ItemTemplate="{TemplateBinding ItemTemplate}"
+                           Margin="{DynamicResource AutoCompleteListPadding}" />
+                </Border>
+              </Popup>
+            </Grid>
+          </ControlTemplate>
+        </Setter>
+    </Style>
+
     <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
         <Setter Property="Padding" Value="0" />
         <Setter Property="Margin" Value="0" />
@@ -122,6 +164,7 @@
             </ContextMenu>
         </Setter>
     </Style>
+
 
 
 </Styles>

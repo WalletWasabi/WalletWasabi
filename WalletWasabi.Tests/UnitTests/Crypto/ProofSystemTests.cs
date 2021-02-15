@@ -203,15 +203,15 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var commitment = amountScalar * Generators.Gg + randomness * Generators.Gh;
 
 			var maskedScalar = new Scalar(amount & ((1ul << width) - 1));
-			var (knowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(maskedScalar, randomness, width, rnd);
+			var (knowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(maskedScalar, randomness, width, rnd, 42);
 
 			var rangeProof = ProofSystemHelpers.Prove(knowledge, rnd);
 
-			Assert.Equal(pass, ProofSystemHelpers.Verify(ProofSystem.RangeProofStatement(commitment, bitCommitments), rangeProof));
+			Assert.Equal(pass, ProofSystemHelpers.Verify(ProofSystem.RangeProofStatement(commitment, bitCommitments, 42), rangeProof));
 
 			if (!pass)
 			{
-				Assert.Throws<ArgumentException>(() => ProofSystem.RangeProofKnowledge(amountScalar, randomness, width, rnd));
+				Assert.Throws<ArgumentException>(() => ProofSystem.RangeProofKnowledge(amountScalar, randomness, width, rnd, 42));
 			}
 		}
 

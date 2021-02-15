@@ -7,8 +7,10 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Crypto.Serialization;
 using Xunit;
 
@@ -156,23 +158,24 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			using var rnd = new SecureRandom();
 			var sk = new CredentialIssuerSecretKey(rnd);
 
-			var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd);
-			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), numberOfCredentials, rnd);
-			var (credentialRequest, validationData) = client.CreateRequestForZeroAmount();
+			var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd, 4300000000000);
+			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), numberOfCredentials, rnd, 4300000000000);
+			(CredentialsRequest credentialRequest, CredentialsResponseValidation validationData) = client.CreateRequestForZeroAmount();
 			var credentialResponse = issuer.HandleRequest(credentialRequest);
 			client.HandleResponse(credentialResponse, validationData);
 			var present = client.Credentials.ZeroValue.Take(numberOfCredentials);
-			(credentialRequest, _) = client.CreateRequest(new[] { Money.Coins(1) }, present);
+			(credentialRequest, _) = client.CreateRequest(new[] { 1L }, present);
 
 			// Registration request message.
 			var serializedRequestMessage = JsonConvert.SerializeObject(credentialRequest, converters);
-			var deserializedRequestMessage = JsonConvert.DeserializeObject<RegistrationRequestMessage>(serializedRequestMessage, converters);
+			Assert.Throws<NotSupportedException>(() => JsonConvert.DeserializeObject<ZeroCredentialsRequest>(serializedRequestMessage, converters));
+			var deserializedRequestMessage = JsonConvert.DeserializeObject<RealCredentialsRequest>(serializedRequestMessage, converters);
 			var reserializedRequestMessage = JsonConvert.SerializeObject(deserializedRequestMessage, converters);
 			Assert.Equal(serializedRequestMessage, reserializedRequestMessage);
 
 			// Registration response message.
 			var serializedResponseMessage = JsonConvert.SerializeObject(credentialResponse, converters);
-			var deserializedResponseMessage = JsonConvert.DeserializeObject<RegistrationResponseMessage>(serializedResponseMessage, converters);
+			var deserializedResponseMessage = JsonConvert.DeserializeObject<CredentialsResponse>(serializedResponseMessage, converters);
 			var reserializedResponseMessage = JsonConvert.SerializeObject(deserializedResponseMessage, converters);
 			Assert.Equal(serializedResponseMessage, reserializedResponseMessage);
 		}
