@@ -63,7 +63,8 @@ namespace WalletWasabi
 				socketEndpoint = new IPEndPoint(mappedv4.Address.MapToIPv4Ex(), mappedv4.Port);
 			}
 
-			await socket.ConnectAsync(socketEndpoint).WithAwaitCancellationAsync(cancellationToken).ConfigureAwait(false);
+			cancellationToken.ThrowIfCancellationRequested();
+			await socket.ConnectAsync(socketEndpoint).ConfigureAwait(false);
 
 			if (useSocks)
 			{
