@@ -427,9 +427,9 @@ namespace WalletWasabi.Fluent.Controls
 			var constrainWidthMax = 0.0;
 			var constrainHeightMax = 0.0;
 
-			for (var i = 0; i < state.XAxisLabels.Count; i++)
+			foreach (var label in state.XAxisLabels)
 			{
-				var formattedText = CreateFormattedText(state.XAxisLabels[i], typeface, alignment, fontSize, Size.Empty);
+				var formattedText = CreateFormattedText(label, typeface, alignment, fontSize, Size.Empty);
 				formattedTextLabels.Add(formattedText);
 				constrainWidthMax = Math.Max(constrainWidthMax, formattedText.Bounds.Width);
 				constrainHeightMax = Math.Max(constrainHeightMax, formattedText.Bounds.Height);
@@ -541,9 +541,9 @@ namespace WalletWasabi.Fluent.Controls
 			var constrainWidthMax = 0.0;
 			var constrainHeightMax = 0.0;
 
-			foreach (var t in state.YAxisLabels)
+			foreach (var label in state.YAxisLabels)
 			{
-				var formattedText = CreateFormattedText(t, typeface, alignment, fontSize, Size.Empty);
+				var formattedText = CreateFormattedText(label, typeface, alignment, fontSize, Size.Empty);
 				formattedTextLabels.Add(formattedText);
 				constrainWidthMax = Math.Max(constrainWidthMax, formattedText.Bounds.Width);
 				constrainHeightMax = Math.Max(constrainHeightMax, formattedText.Bounds.Height);
