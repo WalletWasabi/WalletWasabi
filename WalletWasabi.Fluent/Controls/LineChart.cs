@@ -162,12 +162,18 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var state = new LineChartState();
 
+			// Char Size
+
 			state.ChartWidth = width;
 			state.ChartHeight = height;
+
+			// Char Area
 
 			state.AreaMargin = AreaMargin;
 			state.AreaWidth = width - state.AreaMargin.Left - state.AreaMargin.Right;
 			state.AreaHeight = height - state.AreaMargin.Top - state.AreaMargin.Bottom;
+
+			// X & Y Axis Values
 
 			var yAxisValues = YAxisValues;
 			if (yAxisValues is not null && yAxisValues.Count > 1)
@@ -197,11 +203,18 @@ namespace WalletWasabi.Fluent.Controls
 				state.Points = null;
 			}
 
+			// TODO: XAxisValues
+			// TODO: YAxisStep
+
+			// X Axis Labels
+
 			var xAxisLabels = XAxisLabels;
 			if (xAxisLabels is not null)
 			{
 				state.XAxisLabels = xAxisLabels.ToList();
 			}
+
+			// X Axis Cursor Position
 
 			var xAxisMinValue = XAxisMinValue;
 			var xAxisMaxValue = XAxisMaxValue;
