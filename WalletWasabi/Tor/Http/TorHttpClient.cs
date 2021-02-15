@@ -158,7 +158,7 @@ namespace WalletWasabi.Tor.Http
 		}
 
 		/// <exception cref="OperationCanceledException">If <paramref name="token"/> is set.</exception>
-		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
 			// A sender MUST NOT generate an "http" URI with an empty host identifier.
