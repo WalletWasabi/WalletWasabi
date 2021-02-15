@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -213,6 +214,14 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				state.XAxisLabels = xAxisLabels.ToList();
 			}
+			else
+			{
+				if (XAxisStroke is not null && XAxisValues is not null)
+				{
+					state.XAxisLabels = XAxisValues.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToList();
+				}
+			}
+
 
 			// X Axis Cursor Position
 
