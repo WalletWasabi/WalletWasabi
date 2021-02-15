@@ -12,7 +12,7 @@
     <UserControl.Styles>
         <!-- LineChart Area -->
         <Style Selector="c|LineChart.area">
-            <Setter Property="AreaMargin" Value="30"/>
+            <Setter Property="AreaMargin" Value="50,30,30,30"/>
             <Setter Property="AreaStrokeThickness" Value="2"/>
             <Setter Property="AreaStrokeLineCap" Value="Round"/>
             <Setter Property="AreaMinViableWidth" Value="40"/>
@@ -41,6 +41,11 @@
             <Setter Property="XAxisMinViableWidth" Value="0"/>
             <Setter Property="XAxisMinViableHeight" Value="0"/>
         </Style>
+        <!-- LineChart XAxis Labels -->
+        <Style Selector="c|LineChart.xAxisLabels">
+            <Setter Property="XAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
+            <Setter Property="XAxisLabelAngle" Value="0" />
+        </Style>
         <!-- LineChart YAxis -->
         <Style Selector="c|LineChart.yAxis">
             <Setter Property="YAxisOffset" Value="0,0" />
@@ -51,10 +56,15 @@
             <Setter Property="YAxisMinViableWidth" Value="0"/>
             <Setter Property="YAxisMinViableHeight" Value="0"/>
         </Style>
+        <!-- LineChart YAxis Labels -->
+        <Style Selector="c|LineChart.yAxisLabels">
+            <Setter Property="YAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
+            <Setter Property="YAxisLabelAngle" Value="0" />
+        </Style>
     </UserControl.Styles>
     <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="20">
         <c:LineChart x:Name="GradientLineChart"
-                     Classes="area border xAxis yAxis"
+                     Classes="area border xAxis xAxisLabels yAxis yAxisLabels"
                      XAxisValues="{Binding XAxisValues}"
                      YAxisValues="{Binding YAxisValues}">
         </c:LineChart>
