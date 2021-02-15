@@ -13,7 +13,6 @@ using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Gui;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
-using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
