@@ -86,9 +86,9 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					{
 						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputImmature);
 					}
-					if (!Config.AllowedScriptTypes.Contains(txOutResponse.ScriptPubKeyType))
+					if (!txOutResponse.TxOut.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
 					{
-						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputScriptNotAllowed);
+						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed);
 					}
 					var address = (BitcoinWitPubKeyAddress)txOutResponse.TxOut.ScriptPubKey.GetDestinationAddress(Network);
 					if (!address.VerifyMessage(round.Hash, inputRoundSignaturePair.RoundSignature))
@@ -97,7 +97,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					}
 					inputValueSum += txOutResponse.TxOut.Value;
 
-					if (txOutResponse.ScriptPubKeyType == "witness_v0_keyhash")
+					if (txOutResponse.TxOut.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
 					{
 						// Convert conservative P2WPKH size in virtual bytes to weight units.
 						inputWeightSum += Constants.P2wpkhInputVirtualSize * 4;
@@ -135,6 +135,15 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
+				if (!Arena.TryGetRound(request.RoundId, out var round))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
+				}
+				if (round.Phase != Phase.InputRegistration)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+				}
+
 				throw new NotImplementedException();
 			}
 		}
@@ -144,6 +153,19 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
+				if (!Arena.TryGetRound(request.RoundId, out var round))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
+				}
+				if (round.Phase != Phase.InputRegistration && round.Phase != Phase.ConnectionConfirmation)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+				}
+				if (!round.TryGetAlice(request.AliceId, out var alice))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound);
+				}
+
 				throw new NotImplementedException();
 			}
 		}
@@ -153,6 +175,19 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
+				if (!Arena.TryGetRound(request.RoundId, out var round))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
+				}
+				if (round.Phase != Phase.OutputRegistration)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+				}
+				if (!request.Output.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed);
+				}
+
 				throw new NotImplementedException();
 			}
 		}
@@ -162,6 +197,19 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
+				if (!Arena.TryGetRound(request.RoundId, out var round))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
+				}
+				if (round.Phase != Phase.TransactionSigning)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+				}
+				if (!round.TryGetAlice(request.AliceId, out var alice))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound);
+				}
+
 				throw new NotImplementedException();
 			}
 		}

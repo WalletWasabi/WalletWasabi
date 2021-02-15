@@ -1,10 +1,12 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
+using WalletWasabi.WabiSabi.Backend.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
@@ -35,7 +37,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				 blameOf.MaxRegistrableWeight)
 		{
 			BlameOf = blameOf;
-			BlameWhitelist = blameOf.Inputs.ToHashSet();
+			BlameWhitelist = blameOf.Alices.Select(x => x.OutPoint).ToHashSet();
 		}
 
 		public Guid Id { get; } = Guid.NewGuid();
@@ -46,9 +48,15 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public Money MaxRegistrableAmount { get; }
 		public uint MinRegistrableWeight { get; }
 		public uint MaxRegistrableWeight { get; }
-		public ISet<OutPoint> Inputs { get; } = new HashSet<OutPoint>();
+		public List<Alice> Alices { get; } = new();
 		public Round? BlameOf { get; } = null;
 		public bool IsBlameRound => BlameOf is not null;
 		public ISet<OutPoint> BlameWhitelist { get; } = new HashSet<OutPoint>();
+
+		public bool TryGetAlice(Guid aliceId, [NotNullWhen(true)] out Alice? alice)
+		{
+			alice = Alices.FirstOrDefault(x => x.Id == aliceId);
+			return alice is not null;
+		}
 	}
 }

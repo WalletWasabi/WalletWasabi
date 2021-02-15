@@ -16,7 +16,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 {
-	public class InputRegistrationTests
+	public class RegisterInputTests
 	{
 		[Fact]
 		public async Task RoundNotFoundAsync()
@@ -140,7 +140,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			MockArena arena = new();
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			round.Inputs.Add(BitcoinFactory.CreateOutPoint());
+			round.Alices.Add(new Alice(BitcoinFactory.CreateOutPoint()));
 			Round blameRound = new(round);
 			arena.OnTryGetRound = _ => blameRound;
 
@@ -157,7 +157,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var pair = WabiSabiFactory.CreateInputRoundSignaturePair();
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			round.Inputs.Add(pair.Input);
+			round.Alices.Add(new Alice(pair.Input));
 			Round blameRound = new(round);
 			arena.OnTryGetRound = _ => blameRound;
 
@@ -180,7 +180,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			prison.Punish(pair.Input, Punishment.Banned, Guid.NewGuid());
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			round.Inputs.Add(pair.Input);
+			round.Alices.Add(new Alice(pair.Input));
 			Round blameRound = new(round);
 			arena.OnTryGetRound = _ => blameRound;
 
@@ -243,20 +243,25 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		}
 
 		[Fact]
-		public async Task InputScriptNotAllowedAsync()
+		public async Task ScriptNotAllowedAsync()
 		{
 			MockArena arena = new();
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			arena.OnTryGetRound = _ => round;
 			MockRpcClient rpc = new();
+			using Key key = new();
 
-			rpc.OnGetTxOutAsync = (_, _, _) => new GetTxOutResponse { Confirmations = 1, ScriptPubKeyType = "foo" };
+			rpc.OnGetTxOutAsync = (_, _, _) => new GetTxOutResponse
+			{
+				Confirmations = 1,
+				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetScriptAddress(Network.Main))
+			};
 
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(round);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
-			Assert.Equal(WabiSabiProtocolErrorCode.InputScriptNotAllowed, ex.ErrorCode);
+			Assert.Equal(WabiSabiProtocolErrorCode.ScriptNotAllowed, ex.ErrorCode);
 		}
 
 		[Fact]

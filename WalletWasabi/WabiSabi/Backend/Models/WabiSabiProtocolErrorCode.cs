@@ -13,7 +13,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		InputSpent,
 		InputUnconfirmed,
 		InputImmature,
-		InputScriptNotAllowed,
+		ScriptNotAllowed,
 		WrongRoundSignature,
 		TooManyInputs,
 		NotEnoughFunds,
@@ -22,6 +22,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		NotEnoughWeight,
 		TooMuchWeight,
 		InputBanned,
-		InputNotWhitelisted
+		InputNotWhitelisted,
+		AliceNotFound
 	}
 }
