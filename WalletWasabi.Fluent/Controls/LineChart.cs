@@ -1,6 +1,3 @@
-// #define DEBUG_LABELS
-// #define DEBUG_AXIS_TITLE
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -453,14 +450,8 @@ namespace WalletWasabi.Fluent.Controls
 				var labelTransform = context.PushPreTransform(matrix);
 				var opacityState = context.PushOpacity(opacity);
 				context.DrawText(foreground, origin + offsetCenter, formattedTextLabels[i]);
-#if DEBUG_LABELS
-                context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Magenta)), new Rect(origin, constraint));
-#endif
 				opacityState.Dispose();
 				labelTransform.Dispose();
-#if DEBUG_LABELS
-                context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Cyan)), new Rect(origin, constraint));
-#endif
 			}
 
 			offsetTransform.Dispose();
@@ -566,14 +557,8 @@ namespace WalletWasabi.Fluent.Controls
 				var labelTransform = context.PushPreTransform(matrix);
 				var opacityState = context.PushOpacity(opacity);
 				context.DrawText(foreground, origin + offsetCenter, formattedTextLabels[i]);
-#if DEBUG_LABELS
-                context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Magenta)), new Rect(origin, constraint));
-#endif
 				opacityState.Dispose();
 				labelTransform.Dispose();
-#if DEBUG_LABELS
-                context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Cyan)), new Rect(origin, constraint));
-#endif
 			}
 
 			offsetTransform.Dispose();
@@ -618,14 +603,8 @@ namespace WalletWasabi.Fluent.Controls
 			var offsetCenter = new Point(0, size.Height / 2 - formattedText.Bounds.Height / 2);
 			var opacityState = context.PushOpacity(opacity);
 			context.DrawText(foreground, origin + offsetCenter, formattedText);
-#if DEBUG_AXIS_TITLE
-            context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Magenta)), new Rect(origin, constraint));
-#endif
 			opacityState.Dispose();
 			labelTransform.Dispose();
-#if DEBUG_AXIS_TITLE
-            context.DrawRectangle(null, new Pen(new SolidColorBrush(Colors.Cyan)), new Rect(origin, constraint));
-#endif
 			offsetTransform.Dispose();
 		}
 
