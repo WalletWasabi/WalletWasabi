@@ -23,7 +23,6 @@
                             Padding="{TemplateBinding Padding}">
                         <ItemsPresenter Name="PART_ItemsPresenter"
                                         Focusable="False"
-                                        KeyboardNavigation.IsTabStop="False"
                                         Items="{TemplateBinding Items}">
                             <ItemsPresenter.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -132,6 +131,8 @@
     <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
         <Setter Property="Padding" Value="0" />
         <Setter Property="Margin" Value="0" />
+        <Setter Property="Focusable" Value="True" />
+        <Setter Property="KeyboardNavigation.IsTabStop" Value="True" />
     </Style>
 
     <Style Selector="c|TagsBox AutoCompleteBox">
