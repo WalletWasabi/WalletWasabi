@@ -71,7 +71,7 @@
         <!-- LineChart XAxis -->
         <Style Selector="c|LineChart.xAxis">
             <Setter Property="XAxisOffset" Value="0,0" />
-            <Setter Property="YAxisOpacity" Value="0.5" />
+            <Setter Property="XAxisOpacity" Value="0.5" />
             <Setter Property="XAxisStroke" Value="{DynamicResource TextForegroundColor}" />
             <Setter Property="XAxisStrokeThickness" Value="0.7" />
             <Setter Property="XAxisArrowSize" Value="3.5" />
