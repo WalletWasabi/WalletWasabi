@@ -92,6 +92,19 @@ namespace WalletWasabi.Helpers
 			"/Satoshi:0.16.0/",
 		};
 
+		public static readonly int[] ConfirmationTargets = new[]
+		{
+			2, // Twenty Minutes
+			3, // Thirty Minutes
+			6, // One Hour
+			18, // Three Hours
+			36, // Six Hours
+			72, // Twelve Hours
+			144, // One Day
+			432, // Three Days
+			1008, // Seven Days
+		};
+
 		public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
 				? ClientSupportBackendVersionMin
 				: $"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";

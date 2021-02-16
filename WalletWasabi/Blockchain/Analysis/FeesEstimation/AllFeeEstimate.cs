@@ -8,26 +8,40 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {
+	/// <summary>
+	/// Estimates for 1w, 3d, 1d, 12h, 6h, 3h, 1h, 30m, 20m.
+	/// </summary>
 	[JsonObject(MemberSerialization.OptIn)]
 	public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 	{
 		[JsonConstructor]
 		public AllFeeEstimate(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
 		{
+			Guard.NotNullOrEmpty(nameof(estimations), estimations);
+
 			Type = type;
 			IsAccurate = isAccurate;
-			Guard.NotNullOrEmpty(nameof(estimations), estimations);
-			Estimations = new Dictionary<int, int>();
+
+			var targets = Constants.ConfirmationTargets.Prepend(1).ToArray();
+			var targetRanges = targets.Skip(1).Zip(targets, (x, y) => (Start: y, End: x));
+
+			var filteredEstimations = estimations
+				.Where(x => x.Key >= targets[0] && x.Key <= targets[^1])
+				.OrderBy(x => x.Key)
+				.Select(x => (ConfirmationTarget: x.Key, FeeRate: x.Value, Range: targetRanges.First(y => y.Start < x.Key && x.Key <= y.End)))
+				.GroupBy(x => x.Range, y => y, (x, y) => (Range: x, BestEstimation: y.Last()))
+				.Select(x => (ConfirmationTarget: x.Range.End, FeeRate: x.BestEstimation.FeeRate));
 
 			// Make sure values are unique and in the correct order and feerates are consistently decreasing.
+			Estimations = new Dictionary<int, int>();
 			var lastFeeRate = int.MaxValue;
-			foreach (KeyValuePair<int, int> estimation in estimations.OrderBy(x => x.Key))
+			foreach (var estimation in filteredEstimations)
 			{
 				// Otherwise it's inconsistent data.
-				if (lastFeeRate > estimation.Value)
+				if (lastFeeRate > estimation.FeeRate)
 				{
-					lastFeeRate = estimation.Value;
-					Estimations.TryAdd(estimation.Key, estimation.Value);
+					lastFeeRate = estimation.FeeRate;
+					Estimations.TryAdd(estimation.ConfirmationTarget, estimation.FeeRate);
 				}
 			}
 		}
