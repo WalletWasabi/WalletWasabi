@@ -32,6 +32,10 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			{
 				var network = coreNode.Network;
 				var rpc = coreNode.RpcClient;
+
+				var walletName = "wallet.dat";
+				await rpc.CreateWalletAsync(walletName);
+
 				var dir = Path.Combine(Global.Instance.DataDir, EnvironmentHelpers.GetCallerFileName(), EnvironmentHelpers.GetMethodName());
 				var indexStore = new IndexStore(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
 				var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
@@ -87,6 +91,10 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			try
 			{
 				var rpc = coreNode.RpcClient;
+
+				var walletName = "wallet.dat";
+				await rpc.CreateWalletAsync(walletName);
+
 				await rpc.GenerateAsync(101);
 				var network = rpc.Network;
 
@@ -134,6 +142,10 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			try
 			{
 				var rpc = coreNode.RpcClient;
+
+				var walletName = "wallet.dat";
+				await rpc.CreateWalletAsync(walletName);
+
 				BlockNotifier notifier = services.FirstOrDefault<BlockNotifier>();
 
 				// Make sure we get notification for one block.

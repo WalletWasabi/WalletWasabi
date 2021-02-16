@@ -70,5 +70,7 @@ namespace WalletWasabi.BitcoinCore
 		Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId);
 
 		Task<uint256[]> GenerateToAddressAsync(int nBlocks, BitcoinAddress address);
+
+		Task<RPCClient> CreateWalletAsync(string walletNameOrPath, CreateWalletOptions? options = null);
 	}
 }
