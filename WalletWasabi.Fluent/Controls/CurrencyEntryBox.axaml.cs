@@ -278,6 +278,12 @@ namespace WalletWasabi.Fluent.Controls
 			}
 		}
 
+		protected override void OnLostFocus(RoutedEventArgs e)
+		{
+			base.OnLostFocus(e);
+			UpdateDisplay(true);
+		}
+
 		// Pre-composes the TextInputEventArgs to see the potential Text that is to
 		// be committed to the TextPresenter in this control.
 
