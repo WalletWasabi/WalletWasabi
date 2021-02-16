@@ -19,6 +19,10 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		public DateTimeOffset Deadline { get; private set; } = DateTimeOffset.UtcNow;
 		public IEnumerable<Coin> Coins { get; }
 		public IDictionary<Coin, byte[]> CoinRoundSignaturePairs { get; }
+		public Money TotalInputAmount => Coins.Sum(x => x.Amount);
+		public long TotalInputWeight => Coins.Sum(x => x.ScriptPubKey.EstimateSpendVsize() * 4);
+
+		public long CalculateRemainingWeightCredentials(uint maxRegistrableWeight) => maxRegistrableWeight - TotalInputWeight;
 
 		public void SetDeadlineRelativeTo(TimeSpan connectionConfirmationTimeout)
 		{

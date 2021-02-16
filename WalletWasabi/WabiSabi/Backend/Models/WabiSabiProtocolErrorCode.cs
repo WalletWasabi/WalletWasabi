@@ -23,6 +23,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		TooMuchWeight,
 		InputBanned,
 		InputNotWhitelisted,
-		AliceNotFound
+		AliceNotFound,
+		IncorrectRequestedWeightCredentials
 	}
 }

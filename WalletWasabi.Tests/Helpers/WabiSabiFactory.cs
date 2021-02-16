@@ -11,6 +11,7 @@ using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Tests.Helpers
@@ -148,6 +149,22 @@ namespace WalletWasabi.Tests.Helpers
 			return (amClient.Credentials.ZeroValue.Take(amIssuer.NumberOfCredentials), weClient.Credentials.ZeroValue.Take(weIssuer.NumberOfCredentials));
 		}
 
+		public static (RealCredentialsRequest amountReq, RealCredentialsRequest weightReq) CreateRealCredentialRequests(Round? round = null, Money? amount = null, long? weight = null)
+		{
+			(var amClient, var weClient, _, _) = CreateWabiSabiClientsAndIssuers(round);
+
+			var zeroPresentables = CreateZeroCredentials(round);
+			var alice = round?.Alices.FirstOrDefault();
+			var (realAmountCredentialRequest, _) = amClient.CreateRequest(
+				new[] { amount?.Satoshi ?? (alice is null ? 1000L : alice.Coins.Select(x => x.Amount.Satoshi).Sum()) },
+				zeroPresentables.amountCredentials);
+			var (realWeightCredentialRequest, _) = weClient.CreateRequest(
+				new[] { weight ?? alice?.CalculateRemainingWeightCredentials(round!.MaxRegistrableWeightByAlice) ?? 1000L },
+				zeroPresentables.weightCredentials);
+
+			return (realAmountCredentialRequest, realWeightCredentialRequest);
+		}
+
 		public static ConnectionConfirmationRequest CreateConnectionConfirmationRequest(Round? round = null)
 		{
 			(var amClient, var weClient, _, _) = CreateWabiSabiClientsAndIssuers(round);
@@ -158,10 +175,10 @@ namespace WalletWasabi.Tests.Helpers
 			var zeroPresentables = CreateZeroCredentials(round);
 			var alice = round?.Alices.FirstOrDefault();
 			var (realAmountCredentialRequest, _) = amClient.CreateRequest(
-				alice is null ? new[] { 1000L } : new[] { alice.Coins.Select(x => x.Amount.Satoshi).Sum() },
+				new[] { alice is null ? 1000L : alice.Coins.Select(x => x.Amount.Satoshi).Sum() },
 				zeroPresentables.amountCredentials);
 			var (realWeightCredentialRequest, _) = weClient.CreateRequest(
-				new[] { 1000L },
+				new[] { alice?.CalculateRemainingWeightCredentials(round!.MaxRegistrableWeightByAlice) ?? 1000L },
 				zeroPresentables.weightCredentials);
 
 			return new ConnectionConfirmationRequest(

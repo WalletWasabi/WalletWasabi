@@ -41,12 +41,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			TransactionSigningTimeout = transactionSigningTimeout;
 
 			Random = random;
-			AmountCredentialIssuer = new(new CredentialIssuerSecretKey(Random), 2, random, MaxRegistrableAmountByAlice);
-			WeightCredentialIssuer = new(new CredentialIssuerSecretKey(Random), 2, random, MaxRegistrableWeightByAlice);
+			AmountCredentialIssuer = new(new(Random), 2, random, MaxRegistrableAmountByAlice);
+			WeightCredentialIssuer = new(new(Random), 2, random, MaxRegistrableWeightByAlice);
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			WeightCredentialIssuerParameters = WeightCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 
-			Hash = new uint256(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmountByAlice}{MaxRegistrableAmountByAlice}{MinRegistrableWeightByAlice}{MaxRegistrableWeightByAlice}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}"));
+			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmountByAlice}{MaxRegistrableAmountByAlice}{MinRegistrableWeightByAlice}{MaxRegistrableWeightByAlice}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}"));
 		}
 
 		public Round(Round blameOf)
@@ -115,7 +115,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 
 			var inputValueSum = Money.Zero;
-			var inputWeightSum = 0;
+			var inputWeightSum = 0u;
 			foreach (var coinRoundSignaturePair in alice.CoinRoundSignaturePairs)
 			{
 				var coin = coinRoundSignaturePair.Key;
@@ -127,15 +127,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 				inputValueSum += coin.TxOut.Value;
 
-				if (coin.TxOut.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
-				{
-					// Convert conservative P2WPKH size in virtual bytes to weight units.
-					inputWeightSum += Constants.P2wpkhInputVirtualSize * 4;
-				}
-				else
-				{
-					throw new NotImplementedException($"Wight estimation isn't implemented for provided script type.");
-				}
+				// Convert conservative P2WPKH size in virtual bytes to weight units.
+				inputWeightSum += coin.TxOut.ScriptPubKey.EstimateSpendVsize() * 4;
 			}
 
 			if (inputValueSum < MinRegistrableAmountByAlice)
@@ -188,7 +181,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				if (Phase == Phase.InputRegistration)
 				{
 					alice.SetDeadlineRelativeTo(ConnectionConfirmationTimeout);
-					return new ConnectionConfirmationResponse(
+					return new(
 						amountZeroCredentialResponse,
 						weightZeroCredentialResponse);
 				}
@@ -197,11 +190,16 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					var amountRealCredentialResponse = AmountCredentialIssuer.HandleRequest(realAmountCredentialRequests);
 					var weightRealCredentialResponse = WeightCredentialIssuer.HandleRequest(realWeightCredentialRequests);
 
-					return new ConnectionConfirmationResponse(
-						amountZeroCredentialResponse,
-						weightZeroCredentialResponse,
-						amountRealCredentialResponse,
-						weightRealCredentialResponse);
+					if (realWeightCredentialRequests.Delta != alice.CalculateRemainingWeightCredentials(MaxRegistrableWeightByAlice))
+					{
+						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials);
+					}
+
+					return new(
+					amountZeroCredentialResponse,
+					weightZeroCredentialResponse,
+					amountRealCredentialResponse,
+					weightRealCredentialResponse);
 				}
 				else
 				{

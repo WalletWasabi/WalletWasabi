@@ -113,5 +113,29 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var ex = Assert.Throws<WabiSabiProtocolException>(() => handler.ConfirmConnection(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.AliceNotFound, ex.ErrorCode);
 		}
+
+		[Fact]
+		public async Task IncorrectRequestedWeightCredentialsAsync()
+		{
+			MockArena arena = new();
+			WabiSabiConfig cfg = new();
+			var round = WabiSabiFactory.CreateRound(cfg);
+			round.Phase = Phase.ConnectionConfirmation;
+			var alice = WabiSabiFactory.CreateAlice();
+			round.Alices.Add(alice);
+			arena.OnTryGetRound = _ => round;
+
+			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
+			req = new(
+				req.RoundId,
+				req.AliceId,
+				req.ZeroAmountCredentialRequests,
+				req.RealAmountCredentialRequests,
+				req.ZeroWeightCredentialRequests,
+				WabiSabiFactory.CreateRealCredentialRequests(round, null, 1234).weightReq);
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			var ex = Assert.Throws<WabiSabiProtocolException>(() => handler.ConfirmConnection(req));
+			Assert.Equal(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials, ex.ErrorCode);
+		}
 	}
 }
