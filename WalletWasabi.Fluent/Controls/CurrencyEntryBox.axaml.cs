@@ -159,6 +159,13 @@ namespace WalletWasabi.Fluent.Controls
 			var inputText = e.Text ?? "";
 			var inputLength = inputText.Length;
 
+			if (string.IsNullOrEmpty(inputText))
+			{
+				e.Handled = true;
+				base.OnTextInput(e);
+				return;
+			}
+
 			// Check if it has a decimal separator.
 			var trailingDecimal = inputLength > 0 && inputText[^1] == _decimalSeparator;
 			var preComposedText = PreComposeText(e);
