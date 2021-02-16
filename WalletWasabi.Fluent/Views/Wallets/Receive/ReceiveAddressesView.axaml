@@ -13,6 +13,7 @@
                  EnableBack="True"
                  EnableCancel="True">
     <DataGrid Items="{Binding Addresses}"
+              SelectedItem="{Binding SelectedAddress, Mode=TwoWay}"
               CanUserSortColumns="True" >
       <DataGrid.Columns>
         <DataGridTextColumn Header="Header 1"
@@ -27,6 +28,5 @@
                             CanUserSort="True" />
       </DataGrid.Columns>
     </DataGrid>
-             <!-- SelectedItem="{Binding SelectedAddress}"  -->
   </c:ContentArea>
 </UserControl>
