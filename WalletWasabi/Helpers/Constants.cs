@@ -58,7 +58,7 @@ namespace WalletWasabi.Helpers
 
 		public static readonly Version ClientVersion = new Version(1, 1, 12, 4);
 		public static readonly Version HwiVersion = new Version("1.2.1");
-		public static readonly Version BitcoinCoreVersion = new Version("0.20.0");
+		public static readonly Version BitcoinCoreVersion = new Version("0.21.0");
 		public static readonly Version LegalDocumentsVersion = new Version(2, 0);
 
 		public static readonly NodeRequirement NodeRequirements = new NodeRequirement
