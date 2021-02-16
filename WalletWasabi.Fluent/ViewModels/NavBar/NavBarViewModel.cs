@@ -6,7 +6,6 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar

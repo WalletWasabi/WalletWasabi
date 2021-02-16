@@ -159,12 +159,12 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			{
 				var rpc = coreNode.RpcClient;
 				var estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
-				Assert.Equal(143, estimations.Estimations.Count);
+				Assert.Equal(7, estimations.Estimations.Count);
 				Assert.True(estimations.Estimations.First().Key < estimations.Estimations.Last().Key);
 				Assert.True(estimations.Estimations.First().Value > estimations.Estimations.Last().Value);
 				Assert.Equal(EstimateSmartFeeMode.Conservative, estimations.Type);
 				estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Economical, simulateIfRegTest: true);
-				Assert.Equal(143, estimations.Estimations.Count);
+				Assert.Equal(7, estimations.Estimations.Count);
 				Assert.True(estimations.Estimations.First().Key < estimations.Estimations.Last().Key);
 				Assert.True(estimations.Estimations.First().Value > estimations.Estimations.Last().Value);
 				Assert.Equal(EstimateSmartFeeMode.Economical, estimations.Type);

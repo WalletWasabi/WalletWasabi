@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -8,6 +9,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using WalletWasabi.Helpers;
@@ -16,9 +18,12 @@ namespace WalletWasabi.Fluent.Controls
 {
 	public class CurrencyEntryBox : TextBox
 	{
-		public static readonly StyledProperty<decimal> AmountBtcProperty =
-			AvaloniaProperty.Register<CurrencyEntryBox, decimal>(
+		public static readonly DirectProperty<CurrencyEntryBox, decimal> AmountBtcProperty =
+			AvaloniaProperty.RegisterDirect<CurrencyEntryBox, decimal>(
 				nameof(AmountBtc),
+				o => o.AmountBtc,
+				(o, v) => o.AmountBtc = v,
+				enableDataValidation: true,
 				defaultBindingMode: BindingMode.TwoWay);
 
 		public static readonly StyledProperty<string> ConversionTextProperty =
@@ -39,13 +44,14 @@ namespace WalletWasabi.Fluent.Controls
 		private readonly CultureInfo _customCultureInfo;
 		private readonly char _decimalSeparator = '.';
 		private readonly char _groupSeparator = ' ';
-		private readonly Regex _regexDecimal;
+		private readonly Regex _regexBTCFormat;
 		private readonly Regex _regexDecimalCharsOnly;
 		private readonly Regex _regexConsecutiveSpaces;
 		private readonly Regex _regexGroupAndDecimal;
 		private Button? _swapButton;
 		private CompositeDisposable? _disposable;
 		private bool _canUpdateDisplay = true;
+		private decimal _amountBtc;
 
 		public CurrencyEntryBox()
 		{
@@ -69,9 +75,9 @@ namespace WalletWasabi.Fluent.Controls
 			Watermark = "0 BTC";
 			Text = string.Empty;
 
-			_regexDecimal =
+			_regexBTCFormat =
 				new Regex(
-					$"^(?<Whole>[0-9{_groupSeparator}]*)(\\{_decimalSeparator}?(?<Frac>[0-9]*))$",
+					$"^(?<Whole>[0-9{_groupSeparator}]*)(\\{_decimalSeparator}?(?<Frac>[0-9{_groupSeparator}]*))$",
 					RegexOptions.Compiled);
 
 			_regexDecimalCharsOnly =
@@ -89,8 +95,8 @@ namespace WalletWasabi.Fluent.Controls
 
 		public decimal AmountBtc
 		{
-			get => GetValue(AmountBtcProperty);
-			set => SetValue(AmountBtcProperty, value);
+			get => _amountBtc;
+			set => SetAndRaise(AmountBtcProperty, ref _amountBtc, value);
 		}
 
 		public string ConversionText
@@ -133,6 +139,14 @@ namespace WalletWasabi.Fluent.Controls
 			return btcValue * ConversionRate;
 		}
 
+		protected override void UpdateDataValidation<T>(AvaloniaProperty<T> property, BindingValue<T> value)
+		{
+			if (property == AmountBtcProperty)
+			{
+				DataValidationErrors.SetError(this, value.Error);
+			}
+		}
+
 		protected override void OnGotFocus(GotFocusEventArgs e)
 		{
 			base.OnGotFocus(e);
@@ -142,16 +156,35 @@ namespace WalletWasabi.Fluent.Controls
 			Dispatcher.UIThread.Post(SelectAll);
 		}
 
+		protected override void OnLostFocus(RoutedEventArgs e)
+		{
+			base.OnLostFocus(e);
+
+			UpdateDisplay(true);
+		}
+
 		protected override void OnTextInput(TextInputEventArgs e)
 		{
-			var inputText = e.Text ?? "";
-			var inputLength = inputText.Length;
+			var input = e.Text ?? "";
+			// Reject space char input when there's no text.
+			if (string.IsNullOrWhiteSpace(Text) && string.IsNullOrWhiteSpace(input))
+			{
+				e.Handled = true;
+				base.OnTextInput(e);
+				return;
+			}
+
+			e.Handled = !ValidateEntryText(e.Text);
+			base.OnTextInput(e);
+		}
+
+		private bool ValidateEntryText(string input)
+		{
+			var preComposedText = PreComposeText(input);
 
 			// Check if it has a decimal separator.
-			var trailingDecimal = inputLength > 0 && inputText[^1] == _decimalSeparator;
-			var preComposedText = PreComposeText(e);
-
-			var match = _regexDecimal.Match(preComposedText);
+			var trailingDecimal = preComposedText.Length > 0 && preComposedText[^1] == _decimalSeparator;
+			var match = _regexBTCFormat.Match(preComposedText);
 
 			// Ignore group chars on count of the whole part of the decimal.
 			var wholeStr = match.Groups["Whole"].ToString();
@@ -171,34 +204,29 @@ namespace WalletWasabi.Fluent.Controls
 			var rule3 = !_regexDecimalCharsOnly.IsMatch(preComposedText);
 			if (rule1 || rule2 || rule3)
 			{
-				e.Handled = true;
-				base.OnTextInput(e);
-				return;
+				return false;
 			}
 
 			// Reject and dont process the input if the string doesnt match.
 			if (!match.Success)
 			{
-				e.Handled = true;
-				base.OnTextInput(e);
-				return;
+				return false;
 			}
 
 			// Passthrough the decimal place char or the group separator.
-			switch (inputLength)
+			switch (preComposedText.Length)
 			{
-				case 1 when inputText[0] == _decimalSeparator && !trailingDecimal:
-				case 1 when inputText[0] == _groupSeparator && !fracStr.Contains(_groupSeparator):
-					base.OnTextInput(e);
-					return;
+				case 1 when preComposedText[0] == _decimalSeparator && !trailingDecimal:
+				case 1 when preComposedText[0] == _groupSeparator && !fracStr.Contains(_groupSeparator):
+					return false;
 			}
 
 			if (IsConversionReversed)
 			{
 				// Fiat input restriction is to only allow 2 decimal places.
-				if (frac > 2)
+				if (frac > 2 && fracStr.Count(x=>x == _decimalSeparator) > 1)
 				{
-					e.Handled = true;
+					return false;
 				}
 			}
 			else
@@ -207,21 +235,55 @@ namespace WalletWasabi.Fluent.Controls
 				// and also 8 whole number places.
 				if ((whole > 8 && !trailingDecimal) || frac > 8)
 				{
-					e.Handled = true;
+					return false;
 				}
 			}
 
-			base.OnTextInput(e);
+			return true;
+		}
+
+		protected override void OnKeyDown(KeyEventArgs e)
+		{
+			DoPasteCheckAsync(e);
+		}
+
+		private async void DoPasteCheckAsync(KeyEventArgs e)
+		{
+			var keymap = AvaloniaLocator.Current.GetService<PlatformHotkeyConfiguration>();
+
+			bool Match(List<KeyGesture> gestures) => gestures.Any(g => g.Matches(e));
+
+			if (Match(keymap.Paste))
+			{
+				var text = await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync();
+
+				if (!string.IsNullOrEmpty(text) && ValidateEntryText(text))
+				{
+					base.OnTextInput(new TextInputEventArgs { Text = text});
+				}
+			}
+			else
+			{
+				base.OnKeyDown(e);
+			}
+		}
+
+		public async void ModifiedPaste()
+		{
+			var text = await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync();
+
+			if (!string.IsNullOrEmpty(text) || ValidateEntryText(text))
+			{
+				base.OnTextInput(new TextInputEventArgs {Text = text});
+			}
 		}
 
 		// Pre-composes the TextInputEventArgs to see the potential Text that is to
 		// be committed to the TextPresenter in this control.
 
 		// An event in Avalonia's TextBox with this function should be implemented there for brevity.
-		private string PreComposeText(TextInputEventArgs e)
+		private string PreComposeText(string input)
 		{
-			var input = e.Text;
-
 			input = RemoveInvalidCharacters(input);
 			var preComposedText = Text ?? "";
 			var caretIndex = CaretIndex;
@@ -248,7 +310,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private static string FormatBtcValue(NumberFormatInfo formatInfo, decimal value)
 		{
-			return string.Format(formatInfo, "{0:### ### ### ##0.########}", value).Trim();
+			return string.Format(formatInfo, "{0:### ### ### ##0.#### ####}", value).Trim();
 		}
 
 		private static string FormatFiatValue(NumberFormatInfo formatInfo, decimal value)
@@ -336,7 +398,10 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			if (BitcoinInput.TryCorrectAmount(value, out var better))
 			{
-				value = better;
+				if (better != Constants.MaximumNumberOfBitcoins.ToString())
+				{
+					value = better;
+				}
 			}
 
 			if (decimal.TryParse(value, NumberStyles.Number, _customCultureInfo, out var decimalValue))

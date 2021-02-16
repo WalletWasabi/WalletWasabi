@@ -14,8 +14,10 @@ namespace WalletWasabi.Helpers
 		public static bool TryCorrectAmount(in string? original, [NotNullWhen(true)] out string? best)
 		{
 			var corrected = Guard.Correct(original);
+
 			// Correct amount
 			Regex digitsOnly = new Regex(@"[^\d.,٫٬⎖·\']");
+
 			// Make it digits and .,٫٬⎖·\ only.
 			corrected = digitsOnly.Replace(corrected, "");
 

@@ -1323,7 +1323,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 			foreach (var dicBatch in inputAliceDic.Batch(8)) // 8 is default rpcworkqueue/2, so other requests can go.
 			{
-				var checkingTasks = new List<(Alice alice, Task<GetTxOutResponse> task)>();
+				var checkingTasks = new List<(Alice alice, Task<GetTxOutResponse?> task)>();
 				var batch = RpcClient.PrepareBatch();
 
 				foreach (var aliceInput in dicBatch)
