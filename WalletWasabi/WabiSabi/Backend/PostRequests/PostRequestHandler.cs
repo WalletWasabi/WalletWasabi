@@ -97,12 +97,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 				}
-				if (round.Phase != Phase.InputRegistration)
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
-				}
-
-				throw new NotImplementedException();
+				round.RemoveAlice(request.AliceId);
 			}
 		}
 

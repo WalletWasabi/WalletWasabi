@@ -157,5 +157,17 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 			return new(alice.Id, amountCredentialResponse, weightCredentialResponse);
 		}
+
+		internal void RemoveAlice(Guid aliceId)
+		{
+			lock (Lock)
+			{
+				if (Phase != Phase.InputRegistration)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+				}
+				Alices.RemoveAll(x => x.Id == aliceId);
+			}
+		}
 	}
 }
