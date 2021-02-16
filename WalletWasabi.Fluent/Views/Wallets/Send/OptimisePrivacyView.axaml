@@ -22,6 +22,7 @@
                 <ListBox.Styles>
                     <Style Selector="ListBoxItem">
                         <Setter Property="Cursor" Value="Hand" />
+                        <Setter Property="Padding" Value="30" />
                     </Style>
                     <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
                         <Setter Property="CornerRadius" Value="4" />
@@ -37,11 +38,11 @@
                 </ListBox.ItemsPanel>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <local:PrivacySuggestionControl Width="200" Margin="30 0" />
+                        <local:PrivacySuggestionControl HorizontalAlignment="Stretch" />
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-            <StackPanel Orientation="Horizontal" Spacing="5" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+            <StackPanel Margin="0 30 0 0" Orientation="Horizontal" Spacing="5" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" HorizontalAlignment="Center">
                 <PathIcon Data="{StaticResource info_tip}" Foreground="{DynamicResource WarningMessageForeground}" />
                 <TextBlock Text="Some services only accept the exact amount that was requested." Foreground="{DynamicResource WarningMessageForeground}" />
             </StackPanel>

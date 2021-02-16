@@ -12,7 +12,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacySuggestionControl">
     <StackPanel Spacing="30">
-        <Panel Height="120" Width="120">
+        <Panel Height="160" Width="160">
             <Ellipse Stroke="{Binding OptimisationLevel, Converter={x:Static conv:PrivacyOptimisationLevelConverters.OptimisationLevelToBrushConverter}}" StrokeThickness="2" />
             <StackPanel Spacing="10" VerticalAlignment="Center">
                 <TextBlock Text="{Binding Title}" FontSize="20" HorizontalAlignment="Center" />
@@ -24,6 +24,7 @@
             <ItemsControl.Styles>
                 <Style Selector="TextBlock">
                     <Setter Property="Opacity" Value="0.6" />
+                    <Setter Property="TextWrapping" Value="Wrap" />
                 </Style>
             </ItemsControl.Styles>
             <ItemsControl.ItemsPanel>
