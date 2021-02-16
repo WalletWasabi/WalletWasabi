@@ -63,7 +63,7 @@
     <Setter Property="Padding" Value="0 10"/>
   </Style>
 
-    <Style Selector="DataGridColumnHeader">
+  <Style Selector="DataGridColumnHeader">
     <Setter Property="Foreground" Value="{DynamicResource DataGridColumnHeaderForegroundBrush}" />
     <Setter Property="Background" Value="{DynamicResource DataGridColumnHeaderBackgroundBrush}" />
     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
