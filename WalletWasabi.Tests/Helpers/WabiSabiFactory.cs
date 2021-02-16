@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -99,24 +100,8 @@ namespace WalletWasabi.Tests.Helpers
 		{
 			var roundId = round?.Id ?? Guid.NewGuid();
 			var inputRoundSignaturePairs = pairs ?? CreateInputRoundSignaturePairs(1, round?.Hash);
-			var rnd = new InsecureRandom();
 
-			var amClient =
-				round is null
-				? new WabiSabiClient(new CredentialIssuerSecretKey(rnd).ComputeCredentialIssuerParameters(), 2, rnd, 4300000000000)
-				: new WabiSabiClient(
-					round.AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
-					round.AmountCredentialIssuer.NumberOfCredentials,
-					rnd,
-					round.MaxRegistrableAmount);
-			var weClient =
-				round is null
-				? new WabiSabiClient(new CredentialIssuerSecretKey(rnd).ComputeCredentialIssuerParameters(), 2, rnd, 4300000000000)
-				: new WabiSabiClient(
-					round.WeightCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
-					round.WeightCredentialIssuer.NumberOfCredentials,
-					rnd,
-					round.MaxRegistrableWeight);
+			(var amClient, var weClient, _, _) = CreateWabiSabiClientsAndIssuers(round);
 			var (zeroAmountCredentialRequest, _) = amClient.CreateRequestForZeroAmount();
 			var (zeroWeightCredentialRequest, _) = weClient.CreateRequestForZeroAmount();
 
@@ -125,6 +110,64 @@ namespace WalletWasabi.Tests.Helpers
 				inputRoundSignaturePairs,
 				zeroAmountCredentialRequest,
 				zeroWeightCredentialRequest);
+		}
+
+		public static (WabiSabiClient amountClient, WabiSabiClient weightClient, CredentialIssuer amountIssuer, CredentialIssuer weightIssuer) CreateWabiSabiClientsAndIssuers(Round? round)
+		{
+			var rnd = new InsecureRandom();
+			var ai = round?.AmountCredentialIssuer ?? new CredentialIssuer(new CredentialIssuerSecretKey(rnd), 2, rnd, 4300000000000);
+			var wi = round?.WeightCredentialIssuer ?? new CredentialIssuer(new CredentialIssuerSecretKey(rnd), 2, rnd, 4300000000000);
+			var ac = new WabiSabiClient(
+					ai.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
+					ai.NumberOfCredentials,
+					rnd,
+					round?.MaxRegistrableAmount ?? 4300000000000);
+
+			var wc = new WabiSabiClient(
+					wi.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
+					wi.NumberOfCredentials,
+					rnd,
+					round?.MaxRegistrableWeight ?? 4300000000000ul);
+
+			return (ac, wc, ai, wi);
+		}
+
+		public static (IEnumerable<Credential> amountCredentials, IEnumerable<Credential> weightCredentials) CreateZeroCredentials(Round? round)
+		{
+			(var amClient, var weClient, var amIssuer, var weIssuer) = CreateWabiSabiClientsAndIssuers(round);
+
+			var (zeroAmountCredentialRequest, amVal) = amClient.CreateRequestForZeroAmount();
+			var (zeroWeightCredentialRequest, weVal) = weClient.CreateRequestForZeroAmount();
+			var amCredResp = amIssuer.HandleRequest(zeroAmountCredentialRequest);
+			var weCredResp = weIssuer.HandleRequest(zeroWeightCredentialRequest);
+			amClient.HandleResponse(amCredResp, amVal);
+			weClient.HandleResponse(weCredResp, weVal);
+			return (amClient.Credentials.ZeroValue.Take(amIssuer.NumberOfCredentials), weClient.Credentials.ZeroValue.Take(weIssuer.NumberOfCredentials));
+		}
+
+		public static ConnectionConfirmationRequest CreateConnectionConfirmationRequest(Round? round = null)
+		{
+			(var amClient, var weClient, _, _) = CreateWabiSabiClientsAndIssuers(round);
+
+			var (zeroAmountCredentialRequest, _) = amClient.CreateRequestForZeroAmount();
+			var (zeroWeightCredentialRequest, _) = weClient.CreateRequestForZeroAmount();
+
+			var zeroPresentables = CreateZeroCredentials(round);
+			var alice = round?.Alices.FirstOrDefault();
+			var (realAmountCredentialRequest, _) = amClient.CreateRequest(
+				alice is null ? new[] { 1000L } : new[] { alice.Coins.Select(x => x.Amount.Satoshi).Sum() },
+				zeroPresentables.amountCredentials);
+			var (realWeightCredentialRequest, _) = weClient.CreateRequest(
+				new[] { 1000L },
+				zeroPresentables.weightCredentials);
+
+			return new ConnectionConfirmationRequest(
+				round?.Id ?? Guid.NewGuid(),
+				alice?.Id ?? Guid.NewGuid(),
+				zeroAmountCredentialRequest,
+				realAmountCredentialRequest,
+				zeroWeightCredentialRequest,
+				realWeightCredentialRequest);
 		}
 	}
 }

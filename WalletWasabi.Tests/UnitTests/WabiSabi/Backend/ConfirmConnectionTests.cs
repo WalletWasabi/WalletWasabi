@@ -17,13 +17,54 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 	public class ConfirmConnectionTests
 	{
 		[Fact]
+		public async Task SuccessInInputRegistrationPhaseAsync()
+		{
+			MockArena arena = new();
+			WabiSabiConfig cfg = new();
+			var round = WabiSabiFactory.CreateRound(cfg);
+			var alice = WabiSabiFactory.CreateAlice();
+			round.Alices.Add(alice);
+			arena.OnTryGetRound = _ => round;
+
+			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			var resp = handler.ConfirmConnection(req);
+			Assert.NotNull(resp);
+			Assert.NotNull(resp.ZeroAmountCredentials);
+			Assert.NotNull(resp.ZeroWeightCredentials);
+			Assert.Null(resp.RealAmountCredentials);
+			Assert.Null(resp.RealWeightCredentials);
+		}
+
+		[Fact]
+		public async Task SuccessInConnectionConfirmationPhaseAsync()
+		{
+			MockArena arena = new();
+			WabiSabiConfig cfg = new();
+			var round = WabiSabiFactory.CreateRound(cfg);
+			round.Phase = Phase.ConnectionConfirmation;
+			var alice = WabiSabiFactory.CreateAlice();
+			round.Alices.Add(alice);
+			arena.OnTryGetRound = _ => round;
+
+			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			var resp = handler.ConfirmConnection(req);
+			Assert.NotNull(resp);
+			Assert.NotNull(resp.ZeroAmountCredentials);
+			Assert.NotNull(resp.ZeroWeightCredentials);
+			Assert.NotNull(resp.RealAmountCredentials);
+			Assert.NotNull(resp.RealWeightCredentials);
+		}
+
+		[Fact]
 		public async Task RoundNotFoundAsync()
 		{
 			MockArena arena = new();
 			arena.OnTryGetRound = _ => null;
 
 			await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
-			var req = new ConnectionConfirmationRequest(Guid.NewGuid(), Guid.NewGuid(), null!, null!, null!, null!);
+			var req = WabiSabiFactory.CreateConnectionConfirmationRequest();
 			var ex = Assert.Throws<WabiSabiProtocolException>(() => handler.ConfirmConnection(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
 		}
@@ -34,9 +75,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			MockArena arena = new();
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
+			var alice = WabiSabiFactory.CreateAlice();
+			round.Alices.Add(alice);
 			arena.OnTryGetRound = _ => round;
 
-			var req = new ConnectionConfirmationRequest(round.Id, Guid.NewGuid(), null!, null!, null!, null!);
+			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
 			{
 				if (phase != Phase.InputRegistration && phase != Phase.ConnectionConfirmation)
@@ -57,7 +100,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var round = WabiSabiFactory.CreateRound(cfg);
 			arena.OnTryGetRound = _ => round;
 
-			var req = new ConnectionConfirmationRequest(round.Id, Guid.NewGuid(), null!, null!, null!, null!);
+			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			var ex = Assert.Throws<WabiSabiProtocolException>(() => handler.ConfirmConnection(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.AliceNotFound, ex.ErrorCode);

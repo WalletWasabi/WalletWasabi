@@ -158,6 +158,43 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			return new(alice.Id, amountCredentialResponse, weightCredentialResponse);
 		}
 
+		public ConnectionConfirmationResponse ConfirmAlice(Guid aliceId, ZeroCredentialsRequest zeroAmountCredentialRequests, RealCredentialsRequest realAmountCredentialRequests, ZeroCredentialsRequest zeroWeightCredentialRequests, RealCredentialsRequest realWeightCredentialRequests)
+		{
+			var amountZeroCredentialResponse = AmountCredentialIssuer.HandleRequest(zeroAmountCredentialRequests);
+			var weightZeroCredentialResponse = WeightCredentialIssuer.HandleRequest(zeroWeightCredentialRequests);
+
+			lock (Lock)
+			{
+				var alice = Alices.FirstOrDefault(x => x.Id == aliceId);
+				if (alice is null)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound);
+				}
+
+				if (Phase == Phase.InputRegistration)
+				{
+					return new ConnectionConfirmationResponse(
+						amountZeroCredentialResponse,
+						weightZeroCredentialResponse);
+				}
+				else if (Phase == Phase.ConnectionConfirmation)
+				{
+					var amountRealCredentialResponse = AmountCredentialIssuer.HandleRequest(realAmountCredentialRequests);
+					var weightRealCredentialResponse = WeightCredentialIssuer.HandleRequest(realWeightCredentialRequests);
+
+					return new ConnectionConfirmationResponse(
+						amountZeroCredentialResponse,
+						weightZeroCredentialResponse,
+						amountRealCredentialResponse,
+						weightRealCredentialResponse);
+				}
+				else
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+				}
+			}
+		}
+
 		internal void RemoveAlice(Guid aliceId)
 		{
 			lock (Lock)

@@ -87,7 +87,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		}
 
 		/// <summary>
-		/// Creates a <see cref="CredentialsRequest">credential registration request messages</see>
+		/// Creates a <see cref="RealCredentialsRequest">credential registration request messages</see>
 		/// for requesting `k` non-zero-value credentials.
 		/// </summary>
 		/// <param name="amountsToRequest">List of amounts requested in credentials.</param>
@@ -96,7 +96,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// A tuple containing the registration request message instance and the registration validation data
 		/// to be used to validate the coordinator response message (the issued credentials).
 		/// </returns>
-		public (CredentialsRequest, CredentialsResponseValidation) CreateRequest(
+		public (RealCredentialsRequest, CredentialsResponseValidation) CreateRequest(
 			IEnumerable<long> amountsToRequest,
 			IEnumerable<Credential> credentialsToPresent)
 		{
