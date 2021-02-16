@@ -20,7 +20,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		{
 			using var cts = new CancellationTokenSource(5_000);
 
-			Dictionary<OSPlatform, string> expectedHashes = new()
+			Dictionary<OSPlatform, string> expectedHashes = new Dictionary<OSPlatform, string>()
 			{
 				{ OSPlatform.Windows, "e51379c1950092514182494b9998152d9ad6d527358dd730945b2ea4e7ee5a51" },
 				{ OSPlatform.Linux, "62d849c713c00821dbcca328651c287864c2d489aeafbd8a1a3f8b32870d4d8a" },
