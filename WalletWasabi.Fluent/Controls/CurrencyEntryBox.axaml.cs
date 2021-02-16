@@ -156,6 +156,13 @@ namespace WalletWasabi.Fluent.Controls
 			Dispatcher.UIThread.Post(SelectAll);
 		}
 
+		protected override void OnLostFocus(RoutedEventArgs e)
+		{
+			base.OnLostFocus(e);
+
+			UpdateDisplay(true);
+		}
+
 		protected override void OnTextInput(TextInputEventArgs e)
 		{
 			var input = e.Text ?? "";
