@@ -5,16 +5,29 @@
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:local="using:WalletWasabi.Fluent.Views.Wallets.Send"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d"
              x:DataType="vm:OptimisePrivacyViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.OptimisePrivacyView">
-    <c:ContentArea Title="Send" Caption=""
+    <c:ContentArea Title="Optimise your Privacy" Caption="Often a bitcoin transaction will create change leaving a trace. If you’re willing to adjust your payment ammount, you can improve your privacy and reduce your transaction costs."
                    HorizontalAlignment="Left"
                    EnableCancel="False"
                    EnableNext="True"
                    NextContent="Continue"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
+        <ListBox Background="Transparent" HorizontalAlignment="Center" Items="{Binding PrivacySuggestions}" SelectedItem="{Binding SelectedPrivacySuggestion}">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <local:PrivacySuggestionControl Margin="30 0" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
     </c:ContentArea>
 </UserControl>
