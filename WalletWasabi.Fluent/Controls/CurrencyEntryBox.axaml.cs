@@ -224,7 +224,7 @@ namespace WalletWasabi.Fluent.Controls
 			if (IsConversionReversed)
 			{
 				// Fiat input restriction is to only allow 2 decimal places.
-				if (frac > 2)
+				if (frac > 2 && fracStr.Count(x=>x == _decimalSeparator) > 1)
 				{
 					return false;
 				}
