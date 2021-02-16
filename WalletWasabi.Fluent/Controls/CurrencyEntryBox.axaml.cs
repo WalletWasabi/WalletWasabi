@@ -159,6 +159,7 @@ namespace WalletWasabi.Fluent.Controls
 			var inputText = e.Text ?? "";
 			var inputLength = inputText.Length;
 
+			// Reject space char input when there's no text.
 			if (string.IsNullOrEmpty(Text) && inputLength == 1 && inputText == " ")
 			{
 				e.Handled = true;
