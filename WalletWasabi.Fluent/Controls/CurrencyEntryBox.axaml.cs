@@ -250,13 +250,23 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				var text = await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync();
 
-				if(string.IsNullOrEmpty(text) || !ValidateEntryText(text))
+				if (string.IsNullOrEmpty(text) || !ValidateEntryText(text))
 				{
 					return;
 				}
 			}
 
 			base.OnKeyDown(e);
+		}
+
+		public async void ModifiedPaste()
+		{
+			var text = await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync();
+
+			if (!string.IsNullOrEmpty(text) || ValidateEntryText(text))
+			{
+				base.OnTextInput(new TextInputEventArgs {Text = text});
+			}
 		}
 
 		// Pre-composes the TextInputEventArgs to see the potential Text that is to
