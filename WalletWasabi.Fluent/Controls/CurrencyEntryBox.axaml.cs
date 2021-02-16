@@ -250,13 +250,15 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				var text = await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync();
 
-				if (string.IsNullOrEmpty(text) || !ValidateEntryText(text))
+				if (!string.IsNullOrEmpty(text) && ValidateEntryText(text))
 				{
-					return;
+					base.OnTextInput(new TextInputEventArgs { Text = text});
 				}
 			}
-
-			base.OnKeyDown(e);
+			else
+			{
+				base.OnKeyDown(e);
+			}
 		}
 
 		public async void ModifiedPaste()
