@@ -400,33 +400,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		}
 
 		[Fact]
-		public async Task NotEnoughWeightAsync()
-		{
-			MockArena arena = new();
-			WabiSabiConfig cfg = new() { MinRegistrableWeight = 1000 };
-			var round = WabiSabiFactory.CreateRound(cfg);
-			arena.OnTryGetRound = _ => round;
-			MockRpcClient rpc = new();
-			using Key key = new();
-
-			rpc.OnGetTxOutAsync = (_, _, _) => new()
-			{
-				Confirmations = 1,
-				ScriptPubKeyType = "witness_v0_keyhash",
-				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
-			};
-
-			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
-			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
-			Assert.Equal(WabiSabiProtocolErrorCode.NotEnoughWeight, ex.ErrorCode);
-		}
-
-		[Fact]
 		public async Task TooMuchWeightAsync()
 		{
 			MockArena arena = new();
-			WabiSabiConfig cfg = new() { MaxRegistrableWeight = 1 };
+			WabiSabiConfig cfg = new() { RegistrableWeightCredentials = 1 };
 			var round = WabiSabiFactory.CreateRound(cfg);
 			arena.OnTryGetRound = _ => round;
 			MockRpcClient rpc = new();

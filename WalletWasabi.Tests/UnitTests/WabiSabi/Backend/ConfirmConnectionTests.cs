@@ -132,7 +132,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				req.ZeroAmountCredentialRequests,
 				req.RealAmountCredentialRequests,
 				req.ZeroWeightCredentialRequests,
-				WabiSabiFactory.CreateRealCredentialRequests(round, null, 1234).weightReq);
+				WabiSabiFactory.CreateRealCredentialRequests(round, null, 234).weightReq);
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			var ex = Assert.Throws<WabiSabiProtocolException>(() => handler.ConfirmConnection(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials, ex.ErrorCode);

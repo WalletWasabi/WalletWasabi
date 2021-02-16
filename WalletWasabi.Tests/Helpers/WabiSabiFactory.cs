@@ -58,8 +58,7 @@ namespace WalletWasabi.Tests.Helpers
 				cfg.MaxInputCountByAlice,
 				cfg.MinRegistrableAmount,
 				cfg.MaxRegistrableAmount,
-				cfg.MinRegistrableWeight,
-				cfg.MaxRegistrableWeight,
+				cfg.RegistrableWeightCredentials,
 				cfg.ConnectionConfirmationTimeout,
 				cfg.OutputRegistrationTimeout,
 				cfg.TransactionSigningTimeout,
@@ -131,7 +130,7 @@ namespace WalletWasabi.Tests.Helpers
 					wi.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
 					wi.NumberOfCredentials,
 					rnd,
-					round?.MaxRegistrableWeightByAlice ?? 4300000000000ul);
+					round?.RegistrableWeightCredentials ?? 2000ul);
 
 			return (ac, wc, ai, wi);
 		}
@@ -159,7 +158,7 @@ namespace WalletWasabi.Tests.Helpers
 				new[] { amount?.Satoshi ?? (alice is null ? 1000L : alice.Coins.Select(x => x.Amount.Satoshi).Sum()) },
 				zeroPresentables.amountCredentials);
 			var (realWeightCredentialRequest, _) = weClient.CreateRequest(
-				new[] { weight ?? alice?.CalculateRemainingWeightCredentials(round!.MaxRegistrableWeightByAlice) ?? 1000L },
+				new[] { weight ?? alice?.CalculateRemainingWeightCredentials(round!.RegistrableWeightCredentials) ?? 1000L },
 				zeroPresentables.weightCredentials);
 
 			return (realAmountCredentialRequest, realWeightCredentialRequest);
@@ -178,7 +177,7 @@ namespace WalletWasabi.Tests.Helpers
 				new[] { alice is null ? 1000L : alice.Coins.Select(x => x.Amount.Satoshi).Sum() },
 				zeroPresentables.amountCredentials);
 			var (realWeightCredentialRequest, _) = weClient.CreateRequest(
-				new[] { alice?.CalculateRemainingWeightCredentials(round!.MaxRegistrableWeightByAlice) ?? 1000L },
+				new[] { alice?.CalculateRemainingWeightCredentials(round!.RegistrableWeightCredentials) ?? 1000L },
 				zeroPresentables.weightCredentials);
 
 			return new ConnectionConfirmationRequest(

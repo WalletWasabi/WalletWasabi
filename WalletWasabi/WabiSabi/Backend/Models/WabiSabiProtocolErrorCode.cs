@@ -19,11 +19,10 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		NotEnoughFunds,
 		TooMuchFunds,
 		NonUniqueInputs,
-		NotEnoughWeight,
-		TooMuchWeight,
 		InputBanned,
 		InputNotWhitelisted,
 		AliceNotFound,
-		IncorrectRequestedWeightCredentials
+		IncorrectRequestedWeightCredentials,
+		TooMuchWeight
 	}
 }
