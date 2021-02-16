@@ -37,11 +37,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
+			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
 			var resp = await handler.RegisterInputAsync(req);
-			Assert.NotEmpty(round.Alices);
+			var alice = Assert.Single(round.Alices);
 			Assert.NotNull(resp);
 			Assert.NotNull(resp.AmountCredentials);
 			Assert.NotNull(resp.WeightCredentials);
+			Assert.True(minAliceDeadline <= alice.Deadline);
 		}
 
 		[Fact]

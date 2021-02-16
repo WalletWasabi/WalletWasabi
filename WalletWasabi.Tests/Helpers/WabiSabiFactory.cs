@@ -59,6 +59,9 @@ namespace WalletWasabi.Tests.Helpers
 				cfg.MaxRegistrableAmount,
 				cfg.MinRegistrableWeight,
 				cfg.MaxRegistrableWeight,
+				cfg.ConnectionConfirmationTimeout,
+				cfg.OutputRegistrationTimeout,
+				cfg.TransactionSigningTimeout,
 				new InsecureRandom());
 
 		public static Alice CreateAlice(InputRoundSignaturePair inputSigPairs) => CreateAlice(new[] { inputSigPairs });
@@ -121,13 +124,13 @@ namespace WalletWasabi.Tests.Helpers
 					ai.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
 					ai.NumberOfCredentials,
 					rnd,
-					round?.MaxRegistrableAmount ?? 4300000000000);
+					round?.MaxRegistrableAmountByAlice ?? 4300000000000);
 
 			var wc = new WabiSabiClient(
 					wi.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
 					wi.NumberOfCredentials,
 					rnd,
-					round?.MaxRegistrableWeight ?? 4300000000000ul);
+					round?.MaxRegistrableWeightByAlice ?? 4300000000000ul);
 
 			return (ac, wc, ai, wi);
 		}

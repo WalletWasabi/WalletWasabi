@@ -67,5 +67,20 @@ namespace WalletWasabi.WabiSabi.Backend
 		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "AllowNotedInputRegistration", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool AllowNotedInputRegistration { get; set; } = true;
+
+		[DefaultValueTimeSpan("0d 0h 1m 0s")]
+		[JsonProperty(PropertyName = "ConnectionConfirmationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonConverter(typeof(TimeSpanJsonConverter))]
+		public TimeSpan ConnectionConfirmationTimeout { get; set; } = TimeSpan.FromMinutes(1);
+
+		[DefaultValueTimeSpan("0d 0h 1m 0s")]
+		[JsonProperty(PropertyName = "OutputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonConverter(typeof(TimeSpanJsonConverter))]
+		public TimeSpan OutputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(1);
+
+		[DefaultValueTimeSpan("0d 0h 1m 0s")]
+		[JsonProperty(PropertyName = "TransactionSigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonConverter(typeof(TimeSpanJsonConverter))]
+		public TimeSpan TransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
 	}
 }

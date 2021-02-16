@@ -20,36 +20,46 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public Round(
 			Network network,
 			uint maxInputCountByAlice,
-			Money minRegistrableAmount,
-			Money maxRegistrableAmount,
-			uint minRegistrableWeight,
-			uint maxRegistrableWeight,
+			Money minRegistrableAmountByAlice,
+			Money maxRegistrableAmountByAlice,
+			uint minRegistrableWeightByAlice,
+			uint maxRegistrableWeightByAlice,
+			TimeSpan connectionConfirmationTimeout,
+			TimeSpan outputRegistrationTimeout,
+			TimeSpan transactionSigningTimeout,
 			WasabiRandom random)
 		{
 			Network = network;
 			MaxInputCountByAlice = maxInputCountByAlice;
-			MinRegistrableAmount = minRegistrableAmount;
-			MaxRegistrableAmount = maxRegistrableAmount;
-			MinRegistrableWeight = minRegistrableWeight;
-			MaxRegistrableWeight = maxRegistrableWeight;
+			MinRegistrableAmountByAlice = minRegistrableAmountByAlice;
+			MaxRegistrableAmountByAlice = maxRegistrableAmountByAlice;
+			MinRegistrableWeightByAlice = minRegistrableWeightByAlice;
+			MaxRegistrableWeightByAlice = maxRegistrableWeightByAlice;
+
+			ConnectionConfirmationTimeout = connectionConfirmationTimeout;
+			OutputRegistrationTimeout = outputRegistrationTimeout;
+			TransactionSigningTimeout = transactionSigningTimeout;
 
 			Random = random;
-			AmountCredentialIssuer = new(new CredentialIssuerSecretKey(Random), 2, random, MaxRegistrableAmount);
-			WeightCredentialIssuer = new(new CredentialIssuerSecretKey(Random), 2, random, MaxRegistrableWeight);
+			AmountCredentialIssuer = new(new CredentialIssuerSecretKey(Random), 2, random, MaxRegistrableAmountByAlice);
+			WeightCredentialIssuer = new(new CredentialIssuerSecretKey(Random), 2, random, MaxRegistrableWeightByAlice);
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			WeightCredentialIssuerParameters = WeightCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 
-			Hash = new uint256(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{MinRegistrableWeight}{MaxRegistrableWeight}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}"));
+			Hash = new uint256(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmountByAlice}{MaxRegistrableAmountByAlice}{MinRegistrableWeightByAlice}{MaxRegistrableWeightByAlice}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}"));
 		}
 
 		public Round(Round blameOf)
 			: this(
 				blameOf.Network,
 				blameOf.MaxInputCountByAlice,
-				blameOf.MinRegistrableAmount,
-				blameOf.MaxRegistrableAmount,
-				blameOf.MinRegistrableWeight,
-				blameOf.MaxRegistrableWeight,
+				blameOf.MinRegistrableAmountByAlice,
+				blameOf.MaxRegistrableAmountByAlice,
+				blameOf.MinRegistrableWeightByAlice,
+				blameOf.MaxRegistrableWeightByAlice,
+				blameOf.ConnectionConfirmationTimeout,
+				blameOf.OutputRegistrationTimeout,
+				blameOf.TransactionSigningTimeout,
 				blameOf.Random)
 		{
 			BlameOf = blameOf;
@@ -63,10 +73,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public uint256 Hash { get; }
 		public Network Network { get; }
 		public uint MaxInputCountByAlice { get; }
-		public Money MinRegistrableAmount { get; }
-		public Money MaxRegistrableAmount { get; }
-		public uint MinRegistrableWeight { get; }
-		public uint MaxRegistrableWeight { get; }
+		public Money MinRegistrableAmountByAlice { get; }
+		public Money MaxRegistrableAmountByAlice { get; }
+		public uint MinRegistrableWeightByAlice { get; }
+		public uint MaxRegistrableWeightByAlice { get; }
+		public TimeSpan ConnectionConfirmationTimeout { get; }
+		public TimeSpan OutputRegistrationTimeout { get; }
+		public TimeSpan TransactionSigningTimeout { get; }
 		public WasabiRandom Random { get; }
 		public CredentialIssuer AmountCredentialIssuer { get; }
 		public CredentialIssuer WeightCredentialIssuer { get; }
@@ -125,20 +138,20 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 			}
 
-			if (inputValueSum < MinRegistrableAmount)
+			if (inputValueSum < MinRegistrableAmountByAlice)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
 			}
-			if (inputValueSum > MaxRegistrableAmount)
+			if (inputValueSum > MaxRegistrableAmountByAlice)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 			}
 
-			if (inputWeightSum < MinRegistrableWeight)
+			if (inputWeightSum < MinRegistrableWeightByAlice)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughWeight);
 			}
-			if (inputWeightSum > MaxRegistrableWeight)
+			if (inputWeightSum > MaxRegistrableWeightByAlice)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchWeight);
 			}
@@ -152,6 +165,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 				}
+				alice.SetDeadlineRelativeTo(ConnectionConfirmationTimeout);
 				Alices.Add(alice);
 			}
 
@@ -173,6 +187,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				if (Phase == Phase.InputRegistration)
 				{
+					alice.SetDeadlineRelativeTo(ConnectionConfirmationTimeout);
 					return new ConnectionConfirmationResponse(
 						amountZeroCredentialResponse,
 						weightZeroCredentialResponse);

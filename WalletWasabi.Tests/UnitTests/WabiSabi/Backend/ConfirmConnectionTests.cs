@@ -23,10 +23,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			var alice = WabiSabiFactory.CreateAlice();
+			var preDeadline = alice.Deadline;
 			round.Alices.Add(alice);
 			arena.OnTryGetRound = _ => round;
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
+			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			var resp = handler.ConfirmConnection(req);
 			Assert.NotNull(resp);
@@ -34,6 +36,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.NotNull(resp.ZeroWeightCredentials);
 			Assert.Null(resp.RealAmountCredentials);
 			Assert.Null(resp.RealWeightCredentials);
+			Assert.NotEqual(preDeadline, alice.Deadline);
+			Assert.True(minAliceDeadline <= alice.Deadline);
 		}
 
 		[Fact]
@@ -44,6 +48,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.Phase = Phase.ConnectionConfirmation;
 			var alice = WabiSabiFactory.CreateAlice();
+			var preDeadline = alice.Deadline;
 			round.Alices.Add(alice);
 			arena.OnTryGetRound = _ => round;
 
@@ -55,6 +60,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.NotNull(resp.ZeroWeightCredentials);
 			Assert.NotNull(resp.RealAmountCredentials);
 			Assert.NotNull(resp.RealWeightCredentials);
+			Assert.Equal(preDeadline, alice.Deadline);
 		}
 
 		[Fact]
@@ -76,6 +82,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			var alice = WabiSabiFactory.CreateAlice();
+			var preDeadline = alice.Deadline;
 			round.Alices.Add(alice);
 			arena.OnTryGetRound = _ => round;
 
@@ -90,6 +97,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 				}
 			}
+			Assert.Equal(preDeadline, alice.Deadline);
 		}
 
 		[Fact]

@@ -16,7 +16,14 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		}
 
 		public Guid Id { get; } = Guid.NewGuid();
+		public DateTimeOffset Deadline { get; private set; } = DateTimeOffset.UtcNow;
 		public IEnumerable<Coin> Coins { get; }
 		public IDictionary<Coin, byte[]> CoinRoundSignaturePairs { get; }
+
+		public void SetDeadlineRelativeTo(TimeSpan connectionConfirmationTimeout)
+		{
+			// Have alice timeouts a bit sooner than the timeout of connection confirmation phase.
+			Deadline = DateTimeOffset.UtcNow + (connectionConfirmationTimeout * 0.9);
+		}
 	}
 }
