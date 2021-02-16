@@ -34,8 +34,8 @@
       </RadialGradientBrush.GradientStops>
     </RadialGradientBrush>
 
-    <SolidColorBrush x:Key="DataGridRowSelectedBackgroundColor" Color="#1C1C1C" />
-    <SolidColorBrush x:Key="DataGridRowSelectedUnfocusedBackgroundColor" Color="#1C1C1C" />
+    <SolidColorBrush x:Key="DataGridRowSelectedBackgroundColor" Color="#EBEBEB" />
+    <StaticResource x:Key="DataGridRowSelectedUnfocusedBackgroundColor" ResourceKey="DataGridRowSelectedBackgroundColor" />
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentLight.xaml"/>
   <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" /> <!-- Needs to be here because of dependency reason -->
