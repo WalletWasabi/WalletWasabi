@@ -44,7 +44,7 @@ namespace WalletWasabi.Fluent.Controls
 		private readonly CultureInfo _customCultureInfo;
 		private readonly char _decimalSeparator = '.';
 		private readonly char _groupSeparator = ' ';
-		private readonly Regex _regexDecimal;
+		private readonly Regex _regexBTCFormat;
 		private readonly Regex _regexDecimalCharsOnly;
 		private readonly Regex _regexConsecutiveSpaces;
 		private readonly Regex _regexGroupAndDecimal;
@@ -75,9 +75,9 @@ namespace WalletWasabi.Fluent.Controls
 			Watermark = "0 BTC";
 			Text = string.Empty;
 
-			_regexDecimal =
+			_regexBTCFormat =
 				new Regex(
-					$"^(?<Whole>[0-9{_groupSeparator}]*)(\\{_decimalSeparator}?(?<Frac>[0-9]*))$",
+					$"^(?<Whole>[0-9{_groupSeparator}]*)(\\{_decimalSeparator}?(?<Frac>[0-9{_groupSeparator}]*))$",
 					RegexOptions.Compiled);
 
 			_regexDecimalCharsOnly =
@@ -184,7 +184,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			// Check if it has a decimal separator.
 			var trailingDecimal = preComposedText.Length > 0 && preComposedText[^1] == _decimalSeparator;
-			var match = _regexDecimal.Match(preComposedText);
+			var match = _regexBTCFormat.Match(preComposedText);
 
 			// Ignore group chars on count of the whole part of the decimal.
 			var wholeStr = match.Groups["Whole"].ToString();
