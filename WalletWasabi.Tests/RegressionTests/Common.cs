@@ -50,7 +50,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var firstHash = await global.RpcClient.GetBlockHashAsync(0);
 			while (true)
 			{
-				var client = new WasabiClient(new ClearnetHttpClient(() => regTestFixture.BackendEndPointUri));
+				var client = new WasabiClient(regTestFixture.BackendHttpClient);
 				FiltersResponse? filtersResponse = await client.GetFiltersAsync(firstHash, 1000);
 				Assert.NotNull(filtersResponse);
 

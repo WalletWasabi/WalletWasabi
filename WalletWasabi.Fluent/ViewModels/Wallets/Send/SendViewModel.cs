@@ -15,8 +15,11 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.MathNet;
+using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui.Converters;
+using WalletWasabi.Helpers;
+using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
@@ -55,6 +58,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			ExchangeRate = walletVm.Wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();
+
+			this.ValidateProperty(x=>x.To, ValidateToField);
+			this.ValidateProperty(x=>x.AmountBtc, ValidateAmount);
 
 			this.WhenAnyValue(x => x.To)
 				.Subscribe(ParseToField);
@@ -113,6 +119,31 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					Navigate().To(new PrivacyControlViewModel());
 				}
 			});
+		}
+
+		private void ValidateAmount(IValidationErrors errors)
+		{
+			if (AmountBtc > Constants.MaximumNumberOfBitcoins)
+			{
+				errors.Add(ErrorSeverity.Error, "Amount must be less than the total supply of BTC.");
+			}
+			else if (AmountBtc > _owner.Wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC))
+			{
+				errors.Add(ErrorSeverity.Error, "Insufficient funds to cover the amount requested.");
+			}
+			else if (AmountBtc <= 0)
+			{
+				errors.Add(ErrorSeverity.Error, "Amount must be more than 0 BTC");
+			}
+		}
+
+		private void ValidateToField(IValidationErrors errors)
+		{
+			if (!string.IsNullOrWhiteSpace(To) &&
+			    !AddressStringParser.TryParse(To, _owner.Wallet.Network, out BitcoinUrlBuilder? url))
+			{
+				errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
+			}
 		}
 
 		private void ParseToField(string s)
