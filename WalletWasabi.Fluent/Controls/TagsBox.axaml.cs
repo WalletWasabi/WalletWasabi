@@ -157,6 +157,14 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void OnAutoCompleteBoxTemplateApplied(object? sender, TemplateAppliedEventArgs e)
 		{
+			var _internalSuggestionsPopup = e.NameScope.Find<ListBox>("PART_SelectingItemsControl");
+
+
+			_autoCompleteBox
+				.AddDisposableHandler(PointerPressedEvent, InternalSuggestionsPopupPointerPressed, RoutingStrategies.Direct)
+				.DisposeWith(_compositeDisposable);
+
+
 			_internalTextBox = e.NameScope.Find<TextBox>("PART_TextBox");
 			_internalTextBox.WhenAnyValue(x => x.IsFocused)
 				.Subscribe(isFocused =>
@@ -182,6 +190,11 @@ namespace WalletWasabi.Fluent.Controls
 					Dispatcher.UIThread.Post(() => _autoCompleteBox?.ClearValue(AutoCompleteBox.TextProperty));
 				})
 				.DisposeWith(_compositeDisposable!);
+		}
+
+		private void InternalSuggestionsPopupPointerPressed(object? sender, PointerPressedEventArgs e)
+		{
+
 		}
 
 		private void CheckIsInputEnabled()
