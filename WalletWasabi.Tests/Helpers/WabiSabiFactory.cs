@@ -62,6 +62,7 @@ namespace WalletWasabi.Tests.Helpers
 				cfg.ConnectionConfirmationTimeout,
 				cfg.OutputRegistrationTimeout,
 				cfg.TransactionSigningTimeout,
+				new FeeRate(100m),
 				new InsecureRandom());
 
 		public static Alice CreateAlice(InputRoundSignaturePair inputSigPairs) => CreateAlice(new[] { inputSigPairs });
@@ -155,7 +156,7 @@ namespace WalletWasabi.Tests.Helpers
 			var zeroPresentables = CreateZeroCredentials(round);
 			var alice = round?.Alices.FirstOrDefault();
 			var (realAmountCredentialRequest, _) = amClient.CreateRequest(
-				new[] { amount?.Satoshi ?? (alice is null ? 1000L : alice.Coins.Select(x => x.Amount.Satoshi).Sum()) },
+				new[] { amount?.Satoshi ?? alice?.CalculateRemainingAmountCredentials(round!.FeeRate).Satoshi ?? 1000L },
 				zeroPresentables.amountCredentials);
 			var (realWeightCredentialRequest, _) = weClient.CreateRequest(
 				new[] { weight ?? alice?.CalculateRemainingWeightCredentials(round!.RegistrableWeightCredentials) ?? 1000L },
@@ -174,7 +175,7 @@ namespace WalletWasabi.Tests.Helpers
 			var zeroPresentables = CreateZeroCredentials(round);
 			var alice = round?.Alices.FirstOrDefault();
 			var (realAmountCredentialRequest, _) = amClient.CreateRequest(
-				new[] { alice is null ? 1000L : alice.Coins.Select(x => x.Amount.Satoshi).Sum() },
+				new[] { alice?.CalculateRemainingAmountCredentials(round!.FeeRate).Satoshi ?? 1000L },
 				zeroPresentables.amountCredentials);
 			var (realWeightCredentialRequest, _) = weClient.CreateRequest(
 				new[] { alice?.CalculateRemainingWeightCredentials(round!.RegistrableWeightCredentials) ?? 1000L },

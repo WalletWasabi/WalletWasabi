@@ -25,9 +25,9 @@ namespace WalletWasabi.WabiSabi.Backend
 		{
 		}
 
-		[DefaultValue(Constants.OneDayConfirmationTarget)]
+		[DefaultValue(108)]
 		[JsonProperty(PropertyName = "ConfirmationTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public uint ConfirmationTarget { get; set; } = Constants.OneDayConfirmationTarget;
+		public uint ConfirmationTarget { get; set; } = 108;
 
 		[DefaultValueTimeSpan("0d 3h 0m 0s")]
 		[JsonProperty(PropertyName = "ReleaseUtxoFromPrisonAfter", DefaultValueHandling = DefaultValueHandling.Populate)]

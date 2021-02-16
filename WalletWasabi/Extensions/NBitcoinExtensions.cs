@@ -455,7 +455,7 @@ namespace NBitcoin
 			return sanityFee;
 		}
 
-		public static uint EstimateSpendVsize(this Script script)
+		public static int EstimateSpendVsize(this Script script)
 		{
 			if (script.IsScriptType(ScriptType.P2WPKH))
 			{

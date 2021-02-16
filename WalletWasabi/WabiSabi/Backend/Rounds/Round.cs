@@ -26,6 +26,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			TimeSpan connectionConfirmationTimeout,
 			TimeSpan outputRegistrationTimeout,
 			TimeSpan transactionSigningTimeout,
+			FeeRate feeRate,
 			WasabiRandom random)
 		{
 			Network = network;
@@ -37,7 +38,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			ConnectionConfirmationTimeout = connectionConfirmationTimeout;
 			OutputRegistrationTimeout = outputRegistrationTimeout;
 			TransactionSigningTimeout = transactionSigningTimeout;
-
+			FeeRate = feeRate;
 			Random = random;
 			AmountCredentialIssuer = new(new(Random), 2, random, MaxRegistrableAmountByAlice);
 			WeightCredentialIssuer = new(new(Random), 2, random, RegistrableWeightCredentials);
@@ -57,6 +58,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				blameOf.ConnectionConfirmationTimeout,
 				blameOf.OutputRegistrationTimeout,
 				blameOf.TransactionSigningTimeout,
+				blameOf.FeeRate,
 				blameOf.Random)
 		{
 			BlameOf = blameOf;
@@ -76,6 +78,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public TimeSpan ConnectionConfirmationTimeout { get; }
 		public TimeSpan OutputRegistrationTimeout { get; }
 		public TimeSpan TransactionSigningTimeout { get; }
+		public FeeRate FeeRate { get; }
 		public WasabiRandom Random { get; }
 		public CredentialIssuer AmountCredentialIssuer { get; }
 		public CredentialIssuer WeightCredentialIssuer { get; }
@@ -111,7 +114,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 
 			var inputValueSum = Money.Zero;
-			var inputWeightSum = 0u;
+			var inputWeightSum = 0;
 			foreach (var coinRoundSignaturePair in alice.CoinRoundSignaturePairs)
 			{
 				var coin = coinRoundSignaturePair.Key;
@@ -170,6 +173,15 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound);
 				}
 
+				if (realWeightCredentialRequests.Delta != alice.CalculateRemainingWeightCredentials(RegistrableWeightCredentials))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials);
+				}
+				if (realAmountCredentialRequests.Delta != alice.CalculateRemainingAmountCredentials(FeeRate))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials);
+				}
+
 				if (Phase == Phase.InputRegistration)
 				{
 					alice.SetDeadlineRelativeTo(ConnectionConfirmationTimeout);
@@ -181,11 +193,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					var amountRealCredentialResponse = AmountCredentialIssuer.HandleRequest(realAmountCredentialRequests);
 					var weightRealCredentialResponse = WeightCredentialIssuer.HandleRequest(realWeightCredentialRequests);
-
-					if (realWeightCredentialRequests.Delta != alice.CalculateRemainingWeightCredentials(RegistrableWeightCredentials))
-					{
-						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials);
-					}
 
 					return new(
 						amountZeroCredentialResponse,

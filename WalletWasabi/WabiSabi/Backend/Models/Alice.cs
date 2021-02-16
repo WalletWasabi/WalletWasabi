@@ -20,9 +20,12 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		public IEnumerable<Coin> Coins { get; }
 		public IDictionary<Coin, byte[]> CoinRoundSignaturePairs { get; }
 		public Money TotalInputAmount => Coins.Sum(x => x.Amount);
-		public long TotalInputWeight => Coins.Sum(x => x.ScriptPubKey.EstimateSpendVsize() * 4);
+		public long TotalInputWeight => TotalInputVsize * 4;
+		public int TotalInputVsize => Coins.Sum(x => x.ScriptPubKey.EstimateSpendVsize());
 
 		public long CalculateRemainingWeightCredentials(uint maxRegistrableWeight) => maxRegistrableWeight - TotalInputWeight;
+
+		public Money CalculateRemainingAmountCredentials(FeeRate feeRate) => TotalInputAmount - feeRate.GetFee(TotalInputVsize);
 
 		public void SetDeadlineRelativeTo(TimeSpan connectionConfirmationTimeout)
 		{
