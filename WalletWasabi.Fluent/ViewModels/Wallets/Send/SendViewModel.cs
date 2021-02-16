@@ -90,6 +90,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.Create(() =>
 			{
+				Navigate().To(new PrivacyControlViewModel());
+				return;
+
 				var password = "foo";
 				var transactionInfo = _transactionInfo;
 				var wallet = _owner.Wallet;

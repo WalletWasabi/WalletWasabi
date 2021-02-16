@@ -10,11 +10,18 @@
              x:DataType="vm:PrivacyControlViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyControlView">
-    <c:ContentArea Title="Send" Caption=""
+    <c:ContentArea Title="Privacy Control" Caption="Parts of your wallet are know to certain entities. Select the entities you can tolerate leaking information about this transaction:"
                   HorizontalAlignment="Left"
                    EnableCancel="False"
                    EnableNext="True"
                    NextContent="Continue"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
+        <DataGrid Items="{Binding Pockets}">
+            <DataGrid.Columns >
+                <DataGridCheckBoxColumn x:DataType="vm:PocketViewModel" Binding="{Binding IsSelected}" CanUserSort="False" CanUserResize="False" CanUserReorder="False" />
+                <DataGridTextColumn x:DataType="vm:PocketViewModel" Header="Total (BTC)" Binding="{Binding TotalBtc}" />
+                <DataGridTextColumn x:DataType="vm:PocketViewModel" Header="Labels" Binding="{Binding Labels}" Width="Auto" />
+            </DataGrid.Columns>
+        </DataGrid>
     </c:ContentArea>
 </UserControl>
