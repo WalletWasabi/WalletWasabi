@@ -16,8 +16,8 @@
 		<AvaloniaResource Include="Assets\**" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.0" />
-		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.0" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0012934-beta" />
+		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.999-cibuild0012934-beta" />
 		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.0" />
 		<PackageReference Include="Avalonia.Xaml.Interactions.Custom" Version="0.10.0" />
 		<PackageReference Include="Avalonia.Xaml.Interactivity" Version="0.10.0" />
@@ -27,7 +27,7 @@
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
-	
+
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
