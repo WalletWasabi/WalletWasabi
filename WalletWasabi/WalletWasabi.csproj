@@ -26,9 +26,9 @@
 
   <ItemGroup>
 	  <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.1" />
-	  <PackageReference Include="NBitcoin" Version="5.0.60" />
+	  <PackageReference Include="NBitcoin" Version="5.0.73" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
-    <PackageReference Include="NBitcoin.Secp256k1" Version="1.0.8" />
+    <PackageReference Include="NBitcoin.Secp256k1" Version="1.0.10" />
   </ItemGroup>
 
   <ItemGroup>
@@ -52,12 +52,6 @@
     </None>
     <None Update="Microservices\Binaries\win64\hwi.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="OnionSeeds\MainOnionSeeds.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="OnionSeeds\TestNetOnionSeeds.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TorDaemons\digests.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
