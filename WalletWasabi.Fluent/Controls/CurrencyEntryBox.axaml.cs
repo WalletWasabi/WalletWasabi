@@ -159,7 +159,7 @@ namespace WalletWasabi.Fluent.Controls
 			var inputText = e.Text ?? "";
 			var inputLength = inputText.Length;
 
-			if (string.IsNullOrEmpty(inputText))
+			if (string.IsNullOrEmpty(Text) && inputLength == 1 && inputText == " ")
 			{
 				e.Handled = true;
 				base.OnTextInput(e);
