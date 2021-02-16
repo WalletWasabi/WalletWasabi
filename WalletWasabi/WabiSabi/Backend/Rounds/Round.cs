@@ -10,6 +10,7 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds
@@ -85,7 +86,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			return alice is not null;
 		}
 
-		public InputsRegistrationResponse RegisterAlice(Alice alice)
+		public InputsRegistrationResponse RegisterAlice(
+			Alice alice,
+			ZeroCredentialsRequest zeroAmountCredentialRequests,
+			ZeroCredentialsRequest zeroWeightCredentialRequests)
 		{
 			var coins = alice.Coins;
 			if (MaxInputCountByAlice < coins.Count())
@@ -139,15 +143,19 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchWeight);
 			}
 
+			var amountCredentialResponse = AmountCredentialIssuer.HandleRequest(zeroAmountCredentialRequests);
+			var weightCredentialResponse = WeightCredentialIssuer.HandleRequest(zeroWeightCredentialRequests);
+
 			lock (Lock)
 			{
 				if (Phase != Phase.InputRegistration)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 				}
-
-				throw new NotImplementedException();
+				Alices.Add(alice);
 			}
+
+			return new(alice.Id, amountCredentialResponse, weightCredentialResponse);
 		}
 	}
 }

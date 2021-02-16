@@ -19,6 +19,32 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 	public class RegisterInputTests
 	{
 		[Fact]
+		public async Task SuccessAsync()
+		{
+			MockArena arena = new();
+			WabiSabiConfig cfg = new();
+			var round = WabiSabiFactory.CreateRound(cfg);
+			arena.OnTryGetRound = _ => round;
+			MockRpcClient rpc = new();
+			using Key key = new();
+
+			rpc.OnGetTxOutAsync = (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
+			};
+
+			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
+			var resp = await handler.RegisterInputAsync(req);
+			Assert.NotEmpty(round.Alices);
+			Assert.NotNull(resp);
+			Assert.NotNull(resp.AmountCredentials);
+			Assert.NotNull(resp.WeightCredentials);
+		}
+
+		[Fact]
 		public async Task RoundNotFoundAsync()
 		{
 			MockArena arena = new();

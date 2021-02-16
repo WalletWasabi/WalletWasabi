@@ -81,7 +81,10 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 				}
 
-				return round.RegisterAlice(new Alice(coinRoundSignaturePairs));
+				return round.RegisterAlice(
+					new Alice(coinRoundSignaturePairs),
+					request.ZeroAmountCredentialRequests,
+					request.ZeroWeightCredentialRequests);
 			}
 		}
 

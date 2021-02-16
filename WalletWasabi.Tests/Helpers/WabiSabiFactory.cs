@@ -101,9 +101,24 @@ namespace WalletWasabi.Tests.Helpers
 			var inputRoundSignaturePairs = pairs ?? CreateInputRoundSignaturePairs(1, round?.Hash);
 			var rnd = new InsecureRandom();
 
-			var client = new WabiSabiClient(new CredentialIssuerSecretKey(rnd).ComputeCredentialIssuerParameters(), 2, rnd, 4300000000000);         // Input Reg
-			var (zeroAmountCredentialRequest, _) = client.CreateRequestForZeroAmount();
-			var (zeroWeightCredentialRequest, _) = client.CreateRequestForZeroAmount();
+			var amClient =
+				round is null
+				? new WabiSabiClient(new CredentialIssuerSecretKey(rnd).ComputeCredentialIssuerParameters(), 2, rnd, 4300000000000)
+				: new WabiSabiClient(
+					round.AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
+					round.AmountCredentialIssuer.NumberOfCredentials,
+					rnd,
+					round.MaxRegistrableAmount);
+			var weClient =
+				round is null
+				? new WabiSabiClient(new CredentialIssuerSecretKey(rnd).ComputeCredentialIssuerParameters(), 2, rnd, 4300000000000)
+				: new WabiSabiClient(
+					round.WeightCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
+					round.WeightCredentialIssuer.NumberOfCredentials,
+					rnd,
+					round.MaxRegistrableWeight);
+			var (zeroAmountCredentialRequest, _) = amClient.CreateRequestForZeroAmount();
+			var (zeroWeightCredentialRequest, _) = weClient.CreateRequestForZeroAmount();
 
 			return new(
 				roundId,
