@@ -301,7 +301,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private static string FormatBtcValue(NumberFormatInfo formatInfo, decimal value)
 		{
-			return string.Format(formatInfo, "{0:### ### ### ##0.########}", value).Trim();
+			return string.Format(formatInfo, "{0:### ### ### ##0.#### ####}", value).Trim();
 		}
 
 		private static string FormatFiatValue(NumberFormatInfo formatInfo, decimal value)
