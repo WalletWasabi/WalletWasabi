@@ -17,8 +17,8 @@
                    EnableNext="True"
                    NextContent="Continue"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
-        <StackPanel>
-            <ListBox Background="Transparent" HorizontalAlignment="Center" Items="{Binding PrivacySuggestions}" SelectedItem="{Binding SelectedPrivacySuggestion}">
+        <DockPanel>
+            <ListBox DockPanel.Dock="Top" Background="Transparent" HorizontalAlignment="Center" Items="{Binding PrivacySuggestions}" SelectedItem="{Binding SelectedPrivacySuggestion}">
                 <ListBox.Styles>
                     <Style Selector="ListBoxItem">
                         <Setter Property="Cursor" Value="Hand" />
@@ -41,10 +41,10 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-            <StackPanel Orientation="Horizontal" Spacing="5">
+            <StackPanel Orientation="Horizontal" Spacing="5" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" HorizontalAlignment="Center">
                 <PathIcon Data="{StaticResource info_tip}" Foreground="{DynamicResource WarningMessageForeground}" />
                 <TextBlock Text="Some services only accept the exact amount that was requested." Foreground="{DynamicResource WarningMessageForeground}" />
             </StackPanel>
-        </StackPanel>
+        </DockPanel>
     </c:ContentArea>
 </UserControl>
