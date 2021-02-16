@@ -77,7 +77,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			_regexDecimal =
 				new Regex(
-					$"^(?<Whole>[0-9{_groupSeparator}]*)(\\{_decimalSeparator}?(?<Frac>[0-9]*))$",
+					$"^(?<Whole>[0-9{_groupSeparator}]*)(\\{_decimalSeparator}?(?<Frac>[0-9{_groupSeparator}]*))$",
 					RegexOptions.Compiled);
 
 			_regexDecimalCharsOnly =
