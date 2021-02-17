@@ -17,18 +17,24 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 		[AutoNotify] private bool _isPasswordIncorrect;
 		[AutoNotify] private bool _isPasswordNeeded;
 		[AutoNotify] private string _walletName;
+		private readonly ClosedWalletViewModel _closedWalletVm;
 
-		public LoginViewModel(WalletViewModelBase walletViewModelBase)
+		public LoginViewModel(ClosedWalletViewModel closedWalletVm)
 		{
-			WalletViewModelBase = walletViewModelBase;
-			KeyManager = walletViewModelBase.Wallet.KeyManager;
+			_closedWalletVm = closedWalletVm;
+
+			var wallet = _closedWalletVm.Wallet;
+
+			KeyManager = wallet.KeyManager;
 			IsPasswordNeeded = !KeyManager.IsWatchOnly;
-			_walletName = walletViewModelBase.WalletName;
+
+			_walletName = wallet.WalletName;
 			_password = "";
-			var wallet = walletViewModelBase.Wallet;
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
+				IsBusy = true;
+
 				IsPasswordIncorrect = await Task.Run(async () =>
 				{
 					if (!IsPasswordNeeded)
@@ -48,6 +54,8 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 					return true;
 				});
+
+				await _closedWalletVm.LoadWallet();
 
 				if (!IsPasswordIncorrect)
 				{
@@ -70,6 +78,8 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 						LoginWallet();
 					}
 				}
+
+				IsBusy = false;
 			});
 
 			OkCommand = ReactiveCommand.Create(() =>
@@ -84,8 +94,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			EnableAutoBusyOn(NextCommand);
 		}
 
-		private WalletViewModelBase WalletViewModelBase { get; }
-
 		public ICommand OkCommand { get; }
 
 		public ICommand ForgotPasswordCommand { get; }
@@ -94,9 +102,9 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 		private void LoginWallet()
 		{
-			WalletViewModelBase.Wallet.Login();
-			WalletViewModelBase.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
-			Navigate().To(WalletViewModelBase, NavigationMode.Clear);
+			_closedWalletVm.Wallet.Login();
+			_closedWalletVm.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
+			Navigate().To(_closedWalletVm, NavigationMode.Clear);
 		}
 	}
 }

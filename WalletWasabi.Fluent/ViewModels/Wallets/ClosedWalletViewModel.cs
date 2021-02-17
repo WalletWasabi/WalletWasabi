@@ -1,12 +1,12 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Reactive.Disposables;
 using System.Threading.Tasks;
+using ReactiveUI;
+using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Logging;
-using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -14,34 +14,35 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	public partial class ClosedWalletViewModel : WalletViewModelBase
 	{
 		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
+		private readonly WalletManager _walletManager;
 
 		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet)
 			: base(wallet)
 		{
-			WalletManager = walletManager;
+			_walletManager = walletManager;
 			_items = new ObservableCollection<NavBarItemViewModel>();
-		}
 
-		public WalletManager WalletManager { get; }
+			OpenCommand = ReactiveCommand.Create(() =>
+			{
+				if (!Wallet.IsLoggedIn)
+				{
+					Navigate().To(new LoginViewModel(this));
+				}
+			});
+		}
 
 		public override string IconName => "web_asset_regular";
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		public async Task LoadWallet()
 		{
-			base.OnNavigatedTo(inStack, disposable);
-
-			if (Wallet.State == WalletState.Uninitialized)
+			if (Wallet.State != WalletState.Uninitialized)
 			{
-				AbandonedTasks abandonedTasks = new();
-				abandonedTasks.AddAndClearCompleted(LoadWallet());
+				return;
 			}
-		}
 
-		private async Task LoadWallet()
-		{
 			try
 			{
-				await Task.Run(async () => await WalletManager.StartWalletAsync(Wallet));
+				await Task.Run(async () => await _walletManager.StartWalletAsync(Wallet));
 			}
 			catch (OperationCanceledException ex)
 			{

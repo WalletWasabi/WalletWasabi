@@ -36,18 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				.Subscribe(x => WalletState = x.EventArgs)
 				.DisposeWith(_disposables);
 
-			OpenCommand = ReactiveCommand.Create(() =>
-			{
-				if (!Wallet.IsLoggedIn)
-				{
-					Navigate().To(new LoginViewModel(this));
-				}
-				else
-				{
-					// TODO: wallet welcome page
-					Navigate().To(this);
-				}
-			});
+			OpenCommand = ReactiveCommand.Create(() => Navigate().To(this));
 		}
 
 		public override string Title
