@@ -14,8 +14,19 @@
     <DataGrid Items="{Binding Addresses}"
               CanUserSortColumns="True" >
               <!-- SelectedItem="{Binding SelectedAddress, Mode=TwoWay}" -->
-      <DataGrid.Columns>
+      <DataGrid.Styles>
+        <Style Selector="Button.addressActionButton">
+          <Setter Property="DockPanel.Dock" Value="Right"/>
+          <Setter Property="Margin" Value="5 0 0 0"/>
+        </Style>
 
+        <Style Selector="PathIcon.addressActionIcon">
+          <Setter Property="Height" Value="15"/>
+          <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}"/>
+        </Style>
+      </DataGrid.Styles>
+
+      <DataGrid.Columns>
         <DataGridTemplateColumn Header="Reference"
                                 Width="*"
                                 CanUserSort="True"
@@ -24,10 +35,10 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0">
-                <Button Classes="plain" DockPanel.Dock="Right">
-                  <PathIcon Height="15" Data="{StaticResource wallet_action_coinjoin}" Foreground="{DynamicResource SystemAccentColor}" />
+                <Button Classes="plain addressActionButton">
+                  <PathIcon Data="{StaticResource wallet_action_coinjoin}" Classes="addressActionIcon" />
                 </Button>
-                <TextBlock Text="{Binding Label}" Margin="0 0 5 0"/>
+                <TextBlock Text="{Binding Label}"/>
               </DockPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
@@ -41,16 +52,12 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0">
-
-                <Button Classes="plain" DockPanel.Dock="Right" Margin="5 0 0 0">
-                  <PathIcon Height="15" Data="{StaticResource dismiss_light}"
-                            Foreground="{DynamicResource SystemAccentColor}" />
+                <Button Classes="plain addressActionButton">
+                  <PathIcon Data="{StaticResource dismiss_light}" Classes=" addressActionIcon"/>
                 </Button>
-                <Button Classes="plain" DockPanel.Dock="Right" Margin="5 0 0 0" Command="{Binding CopyAddressCommand}">
-                  <PathIcon Height="15" Data="{StaticResource copy_regular}"
-                            Foreground="{DynamicResource SystemAccentColor}" />
+                <Button Classes="plain addressActionButton" Command="{Binding CopyAddressCommand}">
+                  <PathIcon Data="{StaticResource copy_regular}" Classes="addressActionIcon" />
                 </Button>
-
                 <TextBlock Text="{Binding Address}" />
               </DockPanel>
             </DataTemplate>
