@@ -9,8 +9,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		public ConfirmHideAddressViewModel(string label)
 		{
 			Label = label;
-			_title = "Receive Address";
-			Text = $"Are you sure about deleting the {label} called address?";
+			_title = "Hide Address";
+			Text = $"Are you sure about hiding the {label} called address?\nThis cannot be undone.";
 
 			NextCommand = ReactiveCommand.Create(() => Close(result: true));
 			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));

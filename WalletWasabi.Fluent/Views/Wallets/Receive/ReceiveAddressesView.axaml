@@ -34,7 +34,7 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
-                <Button Classes="plain addressActionButton">
+                <Button Classes="plain addressActionButton" ToolTip.Tip="Edit">
                   <PathIcon Data="{StaticResource wallet_action_coinjoin}" Classes="addressActionIcon" />
                 </Button>
                 <TextBlock Text="{Binding Label}"/>
@@ -50,10 +50,10 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
-                <Button Classes="plain addressActionButton" Command="{Binding HideAddressCommand}">
+                <Button Classes="plain addressActionButton" Command="{Binding HideAddressCommand}" ToolTip.Tip="Hide address">
                   <PathIcon Data="{StaticResource dismiss_light}" Classes=" addressActionIcon"/>
                 </Button>
-                <Button Classes="plain addressActionButton" Command="{Binding CopyAddressCommand}">
+                <Button Classes="plain addressActionButton" Command="{Binding CopyAddressCommand}" ToolTip.Tip="Copy">
                   <PathIcon Data="{StaticResource copy_regular}" Classes="addressActionIcon" />
                 </Button>
                 <TextBlock Text="{Binding Address}" />
