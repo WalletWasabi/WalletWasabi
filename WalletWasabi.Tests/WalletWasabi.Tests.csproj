@@ -48,6 +48,9 @@
 		<None Update="./UnitTests/Data/StrobeTestVectors.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="./UnitTests/Data/MempoolInfoWithHistogram.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
 	<ItemGroup>
