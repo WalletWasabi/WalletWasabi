@@ -49,6 +49,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			WeightCredentialIssuerParameters = WeightCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 
+			Coinjoin = Transaction.Create(Network);
+
 			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{RegistrableWeightCredentials}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
 		}
 
@@ -97,7 +99,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public ISet<OutPoint> BlameWhitelist { get; } = new HashSet<OutPoint>();
 		private object Lock { get; } = new();
 		public byte[] UnsignedTxSecret { get; }
-		public Transaction Coinjoin { get; set; }
+		public Transaction Coinjoin { get; }
 
 		public InputsRegistrationResponse RegisterAlice(
 			Alice alice,

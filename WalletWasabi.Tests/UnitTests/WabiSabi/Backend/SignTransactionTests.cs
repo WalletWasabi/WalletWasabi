@@ -26,9 +26,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			using Key key = new();
 			Alice alice = WabiSabiFactory.CreateAlice(key: key);
 			round.Alices.Add(alice);
-			var coinjoin = Transaction.Create(Network.Main);
+			var coinjoin = round.Coinjoin;
 			coinjoin.Inputs.Add(alice.Coins.First().Outpoint);
-			round.Coinjoin = coinjoin;
 			round.Phase = Phase.TransactionSigning;
 			arena.OnTryGetRound = _ => round;
 
@@ -86,10 +85,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Alice alice2 = WabiSabiFactory.CreateAlice(key: key2);
 			round.Alices.Add(alice1);
 			round.Alices.Add(alice2);
-			var coinjoin = Transaction.Create(Network.Main);
+			var coinjoin = round.Coinjoin;
 			coinjoin.Inputs.Add(alice1.Coins.First().Outpoint);
 			coinjoin.Inputs.Add(alice2.Coins.First().Outpoint);
-			round.Coinjoin = coinjoin;
 			round.Phase = Phase.TransactionSigning;
 			arena.OnTryGetRound = _ => round;
 
