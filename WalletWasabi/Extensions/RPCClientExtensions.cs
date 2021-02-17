@@ -77,9 +77,33 @@ namespace NBitcoin.RPC
 			var mempoolInfo = await rpc.GetMempoolInfoAsync().ConfigureAwait(false);
 			var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
 
+			const int blockSize = 1_000_000;
+			static IEnumerable<(int Size, FeeRate From, FeeRate To)> SplitFeeGroupInBlocks(FeeRateGroup group)
+				=> Enumerable
+					.Range(0, (int)group.Sizes / blockSize)
+					.Select(b => (Sizes: blockSize, From: group.From, To: group.To));
+
+			var minFeeRatePerTarget = mempoolInfo.Histogram
+				.OrderByDescending(x => x.Group)
+				.SkipWhile(x => x.Count < mempoolInfo.Size / 100 )  // Filter those groups with very fee transactions (less than 1%)
+				.SelectMany(x => SplitFeeGroupInBlocks(x))
+				.Scan((Group: default((int Size, FeeRate From, FeeRate To)), Size: 0), (acc, c) => (c, acc.Size + c.Size))
+				.Select(x => (From: x.Group.From, To: x.Group.To, MvB: x.Size, Target: 1 + x.Size / blockSize))
+				.GroupBy(x => x.Target, 
+					(target, feeGroups) => (Target: target, To: feeGroups.First().To, From: (feeGroups.LastOrDefault().From ?? FeeRate.Zero), MvB: feeGroups.Sum(xx => (decimal)xx.MvB)))
+				.ToDictionary(x => (int)x.Target, x => (int)Math.Ceiling(x.From.SatoshiPerByte));
+
+			var FixedEstimations = estimations.GroupJoin(minFeeRatePerTarget, 
+				outer => outer.Key,
+				inner => inner.Key,
+				(outer, inner) => new { Estimation = outer, MinimumFromMemPool = inner})
+				.SelectMany(x => x.MinimumFromMemPool.DefaultIfEmpty(),
+      				(a, b) => (Target: a.Estimation.Key, FeeRate: Math.Max(Math.Max(a.Estimation.Value, b.Value), (int)sanityFeeRate.SatoshiPerByte)))
+				.ToDictionary(x => x.Target, x => x.FeeRate);
+
 			return new AllFeeEstimate(
 				estimateMode,
-				estimations.ToDictionary(x => x.Key, x => Math.Max(x.Value, (int)sanityFeeRate.SatoshiPerByte)),
+				FixedEstimations,
 				rpcStatus.Synchronized);
 		}
 
