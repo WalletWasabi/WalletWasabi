@@ -782,8 +782,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				var coinsExcept = coins.Except(except);
 				var secPubs = KeyManager.GetSecretsAndPubKeyPairs(password, coinsExcept.Select(x => x.ScriptPubKey).ToArray());
 
-				Kitchen.Cook(password);
-
 				foreach (SmartCoin coin in coinsExcept)
 				{
 					coin.Secret = secPubs.Single(x => x.pubKey.P2wpkhScript == coin.ScriptPubKey).secret;
