@@ -6,6 +6,9 @@ using System.Collections.Generic;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using Xunit;
 using System;
+using System.IO;
+using Newtonsoft.Json.Linq;
+using System.Linq;
 
 namespace WalletWasabi.Tests.UnitTests
 {
@@ -207,6 +210,30 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(31, allFee.Estimations[1008]);
 		}
 
+
+		[Fact]
+		public async Task FixObviouslyWrongEstimationsAsync()
+		{
+			var rpc = CreateAndConfigureRpcClient(
+				estimator: target => target switch
+				{
+					2 => new FeeRate(70m),
+					3 => new FeeRate(10m),
+					6 => new FeeRate(3m),
+					18 => new FeeRate(1m),
+					36 => new FeeRate(1m),
+					1008 => new FeeRate(1m),
+					_ => throw new NoEstimationException(target)
+				},
+				hasPeersInfo: true
+			);
+
+			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
+			Assert.Equal(70, allFee.Estimations[2]);
+			Assert.True(allFee.Estimations[3] > 10);
+			Assert.True(allFee.Estimations[36] > 1);
+		}
+
 		private static MockRpcClient CreateAndConfigureRpcClient(Func<int, FeeRate> estimator, bool isSynchronized = true, bool hasPeersInfo = false, double memPoolMinFee = 0.00001000)
 			=> new MockRpcClient()
 			{
@@ -218,12 +245,7 @@ namespace WalletWasabi.Tests.UnitTests
 					}),
 				OnGetPeersInfoAsync = async () =>
 					await Task.FromResult(hasPeersInfo ? new[] { new PeerInfo() } : Array.Empty<PeerInfo>()),
-
-				OnGetMempoolInfoAsync = async () =>
-					await Task.FromResult(new MemPoolInfo
-					{
-						MemPoolMinFee = memPoolMinFee // 1 s/b (default value)
-					}),
+				OnGetMempoolInfoAsync = async () => await Task.FromResult(ParseMemPoolInfo(memPoolMinFee)),
 				OnEstimateSmartFeeAsync = async (target, _) =>
 					await Task.FromResult(new EstimateSmartFeeResponse
 					{
@@ -231,5 +253,29 @@ namespace WalletWasabi.Tests.UnitTests
 						FeeRate = estimator(target)
 					})
 			};
+
+		private static MemPoolInfo ParseMemPoolInfo(double memPoolMinFee)
+		{
+			var mempoolInfoWithHistogram = File.ReadAllText("./UnitTests/Data/MempoolInfoWithHistogram.json");
+			var jo = JObject.Parse(mempoolInfoWithHistogram);
+			var feeHistogram = (JObject)jo["fee_histogram"];
+
+			return new MemPoolInfo()
+			{
+				MemPoolMinFee = memPoolMinFee,
+				Histogram = feeHistogram.Properties()
+					.Where(p => p.Name != "total_fees")
+					.Select( p => new FeeRateGroup
+					{
+						Group = int.Parse(p.Name),
+						Sizes = p.Value.Value<ulong>("sizes"),
+						Count = p.Value.Value<uint>("count"),
+						Fees = Money.Satoshis(p.Value.Value<ulong>("fees")),
+						From = new FeeRate(p.Value.Value<decimal>("from_feerate")),
+						To = new FeeRate(Math.Min(100_000, p.Value.Value<decimal>("to_feerate")))
+					})
+					.ToArray()
+			};
+		}
 	}
 }
