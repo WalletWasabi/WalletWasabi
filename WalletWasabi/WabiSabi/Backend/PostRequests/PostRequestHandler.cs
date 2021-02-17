@@ -111,12 +111,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 				}
 
-				return round.ConfirmAlice(
-					request.AliceId,
-					request.ZeroAmountCredentialRequests,
-					request.RealAmountCredentialRequests,
-					request.ZeroWeightCredentialRequests,
-					request.RealWeightCredentialRequests);
+				return round.ConfirmAlice(request);
 			}
 		}
 

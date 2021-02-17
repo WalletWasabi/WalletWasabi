@@ -131,18 +131,21 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			return new(alice.Id, amountCredentialResponse, weightCredentialResponse);
 		}
 
-		public ConnectionConfirmationResponse ConfirmAlice(Guid aliceId, ZeroCredentialsRequest zeroAmountCredentialRequests, RealCredentialsRequest realAmountCredentialRequests, ZeroCredentialsRequest zeroWeightCredentialRequests, RealCredentialsRequest realWeightCredentialRequests)
+		public ConnectionConfirmationResponse ConfirmAlice(ConnectionConfirmationRequest request)
 		{
-			var amountZeroCredentialResponse = AmountCredentialIssuer.HandleRequest(zeroAmountCredentialRequests);
-			var weightZeroCredentialResponse = WeightCredentialIssuer.HandleRequest(zeroWeightCredentialRequests);
+			var amountZeroCredentialResponse = AmountCredentialIssuer.HandleRequest(request.ZeroAmountCredentialRequests);
+			var weightZeroCredentialResponse = WeightCredentialIssuer.HandleRequest(request.ZeroWeightCredentialRequests);
 
 			lock (Lock)
 			{
-				var alice = Alices.FirstOrDefault(x => x.Id == aliceId);
+				var alice = Alices.FirstOrDefault(x => x.Id == request.AliceId);
 				if (alice is null)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound);
 				}
+
+				var realAmountCredentialRequests = request.RealAmountCredentialRequests;
+				var realWeightCredentialRequests = request.RealWeightCredentialRequests;
 
 				if (realWeightCredentialRequests.Delta != alice.CalculateRemainingWeightCredentials(RegistrableWeightCredentials))
 				{
