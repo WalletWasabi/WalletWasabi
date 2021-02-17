@@ -53,17 +53,11 @@ namespace WalletWasabi.Tests.Helpers
 		}
 
 		public static Round CreateRound(WabiSabiConfig cfg)
-			=> new Round(
+			=> new(new RoundParameters(
+				cfg,
 				Network.Main,
-				cfg.MaxInputCountByAlice,
-				cfg.MinRegistrableAmount,
-				cfg.MaxRegistrableAmount,
-				cfg.RegistrableWeightCredentials,
-				cfg.ConnectionConfirmationTimeout,
-				cfg.OutputRegistrationTimeout,
-				cfg.TransactionSigningTimeout,
-				new FeeRate(100m),
-				new InsecureRandom());
+				new InsecureRandom(),
+				new(100m)));
 
 		public static Alice CreateAlice(InputRoundSignaturePair inputSigPairs, Key? key = null, Money? value = null) => CreateAlice(new[] { inputSigPairs }, key, value);
 

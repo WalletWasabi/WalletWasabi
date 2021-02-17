@@ -17,35 +17,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
 	public class Round
 	{
-		public Round(
-			Network network,
-			uint maxInputCountByAlice,
-			Money minRegistrableAmount,
-			Money maxRegistrableAmount,
-			uint registrableWeightCredentials,
-			TimeSpan connectionConfirmationTimeout,
-			TimeSpan outputRegistrationTimeout,
-			TimeSpan transactionSigningTimeout,
-			FeeRate feeRate,
-			WasabiRandom random)
+		public Round(RoundParameters roundParameters)
 		{
-			Network = network;
-			MaxInputCountByAlice = maxInputCountByAlice;
-			MinRegistrableAmount = minRegistrableAmount;
-			MaxRegistrableAmount = maxRegistrableAmount;
-			RegistrableWeightCredentials = registrableWeightCredentials;
-
-			ConnectionConfirmationTimeout = connectionConfirmationTimeout;
-			OutputRegistrationTimeout = outputRegistrationTimeout;
-			TransactionSigningTimeout = transactionSigningTimeout;
-
-			FeeRate = feeRate;
-
-			Random = random;
+			RoundParameters = roundParameters;
 			UnsignedTxSecret = Random.GetBytes(64);
 
-			AmountCredentialIssuer = new(new(Random), 2, random, MaxRegistrableAmount);
-			WeightCredentialIssuer = new(new(Random), 2, random, RegistrableWeightCredentials);
+			AmountCredentialIssuer = new(new(Random), 2, Random, MaxRegistrableAmount);
+			WeightCredentialIssuer = new(new(Random), 2, Random, RegistrableWeightCredentials);
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			WeightCredentialIssuerParameters = WeightCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 
@@ -54,18 +32,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{RegistrableWeightCredentials}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
 		}
 
-		public Round(Round blameOf)
-			: this(
-				blameOf.Network,
-				blameOf.MaxInputCountByAlice,
-				blameOf.MinRegistrableAmount,
-				blameOf.MaxRegistrableAmount,
-				blameOf.RegistrableWeightCredentials,
-				blameOf.ConnectionConfirmationTimeout,
-				blameOf.OutputRegistrationTimeout,
-				blameOf.TransactionSigningTimeout,
-				blameOf.FeeRate,
-				blameOf.Random)
+		public Round(Round blameOf) : this(blameOf.RoundParameters)
 		{
 			BlameOf = blameOf;
 			BlameWhitelist = blameOf
@@ -76,16 +43,16 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		}
 
 		public uint256 Hash { get; }
-		public Network Network { get; }
-		public uint MaxInputCountByAlice { get; }
-		public Money MinRegistrableAmount { get; }
-		public Money MaxRegistrableAmount { get; }
-		public uint RegistrableWeightCredentials { get; }
-		public TimeSpan ConnectionConfirmationTimeout { get; }
-		public TimeSpan OutputRegistrationTimeout { get; }
-		public TimeSpan TransactionSigningTimeout { get; }
-		public FeeRate FeeRate { get; }
-		public WasabiRandom Random { get; }
+		public Network Network => RoundParameters.Network;
+		public uint MaxInputCountByAlice => RoundParameters.MaxInputCountByAlice;
+		public Money MinRegistrableAmount => RoundParameters.MinRegistrableAmount;
+		public Money MaxRegistrableAmount => RoundParameters.MaxRegistrableAmount;
+		public uint RegistrableWeightCredentials => RoundParameters.RegistrableWeightCredentials;
+		public TimeSpan ConnectionConfirmationTimeout => RoundParameters.ConnectionConfirmationTimeout;
+		public TimeSpan OutputRegistrationTimeout => RoundParameters.OutputRegistrationTimeout;
+		public TimeSpan TransactionSigningTimeout => RoundParameters.TransactionSigningTimeout;
+		public FeeRate FeeRate => RoundParameters.FeeRate;
+		public WasabiRandom Random => RoundParameters.Random;
 		public CredentialIssuer AmountCredentialIssuer { get; }
 		public CredentialIssuer WeightCredentialIssuer { get; }
 		public CredentialIssuerParameters AmountCredentialIssuerParameters { get; }
@@ -100,6 +67,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		private object Lock { get; } = new();
 		public byte[] UnsignedTxSecret { get; }
 		public Transaction Coinjoin { get; }
+		public RoundParameters RoundParameters { get; }
 
 		public InputsRegistrationResponse RegisterAlice(
 			Alice alice,
