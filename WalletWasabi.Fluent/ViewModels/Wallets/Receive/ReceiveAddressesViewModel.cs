@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
+using Avalonia;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
@@ -66,12 +68,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 				foreach (HdPubKey key in keys)
 				{
-					Addresses.Add(new AddressViewModel(key, Network));
+					Addresses.Add(new AddressViewModel(key, Network, HideAddress));
 				}
 			}
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
+			}
+		}
+
+		private async Task HideAddress(HdPubKey model, string address)
+		{
+			model.SetKeyState(KeyState.Locked, Wallet.KeyManager);
+			InitializeAddresses();
+
+			var isAddressCopied = await Application.Current.Clipboard.GetTextAsync() == address;
+			if (isAddressCopied)
+			{
+				await Application.Current.Clipboard.ClearAsync();
 			}
 		}
 	}

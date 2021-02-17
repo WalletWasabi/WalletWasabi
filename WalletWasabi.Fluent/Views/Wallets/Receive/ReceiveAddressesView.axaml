@@ -30,11 +30,10 @@
         <DataGridTemplateColumn Header="Reference"
                                 Width="*"
                                 CanUserSort="True"
-                                x:CompileBindings="False"
                                 SortMemberPath="Label">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <DockPanel LastChildFill="True" Margin="10 0">
+              <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
                 <Button Classes="plain addressActionButton">
                   <PathIcon Data="{StaticResource wallet_action_coinjoin}" Classes="addressActionIcon" />
                 </Button>
@@ -47,12 +46,11 @@
         <DataGridTemplateColumn Header="Address"
                                 Width="2*"
                                 CanUserSort="True"
-                                x:CompileBindings="False"
                                 SortMemberPath="Address">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <DockPanel LastChildFill="True" Margin="10 0">
-                <Button Classes="plain addressActionButton">
+              <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
+                <Button Classes="plain addressActionButton" Command="{Binding HideAddressCommand}">
                   <PathIcon Data="{StaticResource dismiss_light}" Classes=" addressActionIcon"/>
                 </Button>
                 <Button Classes="plain addressActionButton" Command="{Binding CopyAddressCommand}">

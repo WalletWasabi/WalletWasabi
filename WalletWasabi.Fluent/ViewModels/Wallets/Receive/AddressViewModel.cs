@@ -1,4 +1,6 @@
-﻿using System.Windows.Input;
+﻿using System;
+using System.Threading.Tasks;
+using System.Windows.Input;
 using Avalonia;
 using NBitcoin;
 using ReactiveUI;
@@ -11,14 +13,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		[AutoNotify] private string _label;
 		[AutoNotify] private string _address;
 
-		public AddressViewModel(HdPubKey model, Network network)
+		public AddressViewModel(HdPubKey model, Network network, Func<HdPubKey, string, Task> hideCommand)
 		{
 			_address = model.GetP2wpkhAddress(network).ToString();
 			_label = model.Label;
 
 			CopyAddressCommand = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Address));
+			HideAddressCommand = ReactiveCommand.CreateFromTask(async () => await hideCommand.Invoke(model, Address));
 		}
 
 		public ICommand CopyAddressCommand { get; }
+
+		public ICommand HideAddressCommand { get; }
 	}
 }
