@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
-             xmlns:keys="clr-namespace:WalletWasabi.Blockchain.Keys;assembly=WalletWasabi"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:ReceiveAddressesViewModel"
              x:CompileBindings="True"
@@ -17,13 +17,13 @@
               CanUserSortColumns="True" >
       <DataGrid.Columns>
         <DataGridTextColumn Header="Header 1"
-                            x:DataType="keys:HdPubKey"
+                            x:DataType="receive:AddressViewModel"
                             Binding="{Binding Label}"
                             Width="*"
                             CanUserSort="True" />
         <DataGridTextColumn Header="Header 2"
-                            x:DataType="keys:HdPubKey"
-                            Binding="{Binding P2pkScript}"
+                            x:DataType="receive:AddressViewModel"
+                            Binding="{Binding Address}"
                             Width="2*"
                             CanUserSort="True" />
       </DataGrid.Columns>
