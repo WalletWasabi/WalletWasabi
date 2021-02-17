@@ -455,7 +455,19 @@ namespace NBitcoin
 			return sanityFee;
 		}
 
-		public static int EstimateSpendVsize(this Script script)
+		public static int EstimateOutputVsize(this Script script)
+		{
+			if (script.IsScriptType(ScriptType.P2WPKH))
+			{
+				return Constants.OutputSizeInBytes;
+			}
+			else
+			{
+				throw new NotImplementedException($"Weight estimation isn't implemented for provided script type.");
+			}
+		}
+
+		public static int EstimateInputVsize(this Script script)
 		{
 			if (script.IsScriptType(ScriptType.P2WPKH))
 			{

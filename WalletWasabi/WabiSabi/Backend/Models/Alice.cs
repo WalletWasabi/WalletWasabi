@@ -21,7 +21,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		public IDictionary<Coin, byte[]> CoinRoundSignaturePairs { get; }
 		public Money TotalInputAmount => Coins.Sum(x => x.Amount);
 		public long TotalInputWeight => TotalInputVsize * 4;
-		public int TotalInputVsize => Coins.Sum(x => x.ScriptPubKey.EstimateSpendVsize());
+		public int TotalInputVsize => Coins.Sum(x => x.ScriptPubKey.EstimateInputVsize());
 
 		public long CalculateRemainingWeightCredentials(uint maxRegistrableWeight) => maxRegistrableWeight - TotalInputWeight;
 

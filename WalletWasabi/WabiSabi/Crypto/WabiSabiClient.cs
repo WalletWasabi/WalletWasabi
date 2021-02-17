@@ -153,7 +153,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 				var randomness = RandomNumberGenerator.GetScalar(allowZero: false);
 				var ma = ProofSystem.PedersenCommitment(scalarAmount, randomness);
 
-				var (rangeKnowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(scalarAmount, randomness, RangeProofWidth, RandomNumberGenerator, RangeProofWidth);
+				var (rangeKnowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(scalarAmount, randomness, RangeProofWidth, RandomNumberGenerator);
 				knowledgeToProve.Add(rangeKnowledge);
 
 				var credentialRequest = new IssuanceRequest(ma, bitCommitments);

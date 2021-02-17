@@ -20,8 +20,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public Round(
 			Network network,
 			uint maxInputCountByAlice,
-			Money minRegistrableAmountByAlice,
-			Money maxRegistrableAmountByAlice,
+			Money minRegistrableAmount,
+			Money maxRegistrableAmount,
 			uint registrableWeightCredentials,
 			TimeSpan connectionConfirmationTimeout,
 			TimeSpan outputRegistrationTimeout,
@@ -31,29 +31,33 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			Network = network;
 			MaxInputCountByAlice = maxInputCountByAlice;
-			MinRegistrableAmountByAlice = minRegistrableAmountByAlice;
-			MaxRegistrableAmountByAlice = maxRegistrableAmountByAlice;
+			MinRegistrableAmount = minRegistrableAmount;
+			MaxRegistrableAmount = maxRegistrableAmount;
 			RegistrableWeightCredentials = registrableWeightCredentials;
 
 			ConnectionConfirmationTimeout = connectionConfirmationTimeout;
 			OutputRegistrationTimeout = outputRegistrationTimeout;
 			TransactionSigningTimeout = transactionSigningTimeout;
+
 			FeeRate = feeRate;
+
 			Random = random;
-			AmountCredentialIssuer = new(new(Random), 2, random, MaxRegistrableAmountByAlice);
+			UnsignedTxSecret = Random.GetBytes(64);
+
+			AmountCredentialIssuer = new(new(Random), 2, random, MaxRegistrableAmount);
 			WeightCredentialIssuer = new(new(Random), 2, random, RegistrableWeightCredentials);
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			WeightCredentialIssuerParameters = WeightCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 
-			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmountByAlice}{MaxRegistrableAmountByAlice}{RegistrableWeightCredentials}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}"));
+			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{RegistrableWeightCredentials}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
 		}
 
 		public Round(Round blameOf)
 			: this(
 				blameOf.Network,
 				blameOf.MaxInputCountByAlice,
-				blameOf.MinRegistrableAmountByAlice,
-				blameOf.MaxRegistrableAmountByAlice,
+				blameOf.MinRegistrableAmount,
+				blameOf.MaxRegistrableAmount,
 				blameOf.RegistrableWeightCredentials,
 				blameOf.ConnectionConfirmationTimeout,
 				blameOf.OutputRegistrationTimeout,
@@ -72,8 +76,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public uint256 Hash { get; }
 		public Network Network { get; }
 		public uint MaxInputCountByAlice { get; }
-		public Money MinRegistrableAmountByAlice { get; }
-		public Money MaxRegistrableAmountByAlice { get; }
+		public Money MinRegistrableAmount { get; }
+		public Money MaxRegistrableAmount { get; }
 		public uint RegistrableWeightCredentials { get; }
 		public TimeSpan ConnectionConfirmationTimeout { get; }
 		public TimeSpan OutputRegistrationTimeout { get; }
@@ -91,6 +95,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public bool IsBlameRound => BlameOf is not null;
 		public ISet<OutPoint> BlameWhitelist { get; } = new HashSet<OutPoint>();
 		private object Lock { get; } = new();
+		public byte[] UnsignedTxSecret { get; }
 
 		public bool TryGetAlice(Guid aliceId, [NotNullWhen(true)] out Alice? alice)
 		{
@@ -127,14 +132,14 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				inputValueSum += coin.TxOut.Value;
 
 				// Convert conservative P2WPKH size in virtual bytes to weight units.
-				inputWeightSum += coin.TxOut.ScriptPubKey.EstimateSpendVsize() * 4;
+				inputWeightSum += coin.TxOut.ScriptPubKey.EstimateInputVsize() * 4;
 			}
 
-			if (inputValueSum < MinRegistrableAmountByAlice)
+			if (inputValueSum < MinRegistrableAmount)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
 			}
-			if (inputValueSum > MaxRegistrableAmountByAlice)
+			if (inputValueSum > MaxRegistrableAmount)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 			}
@@ -207,7 +212,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		internal void RemoveAlice(Guid aliceId)
+		public void RemoveAlice(Guid aliceId)
 		{
 			lock (Lock)
 			{
@@ -216,6 +221,40 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 				}
 				Alices.RemoveAll(x => x.Id == aliceId);
+			}
+		}
+
+		public OutputRegistrationResponse RegisterBob(Bob bob, RealCredentialsRequest amountCredentialRequests, RealCredentialsRequest weightCredentialRequests)
+		{
+			var outputValue = bob.CalculateOutputAmount(FeeRate);
+			if (outputValue < MinRegistrableAmount)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
+			}
+			if (outputValue > MaxRegistrableAmount)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
+			}
+
+			var amountCredentialResponse = AmountCredentialIssuer.HandleRequest(amountCredentialRequests);
+			var weightCredentialResponse = WeightCredentialIssuer.HandleRequest(weightCredentialRequests);
+
+			if (-weightCredentialRequests.Delta != bob.CalculateWeight())
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials);
+			}
+
+			lock (Lock)
+			{
+				if (Phase != Phase.OutputRegistration)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+				}
+
+				return new(
+					UnsignedTxSecret,
+					amountCredentialResponse,
+					weightCredentialResponse);
 			}
 		}
 	}

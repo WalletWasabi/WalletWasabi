@@ -129,16 +129,18 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 				}
-				if (round.Phase != Phase.OutputRegistration)
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
-				}
-				if (!request.Output.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
+				if (!request.Script.IsScriptType(ScriptType.P2WPKH))
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed);
 				}
 
-				throw new NotImplementedException();
+				var credentialAmount = -request.AmountCredentialRequests.Delta;
+				return round.RegisterBob(
+					new Bob(
+						request.Script,
+						credentialAmount),
+						request.AmountCredentialRequests,
+						request.WeightCredentialRequests);
 			}
 		}
 
