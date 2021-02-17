@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			_disposables = new CompositeDisposable();
 
-			Title = WalletName;
+			_title = WalletName;
 			var isHardware = Wallet.KeyManager.IsHardwareWallet;
 			var isWatch = Wallet.KeyManager.IsWatchOnly;
 			_titleTip = isHardware ? "Hardware Wallet" : isWatch ? "Watch Only Wallet" : "Hot Wallet";
