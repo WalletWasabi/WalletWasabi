@@ -193,5 +193,19 @@ namespace System.Linq
 			}
 			return source.Zip(otherCollection);
 		}
+
+		public static IEnumerable<TAccumulate> Scan<TSource, TAccumulate>(
+			this IEnumerable<TSource> source,
+			TAccumulate seed,
+			Func<TAccumulate, TSource, TAccumulate> func)
+		{
+			TAccumulate previous = seed;
+			foreach (var item in source)
+			{
+				var result = func(previous, item);
+				previous = result;
+				yield return result;
+			}
+		}
 	}
 }
