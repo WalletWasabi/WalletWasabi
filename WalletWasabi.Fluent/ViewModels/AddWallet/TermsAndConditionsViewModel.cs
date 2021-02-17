@@ -13,24 +13,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		[AutoNotify] private bool _isAgreed;
 
-		public TermsAndConditionsViewModel(LegalChecker legalChecker)
+		public TermsAndConditionsViewModel(string legalDocument)
 		{
 			ViewTermsCommand = ReactiveCommand.Create(
-				() =>
-				{
-					if (legalChecker.TryGetNewLegalDocs(out _))
-					{
-						var legalDocs = new LegalDocumentsViewModel(legalChecker);
-						Navigate().To(legalDocs);
-					}
-				});
+				() => Navigate().To(new LegalDocumentsViewModel(legalDocument)));
 
-			NextCommand = ReactiveCommand.CreateFromTask(
-				async () =>
-				{
-					await legalChecker.AgreeAsync();
-					Close(DialogResultKind.Normal, true);
-				},
+			NextCommand = ReactiveCommand.Create(
+				() => Close(DialogResultKind.Normal, true),
 				this.WhenAnyValue(x => x.IsAgreed)
 					.ObserveOn(RxApp.MainThreadScheduler));
 		}

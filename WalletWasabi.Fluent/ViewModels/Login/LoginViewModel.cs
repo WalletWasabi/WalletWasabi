@@ -51,16 +51,17 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 				if (!IsPasswordIncorrect)
 				{
-					var legalChecker = (await NavigationManager.MaterialiseViewModel(LegalDocumentsViewModel.MetaData) as LegalDocumentsViewModel)?.LegalChecker;
+					var legalChecker = wallet.Synchronizer.LegalChecker;
 
-					if (legalChecker is { } lc && lc.TryGetNewLegalDocs(out _))
+					if (legalChecker.TryGetNewLegalDocs(out var document))
 					{
-						var legalDocs = new TermsAndConditionsViewModel(legalChecker);
+						var legalDocs = new TermsAndConditionsViewModel(document.Content);
 
 						var dialogResult = await NavigateDialog(legalDocs, NavigationTarget.DialogScreen);
 
-						if (dialogResult.Result is { } accepted)
+						if (dialogResult.Result)
 						{
+							await legalChecker.AgreeAsync();
 							LoginWallet();
 						}
 					}
