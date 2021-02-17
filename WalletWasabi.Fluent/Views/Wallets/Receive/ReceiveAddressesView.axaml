@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:ReceiveAddressesViewModel"
              x:CompileBindings="True"
@@ -13,19 +12,51 @@
                  EnableBack="True"
                  EnableCancel="True">
     <DataGrid Items="{Binding Addresses}"
-              SelectedItem="{Binding SelectedAddress, Mode=TwoWay}"
               CanUserSortColumns="True" >
+              <!-- SelectedItem="{Binding SelectedAddress, Mode=TwoWay}" -->
       <DataGrid.Columns>
-        <DataGridTextColumn Header="Header 1"
-                            x:DataType="receive:AddressViewModel"
-                            Binding="{Binding Label}"
-                            Width="*"
-                            CanUserSort="True" />
-        <DataGridTextColumn Header="Header 2"
-                            x:DataType="receive:AddressViewModel"
-                            Binding="{Binding Address}"
-                            Width="2*"
-                            CanUserSort="True" />
+
+        <DataGridTemplateColumn Header="Reference"
+                                Width="*"
+                                CanUserSort="True"
+                                x:CompileBindings="False"
+                                SortMemberPath="Label">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <DockPanel LastChildFill="True" Margin="10 0">
+                <Button Classes="plain" DockPanel.Dock="Right">
+                  <PathIcon Height="15" Data="{StaticResource wallet_action_coinjoin}" Foreground="{DynamicResource SystemAccentColor}" />
+                </Button>
+                <TextBlock Text="{Binding Label}" Margin="0 0 5 0"/>
+              </DockPanel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="Address"
+                                Width="2*"
+                                CanUserSort="True"
+                                x:CompileBindings="False"
+                                SortMemberPath="Address">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <DockPanel LastChildFill="True" Margin="10 0">
+
+                <Button Classes="plain" DockPanel.Dock="Right" Margin="5 0 0 0">
+                  <PathIcon Height="15" Data="{StaticResource dismiss_light}"
+                            Foreground="{DynamicResource SystemAccentColor}" />
+                </Button>
+                <Button Classes="plain" DockPanel.Dock="Right" Margin="5 0 0 0" Command="{Binding CopyAddressCommand}">
+                  <PathIcon Height="15" Data="{StaticResource copy_regular}"
+                            Foreground="{DynamicResource SystemAccentColor}" />
+                </Button>
+
+                <TextBlock Text="{Binding Address}" />
+              </DockPanel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
       </DataGrid.Columns>
     </DataGrid>
   </c:ContentArea>
