@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
+             xmlns:keys="clr-namespace:WalletWasabi.Blockchain.Keys;assembly=WalletWasabi"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:ReceiveAddressesViewModel"
              x:CompileBindings="True"
@@ -11,7 +12,21 @@
   <c:ContentArea Title="{Binding Title}"
                  EnableBack="True"
                  EnableCancel="True">
-    <ListBox Items="{Binding Addresses}"
-             SelectedItem="{Binding SelectedAddress}" />
+    <DataGrid Items="{Binding Addresses}"
+              SelectedItem="{Binding SelectedAddress, Mode=TwoWay}"
+              CanUserSortColumns="True" >
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Header 1"
+                            x:DataType="keys:HdPubKey"
+                            Binding="{Binding Label}"
+                            Width="*"
+                            CanUserSort="True" />
+        <DataGridTextColumn Header="Header 2"
+                            x:DataType="keys:HdPubKey"
+                            Binding="{Binding P2pkScript}"
+                            Width="2*"
+                            CanUserSort="True" />
+      </DataGrid.Columns>
+    </DataGrid>
   </c:ContentArea>
 </UserControl>

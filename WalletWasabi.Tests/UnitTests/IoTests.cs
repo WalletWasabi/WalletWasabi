@@ -162,7 +162,7 @@ namespace WalletWasabi.Tests.UnitTests
 					builder.Append(ch);
 				}
 				return builder.ToString();
-			};
+			}
 
 			var list = new List<string>();
 			async Task WriteNextLineAsync()
@@ -179,7 +179,7 @@ namespace WalletWasabi.Tests.UnitTests
 					lines.Add(next);
 					await ioman.WriteAllLinesAsync(lines);
 				}
-			};
+			}
 
 			const int Iterations = 200;
 

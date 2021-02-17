@@ -103,6 +103,9 @@ namespace WalletWasabi.Tests.Helpers
 		}
 
 		public static Script CreateScript()
-			=> new Key().PubKey.WitHash.ScriptPubKey;
+		{
+			using Key k = new();
+			return k.PubKey.WitHash.ScriptPubKey;
+		}
 	}
 }

@@ -10,17 +10,6 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 		/// </summary>
 		private const int QuestionMarkChar = 0x3F;
 
-		public static bool IsModeEncodeValid(string encoding, string content)
-		{
-			return EightBitByteCheck(encoding, content);
-		}
-
-		private static bool EightBitByteCheck(string encodingName, string content)
-		{
-			int tryEncodePos = TryEncodeEightBitByte(content, encodingName, 0, content.Length);
-			return tryEncodePos == -1;
-		}
-
 		/// <summary>
 		/// Use given encoding to check input string from starting position. If encoding table is suitable solution.
 		/// it will return -1. Else it will return failed encoding position.

@@ -56,7 +56,7 @@ namespace WalletWasabi.Backend
 			await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint(), cancel);
 
 			CoordinatorParameters coordinatorParameters = new(DataDir);
-			WabiSabiCoordinator = new(coordinatorParameters);
+			WabiSabiCoordinator = new(coordinatorParameters, RpcClient);
 			HostedServices.Register(WabiSabiCoordinator, "WabiSabi Coordinator");
 
 			if (roundConfig.FilePath is { })
