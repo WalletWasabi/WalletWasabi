@@ -11,7 +11,6 @@ namespace WalletWasabi.Microservices
 	/// Async wrapper class for <see cref="System.Diagnostics.Process"/> class that implements <see cref="WaitForExitAsync(CancellationToken, bool)"/>
 	/// to asynchronously wait for a process to exit.
 	/// </summary>
-	/// <remarks><see cref="IDisposable"/> is implemented. Do not forget to use `using` or dispose any instance of this class.</remarks>
 	public class ProcessAsync : IDisposable
 	{
 		/// <summary>
@@ -73,12 +72,6 @@ namespace WalletWasabi.Microservices
 		public void Kill()
 		{
 			Process.Kill();
-		}
-
-		/// <inheritdoc cref="Process.Kill(bool)"/>
-		public void Kill(bool entireProcessTree)
-		{
-			Process.Kill(entireProcessTree);
 		}
 
 		/// <summary>

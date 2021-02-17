@@ -42,7 +42,7 @@ namespace WalletWasabi.Crypto
 				var r = rECPubKey.Q.ToGroupElementJacobian();
 				var t = FE.Zero;
 
-				retry:
+			retry:
 
 				RandomUtils.GetBytes(tmp);
 				_v = new Scalar(tmp, out int overflow);
@@ -161,11 +161,6 @@ namespace WalletWasabi.Crypto
 					r?.Dispose();
 					d?.Dispose();
 				}
-			}
-
-			public bool VerifyUnblindedSignature(UnblindedSignature signature, uint256 dataHash)
-			{
-				return VerifySignature(dataHash, signature, Key.PubKey);
 			}
 
 			public bool VerifyUnblindedSignature(UnblindedSignature signature, byte[] data)
