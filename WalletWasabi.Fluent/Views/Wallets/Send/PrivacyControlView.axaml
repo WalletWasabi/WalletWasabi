@@ -16,11 +16,11 @@
                    EnableNext="True"
                    NextContent="Continue"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
-        <DataGrid Items="{Binding Pockets}">
+        <DataGrid AutoGenerateColumns="False" Items="{Binding Pockets}">
             <DataGrid.Columns >
                 <DataGridCheckBoxColumn x:DataType="vm:PocketViewModel" Binding="{Binding IsSelected}" CanUserSort="False" CanUserResize="False" CanUserReorder="False" />
                 <DataGridTextColumn x:DataType="vm:PocketViewModel" Header="Total (BTC)" Binding="{Binding TotalBtc}" />
-                <DataGridTextColumn x:DataType="vm:PocketViewModel" Header="Labels" Binding="{Binding Labels}" Width="Auto" />
+                <DataGridTextColumn x:DataType="vm:PocketViewModel" Header="Labels" Binding="{Binding Labels}" Width="*" />
             </DataGrid.Columns>
         </DataGrid>
     </c:ContentArea>
