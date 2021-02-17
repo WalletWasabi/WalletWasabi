@@ -192,8 +192,6 @@ namespace WalletWasabi.Fluent.ViewModels
 					return null;
 				});
 
-			LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel(_global.LegalChecker));
-
 			UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
 			BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
 			DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
