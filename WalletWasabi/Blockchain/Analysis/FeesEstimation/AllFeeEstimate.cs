@@ -28,7 +28,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			var filteredEstimations = estimations
 				.Where(x => x.Key >= targets[0] && x.Key <= targets[^1])
 				.OrderBy(x => x.Key)
-				.Select(x => (ConfirmationTarget: x.Key, FeeRate: x.Value, Range: targetRanges.First(y => y.Start < x.Key && x.Key <= y.End)))
+				.Select(x => (ConfirmationTarget: x.Key, FeeRate: x.Value, Range: targetRanges.FirstOrDefault(y => y.Start < x.Key && x.Key <= y.End)))
 				.GroupBy(x => x.Range, y => y, (x, y) => (Range: x, BestEstimation: y.Last()))
 				.Select(x => (ConfirmationTarget: x.Range.End, FeeRate: x.BestEstimation.FeeRate));
 
