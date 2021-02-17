@@ -9,6 +9,7 @@ using Avalonia;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -79,6 +80,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 		private async Task HideAddress(HdPubKey model, string address)
 		{
+			var result = await NavigateDialog(new ConfirmHideAddressViewModel(model.Label));
+
+			if (result.Result == false)
+			{
+				return;
+			}
+
 			model.SetKeyState(KeyState.Locked, Wallet.KeyManager);
 			InitializeAddresses();
 
