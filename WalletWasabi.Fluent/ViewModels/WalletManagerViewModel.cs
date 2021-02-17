@@ -13,7 +13,6 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Actions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Gui;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
@@ -183,7 +182,10 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public NavBarItemViewModel? SelectionChanged(NavBarItemViewModel item)
 		{
-			_currentSelection = item;
+			if (item.SelectionMode == NavBarItemSelectionMode.Selected)
+			{
+				_currentSelection = item;
+			}
 
 			if (IsLoadingWallet || SelectedWallet == item)
 			{

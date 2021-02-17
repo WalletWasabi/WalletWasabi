@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
@@ -15,6 +16,8 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tor.Http;
+using Constants = WalletWasabi.Helpers.Constants;
 
 namespace WalletWasabi.Tests.XunitConfiguration
 {
@@ -70,10 +73,18 @@ namespace WalletWasabi.Tests.XunitConfiguration
 							.UseUrls(BackendEndPoint))
 					.Build();
 
-			Global = (Global)BackendHost.Services.GetService(typeof(Global));
+			if (BackendHost.Services.GetService(typeof(Global)) is not Global global)
+			{
+				throw new InvalidOperationException($"Service {nameof(Global)} is not registered.");
+			}
+
+			Global = global;
 			Global.HostedServices = hostedServices;
 			var hostInitializationTask = BackendHost.RunWithTasksAsync();
 			Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}");
+
+			HttpClient = new HttpClient();
+			BackendHttpClient = new ClearnetHttpClient(HttpClient, () => BackendEndPointUri);
 
 			var delayTask = Task.Delay(3000);
 			Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
@@ -91,6 +102,12 @@ namespace WalletWasabi.Tests.XunitConfiguration
 		public IHost BackendHost { get; internal set; }
 		public CoreNode BackendRegTestNode { get; internal set; }
 		public Global Global { get; }
+
+		/// <summary>Underlying HTTP client to be used by <see cref="ClearnetHttpClient"/>.</summary>
+		public HttpClient HttpClient { get; }
+
+		/// <summary>Clearnet HTTP client with predefined base URI for Wasabi Backend (note: <c>/api</c> is not part of base URI).</summary>
+		public ClearnetHttpClient BackendHttpClient { get; }
 
 		public static CoordinatorRoundConfig CreateRoundConfig(
 			Money denomination,
@@ -136,6 +153,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 					BackendHost?.StopAsync().GetAwaiter().GetResult();
 					BackendHost?.Dispose();
 					BackendRegTestNode?.TryStopAsync().GetAwaiter().GetResult();
+					HttpClient.Dispose();
 				}
 
 				_disposedValue = true;

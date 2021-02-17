@@ -3,41 +3,15 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.Tests.UnitTests.Bases;
 using Xunit;
 
-namespace WalletWasabi.Tests.PeriodicRunnerTests
+namespace WalletWasabi.Tests.UnitTests
 {
 	/// <seealso cref="XunitConfiguration.SerialCollectionDefinition"/>
 	[Collection("Serial unit tests collection")]
 	public class PeriodicRunnerTests
 	{
-		internal class TestRunner : PeriodicRunner
-		{
-			internal TestRunner(TimeSpan period, TimeSpan maxNextRoundWaitTime) : base(period)
-			{
-				MaxNextRoundWaitTime = maxNextRoundWaitTime;
-			}
-
-			public SemaphoreSlim Semaphore { get; } = new SemaphoreSlim(initialCount: 0, maxCount: 1);
-
-			public int RoundCounter { get; private set; }
-			private TimeSpan MaxNextRoundWaitTime { get; }
-
-			protected override async Task ActionAsync(CancellationToken cancel)
-			{
-				// Add some delay to simulate work.
-				await Task.Delay(50, cancel).ConfigureAwait(false);
-				RoundCounter++;
-
-				Semaphore.Release();
-			}
-
-			public async Task<bool> WaitForNextRoundAsync()
-			{
-				return await Semaphore.WaitAsync(MaxNextRoundWaitTime);
-			}
-		}
-
 		[Fact]
 		public async Task PeriodicRunnerTestsAsync()
 		{

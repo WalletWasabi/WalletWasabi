@@ -8,6 +8,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor;

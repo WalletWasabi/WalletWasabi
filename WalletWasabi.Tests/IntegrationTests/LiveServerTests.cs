@@ -25,6 +25,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			LiveServerTestsFixture = liveServerTestsFixture;
 		}
 
+		private LiveServerTestsFixture LiveServerTestsFixture { get; }
+
 		public async Task InitializeAsync()
 		{
 			var torManager = new TorProcessManager(Common.TorSettings, Common.TorSocks5Endpoint);
@@ -36,8 +38,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 		{
 			return Task.CompletedTask;
 		}
-
-		private LiveServerTestsFixture LiveServerTestsFixture { get; }
 
 		#region Blockchain
 

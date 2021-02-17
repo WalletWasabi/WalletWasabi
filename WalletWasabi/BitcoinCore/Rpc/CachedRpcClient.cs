@@ -192,7 +192,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 				() => base.GetRawMempoolAsync()).ConfigureAwait(false);
 		}
 
-		public override async Task<GetTxOutResponse> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true)
+		public override async Task<GetTxOutResponse?> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true)
 		{
 			string cacheKey = $"{nameof(GetTxOutAsync)}:{txid}:{index}:{includeMempool}";
 			var cacheOptions = new MemoryCacheEntryOptions

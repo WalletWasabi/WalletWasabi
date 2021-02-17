@@ -4,6 +4,7 @@ using System.ComponentModel;
 using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.JsonConverters.Bitcoin;
 
 namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 {

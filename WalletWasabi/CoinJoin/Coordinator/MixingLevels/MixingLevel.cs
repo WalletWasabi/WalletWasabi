@@ -2,7 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using WalletWasabi.Helpers;
-using WalletWasabi.JsonConverters;
+using WalletWasabi.JsonConverters.Bitcoin;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.CoinJoin.Coordinator.MixingLevels
