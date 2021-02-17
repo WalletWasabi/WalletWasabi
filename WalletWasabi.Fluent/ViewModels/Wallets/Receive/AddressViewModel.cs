@@ -15,12 +15,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 		public AddressViewModel(HdPubKey model, Network network, Func<HdPubKey, string, Task> hideCommand)
 		{
+			Model = model;
 			_address = model.GetP2wpkhAddress(network).ToString();
 			_label = model.Label;
 
 			CopyAddressCommand = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Address));
 			HideAddressCommand = ReactiveCommand.CreateFromTask(async () => await hideCommand.Invoke(model, Address));
 		}
+
+		public HdPubKey Model { get; }
 
 		public ICommand CopyAddressCommand { get; }
 

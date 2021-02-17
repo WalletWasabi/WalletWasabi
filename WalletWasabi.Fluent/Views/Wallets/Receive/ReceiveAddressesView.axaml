@@ -12,8 +12,8 @@
                  EnableBack="True"
                  EnableCancel="True">
     <DataGrid Items="{Binding Addresses}"
-              CanUserSortColumns="True" >
-              <!-- SelectedItem="{Binding SelectedAddress, Mode=TwoWay}" -->
+              SelectedItem="{Binding SelectedAddress, Mode=TwoWay}"
+              CanUserSortColumns="True">
       <DataGrid.Styles>
         <Style Selector="Button.addressActionButton">
           <Setter Property="DockPanel.Dock" Value="Right"/>

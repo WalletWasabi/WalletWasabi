@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 	public partial class ReceiveAddressesViewModel : RoutableViewModel
 	{
 		[AutoNotify] private ObservableCollection<AddressViewModel> _addresses;
-		[AutoNotify] private HdPubKey? _selectedAddress;
+		[AutoNotify] private AddressViewModel? _selectedAddress;
 
 		public ReceiveAddressesViewModel(Wallet wallet)
 		{
@@ -39,7 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 						return;
 					}
 
-					Navigate().To(new ReceiveAddressViewModel(selected, wallet.Network, wallet.KeyManager.MasterFingerprint, wallet.KeyManager.IsHardwareWallet));
+					Navigate().To(new ReceiveAddressViewModel(selected.Model, wallet.Network, wallet.KeyManager.MasterFingerprint, wallet.KeyManager.IsHardwareWallet));
 					SelectedAddress = null;
 				});
 		}
