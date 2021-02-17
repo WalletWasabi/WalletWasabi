@@ -65,16 +65,16 @@ namespace WalletWasabi.Tests.Helpers
 				new FeeRate(100m),
 				new InsecureRandom());
 
-		public static Alice CreateAlice(InputRoundSignaturePair inputSigPairs, Money? value = null) => CreateAlice(new[] { inputSigPairs }, value);
+		public static Alice CreateAlice(InputRoundSignaturePair inputSigPairs, Key? key = null, Money? value = null) => CreateAlice(new[] { inputSigPairs }, key, value);
 
-		public static Alice CreateAlice(IEnumerable<InputRoundSignaturePair>? inputSigPairs = null, Money? value = null)
+		public static Alice CreateAlice(IEnumerable<InputRoundSignaturePair>? inputSigPairs = null, Key? key = null, Money? value = null)
 		{
 			var pairs = inputSigPairs ?? CreateInputRoundSignaturePairs(1);
 			var myDic = new Dictionary<Coin, byte[]>();
 
 			foreach (var pair in pairs)
 			{
-				var coin = new Coin(pair.Input, new TxOut(value ?? Money.Coins(1), BitcoinFactory.CreateScript()));
+				var coin = new Coin(pair.Input, new TxOut(value ?? Money.Coins(1), BitcoinFactory.CreateScript(key)));
 				myDic.Add(coin, pair.RoundSignature);
 			}
 			return new Alice(myDic);

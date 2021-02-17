@@ -153,16 +153,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 				}
-				if (round.Phase != Phase.TransactionSigning)
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
-				}
-				if (!round.TryGetAlice(request.AliceId, out var alice))
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound);
-				}
-
-				throw new NotImplementedException();
+				round.SubmitTransactionSignatures(request.InputWitnessPairs);
 			}
 		}
 

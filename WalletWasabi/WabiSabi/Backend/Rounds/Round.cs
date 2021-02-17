@@ -91,17 +91,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public Guid Id { get; } = Guid.NewGuid();
 		public Phase Phase { get; set; } = Phase.InputRegistration;
 		public List<Alice> Alices { get; } = new();
+		public List<Bob> Bobs { get; } = new();
 		public Round? BlameOf { get; } = null;
 		public bool IsBlameRound => BlameOf is not null;
 		public ISet<OutPoint> BlameWhitelist { get; } = new HashSet<OutPoint>();
 		private object Lock { get; } = new();
 		public byte[] UnsignedTxSecret { get; }
-
-		public bool TryGetAlice(Guid aliceId, [NotNullWhen(true)] out Alice? alice)
-		{
-			alice = Alices.FirstOrDefault(x => x.Id == aliceId);
-			return alice is not null;
-		}
+		public Transaction Coinjoin { get; set; }
 
 		public InputsRegistrationResponse RegisterAlice(
 			Alice alice,
@@ -251,10 +247,56 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 				}
 
+				Bobs.Add(bob);
+
 				return new(
 					UnsignedTxSecret,
 					amountCredentialResponse,
 					weightCredentialResponse);
+			}
+		}
+
+		public void SubmitTransactionSignatures(IEnumerable<InputWitnessPair> inputWitnessPairs)
+		{
+			lock (Lock)
+			{
+				if (Phase != Phase.TransactionSigning)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+				}
+				foreach (var inputWitnessPair in inputWitnessPairs)
+				{
+					var index = (int)inputWitnessPair.InputIndex;
+					var witness = inputWitnessPair.Witness;
+
+					// If input is already signed, don't bother.
+					if (Coinjoin.Inputs[index].HasWitScript())
+					{
+						continue;
+					}
+
+					// Verify witness.
+					// 1. Copy UnsignedCoinJoin.
+					Transaction cjCopy = Transaction.Parse(Coinjoin.ToHex(), Network);
+
+					// 2. Sign the copy.
+					cjCopy.Inputs[index].WitScript = witness;
+
+					// 3. Convert the current input to IndexedTxIn.
+					IndexedTxIn currentIndexedInput = cjCopy.Inputs.AsIndexedInputs().Skip(index).First();
+
+					// 4. Find the corresponding registered input.
+					Coin registeredCoin = Alices.SelectMany(x => x.Coins).Single(x => x.Outpoint == cjCopy.Inputs[index].PrevOut);
+
+					// 5. Verify if currentIndexedInput is correctly signed, if not, return the specific error.
+					if (!currentIndexedInput.VerifyScript(registeredCoin, out ScriptError error))
+					{
+						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongCoinjoinSignature);
+					}
+
+					// Finally add it to our CJ.
+					Coinjoin.Inputs[index].WitScript = witness;
+				}
 			}
 		}
 	}
