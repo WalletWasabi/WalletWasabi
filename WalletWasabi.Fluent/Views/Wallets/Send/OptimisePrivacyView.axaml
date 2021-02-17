@@ -11,7 +11,7 @@
              x:DataType="vm:OptimisePrivacyViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.OptimisePrivacyView">
-    <c:ContentArea Title="Optimise your Privacy" Caption="Often a bitcoin transaction will create change leaving a trace. If you’re willing to adjust your payment ammount, you can improve your privacy and reduce your transaction costs."
+    <c:ContentArea Title="Optimise your Privacy" Caption="Often a bitcoin transaction will create change leaving a trace. If you’re willing to adjust your payment amount, you can improve your privacy and reduce your transaction costs."
                    HorizontalAlignment="Left"
                    EnableCancel="False"
                    EnableNext="True"
