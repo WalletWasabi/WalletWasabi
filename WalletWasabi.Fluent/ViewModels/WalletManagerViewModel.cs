@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Actions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Gui;
+using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
@@ -31,7 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private ObservableCollection<WalletViewModelBase> _wallets;
 		[AutoNotify] private bool _anyWalletStarted;
 
-		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig, BitcoinStore bitcoinStore)
+		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig, BitcoinStore bitcoinStore, LegalChecker legalChecker)
 		{
 			Model = walletManager;
 			BitcoinStore = bitcoinStore;
@@ -88,13 +89,13 @@ namespace WalletWasabi.Fluent.ViewModels
 					wallet =>
 				{
 					WalletViewModelBase vm = (wallet.State <= WalletState.Starting)
-						? ClosedWalletViewModel.Create(walletManager, wallet)
+						? ClosedWalletViewModel.Create(walletManager, wallet, legalChecker)
 						: WalletViewModel.Create(uiConfig, wallet);
 
 					InsertWallet(vm);
 				});
 
-			Dispatcher.UIThread.Post(() => LoadWallets(walletManager));
+			Dispatcher.UIThread.Post(() => LoadWallets(walletManager, legalChecker));
 		}
 
 		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _items;
@@ -172,11 +173,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			_walletDictionary.Remove(walletViewModel.Wallet);
 		}
 
-		private void LoadWallets(WalletManager walletManager)
+		private void LoadWallets(WalletManager walletManager, LegalChecker legalChecker)
 		{
 			foreach (var wallet in walletManager.GetWallets())
 			{
-				InsertWallet(ClosedWalletViewModel.Create(walletManager, wallet));
+				InsertWallet(ClosedWalletViewModel.Create(walletManager, wallet, legalChecker));
 			}
 		}
 

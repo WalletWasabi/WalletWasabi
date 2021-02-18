@@ -7,6 +7,7 @@ using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -16,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		private readonly WalletManager _walletManager;
 		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
 
-		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet)
+		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet, LegalChecker legalChecker)
 			: base(wallet)
 		{
 			_walletManager = walletManager;
@@ -26,7 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				if (!Wallet.IsLoggedIn)
 				{
-					Navigate().To(new LoginViewModel(this));
+					Navigate().To(new LoginViewModel(this, legalChecker));
 				}
 			});
 		}
@@ -55,13 +56,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			}
 		}
 
-		public static WalletViewModelBase Create(WalletManager walletManager, Wallet wallet)
+		public static WalletViewModelBase Create(WalletManager walletManager, Wallet wallet, LegalChecker legalChecker)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new ClosedHardwareWalletViewModel(walletManager, wallet)
+				? new ClosedHardwareWalletViewModel(walletManager, wallet, legalChecker)
 				: wallet.KeyManager.IsWatchOnly
-					? new ClosedWatchOnlyWalletViewModel(walletManager, wallet)
-					: new ClosedWalletViewModel(walletManager, wallet);
+					? new ClosedWatchOnlyWalletViewModel(walletManager, wallet, legalChecker)
+					: new ClosedWalletViewModel(walletManager, wallet, legalChecker);
 		}
 	}
 }
