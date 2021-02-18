@@ -222,9 +222,9 @@ namespace WalletWasabi.Fluent.ViewModels
 			UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
 			BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
 			DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
-
 			OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel(_global.DataDir));
-			OpenWalletsFolderViewModel.RegisterLazy(() => new OpenWalletsFolderViewModel(_walletManagerViewModel.WalletManager.WalletDirectories.WalletsDir));			OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
+			OpenWalletsFolderViewModel.RegisterLazy(() => new OpenWalletsFolderViewModel(_walletManagerViewModel.WalletManager.WalletDirectories.WalletsDir));
+			OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
 			OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel(_global));
 			OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel(_global));
 		}
