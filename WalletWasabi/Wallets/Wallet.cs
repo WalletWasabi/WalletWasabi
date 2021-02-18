@@ -93,19 +93,17 @@ namespace WalletWasabi.Wallets
 		public IBlockProvider BlockProvider { get; private set; }
 		private AsyncLock HandleFiltersLock { get; }
 
-		public bool IsLoggedIn => Kitchen.HasIngredients;
+		public bool IsLoggedIn { get; private set; }
 
 		private Kitchen Kitchen { get; } = new();
 
 		public void Login(string password)
 		{
 			Kitchen.Cook(password);
+			IsLoggedIn = true;
 		}
 
-		public void Logout()
-		{
-			Kitchen.CleanUp();
-		}
+		public void Logout() => IsLoggedIn = false;
 
 		public void RegisterServices(
 			BitcoinStore bitcoinStore,

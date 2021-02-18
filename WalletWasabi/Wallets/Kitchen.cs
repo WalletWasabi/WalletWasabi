@@ -46,14 +46,5 @@ namespace WalletWasabi.Wallets
 				Soup = StringCipher.Encrypt(ingredients, Salt);
 			}
 		}
-
-		public void CleanUp()
-		{
-			lock (RefrigeratorLock)
-			{
-				Salt = null;
-				Soup = null;
-			}
-		}
 	}
 }
