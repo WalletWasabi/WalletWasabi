@@ -298,33 +298,42 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					"fastest"
 				};
 
-				xAxisValues = new double[]
+				var xs = new double[]
 				{
-					1008,
-					432,
-					144,
-					72,
-					36,
-					18,
-					6,
-					3,
-					2,
 					1,
+					2,
+					3,
+					6,
+					18,
+					36,
+					72,
+					144,
+					432,
+					1008
 				};
 
-				yAxisValues = new double[]
+				var ys = new double[]
 				{
-					4,
-					4,
-					7,
-					22,
-					57,
-					97,
+					185,
+					123,
+					123,
 					102,
-					123,
-					123,
-					185
+					97,
+					57,
+					22,
+					7,
+					4,
+					4
 				};
+
+#if false
+				GetSmoothValues(xs, ys, out var ts, out var xts);
+				xAxisValues = ts.ToArray();
+				yAxisValues = xts.ToArray();
+#else
+				xAxisValues = xs.Reverse().ToArray();
+				yAxisValues = ys.Reverse().ToArray();
+#endif
 			}
 
 			XAxisLabels = xAxisLabels;
