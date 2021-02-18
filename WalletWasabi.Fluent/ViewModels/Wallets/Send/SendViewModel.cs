@@ -260,8 +260,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
 		{
-			double[] xAxisValues;
 			string[] xAxisLabels;
+			double[] xAxisValues;
 			double[] yAxisValues;
 
 			if (_owner.Wallet.Network != Network.TestNet)
@@ -327,8 +327,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				};
 			}
 
-			XAxisValues = xAxisValues;
 			XAxisLabels = xAxisLabels;
+			XAxisValues = xAxisValues;
 			YAxisValues = yAxisValues;
 		}
 
