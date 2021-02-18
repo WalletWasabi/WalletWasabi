@@ -266,13 +266,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (_owner.Wallet.Network != Network.TestNet)
 			{
-				var xs = feeEstimates.Select(x => (double)x.Key).ToArray();
-
 				xAxisLabels = feeEstimates.Select(x => x.Key)
 					.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
 					.Reverse()
 					.ToArray();
 
+				var xs = feeEstimates.Select(x => (double)x.Key).ToArray();
 				var ys = feeEstimates.Select(x => (double)x.Value).ToArray();
 #if false
 				var min = xs.Min();
@@ -301,20 +300,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 			else
 			{
-				xAxisValues = new double[]
-				{
-					1008,
-					432,
-					144,
-					72,
-					36,
-					18,
-					6,
-					3,
-					2,
-					1,
-				};
-
 				xAxisLabels = new string[]
 				{
 					"1w",
@@ -327,6 +312,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					"30m",
 					"20m",
 					"fastest"
+				};
+
+				xAxisValues = new double[]
+				{
+					1008,
+					432,
+					144,
+					72,
+					36,
+					18,
+					6,
+					3,
+					2,
+					1,
 				};
 
 				yAxisValues = new double[]
