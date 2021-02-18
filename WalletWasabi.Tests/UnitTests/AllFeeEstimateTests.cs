@@ -9,6 +9,8 @@ using System;
 using System.IO;
 using Newtonsoft.Json.Linq;
 using System.Linq;
+using WalletWasabi.Helpers;
+using WalletWasabi.Tests.Helpers;
 
 namespace WalletWasabi.Tests.UnitTests
 {
@@ -210,7 +212,6 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(31, allFee.Estimations[1008]);
 		}
 
-
 		[Fact]
 		public async Task FixObviouslyWrongEstimationsAsync()
 		{
@@ -233,6 +234,28 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.True(allFee.Estimations[3] > 10);
 			Assert.True(allFee.Estimations[36] > 1);
 		}
+
+
+		[Theory]
+		[Repeat(1_000)]
+		public async Task ExhaustiveEstimationsAsync(int dummy)
+		{
+			var rpc = CreateAndConfigureRpcClient(
+				estimator: MemPoolInfoGenerator.GenerateFeeRateForTarget,
+				memPoolMinFee: 0.00037,
+				hasPeersInfo: true
+			);
+			rpc.OnGetMempoolInfoAsync = async () => await Task.FromResult(MemPoolInfoGenerator.GenerateMemPoolInfo());
+			var feeRates = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
+			var estimations = feeRates.Estimations;
+
+			Assert.Equal(estimations.Count(), estimations.Distinct().Count());
+			Assert.Subset(Constants.ConfirmationTargets.ToHashSet(), estimations.Keys.ToHashSet());
+			Assert.Equal(estimations.Keys, estimations.Keys.OrderBy(x => x));
+			Assert.Equal(estimations.Values, estimations.Values.OrderByDescending(x => x));
+			Assert.All(estimations, (e) => Assert.True(e.Value >= 0.00037));
+		}
+
 
 		private static MockRpcClient CreateAndConfigureRpcClient(Func<int, FeeRate> estimator, bool isSynchronized = true, bool hasPeersInfo = false, double memPoolMinFee = 0.00001000)
 			=> new MockRpcClient()
@@ -277,5 +300,5 @@ namespace WalletWasabi.Tests.UnitTests
 					.ToArray()
 			};
 		}
-	}
+	}	
 }
