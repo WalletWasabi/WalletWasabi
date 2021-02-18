@@ -52,9 +52,9 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		{
 		}
 
-		private void DoNavigateFrom()
+		private void DoNavigateFrom(bool isInHistory)
 		{
-			OnNavigatedFrom();
+			OnNavigatedFrom(isInHistory);
 
 			_currentDisposable?.Dispose();
 			_currentDisposable = null;
@@ -85,10 +85,10 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		void INavigatable.OnNavigatedFrom(bool isInHistory)
 		{
-			DoNavigateFrom();
+			DoNavigateFrom(isInHistory);
 		}
 
-		protected virtual void OnNavigatedFrom()
+		protected virtual void OnNavigatedFrom(bool isInHistory)
 		{
 		}
 
