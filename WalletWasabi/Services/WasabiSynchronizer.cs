@@ -44,13 +44,12 @@ namespace WalletWasabi.Services
 		private long _blockRequests; // There are priority requests in queue.
 
 		/// <param name="httpClientFactory">The class takes ownership of the instance.</param>
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, HttpClientFactory httpClientFactory, LegalChecker legalChecker)
+		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, HttpClientFactory httpClientFactory)
 		{
 			Network = network;
 			LastResponse = null;
 			_running = StateNotStarted;
 			BitcoinStore = bitcoinStore;
-			LegalChecker = legalChecker;
 			HttpClientFactory = httpClientFactory;
 			WasabiClient = httpClientFactory.SharedWasabiClient;
 
@@ -110,8 +109,6 @@ namespace WalletWasabi.Services
 		public TimeSpan MaxRequestIntervalForMixing { get; set; }
 
 		public BitcoinStore BitcoinStore { get; private set; }
-		
-		public LegalChecker LegalChecker { get; }
 
 		public bool IsRunning => Interlocked.Read(ref _running) == StateRunning;
 

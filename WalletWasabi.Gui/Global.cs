@@ -100,8 +100,8 @@ namespace WalletWasabi.Gui
 					? new HttpClientFactory(Config.TorSocks5EndPoint, backendUriGetter: () => Config.GetCurrentBackendUri())
 					: new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
 
+				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, httpClientFactory);
 				LegalChecker = new(DataDir);
-				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, httpClientFactory, LegalChecker);
 			}
 		}
 
