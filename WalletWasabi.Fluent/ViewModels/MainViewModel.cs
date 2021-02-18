@@ -15,12 +15,15 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
+using WalletWasabi.Legal;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
 	public partial class MainViewModel : ViewModelBase, IDialogHost
 	{
 		private readonly Global _global;
+		private readonly LegalChecker _legalChecker;
 		[AutoNotify] private bool _isMainContentEnabled;
 		[AutoNotify] private bool _isDialogScreenEnabled;
 		[AutoNotify] private bool _isFullScreenEnabled;
@@ -39,6 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		public MainViewModel(Global global)
 		{
 			_global = global;
+			_legalChecker = global.LegalChecker;
 
 			_dialogScreen = new DialogScreenViewModel(800, 700);
 
@@ -191,6 +195,18 @@ namespace WalletWasabi.Fluent.ViewModels
 
 					return null;
 				});
+
+			RxApp.MainThreadScheduler.Schedule(async () =>
+			{
+				while (_legalChecker.CurrentLegalDocument is null)
+				{
+					await Task.Delay(TimeSpan.FromSeconds(5));
+				}
+
+				LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel(_legalChecker.CurrentLegalDocument.Content));
+
+				_searchPage.RegisterSearchEntry(LegalDocumentsViewModel.MetaData);
+			});
 
 			UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
 			BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());

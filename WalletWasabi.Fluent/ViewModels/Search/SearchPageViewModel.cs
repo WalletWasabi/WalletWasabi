@@ -82,7 +82,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			throw new Exception("Category already exists.");
 		}
 
-		private void RegisterSearchEntry(NavigationMetaData metaData)
+		public void RegisterSearchEntry(NavigationMetaData metaData)
 		{
 			if (_categories.TryGetValue(metaData.Category, out var searchCategory))
 			{
