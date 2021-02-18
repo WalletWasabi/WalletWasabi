@@ -13,8 +13,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class ClosedWalletViewModel : WalletViewModelBase
 	{
-		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
 		private readonly WalletManager _walletManager;
+		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
 
 		protected ClosedWalletViewModel(WalletManager walletManager, Wallet wallet)
 			: base(wallet)

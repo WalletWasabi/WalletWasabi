@@ -13,11 +13,11 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 	[NavigationMetaData(Title = "Login")]
 	public partial class LoginViewModel : RoutableViewModel
 	{
+		private readonly ClosedWalletViewModel _closedWalletVm;
 		[AutoNotify] private string _password;
 		[AutoNotify] private bool _isPasswordIncorrect;
 		[AutoNotify] private bool _isPasswordNeeded;
 		[AutoNotify] private string _walletName;
-		private readonly ClosedWalletViewModel _closedWalletVm;
 
 		public LoginViewModel(ClosedWalletViewModel closedWalletVm)
 		{
