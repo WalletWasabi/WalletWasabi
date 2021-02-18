@@ -23,7 +23,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		protected override async Task BuildTransaction(string password, PaymentIntent payments, FeeStrategy feeStrategy, bool allowUnconfirmed = false, IEnumerable<OutPoint> allowedInputs = null)
 		{
-			BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(Password, payments, feeStrategy, allowUnconfirmed: true, allowedInputs: allowedInputs));
+			Wallet.Login(password);
+			BuildTransactionResult result = await Task.Run(() => Wallet.BuildTransaction(payments, feeStrategy, allowUnconfirmed: true, allowedInputs: allowedInputs));
 
 			var txviewer = new TransactionViewerViewModel();
 			IoC.Get<IShell>().AddDocument(txviewer);

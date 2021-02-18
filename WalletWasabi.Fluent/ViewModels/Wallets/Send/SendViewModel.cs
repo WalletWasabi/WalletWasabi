@@ -90,7 +90,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.Create(() =>
 			{
-				var password = "foo";
 				var transactionInfo = _transactionInfo;
 				var wallet = _owner.Wallet;
 				var targetAnonset = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
@@ -105,7 +104,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				try
 				{
 					var txRes = wallet.BuildTransaction(
-						password,
 						intent,
 						FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
 						allowUnconfirmed: true,

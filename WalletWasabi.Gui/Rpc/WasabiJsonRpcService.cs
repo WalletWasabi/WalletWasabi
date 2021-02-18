@@ -131,13 +131,14 @@ namespace WalletWasabi.Gui.Rpc
 			Guard.InRangeAndNotNull(nameof(feeTarget), feeTarget, 2, Constants.SevenDaysConfirmationTarget);
 			password = Guard.Correct(password);
 
+			ActiveWallet.Login(password);
+
 			AssertWalletIsLoaded();
 			var sync = Global.Synchronizer;
 			var payment = new PaymentIntent(payments.Select(p =>
 				new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new SmartLabel(p.Label))));
 			var feeStrategy = FeeStrategy.CreateFromConfirmationTarget(feeTarget);
 			var result = ActiveWallet.BuildTransaction(
-				password,
 				payment,
 				feeStrategy,
 				allowUnconfirmed: true,

@@ -213,14 +213,18 @@ namespace WalletWasabi.Wallets
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
 		public BuildTransactionResult BuildTransaction(
-			string password,
 			PaymentIntent payments,
 			FeeStrategy feeStrategy,
 			bool allowUnconfirmed = false,
 			IEnumerable<OutPoint>? allowedInputs = null,
 			IPayjoinClient? payjoinClient = null)
 		{
-			var builder = new TransactionFactory(Network, KeyManager, Coins, BitcoinStore.TransactionStore, password, allowUnconfirmed);
+			if (!Kitchen.HasIngredients)
+			{
+				throw new Exception("Wallet must be logged in to build a transaction.");
+			}
+			
+			var builder = new TransactionFactory(Network, KeyManager, Coins, BitcoinStore.TransactionStore, Kitchen.SaltSoup(), allowUnconfirmed);
 			return builder.BuildTransaction(
 				payments,
 				feeRateFetcher: () =>
