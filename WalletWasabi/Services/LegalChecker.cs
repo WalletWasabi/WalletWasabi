@@ -43,6 +43,15 @@ namespace WalletWasabi.Services
 			UpdateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
 			CurrentLegalDocument = await LegalDocuments.LoadAgreedAsync(LegalFolder).ConfigureAwait(false);
 			ProvisionalLegalDocument = await LegalDocuments.LoadAgreedAsync(ProvisionalLegalFolder).ConfigureAwait(false);
+
+			if (ProvisionalLegalDocument is { } provisional)
+			{
+				LatestDocumentTaskCompletion.TrySetResult(provisional);
+			}
+			else if (CurrentLegalDocument is { } current)
+			{
+				LatestDocumentTaskCompletion.TrySetResult(current);
+			}
 		}
 
 		public async Task<LegalDocuments> WaitAndGetLatestDocumentAsync()

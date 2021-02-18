@@ -202,12 +202,12 @@ namespace WalletWasabi.Fluent.ViewModels
 				try
 				{
 					await _legalChecker.WaitAndGetLatestDocumentAsync();
+
 					LegalDocumentsViewModel.RegisterAsyncLazy(async () =>
 					{
 						var document = await _legalChecker.WaitAndGetLatestDocumentAsync();
 						return new LegalDocumentsViewModel(document.Content);
 					});
-
 					_searchPage.RegisterSearchEntry(LegalDocumentsViewModel.MetaData);
 				}
 				catch (Exception ex)

@@ -14,19 +14,19 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 	public partial class LoginViewModel : RoutableViewModel
 	{
 		private readonly WalletManagerViewModel _walletManagerViewModel;
-		private readonly ClosedWalletViewModel _closedWalletVm;
+		private readonly ClosedWalletViewModel _closedWalletViewModel;
 
 		[AutoNotify] private string _password;
 		[AutoNotify] private bool _isPasswordIncorrect;
 		[AutoNotify] private bool _isPasswordNeeded;
 		[AutoNotify] private string _walletName;
 
-		public LoginViewModel(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletVm)
+		public LoginViewModel(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel)
 		{
 			_walletManagerViewModel = walletManagerViewModel;
-			_closedWalletVm = closedWalletVm;
+			_closedWalletViewModel = closedWalletViewModel;
 
-			var wallet = _closedWalletVm.Wallet;
+			var wallet = _closedWalletViewModel.Wallet;
 			var legalChecker = walletManagerViewModel.LegalChecker;
 
 			KeyManager = wallet.KeyManager;
@@ -98,10 +98,10 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 		private async Task LoginWalletAsync()
 		{
-			_closedWalletVm.Wallet.Login(Password);
-			_closedWalletVm.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
+			_closedWalletViewModel.Wallet.Login(Password);
+			_closedWalletViewModel.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
 
-			var destination = await _walletManagerViewModel.LoadWalletAsync(_closedWalletVm);
+			var destination = await _walletManagerViewModel.LoadWalletAsync(_closedWalletViewModel);
 
 			if (destination is { })
 			{
