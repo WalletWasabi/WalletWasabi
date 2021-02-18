@@ -215,15 +215,17 @@ namespace WalletWasabi.Packager
 				process.WaitForExit();
 			}
 
-			var hdutilCreateArgs = string.Join(" ", new string[]
-			{
-				"create",
-				$"\"{dmgUnzippedFilePath}\"",
-				"-ov",
-				$"-volname \"Wasabi Wallet\"",
-				"-fs HFS+",
-				$"-srcfolder \"{dmgPath}\""
-			});
+			var hdutilCreateArgs = string.Join(
+				" ",
+				new string[]
+				{
+					"create",
+					$"\"{dmgUnzippedFilePath}\"",
+					"-ov",
+					$"-volname \"Wasabi Wallet\"",
+					"-fs HFS+",
+					$"-srcfolder \"{dmgPath}\""
+				});
 
 			using (var process = Process.Start(new ProcessStartInfo
 			{
@@ -235,13 +237,15 @@ namespace WalletWasabi.Packager
 				process.WaitForExit();
 			}
 
-			var hdutilConvertArgs = string.Join(" ", new string[]
-			{
-				"convert",
-				$"\"{dmgUnzippedFilePath}\"",
-				"-format UDZO",
-				$"-o \"{dmgFilePath}\""
-			});
+			var hdutilConvertArgs = string.Join(
+				" ",
+				new string[]
+				{
+					"convert",
+					$"\"{dmgUnzippedFilePath}\"",
+					"-format UDZO",
+					$"-o \"{dmgFilePath}\""
+				});
 
 			using (var process = Process.Start(new ProcessStartInfo
 			{

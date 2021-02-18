@@ -8,6 +8,30 @@ namespace WalletWasabi.Crypto
 {
 	public class SchnorrBlinding
 	{
+		public static bool VerifySignature(uint256 message, UnblindedSignature signature, PubKey signerPubKey)
+		{
+			if (!Context.Instance.TryCreatePubKey(signerPubKey.ToBytes(), out var signerECPubkey))
+			{
+				throw new FormatException("Invalid signer pubkey.");
+			}
+
+			var p = signerECPubkey.Q;
+
+			var sG = (signature.S * EC.G).ToGroupElement();
+			var cP = p * signature.C;
+			var r = cP + sG;
+			var t = r.ToGroupElement().x.Normalize();
+
+			using var sha = new SHA256();
+			Span<byte> tmp = stackalloc byte[32];
+			message.ToBytes(tmp, false);
+			sha.Write(tmp);
+			t.WriteToSpan(tmp);
+			sha.Write(tmp);
+			sha.GetHash(tmp);
+			return new Scalar(tmp) == signature.C;
+		}
+
 		public class Requester
 		{
 			private Scalar _v = Scalar.Zero;
@@ -42,7 +66,7 @@ namespace WalletWasabi.Crypto
 				var r = rECPubKey.Q.ToGroupElementJacobian();
 				var t = FE.Zero;
 
-				retry:
+			retry:
 
 				RandomUtils.GetBytes(tmp);
 				_v = new Scalar(tmp, out int overflow);
@@ -163,40 +187,11 @@ namespace WalletWasabi.Crypto
 				}
 			}
 
-			public bool VerifyUnblindedSignature(UnblindedSignature signature, uint256 dataHash)
-			{
-				return VerifySignature(dataHash, signature, Key.PubKey);
-			}
-
 			public bool VerifyUnblindedSignature(UnblindedSignature signature, byte[] data)
 			{
 				var hash = new uint256(Hashes.SHA256(data));
 				return VerifySignature(hash, signature, Key.PubKey);
 			}
-		}
-
-		public static bool VerifySignature(uint256 message, UnblindedSignature signature, PubKey signerPubKey)
-		{
-			if (!Context.Instance.TryCreatePubKey(signerPubKey.ToBytes(), out var signerECPubkey))
-			{
-				throw new FormatException("Invalid signer pubkey.");
-			}
-
-			var p = signerECPubkey.Q;
-
-			var sG = (signature.S * EC.G).ToGroupElement();
-			var cP = p * signature.C;
-			var r = cP + sG;
-			var t = r.ToGroupElement().x.Normalize();
-
-			using var sha = new SHA256();
-			Span<byte> tmp = stackalloc byte[32];
-			message.ToBytes(tmp, false);
-			sha.Write(tmp);
-			t.WriteToSpan(tmp);
-			sha.Write(tmp);
-			sha.GetHash(tmp);
-			return new Scalar(tmp) == signature.C;
 		}
 	}
 }

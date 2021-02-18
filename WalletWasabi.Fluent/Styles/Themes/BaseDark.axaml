@@ -33,7 +33,11 @@
         <GradientStop Color="#86DF18" Offset="1"/>
       </RadialGradientBrush.GradientStops>
     </RadialGradientBrush>
+
+    <SolidColorBrush x:Key="DataGridRowSelectedBackgroundColor" Color="#1C1C1C" />
+    <StaticResource x:Key="DataGridRowSelectedUnfocusedBackgroundColor" ResourceKey="DataGridRowSelectedBackgroundColor" />
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentDark.xaml"/>
+  <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" /> <!-- Needs to be here because of dependency reason -->
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />
 </Styles>

@@ -18,9 +18,6 @@ namespace WalletWasabi.BitcoinCore.Endpointing
 		public static EndPointStrategy Random
 			=> new EndPointStrategy(EndPointStrategyType.Random, new IPEndPoint(IPAddress.Loopback, PortFinder.GetRandomPorts(1)[0]));
 
-		public static EndPointStrategy Custom(EndPoint endPoint)
-			=> new EndPointStrategy(EndPointStrategyType.Custom, endPoint);
-
 		public static EndPointStrategy Default(Network network, EndPointType endPointType)
 		{
 			var port = endPointType == EndPointType.Rpc ? network.RPCPort : network.DefaultPort;

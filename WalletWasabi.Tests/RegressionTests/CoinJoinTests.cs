@@ -109,7 +109,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
 
-			using var torClient = new TorHttpClient(BaseUri, Helpers.Common.TorSocks5Endpoint);
+			IHttpClient httpClient = RegTestFixture.BackendHttpClient;
 			var satoshiClient = new SatoshiClient(BackendClearnetHttpClient);
 
 			#region PostInputsGetStates
@@ -467,24 +467,24 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.True(aliceClient.RoundId > 0);
 				// Double the request.
 				// badrequests
-				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{WalletWasabi.Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation"))
+				using (var response = await httpClient.SendAsync(HttpMethod.Post, $"/api/v{WalletWasabi.Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation"))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 				}
-				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{WalletWasabi.Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={aliceClient.UniqueId}"))
+				using (var response = await httpClient.SendAsync(HttpMethod.Post, $"/api/v{WalletWasabi.Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={aliceClient.UniqueId}"))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 				}
-				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{WalletWasabi.Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?roundId={aliceClient.RoundId}"))
+				using (var response = await httpClient.SendAsync(HttpMethod.Post, $"/api/v{WalletWasabi.Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?roundId={aliceClient.RoundId}"))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 				}
-				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{WalletWasabi.Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId=foo&roundId={aliceClient.RoundId}"))
+				using (var response = await httpClient.SendAsync(HttpMethod.Post, $"/api/v{WalletWasabi.Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId=foo&roundId={aliceClient.RoundId}"))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 					Assert.Equal("Invalid uniqueId provided.", await response.Content.ReadAsJsonAsync<string>());
 				}
-				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{WalletWasabi.Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={aliceClient.UniqueId}&roundId=bar"))
+				using (var response = await httpClient.SendAsync(HttpMethod.Post, $"/api/v{WalletWasabi.Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={aliceClient.UniqueId}&roundId=bar"))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 					Assert.Contains("\"roundId\":[\"The value 'bar' is not valid.\"", await response.Content.ReadAsStringAsync());
@@ -515,7 +515,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
 				Assert.True(aliceClient.RoundId > 0);
 				await aliceClient.PostUnConfirmationAsync();
-				using HttpResponseMessage response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{WalletWasabi.Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/unconfirmation?uniqueId={aliceClient.UniqueId}&roundId={aliceClient.RoundId}");
+				using HttpResponseMessage response = await httpClient.SendAsync(HttpMethod.Post, $"/api/v{WalletWasabi.Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/unconfirmation?uniqueId={aliceClient.UniqueId}&roundId={aliceClient.RoundId}");
 				Assert.True(response.IsSuccessStatusCode);
 				Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 				Assert.Equal("Alice not found.", await response.Content.ReadAsJsonAsync<string>());
@@ -1117,7 +1117,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				var smartCoin = new SmartCoin(stx, bechCoin.Outpoint.N, key);
 				key.AnonymitySet = tx.GetAnonymitySet(bechCoin.Outpoint.N);
 
-				var chaumianClient = new CoinJoinClient(synchronizer, rpc.Network, keyManager);
+				var chaumianClient = new CoinJoinClient(synchronizer, rpc.Network, keyManager, new Kitchen());
 
 				participants.Add((smartCoin, chaumianClient));
 			}
@@ -1237,8 +1237,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			key3.AnonymitySet = tx3.GetAnonymitySet(bech3Coin.Outpoint.N);
 			key4.AnonymitySet = tx4.GetAnonymitySet(bech4Coin.Outpoint.N);
 
-			var chaumianClient1 = new CoinJoinClient(synchronizer, rpc.Network, keyManager);
-			var chaumianClient2 = new CoinJoinClient(synchronizer, rpc.Network, keyManager);
+			var chaumianClient1 = new CoinJoinClient(synchronizer, rpc.Network, keyManager, new Kitchen());
+			var chaumianClient2 = new CoinJoinClient(synchronizer, rpc.Network, keyManager, new Kitchen());
 			try
 			{
 				chaumianClient1.Start(); // Exactly delay it for 2 seconds, this will make sure of timeout later.
