@@ -208,9 +208,11 @@ namespace WalletWasabi.Fluent.Controls
 
 			state.Points = new Point[yAxisValues.Count];
 
+			var pointStep = state.AreaWidth / (xAxisValues.Count - 1);
+
 			for (var i = 0; i < yAxisValuesScaled.Count; i++)
 			{
-				state.Points[i] = new Point(i * state.XAxisStep, yAxisValuesScaled[i]);
+				state.Points[i] = new Point(i * pointStep, yAxisValuesScaled[i]);
 			}
 		}
 
