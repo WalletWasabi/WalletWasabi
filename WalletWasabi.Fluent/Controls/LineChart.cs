@@ -191,8 +191,25 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			state.XAxisStep = state.AreaWidth / (xAxisValues.Count - 1);
-			state.YAxisStep = state.AreaHeight / (yAxisValues.Count - 1);
+			var xAxisLabels = XAxisLabels;
+			if (xAxisLabels is null)
+			{
+				state.XAxisStep = state.AreaWidth / (xAxisValues.Count - 1);
+				state.YAxisStep = state.AreaHeight / (yAxisValues.Count - 1);
+			}
+			else
+			{
+				if (xAxisLabels.Count <= 1)
+				{
+					state.XAxisStep = double.NaN;
+					state.YAxisStep = double.NaN;
+					state.Points = null;
+					return;
+				}
+
+				state.XAxisStep = state.AreaWidth / (xAxisLabels.Count - 1);
+				state.YAxisStep = state.AreaHeight / (xAxisLabels.Count - 1);
+			}
 
 			var logarithmicScale = YAxisLogarithmicScale;
 
