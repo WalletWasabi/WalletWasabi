@@ -98,7 +98,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 		private async Task LoginWallet()
 		{
-			IsBusy = true;
 			_closedWalletVm.Wallet.Login();
 			_closedWalletVm.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
 
@@ -112,8 +111,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			{
 				await ShowErrorAsync("Error", "Wasabi was unable to login and load your wallet.");
 			}
-
-			IsBusy = false;
 		}
 	}
 }
