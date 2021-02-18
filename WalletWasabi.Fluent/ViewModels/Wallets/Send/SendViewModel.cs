@@ -274,23 +274,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				var xs = feeEstimates.Select(x => (double)x.Key).ToArray();
 				var ys = feeEstimates.Select(x => (double)x.Value).ToArray();
 #if false
-				var min = xs.Min();
-				var max = xs.Max();
-				var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
-
-				var ts = new List<double>();
-				var xts = new List<double>();
-
-				for (double t = min; t <= max; t += 1)
-				{
-					double xt = spline.Interpolate(t);
-					ts.Add(t);
-					xts.Add(xt);
-				}
-
-				ts.Reverse();
-				xts.Reverse();
-
+				GetSmoothValues(xs, ys, out var ts, out var xts);
 				xAxisValues = ts.ToArray();
 				yAxisValues = xts.ToArray();
 #else
@@ -346,6 +330,26 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			XAxisValues = xAxisValues;
 			XAxisLabels = xAxisLabels;
 			YAxisValues = yAxisValues;
+		}
+
+		private void GetSmoothValues(double[] xs, double[] ys, out List<double> ts, out List<double> xts)
+		{
+			var min = xs.Min();
+			var max = xs.Max();
+			var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
+
+			ts = new List<double>();
+			xts = new List<double>();
+
+			for (double t = min; t <= max; t += 1)
+			{
+				var xt = spline.Interpolate(t);
+				ts.Add(t);
+				xts.Add(xt);
+			}
+
+			ts.Reverse();
+			xts.Reverse();
 		}
 
 		private decimal GetYAxisValueFromXAxisCurrentValue(double xValue)
