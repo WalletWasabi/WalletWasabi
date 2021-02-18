@@ -68,12 +68,12 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 						if (dialogResult.Result)
 						{
 							await legalChecker.AgreeAsync();
-							await LoginWallet();
+							await LoginWalletAsync();
 						}
 					}
 					else
 					{
-						await LoginWallet();
+						await LoginWalletAsync();
 					}
 				}
 			});
@@ -96,7 +96,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 		public KeyManager KeyManager { get; }
 
-		private async Task LoginWallet()
+		private async Task LoginWalletAsync()
 		{
 			_closedWalletVm.Wallet.Login();
 			_closedWalletVm.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
