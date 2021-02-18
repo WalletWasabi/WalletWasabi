@@ -108,7 +108,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			_walletManagerViewModel.WhenAnyValue(x => x.Items.Count, x => x.Actions.Count)
 				.Subscribe(x => _navBar.IsHidden = x.Item1 == 0 && x.Item2 == 0);
 
-			if (!_walletManagerViewModel.Model.AnyWallet(_ => true))
+			if (!_walletManagerViewModel.WalletManager.AnyWallet(_ => true))
 			{
 				MainScreen.To(_addWalletPage);
 			}
@@ -222,7 +222,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
 
 			OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel(_global.DataDir));
-			OpenDirectory.OpenWalletsFolderViewModel.RegisterLazy(() => new OpenDirectory.OpenWalletsFolderViewModel(_walletManagerViewModel.Model.WalletDirectories.WalletsDir));
+			OpenDirectory.OpenWalletsFolderViewModel.RegisterLazy(() => new OpenDirectory.OpenWalletsFolderViewModel(_walletManagerViewModel.WalletManager.WalletDirectories.WalletsDir));
 			OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
 			OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel(_global));
 			OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel(_global));

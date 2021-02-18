@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			Title = "Add Wallet";
 			SelectionMode = NavBarItemSelectionMode.Button;
-			var walletManager = walletManagerViewModel.Model;
+			var walletManager = walletManagerViewModel.WalletManager;
 			var network = walletManager.Network;
 
 			var enableBack = default(IDisposable);

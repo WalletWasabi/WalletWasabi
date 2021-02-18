@@ -37,7 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig, BitcoinStore bitcoinStore, LegalChecker legalChecker)
 		{
-			Model = walletManager;
+			WalletManager = walletManager;
 			BitcoinStore = bitcoinStore;
 			LegalChecker = legalChecker;
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
@@ -63,7 +63,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				.AsObservableList();
 
 			Observable
-				.FromEventPattern<WalletState>(walletManager, nameof(WalletManager.WalletStateChanged))
+				.FromEventPattern<WalletState>(walletManager, nameof(WalletWasabi.Wallets.WalletManager.WalletStateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(
 					x =>
@@ -86,7 +86,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				});
 
 			Observable
-				.FromEventPattern<Wallet>(walletManager, nameof(WalletManager.WalletAdded))
+				.FromEventPattern<Wallet>(walletManager, nameof(WalletWasabi.Wallets.WalletManager.WalletAdded))
 				.Select(x => x.EventArgs)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(
@@ -104,7 +104,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _items;
 
-		public WalletManager Model { get; }
+		public WalletManager WalletManager { get; }
 
 		public BitcoinStore BitcoinStore { get; }
 
@@ -121,7 +121,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			try
 			{
-				await Task.Run(async () => await Model.StartWalletAsync(wallet));
+				await Task.Run(async () => await WalletManager.StartWalletAsync(wallet));
 			}
 			catch (OperationCanceledException ex)
 			{
@@ -273,7 +273,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				actions.Add(new SendViewModel(walletViewModel));
 			}
 
-			actions.Add(new ReceiveViewModel(walletViewModel, Model, BitcoinStore));
+			actions.Add(new ReceiveViewModel(walletViewModel, WalletManager, BitcoinStore));
 
 			if (!wallet.KeyManager.IsWatchOnly)
 			{
