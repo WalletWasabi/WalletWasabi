@@ -185,30 +185,10 @@ namespace WalletWasabi.Fluent.Controls
 
 			if (xAxisValues is null || xAxisValues.Count <= 1 || yAxisValues is null || yAxisValues.Count <= 1)
 			{
-				state.XAxisStep = double.NaN;
-				state.YAxisStep = double.NaN;
+				state.XAxisLabelStep = double.NaN;
+				state.YAxisLabelStep = double.NaN;
 				state.Points = null;
 				return;
-			}
-
-			var xAxisLabels = XAxisLabels;
-			if (xAxisLabels is null)
-			{
-				state.XAxisStep = state.AreaWidth / (xAxisValues.Count - 1);
-				state.YAxisStep = state.AreaHeight / (yAxisValues.Count - 1);
-			}
-			else
-			{
-				if (xAxisLabels.Count <= 1)
-				{
-					state.XAxisStep = double.NaN;
-					state.YAxisStep = double.NaN;
-					state.Points = null;
-					return;
-				}
-
-				state.XAxisStep = state.AreaWidth / (xAxisLabels.Count - 1);
-				state.YAxisStep = state.AreaHeight / (xAxisLabels.Count - 1);
 			}
 
 			var logarithmicScale = YAxisLogarithmicScale;
@@ -236,8 +216,20 @@ namespace WalletWasabi.Fluent.Controls
 		private void SetStateXAxisLabels(LineChartState state)
 		{
 			var xAxisLabels = XAxisLabels;
+
 			if (xAxisLabels is null)
 			{
+				var xAxisValues = XAxisValues;
+
+				if (xAxisValues is null || xAxisValues.Count <= 1)
+				{
+					state.XAxisLabelStep = double.NaN;
+				}
+				else
+				{
+					state.XAxisLabelStep = state.AreaWidth / (xAxisValues.Count - 1);
+				}
+
 				if (XAxisStroke is not null && XAxisValues is not null)
 				{
 					state.XAxisLabels = XAxisValues.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToList();
@@ -245,6 +237,15 @@ namespace WalletWasabi.Fluent.Controls
 			}
 			else
 			{
+				if (xAxisLabels.Count <= 1)
+				{
+					state.XAxisLabelStep = double.NaN;
+				}
+				else
+				{
+					state.XAxisLabelStep = state.AreaWidth / (xAxisLabels.Count - 1);
+				}
+
 				state.XAxisLabels = xAxisLabels.ToList();
 			}
 		}
@@ -252,8 +253,20 @@ namespace WalletWasabi.Fluent.Controls
 		private void SetStateYAxisLabels(LineChartState state)
 		{
 			var yAxisLabels = YAxisLabels;
+
 			if (yAxisLabels is null)
 			{
+				var yAxisValues = YAxisValues;
+
+				if (yAxisValues is null || yAxisValues.Count <= 1)
+				{
+					state.YAxisLabelStep = double.NaN;
+				}
+				else
+				{
+					state.YAxisLabelStep = state.AreaHeight / (yAxisValues.Count - 1);
+				}
+
 				if (YAxisStroke is not null && YAxisValues is not null)
 				{
 					state.YAxisLabels = YAxisValues.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToList();
@@ -261,6 +274,15 @@ namespace WalletWasabi.Fluent.Controls
 			}
 			else
 			{
+				if (yAxisLabels.Count <= 1)
+				{
+					state.YAxisLabelStep = double.NaN;
+				}
+				else
+				{
+					state.YAxisLabelStep = state.AreaHeight / (yAxisLabels.Count - 1);
+				}
+
 				state.YAxisLabels = yAxisLabels.ToList();
 			}
 		}
@@ -394,7 +416,7 @@ namespace WalletWasabi.Fluent.Controls
 			var foreground = XAxisLabelForeground;
 			if (foreground is null
 			    || state.XAxisLabels is null
-			    || double.IsNaN(state.XAxisStep)
+			    || double.IsNaN(state.XAxisLabelStep)
 			    || state.ChartWidth <= 0
 			    || state.ChartHeight <= 0
 			    || state.ChartHeight - state.AreaMargin.Top < state.AreaMargin.Bottom)
@@ -433,7 +455,7 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				formattedTextLabels[i].Constraint = constraintMax;
 
-				var origin = new Point(i * state.XAxisStep - constraintMax.Width / 2 + state.AreaMargin.Left, originTop);
+				var origin = new Point(i * state.XAxisLabelStep - constraintMax.Width / 2 + state.AreaMargin.Left, originTop);
 				var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
 				var xPosition = origin.X + constraintMax.Width / 2;
 				var yPosition = origin.Y + constraintMax.Height / 2;
@@ -495,7 +517,7 @@ namespace WalletWasabi.Fluent.Controls
 			var foreground = YAxisLabelForeground;
 			if (foreground is null
 			    || state.YAxisLabels is null
-			    || double.IsNaN(state.YAxisStep)
+			    || double.IsNaN(state.YAxisLabelStep)
 			    || state.ChartWidth <= 0
 			    || state.ChartWidth - state.AreaMargin.Right < state.AreaMargin.Left
 			    || state.ChartHeight <= 0)
@@ -534,7 +556,7 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				formattedTextLabels[i].Constraint = constraintMax;
 
-				var origin = new Point(originLeft - constraintMax.Width, i * state.YAxisStep - constraintMax.Height / 2 + state.AreaMargin.Top);
+				var origin = new Point(originLeft - constraintMax.Width, i * state.YAxisLabelStep - constraintMax.Height / 2 + state.AreaMargin.Top);
 				var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
 				var xPosition = origin.X + constraintMax.Width / 2;
 				var yPosition = origin.Y + constraintMax.Height / 2;
@@ -647,9 +669,9 @@ namespace WalletWasabi.Fluent.Controls
 			public Thickness AreaMargin { get; set; }
 			public Point[]? Points { get; set; }
 			public List<string>? XAxisLabels { get; set; }
-			public double XAxisStep { get; set; }
+			public double XAxisLabelStep { get; set; }
 			public List<string>? YAxisLabels { get; set; }
-			public double YAxisStep { get; set; }
+			public double YAxisLabelStep { get; set; }
 			public double XAxisCursorPosition { get; set; }
 		}
 	}
