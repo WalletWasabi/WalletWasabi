@@ -1,6 +1,10 @@
 using NBitcoin;
 using NBitcoin.RPC;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Helpers;
@@ -57,7 +61,33 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 		public virtual async Task<MemPoolInfo> GetMempoolInfoAsync()
 		{
-			return await Rpc.GetMemPoolAsync().ConfigureAwait(false);
+			var response = await Rpc.SendCommandAsync(RPCOperations.getmempoolinfo, true);
+
+			static IEnumerable<FeeRateGroup> ExtractFeeRateGroups(JToken jt) =>
+				jt switch {
+					JObject jo => jo.Properties()
+						.Where(p => p.Name != "total_fees")
+						.Select( p => new FeeRateGroup
+						{
+							Group = int.Parse(p.Name),
+							Sizes = p.Value.Value<ulong>("sizes"),
+							Count = p.Value.Value<uint>("count"),
+							Fees = Money.Satoshis(p.Value.Value<ulong>("fees")),
+							From = new FeeRate(Money.Satoshis(p.Value.Value<ulong>("from_feerate"))),
+							To = new FeeRate(Money.Satoshis(p.Value.Value<ulong>("to_feerate")))
+						}),
+					_ => Enumerable.Empty<FeeRateGroup>() };
+
+			return new MemPoolInfo()
+			{
+				Size = Int32.Parse((string)response.Result["size"], CultureInfo.InvariantCulture),
+				Bytes = Int32.Parse((string)response.Result["bytes"], CultureInfo.InvariantCulture),
+				Usage = Int32.Parse((string)response.Result["usage"], CultureInfo.InvariantCulture),
+				MaxMemPool = Double.Parse((string)response.Result["maxmempool"], CultureInfo.InvariantCulture),
+				MemPoolMinFee = Double.Parse((string)response.Result["mempoolminfee"], CultureInfo.InvariantCulture),
+				MinRelayTxFee = Double.Parse((string)response.Result["minrelaytxfee"], CultureInfo.InvariantCulture),
+				Histogram = ExtractFeeRateGroups(response.Result["fee_histogram"]).ToArray()
+			};
 		}
 
 		public virtual async Task<uint256[]> GetRawMempoolAsync()
