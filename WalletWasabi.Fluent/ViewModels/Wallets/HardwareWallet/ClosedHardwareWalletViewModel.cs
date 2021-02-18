@@ -5,7 +5,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet
 {
 	public class ClosedHardwareWalletViewModel : ClosedWalletViewModel
 	{
-		internal ClosedHardwareWalletViewModel(WalletManager walletManager, Wallet wallet, LegalChecker legalChecker) : base(walletManager, wallet, legalChecker)
+		internal ClosedHardwareWalletViewModel(WalletManagerViewModel walletManager, Wallet wallet, LegalChecker legalChecker) : base(walletManager, wallet, legalChecker)
 		{
 		}
 	}

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
@@ -13,6 +14,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Actions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Gui;
+using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
@@ -89,7 +91,7 @@ namespace WalletWasabi.Fluent.ViewModels
 					wallet =>
 				{
 					WalletViewModelBase vm = (wallet.State <= WalletState.Starting)
-						? ClosedWalletViewModel.Create(walletManager, wallet, legalChecker)
+						? ClosedWalletViewModel.Create(this, wallet, legalChecker)
 						: WalletViewModel.Create(uiConfig, wallet);
 
 					InsertWallet(vm);
@@ -103,6 +105,36 @@ namespace WalletWasabi.Fluent.ViewModels
 		public WalletManager Model { get; }
 
 		public BitcoinStore BitcoinStore { get; }
+
+		public async Task<WalletViewModelBase?> LoginWalletAsync(ClosedWalletViewModel closedWalletViewModel)
+		{
+			var wallet = closedWalletViewModel.Wallet;
+
+			if (wallet.State != WalletState.Uninitialized)
+			{
+				throw new Exception("Wallet is already being logged in.");
+			}
+
+			try
+			{
+				await Task.Run(async () => await Model.StartWalletAsync(wallet));
+			}
+			catch (OperationCanceledException ex)
+			{
+				Logger.LogTrace(ex);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
+
+			if (_walletDictionary.ContainsKey(wallet))
+			{
+				return _walletDictionary[wallet];
+			}
+
+			return null;
+		}
 
 		private void OpenClosedWallet(WalletManager walletManager, UiConfig uiConfig, ClosedWalletViewModel closedWalletViewModel)
 		{
@@ -177,7 +209,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			foreach (var wallet in walletManager.GetWallets())
 			{
-				InsertWallet(ClosedWalletViewModel.Create(walletManager, wallet, legalChecker));
+				InsertWallet(ClosedWalletViewModel.Create(this, wallet, legalChecker));
 			}
 		}
 

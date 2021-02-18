@@ -14,14 +14,17 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 	[NavigationMetaData(Title = "Login")]
 	public partial class LoginViewModel : RoutableViewModel
 	{
+		private readonly WalletManagerViewModel _walletManagerViewModel;
 		private readonly ClosedWalletViewModel _closedWalletVm;
+
 		[AutoNotify] private string _password;
 		[AutoNotify] private bool _isPasswordIncorrect;
 		[AutoNotify] private bool _isPasswordNeeded;
 		[AutoNotify] private string _walletName;
 
-		public LoginViewModel(ClosedWalletViewModel closedWalletVm, LegalChecker legalChecker)
+		public LoginViewModel(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletVm, LegalChecker legalChecker)
 		{
+			_walletManagerViewModel = walletManagerViewModel;
 			_closedWalletVm = closedWalletVm;
 
 			var wallet = _closedWalletVm.Wallet;
@@ -65,12 +68,12 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 						if (dialogResult.Result)
 						{
 							await legalChecker.AgreeAsync();
-							LoginWallet();
+							await LoginWallet();
 						}
 					}
 					else
 					{
-						LoginWallet();
+						await LoginWallet();
 					}
 				}
 			});
@@ -93,11 +96,24 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 		public KeyManager KeyManager { get; }
 
-		private void LoginWallet()
+		private async Task LoginWallet()
 		{
+			IsBusy = true;
 			_closedWalletVm.Wallet.Login();
 			_closedWalletVm.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
-			Navigate().To(_closedWalletVm, NavigationMode.Clear);
+
+			var destination = await _walletManagerViewModel.LoginWalletAsync(_closedWalletVm);
+
+			if (destination is { })
+			{
+				Navigate().To(destination, NavigationMode.Clear);
+			}
+			else
+			{
+				await ShowErrorAsync("Error", "Wasabi was unable to login and load your wallet.");
+			}
+
+			IsBusy = false;
 		}
 	}
 }
