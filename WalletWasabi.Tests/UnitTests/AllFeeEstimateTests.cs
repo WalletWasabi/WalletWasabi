@@ -235,29 +235,27 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.True(allFee.Estimations[36] > 1);
 		}
 
-
 		[Theory]
 		[Repeat(1_000)]
 		public async Task ExhaustiveEstimationsAsync(int dummy)
 		{
 			var rpc = CreateAndConfigureRpcClient(
-				estimator: MemPoolInfoGenerator.GenerateFeeRateForTarget,
-				memPoolMinFee: 0.00037,
+				estimator: MempoolInfoGenerator.GenerateFeeRateForTarget,
+				mempoolMinFee: 0.00037,
 				hasPeersInfo: true
 			);
-			rpc.OnGetMempoolInfoAsync = async () => await Task.FromResult(MemPoolInfoGenerator.GenerateMemPoolInfo());
+			rpc.OnGetMempoolInfoAsync = async () => await Task.FromResult(MempoolInfoGenerator.GenerateMempoolInfo());
 			var feeRates = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 			var estimations = feeRates.Estimations;
 
-			Assert.Equal(estimations.Count(), estimations.Distinct().Count());
+			Assert.Equal(estimations.Count, estimations.Distinct().Count());
 			Assert.Subset(Constants.ConfirmationTargets.ToHashSet(), estimations.Keys.ToHashSet());
 			Assert.Equal(estimations.Keys, estimations.Keys.OrderBy(x => x));
 			Assert.Equal(estimations.Values, estimations.Values.OrderByDescending(x => x));
 			Assert.All(estimations, (e) => Assert.True(e.Value >= 0.00037));
 		}
 
-
-		private static MockRpcClient CreateAndConfigureRpcClient(Func<int, FeeRate> estimator, bool isSynchronized = true, bool hasPeersInfo = false, double memPoolMinFee = 0.00001000)
+		private static MockRpcClient CreateAndConfigureRpcClient(Func<int, FeeRate> estimator, bool isSynchronized = true, bool hasPeersInfo = false, double mempoolMinFee = 0.00001000)
 			=> new MockRpcClient()
 			{
 				OnGetBlockchainInfoAsync = async () =>
@@ -268,7 +266,7 @@ namespace WalletWasabi.Tests.UnitTests
 					}),
 				OnGetPeersInfoAsync = async () =>
 					await Task.FromResult(hasPeersInfo ? new[] { new PeerInfo() } : Array.Empty<PeerInfo>()),
-				OnGetMempoolInfoAsync = async () => await Task.FromResult(ParseMemPoolInfo(memPoolMinFee)),
+				OnGetMempoolInfoAsync = async () => await Task.FromResult(ParseMempoolInfo(mempoolMinFee)),
 				OnEstimateSmartFeeAsync = async (target, _) =>
 					await Task.FromResult(new EstimateSmartFeeResponse
 					{
@@ -277,7 +275,7 @@ namespace WalletWasabi.Tests.UnitTests
 					})
 			};
 
-		private static MemPoolInfo ParseMemPoolInfo(double memPoolMinFee)
+		private static MemPoolInfo ParseMempoolInfo(double mempoolMinFee)
 		{
 			var mempoolInfoWithHistogram = File.ReadAllText("./UnitTests/Data/MempoolInfoWithHistogram.json");
 			var jo = JObject.Parse(mempoolInfoWithHistogram);
@@ -285,7 +283,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			return new MemPoolInfo()
 			{
-				MemPoolMinFee = memPoolMinFee,
+				MemPoolMinFee = mempoolMinFee,
 				Histogram = feeHistogram.Properties()
 					.Where(p => p.Name != "total_fees")
 					.Select( p => new FeeRateGroup
@@ -300,5 +298,5 @@ namespace WalletWasabi.Tests.UnitTests
 					.ToArray()
 			};
 		}
-	}	
+	}
 }

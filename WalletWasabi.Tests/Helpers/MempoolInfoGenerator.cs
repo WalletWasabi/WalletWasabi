@@ -5,11 +5,11 @@ using NBitcoin;
 
 namespace WalletWasabi.Tests.Helpers
 {
-	public class MemPoolInfoGenerator
+	public class MempoolInfoGenerator
 	{
-		private static Random rnd = new Random();
+		private static readonly Random Random = new Random();
 
-		private static int[] FeeLimits = new[]
+		private static readonly int[] FeeLimits = new[]
 		{ 
 			1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 17, 20, 25, 30, 40, 50, 60, 70, 80,
 			100, 120, 140, 170, 200, 250, 300, 400, 500, 600, 700, 800, 1000,
@@ -19,9 +19,9 @@ namespace WalletWasabi.Tests.Helpers
 		private static (int from, int to)[] FeeRanges = FeeLimits.Zip(FeeLimits.Skip(1), (from, to) => (from, to)).ToArray(); 
 
 		public static FeeRate GenerateFeeRateForTarget(int target)
-			=> new FeeRate((decimal)(4_000 / (target * target) * rnd.Gaussian(1.0, 0.2)));
+			=> new FeeRate((decimal)(4_000 / (target * target) * Random.Gaussian(1.0, 0.2)));
 
-		public static MemPoolInfo GenerateMemPoolInfo()
+		public static MemPoolInfo GenerateMempoolInfo()
 		{
 			var histogram = GenerateHistogram().ToArray();
 			var totalSize = (ulong)histogram.Sum(x => (decimal)x.Sizes);
@@ -44,8 +44,8 @@ namespace WalletWasabi.Tests.Helpers
 
 		private static FeeRateGroup GenerateFeeRateGroup(int from, int to)
 		{
-			var count = Math.Max(1, rnd.Gaussian(10_000 - 5 * to, 1_000));
-			var sizes = count * Math.Max(250, rnd.Gaussian(500, 100));
+			var count = Math.Max(1, Random.Gaussian(10_000 - 5 * to, 1_000));
+			var sizes = count * Math.Max(250, Random.Gaussian(500, 100));
 			return new FeeRateGroup
 			{
 				Count = (uint)count,

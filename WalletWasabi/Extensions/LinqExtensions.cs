@@ -202,9 +202,8 @@ namespace System.Linq
 			TAccumulate previous = seed;
 			foreach (var item in source)
 			{
-				var result = func(previous, item);
-				previous = result;
-				yield return result;
+				previous = func(previous, item);
+				yield return previous;
 			}
 		}
 	}
