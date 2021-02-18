@@ -215,7 +215,8 @@ namespace WalletWasabi.Packager
 				process.WaitForExit();
 			}
 
-			var hdutilCreateArgs = string.Join(" ",
+			var hdutilCreateArgs = string.Join(
+				" ",
 				new string[]
 				{
 					"create",
@@ -236,7 +237,8 @@ namespace WalletWasabi.Packager
 				process.WaitForExit();
 			}
 
-			var hdutilConvertArgs = string.Join(" ",
+			var hdutilConvertArgs = string.Join(
+				" ",
 				new string[]
 				{
 					"convert",
