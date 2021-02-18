@@ -1117,7 +1117,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				var smartCoin = new SmartCoin(stx, bechCoin.Outpoint.N, key);
 				key.AnonymitySet = tx.GetAnonymitySet(bechCoin.Outpoint.N);
 
-				var chaumianClient = new CoinJoinClient(synchronizer, rpc.Network, keyManager);
+				var chaumianClient = new CoinJoinClient(synchronizer, rpc.Network, keyManager, new Kitchen());
 
 				participants.Add((smartCoin, chaumianClient));
 			}
@@ -1237,8 +1237,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			key3.AnonymitySet = tx3.GetAnonymitySet(bech3Coin.Outpoint.N);
 			key4.AnonymitySet = tx4.GetAnonymitySet(bech4Coin.Outpoint.N);
 
-			var chaumianClient1 = new CoinJoinClient(synchronizer, rpc.Network, keyManager);
-			var chaumianClient2 = new CoinJoinClient(synchronizer, rpc.Network, keyManager);
+			var chaumianClient1 = new CoinJoinClient(synchronizer, rpc.Network, keyManager, new Kitchen());
+			var chaumianClient2 = new CoinJoinClient(synchronizer, rpc.Network, keyManager, new Kitchen());
 			try
 			{
 				chaumianClient1.Start(); // Exactly delay it for 2 seconds, this will make sure of timeout later.

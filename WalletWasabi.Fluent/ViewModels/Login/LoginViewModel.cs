@@ -98,7 +98,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 		private async Task LoginWalletAsync()
 		{
-			_closedWalletVm.Wallet.Login();
+			_closedWalletVm.Wallet.Login(Password);
 			_closedWalletVm.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
 
 			var destination = await _walletManagerViewModel.LoadWalletAsync(_closedWalletVm);
