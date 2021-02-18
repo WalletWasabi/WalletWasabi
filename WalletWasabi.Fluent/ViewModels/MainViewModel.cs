@@ -197,27 +197,25 @@ namespace WalletWasabi.Fluent.ViewModels
 					return null;
 				});
 
-			RxApp.MainThreadScheduler.Schedule(async () =>
+			try
 			{
-				try
+				_legalChecker.WaitAndGetLatestDocumentAsync().ContinueWith(_ =>
 				{
-					await _legalChecker.WaitAndGetLatestDocumentAsync();
 					LegalDocumentsViewModel.RegisterAsyncLazy(async () =>
 					{
 						var document = await _legalChecker.WaitAndGetLatestDocumentAsync();
 						return new LegalDocumentsViewModel(document.Content);
 					});
-
 					_searchPage.RegisterSearchEntry(LegalDocumentsViewModel.MetaData);
-				}
-				catch (Exception ex)
+				});
+			}
+			catch (Exception ex)
+			{
+				if (ex is not OperationCanceledException)
 				{
-					if (ex is not OperationCanceledException)
-					{
-						Logger.LogError("Failed to get Legal documents.", ex);
-					}
+					Logger.LogError("Failed to get Legal documents.", ex);
 				}
-			});
+			}
 
 			UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
 			BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
