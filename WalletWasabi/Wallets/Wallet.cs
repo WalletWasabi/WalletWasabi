@@ -95,7 +95,7 @@ namespace WalletWasabi.Wallets
 
 		public bool IsLoggedIn { get; private set; }
 
-		private Kitchen Kitchen { get; } = new();
+		public Kitchen Kitchen { get; } = new();
 
 		public void Login(string password)
 		{
