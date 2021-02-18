@@ -260,34 +260,48 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
 		{
+			double[] xAxisValues;
+			string[] xAxisLabels;
+			double[] yAxisValues;
+
 			if (_owner.Wallet.Network != Network.TestNet)
 			{
-				XAxisValues = feeEstimates.Select(x => (double)x.Key).Reverse().ToArray();
+				var xs = feeEstimates.Select(x => (double)x.Key).ToArray();
 
-				XAxisLabels = feeEstimates.Select(x => x.Key)
+				xAxisLabels = feeEstimates.Select(x => x.Key)
 					.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
 					.Reverse()
 					.ToArray();
 
-				YAxisValues = feeEstimates.Select(x => (double)x.Value).Reverse().ToArray();
+				var ys = feeEstimates.Select(x => (double)x.Value).ToArray();
+#if false
+				var min = xs.Min();
+				var max = xs.Max();
+				var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
+
+				var ts = new List<double>();
+				var xts = new List<double>();
+
+				for (double t = min; t <= max; t += 1)
+				{
+					double xt = spline.Interpolate(t);
+					ts.Add(t);
+					xts.Add(xt);
+				}
+
+				ts.Reverse();
+				xts.Reverse();
+
+				xAxisValues = ts.ToArray();
+				yAxisValues = xts.ToArray();
+#else
+				xAxisValues = xs.Reverse().ToArray();
+				yAxisValues = ys.Reverse().ToArray();
+#endif
 			}
 			else
 			{
-				XAxisLabels = new string[]
-				{
-					"1w",
-					"3d",
-					"1d",
-					"12h",
-					"6h",
-					"3h",
-					"1h",
-					"30m",
-					"20m",
-					"fastest"
-				};
-
-				XAxisValues = new double[]
+				xAxisValues = new double[]
 				{
 					1008,
 					432,
@@ -301,7 +315,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					1,
 				};
 
-				YAxisValues = new double[]
+				xAxisLabels = new string[]
+				{
+					"1w",
+					"3d",
+					"1d",
+					"12h",
+					"6h",
+					"3h",
+					"1h",
+					"30m",
+					"20m",
+					"fastest"
+				};
+
+				yAxisValues = new double[]
 				{
 					4,
 					4,
@@ -315,6 +343,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					185
 				};
 			}
+
+			XAxisValues = xAxisValues;
+			XAxisLabels = xAxisLabels;
+			YAxisValues = yAxisValues;
 		}
 
 		private decimal GetYAxisValueFromXAxisCurrentValue(double xValue)
