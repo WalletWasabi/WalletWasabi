@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using WalletWasabi.Fluent.MathNet;
 
-namespace WalletWasabi.Fluent.ViewModels
+namespace WalletWasabi.Fluent.ViewModels.LineChartDemo
 {
-	public class TestLineChartViewModel
+	public class SendLineChartViewModel
 	{
 		public double XAxisCurrentValue { get; set; } = 36;
 
