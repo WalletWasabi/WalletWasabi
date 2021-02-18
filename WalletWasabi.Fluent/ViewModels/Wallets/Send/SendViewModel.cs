@@ -59,8 +59,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			ExchangeRate = walletVm.Wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();
 
-			this.ValidateProperty(x=>x.To, ValidateToField);
-			this.ValidateProperty(x=>x.AmountBtc, ValidateAmount);
+			this.ValidateProperty(x => x.To, ValidateToField);
+			this.ValidateProperty(x => x.AmountBtc, ValidateAmount);
 
 			this.WhenAnyValue(x => x.To)
 				.Subscribe(ParseToField);
@@ -90,7 +90,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.Create(() =>
 			{
-				var password = "foo";
 				var transactionInfo = _transactionInfo;
 				var wallet = _owner.Wallet;
 				var targetAnonset = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
@@ -105,17 +104,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				try
 				{
 					var txRes = wallet.BuildTransaction(
-						password,
+						wallet.Kitchen.SaltSoup(),
 						intent,
 						FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
 						allowUnconfirmed: true,
 						mixedCoins.Select(x => x.OutPoint));
-					// private coins enough.
-					Navigate().To(new OptimisePrivacyViewModel());
+
+					// Private coins are enough.
+					Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, txRes));
 				}
 				catch (NotEnoughFundsException)
 				{
-					// not enough private coins
+					// Not enough private coins.
 					Navigate().To(new PrivacyControlViewModel());
 				}
 			});
@@ -140,7 +140,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private void ValidateToField(IValidationErrors errors)
 		{
 			if (!string.IsNullOrWhiteSpace(To) &&
-			    !AddressStringParser.TryParse(To, _owner.Wallet.Network, out BitcoinUrlBuilder? url))
+				!AddressStringParser.TryParse(To, _owner.Wallet.Network, out BitcoinUrlBuilder? url))
 			{
 				errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
 			}

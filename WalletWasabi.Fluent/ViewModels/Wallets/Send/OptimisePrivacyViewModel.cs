@@ -1,56 +1,83 @@
+using NBitcoin;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
+using ReactiveUI;
+using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
 	[NavigationMetaData(Title = "Optimise your privacy")]
 	public partial class OptimisePrivacyViewModel : RoutableViewModel
 	{
+		private readonly TransactionInfo _transactionInfo;
+		private readonly Wallet _wallet;
+		private readonly BuildTransactionResult _requestedTransaction;
+
 		[AutoNotify] private ObservableCollection<PrivacySuggestionControlViewModel> _privacySuggestions;
-		[AutoNotify] private PrivacySuggestionControlViewModel _selectedPrivacySuggestion;
+		[AutoNotify] private PrivacySuggestionControlViewModel? _selectedPrivacySuggestion;
 
-		public OptimisePrivacyViewModel()
+		public OptimisePrivacyViewModel(Wallet wallet,
+			TransactionInfo transactionInfo, BuildTransactionResult requestedTransaction)
 		{
+			_wallet = wallet;
+			_requestedTransaction = requestedTransaction;
+			_transactionInfo = transactionInfo;
+
 			_privacySuggestions = new ObservableCollection<PrivacySuggestionControlViewModel>();
+		}
 
-			_privacySuggestions.Add(new PrivacySuggestionControlViewModel
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
+		{
+			IsBusy = true;
+			base.OnNavigatedTo(inStack, disposables);
+
+			RxApp.MainThreadScheduler.Schedule(async () =>
 			{
-				Title = "1.13 BTC",
-				Caption = "Less",
-				Benefits = new[]
-				{
-					"Send 0.01% Less",
-					"Improved Privacy",
-					"Save on transaction fees"
-				},
-				OptimisationLevel = PrivacyOptimisationLevel.Better
-			});
+				var intent = new PaymentIntent(
+					destination: _transactionInfo.Address,
+					amount: MoneyRequest.CreateAllRemaining(subtractFee: true),
+					label: _transactionInfo.Labels);
 
-			_privacySuggestions.Add(new PrivacySuggestionControlViewModel
-			{
-				Title = "1.2 BTC",
-				Caption = "Standard",
-				Benefits = new[]
+				if (_requestedTransaction.SpentCoins.Count() > 1)
 				{
-					"Send Exact Amount"
-				},
-				OptimisationLevel = PrivacyOptimisationLevel.Standard
-			});
+					var smallerTransaction = _wallet.BuildTransaction(
+						_wallet.Kitchen.SaltSoup(),
+						intent,
+						FeeStrategy.CreateFromFeeRate(_transactionInfo.FeeRate),
+						allowUnconfirmed: true,
+						_requestedTransaction
+							.SpentCoins
+							.OrderBy(x => x.Amount)
+							.Skip(1)
+							.Select(x => x.OutPoint));
 
-			_privacySuggestions.Add(new PrivacySuggestionControlViewModel
-			{
-				Title = "1.27 BTC",
-				Caption = "Extra",
-				Benefits = new[]
-				{
-					"Send 0.01% More",
-					"Improved Privacy",
-					"Save on transaction fees"
-				},
-				OptimisationLevel = PrivacyOptimisationLevel.Better
-			});
+					_privacySuggestions.Add(new PrivacySuggestionControlViewModel(smallerTransaction));
+				}
 
-			SelectedPrivacySuggestion = _privacySuggestions[1];
+				var exactSuggestion = new PrivacySuggestionControlViewModel(_requestedTransaction);
+
+				_privacySuggestions.Add(exactSuggestion);
+
+				var largerTransaction = _wallet.BuildTransaction(
+					_wallet.Kitchen.SaltSoup(),
+					intent,
+					FeeStrategy.CreateFromFeeRate(_transactionInfo.FeeRate),
+					allowUnconfirmed: true,
+					_requestedTransaction.SpentCoins.Select(x => x.OutPoint));
+
+				_privacySuggestions.Add(new PrivacySuggestionControlViewModel(largerTransaction));
+
+				SelectedPrivacySuggestion = exactSuggestion;
+
+				IsBusy = false;
+			});
 		}
 	}
 }
