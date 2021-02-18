@@ -32,7 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			WalletManagerViewModel walletManagerViewModel)
 		{
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
-			var walletManager = walletManagerViewModel.Model;
+			var walletManager = walletManagerViewModel.WalletManager;
 			var network = walletManager.Network;
 
 			Mnemonics.ToObservableChangeSet().ToCollection()

@@ -6,7 +6,6 @@ using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Login
@@ -22,12 +21,13 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 		[AutoNotify] private bool _isPasswordNeeded;
 		[AutoNotify] private string _walletName;
 
-		public LoginViewModel(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletVm, LegalChecker legalChecker)
+		public LoginViewModel(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletVm)
 		{
 			_walletManagerViewModel = walletManagerViewModel;
 			_closedWalletVm = closedWalletVm;
 
 			var wallet = _closedWalletVm.Wallet;
+			var legalChecker = walletManagerViewModel.LegalChecker;
 
 			KeyManager = wallet.KeyManager;
 			IsPasswordNeeded = !KeyManager.IsWatchOnly;
