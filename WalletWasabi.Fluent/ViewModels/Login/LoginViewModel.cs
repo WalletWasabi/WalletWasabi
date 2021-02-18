@@ -49,7 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 				if (!IsPasswordIncorrect)
 				{
-					wallet.Login();
+					wallet.Login(Password);
 					walletViewModelBase.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
 
 					// TODO: navigate to the wallet welcome page
