@@ -74,7 +74,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			{
 				switch (operation.Name)
 				{
-					case "KEY": strobe.Key(ByteHelpers.FromHex(operation.InputData), false); break;
+					case "KEY":
+						strobe.Key(ByteHelpers.FromHex(operation.InputData), false);
+						break;
+
 					case "AD":
 						if (operation.IsMeta)
 						{
