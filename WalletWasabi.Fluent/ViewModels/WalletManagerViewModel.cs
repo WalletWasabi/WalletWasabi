@@ -106,7 +106,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public BitcoinStore BitcoinStore { get; }
 
-		public async Task<WalletViewModelBase?> LoginWalletAsync(ClosedWalletViewModel closedWalletViewModel)
+		public async Task<WalletViewModelBase?> LoadWalletAsync(ClosedWalletViewModel closedWalletViewModel)
 		{
 			var wallet = closedWalletViewModel.Wallet;
 
