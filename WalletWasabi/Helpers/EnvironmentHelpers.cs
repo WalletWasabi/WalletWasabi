@@ -24,29 +24,6 @@ namespace WalletWasabi.Helpers
 			// ES_USER_PRESENT = 0x00000004
 		}
 
-		private const int ProcessorCountRefreshIntervalMs = 30000;
-
-		private static volatile int InternalProcessorCount;
-		private static volatile int LastProcessorCountRefreshTicks;
-
-		/// <summary>
-		/// https://github.com/i3arnon/ConcurrentHashSet/blob/master/src/ConcurrentHashSet/PlatformHelper.cs
-		/// </summary>
-		internal static int ProcessorCount
-		{
-			get
-			{
-				var now = Environment.TickCount;
-				if (InternalProcessorCount == 0 || now - LastProcessorCountRefreshTicks >= ProcessorCountRefreshIntervalMs)
-				{
-					InternalProcessorCount = Environment.ProcessorCount;
-					LastProcessorCountRefreshTicks = now;
-				}
-
-				return InternalProcessorCount;
-			}
-		}
-
 		// appName, dataDir
 		private static ConcurrentDictionary<string, string> DataDirDict { get; } = new ConcurrentDictionary<string, string>();
 
