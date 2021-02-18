@@ -1,5 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Login;
@@ -30,6 +32,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					Navigate().To(new LoginViewModel(this, legalChecker));
 				}
 			});
+		}
+
+		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		{
+			base.OnNavigatedTo(inStack, disposable);
+
+			if (Wallet.State == WalletState.Uninitialized)
+			{
+				RxApp.MainThreadScheduler.Schedule(async () =>
+				{
+					await LoadWallet();
+				});
+			}
 		}
 
 		public override string IconName => "web_asset_regular";

@@ -54,8 +54,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 					return true;
 				});
 
-				await _closedWalletVm.LoadWallet();
-
 				if (!IsPasswordIncorrect)
 				{
 					if (legalChecker.TryGetNewLegalDocs(out var document))
