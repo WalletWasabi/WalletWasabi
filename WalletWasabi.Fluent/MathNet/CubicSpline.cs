@@ -10,18 +10,18 @@ namespace WalletWasabi.Fluent.MathNet
     /// <remarks>Supports both differentiation and integration.</remarks>
     public class CubicSpline
     {
-        readonly double[] _x;
-        readonly double[] _c0;
-        readonly double[] _c1;
-        readonly double[] _c2;
-        readonly double[] _c3;
-        readonly Lazy<double[]> _indefiniteIntegral;
+        private readonly double[] _x;
+        private readonly double[] _c0;
+        private readonly double[] _c1;
+        private readonly double[] _c2;
+        private readonly double[] _c3;
+        private readonly Lazy<double[]> _indefiniteIntegral;
 
-        /// <param name="x">sample points (N+1), sorted ascending</param>
+        /// <param name="x">Sample points (N+1), sorted ascending</param>
         /// <param name="c0">Zero order spline coefficients (N)</param>
         /// <param name="c1">First order spline coefficients (N)</param>
-        /// <param name="c2">second order spline coefficients (N)</param>
-        /// <param name="c3">third order spline coefficients (N)</param>
+        /// <param name="c2">Second order spline coefficients (N)</param>
+        /// <param name="c3">Third order spline coefficients (N)</param>
         public CubicSpline(double[] x, double[] c0, double[] c1, double[] c2, double[] c3)
         {
             if (x.Length != c0.Length + 1 || x.Length != c1.Length + 1 || x.Length != c2.Length + 1 || x.Length != c3.Length + 1)
@@ -112,8 +112,8 @@ namespace WalletWasabi.Fluent.MathNet
             for (int i = 2; i < dd.Length - 2; i++)
             {
                 dd[i] = weights[i - 1].AlmostEqual(0.0) && weights[i + 1].AlmostEqual(0.0)
-                    ? (((x[i + 1] - x[i])*diff[i - 1]) + ((x[i] - x[i - 1])*diff[i]))/(x[i + 1] - x[i - 1])
-                    : ((weights[i + 1]*diff[i - 1]) + (weights[i - 1]*diff[i]))/(weights[i + 1] + weights[i - 1]);
+                    ? (((x[i + 1] - x[i]) * diff[i - 1]) + ((x[i] - x[i - 1]) * diff[i])) / (x[i + 1] - x[i - 1])
+                    : ((weights[i + 1] * diff[i - 1]) + (weights[i - 1] * diff[i])) / (weights[i + 1] + weights[i - 1]);
             }
 
             dd[0] = DifferentiateThreePoint(x, y, 0, 0, 1, 2);
@@ -211,9 +211,12 @@ namespace WalletWasabi.Fluent.MathNet
         /// and custom boundary/termination conditions.
         /// </summary>
         public static CubicSpline InterpolateBoundariesSorted(
-	        double[] x, double[] y,
-            SplineBoundaryCondition leftBoundaryCondition, double leftBoundary,
-            SplineBoundaryCondition rightBoundaryCondition, double rightBoundary)
+	        double[] x,
+	        double[] y,
+            SplineBoundaryCondition leftBoundaryCondition,
+	        double leftBoundary,
+            SplineBoundaryCondition rightBoundaryCondition,
+	        double rightBoundary)
         {
             if (x.Length != y.Length)
             {
@@ -365,7 +368,7 @@ namespace WalletWasabi.Fluent.MathNet
         {
             for (int k = 1; k < a.Length; k++)
             {
-                double t = a[k]/b[k - 1];
+                double t = a[k] / b[k - 1];
                 b[k] = b[k] - (t*c[k - 1]);
                 d[k] = d[k] - (t*d[k - 1]);
             }
