@@ -17,6 +17,7 @@ using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Legal;
 using WalletWasabi.Services;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -198,23 +199,24 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			RxApp.MainThreadScheduler.Schedule(async () =>
 			{
-				LegalDocuments? document;
-
-				while (true)
+				try
 				{
-					document = _legalChecker.GetLatestDocument();
-
-					if (document is { })
+					await _legalChecker.WaitAndGetLatestDocumentAsync();
+					LegalDocumentsViewModel.RegisterAsyncLazy(async () =>
 					{
-						break;
-					}
+						var document = await _legalChecker.WaitAndGetLatestDocumentAsync();
+						return new LegalDocumentsViewModel(document.Content);
+					});
 
-					await Task.Delay(TimeSpan.FromSeconds(5));
+					_searchPage.RegisterSearchEntry(LegalDocumentsViewModel.MetaData);
 				}
-
-				LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel(document.Content));
-
-				_searchPage.RegisterSearchEntry(LegalDocumentsViewModel.MetaData);
+				catch (Exception ex)
+				{
+					if (ex is not OperationCanceledException)
+					{
+						Logger.LogError("Failed to get Legal documents.", ex);
+					}
+				}
 			});
 
 			UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
@@ -222,7 +224,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
 
 			OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel(_global.DataDir));
-			OpenDirectory.OpenWalletsFolderViewModel.RegisterLazy(() => new OpenDirectory.OpenWalletsFolderViewModel(_walletManagerViewModel.Model.WalletDirectories.WalletsDir));
+			OpenWalletsFolderViewModel.RegisterLazy(() => new OpenWalletsFolderViewModel(_walletManagerViewModel.Model.WalletDirectories.WalletsDir));
 			OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
 			OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel(_global));
 			OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel(_global));
