@@ -208,6 +208,8 @@ namespace WalletWasabi.Fluent.ViewModels
 					{
 						break;
 					}
+
+					await Task.Delay(TimeSpan.FromSeconds(5));
 				}
 
 				LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel(document.Content));
