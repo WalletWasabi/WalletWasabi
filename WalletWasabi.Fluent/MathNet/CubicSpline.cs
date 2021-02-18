@@ -180,8 +180,10 @@ namespace WalletWasabi.Fluent.MathNet
             // Special case end-points.
             dd[0] = PchipEndPoints(x[1] - x[0], x[2] - x[1], m[0], m[1]);
             dd[dd.Length - 1] = PchipEndPoints(
-                x[x.Length - 1] - x[x.Length - 2], x[x.Length - 2] - x[x.Length - 3],
-                m[m.Length - 1], m[m.Length - 2]);
+                x[x.Length - 1] - x[x.Length - 2],
+                x[x.Length - 2] - x[x.Length - 3],
+                m[m.Length - 1],
+                m[m.Length - 2]);
 
             return InterpolateHermiteSorted(x, y, dd);
         }
@@ -208,7 +210,8 @@ namespace WalletWasabi.Fluent.MathNet
         /// Create a cubic spline interpolation from a set of (x,y) value pairs, sorted ascendingly by x,
         /// and custom boundary/termination conditions.
         /// </summary>
-        public static CubicSpline InterpolateBoundariesSorted(double[] x, double[] y,
+        public static CubicSpline InterpolateBoundariesSorted(
+	        double[] x, double[] y,
             SplineBoundaryCondition leftBoundaryCondition, double leftBoundary,
             SplineBoundaryCondition rightBoundaryCondition, double rightBoundary)
         {
@@ -368,10 +371,10 @@ namespace WalletWasabi.Fluent.MathNet
             }
 
             var x = new double[a.Length];
-            x[x.Length - 1] = d[d.Length - 1]/b[b.Length - 1];
+            x[x.Length - 1] = d[d.Length - 1] / b[b.Length - 1];
             for (int k = x.Length - 2; k >= 0; k--)
             {
-                x[k] = (d[k] - (c[k]*x[k + 1]))/b[k];
+                x[k] = (d[k] - (c[k] * x[k + 1])) / b[k];
             }
 
             return x;
@@ -386,7 +389,7 @@ namespace WalletWasabi.Fluent.MathNet
         {
             int k = LeftSegmentIndex(t);
             var x = t - _x[k];
-            return _c0[k] + x*(_c1[k] + x*(_c2[k] + x*_c3[k]));
+            return _c0[k] + x * (_c1[k] + x * (_c2[k] + x * _c3[k]));
         }
 
         /// <summary>
@@ -398,7 +401,7 @@ namespace WalletWasabi.Fluent.MathNet
         {
             int k = LeftSegmentIndex(t);
             var x = t - _x[k];
-            return _c1[k] + x*(2*_c2[k] + x*3*_c3[k]);
+            return _c1[k] + x * (2 * _c2[k] + x * 3 * _c3[k]);
         }
 
         /// <summary>
@@ -410,7 +413,7 @@ namespace WalletWasabi.Fluent.MathNet
         {
             int k = LeftSegmentIndex(t);
             var x = t - _x[k];
-            return 2*_c2[k] + x*6*_c3[k];
+            return 2 * _c2[k] + x * 6 * _c3[k];
         }
 
         /// <summary>
@@ -421,7 +424,7 @@ namespace WalletWasabi.Fluent.MathNet
         {
             int k = LeftSegmentIndex(t);
             var x = t - _x[k];
-            return _indefiniteIntegral.Value[k] + x*(_c0[k] + x*(_c1[k]/2 + x*(_c2[k]/3 + x*_c3[k]/4)));
+            return _indefiniteIntegral.Value[k] + x * (_c0[k] + x * (_c1[k] / 2 + x * (_c2[k] / 3 + x * _c3[k] / 4)));
         }
 
         /// <summary>
@@ -440,7 +443,7 @@ namespace WalletWasabi.Fluent.MathNet
             for (int i = 0; i < integral.Length - 1; i++)
             {
                 double w = _x[i + 1] - _x[i];
-                integral[i + 1] = integral[i] + w*(_c0[i] + w*(_c1[i]/2 + w*(_c2[i]/3 + w*_c3[i]/4)));
+                integral[i + 1] = integral[i] + w * (_c0[i] + w * (_c1[i] / 2 + w * (_c2[i] / 3 + w * _c3[i] / 4)));
             }
 
             return integral;
