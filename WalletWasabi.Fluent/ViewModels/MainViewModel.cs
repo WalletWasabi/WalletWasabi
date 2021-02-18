@@ -198,12 +198,19 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			RxApp.MainThreadScheduler.Schedule(async () =>
 			{
-				while (_legalChecker.CurrentLegalDocument is null)
+				LegalDocuments? document;
+
+				while (true)
 				{
-					await Task.Delay(TimeSpan.FromSeconds(5));
+					document = _legalChecker.GetLatestDocument();
+
+					if (document is { })
+					{
+						break;
+					}
 				}
 
-				LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel(_legalChecker.CurrentLegalDocument.Content));
+				LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel(document.Content));
 
 				_searchPage.RegisterSearchEntry(LegalDocumentsViewModel.MetaData);
 			});

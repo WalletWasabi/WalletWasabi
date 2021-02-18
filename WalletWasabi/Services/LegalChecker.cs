@@ -43,6 +43,20 @@ namespace WalletWasabi.Services
 			CurrentLegalDocument = await LegalDocuments.LoadAgreedAsync(LegalFolder).ConfigureAwait(false);
 			ProvisionalLegalDocument = await LegalDocuments.LoadAgreedAsync(ProvisionalLegalFolder).ConfigureAwait(false);
 		}
+		
+		public LegalDocuments? GetLatestDocument()
+		{
+			if (ProvisionalLegalDocument is { })
+			{
+				return ProvisionalLegalDocument;
+			}
+			if (CurrentLegalDocument is { })
+			{
+				return CurrentLegalDocument;
+			}
+			
+			return null;
+		}
 
 		public bool TryGetNewLegalDocs([NotNullWhen(true)] out LegalDocuments? legalDocuments)
 		{
