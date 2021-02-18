@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.Threading;
@@ -98,7 +99,7 @@ namespace WalletWasabi.Fluent.ViewModels
 					InsertWallet(vm);
 				});
 
-			Dispatcher.UIThread.Post(() => LoadWallets(walletManager));
+			RxApp.MainThreadScheduler.Schedule(() => EnumerateWallets(walletManager));
 		}
 
 		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _items;
@@ -208,7 +209,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			_walletDictionary.Remove(walletViewModel.Wallet);
 		}
 
-		private void LoadWallets(WalletManager walletManager)
+		private void EnumerateWallets(WalletManager walletManager)
 		{
 			foreach (var wallet in walletManager.GetWallets())
 			{
