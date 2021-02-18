@@ -23,6 +23,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				{
 					Navigate().To(new LoginViewModel(walletManagerViewModel, this));
 				}
+				else
+				{
+					Navigate().To(this);
+				}
 			});
 		}
 
