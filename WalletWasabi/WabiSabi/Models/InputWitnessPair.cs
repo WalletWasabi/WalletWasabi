@@ -9,13 +9,13 @@ namespace WalletWasabi.WabiSabi.Models
 {
 	public class InputWitnessPair
 	{
-		public InputWitnessPair(OutPoint input, WitScript witness)
+		public InputWitnessPair(uint inputIndex, WitScript witness)
 		{
-			Input = input;
+			InputIndex = inputIndex;
 			Witness = witness;
 		}
 
-		public OutPoint Input { get; }
+		public uint InputIndex { get; }
 		public WitScript Witness { get; }
 	}
 }

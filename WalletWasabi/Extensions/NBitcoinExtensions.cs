@@ -454,5 +454,29 @@ namespace NBitcoin
 			var sanityFee = FeeRate.Max(new FeeRate(Money.Coins(spikeSanity)), new FeeRate(2m));
 			return sanityFee;
 		}
+
+		public static int EstimateOutputVsize(this Script script)
+		{
+			if (script.IsScriptType(ScriptType.P2WPKH))
+			{
+				return Constants.OutputSizeInBytes;
+			}
+			else
+			{
+				throw new NotImplementedException($"Weight estimation isn't implemented for provided script type.");
+			}
+		}
+
+		public static int EstimateInputVsize(this Script script)
+		{
+			if (script.IsScriptType(ScriptType.P2WPKH))
+			{
+				return Constants.P2wpkhInputVirtualSize;
+			}
+			else
+			{
+				throw new NotImplementedException($"Weight estimation isn't implemented for provided script type.");
+			}
+		}
 	}
 }
