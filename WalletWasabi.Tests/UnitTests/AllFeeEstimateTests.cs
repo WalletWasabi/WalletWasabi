@@ -249,7 +249,6 @@ namespace WalletWasabi.Tests.UnitTests
 				var feeRates = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 				var estimations = feeRates.Estimations;
 
-				Assert.Equal(estimations.Count, estimations.Distinct().Count());
 				Assert.Subset(Constants.ConfirmationTargets.ToHashSet(), estimations.Keys.ToHashSet());
 				Assert.Equal(estimations.Keys, estimations.Keys.OrderBy(x => x));
 				Assert.Equal(estimations.Values, estimations.Values.OrderByDescending(x => x));

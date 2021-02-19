@@ -131,7 +131,7 @@ namespace NBitcoin.RPC
 					.Range(0, (int)group.Sizes / BlockSize)
 					.Select(b => (Sizes: BlockSize, From: group.From, To: group.To));
 
-			// Filter those groups with very fee transactions (less than 1%).
+			// Filter those groups with very high fee transactions (less than 1%).
 			// This is because in case a few transactions pay unreasonablely high fees
 			// then we don't want our estimations to be affected by those rare cases.
 			var relevantFeeGroups = mempoolInfo.Histogram
@@ -144,7 +144,7 @@ namespace NBitcoin.RPC
 			var splittedFeeGroups = relevantFeeGroups.SelectMany(x => SplitFeeGroupInBlocks(x));
 
 			// Assigns the corresponding confirmation target to the set of fee groups.
-			// We have multiples fee rate groups which size are in the range [0..1MvB)
+			// We have multiple fee rate groups which size are in the range [0..1MvB)
 			//
 			// Example: imagine we have only 4 fee rate groups in the form (size, from, to)
 			//      [(10kb, 400, 500) (55kb, 300, 400) (310kb, 200, 300) (700kb, 100, 200)]
