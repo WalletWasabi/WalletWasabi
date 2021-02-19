@@ -26,8 +26,9 @@ namespace WalletWasabi.WabiSabi
 			Warden = new(parameters.UtxoWardenPeriod, parameters.PrisonFilePath, Config);
 			ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
 
-			Rounds = new();
-			Postman = new(Config, Prison, Rounds, Rpc);
+			Arena = new(parameters.RoundProgressSteppingPeriod);
+
+			Postman = new(Config, Prison, Arena, Rpc);
 		}
 
 		public ConfigWatcher ConfigWatcher { get; }
@@ -36,7 +37,7 @@ namespace WalletWasabi.WabiSabi
 		public CoordinatorParameters Parameters { get; }
 		public IRPCClient Rpc { get; }
 		public PostRequestHandler Postman { get; }
-		public Arena Rounds { get; }
+		public Arena Arena { get; }
 
 		public string WorkDir => Parameters.CoordinatorDataDir;
 		public Prison Prison => Warden.Prison;
@@ -46,12 +47,16 @@ namespace WalletWasabi.WabiSabi
 		{
 			await ConfigWatcher.StartAsync(stoppingToken).ConfigureAwait(false);
 			await Warden.StartAsync(stoppingToken).ConfigureAwait(false);
+			await Arena.StartAsync(stoppingToken).ConfigureAwait(false);
 		}
 
 		public override async Task StopAsync(CancellationToken cancellationToken)
 		{
 			await Postman.DisposeAsync().ConfigureAwait(false);
+
 			await base.StopAsync(cancellationToken).ConfigureAwait(false);
+
+			await Arena.StopAsync(cancellationToken).ConfigureAwait(false);
 			await ConfigWatcher.StopAsync(cancellationToken).ConfigureAwait(false);
 			await Warden.StopAsync(cancellationToken).ConfigureAwait(false);
 		}

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
@@ -20,7 +21,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		[Fact]
 		public async Task SuccessAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Key key = new();
@@ -29,7 +31,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var coinjoin = round.Coinjoin;
 			coinjoin.Inputs.Add(alice.Coins.First().Outpoint);
 			round.Phase = Phase.TransactionSigning;
-			arena.OnTryGetRound = _ => round;
+
+			arena.Rounds.Add(round.Id, round);
 
 			var signedCoinJoin = coinjoin.Clone();
 			signedCoinJoin.Sign(key.GetBitcoinSecret(Network.Main), alice.Coins.First());
@@ -38,27 +41,31 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			handler.SignTransaction(req);
 			Assert.True(round.Coinjoin.Inputs.First().HasWitScript());
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task RoundNotFoundAsync()
 		{
-			MockArena arena = new();
-			arena.OnTryGetRound = _ => null;
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
 
 			await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
 			var req = new TransactionSignaturesRequest(Guid.NewGuid(), null!);
 			var ex = Assert.Throws<WabiSabiProtocolException>(() => handler.SignTransaction(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task WrongPhaseAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			arena.OnTryGetRound = _ => round;
+
+			arena.Rounds.Add(round.Id, round);
 
 			var req = new TransactionSignaturesRequest(round.Id, null!);
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
@@ -71,12 +78,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 				}
 			}
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task WrongCoinjoinSignatureAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Key key1 = new();
@@ -89,7 +98,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			coinjoin.Inputs.Add(alice1.Coins.First().Outpoint);
 			coinjoin.Inputs.Add(alice2.Coins.First().Outpoint);
 			round.Phase = Phase.TransactionSigning;
-			arena.OnTryGetRound = _ => round;
+
+			arena.Rounds.Add(round.Id, round);
 
 			// Submit the signature for the second alice to the first alice's input.
 			var signedCoinJoin = coinjoin.Clone();
@@ -99,6 +109,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			var ex = Assert.Throws<WabiSabiProtocolException>(() => handler.SignTransaction(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.WrongCoinjoinSignature, ex.ErrorCode);
+			await arena.StopAsync(CancellationToken.None);
 		}
 	}
 }

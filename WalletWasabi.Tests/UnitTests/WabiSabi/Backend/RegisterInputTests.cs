@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
@@ -21,10 +22,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		[Fact]
 		public async Task SuccessAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
+
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			arena.OnTryGetRound = _ => round;
+
+			arena.Rounds.Add(round.Id, round);
+
 			MockRpcClient rpc = new();
 			using Key key = new();
 
@@ -44,13 +49,15 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.NotNull(resp.AmountCredentials);
 			Assert.NotNull(resp.WeightCredentials);
 			Assert.True(minAliceDeadline <= alice.Deadline);
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task RoundNotFoundAsync()
 		{
-			MockArena arena = new();
-			arena.OnTryGetRound = _ => null;
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
 
 			MockRpcClient rpc = new();
 			using Key key = new();
@@ -66,15 +73,20 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest();
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task WrongPhaseAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
+
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			arena.OnTryGetRound = _ => round;
+
+			arena.Rounds.Add(round.Id, round);
 			MockRpcClient rpc = new();
 			using Key key = new();
 
@@ -96,30 +108,40 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 				}
 			}
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task NonUniqueInputsAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
+
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			arena.OnTryGetRound = _ => round;
+
+			arena.Rounds.Add(round.Id, round);
 			var inputSigPair = WabiSabiFactory.CreateInputRoundSignaturePair();
 
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(new[] { inputSigPair, inputSigPair }, round);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.NonUniqueInputs, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task TooManyInputsAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
+
 			WabiSabiConfig cfg = new() { MaxInputCountByAlice = 3 };
 			var round = WabiSabiFactory.CreateRound(cfg);
-			arena.OnTryGetRound = _ => round;
+
+			arena.Rounds.Add(round.Id, round);
 
 			MockRpcClient rpc = new();
 			using Key key = new();
@@ -135,35 +157,45 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(WabiSabiFactory.CreateInputRoundSignaturePairs(4), round);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.TooManyInputs, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task InputBannedAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
+
 			Prison prison = new();
 			var pair = WabiSabiFactory.CreateInputRoundSignaturePair();
 			prison.Punish(pair.Input, Punishment.Banned, Guid.NewGuid());
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			arena.OnTryGetRound = _ => round;
+
+			arena.Rounds.Add(round.Id, round);
 
 			await using PostRequestHandler handler = new(cfg, prison, arena, new MockRpcClient());
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(pair, round);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task InputCanBeNotedAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
+
 			Prison prison = new();
 			var pair = WabiSabiFactory.CreateInputRoundSignaturePair();
 			prison.Punish(pair.Input, Punishment.Noted, Guid.NewGuid());
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			arena.OnTryGetRound = _ => round;
+
+			arena.Rounds.Add(round.Id, round);
 
 			await using PostRequestHandler handler = new(cfg, prison, arena, new MockRpcClient());
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(pair, round);
@@ -172,34 +204,45 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			{
 				Assert.NotEqual(WabiSabiProtocolErrorCode.InputBanned, wspex.ErrorCode);
 			}
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task InputCantBeNotedAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
+
 			Prison prison = new();
 			var pair = WabiSabiFactory.CreateInputRoundSignaturePair();
 			prison.Punish(pair.Input, Punishment.Noted, Guid.NewGuid());
 			WabiSabiConfig cfg = new() { AllowNotedInputRegistration = false };
 			var round = WabiSabiFactory.CreateRound(cfg);
-			arena.OnTryGetRound = _ => round;
+
+			arena.Rounds.Add(round.Id, round);
 
 			await using PostRequestHandler handler = new(cfg, prison, arena, new MockRpcClient());
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(pair, round);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task InputNotWhitelistedAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
+
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.Alices.Add(WabiSabiFactory.CreateAlice());
 			Round blameRound = new(round);
-			arena.OnTryGetRound = _ => blameRound;
+
+			arena.Rounds.Add(round.Id, round);
+			arena.Rounds.Add(blameRound.Id, blameRound);
 
 			MockRpcClient rpc = new();
 			using Key key = new();
@@ -214,18 +257,24 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(blameRound);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputNotWhitelisted, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task InputWhitelistedAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
+
 			var pair = WabiSabiFactory.CreateInputRoundSignaturePair();
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.Alices.Add(WabiSabiFactory.CreateAlice(pair));
 			Round blameRound = new(round);
-			arena.OnTryGetRound = _ => blameRound;
+
+			arena.Rounds.Add(round.Id, round);
+			arena.Rounds.Add(blameRound.Id, blameRound);
 
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(pair, blameRound);
@@ -235,12 +284,16 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			{
 				Assert.NotEqual(WabiSabiProtocolErrorCode.InputNotWhitelisted, wspex.ErrorCode);
 			}
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task InputWhitelistedButBannedAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
+
 			Prison prison = new();
 			var pair = WabiSabiFactory.CreateInputRoundSignaturePair();
 			prison.Punish(pair.Input, Punishment.Banned, Guid.NewGuid());
@@ -248,21 +301,28 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.Alices.Add(WabiSabiFactory.CreateAlice(pair));
 			Round blameRound = new(round);
-			arena.OnTryGetRound = _ => blameRound;
+
+			arena.Rounds.Add(round.Id, round);
+			arena.Rounds.Add(blameRound.Id, blameRound);
 
 			await using PostRequestHandler handler = new(cfg, prison, arena, new MockRpcClient());
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(pair, blameRound);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task InputSpentAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
+
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			arena.OnTryGetRound = _ => round;
+
+			arena.Rounds.Add(round.Id, round);
 			MockRpcClient rpc = new();
 			rpc.OnGetTxOutAsync = (_, _, _) => null;
 
@@ -270,15 +330,20 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(round);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputSpent, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task InputUnconfirmedAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
+
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			arena.OnTryGetRound = _ => round;
+
+			arena.Rounds.Add(round.Id, round);
 			MockRpcClient rpc = new();
 			rpc.OnGetTxOutAsync = (_, _, _) => new GetTxOutResponse { Confirmations = 0 };
 
@@ -286,15 +351,20 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(round);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.InputUnconfirmed, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task InputImmatureAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
+
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			arena.OnTryGetRound = _ => round;
+
+			arena.Rounds.Add(round.Id, round);
 			MockRpcClient rpc = new();
 
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(round);
@@ -306,15 +376,20 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 				Assert.Equal(WabiSabiProtocolErrorCode.InputImmature, ex.ErrorCode);
 			}
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task ScriptNotAllowedAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
+
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			arena.OnTryGetRound = _ => round;
+
+			arena.Rounds.Add(round.Id, round);
 			MockRpcClient rpc = new();
 			using Key key = new();
 
@@ -328,15 +403,20 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(round);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.ScriptNotAllowed, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task WrongRoundSignatureAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
+
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			arena.OnTryGetRound = _ => round;
+
+			arena.Rounds.Add(round.Id, round);
 			MockRpcClient rpc = new();
 			using Key key = new();
 
@@ -351,15 +431,20 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(round);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.WrongRoundSignature, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task NotEnoughFundsAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
+
 			WabiSabiConfig cfg = new() { MinRegistrableAmount = Money.Coins(2) };
 			var round = WabiSabiFactory.CreateRound(cfg);
-			arena.OnTryGetRound = _ => round;
+
+			arena.Rounds.Add(round.Id, round);
 			MockRpcClient rpc = new();
 			using Key key = new();
 
@@ -374,15 +459,20 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.NotEnoughFunds, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task TooMuchFundsAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
+
 			WabiSabiConfig cfg = new() { MaxRegistrableAmount = Money.Coins(0.9m) };
 			var round = WabiSabiFactory.CreateRound(cfg);
-			arena.OnTryGetRound = _ => round;
+
+			arena.Rounds.Add(round.Id, round);
 			MockRpcClient rpc = new();
 			using Key key = new();
 
@@ -397,15 +487,20 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.TooMuchFunds, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task TooMuchWeightAsync()
 		{
-			MockArena arena = new();
+			using Arena arena = new(TimeSpan.FromSeconds(1));
+			await arena.StartAsync(CancellationToken.None);
+
 			WabiSabiConfig cfg = new() { RegistrableWeightCredentials = 1 };
 			var round = WabiSabiFactory.CreateRound(cfg);
-			arena.OnTryGetRound = _ => round;
+
+			arena.Rounds.Add(round.Id, round);
 			MockRpcClient rpc = new();
 			using Key key = new();
 
@@ -420,6 +515,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.TooMuchWeight, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
 		}
 	}
 }

@@ -16,7 +16,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 {
 	public class PostRequestHandler : IAsyncDisposable
 	{
-		public PostRequestHandler(WabiSabiConfig config, Prison prison, IArena arena, IRPCClient rpc)
+		public PostRequestHandler(WabiSabiConfig config, Prison prison, Arena arena, IRPCClient rpc)
 		{
 			Config = config;
 			Prison = prison;
@@ -30,7 +30,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 		private AbandonedTasks RunningRequests { get; } = new();
 		public WabiSabiConfig Config { get; }
 		public Prison Prison { get; }
-		public IArena Arena { get; }
+		public Arena Arena { get; }
 		public IRPCClient Rpc { get; }
 		public Network Network { get; }
 
@@ -76,13 +76,10 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 
 					coinRoundSignaturePairs.Add(new Coin(input, txOutResponse.TxOut), inputRoundSignaturePair.RoundSignature);
 				}
-				if (!Arena.TryGetRound(request.RoundId, out var round))
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
-				}
 
-				return round.RegisterAlice(
-					new Alice(coinRoundSignaturePairs),
+				return Arena.RegisterInput(
+					request.RoundId,
+					coinRoundSignaturePairs,
 					request.ZeroAmountCredentialRequests,
 					request.ZeroWeightCredentialRequests);
 			}
@@ -93,11 +90,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				if (!Arena.TryGetRound(request.RoundId, out var round))
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
-				}
-				round.RemoveAlice(request.AliceId);
+				Arena.RemoveInput(request);
 			}
 		}
 
@@ -106,12 +99,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				if (!Arena.TryGetRound(request.RoundId, out var round))
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
-				}
-
-				return round.ConfirmAlice(request);
+				return Arena.ConfirmConnection(request);
 			}
 		}
 
@@ -120,22 +108,12 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				if (!Arena.TryGetRound(request.RoundId, out var round))
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
-				}
 				if (!request.Script.IsScriptType(ScriptType.P2WPKH))
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed);
 				}
 
-				var credentialAmount = -request.AmountCredentialRequests.Delta;
-				return round.RegisterBob(
-					new Bob(
-						request.Script,
-						credentialAmount),
-						request.AmountCredentialRequests,
-						request.WeightCredentialRequests);
+				return Arena.RegisterOutput(request);
 			}
 		}
 
@@ -144,11 +122,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				if (!Arena.TryGetRound(request.RoundId, out var round))
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
-				}
-				round.SubmitTransactionSignatures(request.InputWitnessPairs);
+				Arena.SignTransaction(request);
 			}
 		}
 
