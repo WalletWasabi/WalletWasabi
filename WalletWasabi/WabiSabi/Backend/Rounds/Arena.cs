@@ -15,12 +15,14 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
 	public class Arena : PeriodicRunner
 	{
-		public Arena(TimeSpan period) : base(period)
+		public Arena(TimeSpan period, Network network) : base(period)
 		{
+			Network = network;
 		}
 
 		public Dictionary<Guid, Round> Rounds { get; } = new();
 		private object Lock { get; } = new();
+		public Network Network { get; }
 
 		public bool TryGetRound(Guid roundId, [NotNullWhen(true)] out Round? round)
 		{
@@ -46,8 +48,51 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 			}
 
+			var alice = new Alice(coinRoundSignaturePairs);
+
+			var coins = alice.Coins;
+			if (round.MaxInputCountByAlice < coins.Count())
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooManyInputs);
+			}
+			if (round.IsBlameRound && coins.Select(x => x.Outpoint).Any(x => !round.BlameWhitelist.Contains(x)))
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNotWhitelisted);
+			}
+
+			var inputValueSum = Money.Zero;
+			var inputWeightSum = 0;
+			foreach (var coinRoundSignaturePair in alice.CoinRoundSignaturePairs)
+			{
+				var coin = coinRoundSignaturePair.Key;
+				var signature = coinRoundSignaturePair.Value;
+				var address = (BitcoinWitPubKeyAddress)coin.TxOut.ScriptPubKey.GetDestinationAddress(Network);
+				if (!address.VerifyMessage(round.Hash, signature))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongRoundSignature);
+				}
+				inputValueSum += coin.TxOut.Value;
+
+				// Convert conservative P2WPKH size in virtual bytes to weight units.
+				inputWeightSum += coin.TxOut.ScriptPubKey.EstimateInputVsize() * 4;
+			}
+
+			if (inputValueSum < round.MinRegistrableAmount)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
+			}
+			if (inputValueSum > round.MaxRegistrableAmount)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
+			}
+
+			if (inputWeightSum > round.RegistrableWeightCredentials)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchWeight);
+			}
+
 			return round.RegisterAlice(
-				new Alice(coinRoundSignaturePairs),
+				alice,
 				zeroAmountCredentialRequests,
 				zeroWeightCredentialRequests);
 		}
@@ -79,12 +124,26 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 
 			var credentialAmount = -request.AmountCredentialRequests.Delta;
-			return round.RegisterBob(
-				new Bob(
-					request.Script,
-					credentialAmount),
-					request.AmountCredentialRequests,
-					request.WeightCredentialRequests);
+
+			var bob = new Bob(request.Script, credentialAmount);
+
+			var outputValue = bob.CalculateOutputAmount(round.FeeRate);
+			if (outputValue < round.MinRegistrableAmount)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
+			}
+			if (outputValue > round.MaxRegistrableAmount)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
+			}
+
+			var weightCredentialRequests = request.WeightCredentialRequests;
+			if (-weightCredentialRequests.Delta != bob.CalculateWeight())
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials);
+			}
+
+			return round.RegisterBob(bob, request.AmountCredentialRequests, weightCredentialRequests);
 		}
 
 		public void SignTransaction(TransactionSignaturesRequest request)

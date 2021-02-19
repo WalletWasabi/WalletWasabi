@@ -21,8 +21,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		[Fact]
 		public async Task SuccessAsync()
 		{
-			using Arena arena = new(TimeSpan.FromSeconds(1));
-			await arena.StartAsync(CancellationToken.None);
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Key key = new();
@@ -31,8 +29,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var coinjoin = round.Coinjoin;
 			coinjoin.Inputs.Add(alice.Coins.First().Outpoint);
 			round.Phase = Phase.TransactionSigning;
-
-			arena.Rounds.Add(round.Id, round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
 
 			var signedCoinJoin = coinjoin.Clone();
 			signedCoinJoin.Sign(key.GetBitcoinSecret(Network.Main), alice.Coins.First());
@@ -47,9 +44,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		[Fact]
 		public async Task RoundNotFoundAsync()
 		{
-			using Arena arena = new(TimeSpan.FromSeconds(1));
-			await arena.StartAsync(CancellationToken.None);
-
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
 			await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
 			var req = new TransactionSignaturesRequest(Guid.NewGuid(), null!);
 			var ex = Assert.Throws<WabiSabiProtocolException>(() => handler.SignTransaction(req));
@@ -60,12 +55,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		[Fact]
 		public async Task WrongPhaseAsync()
 		{
-			using Arena arena = new(TimeSpan.FromSeconds(1));
-			await arena.StartAsync(CancellationToken.None);
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-
-			arena.Rounds.Add(round.Id, round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
 
 			var req = new TransactionSignaturesRequest(round.Id, null!);
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
@@ -84,8 +76,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		[Fact]
 		public async Task WrongCoinjoinSignatureAsync()
 		{
-			using Arena arena = new(TimeSpan.FromSeconds(1));
-			await arena.StartAsync(CancellationToken.None);
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Key key1 = new();
@@ -98,8 +88,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			coinjoin.Inputs.Add(alice1.Coins.First().Outpoint);
 			coinjoin.Inputs.Add(alice2.Coins.First().Outpoint);
 			round.Phase = Phase.TransactionSigning;
-
-			arena.Rounds.Add(round.Id, round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
 
 			// Submit the signature for the second alice to the first alice's input.
 			var signedCoinJoin = coinjoin.Clone();

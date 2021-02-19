@@ -74,68 +74,25 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
 			ZeroCredentialsRequest zeroWeightCredentialRequests)
 		{
-			var coins = alice.Coins;
-			if (MaxInputCountByAlice < coins.Count())
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooManyInputs);
-			}
-			if (IsBlameRound && coins.Select(x => x.Outpoint).Any(x => !BlameWhitelist.Contains(x)))
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNotWhitelisted);
-			}
-
-			var inputValueSum = Money.Zero;
-			var inputWeightSum = 0;
-			foreach (var coinRoundSignaturePair in alice.CoinRoundSignaturePairs)
-			{
-				var coin = coinRoundSignaturePair.Key;
-				var signature = coinRoundSignaturePair.Value;
-				var address = (BitcoinWitPubKeyAddress)coin.TxOut.ScriptPubKey.GetDestinationAddress(Network);
-				if (!address.VerifyMessage(Hash, signature))
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongRoundSignature);
-				}
-				inputValueSum += coin.TxOut.Value;
-
-				// Convert conservative P2WPKH size in virtual bytes to weight units.
-				inputWeightSum += coin.TxOut.ScriptPubKey.EstimateInputVsize() * 4;
-			}
-
-			if (inputValueSum < MinRegistrableAmount)
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
-			}
-			if (inputValueSum > MaxRegistrableAmount)
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
-			}
-
-			if (inputWeightSum > RegistrableWeightCredentials)
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchWeight);
-			}
-
-			var amountCredentialResponse = AmountCredentialIssuer.HandleRequest(zeroAmountCredentialRequests);
-			var weightCredentialResponse = WeightCredentialIssuer.HandleRequest(zeroWeightCredentialRequests);
-
 			lock (Lock)
 			{
 				if (Phase != Phase.InputRegistration)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 				}
+
+				var amountCredentialResponse = AmountCredentialIssuer.HandleRequest(zeroAmountCredentialRequests);
+				var weightCredentialResponse = WeightCredentialIssuer.HandleRequest(zeroWeightCredentialRequests);
+
 				alice.SetDeadlineRelativeTo(ConnectionConfirmationTimeout);
 				Alices.Add(alice);
-			}
 
-			return new(alice.Id, amountCredentialResponse, weightCredentialResponse);
+				return new(alice.Id, amountCredentialResponse, weightCredentialResponse);
+			}
 		}
 
 		public ConnectionConfirmationResponse ConfirmAlice(ConnectionConfirmationRequest request)
 		{
-			var amountZeroCredentialResponse = AmountCredentialIssuer.HandleRequest(request.ZeroAmountCredentialRequests);
-			var weightZeroCredentialResponse = WeightCredentialIssuer.HandleRequest(request.ZeroWeightCredentialRequests);
-
 			lock (Lock)
 			{
 				var alice = Alices.FirstOrDefault(x => x.Id == request.AliceId);
@@ -143,6 +100,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound);
 				}
+
+				var amountZeroCredentialResponse = AmountCredentialIssuer.HandleRequest(request.ZeroAmountCredentialRequests);
+				var weightZeroCredentialResponse = WeightCredentialIssuer.HandleRequest(request.ZeroWeightCredentialRequests);
 
 				var realAmountCredentialRequests = request.RealAmountCredentialRequests;
 				var realWeightCredentialRequests = request.RealWeightCredentialRequests;
@@ -195,30 +155,15 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		public OutputRegistrationResponse RegisterBob(Bob bob, RealCredentialsRequest amountCredentialRequests, RealCredentialsRequest weightCredentialRequests)
 		{
-			var outputValue = bob.CalculateOutputAmount(FeeRate);
-			if (outputValue < MinRegistrableAmount)
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
-			}
-			if (outputValue > MaxRegistrableAmount)
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
-			}
-
-			var amountCredentialResponse = AmountCredentialIssuer.HandleRequest(amountCredentialRequests);
-			var weightCredentialResponse = WeightCredentialIssuer.HandleRequest(weightCredentialRequests);
-
-			if (-weightCredentialRequests.Delta != bob.CalculateWeight())
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials);
-			}
-
 			lock (Lock)
 			{
 				if (Phase != Phase.OutputRegistration)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 				}
+
+				var amountCredentialResponse = AmountCredentialIssuer.HandleRequest(amountCredentialRequests);
+				var weightCredentialResponse = WeightCredentialIssuer.HandleRequest(weightCredentialRequests);
 
 				Bobs.Add(bob);
 

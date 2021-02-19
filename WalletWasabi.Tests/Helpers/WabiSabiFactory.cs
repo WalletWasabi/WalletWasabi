@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
@@ -58,6 +59,17 @@ namespace WalletWasabi.Tests.Helpers
 				Network.Main,
 				new InsecureRandom(),
 				new(100m)));
+
+		public static async Task<Arena> CreateAndStartArenaAsync(params Round[] rounds)
+		{
+			Arena arena = new(TimeSpan.FromSeconds(1), rounds.FirstOrDefault()?.Network ?? Network.Main);
+			foreach (var round in rounds)
+			{
+				arena.Rounds.Add(round.Id, round);
+			}
+			await arena.StartAsync(CancellationToken.None).ConfigureAwait(false);
+			return arena;
+		}
 
 		public static Alice CreateAlice(InputRoundSignaturePair inputSigPairs, Key? key = null, Money? value = null) => CreateAlice(new[] { inputSigPairs }, key, value);
 
