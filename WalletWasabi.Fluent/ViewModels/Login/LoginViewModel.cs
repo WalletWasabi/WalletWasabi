@@ -22,8 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 		public LoginViewModel(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel)
 		{
 			var wallet = closedWalletViewModel.Wallet;
-			LegalChecker = walletManagerViewModel.LegalChecker;
-			KeyManager = closedWalletViewModel.Wallet.KeyManager;
+			KeyManager = wallet.KeyManager;
 			IsPasswordNeeded = !wallet.KeyManager.IsWatchOnly;
 			_walletName = wallet.WalletName;
 			_password = "";
@@ -32,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			{
 				string? compatibilityPasswordUsed = null;
 
-				IsPasswordIncorrect = !await Task.Run(() => closedWalletViewModel.Wallet.TryLogin(Password, out compatibilityPasswordUsed));
+				IsPasswordIncorrect = !await Task.Run(() => wallet.TryLogin(Password, out var compatibilityPasswordUsed));
 
 				if (IsPasswordIncorrect)
 				{
@@ -44,7 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 					await ShowErrorAsync(PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
 				}
 
-				var legalResult = await ShowLegalAsync();
+				var legalResult = await ShowLegalAsync(walletManagerViewModel.LegalChecker);
 
 				if (legalResult)
 				{
@@ -52,7 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 				}
 				else
 				{
-					closedWalletViewModel.Wallet.Logout();
+					wallet.Logout();
 					Password = "";
 				}
 			});
@@ -68,8 +67,6 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 			EnableAutoBusyOn(NextCommand);
 		}
-
-		public LegalChecker LegalChecker { get; }
 
 		public KeyManager KeyManager { get; }
 
@@ -93,9 +90,9 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			}
 		}
 
-		private async Task<bool> ShowLegalAsync()
+		private async Task<bool> ShowLegalAsync(LegalChecker legalChecker)
 		{
-			if (!LegalChecker.TryGetNewLegalDocs(out var document))
+			if (!legalChecker.TryGetNewLegalDocs(out var document))
 			{
 				return true;
 			}
@@ -106,7 +103,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 			if (dialogResult.Result)
 			{
-				await LegalChecker.AgreeAsync();
+				await legalChecker.AgreeAsync();
 			}
 
 			return dialogResult.Result;
