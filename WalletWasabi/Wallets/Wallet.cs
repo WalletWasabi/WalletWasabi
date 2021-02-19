@@ -21,6 +21,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
+using WalletWasabi.Userfacing;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Wallets
@@ -97,10 +98,21 @@ namespace WalletWasabi.Wallets
 
 		private Kitchen Kitchen { get; } = new();
 
-		public void Login(string password)
+		public bool TryLogin(string password, out string? compatibilityPasswordUsed)
 		{
-			Kitchen.Cook(password);
-			IsLoggedIn = true;
+			compatibilityPasswordUsed = null;
+
+			if (KeyManager.IsWatchOnly)
+			{
+				IsLoggedIn = true;
+			}
+			else if (PasswordHelper.TryPassword(KeyManager, password, out compatibilityPasswordUsed))
+			{
+				IsLoggedIn = true;
+				Kitchen.Cook(password);
+			}
+
+			return IsLoggedIn;
 		}
 
 		public void Logout() => IsLoggedIn = false;
