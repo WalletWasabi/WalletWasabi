@@ -31,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			{
 				string? compatibilityPasswordUsed = null;
 
-				IsPasswordIncorrect = !await Task.Run(() => wallet.TryLogin(Password, out var compatibilityPasswordUsed));
+				IsPasswordIncorrect = !await Task.Run(() => wallet.TryLogin(Password, out compatibilityPasswordUsed));
 
 				if (IsPasswordIncorrect)
 				{
