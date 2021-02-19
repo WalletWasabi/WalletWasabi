@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -22,6 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 		{
 			var wallet = closedWalletViewModel.Wallet;
 			LegalChecker = walletManagerViewModel.LegalChecker;
+			KeyManager = closedWalletViewModel.Wallet.KeyManager;
 			IsPasswordNeeded = !wallet.KeyManager.IsWatchOnly;
 			_walletName = wallet.WalletName;
 			_password = "";
@@ -51,6 +53,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 				else
 				{
 					closedWalletViewModel.Wallet.Logout();
+					Password = "";
 				}
 			});
 
@@ -67,6 +70,8 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 		}
 
 		public LegalChecker LegalChecker { get; }
+
+		public KeyManager KeyManager { get; }
 
 		public ICommand OkCommand { get; }
 
