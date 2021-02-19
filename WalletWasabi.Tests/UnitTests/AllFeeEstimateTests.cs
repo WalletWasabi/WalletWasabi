@@ -235,24 +235,26 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.True(allFee.Estimations[36] > 1);
 		}
 
-		[Theory]
-		[Repeat(1_000)]
-		public async Task ExhaustiveEstimationsAsync(int dummy)
+		[Fact]
+		public async Task ExhaustiveEstimationsAsync()
 		{
-			var mempoolInfo = MempoolInfoGenerator.GenerateMempoolInfo();
-			var rpc = CreateAndConfigureRpcClient(
-				estimator: MempoolInfoGenerator.GenerateFeeRateForTarget,
-				hasPeersInfo: true
-			);
-			rpc.OnGetMempoolInfoAsync = async () => await Task.FromResult(mempoolInfo);
-			var feeRates = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
-			var estimations = feeRates.Estimations;
+			foreach (var i in Enumerable.Range(0, 1000))
+			{
+				var mempoolInfo = MempoolInfoGenerator.GenerateMempoolInfo();
+				var rpc = CreateAndConfigureRpcClient(
+					estimator: MempoolInfoGenerator.GenerateFeeRateForTarget,
+					hasPeersInfo: true
+				);
+				rpc.OnGetMempoolInfoAsync = async () => await Task.FromResult(mempoolInfo);
+				var feeRates = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
+				var estimations = feeRates.Estimations;
 
-			Assert.Equal(estimations.Count, estimations.Distinct().Count());
-			Assert.Subset(Constants.ConfirmationTargets.ToHashSet(), estimations.Keys.ToHashSet());
-			Assert.Equal(estimations.Keys, estimations.Keys.OrderBy(x => x));
-			Assert.Equal(estimations.Values, estimations.Values.OrderByDescending(x => x));
-			Assert.All(estimations, (e) => Assert.True(e.Value >= mempoolInfo.MemPoolMinFee * 100_000));
+				Assert.Equal(estimations.Count, estimations.Distinct().Count());
+				Assert.Subset(Constants.ConfirmationTargets.ToHashSet(), estimations.Keys.ToHashSet());
+				Assert.Equal(estimations.Keys, estimations.Keys.OrderBy(x => x));
+				Assert.Equal(estimations.Values, estimations.Values.OrderByDescending(x => x));
+				Assert.All(estimations, (e) => Assert.True(e.Value >= mempoolInfo.MemPoolMinFee * 100_000));
+			}
 		}
 
 		private static MockRpcClient CreateAndConfigureRpcClient(Func<int, FeeRate> estimator, bool isSynchronized = true, bool hasPeersInfo = false, double mempoolMinFee = 0.00001000)
