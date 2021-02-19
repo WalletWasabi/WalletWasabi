@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
@@ -13,18 +15,43 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	{
 		private readonly BuildTransactionResult _transactionResult;
 
-		public PrivacySuggestionControlViewModel(BuildTransactionResult transactionResult, PrivacyOptimisationLevel optimisationLevel, params string[] benefits)
+		public PrivacySuggestionControlViewModel(decimal originalAmount, BuildTransactionResult transactionResult, PrivacyOptimisationLevel optimisationLevel, params string[] benefits)
 		{
 			_transactionResult = transactionResult;
 			_optimisationLevel = optimisationLevel;
 			_benefits = benefits;
 
-			var total = transactionResult.OuterWalletOutputs.Sum(x => x.Amount);
-			var fee = transactionResult.Fee;
-			var feePercent = transactionResult.FeePercentOfSent;
+			decimal total;
+
+			if (optimisationLevel == PrivacyOptimisationLevel.Better)
+			{
+				total = transactionResult.OuterWalletOutputs
+					.Select(x => x.Amount)
+					.Concat(transactionResult.InnerWalletOutputs.Select(x => x.Amount))
+					.Sum().ToDecimal(MoneyUnit.BTC);
+
+				var pcDifference = ((total - originalAmount) / originalAmount) * 100;
+
+				_caption = pcDifference > 0 ? $"{pcDifference:F}% More" : $"{Math.Abs(pcDifference):F}% Less";
+			}
+			else
+			{
+				if (!transactionResult.OuterWalletOutputs.Any()) // self spend
+				{
+					total = transactionResult.InnerWalletOutputs
+						.Where(x => !x.HdPubKey.IsInternal)
+						.Select(x => x.Amount)
+						.Sum().ToDecimal(MoneyUnit.BTC);
+				}
+				else
+				{
+					total = transactionResult.OuterWalletOutputs
+						.Select(x => x.Amount)
+						.Sum().ToDecimal(MoneyUnit.BTC);
+				}
+			}
 
 			_title = $"{total} BTC";
-			_caption = $"Fee: {feePercent}% ({fee})";
 		}
 
 		[AutoNotify] private string _title;

@@ -45,6 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private double[] _xAxisValues;
 		[AutoNotify] private double[] _yAxisValues;
 		[AutoNotify] private string[] _xAxisLabels;
+		[AutoNotify] private double  _xAxisCurrentValue = 36;
 
 		private string? _payJoinEndPoint;
 		private bool _parsingUrl;
@@ -347,8 +348,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		}
 
 		public ICommand PasteCommand { get; }
-
-		public double XAxisCurrentValue { get; set; } = 36;
 
 		public double XAxisMinValue { get; set; } = 1;
 
