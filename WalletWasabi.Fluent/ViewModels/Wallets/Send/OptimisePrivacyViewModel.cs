@@ -58,10 +58,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 							.Skip(1)
 							.Select(x => x.OutPoint));
 
-					_privacySuggestions.Add(new PrivacySuggestionControlViewModel(smallerTransaction));
+					_privacySuggestions.Add(new PrivacySuggestionControlViewModel(smallerTransaction, PrivacyOptimisationLevel.Better, "Improved Privacy", "Save on Transaction Fee", "Send Less"));
 				}
 
-				var exactSuggestion = new PrivacySuggestionControlViewModel(_requestedTransaction);
+				var exactSuggestion = new PrivacySuggestionControlViewModel(_requestedTransaction, PrivacyOptimisationLevel.Standard, "Send the Exact Amount");
 
 				_privacySuggestions.Add(exactSuggestion);
 
@@ -72,7 +72,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					allowUnconfirmed: true,
 					_requestedTransaction.SpentCoins.Select(x => x.OutPoint));
 
-				_privacySuggestions.Add(new PrivacySuggestionControlViewModel(largerTransaction));
+				_privacySuggestions.Add(new PrivacySuggestionControlViewModel(largerTransaction, PrivacyOptimisationLevel.Better, "Improved Privacy", "Save on Transaction Fee"));
 
 				SelectedPrivacySuggestion = exactSuggestion;
 

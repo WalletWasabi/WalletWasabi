@@ -68,6 +68,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			this.WhenAnyValue(x => x.AmountBtc)
 				.Subscribe(x => _transactionInfo.Amount = new Money(x, MoneyUnit.BTC));
 
+			this.WhenAnyValue(x => x.XAxisCurrentValue)
+				.Subscribe(x =>
+				{
+					if (x > 0)
+					{
+						_transactionInfo.FeeRate = new FeeRate(GetYAxisValueFromXAxisCurrentValue(x));
+					}
+				});
+
 			Labels.ToObservableChangeSet().Subscribe(x =>
 			{
 				_transactionInfo.Labels = new SmartLabel(_labels.ToArray());
@@ -92,32 +101,37 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				var transactionInfo = _transactionInfo;
 				var wallet = _owner.Wallet;
-				var targetAnonset = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
-				var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonset);
+				var targetAnonymitySet = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+				var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
 
-				var intent = new PaymentIntent(
-					destination: transactionInfo.Address,
-					amount: transactionInfo.Amount,
-					subtractFee: false,
-					label: transactionInfo.Labels);
-
-				try
+				if (mixedCoins.Any())
 				{
-					var txRes = wallet.BuildTransaction(
-						wallet.Kitchen.SaltSoup(),
-						intent,
-						FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-						allowUnconfirmed: true,
-						mixedCoins.Select(x => x.OutPoint));
+					var intent = new PaymentIntent(
+						destination: transactionInfo.Address,
+						amount: transactionInfo.Amount,
+						subtractFee: false,
+						label: transactionInfo.Labels);
 
-					// Private coins are enough.
-					Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, txRes));
+					try
+					{
+						var txRes = wallet.BuildTransaction(
+							wallet.Kitchen.SaltSoup(),
+							intent,
+							FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
+							allowUnconfirmed: true,
+							mixedCoins.Select(x => x.OutPoint));
+
+						// Private coins are enough.
+						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, txRes));
+						return;
+					}
+					catch (NotEnoughFundsException)
+					{
+						// Do Nothing
+					}
 				}
-				catch (NotEnoughFundsException)
-				{
-					// Not enough private coins.
-					Navigate().To(new PrivacyControlViewModel());
-				}
+
+				Navigate().To(new PrivacyControlViewModel());
 			});
 		}
 
