@@ -21,10 +21,10 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<LineChart, double>(nameof(AreaStrokeThickness), 1.0);
 
 		public static readonly StyledProperty<IDashStyle?> AreaStrokeDashStyleProperty =
-			AvaloniaProperty.Register<LineChart, IDashStyle?>(nameof(AreaStrokeDashStyle), null);
+			AvaloniaProperty.Register<LineChart, IDashStyle?>(nameof(AreaStrokeDashStyle));
 
 		public static readonly StyledProperty<PenLineCap> AreaStrokeLineCapProperty =
-			AvaloniaProperty.Register<LineChart, PenLineCap>(nameof(AreaStrokeLineCap), PenLineCap.Flat);
+			AvaloniaProperty.Register<LineChart, PenLineCap>(nameof(AreaStrokeLineCap), PenLineCap.Round);
 
 		public static readonly StyledProperty<PenLineJoin> AreaStrokeLineJoinProperty =
 			AvaloniaProperty.Register<LineChart, PenLineJoin>(nameof(AreaStrokeLineJoin), PenLineJoin.Miter);
@@ -47,16 +47,16 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<LineChart, bool>(nameof(XAxisLogarithmicScale));
 
 		public static readonly StyledProperty<double> XAxisMinValueProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMinValue));
+			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMinValue), double.NaN);
 
 		public static readonly StyledProperty<double> XAxisMaxValueProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMaxValue));
+			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMaxValue), double.NaN);
 
 		public static readonly StyledProperty<double> XAxisCurrentValueProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisCurrentValue));
+			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisCurrentValue), double.NaN);
 
 		public static readonly StyledProperty<double> XAxisOpacityProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisOpacity));
+			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisOpacity), 1.0);
 
 		public static readonly StyledProperty<Point> XAxisOffsetProperty =
 			AvaloniaProperty.Register<LineChart, Point>(nameof(XAxisOffset));
@@ -65,10 +65,10 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<LineChart, IBrush?>(nameof(XAxisStroke));
 
 		public static readonly StyledProperty<double> XAxisStrokeThicknessProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisStrokeThickness));
+			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisStrokeThickness), 1.0);
 
 		public static readonly StyledProperty<double> XAxisArrowSizeProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisArrowSize));
+			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisArrowSize), 3.5);
 
 		public static readonly StyledProperty<double> XAxisMinViableHeightProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMinViableHeight), double.MinValue);
@@ -85,31 +85,28 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<LineChart, IBrush?>(nameof(XAxisLabelForeground));
 
 		public static readonly StyledProperty<double> XAxisLabelOpacityProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisLabelOpacity));
+			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisLabelOpacity), 1.0);
 
 		public static readonly StyledProperty<Point> XAxisLabelOffsetProperty =
-			AvaloniaProperty.Register<LineChart, Point>(nameof(XAxisLabelOffset));
-
-		public static readonly StyledProperty<Size> XAxisLabelSizeProperty =
-			AvaloniaProperty.Register<LineChart, Size>(nameof(XAxisLabelSize));
+			AvaloniaProperty.Register<LineChart, Point>(nameof(XAxisLabelOffset), new Point(0, 5));
 
 		public static readonly StyledProperty<TextAlignment> XAxisLabelAlignmentProperty =
-			AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(XAxisLabelAlignment));
+			AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(XAxisLabelAlignment), TextAlignment.Center);
 
 		public static readonly StyledProperty<double> XAxisLabelAngleProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisLabelAngle));
 
 		public static readonly StyledProperty<FontFamily> XAxisLabelFontFamilyProperty =
-			AvaloniaProperty.Register<LineChart, FontFamily>(nameof(XAxisLabelFontFamily));
+			AvaloniaProperty.Register<LineChart, FontFamily>(nameof(XAxisLabelFontFamily), FontFamily.Default);
 
 		public static readonly StyledProperty<FontStyle> XAxisLabelFontStyleProperty =
 			AvaloniaProperty.Register<LineChart, FontStyle>(nameof(XAxisLabelFontStyle));
 
 		public static readonly StyledProperty<FontWeight> XAxisLabelFontWeightProperty =
-			AvaloniaProperty.Register<LineChart, FontWeight>(nameof(XAxisLabelFontWeight));
+			AvaloniaProperty.Register<LineChart, FontWeight>(nameof(XAxisLabelFontWeight), FontWeight.Normal);
 
 		public static readonly StyledProperty<double> XAxisLabelFontSizeProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisLabelFontSize));
+			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisLabelFontSize), 10.0);
 
 		// XAxis Title
 
@@ -120,7 +117,7 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<LineChart, IBrush?>(nameof(XAxisTitleForeground));
 
 		public static readonly StyledProperty<double> XAxisTitleOpacityProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisTitleOpacity));
+			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisTitleOpacity), 1.0);
 
 		public static readonly StyledProperty<Point> XAxisTitleOffsetProperty =
 			AvaloniaProperty.Register<LineChart, Point>(nameof(XAxisTitleOffset));
@@ -129,22 +126,22 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<LineChart, Size>(nameof(XAxisTitleSize));
 
 		public static readonly StyledProperty<TextAlignment> XAxisTitleAlignmentProperty =
-			AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(XAxisTitleAlignment));
+			AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(XAxisTitleAlignment), TextAlignment.Center);
 
 		public static readonly StyledProperty<double> XAxisTitleAngleProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisTitleAngle));
 
 		public static readonly StyledProperty<FontFamily> XAxisTitleFontFamilyProperty =
-			AvaloniaProperty.Register<LineChart, FontFamily>(nameof(XAxisTitleFontFamily));
+			AvaloniaProperty.Register<LineChart, FontFamily>(nameof(XAxisTitleFontFamily), FontFamily.Default);
 
 		public static readonly StyledProperty<FontStyle> XAxisTitleFontStyleProperty =
 			AvaloniaProperty.Register<LineChart, FontStyle>(nameof(XAxisTitleFontStyle));
 
 		public static readonly StyledProperty<FontWeight> XAxisTitleFontWeightProperty =
-			AvaloniaProperty.Register<LineChart, FontWeight>(nameof(XAxisTitleFontWeight));
+			AvaloniaProperty.Register<LineChart, FontWeight>(nameof(XAxisTitleFontWeight), FontWeight.Normal);
 
 		public static readonly StyledProperty<double> XAxisTitleFontSizeProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisTitleFontSize));
+			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisTitleFontSize), 12.0);
 
 		// YAxis
 
@@ -155,16 +152,16 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<LineChart, bool>(nameof(YAxisLogarithmicScale));
 
 		public static readonly StyledProperty<double> YAxisMinValueProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisMinValue));
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisMinValue), double.NaN);
 
 		public static readonly StyledProperty<double> YAxisMaxValueProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisMaxValue));
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisMaxValue), double.NaN);
 
 		public static readonly StyledProperty<double> YAxisCurrentValueProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisCurrentValue));
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisCurrentValue), double.NaN);
 
 		public static readonly StyledProperty<double> YAxisOpacityProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisOpacity));
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisOpacity), 1.0);
 
 		public static readonly StyledProperty<Point> YAxisOffsetProperty =
 			AvaloniaProperty.Register<LineChart, Point>(nameof(YAxisOffset));
@@ -173,10 +170,10 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<LineChart, IBrush?>(nameof(YAxisStroke));
 
 		public static readonly StyledProperty<double> YAxisStrokeThicknessProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisStrokeThickness));
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisStrokeThickness), 1.0);
 
 		public static readonly StyledProperty<double> YAxisArrowSizeProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisArrowSize));
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisArrowSize), 3.5);
 
 		public static readonly StyledProperty<double> YAxisMinViableHeightProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisMinViableHeight), double.MinValue);
@@ -193,31 +190,28 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<LineChart, IBrush?>(nameof(YAxisLabelForeground));
 
 		public static readonly StyledProperty<double> YAxisLabelOpacityProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisLabelOpacity));
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisLabelOpacity), 1.0);
 
 		public static readonly StyledProperty<Point> YAxisLabelOffsetProperty =
-			AvaloniaProperty.Register<LineChart, Point>(nameof(YAxisLabelOffset));
-
-		public static readonly StyledProperty<Size> YAxisLabelSizeProperty =
-			AvaloniaProperty.Register<LineChart, Size>(nameof(YAxisLabelSize));
+			AvaloniaProperty.Register<LineChart, Point>(nameof(YAxisLabelOffset), new Point(-5, 0));
 
 		public static readonly StyledProperty<TextAlignment> YAxisLabelAlignmentProperty =
-			AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(YAxisLabelAlignment));
+			AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(YAxisLabelAlignment), TextAlignment.Right);
 
 		public static readonly StyledProperty<double> YAxisLabelAngleProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisLabelAngle));
 
 		public static readonly StyledProperty<FontFamily> YAxisLabelFontFamilyProperty =
-			AvaloniaProperty.Register<LineChart, FontFamily>(nameof(YAxisLabelFontFamily));
+			AvaloniaProperty.Register<LineChart, FontFamily>(nameof(YAxisLabelFontFamily), FontFamily.Default);
 
 		public static readonly StyledProperty<FontStyle> YAxisLabelFontStyleProperty =
 			AvaloniaProperty.Register<LineChart, FontStyle>(nameof(YAxisLabelFontStyle));
 
 		public static readonly StyledProperty<FontWeight> YAxisLabelFontWeightProperty =
-			AvaloniaProperty.Register<LineChart, FontWeight>(nameof(YAxisLabelFontWeight));
+			AvaloniaProperty.Register<LineChart, FontWeight>(nameof(YAxisLabelFontWeight), FontWeight.Normal);
 
 		public static readonly StyledProperty<double> YAxisLabelFontSizeProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisLabelFontSize));
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisLabelFontSize), 10.0);
 
 		// YAxis Title
 
@@ -228,7 +222,7 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<LineChart, IBrush?>(nameof(YAxisTitleForeground));
 
 		public static readonly StyledProperty<double> YAxisTitleOpacityProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisTitleOpacity));
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisTitleOpacity), 1.0);
 
 		public static readonly StyledProperty<Point> YAxisTitleOffsetProperty =
 			AvaloniaProperty.Register<LineChart, Point>(nameof(YAxisTitleOffset));
@@ -237,22 +231,22 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<LineChart, Size>(nameof(YAxisTitleSize));
 
 		public static readonly StyledProperty<TextAlignment> YAxisTitleAlignmentProperty =
-			AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(YAxisTitleAlignment));
+			AvaloniaProperty.Register<LineChart, TextAlignment>(nameof(YAxisTitleAlignment), TextAlignment.Center);
 
 		public static readonly StyledProperty<double> YAxisTitleAngleProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisTitleAngle));
 
 		public static readonly StyledProperty<FontFamily> YAxisTitleFontFamilyProperty =
-			AvaloniaProperty.Register<LineChart, FontFamily>(nameof(YAxisTitleFontFamily));
+			AvaloniaProperty.Register<LineChart, FontFamily>(nameof(YAxisTitleFontFamily), FontFamily.Default);
 
 		public static readonly StyledProperty<FontStyle> YAxisTitleFontStyleProperty =
 			AvaloniaProperty.Register<LineChart, FontStyle>(nameof(YAxisTitleFontStyle));
 
 		public static readonly StyledProperty<FontWeight> YAxisTitleFontWeightProperty =
-			AvaloniaProperty.Register<LineChart, FontWeight>(nameof(YAxisTitleFontWeight));
+			AvaloniaProperty.Register<LineChart, FontWeight>(nameof(YAxisTitleFontWeight), FontWeight.Normal);
 
 		public static readonly StyledProperty<double> YAxisTitleFontSizeProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisTitleFontSize));
+			AvaloniaProperty.Register<LineChart, double>(nameof(YAxisTitleFontSize), 12.0);
 
 		// Cursor
 
@@ -263,10 +257,10 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<LineChart, double>(nameof(CursorStrokeThickness), 1.0);
 
 		public static readonly StyledProperty<IDashStyle?> CursorStrokeDashStyleProperty =
-			AvaloniaProperty.Register<LineChart, IDashStyle?>(nameof(CursorStrokeDashStyle), null);
+			AvaloniaProperty.Register<LineChart, IDashStyle?>(nameof(CursorStrokeDashStyle));
 
 		public static readonly StyledProperty<PenLineCap> CursorStrokeLineCapProperty =
-			AvaloniaProperty.Register<LineChart, PenLineCap>(nameof(CursorStrokeLineCap), PenLineCap.Flat);
+			AvaloniaProperty.Register<LineChart, PenLineCap>(nameof(CursorStrokeLineCap), PenLineCap.Round);
 
 		public static readonly StyledProperty<PenLineJoin> CursorStrokeLineJoinProperty =
 			AvaloniaProperty.Register<LineChart, PenLineJoin>(nameof(CursorStrokeLineJoin), PenLineJoin.Miter);
@@ -280,7 +274,7 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<LineChart, IBrush?>(nameof(BorderBrush));
 
 		public static readonly StyledProperty<double> BorderThicknessProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(BorderThickness));
+			AvaloniaProperty.Register<LineChart, double>(nameof(BorderThickness), 1.0);
 
 		public static readonly StyledProperty<double> BorderRadiusXProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(BorderRadiusX));
@@ -323,7 +317,6 @@ namespace WalletWasabi.Fluent.Controls
 				XAxisLabelForegroundProperty,
 				XAxisLabelOpacityProperty,
 				XAxisLabelOffsetProperty,
-				XAxisLabelSizeProperty,
 				XAxisLabelAlignmentProperty,
 				XAxisLabelAngleProperty,
 				XAxisLabelFontFamilyProperty,
@@ -357,7 +350,6 @@ namespace WalletWasabi.Fluent.Controls
 				YAxisLabelForegroundProperty,
 				YAxisLabelOpacityProperty,
 				YAxisLabelOffsetProperty,
-				YAxisLabelSizeProperty,
 				YAxisLabelAlignmentProperty,
 				YAxisLabelAngleProperty,
 				YAxisLabelFontFamilyProperty,
@@ -557,12 +549,6 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(XAxisLabelOffsetProperty);
 			set => SetValue(XAxisLabelOffsetProperty, value);
-		}
-
-		public Size XAxisLabelSize
-		{
-			get => GetValue(XAxisLabelSizeProperty);
-			set => SetValue(XAxisLabelSizeProperty, value);
 		}
 
 		public TextAlignment XAxisLabelAlignment
@@ -767,12 +753,6 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(YAxisLabelOffsetProperty);
 			set => SetValue(YAxisLabelOffsetProperty, value);
-		}
-
-		public Size YAxisLabelSize
-		{
-			get => GetValue(YAxisLabelSizeProperty);
-			set => SetValue(YAxisLabelSizeProperty, value);
 		}
 
 		public TextAlignment YAxisLabelAlignment

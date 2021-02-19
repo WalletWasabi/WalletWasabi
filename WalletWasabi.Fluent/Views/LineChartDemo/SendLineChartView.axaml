@@ -3,11 +3,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.LineChartDemo"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
-             x:Class="WalletWasabi.Fluent.Views.TestLineChartView">
+             x:Class="WalletWasabi.Fluent.Views.LineChartDemo.SendLineChartView">
     <UserControl.DataContext>
-        <vm:TestLineChartViewModel/>
+        <vm:SendLineChartViewModel/>
     </UserControl.DataContext>
     <UserControl.Styles>
         <!-- Slider Fee -->
@@ -71,7 +71,7 @@
         <!-- LineChart XAxis -->
         <Style Selector="c|LineChart.xAxis">
             <Setter Property="XAxisOffset" Value="0,0" />
-            <Setter Property="YAxisOpacity" Value="0.5" />
+            <Setter Property="XAxisOpacity" Value="0.5" />
             <Setter Property="XAxisStroke" Value="{DynamicResource TextForegroundColor}" />
             <Setter Property="XAxisStrokeThickness" Value="0.7" />
             <Setter Property="XAxisArrowSize" Value="3.5" />
@@ -83,8 +83,7 @@
             <Setter Property="XAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
             <Setter Property="XAxisLabelOpacity" Value="0.5" />
             <Setter Property="XAxisLabelAngle" Value="0" />
-            <Setter Property="XAxisLabelOffset" Value="0,10" />
-            <Setter Property="XAxisLabelSize" Value="50,30" />
+            <Setter Property="XAxisLabelOffset" Value="0,20" />
             <Setter Property="XAxisLabelAlignment" Value="Center" />
             <Setter Property="XAxisLabelFontFamily" Value="Arial" />
             <Setter Property="XAxisLabelFontStyle" Value="Normal" />
@@ -106,8 +105,7 @@
             <Setter Property="YAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
             <Setter Property="YAxisLabelOpacity" Value="0.5" />
             <Setter Property="YAxisLabelAngle" Value="0" />
-            <Setter Property="YAxisLabelOffset" Value="0,10" />
-            <Setter Property="YAxisLabelSize" Value="50,30" />
+            <Setter Property="YAxisLabelOffset" Value="0,5" />
             <Setter Property="YAxisLabelAlignment" Value="Center" />
             <Setter Property="YAxisLabelFontFamily" Value="Arial" />
             <Setter Property="YAxisLabelFontStyle" Value="Normal" />
