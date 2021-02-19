@@ -31,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			_message = "";
 			WalletName = walletName;
-			WalletManager = walletManagerViewModel.Model;
+			WalletManager = walletManagerViewModel.WalletManager;
 			Wallets = walletManagerViewModel.Wallets;
 			AbandonedTasks = new AbandonedTasks();
 			CancelCts = new CancellationTokenSource();

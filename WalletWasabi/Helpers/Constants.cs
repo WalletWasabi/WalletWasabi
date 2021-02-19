@@ -52,7 +52,7 @@ namespace WalletWasabi.Helpers
 
 		public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
-		public static readonly Version ClientVersion = new Version(1, 1, 12, 3);
+		public static readonly Version ClientVersion = new Version(1, 1, 12, 4);
 		public static readonly Version HwiVersion = new Version("1.2.1");
 		public static readonly Version BitcoinCoreVersion = new Version("0.21.0");
 		public static readonly Version LegalDocumentsVersion = new Version(2, 0);
@@ -90,6 +90,19 @@ namespace WalletWasabi.Helpers
 			"/Satoshi:0.16.2/",
 			"/Satoshi:0.16.1/",
 			"/Satoshi:0.16.0/",
+		};
+
+		public static readonly int[] ConfirmationTargets = new[]
+		{
+			2, // Twenty Minutes
+			3, // Thirty Minutes
+			6, // One Hour
+			18, // Three Hours
+			36, // Six Hours
+			72, // Twelve Hours
+			144, // One Day
+			432, // Three Days
+			1008, // Seven Days
 		};
 
 		public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax

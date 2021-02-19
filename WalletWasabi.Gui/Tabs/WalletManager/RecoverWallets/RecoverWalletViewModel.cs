@@ -58,55 +58,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		private void RecoverWallet(WalletManagerViewModel owner)
-		{
-			WalletName = Guard.Correct(WalletName);
-			MnemonicWords = Guard.Correct(MnemonicWords).ToLowerInvariant();
-			Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
-
-			string walletFilePath = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
-
-			if (string.IsNullOrWhiteSpace(WalletName))
-			{
-				NotificationHelpers.Error("Invalid wallet name.");
-			}
-			else if (File.Exists(walletFilePath))
-			{
-				NotificationHelpers.Error("Wallet name is already taken.");
-			}
-			else if (string.IsNullOrWhiteSpace(MnemonicWords))
-			{
-				NotificationHelpers.Error("Recovery Words were not supplied.");
-			}
-			else
-			{
-				var minGapLimit = int.Parse(MinGapLimit);
-				var keyPath = KeyPath.Parse(AccountKeyPath);
-
-				try
-				{
-					var mnemonic = new Mnemonic(MnemonicWords);
-					var km = KeyManager.Recover(mnemonic, Password, filePath: null, keyPath, minGapLimit);
-					km.SetNetwork(Global.Network);
-					km.SetFilePath(walletFilePath);
-					WalletManager.AddWallet(km);
-
-					NotificationHelpers.Success("Wallet was recovered.");
-
-					owner.SelectLoadWallet(km);
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-					NotificationHelpers.Error(ex.ToUserFriendlyString());
-				}
-			}
-		}
-
 		private Global Global { get; }
 		private Wallets.WalletManager WalletManager { get; }
-
-		private void ValidatePassword(IValidationErrors errors) => PasswordHelper.ValidatePassword(errors, Password);
 
 		public string Password
 		{
@@ -153,6 +106,53 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 		public ReactiveCommand<Unit, Unit> RecoverCommand { get; }
 
 		private static IEnumerable<string> EnglishWords { get; } = Wordlist.English.GetWords();
+
+		private void RecoverWallet(WalletManagerViewModel owner)
+		{
+			WalletName = Guard.Correct(WalletName);
+			MnemonicWords = Guard.Correct(MnemonicWords).ToLowerInvariant();
+			Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
+
+			string walletFilePath = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
+
+			if (string.IsNullOrWhiteSpace(WalletName))
+			{
+				NotificationHelpers.Error("Invalid wallet name.");
+			}
+			else if (File.Exists(walletFilePath))
+			{
+				NotificationHelpers.Error("Wallet name is already taken.");
+			}
+			else if (string.IsNullOrWhiteSpace(MnemonicWords))
+			{
+				NotificationHelpers.Error("Recovery Words were not supplied.");
+			}
+			else
+			{
+				var minGapLimit = int.Parse(MinGapLimit);
+				var keyPath = KeyPath.Parse(AccountKeyPath);
+
+				try
+				{
+					var mnemonic = new Mnemonic(MnemonicWords);
+					var km = KeyManager.Recover(mnemonic, Password, filePath: null, keyPath, minGapLimit);
+					km.SetNetwork(Global.Network);
+					km.SetFilePath(walletFilePath);
+					WalletManager.AddWallet(km);
+
+					NotificationHelpers.Success("Wallet was recovered.");
+
+					owner.SelectLoadWallet(km);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError(ex);
+					NotificationHelpers.Error(ex.ToUserFriendlyString());
+				}
+			}
+		}
+
+		private void ValidatePassword(IValidationErrors errors) => PasswordHelper.ValidatePassword(errors, Password);
 
 		public override void OnCategorySelected()
 		{

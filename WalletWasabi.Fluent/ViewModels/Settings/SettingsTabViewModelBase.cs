@@ -4,7 +4,6 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Model;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings

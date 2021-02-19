@@ -44,8 +44,7 @@
             <Setter Property="XAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
             <Setter Property="XAxisLabelOpacity" Value="0.5" />
             <Setter Property="XAxisLabelAngle" Value="0" />
-            <Setter Property="XAxisLabelOffset" Value="0,10" />
-            <Setter Property="XAxisLabelSize" Value="50,30" />
+            <Setter Property="XAxisLabelOffset" Value="0,20" />
             <Setter Property="XAxisLabelAlignment" Value="Center" />
             <Setter Property="XAxisLabelFontFamily" Value="Arial" />
             <Setter Property="XAxisLabelFontStyle" Value="Normal" />
@@ -108,7 +107,7 @@
                    ClipToBounds="False"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-        <DockPanel ClipToBounds="False" Width="500" HorizontalAlignment="Stretch" Margin="0 0 0 -32">
+        <DockPanel ClipToBounds="False" Width="550" HorizontalAlignment="Stretch" Margin="0 0 0 -32">
             <StackPanel DockPanel.Dock="Top" Spacing="10">
                 <StackPanel.Styles>
                     <Style Selector="DockPanel > Label">

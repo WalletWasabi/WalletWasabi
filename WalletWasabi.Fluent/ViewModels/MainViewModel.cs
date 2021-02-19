@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Reactive.Concurrency;
 using NBitcoin;
 using ReactiveUI;
@@ -15,14 +14,17 @@ using WalletWasabi.Fluent.ViewModels.Search;
 using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
-using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
+using WalletWasabi.Legal;
+using WalletWasabi.Services;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
 	public partial class MainViewModel : ViewModelBase, IDialogHost
 	{
 		private readonly Global _global;
+		private readonly LegalChecker _legalChecker;
 		[AutoNotify] private bool _isMainContentEnabled;
 		[AutoNotify] private bool _isDialogScreenEnabled;
 		[AutoNotify] private bool _isFullScreenEnabled;
@@ -41,6 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		public MainViewModel(Global global)
 		{
 			_global = global;
+			_legalChecker = global.LegalChecker;
 
 			_dialogScreen = new DialogScreenViewModel(800, 700);
 
@@ -66,7 +69,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				global.BitcoinStore.SmartHeaderChain,
 				global.Synchronizer);
 
-			_walletManagerViewModel = new WalletManagerViewModel(global.WalletManager, global.UiConfig, _global.BitcoinStore);
+			_walletManagerViewModel = new WalletManagerViewModel(global.WalletManager, global.UiConfig, _global.BitcoinStore, _global.LegalChecker);
 
 			_addWalletPage = new AddWalletPageViewModel(
 				_walletManagerViewModel,
@@ -106,7 +109,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			_walletManagerViewModel.WhenAnyValue(x => x.Items.Count, x => x.Actions.Count)
 				.Subscribe(x => _navBar.IsHidden = x.Item1 == 0 && x.Item2 == 0);
 
-			if (!_walletManagerViewModel.Model.AnyWallet(_ => true))
+			if (!_walletManagerViewModel.WalletManager.AnyWallet(_ => true))
 			{
 				MainScreen.To(_addWalletPage);
 			}
@@ -194,14 +197,33 @@ namespace WalletWasabi.Fluent.ViewModels
 					return null;
 				});
 
-			LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel(_global.LegalChecker));
+			RxApp.MainThreadScheduler.Schedule(async () =>
+			{
+				try
+				{
+					await _legalChecker.WaitAndGetLatestDocumentAsync();
+
+					LegalDocumentsViewModel.RegisterAsyncLazy(async () =>
+					{
+						var document = await _legalChecker.WaitAndGetLatestDocumentAsync();
+						return new LegalDocumentsViewModel(document.Content);
+					});
+					_searchPage.RegisterSearchEntry(LegalDocumentsViewModel.MetaData);
+				}
+				catch (Exception ex)
+				{
+					if (ex is not OperationCanceledException)
+					{
+						Logger.LogError("Failed to get Legal documents.", ex);
+					}
+				}
+			});
 
 			UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
 			BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
 			DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
-
 			OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel(_global.DataDir));
-			OpenDirectory.OpenWalletsFolderViewModel.RegisterLazy(() => new OpenDirectory.OpenWalletsFolderViewModel(_walletManagerViewModel.Model.WalletDirectories.WalletsDir));
+			OpenWalletsFolderViewModel.RegisterLazy(() => new OpenWalletsFolderViewModel(_walletManagerViewModel.WalletManager.WalletDirectories.WalletsDir));
 			OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
 			OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel(_global));
 			OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel(_global));

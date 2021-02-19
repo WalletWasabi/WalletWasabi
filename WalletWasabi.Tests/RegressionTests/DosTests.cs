@@ -26,7 +26,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		{
 			RegTestFixture = regTestFixture;
 
-			BackendHttpClient = new ClearnetHttpClient(() => new Uri(RegTestFixture.BackendEndPoint));
+			BackendHttpClient = regTestFixture.BackendHttpClient;
 			SatoshiClient = new SatoshiClient(BackendHttpClient);
 		}
 

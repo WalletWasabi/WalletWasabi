@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
@@ -13,7 +15,8 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Actions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Gui;
-using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Logging;
+using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
@@ -32,10 +35,11 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private ObservableCollection<WalletViewModelBase> _wallets;
 		[AutoNotify] private bool _anyWalletStarted;
 
-		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig, BitcoinStore bitcoinStore)
+		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig, BitcoinStore bitcoinStore, LegalChecker legalChecker)
 		{
-			Model = walletManager;
+			WalletManager = walletManager;
 			BitcoinStore = bitcoinStore;
+			LegalChecker = legalChecker;
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 			_walletActionsDictionary = new Dictionary<WalletViewModelBase, List<NavBarItemViewModel>>();
 			_actions = new ObservableCollection<NavBarItemViewModel>();
@@ -59,7 +63,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				.AsObservableList();
 
 			Observable
-				.FromEventPattern<WalletState>(walletManager, nameof(WalletManager.WalletStateChanged))
+				.FromEventPattern<WalletState>(walletManager, nameof(WalletWasabi.Wallets.WalletManager.WalletStateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(
 					x =>
@@ -82,27 +86,59 @@ namespace WalletWasabi.Fluent.ViewModels
 				});
 
 			Observable
-				.FromEventPattern<Wallet>(walletManager, nameof(WalletManager.WalletAdded))
+				.FromEventPattern<Wallet>(walletManager, nameof(WalletWasabi.Wallets.WalletManager.WalletAdded))
 				.Select(x => x.EventArgs)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(
 					wallet =>
 				{
 					WalletViewModelBase vm = (wallet.State <= WalletState.Starting)
-						? ClosedWalletViewModel.Create(walletManager, wallet)
+						? ClosedWalletViewModel.Create(this, wallet)
 						: WalletViewModel.Create(uiConfig, wallet);
 
 					InsertWallet(vm);
 				});
 
-			Dispatcher.UIThread.Post(() => LoadWallets(walletManager));
+			RxApp.MainThreadScheduler.Schedule(() => EnumerateWallets(walletManager));
 		}
 
 		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _items;
 
-		public WalletManager Model { get; }
+		public WalletManager WalletManager { get; }
 
 		public BitcoinStore BitcoinStore { get; }
+
+		public LegalChecker LegalChecker { get; }
+
+		public async Task<WalletViewModelBase?> LoadWalletAsync(ClosedWalletViewModel closedWalletViewModel)
+		{
+			var wallet = closedWalletViewModel.Wallet;
+
+			if (wallet.State != WalletState.Uninitialized)
+			{
+				throw new Exception("Wallet is already being logged in.");
+			}
+
+			try
+			{
+				await Task.Run(async () => await WalletManager.StartWalletAsync(wallet));
+			}
+			catch (OperationCanceledException ex)
+			{
+				Logger.LogTrace(ex);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+			}
+
+			if (_walletDictionary.ContainsKey(wallet))
+			{
+				return _walletDictionary[wallet];
+			}
+
+			return null;
+		}
 
 		private void OpenClosedWallet(WalletManager walletManager, UiConfig uiConfig, ClosedWalletViewModel closedWalletViewModel)
 		{
@@ -173,11 +209,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			_walletDictionary.Remove(walletViewModel.Wallet);
 		}
 
-		private void LoadWallets(WalletManager walletManager)
+		private void EnumerateWallets(WalletManager walletManager)
 		{
 			foreach (var wallet in walletManager.GetWallets())
 			{
-				InsertWallet(ClosedWalletViewModel.Create(walletManager, wallet));
+				InsertWallet(ClosedWalletViewModel.Create(this, wallet));
 			}
 		}
 
@@ -237,7 +273,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				actions.Add(new SendViewModel(walletViewModel));
 			}
 
-			actions.Add(new ReceiveViewModel(walletViewModel, Model, BitcoinStore));
+			actions.Add(new ReceiveViewModel(walletViewModel, WalletManager, BitcoinStore));
 
 			if (!wallet.KeyManager.IsWatchOnly)
 			{
