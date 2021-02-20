@@ -30,21 +30,6 @@ namespace Nito.Disposables
 		}
 
 		/// <summary>
-		/// Whether this instance is currently disposing or has been disposed.
-		/// </summary>
-		public bool IsDisposeStarted => _context.IsEmpty;
-
-		/// <summary>
-		/// Whether this instance is disposed (finished disposing).
-		/// </summary>
-		public bool IsDisposed => _mre.IsSet;
-
-		/// <summary>
-		/// Whether this instance is currently disposing, but not finished yet.
-		/// </summary>
-		public bool IsDisposing => IsDisposeStarted && !IsDisposed;
-
-		/// <summary>
 		/// The actual disposal method, called only once from <see cref="Dispose()"/>.
 		/// </summary>
 		/// <param name="context">The context for the disposal operation.</param>
@@ -73,11 +58,5 @@ namespace Nito.Disposables
 				_mre.Set();
 			}
 		}
-
-		/// <summary>
-		/// Attempts to update the stored context. This method returns <c>false</c> if this instance has already been disposed (or is being disposed).
-		/// </summary>
-		/// <param name="contextUpdater">The function used to update an existing context. This may be called more than once if more than one thread attempts to simultanously update the context.</param>
-		protected bool TryUpdateContext(Func<T, T> contextUpdater) => _context.TryUpdateContext(contextUpdater);
 	}
 }

@@ -45,29 +45,6 @@ namespace Nito.Disposables.Internals
 			return Interlocked.Exchange(ref _field, null);
 		}
 
-		/// <summary>
-		/// Attempts to update the context of the bound action stored in the field. Returns <c>false</c> if the field is <c>null</c>.
-		/// </summary>
-		/// <param name="contextUpdater">The function used to update an existing context. This may be called more than once if more than one thread attempts to simultanously update the context.</param>
-		public bool TryUpdateContext(Func<T, T> contextUpdater)
-		{
-			while (true)
-			{
-				var original = Interlocked.CompareExchange(ref _field, _field, _field);
-				if (original is null)
-				{
-					return false;
-				}
-
-				var updatedContext = new BoundAction(original, contextUpdater);
-				var result = Interlocked.CompareExchange(ref _field, updatedContext, original);
-				if (ReferenceEquals(original, result))
-				{
-					return true;
-				}
-			}
-		}
-
 		private sealed class BoundAction : IBoundAction
 		{
 			private readonly Action<T> _action;
@@ -77,12 +54,6 @@ namespace Nito.Disposables.Internals
 			{
 				_action = action;
 				_context = context;
-			}
-
-			public BoundAction(BoundAction originalBoundAction, Func<T, T> contextUpdater)
-			{
-				_action = originalBoundAction._action;
-				_context = contextUpdater(originalBoundAction._context);
 			}
 
 			public void Invoke() => _action?.Invoke(_context);
