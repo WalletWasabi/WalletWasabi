@@ -50,7 +50,7 @@ namespace WalletWasabi.Tor
 							using (var client = new TorHttpClient(baseUri, TorSocks5EndPoint))
 							{
 								using HttpRequestMessage message = new(HttpMethod.Get, FallBackTestRequestUri);
-								await client.SendAsync(message, token).ConfigureAwait(false);
+								using HttpResponseMessage _ = await client.SendAsync(message, token).ConfigureAwait(false);
 							}
 
 							// Check if it changed in the meantime...
