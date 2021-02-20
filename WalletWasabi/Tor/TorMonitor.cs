@@ -1,5 +1,4 @@
 using System;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,16 +20,14 @@ namespace WalletWasabi.Tor
 		/// <summary>
 		/// Creates a new instance of the object.
 		/// </summary>
-		public TorMonitor(TimeSpan period, Uri fallBackTestRequestUri, EndPoint torSocks5EndPoint, TorProcessManager torProcessManager) : base(period)
+		public TorMonitor(TimeSpan period, TorHttpClient httpClient, TorProcessManager torProcessManager) : base(period)
 		{
-			FallBackTestRequestUri = fallBackTestRequestUri;
-			TorSocks5EndPoint = torSocks5EndPoint;
+			HttpClient = httpClient;
 			TorProcessManager = torProcessManager;
 		}
 
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
-		private Uri FallBackTestRequestUri { get; }
-		private EndPoint TorSocks5EndPoint { get; }
+		private TorHttpClient HttpClient { get; }
 		private TorProcessManager TorProcessManager { get; }
 
 		/// <inheritdoc/>
@@ -46,12 +43,8 @@ namespace WalletWasabi.Tor
 					{
 						if (torEx.RepField == RepField.HostUnreachable)
 						{
-							Uri baseUri = new Uri($"{FallBackTestRequestUri.Scheme}://{FallBackTestRequestUri.DnsSafeHost}");
-							using (var client = new TorHttpClient(baseUri, TorSocks5EndPoint))
-							{
-								using HttpRequestMessage message = new(HttpMethod.Get, FallBackTestRequestUri);
-								using HttpResponseMessage _ = await client.SendAsync(message, token).ConfigureAwait(false);
-							}
+							Logger.LogInfo("Tor does not work properly. Test fallback URI.");
+							using var _ = await HttpClient.SendAsync(HttpMethod.Get, "/", content: null, token).ConfigureAwait(false);
 
 							// Check if it changed in the meantime...
 							if (TorHttpClient.LatestTorException is TorConnectCommandFailedException torEx2 && torEx2.RepField == RepField.HostUnreachable)
@@ -76,7 +69,7 @@ namespace WalletWasabi.Tor
 						}
 						else
 						{
-							Logger.LogInfo($"Tor is running. Waiting for a confirmation that HTTP requests can pass through.");
+							Logger.LogInfo("Tor is running. Waiting for a confirmation that HTTP requests can pass through.");
 						}
 					}
 				}
