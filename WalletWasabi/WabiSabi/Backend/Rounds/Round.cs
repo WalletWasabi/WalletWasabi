@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
@@ -85,10 +86,34 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var weightCredentialResponse = WeightCredentialIssuer.HandleRequest(zeroWeightCredentialRequests);
 
 				alice.SetDeadlineRelativeTo(ConnectionConfirmationTimeout);
+				foreach (var op in alice.Coins.Select(x => x.Outpoint))
+				{
+					if (RemoveAlicesNoLock(x => x.Coins.Select(x => x.Outpoint).Contains(op)) > 0)
+					{
+						Logger.LogInfo("Updated Alice registration.");
+					}
+				}
 				Alices.Add(alice);
 
 				return new(alice.Id, amountCredentialResponse, weightCredentialResponse);
 			}
+		}
+
+		public int RemoveAlices(Predicate<Alice> match)
+		{
+			lock (Lock)
+			{
+				return RemoveAlicesNoLock(match);
+			}
+		}
+
+		private int RemoveAlicesNoLock(Predicate<Alice> match)
+		{
+			if (Phase != Phase.InputRegistration)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+			}
+			return Alices.RemoveAll(match);
 		}
 
 		public ConnectionConfirmationResponse ConfirmAlice(ConnectionConfirmationRequest request)
@@ -138,18 +163,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 				}
-			}
-		}
-
-		public void RemoveAlice(Guid aliceId)
-		{
-			lock (Lock)
-			{
-				if (Phase != Phase.InputRegistration)
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
-				}
-				Alices.RemoveAll(x => x.Id == aliceId);
 			}
 		}
 

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
@@ -91,10 +92,33 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchWeight);
 			}
 
-			return round.RegisterAlice(
+			var resp = round.RegisterAlice(
 				alice,
 				zeroAmountCredentialRequests,
 				zeroWeightCredentialRequests);
+
+			lock (Lock)
+			{
+				foreach (var otherRound in Rounds.Where(x => x.Key != round.Id).Select(x => x.Value))
+				{
+					foreach (var op in alice.Coins.Select(x => x.Outpoint))
+					{
+						try
+						{
+							if (otherRound.RemoveAlices(x => x.Coins.Select(x => x.Outpoint).Contains(op)) > 0)
+							{
+								Logger.LogInfo("Cross round updated Alice registration.");
+							}
+						}
+						catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
+						{
+							throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
+						}
+					}
+				}
+			}
+
+			return resp;
 		}
 
 		public void RemoveInput(InputsRemovalRequest request)
@@ -103,7 +127,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 			}
-			round.RemoveAlice(request.AliceId);
+			round.RemoveAlices(x => x.Id == request.AliceId);
 		}
 
 		public ConnectionConfirmationResponse ConfirmConnection(ConnectionConfirmationRequest request)
