@@ -19,6 +19,15 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 {
 	public class RegisterInputTests
 	{
+		private static void AssertSingleAliceSuccessfullyRegistered(Round round, DateTimeOffset minAliceDeadline, InputsRegistrationResponse resp)
+		{
+			var alice = Assert.Single(round.Alices);
+			Assert.NotNull(resp);
+			Assert.NotNull(resp.AmountCredentials);
+			Assert.NotNull(resp.WeightCredentials);
+			Assert.True(minAliceDeadline <= alice.Deadline);
+		}
+
 		[Fact]
 		public async Task SuccessAsync()
 		{
@@ -40,11 +49,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
 			var resp = await handler.RegisterInputAsync(req);
-			var alice = Assert.Single(round.Alices);
-			Assert.NotNull(resp);
-			Assert.NotNull(resp.AmountCredentials);
-			Assert.NotNull(resp.WeightCredentials);
-			Assert.True(minAliceDeadline <= alice.Deadline);
+			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -75,11 +80,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
 			var resp = await handler.RegisterInputAsync(req);
-			var alice = Assert.Single(round.Alices);
-			Assert.NotNull(resp);
-			Assert.NotNull(resp.AmountCredentials);
-			Assert.NotNull(resp.WeightCredentials);
-			Assert.True(minAliceDeadline <= alice.Deadline);
+			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -111,12 +112,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
 			var resp = await handler.RegisterInputAsync(req);
-			var alice = Assert.Single(round.Alices);
+			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
 			Assert.Empty(anotherRound.Alices);
-			Assert.NotNull(resp);
-			Assert.NotNull(resp.AmountCredentials);
-			Assert.NotNull(resp.WeightCredentials);
-			Assert.True(minAliceDeadline <= alice.Deadline);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
