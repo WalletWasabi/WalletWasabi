@@ -206,8 +206,9 @@ namespace WalletWasabi.Tests.UnitTests
 
 			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 			Assert.True(allFee.IsAccurate);
-			Assert.Equal(3, allFee.Estimations.Count);
-			Assert.Equal(99, allFee.Estimations[2]);
+			Assert.Equal(4, allFee.Estimations.Count);
+			Assert.Equal(100, allFee.Estimations[2]);
+			Assert.Equal(99, allFee.Estimations[3]);
 			Assert.Equal(75, allFee.Estimations[6]);
 			Assert.Equal(31, allFee.Estimations[1008]);
 		}
@@ -218,7 +219,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var rpc = CreateAndConfigureRpcClient(
 				estimator: target => target switch
 				{
-					2 => new FeeRate(70m),
+					2 => new FeeRate(120m),
 					3 => new FeeRate(10m),
 					6 => new FeeRate(3m),
 					18 => new FeeRate(1m),
@@ -230,7 +231,7 @@ namespace WalletWasabi.Tests.UnitTests
 			);
 
 			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
-			Assert.Equal(70, allFee.Estimations[2]);
+			Assert.Equal(120, allFee.Estimations[2]);
 			Assert.True(allFee.Estimations[3] > 10);
 			Assert.True(allFee.Estimations[36] > 1);
 		}

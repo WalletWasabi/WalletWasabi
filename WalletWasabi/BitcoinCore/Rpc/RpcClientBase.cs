@@ -73,8 +73,8 @@ namespace WalletWasabi.BitcoinCore.Rpc
 							Sizes = p.Value.Value<ulong>("sizes"),
 							Count = p.Value.Value<uint>("count"),
 							Fees = Money.Satoshis(p.Value.Value<ulong>("fees")),
-							From = new FeeRate(Money.Satoshis(p.Value.Value<ulong>("from_feerate"))),
-							To = new FeeRate(Money.Satoshis(p.Value.Value<ulong>("to_feerate")))
+							From = new FeeRate(p.Value.Value<decimal>("from_feerate")),
+							To = new FeeRate(Math.Min(50_000, p.Value.Value<decimal>("to_feerate")))
 						}),
 					_ => Enumerable.Empty<FeeRateGroup>() };
 
