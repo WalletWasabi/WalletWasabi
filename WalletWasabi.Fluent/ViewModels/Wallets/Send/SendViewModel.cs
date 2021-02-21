@@ -302,7 +302,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
 		{
-			const int Divisions = 256;
 			string[] xAxisLabels;
 			double[] xAxisValues;
 			double[] yAxisValues;
@@ -318,7 +317,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				var ys = feeEstimates.Select(x => (double)x.Value).ToArray();
 #if true
 				// GetSmoothValues(xs, ys, out var ts, out var xts);
-				GetSmoothValuesSubdivide(xs, ys, Divisions, out var ts, out var xts);
+				GetSmoothValuesSubdivide(xs, ys, out var ts, out var xts);
 				xAxisValues = ts.ToArray();
 				yAxisValues = xts.ToArray();
 #else
@@ -331,7 +330,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 #if true
 				// GetSmoothValues(xs, ys, out var ts, out var xts);
-				GetSmoothValuesSubdivide(TestNetXAxisValues, TestNetYAxisValues, Divisions, out var ts, out var xts);
+				GetSmoothValuesSubdivide(TestNetXAxisValues, TestNetYAxisValues, out var ts, out var xts);
 				xAxisValues = ts.ToArray();
 				yAxisValues = xts.ToArray();
 #else
@@ -346,8 +345,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			YAxisValues = yAxisValues;
 		}
 
-		private void GetSmoothValuesSubdivide(double[] xs, double[] ys, int divisions, out List<double> ts, out List<double> xts)
+		private void GetSmoothValuesSubdivide(double[] xs, double[] ys, out List<double> ts, out List<double> xts)
 		{
+			const int Divisions = 256;
+
 			ts = new List<double>();
 			xts = new List<double>();
 
@@ -360,7 +361,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					var a = xs[i];
 					var b = xs[i + 1];
 					var range = b - a;
-					var step = range / divisions;
+					var step = range / Divisions;
 
 					var t0 = xs[i];
 					ts.Add(t0);
