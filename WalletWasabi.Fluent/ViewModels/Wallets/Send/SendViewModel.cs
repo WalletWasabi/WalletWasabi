@@ -361,6 +361,60 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			xts.Reverse();
 		}
 
+		private void GetSmoothValuesSubdivide(double[] xs, double[] ys, int divisions, out List<double> ts, out List<double> xts)
+		{
+			ts = new List<double>();
+			xts = new List<double>();
+
+			if (xs.Length > 2)
+			{
+				var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
+
+				// Console.WriteLine("[GetSmoothValuesSubdivide]");
+
+				for (var i = 0; i < xs.Length - 1; i++)
+				{
+					var a = xs[i];
+					var b = xs[i + 1];
+					var range = b - a;
+					var step = range / divisions;
+
+					// Console.WriteLine($"[{i}]\t{b} - {a} = {range} (step={step})");
+
+					var t0 = xs[i];
+					ts.Add(t0);
+					var xt0 = spline.Interpolate(xs[i]);
+					xts.Add(xt0);
+					// Console.WriteLine($"{t0}\t{xt0}");
+
+					for (var t = a + step; t < b; t += step)
+					{
+						var xt = spline.Interpolate(t);
+						ts.Add(t);
+						xts.Add(xt);
+						// Console.WriteLine($"{t}\t{xt}");
+					}
+				}
+
+				var tn = xs[^1];
+				ts.Add(tn);
+				var xtn = spline.Interpolate(xs[^1]);
+				xts.Add(xtn);
+				// Console.WriteLine($"{tn}\t{xtn}");
+			}
+			else
+			{
+				for (var i = 0; i < xs.Length; i++)
+				{
+					ts.Add(xs[i]);
+					xts.Add(ys[i]);
+				}
+			}
+
+			ts.Reverse();
+			xts.Reverse();
+		}
+
 		private decimal GetYAxisValueFromXAxisCurrentValue(double xValue)
 		{
 			if (_xAxisValues is { } && _yAxisValues is { })
