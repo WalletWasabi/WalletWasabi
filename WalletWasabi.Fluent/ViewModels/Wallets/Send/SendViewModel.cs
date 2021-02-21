@@ -260,6 +260,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
 		{
+			const int Divisions = 32;
 			string[] xAxisLabels;
 			double[] xAxisValues;
 			double[] yAxisValues;
@@ -273,8 +274,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				var xs = feeEstimates.Select(x => (double)x.Key).ToArray();
 				var ys = feeEstimates.Select(x => (double)x.Value).ToArray();
-#if false
-				GetSmoothValues(xs, ys, out var ts, out var xts);
+#if true
+				// GetSmoothValues(xs, ys, out var ts, out var xts);
+				GetSmoothValuesSubdivide(xs, ys, Divisions, out var ts, out var xts);
 				xAxisValues = ts.ToArray();
 				yAxisValues = xts.ToArray();
 #else
@@ -326,8 +328,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					4
 				};
 
-#if false
-				GetSmoothValues(xs, ys, out var ts, out var xts);
+#if true
+				// GetSmoothValues(xs, ys, out var ts, out var xts);
+				GetSmoothValuesSubdivide(xs, ys, Divisions, out var ts, out var xts);
 				xAxisValues = ts.ToArray();
 				yAxisValues = xts.ToArray();
 #else
