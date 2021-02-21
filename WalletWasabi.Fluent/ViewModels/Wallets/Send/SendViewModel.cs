@@ -260,7 +260,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
 		{
-			const int Divisions = 32;
+			const int Divisions = 256;
 			string[] xAxisLabels;
 			double[] xAxisValues;
 			double[] yAxisValues;
