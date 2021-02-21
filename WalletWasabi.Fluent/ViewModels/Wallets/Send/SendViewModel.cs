@@ -258,6 +258,48 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			base.OnNavigatedTo(inStack, disposables);
 		}
 
+		private static readonly string[] TestNetXAxisLabels =
+		{
+			"1w",
+			"3d",
+			"1d",
+			"12h",
+			"6h",
+			"3h",
+			"1h",
+			"30m",
+			"20m",
+			"fastest"
+		};
+
+		private static readonly double[] TestNetXAxisValues =
+		{
+			1,
+			2,
+			3,
+			6,
+			18,
+			36,
+			72,
+			144,
+			432,
+			1008
+		};
+
+		private static readonly double[] TestNetYAxisValues =
+		{
+			185,
+			123,
+			123,
+			102,
+			97,
+			57,
+			22,
+			7,
+			4,
+			4
+		};
+
 		private void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
 		{
 			const int Divisions = 256;
@@ -267,7 +309,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (_owner.Wallet.Network != Network.TestNet)
 			{
-				xAxisLabels = feeEstimates.Select(x => x.Key)
+				var labels = feeEstimates.Select(x => x.Key)
 					.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
 					.Reverse()
 					.ToArray();
@@ -283,85 +325,25 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				xAxisValues = xs.Reverse().ToArray();
 				yAxisValues = ys.Reverse().ToArray();
 #endif
+				xAxisLabels = labels;
 			}
 			else
 			{
-				xAxisLabels = new string[]
-				{
-					"1w",
-					"3d",
-					"1d",
-					"12h",
-					"6h",
-					"3h",
-					"1h",
-					"30m",
-					"20m",
-					"fastest"
-				};
-
-				var xs = new double[]
-				{
-					1,
-					2,
-					3,
-					6,
-					18,
-					36,
-					72,
-					144,
-					432,
-					1008
-				};
-
-				var ys = new double[]
-				{
-					185,
-					123,
-					123,
-					102,
-					97,
-					57,
-					22,
-					7,
-					4,
-					4
-				};
-
 #if true
 				// GetSmoothValues(xs, ys, out var ts, out var xts);
-				GetSmoothValuesSubdivide(xs, ys, Divisions, out var ts, out var xts);
+				GetSmoothValuesSubdivide(TestNetXAxisValues, TestNetYAxisValues, Divisions, out var ts, out var xts);
 				xAxisValues = ts.ToArray();
 				yAxisValues = xts.ToArray();
 #else
 				xAxisValues = xs.Reverse().ToArray();
 				yAxisValues = ys.Reverse().ToArray();
 #endif
+				xAxisLabels = TestNetXAxisLabels;
 			}
 
 			XAxisLabels = xAxisLabels;
 			XAxisValues = xAxisValues;
 			YAxisValues = yAxisValues;
-		}
-
-		private void GetSmoothValues(double[] xs, double[] ys, out List<double> ts, out List<double> xts)
-		{
-			var min = xs.Min();
-			var max = xs.Max();
-			var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
-
-			ts = new List<double>();
-			xts = new List<double>();
-
-			for (double t = min; t <= max; t += 1)
-			{
-				var xt = spline.Interpolate(t);
-				ts.Add(t);
-				xts.Add(xt);
-			}
-
-			ts.Reverse();
-			xts.Reverse();
 		}
 
 		private void GetSmoothValuesSubdivide(double[] xs, double[] ys, int divisions, out List<double> ts, out List<double> xts)
@@ -405,6 +387,26 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					ts.Add(xs[i]);
 					xts.Add(ys[i]);
 				}
+			}
+
+			ts.Reverse();
+			xts.Reverse();
+		}
+
+		private void GetSmoothValues(double[] xs, double[] ys, out List<double> ts, out List<double> xts)
+		{
+			var min = xs.Min();
+			var max = xs.Max();
+			var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
+
+			ts = new List<double>();
+			xts = new List<double>();
+
+			for (double t = min; t <= max; t += 1)
+			{
+				var xt = spline.Interpolate(t);
+				ts.Add(t);
+				xts.Add(xt);
 			}
 
 			ts.Reverse();
