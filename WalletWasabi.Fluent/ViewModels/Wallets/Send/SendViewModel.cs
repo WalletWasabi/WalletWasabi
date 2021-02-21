@@ -371,9 +371,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (xs.Length > 2)
 			{
-				var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
-
-				// Console.WriteLine("[GetSmoothValuesSubdivide]");
+				var interpolatePchipSorted = CubicSpline.InterpolatePchipSorted(xs, ys);
 
 				for (var i = 0; i < xs.Length - 1; i++)
 				{
@@ -382,28 +380,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					var range = b - a;
 					var step = range / divisions;
 
-					// Console.WriteLine($"[{i}]\t{b} - {a} = {range} (step={step})");
-
 					var t0 = xs[i];
 					ts.Add(t0);
-					var xt0 = spline.Interpolate(xs[i]);
+					var xt0 = interpolatePchipSorted.Interpolate(xs[i]);
 					xts.Add(xt0);
-					// Console.WriteLine($"{t0}\t{xt0}");
 
 					for (var t = a + step; t < b; t += step)
 					{
-						var xt = spline.Interpolate(t);
+						var xt = interpolatePchipSorted.Interpolate(t);
 						ts.Add(t);
 						xts.Add(xt);
-						// Console.WriteLine($"{t}\t{xt}");
 					}
 				}
 
 				var tn = xs[^1];
 				ts.Add(tn);
-				var xtn = spline.Interpolate(xs[^1]);
+				var xtn = interpolatePchipSorted.Interpolate(xs[^1]);
 				xts.Add(xtn);
-				// Console.WriteLine($"{tn}\t{xtn}");
 			}
 			else
 			{
