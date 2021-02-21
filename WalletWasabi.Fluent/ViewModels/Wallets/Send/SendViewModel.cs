@@ -353,7 +353,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (xs.Length > 2)
 			{
-				var interpolatePchipSorted = CubicSpline.InterpolatePchipSorted(xs, ys);
+				var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
 
 				for (var i = 0; i < xs.Length - 1; i++)
 				{
@@ -364,12 +364,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					var t0 = xs[i];
 					ts.Add(t0);
-					var xt0 = interpolatePchipSorted.Interpolate(xs[i]);
+					var xt0 = spline.Interpolate(xs[i]);
 					xts.Add(xt0);
 
 					for (var t = a + step; t < b; t += step)
 					{
-						var xt = interpolatePchipSorted.Interpolate(t);
+						var xt = spline.Interpolate(t);
 						ts.Add(t);
 						xts.Add(xt);
 					}
@@ -377,7 +377,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				var tn = xs[^1];
 				ts.Add(tn);
-				var xtn = interpolatePchipSorted.Interpolate(xs[^1]);
+				var xtn = spline.Interpolate(xs[^1]);
 				xts.Add(xtn);
 			}
 			else
