@@ -13,5 +13,7 @@ namespace WalletWasabi.Crypto
 
 		public GroupElement Cw { get; }
 		public GroupElement I { get; }
+
+		public override string ToString() => $"{nameof(Cw)}: {Cw}, {nameof(I)}: {I}";
 	}
 }
