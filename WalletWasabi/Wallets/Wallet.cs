@@ -115,7 +115,11 @@ namespace WalletWasabi.Wallets
 			return IsLoggedIn;
 		}
 
-		public void Logout() => IsLoggedIn = false;
+		public void Logout()
+		{
+			Kitchen.CleanUp();
+			IsLoggedIn = false;
+		}
 
 		public void RegisterServices(
 			BitcoinStore bitcoinStore,
