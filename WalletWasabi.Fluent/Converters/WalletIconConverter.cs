@@ -1,24 +1,20 @@
 using System;
+using System.Linq;
 using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Converters
 {
 	public static class WalletIconConverter
 	{
-		public static readonly IValueConverter KeyManagerToImage =
-			new FuncValueConverter<KeyManager, Bitmap>(km =>
+		public static readonly IMultiValueConverter TypesToImage =
+			new FuncMultiValueConverter<WalletType, Bitmap>(parts =>
 			{
-				var type = Enum.TryParse(typeof(WalletType), km.Icon, true, out var typ) && typ is { }
-					? (WalletType)typ
-					: km.IsHardwareWallet
-						? WalletType.Hardware
-						: WalletType.Normal;
-
+				var inputs = parts.ToArray();
+				var type = inputs[0] == WalletType.Unknown ? inputs[1] : inputs[0];
 				return GetBitmap(type);
 			});
 
@@ -33,6 +29,24 @@ namespace WalletWasabi.Fluent.Converters
 					: WalletType.Normal;
 
 				return GetBitmap(type);
+			});
+
+		public static readonly IValueConverter BoolToType =
+			new FuncValueConverter<bool, WalletType>(x => x ? WalletType.Hardware : WalletType.Normal);
+
+		public static readonly IValueConverter StringToType =
+			new FuncValueConverter<string?, WalletType>(x =>
+			{
+				if (x is { })
+				{
+					return Enum.TryParse(typeof(WalletType), x, true, out var typ) && typ is { }
+						? (WalletType) typ
+						: WalletType.Normal;
+				}
+				else
+				{
+					return WalletType.Unknown;
+				}
 			});
 
 		private static Bitmap GetBitmap(WalletType type)
@@ -54,6 +68,7 @@ namespace WalletWasabi.Fluent.Converters
 					break;
 
 				case WalletType.Normal:
+				case WalletType.Unknown:
 					uri = new("avares://WalletWasabi.Fluent/Assets/HardwareIcons/normal.png");
 					break;
 			}

@@ -82,7 +82,14 @@
 
       <!-- Icon -->
       <Viewbox MaxHeight="200">
-        <Image Source="{Binding KeyManager, Converter={x:Static conv:WalletIconConverter.KeyManagerToImage}}" />
+        <Image DataContext="{Binding KeyManager}">
+          <Image.Source>
+            <MultiBinding Converter="{x:Static conv:WalletIconConverter.TypesToImage}">
+              <Binding Path="Icon" Converter="{x:Static conv:WalletIconConverter.StringToType}" />
+              <Binding Path="IsHardwareWallet" Converter="{x:Static conv:WalletIconConverter.BoolToType}" />
+            </MultiBinding>
+          </Image.Source>
+        </Image>
       </Viewbox>
 
     </DockPanel>
