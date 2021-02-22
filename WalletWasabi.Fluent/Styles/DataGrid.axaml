@@ -93,7 +93,7 @@
             <StackPanel Orientation="Horizontal"
                         Grid.Column="1"
                         Spacing="2"
-                        Margin="5 0">
+                        Margin="5 0 0 0">
               <Path Name="AscendingIcon"
                     Fill="{TemplateBinding Foreground}"
                     Stretch="Uniform"

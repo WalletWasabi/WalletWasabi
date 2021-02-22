@@ -39,43 +39,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				var inputRoundSignaturePairs = request.InputRoundSignaturePairs;
-				var inputs = inputRoundSignaturePairs.Select(x => x.Input);
-
-				int inputCount = inputs.Count();
-				if (inputCount != inputs.Distinct().Count())
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NonUniqueInputs);
-				}
-				if (inputs.Any(x => Prison.TryGet(x, out var inmate) && (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted)))
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned);
-				}
-
-				Dictionary<Coin, byte[]> coinRoundSignaturePairs = new();
-				foreach (var inputRoundSignaturePair in inputRoundSignaturePairs)
-				{
-					OutPoint input = inputRoundSignaturePair.Input;
-					var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true).ConfigureAwait(false);
-					if (txOutResponse is null)
-					{
-						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);
-					}
-					if (txOutResponse.Confirmations == 0)
-					{
-						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputUnconfirmed);
-					}
-					if (txOutResponse.IsCoinBase && txOutResponse.Confirmations <= 100)
-					{
-						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputImmature);
-					}
-					if (!txOutResponse.TxOut.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
-					{
-						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed);
-					}
-
-					coinRoundSignaturePairs.Add(new Coin(input, txOutResponse.TxOut), inputRoundSignaturePair.RoundSignature);
-				}
+				Dictionary<Coin, byte[]> coinRoundSignaturePairs = await InputRegistrationHandler.PreProcessAsync(request, Prison, Rpc, Config).ConfigureAwait(false);
 
 				return Arena.RegisterInput(
 					request.RoundId,
