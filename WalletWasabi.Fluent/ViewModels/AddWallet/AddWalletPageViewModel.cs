@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			Title = "Add Wallet";
 			SelectionMode = NavBarItemSelectionMode.Button;
-			var walletManager = walletManagerViewModel.Model;
+			var walletManager = walletManagerViewModel.WalletManager;
 			var network = walletManager.Network;
 
 			var enableBack = default(IDisposable);
@@ -119,15 +119,15 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			EnableAutoBusyOn(CreateWalletCommand);
 		}
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
-			base.OnNavigatedTo(inStack, disposables);
+			base.OnNavigatedTo(isInHistory, disposables);
 
 			_enableCancel = CurrentTarget != NavigationTarget.HomeScreen;
 
 			this.RaisePropertyChanged(WalletName);
 
-			if (!inStack)
+			if (!isInHistory)
 			{
 				WalletName = "";
 			}
@@ -163,8 +163,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		}
 
 		public ICommand CreateWalletCommand { get; }
+
 		public ICommand RecoverWalletCommand { get; }
+
 		public ICommand ImportWalletCommand { get; }
+		
 		public ICommand ConnectHardwareWalletCommand { get; }
 	}
 }

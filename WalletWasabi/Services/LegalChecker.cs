@@ -35,6 +35,7 @@ namespace WalletWasabi.Services
 		public string ProvisionalLegalFolder { get; }
 		public LegalDocuments? CurrentLegalDocument { get; private set; }
 		private LegalDocuments? ProvisionalLegalDocument { get; set; }
+		private TaskCompletionSource<LegalDocuments> LatestDocumentTaskCompletion { get; } = new();
 
 		public async Task InitializeAsync(UpdateChecker updateChecker)
 		{
@@ -42,6 +43,29 @@ namespace WalletWasabi.Services
 			UpdateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
 			CurrentLegalDocument = await LegalDocuments.LoadAgreedAsync(LegalFolder).ConfigureAwait(false);
 			ProvisionalLegalDocument = await LegalDocuments.LoadAgreedAsync(ProvisionalLegalFolder).ConfigureAwait(false);
+
+			if (ProvisionalLegalDocument is { } provisional)
+			{
+				LatestDocumentTaskCompletion.TrySetResult(provisional);
+			}
+			else if (CurrentLegalDocument is { } current)
+			{
+				LatestDocumentTaskCompletion.TrySetResult(current);
+			}
+		}
+
+		public async Task<LegalDocuments> WaitAndGetLatestDocumentAsync()
+		{
+			if (TryGetNewLegalDocs(out var provisionalLegal))
+			{
+				return provisionalLegal;
+			}
+			if (CurrentLegalDocument is { } currentLegal)
+			{
+				return currentLegal;
+			}
+
+			return await LatestDocumentTaskCompletion.Task.ConfigureAwait(false);
 		}
 
 		public bool TryGetNewLegalDocs([NotNullWhen(true)] out LegalDocuments? legalDocuments)
@@ -76,6 +100,7 @@ namespace WalletWasabi.Services
 						await provisionalLegalDocument.ToFileAsync(ProvisionalLegalFolder).ConfigureAwait(false);
 
 						ProvisionalLegalDocument = provisionalLegalDocument;
+						LatestDocumentTaskCompletion.TrySetResult(ProvisionalLegalDocument);
 					}
 				}
 
@@ -119,6 +144,7 @@ namespace WalletWasabi.Services
 					{
 						updateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
 					}
+					LatestDocumentTaskCompletion.TrySetCanceled();
 				}
 
 				_disposedValue = true;

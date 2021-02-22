@@ -25,6 +25,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.Services;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using static WalletWasabi.Crypto.SchnorrBlinding;
 
@@ -52,7 +53,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		public CoinJoinClient(
 			WasabiSynchronizer synchronizer,
 			Network network,
-			KeyManager keyManager)
+			KeyManager keyManager,
+			Kitchen kitchen)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
@@ -60,6 +62,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
 			CcjHostUriAction = Synchronizer.HttpClientFactory.BackendUriGetter;
 			CoordinatorFeepercentToCheck = null;
+			Kitchen = Guard.NotNull(nameof(kitchen), kitchen);
 
 			ExposedLinks = new ConcurrentDictionary<OutPoint, IEnumerable<HdPubKeyBlindedPair>>();
 			_running = StateNotStarted;
@@ -109,13 +112,9 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		private CancellationTokenSource Cancel { get; set; }
 
-		private string Salt { get; set; } = null;
-		private string Soup { get; set; } = null;
-		private object RefrigeratorLock { get; } = new object();
-
-		public bool HasIngredients => Salt is { } && Soup is { };
-
 		public bool IsDestinationSame => KeyManager.ExtPubKey == DestinationKeyManager.ExtPubKey;
+
+		private Kitchen Kitchen { get; }
 
 		private async void Synchronizer_ResponseArrivedAsync(object? sender, SynchronizeResponse e)
 		{
@@ -395,7 +394,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				ongoingRound
 					.CoinsRegistered
 					.Select(x =>
-						(x.Secret ??= KeyManager.GetSecrets(SaltSoup(), x.ScriptPubKey).Single())
+						(x.Secret ??= KeyManager.GetSecrets(Kitchen.SaltSoup(), x.ScriptPubKey).Single())
 						.PrivateKey
 						.GetBitcoinSecret(Network)),
 				ongoingRound
@@ -730,7 +729,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public async Task QueueCoinsToMixAsync(IEnumerable<SmartCoin> coins)
 		{
-			await QueueCoinsToMixAsync(SaltSoup(), coins).ConfigureAwait(false);
+			await QueueCoinsToMixAsync(Kitchen.SaltSoup(), coins).ConfigureAwait(false);
 		}
 
 		public void ActivateFrequentStatusProcessing()
@@ -783,7 +782,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				var coinsExcept = coins.Except(except);
 				var secPubs = KeyManager.GetSecretsAndPubKeyPairs(password, coinsExcept.Select(x => x.ScriptPubKey).ToArray());
 
-				Cook(password);
+				Kitchen.Cook(password);
 
 				foreach (SmartCoin coin in coinsExcept)
 				{
@@ -982,35 +981,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			return result;
 		}
 
-		protected string? SaltSoup()
-		{
-			if (!HasIngredients)
-			{
-				return null;
-			}
-
-			string res;
-			lock (RefrigeratorLock)
-			{
-				res = StringCipher.Decrypt(Soup, Salt);
-			}
-
-			Cook(res);
-
-			return res;
-		}
-
-		private void Cook(string ingredients)
-		{
-			lock (RefrigeratorLock)
-			{
-				ingredients ??= "";
-
-				Salt = RandomString.AlphaNumeric(21, secureRandom: true);
-				Soup = StringCipher.Encrypt(ingredients, Salt);
-			}
-		}
-
 		public async Task StopAsync(CancellationToken cancel)
 		{
 			await DequeueAllCoinsFromMixGracefullyAsync(DequeueReason.ApplicationExit, cancel).ConfigureAwait(false);
@@ -1135,7 +1105,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					throw new NotSupportedException("This is impossible.");
 				}
 
-				coin.Secret ??= KeyManager.GetSecrets(SaltSoup(), coin.ScriptPubKey).Single();
+				coin.Secret ??= KeyManager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
 				var inputProof = new InputProofModel
 				{
 					Input = coin.OutPoint,

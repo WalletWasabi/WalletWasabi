@@ -24,8 +24,6 @@ namespace WalletWasabi.CoinJoin.Common.Crypto
 		[JsonConverter(typeof(KeyJsonConverter))]
 		public Key Rkey { get; }
 
-		public SchnorrPubKey SchnorrPubKey => new SchnorrPubKey(SignerKey, Rkey);
-
 		#region EqualityAndComparison
 
 		public override bool Equals(object? obj) => Equals(obj as SchnorrKey);

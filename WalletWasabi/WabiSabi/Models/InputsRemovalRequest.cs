@@ -8,13 +8,13 @@ namespace WalletWasabi.WabiSabi.Models
 {
 	public class InputsRemovalRequest
 	{
-		public InputsRemovalRequest(Guid aliceId, Guid roundId)
+		public InputsRemovalRequest(Guid roundId, Guid aliceId)
 		{
-			AliceId = aliceId;
 			RoundId = roundId;
+			AliceId = aliceId;
 		}
 
-		public Guid AliceId { get; }
 		public Guid RoundId { get; }
+		public Guid AliceId { get; }
 	}
 }
