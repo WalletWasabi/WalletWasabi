@@ -75,22 +75,29 @@ namespace NBitcoin.RPC
 
 			var mempoolInfo = await rpc.GetMempoolInfoAsync().ConfigureAwait(false);
 			var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
-
-			var minEstimations = GetFeeEstimationsFromMempoolInfo(mempoolInfo);
-
 			var rpcStatus = await rpc.GetRpcStatusAsync(CancellationToken.None).ConfigureAwait(false);
 
-			var fixedEstimations = smartEstimations.GroupJoin(minEstimations, 
-				outer => outer.Key,
-				inner => inner.Key,
-				(outer, inner) => new { Estimation = outer, MinimumFromMemPool = inner})
-				.SelectMany(x => x.MinimumFromMemPool.DefaultIfEmpty(),
-					(a, b) => (Target: a.Estimation.Key, FeeRate: Math.Max((int)sanityFeeRate.SatoshiPerByte, Math.Max(a.Estimation.Value, b.Value))))
-				.ToDictionary(x => x.Target, x => x.FeeRate);
+			if (mempoolInfo.Histogram is { })
+			{
+				var minEstimations = GetFeeEstimationsFromMempoolInfo(mempoolInfo);
+
+				var fixedEstimations = smartEstimations.GroupJoin(minEstimations, 
+					outer => outer.Key,
+					inner => inner.Key,
+					(outer, inner) => new { Estimation = outer, MinimumFromMemPool = inner})
+					.SelectMany(x => x.MinimumFromMemPool.DefaultIfEmpty(),
+						(a, b) => (Target: a.Estimation.Key, FeeRate: Math.Max((int)sanityFeeRate.SatoshiPerByte, Math.Max(a.Estimation.Value, b.Value))))
+					.ToDictionary(x => x.Target, x => x.FeeRate);
+
+				return new AllFeeEstimate(
+					estimateMode,
+					fixedEstimations,
+					rpcStatus.Synchronized);
+			}
 
 			return new AllFeeEstimate(
 				estimateMode,
-				fixedEstimations,
+				smartEstimations,
 				rpcStatus.Synchronized);
 		}
 

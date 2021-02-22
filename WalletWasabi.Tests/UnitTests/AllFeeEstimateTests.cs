@@ -237,6 +237,23 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
+		public async Task WorksWithBitcoinCoreEstimationsAsync()
+		{
+			var rpc = CreateAndConfigureRpcClient(
+				estimator: target => target switch
+				{
+					2 => new FeeRate(120m),
+					_ => throw new NoEstimationException(target)
+				},
+				hasPeersInfo: true
+			);
+			rpc.OnGetMempoolInfoAsync = async () => await Task.FromResult(new MemPoolInfo());
+
+			// Do not throw exception
+			await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
+		}
+
+		[Fact]
 		public async Task ExhaustiveEstimationsAsync()
 		{
 			foreach (var i in Enumerable.Range(0, 1000))
