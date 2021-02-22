@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -15,16 +14,16 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 	public partial class LoginViewModel : RoutableViewModel
 	{
 		[AutoNotify] private string _password;
-		[AutoNotify] private bool _isPasswordIncorrect;
 		[AutoNotify] private bool _isPasswordNeeded;
-		[AutoNotify] private string _walletName;
+		[AutoNotify] private string _errorMessage;
 
 		public LoginViewModel(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel)
 		{
 			var wallet = closedWalletViewModel.Wallet;
 			IsPasswordNeeded = !wallet.KeyManager.IsWatchOnly;
-			_walletName = wallet.WalletName;
+			WalletName = wallet.WalletName;
 			_password = "";
+			_errorMessage = "";
 			WalletIcon = wallet.KeyManager.Icon;
 			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
 
@@ -32,10 +31,11 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			{
 				string? compatibilityPasswordUsed = null;
 
-				IsPasswordIncorrect = !await Task.Run(() => wallet.TryLogin(Password, out compatibilityPasswordUsed));
+				var isPasswordCorrect = await Task.Run(() => wallet.TryLogin(Password, out compatibilityPasswordUsed));
 
-				if (IsPasswordIncorrect)
+				if (!isPasswordCorrect)
 				{
+					ErrorMessage = "The password is incorrect! Try Again.";
 					return;
 				}
 
@@ -53,14 +53,14 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 				else
 				{
 					wallet.Logout();
-					Password = "";
+					ErrorMessage = "You must accept the Terms and Conditions!";
 				}
 			});
 
 			OkCommand = ReactiveCommand.Create(() =>
 			{
 				Password = "";
-				IsPasswordIncorrect = false;
+				ErrorMessage = "";
 			});
 
 			ForgotPasswordCommand = ReactiveCommand.Create(() =>
@@ -72,6 +72,8 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 		public string? WalletIcon { get; }
 
 		public bool IsHardwareWallet { get; }
+
+		public string WalletName { get; }
 
 		public ICommand OkCommand { get; }
 
