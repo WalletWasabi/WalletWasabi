@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:dialog="using:WalletWasabi.Fluent.ViewModels.Dialogs"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             x:DataType="dialog:ConfirmHideAddressViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Dialogs.ConfirmHideAddressView">
+  <c:ContentArea Title="{Binding Title}"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <c:QuestionControl Text="{Binding Text}"
+                       YesCommand="{Binding NextCommand}"
+                       NoCommand="{Binding CancelCommand}"
+                       HighlightButton="YesButton">
+      <Viewbox MaxHeight="150" Margin="40">
+        <PathIcon Data="{StaticResource delete_regular}" Opacity="0.6" />
+      </Viewbox>
+    </c:QuestionControl>
+  </c:ContentArea>
+</UserControl>

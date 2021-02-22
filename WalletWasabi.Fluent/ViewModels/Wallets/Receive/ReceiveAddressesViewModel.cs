@@ -4,8 +4,12 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
+using Avalonia;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -15,13 +19,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 	[NavigationMetaData(Title = "Receive Addresses")]
 	public partial class ReceiveAddressesViewModel : RoutableViewModel
 	{
-		[AutoNotify] private ObservableCollection<HdPubKey> _addresses;
-		[AutoNotify] private HdPubKey? _selectedAddress;
+		[AutoNotify] private ObservableCollection<AddressViewModel> _addresses;
+		[AutoNotify] private AddressViewModel? _selectedAddress;
 
 		public ReceiveAddressesViewModel(Wallet wallet)
 		{
 			Wallet = wallet;
-			_addresses = new ObservableCollection<HdPubKey>();
+			Network = wallet.Network;
+			_addresses = new ObservableCollection<AddressViewModel>();
 
 			InitializeAddresses();
 
@@ -34,12 +39,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 						return;
 					}
 
-					Navigate().To(new ReceiveAddressViewModel(selected, wallet.Network, wallet.KeyManager.MasterFingerprint, wallet.KeyManager.IsHardwareWallet));
+					Navigate().To(new ReceiveAddressViewModel(selected.Model, wallet.Network, wallet.KeyManager.MasterFingerprint, wallet.KeyManager.IsHardwareWallet));
 					SelectedAddress = null;
 				});
 		}
 
 		public Wallet Wallet { get; }
+
+		public Network Network { get; }
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
@@ -62,12 +69,31 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 				foreach (HdPubKey key in keys)
 				{
-					Addresses.Add(key);
+					Addresses.Add(new AddressViewModel(key, Network, HideAddress));
 				}
 			}
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
+			}
+		}
+
+		private async Task HideAddress(HdPubKey model, string address)
+		{
+			var result = await NavigateDialog(new ConfirmHideAddressViewModel(model.Label));
+
+			if (result.Result == false)
+			{
+				return;
+			}
+
+			model.SetKeyState(KeyState.Locked, Wallet.KeyManager);
+			InitializeAddresses();
+
+			var isAddressCopied = await Application.Current.Clipboard.GetTextAsync() == address;
+			if (isAddressCopied)
+			{
+				await Application.Current.Clipboard.ClearAsync();
 			}
 		}
 	}
