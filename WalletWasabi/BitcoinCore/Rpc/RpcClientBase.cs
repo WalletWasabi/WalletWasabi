@@ -183,6 +183,11 @@ namespace WalletWasabi.BitcoinCore.Rpc
 			return Rpc.CreateWalletAsync(walletNameOrPath, options);
 		}
 
+		public Task SaveMempoolAsync()
+		{
+			return Rpc.SaveMempoolAsync().ConfigureAwait(false);;
+		}
+
 		#endregion For Testing Only
 	}
 }

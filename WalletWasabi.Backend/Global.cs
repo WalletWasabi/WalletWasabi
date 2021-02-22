@@ -81,6 +81,9 @@ namespace WalletWasabi.Backend
 					"Config Watcher");
 			}
 
+			MempoolSaver mempoolSaver = new(TimeSpan.FromMinutes(10), RpcClient);
+			HostedServices.Register(mempoolSaver, "Bitcoin node's mempool saver");
+
 			await HostedServices.StartAllAsync(cancel);
 
 			// Initialize index building

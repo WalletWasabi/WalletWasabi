@@ -74,5 +74,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 		Task<uint256[]> GenerateToAddressAsync(int nBlocks, BitcoinAddress address);
 
 		Task<RPCClient> CreateWalletAsync(string walletNameOrPath, CreateWalletOptions? options = null);
+
+		Task SaveMempoolAsync();
 	}
 }

@@ -183,5 +183,10 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			throw new NotImplementedException();
 		}
+		
+		public Task SaveMempoolAsync()
+		{
+			throw new NotImplementedException();
+		}
 	}
 }
