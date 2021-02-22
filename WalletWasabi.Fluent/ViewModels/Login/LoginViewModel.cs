@@ -22,10 +22,11 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 		public LoginViewModel(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel)
 		{
 			var wallet = closedWalletViewModel.Wallet;
-			KeyManager = wallet.KeyManager;
 			IsPasswordNeeded = !wallet.KeyManager.IsWatchOnly;
 			_walletName = wallet.WalletName;
 			_password = "";
+			WalletIcon = wallet.KeyManager.Icon;
+			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -68,7 +69,9 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			EnableAutoBusyOn(NextCommand);
 		}
 
-		public KeyManager KeyManager { get; }
+		public string? WalletIcon { get; }
+
+		public bool IsHardwareWallet { get; }
 
 		public ICommand OkCommand { get; }
 
