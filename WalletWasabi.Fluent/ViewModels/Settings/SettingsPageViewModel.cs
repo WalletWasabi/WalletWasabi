@@ -39,9 +39,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			IsModified = e.IsRestartNeeded;
 		}
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
-			base.OnNavigatedTo(inStack, disposables);
+			base.OnNavigatedTo(isInHistory, disposables);
 
 			SettingsTabViewModelBase.RestartNeeded += OnRestartNeeded;
 

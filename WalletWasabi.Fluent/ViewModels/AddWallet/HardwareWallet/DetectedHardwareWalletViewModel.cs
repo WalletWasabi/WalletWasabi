@@ -66,9 +66,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public ICommand NoCommand { get; }
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
-			base.OnNavigatedTo(inStack, disposables);
+			base.OnNavigatedTo(isInHistory, disposables);
 
 			Disposable.Create(() =>
 				{
