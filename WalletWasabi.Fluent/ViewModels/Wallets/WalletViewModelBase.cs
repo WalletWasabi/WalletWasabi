@@ -3,7 +3,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
@@ -24,7 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			_disposables = new CompositeDisposable();
 
-			Title = WalletName;
+			_title = WalletName;
 			var isHardware = Wallet.KeyManager.IsHardwareWallet;
 			var isWatch = Wallet.KeyManager.IsWatchOnly;
 			_titleTip = isHardware ? "Hardware Wallet" : isWatch ? "Watch Only Wallet" : "Hot Wallet";
@@ -36,18 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				.Subscribe(x => WalletState = x.EventArgs)
 				.DisposeWith(_disposables);
 
-			OpenCommand = ReactiveCommand.Create(() =>
-			{
-				if (!Wallet.IsLoggedIn)
-				{
-					Navigate().To(new LoginViewModel(this));
-				}
-				else
-				{
-					// TODO: wallet welcome page
-					Navigate().To(this);
-				}
-			});
+			OpenCommand = ReactiveCommand.Create(() => Navigate().To(this));
 		}
 
 		public override string Title

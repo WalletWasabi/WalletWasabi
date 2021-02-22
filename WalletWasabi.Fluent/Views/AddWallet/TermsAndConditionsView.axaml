@@ -14,7 +14,7 @@
         <KeyBinding Gesture="Enter" Command="{Binding NextCommand}" />
     </UserControl.KeyBindings>
     <c:ContentArea Title="{Binding Title}"
-                   EnableCancel="False"
+                   Caption="To continue using Wasabi you must accept the terms and conditions"
                    EnableNext="True" NextContent="Continue" FocusNext="True"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DockPanel>

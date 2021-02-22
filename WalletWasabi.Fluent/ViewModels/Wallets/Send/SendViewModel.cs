@@ -230,7 +230,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return result;
 		}
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -258,7 +258,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				UpdateFeeEstimates(_owner.Wallet.Synchronizer.AllFeeEstimate.Estimations);
 			}
 
-			base.OnNavigatedTo(inStack, disposables);
+			base.OnNavigatedTo(isInHistory, disposables);
 		}
 
 		private void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
@@ -320,13 +320,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private double GetYAxisValueFromXAxisCurrentValue()
+		private decimal GetYAxisValueFromXAxisCurrentValue(double xValue)
 		{
-			var x = _xAxisValues.Reverse().ToArray();
-			var y = _yAxisValues;
-			double t = XAxisCurrentValue;
-			var spline = CubicSpline.InterpolateNaturalSorted(x, y);
-			return spline.Interpolate(t);
+			if (_xAxisValues is { } && _yAxisValues is { })
+			{
+				var x = _xAxisValues.Reverse().ToArray();
+				var y = _yAxisValues.Reverse().ToArray();
+				double t = xValue;
+				var spline = CubicSpline.InterpolatePchipSorted(x, y);
+				var interpolated = (decimal) spline.Interpolate(t);
+				return Math.Clamp(interpolated, (decimal)y[^1], (decimal)y[0]);
+			}
+
+			return (decimal)XAxisMaxValue;
 		}
 
 		public ICommand PasteCommand { get; }

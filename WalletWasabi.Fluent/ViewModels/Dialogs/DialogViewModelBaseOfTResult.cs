@@ -28,11 +28,14 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));
 		}
 
-		protected override void OnNavigatedFrom()
+		protected override void OnNavigatedFrom(bool isInHistory)
 		{
-			Close(DialogResultKind.Cancel);
+			if (!isInHistory)
+			{
+				Close(DialogResultKind.Cancel);
+			}
 
-			base.OnNavigatedFrom();
+			base.OnNavigatedFrom(isInHistory);
 		}
 
 		private void OnIsDialogOpenChanged(bool dialogState)

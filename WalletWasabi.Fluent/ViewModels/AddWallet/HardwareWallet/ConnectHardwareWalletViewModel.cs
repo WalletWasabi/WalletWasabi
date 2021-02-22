@@ -31,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			_message = "";
 			WalletName = walletName;
-			WalletManager = walletManagerViewModel.Model;
+			WalletManager = walletManagerViewModel.WalletManager;
 			Wallets = walletManagerViewModel.Wallets;
 			AbandonedTasks = new AbandonedTasks();
 			CancelCts = new CancellationTokenSource();
@@ -204,11 +204,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			Navigate().To(new DetectedHardwareWalletViewModel(WalletManager, WalletName, device));
 		}
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
-			base.OnNavigatedTo(inStack, disposables);
+			base.OnNavigatedTo(isInHistory, disposables);
 
-			if (inStack)
+			if (isInHistory)
 			{
 				CancelCts = new CancellationTokenSource();
 			}

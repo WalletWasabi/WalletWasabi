@@ -18,7 +18,14 @@
         <TextBlock Text=" was added to Wasabi." />
       </StackPanel>
       <Viewbox MaxHeight="200">
-        <Image Source="{Binding KeyManager, Converter={x:Static conv:WalletIconConverter.KeyManagerToImage}}" />
+        <Image>
+          <Image.Source>
+            <MultiBinding Converter="{x:Static conv:WalletIconConverter.TypesToImage}">
+              <Binding Path="WalletIcon" Converter="{x:Static conv:WalletIconConverter.StringToType}" />
+              <Binding Path="IsHardwareWallet" Converter="{x:Static conv:WalletIconConverter.BoolToType}" />
+            </MultiBinding>
+          </Image.Source>
+        </Image>
       </Viewbox>
     </DockPanel>
   </c:ContentArea>
