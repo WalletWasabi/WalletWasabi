@@ -36,8 +36,6 @@ namespace WalletWasabi.Services.Terminate
 
 		private bool IsSystemEventsSubscribed { get; }
 
-		public bool IsTerminateRequested => Interlocked.Read(ref _terminateStatus) > TerminateStatusNotStarted;
-
 		private void CurrentDomain_DomainUnload(object? sender, EventArgs e)
 		{
 			Logger.LogInfo($"Process domain unloading requested by the OS.");

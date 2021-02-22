@@ -92,8 +92,6 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		public uint256 GetHash() => Transaction.GetHash();
 
-		public int GetConfirmationCount(Height bestHeight) => Height == Height.Mempool ? 0 : bestHeight.Value - Height.Value + 1;
-
 		/// <summary>
 		/// A transaction can signal that is replaceable by fee in two ways:
 		/// * Explicitly by using a nSequence &lt; (0xffffffff - 1) or,
@@ -153,31 +151,6 @@ namespace WalletWasabi.Blockchain.Transactions
 		public void SetReplacement()
 		{
 			IsReplacement = true;
-		}
-
-		/// <summary>
-		/// First looks at height, then block index, then mempool firstseen.
-		/// </summary>
-		public static IComparer<SmartTransaction> GetBlockchainComparer()
-		{
-			return Comparer<SmartTransaction>.Create((a, b) =>
-			{
-				var heightCompareResult = a.Height.CompareTo(b.Height);
-				if (heightCompareResult != 0)
-				{
-					return heightCompareResult;
-				}
-
-				// If mempool this should be 0, so they should be equal so no worry about it.
-				var blockIndexCompareResult = a.BlockIndex.CompareTo(b.BlockIndex);
-				if (blockIndexCompareResult != 0)
-				{
-					return blockIndexCompareResult;
-				}
-
-				var firstSeenCompareResult = a.FirstSeen.CompareTo(b.FirstSeen);
-				return firstSeenCompareResult;
-			});
 		}
 
 		public void SetUnconfirmed()
