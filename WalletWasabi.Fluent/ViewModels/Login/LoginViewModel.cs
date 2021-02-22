@@ -29,9 +29,10 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			var wallet = _closedWalletViewModel.Wallet;
 			var legalChecker = walletManagerViewModel.LegalChecker;
 
-			KeyManager = wallet.KeyManager;
-			IsPasswordNeeded = !KeyManager.IsWatchOnly;
+			IsPasswordNeeded = !wallet.KeyManager.IsWatchOnly;
 
+			WalletIcon = wallet.KeyManager.Icon;
+			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
 			_walletName = wallet.WalletName;
 			_password = "";
 
@@ -44,7 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 						return false;
 					}
 
-					if (PasswordHelper.TryPassword(KeyManager, Password, out var compatibilityPasswordUsed))
+					if (PasswordHelper.TryPassword(wallet.KeyManager, Password, out var compatibilityPasswordUsed))
 					{
 						if (compatibilityPasswordUsed is { })
 						{
@@ -94,7 +95,9 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 		public ICommand ForgotPasswordCommand { get; }
 
-		public KeyManager KeyManager { get; }
+		public string? WalletIcon { get; }
+
+		public bool IsHardwareWallet { get; }
 
 		private async Task LoginWalletAsync()
 		{

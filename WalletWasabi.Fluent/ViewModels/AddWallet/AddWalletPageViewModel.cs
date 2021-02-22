@@ -163,8 +163,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		}
 
 		public ICommand CreateWalletCommand { get; }
+
 		public ICommand RecoverWalletCommand { get; }
+
 		public ICommand ImportWalletCommand { get; }
+		
 		public ICommand ConnectHardwareWalletCommand { get; }
 	}
 }
