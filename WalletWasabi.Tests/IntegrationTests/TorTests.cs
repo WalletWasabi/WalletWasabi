@@ -14,9 +14,16 @@ namespace WalletWasabi.Tests.IntegrationTests
 {
 	public class TorTests : IAsyncLifetime
 	{
+		public TorTests()
+		{
+			TcpConnectionFactory = new TorTcpConnectionFactory(Common.TorSocks5Endpoint);
+		}
+
+		private TorTcpConnectionFactory TcpConnectionFactory { get; }
+
 		public async Task InitializeAsync()
 		{
-			var torManager = new TorProcessManager(Common.TorSettings, Common.TorSocks5Endpoint);
+			TorProcessManager torManager = new(Common.TorSettings, Common.TorSocks5Endpoint, TcpConnectionFactory);
 			bool started = await torManager.StartAsync(ensureRunning: true);
 			Assert.True(started, "Tor failed to start.");
 		}
@@ -29,7 +36,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task CanDoRequestManyDifferentAsync()
 		{
-			using var client = new TorHttpClient(new Uri("http://api.qbit.ninja"), Common.TorSocks5Endpoint);
+			using var client = new TorHttpClient(new Uri("http://api.qbit.ninja"), TcpConnectionFactory);
 			await QBitTestAsync(client, 10, alterRequests: true);
 		}
 
@@ -198,14 +205,14 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task TorRunningAsync()
 		{
-			using TorTcpConnectionFactory client1 = new(new IPEndPoint(IPAddress.Loopback, 9050));
+			TorTcpConnectionFactory client1 = new(new IPEndPoint(IPAddress.Loopback, 9050));
 			Assert.True(await client1.IsTorRunningAsync());
 
-			using TorTcpConnectionFactory client2 = new(new IPEndPoint(IPAddress.Loopback, 9054));
+			TorTcpConnectionFactory client2 = new(new IPEndPoint(IPAddress.Loopback, 9054));
 			Assert.False(await client2.IsTorRunningAsync());
 		}
 
-		private static async Task<List<string>> QBitTestAsync(TorHttpClient client, int times, bool alterRequests = false)
+		private async Task<List<string>> QBitTestAsync(TorHttpClient client, int times, bool alterRequests = false)
 		{
 			using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
 
@@ -235,9 +242,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 			return contents;
 		}
 
-		private static TorHttpClient MakeTorHttpClient(Uri uri, bool isolateStream = false)
+		private TorHttpClient MakeTorHttpClient(Uri uri, bool isolateStream = false)
 		{
-			return new TorHttpClient(uri, Common.TorSocks5Endpoint, isolateStream);
+			return new TorHttpClient(uri, TcpConnectionFactory, isolateStream);
 		}
 	}
 }

@@ -1,7 +1,6 @@
 using Nito.AsyncEx;
 using System;
 using System.IO;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Sockets;
@@ -24,19 +23,18 @@ namespace WalletWasabi.Tor.Http
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
-		public TorHttpClient(Uri baseUri, EndPoint torSocks5EndPoint, bool isolateStream = false) :
-			this(() => baseUri, torSocks5EndPoint, isolateStream)
+		public TorHttpClient(Uri baseUri, TorTcpConnectionFactory tcpConnectionFactory, bool isolateStream = false) :
+			this(() => baseUri, tcpConnectionFactory, isolateStream)
 		{
 			baseUri = Guard.NotNull(nameof(baseUri), baseUri);
 		}
 
-		public TorHttpClient(Func<Uri> baseUriGetter, EndPoint torSocks5EndPoint, bool isolateStream = false)
+		public TorHttpClient(Func<Uri> baseUriGetter, TorTcpConnectionFactory tcpConnectionFactory, bool isolateStream = false)
 		{
 			BaseUriGetter = Guard.NotNull(nameof(baseUriGetter), baseUriGetter);
-			Guard.NotNull(nameof(torSocks5EndPoint), torSocks5EndPoint);
 
-			TorSocks5EndPoint = torSocks5EndPoint;
-			TorTpcConnectionFactory = null;
+			TcpConnectionFactory = tcpConnectionFactory;
+			TorTcpConnection = null;
 			IsolateStream = isolateStream;
 		}
 
@@ -59,14 +57,14 @@ namespace WalletWasabi.Tor.Http
 		public static Exception? LatestTorException { get; private set; } = null;
 
 		public Func<Uri> BaseUriGetter { get; }
-		private EndPoint TorSocks5EndPoint { get; }
 
-		/// <summary>
-		/// Whether each HTTP(s) request should use a separate Tor circuit or not to increase privacy.
-		/// </summary>
+		/// <summary>Whether each HTTP(s) request should use a separate Tor circuit or not to increase privacy.</summary>
 		public bool IsolateStream { get; }
 
-		private TorTcpConnectionFactory? TorTpcConnectionFactory { get; set; }
+		private TorTcpConnectionFactory TcpConnectionFactory { get; }
+
+		/// <summary>TCP connection to Tor SOCKS5 or <c>null</c> after an HTTP request fails.</summary>
+		private TorTcpConnection? TorTcpConnection { get; set; }
 
 		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable.	
 
@@ -171,24 +169,19 @@ namespace WalletWasabi.Tor.Http
 			request.Version = HttpProtocol.HTTP11.Version;
 			request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
-			if (TorTpcConnectionFactory is null)
+			if (TorTcpConnection is null)
 			{
 				try
 				{
-					TorTpcConnectionFactory = new TorTcpConnectionFactory(TorSocks5EndPoint!);
-					await TorTpcConnectionFactory.ConnectAsync(token).ConfigureAwait(false);
-					await TorTpcConnectionFactory.HandshakeAsync(IsolateStream, token).ConfigureAwait(false);
-					await TorTpcConnectionFactory.ConnectToDestinationAsync(host, request.RequestUri.Port, token).ConfigureAwait(false);
+					bool useSsl = request.RequestUri.Scheme == "https";
+					int port = request.RequestUri.Port;
 
-					if (request.RequestUri.Scheme == "https")
-					{
-						await TorTpcConnectionFactory.UpgradeToSslAsync(host).ConfigureAwait(false);
-					}
+					TorTcpConnection = await TcpConnectionFactory.EstablishConnectionAsync(host, port, useSsl, IsolateStream, token).ConfigureAwait(false);
 				}
 				catch
 				{
-					TorTpcConnectionFactory?.Dispose();
-					TorTpcConnectionFactory = null;
+					TorTcpConnection?.Dispose();
+					TorTcpConnection = null;
 					throw;
 				}
 			}
@@ -200,7 +193,7 @@ namespace WalletWasabi.Tor.Http
 
 			var bytes = Encoding.UTF8.GetBytes(requestString);
 
-			Stream transportStream = TorTpcConnectionFactory.GetTransportStream();
+			Stream transportStream = TorTcpConnection.GetTransportStream();
 
 			try
 			{
@@ -211,8 +204,8 @@ namespace WalletWasabi.Tor.Http
 			}
 			catch
 			{
-				TorTpcConnectionFactory?.Dispose();
-				TorTpcConnectionFactory = null;
+				TorTcpConnection?.Dispose();
+				TorTcpConnection = null;
 				throw;
 			}
 		}
@@ -225,7 +218,7 @@ namespace WalletWasabi.Tor.Http
 			{
 				if (disposing)
 				{
-					TorTpcConnectionFactory?.Dispose();
+					TorTcpConnection?.Dispose();
 				}
 
 				_disposedValue = true;

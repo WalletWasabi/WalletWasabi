@@ -32,7 +32,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor;
-using WalletWasabi.Userfacing;
+using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -152,13 +152,15 @@ namespace WalletWasabi.Gui
 				{
 					using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
 					{
-						TorManager = new TorProcessManager(TorSettings, Config.TorSocks5EndPoint);
+						TorTcpConnectionFactory factory = new(Config.TorSocks5EndPoint);
+						TorManager = new TorProcessManager(TorSettings, Config.TorSocks5EndPoint, factory);
 						await TorManager.StartAsync(ensureRunning: true).ConfigureAwait(false);
 					}
 
-					var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
-
-					HostedServices.Register(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackRequestTestUri, Config.TorSocks5EndPoint, TorManager), nameof(TorMonitor));
+					Uri fallbackRequestTestUri = Config.GetFallbackBackendUri();
+					Tor.Http.IHttpClient httpClient = Synchronizer.HttpClientFactory.NewHttpClient(() => new Uri($"{fallbackRequestTestUri.Scheme}://{fallbackRequestTestUri.DnsSafeHost}"), isolateStream: false);
+					
+					HostedServices.Register(new TorMonitor(period: TimeSpan.FromSeconds(3), httpClient, TorManager), nameof(TorMonitor));
 				}
 
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");

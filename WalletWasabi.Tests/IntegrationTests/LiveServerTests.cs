@@ -12,6 +12,7 @@ using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Socks5;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -23,13 +24,16 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public LiveServerTests(LiveServerTestsFixture liveServerTestsFixture)
 		{
 			LiveServerTestsFixture = liveServerTestsFixture;
+			TcpConnectionFactory = new TorTcpConnectionFactory(Common.TorSocks5Endpoint);
 		}
+
+		private TorTcpConnectionFactory TcpConnectionFactory { get; }
 
 		private LiveServerTestsFixture LiveServerTestsFixture { get; }
 
 		public async Task InitializeAsync()
 		{
-			var torManager = new TorProcessManager(Common.TorSettings, Common.TorSocks5Endpoint);
+			var torManager = new TorProcessManager(Common.TorSettings, Common.TorSocks5Endpoint, TcpConnectionFactory);
 			bool started = await torManager.StartAsync(ensureRunning: true);
 			Assert.True(started, "Tor failed to start.");
 		}
@@ -176,7 +180,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		private TorHttpClient MakeTorHttpClient(NetworkType networkType)
 		{
 			Uri baseUri = LiveServerTestsFixture.UriMappings[networkType];
-			return new TorHttpClient(baseUri, Common.TorSocks5Endpoint);
+			return new TorHttpClient(baseUri, TcpConnectionFactory);
 		}
 	}
 }

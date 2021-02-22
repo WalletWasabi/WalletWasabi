@@ -22,12 +22,12 @@ namespace WalletWasabi.Tor
 		/// </summary>
 		/// <param name="settings">Tor settings.</param>
 		/// <param name="torSocks5EndPoint">Valid Tor end point.</param>
-		public TorProcessManager(TorSettings settings, EndPoint torSocks5EndPoint)
+		public TorProcessManager(TorSettings settings, EndPoint torSocks5EndPoint, TorTcpConnectionFactory tcpConnectionFactory)
 		{
 			TorSocks5EndPoint = torSocks5EndPoint;
 			TorProcess = null;
 			Settings = settings;
-			TorTcpConnectionFactory = new TorTcpConnectionFactory(torSocks5EndPoint);
+			TcpConnectionFactory = tcpConnectionFactory;
 
 			IoHelpers.EnsureContainingDirectoryExists(Settings.LogFilePath);
 		}
@@ -37,14 +37,13 @@ namespace WalletWasabi.Tor
 		private ProcessAsync? TorProcess { get; set; }
 
 		private TorSettings Settings { get; }
-
-		private TorTcpConnectionFactory TorTcpConnectionFactory { get; }
+		private TorTcpConnectionFactory TcpConnectionFactory { get; }
 
 		private bool _disposed = false;
 
 		public Task<bool> IsTorRunningAsync()
 		{
-			return TorTcpConnectionFactory.IsTorRunningAsync();
+			return TcpConnectionFactory.IsTorRunningAsync();
 		}
 
 		/// <summary>

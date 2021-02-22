@@ -1,4 +1,3 @@
-using Nito.AsyncEx;
 using System;
 using System.IO;
 using System.Net;
@@ -19,82 +18,96 @@ using WalletWasabi.Tor.Socks5.Models.Messages;
 namespace WalletWasabi.Tor.Socks5
 {
 	/// <summary>
-	/// Create an instance with the TorSocks5Manager
+	/// Factory class to create new <see cref="TorTcpConnection"/> instances.
 	/// </summary>
-	public class TorTcpConnectionFactory : IDisposable
+	public class TorTcpConnectionFactory
 	{
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		/// <param name="endPoint">Valid Tor end point.</param>
+		/// <param name="endPoint">Tor SOCKS5 endpoint.</param>
 		public TorTcpConnectionFactory(EndPoint endPoint)
 		{
 			TorSocks5EndPoint = endPoint;
-			TcpClient = new TcpClient(endPoint.AddressFamily);
-			AsyncLock = new AsyncLock();
 		}
-
-		#region PropertiesAndMembers
-
-		/// <summary>TCP connection to Tor's SOCKS5 server.</summary>
-		private TcpClient TcpClient { get; set; }
 
 		private EndPoint TorSocks5EndPoint { get; }
 
-		/// <summary>Transport stream for sending  HTTP/HTTPS requests through Tor's SOCKS5 server.</summary>
-		/// <remarks>This stream is not to be used to send commands to Tor's SOCKS5 server.</remarks>
-		private Stream Stream { get; set; }
+		/// <summary>
+		/// Creates a new connected TCP client connected to Tor SOCKS5 endpoint.
+		/// </summary>
+		/// <param name="host">Tor SOCKS5 host.</param>
+		/// <param name="port">Tor SOCKS5 port.</param>
+		/// <param name="useSsl">Whether to use SSL to send the HTTP request over Tor.</param>
+		/// <param name="isolateStream"><c>true</c> if a new Tor circuit is required for this HTTP request.</param>
+		/// <param name="cancellationToken">Cancellation token to cancel the asynchronous operation.</param>
+		/// <returns>New <see cref="TorTcpConnection"/> instance.</returns>
+		/// <exception cref="TorConnectionException">When <see cref="ConnectAsync(TcpClient, CancellationToken)"/> fails.</exception>
+		public async Task<TorTcpConnection> EstablishConnectionAsync(string host, int port, bool useSsl, bool isolateStream, CancellationToken cancellationToken = default)
+		{
+			TcpClient? tcpClient = null;
+			Stream? transportStream = null;
 
-		private EndPoint RemoteEndPoint { get; set; }
+			try
+			{
+				tcpClient = new TcpClient(TorSocks5EndPoint.AddressFamily);
 
-		internal AsyncLock AsyncLock { get; }
+				transportStream = await ConnectAsync(tcpClient, cancellationToken).ConfigureAwait(false);
+				await HandshakeAsync(tcpClient, isolateStream, cancellationToken).ConfigureAwait(false);
+				await ConnectToDestinationAsync(tcpClient, host, port, cancellationToken).ConfigureAwait(false);
 
-		#endregion PropertiesAndMembers
+				if (useSsl)
+				{
+					transportStream = await UpgradeToSslAsync(tcpClient, host).ConfigureAwait(false);
+				}
 
-		#region Initializers
+				TorTcpConnection result = new(tcpClient, transportStream);
+
+				transportStream = null;
+				tcpClient = null;
+				return result;
+			}
+			finally
+			{
+				transportStream?.Dispose();
+				tcpClient?.Dispose();
+			}
+		}
 
 		/// <summary>
 		/// Establishes TCP connection with Tor SOCKS5 endpoint.
 		/// </summary>
 		/// <exception cref="ArgumentException">This should never happen.</exception>
 		/// <exception cref="TorException">When connection to Tor SOCKS5 endpoint fails.</exception>
-		public async Task ConnectAsync(CancellationToken cancellationToken = default)
+		private async Task<NetworkStream> ConnectAsync(TcpClient tcpClient, CancellationToken cancellationToken = default)
 		{
-			using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+			if (!TorSocks5EndPoint.TryGetHostAndPort(out string? host, out int? port))
 			{
-				if (!TorSocks5EndPoint.TryGetHostAndPort(out string? host, out int? port))
-				{
-					throw new ArgumentException("Endpoint type is not supported.", nameof(TorSocks5EndPoint));
-				}
+				throw new ArgumentException("Endpoint type is not supported.", nameof(TorSocks5EndPoint));
+			}
 
-				try
-				{
-					await TcpClient.ConnectAsync(host, port.Value, cancellationToken).ConfigureAwait(false);
-				}
-				catch (SocketException ex) when (ex.ErrorCode is 10061 or 111 or 61)
-				{
-					// 10061 ~ "No connection could be made because the target machine actively refused it" on Windows.
-					// 111   ~ "Connection refused" on Linux.
-					// 61    ~ "Connection refused" on macOS.
-					throw new TorConnectionException($"Could not connect to Tor SOCKSPort at '{host}:{port}'. Is Tor running?", ex);
-				}
-
-				Stream = TcpClient.GetStream();
-				RemoteEndPoint = TcpClient.Client.RemoteEndPoint;
+			try
+			{
+				await tcpClient.ConnectAsync(host, port.Value, cancellationToken).ConfigureAwait(false);
+				return tcpClient.GetStream();
+			}
+			catch (SocketException ex) when (ex.ErrorCode is 10061 or 111 or 61)
+			{
+				// 10061 ~ "No connection could be made because the target machine actively refused it" on Windows.
+				// 111   ~ "Connection refused" on Linux.
+				// 61    ~ "Connection refused" on macOS.
+				throw new TorConnectionException($"Could not connect to Tor SOCKSPort at '{host}:{port}'. Is Tor running?", ex);
 			}
 		}
 
 		/// <summary>
 		/// Checks whether communication can be established with Tor over <see cref="TorSocks5EndPoint"/> endpoint.
 		/// </summary>
-		/// <returns></returns>
 		public async Task<bool> IsTorRunningAsync()
 		{
 			try
 			{
 				// Internal TCP client may close, so we need a new instance here.
-				using var client = new TorTcpConnectionFactory(TorSocks5EndPoint);
-				await client.ConnectAsync().ConfigureAwait(false);
-				await client.HandshakeAsync().ConfigureAwait(false);
+				using var tcpClient = new TcpClient(TorSocks5EndPoint.AddressFamily);
+				await ConnectAsync(tcpClient).ConfigureAwait(false);
+				await HandshakeAsync(tcpClient, isolateStream: false).ConfigureAwait(false);
 
 				return true;
 			}
@@ -112,10 +125,10 @@ namespace WalletWasabi.Tor.Socks5
 		/// <seealso href="https://www.torproject.org/docs/tor-manual.html.en"/>
 		/// <seealso href="https://linux.die.net/man/1/tor">For <c>IsolateSOCKSAuth</c> option explanation.</seealso>
 		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt#n35"/>
-		public async Task HandshakeAsync(bool isolateStream = false, CancellationToken cancellationToken = default)
+		/// <exception cref="NotSupportedException">When authentication fails due to unsupported authentication method.</exception>
+		/// <exception cref="InvalidOperationException">When authentication fails due to invalid credentials.</exception>
+		private async Task HandshakeAsync(TcpClient tcpClient, bool isolateStream = false, CancellationToken cancellationToken = default)
 		{
-			Logger.LogDebug($"> {nameof(isolateStream)}={isolateStream}");
-
 			// https://github.com/torproject/torspec/blob/master/socks-extensions.txt
 			// The "NO AUTHENTICATION REQUIRED" (SOCKS5) authentication method [00] is
 			// supported; and as of Tor 0.2.3.2 - alpha, the "USERNAME/PASSWORD"(SOCKS5)
@@ -128,9 +141,9 @@ namespace WalletWasabi.Tor.Socks5
 			// SOCKS5 client implementations.
 			var methods = new MethodsField(isolateStream ? MethodField.UsernamePassword : MethodField.NoAuthenticationRequired);
 
-			byte[] receiveBuffer = await SendRequestAsync(new VersionMethodRequest(methods), cancellationToken).ConfigureAwait(false);
+			byte[] receiveBuffer = await SendRequestAsync(tcpClient, new VersionMethodRequest(methods), cancellationToken).ConfigureAwait(false);
 
-			var methodSelection = new MethodSelectionResponse(receiveBuffer);
+			MethodSelectionResponse methodSelection = new(receiveBuffer);
 
 			if (methodSelection.Ver != VerField.Socks5)
 			{
@@ -141,7 +154,6 @@ namespace WalletWasabi.Tor.Socks5
 				// https://www.ietf.org/rfc/rfc1928.txt
 				// If the selected METHOD is X'FF', none of the methods listed by the
 				// client are acceptable, and the client MUST close the connection.
-				DisposeTcpClient();
 				throw new NotSupportedException("Tor's SOCKS5 proxy does not support any of the client's authentication methods.");
 			}
 			else if (methodSelection.Method == MethodField.UsernamePassword)
@@ -156,7 +168,7 @@ namespace WalletWasabi.Tor.Socks5
 				var passwd = new PasswdField(password: identity);
 				var usernamePasswordRequest = new UsernamePasswordRequest(uName, passwd);
 
-				receiveBuffer = await SendRequestAsync(usernamePasswordRequest, cancellationToken).ConfigureAwait(false);
+				receiveBuffer = await SendRequestAsync(tcpClient, usernamePasswordRequest, cancellationToken).ConfigureAwait(false);
 
 				var userNamePasswordResponse = new UsernamePasswordResponse(receiveBuffer);
 
@@ -171,28 +183,16 @@ namespace WalletWasabi.Tor.Socks5
 					// A STATUS field of X'00' indicates success. If the server returns a
 					// `failure' (STATUS value other than X'00') status, it MUST close the
 					// connection.
-					DisposeTcpClient();
 					throw new InvalidOperationException("Wrong username and/or password.");
 				}
 			}
-
-			Logger.LogDebug("<");
 		}
 
-		public async Task UpgradeToSslAsync(string host)
+		private async static Task<SslStream> UpgradeToSslAsync(TcpClient tcpClient, string host)
 		{
-			SslStream sslStream = new SslStream(TcpClient.GetStream(), leaveInnerStreamOpen: true);
+			SslStream sslStream = new(tcpClient.GetStream(), leaveInnerStreamOpen: true);
 			await sslStream.AuthenticateAsClientAsync(host, new X509CertificateCollection(), true).ConfigureAwait(false);
-			Stream = sslStream;
-		}
-
-		/// <summary>
-		/// Stream to transport HTTP(S) request.
-		/// </summary>
-		/// <remarks>Either <see cref="TcpClient.GetStream"/> or <see cref="SslStream"/> over <see cref="TcpClient.GetStream"/>.</remarks>
-		public Stream GetTransportStream()
-		{
-			return Stream;
+			return sslStream;
 		}
 
 		/// <summary>
@@ -201,20 +201,24 @@ namespace WalletWasabi.Tor.Socks5
 		/// </summary>
 		/// <param name="host">IPv4 or domain of the destination.</param>
 		/// <param name="port">Port number of the destination.</param>
+		/// <exception cref="OperationCanceledException">When operation is canceled.</exception>
+		/// <exception cref="TorConnectCommandFailedException">When response to <see cref="CmdField.Connect"/> request is NOT <see cref="RepField.Succeeded"/>.</exception>
+		/// <exception cref="TorException">When sending of the HTTP(s) request fails for any reason.</exception>
 		/// <seealso href="https://tools.ietf.org/html/rfc1928">Section 3. Procedure for TCP-based clients</seealso>
-		public async Task ConnectToDestinationAsync(string host, int port, CancellationToken cancellationToken = default)
+		private async Task ConnectToDestinationAsync(TcpClient tcpClient, string host, int port, CancellationToken cancellationToken = default)
 		{
-			Logger.LogDebug($"> {nameof(host)}='{host}', {nameof(port)}={port}");
+			Logger.LogTrace($"> {nameof(host)}='{host}', {nameof(port)}={port}");
 
-			host = Guard.NotNullOrEmptyOrWhitespace(nameof(host), host, true);
-			Guard.MinimumAndNotNull(nameof(port), port, 0);
+			host = Guard.NotNullOrEmptyOrWhitespace(nameof(host), host, trim: true);
+			Guard.MinimumAndNotNull(nameof(port), port, smallest: 0);
 
 			try
 			{
-				TorSocks5Request connectRequest = new(cmd: CmdField.Connect, new AddrField(host), new PortField(port));
-				byte[] receiveBuffer = await SendRequestAsync(connectRequest, cancellationToken).ConfigureAwait(false);
+				TorSocks5Request connectionRequest = new(cmd: CmdField.Connect, new AddrField(host), new PortField(port));
 
-				var connectionResponse = new TorSocks5Response(receiveBuffer);
+				byte[] receiveBuffer = await SendRequestAsync(tcpClient, connectionRequest, cancellationToken).ConfigureAwait(false);
+
+				TorSocks5Response connectionResponse = new(receiveBuffer);
 
 				if (connectionResponse.Rep != RepField.Succeeded)
 				{
@@ -223,7 +227,6 @@ namespace WalletWasabi.Tor.Socks5
 					// SOCKS server MUST terminate the TCP connection shortly after sending
 					// the reply. This must be no more than 10 seconds after detecting the
 					// condition that caused a failure.
-					DisposeTcpClient();
 					Logger.LogWarning($"Connection response indicates a failure. Actual response is: '{connectionResponse.Rep}'. Request: '{host}:{port}'.");
 					throw new TorConnectCommandFailedException(connectionResponse.Rep);
 				}
@@ -245,20 +248,16 @@ namespace WalletWasabi.Tor.Socks5
 				Logger.LogTrace($"Connecting to destination '{host}:{port}' was canceled.");
 				throw;
 			}
-			catch (Exception e)
+			catch (TorException e)
 			{
-				Logger.LogError($"Exception was thrown when connecting to destination '{host}:{port}'.", e);
+				Logger.LogError($"Exception occurred when connecting to '{host}:{port}'.", e);
 				throw;
 			}
 			finally
 			{
-				Logger.LogDebug("<");
+				Logger.LogTrace("<");
 			}
 		}
-
-		#endregion Initializers
-
-		#region Methods
 
 		/// <summary>
 		/// Sends a request to the Tor SOCKS5 connection and returns a byte response.
@@ -268,32 +267,29 @@ namespace WalletWasabi.Tor.Socks5
 		/// <returns>Reply</returns>
 		/// <exception cref="ArgumentException">When <paramref name="request"/> is not supported.</exception>
 		/// <exception cref="TorConnectionException">When we receive no response from Tor or the response is invalid.</exception>
-		private async Task<byte[]> SendRequestAsync(ByteArraySerializableBase request, CancellationToken cancellationToken = default)
+		private async Task<byte[]> SendRequestAsync(TcpClient tcpClient, ByteArraySerializableBase request, CancellationToken cancellationToken = default)
 		{
 			try
 			{
-				using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
+				NetworkStream stream = tcpClient.GetStream();
+
+				byte[] dataToSend = request.ToBytes();
+
+				// Write data to the stream.
+				await stream.WriteAsync(dataToSend.AsMemory(0, dataToSend.Length), cancellationToken).ConfigureAwait(false);
+				await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+
+				if (request is VersionMethodRequest or UsernamePasswordRequest)
 				{
-					var stream = TcpClient.GetStream();
-
-					byte[] dataToSend = request.ToBytes();
-
-					// Write data to the stream.
-					await stream.WriteAsync(dataToSend.AsMemory(0, dataToSend.Length), cancellationToken).ConfigureAwait(false);
-					await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
-
-					if (request is VersionMethodRequest or UsernamePasswordRequest)
-					{
-						return await ReadTwoByteResponseAsync(stream, cancellationToken).ConfigureAwait(false);
-					}
-					else if (request is TorSocks5Request)
-					{
-						return await ReadRequestResponseAsync(stream, cancellationToken).ConfigureAwait(false);
-					}
-					else
-					{
-						throw new ArgumentException("Not supported request type.", nameof(request));
-					}
+					return await ReadTwoByteResponseAsync(stream, cancellationToken).ConfigureAwait(false);
+				}
+				else if (request is TorSocks5Request)
+				{
+					return await ReadRequestResponseAsync(stream, cancellationToken).ConfigureAwait(false);
+				}
+				else
+				{
+					throw new ArgumentException("Not supported request type.", nameof(request));
 				}
 			}
 			catch (OperationCanceledException)
@@ -303,7 +299,7 @@ namespace WalletWasabi.Tor.Socks5
 			}
 			catch (IOException ex)
 			{
-				throw new TorConnectionException($"{nameof(TorTcpConnectionFactory)} is not connected to {RemoteEndPoint}.", ex);
+				throw new TorConnectionException($"{nameof(TorTcpConnectionFactory)} is not connected to the remote endpoint.", ex);
 			}
 		}
 
@@ -392,55 +388,5 @@ namespace WalletWasabi.Tor.Socks5
 
 			throw new TorConnectionException($"Failed to read {receiveBufferSize} bytes as expected from Tor SOCKS5.");
 		}
-
-		#endregion Methods
-
-		#region IDisposable Support
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					DisposeTcpClient();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-			// GC.SuppressFinalize(this);
-		}
-
-		private void DisposeTcpClient()
-		{
-			try
-			{
-				if (TcpClient is { } tcpClient)
-				{
-					if (tcpClient.Connected)
-					{
-						Stream?.Dispose();
-					}
-					tcpClient.Dispose();
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex);
-			}
-			finally
-			{
-				TcpClient = null; // needs to be called, .net bug
-			}
-		}
-
-		#endregion IDisposable Support
 	}
 }

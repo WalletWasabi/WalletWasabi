@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Net.Http;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Socks5;
 
 namespace WalletWasabi.WebClients.Wasabi
 {
@@ -36,10 +37,12 @@ namespace WalletWasabi.WebClients.Wasabi
 			// Connecting to loopback's URIs cannot be done via Tor.
 			if (TorEndpoint is { } && !BackendUriGetter().IsLoopback)
 			{
-				BackendHttpClient = new TorHttpClient(BackendUriGetter, TorEndpoint, isolateStream: false);
+				TorTcpConnectionFactory = new(TorEndpoint);
+				BackendHttpClient = new TorHttpClient(BackendUriGetter, TorTcpConnectionFactory, isolateStream: false);
 			}
 			else
 			{
+				TorTcpConnectionFactory = null;
 				BackendHttpClient = new ClearnetHttpClient(HttpClient, BackendUriGetter);
 			}
 
@@ -61,6 +64,9 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <summary>.NET HTTP client to be used by <see cref="ClearnetHttpClient"/> instances.</summary>
 		private HttpClient HttpClient { get; }
 
+		/// <summary>Available only when Tor is enabled in User settings.</summary>
+		private TorTcpConnectionFactory? TorTcpConnectionFactory { get; }
+
 		/// <summary>Backend HTTP client, shared instance.</summary>
 		private IHttpClient BackendHttpClient { get; }
 
@@ -73,9 +79,9 @@ namespace WalletWasabi.WebClients.Wasabi
 		public IHttpClient NewHttpClient(Func<Uri> baseUriFn, bool isolateStream)
 		{
 			// Connecting to loopback's URIs cannot be done via Tor.
-			if (TorEndpoint is { } && !BackendUriGetter().IsLoopback)
+			if (TorTcpConnectionFactory is { } && !BackendUriGetter().IsLoopback)
 			{
-				return new TorHttpClient(baseUriFn, TorEndpoint, isolateStream);
+				return new TorHttpClient(baseUriFn, TorTcpConnectionFactory!, isolateStream);
 			}
 			else
 			{
