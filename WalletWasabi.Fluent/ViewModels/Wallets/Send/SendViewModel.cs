@@ -329,8 +329,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			else
 			{
 #if true
-				GetSmoothValuesSubdivide(TestNetXAxisValues, TestNetYAxisValues, out var ts, out var xts);
 				// GetSmoothValues(TestNetXAxisValues, TestNetYAxisValues, out var ts, out var xts);
+				GetSmoothValuesSubdivide(TestNetXAxisValues, TestNetYAxisValues, out var ts, out var xts);
 				xAxisValues = ts.ToArray();
 				yAxisValues = xts.ToArray();
 #else
