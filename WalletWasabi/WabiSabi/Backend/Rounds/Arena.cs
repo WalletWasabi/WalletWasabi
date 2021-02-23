@@ -60,21 +60,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void TimeoutAlices()
 		{
-			// If we cannot timeout alices, then it's ok, don't let the rest fail because of this.
-			try
+			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.InputRegistration))
 			{
-				foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.InputRegistration))
+				var removedAliceCount = round.RemoveAlices(x => x.Deadline < DateTimeOffset.UtcNow);
+				if (removedAliceCount > 0)
 				{
-					var removedAliceCount = round.RemoveAlices(x => x.Deadline < DateTimeOffset.UtcNow);
-					if (removedAliceCount > 0)
-					{
-						Logger.LogInfo($"{removedAliceCount} alices timed out and removed.");
-					}
+					Logger.LogInfo($"{removedAliceCount} alices timed out and removed.");
 				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
 			}
 		}
 
