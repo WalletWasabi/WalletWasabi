@@ -88,7 +88,9 @@ namespace WalletWasabi.Tests.Helpers
 				var coin = new Coin(pair.Input, new TxOut(value ?? Money.Coins(1), BitcoinFactory.CreateScript(key)));
 				myDic.Add(coin, pair.RoundSignature);
 			}
-			return new Alice(myDic);
+			var alice = new Alice(myDic);
+			alice.Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1);
+			return alice;
 		}
 
 		public static InputsRegistrationRequest CreateInputsRegistrationRequest(Key key, Round? round)

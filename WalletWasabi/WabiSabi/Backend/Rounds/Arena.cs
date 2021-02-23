@@ -30,6 +30,16 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			lock (Lock)
 			{
+				// Remove timed out alices.
+				foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.InputRegistration))
+				{
+					var removedAliceCount = round.RemoveAlices(x => x.Deadline < DateTimeOffset.UtcNow);
+					if (removedAliceCount > 0)
+					{
+						Logger.LogInfo($"{removedAliceCount} alices timed out and removed.");
+					}
+				}
+
 				return Task.CompletedTask;
 			}
 		}
