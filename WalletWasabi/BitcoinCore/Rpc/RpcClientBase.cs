@@ -91,7 +91,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 					Histogram = ExtractFeeRateGroups(response.Result["fee_histogram"]).ToArray()
 				};
 			}
-			catch (RPCException)
+			catch (RPCException ex) when (ex.RPCCode == RPCErrorCode.RPC_MISC_ERROR)
 			{
 				return await Rpc.GetMemPoolAsync().ConfigureAwait(false);
 			}
