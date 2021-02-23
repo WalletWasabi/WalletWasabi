@@ -1,4 +1,5 @@
 using NBitcoin;
+using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Tests.UnitTests;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -67,7 +69,14 @@ namespace WalletWasabi.Tests.Helpers
 
 		public static async Task<Arena> CreateAndStartArenaAsync(params Round[] rounds)
 		{
-			Arena arena = new(TimeSpan.FromSeconds(1), rounds.FirstOrDefault()?.Network ?? Network.Main);
+			var mockRpc = new MockRpcClient();
+			mockRpc.OnEstimateSmartFeeAsync = async (target, _) =>
+				await Task.FromResult(new EstimateSmartFeeResponse
+				{
+					Blocks = target,
+					FeeRate = new FeeRate(10m)
+				});
+			Arena arena = new(TimeSpan.FromSeconds(1), rounds.FirstOrDefault()?.Network ?? Network.Main, new WabiSabiConfig(), mockRpc);
 			foreach (var round in rounds)
 			{
 				arena.Rounds.Add(round.Id, round);

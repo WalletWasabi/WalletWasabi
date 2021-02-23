@@ -1,4 +1,5 @@
 using NBitcoin;
+using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -7,6 +8,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
@@ -17,20 +20,49 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
 	public class Arena : PeriodicRunner
 	{
-		public Arena(TimeSpan period, Network network) : base(period)
+		public Arena(TimeSpan period, Network network, WabiSabiConfig config, IRPCClient rpc) : base(period)
 		{
 			Network = network;
+			Config = config;
+			Rpc = rpc;
+			Random = new SecureRandom();
 		}
 
 		public Dictionary<Guid, Round> Rounds { get; } = new();
 		private object Lock { get; } = new();
 		public Network Network { get; }
+		public WabiSabiConfig Config { get; }
+		public IRPCClient Rpc { get; }
+		public SecureRandom Random { get; }
 
-		protected override Task ActionAsync(CancellationToken cancel)
+		protected override async Task ActionAsync(CancellationToken cancel)
 		{
+			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative).ConfigureAwait(false)).FeeRate;
 			lock (Lock)
 			{
 				// Remove timed out alices.
+				TimeoutAlices();
+
+				// Ensure there's at least one non-blame round in inputregistration.
+				CreateRounds(feeRate);
+			}
+		}
+
+		private void CreateRounds(FeeRate feeRate)
+		{
+			if (!Rounds.Values.Any(x => !x.IsBlameRound && x.Phase == Phase.InputRegistration))
+			{
+				RoundParameters roundParams = new(Config, Network, Random, feeRate);
+				Round r = new(roundParams);
+				Rounds.Add(r.Id, r);
+			}
+		}
+
+		private void TimeoutAlices()
+		{
+			// If we cannot timeout alices, then it's ok, don't let the rest fail because of this.
+			try
+			{
 				foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.InputRegistration))
 				{
 					var removedAliceCount = round.RemoveAlices(x => x.Deadline < DateTimeOffset.UtcNow);
@@ -39,8 +71,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						Logger.LogInfo($"{removedAliceCount} alices timed out and removed.");
 					}
 				}
-
-				return Task.CompletedTask;
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
 			}
 		}
 
@@ -222,6 +256,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					round.Coinjoin.Inputs[index].WitScript = witness;
 				}
 			}
+		}
+
+		public override void Dispose()
+		{
+			Random.Dispose();
+			base.Dispose();
 		}
 	}
 }
