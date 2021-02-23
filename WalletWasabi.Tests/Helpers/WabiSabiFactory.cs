@@ -37,20 +37,25 @@ namespace WalletWasabi.Tests.Helpers
 			}
 		}
 
-		public static IEnumerable<InputRoundSignaturePair> CreateInputRoundSignaturePairs(int count, uint256? roundHash = null)
+		public static InputRoundSignaturePair[] CreateInputRoundSignaturePairs(int count, uint256? roundHash = null)
 		{
+			List<InputRoundSignaturePair> pairs = new();
 			for (int i = 0; i < count; i++)
 			{
-				yield return CreateInputRoundSignaturePair(null, roundHash);
+				pairs.Add(CreateInputRoundSignaturePair(null, roundHash));
 			}
+
+			return pairs.ToArray();
 		}
 
-		public static IEnumerable<InputRoundSignaturePair> CreateInputRoundSignaturePairs(IEnumerable<Key> keys, uint256? roundHash = null)
+		public static InputRoundSignaturePair[] CreateInputRoundSignaturePairs(IEnumerable<Key> keys, uint256? roundHash = null)
 		{
+			List<InputRoundSignaturePair> pairs = new();
 			foreach (var key in keys)
 			{
-				yield return CreateInputRoundSignaturePair(key, roundHash);
+				pairs.Add(CreateInputRoundSignaturePair(key, roundHash));
 			}
+			return pairs.ToArray();
 		}
 
 		public static Round CreateRound(WabiSabiConfig cfg)
@@ -142,13 +147,13 @@ namespace WalletWasabi.Tests.Helpers
 			return (ac, wc, ai, wi);
 		}
 
-		public static (IEnumerable<Credential> amountCredentials, IEnumerable<Credential> weightCredentials) CreateZeroCredentials(Round? round)
+		public static (Credential[] amountCredentials, IEnumerable<Credential> weightCredentials) CreateZeroCredentials(Round? round)
 		{
 			(var amClient, var weClient, var amIssuer, var weIssuer) = CreateWabiSabiClientsAndIssuers(round);
 			return CreateZeroCredentials(amClient, weClient, amIssuer, weIssuer);
 		}
 
-		private static (IEnumerable<Credential> amountCredentials, IEnumerable<Credential> weightCredentials) CreateZeroCredentials(WabiSabiClient amClient, WabiSabiClient weClient, CredentialIssuer amIssuer, CredentialIssuer weIssuer)
+		private static (Credential[] amountCredentials, IEnumerable<Credential> weightCredentials) CreateZeroCredentials(WabiSabiClient amClient, WabiSabiClient weClient, CredentialIssuer amIssuer, CredentialIssuer weIssuer)
 		{
 			var (zeroAmountCredentialRequest, amVal) = amClient.CreateRequestForZeroAmount();
 			var (zeroWeightCredentialRequest, weVal) = weClient.CreateRequestForZeroAmount();
@@ -156,7 +161,7 @@ namespace WalletWasabi.Tests.Helpers
 			var weCredResp = weIssuer.HandleRequest(zeroWeightCredentialRequest);
 			amClient.HandleResponse(amCredResp, amVal);
 			weClient.HandleResponse(weCredResp, weVal);
-			return (amClient.Credentials.ZeroValue.Take(amIssuer.NumberOfCredentials), weClient.Credentials.ZeroValue.Take(weIssuer.NumberOfCredentials));
+			return (amClient.Credentials.ZeroValue.Take(amIssuer.NumberOfCredentials).ToArray(), weClient.Credentials.ZeroValue.Take(weIssuer.NumberOfCredentials));
 		}
 
 		public static (RealCredentialsRequest amountReq, RealCredentialsRequest weightReq) CreateRealCredentialRequests(Round? round = null, Money? amount = null, long? weight = null)

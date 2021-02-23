@@ -19,6 +19,15 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 {
 	public class RegisterInputTests
 	{
+		private static void AssertSingleAliceSuccessfullyRegistered(Round round, DateTimeOffset minAliceDeadline, InputsRegistrationResponse resp)
+		{
+			var alice = Assert.Single(round.Alices);
+			Assert.NotNull(resp);
+			Assert.NotNull(resp.AmountCredentials);
+			Assert.NotNull(resp.WeightCredentials);
+			Assert.True(minAliceDeadline <= alice.Deadline);
+		}
+
 		[Fact]
 		public async Task SuccessAsync()
 		{
@@ -40,11 +49,71 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
 			var resp = await handler.RegisterInputAsync(req);
-			var alice = Assert.Single(round.Alices);
-			Assert.NotNull(resp);
-			Assert.NotNull(resp.AmountCredentials);
-			Assert.NotNull(resp.WeightCredentials);
-			Assert.True(minAliceDeadline <= alice.Deadline);
+			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
+
+			await arena.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
+		public async Task SuccessWithAliceUpdateIntraRoundAsync()
+		{
+			WabiSabiConfig cfg = new();
+			var round = WabiSabiFactory.CreateRound(cfg);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+
+			MockRpcClient rpc = new();
+			using Key key = new();
+
+			rpc.OnGetTxOutAsync = (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
+			};
+
+			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
+
+			// Make sure an Alice have already been registered with the same input.
+			var preAlice = WabiSabiFactory.CreateAlice(req.InputRoundSignaturePairs);
+			round.Alices.Add(preAlice);
+
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
+			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
+			var resp = await handler.RegisterInputAsync(req);
+			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
+
+			await arena.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
+		public async Task SuccessWithAliceUpdateCrossRoundAsync()
+		{
+			WabiSabiConfig cfg = new();
+			var round = WabiSabiFactory.CreateRound(cfg);
+			var anotherRound = WabiSabiFactory.CreateRound(cfg);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round, anotherRound);
+
+			MockRpcClient rpc = new();
+			using Key key = new();
+
+			rpc.OnGetTxOutAsync = (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
+			};
+
+			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
+
+			// Make sure an Alice have already been registered with the same input.
+			var preAlice = WabiSabiFactory.CreateAlice(req.InputRoundSignaturePairs);
+			anotherRound.Alices.Add(preAlice);
+
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
+			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
+			var resp = await handler.RegisterInputAsync(req);
+			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
+			Assert.Empty(anotherRound.Alices);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -436,6 +505,69 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.TooMuchWeight, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
+		public async Task AliceAlreadyRegisteredIntraRoundAsync()
+		{
+			WabiSabiConfig cfg = new();
+			var round = WabiSabiFactory.CreateRound(cfg);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+
+			MockRpcClient rpc = new();
+			using Key key = new();
+
+			rpc.OnGetTxOutAsync = (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
+			};
+
+			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
+
+			// Make sure an Alice have already been registered with the same input.
+			var anotherAlice = WabiSabiFactory.CreateAlice(req.InputRoundSignaturePairs);
+			round.Alices.Add(anotherAlice);
+			round.Phase = Phase.ConnectionConfirmation;
+
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
+		public async Task AliceAlreadyRegisteredCrossRoundAsync()
+		{
+			WabiSabiConfig cfg = new();
+			var round = WabiSabiFactory.CreateRound(cfg);
+			var anotherRound = WabiSabiFactory.CreateRound(cfg);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round, anotherRound);
+
+			MockRpcClient rpc = new();
+			using Key key = new();
+
+			rpc.OnGetTxOutAsync = (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
+			};
+
+			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
+
+			// Make sure an Alice have already been registered with the same input.
+			var preAlice = WabiSabiFactory.CreateAlice(req.InputRoundSignaturePairs);
+			anotherRound.Alices.Add(preAlice);
+			anotherRound.Phase = Phase.ConnectionConfirmation;
+
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			Assert.Equal(WabiSabiProtocolErrorCode.AliceAlreadyRegistered, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
 		}

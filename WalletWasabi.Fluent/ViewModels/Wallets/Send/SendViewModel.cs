@@ -227,7 +227,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return result;
 		}
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -255,7 +255,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				UpdateFeeEstimates(_owner.Wallet.Synchronizer.AllFeeEstimate.Estimations);
 			}
 
-			base.OnNavigatedTo(inStack, disposables);
+			base.OnNavigatedTo(isInHistory, disposables);
 		}
 
 		private static readonly string[] TestNetXAxisLabels =
