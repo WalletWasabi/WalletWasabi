@@ -1,5 +1,6 @@
 using NBitcoin;
 using NBitcoin.RPC;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -29,7 +30,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		}
 
 		public Dictionary<Guid, Round> Rounds { get; } = new();
-		private object Lock { get; } = new();
+		private AsyncLock AsyncLock { get; } = new();
 		public Network Network { get; }
 		public WabiSabiConfig Config { get; }
 		public IRPCClient Rpc { get; }
@@ -37,21 +38,22 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
-			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative).ConfigureAwait(false)).FeeRate;
-			lock (Lock)
+			using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
 			{
 				// Remove timed out alices.
 				TimeoutAlices();
 
-				// Ensure there's at least one non-blame round in inputregistration.
-				CreateRounds(feeRate);
+				// Ensure there's at least one non-blame round in input registration.
+				await CreateRoundsAsync().ConfigureAwait(false);
 			}
 		}
 
-		private void CreateRounds(FeeRate feeRate)
+		private async Task CreateRoundsAsync()
 		{
 			if (!Rounds.Values.Any(x => !x.IsBlameRound && x.Phase == Phase.InputRegistration))
 			{
+				var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative).ConfigureAwait(false)).FeeRate;
+
 				RoundParameters roundParams = new(Config, Network, Random, feeRate);
 				Round r = new(roundParams);
 				Rounds.Add(r.Id, r);
@@ -70,13 +72,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public InputsRegistrationResponse RegisterInput(
+		public async Task<InputsRegistrationResponse> RegisterInputAsync(
 			Guid roundId,
 			Dictionary<Coin, byte[]> coinRoundSignaturePairs,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
 			ZeroCredentialsRequest zeroWeightCredentialRequests)
 		{
-			lock (Lock)
+			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
 				return InputRegistrationHandler.RegisterInput(
 					roundId,
@@ -88,9 +90,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public void RemoveInput(InputsRemovalRequest request)
+		public async Task RemoveInputAsync(InputsRemovalRequest request)
 		{
-			lock (Lock)
+			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
 				if (!Rounds.TryGetValue(request.RoundId, out var round))
 				{
@@ -100,9 +102,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public ConnectionConfirmationResponse ConfirmConnection(ConnectionConfirmationRequest request)
+		public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request)
 		{
-			lock (Lock)
+			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
 				if (!Rounds.TryGetValue(request.RoundId, out var round))
 				{
@@ -155,9 +157,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public OutputRegistrationResponse RegisterOutput(OutputRegistrationRequest request)
+		public async Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request)
 		{
-			lock (Lock)
+			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
 				if (!Rounds.TryGetValue(request.RoundId, out var round))
 				{
@@ -201,9 +203,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public void SignTransaction(TransactionSignaturesRequest request)
+		public async Task SignTransactionAsync(TransactionSignaturesRequest request)
 		{
-			lock (Lock)
+			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
 				if (!Rounds.TryGetValue(request.RoundId, out var round))
 				{

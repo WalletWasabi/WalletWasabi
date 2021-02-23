@@ -88,7 +88,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.Single(round.Alices);
 			DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
 			alice.Deadline = preDeadline;
-			handler.ConfirmConnection(req);
+			await handler.ConfirmConnectionAsync(req);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Single(round.Alices);
 			Assert.NotEqual(preDeadline, alice.Deadline);
