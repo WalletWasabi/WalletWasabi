@@ -109,6 +109,7 @@ namespace NBitcoin.RPC
 			return rpcFeeEstimationTasks
 				.Where(x => x.IsCompletedSuccessfully)
 				.Select(x => x.Result)
+				.DistinctBy(x => x.Blocks)
 				.ToDictionary(x => x.Blocks, x => (int)Math.Ceiling(x.FeeRate.SatoshiPerByte));
 		}
 
