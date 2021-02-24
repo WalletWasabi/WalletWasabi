@@ -7,14 +7,18 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="vm:OptimisePrivacyViewModel"
+             x:DataType="vm:TransactionPreviewViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionPreviewView">
     <c:ContentArea Title="Send" Caption=""
                    HorizontalAlignment="Left"
                    EnableCancel="False"
                    EnableNext="True"
-                   NextContent="Continue"
+                   NextContent="Confirm"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="100">
+            <TextBlock Text="{Binding Instruction}" />
+            <TextBlock Text="{Binding Execution}" />
+        </StackPanel>
     </c:ContentArea>
 </UserControl>

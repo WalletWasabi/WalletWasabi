@@ -1,7 +1,9 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
@@ -21,34 +23,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_optimisationLevel = optimisationLevel;
 			_benefits = benefits;
 
-			decimal total;
+			decimal total = transactionResult.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 
 			if (optimisationLevel == PrivacyOptimisationLevel.Better)
 			{
-				total = transactionResult.OuterWalletOutputs
-					.Select(x => x.Amount)
-					.Concat(transactionResult.InnerWalletOutputs.Select(x => x.Amount))
-					.Sum().ToDecimal(MoneyUnit.BTC);
-
 				var pcDifference = ((total - originalAmount) / originalAmount) * 100;
 
 				_caption = pcDifference > 0 ? $"{pcDifference:F}% More" : $"{Math.Abs(pcDifference):F}% Less";
-			}
-			else
-			{
-				if (!transactionResult.OuterWalletOutputs.Any()) // self spend
-				{
-					total = transactionResult.InnerWalletOutputs
-						.Where(x => !x.HdPubKey.IsInternal)
-						.Select(x => x.Amount)
-						.Sum().ToDecimal(MoneyUnit.BTC);
-				}
-				else
-				{
-					total = transactionResult.OuterWalletOutputs
-						.Select(x => x.Amount)
-						.Sum().ToDecimal(MoneyUnit.BTC);
-				}
 			}
 
 			_title = $"{total} BTC";
@@ -58,5 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private string _caption;
 		[AutoNotify] private string[] _benefits;
 		[AutoNotify] private PrivacyOptimisationLevel _optimisationLevel;
+
+		public BuildTransactionResult TransactionResult => _transactionResult;
 	}
 }
