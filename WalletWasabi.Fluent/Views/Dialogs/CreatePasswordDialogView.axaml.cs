@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Dialogs
 {
-	public class CreatePasswordView : UserControl
+	public class CreatePasswordDialogView : UserControl
 	{
-		public CreatePasswordView()
+		public CreatePasswordDialogView()
 		{
 			InitializeComponent();
 		}
