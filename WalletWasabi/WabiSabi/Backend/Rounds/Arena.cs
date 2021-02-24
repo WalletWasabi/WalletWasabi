@@ -93,7 +93,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		public async Task<InputsRegistrationResponse> RegisterInputAsync(
 			Guid roundId,
-			Dictionary<Coin, byte[]> coinRoundSignaturePairs,
+			IDictionary<Coin, byte[]> coinRoundSignaturePairs,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
 			ZeroCredentialsRequest zeroWeightCredentialRequests)
 		{
