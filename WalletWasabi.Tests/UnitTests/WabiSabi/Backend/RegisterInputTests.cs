@@ -172,6 +172,63 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		}
 
 		[Fact]
+		public async Task InputRegistrationFullAsync()
+		{
+			WabiSabiConfig cfg = new() { MaxInputCountByRound = 3 };
+			var round = WabiSabiFactory.CreateRound(cfg);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+			MockRpcClient rpc = new();
+			using Key key = new();
+
+			rpc.OnGetTxOutAsync = (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
+			};
+
+			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
+
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			round.Alices.Add(WabiSabiFactory.CreateAlice());
+			round.Alices.Add(WabiSabiFactory.CreateAlice(WabiSabiFactory.CreateInputRoundSignaturePairs(2)));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			Assert.Equal(Phase.InputRegistration, round.Phase);
+			Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
+		public async Task InputRegistrationTimedoutAsync()
+		{
+			WabiSabiConfig cfg = new();
+			var round = WabiSabiFactory.CreateRound(cfg);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+			MockRpcClient rpc = new();
+			using Key key = new();
+
+			rpc.OnGetTxOutAsync = (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
+			};
+
+			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
+
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			cfg.InputRegistrationTimeout = TimeSpan.Zero;
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			Assert.Equal(Phase.InputRegistration, round.Phase);
+			Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
 		public async Task NonUniqueInputsAsync()
 		{
 			WabiSabiConfig cfg = new();
