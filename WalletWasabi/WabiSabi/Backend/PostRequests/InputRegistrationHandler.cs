@@ -130,21 +130,23 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			var weightCredentialResponse = round.WeightCredentialIssuer.HandleRequest(zeroWeightCredentialRequests);
 
 			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
-			foreach (var otherRound in rounds.Values)
+			foreach (var (otherRound, op) in rounds
+				.Values
+				.SelectMany(otherRound => alice
+					.Coins
+					.Select(x => x.Outpoint)
+					.Select(op => (otherRound, op))))
 			{
-				foreach (var op in alice.Coins.Select(x => x.Outpoint))
+				try
 				{
-					try
+					if (otherRound.RemoveAlices(x => x.Coins.Select(x => x.Outpoint).Contains(op)) > 0)
 					{
-						if (otherRound.RemoveAlices(x => x.Coins.Select(x => x.Outpoint).Contains(op)) > 0)
-						{
-							Logger.LogInfo("Updated Alice registration.");
-						}
+						Logger.LogInfo("Updated Alice registration.");
 					}
-					catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
-					{
-						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
-					}
+				}
+				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 				}
 			}
 
