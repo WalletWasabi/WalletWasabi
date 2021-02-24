@@ -106,6 +106,7 @@ namespace NBitcoin.RPC
 				}
 			}
 
+			// EstimateSmartFeeAsync returns the block number where estimate was found - not always what the requested one.
 			return rpcFeeEstimationTasks
 				.Zip(Constants.ConfirmationTargets, (task, target) => (task, target))
 				.Where(x => x.task.IsCompletedSuccessfully)
