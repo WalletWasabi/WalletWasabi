@@ -45,26 +45,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				.ToHashSet();
 		}
 
-		public bool IsInputRegistrationEnded(uint maxInputCount, TimeSpan inputRegistrationTimeout)
-		{
-			if (Phase != Phase.InputRegistration)
-			{
-				return true;
-			}
-
-			if (Alices.Sum(x => x.Coins.Count()) >= maxInputCount)
-			{
-				return true;
-			}
-
-			if (CreationTime + inputRegistrationTimeout < DateTimeOffset.UtcNow)
-			{
-				return true;
-			}
-
-			return false;
-		}
-
 		public uint256 Hash { get; }
 		public Network Network => RoundParameters.Network;
 		public uint MaxInputCountByAlice => RoundParameters.MaxInputCountByAlice;
@@ -99,6 +79,26 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 			}
 			return Alices.RemoveAll(match);
+		}
+
+		public bool IsInputRegistrationEnded(uint maxInputCount, TimeSpan inputRegistrationTimeout)
+		{
+			if (Phase != Phase.InputRegistration)
+			{
+				return true;
+			}
+
+			if (Alices.Sum(x => x.Coins.Count()) >= maxInputCount)
+			{
+				return true;
+			}
+
+			if (CreationTime + inputRegistrationTimeout < DateTimeOffset.UtcNow)
+			{
+				return true;
+			}
+
+			return false;
 		}
 	}
 }
