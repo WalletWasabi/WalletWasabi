@@ -30,8 +30,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 			Coinjoin = Transaction.Create(Network);
 
-			CreationTime = DateTimeOffset.UtcNow;
-
 			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{RegistrableWeightCredentials}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
 		}
 
@@ -61,7 +59,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public CredentialIssuerParameters AmountCredentialIssuerParameters { get; }
 		public CredentialIssuerParameters WeightCredentialIssuerParameters { get; }
 		public Guid Id { get; } = Guid.NewGuid();
-		public Phase Phase { get; set; } = Phase.InputRegistration;
 		public List<Alice> Alices { get; } = new();
 		public int InputCount => Alices.Sum(x => x.Coins.Count());
 		public List<Bob> Bobs { get; } = new();
@@ -70,8 +67,30 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public ISet<OutPoint> BlameWhitelist { get; } = new HashSet<OutPoint>();
 		public byte[] UnsignedTxSecret { get; }
 		public Transaction Coinjoin { get; }
-		public DateTimeOffset CreationTime { get; }
 		private RoundParameters RoundParameters { get; }
+		public Phase Phase { get; private set; } = Phase.InputRegistration;
+		public DateTimeOffset InputRegistrationStart { get; } = DateTimeOffset.UtcNow;
+		public DateTimeOffset ConnectionConfirmationStart { get; private set; }
+		public DateTimeOffset OutputRegistrationStart { get; private set; }
+		public DateTimeOffset TransactionSigningStart { get; private set; }
+
+		public void SetPhase(Phase phase)
+		{
+			Phase = phase;
+
+			if (phase == Phase.ConnectionConfirmation)
+			{
+				ConnectionConfirmationStart = DateTimeOffset.UtcNow;
+			}
+			else if (phase == Phase.OutputRegistration)
+			{
+				OutputRegistrationStart = DateTimeOffset.UtcNow;
+			}
+			else if (phase == Phase.TransactionSigning)
+			{
+				TransactionSigningStart = DateTimeOffset.UtcNow;
+			}
+		}
 
 		public int RemoveAlices(Predicate<Alice> match)
 		{
@@ -84,7 +103,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		public bool IsInputRegistrationEnded(uint maxInputCount, TimeSpan inputRegistrationTimeout)
 		{
-			if (Phase != Phase.InputRegistration)
+			if (Phase > Phase.InputRegistration)
 			{
 				return true;
 			}
@@ -94,7 +113,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				return true;
 			}
 
-			if (CreationTime + inputRegistrationTimeout < DateTimeOffset.UtcNow)
+			if (InputRegistrationStart + inputRegistrationTimeout < DateTimeOffset.UtcNow)
 			{
 				return true;
 			}

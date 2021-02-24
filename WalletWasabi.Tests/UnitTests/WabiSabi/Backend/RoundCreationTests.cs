@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using Xunit;
 
@@ -26,7 +27,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 					FeeRate = new FeeRate(10m)
 				});
 
-			using Arena arena = new Arena(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc);
+			using Arena arena = new Arena(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison());
 			Assert.Empty(arena.Rounds);
 			await arena.StartAsync(CancellationToken.None).ConfigureAwait(false);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
@@ -47,13 +48,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 					FeeRate = new FeeRate(10m)
 				});
 
-			using Arena arena = new Arena(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc);
+			using Arena arena = new Arena(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison());
 			Assert.Empty(arena.Rounds);
 			await arena.StartAsync(CancellationToken.None).ConfigureAwait(false);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
-			var round = Assert.Single(arena.Rounds);
+			var round = Assert.Single(arena.Rounds).Value;
 
-			round.Value.Phase = Phase.ConnectionConfirmation;
+			round.SetPhase(Phase.ConnectionConfirmation);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
 			Assert.Equal(2, arena.Rounds.Count);
 
@@ -72,14 +73,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 					FeeRate = new FeeRate(10m)
 				});
 
-			using Arena arena = new Arena(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc);
+			using Arena arena = new Arena(TimeSpan.FromSeconds(1), Network.Main, cfg, mockRpc, new Prison());
 			Assert.Empty(arena.Rounds);
 			await arena.StartAsync(CancellationToken.None).ConfigureAwait(false);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
-			var round = Assert.Single(arena.Rounds);
+			var round = Assert.Single(arena.Rounds).Value;
 
-			round.Value.Phase = Phase.ConnectionConfirmation;
-			var blame = new Round(round.Value);
+			round.SetPhase(Phase.ConnectionConfirmation);
+			var blame = new Round(round);
 			Assert.Equal(Phase.InputRegistration, blame.Phase);
 			arena.Rounds.Add(blame.Id, blame);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
