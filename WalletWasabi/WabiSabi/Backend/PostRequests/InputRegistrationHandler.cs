@@ -16,7 +16,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 {
 	public static class InputRegistrationHandler
 	{
-		public static async Task<Dictionary<Coin, byte[]>> PreProcessAsync(
+		public static async Task<IDictionary<Coin, byte[]>> PreProcessAsync(
 			InputsRegistrationRequest request,
 			Prison prison,
 			IRPCClient rpc,
