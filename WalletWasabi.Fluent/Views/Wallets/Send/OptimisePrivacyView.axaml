@@ -42,10 +42,7 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-            <StackPanel Margin="0 30 0 0" Orientation="Horizontal" Spacing="5" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" HorizontalAlignment="Center">
-                <PathIcon Data="{StaticResource info_tip}" Foreground="{DynamicResource WarningMessageForeground}" />
-                <TextBlock Text="Some services only accept the exact amount that was requested." Foreground="{DynamicResource WarningMessageForeground}" />
-            </StackPanel>
+            <c:InfoMessage Margin="0 30 0 0" VerticalAlignment="Bottom" HorizontalAlignment="Center" Content="Some services only accept the exact amount that was requested." Foreground="{DynamicResource WarningMessageForeground}" />
         </DockPanel>
     </c:ContentArea>
 </UserControl>
