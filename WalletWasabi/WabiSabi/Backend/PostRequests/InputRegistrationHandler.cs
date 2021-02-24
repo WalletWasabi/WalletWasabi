@@ -129,13 +129,22 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			var amountCredentialResponse = round.AmountCredentialIssuer.HandleRequest(zeroAmountCredentialRequests);
 			var weightCredentialResponse = round.WeightCredentialIssuer.HandleRequest(zeroWeightCredentialRequests);
 
+			RemoveDuplicateAlices(rounds, alice);
+
 			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
+			round.Alices.Add(alice);
+
+			return new(alice.Id, amountCredentialResponse, weightCredentialResponse);
+		}
+
+		private static void RemoveDuplicateAlices(IDictionary<Guid, Round> rounds, Alice alice)
+		{
 			foreach (var (otherRound, op) in rounds
-				.Values
-				.SelectMany(otherRound => alice
-					.Coins
-					.Select(x => x.Outpoint)
-					.Select(op => (otherRound, op))))
+							.Values
+							.SelectMany(otherRound => alice
+								.Coins
+								.Select(x => x.Outpoint)
+								.Select(op => (otherRound, op))))
 			{
 				try
 				{
@@ -149,10 +158,6 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 				}
 			}
-
-			round.Alices.Add(alice);
-
-			return new(alice.Id, amountCredentialResponse, weightCredentialResponse);
 		}
 	}
 }
