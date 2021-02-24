@@ -25,9 +25,9 @@ namespace WalletWasabi.WabiSabi.Backend
 		{
 		}
 
-		[DefaultValue(Constants.OneDayConfirmationTarget)]
+		[DefaultValue(108)]
 		[JsonProperty(PropertyName = "ConfirmationTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public uint ConfirmationTarget { get; set; } = Constants.OneDayConfirmationTarget;
+		public uint ConfirmationTarget { get; set; } = 108;
 
 		[DefaultValueTimeSpan("0d 3h 0m 0s")]
 		[JsonProperty(PropertyName = "ReleaseUtxoFromPrisonAfter", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -51,21 +51,48 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money MaxRegistrableAmount { get; set; } = Money.Coins(43000m);
 
-		[DefaultValue(1)]
-		[JsonProperty(PropertyName = "MinRegistrableWeight", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public uint MinRegistrableWeight { get; set; } = 1;
-
 		/// <summary>
+		/// How much weight units the server gives to alices per registrations.
+		/// If it's 1000, then about 400 alices can participate.
 		/// The width of the rangeproofs are calculated from this, so don't choose stupid numbers.
 		/// Consider that it applies to registrations, not for inputs. This usually consists one input, but can be more.
-		/// 1000 / inputs looks good, so for 2 inputs it'd be 2000.
 		/// </summary>
-		[DefaultValue(2000)]
-		[JsonProperty(PropertyName = "MaxRegistrableWeight", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public uint MaxRegistrableWeight { get; set; } = 2000;
+		[DefaultValue(1000)]
+		[JsonProperty(PropertyName = "RegistrableWeightCredentials", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public uint RegistrableWeightCredentials { get; set; } = 1000;
 
 		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "AllowNotedInputRegistration", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool AllowNotedInputRegistration { get; set; } = true;
+
+		[DefaultValueTimeSpan("0d 1h 0m 0s")]
+		[JsonProperty(PropertyName = "InputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonConverter(typeof(TimeSpanJsonConverter))]
+		public TimeSpan InputRegistrationTimeout { get; set; } = TimeSpan.FromHours(1);
+
+		[DefaultValueTimeSpan("0d 0h 1m 0s")]
+		[JsonProperty(PropertyName = "ConnectionConfirmationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonConverter(typeof(TimeSpanJsonConverter))]
+		public TimeSpan ConnectionConfirmationTimeout { get; set; } = TimeSpan.FromMinutes(1);
+
+		[DefaultValueTimeSpan("0d 0h 1m 0s")]
+		[JsonProperty(PropertyName = "OutputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonConverter(typeof(TimeSpanJsonConverter))]
+		public TimeSpan OutputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(1);
+
+		[DefaultValueTimeSpan("0d 0h 1m 0s")]
+		[JsonProperty(PropertyName = "TransactionSigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonConverter(typeof(TimeSpanJsonConverter))]
+		public TimeSpan TransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
+
+		[DefaultValue(100)]
+		[JsonProperty(PropertyName = "MaxInputCountByRound", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public uint MaxInputCountByRound { get; set; } = 100;
+
+		[DefaultValue(0.5)]
+		[JsonProperty(PropertyName = "MinInputCountByRoundMultiplier", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public double MinInputCountByRoundMultiplier { get; set; } = 0.5;
+
+		public uint MinInputCountByRound => (uint)(MaxInputCountByRound * MinInputCountByRoundMultiplier);
 	}
 }

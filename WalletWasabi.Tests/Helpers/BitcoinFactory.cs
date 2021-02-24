@@ -102,10 +102,17 @@ namespace WalletWasabi.Tests.Helpers
 			return new uint256(bytes);
 		}
 
-		public static Script CreateScript()
+		public static Script CreateScript(Key? key = null)
 		{
-			using Key k = new();
-			return k.PubKey.WitHash.ScriptPubKey;
+			if (key is null)
+			{
+				using Key k = new();
+				return k.PubKey.WitHash.ScriptPubKey;
+			}
+			else
+			{
+				return key.PubKey.WitHash.ScriptPubKey;
+			}
 		}
 	}
 }

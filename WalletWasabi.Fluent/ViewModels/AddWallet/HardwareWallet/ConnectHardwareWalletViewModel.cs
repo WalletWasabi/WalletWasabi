@@ -204,11 +204,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			Navigate().To(new DetectedHardwareWalletViewModel(WalletManager, WalletName, device));
 		}
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
-			base.OnNavigatedTo(inStack, disposables);
+			base.OnNavigatedTo(isInHistory, disposables);
 
-			if (inStack)
+			if (isInHistory)
 			{
 				CancelCts = new CancellationTokenSource();
 			}

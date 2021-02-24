@@ -76,7 +76,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 
 		private WasabiRandom RandomNumberGenerator { get; }
 
-		private CredentialIssuerSecretKey CredentialIssuerSecretKey { get; }
+		public CredentialIssuerSecretKey CredentialIssuerSecretKey { get; }
 
 		private CredentialIssuerParameters CredentialIssuerParameters { get; }
 
