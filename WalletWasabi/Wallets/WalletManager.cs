@@ -62,6 +62,7 @@ namespace WalletWasabi.Wallets
 
 		private CancellationTokenSource CancelAllInitialization { get; }
 
+		/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
 		private Dictionary<Wallet, HashSet<uint256>> Wallets { get; }
 		private object Lock { get; }
 		private AsyncLock StartStopWalletLock { get; }
