@@ -121,8 +121,7 @@ namespace WalletWasabi.Wallets
 
 			lock (Lock)
 			{
-				return Wallets.Keys
-					.ToList();
+				return Wallets.Keys.ToList();
 			}
 		}
 
