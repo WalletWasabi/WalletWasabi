@@ -236,25 +236,6 @@ namespace WalletWasabi.Fluent.Controls
 			}
 		}
 
-		private void AutoGenerateXAxisLabels(LineChartState state)
-		{
-			var xAxisValues = XAxisValues;
-
-			if (xAxisValues is null || xAxisValues.Count <= 1)
-			{
-				state.XAxisLabelStep = double.NaN;
-			}
-			else
-			{
-				state.XAxisLabelStep = state.AreaWidth / (xAxisValues.Count - 1);
-			}
-
-			if (XAxisStroke is not null && XAxisValues is not null)
-			{
-				state.XAxisLabels = XAxisValues.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToList();
-			}
-		}
-
 		private void SetStateYAxisLabels(LineChartState state)
 		{
 			var yAxisLabels = YAxisLabels;
@@ -275,6 +256,25 @@ namespace WalletWasabi.Fluent.Controls
 			else
 			{
 				AutoGenerateYAxisLabels(state);
+			}
+		}
+
+		private void AutoGenerateXAxisLabels(LineChartState state)
+		{
+			var xAxisValues = XAxisValues;
+
+			if (xAxisValues is null || xAxisValues.Count <= 1)
+			{
+				state.XAxisLabelStep = double.NaN;
+			}
+			else
+			{
+				state.XAxisLabelStep = state.AreaWidth / (xAxisValues.Count - 1);
+			}
+
+			if (XAxisStroke is not null && XAxisValues is not null)
+			{
+				state.XAxisLabels = XAxisValues.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToList();
 			}
 		}
 
