@@ -52,7 +52,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void StepInputRegistrationPhase()
 		{
-			foreach (var round in Rounds.Values.ToArray().Where(x =>
+			foreach (var round in Rounds.Values.Where(x =>
 				x.Phase == Phase.InputRegistration
 				&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.InputRegistrationTimeout)))
 			{
