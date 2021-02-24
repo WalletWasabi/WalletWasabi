@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
@@ -59,16 +60,26 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				var dialogResult =
 					await NavigateDialog(new EnterPasswordDialogViewModel(""), NavigationTarget.DialogScreen);
 
-				if (dialogResult.Kind == DialogResultKind.Normal &&
-				    PasswordHelper.TryPassword(wallet.KeyManager, dialogResult.Result, out var compatibilityPasswordUsed))
+				if (dialogResult.Kind == DialogResultKind.Normal)
 				{
-					// Broadcast transaction...
+					IsBusy = true;
 
+					string? compatibilityPasswordUsed;
 
-				}
-				else
-				{
-					await ShowErrorAsync("Password was incorrect.", "Please try again.");
+					var passwordValid = await Task.Run(() => PasswordHelper.TryPassword(wallet.KeyManager,
+						dialogResult.Result,
+						out compatibilityPasswordUsed));
+
+					IsBusy = false;
+
+					if (passwordValid)
+					{
+						// Broadcast transaction.
+					}
+					else
+					{
+						await ShowErrorAsync("Password was incorrect.", "Please try again.");
+					}
 				}
 			});
 		}
