@@ -16,7 +16,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		}
 
 		public Guid Id { get; } = Guid.NewGuid();
-		public DateTimeOffset Deadline { get; private set; } = DateTimeOffset.UtcNow;
+		public DateTimeOffset Deadline { get; set; } = DateTimeOffset.UtcNow;
 		public IEnumerable<Coin> Coins { get; }
 		public IDictionary<Coin, byte[]> CoinRoundSignaturePairs { get; }
 		public Money TotalInputAmount => Coins.Sum(x => x.Amount);

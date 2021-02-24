@@ -1,4 +1,6 @@
 using NBitcoin;
+using NBitcoin.RPC;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -7,6 +9,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
@@ -17,30 +21,83 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
 	public class Arena : PeriodicRunner
 	{
-		public Arena(TimeSpan period, Network network) : base(period)
+		public Arena(TimeSpan period, Network network, WabiSabiConfig config, IRPCClient rpc) : base(period)
 		{
 			Network = network;
+			Config = config;
+			Rpc = rpc;
+			Random = new SecureRandom();
 		}
 
 		public Dictionary<Guid, Round> Rounds { get; } = new();
-		private object Lock { get; } = new();
+		private AsyncLock AsyncLock { get; } = new();
 		public Network Network { get; }
+		public WabiSabiConfig Config { get; }
+		public IRPCClient Rpc { get; }
+		public SecureRandom Random { get; }
 
-		protected override Task ActionAsync(CancellationToken cancel)
+		protected override async Task ActionAsync(CancellationToken cancel)
 		{
-			lock (Lock)
+			using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				return Task.CompletedTask;
+				// Remove timed out alices.
+				TimeoutAlices();
+
+				StepInputRegistrationPhase();
+
+				// Ensure there's at least one non-blame round in input registration.
+				await CreateRoundsAsync().ConfigureAwait(false);
 			}
 		}
 
-		public InputsRegistrationResponse RegisterInput(
+		private void StepInputRegistrationPhase()
+		{
+			foreach (var round in Rounds.Values.Where(x =>
+				x.Phase == Phase.InputRegistration
+				&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.InputRegistrationTimeout)))
+			{
+				if (round.InputCount < Config.MinInputCountByRound)
+				{
+					Rounds.Remove(round.Id);
+				}
+				else
+				{
+					round.Phase = Phase.ConnectionConfirmation;
+				}
+			}
+		}
+
+		private async Task CreateRoundsAsync()
+		{
+			if (!Rounds.Values.Any(x => !x.IsBlameRound && x.Phase == Phase.InputRegistration))
+			{
+				var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative).ConfigureAwait(false)).FeeRate;
+
+				RoundParameters roundParams = new(Config, Network, Random, feeRate);
+				Round r = new(roundParams);
+				Rounds.Add(r.Id, r);
+			}
+		}
+
+		private void TimeoutAlices()
+		{
+			foreach (var round in Rounds.Values.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.InputRegistrationTimeout)))
+			{
+				var removedAliceCount = round.RemoveAlices(x => x.Deadline < DateTimeOffset.UtcNow);
+				if (removedAliceCount > 0)
+				{
+					Logger.LogInfo($"{removedAliceCount} alices timed out and removed.");
+				}
+			}
+		}
+
+		public async Task<InputsRegistrationResponse> RegisterInputAsync(
 			Guid roundId,
-			Dictionary<Coin, byte[]> coinRoundSignaturePairs,
+			IDictionary<Coin, byte[]> coinRoundSignaturePairs,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
 			ZeroCredentialsRequest zeroWeightCredentialRequests)
 		{
-			lock (Lock)
+			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
 				return InputRegistrationHandler.RegisterInput(
 					roundId,
@@ -48,13 +105,15 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					zeroAmountCredentialRequests,
 					zeroWeightCredentialRequests,
 					Rounds,
-					Network);
+					Network,
+					Config.MaxInputCountByRound,
+					Config.InputRegistrationTimeout);
 			}
 		}
 
-		public void RemoveInput(InputsRemovalRequest request)
+		public async Task RemoveInputAsync(InputsRemovalRequest request)
 		{
-			lock (Lock)
+			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
 				if (!Rounds.TryGetValue(request.RoundId, out var round))
 				{
@@ -64,9 +123,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public ConnectionConfirmationResponse ConfirmConnection(ConnectionConfirmationRequest request)
+		public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request)
 		{
-			lock (Lock)
+			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
 				if (!Rounds.TryGetValue(request.RoundId, out var round))
 				{
@@ -119,9 +178,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public OutputRegistrationResponse RegisterOutput(OutputRegistrationRequest request)
+		public async Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request)
 		{
-			lock (Lock)
+			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
 				if (!Rounds.TryGetValue(request.RoundId, out var round))
 				{
@@ -165,9 +224,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public void SignTransaction(TransactionSignaturesRequest request)
+		public async Task SignTransactionAsync(TransactionSignaturesRequest request)
 		{
-			lock (Lock)
+			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
 				if (!Rounds.TryGetValue(request.RoundId, out var round))
 				{
@@ -212,6 +271,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					round.Coinjoin.Inputs[index].WitScript = witness;
 				}
 			}
+		}
+
+		public override void Dispose()
+		{
+			Random.Dispose();
+			base.Dispose();
 		}
 	}
 }
