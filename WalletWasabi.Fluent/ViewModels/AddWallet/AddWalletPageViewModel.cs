@@ -84,7 +84,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				catch (Exception ex)
 				{
 					Logger.LogError(ex);
-					await ShowErrorAsync(ex.ToUserFriendlyString(), "The wallet file was not valid or compatible with Wasabi.");
+					await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "The wallet file was not valid or compatible with Wasabi.");
 				}
 			});
 

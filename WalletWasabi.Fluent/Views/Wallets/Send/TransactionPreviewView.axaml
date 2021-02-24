@@ -15,6 +15,7 @@
                    EnableCancel="False"
                    EnableNext="True"
                    NextContent="Confirm"
+                   IsBusy="{Binding IsBusy}"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <StackPanel Spacing="50">
             <WrapPanel>

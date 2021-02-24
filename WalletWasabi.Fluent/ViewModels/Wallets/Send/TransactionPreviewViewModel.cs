@@ -74,11 +74,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					if (passwordValid)
 					{
+						// dequeue any joining coins.
+
 						// Broadcast transaction.
 					}
 					else
 					{
-						await ShowErrorAsync("Password was incorrect.", "Please try again.");
+						await ShowErrorAsync("Password was incorrect.", "Please try again.", "");
 					}
 				}
 			});
