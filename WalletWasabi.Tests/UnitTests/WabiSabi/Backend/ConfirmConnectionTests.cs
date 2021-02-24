@@ -26,7 +26,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var alice = WabiSabiFactory.CreateAlice();
 			var preDeadline = alice.Deadline;
 			round.Alices.Add(alice);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
@@ -52,7 +52,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var alice = WabiSabiFactory.CreateAlice();
 			var preDeadline = alice.Deadline;
 			round.Alices.Add(alice);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
@@ -87,7 +87,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var alice = WabiSabiFactory.CreateAlice();
 			var preDeadline = alice.Deadline;
 			round.Alices.Add(alice);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
@@ -110,7 +110,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
@@ -128,7 +128,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			round.Phase = Phase.ConnectionConfirmation;
 			var alice = WabiSabiFactory.CreateAlice();
 			round.Alices.Add(alice);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 			req = new(
@@ -153,7 +153,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			round.Phase = Phase.ConnectionConfirmation;
 			var alice = WabiSabiFactory.CreateAlice();
 			round.Alices.Add(alice);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 			req = new(

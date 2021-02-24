@@ -25,7 +25,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.Phase = Phase.OutputRegistration;
 			round.Alices.Add(WabiSabiFactory.CreateAlice());
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 
 			var req = WabiSabiFactory.CreateOutputRegistrationRequest(round);
@@ -57,7 +57,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.Phase = Phase.OutputRegistration;
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			using Key key = new();
 
 			var req = WabiSabiFactory.CreateOutputRegistrationRequest(round, key.PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main).ScriptPubKey);
@@ -75,7 +75,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.Phase = Phase.OutputRegistration;
 			round.Alices.Add(WabiSabiFactory.CreateAlice(value: Money.Coins(1)));
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 
 			var req = WabiSabiFactory.CreateOutputRegistrationRequest(round);
@@ -93,7 +93,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.Phase = Phase.OutputRegistration;
 			round.Alices.Add(WabiSabiFactory.CreateAlice(value: Money.Coins(2)));
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 
 			var req = WabiSabiFactory.CreateOutputRegistrationRequest(round);
@@ -111,7 +111,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.Phase = Phase.OutputRegistration;
 			round.Alices.Add(WabiSabiFactory.CreateAlice());
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 
 			var req = WabiSabiFactory.CreateOutputRegistrationRequest(round, weight: 30);
@@ -128,7 +128,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.Alices.Add(WabiSabiFactory.CreateAlice());
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))

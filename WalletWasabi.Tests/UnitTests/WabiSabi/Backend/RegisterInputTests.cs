@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			MockRpcClient rpc = new();
 			using Key key = new();
@@ -59,7 +59,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			MockRpcClient rpc = new();
 			using Key key = new();
@@ -91,7 +91,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			var anotherRound = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round, anotherRound);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round, anotherRound);
 
 			MockRpcClient rpc = new();
 			using Key key = new();
@@ -145,7 +145,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			MockRpcClient rpc = new();
 			using Key key = new();
 
@@ -176,7 +176,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			var inputSigPair = WabiSabiFactory.CreateInputRoundSignaturePair();
 
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
@@ -192,7 +192,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new() { MaxInputCountByAlice = 3 };
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			MockRpcClient rpc = new();
 			using Key key = new();
 
@@ -219,7 +219,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			prison.Punish(pair.Input, Punishment.Banned, Guid.NewGuid());
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			await using PostRequestHandler handler = new(cfg, prison, arena, new MockRpcClient());
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(pair, round);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
@@ -236,7 +236,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			prison.Punish(pair.Input, Punishment.Noted, Guid.NewGuid());
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			await using PostRequestHandler handler = new(cfg, prison, arena, new MockRpcClient());
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(pair, round);
@@ -257,7 +257,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			prison.Punish(pair.Input, Punishment.Noted, Guid.NewGuid());
 			WabiSabiConfig cfg = new() { AllowNotedInputRegistration = false };
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			await using PostRequestHandler handler = new(cfg, prison, arena, new MockRpcClient());
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(pair, round);
@@ -274,7 +274,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.Alices.Add(WabiSabiFactory.CreateAlice());
 			Round blameRound = new(round);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round, blameRound);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round, blameRound);
 
 			MockRpcClient rpc = new();
 			using Key key = new();
@@ -301,7 +301,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.Alices.Add(WabiSabiFactory.CreateAlice(pair));
 			Round blameRound = new(round);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round, blameRound);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round, blameRound);
 
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(pair, blameRound);
@@ -325,7 +325,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.Alices.Add(WabiSabiFactory.CreateAlice(pair));
 			Round blameRound = new(round);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round, blameRound);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round, blameRound);
 
 			await using PostRequestHandler handler = new(cfg, prison, arena, new MockRpcClient());
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(pair, blameRound);
@@ -340,7 +340,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			MockRpcClient rpc = new();
 			rpc.OnGetTxOutAsync = (_, _, _) => null;
 
@@ -357,7 +357,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			MockRpcClient rpc = new();
 			rpc.OnGetTxOutAsync = (_, _, _) => new GetTxOutResponse { Confirmations = 0 };
 
@@ -374,7 +374,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			MockRpcClient rpc = new();
 
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(round);
@@ -395,7 +395,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			MockRpcClient rpc = new();
 			using Key key = new();
 
@@ -418,7 +418,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			MockRpcClient rpc = new();
 			using Key key = new();
 
@@ -442,7 +442,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new() { MinRegistrableAmount = Money.Coins(2) };
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			MockRpcClient rpc = new();
 			using Key key = new();
 
@@ -466,7 +466,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new() { MaxRegistrableAmount = Money.Coins(0.9m) };
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			MockRpcClient rpc = new();
 			using Key key = new();
 
@@ -490,7 +490,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new() { RegistrableWeightCredentials = 1 };
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			MockRpcClient rpc = new();
 			using Key key = new();
 
@@ -514,7 +514,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			MockRpcClient rpc = new();
 			using Key key = new();
@@ -546,7 +546,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			var anotherRound = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round, anotherRound);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round, anotherRound);
 
 			MockRpcClient rpc = new();
 			using Key key = new();

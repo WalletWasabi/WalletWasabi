@@ -63,6 +63,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public Guid Id { get; } = Guid.NewGuid();
 		public Phase Phase { get; set; } = Phase.InputRegistration;
 		public List<Alice> Alices { get; } = new();
+		public int InputCount => Alices.Sum(x => x.Coins.Count());
 		public List<Bob> Bobs { get; } = new();
 		public Round? BlameOf { get; } = null;
 		public bool IsBlameRound => BlameOf is not null;
@@ -88,7 +89,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				return true;
 			}
 
-			if (Alices.Sum(x => x.Coins.Count()) >= maxInputCount)
+			if (InputCount >= maxInputCount)
 			{
 				return true;
 			}

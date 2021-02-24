@@ -29,7 +29,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var coinjoin = round.Coinjoin;
 			coinjoin.Inputs.Add(alice.Coins.First().Outpoint);
 			round.Phase = Phase.TransactionSigning;
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var signedCoinJoin = coinjoin.Clone();
 			signedCoinJoin.Sign(key.GetBitcoinSecret(Network.Main), alice.Coins.First());
@@ -57,7 +57,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = new TransactionSignaturesRequest(round.Id, null!);
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
@@ -88,7 +88,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			coinjoin.Inputs.Add(alice1.Coins.First().Outpoint);
 			coinjoin.Inputs.Add(alice2.Coins.First().Outpoint);
 			round.Phase = Phase.TransactionSigning;
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			// Submit the signature for the second alice to the first alice's input.
 			var signedCoinJoin = coinjoin.Clone();

@@ -70,10 +70,6 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonConverter(typeof(TimeSpanJsonConverter))]
 		public TimeSpan InputRegistrationTimeout { get; set; } = TimeSpan.FromHours(1);
 
-		[DefaultValue(100)]
-		[JsonProperty(PropertyName = "MaxInputCount", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public uint MaxInputCount { get; set; } = 100;
-
 		[DefaultValueTimeSpan("0d 0h 1m 0s")]
 		[JsonProperty(PropertyName = "ConnectionConfirmationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(TimeSpanJsonConverter))]
@@ -88,5 +84,15 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonProperty(PropertyName = "TransactionSigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(TimeSpanJsonConverter))]
 		public TimeSpan TransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
+
+		[DefaultValue(100)]
+		[JsonProperty(PropertyName = "MaxInputCountByRound", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public uint MaxInputCountByRound { get; set; } = 100;
+
+		[DefaultValue(0.5)]
+		[JsonProperty(PropertyName = "MinInputCountByRoundMultiplier", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public double MinInputCountByRoundMultiplier { get; set; } = 0.5;
+
+		public uint MinInputCountByRound => (uint)(MaxInputCountByRound * MinInputCountByRoundMultiplier);
 	}
 }

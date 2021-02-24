@@ -67,7 +67,7 @@ namespace WalletWasabi.Tests.Helpers
 				new InsecureRandom(),
 				new(100m)));
 
-		public static async Task<Arena> CreateAndStartArenaAsync(params Round[] rounds)
+		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig? cfg = null, params Round[] rounds)
 		{
 			var mockRpc = new MockRpcClient();
 			mockRpc.OnEstimateSmartFeeAsync = async (target, _) =>
@@ -76,7 +76,7 @@ namespace WalletWasabi.Tests.Helpers
 					Blocks = target,
 					FeeRate = new FeeRate(10m)
 				});
-			Arena arena = new(TimeSpan.FromSeconds(1), rounds.FirstOrDefault()?.Network ?? Network.Main, new WabiSabiConfig(), mockRpc);
+			Arena arena = new(TimeSpan.FromSeconds(1), rounds.FirstOrDefault()?.Network ?? Network.Main, cfg ?? new WabiSabiConfig(), mockRpc);
 			foreach (var round in rounds)
 			{
 				arena.Rounds.Add(round.Id, round);

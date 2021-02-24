@@ -52,11 +52,18 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void StepInputRegistrationPhase()
 		{
-			foreach (var round in Rounds.Values.Where(x =>
+			foreach (var round in Rounds.Values.ToArray().Where(x =>
 				x.Phase == Phase.InputRegistration
-				&& x.IsInputRegistrationEnded(Config.MaxInputCount, Config.InputRegistrationTimeout)))
+				&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.InputRegistrationTimeout)))
 			{
-				round.Phase = Phase.ConnectionConfirmation;
+				if (round.InputCount < Config.MinInputCountByRound)
+				{
+					Rounds.Remove(round.Id);
+				}
+				else
+				{
+					round.Phase = Phase.ConnectionConfirmation;
+				}
 			}
 		}
 
@@ -74,7 +81,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void TimeoutAlices()
 		{
-			foreach (var round in Rounds.Values.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCount, Config.InputRegistrationTimeout)))
+			foreach (var round in Rounds.Values.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.InputRegistrationTimeout)))
 			{
 				var removedAliceCount = round.RemoveAlices(x => x.Deadline < DateTimeOffset.UtcNow);
 				if (removedAliceCount > 0)
@@ -99,7 +106,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					zeroWeightCredentialRequests,
 					Rounds,
 					Network,
-					Config.MaxInputCount,
+					Config.MaxInputCountByRound,
 					Config.InputRegistrationTimeout);
 			}
 		}
