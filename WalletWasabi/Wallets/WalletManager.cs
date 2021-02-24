@@ -271,7 +271,7 @@ namespace WalletWasabi.Wallets
 
 		public async Task DequeueAllCoinsGracefullyAsync(DequeueReason reason, CancellationToken token)
 		{
-			IEnumerable<Task> tasks = null;
+			IEnumerable<Task> tasks;
 			lock (Lock)
 			{
 				tasks = Wallets.Keys.Where(x => x.ChaumianClient is { }).Select(x => x.ChaumianClient.DequeueAllCoinsFromMixGracefullyAsync(reason, token)).ToArray();
