@@ -30,13 +30,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				labels = string.Join(", ", info.Labels.Take(info.Labels.Count() - 1));
 
-				labels += $" and {info.Labels.TakeLast(1)}";
+				labels += $" and {info.Labels.Last()}";
 			}
 
 			Instruction = $"A total of {destinationAmount} bitcoins (≈{(destinationAmount * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD) will be sent to {labels} via {info.Address.ToString()}";
 
 			Execution =
-				$"Bitcoin miners will work hard to confirm your transaction within ~20 minutes for an additional fee of {fee.ToDecimal(MoneyUnit.Satoshi)} satoshis (≈{(fee.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()}) this is a charge equivalent to {transaction.FeePercentOfSent}%";
+				$"Bitcoin miners will work hard to confirm your transaction within ~20 minutes for an additional fee of {fee.ToDecimal(MoneyUnit.Satoshi)} satoshis (≈{(fee.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()}) this is a charge equivalent to {transaction.FeePercentOfSent:P}";
 		}
 
 		public string Instruction { get; }

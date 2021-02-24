@@ -17,8 +17,8 @@
                    NextContent="Confirm"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <StackPanel Spacing="100">
-            <TextBlock Text="{Binding Instruction}" />
-            <TextBlock Text="{Binding Execution}" />
+            <TextBlock TextWrapping="Wrap" Text="{Binding Instruction}" />
+            <TextBlock TextWrapping="Wrap" Text="{Binding Execution}" />
         </StackPanel>
     </c:ContentArea>
 </UserControl>
