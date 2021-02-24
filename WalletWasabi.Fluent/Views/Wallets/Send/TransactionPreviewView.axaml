@@ -6,7 +6,7 @@
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="450"
              x:DataType="vm:TransactionPreviewViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionPreviewView">
@@ -16,9 +16,29 @@
                    EnableNext="True"
                    NextContent="Confirm"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
-        <StackPanel Spacing="100">
-            <TextBlock TextWrapping="Wrap" Text="{Binding Instruction}" />
-            <TextBlock TextWrapping="Wrap" Text="{Binding Execution}" />
+        <StackPanel Spacing="50">
+            <WrapPanel>
+                <TextBlock Text="A total of " Opacity="0.7" />
+                <TextBlock Text="{Binding BtcAmountText}" FontWeight="Bold" />
+                <TextBlock Text="{Binding FiatAmountText}" FontWeight="Bold" />
+                <TextBlock Text="will be sent to " Opacity="0.7" />
+                <TextBlock Text="{Binding LabelsText}" FontWeight="Bold" />
+                <TextBlock Text="via " Opacity="0.7" />
+                <TextBlock Text="{Binding AddressText}" FontWeight="Bold"  />
+                <TextBlock Text="." Opacity="0.7"  />
+            </WrapPanel>
+
+            <WrapPanel>
+                <TextBlock Text="Bitcoin miners will work hard to confirm your transaction within " Opacity="0.7" />
+                <TextBlock Text="{Binding ConfirmationTimeText}" FontWeight="Bold" />
+                <TextBlock Text="for an additional fee of " Opacity="0.7" />
+                <TextBlock Text="{Binding BtcFeeText}" FontWeight="Bold" />
+                <TextBlock Text="{Binding FiatFeeText}" FontWeight="Bold" />
+                <TextBlock Text=", " Opacity="0.7" />
+                <TextBlock Text="this is a charge equivalent to" Opacity="0.7" />
+                <TextBlock Text="{Binding PercentFeeText}" FontWeight="Bold" />
+                <TextBlock Text="." Opacity="0.7"  />
+            </WrapPanel>
         </StackPanel>
     </c:ContentArea>
 </UserControl>
