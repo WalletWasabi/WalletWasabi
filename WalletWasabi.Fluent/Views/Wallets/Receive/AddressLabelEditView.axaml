@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="receive:AddressLabelEditViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.AddressLabelEditView">
+  <c:ContentArea Title="{Binding Title}"
+                 EnableBack="True"
+                 EnableCancel="True"
+                 EnableNext="True"
+                 NextContent="Save">
+    <Panel>
+        <c:TagsBox x:Name="LabelTagBox"
+                   TagSeparator=","
+                   Items="{Binding Labels}"
+                   Suggestions="{Binding Labels}"
+                   SuggestionsAreCaseSensitive="True"
+                   RestrictInputToSuggestions="False" />
+    </Panel>
+  </c:ContentArea>
+</UserControl>

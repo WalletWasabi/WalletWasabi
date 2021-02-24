@@ -34,7 +34,7 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
-                <Button Classes="plain addressActionButton" ToolTip.Tip="Edit">
+                <Button Classes="plain addressActionButton" ToolTip.Tip="Edit" Command="{Binding EditLabelCommand}">
                   <PathIcon Data="{StaticResource wallet_action_coinjoin}" Classes="addressActionIcon" />
                 </Button>
                 <TextBlock Text="{Binding Label}"/>
