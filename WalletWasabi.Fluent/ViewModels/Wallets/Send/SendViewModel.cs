@@ -45,6 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private double[] _xAxisValues;
 		[AutoNotify] private double[] _yAxisValues;
 		[AutoNotify] private string[] _xAxisLabels;
+		[AutoNotify] private double  _xAxisCurrentValue = 36;
 
 		private string? _payJoinEndPoint;
 		private bool _parsingUrl;
@@ -59,14 +60,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			ExchangeRate = walletVm.Wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();
 
-			this.ValidateProperty(x=>x.To, ValidateToField);
-			this.ValidateProperty(x=>x.AmountBtc, ValidateAmount);
+			this.ValidateProperty(x => x.To, ValidateToField);
+			this.ValidateProperty(x => x.AmountBtc, ValidateAmount);
 
 			this.WhenAnyValue(x => x.To)
 				.Subscribe(ParseToField);
 
 			this.WhenAnyValue(x => x.AmountBtc)
 				.Subscribe(x => _transactionInfo.Amount = new Money(x, MoneyUnit.BTC));
+
+			this.WhenAnyValue(x => x.XAxisCurrentValue)
+				.Subscribe(x =>
+				{
+					if (x > 0)
+					{
+						_transactionInfo.FeeRate = new FeeRate(GetYAxisValueFromXAxisCurrentValue(x));
+					}
+				});
 
 			Labels.ToObservableChangeSet().Subscribe(x =>
 			{
@@ -90,37 +100,39 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.Create(() =>
 			{
-				Navigate().To(new PrivacyControlViewModel());
-				return;
-
-				var password = "foo";
 				var transactionInfo = _transactionInfo;
 				var wallet = _owner.Wallet;
-				var targetAnonset = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
-				var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonset);
+				var targetAnonymitySet = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+				var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
 
-				var intent = new PaymentIntent(
-					destination: transactionInfo.Address,
-					amount: transactionInfo.Amount,
-					subtractFee: false,
-					label: transactionInfo.Labels);
+				if (mixedCoins.Any())
+				{
+					var intent = new PaymentIntent(
+						destination: transactionInfo.Address,
+						amount: transactionInfo.Amount,
+						subtractFee: false,
+						label: transactionInfo.Labels);
 
-				try
-				{
-					var txRes = wallet.BuildTransaction(
-						password,
-						intent,
-						FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-						allowUnconfirmed: true,
-						mixedCoins.Select(x => x.OutPoint));
-					// private coins enough.
-					Navigate().To(new OptimisePrivacyViewModel());
+					try
+					{
+						var txRes = wallet.BuildTransaction(
+							wallet.Kitchen.SaltSoup(),
+							intent,
+							FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
+							allowUnconfirmed: true,
+							mixedCoins.Select(x => x.OutPoint));
+
+						// Private coins are enough.
+						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, txRes));
+						return;
+					}
+					catch (NotEnoughFundsException)
+					{
+						// Do Nothing
+					}
 				}
-				catch (NotEnoughFundsException)
-				{
-					// not enough private coins
-					Navigate().To(new PrivacyControlViewModel());
-				}
+
+				Navigate().To(new PrivacyControlViewModel());
 			});
 		}
 
@@ -143,7 +155,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private void ValidateToField(IValidationErrors errors)
 		{
 			if (!string.IsNullOrWhiteSpace(To) &&
-			    !AddressStringParser.TryParse(To, _owner.Wallet.Network, out BitcoinUrlBuilder? url))
+				!AddressStringParser.TryParse(To, _owner.Wallet.Network, out BitcoinUrlBuilder? url))
 			{
 				errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
 			}
@@ -261,63 +273,160 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			base.OnNavigatedTo(isInHistory, disposables);
 		}
 
+		private static readonly string[] TestNetXAxisLabels =
+		{
+			"1w",
+			"3d",
+			"1d",
+			"12h",
+			"6h",
+			"3h",
+			"1h",
+			"30m",
+			"20m",
+			"fastest"
+		};
+
+		private static readonly double[] TestNetXAxisValues =
+		{
+			1,
+			2,
+			3,
+			6,
+			18,
+			36,
+			72,
+			144,
+			432,
+			1008
+		};
+
+		private static readonly double[] TestNetYAxisValues =
+		{
+			185,
+			123,
+			123,
+			102,
+			97,
+			57,
+			22,
+			7,
+			4,
+			4
+		};
+
 		private void UpdateFeeEstimates(Dictionary<int, int> feeEstimates)
 		{
+			string[] xAxisLabels;
+			double[] xAxisValues;
+			double[] yAxisValues;
+
 			if (_owner.Wallet.Network != Network.TestNet)
 			{
-				XAxisValues = feeEstimates.Select(x => (double)x.Key).Reverse().ToArray();
-
-				XAxisLabels = feeEstimates.Select(x => x.Key)
+				var labels = feeEstimates.Select(x => x.Key)
 					.Select(x => FeeTargetTimeConverter.Convert(x, "m", "h", "h", "d", "d"))
 					.Reverse()
 					.ToArray();
 
-				YAxisValues = feeEstimates.Select(x => (double)x.Value).Reverse().ToArray();
+				var xs = feeEstimates.Select(x => (double)x.Key).ToArray();
+				var ys = feeEstimates.Select(x => (double)x.Value).ToArray();
+#if true
+				// GetSmoothValues(xs, ys, out var ts, out var xts);
+				GetSmoothValuesSubdivide(xs, ys, out var ts, out var xts);
+				xAxisValues = ts.ToArray();
+				yAxisValues = xts.ToArray();
+#else
+				xAxisValues = xs.Reverse().ToArray();
+				yAxisValues = ys.Reverse().ToArray();
+#endif
+				xAxisLabels = labels;
 			}
 			else
 			{
-				XAxisLabels = new string[]
-				{
-					"1w",
-					"3d",
-					"1d",
-					"12h",
-					"6h",
-					"3h",
-					"1h",
-					"30m",
-					"20m",
-					"fastest"
-				};
-
-				XAxisValues = new double[]
-				{
-					1008,
-					432,
-					144,
-					72,
-					36,
-					18,
-					6,
-					3,
-					2,
-					1,
-				};
-
-				YAxisValues = new double[]
-				{
-					4,
-					4,
-					7,
-					22,
-					57,
-					97,
-					102,
-					123,
-					123,
-					185
-				};
+#if true
+				// GetSmoothValues(TestNetXAxisValues, TestNetYAxisValues, out var ts, out var xts);
+				GetSmoothValuesSubdivide(TestNetXAxisValues, TestNetYAxisValues, out var ts, out var xts);
+				xAxisValues = ts.ToArray();
+				yAxisValues = xts.ToArray();
+#else
+				xAxisValues = xs.Reverse().ToArray();
+				yAxisValues = ys.Reverse().ToArray();
+#endif
+				xAxisLabels = TestNetXAxisLabels;
 			}
+
+			XAxisLabels = xAxisLabels;
+			XAxisValues = xAxisValues;
+			YAxisValues = yAxisValues;
+		}
+
+		private void GetSmoothValuesSubdivide(double[] xs, double[] ys, out List<double> ts, out List<double> xts)
+		{
+			const int Divisions = 256;
+
+			ts = new List<double>();
+			xts = new List<double>();
+
+			if (xs.Length > 2)
+			{
+				var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
+
+				for (var i = 0; i < xs.Length - 1; i++)
+				{
+					var a = xs[i];
+					var b = xs[i + 1];
+					var range = b - a;
+					var step = range / Divisions;
+
+					var t0 = xs[i];
+					ts.Add(t0);
+					var xt0 = spline.Interpolate(xs[i]);
+					xts.Add(xt0);
+
+					for (var t = a + step; t < b; t += step)
+					{
+						var xt = spline.Interpolate(t);
+						ts.Add(t);
+						xts.Add(xt);
+					}
+				}
+
+				var tn = xs[^1];
+				ts.Add(tn);
+				var xtn = spline.Interpolate(xs[^1]);
+				xts.Add(xtn);
+			}
+			else
+			{
+				for (var i = 0; i < xs.Length; i++)
+				{
+					ts.Add(xs[i]);
+					xts.Add(ys[i]);
+				}
+			}
+
+			ts.Reverse();
+			xts.Reverse();
+		}
+
+		private void GetSmoothValues(double[] xs, double[] ys, out List<double> ts, out List<double> xts)
+		{
+			var min = xs.Min();
+			var max = xs.Max();
+			var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
+
+			ts = new List<double>();
+			xts = new List<double>();
+
+			for (double t = min; t <= max; t += 1)
+			{
+				var xt = spline.Interpolate(t);
+				ts.Add(t);
+				xts.Add(xt);
+			}
+
+			ts.Reverse();
+			xts.Reverse();
 		}
 
 		private decimal GetYAxisValueFromXAxisCurrentValue(double xValue)
@@ -336,8 +445,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		}
 
 		public ICommand PasteCommand { get; }
-
-		public double XAxisCurrentValue { get; set; } = 36;
 
 		public double XAxisMinValue { get; set; } = 1;
 

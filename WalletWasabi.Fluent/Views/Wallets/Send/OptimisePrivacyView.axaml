@@ -5,16 +5,47 @@
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:local="using:WalletWasabi.Fluent.Views.Wallets.Send"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d"
              x:DataType="vm:OptimisePrivacyViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.OptimisePrivacyView">
-    <c:ContentArea Title="Send" Caption=""
+    <c:ContentArea Title="Optimise your Privacy" Caption="Often a bitcoin transaction will create change leaving a trace. If you’re willing to adjust your payment amount, you can improve your privacy and reduce your transaction costs."
                    HorizontalAlignment="Left"
                    EnableCancel="False"
                    EnableNext="True"
                    NextContent="Continue"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
+        <DockPanel>
+            <ListBox DockPanel.Dock="Top" Background="Transparent" HorizontalAlignment="Center" Items="{Binding PrivacySuggestions}" SelectedItem="{Binding SelectedPrivacySuggestion}">
+                <ListBox.Styles>
+                    <Style Selector="ListBoxItem">
+                        <Setter Property="Cursor" Value="Hand" />
+                        <Setter Property="Padding" Value="30" />
+                    </Style>
+                    <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+                        <Setter Property="CornerRadius" Value="4" />
+                    </Style>
+                    <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+                        <Setter Property="Background" Value="#353535" />
+                    </Style>
+                </ListBox.Styles>
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="10" />
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <local:PrivacySuggestionControl HorizontalAlignment="Stretch" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <StackPanel Margin="0 30 0 0" Orientation="Horizontal" Spacing="5" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+                <PathIcon Data="{StaticResource info_tip}" Foreground="{DynamicResource WarningMessageForeground}" />
+                <TextBlock Text="Some services only accept the exact amount that was requested." Foreground="{DynamicResource WarningMessageForeground}" />
+            </StackPanel>
+        </DockPanel>
     </c:ContentArea>
 </UserControl>
