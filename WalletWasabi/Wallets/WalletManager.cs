@@ -206,7 +206,7 @@ namespace WalletWasabi.Wallets
 			return wallet;
 		}
 
-		private Wallet AddWallet(string walletName)
+		private void AddWallet(string walletName)
 		{
 			(string walletFullPath, string walletBackupFullPath) = WalletDirectories.GetWalletFilePaths(walletName);
 			Wallet wallet;
@@ -243,7 +243,6 @@ namespace WalletWasabi.Wallets
 			}
 
 			AddWallet(wallet);
-			return wallet;
 		}
 
 		private void AddWallet(Wallet wallet)
