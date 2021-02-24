@@ -30,6 +30,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 			Coinjoin = Transaction.Create(Network);
 
+			CreationTime = DateTimeOffset.UtcNow;
+
 			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{RegistrableWeightCredentials}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
 		}
 
@@ -61,13 +63,15 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public Guid Id { get; } = Guid.NewGuid();
 		public Phase Phase { get; set; } = Phase.InputRegistration;
 		public List<Alice> Alices { get; } = new();
+		public int InputCount => Alices.Sum(x => x.Coins.Count());
 		public List<Bob> Bobs { get; } = new();
 		public Round? BlameOf { get; } = null;
 		public bool IsBlameRound => BlameOf is not null;
 		public ISet<OutPoint> BlameWhitelist { get; } = new HashSet<OutPoint>();
 		public byte[] UnsignedTxSecret { get; }
 		public Transaction Coinjoin { get; }
-		public RoundParameters RoundParameters { get; }
+		public DateTimeOffset CreationTime { get; }
+		private RoundParameters RoundParameters { get; }
 
 		public int RemoveAlices(Predicate<Alice> match)
 		{
@@ -76,6 +80,26 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 			}
 			return Alices.RemoveAll(match);
+		}
+
+		public bool IsInputRegistrationEnded(uint maxInputCount, TimeSpan inputRegistrationTimeout)
+		{
+			if (Phase != Phase.InputRegistration)
+			{
+				return true;
+			}
+
+			if (InputCount >= maxInputCount)
+			{
+				return true;
+			}
+
+			if (CreationTime + inputRegistrationTimeout < DateTimeOffset.UtcNow)
+			{
+				return true;
+			}
+
+			return false;
 		}
 	}
 }

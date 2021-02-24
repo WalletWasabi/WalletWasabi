@@ -1,4 +1,5 @@
 using NBitcoin;
+using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Tests.UnitTests;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -65,9 +67,16 @@ namespace WalletWasabi.Tests.Helpers
 				new InsecureRandom(),
 				new(100m)));
 
-		public static async Task<Arena> CreateAndStartArenaAsync(params Round[] rounds)
+		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig? cfg = null, params Round[] rounds)
 		{
-			Arena arena = new(TimeSpan.FromSeconds(1), rounds.FirstOrDefault()?.Network ?? Network.Main);
+			var mockRpc = new MockRpcClient();
+			mockRpc.OnEstimateSmartFeeAsync = async (target, _) =>
+				await Task.FromResult(new EstimateSmartFeeResponse
+				{
+					Blocks = target,
+					FeeRate = new FeeRate(10m)
+				});
+			Arena arena = new(TimeSpan.FromSeconds(21), rounds.FirstOrDefault()?.Network ?? Network.Main, cfg ?? new WabiSabiConfig(), mockRpc);
 			foreach (var round in rounds)
 			{
 				arena.Rounds.Add(round.Id, round);
@@ -88,7 +97,9 @@ namespace WalletWasabi.Tests.Helpers
 				var coin = new Coin(pair.Input, new TxOut(value ?? Money.Coins(1), BitcoinFactory.CreateScript(key)));
 				myDic.Add(coin, pair.RoundSignature);
 			}
-			return new Alice(myDic);
+			var alice = new Alice(myDic);
+			alice.Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1);
+			return alice;
 		}
 
 		public static InputsRegistrationRequest CreateInputsRegistrationRequest(Key key, Round? round)

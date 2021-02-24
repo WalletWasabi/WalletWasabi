@@ -41,33 +41,33 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			{
 				Dictionary<Coin, byte[]> coinRoundSignaturePairs = await InputRegistrationHandler.PreProcessAsync(request, Prison, Rpc, Config).ConfigureAwait(false);
 
-				return Arena.RegisterInput(
+				return await Arena.RegisterInputAsync(
 					request.RoundId,
 					coinRoundSignaturePairs,
 					request.ZeroAmountCredentialRequests,
-					request.ZeroWeightCredentialRequests);
+					request.ZeroWeightCredentialRequests).ConfigureAwait(false);
 			}
 		}
 
-		public void RemoveInput(InputsRemovalRequest request)
+		public async Task RemoveInputAsync(InputsRemovalRequest request)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				Arena.RemoveInput(request);
+				await Arena.RemoveInputAsync(request).ConfigureAwait(false);
 			}
 		}
 
-		public ConnectionConfirmationResponse ConfirmConnection(ConnectionConfirmationRequest request)
+		public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				return Arena.ConfirmConnection(request);
+				return await Arena.ConfirmConnectionAsync(request).ConfigureAwait(false);
 			}
 		}
 
-		public OutputRegistrationResponse RegisterOutput(OutputRegistrationRequest request)
+		public async Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
@@ -77,16 +77,16 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed);
 				}
 
-				return Arena.RegisterOutput(request);
+				return await Arena.RegisterOutputAsync(request).ConfigureAwait(false);
 			}
 		}
 
-		public void SignTransaction(TransactionSignaturesRequest request)
+		public async Task SignTransactionAsync(TransactionSignaturesRequest request)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				Arena.SignTransaction(request);
+				await Arena.SignTransactionAsync(request).ConfigureAwait(false);
 			}
 		}
 
