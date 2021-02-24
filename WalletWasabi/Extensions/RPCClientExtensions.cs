@@ -107,10 +107,10 @@ namespace NBitcoin.RPC
 			}
 
 			return rpcFeeEstimationTasks
-				.Where(x => x.IsCompletedSuccessfully)
-				.Select(x => x.Result)
-				.DistinctBy(x => x.Blocks)
-				.ToDictionary(x => x.Blocks, x => (int)Math.Ceiling(x.FeeRate.SatoshiPerByte));
+				.Zip(Constants.ConfirmationTargets, (task, target) => (task, target))
+				.Where(x => x.task.IsCompletedSuccessfully)
+				.Select(x => (x.target, feeRate: x.task.Result.FeeRate))
+				.ToDictionary(x => x.target, x => (int)Math.Ceiling(x.feeRate.SatoshiPerByte));
 		}
 
 		public static async Task<RpcStatus> GetRpcStatusAsync(this IRPCClient rpc, CancellationToken cancel)
