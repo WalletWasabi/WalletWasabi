@@ -35,7 +35,7 @@
                 <TextBlock Text="{Binding BtcFeeText}" FontWeight="Bold" />
                 <TextBlock Text="{Binding FiatFeeText}" FontWeight="Bold" />
                 <TextBlock Text=", " Opacity="0.7" />
-                <TextBlock Text="this is a charge equivalent to" Opacity="0.7" />
+                <TextBlock Text="this is a charge equivalent to " Opacity="0.7" />
                 <TextBlock Text="{Binding PercentFeeText}" FontWeight="Bold" />
                 <TextBlock Text="." Opacity="0.7"  />
             </WrapPanel>

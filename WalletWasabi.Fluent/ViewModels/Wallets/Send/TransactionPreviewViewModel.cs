@@ -1,7 +1,9 @@
 using System.Linq;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
@@ -24,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (info.Labels.Count() == 1)
 			{
-				labels = info.Labels.First();
+				labels = info.Labels.First() + " ";
 			}
 			else if (info.Labels.Count() > 1)
 			{
@@ -35,7 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			BtcAmountText = $"{destinationAmount} bitcoins ";
 
-			FiatAmountText = $"({(destinationAmount * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD) ";
+			FiatAmountText = $"(≈{(destinationAmount * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD) ";
 
 			LabelsText = labels;
 
@@ -48,7 +50,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			FiatFeeText =
 				$"(≈{(fee.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD)";
 
-			PercentFeeText = $"{transaction.FeePercentOfSent:F2}";
+			PercentFeeText = $"{transaction.FeePercentOfSent:F2}%";
+
+			NextCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				var dialogResult =
+					await NavigateDialog(new EnterPasswordDialogViewModel(""), NavigationTarget.DialogScreen);
+
+
+			});
 		}
 
 		public string BtcAmountText { get; }
