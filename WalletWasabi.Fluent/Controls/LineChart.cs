@@ -217,25 +217,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var xAxisLabels = XAxisLabels;
 
-			if (xAxisLabels is null)
-			{
-				var xAxisValues = XAxisValues;
-
-				if (xAxisValues is null || xAxisValues.Count <= 1)
-				{
-					state.XAxisLabelStep = double.NaN;
-				}
-				else
-				{
-					state.XAxisLabelStep = state.AreaWidth / (xAxisValues.Count - 1);
-				}
-
-				if (XAxisStroke is not null && XAxisValues is not null)
-				{
-					state.XAxisLabels = XAxisValues.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToList();
-				}
-			}
-			else
+			if (xAxisLabels is not null)
 			{
 				if (xAxisLabels.Count <= 1)
 				{
@@ -248,31 +230,36 @@ namespace WalletWasabi.Fluent.Controls
 
 				state.XAxisLabels = xAxisLabels.ToList();
 			}
+			else
+			{
+				AutoGenerateXAxisLabels(state);
+			}
+		}
+
+		private void AutoGenerateXAxisLabels(LineChartState state)
+		{
+			var xAxisValues = XAxisValues;
+
+			if (xAxisValues is null || xAxisValues.Count <= 1)
+			{
+				state.XAxisLabelStep = double.NaN;
+			}
+			else
+			{
+				state.XAxisLabelStep = state.AreaWidth / (xAxisValues.Count - 1);
+			}
+
+			if (XAxisStroke is not null && XAxisValues is not null)
+			{
+				state.XAxisLabels = XAxisValues.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToList();
+			}
 		}
 
 		private void SetStateYAxisLabels(LineChartState state)
 		{
 			var yAxisLabels = YAxisLabels;
 
-			if (yAxisLabels is null)
-			{
-				var yAxisValues = YAxisValues;
-
-				if (yAxisValues is null || yAxisValues.Count <= 1)
-				{
-					state.YAxisLabelStep = double.NaN;
-				}
-				else
-				{
-					state.YAxisLabelStep = state.AreaHeight / (yAxisValues.Count - 1);
-				}
-
-				if (YAxisStroke is not null && YAxisValues is not null)
-				{
-					state.YAxisLabels = YAxisValues.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToList();
-				}
-			}
-			else
+			if (yAxisLabels is not null)
 			{
 				if (yAxisLabels.Count <= 1)
 				{
@@ -284,6 +271,29 @@ namespace WalletWasabi.Fluent.Controls
 				}
 
 				state.YAxisLabels = yAxisLabels.ToList();
+			}
+			else
+			{
+				AutoGenerateYAxisLabels(state);
+			}
+		}
+
+		private void AutoGenerateYAxisLabels(LineChartState state)
+		{
+			var yAxisValues = YAxisValues;
+
+			if (yAxisValues is null || yAxisValues.Count <= 1)
+			{
+				state.YAxisLabelStep = double.NaN;
+			}
+			else
+			{
+				state.YAxisLabelStep = state.AreaHeight / (yAxisValues.Count - 1);
+			}
+
+			if (YAxisStroke is not null && YAxisValues is not null)
+			{
+				state.YAxisLabels = YAxisValues.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToList();
 			}
 		}
 
