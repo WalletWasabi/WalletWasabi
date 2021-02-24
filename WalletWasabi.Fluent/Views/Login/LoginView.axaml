@@ -44,7 +44,7 @@
                    FontWeight="ExtraLight"
                    Margin="0 10"/>
 
-        <DockPanel IsVisible="{Binding !IsPasswordIncorrect}"
+        <DockPanel IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNullOrEmpty}}"
                    Classes="fadeAnimation">
 
           <!-- Enter password -->
@@ -58,7 +58,7 @@
             </TextBox>
             <Panel Margin="0 -20 0 0 ">
               <Button Classes="activeHyperLink skip" Content="Forgot password?" HorizontalAlignment="Left" Command="{Binding ForgotPasswordCommand}"/>
-              <Button Content="Login" IsDefault="{Binding !IsPasswordIncorrect}" Focusable="False" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}">
+              <Button Content="Login" IsDefault="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNullOrEmpty}}" Focusable="False" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}">
 
               </Button>
             </Panel>
@@ -71,11 +71,11 @@
         <!-- Incorrect password -->
         <StackPanel Spacing="20"
                     Margin="0,11,0,0"
-                    IsVisible="{Binding IsPasswordIncorrect}"
+                    IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                     VerticalAlignment="Bottom"
                     Classes="fadeAnimation">
-          <TextBlock Text="The password is incorrect! Try Again." HorizontalAlignment="Center"/>
-          <Button Content="OK" IsDefault="{Binding IsPasswordIncorrect}" Focusable="False" Classes="action" HorizontalAlignment="Center" Command="{Binding OkCommand}"/>
+          <TextBlock Text="{Binding ErrorMessage}" HorizontalAlignment="Center" />
+          <Button Content="OK" IsDefault="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Focusable="False" Classes="action" HorizontalAlignment="Center" Command="{Binding OkCommand}" />
         </StackPanel>
 
       </StackPanel>
