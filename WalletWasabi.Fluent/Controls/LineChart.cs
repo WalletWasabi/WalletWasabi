@@ -170,8 +170,8 @@ namespace WalletWasabi.Fluent.Controls
 
 			SetStateAreaPoints(state);
 
-			SetStateXAxisLabels(state);
-			SetStateYAxisLabels(state);
+			SetStateXAxisLabels(state, XAxisLabels);
+			SetStateYAxisLabels(state, YAxisLabels);
 
 			SetStateXAxisCursor(state);
 
@@ -213,22 +213,11 @@ namespace WalletWasabi.Fluent.Controls
 			}
 		}
 
-		private void SetStateXAxisLabels(LineChartState state)
+		private void SetStateXAxisLabels(LineChartState state, IList<string>? xAxisLabels)
 		{
-			var xAxisLabels = XAxisLabels;
-
 			if (xAxisLabels is not null)
 			{
-				if (xAxisLabels.Count <= 1)
-				{
-					state.XAxisLabelStep = double.NaN;
-				}
-				else
-				{
-					state.XAxisLabelStep = state.AreaWidth / (xAxisLabels.Count - 1);
-				}
-
-				state.XAxisLabels = xAxisLabels.ToList();
+				GenerateXAxisLabels(state, xAxisLabels);
 			}
 			else
 			{
@@ -236,27 +225,44 @@ namespace WalletWasabi.Fluent.Controls
 			}
 		}
 
-		private void SetStateYAxisLabels(LineChartState state)
+		private void SetStateYAxisLabels(LineChartState state, IList<string>? yAxisLabels)
 		{
-			var yAxisLabels = YAxisLabels;
-
 			if (yAxisLabels is not null)
 			{
-				if (yAxisLabels.Count <= 1)
-				{
-					state.YAxisLabelStep = double.NaN;
-				}
-				else
-				{
-					state.YAxisLabelStep = state.AreaHeight / (yAxisLabels.Count - 1);
-				}
-
-				state.YAxisLabels = yAxisLabels.ToList();
+				GenerateYAxisLabels(state, yAxisLabels);
 			}
 			else
 			{
 				AutoGenerateYAxisLabels(state);
 			}
+		}
+
+		private void GenerateXAxisLabels(LineChartState state, IList<string> xAxisLabels)
+		{
+			if (xAxisLabels.Count <= 1)
+			{
+				state.XAxisLabelStep = double.NaN;
+			}
+			else
+			{
+				state.XAxisLabelStep = state.AreaWidth / (xAxisLabels.Count - 1);
+			}
+
+			state.XAxisLabels = xAxisLabels.ToList();
+		}
+
+		private void GenerateYAxisLabels(LineChartState state, IList<string> yAxisLabels)
+		{
+			if (yAxisLabels.Count <= 1)
+			{
+				state.YAxisLabelStep = double.NaN;
+			}
+			else
+			{
+				state.YAxisLabelStep = state.AreaHeight / (yAxisLabels.Count - 1);
+			}
+
+			state.YAxisLabels = yAxisLabels.ToList();
 		}
 
 		private void AutoGenerateXAxisLabels(LineChartState state)
