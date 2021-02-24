@@ -321,12 +321,7 @@ namespace WalletWasabi.Backend.Controllers
 					// Progress round if needed.
 					if (round.CountAlices() >= round.AnonymitySet)
 					{
-						await round.RemoveAlicesIfAnInputRefusedByMempoolAsync();
-
-						if (round.CountAlices() >= round.AnonymitySet)
-						{
-							await round.ExecuteNextPhaseAsync(RoundPhase.ConnectionConfirmation);
-						}
+						await round.ExecuteNextPhaseAsync(RoundPhase.ConnectionConfirmation);
 					}
 
 					var resp = new InputsResponse
