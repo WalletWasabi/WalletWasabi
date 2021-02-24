@@ -610,12 +610,7 @@ namespace WalletWasabi.Fluent.Controls
 		private void DrawBorder(DrawingContext context, LineChartState state)
 		{
 			var brush = BorderBrush;
-			if (brush is null)
-			{
-				return;
-			}
-
-			if (state.AreaWidth <= 0 || state.AreaHeight <= 0)
+			if (brush is null || state.AreaWidth <= 0 || state.AreaHeight <= 0)
 			{
 				return;
 			}
