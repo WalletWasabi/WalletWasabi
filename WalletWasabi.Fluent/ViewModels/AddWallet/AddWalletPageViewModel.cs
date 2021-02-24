@@ -94,7 +94,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				async () =>
 				{
 					var dialogResult = await NavigateDialog(
-						new EnterPasswordViewModel("Type the password of the wallet and click Continue."));
+						new CreatePasswordDialogViewModel("Type the password of the wallet and click Continue."));
 
 					if (dialogResult.Result is { } password)
 					{
@@ -167,7 +167,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		public ICommand RecoverWalletCommand { get; }
 
 		public ICommand ImportWalletCommand { get; }
-		
+
 		public ICommand ConnectHardwareWalletCommand { get; }
 	}
 }
