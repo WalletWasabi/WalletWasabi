@@ -215,6 +215,13 @@ bitcoin-cli stop
 bitcoind
 ```
 
+### Upgrade Knots
+
+bitcoin-cli stop
+sudo apt-get update && apt install --only-upgrade bitcoind
+bitcoind --version
+bitcoin-cli getblockchaininfo
+
 # 6. Publish, Configure and Run WalletWasabi.Backend
 
 ```sh
