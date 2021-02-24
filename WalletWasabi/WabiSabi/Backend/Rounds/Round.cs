@@ -30,6 +30,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 			Coinjoin = Transaction.Create(Network);
 
+			CreationTime = DateTimeOffset.UtcNow;
+
 			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{RegistrableWeightCredentials}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
 		}
 
@@ -41,6 +43,26 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				.SelectMany(x => x.Coins)
 				.Select(x => x.Outpoint)
 				.ToHashSet();
+		}
+
+		public bool IsInputRegistrationEnded(uint maxInputCount, TimeSpan inputRegistrationTimeout)
+		{
+			if (Phase != Phase.InputRegistration)
+			{
+				return true;
+			}
+
+			if (Alices.Sum(x => x.Coins.Count()) >= maxInputCount)
+			{
+				return true;
+			}
+
+			if (CreationTime + inputRegistrationTimeout < DateTimeOffset.UtcNow)
+			{
+				return true;
+			}
+
+			return false;
 		}
 
 		public uint256 Hash { get; }
@@ -67,7 +89,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public ISet<OutPoint> BlameWhitelist { get; } = new HashSet<OutPoint>();
 		public byte[] UnsignedTxSecret { get; }
 		public Transaction Coinjoin { get; }
-		public RoundParameters RoundParameters { get; }
+		public DateTimeOffset CreationTime { get; }
+		private RoundParameters RoundParameters { get; }
 
 		public int RemoveAlices(Predicate<Alice> match)
 		{

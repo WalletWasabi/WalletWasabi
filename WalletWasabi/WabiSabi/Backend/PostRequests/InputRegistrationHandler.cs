@@ -69,7 +69,9 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
 			ZeroCredentialsRequest zeroWeightCredentialRequests,
 			IDictionary<Guid, Round> rounds,
-			Network network)
+			Network network,
+			uint maxInputCount,
+			TimeSpan inputRegistrationTimeout)
 		{
 			if (!rounds.TryGetValue(roundId, out var round))
 			{
@@ -119,7 +121,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchWeight);
 			}
 
-			if (round.Phase != Phase.InputRegistration)
+			if (round.IsInputRegistrationEnded(maxInputCount, inputRegistrationTimeout))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 			}

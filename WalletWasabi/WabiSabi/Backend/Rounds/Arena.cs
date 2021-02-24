@@ -43,8 +43,20 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				// Remove timed out alices.
 				TimeoutAlices();
 
+				StepInputRegistrationPhase();
+
 				// Ensure there's at least one non-blame round in input registration.
 				await CreateRoundsAsync().ConfigureAwait(false);
+			}
+		}
+
+		private void StepInputRegistrationPhase()
+		{
+			foreach (var round in Rounds.Values.Where(x =>
+				x.Phase == Phase.InputRegistration
+				&& x.IsInputRegistrationEnded(Config.MaxInputCount, Config.InputRegistrationTimeout)))
+			{
+				round.Phase = Phase.ConnectionConfirmation;
 			}
 		}
 
@@ -62,7 +74,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void TimeoutAlices()
 		{
-			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.InputRegistration))
+			foreach (var round in Rounds.Values.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCount, Config.InputRegistrationTimeout)))
 			{
 				var removedAliceCount = round.RemoveAlices(x => x.Deadline < DateTimeOffset.UtcNow);
 				if (removedAliceCount > 0)
@@ -86,7 +98,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					zeroAmountCredentialRequests,
 					zeroWeightCredentialRequests,
 					Rounds,
-					Network);
+					Network,
+					Config.MaxInputCount,
+					Config.InputRegistrationTimeout);
 			}
 		}
 
