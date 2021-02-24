@@ -170,8 +170,8 @@ namespace WalletWasabi.Fluent.Controls
 
 			SetStateAreaPoints(state);
 
-			SetStateXAxisLabels(state, XAxisLabels);
-			SetStateYAxisLabels(state, YAxisLabels);
+			SetStateXAxisLabels(state);
+			SetStateYAxisLabels(state);
 
 			SetStateXAxisCursor(state);
 
@@ -213,11 +213,17 @@ namespace WalletWasabi.Fluent.Controls
 			}
 		}
 
-		private void SetStateXAxisLabels(LineChartState state, IList<string>? xAxisLabels)
+		private void SetStateXAxisLabels(LineChartState state)
 		{
+			var xAxisLabels = XAxisLabels;
+
 			if (xAxisLabels is not null)
 			{
-				GenerateXAxisLabels(state, xAxisLabels);
+				state.XAxisLabelStep = xAxisLabels.Count <= 1
+					? double.NaN
+					: state.AreaWidth / (xAxisLabels.Count - 1);
+
+				state.XAxisLabels = xAxisLabels.ToList();
 			}
 			else
 			{
@@ -225,11 +231,17 @@ namespace WalletWasabi.Fluent.Controls
 			}
 		}
 
-		private void SetStateYAxisLabels(LineChartState state, IList<string>? yAxisLabels)
+		private void SetStateYAxisLabels(LineChartState state)
 		{
+			var yAxisLabels = YAxisLabels;
+
 			if (yAxisLabels is not null)
 			{
-				GenerateYAxisLabels(state, yAxisLabels);
+				state.YAxisLabelStep = yAxisLabels.Count <= 1
+					? double.NaN
+					: state.AreaHeight / (yAxisLabels.Count - 1);
+
+				state.YAxisLabels = yAxisLabels.ToList();
 			}
 			else
 			{
@@ -237,46 +249,13 @@ namespace WalletWasabi.Fluent.Controls
 			}
 		}
 
-		private void GenerateXAxisLabels(LineChartState state, IList<string> xAxisLabels)
-		{
-			if (xAxisLabels.Count <= 1)
-			{
-				state.XAxisLabelStep = double.NaN;
-			}
-			else
-			{
-				state.XAxisLabelStep = state.AreaWidth / (xAxisLabels.Count - 1);
-			}
-
-			state.XAxisLabels = xAxisLabels.ToList();
-		}
-
-		private void GenerateYAxisLabels(LineChartState state, IList<string> yAxisLabels)
-		{
-			if (yAxisLabels.Count <= 1)
-			{
-				state.YAxisLabelStep = double.NaN;
-			}
-			else
-			{
-				state.YAxisLabelStep = state.AreaHeight / (yAxisLabels.Count - 1);
-			}
-
-			state.YAxisLabels = yAxisLabels.ToList();
-		}
-
 		private void AutoGenerateXAxisLabels(LineChartState state)
 		{
 			var xAxisValues = XAxisValues;
 
-			if (xAxisValues is null || xAxisValues.Count <= 1)
-			{
-				state.XAxisLabelStep = double.NaN;
-			}
-			else
-			{
-				state.XAxisLabelStep = state.AreaWidth / (xAxisValues.Count - 1);
-			}
+			state.XAxisLabelStep = xAxisValues is null || xAxisValues.Count <= 1
+				? double.NaN
+				: state.AreaWidth / (xAxisValues.Count - 1);
 
 			if (XAxisStroke is not null && XAxisValues is not null)
 			{
@@ -288,14 +267,9 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var yAxisValues = YAxisValues;
 
-			if (yAxisValues is null || yAxisValues.Count <= 1)
-			{
-				state.YAxisLabelStep = double.NaN;
-			}
-			else
-			{
-				state.YAxisLabelStep = state.AreaHeight / (yAxisValues.Count - 1);
-			}
+			state.YAxisLabelStep = yAxisValues is null || yAxisValues.Count <= 1
+				? double.NaN
+				: state.AreaHeight / (yAxisValues.Count - 1);
 
 			if (YAxisStroke is not null && YAxisValues is not null)
 			{
