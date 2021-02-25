@@ -10,12 +10,18 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class CoinPocketHelper
 	{
-		public static IEnumerable<(string Labels, ICoinsView Coins)> GetPockets(this ICoinsView allCoins, int anonymitySet)
+		public const string UnlabelledFundsText = "Unlabelled Funds";
+		public const string PrivateFundsText = "Private Funds";
+
+		public static IEnumerable<(string Labels, ICoinsView Coins)> GetPockets(this ICoinsView allCoins, int privateAnonSetThreshold)
 		{
-			var clusters = allCoins.Where(x=>x.HdPubKey.AnonymitySet < anonymitySet)
+			List<(string Labels, ICoinsView Coins)> pockets = new();
+
+			var clusters = allCoins
+				.Where(x => x.HdPubKey.AnonymitySet < privateAnonSetThreshold)
 				.GroupBy(x => x.HdPubKey.Cluster.Labels);
 
-			List<(string Labels, ICoinsView Coins)> pockets = new();
+			CoinsView? unLabelledCoins = null;
 
 			foreach (var cluster in clusters)
 			{
@@ -24,8 +30,7 @@ namespace WalletWasabi.Fluent.Helpers
 
 				if (string.IsNullOrWhiteSpace(allLabels))
 				{
-					// If the Label is empty then add every coin as a separate pocket
-					pockets.Add(new("Unlabelled Funds", new CoinsView(coins)));
+					unLabelledCoins = new CoinsView(coins);
 				}
 				else
 				{
@@ -33,7 +38,16 @@ namespace WalletWasabi.Fluent.Helpers
 				}
 			}
 
-			pockets.Add(new("Private Funds", new CoinsView(allCoins.Where(x=>x.HdPubKey.AnonymitySet >= anonymitySet))));
+			if (unLabelledCoins is { })
+			{
+				pockets.Add(new(UnlabelledFundsText, unLabelledCoins));
+			}
+
+			var privateCoins = new CoinsView(allCoins.Where(x => x.HdPubKey.AnonymitySet >= privateAnonSetThreshold));
+			if (privateCoins.Any())
+			{
+				pockets.Add(new(PrivateFundsText, privateCoins));
+			}
 
 			return pockets;
 		}

@@ -28,13 +28,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			var pockets = _wallet.Coins.GetPockets(2);
+			var pockets = _wallet.Coins.GetPockets(_wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue());
 
 			foreach (var pocket in pockets)
 			{
 				_pockets.Add(new PocketViewModel
 				{
-					Labels =  string.Join(", ", pocket.Labels),
+					Labels = string.Join(", ", pocket.Labels),
 					TotalBtc = pocket.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC)
 				});
 			}
