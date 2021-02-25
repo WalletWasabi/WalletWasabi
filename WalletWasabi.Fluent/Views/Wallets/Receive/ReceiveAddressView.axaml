@@ -18,10 +18,13 @@
     <Style Selector="Button:pointerover > PathIcon">
       <Setter Property="Opacity" Value="0.75" />
     </Style>
-    <Style Selector="PathIcon.show">
-      <Setter Property="IsVisible" Value="True" />
+    <Style Selector="Button > Panel > PathIcon">
+      <Setter Property="Opacity" Value="0.5" />
     </Style>
-    <Style Selector="PathIcon.hide">
+    <Style Selector="Button:pointerover > Panel > PathIcon">
+      <Setter Property="Opacity" Value="0.75" />
+    </Style>
+    <Style Selector="PathIcon.hidden">
       <Setter Property="IsVisible" Value="False" />
     </Style>
     <Style Selector="PathIcon.toggleHide">
@@ -94,8 +97,8 @@
                 </ia:EventTriggerBehavior>
               </i:Interaction.Behaviors>
               <Panel>
-                <PathIcon Classes="show" Name="PathCopy" Data="{StaticResource copy_regular}"/>
-                <PathIcon Classes="hide" Name="PathCopied" Data="{StaticResource privacy_strong}"/>
+                <PathIcon Name="PathCopy" Data="{StaticResource copy_regular}"/>
+                <PathIcon Classes="hidden" Name="PathCopied" Data="{StaticResource privacy_strong}"/>
               </Panel>
             </Button>
             <TextBlock Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
