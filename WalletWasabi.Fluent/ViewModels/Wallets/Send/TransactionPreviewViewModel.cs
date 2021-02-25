@@ -67,13 +67,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					IsBusy = true;
 
-					string? compatibilityPasswordUsed;
-
 					var passwordValid = await Task.Run(
 						() => PasswordHelper.TryPassword(
 							wallet.KeyManager,
 							dialogResult.Result,
-							out compatibilityPasswordUsed));
+							out string? compatibilityPasswordUsed));
 
 					IsBusy = false;
 
