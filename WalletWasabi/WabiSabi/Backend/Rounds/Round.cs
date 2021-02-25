@@ -92,15 +92,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public int RemoveAlices(Predicate<Alice> match)
-		{
-			if (Phase != Phase.InputRegistration)
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
-			}
-			return Alices.RemoveAll(match);
-		}
-
 		public bool IsInputRegistrationEnded(uint maxInputCount, TimeSpan inputRegistrationTimeout)
 		{
 			if (Phase > Phase.InputRegistration)

@@ -146,16 +146,13 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 								.Select(x => x.Outpoint)
 								.Select(op => (otherRound, op))))
 			{
-				try
-				{
-					if (otherRound.RemoveAlices(x => x.Coins.Select(x => x.Outpoint).Contains(op)) > 0)
-					{
-						Logger.LogInfo("Updated Alice registration.");
-					}
-				}
-				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
+				if (otherRound.Phase != Phase.InputRegistration)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
+				}
+				if (otherRound.Alices.RemoveAll(x => x.Coins.Select(x => x.Outpoint).Contains(op)) > 0)
+				{
+					Logger.LogInfo("Updated Alice registration.");
 				}
 			}
 		}

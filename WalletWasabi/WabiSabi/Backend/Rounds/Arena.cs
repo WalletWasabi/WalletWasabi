@@ -87,7 +87,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					{
 						Prison.Note(alice, round.Id);
 					}
-					round.RemoveAlices(x => alicesDidntConfirm.Contains(x));
+					round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
 
 					if (round.InputCount < Config.MinInputCountByRound)
 					{
@@ -117,7 +117,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			foreach (var round in Rounds.Values.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.InputRegistrationTimeout)))
 			{
-				var removedAliceCount = round.RemoveAlices(x => x.Deadline < DateTimeOffset.UtcNow);
+				var removedAliceCount = round.Alices.RemoveAll(x => x.Deadline < DateTimeOffset.UtcNow);
 				if (removedAliceCount > 0)
 				{
 					Logger.LogInfo($"{removedAliceCount} alices timed out and removed.");
@@ -153,7 +153,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 				}
-				round.RemoveAlices(x => x.Id == request.AliceId);
+				if (round.Phase != Phase.InputRegistration)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+				}
+				round.Alices.RemoveAll(x => x.Id == request.AliceId);
 			}
 		}
 
