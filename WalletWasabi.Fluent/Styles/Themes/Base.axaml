@@ -23,7 +23,7 @@
     <SolidColorBrush x:Key="PrivacyLevelExtremeBrush" Color="#89C67A" />
     <SolidColorBrush x:Key="PrivacyLevelExtremeAltBrush" Color="#5B92D2" />
 
-    <SolidColorBrush x:Key="PrivacyOptimisationLevelStandardBrush" Color="#F9DA7D" />
+    <SolidColorBrush x:Key="PrivacyOptimisationLevelStandardBrush" Color="#DDA73E" />
     <SolidColorBrush x:Key="PrivacyOptimisationLevelBetterBrush" Color="{StaticResource SystemAccentColor}" />
 
     <SolidColorBrush x:Key="WarningMessageForeground">#FFDD00</SolidColorBrush>
