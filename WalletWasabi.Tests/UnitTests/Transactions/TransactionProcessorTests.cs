@@ -1086,7 +1086,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("").P2wpkhScript, Money.Coins(1.0m)));
 			transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("").P2wpkhScript, Money.Coins(1.0m)));
 
-			IEnumerable<(string Labels, ICoinsView Coins)> pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins);
+			IEnumerable<(string Labels, ICoinsView Coins)> pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins, 2);
 			(string Labels, ICoinsView Coins) aPocket = pockets.Single(x => x.Labels == "A");
 			Assert.Equal(3, aPocket.Coins.Count());
 			Assert.Equal(Money.Coins(3.0m), aPocket.Coins.TotalAmount());

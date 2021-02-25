@@ -10,9 +10,10 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class CoinPocketHelper
 	{
-		public static IEnumerable<(string Labels, ICoinsView Coins)> GetPockets(ICoinsView allCoins)
+		public static IEnumerable<(string Labels, ICoinsView Coins)> GetPockets(this ICoinsView allCoins, int anonymitySet)
 		{
-			var clusters = allCoins.GroupBy(x => x.HdPubKey.Cluster.Labels);
+			var clusters = allCoins.Where(x=>x.HdPubKey.AnonymitySet < anonymitySet)
+				.GroupBy(x => x.HdPubKey.Cluster.Labels);
 
 			List<(string Labels, ICoinsView Coins)> pockets = new();
 
@@ -24,16 +25,16 @@ namespace WalletWasabi.Fluent.Helpers
 				if (string.IsNullOrWhiteSpace(allLabels))
 				{
 					// If the Label is empty then add every coin as a separate pocket
-					foreach (var coin in coins)
-					{
-						pockets.Add(new("", new CoinsView(new[] { coin })));
-					}
+					pockets.Add(new("Unlabelled Funds", new CoinsView(coins)));
 				}
 				else
 				{
 					pockets.Add(new(allLabels, new CoinsView(coins)));
 				}
 			}
+
+			pockets.Add(new("Private Funds", new CoinsView(allCoins.Where(x=>x.HdPubKey.AnonymitySet >= anonymitySet))));
+
 			return pockets;
 		}
 	}
