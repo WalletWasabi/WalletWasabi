@@ -162,7 +162,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			{
 				if (phase != Phase.InputRegistration)
 				{
-					round.Phase = phase;
+					round.SetPhase(phase);
 					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 				}
@@ -588,7 +588,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			// Make sure an Alice have already been registered with the same input.
 			var anotherAlice = WabiSabiFactory.CreateAlice(req.InputRoundSignaturePairs);
 			round.Alices.Add(anotherAlice);
-			round.Phase = Phase.ConnectionConfirmation;
+			round.SetPhase(Phase.ConnectionConfirmation);
 
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
@@ -620,7 +620,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			// Make sure an Alice have already been registered with the same input.
 			var preAlice = WabiSabiFactory.CreateAlice(req.InputRoundSignaturePairs);
 			anotherRound.Alices.Add(preAlice);
-			anotherRound.Phase = Phase.ConnectionConfirmation;
+			anotherRound.SetPhase(Phase.ConnectionConfirmation);
 
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));

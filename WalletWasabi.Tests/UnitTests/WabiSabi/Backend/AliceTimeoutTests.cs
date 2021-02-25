@@ -54,7 +54,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			// even though the deadline is reached.
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			round.Phase = Phase.ConnectionConfirmation;
+			round.SetPhase(Phase.ConnectionConfirmation);
 			var alice = WabiSabiFactory.CreateAlice();
 			round.Alices.Add(alice);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
