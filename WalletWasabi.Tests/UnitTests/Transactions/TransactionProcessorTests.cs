@@ -9,6 +9,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
@@ -1067,6 +1068,32 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			Assert.Empty(anonymousCoin.HdPubKey.Cluster.Labels);
 			Assert.NotEmpty(changeCoin.HdPubKey.Cluster.Labels);
+		}
+
+		[Fact]
+		public async Task GetPocketsAsync()
+		{
+			var transactionProcessor = await CreateTransactionProcessorAsync();
+			transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("A").P2wpkhScript, Money.Coins(1.0m)));
+			transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("A").P2wpkhScript, Money.Coins(1.0m)));
+			transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("A").P2wpkhScript, Money.Coins(1.0m)));
+			transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("B").P2wpkhScript, Money.Coins(1.0m)));
+			transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("C").P2wpkhScript, Money.Coins(1.0m)));
+			transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("C").P2wpkhScript, Money.Coins(1.0m)));
+			transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("A, B").P2wpkhScript, Money.Coins(1.0m)));
+			transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("").P2wpkhScript, Money.Coins(1.0m)));
+			transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("").P2wpkhScript, Money.Coins(1.0m)));
+			transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("").P2wpkhScript, Money.Coins(1.0m)));
+			transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("").P2wpkhScript, Money.Coins(1.0m)));
+
+			IEnumerable<(string Labels, ICoinsView Coins)> pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins);
+			(string Labels, ICoinsView Coins) aPocket = pockets.Single(x => x.Labels == "A");
+			Assert.Equal(3, aPocket.Coins.Count());
+			Assert.Equal(Money.Coins(3.0m), aPocket.Coins.TotalAmount());
+			Assert.Single(pockets.Single(x => x.Labels == "B").Coins);
+			Assert.Equal(2, pockets.Single(x => x.Labels == "C").Coins.Count());
+			Assert.Single(pockets.Single(x => x.Labels == "A, B").Coins);
+			Assert.Equal(4, pockets.Count(x => x.Labels == ""));
 		}
 
 		private static SmartTransaction CreateSpendingTransaction(Coin coin, Script? scriptPubKey = null, int height = 0)
