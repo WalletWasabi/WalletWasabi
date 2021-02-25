@@ -4,19 +4,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
-using Splat;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Gui;
 using WalletWasabi.Gui.Controls.WalletExplorer;
-using WalletWasabi.Gui.Models.StatusBarStatuses;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Userfacing;
@@ -27,12 +21,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	[NavigationMetaData(Title = "Transaction Preview")]
 	public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
-		private readonly BuildTransactionResult _transaction;
-
-		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)
+		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, TransactionBroadcaster broadcaster,
+			BuildTransactionResult transaction)
 		{
-			_transaction = transaction;
-
 			var destinationAmount = transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 
 			var fee = transaction.Fee;
@@ -92,30 +83,32 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
 
 						// Broadcast transaction.
-						var signedTransaction = _transaction.Transaction;
+						var signedTransaction = transaction.Transaction;
 
 						// If it's a hardware wallet and still has a private key then it's password.
-						if (wallet.KeyManager.IsHardwareWallet && !_transaction.Signed)
+						if (wallet.KeyManager.IsHardwareWallet && !transaction.Signed)
 						{
 							try
 							{
 								var client = new HwiClient(wallet.Network);
 
 								using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-								PSBT signedPsbt = null;
+								PSBT? signedPsbt = null;
 								try
 								{
-									signedPsbt = await client.SignTxAsync(wallet.KeyManager.MasterFingerprint.Value,
-										_transaction.Psbt, cts.Token);
+									signedPsbt = await client.SignTxAsync(
+										wallet.KeyManager.MasterFingerprint!.Value,
+										transaction.Psbt, cts.Token);
 								}
 								catch (HwiException ex) when (ex.ErrorCode is not HwiErrorCode.ActionCanceled)
 								{
 									await PinPadViewModel.UnlockAsync();
-									signedPsbt = await client.SignTxAsync(wallet.KeyManager.MasterFingerprint.Value,
-										_transaction.Psbt, cts.Token);
+									signedPsbt = await client.SignTxAsync(
+										wallet.KeyManager.MasterFingerprint!.Value,
+										transaction.Psbt, cts.Token);
 								}
 
-								signedTransaction = signedPsbt.ExtractSmartTransaction(_transaction.Transaction);
+								signedTransaction = signedPsbt.ExtractSmartTransaction(transaction.Transaction);
 							}
 							catch (Exception _)
 							{
