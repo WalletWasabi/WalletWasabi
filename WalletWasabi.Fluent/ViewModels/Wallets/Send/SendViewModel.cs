@@ -246,9 +246,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			if (!inHistory)
 			{
-				_to = "";
-				_amountBtc = 0;
+				To = "";
+				AmountBtc = 0;
 				Labels.Clear();
+				ClearValidations();
 			}
 
 			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
