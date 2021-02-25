@@ -35,6 +35,7 @@ namespace WalletWasabi.Wallets
 				Lock = new object();
 				StartStopWalletLock = new AsyncLock();
 				CancelAllInitialization = new CancellationTokenSource();
+				InitializedEvent = new AsyncManualResetEvent();
 
 				RefreshWalletList();
 			}
@@ -70,7 +71,7 @@ namespace WalletWasabi.Wallets
 		private WasabiSynchronizer Synchronizer { get; set; }
 		private NodesGroup Nodes { get; set; }
 		private ServiceConfiguration ServiceConfiguration { get; set; }
-		private bool IsInitialized { get; set; }
+		private AsyncManualResetEvent InitializedEvent { get; }
 
 		private IFeeProvider FeeProvider { get; set; }
 		public Network Network { get; }
@@ -150,11 +151,11 @@ namespace WalletWasabi.Wallets
 			}
 
 			wallet.SetWaitingForInitState();
-
-			// Wait for the WalletManager to be initialized.
-			while (!IsInitialized)
+			
+			if (!InitializedEvent.IsSet)
 			{
-				await Task.Delay(100, CancelAllInitialization.Token).ConfigureAwait(false);
+				Logger.LogTrace($"Wait for the {nameof(WalletManager)} to be initialized.");
+				await InitializedEvent.WaitAsync().ConfigureAwait(false);
 			}
 
 			if (wallet.State == WalletState.WaitingForInit)
@@ -417,7 +418,7 @@ namespace WalletWasabi.Wallets
 				wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BlockProvider);
 			}
 
-			IsInitialized = true;
+			InitializedEvent.Set();
 		}
 
 		public void SetMaxBestHeight(uint bestHeight)
