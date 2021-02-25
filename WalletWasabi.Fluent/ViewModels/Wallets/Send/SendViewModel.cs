@@ -242,8 +242,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return result;
 		}
 
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 		{
+			if (!inHistory)
+			{
+				_to = "";
+				_amountBtc = 0;
+				Labels.Clear();
+			}
+
 			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => ExchangeRate = x)
@@ -270,7 +277,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				UpdateFeeEstimates(_owner.Wallet.Synchronizer.AllFeeEstimate.Estimations);
 			}
 
-			base.OnNavigatedTo(isInHistory, disposables);
+			base.OnNavigatedTo(inHistory, disposables);
 		}
 
 		private static readonly string[] TestNetXAxisLabels =

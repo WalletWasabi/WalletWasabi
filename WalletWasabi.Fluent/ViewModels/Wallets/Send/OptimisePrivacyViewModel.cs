@@ -44,57 +44,60 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}, this.WhenAnyValue(x => x.SelectedPrivacySuggestion).Select(x => x is { }));
 		}
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
+		protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 		{
 			IsBusy = true;
-			base.OnNavigatedTo(inStack, disposables);
+			base.OnNavigatedTo(inHistory, disposables);
 
-			RxApp.MainThreadScheduler.Schedule(async () =>
+			if (!inHistory)
 			{
-				var intent = new PaymentIntent(
-					_transactionInfo.Address,
-					MoneyRequest.CreateAllRemaining(subtractFee: true),
-					_transactionInfo.Labels);
-
-				if (_requestedTransaction.SpentCoins.Count() > 1)
+				RxApp.MainThreadScheduler.Schedule(async () =>
 				{
-					var smallerTransaction = _wallet.BuildTransaction(
+					var intent = new PaymentIntent(
+						_transactionInfo.Address,
+						MoneyRequest.CreateAllRemaining(subtractFee: true),
+						_transactionInfo.Labels);
+
+					if (_requestedTransaction.SpentCoins.Count() > 1)
+					{
+						var smallerTransaction = _wallet.BuildTransaction(
+							_wallet.Kitchen.SaltSoup(),
+							intent,
+							FeeStrategy.CreateFromFeeRate(_transactionInfo.FeeRate),
+							allowUnconfirmed: true,
+							_requestedTransaction
+								.SpentCoins
+								.OrderBy(x => x.Amount)
+								.Skip(1)
+								.Select(x => x.OutPoint));
+
+						_privacySuggestions.Add(new PrivacySuggestionControlViewModel(
+							_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
+							PrivacyOptimisationLevel.Better, "Improved Privacy"));
+					}
+
+					_defaultSelection = new PrivacySuggestionControlViewModel(
+						_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), _requestedTransaction,
+						PrivacyOptimisationLevel.Standard);
+
+					_privacySuggestions.Add(_defaultSelection);
+
+					var largerTransaction = _wallet.BuildTransaction(
 						_wallet.Kitchen.SaltSoup(),
 						intent,
 						FeeStrategy.CreateFromFeeRate(_transactionInfo.FeeRate),
-						allowUnconfirmed: true,
-						_requestedTransaction
-							.SpentCoins
-							.OrderBy(x => x.Amount)
-							.Skip(1)
-							.Select(x => x.OutPoint));
+						true,
+						_requestedTransaction.SpentCoins.Select(x => x.OutPoint));
 
 					_privacySuggestions.Add(new PrivacySuggestionControlViewModel(
-						_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
+						_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
 						PrivacyOptimisationLevel.Better, "Improved Privacy"));
-				}
 
-				_defaultSelection = new PrivacySuggestionControlViewModel(
-					_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), _requestedTransaction,
-					PrivacyOptimisationLevel.Standard);
+					SelectedPrivacySuggestion = _defaultSelection;
 
-				_privacySuggestions.Add(_defaultSelection);
-
-				var largerTransaction = _wallet.BuildTransaction(
-					_wallet.Kitchen.SaltSoup(),
-					intent,
-					FeeStrategy.CreateFromFeeRate(_transactionInfo.FeeRate),
-					true,
-					_requestedTransaction.SpentCoins.Select(x => x.OutPoint));
-
-				_privacySuggestions.Add(new PrivacySuggestionControlViewModel(
-					_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
-					PrivacyOptimisationLevel.Better, "Improved Privacy"));
-
-				SelectedPrivacySuggestion = _defaultSelection;
-
-				IsBusy = false;
-			});
+					IsBusy = false;
+				});
+			}
 		}
 	}
 }
