@@ -6,6 +6,7 @@ using NBitcoin;
 using ReactiveUI;
 using Splat;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
@@ -28,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	{
 		private readonly BuildTransactionResult _transaction;
 
-		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, BuildTransactionResult transaction)
+		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)
 		{
 			_transaction = transaction;
 
@@ -122,8 +123,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 							}
 						}
 
-						await Locator.Current.GetService<Global>().TransactionBroadcaster
-							.SendTransactionAsync(signedTransaction);
+						await broadcaster.SendTransactionAsync(signedTransaction);
 					}
 					else
 					{
