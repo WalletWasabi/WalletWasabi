@@ -123,7 +123,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 							mixedCoins.Select(x => x.OutPoint));
 
 						// Private coins are enough.
-						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, txRes));
+						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, walletVm.TransactionBroadcaster, txRes));
 						return;
 					}
 					catch (NotEnoughFundsException)
