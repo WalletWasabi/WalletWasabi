@@ -107,7 +107,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.OutputRegistration))
 			{
-				if (round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate)) == round.Bobs.Sum(x => x.CredentialAmount))
+				long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
+				long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
+				if (aliceSum == bobSum)
 				{
 					round.SetPhase(Phase.TransactionSigning);
 				}
