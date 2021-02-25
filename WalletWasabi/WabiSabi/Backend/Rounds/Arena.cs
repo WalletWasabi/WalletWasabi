@@ -12,6 +12,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
@@ -21,11 +22,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
 	public class Arena : PeriodicRunner
 	{
-		public Arena(TimeSpan period, Network network, WabiSabiConfig config, IRPCClient rpc) : base(period)
+		public Arena(TimeSpan period, Network network, WabiSabiConfig config, IRPCClient rpc, Prison prison) : base(period)
 		{
 			Network = network;
 			Config = config;
 			Rpc = rpc;
+			Prison = prison;
 			Random = new SecureRandom();
 		}
 
@@ -34,6 +36,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public Network Network { get; }
 		public WabiSabiConfig Config { get; }
 		public IRPCClient Rpc { get; }
+		public Prison Prison { get; }
 		public SecureRandom Random { get; }
 
 		protected override async Task ActionAsync(CancellationToken cancel)
@@ -42,6 +45,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				// Remove timed out alices.
 				TimeoutAlices();
+
+				StepConnectionConfirmationPhase();
 
 				StepInputRegistrationPhase();
 
@@ -62,7 +67,36 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 				else
 				{
-					round.Phase = Phase.ConnectionConfirmation;
+					round.SetPhase(Phase.ConnectionConfirmation);
+				}
+			}
+		}
+
+		private void StepConnectionConfirmationPhase()
+		{
+			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.ConnectionConfirmation))
+			{
+				if (round.Alices.All(x => x.ConfirmedConnetion))
+				{
+					round.SetPhase(Phase.OutputRegistration);
+				}
+				else if (round.ConnectionConfirmationStart + Config.ConnectionConfirmationTimeout < DateTimeOffset.UtcNow)
+				{
+					var alicesDidntConfirm = round.Alices.Where(x => !x.ConfirmedConnetion).ToArray();
+					foreach (var alice in alicesDidntConfirm)
+					{
+						Prison.Note(alice, round.Id);
+					}
+					round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
+
+					if (round.InputCount < Config.MinInputCountByRound)
+					{
+						Rounds.Remove(round.Id);
+					}
+					else
+					{
+						round.SetPhase(Phase.OutputRegistration);
+					}
 				}
 			}
 		}
@@ -83,7 +117,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			foreach (var round in Rounds.Values.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.InputRegistrationTimeout)))
 			{
-				var removedAliceCount = round.RemoveAlices(x => x.Deadline < DateTimeOffset.UtcNow);
+				var removedAliceCount = round.Alices.RemoveAll(x => x.Deadline < DateTimeOffset.UtcNow);
 				if (removedAliceCount > 0)
 				{
 					Logger.LogInfo($"{removedAliceCount} alices timed out and removed.");
@@ -119,7 +153,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 				}
-				round.RemoveAlices(x => x.Id == request.AliceId);
+				if (round.Phase != Phase.InputRegistration)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+				}
+				round.Alices.RemoveAll(x => x.Id == request.AliceId);
 			}
 		}
 
@@ -164,6 +202,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					var amountRealCredentialResponse = round.AmountCredentialIssuer.HandleRequest(realAmountCredentialRequests);
 					var weightRealCredentialResponse = round.WeightCredentialIssuer.HandleRequest(realWeightCredentialRequests);
+					alice.ConfirmedConnetion = true;
 
 					return new(
 						amountZeroCredentialResponse,

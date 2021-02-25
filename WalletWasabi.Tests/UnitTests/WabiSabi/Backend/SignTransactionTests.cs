@@ -28,7 +28,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			round.Alices.Add(alice);
 			var coinjoin = round.Coinjoin;
 			coinjoin.Inputs.Add(alice.Coins.First().Outpoint);
-			round.Phase = Phase.TransactionSigning;
+			round.SetPhase(Phase.TransactionSigning);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var signedCoinJoin = coinjoin.Clone();
@@ -64,7 +64,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			{
 				if (phase != Phase.TransactionSigning)
 				{
-					round.Phase = phase;
+					round.SetPhase(phase);
 					await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.SignTransactionAsync(req));
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
@@ -87,7 +87,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var coinjoin = round.Coinjoin;
 			coinjoin.Inputs.Add(alice1.Coins.First().Outpoint);
 			coinjoin.Inputs.Add(alice2.Coins.First().Outpoint);
-			round.Phase = Phase.TransactionSigning;
+			round.SetPhase(Phase.TransactionSigning);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			// Submit the signature for the second alice to the first alice's input.

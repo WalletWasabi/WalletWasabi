@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using WalletWasabi.WabiSabi.Backend.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.Banning
 {
@@ -33,6 +34,14 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 			lock (Lock)
 			{
 				return (Inmates.Count(x => x.Value.Punishment == Punishment.Noted), Inmates.Count(x => x.Value.Punishment == Punishment.Banned));
+			}
+		}
+
+		public void Note(Alice alice, Guid lastDisruptedRoundId)
+		{
+			foreach (var input in alice.Coins.Select(x => x.Outpoint))
+			{
+				Punish(input, Punishment.Noted, lastDisruptedRoundId);
 			}
 		}
 

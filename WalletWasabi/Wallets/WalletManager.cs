@@ -62,6 +62,7 @@ namespace WalletWasabi.Wallets
 
 		private CancellationTokenSource CancelAllInitialization { get; }
 
+		/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
 		private Dictionary<Wallet, HashSet<uint256>> Wallets { get; }
 		private object Lock { get; }
 		private AsyncLock StartStopWalletLock { get; }
@@ -121,8 +122,7 @@ namespace WalletWasabi.Wallets
 
 			lock (Lock)
 			{
-				return Wallets.Keys
-					.ToList();
+				return Wallets.Keys.ToList();
 			}
 		}
 
@@ -206,7 +206,7 @@ namespace WalletWasabi.Wallets
 			return wallet;
 		}
 
-		private Wallet AddWallet(string walletName)
+		private void AddWallet(string walletName)
 		{
 			(string walletFullPath, string walletBackupFullPath) = WalletDirectories.GetWalletFilePaths(walletName);
 			Wallet wallet;
@@ -243,7 +243,6 @@ namespace WalletWasabi.Wallets
 			}
 
 			AddWallet(wallet);
-			return wallet;
 		}
 
 		private void AddWallet(Wallet wallet)
@@ -271,7 +270,7 @@ namespace WalletWasabi.Wallets
 
 		public async Task DequeueAllCoinsGracefullyAsync(DequeueReason reason, CancellationToken token)
 		{
-			IEnumerable<Task> tasks = null;
+			IEnumerable<Task> tasks;
 			lock (Lock)
 			{
 				tasks = Wallets.Keys.Where(x => x.ChaumianClient is { }).Select(x => x.ChaumianClient.DequeueAllCoinsFromMixGracefullyAsync(reason, token)).ToArray();
