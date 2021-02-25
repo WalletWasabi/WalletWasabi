@@ -11,14 +11,18 @@
              x:DataType="vm:OptimisePrivacyViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.OptimisePrivacyView">
-    <c:ContentArea Title="Optimise your Privacy" Caption="Often a bitcoin transaction will create change leaving a trace. If you’re willing to adjust your payment amount, you can improve your privacy and reduce your transaction costs."
+    <c:ContentArea Title="Optimise your Privacy" Caption="Often a Bitcoin transaction will create change leaving a trace. If you’re willing to adjust your payment amount, you can improve your privacy and reduce your transaction costs."
                    HorizontalAlignment="Left"
                    EnableCancel="False"
+                   EnableBack="True"
                    EnableNext="True"
                    NextContent="Continue"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DockPanel>
-            <ListBox DockPanel.Dock="Top" Background="Transparent" HorizontalAlignment="Center" Items="{Binding PrivacySuggestions}" SelectedItem="{Binding SelectedPrivacySuggestion}">
+            <Panel DockPanel.Dock="Bottom" Margin="0 30 0 0" MinHeight="22">
+                <c:InfoMessage  IsVisible="{Binding ExactAmountWarningVisible}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Content="Some services only accept the exact amount that was requested." Foreground="{DynamicResource PrivacyOptimisationLevelStandardBrush}" />
+            </Panel>
+            <ListBox DockPanel.Dock="Top" Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Center" Items="{Binding PrivacySuggestions}" SelectedItem="{Binding SelectedPrivacySuggestion}">
                 <ListBox.Styles>
                     <Style Selector="ListBoxItem">
                         <Setter Property="Cursor" Value="Hand" />
@@ -42,10 +46,6 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-            <StackPanel Margin="0 30 0 0" Orientation="Horizontal" Spacing="5" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" HorizontalAlignment="Center">
-                <PathIcon Data="{StaticResource info_tip}" Foreground="{DynamicResource WarningMessageForeground}" />
-                <TextBlock Text="Some services only accept the exact amount that was requested." Foreground="{DynamicResource WarningMessageForeground}" />
-            </StackPanel>
         </DockPanel>
     </c:ContentArea>
 </UserControl>

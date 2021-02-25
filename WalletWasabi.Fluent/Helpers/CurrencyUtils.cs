@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class CurrencyUtils
 	{
-		private static NumberFormatInfo s_FormatInfo = new NumberFormatInfo()
+		private static NumberFormatInfo FormatInfo = new NumberFormatInfo()
 		{
 			CurrencyGroupSeparator = " ",
 			NumberGroupSeparator = " ",
@@ -39,12 +39,12 @@ namespace WalletWasabi.Fluent.Helpers
 
 		public static string FormattedBtc(this decimal amount)
 		{
-			return string.Format(s_FormatInfo, "{0:### ### ### ##0.#### ####}", amount).Trim();
+			return string.Format(FormatInfo, "{0:### ### ### ##0.#### ####}", amount).Trim();
 		}
 
 		public static string FormattedFiat(this decimal amount)
 		{
-			return string.Format(s_FormatInfo, "{0:N2}", amount).Trim();
+			return string.Format(FormatInfo, "{0:N2}", amount).Trim();
 		}
 	}
 }

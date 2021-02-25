@@ -105,7 +105,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				var targetAnonymitySet = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 				var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
 
-				if (false)//(mixedCoins.Any())
+				if (mixedCoins.Any())
 				{
 					var intent = new PaymentIntent(
 						destination: transactionInfo.Address,
@@ -123,7 +123,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 							mixedCoins.Select(x => x.OutPoint));
 
 						// Private coins are enough.
-						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, txRes));
+						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, walletVm.TransactionBroadcaster, txRes));
 						return;
 					}
 					catch (NotEnoughFundsException)
@@ -133,7 +133,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 
 				Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo));
-			});
+			}, this.WhenAnyValue(x=>x.Labels.Count).Any());
 		}
 
 		private void ValidateAmount(IValidationErrors errors)
@@ -242,8 +242,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return result;
 		}
 
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 		{
+			if (!inHistory)
+			{
+				To = "";
+				AmountBtc = 0;
+				Labels.Clear();
+				ClearValidations();
+			}
+
 			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => ExchangeRate = x)
@@ -270,7 +278,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				UpdateFeeEstimates(_owner.Wallet.Synchronizer.AllFeeEstimate.Estimations);
 			}
 
-			base.OnNavigatedTo(isInHistory, disposables);
+			base.OnNavigatedTo(inHistory, disposables);
 		}
 
 		private static readonly string[] TestNetXAxisLabels =
