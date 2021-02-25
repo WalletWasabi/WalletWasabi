@@ -46,6 +46,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				// Remove timed out alices.
 				TimeoutAlices();
 
+				StepOutputRegistrationPhase();
+
 				StepConnectionConfirmationPhase();
 
 				StepInputRegistrationPhase();
@@ -97,6 +99,17 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					{
 						round.SetPhase(Phase.OutputRegistration);
 					}
+				}
+			}
+		}
+
+		private void StepOutputRegistrationPhase()
+		{
+			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.OutputRegistration))
+			{
+				if (round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate)) == round.Bobs.Sum(x => x.CredentialAmount))
+				{
+					round.SetPhase(Phase.TransactionSigning);
 				}
 			}
 		}
