@@ -219,7 +219,7 @@ bitcoind
 
 ```sh
 bitcoin-cli stop
-sudo apt-get update && apt install --only-upgrade bitcoind
+sudo apt-get update && sudo apt install --only-upgrade bitcoind
 bitcoind --version
 bitcoin-cli getblockchaininfo
 ```
