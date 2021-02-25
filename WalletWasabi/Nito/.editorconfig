@@ -1,0 +1,21 @@
+root = false
+
+[*.cs]
+
+# IDE0011: Add braces
+csharp_prefer_braces = none
+
+# IDE0032: Use auto property
+dotnet_style_prefer_auto_properties = none
+
+# IDE0034: Simplify 'default' expression
+csharp_prefer_simple_default_expression = none
+
+# IDE0049: Use language keywords instead of framework type names for type references
+dotnet_style_predefined_type_for_member_access = none
+
+# IDE0063: Use simple 'using' statement 
+csharp_prefer_simple_using_statement = none
+
+# IDE1006: Naming rule violation
+dotnet_diagnostic.IDE1006.severity = none
