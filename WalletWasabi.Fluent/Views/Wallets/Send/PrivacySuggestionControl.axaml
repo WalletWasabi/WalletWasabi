@@ -12,13 +12,14 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacySuggestionControl">
     <StackPanel Spacing="30">
-        <Panel>
-            <StackPanel Spacing="10" VerticalAlignment="Center">
+        <Panel MinHeight="100" MinWidth="200">
+            <StackPanel Spacing="10" VerticalAlignment="Center" TextBlock.Foreground="{Binding OptimisationLevel, Converter={x:Static conv:PrivacyOptimisationLevelConverters.OptimisationLevelToBrushConverter}}">
+                <TextBlock Text="₿" FontSize="64" HorizontalAlignment="Center" />
                 <TextBlock Text="{Binding Title}" FontSize="20" HorizontalAlignment="Center" />
                 <TextBlock Text="{Binding Caption}" HorizontalAlignment="Center" Opacity="0.6" />
             </StackPanel>
         </Panel>
-        <Separator Height="2" Background="{Binding OptimisationLevel, Converter={x:Static conv:PrivacyOptimisationLevelConverters.OptimisationLevelToBrushConverter}}" />
+        <Separator Height="1" Background="#FFFFFF" Opacity="0.2"   />
         <ItemsControl Items="{Binding Benefits}">
             <ItemsControl.Styles>
                 <Style Selector="TextBlock">
