@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
@@ -27,18 +28,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			var clusters = _wallet.Coins.OfType<SmartCoin>().GroupBy(x=>x.HdPubKey.Cluster);
+			var pockets = _wallet.Coins.GetPockets(2);
 
-			foreach (var cluster in clusters)
+			foreach (var pocket in pockets)
 			{
-				var labels = cluster.Key.Labels;
-
-				var amount = cluster.Select(x => x.Amount).Sum(x => x.ToDecimal(MoneyUnit.BTC));
-
 				_pockets.Add(new PocketViewModel
 				{
-					Labels = string.Join(", ", labels.Labels),
-					TotalBtc = amount
+					Labels =  string.Join(", ", pocket.Labels),
+					TotalBtc = pocket.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC)
 				});
 			}
 		}
