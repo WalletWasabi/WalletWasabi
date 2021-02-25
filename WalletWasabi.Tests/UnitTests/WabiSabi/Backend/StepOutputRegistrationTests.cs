@@ -71,6 +71,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			}
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
+			Assert.Equal(2, round.Coinjoin.Inputs.Count);
+			Assert.Equal(2, round.Coinjoin.Outputs.Count);
 
 			await arena.StopAsync(CancellationToken.None);
 		}

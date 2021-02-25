@@ -111,6 +111,40 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
 				if (aliceSum == bobSum || round.OutputRegistrationStart + Config.OutputRegistrationTimeout < DateTimeOffset.UtcNow)
 				{
+					var coinjoin = round.Coinjoin;
+					// Add inputs:
+					var spentCoins = round.Alices.SelectMany(x => x.Coins).ToArray();
+					foreach (var input in spentCoins.Select(x => x.Outpoint))
+					{
+						coinjoin.Inputs.Add(input);
+					}
+
+					// Add outputs:
+					foreach (var bob in round.Bobs)
+					{
+						coinjoin.Outputs.AddWithOptimize(bob.CalculateOutputAmount(round.FeeRate), bob.Script);
+					}
+
+					// Shuffle & sort:
+					coinjoin.Inputs.Shuffle();
+					coinjoin.Outputs.Shuffle();
+					coinjoin.Inputs.SortByAmount(spentCoins);
+					coinjoin.Outputs.SortByAmount();
+
+					//// 2. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
+					//var derivationIndex = RoundConfig.CoordinatorExtPubKeyCurrentDepth + 1;
+					//for (int i = 0; i < MixingLevels.Count(); i++)
+					//{
+					//	var aliceCountInLevel = Alices.Count(x => i < x.BlindedOutputScripts.Length);
+					//	var missingBobCount = aliceCountInLevel - Bobs.Count(x => x.Level == MixingLevels.GetLevel(i));
+					//	for (int j = 0; j < missingBobCount; j++)
+					//	{
+					//		var denomination = MixingLevels.GetLevel(i).Denomination;
+					//		transaction.Outputs.AddWithOptimize(denomination, RoundConfig.DeriveCoordinatorScript(derivationIndex));
+					//		derivationIndex++;
+					//	}
+					//}
+
 					round.SetPhase(Phase.TransactionSigning);
 				}
 			}
