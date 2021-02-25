@@ -112,7 +112,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var diff = aliceSum - bobSum;
 				if (diff == 0 || round.OutputRegistrationStart + Config.OutputRegistrationTimeout < DateTimeOffset.UtcNow)
 				{
+					// Build a coinjoins:
 					var coinjoin = round.Coinjoin;
+
 					// Add inputs:
 					var spentCoins = round.Alices.SelectMany(x => x.Coins).ToArray();
 					foreach (var input in spentCoins.Select(x => x.Outpoint))
