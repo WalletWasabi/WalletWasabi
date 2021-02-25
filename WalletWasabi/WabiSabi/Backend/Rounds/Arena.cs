@@ -129,6 +129,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					}
 
 					// Shuffle & sort:
+					// This is basically just decoration.
 					coinjoin.Inputs.Shuffle();
 					coinjoin.Outputs.Shuffle();
 					coinjoin.Inputs.SortByAmount(spentCoins);
