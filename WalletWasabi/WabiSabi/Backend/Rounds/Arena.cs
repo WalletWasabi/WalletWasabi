@@ -109,7 +109,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
 				long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
-				if (aliceSum == bobSum)
+				if (aliceSum == bobSum || round.OutputRegistrationStart + Config.OutputRegistrationTimeout < DateTimeOffset.UtcNow)
 				{
 					round.SetPhase(Phase.TransactionSigning);
 				}
