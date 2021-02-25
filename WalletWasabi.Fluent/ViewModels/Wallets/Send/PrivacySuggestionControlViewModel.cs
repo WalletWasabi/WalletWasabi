@@ -35,6 +35,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				_caption = pcDifference > 0 ? $"{pcDifference:F}% More" : $"{Math.Abs(pcDifference):F}% Less";
 			}
+			else
+			{
+				_caption = "As Requested";
+			}
 
 			_title = $"{total}";
 		}

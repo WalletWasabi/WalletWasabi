@@ -42,7 +42,7 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-            <c:InfoMessage Margin="0 30 0 0" VerticalAlignment="Bottom" HorizontalAlignment="Center" Content="Some services only accept the exact amount that was requested." Foreground="{DynamicResource PrivacyOptimisationLevelStandardBrush}" />
+            <c:InfoMessage IsVisible="{Binding ExactAmountWarningVisible}" Margin="0 30 0 0" VerticalAlignment="Bottom" HorizontalAlignment="Center" Content="Some services only accept the exact amount that was requested." Foreground="{DynamicResource PrivacyOptimisationLevelStandardBrush}" />
         </DockPanel>
     </c:ContentArea>
 </UserControl>

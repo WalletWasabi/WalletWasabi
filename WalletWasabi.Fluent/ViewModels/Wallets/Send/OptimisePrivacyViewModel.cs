@@ -1,4 +1,5 @@
 using NBitcoin;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Concurrency;
@@ -21,6 +22,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		[AutoNotify] private ObservableCollection<PrivacySuggestionControlViewModel> _privacySuggestions;
 		[AutoNotify] private PrivacySuggestionControlViewModel? _selectedPrivacySuggestion;
+		[AutoNotify] private bool _exactAmountWarningVisible;
+		private PrivacySuggestionControlViewModel? _defaultSelection;
 
 		public OptimisePrivacyViewModel(Wallet wallet,
 			TransactionInfo transactionInfo, TransactionBroadcaster broadcaster, BuildTransactionResult requestedTransaction)
@@ -28,6 +31,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_wallet = wallet;
 			_requestedTransaction = requestedTransaction;
 			_transactionInfo = transactionInfo;
+
+			this.WhenAnyValue(x => x.SelectedPrivacySuggestion)
+				.Where(x => x is { })
+				.Subscribe(x => ExactAmountWarningVisible = x != _defaultSelection);
 
 			_privacySuggestions = new ObservableCollection<PrivacySuggestionControlViewModel>();
 
@@ -67,11 +74,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						PrivacyOptimisationLevel.Better, "Improved Privacy"));
 				}
 
-				var exactSuggestion = new PrivacySuggestionControlViewModel(
+				_defaultSelection = new PrivacySuggestionControlViewModel(
 					_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), _requestedTransaction,
-					PrivacyOptimisationLevel.Standard, "Send the Exact Amount");
+					PrivacyOptimisationLevel.Standard);
 
-				_privacySuggestions.Add(exactSuggestion);
+				_privacySuggestions.Add(_defaultSelection);
 
 				var largerTransaction = _wallet.BuildTransaction(
 					_wallet.Kitchen.SaltSoup(),
@@ -84,7 +91,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
 					PrivacyOptimisationLevel.Better, "Improved Privacy"));
 
-				SelectedPrivacySuggestion = exactSuggestion;
+				SelectedPrivacySuggestion = _defaultSelection;
 
 				IsBusy = false;
 			});

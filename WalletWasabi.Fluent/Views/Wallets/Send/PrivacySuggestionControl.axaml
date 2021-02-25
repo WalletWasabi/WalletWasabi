@@ -14,13 +14,17 @@
     <StackPanel Spacing="20">
         <Panel MinHeight="150" MinWidth="200">
             <StackPanel Spacing="10" VerticalAlignment="Top" TextBlock.Foreground="{Binding OptimisationLevel, Converter={x:Static conv:PrivacyOptimisationLevelConverters.OptimisationLevelToBrushConverter}}">
-                <TextBlock Text="₿" FontSize="64" HorizontalAlignment="Center" />
+                <Panel>
+                    <Ellipse Stroke="{Binding OptimisationLevel, Converter={x:Static conv:PrivacyOptimisationLevelConverters.OptimisationLevelToBrushConverter}, FallbackValue=White}" StrokeThickness="4" Height="115" Width="115" />
+                    <Ellipse Stroke="{Binding OptimisationLevel, Converter={x:Static conv:PrivacyOptimisationLevelConverters.OptimisationLevelToBrushConverter}, FallbackValue=White}" StrokeThickness="3" StrokeDashArray="2.0, 1.5" Height="100" Width="100" />
+                    <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50" Foreground="{Binding OptimisationLevel, Converter={x:Static conv:PrivacyOptimisationLevelConverters.OptimisationLevelToBrushConverter}, FallbackValue=White}" />
+                </Panel>
                 <TextBlock Text="{Binding Title}" FontSize="20" HorizontalAlignment="Center" />
                 <TextBlock Text="{Binding Caption}" HorizontalAlignment="Center" Opacity="0.6" />
             </StackPanel>
         </Panel>
         <Separator Height="1" Background="#FFFFFF" Opacity="0.2"   />
-        <ItemsControl Items="{Binding Benefits}">
+        <ItemsControl HorizontalAlignment="Center" Items="{Binding Benefits}">
             <ItemsControl.Styles>
                 <Style Selector="TextBlock">
                     <Setter Property="Opacity" Value="0.6" />
