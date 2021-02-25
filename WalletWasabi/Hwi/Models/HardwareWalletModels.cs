@@ -31,6 +31,9 @@ namespace WalletWasabi.Hwi.Models
 		[Description("Ledger Nano S")]
 		Ledger_Nano_S,
 
+		[Description("Ledger Nano X")]
+		Ledger_Nano_X,
+
 		[Description("Trezor One")]
 		Trezor_1,
 
