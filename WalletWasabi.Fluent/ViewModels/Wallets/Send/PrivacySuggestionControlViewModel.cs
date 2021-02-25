@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				_caption = pcDifference > 0 ? $"{pcDifference:F}% More" : $"{Math.Abs(pcDifference):F}% Less";
 			}
 
-			_title = $"{total} BTC";
+			_title = $"{total}";
 		}
 
 		public BuildTransactionResult TransactionResult => _transactionResult;
