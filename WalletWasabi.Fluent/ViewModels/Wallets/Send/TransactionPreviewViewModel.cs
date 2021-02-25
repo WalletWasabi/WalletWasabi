@@ -97,15 +97,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 								try
 								{
 									signedPsbt = await client.SignTxAsync(
-										wallet.KeyManager.MasterFingerprint!.Value,
-										transaction.Psbt, cts.Token);
+										wallet.KeyManager.MasterFingerprint!.Value, transaction.Psbt, cts.Token);
 								}
 								catch (HwiException ex) when (ex.ErrorCode is not HwiErrorCode.ActionCanceled)
 								{
 									await PinPadViewModel.UnlockAsync();
 									signedPsbt = await client.SignTxAsync(
-										wallet.KeyManager.MasterFingerprint!.Value,
-										transaction.Psbt, cts.Token);
+										wallet.KeyManager.MasterFingerprint!.Value, transaction.Psbt, cts.Token);
 								}
 
 								signedTransaction = signedPsbt.ExtractSmartTransaction(transaction.Transaction);
