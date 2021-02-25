@@ -64,7 +64,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			{
 				if (phase != Phase.InputRegistration)
 				{
-					round.Phase = phase;
+					round.SetPhase(phase);
 					await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RemoveInputAsync(req));
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);

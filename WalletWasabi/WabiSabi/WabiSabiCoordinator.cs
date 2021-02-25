@@ -26,7 +26,7 @@ namespace WalletWasabi.WabiSabi
 			Warden = new(parameters.UtxoWardenPeriod, parameters.PrisonFilePath, Config);
 			ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
 
-			Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc);
+			Arena = new(parameters.RoundProgressSteppingPeriod, rpc.Network, Config, rpc, Prison);
 
 			Postman = new(Config, Prison, Arena, Rpc);
 		}
