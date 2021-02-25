@@ -102,7 +102,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 								catch (HwiException ex) when (ex.ErrorCode is not HwiErrorCode.ActionCanceled)
 								{
 									await PinPadViewModel.UnlockAsync();
-									
+
 									signedPsbt = await client.SignTxAsync(
 										wallet.KeyManager.MasterFingerprint!.Value,
 										transaction.Psbt,
