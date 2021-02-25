@@ -64,7 +64,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					_privacySuggestions.Add(new PrivacySuggestionControlViewModel(
 						_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
-						PrivacyOptimisationLevel.Better, "Improved Privacy", "Save on Transaction Fee", "Send Less"));
+						PrivacyOptimisationLevel.Better, "Improved Privacy"));
 				}
 
 				var exactSuggestion = new PrivacySuggestionControlViewModel(
@@ -82,7 +82,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				_privacySuggestions.Add(new PrivacySuggestionControlViewModel(
 					_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
-					PrivacyOptimisationLevel.Better, "Improved Privacy", "Save on Transaction Fee"));
+					PrivacyOptimisationLevel.Better, "Improved Privacy"));
 
 				SelectedPrivacySuggestion = exactSuggestion;
 
