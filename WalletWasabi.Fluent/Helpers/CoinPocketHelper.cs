@@ -24,7 +24,6 @@ namespace WalletWasabi.Fluent.Helpers
 
 				if (string.IsNullOrWhiteSpace(allLabels))
 				{
-					// If the Label is empty then add every coin as a separate pocket
 					pockets.Add(new("Unlabelled Funds", new CoinsView(coins)));
 				}
 				else
