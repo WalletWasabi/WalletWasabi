@@ -18,7 +18,14 @@
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DataGrid AutoGenerateColumns="False" Items="{Binding Pockets}">
             <DataGrid.Columns >
-                <DataGridCheckBoxColumn x:DataType="vm:PocketViewModel" Binding="{Binding IsSelected}" CanUserSort="False" CanUserResize="False" CanUserReorder="False" />
+                <!-- <DataGridCheckBoxColumn x:DataType="vm:PocketViewModel" Binding="{Binding IsSelected}" IsReadOnly="False" CanUserSort="False" CanUserResize="False" CanUserReorder="False" /> -->
+                <DataGridTemplateColumn CanUserSort="False" CanUserResize="False" CanUserReorder="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:PocketViewModel">
+                            <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTextColumn x:DataType="vm:PocketViewModel" Header="Total (BTC)" Binding="{Binding TotalBtc}" />
                 <DataGridTextColumn x:DataType="vm:PocketViewModel" Header="Labels" Binding="{Binding Labels}" Width="*" />
             </DataGrid.Columns>
