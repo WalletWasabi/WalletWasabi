@@ -109,7 +109,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
 				long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
-				if (aliceSum == bobSum || round.OutputRegistrationStart + Config.OutputRegistrationTimeout < DateTimeOffset.UtcNow)
+				var diff = aliceSum - bobSum;
+				if (diff == 0 || round.OutputRegistrationStart + Config.OutputRegistrationTimeout < DateTimeOffset.UtcNow)
 				{
 					var coinjoin = round.Coinjoin;
 					// Add inputs:
@@ -131,19 +132,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					coinjoin.Inputs.SortByAmount(spentCoins);
 					coinjoin.Outputs.SortByAmount();
 
-					//// 2. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
-					//var derivationIndex = RoundConfig.CoordinatorExtPubKeyCurrentDepth + 1;
-					//for (int i = 0; i < MixingLevels.Count(); i++)
-					//{
-					//	var aliceCountInLevel = Alices.Count(x => i < x.BlindedOutputScripts.Length);
-					//	var missingBobCount = aliceCountInLevel - Bobs.Count(x => x.Level == MixingLevels.GetLevel(i));
-					//	for (int j = 0; j < missingBobCount; j++)
-					//	{
-					//		var denomination = MixingLevels.GetLevel(i).Denomination;
-					//		transaction.Outputs.AddWithOptimize(denomination, RoundConfig.DeriveCoordinatorScript(derivationIndex));
-					//		derivationIndex++;
-					//	}
-					//}
+					// If timeout we must fill up the outputs to build a reasonable transaction.
+					// This won't be signed by the alice who failed to provide output, so we know who to ban.
+					if (diff > round.MinRegistrableAmount)
+					{
+						var diffMoney = Money.Satoshis(diff);
+						coinjoin.Outputs.AddWithOptimize(diffMoney, Config.BlameScript);
+					}
 
 					round.SetPhase(Phase.TransactionSigning);
 				}
