@@ -19,14 +19,14 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
 
+		protected IValidations Validations => _validations;
+
+		bool INotifyDataErrorInfo.HasErrors => Validations.Any;
+
 		protected void ClearValidations()
 		{
 			_validations.Clear();
 		}
-
-		protected IValidations Validations => _validations;
-
-		bool INotifyDataErrorInfo.HasErrors => Validations.Any;
 
 		private void OnValidations_ErrorsChanged(object? sender, DataErrorsChangedEventArgs e)
 		{
