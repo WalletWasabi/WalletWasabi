@@ -117,6 +117,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						}
 
 						await broadcaster.SendTransactionAsync(signedTransaction);
+
+						Navigate().Back();
 					}
 					else
 					{
