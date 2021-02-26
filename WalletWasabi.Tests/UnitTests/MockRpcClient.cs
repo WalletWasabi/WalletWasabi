@@ -7,7 +7,7 @@ using WalletWasabi.BitcoinCore.Rpc.Models;
 
 namespace WalletWasabi.Tests.UnitTests
 {
-	internal class MockRpcClient : IRPCClient
+	public class MockRpcClient : IRPCClient
 	{
 		public Func<Task<uint256>> OnGetBestBlockHashAsync { get; set; }
 		public Func<uint256, int, bool, GetTxOutResponse?> OnGetTxOutAsync { get; set; }

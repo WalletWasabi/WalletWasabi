@@ -322,5 +322,19 @@ namespace WalletWasabi.Tests.Helpers
 			RoundParameters parameters = new(cfg, round.Network, round.Random, round.FeeRate, blameOf: round);
 			return new(parameters);
 		}
+
+		public static MockRpcClient CreateMockRpc(Key? key = null)
+		{
+			MockRpcClient rpc = new();
+
+			rpc.OnGetTxOutAsync = (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new(Money.Coins(1), key?.PubKey.GetSegwitAddress(Network.Main).ScriptPubKey ?? Script.Empty)
+			};
+
+			return rpc;
+		}
 	}
 }
