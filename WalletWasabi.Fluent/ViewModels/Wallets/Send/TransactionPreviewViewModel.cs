@@ -84,7 +84,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 						var signedTransaction = transaction.Transaction;
 
-						if (_transaction.Signed)
+						if (transaction.Signed)
 						{
 
 						}
