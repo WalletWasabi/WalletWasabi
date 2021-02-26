@@ -19,8 +19,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			// pressing cancel will return null.
 			_password = "";
 
-			this.ValidateProperty(x => x.Password, ValidatePassword);
-
 			var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
 
 			var nextCommandCanExecute = this.WhenAnyValue(
@@ -49,19 +47,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		protected override void OnDialogClosed()
 		{
 			Password = "";
-		}
-
-		private void ValidatePassword(IValidationErrors errors)
-		{
-			if (PasswordHelper.IsTrimmable(Password, out _))
-			{
-				errors.Add(ErrorSeverity.Error, PasswordHelper.WhitespaceMessage);
-			}
-
-			if (PasswordHelper.IsTooLong(Password, out _))
-			{
-				errors.Add(ErrorSeverity.Error, PasswordHelper.PasswordTooLongMessage);
-			}
 		}
 	}
 }
