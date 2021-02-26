@@ -247,7 +247,12 @@ namespace WalletWasabi.Tests.UnitTests
 				},
 				hasPeersInfo: true
 			);
-			rpc.OnGetMempoolInfoAsync = async () => await Task.FromResult(new MemPoolInfo());
+			rpc.OnGetMempoolInfoAsync = async () => await Task.FromResult(
+				new MemPoolInfo()
+				{ 
+					Histogram = new FeeRateGroup[0] 
+				}
+			);
 
 			// Do not throw exception
 			await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
