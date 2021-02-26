@@ -12,7 +12,7 @@ sudo killall tor
 bitcoin-cli stop
 
 # Status checks
-systemctl is-active tor && systemctl is-active walletwasabi && systemctl is-active nginx && ps -C bitcoind >/dev/null && echo "active" || echo "incative"
+echo -n 'Tor: '; systemctl is-active tor; echo -n 'Wasabi: '; systemctl is-active walletwasabi; echo -n 'Bitcoind: '; ps -C bitcoind >/dev/null && echo "active" || echo "incative";
 
 # Upgrade and reboot
 sudo apt-get upgrade -y && sudo apt-get autoremove -y
