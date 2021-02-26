@@ -26,30 +26,34 @@ namespace WalletWasabi.Gui.Dialogs
 			var canCancel = this.WhenAnyValue(x => x.IsBusy);
 			var canOk = this.WhenAnyValue(x => x.IsBusy, (isbusy) => !isbusy);
 
-			OKCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				CancelTokenSource.Cancel();
-				while (!Initialization.IsCompleted)
+			OKCommand = ReactiveCommand.CreateFromTask(
+				async () =>
 				{
-					await Task.Delay(300);
-				}
-				// OK pressed.
-				Close(false);
-			},
-			canOk);
+					CancelTokenSource.Cancel();
+					while (!Initialization.IsCompleted)
+					{
+						await Task.Delay(300);
+					}
 
-			CancelCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				OperationMessage = "Cancelling...Please wait";
-				CancelTokenSource.Cancel();
-				while (!Initialization.IsCompleted)
+					// OK pressed.
+					Close(false);
+				},
+				canOk);
+
+			CancelCommand = ReactiveCommand.CreateFromTask(
+				async () =>
 				{
-					await Task.Delay(300);
-				}
-				// OK pressed.
-				Close(false);
-			},
-			canCancel);
+					OperationMessage = "Cancelling...Please wait";
+					CancelTokenSource.Cancel();
+					while (!Initialization.IsCompleted)
+					{
+						await Task.Delay(300);
+					}
+
+					// OK pressed.
+					Close(false);
+				},
+				canCancel);
 
 			Observable
 				.Merge(OKCommand.ThrownExceptions)

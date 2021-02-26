@@ -6,57 +6,110 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
+using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
+using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
 	public class Round
 	{
-		public Round(
-			uint maxInputCountByAlice,
-			Money minRegistrableAmount,
-			Money maxRegistrableAmount,
-			uint minRegistrableWeight,
-			uint maxRegistrableWeight)
+		public Round(RoundParameters roundParameters)
 		{
-			MaxInputCountByAlice = maxInputCountByAlice;
-			MinRegistrableAmount = minRegistrableAmount;
-			MaxRegistrableAmount = maxRegistrableAmount;
-			MinRegistrableWeight = minRegistrableWeight;
-			MaxRegistrableWeight = maxRegistrableWeight;
+			RoundParameters = roundParameters;
+			UnsignedTxSecret = Random.GetBytes(64);
 
-			Hash = new uint256(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{MinRegistrableWeight}{MaxRegistrableWeight}"));
+			AmountCredentialIssuer = new(new(Random), 2, Random, MaxRegistrableAmount);
+			WeightCredentialIssuer = new(new(Random), 2, Random, RegistrableWeightCredentials);
+			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
+			WeightCredentialIssuerParameters = WeightCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
+
+			Coinjoin = Transaction.Create(Network);
+
+			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{RegistrableWeightCredentials}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
 		}
 
-		public Round(Round blameOf)
-			: this(
-				 blameOf.MaxInputCountByAlice,
-				 blameOf.MinRegistrableAmount,
-				 blameOf.MaxRegistrableAmount,
-				 blameOf.MinRegistrableWeight,
-				 blameOf.MaxRegistrableWeight)
+		public Round(Round blameOf) : this(blameOf.RoundParameters)
 		{
 			BlameOf = blameOf;
-			BlameWhitelist = blameOf.Alices.Select(x => x.OutPoint).ToHashSet();
+			BlameWhitelist = blameOf
+				.Alices
+				.SelectMany(x => x.Coins)
+				.Select(x => x.Outpoint)
+				.ToHashSet();
 		}
 
-		public Guid Id { get; } = Guid.NewGuid();
-		public Phase Phase { get; set; } = Phase.InputRegistration;
 		public uint256 Hash { get; }
-		public uint MaxInputCountByAlice { get; }
-		public Money MinRegistrableAmount { get; }
-		public Money MaxRegistrableAmount { get; }
-		public uint MinRegistrableWeight { get; }
-		public uint MaxRegistrableWeight { get; }
+		public Network Network => RoundParameters.Network;
+		public uint MaxInputCountByAlice => RoundParameters.MaxInputCountByAlice;
+		public Money MinRegistrableAmount => RoundParameters.MinRegistrableAmount;
+		public Money MaxRegistrableAmount => RoundParameters.MaxRegistrableAmount;
+		public uint RegistrableWeightCredentials => RoundParameters.RegistrableWeightCredentials;
+		public TimeSpan ConnectionConfirmationTimeout => RoundParameters.ConnectionConfirmationTimeout;
+		public TimeSpan OutputRegistrationTimeout => RoundParameters.OutputRegistrationTimeout;
+		public TimeSpan TransactionSigningTimeout => RoundParameters.TransactionSigningTimeout;
+		public FeeRate FeeRate => RoundParameters.FeeRate;
+		public WasabiRandom Random => RoundParameters.Random;
+		public CredentialIssuer AmountCredentialIssuer { get; }
+		public CredentialIssuer WeightCredentialIssuer { get; }
+		public CredentialIssuerParameters AmountCredentialIssuerParameters { get; }
+		public CredentialIssuerParameters WeightCredentialIssuerParameters { get; }
+		public Guid Id { get; } = Guid.NewGuid();
 		public List<Alice> Alices { get; } = new();
+		public int InputCount => Alices.Sum(x => x.Coins.Count());
+		public List<Bob> Bobs { get; } = new();
 		public Round? BlameOf { get; } = null;
 		public bool IsBlameRound => BlameOf is not null;
 		public ISet<OutPoint> BlameWhitelist { get; } = new HashSet<OutPoint>();
+		public byte[] UnsignedTxSecret { get; }
+		public Transaction Coinjoin { get; }
+		private RoundParameters RoundParameters { get; }
+		public Phase Phase { get; private set; } = Phase.InputRegistration;
+		public DateTimeOffset InputRegistrationStart { get; } = DateTimeOffset.UtcNow;
+		public DateTimeOffset ConnectionConfirmationStart { get; private set; }
+		public DateTimeOffset OutputRegistrationStart { get; private set; }
+		public DateTimeOffset TransactionSigningStart { get; private set; }
 
-		public bool TryGetAlice(Guid aliceId, [NotNullWhen(true)] out Alice? alice)
+		public void SetPhase(Phase phase)
 		{
-			alice = Alices.FirstOrDefault(x => x.Id == aliceId);
-			return alice is not null;
+			Phase = phase;
+
+			if (phase == Phase.ConnectionConfirmation)
+			{
+				ConnectionConfirmationStart = DateTimeOffset.UtcNow;
+			}
+			else if (phase == Phase.OutputRegistration)
+			{
+				OutputRegistrationStart = DateTimeOffset.UtcNow;
+			}
+			else if (phase == Phase.TransactionSigning)
+			{
+				TransactionSigningStart = DateTimeOffset.UtcNow;
+			}
+		}
+
+		public bool IsInputRegistrationEnded(uint maxInputCount, TimeSpan inputRegistrationTimeout)
+		{
+			if (Phase > Phase.InputRegistration)
+			{
+				return true;
+			}
+
+			if (InputCount >= maxInputCount)
+			{
+				return true;
+			}
+
+			if (InputRegistrationStart + inputRegistrationTimeout < DateTimeOffset.UtcNow)
+			{
+				return true;
+			}
+
+			return false;
 		}
 	}
 }

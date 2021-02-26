@@ -13,17 +13,6 @@ namespace WalletWasabi.Helpers
 {
 	public static class NBitcoinHelpers
 	{
-		public static string HashOutpoints(IEnumerable<OutPoint> outPoints)
-		{
-			var sb = new StringBuilder();
-			foreach (OutPoint input in outPoints.OrderBy(x => x.Hash.ToString()).ThenBy(x => x.N))
-			{
-				sb.Append(ByteHelpers.ToHex(input.ToBytes()));
-			}
-
-			return HashHelpers.GenerateSha256Hash(sb.ToString());
-		}
-
 		/// <exception cref="InvalidOperationException">If valid output value cannot be created with the given parameters.</exception>
 		/// <returns>Sum of outputs' values. Sum of inputs' values - the calculated fee.</returns>
 		public static Money TakeFee(IEnumerable<Coin> inputs, int outputCount, Money feePerInputs, Money feePerOutputs)

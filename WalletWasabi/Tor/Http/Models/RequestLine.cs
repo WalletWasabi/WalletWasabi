@@ -29,25 +29,5 @@ namespace WalletWasabi.Tor.Http.Models
 		{
 			return $"{Method.Method}{SP}{URI.AbsolutePath}{URI.Query}{SP}{Protocol}{CRLF}";
 		}
-
-		public static RequestLine Parse(string requestLineString)
-		{
-			try
-			{
-				var parts = GetParts(requestLineString);
-				var methodString = parts[0];
-				var uri = new Uri(parts[1]);
-				var protocolString = parts[2];
-
-				var method = new HttpMethod(methodString);
-				var protocol = new HttpProtocol(protocolString);
-
-				return new RequestLine(method, uri, protocol);
-			}
-			catch (Exception ex)
-			{
-				throw new NotSupportedException($"Invalid {nameof(RequestLine)}.", ex);
-			}
-		}
 	}
 }

@@ -11,17 +11,17 @@ namespace WalletWasabi.WabiSabi.Models
 {
 	public class OutputRegistrationRequest
 	{
-		public OutputRegistrationRequest(Guid roundId, TxOut output, RealCredentialsRequest amountCredentialRequests, RealCredentialsRequest weighCredentialRequests)
+		public OutputRegistrationRequest(Guid roundId, Script script, RealCredentialsRequest amountCredentialRequests, RealCredentialsRequest weightCredentialRequests)
 		{
 			RoundId = roundId;
-			Output = output;
+			Script = script;
 			AmountCredentialRequests = amountCredentialRequests;
-			WeighCredentialRequests = weighCredentialRequests;
+			WeightCredentialRequests = weightCredentialRequests;
 		}
 
 		public Guid RoundId { get; }
-		public TxOut Output { get; }
+		public Script Script { get; }
 		public RealCredentialsRequest AmountCredentialRequests { get; }
-		public RealCredentialsRequest WeighCredentialRequests { get; }
+		public RealCredentialsRequest WeightCredentialRequests { get; }
 	}
 }

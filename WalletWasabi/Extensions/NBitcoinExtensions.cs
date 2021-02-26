@@ -17,6 +17,12 @@ namespace NBitcoin
 {
 	public static class NBitcoinExtensions
 	{
+		private static NumberFormatInfo CurrencyNumberFormat = new NumberFormatInfo()
+		{
+			NumberGroupSeparator = " ",
+			NumberDecimalDigits = 0
+		};
+
 		public static async Task<Block> DownloadBlockAsync(this Node node, uint256 hash, CancellationToken cancellationToken)
 		{
 			if (node.State == NodeState.Connected)
@@ -144,7 +150,7 @@ namespace NBitcoin
 		}
 
 		public static bool IsLikelyCoinjoin(this Transaction me)
-		=> me.Inputs.Count > 1 // The tx must have more than one input in order to be a coinjoin.
+			=> me.Inputs.Count > 1 // The tx must have more than one input in order to be a coinjoin.
 			&& me.HasIndistinguishableOutputs(); // The tx must have more than one equal output in order to be a coinjoin.
 
 		/// <summary>
@@ -253,7 +259,7 @@ namespace NBitcoin
 			return toStringBuilder.ToString();
 		}
 
-		public static BitcoinWitPubKeyAddress TransformToNetworkNetwork(this BitcoinWitPubKeyAddress me, Network desiredNetwork)
+		public static BitcoinWitPubKeyAddress TransformToNetwork(this BitcoinWitPubKeyAddress me, Network desiredNetwork)
 		{
 			Network originalNetwork = me.Network;
 
@@ -267,7 +273,7 @@ namespace NBitcoin
 			return newAddress;
 		}
 
-		public static void SortByAmount(this TxInList list, List<Coin> coins)
+		public static void SortByAmount(this TxInList list, IEnumerable<Coin> coins)
 		{
 			var map = new Dictionary<TxIn, Coin>();
 			foreach (var coin in coins)
@@ -364,12 +370,6 @@ namespace NBitcoin
 			return null;
 		}
 
-		private static NumberFormatInfo CurrencyNumberFormat = new NumberFormatInfo()
-		{
-			NumberGroupSeparator = " ",
-			NumberDecimalDigits = 0
-		};
-
 		private static string ToCurrency(this Money btc, string currency, decimal exchangeRate, bool privacyMode = false)
 		{
 			var dollars = exchangeRate * btc.ToDecimal(MoneyUnit.BTC);
@@ -453,6 +453,30 @@ namespace NBitcoin
 
 			var sanityFee = FeeRate.Max(new FeeRate(Money.Coins(spikeSanity)), new FeeRate(2m));
 			return sanityFee;
+		}
+
+		public static int EstimateOutputVsize(this Script script)
+		{
+			if (script.IsScriptType(ScriptType.P2WPKH))
+			{
+				return Constants.OutputSizeInBytes;
+			}
+			else
+			{
+				throw new NotImplementedException($"Weight estimation isn't implemented for provided script type.");
+			}
+		}
+
+		public static int EstimateInputVsize(this Script script)
+		{
+			if (script.IsScriptType(ScriptType.P2WPKH))
+			{
+				return Constants.P2wpkhInputVirtualSize;
+			}
+			else
+			{
+				throw new NotImplementedException($"Weight estimation isn't implemented for provided script type.");
+			}
 		}
 	}
 }

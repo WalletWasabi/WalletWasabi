@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		public ICommand CancelCommand { get; protected set; }
 
-		private void DoNavigateTo(bool inStack)
+		private void DoNavigateTo(bool isInHistory)
 		{
 			if (_currentDisposable is { })
 			{
@@ -45,16 +45,16 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 			_currentDisposable = new CompositeDisposable();
 
-			OnNavigatedTo(inStack, _currentDisposable);
+			OnNavigatedTo(isInHistory, _currentDisposable);
 		}
 
-		protected virtual void OnNavigatedTo(bool inStack, CompositeDisposable disposables)
+		protected virtual void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 		}
 
-		private void DoNavigateFrom()
+		private void DoNavigateFrom(bool isInHistory)
 		{
-			OnNavigatedFrom();
+			OnNavigatedFrom(isInHistory);
 
 			_currentDisposable?.Dispose();
 			_currentDisposable = null;
@@ -85,10 +85,10 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 
 		void INavigatable.OnNavigatedFrom(bool isInHistory)
 		{
-			DoNavigateFrom();
+			DoNavigateFrom(isInHistory);
 		}
 
-		protected virtual void OnNavigatedFrom()
+		protected virtual void OnNavigatedFrom(bool isInHistory)
 		{
 		}
 

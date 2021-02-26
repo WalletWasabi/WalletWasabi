@@ -21,6 +21,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
+using WalletWasabi.Userfacing;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Wallets
@@ -95,9 +96,30 @@ namespace WalletWasabi.Wallets
 
 		public bool IsLoggedIn { get; private set; }
 
-		public void Login() => IsLoggedIn = true;
-		
-		public void Logout() => IsLoggedIn = false;
+		private Kitchen Kitchen { get; } = new();
+
+		public bool TryLogin(string password, out string? compatibilityPasswordUsed)
+		{
+			compatibilityPasswordUsed = null;
+
+			if (KeyManager.IsWatchOnly)
+			{
+				IsLoggedIn = true;
+			}
+			else if (PasswordHelper.TryPassword(KeyManager, password, out compatibilityPasswordUsed))
+			{
+				IsLoggedIn = true;
+				Kitchen.Cook(password);
+			}
+
+			return IsLoggedIn;
+		}
+
+		public void Logout()
+		{
+			Kitchen.CleanUp();
+			IsLoggedIn = false;
+		}
 
 		public void RegisterServices(
 			BitcoinStore bitcoinStore,
@@ -120,7 +142,7 @@ namespace WalletWasabi.Wallets
 				ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 				FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
 
-				ChaumianClient = new CoinJoinClient(Synchronizer, Network, KeyManager);
+				ChaumianClient = new CoinJoinClient(Synchronizer, Network, KeyManager, Kitchen);
 
 				TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, KeyManager, ServiceConfiguration.DustThreshold, ServiceConfiguration.PrivacyLevelStrong);
 				Coins = TransactionProcessor.Coins;
@@ -294,7 +316,7 @@ namespace WalletWasabi.Wallets
 						foreach (var newCoin in newCoins)
 						{
 							// If it's being mixed and anonset is not sufficient, then queue it.
-							if (!newCoin.IsSpent() && ChaumianClient.HasIngredients
+							if (!newCoin.IsSpent() && Kitchen.HasIngredients
 								&& newCoin.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue())
 							{
 								coinsToQueue.Add(newCoin);

@@ -124,10 +124,12 @@ namespace NBitcoin.RPC
 				}
 			}
 
+			// EstimateSmartFeeAsync returns the block number where estimate was found - not always what the requested one.
 			return rpcFeeEstimationTasks
-				.Where(x => x.IsCompletedSuccessfully)
-				.Select(x => x.Result)
-				.ToDictionary(x => x.Blocks, x => (int)Math.Ceiling(x.FeeRate.SatoshiPerByte));
+				.Zip(Constants.ConfirmationTargets, (task, target) => (task, target))
+				.Where(x => x.task.IsCompletedSuccessfully)
+				.Select(x => (x.target, feeRate: x.task.Result.FeeRate))
+				.ToDictionary(x => x.target, x => (int)Math.Ceiling(x.feeRate.SatoshiPerByte));
 		}
 
 		private static Dictionary<int, int> GetFeeEstimationsFromMempoolInfo(MemPoolInfo mempoolInfo)

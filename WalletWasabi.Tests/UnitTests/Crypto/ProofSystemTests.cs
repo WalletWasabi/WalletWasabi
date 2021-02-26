@@ -203,7 +203,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var commitment = amountScalar * Generators.Gg + randomness * Generators.Gh;
 
 			var maskedScalar = new Scalar(amount & ((1ul << width) - 1));
-			var (knowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(maskedScalar, randomness, width, rnd, 42);
+			var (knowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(maskedScalar, randomness, width, rnd);
 
 			var rangeProof = ProofSystemHelpers.Prove(knowledge, rnd);
 
@@ -211,7 +211,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			if (!pass)
 			{
-				Assert.Throws<ArgumentException>(() => ProofSystem.RangeProofKnowledge(amountScalar, randomness, width, rnd, 42));
+				Assert.Throws<ArgumentException>(() => ProofSystem.RangeProofKnowledge(amountScalar, randomness, width, rnd));
 			}
 		}
 

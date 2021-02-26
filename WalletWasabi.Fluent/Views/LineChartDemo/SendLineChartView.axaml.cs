@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views
+namespace WalletWasabi.Fluent.Views.LineChartDemo
 {
-	public class TestLineChartView : UserControl
+	public class SendLineChartView : UserControl
 	{
-		public TestLineChartView()
+		public SendLineChartView()
 		{
 			InitializeComponent();
 		}

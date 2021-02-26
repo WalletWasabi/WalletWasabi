@@ -1,10 +1,11 @@
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Login
@@ -13,54 +14,53 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 	public partial class LoginViewModel : RoutableViewModel
 	{
 		[AutoNotify] private string _password;
-		[AutoNotify] private bool _isPasswordIncorrect;
 		[AutoNotify] private bool _isPasswordNeeded;
-		[AutoNotify] private string _walletName;
+		[AutoNotify] private string _errorMessage;
 
-		public LoginViewModel(WalletViewModelBase walletViewModelBase)
+		public LoginViewModel(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel)
 		{
-			KeyManager = walletViewModelBase.Wallet.KeyManager;
-			IsPasswordNeeded = !KeyManager.IsWatchOnly;
-			_walletName = walletViewModelBase.WalletName;
+			var wallet = closedWalletViewModel.Wallet;
+			IsPasswordNeeded = !wallet.KeyManager.IsWatchOnly;
+			WalletName = wallet.WalletName;
 			_password = "";
-			var wallet = walletViewModelBase.Wallet;
+			_errorMessage = "";
+			WalletIcon = wallet.KeyManager.Icon;
+			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				IsPasswordIncorrect = await Task.Run(async () =>
+				string? compatibilityPasswordUsed = null;
+
+				var isPasswordCorrect = await Task.Run(() => wallet.TryLogin(Password, out compatibilityPasswordUsed));
+
+				if (!isPasswordCorrect)
 				{
-					if (!IsPasswordNeeded)
-					{
-						return false;
-					}
+					ErrorMessage = "The password is incorrect! Try Again.";
+					return;
+				}
 
-					if (PasswordHelper.TryPassword(KeyManager, Password, out var compatibilityPasswordUsed))
-					{
-						if (compatibilityPasswordUsed is { })
-						{
-							await ShowErrorAsync(PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
-						}
-
-						return false;
-					}
-
-					return true;
-				});
-
-				if (!IsPasswordIncorrect)
+				if (compatibilityPasswordUsed is { })
 				{
-					wallet.Login();
-					walletViewModelBase.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
+					await ShowErrorAsync(PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
+				}
 
-					// TODO: navigate to the wallet welcome page
-					Navigate().To(walletViewModelBase, NavigationMode.Clear);
+				var legalResult = await ShowLegalAsync(walletManagerViewModel.LegalChecker);
+
+				if (legalResult)
+				{
+					await LoginWalletAsync(walletManagerViewModel, closedWalletViewModel);
+				}
+				else
+				{
+					wallet.Logout();
+					ErrorMessage = "You must accept the Terms and Conditions!";
 				}
 			});
 
 			OkCommand = ReactiveCommand.Create(() =>
 			{
 				Password = "";
-				IsPasswordIncorrect = false;
+				ErrorMessage = "";
 			});
 
 			ForgotPasswordCommand = ReactiveCommand.Create(() =>
@@ -69,10 +69,49 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			EnableAutoBusyOn(NextCommand);
 		}
 
+		public string? WalletIcon { get; }
+
+		public bool IsHardwareWallet { get; }
+
+		public string WalletName { get; }
+
 		public ICommand OkCommand { get; }
 
 		public ICommand ForgotPasswordCommand { get; }
 
-		public KeyManager KeyManager { get; }
+		private async Task LoginWalletAsync(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel)
+		{
+			closedWalletViewModel.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
+
+			var destination = await walletManagerViewModel.LoadWalletAsync(closedWalletViewModel);
+
+			if (destination is { })
+			{
+				Navigate().To(destination, NavigationMode.Clear);
+			}
+			else
+			{
+				await ShowErrorAsync("Error", "Wasabi was unable to login and load your wallet.");
+			}
+		}
+
+		private async Task<bool> ShowLegalAsync(LegalChecker legalChecker)
+		{
+			if (!legalChecker.TryGetNewLegalDocs(out var document))
+			{
+				return true;
+			}
+
+			var legalDocs = new TermsAndConditionsViewModel(document.Content);
+
+			var dialogResult = await NavigateDialog(legalDocs, NavigationTarget.DialogScreen);
+
+			if (dialogResult.Result)
+			{
+				await legalChecker.AgreeAsync();
+			}
+
+			return dialogResult.Result;
+		}
 	}
 }

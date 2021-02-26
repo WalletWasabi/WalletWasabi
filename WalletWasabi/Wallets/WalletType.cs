@@ -6,6 +6,7 @@ namespace WalletWasabi.Wallets
 		Hardware,
 		Coldcard,
 		Trezor,
-		Ledger
+		Ledger,
+		Unknown
 	}
 }

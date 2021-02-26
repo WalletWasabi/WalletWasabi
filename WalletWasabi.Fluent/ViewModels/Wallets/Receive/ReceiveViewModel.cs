@@ -61,9 +61,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 		public ICommand ShowExistingAddressesCommand { get; }
 
-		protected override void OnNavigatedTo(bool inStack, CompositeDisposable disposable)
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposable)
 		{
-			base.OnNavigatedTo(inStack, disposable);
+			base.OnNavigatedTo(isInHistory, disposable);
 
 			IsExistingAddressesButtonVisible = WasabiWallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
 			Reference = "";
