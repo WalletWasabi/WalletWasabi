@@ -28,6 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private readonly Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 		private readonly Dictionary<WalletViewModelBase, List<NavBarItemViewModel>> _walletActionsDictionary;
 		private readonly ReadOnlyObservableCollection<NavBarItemViewModel> _items;
+		private readonly TransactionBroadcaster _transactionBroadcaster;
 		private NavBarItemViewModel? _currentSelection;
 		[AutoNotify] private WalletViewModelBase? _selectedWallet;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
@@ -37,7 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private bool _anyWalletStarted;
 
 		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig, BitcoinStore bitcoinStore,
-			LegalChecker legalChecker, TransactionBroadcaster transactionBroadcaster)
+			LegalChecker legalChecker, TransactionBroadcaster broadcaster)
 		{
 			WalletManager = walletManager;
 			BitcoinStore = bitcoinStore;
@@ -47,6 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			_actions = new ObservableCollection<NavBarItemViewModel>();
 			_wallets = new ObservableCollection<WalletViewModelBase>();
 			_loggedInAndSelectedAlwaysFirst = true;
+			_transactionBroadcaster = broadcaster;
 
 			static Func<WalletViewModelBase, bool> SelectedWalletFilter(WalletViewModelBase? selected)
 			{
@@ -80,7 +82,7 @@ namespace WalletWasabi.Fluent.ViewModels
 						}
 						else if (_walletDictionary[wallet] is ClosedWalletViewModel { IsLoggedIn: true } cwvm && wallet.State == WalletState.Started)
 						{
-							OpenClosedWallet(walletManager, uiConfig, transactionBroadcaster, cwvm);
+							OpenClosedWallet(walletManager, uiConfig, cwvm);
 						}
 					}
 
@@ -96,7 +98,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				{
 					WalletViewModelBase vm = (wallet.State <= WalletState.Starting)
 						? ClosedWalletViewModel.Create(this, wallet)
-						: WalletViewModel.Create(uiConfig, transactionBroadcaster, wallet);
+						: WalletViewModel.Create(uiConfig, wallet);
 
 					InsertWallet(vm);
 				});
@@ -142,13 +144,13 @@ namespace WalletWasabi.Fluent.ViewModels
 			return null;
 		}
 
-		private void OpenClosedWallet(WalletManager walletManager, UiConfig uiConfig, TransactionBroadcaster broadcaster, ClosedWalletViewModel closedWalletViewModel)
+		private void OpenClosedWallet(WalletManager walletManager, UiConfig uiConfig, ClosedWalletViewModel closedWalletViewModel)
 		{
 			IsLoadingWallet = true;
 
 			RemoveWallet(closedWalletViewModel);
 
-			var walletViewModelItem = OpenWallet(walletManager, uiConfig, broadcaster, closedWalletViewModel.Wallet);
+			var walletViewModelItem = OpenWallet(walletManager, uiConfig, closedWalletViewModel.Wallet);
 
 			if (!_walletActionsDictionary.TryGetValue(walletViewModelItem, out var actions))
 			{
@@ -165,14 +167,14 @@ namespace WalletWasabi.Fluent.ViewModels
 			IsLoadingWallet = false;
 		}
 
-		private WalletViewModel OpenWallet(WalletManager walletManager, UiConfig uiConfig, TransactionBroadcaster broadcaster, Wallet wallet)
+		private WalletViewModel OpenWallet(WalletManager walletManager, UiConfig uiConfig, Wallet wallet)
 		{
 			if (_wallets.Any(x => x.Title == wallet.WalletName))
 			{
 				throw new Exception("Wallet already opened.");
 			}
 
-			var walletViewModel = WalletViewModel.Create(uiConfig, broadcaster, wallet);
+			var walletViewModel = WalletViewModel.Create(uiConfig, wallet);
 
 			InsertWallet(walletViewModel);
 
@@ -272,7 +274,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (wallet.KeyManager.IsHardwareWallet || !wallet.KeyManager.IsWatchOnly)
 			{
-				actions.Add(new SendViewModel(walletViewModel));
+				actions.Add(new SendViewModel(walletViewModel, _transactionBroadcaster));
 			}
 
 			actions.Add(new ReceiveViewModel(walletViewModel, WalletManager, BitcoinStore));

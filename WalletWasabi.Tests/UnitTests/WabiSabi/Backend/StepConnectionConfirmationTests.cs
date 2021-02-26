@@ -14,7 +14,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 {
-	public class StepConnectionConfirmation
+	public class StepConnectionConfirmationTests
 	{
 		[Fact]
 		public async Task AllConfirmedStepsAsync()

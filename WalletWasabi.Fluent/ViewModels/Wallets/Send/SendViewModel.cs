@@ -13,6 +13,7 @@ using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Fluent.Validation;
@@ -50,7 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private string? _payJoinEndPoint;
 		private bool _parsingUrl;
 
-		public SendViewModel(WalletViewModel walletVm)
+		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster)
 		{
 			_to = "";
 			_owner = walletVm;
@@ -123,7 +124,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 							mixedCoins.Select(x => x.OutPoint));
 
 						// Private coins are enough.
-						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, walletVm.TransactionBroadcaster, txRes));
+						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 						return;
 					}
 					catch (NotEnoughFundsException)

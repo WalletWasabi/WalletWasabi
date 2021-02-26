@@ -80,7 +80,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						// Dequeue any coin-joining coins.
 						await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
 
-						// Broadcast transaction.
 						var signedTransaction = transaction.Transaction;
 
 						// If it's a hardware wallet and still has a private key then it's password.

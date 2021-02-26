@@ -94,5 +94,13 @@ namespace WalletWasabi.WabiSabi.Backend
 		public double MinInputCountByRoundMultiplier { get; set; } = 0.5;
 
 		public uint MinInputCountByRound => (uint)(MaxInputCountByRound * MinInputCountByRoundMultiplier);
+
+		/// <summary>
+		/// If money comes to the blame script, then either an attacker lost money or there's a client bug.
+		/// </summary>
+		[DefaultValueScript("0 1251dec2e6a6694a789f0cca6c2a9cfb4c74fb4e")]
+		[JsonProperty(PropertyName = "BlameScript", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonConverter(typeof(ScriptJsonConverter))]
+		public Script BlameScript { get; set; } = new Script("0 1251dec2e6a6694a789f0cca6c2a9cfb4c74fb4e");
 	}
 }
