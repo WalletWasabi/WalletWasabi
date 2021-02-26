@@ -182,11 +182,6 @@ namespace WalletWasabi.Fluent.ViewModels
 
 					if (dialogResult.Result is { })
 					{
-						while (_global.TransactionBroadcaster is null)
-						{
-							await Task.Delay(100);
-						}
-
 						return new BroadcastTransactionViewModel(
 							_global.BitcoinStore,
 							_global.Network,
