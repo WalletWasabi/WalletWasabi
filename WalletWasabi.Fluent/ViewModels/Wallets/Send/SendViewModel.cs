@@ -133,7 +133,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 				}
 
-				Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, walletVm.TransactionBroadcaster));
+				Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
 			}, this.WhenAnyValue(x=>x.Labels.Count).Any());
 		}
 
