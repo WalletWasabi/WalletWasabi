@@ -24,9 +24,10 @@ namespace WalletWasabi.Stores
 	{
 		private int _throttleId;
 
-		public IndexStore(string workFolderPath, Network network, SmartHeaderChain hashChain)
+		public IndexStore(string dataDir, Network network, SmartHeaderChain smartHeaderChain)
 		{
-			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+			SmartHeaderChain = Guard.NotNull(nameof(smartHeaderChain), smartHeaderChain);
+			WorkFolderPath = Path.Combine(dataDir, "BitcoinStore", network.ToString(), "IndexStore");
 			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 			var indexFilePath = Path.Combine(WorkFolderPath, "MatureIndex.dat");
 			MatureIndexFileManager = new DigestableSafeIoManager(indexFilePath, digestRandomIndex: -1);
@@ -36,8 +37,6 @@ namespace WalletWasabi.Stores
 			Network = Guard.NotNull(nameof(network), network);
 
 			StartingFilter = StartingFilters.GetStartingFilter(Network);
-
-			SmartHeaderChain = Guard.NotNull(nameof(hashChain), hashChain);
 		}
 
 		public event EventHandler<FilterModel>? Reorged;

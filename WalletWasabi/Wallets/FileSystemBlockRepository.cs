@@ -19,11 +19,11 @@ namespace WalletWasabi.Wallets
 	{
 		private const double MegaByte = 1024 * 1024;
 
-		public FileSystemBlockRepository(string blocksFolderPath, Network network, long targetBlocksFolderSizeMb = 300)
+		public FileSystemBlockRepository(string dataDir, Network network, long targetBlocksFolderSizeMb = 300)
 		{
 			using (BenchmarkLogger.Measure())
 			{
-				BlocksFolderPath = blocksFolderPath;
+				BlocksFolderPath = Path.Combine(dataDir, "BitcoinStore", network.ToString(), "Blocks");
 				Network = network;
 				CreateFolders();
 				EnsureBackwardsCompatibility();

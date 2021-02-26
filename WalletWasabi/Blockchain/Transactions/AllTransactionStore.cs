@@ -15,12 +15,11 @@ namespace WalletWasabi.Blockchain.Transactions
 {
 	public class AllTransactionStore : IAsyncDisposable
 	{
-		public AllTransactionStore(string workFolderPath, Network network)
+		public AllTransactionStore(string dataDir, Network network)
 		{
-			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+			Network = network;
+			WorkFolderPath = Path.Combine(dataDir, "BitcoinStore", network.ToString());
 			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
-
-			Network = Guard.NotNull(nameof(network), network);
 
 			MempoolStore = new TransactionStore();
 			ConfirmedStore = new TransactionStore();

@@ -15,7 +15,7 @@ namespace WalletWasabi.Tor
 	/// Manages lifetime of Tor process.
 	/// </summary>
 	/// <seealso href="https://2019.www.torproject.org/docs/tor-manual.html.en"/>
-	public class TorProcessManager
+	public class TorProcessManager: IAsyncDisposable
 	{
 		/// <summary>
 		/// Creates a new instance of the object.
@@ -144,9 +144,19 @@ namespace WalletWasabi.Tor
 			return false;
 		}
 
-		public async Task StopAsync(bool killTor = false)
+		private void ThrowIfDisposed()
 		{
-			if (TorProcess is { } && killTor)
+			if (_disposed)
+			{
+				throw new ObjectDisposedException(GetType().FullName);
+			}
+		}
+
+		public async ValueTask DisposeAsync()
+		{
+			_disposed = true;
+
+			if (TorProcess is { } && Settings.KillTor)
 			{
 				Logger.LogInfo($"Killing Tor process.");
 
@@ -165,17 +175,7 @@ namespace WalletWasabi.Tor
 			}
 
 			// Dispose Tor process resources (does not stop/kill Tor process).
-			TorProcess?.Dispose();
-
-			_disposed = true;
-		}
-
-		private void ThrowIfDisposed()
-		{
-			if (_disposed)
-			{
-				throw new ObjectDisposedException(GetType().FullName);
-			}
+			TorProcess?.Dispose();			
 		}
 	}
 }

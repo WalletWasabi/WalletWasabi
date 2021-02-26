@@ -1,9 +1,9 @@
 using Avalonia.Controls.Notifications;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
-using NBitcoin.Protocol.Connectors;
 using System;
 using System.IO;
 using System.Linq;
@@ -32,7 +32,6 @@ using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor;
-using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -59,7 +58,6 @@ namespace WalletWasabi.Gui
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
 		public Node RegTestMempoolServingNode { get; private set; }
-		private TorProcessManager? TorManager { get; set; }
 		public CoreNode BitcoinCoreNode { get; private set; }
 
 		public HostedServices HostedServices { get; }
@@ -72,6 +70,8 @@ namespace WalletWasabi.Gui
 
 		public JsonRpcServer? RpcServer { get; private set; }
 
+		private ServiceProvider Container { get; }
+
 		public Global(string dataDir, string torLogsFile, Config config, UiConfig uiConfig, WalletManager walletManager)
 		{
 			using (BenchmarkLogger.Measure())
@@ -80,7 +80,30 @@ namespace WalletWasabi.Gui
 				DataDir = dataDir;
 				Config = config;
 				UiConfig = uiConfig;
-				TorSettings = new TorSettings(DataDir, torLogsFile, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory());
+
+				// Setup our DI container.
+				IServiceCollection serviceCollections = new ServiceCollection()
+					//.AddLogging()
+					.AddSingleton(DataDir)
+					.AddSingleton(Network)
+					.AddSingleton(new SmartHeaderChain())
+					.AddSingleton<AllTransactionStore>()
+					.AddSingleton<IndexStore>()
+					.AddSingleton<MempoolService>()
+					.AddSingleton<IRepository<uint256, Block>, FileSystemBlockRepository>()
+					.AddSingleton<BitcoinStore>();
+
+				if (Config.UseTor)
+				{
+					string distributionFolderPath = EnvironmentHelpers.GetFullBaseDirectory();
+					TorSettings settings = new(DataDir, torLogsFile, distributionFolderPath, config.TerminateTorOnExit);
+
+					serviceCollections.AddSingleton(settings);
+					serviceCollections.AddSingleton(Config.TorSocks5EndPoint);
+					serviceCollections.AddSingleton<TorProcessManager>();
+				}
+
+				Container = serviceCollections.BuildServiceProvider();
 
 				HostedServices = new HostedServices();
 				WalletManager = walletManager;
@@ -88,13 +111,7 @@ namespace WalletWasabi.Gui
 				WalletManager.OnDequeue += WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
 
-				var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
-				var transactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
-				var indexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, new SmartHeaderChain());
-				var mempoolService = new MempoolService();
-				var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
-
-				BitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
+				BitcoinStore = Container.GetRequiredService<BitcoinStore>();
 
 				HttpClientFactory httpClientFactory = Config.UseTor
 					? new HttpClientFactory(Config.TorSocks5EndPoint, backendUriGetter: () => Config.GetCurrentBackendUri())
@@ -152,13 +169,12 @@ namespace WalletWasabi.Gui
 				{
 					using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
 					{
-						TorManager = new TorProcessManager(TorSettings, Config.TorSocks5EndPoint);
-						await TorManager.StartAsync(ensureRunning: true).ConfigureAwait(false);
+						await Container.GetRequiredService<TorProcessManager>().StartAsync(ensureRunning: true).ConfigureAwait(false);
 					}
 
 					var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
-
-					HostedServices.Register(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackRequestTestUri, Config.TorSocks5EndPoint, TorManager), nameof(TorMonitor));
+					TorProcessManager torManager = Container.GetRequiredService<TorProcessManager>();
+					HostedServices.Register(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackRequestTestUri, Config.TorSocks5EndPoint, torManager), nameof(TorMonitor));
 				}
 
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
@@ -711,13 +727,8 @@ namespace WalletWasabi.Gui
 					}
 				}
 
-				Logger.LogDebug($"Step: {nameof(TorManager)}.", nameof(Global));
-
-				if (TorManager is { } torManager)
-				{
-					await torManager.StopAsync(Config.TerminateTorOnExit).ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(TorManager)} is stopped.");
-				}
+				Logger.LogDebug("Dispose DI container.");
+				await Container.DisposeAsync().ConfigureAwait(false);
 
 				Logger.LogDebug($"Step: {nameof(Cache)}.", nameof(Global));
 
