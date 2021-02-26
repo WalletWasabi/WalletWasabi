@@ -16,11 +16,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class WalletViewModel : WalletViewModelBase
 	{
-		protected WalletViewModel(UiConfig uiConfig, TransactionBroadcaster broadcaster, Wallet wallet) : base(wallet)
+		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
-
-			TransactionBroadcaster = broadcaster;
 
 			Observable.Merge(
 				Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
@@ -50,15 +48,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		public override string IconName => "web_asset_regular";
 
-		public TransactionBroadcaster TransactionBroadcaster { get; }
-
-		public static WalletViewModel Create(UiConfig uiConfig, TransactionBroadcaster broadcaster, Wallet wallet)
+		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new HardwareWalletViewModel(uiConfig, broadcaster, wallet)
+				? new HardwareWalletViewModel(uiConfig, wallet)
 				: wallet.KeyManager.IsWatchOnly
-					? new WatchOnlyWalletViewModel(uiConfig, broadcaster, wallet)
-					: new WalletViewModel(uiConfig, broadcaster,  wallet);
+					? new WatchOnlyWalletViewModel(uiConfig, wallet)
+					: new WalletViewModel(uiConfig,  wallet);
 		}
 	}
 }
