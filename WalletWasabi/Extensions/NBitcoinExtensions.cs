@@ -273,7 +273,7 @@ namespace NBitcoin
 			return newAddress;
 		}
 
-		public static void SortByAmount(this TxInList list, List<Coin> coins)
+		public static void SortByAmount(this TxInList list, IEnumerable<Coin> coins)
 		{
 			var map = new Dictionary<TxIn, Coin>();
 			foreach (var coin in coins)
