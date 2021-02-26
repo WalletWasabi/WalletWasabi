@@ -102,6 +102,7 @@ namespace WalletWasabi.Gui
 
 				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, httpClientFactory);
 				LegalChecker = new(DataDir);
+				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, WalletManager);
 			}
 		}
 
@@ -296,7 +297,7 @@ namespace WalletWasabi.Gui
 
 				cancel.ThrowIfCancellationRequested();
 
-				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, Nodes, WalletManager, BitcoinCoreNode?.RpcClient);
+				TransactionBroadcaster.Initialize(Nodes, BitcoinCoreNode?.RpcClient);
 				CoinJoinProcessor = new CoinJoinProcessor(Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
 
 				#region JsonRpcServerInitialization

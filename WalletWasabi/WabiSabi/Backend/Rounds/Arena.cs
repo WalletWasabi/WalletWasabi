@@ -46,6 +46,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				// Remove timed out alices.
 				TimeoutAlices();
 
+				StepOutputRegistrationPhase();
+
 				StepConnectionConfirmationPhase();
 
 				StepInputRegistrationPhase();
@@ -97,6 +99,51 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					{
 						round.SetPhase(Phase.OutputRegistration);
 					}
+				}
+			}
+		}
+
+		private void StepOutputRegistrationPhase()
+		{
+			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.OutputRegistration))
+			{
+				long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
+				long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
+				var diff = aliceSum - bobSum;
+				if (diff == 0 || round.OutputRegistrationStart + Config.OutputRegistrationTimeout < DateTimeOffset.UtcNow)
+				{
+					// Build a coinjoin:
+					var coinjoin = round.Coinjoin;
+
+					// Add inputs:
+					var spentCoins = round.Alices.SelectMany(x => x.Coins).ToArray();
+					foreach (var input in spentCoins.Select(x => x.Outpoint))
+					{
+						coinjoin.Inputs.Add(input);
+					}
+
+					// Add outputs:
+					foreach (var bob in round.Bobs)
+					{
+						coinjoin.Outputs.AddWithOptimize(bob.CalculateOutputAmount(round.FeeRate), bob.Script);
+					}
+
+					// Shuffle & sort:
+					// This is basically just decoration.
+					coinjoin.Inputs.Shuffle();
+					coinjoin.Outputs.Shuffle();
+					coinjoin.Inputs.SortByAmount(spentCoins);
+					coinjoin.Outputs.SortByAmount();
+
+					// If timeout we must fill up the outputs to build a reasonable transaction.
+					// This won't be signed by the alice who failed to provide output, so we know who to ban.
+					if (diff > round.MinRegistrableAmount)
+					{
+						var diffMoney = Money.Satoshis(diff);
+						coinjoin.Outputs.AddWithOptimize(diffMoney, Config.BlameScript);
+					}
+
+					round.SetPhase(Phase.TransactionSigning);
 				}
 			}
 		}
