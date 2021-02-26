@@ -70,9 +70,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			ZeroCredentialsRequest zeroWeightCredentialRequests,
 			IDictionary<Guid, Round> rounds,
 			Network network,
-			uint maxInputCountByRound,
-			TimeSpan inputRegistrationTimeout,
-			TimeSpan connectionConfirmationTimeout)
+			uint maxInputCountByRound)
 		{
 			if (!rounds.TryGetValue(roundId, out var round))
 			{
@@ -122,7 +120,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchWeight);
 			}
 
-			if (round.IsInputRegistrationEnded(maxInputCountByRound, inputRegistrationTimeout))
+			if (round.IsInputRegistrationEnded(maxInputCountByRound))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 			}
@@ -132,7 +130,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 
 			RemoveDuplicateAlices(rounds, alice);
 
-			alice.SetDeadlineRelativeTo(connectionConfirmationTimeout);
+			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
 			round.Alices.Add(alice);
 
 			return new(alice.Id, amountCredentialResponse, weightCredentialResponse);

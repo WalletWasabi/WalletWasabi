@@ -316,5 +316,11 @@ namespace WalletWasabi.Tests.Helpers
 
 			return ret;
 		}
+
+		public static Round CreateBlameRound(Round round, WabiSabiConfig cfg)
+		{
+			RoundParameters parameters = new(cfg, round.Network, round.Random, round.FeeRate, blameOf: round);
+			return new(parameters);
+		}
 	}
 }

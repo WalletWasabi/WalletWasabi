@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -80,9 +81,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var round = Assert.Single(arena.Rounds).Value;
 
 			round.SetPhase(Phase.ConnectionConfirmation);
-			var blame = round.Blame();
-			Assert.Equal(Phase.InputRegistration, blame.Phase);
-			arena.Rounds.Add(blame.Id, blame);
+			Round blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
+			Assert.Equal(Phase.InputRegistration, blameRound.Phase);
+			arena.Rounds.Add(blameRound.Id, blameRound);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
 			Assert.Equal(3, arena.Rounds.Count);
 			Assert.Equal(2, arena.Rounds.Where(x => x.Value.Phase == Phase.InputRegistration).Count());

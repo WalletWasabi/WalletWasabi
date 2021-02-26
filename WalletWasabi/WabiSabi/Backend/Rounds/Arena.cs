@@ -65,7 +65,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			foreach (var round in Rounds.Values.Where(x =>
 				x.Phase == Phase.InputRegistration
-				&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.InputRegistrationTimeout)))
+				&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound)))
 			{
 				if (round.InputCount < Config.MinInputCountByRound)
 				{
@@ -86,7 +86,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					round.SetPhase(Phase.OutputRegistration);
 				}
-				else if (round.ConnectionConfirmationStart + Config.ConnectionConfirmationTimeout < DateTimeOffset.UtcNow)
+				else if (round.ConnectionConfirmationStart + round.ConnectionConfirmationTimeout < DateTimeOffset.UtcNow)
 				{
 					var alicesDidntConfirm = round.Alices.Where(x => !x.ConfirmedConnetion).ToArray();
 					foreach (var alice in alicesDidntConfirm)
@@ -114,7 +114,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
 				long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
 				var diff = aliceSum - bobSum;
-				if (diff == 0 || round.OutputRegistrationStart + Config.OutputRegistrationTimeout < DateTimeOffset.UtcNow)
+				if (diff == 0 || round.OutputRegistrationStart + round.OutputRegistrationTimeout < DateTimeOffset.UtcNow)
 				{
 					// Build a coinjoin:
 					var coinjoin = round.Coinjoin;
@@ -171,7 +171,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						await FailTransactionSigningPhaseAsync(round).ConfigureAwait(false);
 					}
 				}
-				else if (round.TransactionSigningStart + Config.TransactionSigningTimeout < DateTimeOffset.UtcNow)
+				else if (round.TransactionSigningStart + round.TransactionSigningTimeout < DateTimeOffset.UtcNow)
 				{
 					await FailTransactionSigningPhaseAsync(round).ConfigureAwait(false);
 				}
@@ -204,8 +204,20 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				Prison.Note(alice, round.Id);
 			}
 
+			round.Alices.RemoveAll(x => alicesToBan.Contains(x));
 			Rounds.Remove(round.Id);
-			var blameRound = round.Blame();
+
+			if (round.InputCount >= Config.MinInputCountByRound)
+			{
+				await CreateBlameRoundAsync(round).ConfigureAwait(false);
+			}
+		}
+
+		private async Task CreateBlameRoundAsync(Round round)
+		{
+			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative).ConfigureAwait(false)).FeeRate;
+			RoundParameters parameters = new(Config, Network, Random, feeRate, blameOf: round);
+			Round blameRound = new(parameters);
 			Rounds.Add(blameRound.Id, blameRound);
 		}
 
@@ -223,7 +235,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void TimeoutAlices()
 		{
-			foreach (var round in Rounds.Values.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.InputRegistrationTimeout)))
+			foreach (var round in Rounds.Values.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)))
 			{
 				var removedAliceCount = round.Alices.RemoveAll(x => x.Deadline < DateTimeOffset.UtcNow);
 				if (removedAliceCount > 0)
@@ -273,9 +285,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					zeroWeightCredentialRequests,
 					Rounds,
 					Network,
-					Config.MaxInputCountByRound,
-					Config.InputRegistrationTimeout,
-					Config.ConnectionConfirmationTimeout);
+					Config.MaxInputCountByRound);
 			}
 		}
 
@@ -327,7 +337,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				if (round.Phase == Phase.InputRegistration)
 				{
-					alice.SetDeadlineRelativeTo(Config.ConnectionConfirmationTimeout);
+					alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
 					return new(
 						amountZeroCredentialResponse,
 						weightZeroCredentialResponse);
@@ -362,7 +372,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				var credentialAmount = -request.AmountCredentialRequests.Delta;
 
-				var bob = new Bob(request.Script, credentialAmount);
+				Bob bob = new(request.Script, credentialAmount);
 
 				var outputValue = bob.CalculateOutputAmount(round.FeeRate);
 				if (outputValue < round.MinRegistrableAmount)

@@ -61,16 +61,15 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new()
 			{
-				InputRegistrationTimeout = TimeSpan.FromHours(1),
+				InputRegistrationTimeout = TimeSpan.Zero,
 				MaxInputCountByRound = 4,
 				MinInputCountByRoundMultiplier = 0.5
 			};
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+			round.Alices.Add(WabiSabiFactory.CreateAlice());
+			round.Alices.Add(WabiSabiFactory.CreateAlice());
 
-			round.Alices.Add(WabiSabiFactory.CreateAlice());
-			round.Alices.Add(WabiSabiFactory.CreateAlice());
-			cfg.InputRegistrationTimeout = TimeSpan.Zero;
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
