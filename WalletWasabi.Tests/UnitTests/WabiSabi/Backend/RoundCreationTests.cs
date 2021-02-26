@@ -80,7 +80,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var round = Assert.Single(arena.Rounds).Value;
 
 			round.SetPhase(Phase.ConnectionConfirmation);
-			var blame = new Round(round);
+			var blame = round.Blame();
 			Assert.Equal(Phase.InputRegistration, blame.Phase);
 			arena.Rounds.Add(blame.Id, blame);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);

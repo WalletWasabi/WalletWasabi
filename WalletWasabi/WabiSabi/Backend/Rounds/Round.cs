@@ -33,7 +33,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{RegistrableWeightCredentials}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
 		}
 
-		public Round(Round blameOf) : this(blameOf.RoundParameters)
+		private Round(Round blameOf) : this(blameOf.RoundParameters)
 		{
 			BlameOf = blameOf;
 			BlameWhitelist = blameOf
@@ -71,6 +71,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public DateTimeOffset OutputRegistrationStart { get; private set; }
 		public DateTimeOffset TransactionSigningStart { get; private set; }
 		public DateTimeOffset TransactionBroadcastingStart { get; private set; }
+
+		public Round Blame() => new Round(this);
 
 		public void SetPhase(Phase phase)
 		{

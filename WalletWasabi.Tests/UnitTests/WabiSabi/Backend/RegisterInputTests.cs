@@ -330,7 +330,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.Alices.Add(WabiSabiFactory.CreateAlice());
-			Round blameRound = new(round);
+			Round blameRound = round.Blame();
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round, blameRound);
 
 			MockRpcClient rpc = new();
@@ -357,7 +357,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.Alices.Add(WabiSabiFactory.CreateAlice(pair));
-			Round blameRound = new(round);
+			Round blameRound = round.Blame();
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round, blameRound);
 
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
@@ -381,7 +381,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.Alices.Add(WabiSabiFactory.CreateAlice(pair));
-			Round blameRound = new(round);
+			Round blameRound = round.Blame();
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round, blameRound);
 
 			await using PostRequestHandler handler = new(cfg, prison, arena, new MockRpcClient());

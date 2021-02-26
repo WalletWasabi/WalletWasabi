@@ -205,6 +205,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 
 			Rounds.Remove(round.Id);
+			var blameRound = round.Blame();
+			Rounds.Add(blameRound.Id, blameRound);
 		}
 
 		private async Task CreateRoundsAsync()
