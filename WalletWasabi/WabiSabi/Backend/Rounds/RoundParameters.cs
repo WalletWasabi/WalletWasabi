@@ -26,6 +26,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			MaxRegistrableAmount = wabiSabiConfig.MaxRegistrableAmount;
 			RegistrableWeightCredentials = wabiSabiConfig.RegistrableWeightCredentials;
 
+			// Note that input registration timeouts can be modified runtime.
+			ConnectionConfirmationTimeout = wabiSabiConfig.ConnectionConfirmationTimeout;
+			OutputRegistrationTimeout = wabiSabiConfig.OutputRegistrationTimeout;
+			TransactionSigningTimeout = wabiSabiConfig.TransactionSigningTimeout;
+
 			BlameOf = blameOf;
 			IsBlameRound = BlameOf is not null;
 			BlameWhitelist = BlameOf
@@ -34,11 +39,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				.Select(x => x.Outpoint)
 				.ToHashSet()
 			?? new HashSet<OutPoint>();
-
-			InputRegistrationTimeout = IsBlameRound ? wabiSabiConfig.BlameInputRegistrationTimeout : wabiSabiConfig.InputRegistrationTimeout;
-			ConnectionConfirmationTimeout = wabiSabiConfig.ConnectionConfirmationTimeout;
-			OutputRegistrationTimeout = wabiSabiConfig.OutputRegistrationTimeout;
-			TransactionSigningTimeout = wabiSabiConfig.TransactionSigningTimeout;
 		}
 
 		public WasabiRandom Random { get; }
@@ -51,7 +51,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public Round? BlameOf { get; }
 		public bool IsBlameRound { get; }
 		public ISet<OutPoint> BlameWhitelist { get; }
-		public TimeSpan InputRegistrationTimeout { get; }
 		public TimeSpan ConnectionConfirmationTimeout { get; }
 		public TimeSpan OutputRegistrationTimeout { get; }
 		public TimeSpan TransactionSigningTimeout { get; }

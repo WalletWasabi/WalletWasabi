@@ -11,6 +11,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.JsonConverters.Collections;
 using WalletWasabi.JsonConverters.Timing;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Backend
 {
@@ -66,14 +67,17 @@ namespace WalletWasabi.WabiSabi.Backend
 		public bool AllowNotedInputRegistration { get; set; } = true;
 
 		[DefaultValueTimeSpan("0d 1h 0m 0s")]
-		[JsonProperty(PropertyName = "InputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonProperty(PropertyName = "StandardInputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(TimeSpanJsonConverter))]
-		public TimeSpan InputRegistrationTimeout { get; set; } = TimeSpan.FromHours(1);
+		public TimeSpan StandardInputRegistrationTimeout { get; set; } = TimeSpan.FromHours(1);
 
 		[DefaultValueTimeSpan("0d 0h 3m 0s")]
 		[JsonProperty(PropertyName = "BlameInputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(TimeSpanJsonConverter))]
 		public TimeSpan BlameInputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(3);
+
+		public TimeSpan GetInputRegistrationTimeout(Round round)
+			=> round.IsBlameRound ? BlameInputRegistrationTimeout : StandardInputRegistrationTimeout;
 
 		[DefaultValueTimeSpan("0d 0h 1m 0s")]
 		[JsonProperty(PropertyName = "ConnectionConfirmationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]

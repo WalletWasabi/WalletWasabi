@@ -54,7 +54,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public bool IsBlameRound => RoundParameters.IsBlameRound;
 		public ISet<OutPoint> BlameWhitelist => RoundParameters.BlameWhitelist;
 
-		public TimeSpan InputRegistrationTimeout => RoundParameters.InputRegistrationTimeout;
 		public TimeSpan ConnectionConfirmationTimeout => RoundParameters.ConnectionConfirmationTimeout;
 		public TimeSpan OutputRegistrationTimeout => RoundParameters.OutputRegistrationTimeout;
 		public TimeSpan TransactionSigningTimeout => RoundParameters.TransactionSigningTimeout;
@@ -91,7 +90,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public bool IsInputRegistrationEnded(uint maxInputCount)
+		public bool IsInputRegistrationEnded(uint maxInputCount, TimeSpan inputRegistrationTimeout)
 		{
 			if (Phase > Phase.InputRegistration)
 			{
@@ -110,7 +109,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				return true;
 			}
 
-			if (InputRegistrationStart + InputRegistrationTimeout < DateTimeOffset.UtcNow)
+			if (InputRegistrationStart + inputRegistrationTimeout < DateTimeOffset.UtcNow)
 			{
 				return true;
 			}

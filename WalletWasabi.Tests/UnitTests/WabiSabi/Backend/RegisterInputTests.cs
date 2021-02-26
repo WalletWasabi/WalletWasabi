@@ -203,7 +203,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		[Fact]
 		public async Task InputRegistrationTimedoutAsync()
 		{
-			WabiSabiConfig cfg = new() { InputRegistrationTimeout = TimeSpan.Zero };
+			WabiSabiConfig cfg = new() { StandardInputRegistrationTimeout = TimeSpan.Zero };
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
 			MockRpcClient rpc = new();
@@ -221,6 +221,35 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
 			arena.Rounds.Add(round.Id, round);
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			Assert.Equal(Phase.InputRegistration, round.Phase);
+			Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
+		public async Task InputRegistrationTimeoutCanBeModifiedRuntimeAsync()
+		{
+			WabiSabiConfig cfg = new() { StandardInputRegistrationTimeout = TimeSpan.FromHours(1) };
+
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
+			MockRpcClient rpc = new();
+			using Key key = new();
+
+			rpc.OnGetTxOutAsync = (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
+			};
+
+			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			var round = arena.Rounds.First().Value;
+			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
+
+			cfg.StandardInputRegistrationTimeout = TimeSpan.Zero;
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
 			Assert.Equal(Phase.InputRegistration, round.Phase);
 			Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);

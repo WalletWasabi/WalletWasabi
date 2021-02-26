@@ -95,7 +95,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new()
 			{
-				InputRegistrationTimeout = TimeSpan.Zero,
+				StandardInputRegistrationTimeout = TimeSpan.Zero,
 				MaxInputCountByRound = 4,
 				MinInputCountByRoundMultiplier = 0.5
 			};
@@ -116,7 +116,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			WabiSabiConfig cfg = new()
 			{
 				BlameInputRegistrationTimeout = TimeSpan.Zero,
-				InputRegistrationTimeout = TimeSpan.FromHours(1), // Test that this is disregarded.
+				StandardInputRegistrationTimeout = TimeSpan.FromHours(1), // Test that this is disregarded.
 				MaxInputCountByRound = 4,
 				MinInputCountByRoundMultiplier = 0.5
 			};
@@ -143,7 +143,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new()
 			{
-				InputRegistrationTimeout = TimeSpan.Zero,
+				StandardInputRegistrationTimeout = TimeSpan.Zero,
 				MaxInputCountByRound = 4,
 				MinInputCountByRoundMultiplier = 0.5
 			};
@@ -167,7 +167,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			WabiSabiConfig cfg = new()
 			{
 				BlameInputRegistrationTimeout = TimeSpan.Zero,
-				InputRegistrationTimeout = TimeSpan.FromHours(1), // Test that this is disregarded.
+				StandardInputRegistrationTimeout = TimeSpan.FromHours(1), // Test that this is disregarded.
 				MaxInputCountByRound = 4,
 				MinInputCountByRoundMultiplier = 0.5
 			};
@@ -183,6 +183,31 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.InputRegistration, blameRound.Phase);
 			Assert.DoesNotContain(blameRound.Id, arena.Rounds.Keys);
+
+			await arena.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
+		public async Task InputRegistrationTimeoutCanBeModifiedRuntimeAsync()
+		{
+			WabiSabiConfig cfg = new()
+			{
+				StandardInputRegistrationTimeout = TimeSpan.FromHours(1),
+				MaxInputCountByRound = 4,
+				MinInputCountByRoundMultiplier = 0.5
+			};
+			var round = WabiSabiFactory.CreateRound(cfg);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+
+			round.Alices.Add(WabiSabiFactory.CreateAlice());
+			round.Alices.Add(WabiSabiFactory.CreateAlice());
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			Assert.Equal(Phase.InputRegistration, round.Phase);
+
+			cfg.StandardInputRegistrationTimeout = TimeSpan.Zero;
+
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 			await arena.StopAsync(CancellationToken.None);
 		}

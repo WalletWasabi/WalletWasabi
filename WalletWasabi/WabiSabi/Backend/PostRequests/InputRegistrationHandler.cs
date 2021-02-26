@@ -64,13 +64,13 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 		}
 
 		public static InputsRegistrationResponse RegisterInput(
+			WabiSabiConfig config,
 			Guid roundId,
 			IDictionary<Coin, byte[]> coinRoundSignaturePairs,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
 			ZeroCredentialsRequest zeroWeightCredentialRequests,
 			IDictionary<Guid, Round> rounds,
-			Network network,
-			uint maxInputCountByRound)
+			Network network)
 		{
 			if (!rounds.TryGetValue(roundId, out var round))
 			{
@@ -120,7 +120,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchWeight);
 			}
 
-			if (round.IsInputRegistrationEnded(maxInputCountByRound))
+			if (round.IsInputRegistrationEnded(config.MaxInputCountByRound, config.GetInputRegistrationTimeout(round)))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 			}

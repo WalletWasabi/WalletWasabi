@@ -65,7 +65,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			foreach (var round in Rounds.Values.Where(x =>
 				x.Phase == Phase.InputRegistration
-				&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound)))
+				&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(x))))
 			{
 				if (round.InputCount < Config.MinInputCountByRound)
 				{
@@ -235,7 +235,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void TimeoutAlices()
 		{
-			foreach (var round in Rounds.Values.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)))
+			foreach (var round in Rounds.Values.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(x))))
 			{
 				var removedAliceCount = round.Alices.RemoveAll(x => x.Deadline < DateTimeOffset.UtcNow);
 				if (removedAliceCount > 0)
@@ -279,13 +279,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
 				return InputRegistrationHandler.RegisterInput(
+					Config,
 					roundId,
 					coinRoundSignaturePairs,
 					zeroAmountCredentialRequests,
 					zeroWeightCredentialRequests,
 					Rounds,
-					Network,
-					Config.MaxInputCountByRound);
+					Network);
 			}
 		}
 
