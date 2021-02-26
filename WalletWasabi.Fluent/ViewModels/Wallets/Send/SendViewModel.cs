@@ -105,7 +105,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				var targetAnonymitySet = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 				var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
 
-				if (mixedCoins.Any())
+				if (false)//(mixedCoins.Any())
 				{
 					var intent = new PaymentIntent(
 						destination: transactionInfo.Address,
@@ -132,7 +132,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 				}
 
-				Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo));
+				Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, walletVm.TransactionBroadcaster));
 			}, this.WhenAnyValue(x=>x.Labels.Count).Any());
 		}
 

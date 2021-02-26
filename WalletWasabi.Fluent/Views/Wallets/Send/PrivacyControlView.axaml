@@ -12,23 +12,36 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyControlView">
     <c:ContentArea Title="Privacy Control" Caption="Parts of your wallet are know to certain entities. Select the entities you can tolerate leaking information about this transaction:"
                   HorizontalAlignment="Left"
+                  EnableBack="True"
                    EnableCancel="False"
                    EnableNext="True"
                    NextContent="Continue"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
-        <DataGrid AutoGenerateColumns="False" Items="{Binding Pockets}">
-            <DataGrid.Columns >
-                <!-- <DataGridCheckBoxColumn x:DataType="vm:PocketViewModel" Binding="{Binding IsSelected}" IsReadOnly="False" CanUserSort="False" CanUserResize="False" CanUserReorder="False" /> -->
-                <DataGridTemplateColumn CanUserSort="False" CanUserResize="False" CanUserReorder="False">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate x:DataType="vm:PocketViewModel">
-                            <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" />
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTextColumn x:DataType="vm:PocketViewModel" Header="Total (BTC)" Binding="{Binding TotalBtc}" />
-                <DataGridTextColumn x:DataType="vm:PocketViewModel" Header="Labels" Binding="{Binding Labels}" Width="*" />
-            </DataGrid.Columns>
-        </DataGrid>
+        <DockPanel>
+            <Panel DockPanel.Dock="Bottom">
+                <c:InfoMessage Foreground="{DynamicResource WarningMessageForeground}" HorizontalAlignment="Center" IsVisible="{Binding !EnoughSelected}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Insufficient funds selected. Select at least another "/>
+                        <TextBlock Text="{Binding StillNeeded}" />
+                        <TextBlock Text=" BTC" />
+                    </StackPanel>
+                </c:InfoMessage>
+            </Panel>
+            <DataGrid AutoGenerateColumns="False"
+                      Items="{Binding Pockets}">
+                <DataGrid.Columns >
+                    <!-- <DataGridCheckBoxColumn x:DataType="vm:PocketViewModel" Binding="{Binding IsSelected}" IsReadOnly="False" CanUserSort="False" CanUserResize="False" CanUserReorder="False" /> -->
+                    <DataGridTemplateColumn CanUserSort="False" CanUserResize="False" CanUserReorder="False">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="vm:PocketViewModel">
+                                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn x:DataType="vm:PocketViewModel" Header="Total (BTC)" Binding="{Binding TotalBtc}" />
+                    <DataGridTextColumn x:DataType="vm:PocketViewModel" Header="Labels" Binding="{Binding Labels}" Width="*" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
     </c:ContentArea>
 </UserControl>
