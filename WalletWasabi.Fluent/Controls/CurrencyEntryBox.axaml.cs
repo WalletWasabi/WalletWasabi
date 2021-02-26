@@ -475,7 +475,8 @@ namespace WalletWasabi.Fluent.Controls
 			if (change.Property == IsReadOnlyProperty)
 			{
 				PseudoClasses.Set(":readonly", change.NewValue.GetValueOrDefault<bool>());
-			} else if (change.Property == ConversionRateProperty)
+			}
+			else if (change.Property == ConversionRateProperty)
 			{
 				SetConversionStatus(change.NewValue.GetValueOrDefault<decimal>());
 			}
