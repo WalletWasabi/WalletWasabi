@@ -110,12 +110,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task WrongPhaseAsync()
 		{
 			WabiSabiConfig cfg = new();
-			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
+			var round = arena.Rounds.First().Value;
 			using Key key = new();
-
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
 			await using PostRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
+
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
 			{
 				if (phase != Phase.InputRegistration)
