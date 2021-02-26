@@ -19,6 +19,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 {
 	public class RegisterInputFailureTests
 	{
+		private static async Task RegisterAndAssertWrongPhaseAsync(InputsRegistrationRequest req, PostRequestHandler handler)
+		{
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
+		}
+
 		[Fact]
 		public async Task RoundNotFoundAsync()
 		{
@@ -49,8 +55,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				if (phase != Phase.InputRegistration)
 				{
 					round.SetPhase(phase);
-					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
-					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
+					await RegisterAndAssertWrongPhaseAsync(req, handler);
 				}
 			}
 
@@ -71,9 +76,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			round.Alices.Add(WabiSabiFactory.CreateAlice());
 			round.Alices.Add(WabiSabiFactory.CreateAlice(WabiSabiFactory.CreateInputRoundSignaturePairs(2)));
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			await RegisterAndAssertWrongPhaseAsync(req, handler);
 			Assert.Equal(Phase.InputRegistration, round.Phase);
-			Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -91,9 +95,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
 			arena.Rounds.Add(round.Id, round);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			await RegisterAndAssertWrongPhaseAsync(req, handler);
 			Assert.Equal(Phase.InputRegistration, round.Phase);
-			Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -112,9 +115,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
 
 			cfg.StandardInputRegistrationTimeout = TimeSpan.Zero;
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			await RegisterAndAssertWrongPhaseAsync(req, handler);
 			Assert.Equal(Phase.InputRegistration, round.Phase);
-			Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -365,8 +367,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			round.SetPhase(Phase.ConnectionConfirmation);
 
 			await using PostRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
-			Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
+			await RegisterAndAssertWrongPhaseAsync(req, handler);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
