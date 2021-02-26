@@ -81,6 +81,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var round = Assert.Single(arena.Rounds).Value;
 
 			round.SetPhase(Phase.ConnectionConfirmation);
+			round.Alices.Add(WabiSabiFactory.CreateAlice());
 			Round blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
 			Assert.Equal(Phase.InputRegistration, blameRound.Phase);
 			arena.Rounds.Add(blameRound.Id, blameRound);

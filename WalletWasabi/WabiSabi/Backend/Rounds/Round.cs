@@ -98,7 +98,14 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				return true;
 			}
 
-			if (InputCount >= maxInputCount)
+			if (IsBlameRound)
+			{
+				if (BlameWhitelist.Count <= InputCount)
+				{
+					return true;
+				}
+			}
+			else if (InputCount >= maxInputCount)
 			{
 				return true;
 			}

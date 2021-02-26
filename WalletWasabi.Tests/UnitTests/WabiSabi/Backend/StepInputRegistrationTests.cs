@@ -39,6 +39,40 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		}
 
 		[Fact]
+		public async Task BlameRoundFullAsync()
+		{
+			WabiSabiConfig cfg = new()
+			{
+				MaxInputCountByRound = 4,
+				MinInputCountByRoundMultiplier = 0.5
+			};
+			var round = WabiSabiFactory.CreateRound(cfg);
+			var alice1 = WabiSabiFactory.CreateAlice();
+			var alice2 = WabiSabiFactory.CreateAlice();
+			var alice3 = WabiSabiFactory.CreateAlice();
+			round.Alices.Add(alice1);
+			round.Alices.Add(alice2);
+			round.Alices.Add(alice3);
+			var blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
+
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, blameRound);
+
+			blameRound.Alices.Add(alice1);
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			Assert.Equal(Phase.InputRegistration, blameRound.Phase);
+
+			blameRound.Alices.Add(alice2);
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			Assert.Equal(Phase.InputRegistration, blameRound.Phase);
+
+			blameRound.Alices.Add(alice3);
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			Assert.Equal(Phase.ConnectionConfirmation, blameRound.Phase);
+
+			await arena.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
 		public async Task RoundFullAliceMultiInputAsync()
 		{
 			WabiSabiConfig cfg = new() { MaxInputCountByRound = 3 };
@@ -77,6 +111,34 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		}
 
 		[Fact]
+		public async Task BlameRoundTimedoutWithSufficientInputsAsync()
+		{
+			WabiSabiConfig cfg = new()
+			{
+				BlameInputRegistrationTimeout = TimeSpan.Zero,
+				InputRegistrationTimeout = TimeSpan.FromHours(1), // Test that this is disregarded.
+				MaxInputCountByRound = 4,
+				MinInputCountByRoundMultiplier = 0.5
+			};
+			var round = WabiSabiFactory.CreateRound(cfg);
+			var alice1 = WabiSabiFactory.CreateAlice();
+			var alice2 = WabiSabiFactory.CreateAlice();
+			var alice3 = WabiSabiFactory.CreateAlice();
+			round.Alices.Add(alice1);
+			round.Alices.Add(alice2);
+			round.Alices.Add(alice3);
+			var blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
+			blameRound.Alices.Add(alice1);
+			blameRound.Alices.Add(alice2);
+
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, blameRound);
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			Assert.Equal(Phase.ConnectionConfirmation, blameRound.Phase);
+
+			await arena.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
 		public async Task InputRegistrationTimedoutWithoutSufficientInputsAsync()
 		{
 			WabiSabiConfig cfg = new()
@@ -92,6 +154,35 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.InputRegistration, round.Phase);
 			Assert.DoesNotContain(round.Id, arena.Rounds.Keys);
+
+			await arena.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
+		public async Task BlameRoundTimedoutWithoutSufficientInputsAsync()
+		{
+			// This test also tests that the min input count multiplier is applied
+			// against the max input count by round number and not against the
+			// number of inputs awaited by the blame round intself.
+			WabiSabiConfig cfg = new()
+			{
+				BlameInputRegistrationTimeout = TimeSpan.Zero,
+				InputRegistrationTimeout = TimeSpan.FromHours(1), // Test that this is disregarded.
+				MaxInputCountByRound = 4,
+				MinInputCountByRoundMultiplier = 0.5
+			};
+			var round = WabiSabiFactory.CreateRound(cfg);
+			var alice1 = WabiSabiFactory.CreateAlice();
+			var alice2 = WabiSabiFactory.CreateAlice();
+			round.Alices.Add(alice1);
+			round.Alices.Add(alice2);
+			var blameRound = WabiSabiFactory.CreateBlameRound(round, cfg);
+			blameRound.Alices.Add(alice1);
+
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, blameRound);
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			Assert.Equal(Phase.InputRegistration, blameRound.Phase);
+			Assert.DoesNotContain(blameRound.Id, arena.Rounds.Keys);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
