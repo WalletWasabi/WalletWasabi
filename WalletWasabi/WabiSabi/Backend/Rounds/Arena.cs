@@ -46,11 +46,15 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				// Remove timed out alices.
 				TimeoutAlices();
 
+				await StepTransactionSigningPhaseAsync().ConfigureAwait(false);
+
 				StepOutputRegistrationPhase();
 
 				StepConnectionConfirmationPhase();
 
 				StepInputRegistrationPhase();
+
+				cancel.ThrowIfCancellationRequested();
 
 				// Ensure there's at least one non-blame round in input registration.
 				await CreateRoundsAsync().ConfigureAwait(false);
@@ -148,6 +152,61 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
+		private async Task StepTransactionSigningPhaseAsync()
+		{
+			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.TransactionSigning))
+			{
+				var coinjoin = round.Coinjoin;
+				var isFullySigned = coinjoin.Inputs.All(x => x.HasWitScript());
+				if (isFullySigned)
+				{
+					try
+					{
+						await Rpc.SendRawTransactionAsync(coinjoin).ConfigureAwait(false);
+						round.SetPhase(Phase.TransactionBroadcasting);
+					}
+					catch (Exception ex)
+					{
+						Logger.LogWarning(ex);
+						await FailTransactionSigningPhaseAsync(round).ConfigureAwait(false);
+					}
+				}
+				else if (round.TransactionSigningStart + Config.TransactionSigningTimeout < DateTimeOffset.UtcNow)
+				{
+					await FailTransactionSigningPhaseAsync(round).ConfigureAwait(false);
+				}
+			}
+		}
+
+		private async Task FailTransactionSigningPhaseAsync(Round round)
+		{
+			var alicesWhoDidntSign = round
+				.Alices
+				.Where(x => !x
+					.Coins
+					.Select(x => x.Outpoint)
+					.All(y => round.Coinjoin.Inputs.Select(x => x.PrevOut).Contains(y)))
+				.ToHashSet();
+
+			// If we found someone to ban don't check for spent inputs
+			// because that's expensive with Bitcoin Core's RPC.
+			var alicesToBan = alicesWhoDidntSign;
+			if (!alicesWhoDidntSign.Any())
+			{
+				await foreach (var alice in GetSpentAlicesAsync(round.Alices).ConfigureAwait(false))
+				{
+					alicesToBan.Add(alice);
+				}
+			}
+
+			foreach (var alice in alicesToBan)
+			{
+				Prison.Note(alice, round.Id);
+			}
+
+			Rounds.Remove(round.Id);
+		}
+
 		private async Task CreateRoundsAsync()
 		{
 			if (!Rounds.Values.Any(x => !x.IsBlameRound && x.Phase == Phase.InputRegistration))
@@ -172,6 +231,31 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
+		private async IAsyncEnumerable<Alice> GetSpentAlicesAsync(IEnumerable<Alice> alices)
+		{
+			foreach (var alice in alices)
+			{
+				foreach (var input in alice.Coins.Select(x => x.Outpoint))
+				{
+					GetTxOutResponse? resp = null;
+					try
+					{
+						resp = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true).ConfigureAwait(false);
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+					}
+
+					if (resp is null)
+					{
+						yield return alice;
+						break;
+					}
+				}
+			}
+		}
+
 		public async Task<InputsRegistrationResponse> RegisterInputAsync(
 			Guid roundId,
 			IDictionary<Coin, byte[]> coinRoundSignaturePairs,
@@ -188,7 +272,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					Rounds,
 					Network,
 					Config.MaxInputCountByRound,
-					Config.InputRegistrationTimeout);
+					Config.InputRegistrationTimeout,
+					Config.ConnectionConfirmationTimeout);
 			}
 		}
 
@@ -240,7 +325,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				if (round.Phase == Phase.InputRegistration)
 				{
-					alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
+					alice.SetDeadlineRelativeTo(Config.ConnectionConfirmationTimeout);
 					return new(
 						amountZeroCredentialResponse,
 						weightZeroCredentialResponse);

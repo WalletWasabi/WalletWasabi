@@ -71,7 +71,8 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			IDictionary<Guid, Round> rounds,
 			Network network,
 			uint maxInputCountByRound,
-			TimeSpan inputRegistrationTimeout)
+			TimeSpan inputRegistrationTimeout,
+			TimeSpan connectionConfirmationTimeout)
 		{
 			if (!rounds.TryGetValue(roundId, out var round))
 			{
@@ -131,7 +132,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 
 			RemoveDuplicateAlices(rounds, alice);
 
-			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
+			alice.SetDeadlineRelativeTo(connectionConfirmationTimeout);
 			round.Alices.Add(alice);
 
 			return new(alice.Id, amountCredentialResponse, weightCredentialResponse);

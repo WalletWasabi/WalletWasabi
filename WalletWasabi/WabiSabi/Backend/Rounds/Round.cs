@@ -49,9 +49,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public Money MinRegistrableAmount => RoundParameters.MinRegistrableAmount;
 		public Money MaxRegistrableAmount => RoundParameters.MaxRegistrableAmount;
 		public uint RegistrableWeightCredentials => RoundParameters.RegistrableWeightCredentials;
-		public TimeSpan ConnectionConfirmationTimeout => RoundParameters.ConnectionConfirmationTimeout;
-		public TimeSpan OutputRegistrationTimeout => RoundParameters.OutputRegistrationTimeout;
-		public TimeSpan TransactionSigningTimeout => RoundParameters.TransactionSigningTimeout;
 		public FeeRate FeeRate => RoundParameters.FeeRate;
 		public WasabiRandom Random => RoundParameters.Random;
 		public CredentialIssuer AmountCredentialIssuer { get; }
@@ -73,6 +70,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public DateTimeOffset ConnectionConfirmationStart { get; private set; }
 		public DateTimeOffset OutputRegistrationStart { get; private set; }
 		public DateTimeOffset TransactionSigningStart { get; private set; }
+		public DateTimeOffset TransactionBroadcastingStart { get; private set; }
 
 		public void SetPhase(Phase phase)
 		{
@@ -89,6 +87,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			else if (phase == Phase.TransactionSigning)
 			{
 				TransactionSigningStart = DateTimeOffset.UtcNow;
+			}
+			else if (phase == Phase.TransactionBroadcasting)
+			{
+				TransactionBroadcastingStart = DateTimeOffset.UtcNow;
 			}
 		}
 

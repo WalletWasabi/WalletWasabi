@@ -23,9 +23,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			MinRegistrableAmount = wabiSabiConfig.MinRegistrableAmount;
 			MaxRegistrableAmount = wabiSabiConfig.MaxRegistrableAmount;
 			RegistrableWeightCredentials = wabiSabiConfig.RegistrableWeightCredentials;
-			ConnectionConfirmationTimeout = wabiSabiConfig.ConnectionConfirmationTimeout;
-			OutputRegistrationTimeout = wabiSabiConfig.OutputRegistrationTimeout;
-			TransactionSigningTimeout = wabiSabiConfig.TransactionSigningTimeout;
 		}
 
 		public WasabiRandom Random { get; }
@@ -35,8 +32,5 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public Money MinRegistrableAmount { get; }
 		public Money MaxRegistrableAmount { get; }
 		public uint RegistrableWeightCredentials { get; }
-		public TimeSpan ConnectionConfirmationTimeout { get; }
-		public TimeSpan OutputRegistrationTimeout { get; }
-		public TimeSpan TransactionSigningTimeout { get; }
 	}
 }
