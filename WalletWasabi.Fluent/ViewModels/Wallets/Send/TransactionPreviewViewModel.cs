@@ -73,8 +73,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 							dialogResult.Result,
 							out string? compatibilityPasswordUsed));
 
-					IsBusy = false;
-
 					if (passwordValid)
 					{
 						// Dequeue any coin-joining coins.
@@ -118,10 +116,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 						await broadcaster.SendTransactionAsync(signedTransaction);
 
-						Navigate().Back();
+						Navigate().Clear();
+
+						IsBusy = false;
 					}
 					else
 					{
+						IsBusy = false;
 						await ShowErrorAsync("Password was incorrect.", "Please try again.", "");
 					}
 				}
