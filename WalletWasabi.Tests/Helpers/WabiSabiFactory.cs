@@ -77,7 +77,7 @@ namespace WalletWasabi.Tests.Helpers
 					Blocks = target,
 					FeeRate = new FeeRate(10m)
 				});
-			Arena arena = new(TimeSpan.FromSeconds(21), rounds.FirstOrDefault()?.Network ?? Network.Main, cfg ?? new WabiSabiConfig(), mockRpc, new Prison());
+			Arena arena = new(TimeSpan.FromHours(1), rounds.FirstOrDefault()?.Network ?? Network.Main, cfg ?? new WabiSabiConfig(), mockRpc, new Prison());
 			foreach (var round in rounds)
 			{
 				arena.Rounds.Add(round.Id, round);
