@@ -76,9 +76,6 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonConverter(typeof(TimeSpanJsonConverter))]
 		public TimeSpan BlameInputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(3);
 
-		public TimeSpan GetInputRegistrationTimeout(Round round)
-			=> round.IsBlameRound ? BlameInputRegistrationTimeout : StandardInputRegistrationTimeout;
-
 		[DefaultValueTimeSpan("0d 0h 1m 0s")]
 		[JsonProperty(PropertyName = "ConnectionConfirmationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(TimeSpanJsonConverter))]
@@ -111,5 +108,8 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonProperty(PropertyName = "BlameScript", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(ScriptJsonConverter))]
 		public Script BlameScript { get; set; } = new Script("0 1251dec2e6a6694a789f0cca6c2a9cfb4c74fb4e");
+
+		public TimeSpan GetInputRegistrationTimeout(Round round)
+			=> round.IsBlameRound ? BlameInputRegistrationTimeout : StandardInputRegistrationTimeout;
 	}
 }
