@@ -11,6 +11,9 @@ namespace WalletWasabi.Fluent.Behaviors
 		public static readonly StyledProperty<IStyledElement?> StyledElementProperty =
 			AvaloniaProperty.Register<AddClassAction, IStyledElement?>(nameof(StyledElement));
 
+		public static readonly StyledProperty<bool> RemoveIfExistsProperty =
+			AvaloniaProperty.Register<AddClassAction, bool>(nameof(RemoveIfExists));
+
 		public string ClassName
 		{
 			get => GetValue(ClassNameProperty);
@@ -23,6 +26,12 @@ namespace WalletWasabi.Fluent.Behaviors
 			set => SetValue(StyledElementProperty, value);
 		}
 
+		public bool RemoveIfExists
+		{
+			get => GetValue(RemoveIfExistsProperty);
+			set => SetValue(RemoveIfExistsProperty, value);
+		}
+
 		public object Execute(object? sender, object? parameter)
 		{
 			var target = GetValue(StyledElementProperty) is { } ? StyledElement : sender as IStyledElement;
@@ -31,7 +40,7 @@ namespace WalletWasabi.Fluent.Behaviors
 				return false;
 			}
 
-			if (target.Classes.Contains(ClassName))
+			if (RemoveIfExists && target.Classes.Contains(ClassName))
 			{
 				target.Classes.Remove(ClassName);
 			}
