@@ -71,6 +71,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					Navigate().Clear();
 				}
 			});
+
+			EnableAutoBusyOn(NextCommand);
 		}
 
 		public string BtcAmountText { get; }

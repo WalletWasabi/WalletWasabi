@@ -2,12 +2,10 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.Validation;
-using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.Dialogs
+namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 {
 	[NavigationMetaData(Title = "Enter your password")]
 	public partial class PasswordAuthDialogViewModel : DialogViewModelBase<SmartTransaction?>

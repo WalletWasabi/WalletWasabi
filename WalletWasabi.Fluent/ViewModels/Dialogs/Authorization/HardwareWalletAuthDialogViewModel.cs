@@ -9,7 +9,7 @@ using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Hwi;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.Dialogs
+namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 {
 	[NavigationMetaData(Title = "Enter your password")]
 	public partial class HardwareWalletAuthDialogViewModel : DialogViewModelBase<SmartTransaction?>
