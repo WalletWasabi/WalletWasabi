@@ -61,76 +61,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				var transaction = buildTransactionResult;
+				var authDialog = AuthorisationHelpers.GetAuthorisationDialog(wallet, buildTransactionResult);
 
-				var authDialog = AuthorisationHelpers.GetAuthorisationDialog(wallet, ref transaction);
-				var authResult = await NavigateDialog(authDialog, NavigationTarget.DialogScreen);
+				var authDialogResult = await NavigateDialog(authDialog, NavigationTarget.DialogScreen);
 
-				if (authResult.Result)
+				if (authDialogResult.Result is { } signedTransaction)
 				{
-					await broadcaster.SendTransactionAsync(transaction.Transaction);
+					await broadcaster.SendTransactionAsync(signedTransaction);
 					Navigate().Clear();
 				}
-				// else
-				// {
-				// 	await ShowErrorAsync(authErrorMessage, "Please try again.", "");
-				// }
-
-				// IsBusy = true;
-				//
-				// var passwordValid = await Task.Run(
-				// 	() => PasswordHelper.TryPassword(
-				// 		wallet.KeyManager,
-				// 		dialogResult.Result,
-				// 		out string? compatibilityPasswordUsed));
-				//
-				// if (passwordValid)
-				// {
-				// 	// Dequeue any coin-joining coins.
-				// 	await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
-				//
-				// 	var signedTransaction2 = buildTransactionResult.Transaction;
-				//
-				// 	// If it's a hardware wallet and still has a private key then it's password.
-				// 	if (wallet.KeyManager.IsHardwareWallet && !buildTransactionResult.Signed)
-				// 	{
-				// 		try
-				// 		{
-				// 			var client = new HwiClient(wallet.Network);
-				//
-				// 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-				// 			PSBT? signedPsbt = null;
-				// 			try
-				// 			{
-				// 				signedPsbt = await client.SignTxAsync(
-				// 					wallet.KeyManager.MasterFingerprint!.Value,
-				// 					buildTransactionResult.Psbt,
-				// 					cts.Token);
-				// 			}
-				// 			catch (HwiException ex) when (ex.ErrorCode is not HwiErrorCode.ActionCanceled)
-				// 			{
-				// 				await PinPadViewModel.UnlockAsync();
-				//
-				// 				signedPsbt = await client.SignTxAsync(
-				// 					wallet.KeyManager.MasterFingerprint!.Value,
-				// 					buildTransactionResult.Psbt,
-				// 					cts.Token);
-				// 			}
-				//
-				// 			signedTransaction2 = signedPsbt.ExtractSmartTransaction(buildTransactionResult.Transaction);
-				// 		}
-				// 		catch (Exception _)
-				// 		{
-				// 			// probably throw something here?
-				// 		}
-				// 	}
-				//
-				// 	await broadcaster.SendTransactionAsync(signedTransaction);
-				//
-				// 	Navigate().Clear();
-				//
-				// 	IsBusy = false;
-					// }
 			});
 		}
 

@@ -1,6 +1,7 @@
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
@@ -9,11 +10,11 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
 	[NavigationMetaData(Title = "Enter your password")]
-	public partial class PasswordAuthDialogViewModel : DialogViewModelBase<bool>
+	public partial class PasswordAuthDialogViewModel : DialogViewModelBase<SmartTransaction?>
 	{
 		[AutoNotify] private string _password;
 
-		public PasswordAuthDialogViewModel(Wallet wallet)
+		public PasswordAuthDialogViewModel(Wallet wallet, SmartTransaction transaction)
 		{
 			_password = "";
 
@@ -25,12 +26,15 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 				{
 					var passwordValid = await Task.Run(() => PasswordHelper.TryPassword(wallet.KeyManager, Password, out _));
 
-					if (!passwordValid)
+					if (passwordValid)
+					{
+						Close(DialogResultKind.Normal, transaction);
+					}
+					else
 					{
 						await ShowErrorAsync("Password", "Password was incorrect.", "");
+						Close();
 					}
-
-					Close(DialogResultKind.Normal, passwordValid);
 				}
 				,canExecute);
 

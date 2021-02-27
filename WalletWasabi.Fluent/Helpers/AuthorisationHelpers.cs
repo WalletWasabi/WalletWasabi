@@ -1,4 +1,5 @@
 ﻿using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Wallets;
 
@@ -6,15 +7,15 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class AuthorisationHelpers
 	{
-		public static DialogViewModelBase<bool> GetAuthorisationDialog(Wallet wallet, ref BuildTransactionResult transaction)
+		public static DialogViewModelBase<SmartTransaction?> GetAuthorisationDialog(Wallet wallet, BuildTransactionResult transaction)
 		{
 			if (wallet.KeyManager.IsHardwareWallet)
 			{
-				return new HardwareWalletAuthDialog(wallet, ref transaction);
+				return new HardwareWalletAuthDialogViewModel(wallet, transaction);
 			}
 			else
 			{
-				return new PasswordAuthDialogViewModel(wallet);
+				return new PasswordAuthDialogViewModel(wallet, transaction.Transaction);
 			}
 		}
 	}
