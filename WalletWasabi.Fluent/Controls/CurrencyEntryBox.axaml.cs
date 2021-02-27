@@ -41,12 +41,6 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> IsConversionReversedProperty =
 			AvaloniaProperty.Register<CurrencyEntryBox, bool>(nameof(IsConversionReversed));
 
-		public static readonly DirectProperty<CurrencyEntryBox, object> IsConversionEnabledProperty =
-			AvaloniaProperty.RegisterDirect<CurrencyEntryBox, object>(
-				"IsConversionEnabled",
-				o => o.IsConversionEnabled,
-				(o, v) => o.IsConversionEnabled = v);
-
 		private readonly CultureInfo _customCultureInfo;
 		private readonly char _decimalSeparator = '.';
 		private readonly char _groupSeparator = ' ';
@@ -134,12 +128,6 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(IsConversionReversedProperty);
 			set => SetValue(IsConversionReversedProperty, value);
-		}
-
-		public object IsConversionEnabled
-		{
-			get { return _IsConversionEnabled; }
-			set { SetAndRaise(IsConversionEnabledProperty, ref _IsConversionEnabled, value); }
 		}
 
 		private decimal FiatToBitcoin(decimal fiatValue)
@@ -478,15 +466,7 @@ namespace WalletWasabi.Fluent.Controls
 			}
 			else if (change.Property == ConversionRateProperty)
 			{
-				SetConversionStatus(change.NewValue.GetValueOrDefault<decimal>());
-			}
-		}
-
-		private void SetConversionStatus(decimal newRate)
-		{
-			if (newRate.Equals(decimal.Zero))
-			{
-
+				PseudoClasses.Set(":noexchangerate", change.NewValue.GetValueOrDefault<decimal>() == 0m);
 			}
 		}
 	}
