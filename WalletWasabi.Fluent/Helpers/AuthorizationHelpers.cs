@@ -6,9 +6,9 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Helpers
 {
-	public static class AuthorisationHelpers
+	public static class AuthorizationHelpers
 	{
-		public static DialogViewModelBase<SmartTransaction?> GetAuthorisationDialog(Wallet wallet, BuildTransactionResult transaction)
+		public static DialogViewModelBase<SmartTransaction?> GetAuthorizationDialog(Wallet wallet, BuildTransactionResult transaction)
 		{
 			if (wallet.KeyManager.IsHardwareWallet)
 			{

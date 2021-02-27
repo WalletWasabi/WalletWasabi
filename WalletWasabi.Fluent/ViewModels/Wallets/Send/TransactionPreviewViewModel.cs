@@ -61,7 +61,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				var authDialog = AuthorisationHelpers.GetAuthorisationDialog(wallet, buildTransactionResult);
+				var authDialog = AuthorizationHelpers.GetAuthorizationDialog(wallet, buildTransactionResult);
 
 				var authDialogResult = await NavigateDialog(authDialog, NavigationTarget.DialogScreen);
 
