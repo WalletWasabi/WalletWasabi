@@ -27,7 +27,7 @@
     <Style Selector="PathIcon.hidden">
       <Setter Property="IsVisible" Value="False" />
     </Style>
-    <Style Selector="PathIcon.toggleHide">
+    <Style Selector="PathIcon.hideAndShow">
       <Style.Animations>
         <Animation Duration="0:0:2.0">
           <KeyFrame Cue="0%">
@@ -46,7 +46,7 @@
         </Animation>
       </Style.Animations>
     </Style>
-    <Style Selector="PathIcon.toggleShow">
+    <Style Selector="PathIcon.showAndHide">
       <Style.Animations>
         <Animation Delay="0:0:0.5" Duration="0:0:1.0">
           <KeyFrame Cue="0%">
@@ -92,8 +92,8 @@
             <Button Margin="10 0 0 0" ToolTip.Tip="Copy" DockPanel.Dock="Right" Classes="plain" Command="{Binding CopyAddressCommand}">
               <i:Interaction.Behaviors>
                 <ia:EventTriggerBehavior EventName="Click">
-                  <behaviors:AddClassAction StyledElement="{Binding #PathCopy}" ClassName="toggleHide"/>
-                  <behaviors:AddClassAction StyledElement="{Binding #PathCopied}" ClassName="toggleShow"/>
+                  <behaviors:AddClassAction StyledElement="{Binding #PathCopy}" ClassName="hideAndShow"/>
+                  <behaviors:AddClassAction StyledElement="{Binding #PathCopied}" ClassName="showAndHide"/>
                 </ia:EventTriggerBehavior>
               </i:Interaction.Behaviors>
               <Panel>
