@@ -36,7 +36,7 @@ namespace WalletWasabi.Tor.Http
 			Guard.NotNull(nameof(torSocks5EndPoint), torSocks5EndPoint);
 
 			TorSocks5EndPoint = torSocks5EndPoint;
-			TorSocks5Client = null;
+			TorTpcConnectionFactory = null;
 			IsolateStream = isolateStream;
 		}
 
@@ -66,7 +66,7 @@ namespace WalletWasabi.Tor.Http
 		/// </summary>
 		public bool IsolateStream { get; }
 
-		private TorSocks5Client? TorSocks5Client { get; set; }
+		private TorTcpConnectionFactory? TorTpcConnectionFactory { get; set; }
 
 		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable.	
 
@@ -171,24 +171,24 @@ namespace WalletWasabi.Tor.Http
 			request.Version = HttpProtocol.HTTP11.Version;
 			request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
-			if (TorSocks5Client is null)
+			if (TorTpcConnectionFactory is null)
 			{
 				try
 				{
-					TorSocks5Client = new TorSocks5Client(TorSocks5EndPoint!);
-					await TorSocks5Client.ConnectAsync(token).ConfigureAwait(false);
-					await TorSocks5Client.HandshakeAsync(IsolateStream, token).ConfigureAwait(false);
-					await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port, token).ConfigureAwait(false);
+					TorTpcConnectionFactory = new TorTcpConnectionFactory(TorSocks5EndPoint!);
+					await TorTpcConnectionFactory.ConnectAsync(token).ConfigureAwait(false);
+					await TorTpcConnectionFactory.HandshakeAsync(IsolateStream, token).ConfigureAwait(false);
+					await TorTpcConnectionFactory.ConnectToDestinationAsync(host, request.RequestUri.Port, token).ConfigureAwait(false);
 
 					if (request.RequestUri.Scheme == "https")
 					{
-						await TorSocks5Client.UpgradeToSslAsync(host).ConfigureAwait(false);
+						await TorTpcConnectionFactory.UpgradeToSslAsync(host).ConfigureAwait(false);
 					}
 				}
 				catch
 				{
-					TorSocks5Client?.Dispose();
-					TorSocks5Client = null;
+					TorTpcConnectionFactory?.Dispose();
+					TorTpcConnectionFactory = null;
 					throw;
 				}
 			}
@@ -200,7 +200,7 @@ namespace WalletWasabi.Tor.Http
 
 			var bytes = Encoding.UTF8.GetBytes(requestString);
 
-			Stream transportStream = TorSocks5Client.GetTransportStream();
+			Stream transportStream = TorTpcConnectionFactory.GetTransportStream();
 
 			try
 			{
@@ -211,8 +211,8 @@ namespace WalletWasabi.Tor.Http
 			}
 			catch
 			{
-				TorSocks5Client?.Dispose();
-				TorSocks5Client = null;
+				TorTpcConnectionFactory?.Dispose();
+				TorTpcConnectionFactory = null;
 				throw;
 			}
 		}
@@ -225,7 +225,7 @@ namespace WalletWasabi.Tor.Http
 			{
 				if (disposing)
 				{
-					TorSocks5Client?.Dispose();
+					TorTpcConnectionFactory?.Dispose();
 				}
 
 				_disposedValue = true;

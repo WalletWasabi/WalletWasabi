@@ -198,10 +198,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task TorRunningAsync()
 		{
-			using TorSocks5Client client1 = new(new IPEndPoint(IPAddress.Loopback, 9050));
+			using TorTcpConnectionFactory client1 = new(new IPEndPoint(IPAddress.Loopback, 9050));
 			Assert.True(await client1.IsTorRunningAsync());
 
-			using TorSocks5Client client2 = new(new IPEndPoint(IPAddress.Loopback, 9054));
+			using TorTcpConnectionFactory client2 = new(new IPEndPoint(IPAddress.Loopback, 9054));
 			Assert.False(await client2.IsTorRunningAsync());
 		}
 

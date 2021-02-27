@@ -21,12 +21,12 @@ namespace WalletWasabi.Tor.Socks5
 	/// <summary>
 	/// Create an instance with the TorSocks5Manager
 	/// </summary>
-	public class TorSocks5Client : IDisposable
+	public class TorTcpConnectionFactory : IDisposable
 	{
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		/// <param name="endPoint">Valid Tor end point.</param>
-		public TorSocks5Client(EndPoint endPoint)
+		public TorTcpConnectionFactory(EndPoint endPoint)
 		{
 			TorSocks5EndPoint = endPoint;
 			TcpClient = new TcpClient(endPoint.AddressFamily);
@@ -92,7 +92,7 @@ namespace WalletWasabi.Tor.Socks5
 			try
 			{
 				// Internal TCP client may close, so we need a new instance here.
-				using var client = new TorSocks5Client(TorSocks5EndPoint);
+				using var client = new TorTcpConnectionFactory(TorSocks5EndPoint);
 				await client.ConnectAsync().ConfigureAwait(false);
 				await client.HandshakeAsync().ConfigureAwait(false);
 
@@ -303,7 +303,7 @@ namespace WalletWasabi.Tor.Socks5
 			}
 			catch (IOException ex)
 			{
-				throw new TorConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.", ex);
+				throw new TorConnectionException($"{nameof(TorTcpConnectionFactory)} is not connected to {RemoteEndPoint}.", ex);
 			}
 		}
 
