@@ -52,7 +52,6 @@ namespace WalletWasabi.Fluent.Controls
 		private CompositeDisposable? _disposable;
 		private bool _canUpdateDisplay = true;
 		private decimal _amountBtc;
-		private object _IsConversionEnabled;
 
 		public CurrencyEntryBox()
 		{
