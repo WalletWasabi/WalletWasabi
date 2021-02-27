@@ -68,15 +68,26 @@ namespace WalletWasabi.Tests.Helpers
 				new InsecureRandom(),
 				new(100m)));
 
-		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig? cfg = null, params Round[] rounds)
+		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, params Round[] rounds)
+			=> await CreateAndStartArenaAsync(cfg, null, rounds);
+
+		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig? cfg = null, MockRpcClient? mockRpc = null, params Round[] rounds)
 		{
-			var mockRpc = new MockRpcClient();
-			mockRpc.OnEstimateSmartFeeAsync = async (target, _) =>
+			mockRpc ??= new MockRpcClient();
+			mockRpc.OnEstimateSmartFeeAsync ??= async (target, _) =>
 				await Task.FromResult(new EstimateSmartFeeResponse
 				{
 					Blocks = target,
 					FeeRate = new FeeRate(10m)
 				});
+			mockRpc.OnSendRawTransactionAsync ??= (tx) => tx.GetHash();
+			mockRpc.OnGetTxOutAsync ??= (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new(Money.Coins(1), Script.Empty)
+			};
+
 			Arena arena = new(TimeSpan.FromHours(1), rounds.FirstOrDefault()?.Network ?? Network.Main, cfg ?? new WabiSabiConfig(), mockRpc, new Prison());
 			foreach (var round in rounds)
 			{

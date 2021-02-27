@@ -65,7 +65,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			foreach (var round in Rounds.Values.Where(x =>
 				x.Phase == Phase.InputRegistration
-				&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(x))))
+				&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(x)))
+				.ToArray())
 			{
 				if (round.InputCount < Config.MinInputCountByRound)
 				{
@@ -80,7 +81,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void StepConnectionConfirmationPhase()
 		{
-			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.ConnectionConfirmation))
+			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.ConnectionConfirmation).ToArray())
 			{
 				if (round.Alices.All(x => x.ConfirmedConnetion))
 				{
@@ -109,7 +110,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void StepOutputRegistrationPhase()
 		{
-			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.OutputRegistration))
+			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.OutputRegistration).ToArray())
 			{
 				long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
 				long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
@@ -154,7 +155,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private async Task StepTransactionSigningPhaseAsync()
 		{
-			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.TransactionSigning))
+			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.TransactionSigning).ToArray())
 			{
 				var coinjoin = round.Coinjoin;
 				var isFullySigned = coinjoin.Inputs.All(x => x.HasWitScript());
@@ -181,12 +182,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		private async Task FailTransactionSigningPhaseAsync(Round round)
 		{
 			var alicesWhoDidntSign = round
-				.Alices
-				.Where(x => !x
-					.Coins
-					.Select(x => x.Outpoint)
-					.All(y => round.Coinjoin.Inputs.Select(x => x.PrevOut).Contains(y)))
-				.ToHashSet();
+			.Alices
+			.Where(x => !x
+				.Coins
+				.Select(x => x.Outpoint)
+				.All(y => round.Coinjoin.Inputs.Select(x => x.PrevOut).Contains(y)))
+			.ToHashSet();
 
 			// If we found someone to ban don't check for spent inputs
 			// because that's expensive with Bitcoin Core's RPC.
@@ -235,7 +236,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void TimeoutAlices()
 		{
-			foreach (var round in Rounds.Values.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(x))))
+			foreach (var round in Rounds.Values.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(x))).ToArray())
 			{
 				var removedAliceCount = round.Alices.RemoveAll(x => x.Deadline < DateTimeOffset.UtcNow);
 				if (removedAliceCount > 0)
