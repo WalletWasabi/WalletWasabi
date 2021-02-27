@@ -1,56 +1,54 @@
 ﻿using System;
-using System.Reactive.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Hwi;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 {
-	[NavigationMetaData(Title = "Enter your password")]
-	public partial class HardwareWalletAuthDialogViewModel : DialogViewModelBase<SmartTransaction?>
+	[NavigationMetaData(Title = "Hardware Wallet")]
+	public partial class HardwareWalletAuthDialogViewModel : AuthorizationDialogBase
 	{
+		private readonly Wallet _wallet;
+		private readonly BuildTransactionResult _buildTransactionResult;
+
 		public HardwareWalletAuthDialogViewModel(Wallet wallet, BuildTransactionResult buildTransactionResult)
 		{
-			var canExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
+			_wallet = wallet;
+			_buildTransactionResult = buildTransactionResult;
+		}
 
-			BackCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Back), canExecute);
-			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel), canExecute);
-			NextCommand = ReactiveCommand.CreateFromTask(async () =>
+		protected override async Task Authorize()
+		{
+			// Dequeue any coin-joining coins.
+			await _wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
+
+			// If it's a hardware wallet and still has a private key then it's password.
+			if (_wallet.KeyManager.IsHardwareWallet && !_buildTransactionResult.Signed)
 			{
-				// Dequeue any coin-joining coins.
-				await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
-
-				// If it's a hardware wallet and still has a private key then it's password.
-				if (wallet.KeyManager.IsHardwareWallet && !buildTransactionResult.Signed)
+				try
 				{
-					try
-					{
-						var client = new HwiClient(wallet.Network);
-						using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+					var client = new HwiClient(_wallet.Network);
+					using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
-						var signedPsbt = await client.SignTxAsync(
-								wallet.KeyManager.MasterFingerprint!.Value,
-								buildTransactionResult.Psbt,
-								cts.Token);
+					var signedPsbt = await client.SignTxAsync(
+						_wallet.KeyManager.MasterFingerprint!.Value,
+						_buildTransactionResult.Psbt,
+						cts.Token);
 
-						var signedTransaction = signedPsbt.ExtractSmartTransaction(buildTransactionResult.Transaction);
+					var signedTransaction = signedPsbt.ExtractSmartTransaction(_buildTransactionResult.Transaction);
 
-						Close(DialogResultKind.Normal, signedTransaction);
-					}
-					catch (Exception ex)
-					{
-						await ShowErrorAsync("Hardware wallet", ex.ToUserFriendlyString(), "Wasabi was unable to sign your transaction");
-						Close();
-					}
+					Close(DialogResultKind.Normal, signedTransaction);
 				}
-			}, canExecute);
-
-			EnableAutoBusyOn(NextCommand);
+				catch (Exception ex)
+				{
+					await ShowErrorAsync("Hardware wallet", ex.ToUserFriendlyString(), "Wasabi was unable to sign your transaction");
+					Close();
+				}
+			}
 		}
 	}
 }

@@ -1,20 +1,10 @@
-using System;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
-using SharpDX;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Gui.Controls.WalletExplorer;
-using WalletWasabi.Hwi;
-using WalletWasabi.Hwi.Exceptions;
-using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
