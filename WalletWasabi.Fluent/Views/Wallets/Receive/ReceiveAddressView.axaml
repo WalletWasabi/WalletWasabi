@@ -92,8 +92,8 @@
             <Button Margin="10 0 0 0" ToolTip.Tip="Copy" DockPanel.Dock="Right" Classes="plain" Command="{Binding CopyAddressCommand}">
               <i:Interaction.Behaviors>
                 <ia:EventTriggerBehavior EventName="Click">
-                  <behaviors:AddClassAction StyledElement="{Binding #PathCopy}" ClassName="hideAndShow"/>
-                  <behaviors:AddClassAction StyledElement="{Binding #PathCopied}" ClassName="showAndHide"/>
+                  <behaviors:AddClassAction StyledElement="{Binding #PathCopy}" ClassName="hideAndShow" RemoveIfExists="True"/>
+                  <behaviors:AddClassAction StyledElement="{Binding #PathCopied}" ClassName="showAndHide" RemoveIfExists="True"/>
                 </ia:EventTriggerBehavior>
               </i:Interaction.Behaviors>
               <Panel>
