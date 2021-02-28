@@ -63,7 +63,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public int InputCount => Alices.Sum(x => x.Coins.Count());
 		public List<Bob> Bobs { get; } = new();
 		public Round? BlameOf { get; } = null;
+
+		[MemberNotNullWhen(returnValue: true, nameof(BlameOf))]
 		public bool IsBlameRound => BlameOf is not null;
+
 		public ISet<OutPoint> BlameWhitelist { get; } = new HashSet<OutPoint>();
 		public byte[] UnsignedTxSecret { get; }
 		public Transaction Coinjoin { get; }
