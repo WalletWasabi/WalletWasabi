@@ -15,6 +15,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.NavBar;
@@ -106,7 +107,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				var targetAnonymitySet = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 				var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
 
-				if (false)//(mixedCoins.Any())
+				if (mixedCoins.Any())
 				{
 					var intent = new PaymentIntent(
 						destination: transactionInfo.Address,
@@ -127,7 +128,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 						return;
 					}
-					catch (NotEnoughFundsException)
+					catch (InsufficientBalanceException)
 					{
 						// Do Nothing
 					}
