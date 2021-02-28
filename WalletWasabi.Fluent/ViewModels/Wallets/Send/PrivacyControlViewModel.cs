@@ -49,26 +49,27 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);
 
-			NextCommand = ReactiveCommand.Create(() =>
-			{
-				var coins = selectedList.Items.SelectMany(x => x.Coins);
+			NextCommand = ReactiveCommand.Create(
+				() =>
+				{
+					var coins = selectedList.Items.SelectMany(x => x.Coins);
 
-				var intent = new PaymentIntent(
-					transactionInfo.Address,
-					transactionInfo.Amount,
-					subtractFee: false,
-					transactionInfo.Labels);
+					var intent = new PaymentIntent(
+						transactionInfo.Address,
+						transactionInfo.Amount,
+						subtractFee: false,
+						transactionInfo.Labels);
 
-				var transactionResult = _wallet.BuildTransaction(
-					_wallet.Kitchen.SaltSoup(),
-					intent,
-					FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-					true,
-					coins.Select(x => x.OutPoint));
+					var transactionResult = _wallet.BuildTransaction(
+						_wallet.Kitchen.SaltSoup(),
+						intent,
+						FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
+						true,
+						coins.Select(x => x.OutPoint));
 
-				Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
-			},
-			this.WhenAnyValue(x => x.EnoughSelected));
+					Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
+				},
+				this.WhenAnyValue(x => x.EnoughSelected));
 		}
 
 		public ReadOnlyObservableCollection<PocketViewModel> Pockets => _pockets;
