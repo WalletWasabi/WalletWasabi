@@ -1,0 +1,79 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+        xmlns:i="using:Avalonia.Xaml.Interactivity"
+        xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
+        xmlns:c="using:WalletWasabi.Fluent.Controls">
+  <Design.PreviewWith>
+    <c:AnimatedButton />
+  </Design.PreviewWith>
+  <Style Selector="Button > Panel > PathIcon">
+    <Setter Property="Opacity" Value="0.5" />
+  </Style>
+    <Style Selector="Button:pointerover > Panel > PathIcon">
+      <Setter Property="Opacity" Value="0.75" />
+    </Style>
+    <Style Selector="PathIcon.hidden">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="PathIcon.hideAndShow">
+      <Style.Animations>
+        <Animation Duration="0:0:2.0">
+          <KeyFrame Cue="0%">
+            <Setter Property="Opacity" Value="0.75" />
+          </KeyFrame>
+          <KeyFrame Cue="25%">
+            <Setter Property="Opacity" Value="0.0" />
+            <Setter Property="IsVisible" Value="False" />
+          </KeyFrame>
+          <KeyFrame Cue="75%">
+            <Setter Property="IsVisible" Value="True" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="0.75" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="PathIcon.showAndHide">
+      <Style.Animations>
+        <Animation Delay="0:0:0.5" Duration="0:0:1.0">
+          <KeyFrame Cue="0%">
+            <Setter Property="Opacity" Value="0.0" />
+            <Setter Property="IsVisible" Value="True" />
+          </KeyFrame>
+          <KeyFrame Cue="50%">
+            <Setter Property="Opacity" Value="0.75" />
+          </KeyFrame>
+          <KeyFrame Cue="70%">
+            <Setter Property="Opacity" Value="0.75" />
+          </KeyFrame>
+          <KeyFrame Cue="75%">
+            <Setter Property="Opacity" Value="0.3" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="0.0" />
+            <Setter Property="IsVisible" Value="False" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="c|AnimatedButton">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Button Classes="plain" Command="{TemplateBinding Command}">
+                    <i:Interaction.Behaviors>
+                        <ia:EventTriggerBehavior EventName="Click">
+                            <behaviors:AddClassAction StyledElement="{Binding #NormalPathIcon}" ClassName="hideAndShow" RemoveIfExists="True"/>
+                            <behaviors:AddClassAction StyledElement="{Binding #ClickPathIcon}" ClassName="showAndHide" RemoveIfExists="True"/>
+                        </ia:EventTriggerBehavior>
+                    </i:Interaction.Behaviors>
+                    <Panel>
+                        <PathIcon Name="NormalPathIcon" Data="{TemplateBinding NormalIcon}"/>
+                        <PathIcon Classes="hidden" Name="ClickPathIcon" Data="{TemplateBinding ClickIcon}"/>
+                    </Panel>
+                </Button>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+</Styles>
