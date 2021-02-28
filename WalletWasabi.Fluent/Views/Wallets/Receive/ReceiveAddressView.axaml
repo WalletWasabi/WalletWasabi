@@ -3,9 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:ReceiveAddressViewModel"
@@ -17,57 +14,6 @@
     </Style>
     <Style Selector="Button:pointerover > PathIcon">
       <Setter Property="Opacity" Value="0.75" />
-    </Style>
-    <Style Selector="Button > Panel > PathIcon">
-      <Setter Property="Opacity" Value="0.5" />
-    </Style>
-    <Style Selector="Button:pointerover > Panel > PathIcon">
-      <Setter Property="Opacity" Value="0.75" />
-    </Style>
-    <Style Selector="PathIcon.hidden">
-      <Setter Property="IsVisible" Value="False" />
-    </Style>
-    <Style Selector="PathIcon.hideAndShow">
-      <Style.Animations>
-        <Animation Duration="0:0:2.0">
-          <KeyFrame Cue="0%">
-            <Setter Property="Opacity" Value="0.75" />
-          </KeyFrame>
-          <KeyFrame Cue="25%">
-            <Setter Property="Opacity" Value="0.0" />
-            <Setter Property="IsVisible" Value="False" />
-          </KeyFrame>
-          <KeyFrame Cue="75%">
-            <Setter Property="IsVisible" Value="True" />
-          </KeyFrame>
-          <KeyFrame Cue="100%">
-            <Setter Property="Opacity" Value="0.75" />
-          </KeyFrame>
-        </Animation>
-      </Style.Animations>
-    </Style>
-    <Style Selector="PathIcon.showAndHide">
-      <Style.Animations>
-        <Animation Delay="0:0:0.5" Duration="0:0:1.0">
-          <KeyFrame Cue="0%">
-            <Setter Property="Opacity" Value="0.0" />
-            <Setter Property="IsVisible" Value="True" />
-          </KeyFrame>
-          <KeyFrame Cue="50%">
-            <Setter Property="Opacity" Value="0.75" />
-          </KeyFrame>
-          <KeyFrame Cue="70%">
-            <Setter Property="Opacity" Value="0.75" />
-          </KeyFrame>
-          <KeyFrame Cue="75%">
-            <Setter Property="Opacity" Value="0.3" />
-          </KeyFrame>
-          <KeyFrame Cue="100%">
-            <Setter Property="Opacity" Value="0.0" />
-            <Setter Property="IsVisible" Value="False" />
-          </KeyFrame>
-        </Animation>
-      </Style.Animations>
     </Style>
   </UserControl.Styles>
   <c:ContentArea Title="{Binding Title}"
@@ -89,18 +35,10 @@
             <Button Margin="5 0 0 0" ToolTip.Tip="Show on the hardware wallet" DockPanel.Dock="Right" Classes="plain" Command="{Binding ShowOnHwWalletCommand}" IsVisible="{Binding IsHardwareWallet}">
               <PathIcon Data="{StaticResource share_regular}"/>
             </Button>
-            <Button Margin="10 0 0 0" ToolTip.Tip="Copy" DockPanel.Dock="Right" Classes="plain" Command="{Binding CopyAddressCommand}">
-              <i:Interaction.Behaviors>
-                <ia:EventTriggerBehavior EventName="Click">
-                  <behaviors:AddClassAction StyledElement="{Binding #PathCopy}" ClassName="hideAndShow" RemoveIfExists="True"/>
-                  <behaviors:AddClassAction StyledElement="{Binding #PathCopied}" ClassName="showAndHide" RemoveIfExists="True"/>
-                </ia:EventTriggerBehavior>
-              </i:Interaction.Behaviors>
-              <Panel>
-                <PathIcon Name="PathCopy" Data="{StaticResource copy_regular}"/>
-                <PathIcon Classes="hidden" Name="PathCopied" Data="{StaticResource privacy_strong}"/>
-              </Panel>
-            </Button>
+            <c:AnimatedButton Margin="10 0 0 0" ToolTip.Tip="Copy" DockPanel.Dock="Right"
+                              Command="{Binding CopyAddressCommand}"
+                              NormalIcon="{StaticResource copy_regular}"
+                              ClickIcon="{StaticResource privacy_strong}"/>
             <TextBlock Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
           </DockPanel>
         </DockPanel>
