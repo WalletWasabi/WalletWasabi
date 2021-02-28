@@ -1,9 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
-using AvalonStudio.MVVM;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -13,12 +12,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 {
 	public partial class AddressViewModel : ViewModelBase
 	{
-		[AutoNotify] private string _label;
-		[AutoNotify] private string _address;
 		private readonly ReceiveAddressesViewModel _parent;
 
-		public AddressViewModel(ReceiveAddressesViewModel parent, HdPubKey model, Network network,
-			Func<HdPubKey, string, Task> hideCommand)
+		[AutoNotify] private string _label;
+		[AutoNotify] private string _address;
+
+		public AddressViewModel(
+			ReceiveAddressesViewModel parent, HdPubKey model, Network network, Func<HdPubKey, string, Task> hideCommand)
 		{
 			Model = model;
 			_address = model.GetP2wpkhAddress(network).ToString();
