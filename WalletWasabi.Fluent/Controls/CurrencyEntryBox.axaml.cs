@@ -12,6 +12,7 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Controls
@@ -308,19 +309,9 @@ namespace WalletWasabi.Fluent.Controls
 			return "";
 		}
 
-		private static string FormatBtcValue(NumberFormatInfo formatInfo, decimal value)
-		{
-			return string.Format(formatInfo, "{0:### ### ### ##0.#### ####}", value).Trim();
-		}
-
-		private static string FormatFiatValue(NumberFormatInfo formatInfo, decimal value)
-		{
-			return string.Format(formatInfo, "{0:N2}", value).Trim();
-		}
-
 		private static string FullFormatBtc(NumberFormatInfo formatInfo, decimal value)
 		{
-			return $"{FormatBtcValue(formatInfo, value)} BTC";
+			return $"{value.FormattedBtc()} BTC";
 		}
 
 		private static string FullFormatFiat(
@@ -329,7 +320,7 @@ namespace WalletWasabi.Fluent.Controls
 			string currencyCode,
 			bool approximate)
 		{
-			return (approximate ? "≈ " : "") + $"{FormatFiatValue(formatInfo, value)}" +
+			return (approximate ? "≈ " : "") + $"{value.FormattedFiat()}" +
 			       (!string.IsNullOrWhiteSpace(currencyCode)
 				       ? $" {currencyCode}"
 				       : "");
@@ -430,7 +421,7 @@ namespace WalletWasabi.Fluent.Controls
 				if (updateTextField)
 				{
 					_canUpdateDisplay = false;
-					Text = AmountBtc > 0 ? FormatFiatValue(_customCultureInfo.NumberFormat, conversion) : string.Empty;
+					Text = AmountBtc > 0 ? conversion.FormattedFiat() : string.Empty;
 					_canUpdateDisplay = true;
 				}
 			}
@@ -449,7 +440,7 @@ namespace WalletWasabi.Fluent.Controls
 				if (updateTextField)
 				{
 					_canUpdateDisplay = false;
-					Text = AmountBtc > 0 ? FormatBtcValue(_customCultureInfo.NumberFormat, AmountBtc) : string.Empty;
+					Text = AmountBtc > 0 ? AmountBtc.FormattedBtc() : string.Empty;
 					_canUpdateDisplay = true;
 				}
 			}
