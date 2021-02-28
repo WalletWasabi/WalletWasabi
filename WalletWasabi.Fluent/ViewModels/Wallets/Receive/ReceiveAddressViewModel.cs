@@ -52,7 +52,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 					catch (Exception ex)
 					{
 						Logger.LogError(ex);
-						await ShowErrorAsync(ex.ToUserFriendlyString(), "We were unable to send the address to the device");
+						await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "We were unable to send the address to the device");
 					}
 				});
 			});

@@ -36,6 +36,16 @@ namespace WalletWasabi.Fluent.Validation
 
 		IEnumerable<string> IValidations.Errors => ErrorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Error).Select(x => x.Message));
 
+		public void Clear()
+		{
+			ErrorsByPropertyName.Clear();
+
+			foreach (var propertyName in ValidationMethods.Keys)
+			{
+				ValidateProperty(propertyName, true);
+			}
+		}
+
 		public void Validate()
 		{
 			foreach (var propertyName in ValidationMethods.Keys)
@@ -44,15 +54,19 @@ namespace WalletWasabi.Fluent.Validation
 			}
 		}
 
-		public void ValidateProperty(string propertyName)
+
+		public void ValidateProperty(string propertyName, bool clear = false)
 		{
 			if (ValidationMethods.TryGetValue(propertyName, out ValidateMethod? validationMethod) && ErrorsByPropertyName.TryGetValue(propertyName, out ErrorDescriptors? currentErrors))
 			{
 				// Copy the current errors.
 				var previousErrors = currentErrors.ToList();
 
-				// Validate.
-				validationMethod(currentErrors);
+				if (!clear)
+				{
+					// Validate.
+					validationMethod(currentErrors);
+				}
 
 				// Clear obsoleted errors and notify properties that changed.
 				UpdateAndNotify(currentErrors, previousErrors, propertyName);

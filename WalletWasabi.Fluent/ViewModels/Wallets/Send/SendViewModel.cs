@@ -13,6 +13,7 @@ using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Fluent.Validation;
@@ -45,11 +46,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private double[] _xAxisValues;
 		[AutoNotify] private double[] _yAxisValues;
 		[AutoNotify] private string[] _xAxisLabels;
+		[AutoNotify] private double  _xAxisCurrentValue = 36;
 
 		private string? _payJoinEndPoint;
 		private bool _parsingUrl;
 
-		public SendViewModel(WalletViewModel walletVm)
+		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster)
 		{
 			_to = "";
 			_owner = walletVm;
@@ -59,14 +61,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			ExchangeRate = walletVm.Wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();
 
-			this.ValidateProperty(x=>x.To, ValidateToField);
-			this.ValidateProperty(x=>x.AmountBtc, ValidateAmount);
+			this.ValidateProperty(x => x.To, ValidateToField);
+			this.ValidateProperty(x => x.AmountBtc, ValidateAmount);
 
 			this.WhenAnyValue(x => x.To)
 				.Subscribe(ParseToField);
 
 			this.WhenAnyValue(x => x.AmountBtc)
 				.Subscribe(x => _transactionInfo.Amount = new Money(x, MoneyUnit.BTC));
+
+			this.WhenAnyValue(x => x.XAxisCurrentValue)
+				.Subscribe(x =>
+				{
+					if (x > 0)
+					{
+						_transactionInfo.FeeRate = new FeeRate(GetYAxisValueFromXAxisCurrentValue(x));
+					}
+				});
 
 			Labels.ToObservableChangeSet().Subscribe(x =>
 			{
@@ -90,35 +101,40 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.Create(() =>
 			{
-				var password = "foo";
 				var transactionInfo = _transactionInfo;
 				var wallet = _owner.Wallet;
-				var targetAnonset = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
-				var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonset);
+				var targetAnonymitySet = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+				var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
 
-				var intent = new PaymentIntent(
-					destination: transactionInfo.Address,
-					amount: transactionInfo.Amount,
-					subtractFee: false,
-					label: transactionInfo.Labels);
+				if (mixedCoins.Any())
+				{
+					var intent = new PaymentIntent(
+						destination: transactionInfo.Address,
+						amount: transactionInfo.Amount,
+						subtractFee: false,
+						label: transactionInfo.Labels);
 
-				try
-				{
-					var txRes = wallet.BuildTransaction(
-						password,
-						intent,
-						FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-						allowUnconfirmed: true,
-						mixedCoins.Select(x => x.OutPoint));
-					// private coins enough.
-					Navigate().To(new OptimisePrivacyViewModel());
+					try
+					{
+						var txRes = wallet.BuildTransaction(
+							wallet.Kitchen.SaltSoup(),
+							intent,
+							FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
+							allowUnconfirmed: true,
+							mixedCoins.Select(x => x.OutPoint));
+
+						// Private coins are enough.
+						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
+						return;
+					}
+					catch (NotEnoughFundsException)
+					{
+						// Do Nothing
+					}
 				}
-				catch (NotEnoughFundsException)
-				{
-					// not enough private coins
-					Navigate().To(new PrivacyControlViewModel());
-				}
-			});
+
+				Navigate().To(new PrivacyControlViewModel());
+			}, this.WhenAnyValue(x=>x.Labels.Count).Any());
 		}
 
 		private void ValidateAmount(IValidationErrors errors)
@@ -140,7 +156,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private void ValidateToField(IValidationErrors errors)
 		{
 			if (!string.IsNullOrWhiteSpace(To) &&
-			    !AddressStringParser.TryParse(To, _owner.Wallet.Network, out BitcoinUrlBuilder? url))
+				!AddressStringParser.TryParse(To, _owner.Wallet.Network, out BitcoinUrlBuilder? url))
 			{
 				errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
 			}
@@ -227,8 +243,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return result;
 		}
 
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 		{
+			if (!inHistory)
+			{
+				To = "";
+				AmountBtc = 0;
+				Labels.Clear();
+				ClearValidations();
+			}
+
 			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => ExchangeRate = x)
@@ -255,7 +279,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				UpdateFeeEstimates(_owner.Wallet.Synchronizer.AllFeeEstimate.Estimations);
 			}
 
-			base.OnNavigatedTo(isInHistory, disposables);
+			base.OnNavigatedTo(inHistory, disposables);
 		}
 
 		private static readonly string[] TestNetXAxisLabels =
@@ -430,8 +454,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		}
 
 		public ICommand PasteCommand { get; }
-
-		public double XAxisCurrentValue { get; set; } = 36;
 
 		public double XAxisMinValue { get; set; } = 1;
 
