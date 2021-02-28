@@ -24,7 +24,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private decimal _stillNeeded;
 		[AutoNotify] private bool _enoughSelected;
 
-
 		public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
 		{
 			_wallet = wallet;
@@ -68,9 +67,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					coins.Select(x => x.OutPoint));
 
 				Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
-
-
-			}, this.WhenAnyValue(x => x.EnoughSelected));
+			},
+			this.WhenAnyValue(x => x.EnoughSelected));
 		}
 
 		public ReadOnlyObservableCollection<PocketViewModel> Pockets => _pockets;
