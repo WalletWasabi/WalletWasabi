@@ -5,7 +5,7 @@ using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
-namespace WalletWasabi.Fluent.ViewModels.Dialogs
+namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
 {
 	public partial class DialogScreenViewModel : TargettedNavigationStack
 	{
