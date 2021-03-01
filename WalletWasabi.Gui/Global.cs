@@ -156,9 +156,9 @@ namespace WalletWasabi.Gui
 						await TorManager.StartAsync(ensureRunning: true).ConfigureAwait(false);
 					}
 
-					var httpClient = (WalletWasabi.Tor.Http.TorHttpClient)Synchronizer.HttpClientFactory.NewHttpClient(() => Config.GetFallbackBackendUri(), isolateStream: false);
+					var httpClient = (WalletWasabi.Tor.Http.TorHttpClient)Synchronizer.HttpClientFactory.NewHttpClient(() => null!, isolateStream: false);
 #pragma warning disable CA2000 // Dispose objects before losing scope
-					HostedServices.Register(new TorMonitor(period: TimeSpan.FromSeconds(3), httpClient, TorManager), nameof(TorMonitor));
+					HostedServices.Register(new TorMonitor(period: TimeSpan.FromSeconds(3), httpClient, Config.GetFallbackBackendUri(), TorManager), nameof(TorMonitor));
 #pragma warning restore CA2000 // Dispose objects before losing scope
 				}
 

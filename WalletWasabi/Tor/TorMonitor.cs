@@ -20,14 +20,16 @@ namespace WalletWasabi.Tor
 		/// <summary>
 		/// Creates a new instance of the object.
 		/// </summary>
-		public TorMonitor(TimeSpan period, TorHttpClient httpClient, TorProcessManager torProcessManager) : base(period)
+		public TorMonitor(TimeSpan period, TorHttpClient httpClient, Uri fallbackBackendUri, TorProcessManager torProcessManager) : base(period)
 		{
 			HttpClient = httpClient;
+			FallbackBackendUri = fallbackBackendUri;
 			TorProcessManager = torProcessManager;
 		}
 
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
 		private TorHttpClient HttpClient { get; }
+		private Uri FallbackBackendUri { get; }
 		private TorProcessManager TorProcessManager { get; }
 
 		/// <inheritdoc/>
@@ -44,7 +46,8 @@ namespace WalletWasabi.Tor
 						if (torEx.RepField == RepField.HostUnreachable)
 						{
 							Logger.LogInfo("Tor does not work properly. Test fallback URI.");
-							using var _ = await HttpClient.SendAsync(HttpMethod.Get, "/", content: null, token).ConfigureAwait(false);
+							using HttpRequestMessage request = new(HttpMethod.Get, FallbackBackendUri);
+							using var _ = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
 
 							// Check if it changed in the meantime...
 							if (TorHttpClient.LatestTorException is TorConnectCommandFailedException torEx2 && torEx2.RepField == RepField.HostUnreachable)
