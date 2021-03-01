@@ -7,12 +7,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	{
 		[AutoNotify] private bool _isSelected;
 		[AutoNotify] private decimal _totalBtc;
-		[AutoNotify] private string _labels;
+		[AutoNotify] private string[] _labels;
 
-		public PocketViewModel((string labels, ICoinsView coins) pocket)
+		public PocketViewModel((string[] labels, ICoinsView coins) pocket)
 		{
 			Coins = pocket.coins;
-			_labels = string.Join(", ", pocket.labels);
+			_labels = pocket.labels;
 			_totalBtc = pocket.coins.TotalAmount().ToDecimal(MoneyUnit.BTC);
 		}
 
