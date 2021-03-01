@@ -41,7 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 				if (compatibilityPasswordUsed is { })
 				{
-					await ShowErrorAsync(PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
+					await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
 				}
 
 				var legalResult = await ShowLegalAsync(walletManagerViewModel.LegalChecker);
@@ -91,7 +91,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			}
 			else
 			{
-				await ShowErrorAsync("Error", "Wasabi was unable to login and load your wallet.");
+				await ShowErrorAsync(Title, "Error", "Wasabi was unable to login and load your wallet.");
 			}
 		}
 

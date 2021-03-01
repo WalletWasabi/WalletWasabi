@@ -33,25 +33,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{RegistrableWeightCredentials}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
 		}
 
-		public Round(Round blameOf) : this(blameOf.RoundParameters)
-		{
-			BlameOf = blameOf;
-			BlameWhitelist = blameOf
-				.Alices
-				.SelectMany(x => x.Coins)
-				.Select(x => x.Outpoint)
-				.ToHashSet();
-		}
-
 		public uint256 Hash { get; }
 		public Network Network => RoundParameters.Network;
 		public uint MaxInputCountByAlice => RoundParameters.MaxInputCountByAlice;
 		public Money MinRegistrableAmount => RoundParameters.MinRegistrableAmount;
 		public Money MaxRegistrableAmount => RoundParameters.MaxRegistrableAmount;
 		public uint RegistrableWeightCredentials => RoundParameters.RegistrableWeightCredentials;
-		public TimeSpan ConnectionConfirmationTimeout => RoundParameters.ConnectionConfirmationTimeout;
-		public TimeSpan OutputRegistrationTimeout => RoundParameters.OutputRegistrationTimeout;
-		public TimeSpan TransactionSigningTimeout => RoundParameters.TransactionSigningTimeout;
 		public FeeRate FeeRate => RoundParameters.FeeRate;
 		public WasabiRandom Random => RoundParameters.Random;
 		public CredentialIssuer AmountCredentialIssuer { get; }
@@ -59,23 +46,75 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public CredentialIssuerParameters AmountCredentialIssuerParameters { get; }
 		public CredentialIssuerParameters WeightCredentialIssuerParameters { get; }
 		public Guid Id { get; } = Guid.NewGuid();
-		public Phase Phase { get; set; } = Phase.InputRegistration;
 		public List<Alice> Alices { get; } = new();
+		public int InputCount => Alices.Sum(x => x.Coins.Count());
 		public List<Bob> Bobs { get; } = new();
-		public Round? BlameOf { get; } = null;
-		public bool IsBlameRound => BlameOf is not null;
-		public ISet<OutPoint> BlameWhitelist { get; } = new HashSet<OutPoint>();
+
+		public Round? BlameOf => RoundParameters.BlameOf;
+		public bool IsBlameRound => RoundParameters.IsBlameRound;
+		public ISet<OutPoint> BlameWhitelist => RoundParameters.BlameWhitelist;
+
+		public TimeSpan ConnectionConfirmationTimeout => RoundParameters.ConnectionConfirmationTimeout;
+		public TimeSpan OutputRegistrationTimeout => RoundParameters.OutputRegistrationTimeout;
+		public TimeSpan TransactionSigningTimeout => RoundParameters.TransactionSigningTimeout;
+
 		public byte[] UnsignedTxSecret { get; }
 		public Transaction Coinjoin { get; }
-		public RoundParameters RoundParameters { get; }
+		private RoundParameters RoundParameters { get; }
+		public Phase Phase { get; private set; } = Phase.InputRegistration;
+		public DateTimeOffset InputRegistrationStart { get; } = DateTimeOffset.UtcNow;
+		public DateTimeOffset ConnectionConfirmationStart { get; private set; }
+		public DateTimeOffset OutputRegistrationStart { get; private set; }
+		public DateTimeOffset TransactionSigningStart { get; private set; }
+		public DateTimeOffset TransactionBroadcastingStart { get; private set; }
 
-		public int RemoveAlices(Predicate<Alice> match)
+		public void SetPhase(Phase phase)
 		{
-			if (Phase != Phase.InputRegistration)
+			Phase = phase;
+
+			if (phase == Phase.ConnectionConfirmation)
 			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+				ConnectionConfirmationStart = DateTimeOffset.UtcNow;
 			}
-			return Alices.RemoveAll(match);
+			else if (phase == Phase.OutputRegistration)
+			{
+				OutputRegistrationStart = DateTimeOffset.UtcNow;
+			}
+			else if (phase == Phase.TransactionSigning)
+			{
+				TransactionSigningStart = DateTimeOffset.UtcNow;
+			}
+			else if (phase == Phase.TransactionBroadcasting)
+			{
+				TransactionBroadcastingStart = DateTimeOffset.UtcNow;
+			}
+		}
+
+		public bool IsInputRegistrationEnded(uint maxInputCount, TimeSpan inputRegistrationTimeout)
+		{
+			if (Phase > Phase.InputRegistration)
+			{
+				return true;
+			}
+
+			if (IsBlameRound)
+			{
+				if (BlameWhitelist.Count <= InputCount)
+				{
+					return true;
+				}
+			}
+			else if (InputCount >= maxInputCount)
+			{
+				return true;
+			}
+
+			if (InputRegistrationStart + inputRegistrationTimeout < DateTimeOffset.UtcNow)
+			{
+				return true;
+			}
+
+			return false;
 		}
 	}
 }

@@ -41,7 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 					catch (Exception ex)
 					{
 						Logger.LogError(ex);
-						await ShowErrorAsync(ex.ToUserFriendlyString(), "It was not possible to load the transaction.");
+						await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to load the transaction.");
 					}
 				},
 				outputScheduler: RxApp.MainThreadScheduler);
@@ -74,7 +74,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				catch (Exception ex)
 				{
 					Logger.LogError(ex);
-					await ShowErrorAsync(ex.ToUserFriendlyString(), "It was not possible to paste the transaction.");
+					await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to paste the transaction.");
 				}
 			});
 		}

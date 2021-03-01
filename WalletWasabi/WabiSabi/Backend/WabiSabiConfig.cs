@@ -11,6 +11,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.JsonConverters.Collections;
 using WalletWasabi.JsonConverters.Timing;
+using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Backend
 {
@@ -65,6 +66,16 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonProperty(PropertyName = "AllowNotedInputRegistration", DefaultValueHandling = DefaultValueHandling.Populate)]
 		public bool AllowNotedInputRegistration { get; set; } = true;
 
+		[DefaultValueTimeSpan("0d 1h 0m 0s")]
+		[JsonProperty(PropertyName = "StandardInputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonConverter(typeof(TimeSpanJsonConverter))]
+		public TimeSpan StandardInputRegistrationTimeout { get; set; } = TimeSpan.FromHours(1);
+
+		[DefaultValueTimeSpan("0d 0h 3m 0s")]
+		[JsonProperty(PropertyName = "BlameInputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonConverter(typeof(TimeSpanJsonConverter))]
+		public TimeSpan BlameInputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(3);
+
 		[DefaultValueTimeSpan("0d 0h 1m 0s")]
 		[JsonProperty(PropertyName = "ConnectionConfirmationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(TimeSpanJsonConverter))]
@@ -79,5 +90,26 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonProperty(PropertyName = "TransactionSigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(TimeSpanJsonConverter))]
 		public TimeSpan TransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
+
+		[DefaultValue(100)]
+		[JsonProperty(PropertyName = "MaxInputCountByRound", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public uint MaxInputCountByRound { get; set; } = 100;
+
+		[DefaultValue(0.5)]
+		[JsonProperty(PropertyName = "MinInputCountByRoundMultiplier", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public double MinInputCountByRoundMultiplier { get; set; } = 0.5;
+
+		public uint MinInputCountByRound => (uint)(MaxInputCountByRound * MinInputCountByRoundMultiplier);
+
+		/// <summary>
+		/// If money comes to the blame script, then either an attacker lost money or there's a client bug.
+		/// </summary>
+		[DefaultValueScript("0 1251dec2e6a6694a789f0cca6c2a9cfb4c74fb4e")]
+		[JsonProperty(PropertyName = "BlameScript", DefaultValueHandling = DefaultValueHandling.Populate)]
+		[JsonConverter(typeof(ScriptJsonConverter))]
+		public Script BlameScript { get; set; } = new Script("0 1251dec2e6a6694a789f0cca6c2a9cfb4c74fb4e");
+
+		public TimeSpan GetInputRegistrationTimeout(Round round)
+			=> round.IsBlameRound ? BlameInputRegistrationTimeout : StandardInputRegistrationTimeout;
 	}
 }

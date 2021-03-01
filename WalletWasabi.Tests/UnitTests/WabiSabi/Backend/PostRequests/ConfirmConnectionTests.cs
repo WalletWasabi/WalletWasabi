@@ -14,7 +14,7 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
+namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 {
 	public class ConfirmConnectionTests
 	{
@@ -26,12 +26,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var alice = WabiSabiFactory.CreateAlice();
 			var preDeadline = alice.Deadline;
 			round.Alices.Add(alice);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
-			var resp = handler.ConfirmConnection(req);
+			var resp = await handler.ConfirmConnectionAsync(req);
 			Assert.NotNull(resp);
 			Assert.NotNull(resp.ZeroAmountCredentials);
 			Assert.NotNull(resp.ZeroWeightCredentials);
@@ -39,6 +39,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.Null(resp.RealWeightCredentials);
 			Assert.NotEqual(preDeadline, alice.Deadline);
 			Assert.True(minAliceDeadline <= alice.Deadline);
+			Assert.False(alice.ConfirmedConnetion);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -48,21 +49,23 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			round.Phase = Phase.ConnectionConfirmation;
+
+			round.SetPhase(Phase.ConnectionConfirmation);
 			var alice = WabiSabiFactory.CreateAlice();
 			var preDeadline = alice.Deadline;
 			round.Alices.Add(alice);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
-			var resp = handler.ConfirmConnection(req);
+			var resp = await handler.ConfirmConnectionAsync(req);
 			Assert.NotNull(resp);
 			Assert.NotNull(resp.ZeroAmountCredentials);
 			Assert.NotNull(resp.ZeroWeightCredentials);
 			Assert.NotNull(resp.RealAmountCredentials);
 			Assert.NotNull(resp.RealWeightCredentials);
 			Assert.Equal(preDeadline, alice.Deadline);
+			Assert.True(alice.ConfirmedConnetion);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -73,7 +76,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
 			await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest();
-			var ex = Assert.Throws<WabiSabiProtocolException>(() => handler.ConfirmConnection(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.ConfirmConnectionAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -83,24 +86,26 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task WrongPhaseAsync()
 		{
 			WabiSabiConfig cfg = new();
-			var round = WabiSabiFactory.CreateRound(cfg);
 			var alice = WabiSabiFactory.CreateAlice();
 			var preDeadline = alice.Deadline;
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
+			var round = arena.Rounds.First().Value;
 			round.Alices.Add(alice);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
 			{
 				if (phase != Phase.InputRegistration && phase != Phase.ConnectionConfirmation)
 				{
-					round.Phase = phase;
+					round.SetPhase(phase);
 					await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
-					var ex = Assert.Throws<WabiSabiProtocolException>(() => handler.ConfirmConnection(req));
+					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.ConfirmConnectionAsync(req));
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 				}
 			}
 			Assert.Equal(preDeadline, alice.Deadline);
+			Assert.False(alice.ConfirmedConnetion);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -110,11 +115,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
-			var ex = Assert.Throws<WabiSabiProtocolException>(() => handler.ConfirmConnection(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.ConfirmConnectionAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.AliceNotFound, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -125,10 +130,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			round.Phase = Phase.ConnectionConfirmation;
+			round.SetPhase(Phase.ConnectionConfirmation);
 			var alice = WabiSabiFactory.CreateAlice();
 			round.Alices.Add(alice);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 			req = new(
@@ -139,8 +144,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				req.ZeroWeightCredentialRequests,
 				WabiSabiFactory.CreateRealCredentialRequests(round, null, 234).weightReq);
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
-			var ex = Assert.Throws<WabiSabiProtocolException>(() => handler.ConfirmConnection(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.ConfirmConnectionAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials, ex.ErrorCode);
+			Assert.False(alice.ConfirmedConnetion);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -150,10 +156,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
-			round.Phase = Phase.ConnectionConfirmation;
+			round.SetPhase(Phase.ConnectionConfirmation);
 			var alice = WabiSabiFactory.CreateAlice();
 			round.Alices.Add(alice);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 			req = new(
@@ -164,8 +170,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				req.ZeroWeightCredentialRequests,
 				req.RealWeightCredentialRequests);
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
-			var ex = Assert.Throws<WabiSabiProtocolException>(() => handler.ConfirmConnection(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.ConfirmConnectionAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, ex.ErrorCode);
+			Assert.False(alice.ConfirmedConnetion);
 
 			await arena.StopAsync(CancellationToken.None);
 		}

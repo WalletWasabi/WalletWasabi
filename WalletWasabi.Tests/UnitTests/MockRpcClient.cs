@@ -7,7 +7,7 @@ using WalletWasabi.BitcoinCore.Rpc.Models;
 
 namespace WalletWasabi.Tests.UnitTests
 {
-	internal class MockRpcClient : IRPCClient
+	public class MockRpcClient : IRPCClient
 	{
 		public Func<Task<uint256>> OnGetBestBlockHashAsync { get; set; }
 		public Func<uint256, int, bool, GetTxOutResponse?> OnGetTxOutAsync { get; set; }
@@ -16,6 +16,7 @@ namespace WalletWasabi.Tests.UnitTests
 		public Func<uint256, Task<BlockHeader>> OnGetBlockHeaderAsync { get; set; }
 		public Func<Task<BlockchainInfo>> OnGetBlockchainInfoAsync { get; set; }
 		public Func<uint256, Task<VerboseBlockInfo>> OnGetVerboseBlockAsync { get; set; }
+		public Func<Transaction, uint256> OnSendRawTransactionAsync { get; set; }
 		public Func<Task<MemPoolInfo>> OnGetMempoolInfoAsync { get; set; }
 		public Func<int, EstimateSmartFeeMode, Task<EstimateSmartFeeResponse>> OnEstimateSmartFeeAsync { get; set; }
 		public Func<Task<PeerInfo[]>> OnGetPeersInfoAsync { get; set; }
@@ -126,7 +127,8 @@ namespace WalletWasabi.Tests.UnitTests
 
 		public Task<uint256> SendRawTransactionAsync(Transaction transaction)
 		{
-			throw new NotImplementedException();
+			var resp = OnSendRawTransactionAsync(transaction);
+			return Task.FromResult(resp);
 		}
 
 		public Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, string? commentTx = null, string? commentDest = null, bool subtractFeeFromAmount = false, bool replaceable = false)

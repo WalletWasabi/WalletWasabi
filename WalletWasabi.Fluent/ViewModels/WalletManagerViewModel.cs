@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Actions;
@@ -27,6 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private readonly Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 		private readonly Dictionary<WalletViewModelBase, List<NavBarItemViewModel>> _walletActionsDictionary;
 		private readonly ReadOnlyObservableCollection<NavBarItemViewModel> _items;
+		private readonly TransactionBroadcaster _transactionBroadcaster;
 		private NavBarItemViewModel? _currentSelection;
 		[AutoNotify] private WalletViewModelBase? _selectedWallet;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
@@ -35,7 +37,8 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private ObservableCollection<WalletViewModelBase> _wallets;
 		[AutoNotify] private bool _anyWalletStarted;
 
-		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig, BitcoinStore bitcoinStore, LegalChecker legalChecker)
+		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig, BitcoinStore bitcoinStore,
+			LegalChecker legalChecker, TransactionBroadcaster broadcaster)
 		{
 			WalletManager = walletManager;
 			BitcoinStore = bitcoinStore;
@@ -45,6 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			_actions = new ObservableCollection<NavBarItemViewModel>();
 			_wallets = new ObservableCollection<WalletViewModelBase>();
 			_loggedInAndSelectedAlwaysFirst = true;
+			_transactionBroadcaster = broadcaster;
 
 			static Func<WalletViewModelBase, bool> SelectedWalletFilter(WalletViewModelBase? selected)
 			{
@@ -270,7 +274,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (wallet.KeyManager.IsHardwareWallet || !wallet.KeyManager.IsWatchOnly)
 			{
-				actions.Add(new SendViewModel(walletViewModel));
+				actions.Add(new SendViewModel(walletViewModel, _transactionBroadcaster));
 			}
 
 			actions.Add(new ReceiveViewModel(walletViewModel, WalletManager, BitcoinStore));

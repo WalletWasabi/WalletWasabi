@@ -13,7 +13,7 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
+namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 {
 	public class RemoveInputTests
 	{
@@ -24,17 +24,17 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var round = WabiSabiFactory.CreateRound(cfg);
 			var alice = WabiSabiFactory.CreateAlice();
 			round.Alices.Add(alice);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 
 			// There's no such alice yet, so success.
 			var req = new InputsRemovalRequest(round.Id, Guid.NewGuid());
-			handler.RemoveInput(req);
+			await handler.RemoveInputAsync(req);
 
 			// There was the alice we want to remove so success.
 			req = new InputsRemovalRequest(round.Id, alice.Id);
-			handler.RemoveInput(req);
+			await handler.RemoveInputAsync(req);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 
 			await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
 			var req = new InputsRemovalRequest(Guid.NewGuid(), Guid.NewGuid());
-			var ex = Assert.Throws<WabiSabiProtocolException>(() => handler.RemoveInput(req));
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RemoveInputAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -56,17 +56,18 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task WrongPhaseAsync()
 		{
 			WabiSabiConfig cfg = new();
-			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
+			var round = arena.Rounds.First().Value;
 
 			var req = new InputsRemovalRequest(round.Id, Guid.NewGuid());
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
 			{
 				if (phase != Phase.InputRegistration)
 				{
-					round.Phase = phase;
+					round.SetPhase(phase);
 					await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
-					var ex = Assert.Throws<WabiSabiProtocolException>(() => handler.RemoveInput(req));
+					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RemoveInputAsync(req));
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 				}
 			}

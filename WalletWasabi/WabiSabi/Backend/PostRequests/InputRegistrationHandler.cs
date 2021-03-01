@@ -16,7 +16,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 {
 	public static class InputRegistrationHandler
 	{
-		public static async Task<Dictionary<Coin, byte[]>> PreProcessAsync(
+		public static async Task<IDictionary<Coin, byte[]>> PreProcessAsync(
 			InputsRegistrationRequest request,
 			Prison prison,
 			IRPCClient rpc,
@@ -64,6 +64,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 		}
 
 		public static InputsRegistrationResponse RegisterInput(
+			WabiSabiConfig config,
 			Guid roundId,
 			IDictionary<Coin, byte[]> coinRoundSignaturePairs,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
@@ -119,7 +120,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchWeight);
 			}
 
-			if (round.Phase != Phase.InputRegistration)
+			if (round.IsInputRegistrationEnded(config.MaxInputCountByRound, config.GetInputRegistrationTimeout(round)))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 			}
@@ -127,28 +128,32 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			var amountCredentialResponse = round.AmountCredentialIssuer.HandleRequest(zeroAmountCredentialRequests);
 			var weightCredentialResponse = round.WeightCredentialIssuer.HandleRequest(zeroWeightCredentialRequests);
 
-			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
-			foreach (var otherRound in rounds.Values)
-			{
-				foreach (var op in alice.Coins.Select(x => x.Outpoint))
-				{
-					try
-					{
-						if (otherRound.RemoveAlices(x => x.Coins.Select(x => x.Outpoint).Contains(op)) > 0)
-						{
-							Logger.LogInfo("Updated Alice registration.");
-						}
-					}
-					catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
-					{
-						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
-					}
-				}
-			}
+			RemoveDuplicateAlices(rounds, alice);
 
+			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
 			round.Alices.Add(alice);
 
 			return new(alice.Id, amountCredentialResponse, weightCredentialResponse);
+		}
+
+		private static void RemoveDuplicateAlices(IDictionary<Guid, Round> rounds, Alice alice)
+		{
+			foreach (var (otherRound, op) in rounds
+							.Values
+							.SelectMany(otherRound => alice
+								.Coins
+								.Select(x => x.Outpoint)
+								.Select(op => (otherRound, op))))
+			{
+				if (otherRound.Phase != Phase.InputRegistration)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
+				}
+				if (otherRound.Alices.RemoveAll(x => x.Coins.Select(x => x.Outpoint).Contains(op)) > 0)
+				{
+					Logger.LogInfo("Updated Alice registration.");
+				}
+			}
 		}
 	}
 }
