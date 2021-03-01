@@ -158,7 +158,7 @@ namespace WalletWasabi.Gui
 
 					var httpClient = (WalletWasabi.Tor.Http.TorHttpClient)Synchronizer.HttpClientFactory.NewHttpClient(() => null!, isolateStream: false);
 #pragma warning disable CA2000 // Dispose objects before losing scope
-					HostedServices.Register(new TorMonitor(period: TimeSpan.FromSeconds(3), httpClient, Config.GetFallbackBackendUri(), TorManager), nameof(TorMonitor));
+					HostedServices.Register(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackBackendUri: Config.GetFallbackBackendUri(), httpClient: httpClient, torProcessManager: TorManager), nameof(TorMonitor));
 #pragma warning restore CA2000 // Dispose objects before losing scope
 				}
 

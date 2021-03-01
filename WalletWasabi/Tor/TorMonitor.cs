@@ -20,7 +20,7 @@ namespace WalletWasabi.Tor
 		/// <summary>
 		/// Creates a new instance of the object.
 		/// </summary>
-		public TorMonitor(TimeSpan period, TorHttpClient httpClient, Uri fallbackBackendUri, TorProcessManager torProcessManager) : base(period)
+		public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorHttpClient httpClient, TorProcessManager torProcessManager) : base(period)
 		{
 			HttpClient = httpClient;
 			FallbackBackendUri = fallbackBackendUri;
