@@ -182,30 +182,19 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		private async Task FailTransactionSigningPhaseAsync(Round round)
 		{
 			var alicesWhoDidntSign = round
-			.Alices
-			.Where(x => !x
-				.Coins
-				.Select(x => x.Outpoint)
-				.All(y => round.Coinjoin.Inputs.Select(x => x.PrevOut).Contains(y)))
-			.ToHashSet();
+				.Alices
+				.Where(x => !x
+					.Coins
+					.Select(x => x.Outpoint)
+					.All(y => round.Coinjoin.Inputs.Where(x => x.HasWitScript()).Select(x => x.PrevOut).Contains(y)))
+				.ToHashSet();
 
-			// If we found someone to ban don't check for spent inputs
-			// because that's expensive with Bitcoin Core's RPC.
-			var alicesToBan = alicesWhoDidntSign;
-			if (!alicesWhoDidntSign.Any())
-			{
-				await foreach (var alice in GetSpentAlicesAsync(round.Alices).ConfigureAwait(false))
-				{
-					alicesToBan.Add(alice);
-				}
-			}
-
-			foreach (var alice in alicesToBan)
+			foreach (var alice in alicesWhoDidntSign)
 			{
 				Prison.Note(alice, round.Id);
 			}
 
-			round.Alices.RemoveAll(x => alicesToBan.Contains(x));
+			round.Alices.RemoveAll(x => alicesWhoDidntSign.Contains(x));
 			Rounds.Remove(round.Id);
 
 			if (round.InputCount >= Config.MinInputCountByRound)
@@ -242,31 +231,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				if (removedAliceCount > 0)
 				{
 					Logger.LogInfo($"{removedAliceCount} alices timed out and removed.");
-				}
-			}
-		}
-
-		private async IAsyncEnumerable<Alice> GetSpentAlicesAsync(IEnumerable<Alice> alices)
-		{
-			foreach (var alice in alices)
-			{
-				foreach (var input in alice.Coins.Select(x => x.Outpoint))
-				{
-					GetTxOutResponse? resp = null;
-					try
-					{
-						resp = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true).ConfigureAwait(false);
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-					}
-
-					if (resp is null)
-					{
-						yield return alice;
-						break;
-					}
 				}
 			}
 		}
