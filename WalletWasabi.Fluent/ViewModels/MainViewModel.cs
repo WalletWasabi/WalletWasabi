@@ -69,7 +69,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				global.BitcoinStore.SmartHeaderChain,
 				global.Synchronizer);
 
-			_walletManagerViewModel = new WalletManagerViewModel(global.WalletManager, global.UiConfig, _global.BitcoinStore, _global.LegalChecker);
+			_walletManagerViewModel = new WalletManagerViewModel(global.WalletManager, global.UiConfig, _global.BitcoinStore, _global.LegalChecker, _global.TransactionBroadcaster);
 
 			_addWalletPage = new AddWalletPageViewModel(
 				_walletManagerViewModel,
@@ -182,11 +182,6 @@ namespace WalletWasabi.Fluent.ViewModels
 
 					if (dialogResult.Result is { })
 					{
-						while (_global.TransactionBroadcaster is null)
-						{
-							await Task.Delay(100);
-						}
-
 						return new BroadcastTransactionViewModel(
 							_global.BitcoinStore,
 							_global.Network,
