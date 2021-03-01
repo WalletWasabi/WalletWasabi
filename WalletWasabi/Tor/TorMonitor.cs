@@ -22,8 +22,8 @@ namespace WalletWasabi.Tor
 		/// </summary>
 		public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorHttpClient httpClient, TorProcessManager torProcessManager) : base(period)
 		{
-			HttpClient = httpClient;
 			FallbackBackendUri = fallbackBackendUri;
+			HttpClient = httpClient;
 			TorProcessManager = torProcessManager;
 		}
 
