@@ -28,8 +28,8 @@ namespace WalletWasabi.Tor
 		}
 
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
-		private TorHttpClient HttpClient { get; }
 		private Uri FallbackBackendUri { get; }
+		private TorHttpClient HttpClient { get; }
 		private TorProcessManager TorProcessManager { get; }
 
 		/// <inheritdoc/>
