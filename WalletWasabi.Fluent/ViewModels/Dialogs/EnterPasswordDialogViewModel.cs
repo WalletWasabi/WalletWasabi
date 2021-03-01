@@ -1,8 +1,6 @@
 using System.Reactive.Linq;
 using ReactiveUI;
-using WalletWasabi.Fluent.Validation;
-using WalletWasabi.Models;
-using WalletWasabi.Userfacing;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
