@@ -18,14 +18,15 @@
                    NextContent="Continue"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DockPanel>
-            <Panel DockPanel.Dock="Bottom">
-                <c:InfoMessage Foreground="{DynamicResource WarningMessageForeground}" HorizontalAlignment="Center" IsVisible="{Binding !EnoughSelected}">
+            <Panel MinHeight="60" DockPanel.Dock="Bottom">
+                <c:InfoMessage Foreground="{DynamicResource WarningMessageForeground}" HorizontalAlignment="Center" VerticalAlignment="Top" IsVisible="{Binding !EnoughSelected}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Insufficient funds selected. Select at least another "/>
                         <TextBlock Text="{Binding StillNeeded}" />
                         <TextBlock Text=" BTC" />
                     </StackPanel>
                 </c:InfoMessage>
+                <c:InfoMessage Content="Not in a hurry? Consider making more of your funds private by CoinJoining before making this transaction." HorizontalAlignment="Center" VerticalAlignment="Bottom" />
             </Panel>
             <DataGrid AutoGenerateColumns="False"
                       Items="{Binding Pockets}">
