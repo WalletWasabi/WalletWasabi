@@ -183,6 +183,14 @@
         </Setter>
     </Style>
 
+    <Style Selector="c|CurrencyEntryBox:noexchangerate Button#PART_SwapButton">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <Style Selector="c|CurrencyEntryBox:noexchangerate TextBlock#PART_ConversionWatermark">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+
     <Style Selector="c|CurrencyEntryBox /template/ Border#PART_BorderElement">
         <Setter Property="CornerRadius" Value="0" />
     </Style>
