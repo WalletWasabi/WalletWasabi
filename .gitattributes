@@ -65,5 +65,5 @@
 # behavior shebang files on macOS and Unix
 
 ###############################################################################
-**/osx64/Tor/** text eol=lf
+**/osx64/Tor/tor text eol=lf
 
