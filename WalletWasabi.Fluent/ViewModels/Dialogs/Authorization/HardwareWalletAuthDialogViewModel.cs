@@ -19,7 +19,13 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 		{
 			_wallet = wallet;
 			_buildTransactionResult = buildTransactionResult;
+			IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
+			WalletIcon = _wallet.KeyManager.Icon;
 		}
+
+		public string? WalletIcon { get; }
+
+		public bool IsHardwareWallet { get; }
 
 		protected override async Task Authorize()
 		{
