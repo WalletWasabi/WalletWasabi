@@ -250,7 +250,7 @@ namespace WalletWasabi.Tests.UnitTests
 			rpc.OnGetMempoolInfoAsync = async () => await Task.FromResult(
 				new MemPoolInfo()
 				{ 
-					Histogram = new FeeRateGroup[0] 
+					Histogram = Array.Empty<FeeRateGroup>()
 				}
 			);
 
