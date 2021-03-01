@@ -14,11 +14,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, TransactionBroadcaster broadcaster,
-			BuildTransactionResult buildTransactionResult)
+			BuildTransactionResult transaction)
 		{
-			var destinationAmount = buildTransactionResult.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+			var destinationAmount = transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 
-			var fee = buildTransactionResult.Fee;
+			var fee = transaction.Fee;
 
 			var labels = "";
 
@@ -48,11 +48,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			FiatFeeText =
 				$"(≈{(fee.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD)";
 
-			PercentFeeText = $"{buildTransactionResult.FeePercentOfSent:F2}%";
+			PercentFeeText = $"{transaction.FeePercentOfSent:F2}%";
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				var transactionAuthorizationInfo = new TransactionAuthorizationInfo(buildTransactionResult);
+				var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 				var authDialog = AuthorizationHelpers.GetAuthorizationDialog(wallet, transactionAuthorizationInfo);
 				var authDialogResult = await NavigateDialog(authDialog, NavigationTarget.DialogScreen);
 
