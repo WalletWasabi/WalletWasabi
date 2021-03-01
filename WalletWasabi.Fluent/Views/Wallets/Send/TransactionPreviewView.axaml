@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
-             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="450"
+             mc:Ignorable="d"
              x:DataType="vm:TransactionPreviewViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionPreviewView">
@@ -14,29 +14,72 @@
                    EnableNext="True" NextContent="Confirm"
                    IsBusy="{Binding IsBusy}"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
-        <StackPanel Spacing="50">
-            <WrapPanel>
-                <TextBlock Text="A total of " Opacity="0.7" />
-                <TextBlock Text="{Binding BtcAmountText}" FontWeight="Bold" />
-                <TextBlock Text="{Binding FiatAmountText}" FontWeight="Bold" />
-                <TextBlock Text="will be sent to " Opacity="0.7" />
-                <TextBlock Text="{Binding LabelsText}" FontWeight="Bold" />
-                <TextBlock Text="via " Opacity="0.7" />
-                <TextBlock Text="{Binding AddressText}" FontWeight="Bold"  />
-                <TextBlock Text="." Opacity="0.7"  />
-            </WrapPanel>
+        <StackPanel Spacing="50" MaxWidth="800">
+            <StackPanel Opacity="0.7" Orientation="Horizontal" Spacing="30" HorizontalAlignment="Center">
+                <Viewbox Height="75">
+                    <Panel>
+                        <Ellipse Stroke="{DynamicResource PrivacyOptimisationLevelStandardBrush}" StrokeThickness="4" Height="115" Width="115" />
+                        <Ellipse Stroke="{DynamicResource PrivacyOptimisationLevelStandardBrush}" StrokeThickness="3" StrokeDashArray="2.0, 1.5" Height="100" Width="100" />
+                        <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50" Foreground="{DynamicResource PrivacyOptimisationLevelStandardBrush}" />
+                    </Panel>
+                </Viewbox>
+                <Viewbox Height="75">
+                    <Panel>
+                        <Ellipse Stroke="{DynamicResource PrivacyOptimisationLevelStandardBrush}" StrokeThickness="4" Height="115" Width="115" />
+                        <Ellipse Stroke="{DynamicResource PrivacyOptimisationLevelStandardBrush}" StrokeThickness="3" StrokeDashArray="2.0, 1.5" Height="100" Width="100" />
+                        <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50" Foreground="{DynamicResource PrivacyOptimisationLevelStandardBrush}" />
+                    </Panel>
+                </Viewbox>
+                <Viewbox Height="75">
+                    <Panel>
+                        <Ellipse Stroke="{DynamicResource PrivacyOptimisationLevelStandardBrush}" StrokeThickness="4" Height="115" Width="115" />
+                        <Ellipse Stroke="{DynamicResource PrivacyOptimisationLevelStandardBrush}" StrokeThickness="3" StrokeDashArray="2.0, 1.5" Height="100" Width="100" />
+                        <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50" Foreground="{DynamicResource PrivacyOptimisationLevelStandardBrush}" />
+                    </Panel>
+                </Viewbox>
+            </StackPanel>
 
-            <WrapPanel>
-                <TextBlock Text="Bitcoin miners will work hard to confirm your transaction within " Opacity="0.7" />
-                <TextBlock Text="{Binding ConfirmationTimeText}" FontWeight="Bold" />
-                <TextBlock Text="for an additional fee of " Opacity="0.7" />
-                <TextBlock Text="{Binding BtcFeeText}" FontWeight="Bold" />
-                <TextBlock Text="{Binding FiatFeeText}" FontWeight="Bold" />
-                <TextBlock Text=", " Opacity="0.7" />
-                <TextBlock Text="this is a charge equivalent to " Opacity="0.7" />
-                <TextBlock Text="{Binding PercentFeeText}" FontWeight="Bold" />
-                <TextBlock Text="." Opacity="0.7"  />
-            </WrapPanel>
+            <StackPanel Spacing="20">
+                <StackPanel.Styles>
+                    <Style Selector="TextBlock.storyline">
+                        <Setter Property="Opacity" Value="0.6" />
+                        <Setter Property="FontSize" Value="14" />
+                    </Style>
+                    <Style Selector="TextBlock.field">
+                        <Setter Property="FontSize" Value="20" />
+                    </Style>
+                </StackPanel.Styles>
+                <StackPanel Orientation="Horizontal" Spacing="50">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="A total of " Classes="storyline" />
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Classes="field" Text="{Binding BtcAmountText, FallbackValue=0.213 BTC}" />
+                            <TextBlock Classes="field" Text="{Binding FiatAmountText, FallbackValue=(≈55.34 USD)}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="Will be sent to and/or known by" Classes="storyline" />
+                        <c:TagsBox IsReadOnly="True" Items="{Binding Labels}" />
+                    </StackPanel>
+                </StackPanel>
+                <Separator />
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Will be sent via Bitcoin address" Classes="storyline" />
+                    <TextBlock Classes="field" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
+                </StackPanel>
+                <Separator />
+                <WrapPanel>
+                    <TextBlock Classes="storyline" Text="Bitcoin miners will work hard to confirm your transaction within " />
+                    <TextBlock Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }"  />
+                    <TextBlock Classes="storyline" Text=" for an additional fee of "  />
+                    <TextBlock Text="{Binding BtcFeeText, FallbackValue=235 satoshis}" />
+                    <TextBlock Text="{Binding FiatFeeText, FallbackValue=(≈55.34 USD)}" />
+                    <TextBlock Text=", " Classes="storyline" />
+                    <TextBlock Text="this is a charge equivalent to " Classes="storyline" />
+                    <TextBlock Text="{Binding PercentFeeText, FallbackValue=0.01%}" />
+                    <TextBlock Text=" of the total amount." Classes="storyline" />
+                </WrapPanel>
+            </StackPanel>
         </StackPanel>
     </c:ContentArea>
 </UserControl>

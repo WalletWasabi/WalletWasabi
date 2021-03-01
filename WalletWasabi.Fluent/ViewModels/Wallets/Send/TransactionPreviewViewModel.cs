@@ -40,6 +40,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			LabelsText = labels;
 
+			Labels = info.Labels.Labels.ToArray();
+
 			AddressText = info.Address.ToString();
 
 			ConfirmationTimeText = "~20 minutes ";
@@ -79,6 +81,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public string BtcAmountText { get; }
 
 		public string FiatAmountText { get; }
+
+		public string[] Labels { get; }
 
 		public string LabelsText { get; }
 
