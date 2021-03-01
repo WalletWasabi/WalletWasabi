@@ -68,16 +68,27 @@ namespace WalletWasabi.Tests.Helpers
 				new InsecureRandom(),
 				new(100m)));
 
-		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig? cfg = null, params Round[] rounds)
+		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, params Round[] rounds)
+			=> await CreateAndStartArenaAsync(cfg, null, rounds);
+
+		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig? cfg = null, MockRpcClient? mockRpc = null, params Round[] rounds)
 		{
-			var mockRpc = new MockRpcClient();
-			mockRpc.OnEstimateSmartFeeAsync = async (target, _) =>
+			mockRpc ??= new MockRpcClient();
+			mockRpc.OnEstimateSmartFeeAsync ??= async (target, _) =>
 				await Task.FromResult(new EstimateSmartFeeResponse
 				{
 					Blocks = target,
 					FeeRate = new FeeRate(10m)
 				});
-			Arena arena = new(TimeSpan.FromSeconds(21), rounds.FirstOrDefault()?.Network ?? Network.Main, cfg ?? new WabiSabiConfig(), mockRpc, new Prison());
+			mockRpc.OnSendRawTransactionAsync ??= (tx) => tx.GetHash();
+			mockRpc.OnGetTxOutAsync ??= (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new(Money.Coins(1), Script.Empty)
+			};
+
+			Arena arena = new(TimeSpan.FromHours(1), rounds.FirstOrDefault()?.Network ?? Network.Main, cfg ?? new WabiSabiConfig(), mockRpc, new Prison());
 			foreach (var round in rounds)
 			{
 				arena.Rounds.Add(round.Id, round);
@@ -315,6 +326,26 @@ namespace WalletWasabi.Tests.Helpers
 			}
 
 			return ret;
+		}
+
+		public static Round CreateBlameRound(Round round, WabiSabiConfig cfg)
+		{
+			RoundParameters parameters = new(cfg, round.Network, round.Random, round.FeeRate, blameOf: round);
+			return new(parameters);
+		}
+
+		public static MockRpcClient CreateMockRpc(Key? key = null)
+		{
+			MockRpcClient rpc = new();
+
+			rpc.OnGetTxOutAsync = (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new(Money.Coins(1), key?.PubKey.GetSegwitAddress(Network.Main).ScriptPubKey ?? Script.Empty)
+			};
+
+			return rpc;
 		}
 	}
 }

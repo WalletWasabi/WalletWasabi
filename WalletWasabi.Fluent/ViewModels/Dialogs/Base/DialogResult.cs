@@ -1,4 +1,4 @@
-namespace WalletWasabi.Fluent.ViewModels.Dialogs
+namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
 {
 	public struct DialogResult<TResult>
 	{
