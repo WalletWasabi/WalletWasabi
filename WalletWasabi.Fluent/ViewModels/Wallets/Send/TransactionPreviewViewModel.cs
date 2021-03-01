@@ -4,6 +4,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Model;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
@@ -51,13 +52,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				var authDialog = AuthorizationHelpers.GetAuthorizationDialog(wallet, buildTransactionResult);
-
+				var transactionAuthorizationInfo = new TransactionAuthorizationInfo(buildTransactionResult);
+				var authDialog = AuthorizationHelpers.GetAuthorizationDialog(wallet, transactionAuthorizationInfo);
 				var authDialogResult = await NavigateDialog(authDialog, NavigationTarget.DialogScreen);
 
-				if (authDialogResult.Result is { } signedTransaction)
+				if (authDialogResult.Result)
 				{
-					await broadcaster.SendTransactionAsync(signedTransaction);
+					await broadcaster.SendTransactionAsync(transactionAuthorizationInfo.Transaction);
 					Navigate().Clear();
 				}
 			});

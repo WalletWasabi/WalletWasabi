@@ -10,13 +10,11 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 	public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 	{
 		private readonly Wallet _wallet;
-		private readonly SmartTransaction _transaction;
 		[AutoNotify] private string _password;
 
-		public PasswordAuthDialogViewModel(Wallet wallet, SmartTransaction transaction)
+		public PasswordAuthDialogViewModel(Wallet wallet)
 		{
 			_wallet = wallet;
-			_transaction = transaction;
 			_password = "";
 		}
 
@@ -29,15 +27,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 		{
 			var passwordValid = await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, Password, out _));
 
-			if (passwordValid)
-			{
-				Close(DialogResultKind.Normal, _transaction);
-			}
-			else
+			if (!passwordValid)
 			{
 				await ShowErrorAsync("Password", "Password was incorrect.", "");
-				Close();
 			}
+
+			Close(DialogResultKind.Normal, passwordValid);
 		}
 	}
 }

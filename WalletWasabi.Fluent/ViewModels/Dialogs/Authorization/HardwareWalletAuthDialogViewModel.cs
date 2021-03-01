@@ -2,8 +2,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
-using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
+using WalletWasabi.Fluent.Model;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Hwi;
 using WalletWasabi.Wallets;
@@ -14,12 +14,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 	public partial class HardwareWalletAuthDialogViewModel : AuthorizationDialogBase
 	{
 		private readonly Wallet _wallet;
-		private readonly BuildTransactionResult _buildTransactionResult;
+		private readonly TransactionAuthorizationInfo _transactionAuthorizationInfo;
 
-		public HardwareWalletAuthDialogViewModel(Wallet wallet, BuildTransactionResult buildTransactionResult)
+		public HardwareWalletAuthDialogViewModel(Wallet wallet, TransactionAuthorizationInfo transactionAuthorizationInfo)
 		{
 			_wallet = wallet;
-			_buildTransactionResult = buildTransactionResult;
+			_transactionAuthorizationInfo = transactionAuthorizationInfo;
 			IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
 			WalletIcon = _wallet.KeyManager.Icon;
 		}
@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 			await _wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
 
 			// If it's a hardware wallet and still has a private key then it's password.
-			if (_wallet.KeyManager.IsHardwareWallet && !_buildTransactionResult.Signed)
+			if (IsHardwareWallet && !_transactionAuthorizationInfo.BuildTransactionResult.Signed)
 			{
 				try
 				{
@@ -43,12 +43,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 
 					var signedPsbt = await client.SignTxAsync(
 						_wallet.KeyManager.MasterFingerprint!.Value,
-						_buildTransactionResult.Psbt,
+						_transactionAuthorizationInfo.BuildTransactionResult.Psbt,
 						cts.Token);
 
-					var signedTransaction = signedPsbt.ExtractSmartTransaction(_buildTransactionResult.Transaction);
+					_transactionAuthorizationInfo.Transaction = signedPsbt.ExtractSmartTransaction(_transactionAuthorizationInfo.Transaction);
 
-					Close(DialogResultKind.Normal, signedTransaction);
+					Close(DialogResultKind.Normal, true);
 				}
 				catch (Exception ex)
 				{

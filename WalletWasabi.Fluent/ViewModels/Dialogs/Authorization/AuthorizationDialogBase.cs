@@ -6,7 +6,7 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 {
-	public abstract class AuthorizationDialogBase : DialogViewModelBase<SmartTransaction?>
+	public abstract class AuthorizationDialogBase : DialogViewModelBase<bool>
 	{
 		protected AuthorizationDialogBase()
 		{
