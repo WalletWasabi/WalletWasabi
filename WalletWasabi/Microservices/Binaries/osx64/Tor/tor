@@ -10,3 +10,4 @@ export DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH
 cd "$(dirname "$0")"
 exec ./tor.real "$@"
 # Random Comment Dump to change the digest "je202kjnfoj2iuwkekjjreiejr9"
+# Use only LF as line-ending in this file, otherwise macOS cannot interpret
