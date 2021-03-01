@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 

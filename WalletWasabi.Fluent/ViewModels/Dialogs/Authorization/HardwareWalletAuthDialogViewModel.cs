@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Hwi;
 using WalletWasabi.Wallets;
 
