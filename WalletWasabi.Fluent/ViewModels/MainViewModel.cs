@@ -3,10 +3,9 @@ using System.Reactive.Concurrency;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using Global = WalletWasabi.Gui.Global;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -15,9 +14,10 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
-using WalletWasabi.Legal;
 using WalletWasabi.Services;
 using WalletWasabi.Logging;
+using DialogScreenViewModel = WalletWasabi.Fluent.ViewModels.Dialogs.Base.DialogScreenViewModel;
+using DialogViewModelBase = WalletWasabi.Fluent.ViewModels.Dialogs.Base.DialogViewModelBase;
 
 namespace WalletWasabi.Fluent.ViewModels
 {

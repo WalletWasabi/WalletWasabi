@@ -1,4 +1,4 @@
-namespace WalletWasabi.Fluent.ViewModels.Dialogs
+namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
 {
 	/// <summary>
 	/// Interface for ViewModels that can host a modal dialog.
@@ -8,6 +8,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		/// <summary>
 		/// The currently active dialog. The modal dialog UI should close when this is null.
 		/// </summary>
-		DialogViewModelBase? CurrentDialog { get; set; }
+		Base.DialogViewModelBase? CurrentDialog { get; set; }
 	}
 }

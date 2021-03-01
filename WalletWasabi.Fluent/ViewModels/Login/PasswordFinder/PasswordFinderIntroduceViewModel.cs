@@ -1,5 +1,6 @@
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 using WalletWasabi.Wallets.PasswordFinder;

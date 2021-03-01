@@ -1,9 +1,9 @@
-using ReactiveUI;
 using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using ReactiveUI;
 
-namespace WalletWasabi.Fluent.ViewModels.Dialogs
+namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
 {
 	/// <summary>
 	/// Base ViewModel class for Dialogs that returns a value back.
@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	/// Spawn a new instance instead after that.
 	/// </summary>
 	/// <typeparam name="TResult">The type of the value to be returned when the dialog is finished.</typeparam>
-	public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
+	public abstract class DialogViewModelBase<TResult> : Base.DialogViewModelBase
 	{
 		private readonly IDisposable _disposable;
 		private readonly TaskCompletionSource<DialogResult<TResult>> _currentTaskCompletionSource;
