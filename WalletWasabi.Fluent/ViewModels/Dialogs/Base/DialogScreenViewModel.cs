@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
 			_maxContentWidth = maxContentWidth;
 			_maxContentHeight = maxContentHeight;
 
-			this.WhenAnyValue<DialogScreenViewModel, bool>(x => x.IsDialogOpen)
+			this.WhenAnyValue(x => x.IsDialogOpen)
 				.Skip(1) // Skip the initial value change (which is false).
 				.DistinctUntilChanged()
 				.Subscribe(

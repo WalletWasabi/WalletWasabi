@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
 	/// Spawn a new instance instead after that.
 	/// </summary>
 	/// <typeparam name="TResult">The type of the value to be returned when the dialog is finished.</typeparam>
-	public abstract class DialogViewModelBase<TResult> : Base.DialogViewModelBase
+	public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
 	{
 		private readonly IDisposable _disposable;
 		private readonly TaskCompletionSource<DialogResult<TResult>> _currentTaskCompletionSource;

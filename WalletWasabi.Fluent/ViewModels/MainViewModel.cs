@@ -16,8 +16,6 @@ using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Services;
 using WalletWasabi.Logging;
-using DialogScreenViewModel = WalletWasabi.Fluent.ViewModels.Dialogs.Base.DialogScreenViewModel;
-using DialogViewModelBase = WalletWasabi.Fluent.ViewModels.Dialogs.Base.DialogViewModelBase;
 
 namespace WalletWasabi.Fluent.ViewModels
 {

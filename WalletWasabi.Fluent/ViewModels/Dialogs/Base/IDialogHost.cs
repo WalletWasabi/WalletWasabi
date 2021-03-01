@@ -8,6 +8,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
 		/// <summary>
 		/// The currently active dialog. The modal dialog UI should close when this is null.
 		/// </summary>
-		Base.DialogViewModelBase? CurrentDialog { get; set; }
+		DialogViewModelBase? CurrentDialog { get; set; }
 	}
 }
