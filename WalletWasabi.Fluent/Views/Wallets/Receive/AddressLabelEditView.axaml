@@ -13,13 +13,15 @@
                  EnableCancel="True"
                  EnableNext="True"
                  NextContent="Save">
-    <Panel>
+    <DockPanel>
+        <Label Content="_Edit the selected address's labels here:" Target="LabelTagBox" DockPanel.Dock="Top" />
         <c:TagsBox x:Name="LabelTagBox"
                    TagSeparator=","
                    Items="{Binding Labels}"
                    Suggestions="{Binding Labels}"
                    SuggestionsAreCaseSensitive="True"
-                   RestrictInputToSuggestions="False" />
-    </Panel>
+                   RestrictInputToSuggestions="False"
+                   DockPanel.Dock="Top"/>
+    </DockPanel>
   </c:ContentArea>
 </UserControl>
