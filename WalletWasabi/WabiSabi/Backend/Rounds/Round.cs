@@ -33,25 +33,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{RegistrableWeightCredentials}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
 		}
 
-		public Round(Round blameOf) : this(blameOf.RoundParameters)
-		{
-			BlameOf = blameOf;
-			BlameWhitelist = blameOf
-				.Alices
-				.SelectMany(x => x.Coins)
-				.Select(x => x.Outpoint)
-				.ToHashSet();
-		}
-
 		public uint256 Hash { get; }
 		public Network Network => RoundParameters.Network;
 		public uint MaxInputCountByAlice => RoundParameters.MaxInputCountByAlice;
 		public Money MinRegistrableAmount => RoundParameters.MinRegistrableAmount;
 		public Money MaxRegistrableAmount => RoundParameters.MaxRegistrableAmount;
 		public uint RegistrableWeightCredentials => RoundParameters.RegistrableWeightCredentials;
-		public TimeSpan ConnectionConfirmationTimeout => RoundParameters.ConnectionConfirmationTimeout;
-		public TimeSpan OutputRegistrationTimeout => RoundParameters.OutputRegistrationTimeout;
-		public TimeSpan TransactionSigningTimeout => RoundParameters.TransactionSigningTimeout;
 		public FeeRate FeeRate => RoundParameters.FeeRate;
 		public WasabiRandom Random => RoundParameters.Random;
 		public CredentialIssuer AmountCredentialIssuer { get; }
@@ -62,12 +49,15 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public List<Alice> Alices { get; } = new();
 		public int InputCount => Alices.Sum(x => x.Coins.Count());
 		public List<Bob> Bobs { get; } = new();
-		public Round? BlameOf { get; } = null;
 
-		[MemberNotNullWhen(returnValue: true, nameof(BlameOf))]
-		public bool IsBlameRound => BlameOf is not null;
+		public Round? BlameOf => RoundParameters.BlameOf;
+		public bool IsBlameRound => RoundParameters.IsBlameRound;
+		public ISet<OutPoint> BlameWhitelist => RoundParameters.BlameWhitelist;
 
-		public ISet<OutPoint> BlameWhitelist { get; } = new HashSet<OutPoint>();
+		public TimeSpan ConnectionConfirmationTimeout => RoundParameters.ConnectionConfirmationTimeout;
+		public TimeSpan OutputRegistrationTimeout => RoundParameters.OutputRegistrationTimeout;
+		public TimeSpan TransactionSigningTimeout => RoundParameters.TransactionSigningTimeout;
+
 		public byte[] UnsignedTxSecret { get; }
 		public Transaction Coinjoin { get; }
 		private RoundParameters RoundParameters { get; }
@@ -76,6 +66,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public DateTimeOffset ConnectionConfirmationStart { get; private set; }
 		public DateTimeOffset OutputRegistrationStart { get; private set; }
 		public DateTimeOffset TransactionSigningStart { get; private set; }
+		public DateTimeOffset TransactionBroadcastingStart { get; private set; }
 
 		public void SetPhase(Phase phase)
 		{
@@ -93,6 +84,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				TransactionSigningStart = DateTimeOffset.UtcNow;
 			}
+			else if (phase == Phase.TransactionBroadcasting)
+			{
+				TransactionBroadcastingStart = DateTimeOffset.UtcNow;
+			}
 		}
 
 		public bool IsInputRegistrationEnded(uint maxInputCount, TimeSpan inputRegistrationTimeout)
@@ -102,7 +97,14 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				return true;
 			}
 
-			if (InputCount >= maxInputCount)
+			if (IsBlameRound)
+			{
+				if (BlameWhitelist.Count <= InputCount)
+				{
+					return true;
+				}
+			}
+			else if (InputCount >= maxInputCount)
 			{
 				return true;
 			}

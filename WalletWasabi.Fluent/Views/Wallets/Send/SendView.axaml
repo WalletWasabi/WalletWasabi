@@ -173,7 +173,7 @@
                              MinHeight="30"
                              XAxisLabels="{Binding XAxisLabels}"
                              XAxisValues="{Binding XAxisValues}"
-                             XAxisCurrentValue="{Binding XAxisCurrentValue}"
+                             XAxisCurrentValue="{Binding XAxisCurrentValue, Mode=TwoWay}"
                              XAxisMinValue="{Binding XAxisMinValue}"
                              XAxisMaxValue="{Binding XAxisMaxValue}"
                              YAxisValues="{Binding YAxisValues}"

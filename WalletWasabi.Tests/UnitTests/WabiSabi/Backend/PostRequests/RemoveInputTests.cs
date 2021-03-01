@@ -13,7 +13,7 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
+namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 {
 	public class RemoveInputTests
 	{
@@ -56,8 +56,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task WrongPhaseAsync()
 		{
 			WabiSabiConfig cfg = new();
-			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
+			var round = arena.Rounds.First().Value;
 
 			var req = new InputsRemovalRequest(round.Id, Guid.NewGuid());
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))

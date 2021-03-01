@@ -23,6 +23,11 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		bool INotifyDataErrorInfo.HasErrors => Validations.Any;
 
+		protected void ClearValidations()
+		{
+			_validations.Clear();
+		}
+
 		private void OnValidations_ErrorsChanged(object? sender, DataErrorsChangedEventArgs e)
 		{
 			ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(e.PropertyName));

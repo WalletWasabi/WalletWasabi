@@ -80,7 +80,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			string? walletName)
 		{
 			var dialogResult = await NavigateDialog(
-				new EnterPasswordViewModel(
+				new CreatePasswordDialogViewModel(
 					"Type the password of the wallet to be able to recover and click Continue."));
 
 			if (dialogResult.Result is { } password)
