@@ -87,9 +87,7 @@
                 </StackPanel>
             </StackPanel>
 
-            <Separator />
-
-            <TextBlock HorizontalAlignment="Center"
+            <TextBlock HorizontalAlignment="Center" Margin="0 5 0 0"
                        Text="If this is correct click Confirm to authorise the transaction." />
         </StackPanel>
     </c:ContentArea>
