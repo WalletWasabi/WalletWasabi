@@ -33,30 +33,25 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 
 		protected override async Task<bool> Authorize()
 		{
-			// If it's a hardware wallet and still has a private key then it's password.
-			if (!_transactionAuthorizationInfo.BuildTransactionResult.Signed)
+			try
 			{
-				try
-				{
-					var client = new HwiClient(_wallet.Network);
-					using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+				var client = new HwiClient(_wallet.Network);
+				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 
-					var signedPsbt = await client.SignTxAsync(
-						_wallet.KeyManager.MasterFingerprint!.Value,
-						_transactionAuthorizationInfo.BuildTransactionResult.Psbt,
-						cts.Token);
+				var signedPsbt = await client.SignTxAsync(
+					_wallet.KeyManager.MasterFingerprint!.Value,
+					_transactionAuthorizationInfo.Psbt,
+					cts.Token);
 
-					_transactionAuthorizationInfo.Transaction = signedPsbt.ExtractSmartTransaction(_transactionAuthorizationInfo.Transaction);
+				_transactionAuthorizationInfo.Transaction = signedPsbt.ExtractSmartTransaction(_transactionAuthorizationInfo.Transaction);
 
-					return true;
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-				}
+				return true;
 			}
-
-			return false;
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				return false;
+			}
 		}
 	}
 }

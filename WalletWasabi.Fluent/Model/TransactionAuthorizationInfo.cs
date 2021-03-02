@@ -1,4 +1,5 @@
-﻿using WalletWasabi.Blockchain.TransactionBuilding;
+﻿using NBitcoin;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.Fluent.Model
@@ -7,12 +8,12 @@ namespace WalletWasabi.Fluent.Model
 	{
 		public TransactionAuthorizationInfo(BuildTransactionResult buildTransactionResult)
 		{
-			BuildTransactionResult = buildTransactionResult;
+			Psbt = buildTransactionResult.Psbt;
 			Transaction = buildTransactionResult.Transaction;
 		}
 
-		public BuildTransactionResult BuildTransactionResult { get; }
-
 		public SmartTransaction Transaction { get; set; }
+
+		public PSBT Psbt { get; }
 	}
 }
