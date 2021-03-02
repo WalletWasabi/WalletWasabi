@@ -1,6 +1,4 @@
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
@@ -23,16 +21,9 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 			Password = "";
 		}
 
-		protected override async Task Authorize()
+		protected override async Task<bool> Authorize()
 		{
-			var passwordValid = await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, Password, out _));
-
-			if (!passwordValid)
-			{
-				await ShowErrorAsync("Password", "Password was incorrect.", "");
-			}
-
-			Close(DialogResultKind.Normal, passwordValid);
+			return await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, Password, out _));
 		}
 	}
 }

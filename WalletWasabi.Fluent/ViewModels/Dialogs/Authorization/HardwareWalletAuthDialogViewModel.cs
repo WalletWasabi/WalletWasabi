@@ -2,10 +2,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
-using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Fluent.Model;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Hwi;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
@@ -32,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 
 		public bool IsHardwareWallet => true;
 
-		protected override async Task Authorize()
+		protected override async Task<bool> Authorize()
 		{
 			// If it's a hardware wallet and still has a private key then it's password.
 			if (!_transactionAuthorizationInfo.BuildTransactionResult.Signed)
@@ -49,14 +48,15 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 
 					_transactionAuthorizationInfo.Transaction = signedPsbt.ExtractSmartTransaction(_transactionAuthorizationInfo.Transaction);
 
-					Close(DialogResultKind.Normal, true);
+					return true;
 				}
 				catch (Exception ex)
 				{
-					await ShowErrorAsync("Hardware wallet", ex.ToUserFriendlyString(), "Wasabi was unable to sign your transaction");
-					Close();
+					Logger.LogError(ex);
 				}
 			}
+
+			return false;
 		}
 	}
 }

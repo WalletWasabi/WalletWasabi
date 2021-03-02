@@ -1,7 +1,5 @@
-﻿using System.Reactive.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using ReactiveUI;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
@@ -12,11 +10,16 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 		{
 			BackCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Back));
 			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));
-			NextCommand = ReactiveCommand.CreateFromTask(Authorize);
+			NextCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				var result = await Authorize();
+
+				Close(DialogResultKind.Normal, result);
+			});
 
 			EnableAutoBusyOn(NextCommand);
 		}
 
-		protected abstract Task Authorize();
+		protected abstract Task<bool> Authorize();
 	}
 }
