@@ -16,6 +16,7 @@ This document lists all the officially supported software and devices by Wasabi 
 - ColdCard MK2
 - ColdCard MK3
 - Ledger Nano S
+- Ledger Nano X
 
 # Officially Supported Architectures
 
