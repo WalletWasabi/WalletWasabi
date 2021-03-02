@@ -149,7 +149,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						coinjoin.Outputs.AddWithOptimize(diffMoney, Config.BlameScript);
 					}
 
-					round.EncryptedCoinjoin = StringCipher.Encrypt(coinjoin.ToHex(), round.UnsignedTxSecret); ;
+					round.EncryptedCoinjoin = StringCipher.Encrypt(coinjoin.ToHex(), round.UnsignedTxSecret);
 
 					round.SetPhase(Phase.TransactionSigning);
 				}
