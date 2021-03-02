@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Linq;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Extensions
 {
@@ -17,9 +18,9 @@ namespace WalletWasabi.Extensions
 
 		public static string FriendlyName(this Enum value)
 		{
-			var attribute = value.GetFirstAttribute<DescriptionAttribute>();
+			var attribute = value.GetFirstAttribute<FriendlyNameAttribute>();
 
-			return attribute is { } ? attribute.Description : value.ToString();
+			return attribute is { } ? attribute.FriendlyName : value.ToString();
 		}
 	}
 }
