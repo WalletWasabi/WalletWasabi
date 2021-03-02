@@ -6,6 +6,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Model;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
@@ -21,24 +22,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			var fee = transaction.Fee;
 
-			var labels = "";
-
-			if (info.Labels.Count() == 1)
-			{
-				labels = info.Labels.First() + " ";
-			}
-			else if (info.Labels.Count() > 1)
-			{
-				labels = string.Join(", ", info.Labels.Take(info.Labels.Count() - 1));
-
-				labels += $" and {info.Labels.Last()} ";
-			}
-
 			BtcAmountText = $"{destinationAmount} bitcoins ";
 
 			FiatAmountText = $"(≈{(destinationAmount * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD) ";
 
-			LabelsText = labels;
+			Labels = info.Labels.Labels.ToArray();
 
 			AddressText = info.Address.ToString();
 
@@ -48,8 +36,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			FiatFeeText =
 				$"(≈{(fee.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD)";
-
-			PercentFeeText = $"{transaction.FeePercentOfSent:F2}%";
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -69,7 +55,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					IsBusy = false;
 				}
-				else
+				else if (authDialogResult.Kind == DialogResultKind.Normal)
 				{
 					await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "");
 				}
@@ -80,7 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public string FiatAmountText { get; }
 
-		public string LabelsText { get; }
+		public string[] Labels { get; }
 
 		public string AddressText { get; }
 
@@ -89,7 +75,5 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public string BtcFeeText { get; }
 
 		public string FiatFeeText { get; }
-
-		public string PercentFeeText { get; }
 	}
 }
