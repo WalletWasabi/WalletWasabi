@@ -1,20 +1,12 @@
-using System;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Fluent.Model;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Gui.Controls.WalletExplorer;
-using WalletWasabi.Hwi;
-using WalletWasabi.Hwi.Exceptions;
-using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
@@ -61,71 +53,25 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				var dialogResult =
-					await NavigateDialog(new EnterPasswordDialogViewModel(""), NavigationTarget.DialogScreen);
+				var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
+				var authDialog = AuthorizationHelpers.GetAuthorizationDialog(wallet, transactionAuthorizationInfo);
+				var authDialogResult = await NavigateDialog(authDialog, NavigationTarget.DialogScreen);
 
-				if (dialogResult.Kind == DialogResultKind.Normal)
+				if (authDialogResult.Result)
 				{
 					IsBusy = true;
 
-					var passwordValid = await Task.Run(
-						() => PasswordHelper.TryPassword(
-							wallet.KeyManager,
-							dialogResult.Result,
-							out string? compatibilityPasswordUsed));
+					// Dequeue any coin-joining coins.
+					await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
 
-					if (passwordValid)
-					{
-						// Dequeue any coin-joining coins.
-						await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
+					await broadcaster.SendTransactionAsync(transactionAuthorizationInfo.Transaction);
+					Navigate().Clear();
 
-						var signedTransaction = transaction.Transaction;
-
-						// If it's a hardware wallet and still has a private key then it's password.
-						if (wallet.KeyManager.IsHardwareWallet && !transaction.Signed)
-						{
-							try
-							{
-								var client = new HwiClient(wallet.Network);
-
-								using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-								PSBT? signedPsbt = null;
-								try
-								{
-									signedPsbt = await client.SignTxAsync(
-										wallet.KeyManager.MasterFingerprint!.Value,
-										transaction.Psbt,
-										cts.Token);
-								}
-								catch (HwiException ex) when (ex.ErrorCode is not HwiErrorCode.ActionCanceled)
-								{
-									await PinPadViewModel.UnlockAsync();
-
-									signedPsbt = await client.SignTxAsync(
-										wallet.KeyManager.MasterFingerprint!.Value,
-										transaction.Psbt,
-										cts.Token);
-								}
-
-								signedTransaction = signedPsbt.ExtractSmartTransaction(transaction.Transaction);
-							}
-							catch (Exception _)
-							{
-								// probably throw something here?
-							}
-						}
-
-						await broadcaster.SendTransactionAsync(signedTransaction);
-
-						Navigate().Clear();
-
-						IsBusy = false;
-					}
-					else
-					{
-						IsBusy = false;
-						await ShowErrorAsync("Password was incorrect.", "Please try again.", "");
-					}
+					IsBusy = false;
+				}
+				else
+				{
+					await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "");
 				}
 			});
 		}

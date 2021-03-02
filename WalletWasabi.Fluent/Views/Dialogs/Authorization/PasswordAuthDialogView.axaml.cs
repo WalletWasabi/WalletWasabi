@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Dialogs
+namespace WalletWasabi.Fluent.Views.Dialogs.Authorization
 {
-	public class EnterPasswordDialogView : UserControl
+	public class PasswordAuthDialogView : UserControl
 	{
-		public EnterPasswordDialogView()
+		public PasswordAuthDialogView()
 		{
 			InitializeComponent();
 		}

@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:dialog="using:WalletWasabi.Fluent.ViewModels.Dialogs"
+             xmlns:authorization="clr-namespace:WalletWasabi.Fluent.ViewModels.Dialogs.Authorization"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             x:DataType="authorization:HardwareWalletAuthDialogViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Dialogs.Authorization.HardwareWalletAuthDialogView">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Enter" Command="{Binding NextCommand}" />
+  </UserControl.KeyBindings>
+  <c:ContentArea Title="{Binding Title}"
+                 EnableBack="True"
+                 EnableCancel="True" CancelContent="Cancel"
+                 EnableNext="True" NextContent="Continue"
+                 IsBusy="{Binding IsBusy}"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <DockPanel LastChildFill="True" HorizontalAlignment="Center" VerticalAlignment="Center">
+
+      <TextBlock Text="Connect your hardware wallet, then press Continue to sign your transaction."
+                 DockPanel.Dock="Bottom"
+                 Margin="0 40 0 0"
+                 HorizontalAlignment="Center"
+                 TextWrapping="Wrap"
+                 TextAlignment="Center"/>
+
+      <Viewbox MaxHeight="200">
+        <Image>
+          <Image.Source>
+            <MultiBinding Converter="{x:Static conv:WalletIconConverter.TypesToImage}">
+              <Binding Path="WalletIcon" Converter="{x:Static conv:WalletIconConverter.StringToType}" />
+              <Binding Path="IsHardwareWallet" Converter="{x:Static conv:WalletIconConverter.BoolToType}" />
+            </MultiBinding>
+          </Image.Source>
+        </Image>
+      </Viewbox>
+    </DockPanel>
+  </c:ContentArea>
+</UserControl>
