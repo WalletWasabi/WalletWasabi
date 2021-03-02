@@ -192,7 +192,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					}
 					else if (round.TransactionSigningStart + round.TransactionSigningTimeout < DateTimeOffset.UtcNow)
 					{
-						throw new TimeoutException($"Signing phase timed out after {round.TransactionSigningTimeout.TotalSeconds} seconds");
+						throw new TimeoutException($"Signing phase timed out after {round.TransactionSigningTimeout.TotalSeconds} seconds.");
 					}
 				}
 				catch (Exception ex)
