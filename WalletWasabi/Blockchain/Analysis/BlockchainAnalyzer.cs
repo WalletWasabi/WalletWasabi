@@ -17,16 +17,25 @@ namespace WalletWasabi.Blockchain.Analysis
 
 		public int PrivacyLevelThreshold { get; }
 
+		public HashSet<uint256> CheckedTxs { get; } = new();
+
 		/// <summary>
 		/// Sets clusters and anonymity sets for related HD public keys.
 		/// </summary>
 		public void Analyze(SmartTransaction tx)
 		{
+			if(!CheckedTxs.Add(tx.GetHash()))
+			{
+				return;
+			}
+
 			var inputCount = tx.Transaction.Inputs.Count;
 			var outputCount = tx.Transaction.Outputs.Count;
 
 			var ownInputCount = tx.WalletInputs.Count;
 			var ownOutputCount = tx.WalletOutputs.Count;
+
+
 
 			if (ownInputCount == 0)
 			{
