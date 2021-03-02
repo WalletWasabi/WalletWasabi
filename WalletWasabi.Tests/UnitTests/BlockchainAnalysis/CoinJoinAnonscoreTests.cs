@@ -35,6 +35,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			analyser.Analyze(tx);
 			analyser.Analyze(tx);
 			Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+
 			// 10 participants, 1 is you, your anonset is 10.
 			Assert.Equal(10, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
 		}
@@ -50,6 +51,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			tx.WalletOutputs.Add(sc);
 			analyser.Analyze(tx);
 			Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+
 			// 10 participants, 2 is you, your anonset is 10/2 = 5.
 			Assert.Equal(5, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
 			Assert.Equal(5, tx.WalletOutputs.Skip(1).First().HdPubKey.AnonymitySet);
