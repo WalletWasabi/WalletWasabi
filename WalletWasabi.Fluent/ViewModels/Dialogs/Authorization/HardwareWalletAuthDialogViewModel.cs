@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 		{
 			if (!wallet.KeyManager.IsHardwareWallet)
 			{
-				throw new InvalidOperationException("Wallet is not a hardware wallet.");
+				throw new InvalidOperationException("Not a hardware wallet.");
 			}
 
 			_wallet = wallet;

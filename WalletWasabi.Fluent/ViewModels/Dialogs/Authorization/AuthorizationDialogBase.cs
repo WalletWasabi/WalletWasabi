@@ -13,7 +13,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var result = await Authorize();
-
 				Close(DialogResultKind.Normal, result);
 			});
 
