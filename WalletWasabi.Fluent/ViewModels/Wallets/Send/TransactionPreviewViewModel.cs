@@ -55,7 +55,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					IsBusy = false;
 				}
-				else if(authDialogResult.Kind == DialogResultKind.Normal)
+				else if (authDialogResult.Kind == DialogResultKind.Normal)
 				{
 					await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "");
 				}
