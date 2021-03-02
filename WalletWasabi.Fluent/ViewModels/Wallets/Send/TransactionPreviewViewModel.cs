@@ -21,24 +21,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			var fee = transaction.Fee;
 
-			var labels = "";
-
-			if (info.Labels.Count() == 1)
-			{
-				labels = info.Labels.First() + " ";
-			}
-			else if (info.Labels.Count() > 1)
-			{
-				labels = string.Join(", ", info.Labels.Take(info.Labels.Count() - 1));
-
-				labels += $" and {info.Labels.Last()} ";
-			}
-
 			BtcAmountText = $"{destinationAmount} bitcoins ";
 
 			FiatAmountText = $"(≈{(destinationAmount * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD) ";
-
-			LabelsText = labels;
 
 			Labels = info.Labels.Labels.ToArray();
 
@@ -50,8 +35,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			FiatFeeText =
 				$"(≈{(fee.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD)";
-
-			PercentFeeText = $"{transaction.FeePercentOfSent:F2}%";
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -84,8 +67,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public string[] Labels { get; }
 
-		public string LabelsText { get; }
-
 		public string AddressText { get; }
 
 		public string ConfirmationTimeText { get; }
@@ -93,7 +74,5 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public string BtcFeeText { get; }
 
 		public string FiatFeeText { get; }
-
-		public string PercentFeeText { get; }
 	}
 }
