@@ -34,9 +34,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 
 		protected override async Task Authorize()
 		{
-			// Dequeue any coin-joining coins.
-			await _wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
-
 			// If it's a hardware wallet and still has a private key then it's password.
 			if (!_transactionAuthorizationInfo.BuildTransactionResult.Signed)
 			{

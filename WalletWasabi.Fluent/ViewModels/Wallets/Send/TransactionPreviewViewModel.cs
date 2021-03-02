@@ -3,6 +3,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Model;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -58,6 +59,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (authDialogResult.Result)
 				{
+					// Dequeue any coin-joining coins.
+					await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
+
 					await broadcaster.SendTransactionAsync(transactionAuthorizationInfo.Transaction);
 					Navigate().Clear();
 				}
