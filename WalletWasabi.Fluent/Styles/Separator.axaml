@@ -10,5 +10,6 @@
     <Style Selector="Separator">
         <Setter Property="Height" Value="0.55" />
         <Setter Property="Background" Value="{DynamicResource SeparatorBackgroundBrush}" />
+        <Setter Property="Opacity" Value="0.5" />
     </Style>
 </Styles>

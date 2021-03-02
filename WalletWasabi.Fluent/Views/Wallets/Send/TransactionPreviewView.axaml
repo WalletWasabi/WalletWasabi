@@ -28,37 +28,65 @@
                     </Style>
                 </StackPanel.Styles>
                 <StackPanel Spacing="20">
-                    <StackPanel Spacing="5">
-                        <TextBlock Text="A total of " Classes="storyline" />
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <TextBlock Classes="field" Text="{Binding BtcAmountText, FallbackValue=0.213 BTC}" />
-                            <TextBlock Classes="field" Text="{Binding FiatAmountText, FallbackValue=(≈55.34 USD)}" />
+                    <StackPanel Orientation="Horizontal" Spacing="30">
+                        <PathIcon Width="24" Height="24" Data="{StaticResource btc_logo}"
+                                  Foreground="{DynamicResource SystemAccentColor}" />
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="A total of " Classes="storyline" />
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Classes="field" Text="{Binding BtcAmountText, FallbackValue=0.213 BTC}" />
+                                <TextBlock Classes="field" Text="{Binding FiatAmountText, FallbackValue=(≈55.34 USD)}" />
+                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
 
-                    <StackPanel Spacing="5">
-                        <TextBlock Text="Will be sent to and / or known by" Classes="storyline" />
-                        <c:TagsBox  Padding="0" Opacity="0.85" IsReadOnly="True" Items="{Binding Labels}" />
+                    <Separator />
+
+                    <StackPanel Orientation="Horizontal" Spacing="30">
+                        <PathIcon Width="24" Height="24" Data="{StaticResource entities_regular}"
+                                  Foreground="{DynamicResource SystemAccentColor}" />
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Will be sent to and / or known by" Classes="storyline" />
+                            <c:TagsBox Padding="0" Opacity="0.85" IsReadOnly="True" Items="{Binding Labels}" />
+                        </StackPanel>
                     </StackPanel>
 
-                    <StackPanel Spacing="5">
-                        <TextBlock Text="via bitcoin address" Classes="storyline" />
-                        <TextBlock Classes="field"
-                                   Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
+                    <Separator />
+
+                    <StackPanel Orientation="Horizontal" Spacing="30">
+                        <PathIcon Width="24" Height="24" Data="{StaticResource transceive_regular}"
+                                  Foreground="{DynamicResource SystemAccentColor}" />
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="via Bitcoin address" Classes="storyline" />
+                            <TextBlock Classes="field"
+                                       Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
+                        </StackPanel>
                     </StackPanel>
 
-                    <StackPanel Spacing="5">
-                        <TextBlock Classes="storyline"
-                                   Text="Bitcoin miners will work hard to confirm your transaction within " />
-                        <TextBlock Classes="field"
-                                   Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
+                    <Separator />
+
+                    <StackPanel Orientation="Horizontal" Spacing="30">
+                        <PathIcon Width="24" Height="24" Data="{StaticResource timer_regular}"
+                                  Foreground="{DynamicResource SystemAccentColor}" />
+                        <StackPanel Spacing="5">
+                            <TextBlock Classes="storyline"
+                                       Text="Bitcoin miners will work hard to confirm your transaction within " />
+                            <TextBlock Classes="field"
+                                       Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
+                        </StackPanel>
                     </StackPanel>
 
-                    <StackPanel Spacing="5">
-                        <TextBlock Classes="storyline" Text="The miners will charge an additional fee of" />
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <TextBlock Classes="field" Text="{Binding BtcFeeText, FallbackValue=235 satoshis}" />
-                            <TextBlock Classes="field" Text="{Binding FiatFeeText, FallbackValue=(≈55.34 USD)}" />
+                    <Separator />
+
+                    <StackPanel Orientation="Horizontal" Spacing="30">
+                        <PathIcon Width="24" Height="24" Data="{StaticResource paper_cash_regular}"
+                                  Foreground="{DynamicResource SystemAccentColor}" />
+                        <StackPanel Spacing="5">
+                            <TextBlock Classes="storyline" Text="for an additional charge of" />
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Classes="field" Text="{Binding BtcFeeText, FallbackValue=235 satoshis}" />
+                                <TextBlock Classes="field" Text="{Binding FiatFeeText, FallbackValue=(≈55.34 USD)}" />
+                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
