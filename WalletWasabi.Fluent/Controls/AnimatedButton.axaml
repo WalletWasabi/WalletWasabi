@@ -61,16 +61,16 @@
     <Style Selector="c|AnimatedButton">
         <Setter Property="Template">
             <ControlTemplate>
-                <Button Classes="plain" Command="{TemplateBinding Command}">
+                <Button Name="PART_Button" Command="{TemplateBinding Command}" Classes="plain">
                     <i:Interaction.Behaviors>
                         <ia:EventTriggerBehavior EventName="Click">
-                            <behaviors:AddClassAction StyledElement="{Binding #NormalPathIcon}" ClassName="hideAndShow" RemoveIfExists="True"/>
-                            <behaviors:AddClassAction StyledElement="{Binding #ClickPathIcon}" ClassName="showAndHide" RemoveIfExists="True"/>
+                            <behaviors:AddClassAction StyledElement="{Binding #PART_IconNormal}" ClassName="hideAndShow" RemoveIfExists="True"/>
+                            <behaviors:AddClassAction StyledElement="{Binding #PART_IconClick}" ClassName="showAndHide" RemoveIfExists="True"/>
                         </ia:EventTriggerBehavior>
                     </i:Interaction.Behaviors>
                     <Panel>
-                        <PathIcon Name="NormalPathIcon" Data="{TemplateBinding NormalIcon}"/>
-                        <PathIcon Classes="hidden" Name="ClickPathIcon" Data="{TemplateBinding ClickIcon}"/>
+                        <PathIcon Name="PART_IconNormal" Data="{TemplateBinding NormalIcon}"/>
+                        <PathIcon Name="PART_IconClick" Data="{TemplateBinding ClickIcon}" Classes="hidden"/>
                     </Panel>
                 </Button>
             </ControlTemplate>
