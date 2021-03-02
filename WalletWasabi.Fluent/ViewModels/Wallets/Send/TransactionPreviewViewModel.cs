@@ -69,6 +69,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					IsBusy = false;
 				}
+				else
+				{
+					await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "");
+				}
 			});
 		}
 
