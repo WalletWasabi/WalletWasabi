@@ -18,21 +18,19 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 
 		public HardwareWalletAuthDialogViewModel(Wallet wallet, TransactionAuthorizationInfo transactionAuthorizationInfo)
 		{
-			_wallet = wallet;
-			_transactionAuthorizationInfo = transactionAuthorizationInfo;
-
 			if (!wallet.KeyManager.IsHardwareWallet)
 			{
 				throw new InvalidOperationException("Wallet is not a hardware wallet.");
 			}
 
-			IsHardwareWallet = true;
+			_wallet = wallet;
+			_transactionAuthorizationInfo = transactionAuthorizationInfo;
 			WalletIcon = _wallet.KeyManager.Icon;
 		}
 
 		public string? WalletIcon { get; }
 
-		public bool IsHardwareWallet { get; }
+		public bool IsHardwareWallet => true;
 
 		protected override async Task Authorize()
 		{
