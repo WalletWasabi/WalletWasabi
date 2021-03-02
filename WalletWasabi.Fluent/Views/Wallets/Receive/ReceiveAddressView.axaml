@@ -38,7 +38,7 @@
             <c:AnimatedButton Margin="10 0 0 0" ToolTip.Tip="Copy" DockPanel.Dock="Right"
                               Command="{Binding CopyAddressCommand}"
                               NormalIcon="{StaticResource copy_regular}"
-                              ClickIcon="{StaticResource privacy_strong}"/>
+                              ClickIcon="{StaticResource copy_confirmed}"/>
             <TextBlock Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
           </DockPanel>
         </DockPanel>

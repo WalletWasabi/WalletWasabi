@@ -64,7 +64,7 @@
                                   ToolTip.Tip="Copy"
                                   Command="{Binding CopyAddressCommand}"
                                   NormalIcon="{StaticResource copy_regular}"
-                                  ClickIcon="{StaticResource privacy_strong}"/>
+                                  ClickIcon="{StaticResource copy_confirmed}"/>
                 <TextBlock Text="{Binding Address}" />
               </DockPanel>
             </DataTemplate>
