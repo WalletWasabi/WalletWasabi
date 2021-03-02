@@ -35,7 +35,7 @@
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
                 <Button Classes="plain addressActionButton" ToolTip.Tip="Edit">
-                  <PathIcon Data="{StaticResource wallet_action_coinjoin}" Classes="addressActionIcon" />
+                  <PathIcon Data="{StaticResource edit_regular}" Classes="addressActionIcon" />
                 </Button>
                 <TextBlock Text="{Binding Label}"/>
               </DockPanel>
