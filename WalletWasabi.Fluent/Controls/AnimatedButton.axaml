@@ -61,7 +61,10 @@
     <Style Selector="c|AnimatedButton">
         <Setter Property="Template">
             <ControlTemplate>
-                <Button Name="PART_Button" Command="{TemplateBinding Command}" Classes="plain">
+                <Button Name="PART_Button"
+                        Command="{TemplateBinding Command}"
+                        CommandParameter="{TemplateBinding CommandParameter}"
+                        Classes="plain">
                     <i:Interaction.Behaviors>
                         <ia:EventTriggerBehavior EventName="Click">
                             <behaviors:AddClassAction StyledElement="{Binding #PART_IconNormal}" ClassName="hideAndShow" RemoveIfExists="True"/>
