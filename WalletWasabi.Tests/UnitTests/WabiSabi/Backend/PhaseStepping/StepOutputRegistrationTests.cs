@@ -14,7 +14,7 @@ using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
+namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 {
 	public class StepOutputRegistrationTests
 	{

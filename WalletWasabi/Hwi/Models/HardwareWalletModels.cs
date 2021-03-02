@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Hwi.Models
 {
@@ -7,46 +8,46 @@ namespace WalletWasabi.Hwi.Models
 	/// </summary>
 	public enum HardwareWalletModels
 	{
-		[Description("Hardware Wallet")]
+		[FriendlyName("Hardware Wallet")]
 		Unknown,
 
-		[Description("Coldcard")]
+		[FriendlyName("Coldcard")]
 		Coldcard,
 
-		[Description("Coldcard Simulator")]
+		[FriendlyName("Coldcard Simulator")]
 		Coldcard_Simulator,
 
-		[Description("BitBox")]
+		[FriendlyName("BitBox")]
 		DigitalBitBox_01,
 
-		[Description("BitBox Simulator")]
+		[FriendlyName("BitBox Simulator")]
 		DigitalBitBox_01_Simulator,
 
-		[Description("KeepKey")]
+		[FriendlyName("KeepKey")]
 		KeepKey,
 
-		[Description("KeepKey Simulator")]
+		[FriendlyName("KeepKey Simulator")]
 		KeepKey_Simulator,
 
-		[Description("Ledger Nano S")]
+		[FriendlyName("Ledger Nano S")]
 		Ledger_Nano_S,
 
-		[Description("Trezor One")]
+		[FriendlyName("Trezor One")]
 		Trezor_1,
 
-		[Description("Trezor One Simulator")]
+		[FriendlyName("Trezor One Simulator")]
 		Trezor_1_Simulator,
 
-		[Description("Trezor T")]
+		[FriendlyName("Trezor T")]
 		Trezor_T,
 
-		[Description("Trezor T Simulator")]
+		[FriendlyName("Trezor T Simulator")]
 		Trezor_T_Simulator,
 
-		[Description("BitBox")]
+		[FriendlyName("BitBox")]
 		BitBox02_BTCOnly,
 
-		[Description("BitBox")]
+		[FriendlyName("BitBox")]
 		BitBox02_Multi,
 	}
 }

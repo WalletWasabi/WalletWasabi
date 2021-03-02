@@ -92,6 +92,8 @@ namespace WalletWasabi.Fluent.Controls
 			_regexGroupAndDecimal =
 				new Regex(
 					$"[{_groupSeparator}{_decimalSeparator}]+", RegexOptions.Compiled);
+
+			PseudoClasses.Set(":noexchangerate", true);
 		}
 
 		public decimal AmountBtc
@@ -410,6 +412,11 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void UpdateDisplay(bool updateTextField)
 		{
+			if (ConversionRate == 0m)
+			{
+				return;
+			}
+
 			var conversion = BitcoinToFiat(AmountBtc);
 
 			if (IsConversionReversed && !IsReadOnly)
@@ -453,6 +460,10 @@ namespace WalletWasabi.Fluent.Controls
 			if (change.Property == IsReadOnlyProperty)
 			{
 				PseudoClasses.Set(":readonly", change.NewValue.GetValueOrDefault<bool>());
+			}
+			else if (change.Property == ConversionRateProperty)
+			{
+				PseudoClasses.Set(":noexchangerate", change.NewValue.GetValueOrDefault<decimal>() == 0m);
 			}
 		}
 	}

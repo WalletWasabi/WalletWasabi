@@ -11,6 +11,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		InputRegistration,
 		ConnectionConfirmation,
 		OutputRegistration,
-		TransactionSigning
+		TransactionSigning,
+		TransactionBroadcasting
 	}
 }
