@@ -10,11 +10,9 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 	{
 		protected AuthorizationDialogBase()
 		{
-			var canExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
-
-			BackCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Back), canExecute);
-			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel), canExecute);
-			NextCommand = ReactiveCommand.CreateFromTask(Authorize, canExecute);
+			BackCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Back));
+			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));
+			NextCommand = ReactiveCommand.CreateFromTask(Authorize);
 
 			EnableAutoBusyOn(NextCommand);
 		}
