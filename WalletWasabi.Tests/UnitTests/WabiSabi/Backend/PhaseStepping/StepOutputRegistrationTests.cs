@@ -52,15 +52,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 
 			// Confirm connections.
 			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient weightClient, Guid aliceId)>();
-			var ugliSolution = false;
-			foreach (var ccreq in WabiSabiFactory.CreateConnectionConfirmationRequests(round, irres1, irres2))
-			{
-				var ccresp = await arena.ConfirmConnectionAsync(ccreq.request);
-				ccresps.Add((ccresp, ccreq.amountClient, ccreq.weightClient, ugliSolution ? irres1.AliceId : irres2.AliceId));
-				ugliSolution = true;
-				ccreq.amountClient.HandleResponse(ccresp.RealAmountCredentials!, ccreq.amountValidation);
-				ccreq.weightClient.HandleResponse(ccresp.RealWeightCredentials!, ccreq.weightValidation);
-			}
+
+			var ccreq1 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres1);
+			var ccresp1 = await arena.ConfirmConnectionAsync(ccreq1.request);
+			ccresps.Add((ccresp1, ccreq1.amountClient, ccreq1.weightClient, irres2.AliceId));
+			ccreq1.amountClient.HandleResponse(ccresp1.RealAmountCredentials!, ccreq1.amountValidation);
+			ccreq1.weightClient.HandleResponse(ccresp1.RealWeightCredentials!, ccreq1.weightValidation);
+
+			var ccreq2 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres2);
+			var ccresp2 = await arena.ConfirmConnectionAsync(ccreq2.request);
+			ccresps.Add((ccresp2, ccreq2.amountClient, ccreq2.weightClient, irres1.AliceId));
+			ccreq2.amountClient.HandleResponse(ccresp2.RealAmountCredentials!, ccreq2.amountValidation);
+			ccreq2.weightClient.HandleResponse(ccresp2.RealWeightCredentials!, ccreq2.weightValidation);
+
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
 
@@ -112,15 +116,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 
 			// Confirm connections.
 			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient weightClient, Guid aliceId)>();
-			var ugliSolution = false;
-			foreach (var ccreq in WabiSabiFactory.CreateConnectionConfirmationRequests(round, irres1, irres2))
-			{
-				var ccresp = await arena.ConfirmConnectionAsync(ccreq.request);
-				ccresps.Add((ccresp, ccreq.amountClient, ccreq.weightClient, ugliSolution ? irres1.AliceId : irres2.AliceId));
-				ugliSolution = true;
-				ccreq.amountClient.HandleResponse(ccresp.RealAmountCredentials!, ccreq.amountValidation);
-				ccreq.weightClient.HandleResponse(ccresp.RealWeightCredentials!, ccreq.weightValidation);
-			}
+
+			var ccreq1 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres1);
+			var ccresp1 = await arena.ConfirmConnectionAsync(ccreq1.request);
+			ccresps.Add((ccresp1, ccreq1.amountClient, ccreq1.weightClient, irres2.AliceId));
+			ccreq1.amountClient.HandleResponse(ccresp1.RealAmountCredentials!, ccreq1.amountValidation);
+			ccreq1.weightClient.HandleResponse(ccresp1.RealWeightCredentials!, ccreq1.weightValidation);
+
+			var ccreq2 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres2);
+			var ccresp2 = await arena.ConfirmConnectionAsync(ccreq2.request);
+			ccresps.Add((ccresp2, ccreq2.amountClient, ccreq2.weightClient, irres1.AliceId));
+			ccreq2.amountClient.HandleResponse(ccresp2.RealAmountCredentials!, ccreq2.amountValidation);
+			ccreq2.weightClient.HandleResponse(ccresp2.RealWeightCredentials!, ccreq2.weightValidation);
+
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
 
@@ -170,15 +178,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 
 			// Confirm connections.
 			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient weightClient, Guid aliceId)>();
-			var ugliSolution = false;
-			foreach (var ccreq in WabiSabiFactory.CreateConnectionConfirmationRequests(round, irres1, irres2))
-			{
-				var ccresp = await arena.ConfirmConnectionAsync(ccreq.request);
-				ccresps.Add((ccresp, ccreq.amountClient, ccreq.weightClient, ugliSolution ? irres1.AliceId : irres2.AliceId));
-				ugliSolution = true;
-				ccreq.amountClient.HandleResponse(ccresp.RealAmountCredentials!, ccreq.amountValidation);
-				ccreq.weightClient.HandleResponse(ccresp.RealWeightCredentials!, ccreq.weightValidation);
-			}
+
+			var ccreq1 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres1);
+			var ccresp1 = await arena.ConfirmConnectionAsync(ccreq1.request);
+			ccresps.Add((ccresp1, ccreq1.amountClient, ccreq1.weightClient, irres2.AliceId));
+			ccreq1.amountClient.HandleResponse(ccresp1.RealAmountCredentials!, ccreq1.amountValidation);
+			ccreq1.weightClient.HandleResponse(ccresp1.RealWeightCredentials!, ccreq1.weightValidation);
+
+			var ccreq2 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres2);
+			var ccresp2 = await arena.ConfirmConnectionAsync(ccreq2.request);
+			ccresps.Add((ccresp2, ccreq2.amountClient, ccreq2.weightClient, irres1.AliceId));
+			ccreq2.amountClient.HandleResponse(ccresp2.RealAmountCredentials!, ccreq2.amountValidation);
+			ccreq2.weightClient.HandleResponse(ccresp2.RealWeightCredentials!, ccreq2.weightValidation);
+
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
 
@@ -231,15 +243,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 
 			// Confirm connections.
 			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient weightClient, Guid aliceId)>();
-			var ugliSolution = false;
-			foreach (var ccreq in WabiSabiFactory.CreateConnectionConfirmationRequests(round, irres1, irres2))
-			{
-				var ccresp = await arena.ConfirmConnectionAsync(ccreq.request);
-				ccresps.Add((ccresp, ccreq.amountClient, ccreq.weightClient, ugliSolution ? irres1.AliceId : irres2.AliceId));
-				ugliSolution = true;
-				ccreq.amountClient.HandleResponse(ccresp.RealAmountCredentials!, ccreq.amountValidation);
-				ccreq.weightClient.HandleResponse(ccresp.RealWeightCredentials!, ccreq.weightValidation);
-			}
+
+			var ccreq1 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres1);
+			var ccresp1 = await arena.ConfirmConnectionAsync(ccreq1.request);
+			ccresps.Add((ccresp1, ccreq1.amountClient, ccreq1.weightClient, irres2.AliceId));
+			ccreq1.amountClient.HandleResponse(ccresp1.RealAmountCredentials!, ccreq1.amountValidation);
+			ccreq1.weightClient.HandleResponse(ccresp1.RealWeightCredentials!, ccreq1.weightValidation);
+
+			var ccreq2 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres2);
+			var ccresp2 = await arena.ConfirmConnectionAsync(ccreq2.request);
+			ccresps.Add((ccresp2, ccreq2.amountClient, ccreq2.weightClient, irres1.AliceId));
+			ccreq2.amountClient.HandleResponse(ccresp2.RealAmountCredentials!, ccreq2.amountValidation);
+			ccreq2.weightClient.HandleResponse(ccresp2.RealWeightCredentials!, ccreq2.weightValidation);
+
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
 
