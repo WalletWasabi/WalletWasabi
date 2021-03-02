@@ -20,7 +20,13 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 		{
 			_wallet = wallet;
 			_transactionAuthorizationInfo = transactionAuthorizationInfo;
-			IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
+
+			if (!wallet.KeyManager.IsHardwareWallet)
+			{
+				throw new InvalidOperationException("Wallet is not a hardware wallet.");
+			}
+
+			IsHardwareWallet = true;
 			WalletIcon = _wallet.KeyManager.Icon;
 		}
 
@@ -34,7 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 			await _wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
 
 			// If it's a hardware wallet and still has a private key then it's password.
-			if (IsHardwareWallet && !_transactionAuthorizationInfo.BuildTransactionResult.Signed)
+			if (!_transactionAuthorizationInfo.BuildTransactionResult.Signed)
 			{
 				try
 				{
