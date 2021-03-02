@@ -9,14 +9,14 @@ namespace WalletWasabi.WabiSabi.Models
 {
 	public class OutputRegistrationResponse
 	{
-		public OutputRegistrationResponse(byte[] unsignedTransactionSecret, CredentialsResponse amountCredentials, CredentialsResponse weightCredentials)
+		public OutputRegistrationResponse(string unsignedTransactionSecret, CredentialsResponse amountCredentials, CredentialsResponse weightCredentials)
 		{
 			UnsignedTransactionSecret = unsignedTransactionSecret;
 			AmountCredentials = amountCredentials;
 			WeightCredentials = weightCredentials;
 		}
 
-		public byte[] UnsignedTransactionSecret { get; }
+		public string UnsignedTransactionSecret { get; }
 		public CredentialsResponse AmountCredentials { get; }
 		public CredentialsResponse WeightCredentials { get; }
 	}

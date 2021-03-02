@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Banning;
@@ -147,6 +148,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						var diffMoney = Money.Satoshis(diff);
 						coinjoin.Outputs.AddWithOptimize(diffMoney, Config.BlameScript);
 					}
+
+					round.EncryptedCoinjoin = StringCipher.Encrypt(coinjoin.ToHex(), round.UnsignedTxSecret);
 
 					round.SetPhase(Phase.TransactionSigning);
 				}
