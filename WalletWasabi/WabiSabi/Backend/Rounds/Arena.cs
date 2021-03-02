@@ -162,7 +162,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				var coinjoin = round.Coinjoin;
 				var isFullySigned = coinjoin.Inputs.All(x => x.HasWitScript());
-				bool timeout = round.TransactionSigningStart + round.TransactionSigningTimeout < DateTimeOffset.UtcNow;
 
 				try
 				{
@@ -191,7 +190,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 						round.LogInfo($"Successfully broadcast the CoinJoin: {coinjoin.GetHash()}.");
 					}
-					else if (timeout)
+					else if (round.TransactionSigningStart + round.TransactionSigningTimeout < DateTimeOffset.UtcNow)
 					{
 						throw new TimeoutException($"Signing phase timed out after {round.TransactionSigningTimeout.TotalSeconds} seconds");
 					}
