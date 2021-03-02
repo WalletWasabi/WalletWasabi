@@ -59,15 +59,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (authDialogResult.Result)
 				{
+					IsBusy = true;
+
 					// Dequeue any coin-joining coins.
 					await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
 
 					await broadcaster.SendTransactionAsync(transactionAuthorizationInfo.Transaction);
 					Navigate().Clear();
+
+					IsBusy = false;
 				}
 			});
-
-			EnableAutoBusyOn(NextCommand);
 		}
 
 		public string BtcAmountText { get; }
