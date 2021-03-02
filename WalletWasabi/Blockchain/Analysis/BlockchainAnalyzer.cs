@@ -24,7 +24,7 @@ namespace WalletWasabi.Blockchain.Analysis
 		/// </summary>
 		public void Analyze(SmartTransaction tx)
 		{
-			if(!CheckedTxs.Add(tx.GetHash()))
+			if (!CheckedTxs.Add(tx.GetHash()))
 			{
 				return;
 			}
@@ -34,8 +34,6 @@ namespace WalletWasabi.Blockchain.Analysis
 
 			var ownInputCount = tx.WalletInputs.Count;
 			var ownOutputCount = tx.WalletOutputs.Count;
-
-
 
 			if (ownInputCount == 0)
 			{
