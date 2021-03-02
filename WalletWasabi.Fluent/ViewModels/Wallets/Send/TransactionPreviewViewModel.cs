@@ -6,6 +6,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Model;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
@@ -54,7 +55,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					IsBusy = false;
 				}
-				else
+				else if(authDialogResult.Kind == DialogResultKind.Normal)
 				{
 					await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "");
 				}
