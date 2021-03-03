@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -14,6 +15,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public Money Amount { get; set; }
 
 		public FeeRate FeeRate { get; set; }
+
+		public TimeSpan ConfirmationTimeSpan { get; set; }
 
 		public IEnumerable<SmartCoin> Coins { get; set; }
 	}

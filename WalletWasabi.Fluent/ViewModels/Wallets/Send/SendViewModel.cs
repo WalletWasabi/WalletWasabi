@@ -76,6 +76,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					if (x > 0)
 					{
 						_transactionInfo.FeeRate = new FeeRate(GetYAxisValueFromXAxisCurrentValue(x));
+						_transactionInfo.ConfirmationTimeSpan = TimeSpan.FromMinutes((int) Math.Ceiling(x / 10.0) * 10);
 					}
 				});
 
