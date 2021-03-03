@@ -214,7 +214,7 @@ namespace WalletWasabi.Tests.UnitTests
 					await Task.FromResult(new BlockchainInfo
 					{
 						Blocks = isSynchronized ? 100_000UL : 89_765UL,
-						Headers = 100_000L
+						Headers = 100_000UL
 					}),
 				OnGetPeersInfoAsync = async () =>
 					await Task.FromResult(hasPeersInfo ? new[] { new PeerInfo() } : Array.Empty<PeerInfo>()),
