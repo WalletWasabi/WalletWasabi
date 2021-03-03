@@ -149,8 +149,6 @@
                      XAxisLabels="{Binding XAxisLabels}"
                      XAxisValues="{Binding XAxisValues}"
                      XAxisCurrentValue="{Binding XAxisCurrentValue}"
-                     XAxisMinValue="{Binding XAxisMinValue}"
-                     XAxisMaxValue="{Binding XAxisMaxValue}"
                      YAxisValues="{Binding YAxisValues}"
                      YAxisLogarithmicScale="False"
                      YAxisTitle="More Expensive">
