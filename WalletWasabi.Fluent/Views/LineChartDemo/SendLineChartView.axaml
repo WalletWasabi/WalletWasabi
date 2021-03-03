@@ -140,8 +140,8 @@
         <Slider x:Name="CursorValue2"
                 DockPanel.Dock="Bottom"
                 Classes="cursor"
-                Minimum="{Binding #GradientLineChart.XAxisMinValue}"
-                Maximum="{Binding #GradientLineChart.XAxisMaxValue}"
+                Minimum="{Binding XAxisMinValue}"
+                Maximum="{Binding XAxisMaxValue}"
                 Value="{Binding #GradientLineChart.XAxisCurrentValue}"
                 Margin="20,0,20,0"/>
         <c:LineChart x:Name="GradientLineChart"

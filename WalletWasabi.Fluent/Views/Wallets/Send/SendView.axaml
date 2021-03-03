@@ -163,8 +163,8 @@
                         KeyboardNavigation.IsTabStop="False"
                         DockPanel.Dock="Bottom"
                         Classes="cursor"
-                        Minimum="{Binding #GradientLineChart.XAxisMinValue}"
-                        Maximum="{Binding #GradientLineChart.XAxisMaxValue}"
+                        Minimum="{Binding XAxisMinValue}"
+                        Maximum="{Binding XAxisMaxValue}"
                         Value="{Binding #GradientLineChart.XAxisCurrentValue}" />
                 <c:LineChart x:Name="GradientLineChart"
                              Classes="cursor border xAxisLabels yAxis yAxisTitle"
