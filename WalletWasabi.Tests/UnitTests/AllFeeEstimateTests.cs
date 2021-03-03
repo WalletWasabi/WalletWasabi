@@ -158,25 +158,6 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task InaccurateEstimationsAsync()
-		{
-			var mockRpc = CreateAndConfigureRpcClient(isSynchronized: false, hasPeersInfo: true);
-			var any = EstimateSmartFeeMode.Economical;
-			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(2, any)).ReturnsAsync(FeeRateResponse(2, 100m));
-			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(3, any)).ReturnsAsync(FeeRateResponse(3, 100m));
-			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(5, any)).ReturnsAsync(FeeRateResponse(5, 89m));
-			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(6, any)).ReturnsAsync(FeeRateResponse(2, 75m));
-			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(8, any)).ReturnsAsync(FeeRateResponse(2, 70m));
-			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn<int>(2, 3, 5, 6, 8), any)).ThrowsAsync(new NoEstimationException(0));
-
-			var allFee = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Economical);
-			Assert.False(allFee.IsAccurate);
-			Assert.Equal(2, allFee.Estimations.Count);
-			Assert.Equal(100, allFee.Estimations[2]);
-			Assert.Equal(75, allFee.Estimations[6]);
-		}
-
-		[Fact]
 		public async Task AccurateEstimationsAsync()
 		{
 			var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
