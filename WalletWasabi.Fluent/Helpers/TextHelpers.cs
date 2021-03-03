@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace WalletWasabi.Fluent.Helpers
 {
-	public static class TextTimeHelpers
+	public static class TextHelpers
 	{
 		public static string AddSIfPlural(int n) => n > 1 ? "s" : "";
 

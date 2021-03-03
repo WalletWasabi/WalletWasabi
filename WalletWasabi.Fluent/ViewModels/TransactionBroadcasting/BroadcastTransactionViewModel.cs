@@ -63,9 +63,9 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 
 			_transactionId = psbtTxn.GetHash().ToString();
 			_inputCount = inputAddressAmount.Length;
-			_inputCountString = $" input{TextTimeHelpers.AddSIfPlural(_inputCount)} and ";
+			_inputCountString = $" input{TextHelpers.AddSIfPlural(_inputCount)} and ";
 			_outputCount = outputAddressAmount.Length;
-			_outputCountString = $" output{TextTimeHelpers.AddSIfPlural(_outputCount)}.";
+			_outputCountString = $" output{TextHelpers.AddSIfPlural(_outputCount)}.";
 			_totalInputValue = inputAddressAmount.Any(x => x.Value == nullMoney)
 				? null
 				: inputAddressAmount.Select(x => x.Value).Sum();
