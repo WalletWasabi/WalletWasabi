@@ -78,8 +78,10 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			get => _spenderTransaction;
 			set
 			{
-				if (RaiseAndSetIfChanged(ref _spenderTransaction, value))
+				if (!Object.ReferenceEquals(value, _spenderTransaction))
 				{
+					_spenderTransaction = value;
+					OnPropertyChanged(nameof(SpenderTransaction));
 					value?.WalletInputs.Add(this);
 				}
 			}
