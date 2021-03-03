@@ -162,21 +162,42 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				var coinjoin = round.Coinjoin;
 				var isFullySigned = coinjoin.Inputs.All(x => x.HasWitScript());
-				if (isFullySigned)
+
+				try
 				{
-					try
+					if (isFullySigned)
 					{
+						// Logging.
+						round.LogInfo("Trying to broadcast coinjoin.");
+						Coin[]? spentCoins = round.Alices.SelectMany(x => x.Coins).ToArray();
+						Money networkFee = coinjoin.GetFee(spentCoins);
+						Guid roundId = round.Id;
+						FeeRate feeRate = coinjoin.GetFeeRate(spentCoins);
+						round.LogInfo($"Network Fee: {networkFee.ToString(false, false)} BTC.");
+						round.LogInfo($"Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
+						round.LogInfo($"Number of inputs: {coinjoin.Inputs.Count}.");
+						round.LogInfo($"Number of outputs: {coinjoin.Outputs.Count}.");
+						round.LogInfo($"Serialized Size: {coinjoin.GetSerializedSize() / 1024} KB.");
+						round.LogInfo($"VSize: {coinjoin.GetVirtualSize() / 1024} KB.");
+						foreach (var (value, count) in coinjoin.GetIndistinguishableOutputs(includeSingle: false))
+						{
+							round.LogInfo($"There are {count} occurrences of {value.ToString(true, false)} BTC output.");
+						}
+
+						// Broadcasting.
 						await Rpc.SendRawTransactionAsync(coinjoin).ConfigureAwait(false);
 						round.SetPhase(Phase.TransactionBroadcasting);
+
+						round.LogInfo($"Successfully broadcast the CoinJoin: {coinjoin.GetHash()}.");
 					}
-					catch (Exception ex)
+					else if (round.TransactionSigningStart + round.TransactionSigningTimeout < DateTimeOffset.UtcNow)
 					{
-						Logger.LogWarning(ex);
-						await FailTransactionSigningPhaseAsync(round).ConfigureAwait(false);
+						throw new TimeoutException($"Signing phase timed out after {round.TransactionSigningTimeout.TotalSeconds} seconds.");
 					}
 				}
-				else if (round.TransactionSigningStart + round.TransactionSigningTimeout < DateTimeOffset.UtcNow)
+				catch (Exception ex)
 				{
+					round.LogWarning($"Signing phase failed, reason: '{ex}'.");
 					await FailTransactionSigningPhaseAsync(round).ConfigureAwait(false);
 				}
 			}
