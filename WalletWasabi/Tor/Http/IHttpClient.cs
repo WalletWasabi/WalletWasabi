@@ -11,7 +11,7 @@ namespace WalletWasabi.Tor.Http
 	/// <remarks>Relative HTTP requests are allowed only when <see cref="BaseUriGetter"/> returns non-<see langword="null"/> value.</remarks>
 	public interface IHttpClient
 	{
-		Func<Uri?> BaseUriGetter { get; }
+		Func<Uri>? BaseUriGetter { get; }
 
 		/// <summary>Sends an HTTP(s) request.</summary>
 		/// <param name="request">HTTP request message to send.</param>

@@ -24,17 +24,22 @@ namespace WalletWasabi.Tor.Http
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
+		/// <summary>Use this constructor when you want to issue absolute HTTP requests.</summary>
+		public TorHttpClient(EndPoint torSocks5EndPoint, bool isolateStream = false):
+			this(baseUriGetter: null, torSocks5EndPoint, isolateStream)
+		{			
+		}
+
+		/// <summary>Use this constructor when you want to issue relative or absolute HTTP requests.</summary>
 		public TorHttpClient(Uri baseUri, EndPoint torSocks5EndPoint, bool isolateStream = false) :
 			this(() => baseUri, torSocks5EndPoint, isolateStream)
 		{
-			baseUri = Guard.NotNull(nameof(baseUri), baseUri);
 		}
 
-		public TorHttpClient(Func<Uri> baseUriGetter, EndPoint torSocks5EndPoint, bool isolateStream = false)
+		/// <summary>Use this constructor when you want to issue relative or absolute HTTP requests.</summary>
+		public TorHttpClient(Func<Uri>? baseUriGetter, EndPoint torSocks5EndPoint, bool isolateStream = false)
 		{
-			BaseUriGetter = Guard.NotNull(nameof(baseUriGetter), baseUriGetter);
-			Guard.NotNull(nameof(torSocks5EndPoint), torSocks5EndPoint);
-
+			BaseUriGetter = baseUriGetter;
 			TorSocks5EndPoint = torSocks5EndPoint;
 			TorSocks5Client = null;
 			IsolateStream = isolateStream;
@@ -58,7 +63,7 @@ namespace WalletWasabi.Tor.Http
 
 		public static Exception? LatestTorException { get; private set; } = null;
 
-		public Func<Uri> BaseUriGetter { get; }
+		public Func<Uri>? BaseUriGetter { get; }
 		private EndPoint TorSocks5EndPoint { get; }
 
 		/// <summary>
@@ -72,8 +77,14 @@ namespace WalletWasabi.Tor.Http
 
 		/// <exception cref="HttpRequestException">When HTTP request fails to be processed. Inner exception may be an instance of <see cref="TorException"/>.</exception>
 		/// <exception cref="OperationCanceledException">When <paramref name="cancel"/> is canceled by the user.</exception>
+		/// <exception cref="InvalidOperationException">When a relative HTTP request is to be send but <see cref="BaseUriGetter"/> is <c>null</c>.</exception>
 		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
 		{
+			if (BaseUriGetter is null)
+			{
+				throw new InvalidOperationException($"{nameof(BaseUriGetter)} is not set.");
+			}
+
 			Guard.NotNull(nameof(method), method);
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
 			Uri requestUri = new(BaseUriGetter(), relativeUri);
