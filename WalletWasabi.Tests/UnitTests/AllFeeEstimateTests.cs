@@ -207,7 +207,7 @@ namespace WalletWasabi.Tests.UnitTests
 			mockRpc.Setup(rpc => rpc.GetBlockchainInfoAsync()).ReturnsAsync(
 				new BlockchainInfo
 				{
-					Blocks = isSynchronized ? 100_000L : 89_765L,
+					Blocks = isSynchronized ? 100_000UL : 89_765UL,
 					Headers = 100_000L
 				});
 			mockRpc.Setup(rpc => rpc.GetPeersInfoAsync()).ReturnsAsync(
