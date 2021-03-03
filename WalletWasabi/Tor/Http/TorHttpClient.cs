@@ -74,8 +74,8 @@ namespace WalletWasabi.Tor.Http
 		{
 			Guard.NotNull(nameof(method), method);
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
-			var requestUri = new Uri(BaseUriGetter(), relativeUri);
-			using var request = new HttpRequestMessage(method, requestUri);
+			Uri requestUri = new(BaseUriGetter(), relativeUri);
+			using HttpRequestMessage request = new(method, requestUri);
 
 			if (content is { })
 			{
@@ -152,7 +152,7 @@ namespace WalletWasabi.Tor.Http
 		private static void SetTorNotWorkingState(Exception ex)
 		{
 			TorDoesntWorkSince ??= DateTimeOffset.UtcNow;
-			LatestTorException = ex;
+			LatestTorException = ex.InnerException is TorException innerEx ? innerEx : ex;
 		}
 
 		/// <exception cref="OperationCanceledException">If <paramref name="token"/> is set.</exception>

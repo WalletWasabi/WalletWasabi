@@ -1,5 +1,6 @@
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 using WalletWasabi.Wallets.PasswordFinder;
@@ -14,7 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var dialogResult =
-					await NavigateDialog(new EnterPasswordViewModel("Type in your most likely password", enableEmpty: false));
+					await NavigateDialog(new CreatePasswordDialogViewModel("Type in your most likely password", enableEmpty: false));
 
 				if (dialogResult.Result is { } password)
 				{

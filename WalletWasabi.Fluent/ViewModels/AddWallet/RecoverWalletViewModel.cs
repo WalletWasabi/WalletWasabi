@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
@@ -15,6 +13,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.Validation;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -80,7 +79,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			string? walletName)
 		{
 			var dialogResult = await NavigateDialog(
-				new EnterPasswordViewModel(
+				new CreatePasswordDialogViewModel(
 					"Type the password of the wallet to be able to recover and click Continue."));
 
 			if (dialogResult.Result is { } password)

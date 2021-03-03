@@ -1,4 +1,4 @@
-namespace WalletWasabi.Fluent.ViewModels.Dialogs
+namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
 {
 	/// <summary>
 	/// Interface for ViewModels that can host a modal dialog.

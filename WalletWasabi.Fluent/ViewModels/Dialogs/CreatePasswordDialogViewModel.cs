@@ -1,18 +1,19 @@
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.Validation;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
-	[NavigationMetaData (Title = "Enter a password")]
-	public partial class EnterPasswordViewModel : DialogViewModelBase<string?>
+	[NavigationMetaData(Title = "Enter a password")]
+	public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?>
 	{
 		[AutoNotify] private string? _confirmPassword;
 		[AutoNotify] private string? _password;
 
-		public EnterPasswordViewModel(string caption, bool enableEmpty = true)
+		public CreatePasswordDialogViewModel(string caption, bool enableEmpty = true)
 		{
 			Caption = caption;
 
@@ -26,19 +27,21 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
 
 			var nextCommandCanExecute = this.WhenAnyValue(
-				x => x.IsDialogOpen,
-				x => x.Password,
-				x => x.ConfirmPassword,
-				delegate
-				{
-					// This will fire validations before return canExecute value.
-					this.RaisePropertyChanged(nameof(Password));
-					this.RaisePropertyChanged(nameof(ConfirmPassword));
+					x => x.IsDialogOpen,
+					x => x.Password,
+					x => x.ConfirmPassword,
+					delegate
+					{
+						// This will fire validations before return canExecute value.
+						this.RaisePropertyChanged(nameof(Password));
+						this.RaisePropertyChanged(nameof(ConfirmPassword));
 
-					return IsDialogOpen &&
-						   ((enableEmpty && string.IsNullOrEmpty(Password) && string.IsNullOrEmpty(ConfirmPassword)) ||
-							(!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) && !Validations.Any));
-				})
+						return IsDialogOpen &&
+						       ((enableEmpty && string.IsNullOrEmpty(Password) &&
+						         string.IsNullOrEmpty(ConfirmPassword)) ||
+						        (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) &&
+						         !Validations.Any));
+					})
 				.ObserveOn(RxApp.MainThreadScheduler);
 
 			var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);

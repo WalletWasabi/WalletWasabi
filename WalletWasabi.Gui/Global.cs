@@ -102,6 +102,7 @@ namespace WalletWasabi.Gui
 
 				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, httpClientFactory);
 				LegalChecker = new(DataDir);
+				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, WalletManager);
 			}
 		}
 
@@ -157,10 +158,10 @@ namespace WalletWasabi.Gui
 						await TorManager.StartAsync(ensureRunning: true).ConfigureAwait(false);
 					}
 
-					Uri fallbackRequestTestUri = Config.GetFallbackBackendUri();
-					Tor.Http.IHttpClient httpClient = Synchronizer.HttpClientFactory.NewHttpClient(() => new Uri($"{fallbackRequestTestUri.Scheme}://{fallbackRequestTestUri.DnsSafeHost}"), isolateStream: false);
-					
-					HostedServices.Register(new TorMonitor(period: TimeSpan.FromSeconds(3), httpClient, TorManager), nameof(TorMonitor));
+					var httpClient = (WalletWasabi.Tor.Http.TorHttpClient)Synchronizer.HttpClientFactory.NewHttpClient(() => null!, isolateStream: false);
+#pragma warning disable CA2000 // Dispose objects before losing scope
+					HostedServices.Register(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackBackendUri: Config.GetFallbackBackendUri(), httpClient: httpClient, torProcessManager: TorManager), nameof(TorMonitor));
+#pragma warning restore CA2000 // Dispose objects before losing scope
 				}
 
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
@@ -298,7 +299,7 @@ namespace WalletWasabi.Gui
 
 				cancel.ThrowIfCancellationRequested();
 
-				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, Nodes, WalletManager, BitcoinCoreNode?.RpcClient);
+				TransactionBroadcaster.Initialize(Nodes, BitcoinCoreNode?.RpcClient);
 				CoinJoinProcessor = new CoinJoinProcessor(Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
 
 				#region JsonRpcServerInitialization

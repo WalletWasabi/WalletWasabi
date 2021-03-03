@@ -68,16 +68,27 @@ namespace WalletWasabi.Tests.Helpers
 				new InsecureRandom(),
 				new(100m)));
 
-		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig? cfg = null, params Round[] rounds)
+		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, params Round[] rounds)
+			=> await CreateAndStartArenaAsync(cfg, null, rounds);
+
+		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig? cfg = null, MockRpcClient? mockRpc = null, params Round[] rounds)
 		{
-			var mockRpc = new MockRpcClient();
-			mockRpc.OnEstimateSmartFeeAsync = async (target, _) =>
+			mockRpc ??= new MockRpcClient();
+			mockRpc.OnEstimateSmartFeeAsync ??= async (target, _) =>
 				await Task.FromResult(new EstimateSmartFeeResponse
 				{
 					Blocks = target,
 					FeeRate = new FeeRate(10m)
 				});
-			Arena arena = new(TimeSpan.FromSeconds(21), rounds.FirstOrDefault()?.Network ?? Network.Main, cfg ?? new WabiSabiConfig(), mockRpc, new Prison());
+			mockRpc.OnSendRawTransactionAsync ??= (tx) => tx.GetHash();
+			mockRpc.OnGetTxOutAsync ??= (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new(Money.Coins(1), Script.Empty)
+			};
+
+			Arena arena = new(TimeSpan.FromHours(1), rounds.FirstOrDefault()?.Network ?? Network.Main, cfg ?? new WabiSabiConfig(), mockRpc, new Prison());
 			foreach (var round in rounds)
 			{
 				arena.Rounds.Add(round.Id, round);
@@ -222,35 +233,40 @@ namespace WalletWasabi.Tests.Helpers
 			var requests = new List<(ConnectionConfirmationRequest request, WabiSabiClient amountClient, WabiSabiClient weightClient, CredentialsResponseValidation amountValidation, CredentialsResponseValidation weightValidation)>();
 			foreach (var resp in responses)
 			{
-				(var amClient, var weClient, _, _) = CreateWabiSabiClientsAndIssuers(round);
-
-				var zeroPresentables = CreateZeroCredentials(round);
-				var alice = round.Alices.First(x => x.Id == resp.AliceId);
-				var (realAmountCredentialRequest, amVal) = amClient.CreateRequest(
-					new[] { alice.CalculateRemainingAmountCredentials(round.FeeRate).Satoshi },
-					zeroPresentables.amountCredentials);
-				var (realWeightCredentialRequest, weVal) = weClient.CreateRequest(
-					new[] { alice.CalculateRemainingWeightCredentials(round.RegistrableWeightCredentials) },
-					zeroPresentables.weightCredentials);
-
-				var (zeroAmountCredentialRequest, _) = amClient.CreateRequestForZeroAmount();
-				var (zeroWeightCredentialRequest, _) = weClient.CreateRequestForZeroAmount();
-
-				requests.Add((
-					new ConnectionConfirmationRequest(
-						round.Id,
-						resp.AliceId,
-						zeroAmountCredentialRequest,
-						realAmountCredentialRequest,
-						zeroWeightCredentialRequest,
-						realWeightCredentialRequest),
-					amClient,
-					weClient,
-					amVal,
-					weVal));
+				requests.Add(CreateConnectionConfirmationRequest(round, resp));
 			}
 
 			return requests.ToArray();
+		}
+
+		public static (ConnectionConfirmationRequest request, WabiSabiClient amountClient, WabiSabiClient weightClient, CredentialsResponseValidation amountValidation, CredentialsResponseValidation weightValidation) CreateConnectionConfirmationRequest(Round round, InputsRegistrationResponse response)
+		{
+			(var amClient, var weClient, _, _) = CreateWabiSabiClientsAndIssuers(round);
+
+			var zeroPresentables = CreateZeroCredentials(round);
+			var alice = round.Alices.First(x => x.Id == response.AliceId);
+			var (realAmountCredentialRequest, amVal) = amClient.CreateRequest(
+				new[] { alice.CalculateRemainingAmountCredentials(round.FeeRate).Satoshi },
+				zeroPresentables.amountCredentials);
+			var (realWeightCredentialRequest, weVal) = weClient.CreateRequest(
+				new[] { alice.CalculateRemainingWeightCredentials(round.RegistrableWeightCredentials) },
+				zeroPresentables.weightCredentials);
+
+			var (zeroAmountCredentialRequest, _) = amClient.CreateRequestForZeroAmount();
+			var (zeroWeightCredentialRequest, _) = weClient.CreateRequestForZeroAmount();
+
+			return (
+				new ConnectionConfirmationRequest(
+					round.Id,
+					response.AliceId,
+					zeroAmountCredentialRequest,
+					realAmountCredentialRequest,
+					zeroWeightCredentialRequest,
+					realWeightCredentialRequest),
+				amClient,
+				weClient,
+				amVal,
+				weVal);
 		}
 
 		public static OutputRegistrationRequest CreateOutputRegistrationRequest(Round? round = null, Script? script = null, int? weight = null)
@@ -315,6 +331,26 @@ namespace WalletWasabi.Tests.Helpers
 			}
 
 			return ret;
+		}
+
+		public static Round CreateBlameRound(Round round, WabiSabiConfig cfg)
+		{
+			RoundParameters parameters = new(cfg, round.Network, round.Random, round.FeeRate, blameOf: round);
+			return new(parameters);
+		}
+
+		public static MockRpcClient CreateMockRpc(Key? key = null)
+		{
+			MockRpcClient rpc = new();
+
+			rpc.OnGetTxOutAsync = (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new(Money.Coins(1), key?.PubKey.GetSegwitAddress(Network.Main).ScriptPubKey ?? Script.Empty)
+			};
+
+			return rpc;
 		}
 	}
 }

@@ -1,3 +1,4 @@
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 1, 1);
 			var coin = Assert.Single(tx.WalletInputs);
 			var key = coin.HdPubKey;
-			key.AnonymitySet = 3;
+			key.SetAnonymitySet(3, tx.GetHash());
 
 			analyser.Analyze(tx);
 
@@ -37,7 +38,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 1, 3);
 			var coin = Assert.Single(tx.WalletInputs);
 			var key = coin.HdPubKey;
-			key.AnonymitySet = 3;
+			key.SetAnonymitySet(3, tx.GetHash());
 
 			analyser.Analyze(tx);
 
@@ -56,10 +57,10 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 3, 1);
 			var smallestAnonset = 3;
 
-			tx.WalletInputs.First().HdPubKey.AnonymitySet = smallestAnonset;
+			tx.WalletInputs.First().HdPubKey.SetAnonymitySet(smallestAnonset, uint256.One);
 			foreach (var coin in tx.WalletInputs.Skip(1))
 			{
-				coin.HdPubKey.AnonymitySet = 100;
+				coin.HdPubKey.SetAnonymitySet(100, tx.GetHash());
 			}
 
 			analyser.Analyze(tx);
@@ -76,10 +77,10 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 3, 3);
 			var smallestAnonset = 3;
 
-			tx.WalletInputs.First().HdPubKey.AnonymitySet = smallestAnonset;
+			tx.WalletInputs.First().HdPubKey.SetAnonymitySet(smallestAnonset, uint256.One);
 			foreach (var coin in tx.WalletInputs.Skip(1))
 			{
-				coin.HdPubKey.AnonymitySet = 100;
+				coin.HdPubKey.SetAnonymitySet(100, tx.GetHash());
 			}
 
 			analyser.Analyze(tx);
