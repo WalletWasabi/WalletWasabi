@@ -449,7 +449,6 @@ namespace WalletWasabi.Fluent.Controls
 			var angleRadians = Math.PI / 180.0 * XAxisLabelAngle;
 			var alignment = XAxisLabelAlignment;
 			var originTop = state.AreaMargin.Top + state.AreaHeight;
-
 			var formattedTextLabels = new List<FormattedText>();
 			var constrainWidthMax = 0.0;
 			var constrainHeightMax = 0.0;
@@ -463,7 +462,6 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			var constraintMax = new Size(constrainWidthMax, constrainHeightMax);
-
 			var offsetTransform = context.PushPreTransform(Matrix.CreateTranslation(offset.X, offset.Y));
 
 			for (var i = 0; i < formattedTextLabels.Count; i++)
@@ -550,7 +548,6 @@ namespace WalletWasabi.Fluent.Controls
 			var angleRadians = Math.PI / 180.0 * YAxisLabelAngle;
 			var alignment = YAxisLabelAlignment;
 			var originLeft = state.AreaMargin.Left;
-
 			var formattedTextLabels = new List<FormattedText>();
 			var constrainWidthMax = 0.0;
 			var constrainHeightMax = 0.0;
@@ -564,7 +561,6 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			var constraintMax = new Size(constrainWidthMax, constrainHeightMax);
-
 			var offsetTransform = context.PushPreTransform(Matrix.CreateTranslation(offset.X, offset.Y));
 
 			for (var i = 0; i < formattedTextLabels.Count; i++)
