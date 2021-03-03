@@ -133,7 +133,7 @@ namespace WalletWasabi.Fluent.Controls
 				}
 
 				var cursorHitTestRect = GetXAxisCursorHitTestRect();
-				var cursorSizeWestEast = cursorHitTestRect != null && cursorHitTestRect.Value.Contains(position);
+				var cursorSizeWestEast = cursorHitTestRect is not null && cursorHitTestRect.Value.Contains(position);
 				Cursor = cursorSizeWestEast ?
 					new Cursor(StandardCursorType.SizeWestEast)
 					: new Cursor(StandardCursorType.Arrow);
@@ -149,7 +149,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			var position = e.GetPosition(this);
 			var cursorHitTestRect = GetXAxisCursorHitTestRect();
-			var cursorSizeWestEast = cursorHitTestRect != null && cursorHitTestRect.Value.Contains(position);
+			var cursorSizeWestEast = cursorHitTestRect is not null && cursorHitTestRect.Value.Contains(position);
 			if (!cursorSizeWestEast)
 			{
 				Cursor = new Cursor(StandardCursorType.Arrow);
