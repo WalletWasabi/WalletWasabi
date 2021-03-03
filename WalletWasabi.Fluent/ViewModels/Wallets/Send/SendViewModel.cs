@@ -367,6 +367,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			XAxisLabels = xAxisLabels;
 			XAxisValues = xAxisValues;
 			YAxisValues = yAxisValues;
+			XAxisMinValue = xAxisValues.Min();
+			XAxisMaxValue = xAxisValues.Max();
 		}
 
 		private void GetSmoothValuesSubdivide(double[] xs, double[] ys, out List<double> ts, out List<double> xts)
