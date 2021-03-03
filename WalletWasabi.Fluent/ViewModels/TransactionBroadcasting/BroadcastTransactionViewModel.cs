@@ -5,6 +5,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 using WalletWasabi.Stores;
@@ -62,9 +63,9 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 
 			_transactionId = psbtTxn.GetHash().ToString();
 			_inputCount = inputAddressAmount.Length;
-			_inputCountString = $" input{(_inputCount > 1 ? 's' : "")} and ";
+			_inputCountString = $" input{TextTimeHelpers.AddSIfPlural(_inputCount)} and ";
 			_outputCount = outputAddressAmount.Length;
-			_outputCountString = $" output{(_outputCount > 1 ? 's' : "")}.";
+			_outputCountString = $" output{TextTimeHelpers.AddSIfPlural(_outputCount)}.";
 			_totalInputValue = inputAddressAmount.Any(x => x.Value == nullMoney)
 				? null
 				: inputAddressAmount.Select(x => x.Value).Sum();

@@ -14,15 +14,12 @@ namespace WalletWasabi.Fluent.Helpers
 		public static string TimeSpanToFriendlyString(TimeSpan time)
 		{
 			string result = "";
-			var d = time.Days;
-			var h = time.Hours;
-			var m = time.Minutes;
 
-			result += ConcatNumberAndUnit(d, "day", ' ');
-			result += ConcatNumberAndUnit(h, "hour", ' ');
-			result += ConcatNumberAndUnit(m, "minute", ' ');
+			result += ConcatNumberAndUnit(time.Days, "day", ' ');
+			result += ConcatNumberAndUnit(time.Hours, "hour", ' ');
+			result += ConcatNumberAndUnit(time.Minutes, "minute", ' ');
 
-			return result;
+			return result.TrimEnd();
 		}
 	}
 }
