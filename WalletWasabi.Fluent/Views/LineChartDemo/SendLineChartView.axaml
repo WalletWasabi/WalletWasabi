@@ -134,6 +134,9 @@
         </Style>
     </UserControl.Styles>
     <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Label Content="{Binding #GradientLineChart.XAxisCurrentValue, StringFormat={}_Priority: {0}}"
+               DockPanel.Dock="Top"
+               Margin="20,0,20,0"/>
         <Slider x:Name="CursorValue2"
                 DockPanel.Dock="Bottom"
                 Classes="cursor"
