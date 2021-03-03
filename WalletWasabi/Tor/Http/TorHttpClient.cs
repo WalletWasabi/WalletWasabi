@@ -77,7 +77,7 @@ namespace WalletWasabi.Tor.Http
 
 		/// <exception cref="HttpRequestException">When HTTP request fails to be processed. Inner exception may be an instance of <see cref="TorException"/>.</exception>
 		/// <exception cref="OperationCanceledException">When <paramref name="cancel"/> is canceled by the user.</exception>
-		/// <exception cref="InvalidOperationException">When a relative HTTP request is to be send but <see cref="BaseUriGetter"/> is <c>null</c>.</exception>
+		/// <exception cref="InvalidOperationException">When a relative HTTP request is to be sent but <see cref="BaseUriGetter"/> is <c>null</c>.</exception>
 		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
 		{
 			if (BaseUriGetter is null)
