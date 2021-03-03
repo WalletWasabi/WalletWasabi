@@ -92,6 +92,7 @@ namespace WalletWasabi.Fluent.Controls
 			var factor = value / areaWidth;
 			var index = (int) ((xAxisValues.Count - 1) * factor);
 			var currentValue = xAxisValues[index];
+
 			// Console.WriteLine($"value {value} factor {factor} index {index} currentValue {currentValue}");
 			XAxisCurrentValue = currentValue;
 		}
