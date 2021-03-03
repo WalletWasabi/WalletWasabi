@@ -80,34 +80,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					if (x > 0)
 					{
 						_transactionInfo.FeeRate = new FeeRate(GetYAxisValueFromXAxisCurrentValue(x));
-
-						if (!_updatingCurrentValue)
-						{
-							_updatingCurrentValue = true;
-							if (_xAxisValues is not null)
-							{
-								XAxisCurrentValueIndex = GetCurrentValueIndex(x, _xAxisValues);
-							}
-							_updatingCurrentValue = false;
-						}
+						SetXAxisCurrentValueIndex(x);
 					}
 				});
 
 			this.WhenAnyValue(x => x.XAxisCurrentValueIndex)
-				.Subscribe(x =>
-				{
-					if (_xAxisValues is not null)
-					{
-						if (!_updatingCurrentValue)
-						{
-							_updatingCurrentValue = true;
-							var index = _xAxisValues.Length - x - 1;
-							XAxisCurrentValue = _xAxisValues[index];
-							_updatingCurrentValue = false;
-						}
-					}
-				});
-
+				.Subscribe(SetXAxisCurrentValue);
 
 			Labels.ToObservableChangeSet().Subscribe(x =>
 			{
@@ -165,6 +143,33 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				Navigate().To(new PrivacyControlViewModel());
 			}, this.WhenAnyValue(x=>x.Labels.Count).Any());
+		}
+
+		private void SetXAxisCurrentValueIndex(double xAxisCurrentValue)
+		{
+			if (!_updatingCurrentValue)
+			{
+				_updatingCurrentValue = true;
+				if (_xAxisValues is not null)
+				{
+					XAxisCurrentValueIndex = GetCurrentValueIndex(xAxisCurrentValue, _xAxisValues);
+				}
+				_updatingCurrentValue = false;
+			}
+		}
+
+		private void SetXAxisCurrentValue(int xAxisCurrentValueIndex)
+		{
+			if (_xAxisValues is not null)
+			{
+				if (!_updatingCurrentValue)
+				{
+					_updatingCurrentValue = true;
+					var index = _xAxisValues.Length - xAxisCurrentValueIndex - 1;
+					XAxisCurrentValue = _xAxisValues[index];
+					_updatingCurrentValue = false;
+				}
+			}
 		}
 
 		private void ValidateAmount(IValidationErrors errors)
