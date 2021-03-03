@@ -142,17 +142,19 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void PointerReleasedHandler(object? sender, PointerReleasedEventArgs e)
 		{
-			if (_captured)
+			if (!_captured)
 			{
-				var position = e.GetPosition(this);
-				var cursorHitTestRect = GetXAxisCursorHitTestRect();
-				var cursorSizeWestEast = cursorHitTestRect != null && cursorHitTestRect.Value.Contains(position);
-				if (!cursorSizeWestEast)
-				{
-					Cursor = new Cursor(StandardCursorType.Arrow);
-				}
-				_captured = false;
+				return;
 			}
+
+			var position = e.GetPosition(this);
+			var cursorHitTestRect = GetXAxisCursorHitTestRect();
+			var cursorSizeWestEast = cursorHitTestRect != null && cursorHitTestRect.Value.Contains(position);
+			if (!cursorSizeWestEast)
+			{
+				Cursor = new Cursor(StandardCursorType.Arrow);
+			}
+			_captured = false;
 		}
 
 		private void PointerPressedHandler(object? sender, PointerPressedEventArgs e)
