@@ -76,7 +76,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					if (x > 0)
 					{
 						_transactionInfo.FeeRate = new FeeRate(GetYAxisValueFromXAxisCurrentValue(x));
-						_transactionInfo.ConfirmationTimeSpan = TimeSpan.FromMinutes((int) Math.Ceiling(x / 10.0) * 10);
+						_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(x);
 					}
 				});
 
@@ -136,6 +136,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				Navigate().To(new PrivacyControlViewModel());
 			}, this.WhenAnyValue(x=>x.Labels.Count).Any());
+		}
+
+		public ICommand PasteCommand { get; }
+
+		public double XAxisMinValue { get; set; } = 1;
+
+		public double XAxisMaxValue { get; set; } = 1008;
+
+		private TimeSpan CalculateConfirmationTime(double x)
+		{
+			var targetedBlock = GetXAxisValueFromXAxisCurrentValue(x);
+			var timeInMinutes = Math.Ceiling(targetedBlock) * 10;
+			var time = TimeSpan.FromMinutes(timeInMinutes);
+
+			Console.WriteLine($"{x} - {targetedBlock} - {time}");
+			return time;
 		}
 
 		private void ValidateAmount(IValidationErrors errors)
@@ -454,10 +470,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return (decimal)XAxisMaxValue;
 		}
 
-		public ICommand PasteCommand { get; }
+		private double GetXAxisValueFromXAxisCurrentValue(double x)
+		{
+			if (_xAxisValues is { })
+			{
+				var scale = XAxisValues.Length / XAxisMaxValue;
+				var selectedIndex = (int)(x * scale - 1);
+				return XAxisValues.Reverse().ToArray()[selectedIndex];
+			}
 
-		public double XAxisMinValue { get; set; } = 1;
-
-		public double XAxisMaxValue { get; set; } = 1008;
+			return 0;
+		}
 	}
 }
