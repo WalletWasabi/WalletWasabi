@@ -25,11 +25,6 @@ namespace WalletWasabi.Fluent.Controls
 			return Math.Min(Math.Max(val, min), max);
 		}
 
-		private static double ScaleHorizontal(double value, double max, double range)
-		{
-			return value / max * range;
-		}
-
 		private static double ScaleVertical(double value, double max, double range)
 		{
 			return range - value / max * range;
