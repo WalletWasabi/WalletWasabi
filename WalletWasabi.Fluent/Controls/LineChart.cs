@@ -288,31 +288,19 @@ namespace WalletWasabi.Fluent.Controls
 
 		private double GetCursorPosition(double areaWidth)
 		{
-			if (double.IsNaN(XAxisCurrentValue))
-			{
-				return double.NaN;
-			}
-
 			var xAxisCurrentValue = XAxisCurrentValue;
 			var xAxisValues = XAxisValues;
-			if (xAxisValues is null || xAxisValues.Count == 0)
+			if (double.IsNaN(xAxisCurrentValue) || xAxisValues is null || xAxisValues.Count == 0)
 			{
 				return double.NaN;
 			}
 
-			var index = -1;
 			for (var i = 0; i < xAxisValues.Count; i++)
 			{
 				if (xAxisValues[i] <= xAxisCurrentValue)
 				{
-					index = i;
-					break;
+					return areaWidth / xAxisValues.Count * i;
 				}
-			}
-
-			if (index >= 0)
-			{
-				return areaWidth / xAxisValues.Count * index;
 			}
 
 			return double.NaN;
