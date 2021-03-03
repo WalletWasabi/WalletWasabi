@@ -341,6 +341,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var brush = CursorStroke;
 			if (brush is null
+			    || double.IsNaN(state.XAxisCursorPosition)
 			    || state.AreaWidth <= 0
 			    || state.AreaHeight <= 0
 			    || state.AreaWidth < AreaMinViableWidth
