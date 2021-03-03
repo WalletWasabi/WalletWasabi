@@ -10,12 +10,12 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class CoinPocketHelper
 	{
-		public static readonly string[] UnlabelledFundsText = {"Unlabelled Funds"};
-		public static readonly string[] PrivateFundsText = {"Private Funds"};
+		public static readonly SmartLabel UnlabelledFundsText = new("Unlabelled Funds");
+		public static readonly SmartLabel PrivateFundsText = new("Private Funds");
 
-		public static IEnumerable<(string[] Labels, ICoinsView Coins)> GetPockets(this ICoinsView allCoins, int privateAnonSetThreshold)
+		public static IEnumerable<(SmartLabel SmartLabel, ICoinsView Coins)> GetPockets(this ICoinsView allCoins, int privateAnonSetThreshold)
 		{
-			List<(string[] Labels, ICoinsView Coins)> pockets = new();
+			List<(SmartLabel SmartLabel, ICoinsView Coins)> pockets = new();
 
 			var clusters = allCoins
 				.Where(x => x.HdPubKey.AnonymitySet < privateAnonSetThreshold)
@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.Helpers
 				}
 				else
 				{
-					pockets.Add(new(allLabels, new CoinsView(coins)));
+					pockets.Add(new(cluster.Key, new CoinsView(coins)));
 				}
 			}
 

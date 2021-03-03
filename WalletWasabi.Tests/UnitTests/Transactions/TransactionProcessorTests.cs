@@ -1088,26 +1088,26 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var notYetPrivateCoin = transactionProcessor.NewKey("");
 			transactionProcessor.Process(CreateCreditingTransaction(notYetPrivateCoin.P2wpkhScript, Money.Coins(1.0m)));
-			notYetPrivateCoin.AnonymitySet = targetAnonSet - 1;
+			notYetPrivateCoin.SetAnonymitySet(targetAnonSet - 1, 0);
 
 			var privateCoin1 = transactionProcessor.NewKey("");
 			transactionProcessor.Process(CreateCreditingTransaction(privateCoin1.P2wpkhScript, Money.Coins(1.0m)));
-			privateCoin1.AnonymitySet = targetAnonSet;
+			privateCoin1.SetAnonymitySet(targetAnonSet, 0);
 
 			var privateCoin2 = transactionProcessor.NewKey("");
 			transactionProcessor.Process(CreateCreditingTransaction(privateCoin2.P2wpkhScript, Money.Coins(1.0m)));
-			privateCoin2.AnonymitySet = targetAnonSet;
+			privateCoin2.SetAnonymitySet(targetAnonSet, 0);
 
-			IEnumerable<(string Labels, ICoinsView Coins)> pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins, targetAnonSet);
-			(string Labels, ICoinsView Coins) aPocket = pockets.Single(x => x.Labels == "A");
+			var pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins, targetAnonSet);
+			var aPocket = pockets.Single(x => x.SmartLabel == "A");
 
 			Assert.Equal(3, aPocket.Coins.Count());
 			Assert.Equal(Money.Coins(3.0m), aPocket.Coins.TotalAmount());
-			Assert.Single(pockets.Single(x => x.Labels == "B").Coins);
-			Assert.Equal(2, pockets.Single(x => x.Labels == "C").Coins.Count());
-			Assert.Single(pockets.Single(x => x.Labels == "A, B").Coins);
-			Assert.Equal(4, pockets.Single(x => x.Labels == CoinPocketHelper.UnlabelledFundsText).Coins.Count());
-			Assert.Equal(2, pockets.Single(x => x.Labels == CoinPocketHelper.PrivateFundsText).Coins.Count());
+			Assert.Single(pockets.Single(x => x.SmartLabel == "B").Coins);
+			Assert.Equal(2, pockets.Single(x => x.SmartLabel == "C").Coins.Count());
+			Assert.Single(pockets.Single(x => x.SmartLabel == "A, B").Coins);
+			Assert.Equal(4, pockets.Single(x => x.SmartLabel == CoinPocketHelper.UnlabelledFundsText).Coins.Count());
+			Assert.Equal(2, pockets.Single(x => x.SmartLabel == CoinPocketHelper.PrivateFundsText).Coins.Count());
 		}
 
 		private static SmartTransaction CreateSpendingTransaction(Coin coin, Script? scriptPubKey = null, int height = 0)
