@@ -165,7 +165,8 @@
                         Classes="cursor"
                         Minimum="{Binding XAxisMinValue}"
                         Maximum="{Binding XAxisMaxValue}"
-                        Value="{Binding #GradientLineChart.XAxisCurrentValue}" />
+                        Value="{Binding XAxisCurrentValueIndex}">
+                </Slider>
                 <c:LineChart x:Name="GradientLineChart"
                              Classes="cursor border xAxisLabels yAxis yAxisTitle"
                              MinHeight="30"
