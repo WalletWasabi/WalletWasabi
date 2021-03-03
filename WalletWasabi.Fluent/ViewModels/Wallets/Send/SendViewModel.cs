@@ -150,7 +150,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var timeInMinutes = Math.Ceiling(targetedBlock) * 10;
 			var time = TimeSpan.FromMinutes(timeInMinutes);
 
-			Console.WriteLine($"{x} - {targetedBlock} - {time}");
 			return time;
 		}
 
