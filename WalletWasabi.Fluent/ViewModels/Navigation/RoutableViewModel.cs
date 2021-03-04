@@ -13,6 +13,13 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 	{
 		[AutoNotify] private bool _isBusy;
 
+		[AutoNotify] private bool _hasCustomSize;
+
+		[AutoNotify] private bool _minContentHeight;
+		[AutoNotify] private bool _minContentWidth;
+		[AutoNotify] private bool _maxContentHeight;
+		[AutoNotify] private bool _maxContentWidth;
+
 		public abstract string Title { get; protected set; }
 
 		private CompositeDisposable? _currentDisposable;

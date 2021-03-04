@@ -8,6 +8,7 @@
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="536" d:DesignHeight="459"
              x:DataType="vm:MainViewModel"
              x:CompileBindings="True"
@@ -53,8 +54,15 @@
               EnableCancelOnPressed="False"
               EnableCancelOnEscape="True"
               IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
-              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-              MaxContentWidth="{Binding MaxContentWidth}" MaxContentHeight="{Binding MaxContentHeight}">
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+      <c:Dialog.MaxContentWidth>
+        <MultiBinding Converter="{x:Static converters:ContentDimensionsConverter.Instance}">
+          <Binding Path="CurrentPage.HasCustomSize"/>
+          <Binding Path="MaxContentWidth"/>
+          <Binding Path="CurrentPage.MaxContentWidth"/>
+        </MultiBinding>
+      </c:Dialog.MaxContentWidth>
+
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
     <c:Dialog x:CompileBindings="False"
