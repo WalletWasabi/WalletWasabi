@@ -9,6 +9,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.Stores;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 using WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
@@ -62,61 +63,74 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
-			RecoverWalletCommand = ReactiveCommand.Create(
-				() => Navigate().To(new RecoverWalletViewModel(WalletName, walletManagerViewModel)));
+			RecoverWalletCommand = ReactiveCommand.Create(() => RecoverWallet(walletManagerViewModel));
 
-			ImportWalletCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				try
-				{
-					var filePath = await FileDialogHelper.ShowOpenFileDialogAsync("Import wallet file", new[] { "json" });
+			ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await ImportWallet(walletManager));
 
-					if (filePath is null)
-					{
-						return;
-					}
+			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => ConnectHardwareWallet(walletManagerViewModel));
 
-					var keyManager = await ImportWalletHelper.ImportWalletAsync(walletManager, WalletName, filePath);
-
-					// TODO: get the type from the wallet file
-					Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager));
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-					await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "The wallet file was not valid or compatible with Wasabi.");
-				}
-			});
-
-			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => Navigate().To(new ConnectHardwareWalletViewModel(WalletName, walletManagerViewModel)));
-
-			CreateWalletCommand = ReactiveCommand.CreateFromTask(
-				async () =>
-				{
-					var dialogResult = await NavigateDialog(
-						new CreatePasswordDialogViewModel("Type the password of the wallet and click Continue."));
-
-					if (dialogResult.Result is { } password)
-					{
-						var (km, mnemonic) = await Task.Run(
-							() =>
-							{
-								var walletGenerator = new WalletGenerator(
-									walletManager.WalletDirectories.WalletsDir,
-									network)
-								{
-									TipHeight = store.SmartHeaderChain.TipHeight
-								};
-								return walletGenerator.GenerateWallet(WalletName, password);
-							});
-
-						Navigate().To(new RecoveryWordsViewModel(km, mnemonic, walletManager));
-					}
-				});
+			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () => await CreateWallet(walletManager, store, network));
 
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
 
 			EnableAutoBusyOn(CreateWalletCommand);
+		}
+
+		private void RecoverWallet(WalletManagerViewModel walletManagerViewModel)
+		{
+			Navigate().To(new RecoverWalletViewModel(WalletName, walletManagerViewModel));
+		}
+
+		private void ConnectHardwareWallet(WalletManagerViewModel walletManagerViewModel)
+		{
+			Navigate().To(new ConnectHardwareWalletViewModel(WalletName, walletManagerViewModel));
+		}
+
+		private async Task ImportWallet(WalletManager walletManager)
+		{
+			try
+			{
+				var filePath = await FileDialogHelper.ShowOpenFileDialogAsync("Import wallet file", new[] {"json"});
+
+				if (filePath is null)
+				{
+					return;
+				}
+
+				var keyManager = await ImportWalletHelper.ImportWalletAsync(walletManager, WalletName, filePath);
+
+				// TODO: get the type from the wallet file
+				Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager));
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				await ShowErrorAsync(Title, ex.ToUserFriendlyString(),
+					"The wallet file was not valid or compatible with Wasabi.");
+			}
+		}
+
+		private async Task CreateWallet(WalletManager walletManager, BitcoinStore store, Network network)
+		{
+			var dialogResult = await NavigateDialog(
+				new CreatePasswordDialogViewModel("Type the password of the wallet and click Continue."));
+
+			if (dialogResult.Result is { } password)
+			{
+				var (km, mnemonic) = await Task.Run(
+					() =>
+					{
+						var walletGenerator = new WalletGenerator(
+							walletManager.WalletDirectories.WalletsDir,
+							network)
+						{
+							TipHeight = store.SmartHeaderChain.TipHeight
+						};
+						return walletGenerator.GenerateWallet(WalletName, password);
+					});
+
+				Navigate().To(new RecoveryWordsViewModel(km, mnemonic, walletManager));
+			}
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
