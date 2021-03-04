@@ -111,7 +111,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						var balance = _owner.Wallet.Coins.TotalAmount();
 						var amountBtc = Money.FromUnit(AmountBtc, MoneyUnit.BTC);
 						var totalTransactionCost = amountBtc + _transactionInfo.FeeRate.FeePerK;
-						var hasEnoughMoney = totalTransactionCost < balance;
+						var hasEnoughMoney = totalTransactionCost <= balance;
 
 						return allFilled && !hasError && hasEnoughMoney;
 					});
