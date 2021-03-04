@@ -13,6 +13,7 @@
                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
             <Border Name="PART_Border"
                     Background="{DynamicResource RegionColor}"
+                    MinWidth="{TemplateBinding MinContentWidth}" MinHeight="{TemplateBinding MinContentHeight}"
                     MaxWidth="{TemplateBinding MaxContentWidth}" MaxHeight="{TemplateBinding MaxContentHeight}">
               <ContentPresenter Name="PART_ContentPresenter" Margin="16 28 16 16"
                                 Background="{TemplateBinding Background}"

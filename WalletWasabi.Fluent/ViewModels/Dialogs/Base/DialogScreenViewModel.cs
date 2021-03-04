@@ -10,10 +10,14 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
 	public partial class DialogScreenViewModel : TargettedNavigationStack
 	{
 		[AutoNotify] private bool _isDialogOpen;
+		[AutoNotify] private double _minContentWidth;
+		[AutoNotify] private double _minContentHeight;
 		[AutoNotify] private double _maxContentWidth;
 		[AutoNotify] private double _maxContentHeight;
 
-		public DialogScreenViewModel(double maxContentWidth, double maxContentHeight, NavigationTarget navigationTarget = NavigationTarget.DialogScreen) : base(navigationTarget)
+		public DialogScreenViewModel(double minContentWidth, double minContentHeight, double maxContentWidth,
+			double maxContentHeight, NavigationTarget navigationTarget = NavigationTarget.DialogScreen) : base(
+			navigationTarget)
 		{
 			_maxContentWidth = maxContentWidth;
 			_maxContentHeight = maxContentHeight;
@@ -31,7 +35,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
 					});
 		}
 
-		protected override void OnNavigated(RoutableViewModel? oldPage, bool oldInStack, RoutableViewModel? newPage, bool newInStack)
+		protected override void OnNavigated(RoutableViewModel? oldPage, bool oldInStack, RoutableViewModel? newPage,
+			bool newInStack)
 		{
 			base.OnNavigated(oldPage, oldInStack, newPage, newInStack);
 

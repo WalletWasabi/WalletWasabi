@@ -27,6 +27,12 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<double> MaxContentWidthProperty =
 			AvaloniaProperty.Register<Dialog, double>(nameof(MaxContentWidth), double.PositiveInfinity);
 
+		public static readonly StyledProperty<double> MinContentHeightProperty =
+			AvaloniaProperty.Register<Dialog, double>(nameof(MinContentHeight));
+
+		public static readonly StyledProperty<double> MinContentWidthProperty =
+			AvaloniaProperty.Register<Dialog, double>(nameof(MinContentWidth));
+
 		public bool IsDialogOpen
 		{
 			get => GetValue(IsDialogOpenProperty);
@@ -56,6 +62,19 @@ namespace WalletWasabi.Fluent.Controls
 			get => GetValue(MaxContentWidthProperty);
 			set => SetValue(MaxContentWidthProperty, value);
 		}
+
+		public double MinContentHeight
+		{
+			get => GetValue(MaxContentHeightProperty);
+			set => SetValue(MaxContentHeightProperty, value);
+		}
+
+		public double MinContentWidth
+		{
+			get => GetValue(MaxContentWidthProperty);
+			set => SetValue(MaxContentWidthProperty, value);
+		}
+
 
 		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
 		{

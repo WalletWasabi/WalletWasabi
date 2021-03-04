@@ -62,7 +62,27 @@
           <Binding Path="CurrentPage.MaxContentWidth"/>
         </MultiBinding>
       </c:Dialog.MaxContentWidth>
-
+      <c:Dialog.MaxContentHeight>
+        <MultiBinding Converter="{x:Static converters:ContentDimensionsConverter.Instance}">
+          <Binding Path="CurrentPage.HasCustomSize"/>
+          <Binding Path="MaxContentWidth"/>
+          <Binding Path="CurrentPage.MaxContentHeight"/>
+        </MultiBinding>
+      </c:Dialog.MaxContentHeight>
+      <c:Dialog.MinContentWidth>
+        <MultiBinding Converter="{x:Static converters:ContentDimensionsConverter.Instance}">
+          <Binding Path="CurrentPage.HasCustomSize"/>
+          <Binding Path="MinContentWidth"/>
+          <Binding Path="CurrentPage.MinContentWidth"/>
+        </MultiBinding>
+      </c:Dialog.MinContentWidth>
+      <c:Dialog.MinContentHeight>
+        <MultiBinding Converter="{x:Static converters:ContentDimensionsConverter.Instance}">
+          <Binding Path="CurrentPage.HasCustomSize"/>
+          <Binding Path="MinContentHeight"/>
+          <Binding Path="CurrentPage.MinContentHeight"/>
+        </MultiBinding>
+      </c:Dialog.MinContentHeight>
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
     <c:Dialog x:CompileBindings="False"
