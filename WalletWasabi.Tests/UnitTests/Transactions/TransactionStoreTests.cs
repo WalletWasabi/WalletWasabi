@@ -83,7 +83,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// Make sure starts with clear state.
 			var dir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName));
 			var filePath = Path.Combine(dir, "Transactions.dat");
-			File.Delete(filePath);
+			if (File.Exists(filePath))
+			{
+				File.Delete(filePath);
+			}
 			var txStore = new TransactionStore();
 			await txStore.InitializeAsync(dir, Network.Main, $"{nameof(TransactionStore)}.{nameof(TransactionStore.InitializeAsync)}", CancellationToken.None);
 			return txStore;
