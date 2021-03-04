@@ -1,6 +1,3 @@
-using System;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-
 namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
 	public class NavigationState
@@ -8,18 +5,14 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		private NavigationState(
 			INavigationStack<RoutableViewModel> homeScreenNavigation,
 			INavigationStack<RoutableViewModel> dialogScreenNavigation,
-			INavigationStack<RoutableViewModel> fullScreenNavigation,
-			Func<IDialogHost> dialogHost)
+			INavigationStack<RoutableViewModel> fullScreenNavigation)
 		{
 			HomeScreenNavigation = homeScreenNavigation;
 			DialogScreenNavigation = dialogScreenNavigation;
 			FullScreenNavigation = fullScreenNavigation;
-			DialogHost = dialogHost;
 		}
 
 		public static NavigationState Instance { get; private set; } = null!;
-
-		public Func<IDialogHost> DialogHost { get; }
 
 		public INavigationStack<RoutableViewModel> HomeScreenNavigation { get; }
 
@@ -30,14 +23,12 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		public static void Register(
 			INavigationStack<RoutableViewModel> homeScreenNavigation,
 			INavigationStack<RoutableViewModel> dialogScreenNavigation,
-			INavigationStack<RoutableViewModel> fullScreenNavigation,
-			Func<IDialogHost> dialogHost)
+			INavigationStack<RoutableViewModel> fullScreenNavigation)
 		{
 			Instance = new NavigationState(
 				homeScreenNavigation,
 				dialogScreenNavigation,
-				fullScreenNavigation,
-				dialogHost);
+				fullScreenNavigation);
 		}
 	}
 }

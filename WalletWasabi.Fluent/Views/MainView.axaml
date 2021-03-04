@@ -84,11 +84,5 @@
       </c:Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
-    <c:Dialog DataContext="{Binding CurrentDialog}"
-              IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
-              EnableCancelOnPressed="False"
-              EnableCancelOnEscape="True"
-              Content="{Binding }"
-              HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
   </Panel>
 </UserControl>

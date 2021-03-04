@@ -1,7 +1,5 @@
 using System;
 using System.IO;
-using System.Reactive;
-using System.Reactive.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using ReactiveUI;
@@ -30,13 +28,8 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 		{
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
-			var interaction = new Interaction<Unit, Unit>();
-			interaction.RegisterHandler(
-				async x =>
-					x.SetOutput((await new AboutAdvancedInfoViewModel().ShowDialogAsync()).Result));
-
 			AboutAdvancedInfoDialogCommand = ReactiveCommand.CreateFromTask(
-				execute: async () => await interaction.Handle(Unit.Default).ToTask());
+				execute: async () => await NavigateDialog(new AboutAdvancedInfoViewModel()));
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(
 				async (link) =>

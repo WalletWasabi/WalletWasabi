@@ -19,14 +19,13 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-	public partial class MainViewModel : ViewModelBase, IDialogHost
+	public partial class MainViewModel : ViewModelBase
 	{
 		private readonly Global _global;
 		private readonly LegalChecker _legalChecker;
 		[AutoNotify] private bool _isMainContentEnabled;
 		[AutoNotify] private bool _isDialogScreenEnabled;
 		[AutoNotify] private bool _isFullScreenEnabled;
-		[AutoNotify] private DialogViewModelBase? _currentDialog;
 		[AutoNotify] private DialogScreenViewModel _dialogScreen;
 		[AutoNotify] private DialogScreenViewModel _fullScreen;
 		[AutoNotify] private NavBarViewModel _navBar;
@@ -49,11 +48,9 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
 
-			NavigationState.Register(MainScreen, DialogScreen, FullScreen, () => this);
+			NavigationState.Register(MainScreen, DialogScreen, FullScreen);
 
 			Network = global.Network;
-
-			_currentDialog = null;
 
 			_isMainContentEnabled = true;
 			_isDialogScreenEnabled = true;
@@ -95,14 +92,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			this.WhenAnyValue(x => x.FullScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsMainContentEnabled = !x);
-
-			this.WhenAnyValue(x => x.CurrentDialog!.IsDialogOpen)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					IsFullScreenEnabled = !x;
-					IsDialogScreenEnabled = !x;
-				});
 
 			_walletManagerViewModel.WhenAnyValue(x => x.Items.Count, x => x.Actions.Count)
 				.Subscribe(x => _navBar.IsHidden = x.Item1 == 0 && x.Item2 == 0);
