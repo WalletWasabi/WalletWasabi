@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var publicPoint = secrets * generators;
 
 			var statement = new Statement(publicPoint, generators);
-			var mockRandom = new Mock<WasabiRandom>();
+			var mockRandom = new Mock<WasabiRandom>(MockBehavior.Strict);
 			mockRandom.Setup(rnd => rnd.GetBytes(32)).Returns(new byte[32]);
 			var proof = ProofSystemHelpers.Prove(statement, secrets, mockRandom.Object);
 			Assert.True(ProofSystemHelpers.Verify(statement, proof));
