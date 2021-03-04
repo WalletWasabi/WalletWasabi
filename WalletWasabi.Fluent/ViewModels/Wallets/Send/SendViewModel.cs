@@ -108,12 +108,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						var allFilled = !string.IsNullOrEmpty(To) && AmountBtc > 0 && Labels.Any();
 						var hasError = Validations.Any;
 
-						var balance = _owner.Wallet.Coins.TotalAmount();
-						var amountBtc = Money.FromUnit(AmountBtc, MoneyUnit.BTC);
-						var totalTransactionCost = amountBtc + _transactionInfo.FeeRate.FeePerK;
-						var hasEnoughMoney = totalTransactionCost <= balance;
-
-						return allFilled && !hasError && hasEnoughMoney;
+						return allFilled && !hasError;
 					});
 
 			NextCommand = ReactiveCommand.Create(() =>
