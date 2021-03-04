@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
@@ -99,6 +100,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				_parsingUrl = false;
 			});
 
+			var nextCommandCanExecute =
+				this.WhenAnyValue(x => x.Labels, x => x.AmountBtc, x => x.To, x => x.XAxisCurrentValue).Select(_ => Unit.Default)
+					.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).Select(_ => Unit.Default))
+					.Select(_ =>
+					{
+						var allFilled = !string.IsNullOrEmpty(To) && AmountBtc > 0 && Labels.Any();
+						var hasError = Validations.Any;
+
+						var balance = _owner.Wallet.Coins.TotalAmount();
+						var amountBtc = Money.FromUnit(AmountBtc, MoneyUnit.BTC);
+						var totalTransactionCost = amountBtc + _transactionInfo.FeeRate.FeePerK;
+						var hasEnoughMoney = totalTransactionCost < balance;
+
+						return allFilled && !hasError && hasEnoughMoney;
+					});
+
 			NextCommand = ReactiveCommand.Create(() =>
 			{
 				var transactionInfo = _transactionInfo;
@@ -134,7 +151,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 
 				Navigate().To(new PrivacyControlViewModel());
-			}, this.WhenAnyValue(x=>x.Labels.Count).Any());
+			}, nextCommandCanExecute);
 		}
 
 		private void ValidateAmount(IValidationErrors errors)
