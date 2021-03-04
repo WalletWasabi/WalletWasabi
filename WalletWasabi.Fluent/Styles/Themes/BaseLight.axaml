@@ -21,6 +21,8 @@
     <SolidColorBrush x:Key="DialogOverlayColor">#7F7A7A7A</SolidColorBrush>
     <BoxShadows x:Key="DialogBoxShadow">4 11 30 1 #3F000000</BoxShadows>
 
+    <SolidColorBrush x:Key="SeperatorBackgroundBrush">#7F000000</SolidColorBrush>
+
     <SolidColorBrush x:Key="TagsBoxControlForeground">#7F000000</SolidColorBrush>
 
     <Color x:Key="RegionColor">#FFFAFAFA</Color>

@@ -46,6 +46,7 @@ namespace WalletWasabi.Gui
 		public string DataDir { get; }
 		public TorSettings TorSettings { get; }
 		public BitcoinStore BitcoinStore { get; }
+		public HttpClientFactory HttpClientFactory { get; }
 		public LegalChecker LegalChecker { get; private set; }
 		public Config Config { get; }
 
@@ -96,11 +97,11 @@ namespace WalletWasabi.Gui
 
 				BitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
 
-				HttpClientFactory httpClientFactory = Config.UseTor
+				HttpClientFactory = Config.UseTor
 					? new HttpClientFactory(Config.TorSocks5EndPoint, backendUriGetter: () => Config.GetCurrentBackendUri())
 					: new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
 
-				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, httpClientFactory);
+				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, HttpClientFactory);
 				LegalChecker = new(DataDir);
 				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, WalletManager);
 			}
@@ -157,9 +158,10 @@ namespace WalletWasabi.Gui
 						await TorManager.StartAsync(ensureRunning: true).ConfigureAwait(false);
 					}
 
-					var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
-
-					HostedServices.Register(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackRequestTestUri, Config.TorSocks5EndPoint, TorManager), nameof(TorMonitor));
+					var httpClient = (Tor.Http.TorHttpClient)HttpClientFactory.NewHttpClient(() => null!, isolateStream: false);
+#pragma warning disable CA2000 // Dispose objects before losing scope
+					HostedServices.Register(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackBackendUri: Config.GetFallbackBackendUri(), httpClient: httpClient, torProcessManager: TorManager), nameof(TorMonitor));
+#pragma warning restore CA2000 // Dispose objects before losing scope
 				}
 
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");

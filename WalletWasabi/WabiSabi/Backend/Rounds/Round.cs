@@ -21,7 +21,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public Round(RoundParameters roundParameters)
 		{
 			RoundParameters = roundParameters;
-			UnsignedTxSecret = Random.GetBytes(64);
+			UnsignedTxSecret = RandomString.AlphaNumeric(21, secureRandom: true);
 
 			AmountCredentialIssuer = new(new(Random), 2, Random, MaxRegistrableAmount);
 			WeightCredentialIssuer = new(new(Random), 2, Random, RegistrableWeightCredentials);
@@ -58,7 +58,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public TimeSpan OutputRegistrationTimeout => RoundParameters.OutputRegistrationTimeout;
 		public TimeSpan TransactionSigningTimeout => RoundParameters.TransactionSigningTimeout;
 
-		public byte[] UnsignedTxSecret { get; }
+		public string UnsignedTxSecret { get; }
 		public Transaction Coinjoin { get; }
 		private RoundParameters RoundParameters { get; }
 		public Phase Phase { get; private set; } = Phase.InputRegistration;
@@ -67,6 +67,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public DateTimeOffset OutputRegistrationStart { get; private set; }
 		public DateTimeOffset TransactionSigningStart { get; private set; }
 		public DateTimeOffset TransactionBroadcastingStart { get; private set; }
+		public string EncryptedCoinjoin { get; set; }
 
 		public void SetPhase(Phase phase)
 		{

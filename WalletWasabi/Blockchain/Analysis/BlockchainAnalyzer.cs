@@ -72,7 +72,7 @@ namespace WalletWasabi.Blockchain.Analysis
 
 			foreach (var key in distinctWalletInputPubKeys)
 			{
-				key.AnonymitySet = newInputAnonset;
+				key.SetAnonymitySet(newInputAnonset, tx.GetHash());
 			}
 		}
 
@@ -128,27 +128,36 @@ namespace WalletWasabi.Blockchain.Analysis
 				anonset += newInputAnonset - 1;
 
 				HdPubKey hdPubKey = newCoin.HdPubKey;
+				uint256 txid = tx.GetHash();
 				if (hdPubKey.AnonymitySet == HdPubKey.DefaultHighAnonymitySet)
 				{
 					// If the new coin's HD pubkey haven't been used yet
 					// then its anonset haven't been set yet.
 					// In that case the acquired anonset does not have to be intersected with the default anonset,
 					// so this coin gets the aquired anonset.
-					hdPubKey.AnonymitySet = anonset;
+					hdPubKey.SetAnonymitySet(anonset, txid);
 				}
 				else if (distinctWalletInputPubKeys.Contains(hdPubKey))
 				{
 					// If it's a reuse of an input's pubkey, then intersection punishment is senseless.
-					hdPubKey.AnonymitySet = newInputAnonset;
+					hdPubKey.SetAnonymitySet(newInputAnonset, txid);
 				}
 				else if (tx.WalletOutputs.Where(x => x != newCoin).Select(x => x.HdPubKey).Contains(hdPubKey))
 				{
 					// If it's a reuse of another output' pubkey, then intersection punishment can only go as low as the inherited anonset.
-					hdPubKey.AnonymitySet = Math.Max(newInputAnonset, Intersect(new[] { anonset, hdPubKey.AnonymitySet }, 1));
+					hdPubKey.SetAnonymitySet(Math.Max(newInputAnonset, Intersect(new[] { anonset, hdPubKey.AnonymitySet }, 1)), txid);
+				}
+				else if (hdPubKey.AnonymitySetReasons.Contains(txid))
+				{
+					// If we already processed this transaction for this script
+					// then we'll go with normal processing, it's not an address reuse,
+					// it's just we're processing the transaction twice.
+					hdPubKey.SetAnonymitySet(anonset, txid);
 				}
 				else
 				{
-					hdPubKey.AnonymitySet = Intersect(new[] { anonset, hdPubKey.AnonymitySet }, 1);
+					// It's address reuse.
+					hdPubKey.SetAnonymitySet(Intersect(new[] { anonset, hdPubKey.AnonymitySet }, 1), txid);
 				}
 			}
 		}
@@ -169,7 +178,7 @@ namespace WalletWasabi.Blockchain.Analysis
 			{
 				foreach (var key in distinctWalletInputPubKeys)
 				{
-					key.AnonymitySet = smallestOutputAnonset;
+					key.SetAnonymitySet(smallestOutputAnonset, tx.GetHash());
 				}
 			}
 		}
@@ -180,11 +189,11 @@ namespace WalletWasabi.Blockchain.Analysis
 			{
 				if (key.AnonymitySet == HdPubKey.DefaultHighAnonymitySet)
 				{
-					key.AnonymitySet = newInputAnonset;
+					key.SetAnonymitySet(newInputAnonset, tx.GetHash());
 				}
 				else
 				{
-					key.AnonymitySet = Intersect(new[] { newInputAnonset, key.AnonymitySet }, 1);
+					key.SetAnonymitySet(Intersect(new[] { newInputAnonset, key.AnonymitySet }, 1), tx.GetHash());
 				}
 			}
 		}
@@ -194,7 +203,7 @@ namespace WalletWasabi.Blockchain.Analysis
 			// No matter how much anonymity a user would had gained in a tx, if the money comes from outside, then make anonset 1.
 			foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
 			{
-				key.AnonymitySet = 1;
+				key.SetAnonymitySet(1, tx.GetHash());
 			}
 		}
 
@@ -209,7 +218,7 @@ namespace WalletWasabi.Blockchain.Analysis
 			// probably would just assume it's ours and go on with its life.
 			foreach (var key in tx.WalletInputs.Concat(tx.WalletOutputs).Select(x => x.HdPubKey))
 			{
-				key.AnonymitySet = 1;
+				key.SetAnonymitySet(1, tx.GetHash());
 			}
 		}
 

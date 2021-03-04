@@ -1113,7 +1113,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				var bechCoin = tx.Outputs.GetCoins(bech.ScriptPubKey).Single();
 
 				var smartCoin = new SmartCoin(stx, bechCoin.Outpoint.N, key);
-				key.AnonymitySet = tx.GetAnonymitySet(bechCoin.Outpoint.N);
+				key.SetAnonymitySet(tx.GetAnonymitySet(bechCoin.Outpoint.N), tx.GetHash());
 
 				var chaumianClient = new CoinJoinClient(synchronizer, rpc.Network, keyManager, new Kitchen());
 
@@ -1230,10 +1230,10 @@ namespace WalletWasabi.Tests.RegressionTests
 			var smartCoin2 = new SmartCoin(stx2, bech2Coin.Outpoint.N, key2);
 			var smartCoin3 = new SmartCoin(stx3, bech3Coin.Outpoint.N, key3);
 			var smartCoin4 = new SmartCoin(stx4, bech4Coin.Outpoint.N, key4);
-			key1.AnonymitySet = tx1.GetAnonymitySet(bech1Coin.Outpoint.N);
-			key2.AnonymitySet = tx2.GetAnonymitySet(bech2Coin.Outpoint.N);
-			key3.AnonymitySet = tx3.GetAnonymitySet(bech3Coin.Outpoint.N);
-			key4.AnonymitySet = tx4.GetAnonymitySet(bech4Coin.Outpoint.N);
+			key1.SetAnonymitySet(tx1.GetAnonymitySet(bech1Coin.Outpoint.N), tx1.GetHash());
+			key2.SetAnonymitySet(tx2.GetAnonymitySet(bech2Coin.Outpoint.N), tx2.GetHash());
+			key3.SetAnonymitySet(tx3.GetAnonymitySet(bech3Coin.Outpoint.N), tx3.GetHash());
+			key4.SetAnonymitySet(tx4.GetAnonymitySet(bech4Coin.Outpoint.N), tx4.GetHash());
 
 			var chaumianClient1 = new CoinJoinClient(synchronizer, rpc.Network, keyManager, new Kitchen());
 			var chaumianClient2 = new CoinJoinClient(synchronizer, rpc.Network, keyManager, new Kitchen());
@@ -1261,7 +1261,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				randomTx.Outputs.Add(new TxOut(Money.Coins(3m), randomKey.P2wpkhScript));
 				var randomStx = new SmartTransaction(randomTx, Height.Mempool);
 				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin(randomStx, 0, randomKey), DequeueReason.UserRequested);
-				randomKey.AnonymitySet = 1;
+				randomKey.SetAnonymitySet(1, randomStx.GetHash());
 
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, DequeueReason.UserRequested);

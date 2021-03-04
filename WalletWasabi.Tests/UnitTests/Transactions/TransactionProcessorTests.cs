@@ -630,6 +630,50 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		}
 
 		[Fact]
+		public async Task CorrectSpenderAsync()
+		{
+			var transactionProcessor = await CreateTransactionProcessorAsync();
+			SmartCoin? spentCoin = null;
+			transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
+			{
+				if (e.NewlySpentCoins.Any())
+				{
+					spentCoin = e.NewlySpentCoins.Single();
+				}
+			};
+			var keys = transactionProcessor.KeyManager.GetKeys();
+			var tx0 = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(1.0m));
+			transactionProcessor.Process(tx0);
+
+			var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
+
+			// Spend the received coin
+			using Key key = new();
+			var tx1 = CreateSpendingTransaction(createdCoin, key.PubKey.ScriptPubKey);
+
+			transactionProcessor.Process(tx1);
+
+			var tx2 = new SmartTransaction(tx1.Transaction, tx1.Height, tx1.BlockHash, tx1.BlockIndex, tx1.Label, tx1.IsReplacement, tx1.FirstSeen);
+			var relevant = transactionProcessor.Process(tx2);
+
+			Assert.False(relevant.IsNews);
+			var coin = Assert.Single(transactionProcessor.Coins.AsAllCoinsView());
+			Assert.True(coin.IsSpent());
+			Assert.NotNull(spentCoin);
+			Assert.Equal(coin, spentCoin);
+
+			// Transaction store assertions
+			var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
+			Assert.Equal(2, mempool.Count());
+
+			var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions().ToArray();
+			Assert.Empty(matureTxs);
+
+			Assert.True(ReferenceEquals(tx2, spentCoin?.SpenderTransaction));
+			Assert.False(ReferenceEquals(tx1, spentCoin?.SpenderTransaction));
+		}
+
+		[Fact]
 		public async Task ReceiveTransactionWithDustForWalletAsync()
 		{
 			var transactionProcessor = await CreateTransactionProcessorAsync();
