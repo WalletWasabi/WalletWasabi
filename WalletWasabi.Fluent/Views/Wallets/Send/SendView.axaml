@@ -116,7 +116,7 @@
                 </StackPanel.Styles>
                 <DockPanel>
                     <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
-                    <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To, Mode=TwoWay}"
+                    <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}"
                              Watermark="(e.g. Bitcoin address or PayJoin URL)">
                         <i:Interaction.Behaviors>
                             <behaviors:FocusOnAttachedBehavior />
