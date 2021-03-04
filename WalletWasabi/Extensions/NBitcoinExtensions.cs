@@ -3,6 +3,7 @@ using NBitcoin.Protocol;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -477,6 +478,22 @@ namespace NBitcoin
 			{
 				throw new NotImplementedException($"Weight estimation isn't implemented for provided script type.");
 			}
+		}
+
+		public static T FromBytes<T>(byte[] input) where T : IBitcoinSerializable, new()
+		{
+			BitcoinStream inputStream = new BitcoinStream(input);
+			var instance = new T();
+			inputStream.ReadWrite(instance);
+			if (!inputStream.IsEnd())
+				throw new FormatException("Expected end of stream");
+
+			return instance;
+		}
+
+		public static bool IsEnd(this BitcoinStream bitcoinStream)
+		{
+			return bitcoinStream.Inner.Length == bitcoinStream.Inner.Position;
 		}
 	}
 }
