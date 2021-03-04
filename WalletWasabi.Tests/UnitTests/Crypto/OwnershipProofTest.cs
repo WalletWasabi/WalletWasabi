@@ -24,7 +24,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var ownershipProofBytes = Encoders.Hex.DecodeData("534c00190001a122407efc198211c81af4450f40b235d54775efd934d16b9e31c6ce9bad57070002483045022100e5eaf2cb0a473b4545115c7b85323809e75cb106175ace38129fd62323d73df30220363dbc7acb7afcda022b1f8d97acb8f47c42043cfe0595583aa26e30bc8b3bb50121032ef68318c8f6aaa0adec0199c69901f0db7d3485eb38d9ad235221dc3d61154b");
 
 			Assert.True(ownershipProofBytes.SequenceEqual(ownershipProof.ToBytes()));
-			var deserializedOwnershipProof = OwnershipProof.FromBytes(ownershipProofBytes);;
+			var deserializedOwnershipProof = OwnershipProof.FromBytes(ownershipProofBytes);
 			Assert.True(ownershipProofBytes.SequenceEqual(deserializedOwnershipProof.ToBytes()));
 		}
 
@@ -77,7 +77,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			invalidOwnershipProof = new OwnershipProof(
 				ownershipProof.ProofBody,
-				new Bip322Signature(ownershipProof.ProofSignature.ScriptSig, new WitScript(new byte[][] { invalidSignature, ownershipProof.ProofSignature.Witness[1] } )));
+				new Bip322Signature(ownershipProof.ProofSignature.ScriptSig, new WitScript(new byte[][] { invalidSignature, ownershipProof.ProofSignature.Witness[1] })));
 
 			Assert.False(invalidOwnershipProof.VerifyOwnership(scriptPubKey, commitmentData, false));
 		}

@@ -18,6 +18,10 @@ namespace WalletWasabi.Crypto
 		{
 		}
 
+		public Script ScriptSig => scriptSig;
+
+		public WitScript Witness => witness;
+
 		public void ReadWrite(BitcoinStream bitcoinStream)
 		{
 			bitcoinStream.ReadWrite(ref scriptSig);
@@ -31,34 +35,33 @@ namespace WalletWasabi.Crypto
 			}
 		}
 
-		public Script ScriptSig => scriptSig;
-
-		public WitScript Witness => witness;
-
 		public bool Verify(uint256 hash, Script scriptPubKey)
 		{
 			if (scriptPubKey.IsScriptType(ScriptType.P2WPKH))
 			{
 				if (ScriptSig.Length != 0)
+				{
 					return false;
+				}
 
 				var witnessParameters = PayToWitPubKeyHashTemplate.Instance.ExtractWitScriptParameters(Witness);
-				if (witnessParameters == null)
+				if (witnessParameters is null)
+				{
 					return false;
+				}
 
 				if (witnessParameters.PublicKey.GetScriptPubKey(ScriptPubKeyType.Segwit) != scriptPubKey)
+				{
 					return false;
-
+				}
+				
 				// if (witnessParameters.TransactionSignature.SigHash != SigHash.All)
 				//	 return false;
 
-				if (!witnessParameters.PublicKey.Verify(hash, witnessParameters.TransactionSignature.Signature))
-					return false;
-
-				return true;
+				return witnessParameters.PublicKey.Verify(hash, witnessParameters.TransactionSignature.Signature);
 			}
-			else
-				throw new NotImplementedException();
+
+			throw new NotImplementedException();
 		}
 
 		public static Bip322Signature FromBytes(byte[] bip322SignatureBytes) =>

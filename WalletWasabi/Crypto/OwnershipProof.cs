@@ -34,14 +34,14 @@ namespace WalletWasabi.Crypto
 	public class CoinJoinInputCommitmentData
 	{
 		private byte[] coordinatorIdentifier;
-		private long roundIdentifier;
+		private byte[] roundIdentifier;
 
-		public CoinJoinInputCommitmentData(string coordinatorIdentifier, long roundIdentifier)
-			: this (Encoding.ASCII.GetBytes(coordinatorIdentifier), roundIdentifier)
+		public CoinJoinInputCommitmentData(string coordinatorIdentifier, Guid roundIdentifier)
+			: this (Encoding.ASCII.GetBytes(coordinatorIdentifier), roundIdentifier.ToByteArray())
 		{
 		}
 
-		public CoinJoinInputCommitmentData(byte[] coordinatorIdentifier, long roundIdentifier)
+		public CoinJoinInputCommitmentData(byte[] coordinatorIdentifier, byte[] roundIdentifier)
 		{
 			this.coordinatorIdentifier = coordinatorIdentifier;
 			this.roundIdentifier = roundIdentifier;
@@ -50,7 +50,7 @@ namespace WalletWasabi.Crypto
 		public byte[] ToBytes() =>
 			BitConverter.GetBytes(coordinatorIdentifier.Length)
 				.Concat(coordinatorIdentifier)
-				.Concat(BitConverter.GetBytes(roundIdentifier))
+				.Concat(roundIdentifier)
 				.ToArray();
 	}
 
