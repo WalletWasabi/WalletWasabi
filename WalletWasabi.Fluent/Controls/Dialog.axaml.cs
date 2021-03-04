@@ -75,7 +75,6 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(MaxContentWidthProperty, value);
 		}
 
-
 		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
 		{
 			base.OnPropertyChanged(change);
