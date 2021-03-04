@@ -32,9 +32,11 @@
       <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="30">
         <DockPanel HorizontalAlignment="Center">
           <DockPanel>
-            <Button Margin="5 0 0 0" ToolTip.Tip="Show on the hardware wallet" DockPanel.Dock="Right" Classes="plain" Command="{Binding ShowOnHwWalletCommand}" IsVisible="{Binding IsHardwareWallet}">
-              <PathIcon Data="{StaticResource share_regular}"/>
-            </Button>
+            <c:AnimatedButton Margin="5 0 0 0" ToolTip.Tip="Show on the hardware wallet" DockPanel.Dock="Right"
+                              IsVisible="{Binding IsHardwareWallet}"
+                              Command="{Binding ShowOnHwWalletCommand}"
+                              NormalIcon="{StaticResource share_regular}"
+                              ClickIcon="{StaticResource copy_confirmed}"/>
             <c:AnimatedButton Margin="10 0 0 0" ToolTip.Tip="Copy" DockPanel.Dock="Right"
                               Command="{Binding CopyAddressCommand}"
                               NormalIcon="{StaticResource copy_regular}"
