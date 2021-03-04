@@ -38,11 +38,10 @@ namespace WalletWasabi.Fluent.Validation
 
 		public void Clear()
 		{
-			ErrorsByPropertyName.Clear();
-
 			foreach (var propertyName in ValidationMethods.Keys)
 			{
 				ValidateProperty(propertyName, true);
+				ErrorsByPropertyName[propertyName].Clear();
 			}
 		}
 
@@ -57,8 +56,10 @@ namespace WalletWasabi.Fluent.Validation
 
 		public void ValidateProperty(string propertyName, bool clear = false)
 		{
-			if (ValidationMethods.TryGetValue(propertyName, out ValidateMethod? validationMethod) && ErrorsByPropertyName.TryGetValue(propertyName, out ErrorDescriptors? currentErrors))
+			if (ValidationMethods.TryGetValue(propertyName, out ValidateMethod? validationMethod))
 			{
+				var currentErrors = ErrorsByPropertyName[propertyName];
+
 				// Copy the current errors.
 				var previousErrors = currentErrors.ToList();
 
