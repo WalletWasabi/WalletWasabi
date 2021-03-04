@@ -36,8 +36,8 @@ namespace WalletWasabi.Crypto
 		private byte[] coordinatorIdentifier;
 		private byte[] roundIdentifier;
 
-		public CoinJoinInputCommitmentData(string coordinatorIdentifier, Guid roundIdentifier)
-			: this (Encoding.ASCII.GetBytes(coordinatorIdentifier), roundIdentifier.ToByteArray())
+		public CoinJoinInputCommitmentData(string coordinatorIdentifier, uint256 roundIdentifier)
+			: this (Encoding.ASCII.GetBytes(coordinatorIdentifier), roundIdentifier.ToBytes())
 		{
 		}
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Crypto;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -95,8 +96,9 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			{
 				var coin = coinRoundSignaturePair.Key;
 				var signature = coinRoundSignaturePair.Value;
-				var address = (BitcoinWitPubKeyAddress)coin.TxOut.ScriptPubKey.GetDestinationAddress(network);
-				if (!address.VerifyMessage(round.Hash, signature))
+
+				var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", round.Hash);
+				if (!OwnershipProof.VerifyCoinJoinInputProof(signature, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongRoundSignature);
 				}
