@@ -35,48 +35,45 @@ namespace WalletWasabi.Crypto
 			}
 		}
 
-		public bool Verify(uint256 hash, Script scriptPubKey)
-		{
-			if (scriptPubKey.IsScriptType(ScriptType.P2WPKH))
-			{
-				if (ScriptSig.Length != 0)
-				{
-					return false;
-				}
-
-				var witnessParameters = PayToWitPubKeyHashTemplate.Instance.ExtractWitScriptParameters(Witness);
-				if (witnessParameters is null)
-				{
-					return false;
-				}
-
-				if (witnessParameters.PublicKey.GetScriptPubKey(ScriptPubKeyType.Segwit) != scriptPubKey)
-				{
-					return false;
-				}
-				
-				// if (witnessParameters.TransactionSignature.SigHash != SigHash.All)
-				//	 return false;
-
-				return witnessParameters.PublicKey.Verify(hash, witnessParameters.TransactionSignature.Signature);
-			}
-
-			throw new NotImplementedException();
-		}
-
 		public static Bip322Signature FromBytes(byte[] bip322SignatureBytes) =>
 			NBitcoinExtensions.FromBytes<Bip322Signature>(bip322SignatureBytes);
 
-		public static Bip322Signature Generate(Key key, uint256 hash, ScriptPubKeyType scriptPubKeyType)
-		{
-			if (scriptPubKeyType == ScriptPubKeyType.Segwit)
+		public bool Verify(uint256 hash, Script scriptPubKey) =>
+			scriptPubKey.IsScriptType(ScriptType.P2WPKH) switch
 			{
-				var signature = key.Sign(hash, SigHash.All, false);
-				var witness = PayToWitPubKeyHashTemplate.Instance.GenerateWitScript(signature, key.PubKey);
-				return new Bip322Signature(Script.Empty, witness);
+				true => VerifySegwit(hash, scriptPubKey),
+				false => throw new NotImplementedException("Only P2WPKH scripts are supported.")
+			};
+
+		public static Bip322Signature Generate(Key key, uint256 hash, ScriptPubKeyType scriptPubKeyType) =>
+			scriptPubKeyType switch
+			{
+				ScriptPubKeyType.Segwit => new Bip322Signature(
+					Script.Empty, 
+					PayToWitPubKeyHashTemplate.Instance.GenerateWitScript(
+						key.Sign(hash, SigHash.All, false), 
+						key.PubKey)),
+				_ => throw new NotImplementedException("Only P2WPKH scripts are supported.")
+			};
+
+		private bool VerifySegwit(uint256 hash, Script scriptPubKey)
+		{
+			if (ScriptSig != Script.Empty)
+			{
+				return false;
 			}
 
-			throw new NotImplementedException(); // TODO: Should we implement it?
+			if (PayToWitPubKeyHashTemplate.Instance.ExtractWitScriptParameters(Witness) is not { } witnessParameters)
+			{
+				return false;
+			}
+
+			if (witnessParameters.PublicKey.GetScriptPubKey(ScriptPubKeyType.Segwit) != scriptPubKey)
+			{
+				return false;
+			}
+
+			return witnessParameters.PublicKey.Verify(hash, witnessParameters.TransactionSignature.Signature);
 		}
 	}
 }
