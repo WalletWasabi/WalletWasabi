@@ -9,7 +9,6 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Wallets;
@@ -23,7 +22,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
-			HttpClientFactory = Guard.NotNull(nameof(httpClientFactory), httpClientFactory);
+			HttpClientFactory = httpClientFactory;
 			WalletManager = Guard.NotNull(nameof(walletManager), walletManager);
 		}
 

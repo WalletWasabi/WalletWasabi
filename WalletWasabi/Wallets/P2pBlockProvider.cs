@@ -10,7 +10,6 @@ using WalletWasabi.BitcoinCore;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets
