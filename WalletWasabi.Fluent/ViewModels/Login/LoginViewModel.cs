@@ -7,6 +7,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Login
 {
@@ -27,46 +28,54 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			WalletIcon = wallet.KeyManager.Icon;
 			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				string? compatibilityPasswordUsed = null;
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await NextExecute(walletManagerViewModel, closedWalletViewModel, wallet));
 
-				var isPasswordCorrect = await Task.Run(() => wallet.TryLogin(Password, out compatibilityPasswordUsed));
+			OkCommand = ReactiveCommand.Create(OkExecute);
 
-				if (!isPasswordCorrect)
-				{
-					ErrorMessage = "The password is incorrect! Try Again.";
-					return;
-				}
-
-				if (compatibilityPasswordUsed is { })
-				{
-					await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
-				}
-
-				var legalResult = await ShowLegalAsync(walletManagerViewModel.LegalChecker);
-
-				if (legalResult)
-				{
-					await LoginWalletAsync(walletManagerViewModel, closedWalletViewModel);
-				}
-				else
-				{
-					wallet.Logout();
-					ErrorMessage = "You must accept the Terms and Conditions!";
-				}
-			});
-
-			OkCommand = ReactiveCommand.Create(() =>
-			{
-				Password = "";
-				ErrorMessage = "";
-			});
-
-			ForgotPasswordCommand = ReactiveCommand.Create(() =>
-				Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet)));
+			ForgotPasswordCommand = ReactiveCommand.Create(() => ForgotPasswordExecute(wallet));
 
 			EnableAutoBusyOn(NextCommand);
+		}
+
+		private async Task NextExecute(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel, Wallet wallet)
+		{
+			string? compatibilityPasswordUsed = null;
+
+			var isPasswordCorrect = await Task.Run(() => wallet.TryLogin(Password, out compatibilityPasswordUsed));
+
+			if (!isPasswordCorrect)
+			{
+				ErrorMessage = "The password is incorrect! Try Again.";
+				return;
+			}
+
+			if (compatibilityPasswordUsed is { })
+			{
+				await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
+			}
+
+			var legalResult = await ShowLegalAsync(walletManagerViewModel.LegalChecker);
+
+			if (legalResult)
+			{
+				await LoginWalletAsync(walletManagerViewModel, closedWalletViewModel);
+			}
+			else
+			{
+				wallet.Logout();
+				ErrorMessage = "You must accept the Terms and Conditions!";
+			}
+		}
+
+		private void OkExecute()
+		{
+			Password = "";
+			ErrorMessage = "";
+		}
+
+		private void ForgotPasswordExecute(Wallet wallet)
+		{
+			Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet));
 		}
 
 		public string? WalletIcon { get; }

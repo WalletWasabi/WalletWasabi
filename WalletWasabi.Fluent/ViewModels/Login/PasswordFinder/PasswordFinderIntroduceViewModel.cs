@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -12,22 +13,25 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 	{
 		public PasswordFinderIntroduceViewModel(Wallet wallet)
 		{
-			NextCommand = ReactiveCommand.CreateFromTask(async () =>
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await NextExecute(wallet));
+		}
+
+		private async Task NextExecute(Wallet wallet)
+		{
+			var dialogResult =
+				await NavigateDialog(
+					new CreatePasswordDialogViewModel("Type in your most likely password", enableEmpty: false));
+
+			if (dialogResult.Result is { } password)
 			{
-				var dialogResult =
-					await NavigateDialog(new CreatePasswordDialogViewModel("Type in your most likely password", enableEmpty: false));
+				var options = new PasswordFinderOptions(wallet, password);
+				Navigate().To(new SelectCharsetViewModel(options));
+			}
 
-				if (dialogResult.Result is { } password)
-				{
-					var options = new PasswordFinderOptions(wallet, password);
-					Navigate().To(new SelectCharsetViewModel(options));
-				}
-
-				if (dialogResult.Kind == DialogResultKind.Cancel)
-				{
-					Navigate().Clear();
-				}
-			});
+			if (dialogResult.Kind == DialogResultKind.Cancel)
+			{
+				Navigate().Clear();
+			}
 		}
 	}
 }

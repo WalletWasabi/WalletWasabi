@@ -9,15 +9,17 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 	{
 		public PasswordNotFoundViewModel(Wallet wallet)
 		{
-			NextCommand = ReactiveCommand.Create(() =>
+			NextCommand = ReactiveCommand.Create(() => NextExecute(wallet));
+		}
+
+		private void NextExecute(Wallet wallet)
+		{
+			var page = new PasswordFinderIntroduceViewModel(wallet);
+			Navigate().To(page, NavigationMode.Clear);
+			if (page.NextCommand is { } cmd)
 			{
-				var page = new PasswordFinderIntroduceViewModel(wallet);
-				Navigate().To(page, NavigationMode.Clear);
-				if (page.NextCommand is { } cmd)
-				{
-					cmd.Execute(default);
-				}
-			});
+				cmd.Execute(default);
+			}
 		}
 	}
 }
