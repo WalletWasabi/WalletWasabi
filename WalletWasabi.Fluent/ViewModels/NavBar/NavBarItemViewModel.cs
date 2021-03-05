@@ -21,18 +21,8 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		protected NavBarItemViewModel()
 		{
 			SelectionMode = NavBarItemSelectionMode.Selected;
-			OpenCommand = ReactiveCommand.Create(
-				() =>
-				{
-					if (SelectionMode == NavBarItemSelectionMode.Toggle)
-					{
-						Toggle();
-					}
-					else
-					{
-						Navigate().To(this, NavigationMode.Clear);
-					}
-				});
+
+			OpenCommand = ReactiveCommand.Create(OpenExecute);
 
 			this.WhenAnyValue(x => x.IsExpanded)
 				.Subscribe(x =>
@@ -42,6 +32,18 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 						Parent.IsExpanded = x;
 					}
 				});
+		}
+
+		private void OpenExecute()
+		{
+			if (SelectionMode == NavBarItemSelectionMode.Toggle)
+			{
+				Toggle();
+			}
+			else
+			{
+				Navigate().To(this, NavigationMode.Clear);
+			}
 		}
 
 		public NavBarItemViewModel? Parent { get; set; }
