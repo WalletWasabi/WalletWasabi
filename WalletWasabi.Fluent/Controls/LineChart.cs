@@ -25,11 +25,6 @@ namespace WalletWasabi.Fluent.Controls
 			return Math.Min(Math.Max(val, min), max);
 		}
 
-		private static double ScaleHorizontal(double value, double max, double range)
-		{
-			return value / max * range;
-		}
-
 		private static double ScaleVertical(double value, double max, double range)
 		{
 			return range - value / max * range;
@@ -80,13 +75,22 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void UpdateXAxisCursorPosition(double x)
 		{
-			var rangeValues = XAxisMaxValue - XAxisMinValue;
-			var rangeArea = Bounds.Width - AreaMargin.Left - AreaMargin.Right;
-			var value = Clamp(x - AreaMargin.Left, 0, rangeArea);
-			XAxisCurrentValue = XAxisMaxValue - rangeValues / rangeArea * value;
+			var xAxisValues = XAxisValues;
+			if (xAxisValues is null || xAxisValues.Count == 0)
+			{
+				XAxisCurrentValue = double.NaN;
+				return;
+			}
+
+			var areaWidth = Bounds.Width - AreaMargin.Left - AreaMargin.Right;
+			var value = Clamp(x - AreaMargin.Left, 0, areaWidth);
+			var factor = value / areaWidth;
+			var index = (int) ((xAxisValues.Count - 1) * factor);
+			var currentValue = xAxisValues[index];
+			XAxisCurrentValue = currentValue;
 		}
 
-		private Rect GetXAxisCursorHitTestRect()
+		private Rect? GetXAxisCursorHitTestRect()
 		{
 			var chartWidth = Bounds.Width;
 			var chartHeight = Bounds.Height;
@@ -94,8 +98,11 @@ namespace WalletWasabi.Fluent.Controls
 			var areaWidth = chartWidth - areaMargin.Left - areaMargin.Right;
 			var areaHeight = chartHeight - areaMargin.Top - areaMargin.Bottom;
 			var areaRect = new Rect(areaMargin.Left, areaMargin.Top, areaWidth, areaHeight);
-			var cursorValue = XAxisCurrentValue;
-			var cursorPosition = ScaleHorizontal(XAxisMaxValue - cursorValue, XAxisMaxValue, areaWidth);
+			var cursorPosition = GetCursorPosition(areaWidth);
+			if (double.IsNaN(cursorPosition))
+			{
+				return null;
+			}
 			var cursorHitTestSize = 5;
 			var cursorStrokeThickness = CursorStrokeThickness;
 			var cursorHitTestRect = new Rect(
@@ -126,7 +133,7 @@ namespace WalletWasabi.Fluent.Controls
 				}
 
 				var cursorHitTestRect = GetXAxisCursorHitTestRect();
-				var cursorSizeWestEast = cursorHitTestRect.Contains(position);
+				var cursorSizeWestEast = cursorHitTestRect is not null && cursorHitTestRect.Value.Contains(position);
 				Cursor = cursorSizeWestEast ?
 					new Cursor(StandardCursorType.SizeWestEast)
 					: new Cursor(StandardCursorType.Arrow);
@@ -135,17 +142,19 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void PointerReleasedHandler(object? sender, PointerReleasedEventArgs e)
 		{
-			if (_captured)
+			if (!_captured)
 			{
-				var position = e.GetPosition(this);
-				var cursorHitTestRect = GetXAxisCursorHitTestRect();
-				var cursorSizeWestEast = cursorHitTestRect.Contains(position);
-				if (!cursorSizeWestEast)
-				{
-					Cursor = new Cursor(StandardCursorType.Arrow);
-				}
-				_captured = false;
+				return;
 			}
+
+			var position = e.GetPosition(this);
+			var cursorHitTestRect = GetXAxisCursorHitTestRect();
+			var cursorSizeWestEast = cursorHitTestRect is not null && cursorHitTestRect.Value.Contains(position);
+			if (!cursorSizeWestEast)
+			{
+				Cursor = new Cursor(StandardCursorType.Arrow);
+			}
+			_captured = false;
 		}
 
 		private void PointerPressedHandler(object? sender, PointerPressedEventArgs e)
@@ -277,12 +286,29 @@ namespace WalletWasabi.Fluent.Controls
 			}
 		}
 
+		private double GetCursorPosition(double areaWidth)
+		{
+			var xAxisCurrentValue = XAxisCurrentValue;
+			var xAxisValues = XAxisValues;
+			if (double.IsNaN(xAxisCurrentValue) || xAxisValues is null || xAxisValues.Count == 0)
+			{
+				return double.NaN;
+			}
+
+			for (var i = 0; i < xAxisValues.Count; i++)
+			{
+				if (xAxisValues[i] <= xAxisCurrentValue)
+				{
+					return areaWidth / xAxisValues.Count * i;
+				}
+			}
+
+			return double.NaN;
+		}
+
 		private void SetStateXAxisCursor(LineChartState state)
 		{
-			var xAxisMinValue = XAxisMinValue;
-			var xAxisMaxValue = XAxisMaxValue;
-			var xAxisCurrentValue = XAxisCurrentValue;
-			state.XAxisCursorPosition = ScaleHorizontal(xAxisMaxValue - xAxisCurrentValue, xAxisMaxValue, state.AreaWidth);
+			state.XAxisCursorPosition = GetCursorPosition(state.AreaWidth);
 		}
 
 		private void DrawAreaFill(DrawingContext context, LineChartState state)
@@ -341,6 +367,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var brush = CursorStroke;
 			if (brush is null
+			    || double.IsNaN(state.XAxisCursorPosition)
 			    || state.AreaWidth <= 0
 			    || state.AreaHeight <= 0
 			    || state.AreaWidth < AreaMinViableWidth
@@ -424,7 +451,6 @@ namespace WalletWasabi.Fluent.Controls
 			var angleRadians = Math.PI / 180.0 * XAxisLabelAngle;
 			var alignment = XAxisLabelAlignment;
 			var originTop = state.AreaMargin.Top + state.AreaHeight;
-
 			var formattedTextLabels = new List<FormattedText>();
 			var constrainWidthMax = 0.0;
 			var constrainHeightMax = 0.0;
@@ -438,7 +464,6 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			var constraintMax = new Size(constrainWidthMax, constrainHeightMax);
-
 			var offsetTransform = context.PushPreTransform(Matrix.CreateTranslation(offset.X, offset.Y));
 
 			for (var i = 0; i < formattedTextLabels.Count; i++)
@@ -525,7 +550,6 @@ namespace WalletWasabi.Fluent.Controls
 			var angleRadians = Math.PI / 180.0 * YAxisLabelAngle;
 			var alignment = YAxisLabelAlignment;
 			var originLeft = state.AreaMargin.Left;
-
 			var formattedTextLabels = new List<FormattedText>();
 			var constrainWidthMax = 0.0;
 			var constrainHeightMax = 0.0;
@@ -539,7 +563,6 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			var constraintMax = new Size(constrainWidthMax, constrainHeightMax);
-
 			var offsetTransform = context.PushPreTransform(Matrix.CreateTranslation(offset.X, offset.Y));
 
 			for (var i = 0; i < formattedTextLabels.Count; i++)

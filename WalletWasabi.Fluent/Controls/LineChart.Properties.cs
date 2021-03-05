@@ -46,12 +46,6 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> XAxisLogarithmicScaleProperty =
 			AvaloniaProperty.Register<LineChart, bool>(nameof(XAxisLogarithmicScale));
 
-		public static readonly StyledProperty<double> XAxisMinValueProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMinValue), double.NaN);
-
-		public static readonly StyledProperty<double> XAxisMaxValueProperty =
-			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMaxValue), double.NaN);
-
 		public static readonly StyledProperty<double> XAxisCurrentValueProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisCurrentValue), double.NaN);
 
@@ -305,8 +299,6 @@ namespace WalletWasabi.Fluent.Controls
 			AffectsRender<LineChart>(
 				XAxisValuesProperty,
 				XAxisLogarithmicScaleProperty,
-				XAxisMinValueProperty,
-				XAxisMaxValueProperty,
 				XAxisCurrentValueProperty,
 				XAxisOpacityProperty,
 				XAxisOffsetProperty,
@@ -457,18 +449,6 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(XAxisLogarithmicScaleProperty);
 			set => SetValue(XAxisLogarithmicScaleProperty, value);
-		}
-
-		public double XAxisMinValue
-		{
-			get => GetValue(XAxisMinValueProperty);
-			set => SetValue(XAxisMinValueProperty, value);
-		}
-
-		public double XAxisMaxValue
-		{
-			get => GetValue(XAxisMaxValueProperty);
-			set => SetValue(XAxisMaxValueProperty, value);
 		}
 
 		public double XAxisCurrentValue
