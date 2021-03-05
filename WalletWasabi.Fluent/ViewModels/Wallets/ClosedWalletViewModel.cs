@@ -19,6 +19,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			OpenCommand = ReactiveCommand.Create(() => OpenExecute(walletManagerViewModel));
 		}
+		public override string IconName => "web_asset_regular";
+
+		public static WalletViewModelBase Create(WalletManagerViewModel walletManager, Wallet wallet)
+		{
+			return wallet.KeyManager.IsHardwareWallet
+				? new ClosedHardwareWalletViewModel(walletManager, wallet)
+				: wallet.KeyManager.IsWatchOnly
+					? new ClosedWatchOnlyWalletViewModel(walletManager, wallet)
+					: new ClosedWalletViewModel(walletManager, wallet);
+		}
 
 		private void OpenExecute(WalletManagerViewModel walletManagerViewModel)
 		{
@@ -30,17 +40,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				Navigate().To(this);
 			}
-		}
-
-		public override string IconName => "web_asset_regular";
-
-		public static WalletViewModelBase Create(WalletManagerViewModel walletManager, Wallet wallet)
-		{
-			return wallet.KeyManager.IsHardwareWallet
-				? new ClosedHardwareWalletViewModel(walletManager, wallet)
-				: wallet.KeyManager.IsWatchOnly
-					? new ClosedWatchOnlyWalletViewModel(walletManager, wallet)
-					: new ClosedWalletViewModel(walletManager, wallet);
 		}
 	}
 }
