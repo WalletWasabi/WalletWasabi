@@ -19,17 +19,17 @@
     <Style Selector="PathIcon.hideAndShow">
       <Style.Animations>
         <Animation Duration="0:0:2.0" Easing="{StaticResource FluentEasing}">
-          <KeyFrame Cue="0%">
+          <KeyFrame KeyTime="0:0:0.0">
             <Setter Property="Opacity" Value="0.75" />
           </KeyFrame>
-          <KeyFrame Cue="25%">
+          <KeyFrame KeyTime="0:0:0.5">
             <Setter Property="Opacity" Value="0.0" />
             <Setter Property="IsVisible" Value="False" />
           </KeyFrame>
-          <KeyFrame Cue="75%">
+          <KeyFrame KeyTime="0:0:1.5">
             <Setter Property="IsVisible" Value="True" />
           </KeyFrame>
-          <KeyFrame Cue="100%">
+          <KeyFrame KeyTime="0:0:2.0">
             <Setter Property="Opacity" Value="0.75" />
           </KeyFrame>
         </Animation>
@@ -38,20 +38,20 @@
     <Style Selector="PathIcon.showAndHide">
       <Style.Animations>
         <Animation Delay="0:0:0.5" Duration="0:0:1.0" Easing="{StaticResource FluentEasing}">
-          <KeyFrame Cue="0%">
+          <KeyFrame KeyTime="0:0:0.0">
             <Setter Property="Opacity" Value="0.0" />
             <Setter Property="IsVisible" Value="True" />
           </KeyFrame>
-          <KeyFrame Cue="50%">
+          <KeyFrame KeyTime="0:0:0.5">
             <Setter Property="Opacity" Value="0.75" />
           </KeyFrame>
-          <KeyFrame Cue="70%">
+          <KeyFrame KeyTime="0:0:0.7">
             <Setter Property="Opacity" Value="0.75" />
           </KeyFrame>
-          <KeyFrame Cue="75%">
+          <KeyFrame KeyTime="0:0:0.75">
             <Setter Property="Opacity" Value="0.3" />
           </KeyFrame>
-          <KeyFrame Cue="100%">
+          <KeyFrame KeyTime="0:0:1.0">
             <Setter Property="Opacity" Value="0.0" />
             <Setter Property="IsVisible" Value="False" />
           </KeyFrame>
