@@ -31,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			AddressText = info.Address.ToString();
 
-			ConfirmationTimeText = $"~{TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
+			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
 
 			BtcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
 
