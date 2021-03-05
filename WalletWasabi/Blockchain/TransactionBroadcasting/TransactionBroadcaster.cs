@@ -19,16 +19,16 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 {
 	public class TransactionBroadcaster
 	{
-		public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, WalletManager walletManager)
+		public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, HttpClientFactory httpClientFactory, WalletManager walletManager)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
-			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
+			HttpClientFactory = Guard.NotNull(nameof(httpClientFactory), httpClientFactory);
 			WalletManager = Guard.NotNull(nameof(walletManager), walletManager);
 		}
 
 		public BitcoinStore BitcoinStore { get; }
-		public WasabiSynchronizer Synchronizer { get; }
+		public HttpClientFactory HttpClientFactory { get; }
 		public Network Network { get; }
 		public NodesGroup? Nodes { get; private set; }
 		public IRPCClient? RpcClient { get; private set; }
@@ -90,7 +90,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		private async Task BroadcastTransactionToBackendAsync(SmartTransaction transaction)
 		{
 			Logger.LogInfo("Broadcasting with backend...");
-			IHttpClient httpClient = Synchronizer.HttpClientFactory.NewBackendHttpClient(isolateStream: true);
+			IHttpClient httpClient = HttpClientFactory.NewBackendHttpClient(isolateStream: true);
 
 			try
 			{

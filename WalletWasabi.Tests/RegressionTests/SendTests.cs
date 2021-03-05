@@ -87,7 +87,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
 				var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
 
-				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, walletManager);
+				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, httpClientFactory, walletManager);
 				broadcaster.Initialize(nodes, rpc);
 
 				var waitCount = 0;
@@ -575,7 +575,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Equal(tx0Id, eventArgs.NewlyReceivedCoins.Single().TransactionId);
 				Assert.Single(wallet.Coins);
 
-				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, walletManager);
+				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, httpClientFactory, walletManager);
 				broadcaster.Initialize(nodes, rpc);
 
 				var operations = new PaymentIntent(

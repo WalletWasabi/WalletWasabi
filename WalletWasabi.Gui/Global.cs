@@ -103,7 +103,7 @@ namespace WalletWasabi.Gui
 
 				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, HttpClientFactory);
 				LegalChecker = new(DataDir);
-				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, WalletManager);
+				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 			}
 		}
 

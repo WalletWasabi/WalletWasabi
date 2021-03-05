@@ -254,7 +254,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				using var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
 				var coin = Assert.Single(wallet.Coins);
 				Assert.True(coin.Confirmed);
-				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, walletManager);
+				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, httpClientFactory, walletManager);
 				broadcaster.Initialize(nodes, rpc);
 
 				// Send money before reorg.
