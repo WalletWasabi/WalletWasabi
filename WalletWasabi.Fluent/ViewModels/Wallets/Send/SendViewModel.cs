@@ -148,15 +148,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public ICommand PasteCommand { get; }
 
-		private TimeSpan CalculateConfirmationTime(double x)
+		private TimeSpan CalculateConfirmationTime(double targetBlock)
 		{
-			var targetedBlock = GetXAxisValueFromXAxisCurrentValue(x);
-			var timeInMinutes = Math.Ceiling(targetedBlock) * 10;
+			var timeInMinutes = Math.Ceiling(targetBlock) * 10;
 			var time = TimeSpan.FromMinutes(timeInMinutes);
-
 			return time;
 		}
-		
+
 		private void SetXAxisCurrentValueIndex(double xAxisCurrentValue)
 		{
 			if (!_updatingCurrentValue)
@@ -518,18 +516,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 
 			return (decimal)XAxisMaxValue;
-		}
-
-		private double GetXAxisValueFromXAxisCurrentValue(double x)
-		{
-			if (_xAxisValues is { })
-			{
-				var scale = XAxisValues.Length / XAxisMaxValue;
-				var selectedIndex = (int)(x * scale - 1);
-				return XAxisValues.Reverse().ToArray()[selectedIndex];
-			}
-
-			return 0;
 		}
 	}
 }
