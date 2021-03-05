@@ -20,6 +20,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			NextCommand = ReactiveCommand.Create(() => NextExecute(walletManager, keyManager));
 		}
+		public string? WalletIcon { get; }
+
+		public bool IsHardwareWallet { get; }
+
+		public string WalletName { get; }
 
 		private void NextExecute(WalletManager walletManager, KeyManager keyManager)
 		{
@@ -37,11 +42,5 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				wallet.OpenCommand.Execute(default);
 			}
 		}
-
-		public string? WalletIcon { get; }
-
-		public bool IsHardwareWallet { get; }
-
-		public string WalletName { get; }
 	}
 }

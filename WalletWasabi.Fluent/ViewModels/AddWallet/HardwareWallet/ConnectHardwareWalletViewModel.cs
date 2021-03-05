@@ -48,6 +48,24 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				.Subscribe(message => ConfirmationRequired = !string.IsNullOrEmpty(message));
 		}
 
+		private HwiEnumerateEntry? DetectedDevice { get; set; }
+
+		public CancellationTokenSource CancelCts { get; set; }
+
+		private AbandonedTasks AbandonedTasks { get; }
+
+		public string WalletName { get; }
+
+		public WalletManager WalletManager { get; }
+
+		public ObservableCollection<WalletViewModelBase> Wallets { get; }
+
+		public WalletViewModelBase? ExistingWallet { get; set; }
+
+		public ICommand OpenBrowserCommand { get; }
+
+		public ICommand NavigateToExistingWalletLoginCommand { get; }
+
 		private void NextExecute()
 		{
 			if (DetectedDevice is { } device)
@@ -70,24 +88,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				ExistingWallet.OpenCommand.Execute(default);
 			}
 		}
-
-		private HwiEnumerateEntry? DetectedDevice { get; set; }
-
-		public CancellationTokenSource CancelCts { get; set; }
-
-		private AbandonedTasks AbandonedTasks { get; }
-
-		public string WalletName { get; }
-
-		public WalletManager WalletManager { get; }
-
-		public ObservableCollection<WalletViewModelBase> Wallets { get; }
-
-		public WalletViewModelBase? ExistingWallet { get; set; }
-
-		public ICommand OpenBrowserCommand { get; }
-
-		public ICommand NavigateToExistingWalletLoginCommand { get; }
 
 		private void StartDetection()
 		{

@@ -76,6 +76,43 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			EnableAutoBusyOn(CreateWalletCommand);
 		}
 
+		private static void ValidateWalletName(IValidationErrors errors, WalletManager walletManager, string walletName)
+		{
+			string walletFilePath = Path.Combine(walletManager.WalletDirectories.WalletsDir, $"{walletName}.json");
+
+			if (string.IsNullOrEmpty(walletName))
+			{
+				return;
+			}
+
+			if (walletName.IsTrimmable())
+			{
+				errors.Add(ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!");
+				return;
+			}
+
+			if (File.Exists(walletFilePath))
+			{
+				errors.Add(
+					ErrorSeverity.Error,
+					$"A wallet named {walletName} already exists. Please try a different name.");
+				return;
+			}
+
+			if (!WalletGenerator.ValidateWalletName(walletName))
+			{
+				errors.Add(ErrorSeverity.Error, "Selected Wallet is not valid. Please try a different name.");
+			}
+		}
+
+		public ICommand CreateWalletCommand { get; }
+
+		public ICommand RecoverWalletCommand { get; }
+
+		public ICommand ImportWalletCommand { get; }
+
+		public ICommand ConnectHardwareWalletCommand { get; }
+
 		private void RecoverWalletExecute(WalletManagerViewModel walletManagerViewModel)
 		{
 			Navigate().To(new RecoverWalletViewModel(WalletName, walletManagerViewModel));
@@ -146,42 +183,5 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				WalletName = "";
 			}
 		}
-
-		private static void ValidateWalletName(IValidationErrors errors, WalletManager walletManager, string walletName)
-		{
-			string walletFilePath = Path.Combine(walletManager.WalletDirectories.WalletsDir, $"{walletName}.json");
-
-			if (string.IsNullOrEmpty(walletName))
-			{
-				return;
-			}
-
-			if (walletName.IsTrimmable())
-			{
-				errors.Add(ErrorSeverity.Error, "Leading and trailing white spaces are not allowed!");
-				return;
-			}
-
-			if (File.Exists(walletFilePath))
-			{
-				errors.Add(
-					ErrorSeverity.Error,
-					$"A wallet named {walletName} already exists. Please try a different name.");
-				return;
-			}
-
-			if (!WalletGenerator.ValidateWalletName(walletName))
-			{
-				errors.Add(ErrorSeverity.Error, "Selected Wallet is not valid. Please try a different name.");
-			}
-		}
-
-		public ICommand CreateWalletCommand { get; }
-
-		public ICommand RecoverWalletCommand { get; }
-
-		public ICommand ImportWalletCommand { get; }
-
-		public ICommand ConnectHardwareWalletCommand { get; }
 	}
 }

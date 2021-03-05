@@ -62,6 +62,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			EnableAutoBusyOn(NextCommand);
 		}
 
+		public IObservable<bool> FinishCommandCanExecute { get; }
+
+		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
+
+		private KeyPath AccountKeyPath { get; set; } = KeyPath.Parse("m/84'/0'/0'");
+
+		private int MinGapLimit { get; set; } = 63;
+
+		private Interaction<(KeyPath, int), (KeyPath?, int?)> AdvancedOptionsInteraction { get; }
+
+		public ObservableCollection<string> Mnemonics { get; } = new();
+
 		private async Task NextExecute(WalletManager walletManager, Network network, string? walletName)
 		{
 			var dialogResult = await NavigateDialog(
@@ -118,18 +130,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				MinGapLimit = (int) minGapLimitIn;
 			}
 		}
-
-		public IObservable<bool> FinishCommandCanExecute { get; }
-
-		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
-
-		private KeyPath AccountKeyPath { get; set; } = KeyPath.Parse("m/84'/0'/0'");
-
-		private int MinGapLimit { get; set; } = 63;
-
-		private Interaction<(KeyPath, int), (KeyPath?, int?)> AdvancedOptionsInteraction { get; }
-
-		public ObservableCollection<string> Mnemonics { get; } = new();
 
 		private void ValidateMnemonics(IValidationErrors errors)
 		{

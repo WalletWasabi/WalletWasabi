@@ -41,6 +41,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			NextCommand = ReactiveCommand.CreateFromTask(async () => await NextExecute(wallet, broadcaster, transaction));
 		}
 
+		public string BtcAmountText { get; }
+
+		public string FiatAmountText { get; }
+
+		public string[] Labels { get; }
+
+		public string AddressText { get; }
+
+		public string ConfirmationTimeText { get; }
+
+		public string BtcFeeText { get; }
+
+		public string FiatFeeText { get; }
+
 		private async Task NextExecute(Wallet wallet, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)
 		{
 			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
@@ -64,19 +78,5 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "");
 			}
 		}
-
-		public string BtcAmountText { get; }
-
-		public string FiatAmountText { get; }
-
-		public string[] Labels { get; }
-
-		public string AddressText { get; }
-
-		public string ConfirmationTimeText { get; }
-
-		public string BtcFeeText { get; }
-
-		public string FiatFeeText { get; }
 	}
 }

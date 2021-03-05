@@ -26,6 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 
 			CancelCommand = ReactiveCommand.Create(CancelExecute);
 		}
+		public List<RecoveryWordViewModel> MnemonicWords { get; set; }
 
 		private void NextExecute(KeyManager keyManager, WalletManager walletManager)
 		{
@@ -36,7 +37,5 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 		{
 			Navigate().Clear();
 		}
-
-		public List<RecoveryWordViewModel> MnemonicWords { get; set; }
 	}
 }

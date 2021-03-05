@@ -20,6 +20,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					.ObserveOn(RxApp.MainThreadScheduler));
 		}
 
+		public ICommand ViewTermsCommand { get; }
+
 		private void ViewTermsExecute(string legalDocument)
 		{
 			Navigate().To(new LegalDocumentsViewModel(legalDocument));
@@ -29,7 +31,5 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			Close(DialogResultKind.Normal, true);
 		}
-
-		public ICommand ViewTermsCommand { get; }
 	}
 }

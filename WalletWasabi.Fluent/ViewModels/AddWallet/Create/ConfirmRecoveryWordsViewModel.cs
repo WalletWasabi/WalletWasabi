@@ -54,6 +54,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 			confirmationWordsSourceList.AddRange(mnemonicWords.OrderBy(_ => new Random().NextDouble()).Take(4));
 		}
 
+		public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
+
 		private void NextExecute(KeyManager keyManager, WalletManager walletManager)
 		{
 			Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager));
@@ -63,7 +65,5 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 		{
 			Navigate().Clear();
 		}
-
-		public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
 	}
 }

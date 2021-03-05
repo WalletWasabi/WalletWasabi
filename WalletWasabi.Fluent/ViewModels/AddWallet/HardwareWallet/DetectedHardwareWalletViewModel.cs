@@ -39,6 +39,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			EnableAutoBusyOn(NextCommand);
 		}
 
+		public CancellationTokenSource CancelCts { get; }
+
+		public WalletManager WalletManager { get; }
+
+		public string WalletName { get; }
+
+		public WalletType Type { get; }
+
+		public string TypeName { get; }
+
+		public ICommand NoCommand { get; }
+
 		private async Task NextExecute(WalletManager walletManager, HwiEnumerateEntry device)
 		{
 			try
@@ -62,18 +74,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			Navigate().Back();
 		}
-
-		public CancellationTokenSource CancelCts { get; }
-
-		public WalletManager WalletManager { get; }
-
-		public string WalletName { get; }
-
-		public WalletType Type { get; }
-
-		public string TypeName { get; }
-
-		public ICommand NoCommand { get; }
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{

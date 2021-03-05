@@ -34,18 +34,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				});
 		}
 
-		private void OpenExecute()
-		{
-			if (SelectionMode == NavBarItemSelectionMode.Toggle)
-			{
-				Toggle();
-			}
-			else
-			{
-				Navigate().To(this, NavigationMode.Clear);
-			}
-		}
-
 		public NavBarItemViewModel? Parent { get; set; }
 
 		public NavBarItemSelectionMode SelectionMode { get; protected set; }
@@ -68,6 +56,18 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		}
 
 		public ICommand OpenCommand { get; protected set; }
+
+		private void OpenExecute()
+		{
+			if (SelectionMode == NavBarItemSelectionMode.Toggle)
+			{
+				Toggle();
+			}
+			else
+			{
+				Navigate().To(this, NavigationMode.Clear);
+			}
+		}
 
 		public virtual void Toggle()
 		{
