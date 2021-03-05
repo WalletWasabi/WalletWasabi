@@ -18,7 +18,7 @@
     </Style>
     <Style Selector="PathIcon.hideAndShow">
       <Style.Animations>
-        <Animation Duration="0:0:2.0" Easing="{StaticResource FluentEasing}">
+        <Animation Duration="0:0:1.4" Easing="{StaticResource FluentEasing}">
           <KeyFrame KeyTime="0:0:0.0">
             <Setter Property="Opacity" Value="0.75" />
           </KeyFrame>
@@ -30,7 +30,7 @@
             <Setter Property="Opacity" Value="0.0" />
             <Setter Property="IsVisible" Value="True" />
           </KeyFrame>
-          <KeyFrame KeyTime="0:0:2.0">
+          <KeyFrame KeyTime="0:0:1.4">
             <Setter Property="Opacity" Value="0.75" />
           </KeyFrame>
         </Animation>
