@@ -46,37 +46,39 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				},
 				outputScheduler: RxApp.MainThreadScheduler);
 
-			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
+			PasteCommand = ReactiveCommand.CreateFromTask(async () => await PasteExecute());
+		}
+
+		private async Task PasteExecute()
+		{
+			try
 			{
-				try
+				var textToPaste = await Application.Current.Clipboard.GetTextAsync();
+
+				if (string.IsNullOrWhiteSpace(textToPaste))
 				{
-					var textToPaste = await Application.Current.Clipboard.GetTextAsync();
-
-					if (string.IsNullOrWhiteSpace(textToPaste))
-					{
-						throw new InvalidDataException("The clipboard is empty!");
-					}
-
-					if (PSBT.TryParse(textToPaste, Network, out var signedPsbt))
-					{
-						if (!signedPsbt.IsAllFinalized())
-						{
-							signedPsbt.Finalize();
-						}
-
-						FinalTransaction = signedPsbt.ExtractSmartTransaction();
-					}
-					else
-					{
-						FinalTransaction = new SmartTransaction(Transaction.Parse(textToPaste, Network), Models.Height.Unknown);
-					}
+					throw new InvalidDataException("The clipboard is empty!");
 				}
-				catch (Exception ex)
+
+				if (PSBT.TryParse(textToPaste, Network, out var signedPsbt))
 				{
-					Logger.LogError(ex);
-					await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to paste the transaction.");
+					if (!signedPsbt.IsAllFinalized())
+					{
+						signedPsbt.Finalize();
+					}
+
+					FinalTransaction = signedPsbt.ExtractSmartTransaction();
 				}
-			});
+				else
+				{
+					FinalTransaction = new SmartTransaction(Transaction.Parse(textToPaste, Network), Models.Height.Unknown);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to paste the transaction.");
+			}
 		}
 
 		private Network Network { get; }
