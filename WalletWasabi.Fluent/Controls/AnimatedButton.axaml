@@ -22,11 +22,12 @@
           <KeyFrame KeyTime="0:0:0.0">
             <Setter Property="Opacity" Value="0.75" />
           </KeyFrame>
-          <KeyFrame KeyTime="0:0:0.5">
+          <KeyFrame KeyTime="0:0:0.2">
             <Setter Property="Opacity" Value="0.0" />
             <Setter Property="IsVisible" Value="False" />
           </KeyFrame>
-          <KeyFrame KeyTime="0:0:1.5">
+          <KeyFrame KeyTime="0:0:1.2">
+            <Setter Property="Opacity" Value="0.0" />
             <Setter Property="IsVisible" Value="True" />
           </KeyFrame>
           <KeyFrame KeyTime="0:0:2.0">
@@ -37,19 +38,16 @@
     </Style>
     <Style Selector="PathIcon.showAndHide">
       <Style.Animations>
-        <Animation Delay="0:0:0.5" Duration="0:0:1.0" Easing="{StaticResource FluentEasing}">
+        <Animation Delay="0:0:0.2" Duration="0:0:1.0" Easing="{StaticResource FluentEasing}">
           <KeyFrame KeyTime="0:0:0.0">
             <Setter Property="Opacity" Value="0.0" />
             <Setter Property="IsVisible" Value="True" />
           </KeyFrame>
-          <KeyFrame KeyTime="0:0:0.5">
+          <KeyFrame KeyTime="0:0:0.2">
             <Setter Property="Opacity" Value="0.75" />
           </KeyFrame>
-          <KeyFrame KeyTime="0:0:0.7">
+          <KeyFrame KeyTime="0:0:0.8">
             <Setter Property="Opacity" Value="0.75" />
-          </KeyFrame>
-          <KeyFrame KeyTime="0:0:0.75">
-            <Setter Property="Opacity" Value="0.3" />
           </KeyFrame>
           <KeyFrame KeyTime="0:0:1.0">
             <Setter Property="Opacity" Value="0.0" />
