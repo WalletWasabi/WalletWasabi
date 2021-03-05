@@ -27,18 +27,6 @@ namespace WalletWasabi.Bases
 			return true;
 		}
 
-		protected bool RaiseAndSetIfRefChanged<T>(ref T field, ref T value, [CallerMemberName] string propertyName = null)
-		{
-			if (ReferenceEquals(field, value))
-			{
-				return false;
-			}
-
-			field = value;
-			OnPropertyChanged(propertyName);
-			return true;
-		}
-
 		#endregion Events
 	}
 }
