@@ -1,3 +1,4 @@
+using Moq;
 using NBitcoin;
 using System;
 using System.Linq;
@@ -218,8 +219,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			}
 
 			var coinsView = new CoinsView(scoins.ToArray());
-			await using var transactionStore = new AllTransactionStoreMock(workFolderPath: ".", Network.Main);
-			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, transactionStore, password);
+			var mockTransactionStore = new Mock<AllTransactionStore>(".", Network.Main);
+			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore.Object, password);
 
 			// Two 0.9btc coins are enough
 			using Key key1 = new Key();
