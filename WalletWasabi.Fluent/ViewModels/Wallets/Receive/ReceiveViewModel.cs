@@ -37,24 +37,30 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Select(reference => !string.IsNullOrEmpty(reference));
 
-			NextCommand = ReactiveCommand.Create(
-				() =>
-				{
-					var newKey = WasabiWallet.KeyManager.GetNextReceiveKey(Reference, out bool minGapLimitIncreased);
+			NextCommand = ReactiveCommand.Create(NextExecute, nextCommandCanExecute);
 
-					if (minGapLimitIncreased)
-					{
-						int minGapLimit = WasabiWallet.KeyManager.MinGapLimit.Value;
-						int prevMinGapLimit = minGapLimit - 1;
-						var minGapLimitMessage = $"Minimum gap limit increased from {prevMinGapLimit} to {minGapLimit}.";
-						// TODO: notification
-					}
+			ShowExistingAddressesCommand = ReactiveCommand.Create(ShowExistingAddressesExecute);
+		}
 
-					Navigate().To(new ReceiveAddressViewModel(newKey, WasabiWallet.Network, WasabiWallet.KeyManager.MasterFingerprint, WasabiWallet.KeyManager.IsHardwareWallet));
-				},
-				nextCommandCanExecute);
+		private void NextExecute()
+		{
+			var newKey = WasabiWallet.KeyManager.GetNextReceiveKey(Reference, out bool minGapLimitIncreased);
 
-			ShowExistingAddressesCommand = ReactiveCommand.Create(() => Navigate().To(new ReceiveAddressesViewModel(WasabiWallet)));
+			if (minGapLimitIncreased)
+			{
+				int minGapLimit = WasabiWallet.KeyManager.MinGapLimit.Value;
+				int prevMinGapLimit = minGapLimit - 1;
+				var minGapLimitMessage = $"Minimum gap limit increased from {prevMinGapLimit} to {minGapLimit}.";
+				// TODO: notification
+			}
+
+			Navigate().To(new ReceiveAddressViewModel(newKey, WasabiWallet.Network, WasabiWallet.KeyManager.MasterFingerprint,
+				WasabiWallet.KeyManager.IsHardwareWallet));
+		}
+
+		private void ShowExistingAddressesExecute()
+		{
+			Navigate().To(new ReceiveAddressesViewModel(WasabiWallet));
 		}
 
 		public Wallet WasabiWallet { get; }

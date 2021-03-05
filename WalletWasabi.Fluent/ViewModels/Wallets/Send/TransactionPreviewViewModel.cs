@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -37,29 +38,31 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			FiatFeeText =
 				$"(≈{(fee.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD)";
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () =>
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await NextExecute(wallet, broadcaster, transaction));
+		}
+
+		private async Task NextExecute(Wallet wallet, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)
+		{
+			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
+			var authDialog = AuthorizationHelpers.GetAuthorizationDialog(wallet, transactionAuthorizationInfo);
+			var authDialogResult = await NavigateDialog(authDialog, NavigationTarget.DialogScreen);
+
+			if (authDialogResult.Result)
 			{
-				var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
-				var authDialog = AuthorizationHelpers.GetAuthorizationDialog(wallet, transactionAuthorizationInfo);
-				var authDialogResult = await NavigateDialog(authDialog, NavigationTarget.DialogScreen);
+				IsBusy = true;
 
-				if (authDialogResult.Result)
-				{
-					IsBusy = true;
+				// Dequeue any coin-joining coins.
+				await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
 
-					// Dequeue any coin-joining coins.
-					await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
+				await broadcaster.SendTransactionAsync(transactionAuthorizationInfo.Transaction);
+				Navigate().Clear();
 
-					await broadcaster.SendTransactionAsync(transactionAuthorizationInfo.Transaction);
-					Navigate().Clear();
-
-					IsBusy = false;
-				}
-				else if (authDialogResult.Kind == DialogResultKind.Normal)
-				{
-					await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "");
-				}
-			});
+				IsBusy = false;
+			}
+			else if (authDialogResult.Kind == DialogResultKind.Normal)
+			{
+				await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "");
+			}
 		}
 
 		public string BtcAmountText { get; }

@@ -17,17 +17,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		{
 			_items = new ObservableCollection<NavBarItemViewModel>();
 
-			OpenCommand = ReactiveCommand.Create(() =>
+			OpenCommand = ReactiveCommand.Create(() => OpenExecute(walletManagerViewModel));
+		}
+
+		private void OpenExecute(WalletManagerViewModel walletManagerViewModel)
+		{
+			if (!Wallet.IsLoggedIn)
 			{
-				if (!Wallet.IsLoggedIn)
-				{
-					Navigate().To(new LoginViewModel(walletManagerViewModel, this));
-				}
-				else
-				{
-					Navigate().To(this);
-				}
-			});
+				Navigate().To(new LoginViewModel(walletManagerViewModel, this));
+			}
+			else
+			{
+				Navigate().To(this);
+			}
 		}
 
 		public override string IconName => "web_asset_regular";

@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Threading;
@@ -92,57 +93,63 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				_transactionInfo.Labels = new SmartLabel(_labels.ToArray());
 			});
 
-			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
+			PasteCommand = ReactiveCommand.CreateFromTask(async () => await PasteExecute());
+
+			NextCommand = ReactiveCommand.Create(
+				() => NextExecute(broadcaster),
+				this.WhenAnyValue(x=>x.Labels.Count).Any());
+		}
+
+		private async Task PasteExecute()
+		{
+			var text = await Application.Current.Clipboard.GetTextAsync();
+
+			_parsingUrl = true;
+
+			if (!TryParseUrl(text))
 			{
-				var text = await Application.Current.Clipboard.GetTextAsync();
+				To = text;
+				// todo validation errors.
+			}
 
-				_parsingUrl = true;
+			_parsingUrl = false;
+		}
 
-				if (!TryParseUrl(text))
-				{
-					To = text;
-					// todo validation errors.
-				}
+		private void NextExecute(TransactionBroadcaster broadcaster)
+		{
+			var transactionInfo = _transactionInfo;
+			var wallet = _owner.Wallet;
+			var targetAnonymitySet = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+			var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
 
-				_parsingUrl = false;
-			});
-
-			NextCommand = ReactiveCommand.Create(() =>
+			if (mixedCoins.Any())
 			{
-				var transactionInfo = _transactionInfo;
-				var wallet = _owner.Wallet;
-				var targetAnonymitySet = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
-				var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
+				var intent = new PaymentIntent(
+					destination: transactionInfo.Address,
+					amount: transactionInfo.Amount,
+					subtractFee: false,
+					label: transactionInfo.Labels);
 
-				if (mixedCoins.Any())
+				try
 				{
-					var intent = new PaymentIntent(
-						destination: transactionInfo.Address,
-						amount: transactionInfo.Amount,
-						subtractFee: false,
-						label: transactionInfo.Labels);
+					var txRes = wallet.BuildTransaction(
+						wallet.Kitchen.SaltSoup(),
+						intent,
+						FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
+						allowUnconfirmed: true,
+						mixedCoins.Select(x => x.OutPoint));
 
-					try
-					{
-						var txRes = wallet.BuildTransaction(
-							wallet.Kitchen.SaltSoup(),
-							intent,
-							FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-							allowUnconfirmed: true,
-							mixedCoins.Select(x => x.OutPoint));
-
-						// Private coins are enough.
-						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
-						return;
-					}
-					catch (NotEnoughFundsException)
-					{
-						// Do Nothing
-					}
+					// Private coins are enough.
+					Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
+					return;
 				}
+				catch (NotEnoughFundsException)
+				{
+					// Do Nothing
+				}
+			}
 
-				Navigate().To(new PrivacyControlViewModel());
-			}, this.WhenAnyValue(x=>x.Labels.Count).Any());
+			Navigate().To(new PrivacyControlViewModel());
 		}
 
 		private void SetXAxisCurrentValueIndex(double xAxisCurrentValue)
