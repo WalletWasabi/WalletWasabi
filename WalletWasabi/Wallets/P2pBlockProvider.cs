@@ -11,6 +11,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets
 {
@@ -22,11 +23,11 @@ namespace WalletWasabi.Wallets
 	{
 		private Node _localBitcoinCoreNode = null;
 
-		public P2pBlockProvider(NodesGroup nodes, CoreNode coreNode, WasabiSynchronizer syncer, ServiceConfiguration serviceConfiguration, Network network)
+		public P2pBlockProvider(NodesGroup nodes, CoreNode coreNode, HttpClientFactory httpClientFactory, ServiceConfiguration serviceConfiguration, Network network)
 		{
 			Nodes = nodes;
 			CoreNode = coreNode;
-			Synchronizer = syncer;
+			HttpClientFactory = httpClientFactory;
 			ServiceConfiguration = serviceConfiguration;
 			Network = network;
 		}
@@ -35,7 +36,7 @@ namespace WalletWasabi.Wallets
 
 		public NodesGroup Nodes { get; }
 		public CoreNode CoreNode { get; }
-		public WasabiSynchronizer Synchronizer { get; }
+		public HttpClientFactory HttpClientFactory { get; }
 		public ServiceConfiguration ServiceConfiguration { get; }
 		public Network Network { get; }
 
@@ -168,9 +169,9 @@ namespace WalletWasabi.Wallets
 
 						// If an onion was added must try to use Tor.
 						// onlyForOnionHosts should connect to it if it's an onion endpoint automatically and non-Tor endpoints through clearnet/localhost
-						if (Synchronizer.HttpClientFactory.IsTorEnabled)
+						if (HttpClientFactory.IsTorEnabled)
 						{
-							nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Synchronizer.HttpClientFactory.TorEndpoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false));
+							nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(HttpClientFactory.TorEndpoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false));
 						}
 
 						var localEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
