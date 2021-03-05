@@ -12,13 +12,22 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public TermsAndConditionsViewModel(string legalDocument)
 		{
-			ViewTermsCommand = ReactiveCommand.Create(
-				() => Navigate().To(new LegalDocumentsViewModel(legalDocument)));
+			ViewTermsCommand = ReactiveCommand.Create(() => ViewTermsExecute(legalDocument));
 
 			NextCommand = ReactiveCommand.Create(
-				() => Close(DialogResultKind.Normal, true),
+				NextExecute,
 				this.WhenAnyValue(x => x.IsAgreed)
 					.ObserveOn(RxApp.MainThreadScheduler));
+		}
+
+		private void ViewTermsExecute(string legalDocument)
+		{
+			Navigate().To(new LegalDocumentsViewModel(legalDocument));
+		}
+
+		private void NextExecute()
+		{
+			Close(DialogResultKind.Normal, true);
 		}
 
 		public ICommand ViewTermsCommand { get; }

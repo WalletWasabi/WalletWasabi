@@ -48,7 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNext(walletManager, network, walletName),
+				async () => await NextExecute(walletManager, network, walletName),
 				FinishCommandCanExecute);
 
 			AdvancedOptionsInteraction = new Interaction<(KeyPath, int), (KeyPath?, int?)>();
@@ -57,26 +57,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					interaction.SetOutput(
 						(await new AdvancedRecoveryOptionsViewModel(interaction.Input).ShowDialogAsync()).Result));
 
-			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
-				async () =>
-				{
-					var (accountKeyPathIn, minGapLimitIn) = await AdvancedOptionsInteraction
-						.Handle((AccountKeyPath, MinGapLimit)).ToTask();
-
-					if (accountKeyPathIn is { } && minGapLimitIn is { })
-					{
-						AccountKeyPath = accountKeyPathIn;
-						MinGapLimit = (int)minGapLimitIn;
-					}
-				});
+			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(async () => await AdvancedRecoveryOptionsDialogExecute());
 
 			EnableAutoBusyOn(NextCommand);
 		}
 
-		private async Task OnNext(
-			WalletManager walletManager,
-			Network network,
-			string? walletName)
+		private async Task NextExecute(WalletManager walletManager, Network network, string? walletName)
 		{
 			var dialogResult = await NavigateDialog(
 				new CreatePasswordDialogViewModel(
@@ -118,6 +104,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			if (dialogResult.Kind == DialogResultKind.Cancel)
 			{
 				Navigate().Clear();
+			}
+		}
+
+		private async Task AdvancedRecoveryOptionsDialogExecute()
+		{
+			var (accountKeyPathIn, minGapLimitIn) = await AdvancedOptionsInteraction
+				.Handle((AccountKeyPath, MinGapLimit)).ToTask();
+
+			if (accountKeyPathIn is { } && minGapLimitIn is { })
+			{
+				AccountKeyPath = accountKeyPathIn;
+				MinGapLimit = (int) minGapLimitIn;
 			}
 		}
 

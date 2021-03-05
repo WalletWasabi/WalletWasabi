@@ -36,35 +36,39 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			AbandonedTasks = new AbandonedTasks();
 			CancelCts = new CancellationTokenSource();
 
-			NextCommand = ReactiveCommand.Create(() =>
-			{
-				if (DetectedDevice is { } device)
-				{
-					NavigateToNext(device);
-					return;
-				}
-
-				StartDetection();
-			});
+			NextCommand = ReactiveCommand.Create(NextExecute);
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask(async () =>
 				await IoHelpers.OpenBrowserAsync("https://docs.wasabiwallet.io/using-wasabi/ColdWasabi.html#using-hardware-wallet-step-by-step"));
 
-			NavigateToExistingWalletLoginCommand = ReactiveCommand.Create(() =>
-			{
-				var navBar = NavigationManager.Get<NavBarViewModel>();
-
-				if (ExistingWallet is { } && navBar is { })
-				{
-					navBar.SelectedItem = ExistingWallet;
-					Navigate().Clear();
-					ExistingWallet.OpenCommand.Execute(default);
-				}
-			});
+			NavigateToExistingWalletLoginCommand = ReactiveCommand.Create(NavigateToExistingWalletLoginExecute);
 
 			this.WhenAnyValue(x => x.Message)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(message => ConfirmationRequired = !string.IsNullOrEmpty(message));
+		}
+
+		private void NextExecute()
+		{
+			if (DetectedDevice is { } device)
+			{
+				NavigateToNext(device);
+				return;
+			}
+
+			StartDetection();
+		}
+
+		private void NavigateToExistingWalletLoginExecute()
+		{
+			var navBar = NavigationManager.Get<NavBarViewModel>();
+
+			if (ExistingWallet is { } && navBar is { })
+			{
+				navBar.SelectedItem = ExistingWallet;
+				Navigate().Clear();
+				ExistingWallet.OpenCommand.Execute(default);
+			}
 		}
 
 		private HwiEnumerateEntry? DetectedDevice { get; set; }

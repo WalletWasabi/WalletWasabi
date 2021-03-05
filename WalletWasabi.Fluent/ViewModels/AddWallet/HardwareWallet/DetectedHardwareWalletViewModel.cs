@@ -1,6 +1,7 @@
 using System;
 using System.Reactive.Disposables;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Extensions;
@@ -31,27 +32,35 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			TypeName = device.Model.FriendlyName();
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				try
-				{
-					var walletFilePath = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
-					var km = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, WalletManager.Network, CancelCts.Token);
-					km.SetIcon(Type);
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await NextExecute(walletManager, device));
 
-					Navigate().To(new AddedWalletPageViewModel(walletManager, km));
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-					await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Error occured during adding your wallet.");
-					Navigate().Back();
-				}
-			});
-
-			NoCommand = ReactiveCommand.Create(() => Navigate().Back());
+			NoCommand = ReactiveCommand.Create(NoExecute);
 
 			EnableAutoBusyOn(NextCommand);
+		}
+
+		private async Task NextExecute(WalletManager walletManager, HwiEnumerateEntry device)
+		{
+			try
+			{
+				var walletFilePath = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
+				var km = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, WalletManager.Network,
+					CancelCts.Token);
+				km.SetIcon(Type);
+
+				Navigate().To(new AddedWalletPageViewModel(walletManager, km));
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Error occured during adding your wallet.");
+				Navigate().Back();
+			}
+		}
+
+		private void NoExecute()
+		{
+			Navigate().Back();
 		}
 
 		public CancellationTokenSource CancelCts { get; }

@@ -22,10 +22,19 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 				MnemonicWords.Add(new RecoveryWordViewModel(i + 1, mnemonic.Words[i]));
 			}
 
-			NextCommand = ReactiveCommand.Create(
-				() => Navigate().To(new ConfirmRecoveryWordsViewModel(MnemonicWords, keyManager, walletManager)));
+			NextCommand = ReactiveCommand.Create(() => NextExecute(keyManager, walletManager));
 
-			CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
+			CancelCommand = ReactiveCommand.Create(CancelExecute);
+		}
+
+		private void NextExecute(KeyManager keyManager, WalletManager walletManager)
+		{
+			Navigate().To(new ConfirmRecoveryWordsViewModel(MnemonicWords, keyManager, walletManager));
+		}
+
+		private void CancelExecute()
+		{
+			Navigate().Clear();
 		}
 
 		public List<RecoveryWordViewModel> MnemonicWords { get; set; }

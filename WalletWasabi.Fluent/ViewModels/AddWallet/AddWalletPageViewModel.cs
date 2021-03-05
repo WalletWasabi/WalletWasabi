@@ -63,30 +63,30 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
-			RecoverWalletCommand = ReactiveCommand.Create(() => RecoverWallet(walletManagerViewModel));
+			RecoverWalletCommand = ReactiveCommand.Create(() => RecoverWalletExecute(walletManagerViewModel));
 
-			ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await ImportWallet(walletManager));
+			ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await ImportWalletExecute(walletManager));
 
-			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => ConnectHardwareWallet(walletManagerViewModel));
+			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => ConnectHardwareWalletExecute(walletManagerViewModel));
 
-			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () => await CreateWallet(walletManager, store, network));
+			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () => await CreateWalletExecute(walletManager, store, network));
 
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
 
 			EnableAutoBusyOn(CreateWalletCommand);
 		}
 
-		private void RecoverWallet(WalletManagerViewModel walletManagerViewModel)
+		private void RecoverWalletExecute(WalletManagerViewModel walletManagerViewModel)
 		{
 			Navigate().To(new RecoverWalletViewModel(WalletName, walletManagerViewModel));
 		}
 
-		private void ConnectHardwareWallet(WalletManagerViewModel walletManagerViewModel)
+		private void ConnectHardwareWalletExecute(WalletManagerViewModel walletManagerViewModel)
 		{
 			Navigate().To(new ConnectHardwareWalletViewModel(WalletName, walletManagerViewModel));
 		}
 
-		private async Task ImportWallet(WalletManager walletManager)
+		private async Task ImportWalletExecute(WalletManager walletManager)
 		{
 			try
 			{
@@ -110,7 +110,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
-		private async Task CreateWallet(WalletManager walletManager, BitcoinStore store, Network network)
+		private async Task CreateWalletExecute(WalletManager walletManager, BitcoinStore store, Network network)
 		{
 			var dialogResult = await NavigateDialog(
 				new CreatePasswordDialogViewModel("Type the password of the wallet and click Continue."));

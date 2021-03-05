@@ -18,23 +18,24 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			IsHardwareWallet = keyManager.IsHardwareWallet;
 			WalletName = keyManager.WalletName;
 
-			NextCommand = ReactiveCommand.Create(
-				() =>
-				{
-					walletManager.AddWallet(keyManager);
+			NextCommand = ReactiveCommand.Create(() => NextExecute(walletManager, keyManager));
+		}
 
-					Navigate().Clear();
+		private void NextExecute(WalletManager walletManager, KeyManager keyManager)
+		{
+			walletManager.AddWallet(keyManager);
 
-					var navBar = NavigationManager.Get<NavBarViewModel>();
+			Navigate().Clear();
 
-					var wallet = navBar?.Items.OfType<WalletViewModelBase>().FirstOrDefault(x => x.WalletName == WalletName);
+			var navBar = NavigationManager.Get<NavBarViewModel>();
 
-					if (wallet is { } && navBar is { })
-					{
-						navBar.SelectedItem = wallet;
-						wallet.OpenCommand.Execute(default);
-					}
-				});
+			var wallet = navBar?.Items.OfType<WalletViewModelBase>().FirstOrDefault(x => x.WalletName == WalletName);
+
+			if (wallet is { } && navBar is { })
+			{
+				navBar.SelectedItem = wallet;
+				wallet.OpenCommand.Execute(default);
+			}
 		}
 
 		public string? WalletIcon { get; }
