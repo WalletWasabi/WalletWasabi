@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -15,20 +16,20 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 		{
 			_metaData = metaData;
 			Category = category;
+			OpenCommand = ReactiveCommand.CreateFromTask(async () => await OpenExecute(owner, metaData));
+		}
 
-			OpenCommand = ReactiveCommand.CreateFromTask(
-				async () =>
-				{
-					owner.IsBusy = true;
-					var view = await NavigationManager.MaterialiseViewModel(metaData);
+		private async Task OpenExecute(SearchPageViewModel owner, NavigationMetaData metaData)
+		{
+			owner.IsBusy = true;
+			var view = await NavigationManager.MaterialiseViewModel(metaData);
 
-					if (view is { })
-					{
-						Navigate(view.DefaultTarget).To(view);
-					}
+			if (view is { })
+			{
+				Navigate(view.DefaultTarget).To(view);
+			}
 
-					owner.IsBusy = false;
-				});
+			owner.IsBusy = false;
 		}
 
 		public string Caption => _metaData.Caption;
