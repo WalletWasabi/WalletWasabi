@@ -28,7 +28,8 @@ namespace WalletWasabi.Fluent
 		Default = 0,
 		HomeScreen = 1,
 		DialogScreen = 2,
-		FullScreen = 3
+		FullScreen = 3,
+		MiniDialogScreen = 4,
 	}
 
 	public sealed class NavigationMetaData
