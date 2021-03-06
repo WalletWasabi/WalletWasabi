@@ -1158,7 +1158,8 @@ namespace WalletWasabi.Tests.RegressionTests
 					{
 						if (timeout.IsCompletedSuccessfully)
 						{
-							throw new TimeoutException("CoinJoin was not noticed.");
+							Logger.LogWarning("CoinJoin was not noticed.");
+							break;
 						}
 						await Task.Delay(1000);
 					}
