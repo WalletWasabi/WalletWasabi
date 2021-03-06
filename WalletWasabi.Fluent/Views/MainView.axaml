@@ -84,5 +84,15 @@
       </c:Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
+    <c:Dialog x:CompileBindings="False"
+              DataContext="{Binding MiniDialogScreen}"
+              IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
+              EnableCancelOnPressed="False"
+              EnableCancelOnEscape="True"
+              IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+              MaxContentWidth="{Binding MaxContentWidth}" MaxContentHeight="{Binding MaxContentHeight}">
+      <ContentControl Content="{Binding CurrentPage}" />
+    </c:Dialog>
   </Panel>
 </UserControl>
