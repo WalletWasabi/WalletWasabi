@@ -75,6 +75,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 				NavigationTarget.HomeScreen => NavigationState.Instance.HomeScreenNavigation,
 				NavigationTarget.DialogScreen => NavigationState.Instance.DialogScreenNavigation,
 				NavigationTarget.FullScreen => NavigationState.Instance.FullScreenNavigation,
+				NavigationTarget.MiniDialogScreen => NavigationState.Instance.MiniDialogScreenNavigation,
 				_ => throw new NotSupportedException(),
 			};
 		}
