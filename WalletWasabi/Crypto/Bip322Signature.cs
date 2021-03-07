@@ -5,33 +5,32 @@ namespace WalletWasabi.Crypto
 {
 	public class Bip322Signature : IBitcoinSerializable
 	{
-		private Script scriptSig = Script.Empty;
-		private WitScript witness = WitScript.Empty; 
+		private Script _scriptSig = Script.Empty;
 
 		public Bip322Signature(Script scriptSig, WitScript witness)
 		{
-			this.scriptSig = scriptSig;
-			this.witness = witness; 
+			_scriptSig = scriptSig;
+			Witness = witness;
 		}
 
 		public Bip322Signature()
 		{
 		}
 
-		public Script ScriptSig => scriptSig;
+		public Script ScriptSig => _scriptSig;
 
-		public WitScript Witness => witness;
+		public WitScript Witness { get; private set; } = WitScript.Empty;
 
 		public void ReadWrite(BitcoinStream bitcoinStream)
 		{
-			bitcoinStream.ReadWrite(ref scriptSig);
+			bitcoinStream.ReadWrite(ref _scriptSig);
 			if (bitcoinStream.Serializing)
 			{
-				witness.WriteToStream(bitcoinStream);
+				Witness.WriteToStream(bitcoinStream);
 			}
 			else
 			{
-				witness = WitScript.Load(bitcoinStream);
+				Witness = WitScript.Load(bitcoinStream);
 			}
 		}
 
@@ -49,9 +48,9 @@ namespace WalletWasabi.Crypto
 			scriptPubKeyType switch
 			{
 				ScriptPubKeyType.Segwit => new Bip322Signature(
-					Script.Empty, 
+					Script.Empty,
 					PayToWitPubKeyHashTemplate.Instance.GenerateWitScript(
-						key.Sign(hash, SigHash.All, false), 
+						key.Sign(hash, SigHash.All, false),
 						key.PubKey)),
 				_ => throw new NotImplementedException("Only P2WPKH scripts are supported.")
 			};

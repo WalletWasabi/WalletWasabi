@@ -10,14 +10,16 @@ namespace WalletWasabi.Crypto
 	public class OwnershipIdentifier : IBitcoinSerializable
 	{
 		public const int OwnershipIdLength = 32;
-		private byte[] bytes;
+		private byte[] _bytes;
 
 		public OwnershipIdentifier(byte[] bytes)
 		{
 			if (bytes.Length != OwnershipIdLength)
+			{
 				throw new ArgumentException($"Ownership identifier must be {OwnershipIdLength} bytes long.");
+			}
 
-			this.bytes = bytes.ToArray();
+			_bytes = bytes.ToArray();
 		}
 
 		public OwnershipIdentifier()
@@ -27,30 +29,30 @@ namespace WalletWasabi.Crypto
 
 		public void ReadWrite(BitcoinStream bitcoinStream)
 		{
-			bitcoinStream.ReadWrite(ref bytes);
+			bitcoinStream.ReadWrite(ref _bytes);
 		}
 	}
 
 	public class CoinJoinInputCommitmentData
 	{
-		private byte[] coordinatorIdentifier;
-		private byte[] roundIdentifier;
+		private byte[] _coordinatorIdentifier;
+		private byte[] _roundIdentifier;
 
 		public CoinJoinInputCommitmentData(string coordinatorIdentifier, uint256 roundIdentifier)
-			: this (Encoding.ASCII.GetBytes(coordinatorIdentifier), roundIdentifier.ToBytes())
+			: this(Encoding.ASCII.GetBytes(coordinatorIdentifier), roundIdentifier.ToBytes())
 		{
 		}
 
 		public CoinJoinInputCommitmentData(byte[] coordinatorIdentifier, byte[] roundIdentifier)
 		{
-			this.coordinatorIdentifier = coordinatorIdentifier;
-			this.roundIdentifier = roundIdentifier;
+			_coordinatorIdentifier = coordinatorIdentifier;
+			_roundIdentifier = roundIdentifier;
 		}
 
 		public byte[] ToBytes() =>
-			BitConverter.GetBytes(coordinatorIdentifier.Length)
-				.Concat(coordinatorIdentifier)
-				.Concat(roundIdentifier)
+			BitConverter.GetBytes(_coordinatorIdentifier.Length)
+				.Concat(_coordinatorIdentifier)
+				.Concat(_roundIdentifier)
 				.ToArray();
 	}
 
@@ -63,8 +65,8 @@ namespace WalletWasabi.Crypto
 	public class ProofBody : IBitcoinSerializable
 	{
 		private static readonly byte[] VersionMagic = { 0x53, 0x4c, 0x00, 0x19 };
-		private List<OwnershipIdentifier> ownershipIdentifiers = new();
-		private byte flags;
+		private List<OwnershipIdentifier> _ownershipIdentifiers = new();
+		private byte _flags;
 
 		public ProofBody()
 		{
@@ -73,20 +75,20 @@ namespace WalletWasabi.Crypto
 		public ProofBody(ProofBodyFlags flags, params OwnershipIdentifier[] ownershipIdentifiers)
 		{
 			Flags = flags;
-			this.ownershipIdentifiers = ownershipIdentifiers.ToList(); 
+			_ownershipIdentifiers = ownershipIdentifiers.ToList();
 		}
 
-		public IEnumerable<OwnershipIdentifier> OwnershipIdentifiers => ownershipIdentifiers;
+		public IEnumerable<OwnershipIdentifier> OwnershipIdentifiers => _ownershipIdentifiers;
 
 		public ProofBodyFlags Flags
 		{
-			get => (ProofBodyFlags)flags;
-			set => flags = (byte)value;
-		} 
+			get => (ProofBodyFlags)_flags;
+			set => _flags = (byte)value;
+		}
 
 		public void ReadWrite(BitcoinStream bitcoinStream)
 		{
-			var versionMagic = VersionMagic.ToArray(); 
+			var versionMagic = VersionMagic.ToArray();
 			bitcoinStream.ReadWrite(ref versionMagic);
 
 			if (!bitcoinStream.Serializing)
@@ -97,12 +99,12 @@ namespace WalletWasabi.Crypto
 				}
 			}
 
-			bitcoinStream.ReadWrite(ref flags);
-			bitcoinStream.ReadWrite(ref ownershipIdentifiers);
+			bitcoinStream.ReadWrite(ref _flags);
+			bitcoinStream.ReadWrite(ref _ownershipIdentifiers);
 		}
 
 		public uint256 SignatureHash(Script scriptPubKey, byte[] commitmentData) =>
-			new uint256(Hashes.SHA256(this.ToBytes().Concat(ProofFooter(scriptPubKey, commitmentData)).ToArray()));
+			new(Hashes.SHA256(this.ToBytes().Concat(ProofFooter(scriptPubKey, commitmentData)).ToArray()));
 
 		private static IEnumerable<byte> ProofFooter(Script scriptPubKey, byte[] commitmentData) =>
 			scriptPubKey.ToBytes().Concat(commitmentData);
@@ -110,8 +112,8 @@ namespace WalletWasabi.Crypto
 
 	public class OwnershipProof : IBitcoinSerializable
 	{
-		private ProofBody proofBody;
-		private Bip322Signature proofSignature;
+		private ProofBody _proofBody;
+		private Bip322Signature _proofSignature;
 
 		public OwnershipProof()
 			: this(new ProofBody(), new Bip322Signature())
@@ -120,18 +122,18 @@ namespace WalletWasabi.Crypto
 
 		public OwnershipProof(ProofBody proofBody, Bip322Signature proofSignature)
 		{
-			this.proofBody = proofBody;
-			this.proofSignature = proofSignature;
+			_proofBody = proofBody;
+			_proofSignature = proofSignature;
 		}
 
-		public ProofBody ProofBody => proofBody;
-		
-		public Bip322Signature ProofSignature => proofSignature;
+		public ProofBody ProofBody => _proofBody;
+
+		public Bip322Signature ProofSignature => _proofSignature;
 
 		public void ReadWrite(BitcoinStream bitcoinStream)
 		{
-			bitcoinStream.ReadWrite(ref proofBody);
-			bitcoinStream.ReadWrite(ref proofSignature);
+			bitcoinStream.ReadWrite(ref _proofBody);
+			bitcoinStream.ReadWrite(ref _proofSignature);
 		}
 
 		public static OwnershipProof Generate(Key key, OwnershipIdentifier ownershipIdentifier, byte[] commitmentData, bool userConfirmation, ScriptPubKeyType scriptPubKeyType) =>
@@ -142,7 +144,7 @@ namespace WalletWasabi.Crypto
 			};
 
 		private static OwnershipProof GenerateOwnershipProofSegwit(Key key, byte[] commitmentData, ProofBody proofBody) =>
-			new OwnershipProof(
+			new(
 				proofBody,
 				Bip322Signature.Generate(key, proofBody.SignatureHash(key.PubKey.WitHash.ScriptPubKey, commitmentData), ScriptPubKeyType.Segwit));
 
@@ -155,12 +157,14 @@ namespace WalletWasabi.Crypto
 
 		private bool VerifyOwnershipProofSegwit(Script scriptPubKey, byte[] commitmentData, bool requireUserConfirmation)
 		{
-			if (requireUserConfirmation && !proofBody.Flags.HasFlag(ProofBodyFlags.UserConfirmation))
+			if (requireUserConfirmation && !_proofBody.Flags.HasFlag(ProofBodyFlags.UserConfirmation))
+			{
 				return false;
+			}
 
-			var hash = proofBody.SignatureHash(scriptPubKey, commitmentData);
+			var hash = _proofBody.SignatureHash(scriptPubKey, commitmentData);
 
-			return proofSignature.Verify(hash, scriptPubKey);
+			return _proofSignature.Verify(hash, scriptPubKey);
 		}
 
 		public static OwnershipProof GenerateCoinJoinInputProof(Key key, CoinJoinInputCommitmentData coinJoinInputsCommitmentData) =>

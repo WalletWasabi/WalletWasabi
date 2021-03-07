@@ -482,13 +482,11 @@ namespace NBitcoin
 
 		public static T FromBytes<T>(byte[] input) where T : IBitcoinSerializable, new()
 		{
-			BitcoinStream inputStream = new BitcoinStream(input);
+			BitcoinStream inputStream = new(input);
 			var instance = new T();
 			inputStream.ReadWrite(instance);
-			if (!inputStream.IsEnd())
-				throw new FormatException("Expected end of stream");
 
-			return instance;
+			return !inputStream.IsEnd() ? throw new FormatException("Expected end of stream") : instance;
 		}
 
 		public static bool IsEnd(this BitcoinStream bitcoinStream)

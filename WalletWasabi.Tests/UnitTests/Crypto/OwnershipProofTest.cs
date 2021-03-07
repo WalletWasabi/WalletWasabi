@@ -1,7 +1,6 @@
 using NBitcoin;
 using NBitcoin.DataEncoders;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Crypto;
 using Xunit;
@@ -17,7 +16,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			// [all all all all all all all all all all all all]/84'/0'/0'/1/0
 			using var key = new Key(Encoders.Hex.DecodeData("3460814214450E864EC722FF1F84F96C41746CD6BBE2F1C09B33972761032E9F"));
 			var ownershipIdentifier = new OwnershipIdentifier(Encoders.Hex.DecodeData("A122407EFC198211C81AF4450F40B235D54775EFD934D16B9E31C6CE9BAD5707"));
-			var commitmentData = new byte[0];
+			var commitmentData = Array.Empty<byte>();
 			var ownershipProof = OwnershipProof.Generate(key, ownershipIdentifier, commitmentData, false, ScriptPubKeyType.Segwit);
 			var scriptPubKey = PayToWitPubKeyHashTemplate.Instance.GenerateScriptPubKey(key.PubKey);
 
@@ -51,8 +50,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Assert.False(ownershipProof.VerifyOwnership(scriptPubKey, commitmentData, true));
 
 			// Valid proof, modified commitment data
-			var invalidCommitmentData = (byte[]) commitmentData.Clone();
-			invalidCommitmentData[0] ^= (byte) 1;
+			var invalidCommitmentData = (byte[])commitmentData.Clone();
+			invalidCommitmentData[0] ^= 1;
 			Assert.False(ownershipProof.VerifyOwnership(scriptPubKey, invalidCommitmentData, false));
 
 			// Valid proof, invalid scriptPubKey
@@ -63,7 +62,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			// Invalid proof, modified ownership identifier
 			var invalidOwnershipIdentifierBytes = ownershipIdentifier.ToBytes();
-			invalidOwnershipIdentifierBytes[0] ^= (byte) 1;
+			invalidOwnershipIdentifierBytes[0] ^= 1;
 
 			invalidOwnershipProof = new OwnershipProof(
 				new ProofBody(ownershipProof.ProofBody.Flags, new OwnershipIdentifier(invalidOwnershipIdentifierBytes)),
@@ -73,7 +72,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			// Invalid proof, modified r part of signature in witness
 			var invalidSignature = ownershipProof.ProofSignature.Witness[0].ToArray();
-			invalidSignature[4] ^= (byte) 1;
+			invalidSignature[4] ^= 1;
 
 			invalidOwnershipProof = new OwnershipProof(
 				ownershipProof.ProofBody,

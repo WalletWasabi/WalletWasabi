@@ -46,24 +46,24 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Bip322Signature invalidBip322Signature;
 
 			// Invalid signature, modified scriptsig
-			invalidBip322Signature = new Bip322Signature(new Script( new byte[] { 0x00 }), bip322Signature.Witness);
+			invalidBip322Signature = new Bip322Signature(new Script(new byte[] { 0x00 }), bip322Signature.Witness);
 			Assert.False(invalidBip322Signature.Verify(message, scriptPubKey));
 
 			// Invalid signature, modified length field of signature in witness
 			invalidSignature = signature.ToArray();
-			invalidSignature[2] = (byte) 30;
+			invalidSignature[2] = 30;
 			invalidBip322Signature = new Bip322Signature(bip322Signature.ScriptSig, new WitScript(new List<byte[]> { invalidSignature, pubKey }));
 			Assert.False(invalidBip322Signature.Verify(message, scriptPubKey));
 
 			// Invalid signature, Modified r part of signature in witness
 			invalidSignature = signature.ToArray();
-			invalidSignature[4] ^= (byte) 1;
+			invalidSignature[4] ^= 1;
 			invalidBip322Signature = new Bip322Signature(bip322Signature.ScriptSig, new WitScript(new List<byte[]> { invalidSignature, pubKey }));
 			Assert.False(invalidBip322Signature.Verify(message, scriptPubKey));
 
 			// Invalid signature, Modified pubkey in witness
 			invalidPubKey = pubKey.ToArray();
-			invalidPubKey[2] ^= (byte) 1;
+			invalidPubKey[2] ^= 1;
 			invalidBip322Signature = new Bip322Signature(bip322Signature.ScriptSig, new WitScript(new List<byte[]> { signature, invalidPubKey }));
 			Assert.False(invalidBip322Signature.Verify(message, scriptPubKey));
 		}
