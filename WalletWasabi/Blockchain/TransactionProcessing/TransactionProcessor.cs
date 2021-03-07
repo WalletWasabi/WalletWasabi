@@ -157,6 +157,25 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 					}
 					else // new confirmation always enjoys priority
 					{
+						var unconfirmedDoubleSpentTxId = doubleSpends.First().TransactionId;
+						if (TransactionStore.MempoolStore.TryGetTransaction(unconfirmedDoubleSpentTxId, out var stx))
+						{
+							if (stx.IsReplacement)
+							{
+								var (replaced, restored) = Coins.Undo(unconfirmedDoubleSpentTxId);
+
+								result.ReplacedCoins.AddRange(replaced);
+								result.RestoredCoins.AddRange(restored);
+
+								foreach (var replacedTransactionId in replaced.Select(coin => coin.TransactionId))
+								{
+									TransactionStore.MempoolStore.TryRemove(replacedTransactionId, out _);
+								}
+								goto here;
+							}
+						}
+
+						/////////////////
 						// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
 						foreach (SmartCoin doubleSpentCoin in doubleSpends)
 						{
@@ -165,11 +184,11 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 
 						result.SuccessfullyDoubleSpentCoins.AddRange(doubleSpends);
 
-						var unconfirmedDoubleSpentTxId = doubleSpends.First().TransactionId;
 						TransactionStore.MempoolStore.TryRemove(unconfirmedDoubleSpentTxId, out _);
 					}
 				}
 			}
+here:
 
 			for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 			{

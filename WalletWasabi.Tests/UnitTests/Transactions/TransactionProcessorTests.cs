@@ -286,7 +286,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			Assert.Equal(0, doubleSpendReceived);
 
-			// Spend it coin
+			// Spend the coin
 			var tx2 = CreateSpendingTransaction(createdCoin, keys[2].PubKey.WitHash.ScriptPubKey, height: 54321);
 			var relevant = transactionProcessor.Process(tx0, tx1, tx2).Last();
 			Assert.Equal(1, doubleSpendReceived);
@@ -363,7 +363,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.True(relevant2.IsNews);
 			Assert.Equal(0, replaceTransactionReceivedCalled);
 
-			// Spend it coin
+			// Spend the coin
 			var tx3 = CreateSpendingTransaction(createdCoin, transactionProcessor.NewKey("E").P2wpkhScript);
 			tx3.Transaction.Outputs[0].Value = Money.Coins(0.9m);
 			var relevant3 = transactionProcessor.Process(tx3);
@@ -384,6 +384,61 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
 			var txInMempool = Assert.Single(mempool);
 			Assert.Equal(tx3, txInMempool);
+		}
+
+		[Fact]
+		public async Task HandlesConfirmedReplacedTransactionAsync()
+		{
+			// --tx0---> (A) --tx1 (replaceable)-+--> (B) --tx2---> (D)
+			//                  |                |
+			//                  |                +--> (C)
+			//                  |
+			//                  +--tx3 (replacement)---> (E)   { after this tx1 is confirmed }
+			//
+			var transactionProcessor = await CreateTransactionProcessorAsync();
+
+			// A confirmed segwit transaction for us
+			var tx0 = CreateCreditingTransaction(transactionProcessor.NewKey("A").P2wpkhScript, Money.Coins(1.0m), height: 54321);
+			var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
+			transactionProcessor.Process(tx0);
+
+			// Spend the received coin
+			var tx1 = CreateSpendingTransaction(createdCoin, transactionProcessor.NewKey("B").P2wpkhScript);
+			tx1.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
+			tx1.Transaction.Outputs[0].Value = Money.Coins(0.95m);
+			tx1.Transaction.Outputs.Add(Money.Coins(0.1m), transactionProcessor.NewKey("C").P2wpkhScript);
+			transactionProcessor.Process(tx1);
+
+			var unconfirmedCoin1 = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "B");
+			var unconfirmedCoin2 = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "C");
+
+			// Spend the received coin
+			var tx2 = CreateSpendingTransaction(unconfirmedCoin1.Coin, transactionProcessor.NewKey("D").P2wpkhScript);
+			tx2.Transaction.Outputs[0].Value = Money.Coins(0.7m);
+			transactionProcessor.Process(tx2);
+
+			// Spend it coin
+			var tx3 = CreateSpendingTransaction(createdCoin, transactionProcessor.NewKey("E").P2wpkhScript);
+			tx3.Transaction.Outputs[0].Value = Money.Coins(0.9m);
+			transactionProcessor.Process(tx3);
+
+			// Now it is confirmed
+			var blockHeight = new Height(77551);
+			tx1 = new SmartTransaction(tx1.Transaction, blockHeight);
+			var relevant = transactionProcessor.Process(tx1);
+
+			var coin1 = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "B");
+			var coin2 = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "C");
+
+			Assert.True(coin1.Confirmed);
+			Assert.True(coin2.Confirmed);
+
+			Assert.DoesNotContain(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "E");
+			Assert.DoesNotContain(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "D"); // Wasabi forgot about it but that's not a problem.
+
+			// Replacement transactions tx2 and tx3 have to be removed because tx1 confirmed and then they are invalid.
+			var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
+			Assert.DoesNotContain(tx3, mempool);
 		}
 
 		[Fact]
