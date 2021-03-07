@@ -442,6 +442,53 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		}
 
 		[Fact]
+		public async Task RecognizeReplaceableCoinsCorrectly()
+		{
+			// --tx0 ---> (A) -(replaceable)--tx1 -+--> (B) --tx2---> (D)
+			//                                     |
+			//                                     +--> (C)
+			//
+			var transactionProcessor = await CreateTransactionProcessorAsync();
+
+			// A confirmed segwit transaction for us
+			var tx0 = CreateCreditingTransaction(transactionProcessor.NewKey("A").P2wpkhScript, Money.Coins(1.0m));
+			var createdCoin = tx0.Transaction.Outputs.AsCoins().First();
+			transactionProcessor.Process(tx0);
+
+			// Spend the received coin
+			var tx1 = CreateSpendingTransaction(createdCoin, transactionProcessor.NewKey("B").P2wpkhScript);
+			tx1.Transaction.Outputs[0].Value = Money.Coins(0.95m);
+			tx1.Transaction.Inputs[0].Sequence = Sequence.OptInRBF;
+			tx1.Transaction.Outputs.Add(Money.Coins(0.1m), transactionProcessor.NewKey("C").P2wpkhScript);
+			transactionProcessor.Process(tx1);
+
+			var coinB = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "B");
+			var coinC = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "C");
+
+			// Spend the received coin
+			var tx2 = CreateSpendingTransaction(coinB.Coin, transactionProcessor.NewKey("D").P2wpkhScript);
+			tx2.Transaction.Outputs[0].Value = Money.Coins(0.7m);
+			transactionProcessor.Process(tx2);
+
+			var coinD = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "D");
+
+			Assert.True(coinB.IsReplaceable());
+			Assert.True(coinC.IsReplaceable());
+			Assert.True(coinD.IsReplaceable());
+
+			// Now it is confirmed
+			var blockHeight = new Height(77551);
+			tx1 = new SmartTransaction(tx1.Transaction, blockHeight);
+			var relevant = transactionProcessor.Process(tx1);
+
+			coinC = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "C");
+			coinD = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "D");
+
+			Assert.False(coinC.IsReplaceable());
+			Assert.False(coinD.IsReplaceable());
+		}
+
+		[Fact]
 		public async Task ConfirmTransactionTestAsync()
 		{
 			await using var txStore = await CreateTransactionStoreAsync();
