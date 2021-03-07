@@ -485,13 +485,12 @@ namespace NBitcoin
 			BitcoinStream inputStream = new(input);
 			var instance = new T();
 			inputStream.ReadWrite(instance);
+			if (inputStream.Inner.Length != inputStream.Inner.Position)
+			{
+				throw new FormatException("Expected end of stream");
+			}
 
-			return !inputStream.IsEnd() ? throw new FormatException("Expected end of stream") : instance;
-		}
-
-		public static bool IsEnd(this BitcoinStream bitcoinStream)
-		{
-			return bitcoinStream.Inner.Length == bitcoinStream.Inner.Position;
+			return instance;
 		}
 	}
 }

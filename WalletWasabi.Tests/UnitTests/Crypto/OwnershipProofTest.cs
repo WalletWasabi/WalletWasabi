@@ -50,7 +50,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Assert.False(ownershipProof.VerifyOwnership(scriptPubKey, commitmentData, true));
 
 			// Valid proof, modified commitment data
-			var invalidCommitmentData = (byte[])commitmentData.Clone();
+			var invalidCommitmentData = commitmentData.ToArray();
 			invalidCommitmentData[0] ^= 1;
 			Assert.False(ownershipProof.VerifyOwnership(scriptPubKey, invalidCommitmentData, false));
 
