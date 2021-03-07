@@ -64,6 +64,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void StepInputRegistrationPhase()
 		{
+			Logger.LogInfo("Starting Input Registration Phase.");
+
 			foreach (var round in Rounds.Values.Where(x =>
 				x.Phase == Phase.InputRegistration
 				&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(x)))
@@ -72,16 +74,21 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				if (round.InputCount < Config.MinInputCountByRound)
 				{
 					Rounds.Remove(round.Id);
+					round.LogInfo($"Round {round.Id} removed because the number of inputs was not enough.");
 				}
 				else
 				{
 					round.SetPhase(Phase.ConnectionConfirmation);
 				}
 			}
+
+			Logger.LogInfo("Input Registration Phase finished.");
 		}
 
 		private void StepConnectionConfirmationPhase()
 		{
+			Logger.LogInfo("Starting Connection Confirmation Phase.");
+
 			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.ConnectionConfirmation).ToArray())
 			{
 				if (round.Alices.All(x => x.ConfirmedConnetion))
@@ -96,10 +103,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						Prison.Note(alice, round.Id);
 					}
 					round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
+					round.LogInfo($"{alicesDidntConfirm.Length} alices removed because they didn't confirm.");
 
 					if (round.InputCount < Config.MinInputCountByRound)
 					{
 						Rounds.Remove(round.Id);
+						round.LogInfo($"Round {round.Id} removed because the number of inputs was not enough.");
 					}
 					else
 					{
@@ -107,10 +116,14 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					}
 				}
 			}
+
+			Logger.LogInfo("Connection Confirmation Phase finished.");
 		}
 
 		private void StepOutputRegistrationPhase()
 		{
+			Logger.LogInfo("Starting Output Registration Phase.");
+
 			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.OutputRegistration).ToArray())
 			{
 				long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
@@ -127,15 +140,18 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					{
 						coinjoin.Inputs.Add(input);
 					}
+					round.LogInfo($"{coinjoin.Inputs.Count} inputs were added.");
 
 					// Add outputs:
 					foreach (var bob in round.Bobs)
 					{
 						coinjoin.Outputs.AddWithOptimize(bob.CalculateOutputAmount(round.FeeRate), bob.Script);
 					}
+					round.LogInfo($"{coinjoin.Outputs.Count} outputs were added.");
 
 					// Shuffle & sort:
 					// This is basically just decoration.
+					round.LogInfo("Shuffling and sorting inputs and outputs.");
 					coinjoin.Inputs.Shuffle();
 					coinjoin.Outputs.Shuffle();
 					coinjoin.Inputs.SortByAmount(spentCoins);
@@ -147,6 +163,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					{
 						var diffMoney = Money.Satoshis(diff);
 						coinjoin.Outputs.AddWithOptimize(diffMoney, Config.BlameScript);
+						round.LogInfo("Filled up the outputs to build a reasonable transaction because some alice failed to provide its output.");
 					}
 
 					round.EncryptedCoinjoin = StringCipher.Encrypt(coinjoin.ToHex(), round.UnsignedTxSecret);
@@ -154,6 +171,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					round.SetPhase(Phase.TransactionSigning);
 				}
 			}
+
+			Logger.LogInfo("Output Registration Phase finished.");
 		}
 
 		private async Task StepTransactionSigningPhaseAsync()
