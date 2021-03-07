@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Keys;
@@ -11,6 +12,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 	/// <summary>
 	/// An UTXO that knows more.
 	/// </summary>
+	[DebuggerDisplay("{Amount}BTC {Confirmed} {HdPubKey.Label} OutPoint={Coin.Outpoint}")]
 	public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>
 	{
 		private Height _height;
