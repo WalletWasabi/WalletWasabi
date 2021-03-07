@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.JsonPatch;
 using NBitcoin;
 using Nito.AsyncEx;
 using System;

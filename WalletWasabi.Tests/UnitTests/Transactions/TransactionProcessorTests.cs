@@ -570,7 +570,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		public async Task ReceiveTransactionForWalletAsync()
 		{
 			var transactionProcessor = await CreateTransactionProcessorAsync();
-			SmartCoin receivedCoin = null;
+			SmartCoin? receivedCoin = null;
 			transactionProcessor.WalletRelevantTransactionProcessed += (s, e) => receivedCoin = e.NewlyReceivedCoins.Single();
 			var keys = transactionProcessor.KeyManager.GetKeys();
 			var tx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(1.0m));
@@ -596,7 +596,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		public async Task SpendCoinAsync()
 		{
 			var transactionProcessor = await CreateTransactionProcessorAsync();
-			SmartCoin spentCoin = null;
+			SmartCoin? spentCoin = null;
 			transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 			{
 				if (e.NewlySpentCoins.Any())
