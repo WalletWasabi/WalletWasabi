@@ -116,7 +116,7 @@
                 </StackPanel.Styles>
                 <DockPanel>
                     <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
-                    <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To, Mode=TwoWay}"
+                    <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}"
                              Watermark="(e.g. Bitcoin address or PayJoin URL)">
                         <i:Interaction.Behaviors>
                             <behaviors:FocusOnAttachedBehavior />
@@ -163,17 +163,16 @@
                         KeyboardNavigation.IsTabStop="False"
                         DockPanel.Dock="Bottom"
                         Classes="cursor"
-                        Minimum="{Binding #GradientLineChart.XAxisMinValue}"
-                        Maximum="{Binding #GradientLineChart.XAxisMaxValue}"
-                        Value="{Binding #GradientLineChart.XAxisCurrentValue}" />
+                        Minimum="{Binding XAxisMinValue}"
+                        Maximum="{Binding XAxisMaxValue}"
+                        Value="{Binding XAxisCurrentValueIndex}">
+                </Slider>
                 <c:LineChart x:Name="GradientLineChart"
                              Classes="cursor border xAxisLabels yAxis yAxisTitle"
                              MinHeight="30"
                              XAxisLabels="{Binding XAxisLabels}"
                              XAxisValues="{Binding XAxisValues}"
                              XAxisCurrentValue="{Binding XAxisCurrentValue, Mode=TwoWay}"
-                             XAxisMinValue="{Binding XAxisMinValue}"
-                             XAxisMaxValue="{Binding XAxisMaxValue}"
                              YAxisValues="{Binding YAxisValues}"
                              YAxisLogarithmicScale="False"
                              AreaMargin="10,0,10,30"
