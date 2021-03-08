@@ -115,8 +115,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				var wallet = _owner.Wallet;
 				var targetAnonymitySet = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 				var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
+				var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
 
-				if (mixedCoins.Any())
+				if (transactionInfo.Amount <= totalMixedCoinsAmount)
 				{
 					var intent = new PaymentIntent(
 						destination: transactionInfo.Address,
@@ -137,14 +138,28 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 						return;
 					}
-					catch (InsufficientBalanceException) // TODO: do not handle this here
+					catch (InsufficientBalanceException)
 					{
 						var dialog = new InsufficientBalanceDialogViewModel();
 						var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 
 						if (result.Result)
 						{
+							intent = new PaymentIntent(
+								destination: transactionInfo.Address,
+								amount: totalMixedCoinsAmount,
+								subtractFee: true,
+								label: transactionInfo.Labels);
 
+							var txRes = wallet.BuildTransaction(
+								wallet.Kitchen.SaltSoup(),
+								intent,
+								FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
+								allowUnconfirmed: true,
+								mixedCoins.Select(x => x.OutPoint));
+
+							Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
+							return;
 						}
 					}
 					catch (NotEnoughFundsException)
