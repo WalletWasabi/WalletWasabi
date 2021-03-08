@@ -123,7 +123,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					try
 					{
-						var txRes = BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, false);
+						var txRes = BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: false);
 						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 						return;
 					}
@@ -134,7 +134,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 						if (result.Result)
 						{
-							var txRes = BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, true);
+							var txRes = BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true);
 							Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 							return;
 						}
