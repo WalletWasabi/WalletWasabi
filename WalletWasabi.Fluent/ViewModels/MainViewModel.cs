@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private bool _isFullScreenEnabled;
 		[AutoNotify] private DialogScreenViewModel _dialogScreen;
 		[AutoNotify] private DialogScreenViewModel _fullScreen;
-		[AutoNotify] private DialogScreenViewModel _miniDialogScreen;
+		[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
 		[AutoNotify] private NavBarViewModel _navBar;
 		[AutoNotify] private StatusBarViewModel _statusBar;
 		[AutoNotify] private string _title = "Wasabi Wallet";
@@ -47,11 +47,11 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			_fullScreen = new DialogScreenViewModel(double.PositiveInfinity, double.PositiveInfinity, NavigationTarget.FullScreen);
 
-			_miniDialogScreen = new DialogScreenViewModel(480, 270, NavigationTarget.MiniDialogScreen);
+			_compactDialogScreen = new DialogScreenViewModel(480, 270, NavigationTarget.CompactDialogScreen);
 
 			MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
 
-			NavigationState.Register(MainScreen, DialogScreen, FullScreen, MiniDialogScreen);
+			NavigationState.Register(MainScreen, DialogScreen, FullScreen, CompactDialogScreen);
 
 			Network = global.Network;
 

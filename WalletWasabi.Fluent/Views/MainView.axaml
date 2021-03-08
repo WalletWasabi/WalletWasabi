@@ -85,7 +85,7 @@
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
     <c:Dialog x:CompileBindings="False"
-              DataContext="{Binding MiniDialogScreen}"
+              DataContext="{Binding CompacyDialogScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
               EnableCancelOnPressed="False"
               EnableCancelOnEscape="True"
