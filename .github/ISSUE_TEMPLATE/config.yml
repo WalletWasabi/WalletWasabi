@@ -1,0 +1,17 @@
+blank_issues_enabled: false
+contact_links:
+  - name: ✨ Feature request
+    url: https://github.com/zkSNACKs/WalletWasabi/discussions/5185
+    about: Missing something in Wasabi? Let us know.
+  - name: 📃 User documentation
+    url: https://docs.wasabiwallet.io/
+    about: Search for any questions you have about Wasabi.
+  - name: 💬 Community support
+    url: https://github.com/zkSNACKs/WalletWasabi/discussions/5185
+    about: Feel free to ask anything.
+  - name: 📖 Contribution instructions
+    url: https://docs.wasabiwallet.io/building-wasabi/
+    about: Want to contribute to Wasabi Wallet? Start here.
+  - name: ❓ Other issue?
+    url: https://github.com/zkSNACKs/WalletWasabi/discussions/5185
+    about: Search on the community forum.
