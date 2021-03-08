@@ -18,6 +18,7 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/SplitView.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/TextBox.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/HyperlinkButton.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/AnimatedButton.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/CurrencyEntryBox.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/DataGrid.axaml" />
 </Styles>

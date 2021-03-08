@@ -15,11 +15,18 @@
               SelectedItem="{Binding SelectedAddress, Mode=TwoWay}"
               CanUserSortColumns="True">
       <DataGrid.Styles>
+        <Style Selector="c|AnimatedButton.addressActionButton">
+          <Setter Property="DockPanel.Dock" Value="Right"/>
+          <Setter Property="Margin" Value="5 0 0 0"/>
+        </Style>
+        <Style Selector="c|AnimatedButton /template/ PathIcon">
+          <Setter Property="Height" Value="15"/>
+          <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}"/>
+        </Style>
         <Style Selector="Button.addressActionButton">
           <Setter Property="DockPanel.Dock" Value="Right"/>
           <Setter Property="Margin" Value="5 0 0 0"/>
         </Style>
-
         <Style Selector="PathIcon.addressActionIcon">
           <Setter Property="Height" Value="15"/>
           <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}"/>
@@ -53,9 +60,11 @@
                 <Button Classes="plain addressActionButton" Command="{Binding HideAddressCommand}" ToolTip.Tip="Hide address">
                   <PathIcon Data="{StaticResource dismiss_light}" Classes=" addressActionIcon"/>
                 </Button>
-                <Button Classes="plain addressActionButton" Command="{Binding CopyAddressCommand}" ToolTip.Tip="Copy">
-                  <PathIcon Data="{StaticResource copy_regular}" Classes="addressActionIcon" />
-                </Button>
+                <c:AnimatedButton Classes="addressActionButton"
+                                  ToolTip.Tip="Copy"
+                                  Command="{Binding CopyAddressCommand}"
+                                  NormalIcon="{StaticResource copy_regular}"
+                                  ClickIcon="{StaticResource copy_confirmed}"/>
                 <TextBlock Text="{Binding Address}" />
               </DockPanel>
             </DataTemplate>
