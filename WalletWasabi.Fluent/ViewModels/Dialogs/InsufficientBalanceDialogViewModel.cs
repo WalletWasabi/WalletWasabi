@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	{
 		public InsufficientBalanceDialogViewModel()
 		{
-			Text = $"You don't have enough mixed funds in your wallet including the fee. Instead of adding as an extra cost, Wasabi can subtract the fee from the maximum possible amount.\nWould you like Wasabi to do it?";
+			Text = $"You don't have enough funds in your wallet including the fee. Instead of adding as an extra cost, Wasabi can subtract the fee from the maximum possible amount.\nWould you like Wasabi to do it?";
 
 			NextCommand = ReactiveCommand.Create(() => Close(result: true));
 			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));

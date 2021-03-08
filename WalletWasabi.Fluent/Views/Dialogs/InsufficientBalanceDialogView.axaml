@@ -15,7 +15,7 @@
                        NoCommand="{Binding CancelCommand}"
                        HighlightButton="YesButton">
       <Viewbox MaxHeight="150" Margin="40">
-        <PathIcon Data="{StaticResource delete_regular}" Opacity="0.6" />
+        <PathIcon Opacity="0.6" />
       </Viewbox>
     </c:QuestionControl>
   </c:ContentArea>

@@ -137,7 +137,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 						return;
 					}
-					catch (InsufficientBalanceException)
+					catch (InsufficientBalanceException) // TODO: do not handle this here
 					{
 						var dialog = new InsufficientBalanceDialogViewModel();
 						var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
