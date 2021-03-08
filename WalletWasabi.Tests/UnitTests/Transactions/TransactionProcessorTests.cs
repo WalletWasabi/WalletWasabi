@@ -669,8 +669,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions().ToArray();
 			Assert.Empty(matureTxs);
 
-			Assert.True(ReferenceEquals(tx2, spentCoin?.SpenderTransaction));
-			Assert.False(ReferenceEquals(tx1, spentCoin?.SpenderTransaction));
+			Assert.Contains(spentCoin, tx1.WalletInputs);
+			Assert.Contains(spentCoin, tx2.WalletInputs);
 		}
 
 		[Fact]
