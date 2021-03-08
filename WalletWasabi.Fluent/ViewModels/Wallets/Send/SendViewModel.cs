@@ -15,6 +15,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Fluent.Validation;
@@ -24,6 +25,7 @@ using WalletWasabi.Gui.Converters;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
@@ -119,22 +121,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (transactionInfo.Amount <= totalMixedCoinsAmount)
 				{
-					var intent = new PaymentIntent(
-						destination: transactionInfo.Address,
-						amount: transactionInfo.Amount,
-						subtractFee: false,
-						label: transactionInfo.Labels);
-
 					try
 					{
-						var txRes = wallet.BuildTransaction(
-							wallet.Kitchen.SaltSoup(),
-							intent,
-							FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-							allowUnconfirmed: true,
-							mixedCoins.Select(x => x.OutPoint));
-
-						// Private coins are enough.
+						var txRes = BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, false);
 						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 						return;
 					}
@@ -145,19 +134,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 						if (result.Result)
 						{
-							intent = new PaymentIntent(
-								destination: transactionInfo.Address,
-								amount: totalMixedCoinsAmount,
-								subtractFee: true,
-								label: transactionInfo.Labels);
-
-							var txRes = wallet.BuildTransaction(
-								wallet.Kitchen.SaltSoup(),
-								intent,
-								FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-								allowUnconfirmed: true,
-								mixedCoins.Select(x => x.OutPoint));
-
+							var txRes = BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, true);
 							Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 							return;
 						}
@@ -170,6 +147,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				Navigate().To(new PrivacyControlViewModel());
 			}, this.WhenAnyValue(x=>x.Labels.Count).Any());
+		}
+
+		private BuildTransactionResult BuildTransaction(Wallet wallet, BitcoinAddress address, Money amount, SmartLabel labels, FeeRate feeRate, List<SmartCoin> coins, bool subtractFee)
+		{
+			var intent = new PaymentIntent(
+				destination: address,
+				amount: amount,
+				subtractFee: subtractFee,
+				label: labels);
+
+			var txRes = wallet.BuildTransaction(
+				wallet.Kitchen.SaltSoup(),
+				intent,
+				FeeStrategy.CreateFromFeeRate(feeRate),
+				allowUnconfirmed: true,
+				coins.Select(coin => coin.OutPoint));
+
+			return txRes;
 		}
 
 		private void SetXAxisCurrentValueIndex(double xAxisCurrentValue)
