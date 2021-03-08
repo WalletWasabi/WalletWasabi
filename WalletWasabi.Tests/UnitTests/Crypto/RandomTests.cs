@@ -49,7 +49,6 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			{
 				new SecureRandom(),
 				new InsecureRandom(),
-				new MockRandom()
 			};
 
 			foreach (var random in randoms)
@@ -58,13 +57,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 				Assert.Throws<ArgumentOutOfRangeException>(() => random.GetBytes(-1));
 				Assert.Throws<ArgumentOutOfRangeException>(() => random.GetBytes(0));
 
-				if (random is MockRandom == false)
-				{
-					var r1 = random.GetBytes(1);
-					Assert.Single(r1);
-					var r2 = random.GetBytes(2);
-					Assert.Equal(2, r2.Length);
-				}
+				var r1 = random.GetBytes(1);
+				Assert.Single(r1);
+				var r2 = random.GetBytes(2);
+				Assert.Equal(2, r2.Length);
 			}
 
 			foreach (WasabiRandom random in randoms)

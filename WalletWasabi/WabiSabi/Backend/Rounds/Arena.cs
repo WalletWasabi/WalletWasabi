@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Banning;
@@ -46,9 +47,15 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				// Remove timed out alices.
 				TimeoutAlices();
 
+				await StepTransactionSigningPhaseAsync().ConfigureAwait(false);
+
+				StepOutputRegistrationPhase();
+
 				StepConnectionConfirmationPhase();
 
 				StepInputRegistrationPhase();
+
+				cancel.ThrowIfCancellationRequested();
 
 				// Ensure there's at least one non-blame round in input registration.
 				await CreateRoundsAsync().ConfigureAwait(false);
@@ -59,7 +66,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			foreach (var round in Rounds.Values.Where(x =>
 				x.Phase == Phase.InputRegistration
-				&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.InputRegistrationTimeout)))
+				&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(x)))
+				.ToArray())
 			{
 				if (round.InputCount < Config.MinInputCountByRound)
 				{
@@ -74,13 +82,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void StepConnectionConfirmationPhase()
 		{
-			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.ConnectionConfirmation))
+			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.ConnectionConfirmation).ToArray())
 			{
 				if (round.Alices.All(x => x.ConfirmedConnetion))
 				{
 					round.SetPhase(Phase.OutputRegistration);
 				}
-				else if (round.ConnectionConfirmationStart + Config.ConnectionConfirmationTimeout < DateTimeOffset.UtcNow)
+				else if (round.ConnectionConfirmationStart + round.ConnectionConfirmationTimeout < DateTimeOffset.UtcNow)
 				{
 					var alicesDidntConfirm = round.Alices.Where(x => !x.ConfirmedConnetion).ToArray();
 					foreach (var alice in alicesDidntConfirm)
@@ -101,6 +109,132 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
+		private void StepOutputRegistrationPhase()
+		{
+			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.OutputRegistration).ToArray())
+			{
+				long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
+				long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
+				var diff = aliceSum - bobSum;
+				if (diff == 0 || round.OutputRegistrationStart + round.OutputRegistrationTimeout < DateTimeOffset.UtcNow)
+				{
+					// Build a coinjoin:
+					var coinjoin = round.Coinjoin;
+
+					// Add inputs:
+					var spentCoins = round.Alices.SelectMany(x => x.Coins).ToArray();
+					foreach (var input in spentCoins.Select(x => x.Outpoint))
+					{
+						coinjoin.Inputs.Add(input);
+					}
+
+					// Add outputs:
+					foreach (var bob in round.Bobs)
+					{
+						coinjoin.Outputs.AddWithOptimize(bob.CalculateOutputAmount(round.FeeRate), bob.Script);
+					}
+
+					// Shuffle & sort:
+					// This is basically just decoration.
+					coinjoin.Inputs.Shuffle();
+					coinjoin.Outputs.Shuffle();
+					coinjoin.Inputs.SortByAmount(spentCoins);
+					coinjoin.Outputs.SortByAmount();
+
+					// If timeout we must fill up the outputs to build a reasonable transaction.
+					// This won't be signed by the alice who failed to provide output, so we know who to ban.
+					if (diff > round.MinRegistrableAmount)
+					{
+						var diffMoney = Money.Satoshis(diff);
+						coinjoin.Outputs.AddWithOptimize(diffMoney, Config.BlameScript);
+					}
+
+					round.EncryptedCoinjoin = StringCipher.Encrypt(coinjoin.ToHex(), round.UnsignedTxSecret);
+
+					round.SetPhase(Phase.TransactionSigning);
+				}
+			}
+		}
+
+		private async Task StepTransactionSigningPhaseAsync()
+		{
+			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.TransactionSigning).ToArray())
+			{
+				var coinjoin = round.Coinjoin;
+				var isFullySigned = coinjoin.Inputs.All(x => x.HasWitScript());
+
+				try
+				{
+					if (isFullySigned)
+					{
+						// Logging.
+						round.LogInfo("Trying to broadcast coinjoin.");
+						Coin[]? spentCoins = round.Alices.SelectMany(x => x.Coins).ToArray();
+						Money networkFee = coinjoin.GetFee(spentCoins);
+						Guid roundId = round.Id;
+						FeeRate feeRate = coinjoin.GetFeeRate(spentCoins);
+						round.LogInfo($"Network Fee: {networkFee.ToString(false, false)} BTC.");
+						round.LogInfo($"Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
+						round.LogInfo($"Number of inputs: {coinjoin.Inputs.Count}.");
+						round.LogInfo($"Number of outputs: {coinjoin.Outputs.Count}.");
+						round.LogInfo($"Serialized Size: {coinjoin.GetSerializedSize() / 1024} KB.");
+						round.LogInfo($"VSize: {coinjoin.GetVirtualSize() / 1024} KB.");
+						foreach (var (value, count) in coinjoin.GetIndistinguishableOutputs(includeSingle: false))
+						{
+							round.LogInfo($"There are {count} occurrences of {value.ToString(true, false)} BTC output.");
+						}
+
+						// Broadcasting.
+						await Rpc.SendRawTransactionAsync(coinjoin).ConfigureAwait(false);
+						round.SetPhase(Phase.TransactionBroadcasting);
+
+						round.LogInfo($"Successfully broadcast the CoinJoin: {coinjoin.GetHash()}.");
+					}
+					else if (round.TransactionSigningStart + round.TransactionSigningTimeout < DateTimeOffset.UtcNow)
+					{
+						throw new TimeoutException($"Signing phase timed out after {round.TransactionSigningTimeout.TotalSeconds} seconds.");
+					}
+				}
+				catch (Exception ex)
+				{
+					round.LogWarning($"Signing phase failed, reason: '{ex}'.");
+					await FailTransactionSigningPhaseAsync(round).ConfigureAwait(false);
+				}
+			}
+		}
+
+		private async Task FailTransactionSigningPhaseAsync(Round round)
+		{
+			var alicesWhoDidntSign = round
+				.Alices
+				.Where(x => !x
+					.Coins
+					.Select(x => x.Outpoint)
+					.All(y => round.Coinjoin.Inputs.Where(x => x.HasWitScript()).Select(x => x.PrevOut).Contains(y)))
+				.ToHashSet();
+
+			foreach (var alice in alicesWhoDidntSign)
+			{
+				Prison.Note(alice, round.Id);
+			}
+
+			round.Alices.RemoveAll(x => alicesWhoDidntSign.Contains(x));
+			Rounds.Remove(round.Id);
+
+			if (round.InputCount >= Config.MinInputCountByRound)
+			{
+				await CreateBlameRoundAsync(round).ConfigureAwait(false);
+			}
+		}
+
+		private async Task CreateBlameRoundAsync(Round round)
+		{
+			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative).ConfigureAwait(false)).FeeRate;
+			RoundParameters parameters = new(Config, Network, Random, feeRate, blameOf: round);
+			Round blameRound = new(parameters);
+			Rounds.Add(blameRound.Id, blameRound);
+		}
+
 		private async Task CreateRoundsAsync()
 		{
 			if (!Rounds.Values.Any(x => !x.IsBlameRound && x.Phase == Phase.InputRegistration))
@@ -115,7 +249,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void TimeoutAlices()
 		{
-			foreach (var round in Rounds.Values.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.InputRegistrationTimeout)))
+			foreach (var round in Rounds.Values.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(x))).ToArray())
 			{
 				var removedAliceCount = round.Alices.RemoveAll(x => x.Deadline < DateTimeOffset.UtcNow);
 				if (removedAliceCount > 0)
@@ -134,14 +268,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
 				return InputRegistrationHandler.RegisterInput(
+					Config,
 					roundId,
 					coinRoundSignaturePairs,
 					zeroAmountCredentialRequests,
 					zeroWeightCredentialRequests,
 					Rounds,
-					Network,
-					Config.MaxInputCountByRound,
-					Config.InputRegistrationTimeout);
+					Network);
 			}
 		}
 
@@ -228,7 +361,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				var credentialAmount = -request.AmountCredentialRequests.Delta;
 
-				var bob = new Bob(request.Script, credentialAmount);
+				Bob bob = new(request.Script, credentialAmount);
 
 				var outputValue = bob.CalculateOutputAmount(round.FeeRate);
 				if (outputValue < round.MinRegistrableAmount)

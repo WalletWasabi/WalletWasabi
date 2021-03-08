@@ -61,7 +61,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			// 5. Create wallet service.
 			var workDir = Helpers.Common.GetWorkDir();
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
-				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
+				new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
 
 			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);
@@ -225,7 +225,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			// 5. Create wallet service.
 			var workDir = Helpers.Common.GetWorkDir();
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
-				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
+				new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
 			var walletManager = new WalletManager(network, workDir, new WalletDirectories(network, workDir));
 			walletManager.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, synchronizer, blockProvider);
@@ -254,7 +254,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				using var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
 				var coin = Assert.Single(wallet.Coins);
 				Assert.True(coin.Confirmed);
-				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, walletManager, rpc);
+				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, httpClientFactory, walletManager);
+				broadcaster.Initialize(nodes, rpc);
 
 				// Send money before reorg.
 				var operations = new PaymentIntent(scp, Money.Coins(0.011m));

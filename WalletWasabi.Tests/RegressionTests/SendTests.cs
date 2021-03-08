@@ -59,7 +59,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var workDir = Helpers.Common.GetWorkDir();
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
-				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
+				new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
 
 			var walletManager = new WalletManager(network, workDir, new WalletDirectories(network, workDir));
@@ -87,7 +87,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
 				var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
 
-				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, walletManager, rpc);
+				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, httpClientFactory, walletManager);
+				broadcaster.Initialize(nodes, rpc);
 
 				var waitCount = 0;
 				while (wallet.Coins.Sum(x => x.Amount) == Money.Zero)
@@ -539,7 +540,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var workDir = Helpers.Common.GetWorkDir();
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
-				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
+				new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
 
 			var walletManager = new WalletManager(network, workDir, new WalletDirectories(network, workDir));
@@ -574,7 +575,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Equal(tx0Id, eventArgs.NewlyReceivedCoins.Single().TransactionId);
 				Assert.Single(wallet.Coins);
 
-				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, synchronizer, nodes, walletManager, rpc);
+				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, httpClientFactory, walletManager);
+				broadcaster.Initialize(nodes, rpc);
 
 				var operations = new PaymentIntent(
 					new DestinationRequest(key.P2wpkhScript, Money.Coins(0.01m)),
@@ -713,7 +715,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var workDir = Helpers.Common.GetWorkDir();
 
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
-				new P2pBlockProvider(nodes, null, synchronizer, serviceConfiguration, network),
+				new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
 
 			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, nodes, workDir, serviceConfiguration, synchronizer, blockProvider);

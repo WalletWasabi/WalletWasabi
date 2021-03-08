@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             mc:Ignorable="d"
+             x:DataType="vm:PrivacySuggestionControlViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacySuggestionControl">
+    <StackPanel Spacing="20">
+        <Panel MinHeight="150" MinWidth="200">
+            <StackPanel Spacing="10" VerticalAlignment="Top" TextBlock.Foreground="{Binding OptimisationLevel, Converter={x:Static conv:PrivacyOptimisationLevelConverters.OptimisationLevelToBrushConverter}}">
+                <Panel>
+                    <Ellipse Stroke="{Binding OptimisationLevel, Converter={x:Static conv:PrivacyOptimisationLevelConverters.OptimisationLevelToBrushConverter}, FallbackValue=White}" StrokeThickness="4" Height="115" Width="115" />
+                    <Ellipse Stroke="{Binding OptimisationLevel, Converter={x:Static conv:PrivacyOptimisationLevelConverters.OptimisationLevelToBrushConverter}, FallbackValue=White}" StrokeThickness="3" StrokeDashArray="2.0, 1.5" Height="100" Width="100" />
+                    <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50" Foreground="{Binding OptimisationLevel, Converter={x:Static conv:PrivacyOptimisationLevelConverters.OptimisationLevelToBrushConverter}, FallbackValue=White}" />
+                </Panel>
+                <TextBlock Text="{Binding Title}" FontSize="20" HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding Caption}" HorizontalAlignment="Center" Opacity="0.6" />
+            </StackPanel>
+        </Panel>
+        <Separator Height="1" Background="#FFFFFF" Opacity="0.2"   />
+        <ItemsControl HorizontalAlignment="Center" Items="{Binding Benefits}">
+            <ItemsControl.Styles>
+                <Style Selector="TextBlock">
+                    <Setter Property="Opacity" Value="0.6" />
+                    <Setter Property="TextWrapping" Value="Wrap" />
+                </Style>
+            </ItemsControl.Styles>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Spacing="30" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
+    </StackPanel>
+</UserControl>

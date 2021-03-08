@@ -2,6 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -111,6 +112,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public bool IsWatchOnly => EncryptedSecret is null;
 
+		[MemberNotNullWhen(returnValue: true, nameof(MasterFingerprint))]
 		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint is { };
 
 		[JsonProperty(Order = 8)]

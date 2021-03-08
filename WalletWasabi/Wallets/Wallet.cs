@@ -96,7 +96,7 @@ namespace WalletWasabi.Wallets
 
 		public bool IsLoggedIn { get; private set; }
 
-		private Kitchen Kitchen { get; } = new();
+		public Kitchen Kitchen { get; } = new();
 
 		public bool TryLogin(string password, out string? compatibilityPasswordUsed)
 		{

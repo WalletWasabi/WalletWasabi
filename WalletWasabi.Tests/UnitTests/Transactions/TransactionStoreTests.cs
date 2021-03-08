@@ -1,5 +1,7 @@
 using NBitcoin;
 using System.IO;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Tests.Helpers;
@@ -12,11 +14,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public async Task CanInitializeAsync()
 		{
-			await using var txStore = new TransactionStoreMock();
-			var network = Network.Main;
-			await txStore.InitializeAsync(network);
+			var txStore = await CreateTransactionStoreAsync();
 
-			Assert.Equal(network, txStore.Network);
+			Assert.Equal(Network.Main, txStore.Network);
 			Assert.Empty(txStore.GetTransactionHashes());
 			Assert.Empty(txStore.GetTransactions());
 			Assert.True(txStore.IsEmpty());
@@ -29,9 +29,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public async Task CanDoOperationsAsync()
 		{
-			await using var txStore = new TransactionStoreMock();
-			var network = Network.Main;
-			await txStore.InitializeAsync(network);
+			var txStore = await CreateTransactionStoreAsync();
 
 			Assert.True(txStore.IsEmpty());
 
@@ -78,6 +76,20 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			txStore.TryAddOrUpdate(stx);
 			Assert.Single(txStore.GetTransactions());
 			Assert.Single(txStore.GetTransactionHashes());
+		}
+		
+		private static async Task<TransactionStore> CreateTransactionStoreAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
+		{
+			// Make sure starts with clear state.
+			var dir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName));
+			var filePath = Path.Combine(dir, "Transactions.dat");
+			if (File.Exists(filePath))
+			{
+				File.Delete(filePath);
+			}
+			var txStore = new TransactionStore();
+			await txStore.InitializeAsync(dir, Network.Main, $"{nameof(TransactionStore)}.{nameof(TransactionStore.InitializeAsync)}", CancellationToken.None);
+			return txStore;
 		}
 	}
 }

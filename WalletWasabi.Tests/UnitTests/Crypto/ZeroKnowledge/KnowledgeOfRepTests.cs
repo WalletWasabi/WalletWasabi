@@ -1,3 +1,4 @@
+using Moq;
 using NBitcoin.Secp256k1;
 using System;
 using System.Linq;
@@ -29,9 +30,9 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var publicPoint = secrets * generators;
 
 			var statement = new Statement(publicPoint, generators);
-			var random = new MockRandom();
-			random.GetBytesResults.Add(new byte[32]);
-			var proof = ProofSystemHelpers.Prove(statement, secrets, random);
+			var mockRandom = new Mock<WasabiRandom>(MockBehavior.Strict);
+			mockRandom.Setup(rnd => rnd.GetBytes(32)).Returns(new byte[32]);
+			var proof = ProofSystemHelpers.Prove(statement, secrets, mockRandom.Object);
 			Assert.True(ProofSystemHelpers.Verify(statement, proof));
 		}
 

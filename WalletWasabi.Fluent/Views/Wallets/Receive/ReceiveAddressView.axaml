@@ -8,6 +8,14 @@
              x:DataType="receive:ReceiveAddressViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressView">
+  <UserControl.Styles>
+    <Style Selector="Button > PathIcon">
+      <Setter Property="Opacity" Value="0.5" />
+    </Style>
+    <Style Selector="Button:pointerover > PathIcon">
+      <Setter Property="Opacity" Value="0.75" />
+    </Style>
+  </UserControl.Styles>
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="OK"
                  EnableBack="True"

@@ -25,19 +25,13 @@ namespace WalletWasabi.Tests.Helpers
 		public static InputRoundSignaturePair CreateInputRoundSignaturePair(Key? key = null, uint256? roundHash = null)
 		{
 			var rh = roundHash ?? BitcoinFactory.CreateUint256();
-			if (key is null)
-			{
-				using Key k = new();
-				return new InputRoundSignaturePair(
-						BitcoinFactory.CreateOutPoint(),
-						k.SignCompact(rh));
-			}
-			else
-			{
-				return new InputRoundSignaturePair(
-						BitcoinFactory.CreateOutPoint(),
-						key.SignCompact(rh));
-			}
+			var outpoint = BitcoinFactory.CreateOutPoint();
+			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", rh);
+
+			var signingKey = key ?? new();
+			return new InputRoundSignaturePair(
+				outpoint,
+				OwnershipProof.GenerateCoinJoinInputProof(signingKey, coinJoinInputCommitmentData).ToBytes());
 		}
 
 		public static InputRoundSignaturePair[] CreateInputRoundSignaturePairs(int count, uint256? roundHash = null)
@@ -68,16 +62,27 @@ namespace WalletWasabi.Tests.Helpers
 				new InsecureRandom(),
 				new(100m)));
 
-		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig? cfg = null, params Round[] rounds)
+		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig cfg, params Round[] rounds)
+			=> await CreateAndStartArenaAsync(cfg, null, rounds);
+
+		public static async Task<Arena> CreateAndStartArenaAsync(WabiSabiConfig? cfg = null, MockRpcClient? mockRpc = null, params Round[] rounds)
 		{
-			var mockRpc = new MockRpcClient();
-			mockRpc.OnEstimateSmartFeeAsync = async (target, _) =>
+			mockRpc ??= new MockRpcClient();
+			mockRpc.OnEstimateSmartFeeAsync ??= async (target, _) =>
 				await Task.FromResult(new EstimateSmartFeeResponse
 				{
 					Blocks = target,
 					FeeRate = new FeeRate(10m)
 				});
-			Arena arena = new(TimeSpan.FromSeconds(21), rounds.FirstOrDefault()?.Network ?? Network.Main, cfg ?? new WabiSabiConfig(), mockRpc, new Prison());
+			mockRpc.OnSendRawTransactionAsync ??= (tx) => tx.GetHash();
+			mockRpc.OnGetTxOutAsync ??= (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new(Money.Coins(1), Script.Empty)
+			};
+
+			Arena arena = new(TimeSpan.FromHours(1), rounds.FirstOrDefault()?.Network ?? Network.Main, cfg ?? new WabiSabiConfig(), mockRpc, new Prison());
 			foreach (var round in rounds)
 			{
 				arena.Rounds.Add(round.Id, round);
@@ -217,6 +222,47 @@ namespace WalletWasabi.Tests.Helpers
 				realWeightCredentialRequest);
 		}
 
+		public static IEnumerable<(ConnectionConfirmationRequest request, WabiSabiClient amountClient, WabiSabiClient weightClient, CredentialsResponseValidation amountValidation, CredentialsResponseValidation weightValidation)> CreateConnectionConfirmationRequests(Round round, params InputsRegistrationResponse[] responses)
+		{
+			var requests = new List<(ConnectionConfirmationRequest request, WabiSabiClient amountClient, WabiSabiClient weightClient, CredentialsResponseValidation amountValidation, CredentialsResponseValidation weightValidation)>();
+			foreach (var resp in responses)
+			{
+				requests.Add(CreateConnectionConfirmationRequest(round, resp));
+			}
+
+			return requests.ToArray();
+		}
+
+		public static (ConnectionConfirmationRequest request, WabiSabiClient amountClient, WabiSabiClient weightClient, CredentialsResponseValidation amountValidation, CredentialsResponseValidation weightValidation) CreateConnectionConfirmationRequest(Round round, InputsRegistrationResponse response)
+		{
+			(var amClient, var weClient, _, _) = CreateWabiSabiClientsAndIssuers(round);
+
+			var zeroPresentables = CreateZeroCredentials(round);
+			var alice = round.Alices.First(x => x.Id == response.AliceId);
+			var (realAmountCredentialRequest, amVal) = amClient.CreateRequest(
+				new[] { alice.CalculateRemainingAmountCredentials(round.FeeRate).Satoshi },
+				zeroPresentables.amountCredentials);
+			var (realWeightCredentialRequest, weVal) = weClient.CreateRequest(
+				new[] { alice.CalculateRemainingWeightCredentials(round.RegistrableWeightCredentials) },
+				zeroPresentables.weightCredentials);
+
+			var (zeroAmountCredentialRequest, _) = amClient.CreateRequestForZeroAmount();
+			var (zeroWeightCredentialRequest, _) = weClient.CreateRequestForZeroAmount();
+
+			return (
+				new ConnectionConfirmationRequest(
+					round.Id,
+					response.AliceId,
+					zeroAmountCredentialRequest,
+					realAmountCredentialRequest,
+					zeroWeightCredentialRequest,
+					realWeightCredentialRequest),
+				amClient,
+				weClient,
+				amVal,
+				weVal);
+		}
+
 		public static OutputRegistrationRequest CreateOutputRegistrationRequest(Round? round = null, Script? script = null, int? weight = null)
 		{
 			(var amClient, var weClient, var amIssuer, var weIssuer) = CreateWabiSabiClientsAndIssuers(round);
@@ -259,6 +305,46 @@ namespace WalletWasabi.Tests.Helpers
 				script,
 				realAmountCredentialRequest,
 				realWeightCredentialRequest);
+		}
+
+		public static IEnumerable<OutputRegistrationRequest> CreateOutputRegistrationRequests(Round round, IEnumerable<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient weightClient, Guid aliceId)> ccresps)
+		{
+			var ret = new List<OutputRegistrationRequest>();
+
+			foreach (var ccresp in ccresps)
+			{
+				var alice = round.Alices.First(x => x.Id == ccresp.aliceId);
+				var startingWeightCredentialAmount = alice.CalculateRemainingWeightCredentials(round!.RegistrableWeightCredentials);
+				var script = BitcoinFactory.CreateScript();
+				var weight = script.EstimateOutputVsize() * 4;
+				ret.Add(new OutputRegistrationRequest(
+					round.Id,
+					script,
+					ccresp.amountClient.CreateRequest(Array.Empty<long>(), ccresp.amountClient.Credentials.Valuable).Item1,
+					ccresp.weightClient.CreateRequest(new[] { startingWeightCredentialAmount - weight }, ccresp.weightClient.Credentials.Valuable).Item1));
+			}
+
+			return ret;
+		}
+
+		public static Round CreateBlameRound(Round round, WabiSabiConfig cfg)
+		{
+			RoundParameters parameters = new(cfg, round.Network, round.Random, round.FeeRate, blameOf: round);
+			return new(parameters);
+		}
+
+		public static MockRpcClient CreateMockRpc(Key? key = null)
+		{
+			MockRpcClient rpc = new();
+
+			rpc.OnGetTxOutAsync = (_, _, _) => new()
+			{
+				Confirmations = 1,
+				ScriptPubKeyType = "witness_v0_keyhash",
+				TxOut = new(Money.Coins(1), key?.PubKey.GetSegwitAddress(Network.Main).ScriptPubKey ?? Script.Empty)
+			};
+
+			return rpc;
 		}
 	}
 }
