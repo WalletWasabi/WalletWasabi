@@ -18,6 +18,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Fluent.Validation;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Helpers;
@@ -108,7 +109,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				_parsingUrl = false;
 			});
 
-			NextCommand = ReactiveCommand.Create(() =>
+			NextCommand = ReactiveCommand.Create(async () =>
 			{
 				var transactionInfo = _transactionInfo;
 				var wallet = _owner.Wallet;
@@ -136,9 +137,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 						return;
 					}
-					catch (InsufficientBalanceException ex)
+					catch (InsufficientBalanceException)
 					{
+						var dialog = new InsufficientBalanceDialogViewModel();
+						var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 
+						if (result.Result)
+						{
+
+						}
 					}
 					catch (NotEnoughFundsException)
 					{
