@@ -15,6 +15,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.NavBar;
@@ -135,13 +136,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 						return;
 					}
-					catch (NotEnoughFundsException)
+					catch (InsufficientBalanceException)
 					{
 						// Do Nothing
 					}
 				}
 
-				Navigate().To(new PrivacyControlViewModel());
+				Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
 			}, this.WhenAnyValue(x=>x.Labels.Count).Any());
 		}
 
