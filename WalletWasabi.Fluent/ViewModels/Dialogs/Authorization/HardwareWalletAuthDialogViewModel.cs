@@ -9,7 +9,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 {
-	[NavigationMetaData(Title = "Authorise with Hardware Wallet", NavigationTarget = NavigationTarget.CompactDialogScreen)]
+	[NavigationMetaData(Title = "Authorize with Hardware Wallet", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 	public partial class HardwareWalletAuthDialogViewModel : AuthorizationDialogBase
 	{
 		private readonly Wallet _wallet;
