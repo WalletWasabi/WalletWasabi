@@ -15,7 +15,11 @@
                        NoCommand="{Binding CancelCommand}"
                        HighlightButton="YesButton">
       <Viewbox MaxHeight="150" Margin="40">
-        <PathIcon Data="{StaticResource paper_cash_regular}" Opacity="0.6" />
+        <Panel Opacity="0.6">
+          <Ellipse Stroke="White" StrokeThickness="4" Height="115" Width="115" />
+          <Ellipse Stroke="White" StrokeThickness="3" StrokeDashArray="2.0, 1.5" Height="100" Width="100" />
+          <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50" Foreground="White" />
+        </Panel>
       </Viewbox>
     </c:QuestionControl>
   </c:ContentArea>
