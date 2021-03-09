@@ -17,7 +17,7 @@ namespace WalletWasabi.Gui.Rpc
 	/// </summary>
 	public class JsonRpcRequestHandler<TService>
 	{
-		private static readonly JsonSerializerSettings DefaultSettings = new JsonSerializerSettings
+		private static readonly JsonSerializerSettings DefaultSettings = new()
 		{
 			NullValueHandling = NullValueHandling.Ignore,
 			ReferenceLoopHandling = ReferenceLoopHandling.Ignore,

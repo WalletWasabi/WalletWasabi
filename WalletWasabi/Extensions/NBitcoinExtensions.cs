@@ -18,7 +18,7 @@ namespace NBitcoin
 {
 	public static class NBitcoinExtensions
 	{
-		private static NumberFormatInfo CurrencyNumberFormat = new NumberFormatInfo()
+		private static NumberFormatInfo CurrencyNumberFormat = new()
 		{
 			NumberGroupSeparator = " ",
 			NumberDecimalDigits = 0

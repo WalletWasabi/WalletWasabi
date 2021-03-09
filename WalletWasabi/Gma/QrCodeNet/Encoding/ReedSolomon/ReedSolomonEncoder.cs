@@ -31,7 +31,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 
 			Polynomial generator = generatorPoly.GetGenerator(numECBytes);
 
-			Polynomial dataPoly = new Polynomial(generator.GField, toEncode);
+			Polynomial dataPoly = new(generator.GField, toEncode);
 
 			PolyDivideStruct divideResult = dataPoly.Divide(generator);
 

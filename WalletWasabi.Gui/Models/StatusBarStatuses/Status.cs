@@ -16,9 +16,9 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 
 		public bool IsCompleted => Percentage == 100;
 
-		public static Status Set(StatusType type) => new Status(type, 0);
+		public static Status Set(StatusType type) => new(type, 0);
 
-		public static Status Completed(StatusType type) => new Status(type, 100);
+		public static Status Completed(StatusType type) => new(type, 100);
 
 		public override string ToString()
 		{

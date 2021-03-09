@@ -417,7 +417,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// Create the same transaction but now with a Height to make it confirmed.
 			const int ReorgedBlockHeight = 34532;
-			uint256 reorgedBlockHash = new uint256(5);
+			uint256 reorgedBlockHash = new(5);
 
 			var tx1Confirmed = new SmartTransaction(uTx1.Transaction, new Height(ReorgedBlockHeight), blockHash: reorgedBlockHash, label: "buz, qux");
 			var tx2Confirmed = new SmartTransaction(uTx2.Transaction, new Height(ReorgedBlockHeight), blockHash: reorgedBlockHash, label: "buz, qux");

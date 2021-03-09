@@ -22,7 +22,7 @@ namespace WalletWasabi.Gui.Helpers
 
 		public static void Notify(string message, string title, NotificationType type, Action? onClick = null, object? sender = null)
 		{
-			List<string> titles = new List<string>();
+			List<string> titles = new();
 
 			if (!string.IsNullOrEmpty(title))
 			{

@@ -37,7 +37,7 @@ namespace NBitcoin.RPC
 				: (Constants.SevenDaysConfirmationTarget + 1 + 5 - confirmationTarget) / 7; // Economical
 
 			Money feePerK = Money.Satoshis(satoshiPerByte * 1000);
-			FeeRate feeRate = new FeeRate(feePerK);
+			FeeRate feeRate = new(feePerK);
 			var resp = new EstimateSmartFeeResponse { Blocks = confirmationTarget, FeeRate = feeRate };
 			return resp;
 		}

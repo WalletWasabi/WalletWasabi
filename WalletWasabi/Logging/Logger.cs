@@ -22,7 +22,7 @@ namespace WalletWasabi.Logging
 	{
 		#region PropertiesAndMembers
 
-		private static readonly object Lock = new object();
+		private static readonly object Lock = new();
 
 		private static long On = 1;
 

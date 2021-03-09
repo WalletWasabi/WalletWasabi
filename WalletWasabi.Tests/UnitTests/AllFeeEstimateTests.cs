@@ -206,7 +206,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		private static EstimateSmartFeeResponse FeeRateResponse(int target, decimal feeRate) =>
-			new EstimateSmartFeeResponse
+			new()
 			{
 				Blocks = target,
 				FeeRate = new FeeRate(feeRate)
