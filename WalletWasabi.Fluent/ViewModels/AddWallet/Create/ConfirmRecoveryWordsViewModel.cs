@@ -31,16 +31,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 				.WhenValueChanged(x => x.IsConfirmed)
 				.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
 
-			NextCommand = ReactiveCommand.Create(
-				() => NextExecute(keyManager, walletManager),
-				nextCommandCanExecute);
+			NextCommand = ReactiveCommand.Create(() => OnNext(keyManager, walletManager), nextCommandCanExecute);
 
 			if (_isSkipEnable)
 			{
 				SkipCommand = ReactiveCommand.Create(() => NextCommand.Execute(null));
 			}
 
-			CancelCommand = ReactiveCommand.Create(CancelExecute);
+			CancelCommand = ReactiveCommand.Create(OnCancel);
 
 			confirmationWordsSourceList
 				.Connect()
@@ -56,12 +54,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 
 		public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
 
-		private void NextExecute(KeyManager keyManager, WalletManager walletManager)
+		private void OnNext(KeyManager keyManager, WalletManager walletManager)
 		{
 			Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager));
 		}
 
-		private void CancelExecute()
+		private void OnCancel()
 		{
 			Navigate().Clear();
 		}

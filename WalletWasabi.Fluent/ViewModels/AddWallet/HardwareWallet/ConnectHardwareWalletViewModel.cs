@@ -36,12 +36,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			AbandonedTasks = new AbandonedTasks();
 			CancelCts = new CancellationTokenSource();
 
-			NextCommand = ReactiveCommand.Create(NextExecute);
+			NextCommand = ReactiveCommand.Create(OnNext);
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask(async () =>
 				await IoHelpers.OpenBrowserAsync("https://docs.wasabiwallet.io/using-wasabi/ColdWasabi.html#using-hardware-wallet-step-by-step"));
 
-			NavigateToExistingWalletLoginCommand = ReactiveCommand.Create(NavigateToExistingWalletLoginExecute);
+			NavigateToExistingWalletLoginCommand = ReactiveCommand.Create(OnNavigateToExistingWalletLogin);
 
 			this.WhenAnyValue(x => x.Message)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -66,7 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public ICommand NavigateToExistingWalletLoginCommand { get; }
 
-		private void NextExecute()
+		private void OnNext()
 		{
 			if (DetectedDevice is { } device)
 			{
@@ -77,7 +77,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			StartDetection();
 		}
 
-		private void NavigateToExistingWalletLoginExecute()
+		private void OnNavigateToExistingWalletLogin()
 		{
 			var navBar = NavigationManager.Get<NavBarViewModel>();
 

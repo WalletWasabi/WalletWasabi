@@ -28,16 +28,16 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			WalletIcon = wallet.KeyManager.Icon;
 			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () => await NextExecute(walletManagerViewModel, closedWalletViewModel, wallet));
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNext(walletManagerViewModel, closedWalletViewModel, wallet));
 
-			OkCommand = ReactiveCommand.Create(OkExecute);
+			OkCommand = ReactiveCommand.Create(OnOk);
 
-			ForgotPasswordCommand = ReactiveCommand.Create(() => ForgotPasswordExecute(wallet));
+			ForgotPasswordCommand = ReactiveCommand.Create(() => OnForgotPassword(wallet));
 
 			EnableAutoBusyOn(NextCommand);
 		}
 
-		private async Task NextExecute(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel, Wallet wallet)
+		private async Task OnNext(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel, Wallet wallet)
 		{
 			string? compatibilityPasswordUsed = null;
 
@@ -67,13 +67,13 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			}
 		}
 
-		private void OkExecute()
+		private void OnOk()
 		{
 			Password = "";
 			ErrorMessage = "";
 		}
 
-		private void ForgotPasswordExecute(Wallet wallet)
+		private void OnForgotPassword(Wallet wallet)
 		{
 			Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet));
 		}

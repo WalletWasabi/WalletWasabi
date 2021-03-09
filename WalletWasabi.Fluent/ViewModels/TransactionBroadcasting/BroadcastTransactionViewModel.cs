@@ -80,13 +80,13 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				.Select(x => !x);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await NextExecute(broadcaster, transaction),
+				async () => await OnNext(broadcaster, transaction),
 				nextCommandCanExecute);
 
 			EnableAutoBusyOn(NextCommand);
 		}
 
-		private async Task NextExecute(TransactionBroadcaster broadcaster, SmartTransaction transaction)
+		private async Task OnNext(TransactionBroadcaster broadcaster, SmartTransaction transaction)
 		{
 			try
 			{

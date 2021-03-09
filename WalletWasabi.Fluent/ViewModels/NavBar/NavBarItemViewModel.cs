@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		{
 			SelectionMode = NavBarItemSelectionMode.Selected;
 
-			OpenCommand = ReactiveCommand.Create(OpenExecute);
+			OpenCommand = ReactiveCommand.Create(OnOpen);
 
 			this.WhenAnyValue(x => x.IsExpanded)
 				.Subscribe(x =>
@@ -57,7 +57,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 		public ICommand OpenCommand { get; protected set; }
 
-		private void OpenExecute()
+		private void OnOpen()
 		{
 			if (SelectionMode == NavBarItemSelectionMode.Toggle)
 			{

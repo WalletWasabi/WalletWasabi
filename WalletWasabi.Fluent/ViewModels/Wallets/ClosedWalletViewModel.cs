@@ -17,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		{
 			_items = new ObservableCollection<NavBarItemViewModel>();
 
-			OpenCommand = ReactiveCommand.Create(() => OpenExecute(walletManagerViewModel));
+			OpenCommand = ReactiveCommand.Create(() => OnOpen(walletManagerViewModel));
 		}
 		public override string IconName => "web_asset_regular";
 
@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					: new ClosedWalletViewModel(walletManager, wallet);
 		}
 
-		private void OpenExecute(WalletManagerViewModel walletManagerViewModel)
+		private void OnOpen(WalletManagerViewModel walletManagerViewModel)
 		{
 			if (!Wallet.IsLoggedIn)
 			{

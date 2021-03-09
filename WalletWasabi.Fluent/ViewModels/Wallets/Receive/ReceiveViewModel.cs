@@ -37,12 +37,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Select(reference => !string.IsNullOrEmpty(reference));
 
-			NextCommand = ReactiveCommand.Create(NextExecute, nextCommandCanExecute);
+			NextCommand = ReactiveCommand.Create(OnNext, nextCommandCanExecute);
 
-			ShowExistingAddressesCommand = ReactiveCommand.Create(ShowExistingAddressesExecute);
+			ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
 		}
 
-		private void NextExecute()
+		private void OnNext()
 		{
 			var newKey = WasabiWallet.KeyManager.GetNextReceiveKey(Reference, out bool minGapLimitIncreased);
 
@@ -58,7 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 				WasabiWallet.KeyManager.IsHardwareWallet));
 		}
 
-		private void ShowExistingAddressesExecute()
+		private void OnShowExistingAddresses()
 		{
 			Navigate().To(new ReceiveAddressesViewModel(WasabiWallet));
 		}

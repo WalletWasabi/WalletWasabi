@@ -9,10 +9,10 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 	{
 		public PasswordNotFoundViewModel(Wallet wallet)
 		{
-			NextCommand = ReactiveCommand.Create(() => NextExecute(wallet));
+			NextCommand = ReactiveCommand.Create(() => OnNext(wallet));
 		}
 
-		private void NextExecute(Wallet wallet)
+		private void OnNext(Wallet wallet)
 		{
 			var page = new PasswordFinderIntroduceViewModel(wallet);
 			Navigate().To(page, NavigationMode.Clear);

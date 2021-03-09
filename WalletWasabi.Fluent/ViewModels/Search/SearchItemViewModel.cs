@@ -16,10 +16,10 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 		{
 			_metaData = metaData;
 			Category = category;
-			OpenCommand = ReactiveCommand.CreateFromTask(async () => await OpenExecute(owner, metaData));
+			OpenCommand = ReactiveCommand.CreateFromTask(async () => await OnOpen(owner, metaData));
 		}
 
-		private async Task OpenExecute(SearchPageViewModel owner, NavigationMetaData metaData)
+		private async Task OnOpen(SearchPageViewModel owner, NavigationMetaData metaData)
 		{
 			owner.IsBusy = true;
 			var view = await NavigationManager.MaterialiseViewModel(metaData);

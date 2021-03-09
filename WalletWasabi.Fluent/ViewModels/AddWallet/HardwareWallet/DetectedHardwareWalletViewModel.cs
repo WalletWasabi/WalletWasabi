@@ -32,9 +32,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			TypeName = device.Model.FriendlyName();
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () => await NextExecute(walletManager, device));
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNext(walletManager, device));
 
-			NoCommand = ReactiveCommand.Create(NoExecute);
+			NoCommand = ReactiveCommand.Create(OnNo);
 
 			EnableAutoBusyOn(NextCommand);
 		}
@@ -51,7 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public ICommand NoCommand { get; }
 
-		private async Task NextExecute(WalletManager walletManager, HwiEnumerateEntry device)
+		private async Task OnNext(WalletManager walletManager, HwiEnumerateEntry device)
 		{
 			try
 			{
@@ -69,7 +69,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			}
 		}
 
-		private void NoExecute()
+		private void OnNo()
 		{
 			Navigate().Back();
 		}
