@@ -105,12 +105,11 @@
                       CommandParameter="{x:Static vm:AboutViewModel.DocsLink}">
                 <TextBlock Text="Documentation" Classes="Hyperlink" />
               </Button>
-              <Button Classes="plain"
-                      Command="{Binding CopyLinkCommand}"
-                      CommandParameter="{x:Static vm:AboutViewModel.DocsLink}"
-                      ToolTip.Tip="Copy link">
-                <PathIcon Data="{StaticResource copy_regular}" Width="13" />
-              </Button>
+              <controls:AnimatedButton ToolTip.Tip="Copy link"
+                                       Command="{Binding CopyLinkCommand}"
+                                       CommandParameter="{x:Static vm:AboutViewModel.DocsLink}"
+                                       NormalIcon="{StaticResource copy_regular}"
+                                       ClickIcon="{StaticResource copy_confirmed}"/>
             </StackPanel>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
             <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
@@ -118,12 +117,11 @@
                       CommandParameter="{x:Static vm:AboutViewModel.SourceCodeLink}">
                 <TextBlock Text="Source Code (Github)" Classes="Hyperlink" />
               </Button>
-              <Button Classes="plain"
-                      Command="{Binding CopyLinkCommand}"
-                      CommandParameter="{x:Static vm:AboutViewModel.SourceCodeLink}"
-                      ToolTip.Tip="Copy link">
-                <PathIcon Data="{StaticResource copy_regular}" Width="13" />
-              </Button>
+              <controls:AnimatedButton ToolTip.Tip="Copy link"
+                                       Command="{Binding CopyLinkCommand}"
+                                       CommandParameter="{x:Static vm:AboutViewModel.SourceCodeLink}"
+                                       NormalIcon="{StaticResource copy_regular}"
+                                       ClickIcon="{StaticResource copy_confirmed}"/>
             </StackPanel>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
             <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
@@ -132,22 +130,20 @@
                       CommandParameter="{x:Static vm:AboutViewModel.ClearnetLink}">
                 <TextBlock Text="Website (Clearnet)" Classes="Hyperlink" />
               </Button>
-              <Button Classes="plain"
-                      Command="{Binding CopyLinkCommand}"
-                      CommandParameter="{x:Static vm:AboutViewModel.ClearnetLink}"
-                      ToolTip.Tip="Copy link">
-                <PathIcon Data="{StaticResource copy_regular}" Width="13" />
-              </Button>
+              <controls:AnimatedButton ToolTip.Tip="Copy link"
+                                       Command="{Binding CopyLinkCommand}"
+                                       CommandParameter="{x:Static vm:AboutViewModel.ClearnetLink}"
+                                       NormalIcon="{StaticResource copy_regular}"
+                                       ClickIcon="{StaticResource copy_confirmed}"/>
             </StackPanel>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
             <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
               <TextBlock Text="Website (Tor)" />
-              <Button Classes="plain"
-                      Command="{Binding CopyLinkCommand}"
-                      CommandParameter="{x:Static vm:AboutViewModel.TorLink}"
-                      ToolTip.Tip="Copy link">
-                <PathIcon Data="{StaticResource copy_regular}" Width="13" />
-              </Button>
+              <controls:AnimatedButton ToolTip.Tip="Copy link"
+                                       Command="{Binding CopyLinkCommand}"
+                                       CommandParameter="{x:Static vm:AboutViewModel.TorLink}"
+                                       NormalIcon="{StaticResource copy_regular}"
+                                       ClickIcon="{StaticResource copy_confirmed}"/>
             </StackPanel>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
             <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
@@ -156,12 +152,11 @@
                       CommandParameter="{x:Static vm:AboutViewModel.StatusPageLink}">
                 <TextBlock Text="Coordinator Status Page" Classes="Hyperlink" />
               </Button>
-              <Button Classes="plain"
-                      Command="{Binding CopyLinkCommand}"
-                      CommandParameter="{x:Static vm:AboutViewModel.StatusPageLink}"
-                      ToolTip.Tip="Copy link">
-                <PathIcon Data="{StaticResource copy_regular}" Width="13" />
-              </Button>
+              <controls:AnimatedButton ToolTip.Tip="Copy link"
+                                       Command="{Binding CopyLinkCommand}"
+                                       CommandParameter="{x:Static vm:AboutViewModel.StatusPageLink}"
+                                       NormalIcon="{StaticResource copy_regular}"
+                                       ClickIcon="{StaticResource copy_confirmed}"/>
             </StackPanel>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
             <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
@@ -169,12 +164,11 @@
                       CommandParameter="{x:Static vm:AboutViewModel.UserSupportLink}">
                 <TextBlock Text="User Support" Classes="Hyperlink" />
               </Button>
-              <Button Classes="plain"
-                      Command="{Binding CopyLinkCommand}"
-                      CommandParameter="{x:Static vm:AboutViewModel.UserSupportLink}"
-                      ToolTip.Tip="Copy link">
-                <PathIcon Data="{StaticResource copy_regular}" Width="13" />
-              </Button>
+              <controls:AnimatedButton ToolTip.Tip="Copy link"
+                                       Command="{Binding CopyLinkCommand}"
+                                       CommandParameter="{x:Static vm:AboutViewModel.UserSupportLink}"
+                                       NormalIcon="{StaticResource copy_regular}"
+                                       ClickIcon="{StaticResource copy_confirmed}"/>
             </StackPanel>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
             <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
@@ -182,12 +176,11 @@
                       CommandParameter="{x:Static vm:AboutViewModel.BugReportLink}">
                 <TextBlock Text="Bug Reporting" Classes="Hyperlink" />
               </Button>
-              <Button Classes="plain"
-                      Command="{Binding CopyLinkCommand}"
-                      CommandParameter="{x:Static vm:AboutViewModel.BugReportLink}"
-                      ToolTip.Tip="Copy link">
-                <PathIcon Data="{StaticResource copy_regular}" Width="13" />
-              </Button>
+              <controls:AnimatedButton ToolTip.Tip="Copy link"
+                                       Command="{Binding CopyLinkCommand}"
+                                       CommandParameter="{x:Static vm:AboutViewModel.BugReportLink}"
+                                       NormalIcon="{StaticResource copy_regular}"
+                                       ClickIcon="{StaticResource copy_confirmed}"/>
             </StackPanel>
             <TextBlock Classes="LinkSeparatorPadding" Text="-" />
             <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
@@ -196,12 +189,11 @@
                       CommandParameter="{x:Static vm:AboutViewModel.FAQLink}">
                 <TextBlock Text="FAQs" Classes="Hyperlink" />
               </Button>
-              <Button Classes="plain"
-                      Command="{Binding CopyLinkCommand}"
-                      CommandParameter="{x:Static vm:AboutViewModel.FAQLink}"
-                      ToolTip.Tip="Copy link">
-                <PathIcon Data="{StaticResource copy_regular}" Width="13" />
-              </Button>
+              <controls:AnimatedButton ToolTip.Tip="Copy link"
+                                       Command="{Binding CopyLinkCommand}"
+                                       CommandParameter="{x:Static vm:AboutViewModel.FAQLink}"
+                                       NormalIcon="{StaticResource copy_regular}"
+                                       ClickIcon="{StaticResource copy_confirmed}"/>
             </StackPanel>
           </WrapPanel>
           <Button HorizontalAlignment="Center" Classes="plain obscured"
@@ -221,12 +213,11 @@
                       CommandParameter="{x:Static vm:AboutViewModel.LicenseLink}">
                 <TextBlock Text="MIT License" Classes="Hyperlink" />
               </Button>
-              <Button Classes="plain"
-                      Command="{Binding CopyLinkCommand}"
-                      CommandParameter="{x:Static vm:AboutViewModel.LicenseLink}"
-                      ToolTip.Tip="Copy link">
-                <PathIcon Data="{StaticResource copy_regular}" Width="13" />
-              </Button>
+              <controls:AnimatedButton ToolTip.Tip="Copy link"
+                                       Command="{Binding CopyLinkCommand}"
+                                       CommandParameter="{x:Static vm:AboutViewModel.LicenseLink}"
+                                       NormalIcon="{StaticResource copy_regular}"
+                                       ClickIcon="{StaticResource copy_confirmed}"/>
             </StackPanel>
           </WrapPanel>
         </StackPanel>
