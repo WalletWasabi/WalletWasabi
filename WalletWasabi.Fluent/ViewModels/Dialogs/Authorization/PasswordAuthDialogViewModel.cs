@@ -4,7 +4,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 {
-	[NavigationMetaData(Title = "Enter your password")]
+	[NavigationMetaData(Title = "Enter your password", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 	public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 	{
 		private readonly Wallet _wallet;
