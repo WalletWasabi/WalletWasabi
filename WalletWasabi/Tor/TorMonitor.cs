@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 
@@ -20,17 +21,19 @@ namespace WalletWasabi.Tor
 		/// <summary>
 		/// Creates a new instance of the object.
 		/// </summary>
-		public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorHttpClient httpClient, TorProcessManager torProcessManager) : base(period)
+		public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorHttpClient httpClient, TorProcessManager torProcessManager, TorTcpConnectionFactory tcpConnectionFactory) : base(period)
 		{
 			FallbackBackendUri = fallbackBackendUri;
 			HttpClient = httpClient;
 			TorProcessManager = torProcessManager;
+			TcpConnectionFactory = tcpConnectionFactory;
 		}
 
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
 		private Uri FallbackBackendUri { get; }
 		private TorHttpClient HttpClient { get; }
 		private TorProcessManager TorProcessManager { get; }
+		private TorTcpConnectionFactory TcpConnectionFactory { get; }
 
 		/// <inheritdoc/>
 		protected override async Task ActionAsync(CancellationToken token)
@@ -59,7 +62,7 @@ namespace WalletWasabi.Tor
 					}
 					else
 					{
-						bool isRunning = await TorProcessManager.IsTorRunningAsync().ConfigureAwait(false);
+						bool isRunning = await TcpConnectionFactory.IsTorRunningAsync().ConfigureAwait(false);
 
 						if (!isRunning)
 						{

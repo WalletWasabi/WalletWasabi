@@ -3,7 +3,6 @@ using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
-using NBitcoin.Protocol.Connectors;
 using System;
 using System.IO;
 using System.Linq;
@@ -152,16 +151,17 @@ namespace WalletWasabi.Gui
 
 				if (Config.UseTor)
 				{
+					TorTcpConnectionFactory tcpConnectionFactory = new(Config.TorSocks5EndPoint);
+
 					using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
-					{
-						TorTcpConnectionFactory factory = new(Config.TorSocks5EndPoint);
-						TorManager = new TorProcessManager(TorSettings, Config.TorSocks5EndPoint, factory);
+					{						
+						TorManager = new TorProcessManager(TorSettings, Config.TorSocks5EndPoint, tcpConnectionFactory);
 						await TorManager.StartAsync(ensureRunning: true).ConfigureAwait(false);
 					}
 
 					var httpClient = (Tor.Http.TorHttpClient)HttpClientFactory.NewHttpClient(() => null!, isolateStream: false);
 #pragma warning disable CA2000 // Dispose objects before losing scope
-					HostedServices.Register(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackBackendUri: Config.GetFallbackBackendUri(), httpClient: httpClient, torProcessManager: TorManager), nameof(TorMonitor));
+					HostedServices.Register(new TorMonitor(period: TimeSpan.FromSeconds(3), Config.GetFallbackBackendUri(), httpClient, TorManager, tcpConnectionFactory), nameof(TorMonitor));
 #pragma warning restore CA2000 // Dispose objects before losing scope
 				}
 

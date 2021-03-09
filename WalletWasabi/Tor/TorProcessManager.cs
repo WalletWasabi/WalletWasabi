@@ -41,11 +41,6 @@ namespace WalletWasabi.Tor
 
 		private bool _disposed = false;
 
-		public Task<bool> IsTorRunningAsync()
-		{
-			return TcpConnectionFactory.IsTorRunningAsync();
-		}
-
 		/// <summary>
 		/// Starts Tor process if it is not running already.
 		/// </summary>
@@ -60,7 +55,7 @@ namespace WalletWasabi.Tor
 			try
 			{
 				// Is Tor already running? Either our Tor process from previous Wasabi Wallet run or possibly user's own Tor.
-				bool isAlreadyRunning = await IsTorRunningAsync().ConfigureAwait(false);
+				bool isAlreadyRunning = await TcpConnectionFactory.IsTorRunningAsync().ConfigureAwait(false);
 
 				if (isAlreadyRunning)
 				{
@@ -106,7 +101,7 @@ namespace WalletWasabi.Tor
 					{
 						i++;
 
-						bool isRunning = await IsTorRunningAsync().ConfigureAwait(false);
+						bool isRunning = await TcpConnectionFactory.IsTorRunningAsync().ConfigureAwait(false);
 
 						if (isRunning)
 						{
