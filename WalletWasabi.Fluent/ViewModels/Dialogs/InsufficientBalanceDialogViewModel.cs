@@ -3,12 +3,30 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
+	public enum BalanceType
+	{
+		All,
+		Private,
+		Pocket
+	}
+
 	[NavigationMetaData(Title = "Insufficient balance")]
 	public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<bool>
 	{
-		public InsufficientBalanceDialogViewModel()
+		public InsufficientBalanceDialogViewModel(BalanceType type)
 		{
-			Text = $"With the included fee, you don't have enough private funds in your wallet. Instead of adding as an extra cost, Wasabi can subtract the fee from the maximum possible amount.\nWould you like Wasabi to do it?";
+			switch (type)
+			{
+				case BalanceType.Private:
+					Text = $"With the included fee, you don't have enough private funds in your wallet. Instead of adding as an extra cost, Wasabi can subtract the fee from the maximum possible amount.\nWould you like Wasabi to do it?";
+					break;
+				case BalanceType.Pocket:
+					Text = $"With the included fee, you don't have enough funds in the selected pocket. Instead of adding as an extra cost, Wasabi can subtract the fee from the amount.\nWould you like Wasabi to do it?";
+					break;
+				default:
+					Text = $"With the included fee, you don't have enough funds in your wallet. Instead of adding as an extra cost, Wasabi can subtract the fee from the amount.\nWould you like Wasabi to do it?";
+					break;
+			}
 
 			NextCommand = ReactiveCommand.Create(() => Close(result: true));
 			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));

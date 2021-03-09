@@ -63,7 +63,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 					catch (InsufficientBalanceException)
 					{
-						var dialog = new InsufficientBalanceDialogViewModel();
+						var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Pocket);
 						var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 
 						if (result.Result != true)

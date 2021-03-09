@@ -127,7 +127,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 					catch (InsufficientBalanceException)
 					{
-						var dialog = new InsufficientBalanceDialogViewModel();
+						var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private);
 						var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 
 						if (result.Result)
@@ -137,17 +137,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 							return;
 						}
 					}
-					catch (NotEnoughFundsException)
-					{
-						// Do Nothing
-					}
 				}
 
 				Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
 			}, this.WhenAnyValue(x=>x.Labels.Count).Any());
 		}
-
-
 
 		private void SetXAxisCurrentValueIndex(double xAxisCurrentValue)
 		{
