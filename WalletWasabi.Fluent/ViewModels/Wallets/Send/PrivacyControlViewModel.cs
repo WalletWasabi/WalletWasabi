@@ -8,7 +8,10 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
@@ -49,23 +52,30 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);
 
-			NextCommand = ReactiveCommand.Create(
-				() =>
+			NextCommand = ReactiveCommand.CreateFromTask(
+				async () =>
 				{
-					var coins = selectedList.Items.SelectMany(x => x.Coins);
+					BuildTransactionResult transactionResult;
+					var coins = selectedList.Items.SelectMany(x => x.Coins).ToArray();
 
-					var intent = new PaymentIntent(
-						transactionInfo.Address,
-						transactionInfo.Amount,
-						subtractFee: false,
-						transactionInfo.Labels);
+					try
+					{
+						transactionResult = TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: false);
+					}
+					catch (InsufficientBalanceException)
+					{
+						var dialog = new InsufficientBalanceDialogViewModel();
+						var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 
-					var transactionResult = _wallet.BuildTransaction(
-						_wallet.Kitchen.SaltSoup(),
-						intent,
-						FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-						true,
-						coins.Select(x => x.OutPoint));
+						if (result.Result)
+						{
+							transactionResult = TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: true);
+						}
+						else
+						{
+							return;
+						}
+					}
 
 					Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
 				},
