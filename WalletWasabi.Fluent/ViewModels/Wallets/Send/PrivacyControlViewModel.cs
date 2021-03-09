@@ -8,7 +8,6 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -67,14 +66,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						var dialog = new InsufficientBalanceDialogViewModel();
 						var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 
-						if (result.Result)
-						{
-							transactionResult = TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: true);
-						}
-						else
+						if (result.Result != true)
 						{
 							return;
 						}
+
+						transactionResult = TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: true);
 					}
 
 					Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
