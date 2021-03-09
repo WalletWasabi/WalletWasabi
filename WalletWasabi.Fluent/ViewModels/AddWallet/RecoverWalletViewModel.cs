@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
@@ -51,13 +50,22 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				async () => await NextExecute(walletManager, network, walletName),
 				FinishCommandCanExecute);
 
-			AdvancedOptionsInteraction = new Interaction<(KeyPath, int), (KeyPath?, int?)>();
-			AdvancedOptionsInteraction.RegisterHandler(
-				async interaction =>
-					interaction.SetOutput(
-						(await new AdvancedRecoveryOptionsViewModel(interaction.Input).ShowDialogAsync()).Result));
+			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
+				async () =>
+				{
+					var result = await NavigateDialog(new AdvancedRecoveryOptionsViewModel((AccountKeyPath, MinGapLimit)));
 
-			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(async () => await AdvancedRecoveryOptionsDialogExecute());
+					if (result.Kind == DialogResultKind.Normal)
+					{
+						var (accountKeyPathIn, minGapLimitIn) = result.Result;
+
+						if (accountKeyPathIn is { } && minGapLimitIn is { })
+						{
+							AccountKeyPath = accountKeyPathIn;
+							MinGapLimit = (int)minGapLimitIn;
+						}
+					}
+				});
 
 			EnableAutoBusyOn(NextCommand);
 		}
@@ -119,17 +127,15 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
-		private async Task AdvancedRecoveryOptionsDialogExecute()
-		{
-			var (accountKeyPathIn, minGapLimitIn) = await AdvancedOptionsInteraction
-				.Handle((AccountKeyPath, MinGapLimit)).ToTask();
+		public IObservable<bool> FinishCommandCanExecute { get; }
 
-			if (accountKeyPathIn is { } && minGapLimitIn is { })
-			{
-				AccountKeyPath = accountKeyPathIn;
-				MinGapLimit = (int) minGapLimitIn;
-			}
-		}
+		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
+
+		private KeyPath AccountKeyPath { get; set; } = KeyPath.Parse("m/84'/0'/0'");
+
+		private int MinGapLimit { get; set; } = 63;
+
+		public ObservableCollection<string> Mnemonics { get; } = new();
 
 		private void ValidateMnemonics(IValidationErrors errors)
 		{

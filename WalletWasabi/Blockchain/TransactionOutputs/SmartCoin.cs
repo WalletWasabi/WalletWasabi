@@ -78,10 +78,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			get => _spenderTransaction;
 			set
 			{
-				if (RaiseAndSetIfRefChanged(ref _spenderTransaction, ref value))
-				{
-					value?.WalletInputs.Add(this);
-				}
+				value?.WalletInputs.Add(this);
+				RaiseAndSetIfChanged(ref _spenderTransaction, value);
 			}
 		}
 

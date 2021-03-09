@@ -38,7 +38,29 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			FiatFeeText =
 				$"(≈{(fee.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD)";
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () => await NextExecute(wallet, broadcaster, transaction));
+			NextCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
+				var authDialog = AuthorizationHelpers.GetAuthorizationDialog(wallet, transactionAuthorizationInfo);
+				var authDialogResult = await NavigateDialog(authDialog, authDialog.DefaultTarget);
+
+				if (authDialogResult.Result)
+				{
+					IsBusy = true;
+
+					// Dequeue any coin-joining coins.
+					await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
+
+					await broadcaster.SendTransactionAsync(transactionAuthorizationInfo.Transaction);
+					Navigate().Clear();
+
+					IsBusy = false;
+				}
+				else if (authDialogResult.Kind == DialogResultKind.Normal)
+				{
+					await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "");
+				}
+			});
 		}
 
 		public string BtcAmountText { get; }

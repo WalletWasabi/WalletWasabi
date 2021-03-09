@@ -98,7 +98,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, httpClientFactory);
 			ServiceConfiguration serviceConfig = new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelStrong.ToString(), 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
 			CachedBlockProvider blockProvider = new CachedBlockProvider(
-				new P2pBlockProvider(nodes, null, syncer, serviceConfig, network),
+				new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfig, network),
 				bitcoinStore.BlockRepository);
 
 			using Wallet wallet = Wallet.CreateAndRegisterServices(

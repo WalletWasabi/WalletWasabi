@@ -54,7 +54,8 @@
               EnableCancelOnEscape="True"
               IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-              MaxContentWidth="{Binding MaxContentWidth}" MaxContentHeight="{Binding MaxContentHeight}">
+              HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+              MaxContentWidth="800" MaxContentHeight="700">
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
     <c:Dialog x:CompileBindings="False"
@@ -63,8 +64,8 @@
               EnableCancelOnPressed="False"
               EnableCancelOnEscape="True"
               IsEnabled="{Binding $parent.DataContext.IsFullScreenEnabled}"
-              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-              MaxContentWidth="{Binding MaxContentWidth}" MaxContentHeight="{Binding MaxContentHeight}">
+              HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <c:Dialog.Styles>
         <Style Selector="c|Dialog /template/ Panel#PART_DialogHost">
           <Setter Property="Margin" Value="20,30,20,20"/>
@@ -84,11 +85,14 @@
       </c:Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
-    <c:Dialog DataContext="{Binding CurrentDialog}"
+    <c:Dialog x:CompileBindings="False"
+              DataContext="{Binding CompactDialogScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
               EnableCancelOnPressed="False"
               EnableCancelOnEscape="True"
-              Content="{Binding }"
-              HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+              IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+      <ContentControl Content="{Binding CurrentPage}" />
+    </c:Dialog>
   </Panel>
 </UserControl>

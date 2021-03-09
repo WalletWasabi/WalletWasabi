@@ -16,6 +16,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.MathNet;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.NavBar;
@@ -115,33 +116,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_parsingUrl = false;
 		}
 
-		private void NextExecute(TransactionBroadcaster broadcaster)
-		{
-			var transactionInfo = _transactionInfo;
-			var wallet = _owner.Wallet;
-			var targetAnonymitySet = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
-			var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
+					try
+					{
+						var txRes = wallet.BuildTransaction(
+							wallet.Kitchen.SaltSoup(),
+							intent,
+							FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
+							allowUnconfirmed: true,
+							mixedCoins.Select(x => x.OutPoint));
 
-			if (mixedCoins.Any())
-			{
-				var intent = new PaymentIntent(
-					destination: transactionInfo.Address,
-					amount: transactionInfo.Amount,
-					subtractFee: false,
-					label: transactionInfo.Labels);
-
-				try
-				{
-					var txRes = wallet.BuildTransaction(
-						wallet.Kitchen.SaltSoup(),
-						intent,
-						FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-						allowUnconfirmed: true,
-						mixedCoins.Select(x => x.OutPoint));
-
-					// Private coins are enough.
-					Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
-					return;
+						// Private coins are enough.
+						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
+						return;
+					}
+					catch (InsufficientBalanceException)
+					{
+						// Do Nothing
+					}
 				}
 				catch (NotEnoughFundsException)
 				{
@@ -149,7 +140,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 			}
 
-			Navigate().To(new PrivacyControlViewModel());
+				Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
+			}, this.WhenAnyValue(x=>x.Labels.Count).Any());
 		}
 
 		private void SetXAxisCurrentValueIndex(double xAxisCurrentValue)
