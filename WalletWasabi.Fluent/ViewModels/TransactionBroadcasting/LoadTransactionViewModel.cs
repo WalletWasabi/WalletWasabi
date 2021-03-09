@@ -28,28 +28,30 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				.Subscribe(finalTransaction => Close(result: finalTransaction));
 
 			ImportTransactionCommand = ReactiveCommand.CreateFromTask(
-				async () =>
-				{
-					try
-					{
-						var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", new[] {"psbt", "*"});
-						if (path is { })
-						{
-							FinalTransaction = await ParseTransactionAsync(path);
-						}
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-						await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to load the transaction.");
-					}
-				},
+				async () => await OnImportTransaction(),
 				outputScheduler: RxApp.MainThreadScheduler);
 
-			PasteCommand = ReactiveCommand.CreateFromTask(async () => await PasteExecute());
+			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPaste());
 		}
 
-		private async Task PasteExecute()
+		private async Task OnImportTransaction()
+		{
+			try
+			{
+				var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", new[] {"psbt", "*"});
+				if (path is { })
+				{
+					FinalTransaction = await ParseTransactionAsync(path);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to load the transaction.");
+			}
+		}
+
+		private async Task OnPaste()
 		{
 			try
 			{
