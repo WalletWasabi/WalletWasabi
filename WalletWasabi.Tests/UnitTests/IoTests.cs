@@ -20,7 +20,7 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var file = Path.Combine(Common.GetWorkDir(), $"file1.dat");
 
-			List<string> lines = new List<string>();
+			List<string> lines = new();
 			for (int i = 0; i < 1000; i++)
 			{
 				string line = RandomString.AlphaNumeric(100);
@@ -29,7 +29,7 @@ namespace WalletWasabi.Tests.UnitTests
 			}
 
 			// Single thread file operations.
-			DigestableSafeIoManager ioman1 = new DigestableSafeIoManager(file);
+			DigestableSafeIoManager ioman1 = new(file);
 
 			// Delete the file if Exist.
 			ioman1.DeleteMe();
@@ -143,8 +143,8 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var file = Path.Combine(Common.GetWorkDir(), $"file.dat");
 
-			AsyncLock asyncLock = new AsyncLock();
-			DigestableSafeIoManager ioman = new DigestableSafeIoManager(file);
+			AsyncLock asyncLock = new();
+			DigestableSafeIoManager ioman = new(file);
 			ioman.DeleteMe();
 			await ioman.WriteAllLinesAsync(Array.Empty<string>());
 			Assert.False(File.Exists(ioman.FilePath));
@@ -153,7 +153,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			static string RandomString()
 			{
-				StringBuilder builder = new StringBuilder();
+				StringBuilder builder = new();
 				var rnd = new Random();
 				char ch;
 				for (int i = 0; i < rnd.Next(10, 100); i++)

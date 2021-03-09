@@ -76,8 +76,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		public void FirstSeenBackwardsCompatibility()
 		{
 			var now = DateTimeOffset.UtcNow;
-			DateTimeOffset twoThousandEight = new DateTimeOffset(2008, 1, 1, 0, 0, 0, TimeSpan.Zero);
-			DateTimeOffset twoThousandNine = new DateTimeOffset(2009, 1, 1, 0, 0, 0, TimeSpan.Zero);
+			DateTimeOffset twoThousandEight = new(2008, 1, 1, 0, 0, 0, TimeSpan.Zero);
+			DateTimeOffset twoThousandNine = new(2009, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
 			// Compatbile with FirstSeenIfMempoolTime json property.
 			// FirstSeenIfMempoolTime is null.

@@ -343,7 +343,7 @@ namespace WalletWasabi.Packager
 				throw new InvalidOperationException("Cannot get uploadId. Notarization failed.");
 			}
 
-			Stopwatch sw = new Stopwatch();
+			Stopwatch sw = new();
 			sw.Start();
 			while (true) // Wait for the notarization.
 			{

@@ -12,11 +12,11 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.OctetFields
 		// we allow clients to pass "USERNAME/PASSWORD" authentication to us even if
 		// no authentication was selected.
 
-		public static readonly MethodField NoAuthenticationRequired = new MethodField(0x00);
+		public static readonly MethodField NoAuthenticationRequired = new(0x00);
 
-		public static readonly MethodField UsernamePassword = new MethodField(0x02);
+		public static readonly MethodField UsernamePassword = new(0x02);
 
-		public static readonly MethodField NoAcceptableMethods = new MethodField(0xFF);
+		public static readonly MethodField NoAcceptableMethods = new(0xFF);
 
 		public MethodField(byte value)
 		{

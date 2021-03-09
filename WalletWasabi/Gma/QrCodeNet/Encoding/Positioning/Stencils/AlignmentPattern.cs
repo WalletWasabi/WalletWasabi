@@ -92,7 +92,7 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 			{
 				foreach (byte centerY in coordinates)
 				{
-					MatrixPoint location = new MatrixPoint(centerX - 2, centerY - 2);
+					MatrixPoint location = new(centerX - 2, centerY - 2);
 					yield return location;
 				}
 			}

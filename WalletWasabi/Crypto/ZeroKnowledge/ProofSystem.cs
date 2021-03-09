@@ -88,10 +88,10 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		}
 
 		public static Knowledge IssuerParametersKnowledge(MAC mac, GroupElement ma, CredentialIssuerSecretKey sk)
-			=> new Knowledge(IssuerParametersStatement(sk.ComputeCredentialIssuerParameters(), mac, ma), new ScalarVector(sk.W, sk.Wp, sk.X0, sk.X1, sk.Ya));
+			=> new(IssuerParametersStatement(sk.ComputeCredentialIssuerParameters(), mac, ma), new ScalarVector(sk.W, sk.Wp, sk.X0, sk.X1, sk.Ya));
 
 		public static Statement IssuerParametersStatement(CredentialIssuerParameters iparams, MAC mac, GroupElement ma)
-			=> new Statement(new GroupElement[,]
+			=> new(new GroupElement[,]
 			{
 				// public                                             Witness terms:
 				// point                     w,             wp,             x0,             x1,             ya
@@ -101,12 +101,12 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			});
 
 		public static Knowledge ShowCredentialKnowledge(CredentialPresentation presentation, Scalar z, Credential credential, CredentialIssuerParameters iparams)
-			=> new Knowledge(
+			=> new(
 				ShowCredentialStatement(presentation, z * iparams.I, iparams),
 				new ScalarVector(z, (credential.Mac.T * z).Negate(), credential.Mac.T, credential.Amount, credential.Randomness));
 
 		public static Statement ShowCredentialStatement(CredentialPresentation c, GroupElement z, CredentialIssuerParameters iparams)
-			=> new Statement(new GroupElement[,]
+			=> new(new GroupElement[,]
 			{
 				// public                     Witness terms:
 				// point      z               z0              t               a               r
@@ -117,19 +117,19 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			});
 
 		public static Knowledge BalanceProofKnowledge(Scalar zSum, Scalar rDeltaSum)
-			=> new Knowledge(BalanceProofStatement(zSum * Generators.Ga + rDeltaSum * Generators.Gh), new ScalarVector(zSum, rDeltaSum));
+			=> new(BalanceProofStatement(zSum * Generators.Ga + rDeltaSum * Generators.Gh), new ScalarVector(zSum, rDeltaSum));
 
 		// Balance commitment must be a commitment to 0, with randomness in Gh and
 		// additional randomness from attribute randomization in Show protocol,
 		// using generator Ga. Witness terms: (\sum z, \sum r_i - r'_i)
 		public static Statement BalanceProofStatement(GroupElement balanceCommitment)
-			=> new Statement(balanceCommitment, Generators.Ga, Generators.Gh);
+			=> new(balanceCommitment, Generators.Ga, Generators.Gh);
 
 		// overload for bootstrap credential request proofs.
 		// this is just a range proof with width=0
 		// equivalent to proof of representation w/ Gh
 		public static Knowledge ZeroProofKnowledge(GroupElement ma, Scalar r)
-			=> new Knowledge(ZeroProofStatement(ma), new ScalarVector(r));
+			=> new(ZeroProofStatement(ma), new ScalarVector(r));
 
 		public static GroupElement PedersenCommitment(Scalar s, Scalar b)
 		{

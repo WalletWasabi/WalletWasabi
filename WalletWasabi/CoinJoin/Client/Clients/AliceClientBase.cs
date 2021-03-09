@@ -132,7 +132,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 					var address = RegisteredAddresses[i];
 
-					uint256 outputScriptHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(address.ScriptPubKey.ToBytes()));
+					uint256 outputScriptHash = new(NBitcoin.Crypto.Hashes.SHA256(address.ScriptPubKey.ToBytes()));
 					PubKey signerPubKey = GetSignerPubKey(i);
 					if (!VerifySignature(outputScriptHash, unblindedSignature, signerPubKey))
 					{

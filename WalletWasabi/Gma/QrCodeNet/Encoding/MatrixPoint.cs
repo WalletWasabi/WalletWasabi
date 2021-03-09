@@ -12,7 +12,7 @@ namespace Gma.QrCodeNet.Encoding
 		public int X { get; private set; }
 		public int Y { get; private set; }
 
-		public MatrixPoint Offset(MatrixPoint offset) => new MatrixPoint(offset.X + X, offset.Y + Y);
+		public MatrixPoint Offset(MatrixPoint offset) => new(offset.X + X, offset.Y + Y);
 
 		internal MatrixPoint Offset(int offsetX, int offsetY) => Offset(new MatrixPoint(offsetX, offsetY));
 
