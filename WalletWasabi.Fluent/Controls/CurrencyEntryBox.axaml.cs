@@ -343,6 +343,8 @@ namespace WalletWasabi.Fluent.Controls
 
 				_disposable.Add(Disposable.Create(() => _swapButton.Click -= SwapButtonOnClick));
 			}
+
+			UpdateDisplay(true);
 		}
 
 		private void SwapButtonOnClick(object? sender, RoutedEventArgs e)
