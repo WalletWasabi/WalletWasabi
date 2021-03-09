@@ -94,14 +94,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				_transactionInfo.Labels = new SmartLabel(_labels.ToArray());
 			});
 
-			PasteCommand = ReactiveCommand.CreateFromTask(async () => await PasteExecute());
+			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPaste());
 
-			NextCommand = ReactiveCommand.Create(
-				() => NextExecute(broadcaster),
-				this.WhenAnyValue(x=>x.Labels.Count).Any());
+			NextCommand = ReactiveCommand.Create(() => OnNext(broadcaster), this.WhenAnyValue(x=>x.Labels.Count).Any());
 		}
 
-		private async Task PasteExecute()
+		private async Task OnPaste()
 		{
 			var text = await Application.Current.Clipboard.GetTextAsync();
 
@@ -116,32 +114,41 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_parsingUrl = false;
 		}
 
-					try
-					{
-						var txRes = wallet.BuildTransaction(
-							wallet.Kitchen.SaltSoup(),
-							intent,
-							FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-							allowUnconfirmed: true,
-							mixedCoins.Select(x => x.OutPoint));
+		private void OnNext(TransactionBroadcaster broadcaster)
+		{
+			var transactionInfo = _transactionInfo;
+			var wallet = _owner.Wallet;
+			var targetAnonymitySet = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+			var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
 
-						// Private coins are enough.
-						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
-						return;
-					}
-					catch (InsufficientBalanceException)
-					{
-						// Do Nothing
-					}
+			if (mixedCoins.Any())
+			{
+				var intent = new PaymentIntent(
+					destination: transactionInfo.Address,
+					amount: transactionInfo.Amount,
+					subtractFee: false,
+					label: transactionInfo.Labels);
+
+				try
+				{
+					var txRes = wallet.BuildTransaction(
+						wallet.Kitchen.SaltSoup(),
+						intent,
+						FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
+						allowUnconfirmed: true,
+						mixedCoins.Select(x => x.OutPoint));
+
+					// Private coins are enough.
+					Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
+					return;
 				}
-				catch (NotEnoughFundsException)
+				catch (InsufficientBalanceException)
 				{
 					// Do Nothing
 				}
 			}
 
-				Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
-			}, this.WhenAnyValue(x=>x.Labels.Count).Any());
+			Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
 		}
 
 		private void SetXAxisCurrentValueIndex(double xAxisCurrentValue)

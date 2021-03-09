@@ -47,28 +47,19 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await NextExecute(walletManager, network, walletName),
+				async () => await OnNext(walletManager, network, walletName),
 				FinishCommandCanExecute);
 
 			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
-				async () => await AdvancedRecoveryOptionsDialogExecute());
+				async () => await OnAdvancedRecoveryOptionsDialog());
 
 			EnableAutoBusyOn(NextCommand);
 		}
 
-		public IObservable<bool> FinishCommandCanExecute { get; }
-
-		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
-
-		private KeyPath AccountKeyPath { get; set; } = KeyPath.Parse("m/84'/0'/0'");
-
-		private int MinGapLimit { get; set; } = 63;
-
-		private Interaction<(KeyPath, int), (KeyPath?, int?)> AdvancedOptionsInteraction { get; }
-
-		public ObservableCollection<string> Mnemonics { get; } = new();
-
-		private async Task NextExecute(WalletManager walletManager, Network network, string? walletName)
+		private async Task OnNext(
+			WalletManager walletManager,
+			Network network,
+			string? walletName)
 		{
 			var dialogResult = await NavigateDialog(
 				new CreatePasswordDialogViewModel(
@@ -113,7 +104,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
-		private async Task AdvancedRecoveryOptionsDialogExecute()
+		private async Task OnAdvancedRecoveryOptionsDialog()
 		{
 			var result = await NavigateDialog(new AdvancedRecoveryOptionsViewModel((AccountKeyPath, MinGapLimit)));
 
