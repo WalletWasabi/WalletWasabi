@@ -20,7 +20,7 @@ namespace Gma.QrCodeNet.Encoding
 		{
 			BitList codewords = ECGenerator.FillECCodewords(encodeStruct.DataCodewords, encodeStruct.VersionDetail);
 
-			TriStateMatrix triMatrix = new TriStateMatrix(encodeStruct.VersionDetail.MatrixWidth);
+			TriStateMatrix triMatrix = new(encodeStruct.VersionDetail.MatrixWidth);
 			PositioningPatternBuilder.EmbedBasicPatterns(encodeStruct.VersionDetail.Version, triMatrix);
 
 			triMatrix.EmbedVersionInformation(encodeStruct.VersionDetail.Version);

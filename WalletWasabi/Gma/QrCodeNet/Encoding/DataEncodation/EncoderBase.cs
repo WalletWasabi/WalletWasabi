@@ -19,7 +19,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// <remarks>See Chapter 8.4 Data encodation, Table 2 — Mode indicators</remarks>
 		internal BitList GetModeIndicator()
 		{
-			BitList modeIndicatorBits = new BitList
+			BitList modeIndicatorBits = new()
 			{
 				{ 0001 << 2, 4 }
 			};
@@ -28,7 +28,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 		internal BitList GetCharCountIndicator(int characterCount, int version)
 		{
-			BitList characterCountBits = new BitList();
+			BitList characterCountBits = new();
 			int bitCount = GetBitCountInCharCountIndicator(version);
 			characterCountBits.Add(characterCount, bitCount);
 			return characterCountBits;

@@ -39,10 +39,10 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 		public MoneyRequestType Type { get; }
 		public bool SubtractFee { get; }
 
-		public static MoneyRequest Create(Money amount, bool subtractFee = false) => new MoneyRequest(amount, MoneyRequestType.Value, subtractFee);
+		public static MoneyRequest Create(Money amount, bool subtractFee = false) => new(amount, MoneyRequestType.Value, subtractFee);
 
-		public static MoneyRequest CreateChange(bool subtractFee = true) => new MoneyRequest(null, MoneyRequestType.Change, subtractFee);
+		public static MoneyRequest CreateChange(bool subtractFee = true) => new(null, MoneyRequestType.Change, subtractFee);
 
-		public static MoneyRequest CreateAllRemaining(bool subtractFee = true) => new MoneyRequest(null, MoneyRequestType.AllRemaining, subtractFee);
+		public static MoneyRequest CreateAllRemaining(bool subtractFee = true) => new(null, MoneyRequestType.AllRemaining, subtractFee);
 	}
 }

@@ -49,7 +49,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 		// Generate synthetic nonce using current state combined with additional randomness.
 		public SyntheticSecretNonceProvider CreateSyntheticSecretNonceProvider(IEnumerable<Scalar> secrets, WasabiRandom random)
-			=> new SyntheticSecretNonceProvider(_strobe.MakeCopy(), secrets, random);
+			=> new(_strobe.MakeCopy(), secrets, random);
 
 		public void CommitPublicNonces(IEnumerable<GroupElement> publicNonces)
 		{

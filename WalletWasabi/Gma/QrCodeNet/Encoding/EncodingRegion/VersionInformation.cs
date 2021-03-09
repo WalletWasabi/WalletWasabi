@@ -54,7 +54,7 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 
 		private static BitList VersionInfoBitList(int version)
 		{
-			BitList result = new BitList
+			BitList result = new()
 			{
 				{ version, LengthDataBits },
 				{ BCHCalculator.CalculateBCH(version, VersionBCHPoly), LengthECBits }

@@ -70,8 +70,8 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 		public static FeeStrategy OneDayConfirmationTargetStrategy { get; } = CreateFromConfirmationTarget(Constants.OneDayConfirmationTarget);
 		public static FeeStrategy SevenDaysConfirmationTargetStrategy { get; } = CreateFromConfirmationTarget(Constants.SevenDaysConfirmationTarget);
 
-		public static FeeStrategy CreateFromConfirmationTarget(int confirmationTarget) => new FeeStrategy(FeeStrategyType.Target, confirmationTarget: confirmationTarget, feeRate: null);
+		public static FeeStrategy CreateFromConfirmationTarget(int confirmationTarget) => new(FeeStrategyType.Target, confirmationTarget: confirmationTarget, feeRate: null);
 
-		public static FeeStrategy CreateFromFeeRate(FeeRate feeRate) => new FeeStrategy(FeeStrategyType.Rate, confirmationTarget: null, feeRate: feeRate);
+		public static FeeStrategy CreateFromFeeRate(FeeRate feeRate) => new(FeeStrategyType.Rate, confirmationTarget: null, feeRate: feeRate);
 	}
 }

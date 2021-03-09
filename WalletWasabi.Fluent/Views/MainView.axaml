@@ -54,7 +54,8 @@
               EnableCancelOnEscape="True"
               IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-              MaxContentWidth="{Binding MaxContentWidth}" MaxContentHeight="{Binding MaxContentHeight}">
+              HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+              MaxContentWidth="800" MaxContentHeight="700">
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
     <c:Dialog x:CompileBindings="False"
@@ -63,8 +64,8 @@
               EnableCancelOnPressed="False"
               EnableCancelOnEscape="True"
               IsEnabled="{Binding $parent.DataContext.IsFullScreenEnabled}"
-              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-              MaxContentWidth="{Binding MaxContentWidth}" MaxContentHeight="{Binding MaxContentHeight}">
+              HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <c:Dialog.Styles>
         <Style Selector="c|Dialog /template/ Panel#PART_DialogHost">
           <Setter Property="Margin" Value="20,30,20,20"/>
@@ -90,8 +91,7 @@
               EnableCancelOnPressed="False"
               EnableCancelOnEscape="True"
               IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
-              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-              MaxContentWidth="{Binding MaxContentWidth}" MaxContentHeight="{Binding MaxContentHeight}">
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
   </Panel>

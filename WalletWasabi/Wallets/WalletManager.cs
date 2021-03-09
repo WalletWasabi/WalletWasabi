@@ -64,6 +64,7 @@ namespace WalletWasabi.Wallets
 
 		/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
 		private Dictionary<Wallet, HashSet<uint256>> Wallets { get; }
+
 		private object Lock { get; }
 		private AsyncLock StartStopWalletLock { get; }
 
@@ -201,7 +202,7 @@ namespace WalletWasabi.Wallets
 
 		public Wallet AddWallet(KeyManager keyManager)
 		{
-			Wallet wallet = new Wallet(WorkDir, Network, keyManager);
+			Wallet wallet = new(WorkDir, Network, keyManager);
 			AddWallet(wallet);
 			return wallet;
 		}

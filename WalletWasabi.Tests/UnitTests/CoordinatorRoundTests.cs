@@ -21,7 +21,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var confirmationTarget = 12;
 			var round = new CoordinatorRound(rpc, utxoReferee, roundConfig, adjustedConfirmationTarget: confirmationTarget, confirmationTarget, roundConfig.ConfirmationTargetReductionRate);
 
-			static OutPoint GetRandomOutPoint() => new OutPoint(RandomUtils.GetUInt256(), 0);
+			static OutPoint GetRandomOutPoint() => new(RandomUtils.GetUInt256(), 0);
 			var tx = Network.Main.CreateTransaction();
 			tx.Version = 1;
 			tx.LockTime = LockTime.Zero;

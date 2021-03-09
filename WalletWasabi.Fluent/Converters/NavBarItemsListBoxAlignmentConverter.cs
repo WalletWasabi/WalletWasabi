@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.Converters
 {
 	public class NavBarItemsListBoxAlignmentConverter : IValueConverter
 	{
-		public static readonly NavBarItemsListBoxAlignmentConverter Instance = new NavBarItemsListBoxAlignmentConverter();
+		public static readonly NavBarItemsListBoxAlignmentConverter Instance = new();
 
 		private NavBarItemsListBoxAlignmentConverter()
 		{

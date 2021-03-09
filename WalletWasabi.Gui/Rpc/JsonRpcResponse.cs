@@ -6,7 +6,7 @@ namespace WalletWasabi.Gui.Rpc
 	public class JsonRpcResponse
 	{
 		// Default error messages for standard JsonRpcErrorCodes
-		private static Dictionary<JsonRpcErrorCodes, string> Messages = new Dictionary<JsonRpcErrorCodes, string>
+		private static Dictionary<JsonRpcErrorCodes, string> Messages = new()
 		{
 			[JsonRpcErrorCodes.ParseError] = "Parse error",
 			[JsonRpcErrorCodes.InvalidRequest] = "Invalid Request",
