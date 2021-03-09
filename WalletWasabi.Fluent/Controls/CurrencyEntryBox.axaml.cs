@@ -273,7 +273,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		public async void ModifiedPaste()
 		{
-			var text = (await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync()).Replace("\r\n", "");
+			var text = (await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync()).Replace("\r", "").Replace("\n", "");
 
 			if (!string.IsNullOrEmpty(text) || ValidateEntryText(text))
 			{
