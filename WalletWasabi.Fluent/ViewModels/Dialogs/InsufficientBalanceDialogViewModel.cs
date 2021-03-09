@@ -1,15 +1,9 @@
 ﻿using ReactiveUI;
+using WalletWasabi.Fluent.Model;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
-	public enum BalanceType
-	{
-		All,
-		Private,
-		Pocket
-	}
-
 	[NavigationMetaData(Title = "Insufficient balance")]
 	public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<bool>
 	{
