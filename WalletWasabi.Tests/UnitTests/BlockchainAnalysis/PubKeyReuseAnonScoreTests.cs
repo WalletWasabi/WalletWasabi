@@ -36,6 +36,45 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		}
 
 		[Fact]
+		public void AddressReusePunishmentProcessTwice()
+		{
+			// If there's reuse in input and output side, then output side didn't gain, nor lose anonymity.
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var km = ServiceFactory.CreateKeyManager();
+			var reuse = BitcoinFactory.CreateHdPubKey(km);
+			var tx = BitcoinFactory.CreateSmartTransaction(
+				9,
+				Enumerable.Repeat(Money.Coins(1m), 9),
+				new[] { (Money.Coins(1.1m), 100, BitcoinFactory.CreateHdPubKey(km)) },
+				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, reuse) });
+
+			// Make the reused key anonymity set something smaller than 109 (which should be the final anonymity set)
+			reuse.SetAnonymitySet(30, uint256.One);
+
+			analyser.Analyze(tx);
+			var inputAnonsets = tx.WalletInputs.Select(x => x.HdPubKey.AnonymitySet).ToArray();
+			var outputAnonsets = tx.WalletOutputs.Select(x => x.HdPubKey.AnonymitySet).ToArray();
+
+			analyser.Analyze(tx);
+			var newInputAnonsets = tx.WalletInputs.Select(x => x.HdPubKey.AnonymitySet).ToArray();
+			var newOutputAnonsets = tx.WalletOutputs.Select(x => x.HdPubKey.AnonymitySet).ToArray();
+
+			// Anonsets should not change.
+			for (int i = 0; i < inputAnonsets.Length; i++)
+			{
+				var anonset = inputAnonsets[i];
+				var newAnonset = newInputAnonsets[i];
+				Assert.Equal(anonset, newAnonset);
+			}
+			for (int i = 0; i < outputAnonsets.Length; i++)
+			{
+				var anonset = outputAnonsets[i];
+				var newAnonset = newOutputAnonsets[i];
+				Assert.Equal(anonset, newAnonset);
+			}
+		}
+
+		[Fact]
 		public void SelfSpendReuse()
 		{
 			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
