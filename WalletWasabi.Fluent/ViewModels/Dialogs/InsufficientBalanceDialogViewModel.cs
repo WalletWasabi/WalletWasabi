@@ -4,7 +4,7 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs
 {
-	[NavigationMetaData(Title = "Insufficient balance")]
+	[NavigationMetaData(Title = "Insufficient Balance")]
 	public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<bool>
 	{
 		public InsufficientBalanceDialogViewModel(BalanceType type)
