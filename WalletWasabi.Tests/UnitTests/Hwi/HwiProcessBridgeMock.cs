@@ -236,7 +236,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 
 		private static bool CompareArguments(out bool isTestNet, string arguments, string desired, bool useStartWith = false)
 		{
-			var testnetDesired = $"--testnet {desired}";
+			var testnetDesired = $"--chain test {desired}";
 			isTestNet = false;
 
 			if (useStartWith)

@@ -351,6 +351,10 @@ namespace WalletWasabi.Hwi.Parsers
 				{
 					optionString = "device-path";
 				}
+				else if (x.Type == HwiOptions.TestNet)
+				{
+					optionString = "chain test";
+				}
 				else
 				{
 					optionString = x.Type.ToString().ToLowerInvariant();
