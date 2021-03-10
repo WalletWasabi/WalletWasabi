@@ -123,23 +123,26 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					try
 					{
-						var txRes = TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: false);
-						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
-						return;
-					}
-					catch (InsufficientBalanceException)
-					{
-						var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private);
-						var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
-
-						if (result.Result)
+						try
 						{
-							var txRes = TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true);
+							var txRes = TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: false);
 							Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 							return;
 						}
+						catch (InsufficientBalanceException)
+						{
+							var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private);
+							var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
+
+							if (result.Result)
+							{
+								var txRes = TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true);
+								Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
+								return;
+							}
+						}
 					}
-					catch (Exception ex)
+					catch(Exception ex)
 					{
 						Logger.LogError(ex);
 						await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
