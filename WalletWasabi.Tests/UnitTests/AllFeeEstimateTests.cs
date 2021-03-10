@@ -200,14 +200,13 @@ namespace WalletWasabi.Tests.UnitTests
 					Histogram = MempoolInfoGenerator.FeeRanges.Select((x, i) => new FeeRateGroup
 					{
 						Count = (uint)(200 * (i + 1)),
-						Sizes = (uint)(40 * 100 * (i + 1)) ,
+						Sizes = (uint)(40 * 100 * (i + 1)),
 						From = new FeeRate((decimal)x.from),
 						To = new FeeRate((decimal)x.to),
-						Fees = Money.Zero, //.Satoshis((decimal)((x.to - x.from) / 2.0 * 1_000)),
+						Fees = Money.Zero,
 						Group = x.from
 					}).ToArray()
-				}
-			);
+				});
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(2, any)).ReturnsAsync(FeeRateResponse(2, 3_500m));
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(3, any)).ReturnsAsync(FeeRateResponse(3, 500m));
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(6, any)).ReturnsAsync(FeeRateResponse(6, 10m));
