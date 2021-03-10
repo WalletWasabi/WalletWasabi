@@ -338,7 +338,7 @@ namespace WalletWasabi.Backend.Controllers
 
 		private async Task<StatusResponse> FetchStatusAsync()
 		{
-			StatusResponse status = new StatusResponse();
+			StatusResponse status = new();
 
 			// Updating the status of the filters.
 			if (DateTimeOffset.UtcNow - Global.IndexBuilderService.LastFilterBuildTime > FilterTimeout)

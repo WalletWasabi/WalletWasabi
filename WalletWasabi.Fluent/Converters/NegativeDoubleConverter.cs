@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.Converters
 {
 	public class NegativeDoubleConverter : IValueConverter
 	{
-		public static readonly NegativeDoubleConverter Instance = new NegativeDoubleConverter();
+		public static readonly NegativeDoubleConverter Instance = new();
 
 		private NegativeDoubleConverter()
 		{

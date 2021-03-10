@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinListViewModel : ViewModelBase
 	{
-		private static HashSet<SmartCoinStatus> NotVisibleStatuses = new HashSet<SmartCoinStatus>()
+		private static HashSet<SmartCoinStatus> NotVisibleStatuses = new()
 		{
 			SmartCoinStatus.Confirmed,
 			SmartCoinStatus.Unconfirmed

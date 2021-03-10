@@ -14,7 +14,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 {
 	public class BlindingTests
 	{
-		private static Random Random = new Random(123456);
+		private static Random Random = new(123456);
 
 		[Fact]
 		[Trait("UnitTest", "UnitTest")]
@@ -98,18 +98,18 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			// Generate ECDSA keypairs.
 			using var r = new Key();
 			using var key = new Key();
-			Signer signer = new Signer(key);
+			Signer signer = new(key);
 
 			// Generate ECDSA requester.
 			// Get the r's pubkey and the key's pubkey.
 			// Blind messages.
-			Requester requester = new Requester();
+			Requester requester = new();
 			PubKey rPubKey = r.PubKey;
 			PubKey keyPubKey = key.PubKey;
 
 			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
 			byte[] hashBytes = NBitcoin.Crypto.Hashes.SHA256(message);
-			uint256 hash = new uint256(hashBytes);
+			uint256 hash = new(hashBytes);
 			uint256 blindedMessageHash = requester.BlindMessage(hash, rPubKey, keyPubKey);
 
 			// Sign the blinded message hash.
@@ -133,7 +133,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var requester = new Requester();
 			uint256 blindedHash = requester.BlindMessage(hash, r.PubKey, key.PubKey);
 			string encoded = blindedHash.ToString();
-			uint256 decoded = new uint256(encoded);
+			uint256 decoded = new(encoded);
 			Assert.Equal(blindedHash, decoded);
 		}
 

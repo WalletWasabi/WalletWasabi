@@ -37,7 +37,7 @@ namespace WalletWasabi.Backend.Models
 			var blockHeight = uint.Parse(parts[0]);
 			var blockHash = uint256.Parse(parts[1]);
 			var filterData = Encoders.Hex.DecodeData(parts[2]);
-			GolombRiceFilter filter = new GolombRiceFilter(filterData, 20, 1 << 20);
+			GolombRiceFilter filter = new(filterData, 20, 1 << 20);
 			var prevBlockHash = uint256.Parse(parts[3]);
 			var blockTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(parts[4]));
 

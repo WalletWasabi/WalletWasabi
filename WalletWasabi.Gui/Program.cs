@@ -27,7 +27,7 @@ namespace WalletWasabi.Gui
 	{
 		private static Global Global;
 
-		private static TerminateService TerminateService = new TerminateService(TerminateApplicationAsync);
+		private static TerminateService TerminateService = new(TerminateApplicationAsync);
 
 		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
 		/// see https://github.com/AvaloniaUI/Avalonia/wiki/Unresolved-platform-support-issues

@@ -190,7 +190,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 						continue;
 					}
 
-					SmartCoin newCoin = new SmartCoin(tx, i, foundKey);
+					SmartCoin newCoin = new(tx, i, foundKey);
 
 					result.ReceivedCoins.Add(newCoin);
 					// If we did not have it.

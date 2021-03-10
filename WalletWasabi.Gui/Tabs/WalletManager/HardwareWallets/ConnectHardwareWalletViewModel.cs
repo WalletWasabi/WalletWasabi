@@ -106,7 +106,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					}
 					else
 					{
-						Version coldCardVersion = new Version(coldCardVersionString);
+						Version coldCardVersion = new(coldCardVersionString);
 
 						if (coldCardVersion == new Version("2.1.0")) // Should never happen though.
 						{
