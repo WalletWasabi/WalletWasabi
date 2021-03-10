@@ -43,11 +43,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			_global = global;
 			_legalChecker = global.LegalChecker;
 
-			_dialogScreen = new DialogScreenViewModel(800, 700);
+			_dialogScreen = new DialogScreenViewModel();
 
-			_fullScreen = new DialogScreenViewModel(double.PositiveInfinity, double.PositiveInfinity, NavigationTarget.FullScreen);
+			_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
 
-			_compactDialogScreen = new DialogScreenViewModel(480, 270, NavigationTarget.CompactDialogScreen);
+			_compactDialogScreen = new DialogScreenViewModel( NavigationTarget.CompactDialogScreen);
 
 			MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
 

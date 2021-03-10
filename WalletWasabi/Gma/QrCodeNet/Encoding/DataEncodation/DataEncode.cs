@@ -22,7 +22,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			VersionControlStruct vcStruct =
 				VersionControl.InitialSetup(encodeContentLength, ecLevel, recognitionResult.EncodingName);
 
-			BitList dataCodewords = new BitList();
+			BitList dataCodewords = new();
 
 			// Eci header
 			if (vcStruct.IsContainECI && vcStruct.ECIHeader is { })

@@ -83,7 +83,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 				using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
 
 				// Simulate a port scan operation.
-				using (TcpClient client = new TcpClient()
+				using (TcpClient client = new()
 				{
 					NoDelay = true
 				})
@@ -101,7 +101,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 				// Simulate a port scan operation.
 				try
 				{
-					using TcpClient client = new TcpClient()
+					using TcpClient client = new()
 					{
 						NoDelay = true
 					};

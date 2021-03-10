@@ -11,7 +11,7 @@ namespace WalletWasabi.Wallets.PasswordFinder
 {
 	public static class PasswordFinderHelper
 	{
-		public static readonly Dictionary<Charset, string> Charsets = new Dictionary<Charset, string>
+		public static readonly Dictionary<Charset, string> Charsets = new()
 		{
 			[Charset.en] = "abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
 			[Charset.es] = "aábcdeéfghiíjkmnñoópqrstuúüvwxyzAÁBCDEÉFGHIÍJKLMNNOÓPQRSTUÚÜVWXYZ",

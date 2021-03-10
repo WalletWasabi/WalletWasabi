@@ -20,7 +20,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(195, record.BannedForRound);
 
 			DateTimeOffset dateTime = DateTimeOffset.UtcNow;
-			DateTimeOffset now = new DateTimeOffset(dateTime.Ticks - (dateTime.Ticks % TimeSpan.TicksPerSecond), TimeSpan.Zero);
+			DateTimeOffset now = new(dateTime.Ticks - (dateTime.Ticks % TimeSpan.TicksPerSecond), TimeSpan.Zero);
 			var record2Init = new BannedUtxo(record.Utxo, 3, now, false, 99);
 			string record2Line = record2Init.ToString();
 			var record2 = BannedUtxo.FromString(record2Line);
