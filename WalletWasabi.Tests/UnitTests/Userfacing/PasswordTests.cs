@@ -15,7 +15,7 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void ClipboardCutTest()
 		{
-			Dictionary<string, string> passwords = new Dictionary<string, string>
+			Dictionary<string, string> passwords = new()
 			{
 				{ "    w¾3AÍ-dCdï×¾M\\Øò¹ãÔÕýÈÝÁÐ9oEp¨}r:SR¦·ßNó±¥*W!¢ê#ikÇå<ðtÇf·a\\]§,à±H7«®È4nèNmæo4.qØ-¾ûda¯ºíö¾,¥¢½\\¹õèKeÁìÍSÈ@r±ØÙ2[r©UQÞ¶xN\"?:Ö@°&\n", "    w¾3AÍ-dCdï×¾M\\Øò¹ãÔÕýÈÝÁÐ9oEp¨}r:SR¦·ßNó±¥*W!¢ê#ikÇå<ðtÇf·a\\]§,à±H7«®È4nèNmæo4.qØ-¾ûda¯" },
 				{ "§'\" + !%/= ()ÖÜÓ'", "§'\" + !%/= ()Ö\ufffd" }

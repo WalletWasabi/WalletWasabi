@@ -16,7 +16,7 @@ namespace WalletWasabi.Helpers
 			var corrected = Guard.Correct(original);
 
 			// Correct amount
-			Regex digitsOnly = new Regex(@"[^\d.,٫٬⎖·\']");
+			Regex digitsOnly = new(@"[^\d.,٫٬⎖·\']");
 
 			// Make it digits and .,٫٬⎖·\ only.
 			corrected = digitsOnly.Replace(corrected, "");

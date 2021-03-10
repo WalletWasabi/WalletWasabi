@@ -157,7 +157,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		[InlineData("1.1-rc1\n", false)]
 		public void TryParseVersionTests(string input, bool isParsable)
 		{
-			Version expectedVersion = new Version(1, 1, 2);
+			Version expectedVersion = new(1, 1, 2);
 			Assert.Equal(isParsable, HwiParser.TryParseVersion(input, out Version? actualVersion));
 
 			if (isParsable)

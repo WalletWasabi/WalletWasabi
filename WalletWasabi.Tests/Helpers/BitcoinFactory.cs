@@ -92,7 +92,7 @@ namespace WalletWasabi.Tests.Helpers
 		}
 
 		public static OutPoint CreateOutPoint()
-			=> new OutPoint(CreateUint256(), (uint)CryptoHelpers.RandomInt(0, 100));
+			=> new(CreateUint256(), (uint)CryptoHelpers.RandomInt(0, 100));
 
 		public static uint256 CreateUint256()
 		{

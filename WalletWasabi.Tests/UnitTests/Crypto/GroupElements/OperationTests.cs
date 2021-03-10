@@ -79,7 +79,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		public void Negation()
 		{
 			Assert.Equal(new GroupElement(EC.G.Negate()), Generators.G.Negate());
-			Scalar one = new Scalar(1);
+			Scalar one = new(1);
 			Assert.Equal(new GroupElement(EC.G.Negate()) * one, (new GroupElement(EC.G) * one).Negate());
 			Assert.Equal(GroupElement.Infinity, GroupElement.Infinity.Negate());
 		}

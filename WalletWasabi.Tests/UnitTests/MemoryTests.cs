@@ -222,8 +222,8 @@ namespace WalletWasabi.Tests.UnitTests
 		public async Task LockTestsAsync()
 		{
 			TimeSpan timeout = TimeSpan.FromSeconds(10);
-			using SemaphoreSlim trigger = new SemaphoreSlim(0, 1);
-			using SemaphoreSlim signal = new SemaphoreSlim(0, 1);
+			using SemaphoreSlim trigger = new(0, 1);
+			using SemaphoreSlim signal = new(0, 1);
 
 			async Task<string> WaitUntilTrigger(string argument)
 			{

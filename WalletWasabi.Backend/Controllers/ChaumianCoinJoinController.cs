@@ -198,7 +198,7 @@ namespace WalletWasabi.Backend.Controllers
 					await batch.SendBatchAsync();
 
 					byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputs.Select(x => x.BlindedOutput.ToBytes()));
-					uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedOutputScriptHashesByte));
+					uint256 blindedOutputScriptsHash = new(Hashes.SHA256(blindedOutputScriptHashesByte));
 
 					var inputs = new HashSet<Coin>();
 
@@ -813,11 +813,11 @@ namespace WalletWasabi.Backend.Controllers
 		/// <summary>
 		/// 409
 		/// </summary>
-		private ContentResult Conflict(string content) => new ContentResult() { StatusCode = (int)HttpStatusCode.Conflict, ContentType = "application/json; charset=utf-8", Content = $"\"{content}\"" };
+		private ContentResult Conflict(string content) => new() { StatusCode = (int)HttpStatusCode.Conflict, ContentType = "application/json; charset=utf-8", Content = $"\"{content}\"" };
 
 		/// <summary>
 		/// 410
 		/// </summary>
-		private ContentResult Gone(string content) => new ContentResult() { StatusCode = (int)HttpStatusCode.Gone, ContentType = "application/json; charset=utf-8", Content = $"\"{content}\"" };
+		private ContentResult Gone(string content) => new() { StatusCode = (int)HttpStatusCode.Gone, ContentType = "application/json; charset=utf-8", Content = $"\"{content}\"" };
 	}
 }

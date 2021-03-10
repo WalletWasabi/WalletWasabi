@@ -392,6 +392,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		}
 
 		private static PayjoinClient NewPayjoinClient(IHttpClient client)
-			=> new PayjoinClient(new Uri("http://localhost"), client);
+			=> new(new Uri("http://localhost"), client);
 	}
 }

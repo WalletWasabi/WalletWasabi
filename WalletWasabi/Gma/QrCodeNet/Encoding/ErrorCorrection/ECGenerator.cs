@@ -21,7 +21,7 @@ namespace Gma.QrCodeNet.Encoding.ErrorCorrection
 			byte[][] ecByteJArray = new byte[vd.NumECBlocks][];
 
 			GaloisField256 gf256 = GaloisField256.QRCodeGaloisField;
-			GeneratorPolynomial generator = new GeneratorPolynomial(gf256);
+			GeneratorPolynomial generator = new(gf256);
 
 			for (int blockId = 0; blockId < vd.NumECBlocks; blockId++)
 			{
@@ -51,7 +51,7 @@ namespace Gma.QrCodeNet.Encoding.ErrorCorrection
 				throw new ArgumentException("Data bytes do not match offset");
 			}
 
-			BitList codewords = new BitList();
+			BitList codewords = new();
 
 			int maxDataLength = ecBlockGroup1 == vd.NumECBlocks ? numDataBytesGroup1 : numDataBytesGroup2;
 

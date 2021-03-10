@@ -41,7 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 				var authDialog = AuthorizationHelpers.GetAuthorizationDialog(wallet, transactionAuthorizationInfo);
-				var authDialogResult = await NavigateDialog(authDialog, NavigationTarget.DialogScreen);
+				var authDialogResult = await NavigateDialog(authDialog, authDialog.DefaultTarget);
 
 				if (authDialogResult.Result)
 				{

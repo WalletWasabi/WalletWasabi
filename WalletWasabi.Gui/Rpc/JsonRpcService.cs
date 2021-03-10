@@ -19,7 +19,7 @@ namespace WalletWasabi.Gui.Rpc
 	{
 		// Keeps the directory of procedures' metadata
 		private Dictionary<string, JsonRpcMethodMetadata> _proceduresDirectory =
-				new Dictionary<string, JsonRpcMethodMetadata>();
+				new();
 
 		public JsonRpcServiceMetadataProvider(Type serviceType)
 		{
