@@ -3,10 +3,9 @@ using System.Reactive.Concurrency;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using Global = WalletWasabi.Gui.Global;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -15,22 +14,21 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
-using WalletWasabi.Legal;
 using WalletWasabi.Services;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
-	public partial class MainViewModel : ViewModelBase, IDialogHost
+	public partial class MainViewModel : ViewModelBase
 	{
 		private readonly Global _global;
 		private readonly LegalChecker _legalChecker;
 		[AutoNotify] private bool _isMainContentEnabled;
 		[AutoNotify] private bool _isDialogScreenEnabled;
 		[AutoNotify] private bool _isFullScreenEnabled;
-		[AutoNotify] private DialogViewModelBase? _currentDialog;
 		[AutoNotify] private DialogScreenViewModel _dialogScreen;
 		[AutoNotify] private DialogScreenViewModel _fullScreen;
+		[AutoNotify] private DialogScreenViewModel _compactDialogScreen;
 		[AutoNotify] private NavBarViewModel _navBar;
 		[AutoNotify] private StatusBarViewModel _statusBar;
 		[AutoNotify] private string _title = "Wasabi Wallet";
@@ -45,17 +43,17 @@ namespace WalletWasabi.Fluent.ViewModels
 			_global = global;
 			_legalChecker = global.LegalChecker;
 
-			_dialogScreen = new DialogScreenViewModel(800, 700);
+			_dialogScreen = new DialogScreenViewModel();
 
-			_fullScreen = new DialogScreenViewModel(double.PositiveInfinity, double.PositiveInfinity, NavigationTarget.FullScreen);
+			_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
+
+			_compactDialogScreen = new DialogScreenViewModel( NavigationTarget.CompactDialogScreen);
 
 			MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
 
-			NavigationState.Register(MainScreen, DialogScreen, FullScreen, () => this);
+			NavigationState.Register(MainScreen, DialogScreen, FullScreen, CompactDialogScreen);
 
 			Network = global.Network;
-
-			_currentDialog = null;
 
 			_isMainContentEnabled = true;
 			_isDialogScreenEnabled = true;
@@ -69,7 +67,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				global.BitcoinStore.SmartHeaderChain,
 				global.Synchronizer);
 
-			_walletManagerViewModel = new WalletManagerViewModel(global.WalletManager, global.UiConfig, _global.BitcoinStore, _global.LegalChecker);
+			_walletManagerViewModel = new WalletManagerViewModel(global.WalletManager, global.UiConfig, _global.BitcoinStore, _global.LegalChecker, _global.TransactionBroadcaster);
 
 			_addWalletPage = new AddWalletPageViewModel(
 				_walletManagerViewModel,
@@ -97,14 +95,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			this.WhenAnyValue(x => x.FullScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsMainContentEnabled = !x);
-
-			this.WhenAnyValue(x => x.CurrentDialog!.IsDialogOpen)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					IsFullScreenEnabled = !x;
-					IsDialogScreenEnabled = !x;
-				});
 
 			_walletManagerViewModel.WhenAnyValue(x => x.Items.Count, x => x.Actions.Count)
 				.Subscribe(x => _navBar.IsHidden = x.Item1 == 0 && x.Item2 == 0);
@@ -182,11 +172,6 @@ namespace WalletWasabi.Fluent.ViewModels
 
 					if (dialogResult.Result is { })
 					{
-						while (_global.TransactionBroadcaster is null)
-						{
-							await Task.Delay(100);
-						}
-
 						return new BroadcastTransactionViewModel(
 							_global.BitcoinStore,
 							_global.Network,

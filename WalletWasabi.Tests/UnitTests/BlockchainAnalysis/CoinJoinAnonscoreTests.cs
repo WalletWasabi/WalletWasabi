@@ -28,6 +28,36 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		}
 
 		[Fact]
+		public void DoubleProcessing()
+		{
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
+			analyser.Analyze(tx);
+			analyser.Analyze(tx);
+			Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+
+			// 10 participants, 1 is you, your anonset is 10.
+			Assert.Equal(10, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
+		}
+
+		[Fact]
+		public void OtherWalletChangesThings()
+		{
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 8), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
+			var sc = tx.WalletOutputs.First();
+			tx.WalletOutputs.Remove(sc);
+			analyser.Analyze(tx);
+			tx.WalletOutputs.Add(sc);
+			analyser.Analyze(tx);
+			Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+
+			// 10 participants, 2 is you, your anonset is 10/2 = 5.
+			Assert.Equal(5, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
+			Assert.Equal(5, tx.WalletOutputs.Skip(1).First().HdPubKey.AnonymitySet);
+		}
+
+		[Fact]
 		public void Inheritance()
 		{
 			var analyser = ServiceFactory.CreateBlockchainAnalyzer();

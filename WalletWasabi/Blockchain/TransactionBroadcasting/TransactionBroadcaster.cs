@@ -9,7 +9,6 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Wallets;
@@ -19,22 +18,26 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 {
 	public class TransactionBroadcaster
 	{
-		public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, WalletManager walletManager, IRPCClient rpc)
+		public TransactionBroadcaster(Network network, BitcoinStore bitcoinStore, HttpClientFactory httpClientFactory, WalletManager walletManager)
 		{
-			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			Network = Guard.NotNull(nameof(network), network);
 			BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
-			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
+			HttpClientFactory = httpClientFactory;
 			WalletManager = Guard.NotNull(nameof(walletManager), walletManager);
-			RpcClient = rpc;
 		}
 
 		public BitcoinStore BitcoinStore { get; }
-		public WasabiSynchronizer Synchronizer { get; }
+		public HttpClientFactory HttpClientFactory { get; }
 		public Network Network { get; }
-		public NodesGroup Nodes { get; }
-		public IRPCClient RpcClient { get; private set; }
+		public NodesGroup? Nodes { get; private set; }
+		public IRPCClient? RpcClient { get; private set; }
 		public WalletManager WalletManager { get; }
+
+		public void Initialize(NodesGroup nodes, IRPCClient? rpc)
+		{
+			Nodes = Guard.NotNull(nameof(nodes), nodes);
+			RpcClient = rpc;
+		}
 
 		private async Task BroadcastTransactionToNetworkNodeAsync(SmartTransaction transaction, Node node)
 		{
@@ -86,7 +89,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		private async Task BroadcastTransactionToBackendAsync(SmartTransaction transaction)
 		{
 			Logger.LogInfo("Broadcasting with backend...");
-			IHttpClient httpClient = Synchronizer.HttpClientFactory.NewBackendHttpClient(isolateStream: true);
+			IHttpClient httpClient = HttpClientFactory.NewBackendHttpClient(isolateStream: true);
 
 			try
 			{
@@ -143,7 +146,12 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 					throw new InvalidOperationException($"Transaction broadcasting to nodes does not work in {Network.RegTest}.");
 				}
 
-				Node node = Nodes.ConnectedNodes.RandomElement();
+				if (Nodes is null)
+				{
+					throw new InvalidOperationException($"Nodes are not yet initialized.");
+				}
+
+				Node? node = Nodes.ConnectedNodes.RandomElement();
 				while (node is null || !node.IsConnected || Nodes.ConnectedNodes.Count < 5)
 				{
 					// As long as we are connected to at least 4 nodes, we can always try again.
@@ -189,6 +197,11 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 
 		private async Task BroadcastTransactionWithRpcAsync(SmartTransaction transaction)
 		{
+			if (RpcClient is null)
+			{
+				throw new InvalidOperationException("Trying to broadcast on RPC but it is not initialized.");
+			}
+
 			await RpcClient.SendRawTransactionAsync(transaction.Transaction).ConfigureAwait(false);
 			BelieveTransaction(transaction);
 			Logger.LogInfo($"Transaction is successfully broadcasted with RPC: {transaction.GetHash()}.");

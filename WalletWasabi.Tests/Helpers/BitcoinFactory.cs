@@ -87,12 +87,12 @@ namespace WalletWasabi.Tests.Helpers
 			var tx = Transaction.Create(Network.Main);
 			tx.Outputs.Add(new TxOut(amount, pubKey.P2wpkhScript));
 			var stx = new SmartTransaction(tx, height);
-			pubKey.AnonymitySet = anonymitySet;
+			pubKey.SetAnonymitySet(anonymitySet, stx.GetHash());
 			return new SmartCoin(stx, index, pubKey);
 		}
 
 		public static OutPoint CreateOutPoint()
-			=> new OutPoint(CreateUint256(), (uint)CryptoHelpers.RandomInt(0, 100));
+			=> new(CreateUint256(), (uint)CryptoHelpers.RandomInt(0, 100));
 
 		public static uint256 CreateUint256()
 		{

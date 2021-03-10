@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
@@ -15,6 +12,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.Validation;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
@@ -52,22 +50,20 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				async () => await OnNext(walletManager, network, walletName),
 				FinishCommandCanExecute);
 
-			AdvancedOptionsInteraction = new Interaction<(KeyPath, int), (KeyPath?, int?)>();
-			AdvancedOptionsInteraction.RegisterHandler(
-				async interaction =>
-					interaction.SetOutput(
-						(await new AdvancedRecoveryOptionsViewModel(interaction.Input).ShowDialogAsync()).Result));
-
 			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					var (accountKeyPathIn, minGapLimitIn) = await AdvancedOptionsInteraction
-						.Handle((AccountKeyPath, MinGapLimit)).ToTask();
+					var result = await NavigateDialog(new AdvancedRecoveryOptionsViewModel((AccountKeyPath, MinGapLimit)));
 
-					if (accountKeyPathIn is { } && minGapLimitIn is { })
+					if (result.Kind == DialogResultKind.Normal)
 					{
-						AccountKeyPath = accountKeyPathIn;
-						MinGapLimit = (int)minGapLimitIn;
+						var (accountKeyPathIn, minGapLimitIn) = result.Result;
+
+						if (accountKeyPathIn is { } && minGapLimitIn is { })
+						{
+							AccountKeyPath = accountKeyPathIn;
+							MinGapLimit = (int)minGapLimitIn;
+						}
 					}
 				});
 
@@ -80,7 +76,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			string? walletName)
 		{
 			var dialogResult = await NavigateDialog(
-				new EnterPasswordViewModel(
+				new CreatePasswordDialogViewModel(
 					"Type the password of the wallet to be able to recover and click Continue."));
 
 			if (dialogResult.Result is { } password)
@@ -129,8 +125,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private KeyPath AccountKeyPath { get; set; } = KeyPath.Parse("m/84'/0'/0'");
 
 		private int MinGapLimit { get; set; } = 63;
-
-		private Interaction<(KeyPath, int), (KeyPath?, int?)> AdvancedOptionsInteraction { get; }
 
 		public ObservableCollection<string> Mnemonics { get; } = new();
 

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
 using WalletWasabi.Tor.Http;
@@ -54,6 +55,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		public Func<Uri> BackendUriGetter { get; }
 
 		/// <summary>Whether Tor is enabled or disabled.</summary>
+		[MemberNotNullWhen(returnValue: true, nameof(TorEndpoint))]
 		public bool IsTorEnabled => TorEndpoint is { };
 
 		private SocketsHttpHandler SocketHandler { get; }

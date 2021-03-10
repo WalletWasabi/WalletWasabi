@@ -134,11 +134,14 @@
         </Style>
     </UserControl.Styles>
     <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Label Content="{Binding #GradientLineChart.XAxisCurrentValue, StringFormat={}_Priority: {0}}"
+               DockPanel.Dock="Top"
+               Margin="20,0,20,0"/>
         <Slider x:Name="CursorValue2"
                 DockPanel.Dock="Bottom"
                 Classes="cursor"
-                Minimum="{Binding #GradientLineChart.XAxisMinValue}"
-                Maximum="{Binding #GradientLineChart.XAxisMaxValue}"
+                Minimum="{Binding XAxisMinValue}"
+                Maximum="{Binding XAxisMaxValue}"
                 Value="{Binding #GradientLineChart.XAxisCurrentValue}"
                 Margin="20,0,20,0"/>
         <c:LineChart x:Name="GradientLineChart"
@@ -146,8 +149,6 @@
                      XAxisLabels="{Binding XAxisLabels}"
                      XAxisValues="{Binding XAxisValues}"
                      XAxisCurrentValue="{Binding XAxisCurrentValue}"
-                     XAxisMinValue="{Binding XAxisMinValue}"
-                     XAxisMaxValue="{Binding XAxisMaxValue}"
                      YAxisValues="{Binding YAxisValues}"
                      YAxisLogarithmicScale="False"
                      YAxisTitle="More Expensive">

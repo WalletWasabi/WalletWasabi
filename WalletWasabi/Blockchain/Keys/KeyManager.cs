@@ -2,6 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -24,7 +25,7 @@ namespace WalletWasabi.Blockchain.Keys
 		// BIP84-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
 		// https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki
-		public static readonly KeyPath DefaultAccountKeyPath = new KeyPath("m/84h/0h/0h");
+		public static readonly KeyPath DefaultAccountKeyPath = new("m/84h/0h/0h");
 
 		[JsonConstructor]
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool? passwordVerified, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? accountKeyPath = null)
@@ -111,6 +112,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public bool IsWatchOnly => EncryptedSecret is null;
 
+		[MemberNotNullWhen(returnValue: true, nameof(MasterFingerprint))]
 		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint is { };
 
 		[JsonProperty(Order = 8)]
@@ -256,7 +258,7 @@ namespace WalletWasabi.Blockchain.Keys
 			{
 				HdPubKey[] relevantHdPubKeys = HdPubKeys.Where(x => x.IsInternal == isInternal).ToArray();
 
-				KeyPath path = new KeyPath($"{change}/0");
+				KeyPath path = new($"{change}/0");
 				if (relevantHdPubKeys.Any())
 				{
 					int largestIndex = relevantHdPubKeys.Max(x => x.Index);

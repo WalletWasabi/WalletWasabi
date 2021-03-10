@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
@@ -77,10 +78,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			get => _spenderTransaction;
 			set
 			{
-				if (RaiseAndSetIfChanged(ref _spenderTransaction, value))
-				{
-					value?.WalletInputs.Add(this);
-				}
+				value?.WalletInputs.Add(this);
+				RaiseAndSetIfChanged(ref _spenderTransaction, value);
 			}
 		}
 
@@ -147,6 +146,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			IsBanned = BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow;
 		}
 
+		[MemberNotNullWhen(returnValue: true, nameof(SpenderTransaction))]
 		public bool IsSpent() => SpenderTransaction is { };
 
 		/// <summary>

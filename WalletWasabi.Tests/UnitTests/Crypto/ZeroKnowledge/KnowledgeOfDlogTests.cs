@@ -1,3 +1,4 @@
+using Moq;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
@@ -24,9 +25,9 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var generator = Generators.G;
 			var publicPoint = secret * generator;
 			var statement = new Statement(publicPoint, generator);
-			var random = new MockRandom();
-			random.GetBytesResults.Add(new byte[32]);
-			var proof = ProofSystemHelpers.Prove(statement, secret, random);
+			var mockRandom = new Mock<WasabiRandom>();
+			mockRandom.Setup(rnd => rnd.GetBytes(32)).Returns(new byte[32]);
+			var proof = ProofSystemHelpers.Prove(statement, secret, mockRandom.Object);
 			Assert.True(ProofSystemHelpers.Verify(statement, proof));
 		}
 

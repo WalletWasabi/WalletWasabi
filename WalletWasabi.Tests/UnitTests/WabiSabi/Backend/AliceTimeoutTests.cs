@@ -77,7 +77,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			// Alice does not time out if input registration timed out,
 			// even though the deadline is reached and still in input reg.
-			WabiSabiConfig cfg = new() { InputRegistrationTimeout = TimeSpan.Zero };
+			WabiSabiConfig cfg = new() { StandardInputRegistrationTimeout = TimeSpan.Zero };
 			var round = WabiSabiFactory.CreateRound(cfg);
 			var alice = WabiSabiFactory.CreateAlice();
 			round.Alices.Add(alice);

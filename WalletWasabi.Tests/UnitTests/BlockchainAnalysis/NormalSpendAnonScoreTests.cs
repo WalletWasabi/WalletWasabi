@@ -20,7 +20,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var tx = BitcoinFactory.CreateSmartTransaction(0, 1, 1, 0);
 			var coin = Assert.Single(tx.WalletInputs);
 			var key = coin.HdPubKey;
-			key.AnonymitySet = 3;
+			key.SetAnonymitySet(3, tx.GetHash());
 
 			analyser.Analyze(tx);
 
@@ -38,7 +38,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 
 			foreach (var coin in tx.WalletInputs)
 			{
-				coin.HdPubKey.AnonymitySet = 3;
+				coin.HdPubKey.SetAnonymitySet(3, tx.GetHash());
 			}
 
 			analyser.Analyze(tx);
@@ -56,7 +56,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var tx = BitcoinFactory.CreateSmartTransaction(0, 3, 1, 0);
 			var coin = Assert.Single(tx.WalletInputs);
 			var key = coin.HdPubKey;
-			key.AnonymitySet = 3;
+			key.SetAnonymitySet(3, tx.GetHash());
 
 			analyser.Analyze(tx);
 
@@ -74,7 +74,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 
 			foreach (var coin in tx.WalletInputs)
 			{
-				coin.HdPubKey.AnonymitySet = 3;
+				coin.HdPubKey.SetAnonymitySet(3, tx.GetHash());
 			}
 
 			analyser.Analyze(tx);
@@ -94,7 +94,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 
 			foreach (var coin in tx.WalletInputs)
 			{
-				coin.HdPubKey.AnonymitySet = 3;
+				coin.HdPubKey.SetAnonymitySet(3, tx.GetHash());
 			}
 
 			analyser.Analyze(tx);
@@ -113,7 +113,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 
 			foreach (var coin in tx.WalletInputs)
 			{
-				coin.HdPubKey.AnonymitySet = 3;
+				coin.HdPubKey.SetAnonymitySet(3, tx.GetHash());
 			}
 
 			analyser.Analyze(tx);
@@ -132,7 +132,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 
 			foreach (var coin in tx.WalletInputs)
 			{
-				coin.HdPubKey.AnonymitySet = 3;
+				coin.HdPubKey.SetAnonymitySet(3, tx.GetHash());
 			}
 
 			analyser.Analyze(tx);

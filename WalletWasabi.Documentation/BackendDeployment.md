@@ -4,21 +4,43 @@ Consider updating the versions in `WalletWasabi.Helpers.Constants`. If the versi
 
 ```sh
 sudo apt-get update && cd ~/WalletWasabi && git pull && cd ~/WalletWasabi/WalletWasabi.Backend && dotnet restore && cd ~
+
+# Stop
 sudo service nginx stop
 sudo systemctl stop walletwasabi.service
 sudo killall tor
 bitcoin-cli stop
+
+# Status checks
+echo -n 'Tor: '; systemctl is-active tor; echo -n 'Wasabi: '; systemctl is-active walletwasabi; echo -n 'Bitcoind: '; ps -C bitcoind >/dev/null && echo "active" || echo "incative";
+
+# Upgrade and reboot
 sudo apt-get upgrade -y && sudo apt-get autoremove -y
 sudo reboot
 set DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+# Start Bitcoind
 bitcoind
 bitcoin-cli getblockchaininfo
+
+# Start Tor
 tor
+
+# Start Nginx
 sudo service nginx start
+
+# Start Wasabi
 rm -rf WalletWasabi/WalletWasabi.Backend/bin && dotnet publish ~/WalletWasabi/WalletWasabi.Backend --configuration Release --self-contained false
 sudo systemctl start walletwasabi.service
-pgrep -ilfa tor && pgrep -ilfa bitcoin && pgrep -ilfa wasabi && pgrep -ilfa nginx
+echo -n 'Tor: '; systemctl is-active tor; echo -n 'Wasabi: '; systemctl is-active walletwasabi; echo -n 'Bitcoind: '; ps -C bitcoind >/dev/null && echo "active" || echo "incative";
 tail -10000 ~/.walletwasabi/backend/Logs.txt
+
+# Advanced status checks
+systemctl status nginx
+systemctl status walletwasabi
+systemctl status tor
+pgrep -ilfa bitcoin
+
 ```
 
 # 1. Create Remote Server

@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.LineChartDemo
 
 		public double XAxisMaxValue { get; set; } = 1008;
 
-		public List<string> XAxisLabels => new List<string>()
+		public List<string> XAxisLabels => new()
 		{
 			"1w",
 			"3d",
@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.LineChartDemo
 			"fastest"
 		};
 
-		public List<double> XAxisValues => new List<double>()
+		public List<double> XAxisValues => new()
 		{
 			1008,
 			432,
@@ -40,7 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.LineChartDemo
 			1,
 		};
 
-		public List<double> YAxisValues => new List<double>()
+		public List<double> YAxisValues => new()
 		{
 			4,
 			4,

@@ -2,19 +2,93 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="vm:OptimisePrivacyViewModel"
+             mc:Ignorable="d"
+             x:DataType="vm:TransactionPreviewViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionPreviewView">
-    <c:ContentArea Title="Send" Caption=""
-                   HorizontalAlignment="Left"
-                   EnableCancel="False"
-                   EnableNext="True"
-                   NextContent="Continue"
-                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <c:ContentArea Title="Preview Transaction" Caption=""
+                   EnableBack="True"
+                   EnableCancel="True"
+                   EnableNext="True" NextContent="Confirm"
+                   IsBusy="{Binding IsBusy}"
+                   ScrollViewer.VerticalScrollBarVisibility="Auto">
+        <c:ContentArea.Styles>
+            <Style Selector="TextBlock.storyline">
+                <Setter Property="Opacity" Value="0.6" />
+                <Setter Property="FontSize" Value="14" />
+            </Style>
+            <Style Selector="TextBlock.field">
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="Opacity" Value="0.85" />
+            </Style>
+        </c:ContentArea.Styles>
+        <StackPanel Spacing="20">
+            <StackPanel Orientation="Horizontal" Spacing="30">
+                <PathIcon Width="24" Height="24" Data="{StaticResource btc_logo}"
+                          Foreground="{DynamicResource SystemAccentColor}" />
+                <StackPanel Spacing="5">
+                    <TextBlock Text="A total of " Classes="storyline" />
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock Classes="field" Text="{Binding BtcAmountText, FallbackValue=0.213 BTC}" />
+                        <TextBlock Classes="field" Text="{Binding FiatAmountText, FallbackValue=(≈55.34 USD)}" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+
+            <Separator />
+
+            <StackPanel Orientation="Horizontal" Spacing="30">
+                <PathIcon Width="24" Height="24" Data="{StaticResource entities_regular}"
+                          Foreground="{DynamicResource SystemAccentColor}" />
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Will be sent to and / or known by" Classes="storyline" />
+                    <c:TagsBox Padding="0" Opacity="0.85" IsReadOnly="True" Items="{Binding Labels}" />
+                </StackPanel>
+            </StackPanel>
+
+            <Separator />
+
+            <StackPanel Orientation="Horizontal" Spacing="30">
+                <PathIcon Width="24" Height="24" Data="{StaticResource transceive_regular}"
+                          Foreground="{DynamicResource SystemAccentColor}" />
+                <StackPanel Spacing="5">
+                    <TextBlock Text="via Bitcoin address" Classes="storyline" />
+                    <TextBlock Classes="field"
+                               Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
+                </StackPanel>
+            </StackPanel>
+
+            <Separator />
+
+            <StackPanel Orientation="Horizontal" Spacing="30">
+                <PathIcon Width="24" Height="24" Data="{StaticResource timer_regular}"
+                          Foreground="{DynamicResource SystemAccentColor}" />
+                <StackPanel Spacing="5">
+                    <TextBlock Classes="storyline"
+                               Text="Bitcoin miners will work hard to confirm your transaction within " />
+                    <TextBlock Classes="field"
+                               Text="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
+                </StackPanel>
+            </StackPanel>
+
+            <Separator />
+
+            <StackPanel Orientation="Horizontal" Spacing="30">
+                <PathIcon Width="24" Height="24" Data="{StaticResource paper_cash_regular}"
+                          Foreground="{DynamicResource SystemAccentColor}" />
+                <StackPanel Spacing="5">
+                    <TextBlock Classes="storyline" Text="for an additional charge of" />
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock Classes="field" Text="{Binding BtcFeeText, FallbackValue=235 satoshis}" />
+                        <TextBlock Classes="field" Text="{Binding FiatFeeText, FallbackValue=(≈55.34 USD)}" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+
+            <TextBlock HorizontalAlignment="Center" Margin="0 5 0 0"
+                       Text="If this is correct click Confirm to authorise the transaction." />
+        </StackPanel>
     </c:ContentArea>
 </UserControl>

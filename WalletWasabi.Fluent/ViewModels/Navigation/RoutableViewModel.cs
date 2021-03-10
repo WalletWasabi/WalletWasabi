@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
@@ -74,6 +75,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 				NavigationTarget.HomeScreen => NavigationState.Instance.HomeScreenNavigation,
 				NavigationTarget.DialogScreen => NavigationState.Instance.DialogScreenNavigation,
 				NavigationTarget.FullScreen => NavigationState.Instance.FullScreenNavigation,
+				NavigationTarget.CompactDialogScreen => NavigationState.Instance.CompactDialogScreenNavigation,
 				_ => throw new NotSupportedException(),
 			};
 		}
@@ -117,9 +119,9 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			return result;
 		}
 
-		protected async Task ShowErrorAsync(string message, string caption)
+		protected async Task ShowErrorAsync(string title, string message, string caption)
 		{
-			var dialog = new ShowErrorDialogViewModel(message, Title, caption);
+			var dialog = new ShowErrorDialogViewModel(message, title, caption);
 			await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 		}
 	}

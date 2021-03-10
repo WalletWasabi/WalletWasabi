@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			Type = device.Model switch
 			{
 				HardwareWalletModels.Coldcard or HardwareWalletModels.Coldcard_Simulator => WalletType.Coldcard,
-				HardwareWalletModels.Ledger_Nano_S => WalletType.Ledger,
+				HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X => WalletType.Ledger,
 				HardwareWalletModels.Trezor_1 or HardwareWalletModels.Trezor_1_Simulator or HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_T_Simulator => WalletType.Trezor,
 				_ => WalletType.Hardware
 			};
@@ -44,7 +44,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				catch (Exception ex)
 				{
 					Logger.LogError(ex);
-					await ShowErrorAsync(ex.ToUserFriendlyString(), "Error occured during adding your wallet.");
+					await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "Error occured during adding your wallet.");
 					Navigate().Back();
 				}
 			});

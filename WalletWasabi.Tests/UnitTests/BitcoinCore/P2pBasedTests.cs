@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Rpc;
@@ -53,7 +52,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 				node.VersionHandshake();
 
-				using Key k = new Key();
+				using Key k = new();
 				BitcoinWitPubKeyAddress address = k.PubKey.GetSegwitAddress(network);
 
 				// Number of transactions to send.
@@ -77,7 +76,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				Task rpcBatchTask = rpcBatch.SendBatchAsync();
 
 				// Wait until the mempool service receives all the sent transactions.
-				IEnumerable<SmartTransaction> mempoolSmartTxs = await eventAwaiter.WaitAsync(TimeSpan.FromSeconds(30));
+				IEnumerable<SmartTransaction> mempoolSmartTxs = await eventAwaiter.WaitAsync(TimeSpan.FromMinutes(2));
 
 				await rpcBatchTask;
 
@@ -115,7 +114,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 				var dir = Common.GetWorkDir();
 
-				using Key k = new Key();
+				using Key k = new();
 				var addr = k.PubKey.GetSegwitAddress(network);
 				var notifier = coreNode.MempoolService;
 

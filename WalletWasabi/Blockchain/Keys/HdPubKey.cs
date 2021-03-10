@@ -59,10 +59,12 @@ namespace WalletWasabi.Blockchain.Keys
 			set => RaiseAndSetIfChanged(ref _cluster, value);
 		}
 
+		public HashSet<uint256> AnonymitySetReasons { get; } = new();
+
 		public int AnonymitySet
 		{
 			get => _anonymitySet;
-			set => RaiseAndSetIfChanged(ref _anonymitySet, value);
+			private set => RaiseAndSetIfChanged(ref _anonymitySet, value);
 		}
 
 		public HashSet<SmartCoin> Coins { get; } = new HashSet<SmartCoin>();
@@ -94,6 +96,12 @@ namespace WalletWasabi.Blockchain.Keys
 		public bool IsInternal { get; }
 
 		private int HashCode { get; }
+
+		public void SetAnonymitySet(int anonset, uint256 reason)
+		{
+			AnonymitySet = anonset;
+			AnonymitySetReasons.Add(reason);
+		}
 
 		public void SetLabel(SmartLabel label, KeyManager? kmToFile = null)
 		{

@@ -6,8 +6,8 @@ namespace WalletWasabi.Tor.Http.Models
 	public class HttpProtocol : IEquatable<HttpProtocol>, IEquatable<string>
 	{
 		public const string Protocol = "HTTP";
-		public static HttpProtocol HTTP11 = new HttpProtocol("HTTP/1.1");
-		public static HttpProtocol HTTP10 = new HttpProtocol("HTTP/1.0");
+		public static HttpProtocol HTTP11 = new("HTTP/1.1");
+		public static HttpProtocol HTTP10 = new("HTTP/1.0");
 
 		public HttpProtocol(string protocolString)
 		{

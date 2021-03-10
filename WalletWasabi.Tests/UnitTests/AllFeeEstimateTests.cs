@@ -1,16 +1,18 @@
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 using NBitcoin;
 using NBitcoin.RPC;
 using Newtonsoft.Json;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using Xunit;
-using System;
-using System.IO;
+using WalletWasabi.BitcoinCore.Rpc;
 using Newtonsoft.Json.Linq;
-using System.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
+using Xunit;
+using Moq;
 
 namespace WalletWasabi.Tests.UnitTests
 {
@@ -97,43 +99,46 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task RpcNotEnoughEstimationsAsync()
 		{
-			var rpc = new MockRpcClient();
-			rpc.OnGetBlockchainInfoAsync = async () =>
-				await Task.FromResult(new BlockchainInfo
+			var mockRpc = new Mock<IRPCClient>();
+			mockRpc.Setup(rpc => rpc.GetBlockchainInfoAsync())
+				.ReturnsAsync(new BlockchainInfo
 				{
 					Blocks = 100,
 					Headers = 100
 				});
-			rpc.OnGetPeersInfoAsync = async () =>
-				await Task.FromResult(Array.Empty<PeerInfo>());
-			rpc.OnGetMempoolInfoAsync = async () =>
-				await Task.FromResult(new MemPoolInfo
+			mockRpc.Setup(rpc => rpc.GetPeersInfoAsync())
+				.ReturnsAsync(Array.Empty<PeerInfo>());
+			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync())
+				.ReturnsAsync(new MemPoolInfo
 				{
 					MemPoolMinFee = 0.00001000 // 1 s/b (default value)
 				});
-			rpc.OnEstimateSmartFeeAsync = (target, _) =>
-				throw new NoEstimationException(target);
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>()))
+				.ThrowsAsync(new NoEstimationException(1));
+			mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
 
-			await Assert.ThrowsAsync<NoEstimationException>(async () => await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative));
+			await Assert.ThrowsAsync<NoEstimationException>(async () => await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative));
 		}
 
 		[Fact]
 		public async Task RpcFailuresAsync()
 		{
-			var rpc = new MockRpcClient();
-			rpc.OnGetBlockchainInfoAsync = () =>
-				throw new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Error-GetBlockchainInfo", null);
+			var mockRpc = new Mock<IRPCClient>();
+			mockRpc.Setup(rpc => rpc.GetBlockchainInfoAsync())
+				.ThrowsAsync(new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Error-GetBlockchainInfo", null));
 
-			rpc.OnEstimateSmartFeeAsync = (target, _) =>
-				throw new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Error-EstimateSmartFee", null);
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>()))
+				.ThrowsAsync(new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Error-EstimateSmartFee", null));
 
-			rpc.OnGetMempoolInfoAsync = async () =>
-				await Task.FromResult(new MemPoolInfo
+			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync())
+				.ReturnsAsync(new MemPoolInfo
 				{
 					MemPoolMinFee = 0.00001000 // 1 s/b (default value)
 				});
 
-			var ex = await Assert.ThrowsAsync<RPCException>(async () => await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative));
+			mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
+
+			var ex = await Assert.ThrowsAsync<RPCException>(async () => await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative));
 			Assert.Equal(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, ex.RPCCode);
 			Assert.Equal("Error-EstimateSmartFee", ex.Message);
 		}
@@ -141,19 +146,16 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task ToleratesRpcFailuresAsync()
 		{
-			var rpc = CreateAndConfigureRpcClient(
-				estimator: target => target switch
-				{
-					2 => new FeeRate(100m),
-					3 => throw new RPCException(RPCErrorCode.RPC_INTERNAL_ERROR, "Error", null),
-					5 => new FeeRate(89m),
-					6 => new FeeRate(75m),
-					8 => new FeeRate(70m),
-					_ => throw new NoEstimationException(target)
-				}
-			);
-
-			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
+			var mockRpc = CreateAndConfigureRpcClient();
+			var any = EstimateSmartFeeMode.Conservative;
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(2, any)).ReturnsAsync(FeeRateResponse(2, 100m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(3, any)).ThrowsAsync(new RPCException(RPCErrorCode.RPC_INTERNAL_ERROR, "Error", null));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(5, any)).ReturnsAsync(FeeRateResponse(5, 89m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(6, any)).ReturnsAsync(FeeRateResponse(6, 75m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(8, any)).ReturnsAsync(FeeRateResponse(8, 70m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn<int>(2, 3, 5, 6, 8), any)).ThrowsAsync(new NoEstimationException(0));
+			
+			var allFee = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 			Assert.Equal(2, allFee.Estimations.Count);
 			Assert.False(allFee.Estimations.ContainsKey(3));
 			Assert.False(allFee.Estimations.ContainsKey(5));
@@ -161,54 +163,26 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public async Task InaccurateEstimationsAsync()
-		{
-			var rpc = CreateAndConfigureRpcClient(
-				estimator: target => target switch
-				{
-					2 => new FeeRate(100m),
-					3 => new FeeRate(100m),
-					5 => new FeeRate(89m),
-					6 => new FeeRate(75m),
-					8 => new FeeRate(70m),
-					_ => throw new NoEstimationException(target)
-				},
-				isSynchronized: false,
-				hasPeersInfo: true
-			);
-
-			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Economical);
-			Assert.False(allFee.IsAccurate);
-			Assert.Equal(2, allFee.Estimations.Count);
-			Assert.Equal(100, allFee.Estimations[2]);
-			Assert.Equal(75, allFee.Estimations[6]);
-		}
-
-		[Fact]
 		public async Task AccurateEstimationsAsync()
 		{
-			var rpc = CreateAndConfigureRpcClient(
-				estimator: target => target switch
-				{
-					2 => new FeeRate(99m),
-					3 => new FeeRate(99m),
-					5 => new FeeRate(89m),
-					6 => new FeeRate(75m),
-					8 => new FeeRate(30m),
-					11 => new FeeRate(30m),
-					13 => new FeeRate(30m),
-					15 => new FeeRate(30m),
-					1008 => new FeeRate(31m),
-					_ => throw new NoEstimationException(target)
-				},
-				hasPeersInfo: true
-			);
+			var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
+			var any = EstimateSmartFeeMode.Conservative;
 
-			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(2, any)).ReturnsAsync(FeeRateResponse(2, 99m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(3, any)).ReturnsAsync(FeeRateResponse(3, 99m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(5, any)).ReturnsAsync(FeeRateResponse(5, 89m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(6, any)).ReturnsAsync(FeeRateResponse(6, 75m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(8, any)).ReturnsAsync(FeeRateResponse(8, 30m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(11, any)).ReturnsAsync(FeeRateResponse(11, 30m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(13, any)).ReturnsAsync(FeeRateResponse(13, 30m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(15, any)).ReturnsAsync(FeeRateResponse(15, 30m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(1008, any)).ReturnsAsync(FeeRateResponse(1008, 31m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn<int>(2, 3, 5, 6, 8, 11, 13, 15, 1008), any)).ThrowsAsync(new NoEstimationException(0));
+
+			var allFee = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 			Assert.True(allFee.IsAccurate);
-			Assert.Equal(4, allFee.Estimations.Count);
-			Assert.Equal(100, allFee.Estimations[2]);
-			Assert.Equal(99, allFee.Estimations[3]);
+			Assert.Equal(3, allFee.Estimations.Count);
+			Assert.Equal(99, allFee.Estimations[2]);
 			Assert.Equal(75, allFee.Estimations[6]);
 			Assert.Equal(31, allFee.Estimations[1008]);
 		}
@@ -216,60 +190,61 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public async Task FixObviouslyWrongEstimationsAsync()
 		{
-			var rpc = CreateAndConfigureRpcClient(
-				estimator: target => target switch
-				{
-					2 => new FeeRate(120m),
-					3 => new FeeRate(10m),
-					6 => new FeeRate(3m),
-					18 => new FeeRate(1m),
-					36 => new FeeRate(1m),
-					1008 => new FeeRate(1m),
-					_ => throw new NoEstimationException(target)
-				},
-				hasPeersInfo: true
-			);
+			var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
+			var any = EstimateSmartFeeMode.Conservative;
 
-			var allFee = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
-			Assert.Equal(120, allFee.Estimations[2]);
-			Assert.True(allFee.Estimations[3] > 10);
-			Assert.True(allFee.Estimations[36] > 1);
+			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync()).ReturnsAsync(
+				new MemPoolInfo
+				{
+					MemPoolMinFee = 0.00001000, // 1 s/b (default value)
+					Histogram = MempoolInfoGenerator.FeeRanges.Select((x, i) => new FeeRateGroup
+					{
+						Count = (uint)(200 * (i + 1)),
+						Sizes = (uint)(40 * 100 * (i + 1)) ,
+						From = new FeeRate((decimal)x.from),
+						To = new FeeRate((decimal)x.to),
+						Fees = Money.Zero, //.Satoshis((decimal)((x.to - x.from) / 2.0 * 1_000)),
+						Group = x.from
+					}).ToArray()
+				}
+			);
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(2, any)).ReturnsAsync(FeeRateResponse(2, 3_500m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(3, any)).ReturnsAsync(FeeRateResponse(3, 500m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(6, any)).ReturnsAsync(FeeRateResponse(6, 10m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(18, any)).ReturnsAsync(FeeRateResponse(18, 5m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(36, any)).ReturnsAsync(FeeRateResponse(36, 5m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(1008, any)).ReturnsAsync(FeeRateResponse(1008, 1m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn<int>(2, 3, 5, 6, 8, 11, 13, 15, 1008), any)).ThrowsAsync(new NoEstimationException(0));
+
+			var allFee = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
+			Assert.Equal(3_500, allFee.Estimations[2]);
+			Assert.True(allFee.Estimations[3] > 500);
+			Assert.True(allFee.Estimations[1008] > 1);
 		}
 
 		[Fact]
 		public async Task WorksWithBitcoinCoreEstimationsAsync()
 		{
-			var rpc = CreateAndConfigureRpcClient(
-				estimator: target => target switch
-				{
-					2 => new FeeRate(120m),
-					_ => throw new NoEstimationException(target)
-				},
-				hasPeersInfo: true
-			);
-			rpc.OnGetMempoolInfoAsync = async () => await Task.FromResult(
-				new MemPoolInfo()
-				{ 
-					Histogram = Array.Empty<FeeRateGroup>()
-				}
-			);
+			var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
+			var any = EstimateSmartFeeMode.Conservative;
+
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(2, any)).ReturnsAsync(FeeRateResponse(2, 120m));
+			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn<int>(2), any)).ThrowsAsync(new NoEstimationException(0));
 
 			// Do not throw exception
-			await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
+			await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 		}
 
 		[Fact]
-		public async Task ExhaustiveEstimationsAsync()
+		public async Task ExhaustiveMempoolEstimationsAsync()
 		{
 			foreach (var i in Enumerable.Range(0, 1000))
 			{
+				var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
 				var mempoolInfo = MempoolInfoGenerator.GenerateMempoolInfo();
-				var rpc = CreateAndConfigureRpcClient(
-					estimator: MempoolInfoGenerator.GenerateFeeRateForTarget,
-					hasPeersInfo: true
-				);
-				rpc.OnGetMempoolInfoAsync = async () => await Task.FromResult(mempoolInfo);
-				var feeRates = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
+				mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync()).ReturnsAsync(mempoolInfo);
+				mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), EstimateSmartFeeMode.Conservative)).ReturnsAsync(FeeRateResponse(2, 120m));
+				var feeRates = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 				var estimations = feeRates.Estimations;
 
 				Assert.Subset(Constants.ConfirmationTargets.ToHashSet(), estimations.Keys.ToHashSet());
@@ -279,24 +254,35 @@ namespace WalletWasabi.Tests.UnitTests
 			}
 		}
 
-		private static MockRpcClient CreateAndConfigureRpcClient(Func<int, FeeRate> estimator, bool isSynchronized = true, bool hasPeersInfo = false, double mempoolMinFee = 0.00001000)
-			=> new MockRpcClient()
+		private static Mock<IRPCClient> CreateAndConfigureRpcClient(bool isSynchronized = true, bool hasPeersInfo = false, double memPoolMinFee = 0.00001000)
+		{
+			var mockRpc = new Mock<IRPCClient>();
+			mockRpc.Setup(rpc => rpc.GetBlockchainInfoAsync()).ReturnsAsync(
+				new BlockchainInfo
+				{
+					Blocks = isSynchronized ? 100_000UL : 89_765UL,
+					Headers = 100_000L
+				});
+			mockRpc.Setup(rpc => rpc.GetPeersInfoAsync()).ReturnsAsync(
+				hasPeersInfo 
+					? new[] { new PeerInfo() } 
+					: Array.Empty<PeerInfo>());
+			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync()).ReturnsAsync(
+				new MemPoolInfo
+				{
+					MemPoolMinFee = memPoolMinFee, // 1 s/b (default value)
+					Histogram = Array.Empty<FeeRateGroup>()
+				});
+			mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
+
+			return mockRpc;
+		}
+
+		private static EstimateSmartFeeResponse FeeRateResponse(int target, decimal feeRate) =>
+			new()
 			{
-				OnGetBlockchainInfoAsync = async () =>
-					await Task.FromResult(new BlockchainInfo
-					{
-						Blocks = isSynchronized ? 100_000L : 89_765L,
-						Headers = 100_000L
-					}),
-				OnGetPeersInfoAsync = async () =>
-					await Task.FromResult(hasPeersInfo ? new[] { new PeerInfo() } : Array.Empty<PeerInfo>()),
-				OnGetMempoolInfoAsync = async () => await Task.FromResult(ParseMempoolInfo(mempoolMinFee)),
-				OnEstimateSmartFeeAsync = async (target, _) =>
-					await Task.FromResult(new EstimateSmartFeeResponse
-					{
-						Blocks = target,
-						FeeRate = estimator(target)
-					})
+				Blocks = target,
+				FeeRate = new FeeRate(feeRate)
 			};
 
 		private static MemPoolInfo ParseMempoolInfo(double mempoolMinFee)

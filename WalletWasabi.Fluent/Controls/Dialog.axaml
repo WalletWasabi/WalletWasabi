@@ -4,6 +4,10 @@
   <Styles.Resources>
   </Styles.Resources>
   <Style Selector="c|Dialog">
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
     <Setter Property="Template">
       <ControlTemplate>
         <Panel>
@@ -21,8 +25,8 @@
                                 ContentTemplate="{TemplateBinding ContentTemplate}"
                                 Content="{TemplateBinding Content}"
                                 Padding="{TemplateBinding Padding}"
-                                VerticalContentAlignment="Stretch"
-                                HorizontalContentAlignment="Stretch"/>
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"/>
             </Border>
           </Panel>
         </Panel>

@@ -1,5 +1,6 @@
 using System;
 using System.Reactive;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Helpers;
 using WalletWasabi.WebClients.Wasabi;
 

@@ -521,7 +521,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					int minuteInt = int.Parse(minutesString);
 					string bannedInputString = parts[2].TrimEnd('.');
 					string[] bannedInputStringParts = bannedInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
-					OutPoint coinReference = new OutPoint(new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
+					OutPoint coinReference = new(new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
 					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 					if (coin is null)
 					{
@@ -541,7 +541,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					string[] parts = ex.Message.Split(new[] { "Provided input is not unspent: " }, StringSplitOptions.RemoveEmptyEntries);
 					string spentInputString = parts[1].TrimEnd('.');
 					string[] bannedInputStringParts = spentInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
-					OutPoint coinReference = new OutPoint(new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
+					OutPoint coinReference = new(new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
 					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 					if (coin is null)
 					{
@@ -902,7 +902,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 			var successful = new Dictionary<DequeueReason, List<SmartCoin>>();
 			var unsuccessful = new Dictionary<DequeueReason, List<SmartCoin>>();
-			List<Exception> exceptions = new List<Exception>();
+			List<Exception> exceptions = new();
 
 			foreach (var coinReference in coins)
 			{
@@ -1069,7 +1069,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 			PubKey[] signerPubKeys = state.SignerPubKeys.ToArray();
 			PublicNonceWithIndex[] numerateNonces = state.RPubKeys.ToArray();
-			List<Requester> requesters = new List<Requester>();
+			List<Requester> requesters = new();
 			var blindedOutputScriptHashes = new List<BlindedOutputWithNonceIndex>();
 
 			var registeredAddresses = new List<BitcoinAddress>();
@@ -1094,7 +1094,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 
 			byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputScriptHashes.Select(x => x.BlindedOutput.ToBytes()));
-			uint256 blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blindedOutputScriptHashesByte));
+			uint256 blindedOutputScriptsHash = new(NBitcoin.Crypto.Hashes.SHA256(blindedOutputScriptHashesByte));
 
 			var inputProofs = new List<InputProofModel>();
 			foreach (OutPoint coinReference in registrableCoins)
