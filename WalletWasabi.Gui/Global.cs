@@ -102,7 +102,7 @@ namespace WalletWasabi.Gui
 
 				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, HttpClientFactory);
 				LegalChecker = new(DataDir);
-				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, Synchronizer, WalletManager);
+				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 			}
 		}
 
@@ -328,7 +328,7 @@ namespace WalletWasabi.Gui
 
 				var blockProvider = new CachedBlockProvider(
 					new SmartBlockProvider(
-						new P2pBlockProvider(Nodes, BitcoinCoreNode, Synchronizer, Config.ServiceConfiguration, Network),
+						new P2pBlockProvider(Nodes, BitcoinCoreNode, HttpClientFactory, Config.ServiceConfiguration, Network),
 						Cache),
 					BitcoinStore.BlockRepository);
 

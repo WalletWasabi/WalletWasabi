@@ -12,7 +12,7 @@ namespace WalletWasabi.Crypto.Randomness
 
 		public abstract void GetBytes(Span<byte> output);
 
-		public byte[] GetBytes(int length)
+		public virtual byte[] GetBytes(int length)
 		{
 			Guard.MinimumAndNotNull(nameof(length), length, 1);
 			var buffer = new byte[length];

@@ -1,3 +1,4 @@
+using Moq;
 using NBitcoin;
 using Newtonsoft.Json;
 using System;
@@ -8,6 +9,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -20,8 +23,16 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 		{
 			var mempool = Enumerable.Range(0, 1_100).Select(_ => CreateTransaction()).ToArray();
 
-			Task<HttpResponseMessage> FakeServerCode(HttpMethod method, string action, NameValueCollection parameters, string body)
+			async Task<HttpResponseMessage> FakeServerCodeAsync(HttpMethod method, string relativeUri, HttpContent? content, CancellationToken cancellation)
 			{
+				string body = (content is { })
+					? await content.ReadAsStringAsync(cancellation).ConfigureAwait(false)
+					: "";
+	
+				Uri baseUri = new Uri("http://127.0.0.1");
+				Uri uri = new Uri(baseUri, relativeUri);
+				var parameters = HttpUtility.ParseQueryString(uri.Query);
+
 				Assert.True(parameters.Count <= 10);
 
 				IEnumerable<uint256> requestedTxIds = parameters["transactionIds"].Split(",").Select(x => uint256.Parse(x));
@@ -29,12 +40,14 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 
 				var response = new HttpResponseMessage(HttpStatusCode.OK);
 				response.Content = new StringContent(JsonConvert.SerializeObject(result));
-				return Task.FromResult(response);
+				return response;
 			}
 
-			var torHttpClient = new MockTorHttpClient();
-			torHttpClient.OnSendAsync = FakeServerCode;
-			var client = new WasabiClient(torHttpClient);
+			var mockTorHttpClient = new Mock<IHttpClient>();
+			mockTorHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<HttpContent?>(), It.IsAny<CancellationToken>()))
+				.Returns(async (HttpMethod method, string relativeUri, HttpContent? content, CancellationToken cancellation) => await FakeServerCodeAsync(method, relativeUri, content, cancellation));
+
+			var client = new WasabiClient(mockTorHttpClient.Object);
 			Assert.Empty(WasabiClient.TransactionCache);
 
 			// Requests one transaction
@@ -59,25 +72,24 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			Assert.Subset(WasabiClient.TransactionCache.Keys.ToHashSet(), txs.TakeLast(1_000).Select(x => x.GetHash()).ToHashSet());
 
 			// Requests transactions that are already in the cache
-			torHttpClient.OnSendAsync = (verb, action, parameters, body) =>
-				Task.FromException<HttpResponseMessage>(
-					new InvalidOperationException("The transaction should already be in the client cache. Http request was unexpected."));
+			mockTorHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<HttpContent?>(), It.IsAny<CancellationToken>()))
+				.ThrowsAsync(new InvalidOperationException("The transaction should already be in the client cache. Http request was unexpected."));
 
 			var expectedTobeCachedTxId = mempool.Last().GetHash();
 			txs = await client.GetTransactionsAsync(Network.Main, new[] { expectedTobeCachedTxId }, CancellationToken.None);
 			Assert.Equal(expectedTobeCachedTxId, txs.Last().GetHash());
 
 			// Requests fails with Bad Request
-			torHttpClient.OnSendAsync = (verb, action, parameters, body) =>
-			{
-				var response = new HttpResponseMessage(HttpStatusCode.BadRequest);
-				response.Content = new StringContent("\"Some RPC problem...\"");
-				return Task.FromResult(response);
-			};
+			mockTorHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<HttpContent?>(), It.IsAny<CancellationToken>()))
+				.ReturnsAsync(new HttpResponseMessage(HttpStatusCode.BadRequest)
+				{
+					Content = new StringContent("\"Some RPC problem...\"")
+				});
 
 			var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
 				await client.GetTransactionsAsync(Network.Main, new[] { RandomUtils.GetUInt256() }, CancellationToken.None));
 			Assert.Equal("Bad Request\nSome RPC problem...", ex.Message);
+			
 		}
 
 		private static Transaction CreateTransaction()

@@ -227,10 +227,10 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			{
 				var alreadyKnown = coin.SpenderTransaction == tx;
 				result.SpentCoins.Add(coin);
+				Coins.Spend(coin, tx);
 
 				if (!alreadyKnown)
 				{
-					Coins.Spend(coin, tx);
 					result.NewlySpentCoins.Add(coin);
 				}
 

@@ -45,7 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			}
 		}
 
-		IEnumerable INotifyDataErrorInfo.GetErrors(string propertyName)
+		IEnumerable INotifyDataErrorInfo.GetErrors(string? propertyName)
 		{
 			return _validations.GetErrors(propertyName);
 		}
