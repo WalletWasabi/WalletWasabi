@@ -395,7 +395,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			//                  |
 			//                  +--tx3 (replacement)---> (E)   { after this tx1 is confirmed }
 			//
-			var transactionProcessor = await CreateTransactionProcessorAsync();
+			await using var txStore = await CreateTransactionStoreAsync();
+			var transactionProcessor = CreateTransactionProcessor(txStore);
 
 			// A confirmed segwit transaction for us
 			var tx0 = CreateCreditingTransaction(transactionProcessor.NewKey("A").P2wpkhScript, Money.Coins(1.0m), height: 54321);
@@ -448,7 +449,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			//                                     |
 			//                                     +--> (C)
 			//
-			var transactionProcessor = await CreateTransactionProcessorAsync();
+			await using var txStore = await CreateTransactionStoreAsync();
+			var transactionProcessor = CreateTransactionProcessor(txStore);
 
 			// A confirmed segwit transaction for us
 			var tx0 = CreateCreditingTransaction(transactionProcessor.NewKey("A").P2wpkhScript, Money.Coins(1.0m));
