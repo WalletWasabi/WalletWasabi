@@ -16,17 +16,17 @@ namespace WalletWasabi.Tests.UnitTests
 		public void ExceptionMessageContainsUsefulInformation()
 		{
 			var crazyInvalidTx = BitcoinFactory.CreateSmartTransaction(
-				9, 
-				Enumerable.Repeat(Money.Coins(1m), 9), 
-				new[] { (Money.Coins(1.1m), 1) }, 
-				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) }
-			);
+				9,
+				Enumerable.Repeat(Money.Coins(1m), 9),
+				new[] { (Money.Coins(1.1m), 1) },
+				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 
-			TransactionPolicyError[] crazyInvalidTxErrors = {
-				new NotEnoughFundsPolicyError("Fees different than expected"),
-				new OutputPolicyError("Output value should not be less than zero", (int)-10),
-				new CoinNotFoundPolicyError(new IndexedTxIn { TxIn = new TxIn { PrevOut = OutPoint.Zero }})
-			};
+			TransactionPolicyError[] crazyInvalidTxErrors =
+				{
+					new NotEnoughFundsPolicyError("Fees different than expected"),
+					new OutputPolicyError("Output value should not be less than zero", -10),
+					new CoinNotFoundPolicyError(new IndexedTxIn { TxIn = new TxIn { PrevOut = OutPoint.Zero } })
+				};
 
 			var ex = new InvalidTxException(crazyInvalidTx.Transaction, crazyInvalidTxErrors);
 			Assert.Contains(crazyInvalidTxErrors[0].ToString(), ex.Message);

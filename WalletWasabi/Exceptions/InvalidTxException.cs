@@ -20,7 +20,7 @@ namespace WalletWasabi.Exceptions
 
 		public override string Message
 		{
-			get 
+			get
 			{
 				var errors = string.Join(Environment.NewLine, Errors.Select((error, i) => $"#{i}: {error}."));
 				var txHex = string.Join(Environment.NewLine, Transaction.ToHex().ChunkBy(200).Select(x => new string(x.ToArray())));
