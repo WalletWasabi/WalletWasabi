@@ -687,8 +687,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var matureTxs = transactionProcessor.TransactionStore.ConfirmedStore.GetTransactions().ToArray();
 			Assert.Empty(matureTxs);
 
-			Assert.True(ReferenceEquals(tx2, spentCoin?.SpenderTransaction));
-			Assert.False(ReferenceEquals(tx1, spentCoin?.SpenderTransaction));
+			Assert.Contains(spentCoin, tx1.WalletInputs);
+			Assert.Contains(spentCoin, tx2.WalletInputs);
 		}
 
 		[Fact]
@@ -1153,6 +1153,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public async Task GetPocketsAsync()
 		{
+			int targetAnonSet = 60;
 			await using var txStore = await CreateTransactionStoreAsync();
 			var transactionProcessor = CreateTransactionProcessor(txStore);
 			transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("A").P2wpkhScript, Money.Coins(1.0m)));
@@ -1165,16 +1166,29 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("").P2wpkhScript, Money.Coins(1.0m)));
 			transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("").P2wpkhScript, Money.Coins(1.0m)));
 			transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("").P2wpkhScript, Money.Coins(1.0m)));
-			transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("").P2wpkhScript, Money.Coins(1.0m)));
 
-			IEnumerable<(string Labels, ICoinsView Coins)> pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins);
-			(string Labels, ICoinsView Coins) aPocket = pockets.Single(x => x.Labels == "A");
+			var notYetPrivateCoin = transactionProcessor.NewKey("");
+			transactionProcessor.Process(CreateCreditingTransaction(notYetPrivateCoin.P2wpkhScript, Money.Coins(1.0m)));
+			notYetPrivateCoin.SetAnonymitySet(targetAnonSet - 1, 0);
+
+			var privateCoin1 = transactionProcessor.NewKey("");
+			transactionProcessor.Process(CreateCreditingTransaction(privateCoin1.P2wpkhScript, Money.Coins(1.0m)));
+			privateCoin1.SetAnonymitySet(targetAnonSet, 0);
+
+			var privateCoin2 = transactionProcessor.NewKey("");
+			transactionProcessor.Process(CreateCreditingTransaction(privateCoin2.P2wpkhScript, Money.Coins(1.0m)));
+			privateCoin2.SetAnonymitySet(targetAnonSet, 0);
+
+			var pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins, targetAnonSet);
+			var aPocket = pockets.Single(x => x.SmartLabel == "A");
+
 			Assert.Equal(3, aPocket.Coins.Count());
 			Assert.Equal(Money.Coins(3.0m), aPocket.Coins.TotalAmount());
-			Assert.Single(pockets.Single(x => x.Labels == "B").Coins);
-			Assert.Equal(2, pockets.Single(x => x.Labels == "C").Coins.Count());
-			Assert.Single(pockets.Single(x => x.Labels == "A, B").Coins);
-			Assert.Equal(4, pockets.Count(x => x.Labels == ""));
+			Assert.Single(pockets.Single(x => x.SmartLabel == "B").Coins);
+			Assert.Equal(2, pockets.Single(x => x.SmartLabel == "C").Coins.Count());
+			Assert.Single(pockets.Single(x => x.SmartLabel == "A, B").Coins);
+			Assert.Equal(4, pockets.Single(x => x.SmartLabel == CoinPocketHelper.UnlabelledFundsText).Coins.Count());
+			Assert.Equal(2, pockets.Single(x => x.SmartLabel == CoinPocketHelper.PrivateFundsText).Coins.Count());
 		}
 
 		private static SmartTransaction CreateSpendingTransaction(Coin coin, Script? scriptPubKey = null, int height = 0)
