@@ -50,7 +50,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			Assert.True(response.StatusCode == HttpStatusCode.OK);
 
 			var exchangeRates = await response.Content.ReadAsJsonAsync<List<ExchangeRate>>();
-			Assert.Single(exchangeRates);
+			_ = Assert.Single(exchangeRates);
 
 			var rate = exchangeRates[0];
 			Assert.Equal("USD", rate.Ticker);
@@ -88,7 +88,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task BroadcastInvalidTxAsync()
 		{
-			await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
+			_ = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			using StringContent content = new($"''", Encoding.UTF8, "application/json");
 
@@ -130,7 +130,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				// Test later synchronization.
-				await rpc.GenerateAsync(10);
+				_ = await rpc.GenerateAsync(10);
 				times = 0;
 				while (indexBuilderService.GetFilterLinesExcluding(firstHash, 111, out bool found5).filters.Count() != 111)
 				{
@@ -207,7 +207,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					await indexBuilderService.StopAsync();
 					indexBuilderService = null;
 
-					await rpc.GenerateAsync(1);
+					_ = await rpc.GenerateAsync(1);
 				}
 
 				// Second request.
@@ -218,7 +218,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					var resp = await response.Content.ReadAsJsonAsync<StatusResponse>();
 					Assert.True(resp.FilterCreationActive);
 
-					await rpc.GenerateAsync(1);
+					_ = await rpc.GenerateAsync(1);
 
 					var blockchainController = (BlockchainController)RegTestFixture.BackendHost.Services.GetService(typeof(BlockchainController))!;
 					blockchainController.Cache.Remove($"{nameof(BlockchainController.GetStatusAsync)}");

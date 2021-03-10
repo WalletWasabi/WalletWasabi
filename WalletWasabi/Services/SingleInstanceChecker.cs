@@ -133,7 +133,7 @@ namespace WalletWasabi.Services
 				listener.Start(0);
 
 				// Indicate that the Listener is created successfully.
-				task.TrySetResult();
+				_ = task.TrySetResult();
 
 				while (!stoppingToken.IsCancellationRequested)
 				{
@@ -167,7 +167,7 @@ namespace WalletWasabi.Services
 			catch (Exception ex)
 			{
 				// Indicate that there was an error.
-				task.TrySetException(ex);
+				_ = task.TrySetException(ex);
 				return;
 			}
 			finally

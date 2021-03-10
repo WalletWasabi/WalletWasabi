@@ -77,7 +77,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var x = new Scalar(42);
 			var a = x * Generators.Gg;
 			var knowledge = new Knowledge(new Statement(a, Generators.Gg), new ScalarVector(x));
-			Assert.ThrowsAny<ArgumentException>(() => knowledge.RespondToChallenge(Scalar.One, new ScalarVector(Scalar.Zero)));
+			_ = Assert.ThrowsAny<ArgumentException>(() => knowledge.RespondToChallenge(Scalar.One, new ScalarVector(Scalar.Zero)));
 		}
 
 		[Fact]
@@ -137,7 +137,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var secretNonces = new ScalarVector(new Scalar(7));
 			var publicNonces = new GroupElementVector(statement.Equations.Select(equation => secretNonces * equation.Generators));
 			var responses = knowledge.RespondToChallenge(challenge, secretNonces);
-			Assert.Single(responses);
+			_ = Assert.Single(responses);
 			Assert.True(statement.CheckVerificationEquation(publicNonces, challenge, responses));
 
 			// Ensure that verifier rejects invalid transcripts

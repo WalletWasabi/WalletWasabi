@@ -23,7 +23,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.MixingLevels
 		{
 			baseDenomination = Guard.MinimumAndNotNull(nameof(baseDenomination), baseDenomination, Money.Zero);
 			signer = Guard.NotNull(nameof(signer), signer);
-			Guard.NotNull(nameof(signer.Key), signer.Key);
+			_ = Guard.NotNull(nameof(signer.Key), signer.Key);
 
 			Create(new List<MixingLevel> { new MixingLevel(baseDenomination, signer) });
 		}

@@ -40,7 +40,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			WalletManager = global.WalletManager;
 			UiConfig = global.UiConfig;
 
-			Observable
+			_ = Observable
 				.FromEventPattern<WalletState>(WalletManager, nameof(WalletManager.WalletStateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
@@ -62,7 +62,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					AnyWalletStarted = Wallets.Any(x => x.WalletState == WalletState.Started);
 				});
 
-			Observable
+			_ = Observable
 				.FromEventPattern<Wallet>(WalletManager, nameof(WalletManager.WalletAdded))
 				.Select(x => x.EventArgs)
 				.Where(x => x is { })
@@ -84,7 +84,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.WhenAnyValue(x => x.PrivacyMode)
 				.ToProperty(this, x => x.IsPrivacyMode, scheduler: RxApp.MainThreadScheduler);
 
-			Observable
+			_ = Observable
 				.Merge(CollapseAllCommand.ThrownExceptions)
 				.Merge(PrivacyModeCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -92,20 +92,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			var shell = IoC.Get<IShell>();
 
-			shell
+			_ = shell
 				.WhenAnyValue(x => x.SelectedDocument)
 				.OfType<ViewModelBase>()
 				.Where(x => x != SelectedItem)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => OnShellDocumentSelected(x));
 
-			this.WhenAnyValue(x => x.SelectedItem)
+			_ = this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<WasabiDocumentTabViewModel>()
 				.Where(_ => !_inSelecting)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => shell.AddOrSelectDocument(x));
 
-			this.WhenAnyValue(x => x.SelectedItem)
+			_ = this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<WalletViewModelBase>()
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => x.IsExpanded = true);
@@ -176,7 +176,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void InsertWallet(WalletViewModelBase walletVM)
 		{
-			Wallets.InsertSorted(walletVM);
+			_ = Wallets.InsertSorted(walletVM);
 			_walletDictionary.Add(walletVM.Wallet, walletVM);
 		}
 
@@ -219,8 +219,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			walletVM.Dispose();
 
-			Wallets.Remove(walletVM);
-			_walletDictionary.Remove(walletVM.Wallet);
+			_ = Wallets.Remove(walletVM);
+			_ = _walletDictionary.Remove(walletVM.Wallet);
 		}
 
 		private void LoadWallets()

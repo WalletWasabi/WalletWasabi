@@ -10,7 +10,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		{
 			CanSlide = true;
 
-			this.WhenAnyValue(x => x.IsLocked)
+			_ = this.WhenAnyValue(x => x.IsLocked)
 				.Where(x => !x)
 				.Take(1)
 				.Subscribe(x => Close());

@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 					}
 				});
 
-			this.WhenAnyValue(x => x.IsExpanded)
+			_ = this.WhenAnyValue(x => x.IsExpanded)
 				.Subscribe(x =>
 				{
 					if (Parent != null)
@@ -56,7 +56,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				switch (SelectionMode)
 				{
 					case NavBarItemSelectionMode.Selected:
-						this.RaiseAndSetIfChanged(ref _isSelected, value);
+						_ = this.RaiseAndSetIfChanged(ref _isSelected, value);
 						break;
 					case NavBarItemSelectionMode.Button:
 					case NavBarItemSelectionMode.Toggle:

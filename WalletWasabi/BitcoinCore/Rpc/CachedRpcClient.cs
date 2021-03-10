@@ -45,7 +45,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 				Size = 1,
 				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(4) // The best hash doesn't change so often so, keep in cache for 4 seconds.
 			};
-			cacheOptions.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
+			_ = cacheOptions.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
 
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
@@ -106,7 +106,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 				Size = 1,
 				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(2) // The blockchain info does not change frequently.
 			};
-			cacheOptions.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
+			_ = cacheOptions.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
 
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
@@ -137,7 +137,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 				Size = 20,
 				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(2)
 			};
-			cacheOptions.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
+			_ = cacheOptions.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
 
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
@@ -168,7 +168,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 				Size = 1,
 				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(4)
 			};
-			cacheOptions.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
+			_ = cacheOptions.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
 
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
@@ -184,7 +184,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 				Size = 20,
 				AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(2)
 			};
-			cacheOptions.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
+			_ = cacheOptions.AddExpirationToken(new CancellationChangeToken(TipChangeCancellationTokenSource.Token));
 
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,

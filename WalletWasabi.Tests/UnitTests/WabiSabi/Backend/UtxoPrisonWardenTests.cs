@@ -18,7 +18,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task CanStartAndStopAsync()
 		{
 			var workDir = Common.GetWorkDir();
-			await IoHelpers.TryDeleteDirectoryAsync(workDir);
+			_ = await IoHelpers.TryDeleteDirectoryAsync(workDir);
 			CoordinatorParameters coordinatorParameters = new(workDir);
 			using var w = new Warden(coordinatorParameters.UtxoWardenPeriod, coordinatorParameters.PrisonFilePath, coordinatorParameters.RuntimeCoordinatorConfig);
 			await w.StartAsync(CancellationToken.None);
@@ -29,7 +29,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task PrisonSerializationAsync()
 		{
 			var workDir = Common.GetWorkDir();
-			await IoHelpers.TryDeleteDirectoryAsync(workDir);
+			_ = await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 			// Create prison.
 			CoordinatorParameters coordinatorParameters = new(workDir);
@@ -66,7 +66,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			// Don't serialize when there's no change.
 			var workDir = Common.GetWorkDir();
-			await IoHelpers.TryDeleteDirectoryAsync(workDir);
+			_ = await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 			// Create prison.
 			CoordinatorParameters coordinatorParameters = new(workDir);
@@ -91,7 +91,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task ReleasesInmatesAsync()
 		{
 			var workDir = Common.GetWorkDir();
-			await IoHelpers.TryDeleteDirectoryAsync(workDir);
+			_ = await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 			// Create prison.
 			CoordinatorParameters coordinatorParameters = new(workDir);

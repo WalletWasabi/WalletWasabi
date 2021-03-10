@@ -60,7 +60,7 @@ namespace WalletWasabi.Gui.Models.StatusBarStatuses
 						{
 							if (perc != status.Percentage)
 							{
-								ActiveStatuses.Remove(found);
+								_ = ActiveStatuses.Remove(found);
 								updated = ActiveStatuses.Add(status) || updated;
 							}
 						}

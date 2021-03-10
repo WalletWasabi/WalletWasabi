@@ -68,7 +68,7 @@ namespace WalletWasabi.Gui.Behaviors
 			{
 				AssociatedObject.Text = result.Address?.ToString();
 				CommandParameter = result;
-				ExecuteCommand();
+				_ = ExecuteCommand();
 				return true;
 			}
 
@@ -94,7 +94,7 @@ namespace WalletWasabi.Gui.Behaviors
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Subscribe(_ =>
 					{
-						ProcessText(AssociatedObject.Text);
+						_ = ProcessText(AssociatedObject.Text);
 						MyTextBoxState = TextBoxState.NormalTextBoxOperation;
 					})
 			};
@@ -105,7 +105,7 @@ namespace WalletWasabi.Gui.Behaviors
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Subscribe(text =>
 					{
-						ProcessText(text);
+						_ = ProcessText(text);
 						MyTextBoxState = TextBoxState.NormalTextBoxOperation;
 					}));
 			}
@@ -123,7 +123,7 @@ namespace WalletWasabi.Gui.Behaviors
 							case TextBoxState.AddressInsert:
 								{
 									string text = await Application.Current.Clipboard.GetTextAsync();
-									ProcessText(text);
+									_ = ProcessText(text);
 									MyTextBoxState = TextBoxState.NormalTextBoxOperation;
 								}
 								break;

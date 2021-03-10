@@ -17,7 +17,7 @@ namespace System.IO
 		/// <see href="https://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true/14933880#44324346"/>
 		public static async Task<bool> TryDeleteDirectoryAsync(string directory, int maxRetries = 10, int millisecondsDelay = 100)
 		{
-			Guard.NotNull(nameof(directory), directory);
+			_ = Guard.NotNull(nameof(directory), directory);
 
 			if (maxRetries < 1)
 			{
@@ -70,7 +70,7 @@ namespace System.IO
 		{
 			if (!string.IsNullOrWhiteSpace(dir)) // If root is given, then do not worry.
 			{
-				Directory.CreateDirectory(dir); // It does not fail if it exists.
+				_ = Directory.CreateDirectory(dir); // It does not fail if it exists.
 			}
 		}
 
@@ -130,7 +130,7 @@ namespace System.IO
 
 			foreach (FileInfo file in source.GetFiles())
 			{
-				file.CopyTo(Path.Combine(target.FullName, file.Name));
+				_ = file.CopyTo(Path.Combine(target.FullName, file.Name));
 			}
 		}
 

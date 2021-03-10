@@ -83,7 +83,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			CoinList = new CoinListViewModel(Wallet, Global.Config, Global.UiConfig, displayCommonOwnershipWarning: true);
 
-			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
+			_ = Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetFeesAndTexts());
 
@@ -95,7 +95,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
 
-			this.WhenAnyValue(x => x.AmountText)
+			_ = this.WhenAnyValue(x => x.AmountText)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -123,7 +123,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-			this.WhenAnyValue(x => x.IsBusy, x => x.IsHardwareBusy)
+			_ = this.WhenAnyValue(x => x.IsBusy, x => x.IsHardwareBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => BuildTransactionButtonText = IsHardwareBusy
 						? WaitingForHardwareWalletButtonTextString
@@ -131,7 +131,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							? DoingButtonText
 							: DoButtonText);
 
-			Observable
+			_ = Observable
 				.Merge(this.WhenAnyValue(x => x.FeeTarget).Select(_ => true))
 				.Merge(this.WhenAnyValue(x => x.IsEstimateAvailable).Select(_ => true))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -141,13 +141,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					SetFeesAndTexts();
 				});
 
-			this.WhenAnyValue(x => x.IsSliderFeeUsed)
+			_ = this.WhenAnyValue(x => x.IsSliderFeeUsed)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(enabled => FeeControlOpacity = enabled ? 1 : 0.5); // Give the control the disabled feeling. Real Disable it not a solution as we have to detect if the slider is moved.
 
 			MaxCommand = ReactiveCommand.Create(() => IsMax = !IsMax, outputScheduler: RxApp.MainThreadScheduler);
 
-			this.WhenAnyValue(x => x.IsMax)
+			_ = this.WhenAnyValue(x => x.IsMax)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
@@ -166,15 +166,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 
 			// Triggering the detection of same address values.
-			this.WhenAnyValue(x => x.Address)
+			_ = this.WhenAnyValue(x => x.Address)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(CustomChangeAddress)));
 
-			this.WhenAnyValue(x => x.CustomChangeAddress)
+			_ = this.WhenAnyValue(x => x.CustomChangeAddress)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(Address)));
 
-			this.WhenAnyValue(x => x.IsCustomChangeAddressVisible)
+			_ = this.WhenAnyValue(x => x.IsCustomChangeAddressVisible)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
@@ -300,7 +300,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						try
 						{
-							PasswordHelper.GetMasterExtKey(Wallet.KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
+							_ = PasswordHelper.GetMasterExtKey(Wallet.KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
 							if (compatiblityPasswordUsed is { })
 							{
 								Password = compatiblityPasswordUsed; // Overwrite the password for BuildTransaction function.
@@ -365,7 +365,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				FeeControlOpacity = entered ? 0.8 : 0.5;
 			});
 
-			Observable
+			_ = Observable
 				.Merge(MaxCommand.ThrownExceptions)
 				.Merge(FeeRateCommand.ThrownExceptions)
 				.Merge(OnAddressPasteCommand.ThrownExceptions)
@@ -446,7 +446,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _feeTarget;
 			set
 			{
-				this.RaiseAndSetIfChanged(ref _feeTarget, value);
+				_ = this.RaiseAndSetIfChanged(ref _feeTarget, value);
 				Global.UiConfig.FeeTarget = value;
 			}
 		}
@@ -871,7 +871,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen(CompositeDisposable disposables)
 		{
-			Observable
+			_ = Observable
 				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(IsEstimateAvailable)))
@@ -879,7 +879,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.RaisePropertyChanged(nameof(IsEstimateAvailable));
 
-			Observable
+			_ = Observable
 				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
@@ -904,18 +904,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ToProperty(this, x => x.UsdExchangeRate, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(disposables);
 
-			this.WhenAnyValue(x => x.UsdExchangeRate)
+			_ = this.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetFeesAndTexts());
 
-			Observable
+			_ = Observable
 				.Merge(Global.UiConfig.WhenAnyValue(x => x.IsCustomFee))
 				.Merge(this.WhenAnyValue(x => x.IsEstimateAvailable))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => IsCustomFee = !IsEstimateAvailable || Global.UiConfig.IsCustomFee)
 				.DisposeWith(disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.FeeDisplayFormat)
+			_ = Global.UiConfig.WhenAnyValue(x => x.FeeDisplayFormat)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -924,12 +924,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				})
 				.DisposeWith(disposables);
 
-			this.WhenAnyValue(x => x.IsCustomFee)
+			_ = this.WhenAnyValue(x => x.IsCustomFee)
 				.Where(x => !x)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => IsSliderFeeUsed = true);
 
-			Observable
+			_ = Observable
 				.Merge(Global.UiConfig.WhenAnyValue(x => x.IsCustomChangeAddress))
 				.Merge(this.WhenAnyValue(x => x.IsMax))
 				.ObserveOn(RxApp.MainThreadScheduler)

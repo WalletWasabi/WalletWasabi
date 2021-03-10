@@ -45,7 +45,7 @@ namespace WalletWasabi.Gui.Helpers
 
 			fullTitle = fullTitle.Substring(0, Math.Min(fullTitle.Length, MaxTitleLength));
 
-			RxApp.MainThreadScheduler
+			_ = RxApp.MainThreadScheduler
 				.Schedule(() => GetNotificationManager()
 				.Show(new Notification(fullTitle, message, type, TimeSpan.FromSeconds(DefaultNotificationTimeout), onClick)));
 		}

@@ -61,7 +61,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			coordinator.RoundConfig.UpdateOrDefault(roundConfig, toFile: true);
 			coordinator.AbortAllRoundsInInputRegistration("");
 
-			await rpc.GenerateAsync(3); // So to make sure we have enough money.
+			_ = await rpc.GenerateAsync(3); // So to make sure we have enough money.
 
 			Uri baseUri = new(RegTestFixture.BackendEndPoint);
 			var fundingTxCount = 0;
@@ -119,7 +119,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			while ((await rpc.GetRawMempoolAsync()).Length != 0)
 			{
-				await rpc.GenerateAsync(1);
+				_ = await rpc.GenerateAsync(1);
 			}
 
 			var aliceClients = new List<Task<AliceClient4>>();
@@ -286,7 +286,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				uint256 blindedOutputScriptsHash = new(Hashes.SHA256(blinded.BlindedOutput.ToBytes()));
 
 				uint256 txHash = await rpc.SendToAddressAsync(inputAddress, Money.Coins(2));
-				await rpc.GenerateAsync(1);
+				_ = await rpc.GenerateAsync(1);
 				Transaction transaction = await rpc.GetRawTransactionAsync(txHash);
 				Coin coin = transaction.Outputs.GetCoins(inputAddress.ScriptPubKey).Single();
 				OutPoint input = coin.Outpoint;
@@ -308,7 +308,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			foreach (var registerRequest in registerRequests)
 			{
-				await AliceClientBase.CreateNewAsync(round.RoundId, aliceClientBackup.RegisteredAddresses, round.MixingLevels.GetAllLevels().Select(x => x.SignerKey.PubKey), aliceClientBackup.Requesters, network, registerRequest.changeOutputAddress, new[] { registerRequest.blindedData }, registerRequest.inputsProofs, BackendHttpClient);
+				_ = await AliceClientBase.CreateNewAsync(round.RoundId, aliceClientBackup.RegisteredAddresses, round.MixingLevels.GetAllLevels().Select(x => x.SignerKey.PubKey), aliceClientBackup.Requesters, network, registerRequest.changeOutputAddress, new[] { registerRequest.blindedData }, registerRequest.inputsProofs, BackendHttpClient);
 			}
 
 			await WaitForTimeoutAsync();

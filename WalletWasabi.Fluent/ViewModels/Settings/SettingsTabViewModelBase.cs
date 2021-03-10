@@ -38,7 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			var config = new Config(ConfigOnOpen.FilePath);
 
-			RxApp.MainThreadScheduler.Schedule(
+			_ = RxApp.MainThreadScheduler.Schedule(
 				() =>
 				{
 					try

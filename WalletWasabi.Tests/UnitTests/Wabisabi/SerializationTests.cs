@@ -100,7 +100,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			var ex = Assert.Throws<ArgumentException>(() => JsonConvert.DeserializeObject<Scalar>("21", converters));
 			Assert.StartsWith("No valid serialized Scalar", ex.Message);
 
-			Assert.Throws<IndexOutOfRangeException>(() => JsonConvert.DeserializeObject<Scalar>("\"\"", converters));
+			_ = Assert.Throws<IndexOutOfRangeException>(() => JsonConvert.DeserializeObject<Scalar>("\"\"", converters));
 
 			// Serialization Zero test.
 			var serializedZero = JsonConvert.SerializeObject(Scalar.Zero, converters);
@@ -168,7 +168,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 
 			// Registration request message.
 			var serializedRequestMessage = JsonConvert.SerializeObject(credentialRequest, converters);
-			Assert.Throws<NotSupportedException>(() => JsonConvert.DeserializeObject<ZeroCredentialsRequest>(serializedRequestMessage, converters));
+			_ = Assert.Throws<NotSupportedException>(() => JsonConvert.DeserializeObject<ZeroCredentialsRequest>(serializedRequestMessage, converters));
 			var deserializedRequestMessage = JsonConvert.DeserializeObject<RealCredentialsRequest>(serializedRequestMessage, converters);
 			var reserializedRequestMessage = JsonConvert.SerializeObject(deserializedRequestMessage, converters);
 			Assert.Equal(serializedRequestMessage, reserializedRequestMessage);

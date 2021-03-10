@@ -123,7 +123,7 @@ namespace WalletWasabi.Packager
 
 		private static void RestoreProgramCs()
 		{
-			StartProcessAndWaitForExit("cmd", PackagerProjectDirectory, "git checkout -- Program.cs && exit");
+			_ = StartProcessAndWaitForExit("cmd", PackagerProjectDirectory, "git checkout -- Program.cs && exit");
 		}
 
 		private static void Sign()
@@ -148,9 +148,9 @@ namespace WalletWasabi.Packager
 					string pfxPassword = PasswordConsole.ReadPassword();
 
 					// Sign code with digicert.
-					StartProcessAndWaitForExit("cmd", BinDistDirectory, $"signtool sign /d \"Wasabi Wallet\" /f \"{PfxPath}\" /p {pfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
+					_ = StartProcessAndWaitForExit("cmd", BinDistDirectory, $"signtool sign /d \"Wasabi Wallet\" /f \"{PfxPath}\" /p {pfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
 
-					IoHelpers.TryDeleteDirectoryAsync(publishedFolder).GetAwaiter().GetResult();
+					_ = IoHelpers.TryDeleteDirectoryAsync(publishedFolder).GetAwaiter().GetResult();
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
 				else if (target.StartsWith("osx", StringComparison.OrdinalIgnoreCase))
@@ -173,9 +173,9 @@ namespace WalletWasabi.Packager
 
 			foreach (var finalFile in finalFiles)
 			{
-				StartProcessAndWaitForExit("cmd", BinDistDirectory, $"gpg --armor --detach-sign {finalFile} && exit");
+				_ = StartProcessAndWaitForExit("cmd", BinDistDirectory, $"gpg --armor --detach-sign {finalFile} && exit");
 
-				StartProcessAndWaitForExit("cmd", WixProjectDirectory, $"git checkout -- ComponentsGenerated.wxs && exit");
+				_ = StartProcessAndWaitForExit("cmd", WixProjectDirectory, $"git checkout -- ComponentsGenerated.wxs && exit");
 			}
 
 			IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
@@ -185,22 +185,22 @@ namespace WalletWasabi.Packager
 		{
 			if (Directory.Exists(BinDistDirectory))
 			{
-				IoHelpers.TryDeleteDirectoryAsync(BinDistDirectory).GetAwaiter().GetResult();
+				_ = IoHelpers.TryDeleteDirectoryAsync(BinDistDirectory).GetAwaiter().GetResult();
 				Console.WriteLine($"Deleted {BinDistDirectory}");
 			}
 
-			StartProcessAndWaitForExit("cmd", DesktopProjectDirectory, "dotnet clean --configuration Release && exit");
+			_ = StartProcessAndWaitForExit("cmd", DesktopProjectDirectory, "dotnet clean --configuration Release && exit");
 
 			var desktopBinReleaseDirectory = Path.GetFullPath(Path.Combine(DesktopProjectDirectory, "bin", "Release"));
 			var libraryBinReleaseDirectory = Path.GetFullPath(Path.Combine(LibraryProjectDirectory, "bin", "Release"));
 			if (Directory.Exists(desktopBinReleaseDirectory))
 			{
-				IoHelpers.TryDeleteDirectoryAsync(desktopBinReleaseDirectory).GetAwaiter().GetResult();
+				_ = IoHelpers.TryDeleteDirectoryAsync(desktopBinReleaseDirectory).GetAwaiter().GetResult();
 				Console.WriteLine($"Deleted {desktopBinReleaseDirectory}");
 			}
 			if (Directory.Exists(libraryBinReleaseDirectory))
 			{
-				IoHelpers.TryDeleteDirectoryAsync(libraryBinReleaseDirectory).GetAwaiter().GetResult();
+				_ = IoHelpers.TryDeleteDirectoryAsync(libraryBinReleaseDirectory).GetAwaiter().GetResult();
 				Console.WriteLine($"Deleted {libraryBinReleaseDirectory}");
 			}
 
@@ -221,11 +221,11 @@ namespace WalletWasabi.Packager
 				Console.WriteLine();
 				if (!Directory.Exists(currentBinDistDirectory))
 				{
-					Directory.CreateDirectory(currentBinDistDirectory);
+					_ = Directory.CreateDirectory(currentBinDistDirectory);
 					Console.WriteLine($"Created {currentBinDistDirectory}");
 				}
 
-				StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "clean");
+				_ = StartProcessAndWaitForExit("dotnet", DesktopProjectDirectory, arguments: "clean");
 
 				// https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish?tabs=netcore21
 				// -c|--configuration {Debug|Release}
@@ -272,7 +272,7 @@ namespace WalletWasabi.Packager
 					$"/p:Deterministic=true",
 					$"/p:RestoreLockedMode=true");
 
-				StartProcessAndWaitForExit(
+				_ = StartProcessAndWaitForExit(
 					"dotnet",
 					DesktopProjectDirectory,
 					arguments: dotnetProcessArgs,
@@ -302,7 +302,7 @@ namespace WalletWasabi.Packager
 				{
 					if (!dir.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
 					{
-						IoHelpers.TryDeleteDirectoryAsync(dir.FullName).GetAwaiter().GetResult();
+						_ = IoHelpers.TryDeleteDirectoryAsync(dir.FullName).GetAwaiter().GetResult();
 					}
 				}
 
@@ -363,7 +363,7 @@ namespace WalletWasabi.Packager
 
 					ZipFile.CreateFromDirectory(currentBinDistDirectory, Path.Combine(BinDistDirectory, $"Wasabi-osx-{VersionPrefix}.zip"));
 
-					IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).GetAwaiter().GetResult();
+					_ = IoHelpers.TryDeleteDirectoryAsync(currentBinDistDirectory).GetAwaiter().GetResult();
 					Console.WriteLine($"Deleted {currentBinDistDirectory}");
 				}
 				else if (target.StartsWith("linux"))
@@ -410,7 +410,7 @@ namespace WalletWasabi.Packager
 					};
 					string arguments = string.Join(" && ", commands);
 
-					StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
+					_ = StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
 
 					Console.WriteLine("Create Linux .deb");
 
@@ -419,15 +419,15 @@ namespace WalletWasabi.Packager
 					var linuxUsrLocalBinFolder = "/usr/local/bin/";
 					var debUsrLocalBinFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "local", "bin");
 					var debUsrLocalBinFolderPath = Path.Combine(BinDistDirectory, debUsrLocalBinFolderRelativePath);
-					Directory.CreateDirectory(debUsrLocalBinFolderPath);
+					_ = Directory.CreateDirectory(debUsrLocalBinFolderPath);
 					var debUsrAppFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "share", "applications");
 					var debUsrAppFolderPath = Path.Combine(BinDistDirectory, debUsrAppFolderRelativePath);
-					Directory.CreateDirectory(debUsrAppFolderPath);
+					_ = Directory.CreateDirectory(debUsrAppFolderPath);
 					var debUsrShareIconsFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "share", "icons", "hicolor");
 					var debUsrShareIconsFolderPath = Path.Combine(BinDistDirectory, debUsrShareIconsFolderRelativePath);
 					var debianFolderRelativePath = Path.Combine(debFolderRelativePath, "DEBIAN");
 					var debianFolderPath = Path.Combine(BinDistDirectory, debianFolderRelativePath);
-					Directory.CreateDirectory(debianFolderPath);
+					_ = Directory.CreateDirectory(debianFolderPath);
 					newFolderName = "wasabiwallet";
 					var linuxWasabiWalletFolder = Tools.LinuxPathCombine(linuxUsrLocalBinFolder, newFolderName);
 					var newFolderRelativePath = Path.Combine(debUsrLocalBinFolderRelativePath, newFolderName);
@@ -443,8 +443,8 @@ namespace WalletWasabi.Packager
 						if (number.Length == 1 && int.TryParse(number.First(), out int size))
 						{
 							string destFolder = Path.Combine(debUsrShareIconsFolderPath, $"{size}x{size}", "apps");
-							Directory.CreateDirectory(destFolder);
-							file.CopyTo(Path.Combine(destFolder, $"{ExecutableName}.png"));
+							_ = Directory.CreateDirectory(destFolder);
+							_ = file.CopyTo(Path.Combine(destFolder, $"{ExecutableName}.png"));
 						}
 					}
 
@@ -505,15 +505,15 @@ namespace WalletWasabi.Packager
 					};
 					arguments = string.Join(" && ", commands);
 
-					StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
+					_ = StartProcessAndWaitForExit("wsl", BinDistDirectory, arguments: arguments);
 
-					IoHelpers.TryDeleteDirectoryAsync(debFolderPath).GetAwaiter().GetResult();
+					_ = IoHelpers.TryDeleteDirectoryAsync(debFolderPath).GetAwaiter().GetResult();
 
 					string oldDeb = Path.Combine(BinDistDirectory, $"{ExecutableName}_{VersionPrefix}_amd64.deb");
 					string newDeb = Path.Combine(BinDistDirectory, $"Wasabi-{VersionPrefix}.deb");
 					File.Move(oldDeb, newDeb);
 
-					IoHelpers.TryDeleteDirectoryAsync(publishedFolder).GetAwaiter().GetResult();
+					_ = IoHelpers.TryDeleteDirectoryAsync(publishedFolder).GetAwaiter().GetResult();
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
 			}

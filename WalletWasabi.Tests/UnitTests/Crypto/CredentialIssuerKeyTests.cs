@@ -16,13 +16,13 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 		{
 			// Coordinator key is (0, 0, 0, 0, 0)
 			var mockRandom = new Mock<WasabiRandom>();
-			mockRandom.Setup(rnd => rnd.GetScalar(true)).Returns(Scalar.Zero);
+			_ = mockRandom.Setup(rnd => rnd.GetScalar(true)).Returns(Scalar.Zero);
 			var key = new CredentialIssuerSecretKey(mockRandom.Object);
 			var ex = Assert.Throws<ArgumentException>(key.ComputeCredentialIssuerParameters);
 			Assert.StartsWith("Point at infinity is not a valid value.", ex.Message);
 
 			// Coordinator key is (0, 0, 1, 1, 1)
-			mockRandom.SetupSequence(rnd => rnd.GetScalar(true))
+			_ = mockRandom.SetupSequence(rnd => rnd.GetScalar(true))
 				.Returns(Scalar.Zero)
 				.Returns(Scalar.Zero)
 				.Returns(Scalar.One)
@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Assert.StartsWith("Point at infinity is not a valid value.", ex.Message);
 
 			// Coordinator key is (1, 1, 0, 0, 0)
-			mockRandom.SetupSequence(rnd => rnd.GetScalar(true))
+			_ = mockRandom.SetupSequence(rnd => rnd.GetScalar(true))
 				.Returns(Scalar.One)
 				.Returns(Scalar.One)
 				.Returns(Scalar.Zero)
@@ -44,7 +44,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Assert.Equal(Generators.GV, iparams.I);
 
 			// Coordinator key is (1, 1, 1, 1, 1)
-			mockRandom.Setup(rnd => rnd.GetScalar(true))
+			_ = mockRandom.Setup(rnd => rnd.GetScalar(true))
 				.Returns(Scalar.One);
 			key = new CredentialIssuerSecretKey(mockRandom.Object);
 			iparams = key.ComputeCredentialIssuerParameters();

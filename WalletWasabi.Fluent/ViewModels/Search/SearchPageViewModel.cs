@@ -46,7 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 				.Select(SearchQueryFilter)
 				.DistinctUntilChanged();
 
-			_sourceObservable
+			_ = _sourceObservable
 				.Filter(queryFilter)
 				.GroupWithImmutableState(x => x.Category)
 				.Transform(grouping => new SearchResult(grouping.Key, grouping.Items.OrderBy(x => x.Order).ThenBy(x => x.Title)))

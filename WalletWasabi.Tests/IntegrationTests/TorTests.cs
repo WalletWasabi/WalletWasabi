@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public async Task CanDoRequestManyDifferentAsync()
 		{
 			using var client = new TorHttpClient(new Uri("http://api.qbit.ninja"), Common.TorSocks5Endpoint);
-			await QBitTestAsync(client, 10, alterRequests: true);
+			_ = await QBitTestAsync(client, 10, alterRequests: true);
 		}
 
 		[Fact]
@@ -118,9 +118,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 			using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
 
 			using var client = MakeTorHttpClient(new Uri("http://api.qbit.ninja"));
-			await (await client.SendAsync(HttpMethod.Get, "/transactions/38d4cfeb57d6685753b7a3b3534c3cb576c34ca7344cd4582f9613ebf0c2b02a?format=json&headeronly=true", null, ctsTimeout.Token)).Content.ReadAsStringAsync(ctsTimeout.Token);
-			await (await client.SendAsync(HttpMethod.Get, "/balances/15sYbVpRh6dyWycZMwPdxJWD4xbfxReeHe?unspentonly=true", null, ctsTimeout.Token)).Content.ReadAsStringAsync(ctsTimeout.Token);
-			await (await client.SendAsync(HttpMethod.Get, "balances/akEBcY5k1dn2yeEdFnTMwdhVbHxtgHb6GGi?from=tip&until=336000", null, ctsTimeout.Token)).Content.ReadAsStringAsync(ctsTimeout.Token);
+			_ = await (await client.SendAsync(HttpMethod.Get, "/transactions/38d4cfeb57d6685753b7a3b3534c3cb576c34ca7344cd4582f9613ebf0c2b02a?format=json&headeronly=true", null, ctsTimeout.Token)).Content.ReadAsStringAsync(ctsTimeout.Token);
+			_ = await (await client.SendAsync(HttpMethod.Get, "/balances/15sYbVpRh6dyWycZMwPdxJWD4xbfxReeHe?unspentonly=true", null, ctsTimeout.Token)).Content.ReadAsStringAsync(ctsTimeout.Token);
+			_ = await (await client.SendAsync(HttpMethod.Get, "balances/akEBcY5k1dn2yeEdFnTMwdhVbHxtgHb6GGi?from=tip&until=336000", null, ctsTimeout.Token)).Content.ReadAsStringAsync(ctsTimeout.Token);
 		}
 
 		[Fact]
@@ -224,7 +224,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				tasks.Add(task);
 			}
 
-			await Task.WhenAll(tasks);
+			_ = await Task.WhenAll(tasks);
 
 			var contents = new List<string>();
 			foreach (var task in tasks)

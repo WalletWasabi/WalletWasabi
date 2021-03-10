@@ -45,7 +45,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(3, graph.Count());  // tx0, tx1 and tx2
 			Assert.Equal(2, graph.First().Children.Count);  // tx0 has two children tx3 and tx4
 			Assert.Equal(2, graph.Skip(1).First().Children.Count);  // tx1 has two children tx3 and tx4
-			Assert.Single(graph.Last().Children);  // tx2 has only one children tx7
+			_ = Assert.Single(graph.Last().Children);  // tx2 has only one children tx7
 			Assert.Equal(2, graph.Last().Children.Single().Parents.Count);  // tx7 has two parents tx2 and tx6
 
 			var txs = graph.OrderByDependency().ToArray();
@@ -69,11 +69,11 @@ namespace WalletWasabi.Tests.UnitTests
 			var tx = Network.RegTest.CreateTransaction();
 			foreach (var coin in coins)
 			{
-				tx.Inputs.Add(coin.Outpoint, Script.Empty, WitScript.Empty);
+				_ = tx.Inputs.Add(coin.Outpoint, Script.Empty, WitScript.Empty);
 			}
-			tx.Outputs.Add(Money.Coins(3), Script.Empty);
-			tx.Outputs.Add(Money.Coins(2), Script.Empty);
-			tx.Outputs.Add(Money.Coins(1), Script.Empty);
+			_ = tx.Outputs.Add(Money.Coins(3), Script.Empty);
+			_ = tx.Outputs.Add(Money.Coins(2), Script.Empty);
+			_ = tx.Outputs.Add(Money.Coins(1), Script.Empty);
 			tx.PrecomputeHash(true, false);
 			return (tx, tx.Outputs.AsCoins().ToArray());
 		}

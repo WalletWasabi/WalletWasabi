@@ -18,14 +18,14 @@ namespace WalletWasabi.Gui.Converters
 				{
 					if (pos > 0)
 					{
-						builder.Append(' ');
+						_ = builder.Append(' ');
 					}
 
-					builder.Append(char.ToLower(c));
+					_ = builder.Append(char.ToLower(c));
 				}
 				else
 				{
-					builder.Append(c);
+					_ = builder.Append(c);
 				}
 				pos++;
 			}

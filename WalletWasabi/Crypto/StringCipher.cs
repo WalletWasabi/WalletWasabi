@@ -99,7 +99,7 @@ namespace WalletWasabi.Crypto
 
 			using var aes = CreateAES();
 			using var decryptor = aes.CreateDecryptor(key, iv);
-			memoryStream.Seek(-cipherLength, SeekOrigin.End);
+			_ = memoryStream.Seek(-cipherLength, SeekOrigin.End);
 			using var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read);
 			var plainTextBytes = new byte[cipherLength];
 			var decryptedByteCount = cryptoStream.Read(plainTextBytes, 0, plainTextBytes.Length);

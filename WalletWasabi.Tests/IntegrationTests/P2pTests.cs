@@ -88,8 +88,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 				addressManager = new AddressManager();
 			}
 
-			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
-			connectionParameters.TemplateBehaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
+			_ = connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
+			_ = connectionParameters.TemplateBehaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			using var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
@@ -134,7 +134,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 					downloadTasks.Add(blockProvider.GetBlockAsync(hash, cts.Token));
 				}
 
-				await nodeConnectionAwaiter.WaitAsync(TimeSpan.FromMinutes(3));
+				_ = await nodeConnectionAwaiter.WaitAsync(TimeSpan.FromMinutes(3));
 
 				var i = 0;
 				var hashArray = blocksToDownload.ToArray();
@@ -144,7 +144,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 					i++;
 				}
 
-				await mempoolTransactionAwaiter.WaitAsync(TimeSpan.FromMinutes(1));
+				_ = await mempoolTransactionAwaiter.WaitAsync(TimeSpan.FromMinutes(1));
 			}
 			finally
 			{

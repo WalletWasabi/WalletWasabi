@@ -53,7 +53,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 		public void CommitPublicNonces(IEnumerable<GroupElement> publicNonces)
 		{
-			Guard.NotNullOrInfinity(nameof(publicNonces), publicNonces);
+			_ = Guard.NotNullOrInfinity(nameof(publicNonces), publicNonces);
 			AddMessages(PublicNonceTag, publicNonces.Select(x => x.ToBytes()));
 		}
 

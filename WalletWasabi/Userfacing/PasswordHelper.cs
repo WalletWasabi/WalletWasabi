@@ -85,7 +85,7 @@ namespace WalletWasabi.Userfacing
 			compatibilityPasswordUsed = null;
 			try
 			{
-				GetMasterExtKey(keyManager, password, out compatibilityPasswordUsed);
+				_ = GetMasterExtKey(keyManager, password, out compatibilityPasswordUsed);
 			}
 			catch
 			{

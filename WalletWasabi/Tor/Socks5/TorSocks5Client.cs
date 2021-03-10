@@ -207,7 +207,7 @@ namespace WalletWasabi.Tor.Socks5
 			Logger.LogDebug($"> {nameof(host)}='{host}', {nameof(port)}={port}");
 
 			host = Guard.NotNullOrEmptyOrWhitespace(nameof(host), host, true);
-			Guard.MinimumAndNotNull(nameof(port), port, 0);
+			_ = Guard.MinimumAndNotNull(nameof(port), port, 0);
 
 			try
 			{
@@ -326,7 +326,7 @@ namespace WalletWasabi.Tor.Socks5
 					throw new TorConnectionException("Failed to read first four bytes from the SOCKS5 response.");
 				}
 
-				builder.Append((byte)byteResult);
+				_ = builder.Append((byte)byteResult);
 			}
 
 			// Process last read byte which is ATYP.
@@ -358,7 +358,7 @@ namespace WalletWasabi.Tor.Socks5
 					throw new TorConnectionException("Failed to read DST.ADDR from the SOCKS5 response.");
 				}
 
-				builder.Append((byte)byteResult);
+				_ = builder.Append((byte)byteResult);
 			}
 
 			// Read DST.PORT.
@@ -371,7 +371,7 @@ namespace WalletWasabi.Tor.Socks5
 					throw new TorConnectionException("Failed to read DST.PORT from the SOCKS5 response.");
 				}
 
-				builder.Append((byte)byteResult);
+				_ = builder.Append((byte)byteResult);
 			}
 
 			return builder.ToArray();

@@ -136,67 +136,67 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 			// The client is triggered only when a status response arrives. The answer to the server is delayed randomly from 0 to 7 seconds.
 
-			Task.Run(async () =>
-			{
-				try
-				{
-					Logger.LogInfo($"{nameof(CoinJoinClient)} is successfully initialized.");
+			_ = Task.Run(async () =>
+			  {
+				  try
+				  {
+					  Logger.LogInfo($"{nameof(CoinJoinClient)} is successfully initialized.");
 
-					while (IsRunning)
-					{
-						try
-						{
-							using (await MixLock.LockAsync().ConfigureAwait(false))
-							{
-								await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
+					  while (IsRunning)
+					  {
+						  try
+						  {
+							  using (await MixLock.LockAsync().ConfigureAwait(false))
+							  {
+								  await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 
-								// If stop was requested return.
-								if (!IsRunning)
-								{
-									return;
-								}
+								  // If stop was requested return.
+								  if (!IsRunning)
+								  {
+									  return;
+								  }
 
-								// if mixing >= connConf
-								if (State.GetActivelyMixingRounds().Any())
-								{
-									int delaySeconds = new Random().Next(2, 7);
-									Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
-								}
-								else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Any() || State.GetWaitingListCount() > 0)
-								{
-									double rand = double.Parse($"0.{new Random().Next(2, 6)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.6 * connConfTimeout
-									int delaySeconds = Math.Max(0, (int)((rand * State.GetSmallestRegistrationTimeout()) - 7));
+								  // if mixing >= connConf
+								  if (State.GetActivelyMixingRounds().Any())
+								  {
+									  int delaySeconds = new Random().Next(2, 7);
+									  Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
+								  }
+								  else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Any() || State.GetWaitingListCount() > 0)
+								  {
+									  double rand = double.Parse($"0.{new Random().Next(2, 6)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.6 * connConfTimeout
+									  int delaySeconds = Math.Max(0, (int)((rand * State.GetSmallestRegistrationTimeout()) - 7));
 
-									Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
-								}
-								else // dormant
-								{
-									Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromMinutes(3);
-								}
-							}
-						}
-						catch (Exception ex)
-						{
-							Logger.LogError(ex);
-						}
-						finally
-						{
-							try
-							{
-								await Task.Delay(1000, Cancel.Token).ConfigureAwait(false);
-							}
-							catch (TaskCanceledException ex)
-							{
-								Logger.LogTrace(ex);
-							}
-						}
-					}
-				}
-				finally
-				{
-					Interlocked.CompareExchange(ref _running, StateStopped, StateStopping); // If IsStopping, make it stopped.
-				}
-			});
+									  Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
+								  }
+								  else // dormant
+								  {
+									  Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromMinutes(3);
+								  }
+							  }
+						  }
+						  catch (Exception ex)
+						  {
+							  Logger.LogError(ex);
+						  }
+						  finally
+						  {
+							  try
+							  {
+								  await Task.Delay(1000, Cancel.Token).ConfigureAwait(false);
+							  }
+							  catch (TaskCanceledException ex)
+							  {
+								  Logger.LogTrace(ex);
+							  }
+						  }
+					  }
+				  }
+				  finally
+				  {
+					  _ = Interlocked.CompareExchange(ref _running, StateStopped, StateStopping); // If IsStopping, make it stopped.
+				  }
+			  });
 		}
 
 		private async Task TryProcessStatusAsync(IEnumerable<RoundStateResponseBase> states)
@@ -212,7 +212,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			{
 				Synchronizer.BlockRequests();
 
-				Interlocked.Exchange(ref _statusProcessing, 1);
+				_ = Interlocked.Exchange(ref _statusProcessing, 1);
 				using (await MixLock.LockAsync().ConfigureAwait(false))
 				{
 					// First, if there's delayed round registration update based on the state.
@@ -291,7 +291,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			}
 			finally
 			{
-				Interlocked.Exchange(ref _statusProcessing, 0);
+				_ = Interlocked.Exchange(ref _statusProcessing, 0);
 				Synchronizer.EnableRequests();
 			}
 		}
@@ -631,7 +631,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			var keysTryNotToRegister = ExposedLinks.SelectMany(x => x.Value).Select(x => x.Key).Except(keysToSurelyRegister).ToArray();
 
 			// Get all locked internal keys we have and assert we have enough.
-			DestinationKeyManager.AssertLockedInternalKeysIndexed(howMany: maximumMixingLevelCount + 1);
+			_ = DestinationKeyManager.AssertLockedInternalKeysIndexed(howMany: maximumMixingLevelCount + 1);
 			IEnumerable<HdPubKey> allLockedInternalKeys = DestinationKeyManager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked && !keysTryNotToRegister.Contains(x));
 
 			// If any of our inputs have exposed address relationship then prefer that.
@@ -718,7 +718,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					}
 					else
 					{
-						ExposedLinks.TryRemove(key, out _);
+						_ = ExposedLinks.TryRemove(key, out _);
 					}
 				}
 			}
@@ -729,17 +729,17 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		public async Task QueueCoinsToMixAsync(IEnumerable<SmartCoin> coins)
 		{
-			await QueueCoinsToMixAsync(Kitchen.SaltSoup(), coins).ConfigureAwait(false);
+			_ = await QueueCoinsToMixAsync(Kitchen.SaltSoup(), coins).ConfigureAwait(false);
 		}
 
 		public void ActivateFrequentStatusProcessing()
 		{
-			Interlocked.Exchange(ref _frequentStatusProcessingIfNotMixing, 1);
+			_ = Interlocked.Exchange(ref _frequentStatusProcessingIfNotMixing, 1);
 		}
 
 		public void DeactivateFrequentStatusProcessingIfNotMixing()
 		{
-			Interlocked.Exchange(ref _frequentStatusProcessingIfNotMixing, 0);
+			_ = Interlocked.Exchange(ref _frequentStatusProcessingIfNotMixing, 0);
 		}
 
 		public async Task<IEnumerable<SmartCoin>> QueueCoinsToMixAsync(string password, params SmartCoin[] coins)
@@ -822,14 +822,14 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				{
 					await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 
-					await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.OutPoint).ToArray(), reason).ConfigureAwait(false);
+					_ = await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.OutPoint).ToArray(), reason).ConfigureAwait(false);
 				}
 			}
 			catch (TaskCanceledException)
 			{
-				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray(), reason).ConfigureAwait(false);
+				_ = await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray(), reason).ConfigureAwait(false);
 
-				await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.OutPoint).ToArray(), reason).ConfigureAwait(false);
+				_ = await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.OutPoint).ToArray(), reason).ConfigureAwait(false);
 			}
 		}
 
@@ -847,14 +847,14 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				{
 					await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 
-					await DequeueCoinsFromMixNoLockAsync(coins, reason).ConfigureAwait(false);
+					_ = await DequeueCoinsFromMixNoLockAsync(coins, reason).ConfigureAwait(false);
 				}
 			}
 			catch (TaskCanceledException)
 			{
 				await DequeueSpentCoinsFromMixNoLockAsync().ConfigureAwait(false);
 
-				await DequeueCoinsFromMixNoLockAsync(coins, reason).ConfigureAwait(false);
+				_ = await DequeueCoinsFromMixNoLockAsync(coins, reason).ConfigureAwait(false);
 			}
 		}
 
@@ -880,17 +880,17 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		private async Task DequeueAllCoinsFromMixNoLockAsync(DequeueReason reason)
 		{
-			await DequeueCoinsFromMixNoLockAsync(State.GetAllQueuedCoins().ToArray(), reason).ConfigureAwait(false);
+			_ = await DequeueCoinsFromMixNoLockAsync(State.GetAllQueuedCoins().ToArray(), reason).ConfigureAwait(false);
 		}
 
 		private async Task DequeueSpentCoinsFromMixNoLockAsync()
 		{
-			await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray(), DequeueReason.Spent).ConfigureAwait(false);
+			_ = await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray(), DequeueReason.Spent).ConfigureAwait(false);
 		}
 
 		private async Task DequeueCoinsFromMixNoLockAsync(OutPoint coin, DequeueReason reason)
 		{
-			await DequeueCoinsFromMixNoLockAsync(new[] { coin }, reason).ConfigureAwait(false);
+			_ = await DequeueCoinsFromMixNoLockAsync(new[] { coin }, reason).ConfigureAwait(false);
 		}
 
 		private async Task<DequeueResult> DequeueCoinsFromMixNoLockAsync(OutPoint[] coins, DequeueReason reason)
@@ -987,7 +987,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 			Synchronizer.ResponseArrived -= Synchronizer_ResponseArrivedAsync;
 
-			Interlocked.CompareExchange(ref _running, StateStopping, StateRunning); // If running, make it stopping.
+			_ = Interlocked.CompareExchange(ref _running, StateStopping, StateRunning); // If running, make it stopping.
 			Cancel.Cancel();
 
 			while (Interlocked.CompareExchange(ref _running, StateStopped, StateNotStarted) == StateStopping)

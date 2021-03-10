@@ -14,7 +14,7 @@ namespace WalletWasabi.Crypto.Groups
 			}
 			else
 			{
-				Guard.True($"{nameof(groupElement)}.{nameof(groupElement.IsValidVariable)}", groupElement.IsValidVariable);
+				_ = Guard.True($"{nameof(groupElement)}.{nameof(groupElement.IsValidVariable)}", groupElement.IsValidVariable);
 				LazyGe = new Lazy<GE>(() => new GE(groupElement.x.Normalize(), groupElement.y.Normalize()));
 			}
 
@@ -163,7 +163,7 @@ namespace WalletWasabi.Crypto.Groups
 		public static GroupElement FromBytes(byte[] bytes)
 		{
 			const int CompressedLength = 32 + 1;
-			Guard.Same($"{nameof(bytes)}.{nameof(bytes.Length)}", CompressedLength, bytes.Length);
+			_ = Guard.Same($"{nameof(bytes)}.{nameof(bytes.Length)}", CompressedLength, bytes.Length);
 
 			static GroupElement Parse(Span<byte> buffer, bool isOdd) =>
 				FE.TryCreate(buffer, out var x) && GE.TryCreateXOVariable(x, isOdd, out var ge)

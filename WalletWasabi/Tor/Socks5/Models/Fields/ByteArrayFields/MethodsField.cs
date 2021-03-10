@@ -10,7 +10,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 	{
 		public MethodsField(byte[] bytes)
 		{
-			Guard.NotNullOrEmpty(nameof(bytes), bytes);
+			_ = Guard.NotNullOrEmpty(nameof(bytes), bytes);
 
 			foreach (var b in bytes)
 			{
@@ -25,7 +25,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 
 		public MethodsField(params MethodField[] methods)
 		{
-			Guard.NotNullOrEmpty(nameof(methods), methods);
+			_ = Guard.NotNullOrEmpty(nameof(methods), methods);
 
 			int count = methods.Length;
 			Bytes = new byte[count];

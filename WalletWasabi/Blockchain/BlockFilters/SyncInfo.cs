@@ -8,7 +8,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 	{
 		public SyncInfo(BlockchainInfo bcinfo)
 		{
-			Guard.NotNull(nameof(bcinfo), bcinfo);
+			_ = Guard.NotNull(nameof(bcinfo), bcinfo);
 			BlockCount = (int)bcinfo.Blocks;
 			int headerCount = (int)bcinfo.Headers;
 			BlockchainInfoUpdated = DateTimeOffset.UtcNow;

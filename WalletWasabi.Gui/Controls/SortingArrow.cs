@@ -64,8 +64,8 @@ namespace WalletWasabi.Gui.Controls
 
 			Content = stackPnl;
 
-			this.GetObservable(SortDirectionProperty).Subscribe(x => SortDirection = x);
-			this.GetObservable(TextProperty).Subscribe(x => Text = x);
+			_ = this.GetObservable(SortDirectionProperty).Subscribe(x => SortDirection = x);
+			_ = this.GetObservable(TextProperty).Subscribe(x => Text = x);
 		}
 
 		Type IStyleable.StyleKey => typeof(Button);

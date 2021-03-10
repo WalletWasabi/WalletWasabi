@@ -19,31 +19,31 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			Assert.Null(translatorTest.TryGetRpcUser());
 			Assert.Null(translatorReg.TryGetRpcUser());
 
-			config.AddOrUpdate("rpcuser");
+			_ = config.AddOrUpdate("rpcuser");
 			Assert.Null(translatorMain.TryGetRpcUser());
 			Assert.Null(translatorTest.TryGetRpcUser());
 			Assert.Null(translatorReg.TryGetRpcUser());
-			config.AddOrUpdate("rpcuser=foo");
+			_ = config.AddOrUpdate("rpcuser=foo");
 			Assert.Equal("foo", translatorMain.TryGetRpcUser());
 			Assert.Null(translatorTest.TryGetRpcUser());
 			Assert.Null(translatorReg.TryGetRpcUser());
-			config.AddOrUpdate("rpcuser=boo");
+			_ = config.AddOrUpdate("rpcuser=boo");
 			Assert.Equal("boo", translatorMain.TryGetRpcUser());
 			Assert.Null(translatorTest.TryGetRpcUser());
 			Assert.Null(translatorReg.TryGetRpcUser());
-			config.AddOrUpdate("main.rpcuser=ooh");
+			_ = config.AddOrUpdate("main.rpcuser=ooh");
 			Assert.Equal("ooh", translatorMain.TryGetRpcUser());
 			Assert.Null(translatorTest.TryGetRpcUser());
 			Assert.Null(translatorReg.TryGetRpcUser());
-			config.AddOrUpdate("rpcuser=boo");
+			_ = config.AddOrUpdate("rpcuser=boo");
 			Assert.Equal("boo", translatorMain.TryGetRpcUser());
 			Assert.Null(translatorTest.TryGetRpcUser());
 			Assert.Null(translatorReg.TryGetRpcUser());
-			config.AddOrUpdate("test.rpcuser=boo");
+			_ = config.AddOrUpdate("test.rpcuser=boo");
 			Assert.Equal("boo", translatorMain.TryGetRpcUser());
 			Assert.Equal("boo", translatorTest.TryGetRpcUser());
 			Assert.Null(translatorReg.TryGetRpcUser());
-			config.AddOrUpdate("regtest.rpcuser=boo");
+			_ = config.AddOrUpdate("regtest.rpcuser=boo");
 			Assert.Equal("boo", translatorMain.TryGetRpcUser());
 			Assert.Equal("boo", translatorTest.TryGetRpcUser());
 			Assert.Equal("boo", translatorReg.TryGetRpcUser());
@@ -56,16 +56,16 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			var translator = new CoreConfigTranslator(config, Network.Main);
 			Assert.Null(translator.TryGetRpcPort());
 
-			config.AddOrUpdate("rpcport");
+			_ = config.AddOrUpdate("rpcport");
 			Assert.Null(translator.TryGetRpcPort());
 
-			config.AddOrUpdate("main.rpcport=1");
+			_ = config.AddOrUpdate("main.rpcport=1");
 			Assert.Equal((ushort)1, translator.TryGetRpcPort());
 
-			config.AddOrUpdate("rpcport=2");
+			_ = config.AddOrUpdate("rpcport=2");
 			Assert.Equal((ushort)2, translator.TryGetRpcPort());
 
-			config.AddOrUpdate("main.rpcport=foo");
+			_ = config.AddOrUpdate("main.rpcport=foo");
 			Assert.Null(translator.TryGetRpcPort());
 		}
 
@@ -76,24 +76,24 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			var translator = new CoreConfigTranslator(config, Network.Main);
 			Assert.Null(translator.TryGetWhiteBind());
 
-			config.AddOrUpdate("whitebind");
+			_ = config.AddOrUpdate("whitebind");
 			Assert.Null(translator.TryGetWhiteBind());
 
-			config.AddOrUpdate("main.whitebind=127.0.0.1:18444");
+			_ = config.AddOrUpdate("main.whitebind=127.0.0.1:18444");
 			WhiteBind? whiteBind = translator.TryGetWhiteBind();
 			var ipEndPoint = whiteBind.EndPoint as IPEndPoint;
 			Assert.Equal(IPAddress.Loopback, ipEndPoint.Address);
 			Assert.Equal(18444, ipEndPoint.Port);
 			Assert.Equal("", whiteBind.Permissions);
 
-			config.AddOrUpdate("whitebind=127.0.0.1:0");
+			_ = config.AddOrUpdate("whitebind=127.0.0.1:0");
 			whiteBind = translator.TryGetWhiteBind();
 			ipEndPoint = whiteBind.EndPoint as IPEndPoint;
 			Assert.Equal(IPAddress.Loopback, ipEndPoint.Address);
 			Assert.Equal(0, ipEndPoint.Port);
 			Assert.Equal("", whiteBind.Permissions);
 
-			config.AddOrUpdate("whitebind=127.0.0.1");
+			_ = config.AddOrUpdate("whitebind=127.0.0.1");
 			whiteBind = translator.TryGetWhiteBind();
 			ipEndPoint = whiteBind.EndPoint as IPEndPoint;
 			Assert.Equal(IPAddress.Loopback, ipEndPoint.Address);
@@ -102,21 +102,21 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			Assert.Equal(8333, ipEndPoint.Port);
 			Assert.Equal("", whiteBind.Permissions);
 
-			config.AddOrUpdate("whitebind=foo@127.0.0.1");
+			_ = config.AddOrUpdate("whitebind=foo@127.0.0.1");
 			whiteBind = translator.TryGetWhiteBind();
 			ipEndPoint = whiteBind.EndPoint as IPEndPoint;
 			Assert.Equal(IPAddress.Loopback, ipEndPoint.Address);
 			Assert.Equal(8333, ipEndPoint.Port);
 			Assert.Equal("foo", whiteBind.Permissions);
 
-			config.AddOrUpdate("whitebind=foo,boo@127.0.0.1");
+			_ = config.AddOrUpdate("whitebind=foo,boo@127.0.0.1");
 			whiteBind = translator.TryGetWhiteBind();
 			ipEndPoint = whiteBind.EndPoint as IPEndPoint;
 			Assert.Equal(IPAddress.Loopback, ipEndPoint.Address);
 			Assert.Equal(8333, ipEndPoint.Port);
 			Assert.Equal("foo,boo", whiteBind.Permissions);
 
-			config.AddOrUpdate("main.whitebind=@@@");
+			_ = config.AddOrUpdate("main.whitebind=@@@");
 			Assert.Null(translator.TryGetWhiteBind());
 		}
 	}

@@ -56,7 +56,7 @@ namespace WalletWasabi.Tor.Http.Extensions
 					// delimiter(Section 2.7.1).If the authority component is missing or
 					// undefined for the target URI, then a client MUST send a Host header
 					// field with an empty field - value.
-					request.Headers.TryAddWithoutValidation("Host", request.RequestUri!.Authority);
+					_ = request.Headers.TryAddWithoutValidation("Host", request.RequestUri!.Authority);
 				}
 			}
 

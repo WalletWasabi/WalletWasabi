@@ -137,7 +137,7 @@ namespace WalletWasabi.Fluent.Controls
 			_autoCompleteBox.DropDownClosed += OnAutoCompleteBoxDropDownClosed;
 			_autoCompleteBox.TemplateApplied += OnAutoCompleteBoxTemplateApplied;
 
-			Disposable.Create(
+			_ = Disposable.Create(
 					() =>
 					{
 						_autoCompleteBox.TextChanged -= OnAutoCompleteBoxTextChanged;
@@ -146,11 +146,11 @@ namespace WalletWasabi.Fluent.Controls
 					})
 				.DisposeWith(_compositeDisposable);
 
-			_autoCompleteBox
+			_ = _autoCompleteBox
 				.AddDisposableHandler(TextInputEvent, OnTextInput, RoutingStrategies.Tunnel)
 				.DisposeWith(_compositeDisposable);
 
-			_autoCompleteBox
+			_ = _autoCompleteBox
 				.AddDisposableHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel)
 				.DisposeWith(_compositeDisposable);
 		}
@@ -158,7 +158,7 @@ namespace WalletWasabi.Fluent.Controls
 		private void OnAutoCompleteBoxTemplateApplied(object? sender, TemplateAppliedEventArgs e)
 		{
 			_internalTextBox = e.NameScope.Find<TextBox>("PART_TextBox");
-			_internalTextBox.WhenAnyValue(x => x.IsFocused)
+			_ = _internalTextBox.WhenAnyValue(x => x.IsFocused)
 				.Subscribe(isFocused =>
 				{
 					if (isFocused || !_isInputEnabled || string.IsNullOrWhiteSpace(_internalTextBox.Text))
@@ -169,9 +169,9 @@ namespace WalletWasabi.Fluent.Controls
 					var currentText = (_autoCompleteBox?.Text ?? "").Trim();
 
 					if (RestrictInputToSuggestions &&
-					    Suggestions is IList<string> suggestions &&
-					    !suggestions.Any(x =>
-						    x.StartsWith(currentText, _stringComparison)))
+						Suggestions is IList<string> suggestions &&
+						!suggestions.Any(x =>
+							x.StartsWith(currentText, _stringComparison)))
 					{
 						return;
 					}
@@ -420,7 +420,7 @@ namespace WalletWasabi.Fluent.Controls
 					return;
 				}
 
-				x.Add(tag);
+				_ = x.Add(tag);
 			}
 
 			CheckIsInputEnabled();

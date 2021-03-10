@@ -73,7 +73,7 @@ namespace WalletWasabi.Fluent.Desktop
 					Locator.CurrentMutable.RegisterConstant(Global);
 
 					Logger.LogSoftwareStarted("Wasabi GUI");
-					BuildAvaloniaApp()
+					_ = BuildAvaloniaApp()
 						.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled))
 						.StartWithClassicDesktopLifetime(args);
 				}
@@ -138,7 +138,7 @@ namespace WalletWasabi.Fluent.Desktop
 
 		private static (UiConfig uiConfig, Config config) LoadOrCreateConfigs(string dataDir)
 		{
-			Directory.CreateDirectory(dataDir);
+			_ = Directory.CreateDirectory(dataDir);
 
 			UiConfig uiConfig = new(Path.Combine(dataDir, "UiConfig.json"));
 			uiConfig.LoadOrCreateDefaultFile();
@@ -201,18 +201,18 @@ namespace WalletWasabi.Fluent.Desktop
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				result
+				_ = result
 					.UseWin32()
 					.UseSkia();
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				result.UsePlatformDetect()
+				_ = result.UsePlatformDetect()
 					.UseManagedSystemDialogs<AppBuilder, Window>();
 			}
 			else
 			{
-				result.UsePlatformDetect();
+				_ = result.UsePlatformDetect();
 			}
 
 			return result

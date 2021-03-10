@@ -17,44 +17,44 @@ namespace WalletWasabi.Gui.Converters
 				{
 					if (ts.Days == 1)
 					{
-						builder.Append($"{ts.Days} day ");
+						_ = builder.Append($"{ts.Days} day ");
 					}
 					else
 					{
-						builder.Append($"{ts.Days} days ");
+						_ = builder.Append($"{ts.Days} days ");
 					}
 				}
 				if (ts.Hours != 0)
 				{
 					if (ts.Hours == 1)
 					{
-						builder.Append($"{ts.Hours} hour ");
+						_ = builder.Append($"{ts.Hours} hour ");
 					}
 					else
 					{
-						builder.Append($"{ts.Hours} hours ");
+						_ = builder.Append($"{ts.Hours} hours ");
 					}
 				}
 				if (ts.Minutes != 0)
 				{
 					if (ts.Minutes == 1)
 					{
-						builder.Append($"{ts.Minutes} minute ");
+						_ = builder.Append($"{ts.Minutes} minute ");
 					}
 					else
 					{
-						builder.Append($"{ts.Minutes} minutes ");
+						_ = builder.Append($"{ts.Minutes} minutes ");
 					}
 				}
 				if (ts.Seconds != 0)
 				{
 					if (ts.Seconds == 1)
 					{
-						builder.Append($"{ts.Seconds} second");
+						_ = builder.Append($"{ts.Seconds} second");
 					}
 					else
 					{
-						builder.Append($"{ts.Seconds} seconds");
+						_ = builder.Append($"{ts.Seconds} seconds");
 					}
 				}
 				return builder.ToString();

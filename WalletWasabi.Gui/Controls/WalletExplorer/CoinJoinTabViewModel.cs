@@ -61,7 +61,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			CoinsList = new CoinListViewModel(Wallet, Global.Config, Global.UiConfig, canDequeueCoins: true);
 
-			Observable
+			_ = Observable
 				.FromEventPattern<SmartCoin>(CoinsList, nameof(CoinsList.DequeueCoinsPressed))
 				.Subscribe(async x => await DoDequeueAsync(x.EventArgs));
 
@@ -103,15 +103,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				   config.ToFile();
 			   });
 
-			this.WhenAnyValue(x => x.IsEnqueueBusy)
+			_ = this.WhenAnyValue(x => x.IsEnqueueBusy)
 				.Select(x => x ? EnqueuingButtonTextString : EnqueueButtonTextString)
 				.Subscribe(text => EnqueueButtonText = text);
 
-			this.WhenAnyValue(x => x.IsDequeueBusy)
+			_ = this.WhenAnyValue(x => x.IsDequeueBusy)
 				.Select(x => x ? DequeuingButtonTextString : DequeueButtonTextString)
 				.Subscribe(text => DequeueButtonText = text);
 
-			this.WhenAnyValue(x => x.RoundTimesout)
+			_ = this.WhenAnyValue(x => x.RoundTimesout)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -119,7 +119,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					TimeLeftTillRoundTimeout = left > TimeSpan.Zero ? left : TimeSpan.Zero; // Make sure cannot be less than zero.
 				});
 
-			Observable
+			_ = Observable
 				.Merge(EnqueueCommand.ThrownExceptions)
 				.Merge(DequeueCommand.ThrownExceptions)
 				.Merge(PrivacySomeCommand.ThrownExceptions)
@@ -254,7 +254,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			CoordinatorFeePercent = registrableRound?.State?.CoordinatorFeePercent.ToString() ?? "0.003";
 
-			Observable.FromEventPattern(Wallet.ChaumianClient, nameof(Wallet.ChaumianClient.CoinQueued))
+			_ = Observable.FromEventPattern(Wallet.ChaumianClient, nameof(Wallet.ChaumianClient.CoinQueued))
 				.Merge(Observable.FromEventPattern(Wallet.ChaumianClient, nameof(Wallet.ChaumianClient.OnDequeue)))
 				.Merge(Observable.FromEventPattern(Wallet.ChaumianClient, nameof(Wallet.ChaumianClient.StateUpdated)))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -280,13 +280,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				PeersNeeded = 100;
 			}
 
-			Global.UiConfig.WhenAnyValue(x => x.PrivacyMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(AmountQueued));
-				this.RaisePropertyChanged(nameof(IsPrivacyMode));
-			}).DisposeWith(disposables);
+			_ = Global.UiConfig.WhenAnyValue(x => x.PrivacyMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			  {
+				  this.RaisePropertyChanged(nameof(AmountQueued));
+				  this.RaisePropertyChanged(nameof(IsPrivacyMode));
+			  }).DisposeWith(disposables);
 
-			Observable.Interval(TimeSpan.FromSeconds(1))
+			_ = Observable.Interval(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
@@ -345,7 +345,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				try
 				{
-					PasswordHelper.GetMasterExtKey(Wallet.KeyManager, Password, out string compatiblityPassword); // If the password is not correct we throw.
+					_ = PasswordHelper.GetMasterExtKey(Wallet.KeyManager, Password, out string compatiblityPassword); // If the password is not correct we throw.
 
 					if (compatiblityPassword is { })
 					{
@@ -353,7 +353,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 					}
 
-					await Wallet.ChaumianClient.QueueCoinsToMixAsync(Password, coins.ToArray());
+					_ = await Wallet.ChaumianClient.QueueCoinsToMixAsync(Password, coins.ToArray());
 				}
 				catch (SecurityException ex)
 				{
@@ -366,7 +366,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						foreach (var iex in aggex.InnerExceptions)
 						{
-							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
+							_ = builder.Append(Environment.NewLine + iex.ToTypeMessageString());
 						}
 					}
 					NotificationHelpers.Error(builder.ToString());

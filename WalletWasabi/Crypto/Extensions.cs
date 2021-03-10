@@ -24,10 +24,10 @@ namespace System.Linq
 
 		public static IEnumerable<TResult> Zip<TFirst, TSecond, TThird, TResult>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, IEnumerable<TThird> third, Func<TFirst, TSecond, TThird, TResult> resultSelector)
 		{
-			Guard.NotNull(nameof(first), first);
-			Guard.NotNull(nameof(second), second);
-			Guard.NotNull(nameof(third), third);
-			Guard.NotNull(nameof(resultSelector), resultSelector);
+			_ = Guard.NotNull(nameof(first), first);
+			_ = Guard.NotNull(nameof(second), second);
+			_ = Guard.NotNull(nameof(third), third);
+			_ = Guard.NotNull(nameof(resultSelector), resultSelector);
 			using var e1 = first.GetEnumerator();
 			using var e2 = second.GetEnumerator();
 			using var e3 = third.GetEnumerator();

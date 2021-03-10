@@ -75,7 +75,7 @@ namespace WalletWasabi.Nito.AsyncEx
 		{
 			foreach (var t in tasks)
 			{
-				Tasks.Add(t);
+				_ = Tasks.Add(t);
 			}
 		}
 
@@ -90,7 +90,7 @@ namespace WalletWasabi.Nito.AsyncEx
 						Logger.LogDebug(exc);
 					}
 
-					Tasks.Remove(t);
+					_ = Tasks.Remove(t);
 				}
 			}
 		}

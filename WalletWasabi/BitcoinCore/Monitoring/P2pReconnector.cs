@@ -26,7 +26,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 				await P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
 
 				Logger.LogInfo("Successfully reconnected to P2P.");
-				Success.TrySetResult(true);
+				_ = Success.TrySetResult(true);
 			}
 		}
 
@@ -34,7 +34,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 		{
 			await StartAsync(cancel).ConfigureAwait(false);
 			using var ctr = cancel.Register(() => Success.SetResult(false));
-			await Success.Task.ConfigureAwait(false);
+			_ = await Success.Task.ConfigureAwait(false);
 
 			try
 			{

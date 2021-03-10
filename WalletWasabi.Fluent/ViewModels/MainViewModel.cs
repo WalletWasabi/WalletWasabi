@@ -84,19 +84,19 @@ namespace WalletWasabi.Fluent.ViewModels
 			RegisterCategories(_searchPage);
 			RegisterViewModels();
 
-			RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
+			_ = RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
 
 			_searchPage.Initialise();
 
-			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
+			_ = this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsMainContentEnabled = !x);
 
-			this.WhenAnyValue(x => x.FullScreen!.IsDialogOpen)
+			_ = this.WhenAnyValue(x => x.FullScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsMainContentEnabled = !x);
 
-			_walletManagerViewModel.WhenAnyValue(x => x.Items.Count, x => x.Actions.Count)
+			_ = _walletManagerViewModel.WhenAnyValue(x => x.Items.Count, x => x.Actions.Count)
 				.Subscribe(x => _navBar.IsHidden = x.Item1 == 0 && x.Item2 == 0);
 
 			if (!_walletManagerViewModel.WalletManager.AnyWallet(_ => true))
@@ -182,27 +182,27 @@ namespace WalletWasabi.Fluent.ViewModels
 					return null;
 				});
 
-			RxApp.MainThreadScheduler.Schedule(async () =>
-			{
-				try
-				{
-					await _legalChecker.WaitAndGetLatestDocumentAsync();
+			_ = RxApp.MainThreadScheduler.Schedule(async () =>
+			  {
+				  try
+				  {
+					  _ = await _legalChecker.WaitAndGetLatestDocumentAsync();
 
-					LegalDocumentsViewModel.RegisterAsyncLazy(async () =>
-					{
-						var document = await _legalChecker.WaitAndGetLatestDocumentAsync();
-						return new LegalDocumentsViewModel(document.Content);
-					});
-					_searchPage.RegisterSearchEntry(LegalDocumentsViewModel.MetaData);
-				}
-				catch (Exception ex)
-				{
-					if (ex is not OperationCanceledException)
-					{
-						Logger.LogError("Failed to get Legal documents.", ex);
-					}
-				}
-			});
+					  LegalDocumentsViewModel.RegisterAsyncLazy(async () =>
+					  {
+						  var document = await _legalChecker.WaitAndGetLatestDocumentAsync();
+						  return new LegalDocumentsViewModel(document.Content);
+					  });
+					  _searchPage.RegisterSearchEntry(LegalDocumentsViewModel.MetaData);
+				  }
+				  catch (Exception ex)
+				  {
+					  if (ex is not OperationCanceledException)
+					  {
+						  Logger.LogError("Failed to get Legal documents.", ex);
+					  }
+				  }
+			  });
 
 			UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
 			BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());

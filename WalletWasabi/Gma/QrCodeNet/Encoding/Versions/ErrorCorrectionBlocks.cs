@@ -40,7 +40,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 		/// </summary>
 		private void Initialize()
 		{
-			Guard.NotNull(nameof(ECBlock), ECBlock);
+			_ = Guard.NotNull(nameof(ECBlock), ECBlock);
 
 			NumBlocks = 0;
 			int blockLength = ECBlock.Length;

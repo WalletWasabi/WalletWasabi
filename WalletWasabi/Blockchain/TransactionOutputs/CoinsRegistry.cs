@@ -80,7 +80,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				if (!SpentCoins.Contains(coin))
 				{
 					added = Coins.Add(coin);
-					coin.RegisterToHdPubKey();
+					_ = coin.RegisterToHdPubKey();
 					if (added)
 					{
 						foreach (var outPoint in coin.Transaction.Transaction.Inputs.Select(x => x.PrevOut))
@@ -96,7 +96,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 								if (coin.TransactionId == previousCoinTxId)
 								{
 									// If we are in the same transaction, then just add it to value set.
-									CoinsByOutPoint[outPoint].Add(coin);
+									_ = CoinsByOutPoint[outPoint].Add(coin);
 								}
 								else
 								{
@@ -127,9 +127,9 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			{
 				if (!Coins.Remove(toRemove))
 				{
-					SpentCoins.Remove(toRemove);
+					_ = SpentCoins.Remove(toRemove);
 				}
-				toRemove.UnregisterFromHdPubKey();
+				_ = toRemove.UnregisterFromHdPubKey();
 
 				var removedCoinOutPoint = toRemove.OutPoint;
 
@@ -142,7 +142,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 						// Remove the coin from the set, and if the set becomes empty as a consequence remove the key too.
 						if (CoinsByOutPoint[removedCoinOutPoint].Remove(coinByOutPoint) && !CoinsByOutPoint[removedCoinOutPoint].Any())
 						{
-							CoinsByOutPoint.Remove(removedCoinOutPoint);
+							_ = CoinsByOutPoint.Remove(removedCoinOutPoint);
 						}
 					}
 				}
@@ -159,7 +159,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				if (Coins.Remove(spentCoin))
 				{
 					InvalidateSnapshot = true;
-					SpentCoins.Add(spentCoin);
+					_ = SpentCoins.Add(spentCoin);
 				}
 			}
 		}
@@ -211,7 +211,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 				{
 					if (SpentCoins.Remove(destroyedCoin))
 					{
-						Coins.Add(destroyedCoin);
+						_ = Coins.Add(destroyedCoin);
 						toAdd.Add(destroyedCoin);
 					}
 				}

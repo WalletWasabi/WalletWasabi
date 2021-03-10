@@ -16,7 +16,7 @@ namespace System.Collections.Generic
 
 		public static int BinarySearchIndexOf<T, TKey>(this IList<T> list, TKey value) where T : IComparable<TKey>
 		{
-			Guard.NotNull(nameof(list), list);
+			_ = Guard.NotNull(nameof(list), list);
 
 			int lower = 0;
 			int upper = list.Count - 1;

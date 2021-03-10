@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			_pocketSource = new SourceList<PocketViewModel>();
 
-			_pocketSource.Connect()
+			_ = _pocketSource.Connect()
 				.Bind(out _pockets)
 				.Subscribe();
 
@@ -40,7 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			var selectedList = selected.AsObservableList();
 
-			selected.Sum(x => x.TotalBtc)
+			_ = selected.Sum(x => x.TotalBtc)
 				.Subscribe(x =>
 				{
 					StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC) - x;

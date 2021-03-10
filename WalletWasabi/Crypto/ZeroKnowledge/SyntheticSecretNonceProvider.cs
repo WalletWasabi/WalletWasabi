@@ -14,7 +14,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 		public SyntheticSecretNonceProvider(Strobe128 strobe, IEnumerable<Scalar> secrets, WasabiRandom random)
 		{
-			Guard.NotNullOrEmpty(nameof(secrets), secrets);
+			_ = Guard.NotNullOrEmpty(nameof(secrets), secrets);
 			_strobe = strobe;
 			_secretCount = secrets.Count();
 

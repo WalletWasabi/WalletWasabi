@@ -127,7 +127,7 @@ namespace WalletWasabi.WebClients.Wasabi
 							if (TransactionCache.Count > 1000) // No more than 1000 txs in cache
 							{
 								var toRemove = TransactionIdQueue.Dequeue();
-								TransactionCache.Remove(toRemove);
+								_ = TransactionCache.Remove(toRemove);
 							}
 						}
 					}

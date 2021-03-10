@@ -72,7 +72,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 						}
 					}));
 
-			Observable
+			_ = Observable
 				.Merge(AboutCommand.GetReactiveCommand().ThrownExceptions)
 				.Merge(UserSupportCommand.GetReactiveCommand().ThrownExceptions)
 				.Merge(ReportBugCommand.GetReactiveCommand().ThrownExceptions)

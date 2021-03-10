@@ -13,7 +13,7 @@ namespace System
 	{
 		public EventsAwaiter(Action<EventHandler<TEventArgs>> subscribe, Action<EventHandler<TEventArgs>> unsubscribe, int count)
 		{
-			Guard.MinimumAndNotNull(nameof(count), count, 0);
+			_ = Guard.MinimumAndNotNull(nameof(count), count, 0);
 			Lock = new object();
 			var eventsArrived = new List<TaskCompletionSource<TEventArgs>>(count);
 			for (int i = 0; i < count; i++)
@@ -37,7 +37,7 @@ namespace System
 			lock (Lock)
 			{
 				var firstUnfinished = EventsArrived.FirstOrDefault(x => !x.Task.IsCompleted);
-				firstUnfinished?.TrySetResult(e);
+				_ = (firstUnfinished?.TrySetResult(e));
 
 				if (EventsArrived.All(x => x.Task.IsCompleted))
 				{

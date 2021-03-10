@@ -43,7 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_bitcoinP2PEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
 			_dustThreshold = config.DustThreshold.ToString();
 
-			this.WhenAnyValue(
+			_ = this.WhenAnyValue(
 					x => x.Network,
 					x => x.StartLocalBitcoinCoreOnStartup,
 					x => x.StopLocalBitcoinCoreOnShutdown,

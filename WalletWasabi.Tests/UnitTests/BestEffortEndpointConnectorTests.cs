@@ -18,7 +18,7 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var connector = new BestEffortEndpointConnector(6);
 			var nodeConnectionParameters = new NodeConnectionParameters();
-			nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(new IPEndPoint(IPAddress.Loopback, 8090), onlyForOnionHosts: true, networkCredential: null, streamIsolation: true));
+			_ = nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(new IPEndPoint(IPAddress.Loopback, 8090), onlyForOnionHosts: true, networkCredential: null, streamIsolation: true));
 
 			using var nodes = new NodesGroup(Network.TestNet, nodeConnectionParameters);
 

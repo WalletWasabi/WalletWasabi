@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		protected override void OnAttached(CompositeDisposable disposables)
 		{
-			this.WhenAnyValue(x => x.IsFocused)
+			_ = this.WhenAnyValue(x => x.IsFocused)
 				.Where(x => x == false)
 				.Subscribe(
 					_ =>

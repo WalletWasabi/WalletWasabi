@@ -24,7 +24,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Banning
 
 			BannedUtxos = new ConcurrentDictionary<OutPoint, BannedUtxo>();
 
-			Directory.CreateDirectory(FolderPath);
+			_ = Directory.CreateDirectory(FolderPath);
 
 			if (File.Exists(BannedUtxosFilePath))
 			{
@@ -45,7 +45,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Banning
 						}
 						else
 						{
-							BannedUtxos.TryAdd(bannedRecord.Utxo, bannedRecord);
+							_ = BannedUtxos.TryAdd(bannedRecord.Utxo, bannedRecord);
 						}
 					}
 

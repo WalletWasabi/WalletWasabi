@@ -44,7 +44,7 @@ namespace WalletWasabi.Gui.Behaviors
 		{
 			base.OnAttached();
 
-			AssociatedObject.GetObservable(TextBox.SelectionStartProperty)
+			_ = AssociatedObject.GetObservable(TextBox.SelectionStartProperty)
 				.Merge(AssociatedObject.GetObservable(TextBox.SelectionEndProperty))
 				.Subscribe(_ => SelectedText = GetSelection());
 		}

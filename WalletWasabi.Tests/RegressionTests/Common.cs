@@ -42,7 +42,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 		public static void Wallet_NewFilterProcessed(object? sender, FilterModel e)
 		{
-			Interlocked.Increment(ref FiltersProcessedByWalletCount);
+			_ = Interlocked.Increment(ref FiltersProcessedByWalletCount);
 		}
 
 		private static async Task AssertFiltersInitializedAsync(RegTestFixture regTestFixture, Backend.Global global)
@@ -76,7 +76,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			await AssertFiltersInitializedAsync(regTestFixture, global); // Make sure filters are created on the server side.
 			if (numberOfBlocksToGenerate != 0)
 			{
-				await global.RpcClient.GenerateAsync(numberOfBlocksToGenerate); // Make sure everything is confirmed.
+				_ = await global.RpcClient.GenerateAsync(numberOfBlocksToGenerate); // Make sure everything is confirmed.
 			}
 			global.Coordinator.UtxoReferee.Clear();
 

@@ -57,7 +57,7 @@ namespace WalletWasabi.BitcoinCore
 				IsRelay = true
 			};
 
-			parameters.TemplateBehaviors.Add(new TrustedP2pBehavior(MempoolService));
+			_ = parameters.TemplateBehaviors.Add(new TrustedP2pBehavior(MempoolService));
 
 			Node = await Node.ConnectAsync(Network, EndPoint, parameters).ConfigureAwait(false);
 			Node.VersionHandshake(cancel);
@@ -132,7 +132,7 @@ namespace WalletWasabi.BitcoinCore
 			await P2pReconnector.StopAsync(CancellationToken.None).ConfigureAwait(false);
 			P2pReconnector.Dispose();
 
-			await TryDisconnectAsync(CancellationToken.None).ConfigureAwait(false);
+			_ = await TryDisconnectAsync(CancellationToken.None).ConfigureAwait(false);
 			Stop.Dispose();
 		}
 
@@ -194,7 +194,7 @@ namespace WalletWasabi.BitcoinCore
 
 				// Disconnection not waited here.
 				node.DisconnectAsync();
-				await tcs.Task.WithAwaitCancellationAsync(cancel).ConfigureAwait(false);
+				_ = await tcs.Task.WithAwaitCancellationAsync(cancel).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -203,7 +203,7 @@ namespace WalletWasabi.BitcoinCore
 
 			void Node_Disconnected(Node node)
 			{
-				tcs.TrySetResult(true);
+				_ = tcs.TrySetResult(true);
 			}
 		}
 	}

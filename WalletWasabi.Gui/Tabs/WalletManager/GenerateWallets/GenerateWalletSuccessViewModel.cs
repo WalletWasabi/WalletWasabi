@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 				},
 				this.WhenAnyValue(x => x.IsConfirmed));
 
-			ConfirmCommand.ThrownExceptions
+			_ = ConfirmCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}

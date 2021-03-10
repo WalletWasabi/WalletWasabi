@@ -65,7 +65,7 @@ namespace WalletWasabi.Blockchain.Mempool
 				}
 				else
 				{
-					BroadcastStore.RemoveAll(x => x.TransactionId == transactionHash);
+					_ = BroadcastStore.RemoveAll(x => x.TransactionId == transactionHash);
 					return true;
 				}
 			}
@@ -136,7 +136,7 @@ namespace WalletWasabi.Blockchain.Mempool
 			}
 			finally
 			{
-				Interlocked.Exchange(ref _cleanupInProcess, 0);
+				_ = Interlocked.Exchange(ref _cleanupInProcess, 0);
 			}
 
 			return false;
@@ -165,9 +165,9 @@ namespace WalletWasabi.Blockchain.Mempool
 				}
 				else
 				{
-					Interlocked.Increment(ref _duplicatedReceives);
+					_ = Interlocked.Increment(ref _duplicatedReceives);
 				}
-				Interlocked.Increment(ref _totalReceives);
+				_ = Interlocked.Increment(ref _totalReceives);
 			}
 
 			if (txAdded is { })

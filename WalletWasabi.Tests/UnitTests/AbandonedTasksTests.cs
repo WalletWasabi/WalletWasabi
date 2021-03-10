@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.False(waitAllTask.IsCompleted);
 
 			// Try to await but is should not finish before the cancellation so we will get OperationCanceledException.
-			await Assert.ThrowsAsync<OperationCanceledException>(async () => await waitAllTask.WithAwaitCancellationAsync(50));
+			_ = await Assert.ThrowsAsync<OperationCanceledException>(async () => await waitAllTask.WithAwaitCancellationAsync(50));
 
 			// Ok now cancel the last Task.
 			cts2.Cancel();

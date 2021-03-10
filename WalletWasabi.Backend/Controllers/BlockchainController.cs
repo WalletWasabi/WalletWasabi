@@ -198,7 +198,7 @@ namespace WalletWasabi.Backend.Controllers
 						{
 							if (TransactionHexCache.TryAdd(tx.GetHash(), hex) && TransactionHexCache.Count >= 1000)
 							{
-								TransactionHexCache.Remove(TransactionHexCache.Keys.First());
+								_ = TransactionHexCache.Remove(TransactionHexCache.Keys.First());
 							}
 						}
 					}
@@ -247,7 +247,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			try
 			{
-				await RpcClient.SendRawTransactionAsync(transaction);
+				_ = await RpcClient.SendRawTransactionAsync(transaction);
 			}
 			catch (RPCException ex) when (ex.Message.Contains("already in block chain", StringComparison.InvariantCultureIgnoreCase))
 			{

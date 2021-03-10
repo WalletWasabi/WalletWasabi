@@ -373,7 +373,7 @@ namespace WalletWasabi.Blockchain.Transactions
 								var txsToUpdateWith = toUpdates.Where(x => x == tx);
 								foreach (var txToUpdateWith in txsToUpdateWith)
 								{
-									tx.TryUpdate(txToUpdateWith);
+									_ = tx.TryUpdate(txToUpdateWith);
 								}
 								toSerialize.Add(tx);
 							}

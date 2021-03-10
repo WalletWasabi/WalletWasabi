@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_mediumPrivacyLevel = config.PrivacyLevelFine;
 			_strongPrivacyLevel = config.PrivacyLevelStrong;
 
-			this.WhenAnyValue(
+			_ = this.WhenAnyValue(
 					x => x.MinimalPrivacyLevel,
 					x => x.MediumPrivacyLevel,
 					x => x.StrongPrivacyLevel)
@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				.Skip(1)
 				.Subscribe(_ => Save());
 
-			this.WhenAnyValue(x => x.MinimalPrivacyLevel)
+			_ = this.WhenAnyValue(x => x.MinimalPrivacyLevel)
 				.Subscribe(
 					x =>
 					{
@@ -43,7 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 						}
 					});
 
-			this.WhenAnyValue(x => x.MediumPrivacyLevel)
+			_ = this.WhenAnyValue(x => x.MediumPrivacyLevel)
 				.Subscribe(
 					x =>
 					{
@@ -58,7 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 						}
 					});
 
-			this.WhenAnyValue(x => x.StrongPrivacyLevel)
+			_ = this.WhenAnyValue(x => x.StrongPrivacyLevel)
 				.Subscribe(
 					x =>
 					{

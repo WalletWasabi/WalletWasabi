@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui
 
 		public UiConfig(string filePath) : base(filePath)
 		{
-			this.WhenAnyValue(
+			_ = this.WhenAnyValue(
 					x => x.LockScreenPinHash,
 					x => x.Autocopy,
 					x => x.IsCustomFee,

@@ -58,7 +58,7 @@ namespace WalletWasabi.Gui
 		private static Global CreateGlobal()
 		{
 			string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-			Directory.CreateDirectory(dataDir);
+			_ = Directory.CreateDirectory(dataDir);
 			string torLogsFile = Path.Combine(dataDir, "TorLogs.txt");
 
 			var uiConfig = new UiConfig(Path.Combine(dataDir, "UiConfig.json"));
@@ -157,7 +157,7 @@ namespace WalletWasabi.Gui
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				result
+				_ = result
 					.UseWin32()
 					.UseSkia();
 			}
@@ -168,12 +168,12 @@ namespace WalletWasabi.Gui
 					useGpuLinux = false;
 				}
 
-				result.UsePlatformDetect()
+				_ = result.UsePlatformDetect()
 					.UseManagedSystemDialogs<AppBuilder, WasabiWindow>();
 			}
 			else
 			{
-				result.UsePlatformDetect();
+				_ = result.UsePlatformDetect();
 			}
 
 			return result

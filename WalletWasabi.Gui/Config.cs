@@ -366,7 +366,7 @@ namespace WalletWasabi.Gui
 
 		public void CorrectMixUntilAnonymitySet()
 		{
-			GetAnonymitySet(MixUntilAnonymitySet);
+			_ = GetAnonymitySet(MixUntilAnonymitySet);
 		}
 
 		public int GetAnonymitySet(string mixUntilAnonymitySet)

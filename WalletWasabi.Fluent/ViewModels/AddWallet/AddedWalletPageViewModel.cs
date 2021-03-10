@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			NextCommand = ReactiveCommand.Create(
 				() =>
 				{
-					walletManager.AddWallet(keyManager);
+					_ = walletManager.AddWallet(keyManager);
 
 					Navigate().Clear();
 

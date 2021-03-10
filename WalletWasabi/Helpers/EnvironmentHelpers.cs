@@ -66,14 +66,14 @@ namespace WalletWasabi.Helpers
 
 			if (Directory.Exists(directory))
 			{
-				DataDirDict.TryAdd(appName, directory);
+				_ = DataDirDict.TryAdd(appName, directory);
 				return directory;
 			}
 
 			Logger.LogInfo($"Creating data directory at `{directory}`.");
-			Directory.CreateDirectory(directory);
+			_ = Directory.CreateDirectory(directory);
 
-			DataDirDict.TryAdd(appName, directory);
+			_ = DataDirDict.TryAdd(appName, directory);
 			return directory;
 		}
 

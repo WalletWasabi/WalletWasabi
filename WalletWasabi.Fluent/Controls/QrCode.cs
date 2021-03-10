@@ -39,7 +39,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			CoercedSize = new Size();
 
-			this.WhenAnyValue(x => x.Matrix)
+			_ = this.WhenAnyValue(x => x.Matrix)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(matrix =>
 				{
@@ -51,7 +51,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			_saveCommand = ReactiveCommand.CreateFromTask<string, Unit>(SaveQrCode);
 
-			SaveCommand.ThrownExceptions
+			_ = SaveCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(_ =>
 				{

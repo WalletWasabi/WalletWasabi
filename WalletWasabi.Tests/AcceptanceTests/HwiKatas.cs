@@ -49,7 +49,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			var client = new HwiClient(network);
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			var enumerate = await client.EnumerateAsync(cts.Token);
-			Assert.Single(enumerate);
+			_ = Assert.Single(enumerate);
 			HwiEnumerateEntry entry = enumerate.Single();
 			Assert.NotNull(entry.Path);
 			Assert.Equal(HardwareWalletModels.Trezor_T, entry.Model);
@@ -59,14 +59,14 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			HardwareWalletModels deviceType = entry.Model;
 			HDFingerprint fingerprint = entry.Fingerprint.Value;
 
-			await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
 
-			await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, false, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, false, cts.Token));
 
 			// Trezor T doesn't support it.
-			await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
 			// Trezor T doesn't support it.
-			await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
 			KeyPath keyPath1 = KeyManager.DefaultAccountKeyPath;
 			KeyPath keyPath2 = KeyManager.DefaultAccountKeyPath.Derive(1);
@@ -77,7 +77,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			Assert.NotEqual(xpub1, xpub2);
 
 			// USER SHOULD REFUSE ACTION
-			await Assert.ThrowsAsync<HwiException>(async () => await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token));
 
 			// USER: CONFIRM
 			BitcoinWitPubKeyAddress address1 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token);
@@ -119,7 +119,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			var client = new HwiClient(network);
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			var enumerate = await client.EnumerateAsync(cts.Token);
-			Assert.Single(enumerate);
+			_ = Assert.Single(enumerate);
 			HwiEnumerateEntry entry = enumerate.Single();
 			Assert.NotNull(entry.Path);
 			Assert.Equal(HardwareWalletModels.Trezor_1, entry.Model);
@@ -130,9 +130,9 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			string devicePath = entry.Path;
 			HardwareWalletModels deviceType = entry.Model;
 
-			await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
 
-			await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, false, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, false, cts.Token));
 		}
 
 		[Fact]
@@ -152,7 +152,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			var client = new HwiClient(network);
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			var enumerate = await client.EnumerateAsync(cts.Token);
-			Assert.Single(enumerate);
+			_ = Assert.Single(enumerate);
 			HwiEnumerateEntry entry = enumerate.Single();
 			Assert.NotNull(entry.Path);
 			Assert.Equal(HardwareWalletModels.Coldcard, entry.Model);
@@ -163,18 +163,18 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			HDFingerprint fingerprint = entry.Fingerprint.Value;
 
 			// ColdCard doesn't support it.
-			await Assert.ThrowsAsync<HwiException>(async () => await client.WipeAsync(deviceType, devicePath, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.WipeAsync(deviceType, devicePath, cts.Token));
 
 			// ColdCard doesn't support it.
-			await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
 
 			// ColdCard doesn't support it.
-			await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, false, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, false, cts.Token));
 
 			// ColdCard doesn't support it.
-			await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
 			// ColdCard doesn't support it.
-			await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
 			KeyPath keyPath1 = KeyManager.DefaultAccountKeyPath;
 			KeyPath keyPath2 = KeyManager.DefaultAccountKeyPath.Derive(1);
@@ -248,13 +248,13 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			HardwareWalletModels deviceType = entry.Model;
 			HDFingerprint fingerprint = entry.Fingerprint.Value;
 
-			await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
 
-			await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, false, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, false, cts.Token));
 
-			await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
 
-			await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
 			KeyPath keyPath1 = KeyManager.DefaultAccountKeyPath;
 			KeyPath keyPath2 = KeyManager.DefaultAccountKeyPath.Derive(1);
@@ -265,7 +265,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			Assert.NotEqual(xpub1, xpub2);
 
 			// USER SHOULD REFUSE ACTION
-			await Assert.ThrowsAsync<HwiException>(async () => await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token));
 
 			// USER: CONFIRM
 			BitcoinWitPubKeyAddress address1 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token);
@@ -331,13 +331,13 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			HardwareWalletModels deviceType = entry.Model;
 			HDFingerprint fingerprint = entry.Fingerprint.Value;
 
-			await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.SetupAsync(deviceType, devicePath, false, cts.Token));
 
-			await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, false, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.RestoreAsync(deviceType, devicePath, false, cts.Token));
 
-			await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.PromptPinAsync(deviceType, devicePath, cts.Token));
 
-			await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
 			KeyPath keyPath1 = KeyManager.DefaultAccountKeyPath;
 			KeyPath keyPath2 = KeyManager.DefaultAccountKeyPath.Derive(1);
@@ -348,7 +348,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			Assert.NotEqual(xpub1, xpub2);
 
 			// USER SHOULD REFUSE ACTION
-			await Assert.ThrowsAsync<HwiException>(async () => await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token));
+			_ = await Assert.ThrowsAsync<HwiException>(async () => await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token));
 
 			// USER: CONFIRM
 			BitcoinWitPubKeyAddress address1 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token);

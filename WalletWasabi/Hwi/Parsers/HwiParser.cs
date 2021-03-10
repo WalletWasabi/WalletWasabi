@@ -189,7 +189,7 @@ namespace WalletWasabi.Hwi.Parsers
 				}
 				catch (FormatException)
 				{
-					BitcoinAddress.Create(addressString, network == Network.Main ? Network.TestNet : Network.Main);
+					_ = BitcoinAddress.Create(addressString, network == Network.Main ? Network.TestNet : Network.Main);
 					throw new FormatException("Wrong network.");
 				}
 			}
@@ -370,16 +370,16 @@ namespace WalletWasabi.Hwi.Parsers
 			{
 				if (argumentBuilder.Length != 0)
 				{
-					argumentBuilder.Append(' ');
+					_ = argumentBuilder.Append(' ');
 				}
-				argumentBuilder.Append(command.ToString().ToLowerInvariant());
+				_ = argumentBuilder.Append(command.ToString().ToLowerInvariant());
 			}
 
 			commandArguments = Guard.Correct(commandArguments);
 			if (commandArguments.Length != 0)
 			{
-				argumentBuilder.Append(' ');
-				argumentBuilder.Append(commandArguments);
+				_ = argumentBuilder.Append(' ');
+				_ = argumentBuilder.Append(commandArguments);
 			}
 
 			var arguments = argumentBuilder.ToString().Trim();

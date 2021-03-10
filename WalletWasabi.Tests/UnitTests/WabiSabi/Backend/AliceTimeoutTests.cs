@@ -37,7 +37,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
-			await handler.RegisterInputAsync(req);
+			_ = await handler.RegisterInputAsync(req);
 
 			var alice = Assert.Single(round.Alices);
 			alice.Deadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
@@ -62,11 +62,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 
-			Assert.Single(round.Alices);
+			_ = Assert.Single(round.Alices);
 			DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
 			alice.Deadline = preDeadline;
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Single(round.Alices);
+			_ = Assert.Single(round.Alices);
 			Assert.Equal(preDeadline, alice.Deadline);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -86,11 +86,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 
-			Assert.Single(round.Alices);
+			_ = Assert.Single(round.Alices);
 			DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
 			alice.Deadline = preDeadline;
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Single(round.Alices);
+			_ = Assert.Single(round.Alices);
 			Assert.Equal(preDeadline, alice.Deadline);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -135,12 +135,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
 			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 
-			Assert.Single(round.Alices);
+			_ = Assert.Single(round.Alices);
 			DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
 			alice.Deadline = preDeadline;
-			await handler.ConfirmConnectionAsync(req);
+			_ = await handler.ConfirmConnectionAsync(req);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Single(round.Alices);
+			_ = Assert.Single(round.Alices);
 			Assert.NotEqual(preDeadline, alice.Deadline);
 
 			await arena.StopAsync(CancellationToken.None);

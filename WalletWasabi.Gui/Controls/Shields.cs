@@ -31,11 +31,11 @@ namespace WalletWasabi.Gui.Controls
 
 		public Shields()
 		{
-			this.GetObservable(ShieldStateProperty)
+			_ = this.GetObservable(ShieldStateProperty)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => ShieldState = x);
 
-			this.WhenAnyValue(x => x.ShieldState)
+			_ = this.WhenAnyValue(x => x.ShieldState)
 				.Where(x => x is { })
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(st =>

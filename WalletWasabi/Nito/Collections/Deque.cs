@@ -49,7 +49,7 @@ namespace Nito.Collections
 		/// <param name="collection">The collection. May not be <c>null</c>.</param>
 		public Deque(IEnumerable<T> collection)
 		{
-			Guard.NotNull(nameof(collection), collection);
+			_ = Guard.NotNull(nameof(collection), collection);
 
 			var source = CollectionHelpers.ReifyCollection(collection);
 			var count = source.Count;
@@ -285,7 +285,7 @@ namespace Nito.Collections
 		/// </exception>
 		void ICollection<T>.CopyTo(T[] array, int arrayIndex)
 		{
-			Guard.NotNull(nameof(array), array);
+			_ = Guard.NotNull(nameof(array), array);
 
 			int count = Count;
 			CheckRangeArguments(array.Length, arrayIndex, count);
@@ -299,7 +299,7 @@ namespace Nito.Collections
 		/// <param name="arrayIndex">The optional index in the destination array at which to begin writing.</param>
 		private void CopyToArray(Array array, int arrayIndex = 0)
 		{
-			Guard.NotNull(nameof(array), array);
+			_ = Guard.NotNull(nameof(array), array);
 
 			if (IsSplit)
 			{
@@ -427,13 +427,13 @@ namespace Nito.Collections
 		{
 			if (IsT(value))
 			{
-				Remove((T)value);
+				_ = Remove((T)value);
 			}
 		}
 
 		void ICollection.CopyTo(Array array, int index)
 		{
-			Guard.NotNull(nameof(array), array);
+			_ = Guard.NotNull(nameof(array), array);
 
 			CheckRangeArguments(array.Length, index, Count);
 
@@ -572,12 +572,12 @@ namespace Nito.Collections
 		{
 			if (index == 0)
 			{
-				DoRemoveFromFront();
+				_ = DoRemoveFromFront();
 				return;
 			}
 			else if (index == Count - 1)
 			{
-				DoRemoveFromBack();
+				_ = DoRemoveFromBack();
 				return;
 			}
 
@@ -679,7 +679,7 @@ namespace Nito.Collections
 				}
 
 				// Rotate to the new view
-				PreDecrement(collectionCount);
+				_ = PreDecrement(collectionCount);
 			}
 			else
 			{
@@ -716,7 +716,7 @@ namespace Nito.Collections
 			if (index == 0)
 			{
 				// Removing from the beginning: rotate to the new view
-				PostIncrement(collectionCount);
+				_ = PostIncrement(collectionCount);
 				Count -= collectionCount;
 				return;
 			}
@@ -740,7 +740,7 @@ namespace Nito.Collections
 				}
 
 				// Rotate to new view
-				PostIncrement(collectionCount);
+				_ = PostIncrement(collectionCount);
 			}
 			else
 			{

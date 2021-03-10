@@ -19,7 +19,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task CreatesConfigAsync()
 		{
 			var workDir = Common.GetWorkDir();
-			await IoHelpers.TryDeleteDirectoryAsync(workDir);
+			_ = await IoHelpers.TryDeleteDirectoryAsync(workDir);
 			CoordinatorParameters coordinatorParameters = new(workDir);
 			using WabiSabiCoordinator coordinator = new(coordinatorParameters, new MockRpcClient());
 			await coordinator.StartAsync(CancellationToken.None);
@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task LoadsConfigAsync()
 		{
 			var workDir = Common.GetWorkDir();
-			await IoHelpers.TryDeleteDirectoryAsync(workDir);
+			_ = await IoHelpers.TryDeleteDirectoryAsync(workDir);
 			CoordinatorParameters coordinatorParameters = new(workDir);
 
 			// Create the config first with default value.
@@ -61,7 +61,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task LoadsIncompleteConfigAsync()
 		{
 			var workDir = Common.GetWorkDir();
-			await IoHelpers.TryDeleteDirectoryAsync(workDir);
+			_ = await IoHelpers.TryDeleteDirectoryAsync(workDir);
 			CoordinatorParameters coordinatorParameters = new(workDir);
 
 			// Create the config first with default value.
@@ -94,7 +94,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task ChecksConfigChangesAsync()
 		{
 			var workDir = Common.GetWorkDir();
-			await IoHelpers.TryDeleteDirectoryAsync(workDir);
+			_ = await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 			CoordinatorParameters coordinatorParameters = new(workDir);
 			using WabiSabiCoordinator coordinator = new(coordinatorParameters, new MockRpcClient());

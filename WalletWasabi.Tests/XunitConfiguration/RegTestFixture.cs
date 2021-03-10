@@ -33,12 +33,12 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			BackendRegTestNode = TestNodeBuilder.CreateAsync(hostedServices, callerFilePath: "RegTests", callerMemberName: "BitcoinCoreData").GetAwaiter().GetResult();
 
 			var walletName = "wallet.dat";
-			BackendRegTestNode.RpcClient.CreateWalletAsync(walletName).GetAwaiter().GetResult();
+			_ = BackendRegTestNode.RpcClient.CreateWalletAsync(walletName).GetAwaiter().GetResult();
 
 			var testnetBackendDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests", "RegTests", "Backend"));
-			IoHelpers.TryDeleteDirectoryAsync(testnetBackendDir).GetAwaiter().GetResult();
+			_ = IoHelpers.TryDeleteDirectoryAsync(testnetBackendDir).GetAwaiter().GetResult();
 			Thread.Sleep(100);
-			Directory.CreateDirectory(testnetBackendDir);
+			_ = Directory.CreateDirectory(testnetBackendDir);
 			Thread.Sleep(100);
 			var config = new Config(
 				BackendRegTestNode.RpcClient.Network,
@@ -87,7 +87,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			BackendHttpClient = new ClearnetHttpClient(HttpClient, () => BackendEndPointUri);
 
 			var delayTask = Task.Delay(3000);
-			Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
+			_ = Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
 		}
 
 		/// <summary>String representation of backend URI: <c>http://localhost:RANDOM_PORT</c>.</summary>
@@ -152,7 +152,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 				{
 					BackendHost?.StopAsync().GetAwaiter().GetResult();
 					BackendHost?.Dispose();
-					BackendRegTestNode?.TryStopAsync().GetAwaiter().GetResult();
+					_ = (BackendRegTestNode?.TryStopAsync().GetAwaiter().GetResult());
 					HttpClient.Dispose();
 				}
 

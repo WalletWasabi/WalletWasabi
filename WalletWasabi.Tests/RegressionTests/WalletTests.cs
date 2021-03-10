@@ -75,7 +75,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Equal(blockCount, bitcoinStore.SmartHeaderChain.HashCount);
 
 				// Test later synchronization.
-				await RegTestFixture.BackendRegTestNode.GenerateAsync(10);
+				_ = await RegTestFixture.BackendRegTestNode.GenerateAsync(10);
 				times = 0;
 				while ((filterCount = bitcoinStore.SmartHeaderChain.HashCount) < blockCount + 10)
 				{
@@ -125,7 +125,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// Mine some coins, make a few bech32 transactions then make it confirm.
-			await rpc.GenerateAsync(1);
+			_ = await rpc.GenerateAsync(1);
 			var key = keyManager.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal: false);
 			var tx2 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
 			key = keyManager.GenerateNewKey(SmartLabel.Empty, KeyState.Clean, isInternal: false);
@@ -134,7 +134,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var tx5 = await rpc.SendToAddressAsync(key.GetP2shOverP2wpkhAddress(network), Money.Coins(0.1m));
 			var tx1 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m), replaceable: true);
 
-			await rpc.GenerateAsync(2); // Generate two, so we can test for two reorg
+			_ = await rpc.GenerateAsync(2); // Generate two, so we can test for two reorg
 
 			var node = RegTestFixture.BackendRegTestNode;
 
@@ -164,7 +164,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				await rpc.InvalidateBlockAsync(tip); // Reorg 2
 				var tx1bumpRes = await rpc.BumpFeeAsync(tx1); // RBF it
 
-				await rpc.GenerateAsync(5);
+				_ = await rpc.GenerateAsync(5);
 				await WaitForIndexesToSyncAsync(global, TimeSpan.FromSeconds(90), bitcoinStore);
 
 				var hashes = bitcoinStore.SmartHeaderChain.GetChain().Select(x => x.header.BlockHash).ToArray();
@@ -218,7 +218,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				// Assert reorg happened exactly as many times as we reorged.
-				await reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(10));
+				_ = await reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(10));
 			}
 			finally
 			{
@@ -237,10 +237,10 @@ namespace WalletWasabi.Tests.RegressionTests
 			// Create the services.
 			// 1. Create connection service.
 			var nodes = new NodesGroup(global.Config.Network, requirements: Constants.NodeRequirements);
-			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync());
+			_ = nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync());
 
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
-			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
+			_ = node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 2. Create wasabi synchronizer service.
 			var httpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
@@ -262,11 +262,11 @@ namespace WalletWasabi.Tests.RegressionTests
 			// Get some money, make it confirm.
 			var key = keyManager.GetNextReceiveKey("foo label", out _);
 			var txId = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
-			await rpc.GenerateAsync(1);
+			_ = await rpc.GenerateAsync(1);
 
 			try
 			{
-				Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
+				_ = Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
 				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 1000); // Start wasabi synchronizer service.
@@ -281,7 +281,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 				Assert.Equal(1, await blockProvider.BlockRepository.CountAsync(CancellationToken.None));
 
-				Assert.Single(wallet.Coins);
+				_ = Assert.Single(wallet.Coins);
 				var firstCoin = wallet.Coins.Single();
 				Assert.Equal(Money.Coins(0.1m), firstCoin.Amount);
 				Assert.Equal(new Height((int)bitcoinStore.SmartHeaderChain.TipHeight), firstCoin.Height);
@@ -291,16 +291,16 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Equal(key.P2wpkhScript, firstCoin.ScriptPubKey);
 				Assert.Null(firstCoin.SpenderTransaction);
 				Assert.Equal(txId, firstCoin.TransactionId);
-				Assert.Single(keyManager.GetKeys(KeyState.Used, false));
+				_ = Assert.Single(keyManager.GetKeys(KeyState.Used, false));
 				Assert.Equal("foo label", keyManager.GetKeys(KeyState.Used, false).Single().Label);
 
 				// Get some money, make it confirm.
 				var key2 = keyManager.GetNextReceiveKey("bar label", out _);
 				var txId2 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(0.01m));
-				Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
-				await rpc.GenerateAsync(1);
+				_ = Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
+				_ = await rpc.GenerateAsync(1);
 				var txId3 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(0.02m));
-				await rpc.GenerateAsync(1);
+				_ = await rpc.GenerateAsync(1);
 
 				await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
 				Assert.Equal(3, await blockProvider.BlockRepository.CountAsync(CancellationToken.None));
@@ -337,13 +337,13 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Equal(42, keyManager.GetKeys(KeyState.Clean).Count());
 				Assert.Equal(58, keyManager.GetKeys().Count());
 
-				Assert.Single(keyManager.GetKeys(x => x.Label == "foo label" && x.KeyState == KeyState.Used && !x.IsInternal));
-				Assert.Single(keyManager.GetKeys(x => x.Label == "bar label" && x.KeyState == KeyState.Used && !x.IsInternal));
+				_ = Assert.Single(keyManager.GetKeys(x => x.Label == "foo label" && x.KeyState == KeyState.Used && !x.IsInternal));
+				_ = Assert.Single(keyManager.GetKeys(x => x.Label == "bar label" && x.KeyState == KeyState.Used && !x.IsInternal));
 
 				// REORG TESTS
 				var txId4 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(0.03m), replaceable: true);
-				Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
-				await rpc.GenerateAsync(2);
+				_ = Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
+				_ = await rpc.GenerateAsync(2);
 				await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
 
 				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txId4));
@@ -352,8 +352,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				tip = await rpc.GetBestBlockHashAsync();
 				await rpc.InvalidateBlockAsync(tip); // Reorg 2
 				var tx4bumpRes = await rpc.BumpFeeAsync(txId4); // RBF it
-				Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
-				await rpc.GenerateAsync(3);
+				_ = Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
+				_ = await rpc.GenerateAsync(3);
 				await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
 				Assert.Equal(4, await blockProvider.BlockRepository.CountAsync(CancellationToken.None));
 
@@ -381,8 +381,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				Assert.Equal(42, keyManager.GetKeys(KeyState.Clean).Count());
 				Assert.Equal(58, keyManager.GetKeys().Count());
 
-				Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "foo label"));
-				Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "bar label"));
+				_ = Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "foo label"));
+				_ = Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "bar label"));
 
 				// TEST MEMPOOL
 				var txId5 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
@@ -391,8 +391,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				var mempoolCoin = wallet.Coins.Single(x => x.TransactionId == txId5);
 				Assert.Equal(Height.Mempool, mempoolCoin.Height);
 
-				Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
-				await rpc.GenerateAsync(1);
+				_ = Interlocked.Exchange(ref Common.FiltersProcessedByWalletCount, 0);
+				_ = await rpc.GenerateAsync(1);
 				await Common.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 				var res = await rpc.GetTxOutAsync(mempoolCoin.TransactionId, (int)mempoolCoin.Index, true);
 				Assert.Equal(new Height(bitcoinStore.SmartHeaderChain.TipHeight), mempoolCoin.Height);

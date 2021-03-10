@@ -164,7 +164,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public static KeyManager Recover(Mnemonic mnemonic, string password, string? filePath = null, KeyPath? accountKeyPath = null, int minGapLimit = AbsoluteMinGapLimit)
 		{
-			Guard.NotNull(nameof(mnemonic), mnemonic);
+			_ = Guard.NotNull(nameof(mnemonic), mnemonic);
 			password ??= "";
 
 			ExtKey extKey = mnemonic.DeriveExtKey(password);
@@ -313,7 +313,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 			minGapLimitIncreased = false;
 
-			AssertCleanKeysIndexed(isInternal: false);
+			_ = AssertCleanKeysIndexed(isInternal: false);
 
 			// Find the next clean external key with empty label.
 			var newKey = GetKeys(x => x.IsInternal == false && x.KeyState == KeyState.Clean && x.Label.IsEmpty).FirstOrDefault();
@@ -526,7 +526,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 			while (GetKeys(KeyState.Locked, true).Count() < howMany)
 			{
-				GenerateNewKey(SmartLabel.Empty, KeyState.Locked, true, toFile: false);
+				_ = GenerateNewKey(SmartLabel.Empty, KeyState.Locked, true, toFile: false);
 				generated = true;
 			}
 
@@ -587,7 +587,7 @@ namespace WalletWasabi.Blockchain.Keys
 			if (FilePath is { })
 			{
 				// Set the LastAccessTime.
-				new FileInfo(FilePath)
+				_ = new FileInfo(FilePath)
 				{
 					LastAccessTimeUtc = DateTime.UtcNow
 				};

@@ -95,7 +95,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// <exception cref="WabiSabiCryptoException">Error code: <see cref="WabiSabiCryptoErrorCode">WabiSabiErrorCode</see></exception>
 		public CredentialsResponse HandleRequest(CredentialsRequest registrationRequest)
 		{
-			Guard.NotNull(nameof(registrationRequest), registrationRequest);
+			_ = Guard.NotNull(nameof(registrationRequest), registrationRequest);
 
 			var requested = registrationRequest.Requested ?? Enumerable.Empty<IssuanceRequest>();
 			var presented = registrationRequest.Presented ?? Enumerable.Empty<CredentialPresentation>();
@@ -203,7 +203,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			// Register the serial numbers to prevent credential reuse.
 			foreach (var presentation in presented)
 			{
-				SerialNumbers.Add(presentation.S);
+				_ = SerialNumbers.Add(presentation.S);
 			}
 			Balance += registrationRequest.Delta;
 

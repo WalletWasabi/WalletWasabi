@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.Tabs
 
 			IsModified = !Global.Config.AreDeepEqual(config);
 
-			this.WhenAnyValue(
+			_ = this.WhenAnyValue(
 				x => x.Network,
 				x => x.UseTor,
 				x => x.TerminateTorOnExit,
@@ -89,15 +89,15 @@ namespace WalletWasabi.Gui.Tabs
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(_ => Save());
 
-			this.WhenAnyValue(x => x.Autocopy)
+			_ = this.WhenAnyValue(x => x.Autocopy)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(x => Global.UiConfig.Autocopy = x);
 
-			this.WhenAnyValue(x => x.CustomFee)
+			_ = this.WhenAnyValue(x => x.CustomFee)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(x => Global.UiConfig.IsCustomFee = x);
 
-			this.WhenAnyValue(x => x.CustomChangeAddress)
+			_ = this.WhenAnyValue(x => x.CustomChangeAddress)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(x => Global.UiConfig.IsCustomChangeAddress = x);
 
@@ -152,7 +152,7 @@ namespace WalletWasabi.Gui.Tabs
 
 			TextBoxLostFocusCommand = ReactiveCommand.Create(Save);
 
-			Observable
+			_ = Observable
 				.Merge(OpenConfigFileCommand.ThrownExceptions)
 				.Merge(SetClearPinCommand.ThrownExceptions)
 				.Merge(TextBoxLostFocusCommand.ThrownExceptions)
@@ -163,7 +163,7 @@ namespace WalletWasabi.Gui.Tabs
 				? (FeeDisplayFormat)Global.UiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
 
-			this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
+			_ = this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => Global.UiConfig.FeeDisplayFormat = (int)x);
 		}
@@ -308,7 +308,7 @@ namespace WalletWasabi.Gui.Tabs
 					.DisposeWith(disposables);
 				this.RaisePropertyChanged(nameof(IsPinSet)); // Fire now otherwise the button won't update for restart.
 
-				Global.UiConfig.WhenAnyValue(x => x.FeeDisplayFormat)
+				_ = Global.UiConfig.WhenAnyValue(x => x.FeeDisplayFormat)
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Subscribe(x => SelectedFeeDisplayFormat = (FeeDisplayFormat)x)
 					.DisposeWith(disposables);

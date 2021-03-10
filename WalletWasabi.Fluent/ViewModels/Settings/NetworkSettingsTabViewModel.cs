@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_terminateTorOnExit = config.TerminateTorOnExit;
 			_torSocks5EndPoint = config.TorSocks5EndPoint.ToString(-1);
 
-			this.WhenAnyValue(
+			_ = this.WhenAnyValue(
 					x => x.UseTor,
 					x => x.TerminateTorOnExit,
 					x => x.TorSocks5EndPoint)

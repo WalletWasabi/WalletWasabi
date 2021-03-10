@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 
 			CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 
-			confirmationWordsSourceList
+			_ = confirmationWordsSourceList
 				.Connect()
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.OnItemAdded(x => x.Reset())

@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			WalletManager = Locator.Current.GetService<Global>().WalletManager;
 
-			Observable.Merge(
+			_ = Observable.Merge(
 				Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(0.1))
 				.Merge(UiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))

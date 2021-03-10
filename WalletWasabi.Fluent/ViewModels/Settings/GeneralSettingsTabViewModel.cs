@@ -37,7 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				? (FeeDisplayFormat) uiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
 
-			this.WhenAnyValue(x => x.DarkModeEnabled)
+			_ = this.WhenAnyValue(x => x.DarkModeEnabled)
 				.Skip(1)
 				.Subscribe(
 					x =>
@@ -46,25 +46,25 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 						IsRestartNeeded(x);
 					});
 
-			this.WhenAnyValue(x => x.AutoCopy)
+			_ = this.WhenAnyValue(x => x.AutoCopy)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
 				.Subscribe(x => uiConfig.Autocopy = x);
 
-			this.WhenAnyValue(x => x.CustomFee)
+			_ = this.WhenAnyValue(x => x.CustomFee)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
 				.Subscribe(x => uiConfig.IsCustomFee = x);
 
-			this.WhenAnyValue(x => x.CustomChangeAddress)
+			_ = this.WhenAnyValue(x => x.CustomChangeAddress)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Skip(1)
 				.Subscribe(x => uiConfig.IsCustomChangeAddress = x);
 
-			this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
+			_ = this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Skip(1)
-				.Subscribe(x => uiConfig.FeeDisplayFormat = (int) x);
+				.Subscribe(x => uiConfig.FeeDisplayFormat = (int)x);
 		}
 
 		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats =>

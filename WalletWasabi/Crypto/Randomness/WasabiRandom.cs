@@ -14,7 +14,7 @@ namespace WalletWasabi.Crypto.Randomness
 
 		public virtual byte[] GetBytes(int length)
 		{
-			Guard.MinimumAndNotNull(nameof(length), length, 1);
+			_ = Guard.MinimumAndNotNull(nameof(length), length, 1);
 			var buffer = new byte[length];
 			GetBytes(buffer);
 			return buffer;
@@ -24,8 +24,8 @@ namespace WalletWasabi.Crypto.Randomness
 
 		public string GetString(int length, string chars)
 		{
-			Guard.MinimumAndNotNull(nameof(length), length, 1);
-			Guard.NotNullOrEmpty(nameof(chars), chars);
+			_ = Guard.MinimumAndNotNull(nameof(length), length, 1);
+			_ = Guard.NotNullOrEmpty(nameof(chars), chars);
 
 			var random = new string(Enumerable
 				.Repeat(chars, length)

@@ -29,7 +29,7 @@ namespace WalletWasabi.Wallets
 			{
 				Network = Guard.NotNull(nameof(network), network);
 				WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
-				Directory.CreateDirectory(WorkDir);
+				_ = Directory.CreateDirectory(WorkDir);
 				WalletDirectories = Guard.NotNull(nameof(walletDirectories), walletDirectories);
 				Wallets = new Dictionary<Wallet, HashSet<uint256>>();
 				Lock = new object();
@@ -142,12 +142,12 @@ namespace WalletWasabi.Wallets
 
 		public async Task<Wallet> StartWalletAsync(Wallet wallet)
 		{
-			Guard.NotNull(nameof(wallet), wallet);
+			_ = Guard.NotNull(nameof(wallet), wallet);
 
 			lock (Lock)
 			{
 				// Throw an exception if the wallet was not added to the WalletManager.
-				Wallets.Single(x => x.Key == wallet);
+				_ = Wallets.Single(x => x.Key == wallet);
 			}
 
 			wallet.SetWaitingForInitState();
@@ -354,8 +354,8 @@ namespace WalletWasabi.Wallets
 				foreach (var pair in Wallets.Where(x => x.Key.State == WalletState.Started && !x.Value.Contains(tx.GetHash())))
 				{
 					var wallet = pair.Key;
-					pair.Value.Add(tx.GetHash());
-					wallet.TransactionProcessor.Process(tx);
+					_ = pair.Value.Add(tx.GetHash());
+					_ = wallet.TransactionProcessor.Process(tx);
 				}
 			}
 		}
@@ -366,7 +366,7 @@ namespace WalletWasabi.Wallets
 			{
 				foreach (var wallet in Wallets.Where(x => x.Key.State == WalletState.Started))
 				{
-					wallet.Key.TransactionProcessor.Process(transaction);
+					_ = wallet.Key.TransactionProcessor.Process(transaction);
 				}
 			}
 		}
@@ -396,7 +396,7 @@ namespace WalletWasabi.Wallets
 					// If a wallet service doesn't know about the tx, then we add it for processing.
 					foreach (var tx in cjs.Where(x => !pair.Value.Contains(x)))
 					{
-						unknowns.Add(tx);
+						_ = unknowns.Add(tx);
 					}
 				}
 				return unknowns;

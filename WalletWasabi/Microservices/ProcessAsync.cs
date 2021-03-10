@@ -52,7 +52,7 @@ namespace WalletWasabi.Microservices
 		{
 			try
 			{
-				Process.Start();
+				_ = Process.Start();
 			}
 			catch (Exception ex)
 			{

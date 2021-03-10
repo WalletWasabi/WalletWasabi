@@ -42,17 +42,17 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			await using SingleInstanceChecker sicMainNet = new(mainNetPort);
 			await sicMainNet.EnsureSingleOrThrowAsync();
 			await using SingleInstanceChecker sicMainNet2 = new(mainNetPort);
-			await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicMainNet2.EnsureSingleOrThrowAsync());
+			_ = await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicMainNet2.EnsureSingleOrThrowAsync());
 
 			await using SingleInstanceChecker sicTestNet = new(testNetPort);
 			await sicTestNet.EnsureSingleOrThrowAsync();
 			await using SingleInstanceChecker sicTestNet2 = new(testNetPort);
-			await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicTestNet2.EnsureSingleOrThrowAsync());
+			_ = await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicTestNet2.EnsureSingleOrThrowAsync());
 
 			await using SingleInstanceChecker sicRegTest = new(regTestPort);
 			await sicRegTest.EnsureSingleOrThrowAsync();
 			await using SingleInstanceChecker sicRegTest2 = new(regTestPort);
-			await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicRegTest2.EnsureSingleOrThrowAsync());
+			_ = await Assert.ThrowsAsync<OperationCanceledException>(async () => await sicRegTest2.EnsureSingleOrThrowAsync());
 		}
 
 		[Fact]
@@ -76,7 +76,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 				for (int i = 0; i < 2; i++)
 				{
 					// I am the second one.
-					await Assert.ThrowsAsync<OperationCanceledException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
+					_ = await Assert.ThrowsAsync<OperationCanceledException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
 				}
 
 				// Overall Timeout.
@@ -127,7 +127,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 				}
 
 				// One more to check if the first instance was able to recover from the port scan operation.
-				await Assert.ThrowsAsync<OperationCanceledException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
+				_ = await Assert.ThrowsAsync<OperationCanceledException>(async () => await secondInstance.EnsureSingleOrThrowAsync());
 
 				while (Interlocked.Read(ref eventCalled) != 3)
 				{
@@ -144,7 +144,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 
 			void SetCalled(object? sender, EventArgs args)
 			{
-				Interlocked.Increment(ref eventCalled);
+				_ = Interlocked.Increment(ref eventCalled);
 			}
 		}
 	}

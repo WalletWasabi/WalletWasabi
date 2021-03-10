@@ -35,7 +35,7 @@ namespace WalletWasabi.Tests
 		{
 			Unused(unit);
 			Unused(ct);
-			await Task.FromResult((JsonRpcResponse)null);
+			_ = await Task.FromResult((JsonRpcResponse)null);
 		}
 
 		[SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "")]

@@ -25,7 +25,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		protected override void OnAttached()
 		{
-			this.WhenAnyValue(x => x.OwnerTextBox)
+			_ = this.WhenAnyValue(x => x.OwnerTextBox)
 				.Subscribe(
 					x =>
 					{
@@ -38,7 +38,7 @@ namespace WalletWasabi.Fluent.Behaviors
 							var hasErrors = OwnerTextBox.GetObservable(DataValidationErrors.HasErrorsProperty);
 							var text = OwnerTextBox.GetObservable(TextBox.TextProperty);
 
-							hasErrors.Select(_ => Unit.Default)
+							_ = hasErrors.Select(_ => Unit.Default)
 								.Merge(text.Select(_ => Unit.Default))
 								.Throttle(TimeSpan.FromMilliseconds(100))
 								.ObserveOn(RxApp.MainThreadScheduler)

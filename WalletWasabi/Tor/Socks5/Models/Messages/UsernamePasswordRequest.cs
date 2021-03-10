@@ -10,8 +10,8 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 	{
 		public UsernamePasswordRequest(byte[] bytes)
 		{
-			Guard.NotNullOrEmpty(nameof(bytes), bytes);
-			Guard.InRangeAndNotNull($"{nameof(bytes)}.{nameof(bytes.Length)}", bytes.Length, 6, 513);
+			_ = Guard.NotNullOrEmpty(nameof(bytes), bytes);
+			_ = Guard.InRangeAndNotNull($"{nameof(bytes)}.{nameof(bytes.Length)}", bytes.Length, 6, 513);
 
 			Ver = new AuthVerField(bytes[0]);
 			ULen = new ULenField(bytes[1]);

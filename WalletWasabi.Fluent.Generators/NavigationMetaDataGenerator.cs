@@ -169,7 +169,7 @@ namespace {namespaceName}
 				.GetAttributes()
 				.Single(ad => ad?.AttributeClass?.Equals(attributeSymbol, SymbolEqualityComparer.Default) ?? false);
 
-			source.Append($@"        public static {metadataSymbol.ToDisplayString()} MetaData {{ get; }} = new()
+			_ = source.Append($@"        public static {metadataSymbol.ToDisplayString()} MetaData {{ get; }} = new()
         {{
 ");
 			var length = attributeData.NamedArguments.Length;
@@ -177,18 +177,18 @@ namespace {namespaceName}
 			{
 				var namedArgument = attributeData.NamedArguments[i];
 
-				source.AppendLine($"            {namedArgument.Key} = " +
-				                  $"{(namedArgument.Value.Kind == TypedConstantKind.Array ? "new[] " : "")}" +
-				                  $"{namedArgument.Value.ToCSharpString()}{(i < length - 1 ? "," : "")}");
+				_ = source.AppendLine($"            {namedArgument.Key} = " +
+								  $"{(namedArgument.Value.Kind == TypedConstantKind.Array ? "new[] " : "")}" +
+								  $"{namedArgument.Value.ToCSharpString()}{(i < length - 1 ? "," : "")}");
 			}
 
-			source.Append($@"        }};
+			_ = source.Append($@"        }};
 ");
 
-			source.AppendLine($@"        public static void RegisterAsyncLazy(Func<Task<RoutableViewModel?>> createInstance) => NavigationManager.RegisterAsyncLazy(MetaData, createInstance);");
-			source.AppendLine($@"        public static void RegisterLazy(Func<RoutableViewModel?> createInstance) => NavigationManager.RegisterLazy(MetaData, createInstance);");
-			source.AppendLine($@"        public static void Register(RoutableViewModel createInstance) => NavigationManager.Register(MetaData, createInstance);");
-			source.AppendLine($@"        public override string Title {{get => MetaData.Title; protected set {{}} }} ");
+			_ = source.AppendLine($@"        public static void RegisterAsyncLazy(Func<Task<RoutableViewModel?>> createInstance) => NavigationManager.RegisterAsyncLazy(MetaData, createInstance);");
+			_ = source.AppendLine($@"        public static void RegisterLazy(Func<RoutableViewModel?> createInstance) => NavigationManager.RegisterLazy(MetaData, createInstance);");
+			_ = source.AppendLine($@"        public static void Register(RoutableViewModel createInstance) => NavigationManager.Register(MetaData, createInstance);");
+			_ = source.AppendLine($@"        public override string Title {{get => MetaData.Title; protected set {{}} }} ");
 
 			var routeableClass = compilation.GetTypeByMetadataName("WalletWasabi.Fluent.ViewModels.Navigation.RoutableViewModel");
 
@@ -216,18 +216,18 @@ namespace {namespaceName}
 				{
 					if (attributeData.NamedArguments.Any(x => x.Key == "NavigationTarget"))
 					{
-						source.AppendLine(
+						_ = source.AppendLine(
 							$@"        public override NavigationTarget DefaultTarget => MetaData.NavigationTarget;");
 					}
 
 					if (attributeData.NamedArguments.Any(x => x.Key == "IconName"))
 					{
-						source.AppendLine($@"        public override string IconName => MetaData.IconName;");
+						_ = source.AppendLine($@"        public override string IconName => MetaData.IconName;");
 					}
 				}
 			}
 
-			source.Append($@"    }}
+			_ = source.Append($@"    }}
 }}");
 
 			return source.ToString();

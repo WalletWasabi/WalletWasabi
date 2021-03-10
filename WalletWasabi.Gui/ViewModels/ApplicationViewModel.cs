@@ -16,7 +16,7 @@ namespace WalletWasabi.Gui.ViewModels
 			AboutCommand = ReactiveCommand.Create(() =>
 				IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel()));
 
-			AboutCommand.ThrownExceptions
+			_ = AboutCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}

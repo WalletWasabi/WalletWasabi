@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 			ToggleTitle();
 
-			this.WhenAnyValue(x => x.PrivacyMode)
+			_ = this.WhenAnyValue(x => x.PrivacyMode)
 				.Skip(1)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(

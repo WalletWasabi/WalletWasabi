@@ -145,7 +145,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 
 							foreach (var replacedTransactionId in replaced.Select(coin => coin.TransactionId))
 							{
-								TransactionStore.MempoolStore.TryRemove(replacedTransactionId, out _);
+								_ = TransactionStore.MempoolStore.TryRemove(replacedTransactionId, out _);
 							}
 
 							tx.SetReplacement();
@@ -160,13 +160,13 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 						// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
 						foreach (SmartCoin doubleSpentCoin in doubleSpends)
 						{
-							Coins.Remove(doubleSpentCoin);
+							_ = Coins.Remove(doubleSpentCoin);
 						}
 
 						result.SuccessfullyDoubleSpentCoins.AddRange(doubleSpends);
 
 						var unconfirmedDoubleSpentTxId = doubleSpends.First().TransactionId;
-						TransactionStore.MempoolStore.TryRemove(unconfirmedDoubleSpentTxId, out _);
+						_ = TransactionStore.MempoolStore.TryRemove(unconfirmedDoubleSpentTxId, out _);
 					}
 				}
 			}
@@ -199,12 +199,12 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 						result.NewlyReceivedCoins.Add(newCoin);
 
 						// Make sure there's always 21 clean keys generated and indexed.
-						KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
+						_ = KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
 
 						if (foundKey.IsInternal)
 						{
 							// Make sure there's always 14 internal locked keys generated and indexed.
-							KeyManager.AssertLockedInternalKeysIndexed(14);
+							_ = KeyManager.AssertLockedInternalKeysIndexed(14);
 						}
 					}
 					else // If we had this coin already.

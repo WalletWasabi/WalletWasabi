@@ -34,7 +34,7 @@ namespace WalletWasabi.Userfacing
 					}
 
 					Console.Write('*');
-					sb.Append(cki.KeyChar);
+					_ = sb.Append(cki.KeyChar);
 				}
 
 				return sb.ToString();

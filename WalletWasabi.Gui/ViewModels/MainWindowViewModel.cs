@@ -133,7 +133,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void InitializeLockScreen()
 		{
-			UiConfig
+			_ = UiConfig
 				.WhenAnyValue(x => x.LockScreenActive)
 				.Where(x => x)
 				.ObserveOn(RxApp.MainThreadScheduler)

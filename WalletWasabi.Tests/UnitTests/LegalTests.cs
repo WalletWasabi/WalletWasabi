@@ -17,10 +17,10 @@ namespace WalletWasabi.Tests.UnitTests
 			var legalDir = Common.GetWorkDir();
 			if (Directory.Exists(legalDir))
 			{
-				await IoHelpers.TryDeleteDirectoryAsync(legalDir);
+				_ = await IoHelpers.TryDeleteDirectoryAsync(legalDir);
 			}
 
-			Directory.CreateDirectory(legalDir);
+			_ = Directory.CreateDirectory(legalDir);
 
 			var res = await LegalDocuments.LoadAgreedAsync(legalDir);
 			Assert.Null(res);
@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests
 			await trash1.DisposeAsync();
 			res = await LegalDocuments.LoadAgreedAsync(legalDir);
 			Assert.Null(res);
-			Assert.Single(Directory.GetFiles(legalDir));
+			_ = Assert.Single(Directory.GetFiles(legalDir));
 			Assert.Empty(Directory.GetDirectories(legalDir));
 
 			// Leaves 3 trash alone.
@@ -50,10 +50,10 @@ namespace WalletWasabi.Tests.UnitTests
 			var legalDir = Common.GetWorkDir();
 			if (Directory.Exists(legalDir))
 			{
-				await IoHelpers.TryDeleteDirectoryAsync(legalDir);
+				_ = await IoHelpers.TryDeleteDirectoryAsync(legalDir);
 			}
 
-			Directory.CreateDirectory(legalDir);
+			_ = Directory.CreateDirectory(legalDir);
 
 			var res = await LegalDocuments.LoadAgreedAsync(legalDir);
 			Assert.Null(res);
@@ -77,7 +77,7 @@ namespace WalletWasabi.Tests.UnitTests
 			await candidate2.DisposeAsync();
 			res = await LegalDocuments.LoadAgreedAsync(legalDir);
 			Assert.Null(res);
-			Assert.Single(Directory.GetFiles(legalDir));
+			_ = Assert.Single(Directory.GetFiles(legalDir));
 			Assert.Empty(Directory.GetDirectories(legalDir));
 		}
 
@@ -87,10 +87,10 @@ namespace WalletWasabi.Tests.UnitTests
 			var legalDir = Common.GetWorkDir();
 			if (Directory.Exists(legalDir))
 			{
-				await IoHelpers.TryDeleteDirectoryAsync(legalDir);
+				_ = await IoHelpers.TryDeleteDirectoryAsync(legalDir);
 			}
 
-			Directory.CreateDirectory(legalDir);
+			_ = Directory.CreateDirectory(legalDir);
 
 			var res = await LegalDocuments.LoadAgreedAsync(legalDir);
 			Assert.Null(res);
@@ -102,7 +102,7 @@ namespace WalletWasabi.Tests.UnitTests
 			await candidate.DisposeAsync();
 			res = await LegalDocuments.LoadAgreedAsync(legalDir);
 			Assert.NotNull(res);
-			Assert.Single(Directory.GetFiles(legalDir));
+			_ = Assert.Single(Directory.GetFiles(legalDir));
 			Assert.Empty(Directory.GetDirectories(legalDir));
 			Assert.Equal(version, res?.Version);
 		}

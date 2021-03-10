@@ -26,7 +26,7 @@ namespace WalletWasabi.Gui.Suggestions
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 
-			this.WhenAnyValue(x => x.Label)
+			_ = this.WhenAnyValue(x => x.Label)
 				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(UpdateSuggestions);

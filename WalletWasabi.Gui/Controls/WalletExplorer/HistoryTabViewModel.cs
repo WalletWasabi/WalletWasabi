@@ -43,27 +43,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SortColumn(savedSort.SortOrder, savedSort.ColumnTarget, false);
 			RefreshOrdering();
 
-			this.WhenAnyValue(x => x.DateSortDirection)
+			_ = this.WhenAnyValue(x => x.DateSortDirection)
 				.Where(x => x != SortOrder.None)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SortColumn(x, nameof(DateSortDirection)));
 
-			this.WhenAnyValue(x => x.AmountSortDirection)
+			_ = this.WhenAnyValue(x => x.AmountSortDirection)
 				.Where(x => x != SortOrder.None)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SortColumn(x, nameof(AmountSortDirection)));
 
-			this.WhenAnyValue(x => x.TransactionSortDirection)
+			_ = this.WhenAnyValue(x => x.TransactionSortDirection)
 				.Where(x => x != SortOrder.None)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SortColumn(x, nameof(TransactionSortDirection)));
 
-			this.WhenAnyValue(x => x.LabelSortDirection)
+			_ = this.WhenAnyValue(x => x.LabelSortDirection)
 				.Where(x => x != SortOrder.None)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SortColumn(x, nameof(LabelSortDirection)));
 
-			SortCommand.ThrownExceptions
+			_ = SortCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
@@ -120,20 +120,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen(disposables);
 
-			Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed))
+			_ = Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed))
 				.Merge(Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)))
 				.Throttle(TimeSpan.FromSeconds(3))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async _ => await TryRewriteTableAsync())
 				.DisposeWith(disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.PrivacyMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
-				{
-					foreach (var transaction in Transactions)
-					{
-						transaction.Refresh();
-					}
-				}).DisposeWith(disposables);
+			_ = Global.UiConfig.WhenAnyValue(x => x.PrivacyMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+				  {
+					  foreach (var transaction in Transactions)
+					  {
+						  transaction.Refresh();
+					  }
+				  }).DisposeWith(disposables);
 
 			_ = TryRewriteTableAsync();
 		}

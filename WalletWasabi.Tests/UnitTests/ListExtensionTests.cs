@@ -12,12 +12,12 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var actual = new List<int>();
 
-			actual.InsertSorted(5);
-			actual.InsertSorted(4);
-			actual.InsertSorted(3);
-			actual.InsertSorted(2);
-			actual.InsertSorted(1);
-			actual.InsertSorted(0);
+			_ = actual.InsertSorted(5);
+			_ = actual.InsertSorted(4);
+			_ = actual.InsertSorted(3);
+			_ = actual.InsertSorted(2);
+			_ = actual.InsertSorted(1);
+			_ = actual.InsertSorted(0);
 
 			var expected = new List<int> { 0, 1, 2, 3, 4, 5 };
 
@@ -29,13 +29,13 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var actual = new List<int>();
 
-			actual.InsertSorted(5);
-			actual.InsertSorted(4);
-			actual.InsertSorted(3);
-			actual.InsertSorted(2);
-			actual.InsertSorted(5, false);
-			actual.InsertSorted(1);
-			actual.InsertSorted(0);
+			_ = actual.InsertSorted(5);
+			_ = actual.InsertSorted(4);
+			_ = actual.InsertSorted(3);
+			_ = actual.InsertSorted(2);
+			_ = actual.InsertSorted(5, false);
+			_ = actual.InsertSorted(1);
+			_ = actual.InsertSorted(0);
 
 			var expected = new List<int> { 0, 1, 2, 3, 4, 5, 5 };
 
@@ -47,11 +47,11 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var actual = new List<ReverseComparable>();
 
-			actual.InsertSorted(new ReverseComparable(0));
-			actual.InsertSorted(new ReverseComparable(1));
-			actual.InsertSorted(new ReverseComparable(2));
-			actual.InsertSorted(new ReverseComparable(3));
-			actual.InsertSorted(new ReverseComparable(4));
+			_ = actual.InsertSorted(new ReverseComparable(0));
+			_ = actual.InsertSorted(new ReverseComparable(1));
+			_ = actual.InsertSorted(new ReverseComparable(2));
+			_ = actual.InsertSorted(new ReverseComparable(3));
+			_ = actual.InsertSorted(new ReverseComparable(4));
 
 			var expected = new List<ReverseComparable>
 			{

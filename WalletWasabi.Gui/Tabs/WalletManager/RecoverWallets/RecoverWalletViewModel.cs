@@ -49,11 +49,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 
 			RecoverCommand = ReactiveCommand.Create(() => RecoverWallet(owner), canExecute);
 
-			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(UpdateSuggestions);
+			_ = this.WhenAnyValue(x => x.MnemonicWords).Subscribe(UpdateSuggestions);
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 
-			RecoverCommand.ThrownExceptions
+			_ = RecoverCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
@@ -138,7 +138,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 					var km = KeyManager.Recover(mnemonic, Password, filePath: null, keyPath, minGapLimit);
 					km.SetNetwork(Global.Network);
 					km.SetFilePath(walletFilePath);
-					WalletManager.AddWallet(km);
+					_ = WalletManager.AddWallet(km);
 
 					NotificationHelpers.Success("Wallet was recovered.");
 

@@ -20,11 +20,11 @@ namespace WalletWasabi.Gui.Controls
 			Watermark = "Password";
 			MinWidth = 400;
 
-			this.GetObservable(IsPasswordVisibleProperty)
+			_ = this.GetObservable(IsPasswordVisibleProperty)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsPasswordVisible = x);
 
-			this.WhenAnyValue(x => x.IsPasswordVisible)
+			_ = this.WhenAnyValue(x => x.IsPasswordVisible)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => PasswordChar = x ? '\0' : '\u2022');
 		}
@@ -44,7 +44,7 @@ namespace WalletWasabi.Gui.Controls
 			base.OnTemplateApplied(e);
 
 			var maskedButton = e.NameScope.Get<Button>("PART_MaskedButton");
-			maskedButton.WhenAnyValue(x => x.IsPressed)
+			_ = maskedButton.WhenAnyValue(x => x.IsPressed)
 				.Where(x => x)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>

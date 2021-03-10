@@ -14,15 +14,15 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 
 		private static string EightBitByteRecognision(string content, int startPos, int contentLength)
 		{
-			Guard.NotNullOrEmpty(nameof(content), content);
+			_ = Guard.NotNullOrEmpty(nameof(content), content);
 
 			var eciSets = new ECISet(ECISet.AppendOption.NameToValue);
 
 			Dictionary<string, int> eciSet = eciSets.GetECITable();
 
 			// we will not check for utf8 encoding.
-			eciSet.Remove(QRCodeConstantVariable.UTF8Encoding);
-			eciSet.Remove(QRCodeConstantVariable.DefaultEncoding);
+			_ = eciSet.Remove(QRCodeConstantVariable.UTF8Encoding);
+			_ = eciSet.Remove(QRCodeConstantVariable.DefaultEncoding);
 
 			int scanPos = startPos;
 

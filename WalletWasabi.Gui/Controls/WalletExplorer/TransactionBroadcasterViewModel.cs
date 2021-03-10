@@ -33,7 +33,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			_buttonText = "Broadcast Transaction";
 
-			this.WhenAnyValue(x => x.FinalTransaction)
+			_ = this.WhenAnyValue(x => x.FinalTransaction)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -72,7 +72,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						if (!signedPsbt.IsAllFinalized())
 						{
-							signedPsbt.Finalize();
+							_ = signedPsbt.Finalize();
 						}
 
 						FinalTransaction = signedPsbt.ExtractSmartTransaction();
@@ -117,7 +117,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				},
 				outputScheduler: RxApp.MainThreadScheduler);
 
-			Observable
+			_ = Observable
 				.Merge(PasteCommand.ThrownExceptions)
 				.Merge(BroadcastTransactionCommand.ThrownExceptions)
 				.Merge(ImportTransactionCommand.ThrownExceptions)
@@ -246,7 +246,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (!psbt.IsAllFinalized())
 				{
-					psbt.Finalize();
+					_ = psbt.Finalize();
 				}
 
 				return psbt.ExtractSmartTransaction();

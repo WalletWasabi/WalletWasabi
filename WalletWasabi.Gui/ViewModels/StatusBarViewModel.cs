@@ -163,7 +163,7 @@ namespace WalletWasabi.Gui.ViewModels
 			UseBitcoinCore = Config.StartLocalBitcoinCoreOnStartup;
 
 			var updateChecker = HostedServices.FirstOrDefault<UpdateChecker>();
-			Guard.NotNull(nameof(updateChecker), updateChecker);
+			_ = Guard.NotNull(nameof(updateChecker), updateChecker);
 			UpdateStatus = updateChecker.UpdateStatus;
 
 			var rpcMonitor = HostedServices.FirstOrDefault<RpcMonitor>();
@@ -175,7 +175,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.ToProperty(this, x => x.Status)
 				.DisposeWith(Disposables);
 
-			Observable
+			_ = Observable
 				.Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added)).Select(x => true)
 				.Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed)).Select(x => true)
 				.Merge(Synchronizer.WhenAnyValue(x => x.TorStatus).Select(x => true))))
@@ -185,13 +185,13 @@ namespace WalletWasabi.Gui.ViewModels
 
 			Peers = Tor == TorStatus.NotRunning ? 0 : Nodes.Count;
 
-			Observable.FromEventPattern<bool>(typeof(P2pBlockProvider), nameof(P2pBlockProvider.DownloadingBlockChanged))
+			_ = Observable.FromEventPattern<bool>(typeof(P2pBlockProvider), nameof(P2pBlockProvider.DownloadingBlockChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => DownloadingBlock = x.EventArgs)
 				.DisposeWith(Disposables);
 
 			IDisposable? walletCheckingInterval = null;
-			Observable.FromEventPattern<bool>(typeof(Wallet), nameof(Wallet.InitializingChanged))
+			_ = Observable.FromEventPattern<bool>(typeof(Wallet), nameof(Wallet.InitializingChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -246,12 +246,12 @@ namespace WalletWasabi.Gui.ViewModels
 				})
 				.DisposeWith(Disposables);
 
-			Synchronizer.WhenAnyValue(x => x.TorStatus)
+			_ = Synchronizer.WhenAnyValue(x => x.TorStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(status => Tor = UseTor ? status : TorStatus.TurnedOff)
 				.DisposeWith(Disposables);
 
-			Synchronizer.WhenAnyValue(x => x.BackendStatus)
+			_ = Synchronizer.WhenAnyValue(x => x.BackendStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => Backend = Synchronizer.BackendStatus)
 				.DisposeWith(Disposables);
@@ -262,12 +262,12 @@ namespace WalletWasabi.Gui.ViewModels
 				.ToProperty(this, x => x.FiltersLeft)
 				.DisposeWith(Disposables);
 
-			Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
+			_ = Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(usd => ExchangeRate = $"${(long)usd}")
 				.DisposeWith(Disposables);
 
-			Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
+			_ = Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 				.Select(x => x != default)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsExchangeRateAvailable = x)
@@ -275,23 +275,23 @@ namespace WalletWasabi.Gui.ViewModels
 
 			if (rpcMonitor is { })
 			{
-				Observable.FromEventPattern<RpcStatus>(rpcMonitor, nameof(rpcMonitor.RpcStatusChanged))
+				_ = Observable.FromEventPattern<RpcStatus>(rpcMonitor, nameof(rpcMonitor.RpcStatusChanged))
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Subscribe(e => BitcoinCoreStatus = e.EventArgs)
 					.DisposeWith(Disposables);
 			}
 
-			Observable.FromEventPattern<UpdateStatus>(updateChecker, nameof(updateChecker.UpdateStatusChanged))
+			_ = Observable.FromEventPattern<UpdateStatus>(updateChecker, nameof(updateChecker.UpdateStatusChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(e => UpdateStatus = e.EventArgs)
 				.DisposeWith(Disposables);
 
-			Observable.FromEventPattern<bool>(Synchronizer, nameof(Synchronizer.ResponseArrivedIsGenSocksServFail))
+			_ = Observable.FromEventPattern<bool>(Synchronizer, nameof(Synchronizer.ResponseArrivedIsGenSocksServFail))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(e => OnResponseArrivedIsGenSocksServFail(e.EventArgs))
 				.DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.FiltersLeft, x => x.DownloadingBlock, x => x.UseBitcoinCore, x => x.BitcoinCoreStatus)
+			_ = this.WhenAnyValue(x => x.FiltersLeft, x => x.DownloadingBlock, x => x.UseBitcoinCore, x => x.BitcoinCoreStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(tup =>
 				{
@@ -306,7 +306,7 @@ namespace WalletWasabi.Gui.ViewModels
 					}
 				});
 
-			this.WhenAnyValue(x => x.Tor, x => x.Backend, x => x.Peers, x => x.UseBitcoinCore, x => x.BitcoinCoreStatus)
+			_ = this.WhenAnyValue(x => x.Tor, x => x.Backend, x => x.Peers, x => x.UseBitcoinCore, x => x.BitcoinCoreStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(tup =>
 				{
@@ -324,7 +324,7 @@ namespace WalletWasabi.Gui.ViewModels
 					}
 				});
 
-			this.WhenAnyValue(x => x.UpdateStatus)
+			_ = this.WhenAnyValue(x => x.UpdateStatus)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async x =>
 				{
@@ -365,7 +365,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			this.RaisePropertyChanged(nameof(UpdateCommand)); // The binding happens after the constructor. So, if the command is not in constructor, then we need this line.
 
-			UpdateCommand.ThrownExceptions
+			_ = UpdateCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}
@@ -391,7 +391,7 @@ namespace WalletWasabi.Gui.ViewModels
 					if (osDesc.Contains("16.04.1-Ubuntu", StringComparison.InvariantCultureIgnoreCase)
 						|| osDesc.Contains("16.04.0-Ubuntu", StringComparison.InvariantCultureIgnoreCase))
 					{
-						MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter().GetResult();
+						_ = MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter().GetResult();
 					}
 				}
 			}

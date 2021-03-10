@@ -56,7 +56,7 @@ namespace WalletWasabi.BitcoinCore.Configuration
 					}
 					else if (foundLine.Value != line.Value)
 					{
-						Lines.Remove(foundLine);
+						_ = Lines.Remove(foundLine);
 						Lines.Add(line);
 						ret = true;
 					}
@@ -91,7 +91,7 @@ namespace WalletWasabi.BitcoinCore.Configuration
 				CoreConfigLine prevLine = Lines[i - 1];
 				if (string.IsNullOrWhiteSpace(currentLine.Line) && string.IsNullOrWhiteSpace(prevLine.Line))
 				{
-					Lines.Remove(currentLine);
+					_ = Lines.Remove(currentLine);
 					return true;
 				}
 			}

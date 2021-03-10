@@ -75,7 +75,7 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 			{
 				if (Inmates.TryGetValue(utxo, out inmate))
 				{
-					Inmates.Remove(utxo);
+					_ = Inmates.Remove(utxo);
 					ChangeId = Guid.NewGuid();
 					return true;
 				}
@@ -96,7 +96,7 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 				{
 					if (inmate.TimeSpent > time)
 					{
-						Inmates.Remove(inmate.Utxo);
+						_ = Inmates.Remove(inmate.Utxo);
 						released.Add(inmate);
 					}
 				}

@@ -44,7 +44,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 
 		public SlideLock()
 		{
-			this.GetObservable(ValueProperty)
+			_ = this.GetObservable(ValueProperty)
 				.Subscribe(x => Opacity = x / 100);
 
 			_closeAnimation = new Animation
@@ -91,7 +91,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				}
 			};
 
-			this.GetObservable(IsLockedProperty)
+			_ = this.GetObservable(IsLockedProperty)
 				.Subscribe(async isLocked => await (isLocked ? RunCloseAnimationAsync() : RunOpenAnimationAsync()));
 		}
 
@@ -155,7 +155,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 			_thumb = e.NameScope.Find<Thumb>("PART_Thumb");
 			_container = e.NameScope.Find<Panel>("PART_Container");
 
-			this.GetObservable(CanSlideProperty)
+			_ = this.GetObservable(CanSlideProperty)
 				.Subscribe(x => _thumb.IsHitTestVisible = x);
 
 			_thumb.DragDelta += OnThumb_DragDelta;

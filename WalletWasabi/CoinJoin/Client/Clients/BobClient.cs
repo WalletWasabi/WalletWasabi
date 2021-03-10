@@ -21,8 +21,8 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 		/// <returns>If the phase is still in OutputRegistration.</returns>
 		public async Task<bool> PostOutputAsync(long roundId, ActiveOutput activeOutput)
 		{
-			Guard.MinimumAndNotNull(nameof(roundId), roundId, 0);
-			Guard.NotNull(nameof(activeOutput), activeOutput);
+			_ = Guard.MinimumAndNotNull(nameof(roundId), roundId, 0);
+			_ = Guard.NotNull(nameof(activeOutput), activeOutput);
 
 			var request = new OutputRequest { OutputAddress = activeOutput.Address, UnblindedSignature = activeOutput.Signature, Level = activeOutput.MixingLevel };
 			using var response = await HttpClient.SendAsync(HttpMethod.Post, $"/api/v{WasabiClient.ApiVersion}/btc/chaumiancoinjoin/output?roundId={roundId}", request.ToHttpStringContent()).ConfigureAwait(false);

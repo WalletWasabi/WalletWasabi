@@ -56,7 +56,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 
 		public static bool Verify(Transcript transcript, IEnumerable<Statement> statements, IEnumerable<Proof> proofs)
 		{
-			Guard.Same(nameof(proofs), proofs.Count(), statements.Count());
+			_ = Guard.Same(nameof(proofs), proofs.Count(), statements.Count());
 
 			// Before anything else all components in a compound proof commit to the
 			// individual sub-statement that will be proven, ensuring that the
@@ -190,7 +190,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		{
 			var b = bitCommitments.ToArray();
 			var width = b.Length; // can be 0
-			Guard.InRangeAndNotNull(nameof(width), width, 0, rangeProofWidth);
+			_ = Guard.InRangeAndNotNull(nameof(width), width, 0, rangeProofWidth);
 
 			var rows = width * 2 + 1; // two equations per bit, and one for the sum
 			var columns = width * 3 + 1 + 1; // three witness components per bit and one for the Ma randomness, plus one for the public inputs

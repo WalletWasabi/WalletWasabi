@@ -32,9 +32,9 @@ namespace WalletWasabi.Crypto
 
 		public static MAC ComputeMAC(CredentialIssuerSecretKey sk, GroupElement ma, Scalar t)
 		{
-			Guard.NotNull(nameof(sk), sk);
-			Guard.NotZero(nameof(t), t);
-			Guard.NotNullOrInfinity(nameof(ma), ma);
+			_ = Guard.NotNull(nameof(sk), sk);
+			_ = Guard.NotZero(nameof(t), t);
+			_ = Guard.NotNullOrInfinity(nameof(ma), ma);
 
 			return ComputeAlgebraicMAC((sk.X0, sk.X1), (sk.W * Generators.Gw) + (sk.Ya * ma), t);
 		}

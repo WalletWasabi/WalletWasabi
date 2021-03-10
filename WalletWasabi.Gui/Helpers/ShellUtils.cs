@@ -97,7 +97,7 @@ namespace WalletWasabi.Gui.Helpers
 				shellProc.ErrorDataReceived += (s, a) => errorReceivedCallback(s, a);
 			}
 
-			shellProc.Start();
+			_ = shellProc.Start();
 
 			shellProc.BeginOutputReadLine();
 			shellProc.BeginErrorReadLine();
@@ -135,7 +135,7 @@ namespace WalletWasabi.Gui.Helpers
 			{
 				//Use the which command
 				var outputBuilder = new StringBuilder();
-				ExecuteShellCommand("which", $"\"{fileName}\"", (s, e) => outputBuilder.AppendLine(e.Data), (s, e) => { }, false);
+				_ = ExecuteShellCommand("which", $"\"{fileName}\"", (s, e) => outputBuilder.AppendLine(e.Data), (s, e) => { }, false);
 				var procOutput = outputBuilder.ToString();
 				if (string.IsNullOrWhiteSpace(procOutput))
 				{

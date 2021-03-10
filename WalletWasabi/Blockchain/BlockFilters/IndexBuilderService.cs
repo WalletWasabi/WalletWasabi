@@ -87,155 +87,155 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 		public void Synchronize()
 		{
-			Task.Run(async () =>
-			{
-				try
-				{
-					if (Interlocked.Read(ref _workerCount) >= 2)
-					{
-						return;
-					}
+			_ = Task.Run(async () =>
+			  {
+				  try
+				  {
+					  if (Interlocked.Read(ref _workerCount) >= 2)
+					  {
+						  return;
+					  }
 
-					Interlocked.Increment(ref _workerCount);
-					while (Interlocked.Read(ref _workerCount) != 1)
-					{
-						await Task.Delay(100).ConfigureAwait(false);
-					}
+					  _ = Interlocked.Increment(ref _workerCount);
+					  while (Interlocked.Read(ref _workerCount) != 1)
+					  {
+						  await Task.Delay(100).ConfigureAwait(false);
+					  }
 
-					if (IsStopping)
-					{
-						return;
-					}
+					  if (IsStopping)
+					  {
+						  return;
+					  }
 
-					try
-					{
-						Interlocked.Exchange(ref _serviceStatus, Running);
+					  try
+					  {
+						  _ = Interlocked.Exchange(ref _serviceStatus, Running);
 
-						while (IsRunning)
-						{
-							try
-							{
-								SyncInfo syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
+						  while (IsRunning)
+						  {
+							  try
+							  {
+								  SyncInfo syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
 
-								uint currentHeight;
-								uint256? currentHash = null;
-								using (await IndexLock.LockAsync())
-								{
-									if (Index.Count != 0)
-									{
-										var lastIndex = Index[^1];
-										currentHeight = lastIndex.Header.Height;
-										currentHash = lastIndex.Header.BlockHash;
-									}
-									else
-									{
-										currentHash = StartingHeight == 0
-											? uint256.Zero
-											: await RpcClient.GetBlockHashAsync((int)StartingHeight - 1).ConfigureAwait(false);
-										currentHeight = StartingHeight - 1;
-									}
-								}
+								  uint currentHeight;
+								  uint256? currentHash = null;
+								  using (await IndexLock.LockAsync())
+								  {
+									  if (Index.Count != 0)
+									  {
+										  var lastIndex = Index[^1];
+										  currentHeight = lastIndex.Header.Height;
+										  currentHash = lastIndex.Header.BlockHash;
+									  }
+									  else
+									  {
+										  currentHash = StartingHeight == 0
+											  ? uint256.Zero
+											  : await RpcClient.GetBlockHashAsync((int)StartingHeight - 1).ConfigureAwait(false);
+										  currentHeight = StartingHeight - 1;
+									  }
+								  }
 
-								var coreNotSynced = !syncInfo.IsCoreSynchronized;
-								var tipReached = syncInfo.BlockCount == currentHeight;
-								var isTimeToRefresh = DateTimeOffset.UtcNow - syncInfo.BlockchainInfoUpdated > TimeSpan.FromMinutes(5);
-								if (coreNotSynced || tipReached || isTimeToRefresh)
-								{
-									syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
-								}
+								  var coreNotSynced = !syncInfo.IsCoreSynchronized;
+								  var tipReached = syncInfo.BlockCount == currentHeight;
+								  var isTimeToRefresh = DateTimeOffset.UtcNow - syncInfo.BlockchainInfoUpdated > TimeSpan.FromMinutes(5);
+								  if (coreNotSynced || tipReached || isTimeToRefresh)
+								  {
+									  syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
+								  }
 
 								// If wasabi filter height is the same as core we may be done.
 								if (syncInfo.BlockCount == currentHeight)
-								{
+								  {
 									// Check that core is fully synced
 									if (syncInfo.IsCoreSynchronized && !syncInfo.InitialBlockDownload)
-									{
+									  {
 										// Mark the process notstarted, so it can be started again
 										// and finally block can mark it as stopped.
-										Interlocked.Exchange(ref _serviceStatus, NotStarted);
-										return;
-									}
-									else
-									{
+										_ = Interlocked.Exchange(ref _serviceStatus, NotStarted);
+										  return;
+									  }
+									  else
+									  {
 										// Knots is catching up give it a 10 seconds
 										await Task.Delay(10000).ConfigureAwait(false);
-										continue;
-									}
-								}
+										  continue;
+									  }
+								  }
 
-								uint nextHeight = currentHeight + 1;
-								uint256 blockHash = await RpcClient.GetBlockHashAsync((int)nextHeight).ConfigureAwait(false);
-								VerboseBlockInfo block = await RpcClient.GetVerboseBlockAsync(blockHash).ConfigureAwait(false);
+								  uint nextHeight = currentHeight + 1;
+								  uint256 blockHash = await RpcClient.GetBlockHashAsync((int)nextHeight).ConfigureAwait(false);
+								  VerboseBlockInfo block = await RpcClient.GetVerboseBlockAsync(blockHash).ConfigureAwait(false);
 
 								// Check if we are still on the best chain,
 								// if not rewind filters till we find the fork.
 								if (currentHash != block.PrevBlockHash)
-								{
-									Logger.LogWarning("Reorg observed on the network.");
+								  {
+									  Logger.LogWarning("Reorg observed on the network.");
 
-									await ReorgOneAsync().ConfigureAwait(false);
+									  await ReorgOneAsync().ConfigureAwait(false);
 
 									// Skip the current block.
 									continue;
-								}
+								  }
 
-								var scripts = FetchScripts(block);
+								  var scripts = FetchScripts(block);
 
-								GolombRiceFilter filter;
-								if (scripts.Any())
-								{
-									filter = new GolombRiceFilterBuilder()
-										.SetKey(block.Hash)
-										.SetP(20)
-										.SetM(1 << 20)
-										.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
-										.Build();
-								}
-								else
-								{
+								  GolombRiceFilter filter;
+								  if (scripts.Any())
+								  {
+									  filter = new GolombRiceFilterBuilder()
+										  .SetKey(block.Hash)
+										  .SetP(20)
+										  .SetM(1 << 20)
+										  .AddEntries(scripts.Select(x => x.ToCompressedBytes()))
+										  .Build();
+								  }
+								  else
+								  {
 									// We cannot have empty filters, because there was a bug in GolombRiceFilterBuilder that evaluates empty filters to true.
 									// And this must be fixed in a backwards compatible way, so we create a fake filter with a random scp instead.
 									filter = CreateDummyEmptyFilter(block.Hash);
-								}
+								  }
 
-								var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
-								var filterModel = new FilterModel(smartHeader, filter);
+								  var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
+								  var filterModel = new FilterModel(smartHeader, filter);
 
-								await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() }).ConfigureAwait(false);
+								  await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() }).ConfigureAwait(false);
 
-								using (await IndexLock.LockAsync())
-								{
-									Index.Add(filterModel);
-								}
+								  using (await IndexLock.LockAsync())
+								  {
+									  Index.Add(filterModel);
+								  }
 
 								// If not close to the tip, just log debug.
 								if (syncInfo.BlockCount - nextHeight <= 3 || nextHeight % 100 == 0)
-								{
-									Logger.LogInfo($"Created filter for block: {nextHeight}.");
-								}
-								else
-								{
-									Logger.LogDebug($"Created filter for block: {nextHeight}.");
-								}
-								LastFilterBuildTime = DateTimeOffset.UtcNow;
-							}
-							catch (Exception ex)
-							{
-								Logger.LogDebug(ex);
-							}
-						}
-					}
-					finally
-					{
-						Interlocked.CompareExchange(ref _serviceStatus, Stopped, Stopping); // If IsStopping, make it stopped.
-						Interlocked.Decrement(ref _workerCount);
-					}
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError($"Synchronization attempt failed to start: {ex}");
-				}
-			});
+								  {
+									  Logger.LogInfo($"Created filter for block: {nextHeight}.");
+								  }
+								  else
+								  {
+									  Logger.LogDebug($"Created filter for block: {nextHeight}.");
+								  }
+								  LastFilterBuildTime = DateTimeOffset.UtcNow;
+							  }
+							  catch (Exception ex)
+							  {
+								  Logger.LogDebug(ex);
+							  }
+						  }
+					  }
+					  finally
+					  {
+						  _ = Interlocked.CompareExchange(ref _serviceStatus, Stopped, Stopping); // If IsStopping, make it stopped.
+						_ = Interlocked.Decrement(ref _workerCount);
+					  }
+				  }
+				  catch (Exception ex)
+				  {
+					  Logger.LogError($"Synchronization attempt failed to start: {ex}");
+				  }
+			  });
 		}
 
 		private List<Script> FetchScripts(VerboseBlockInfo block)
@@ -349,7 +349,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 				BlockNotifier.OnBlock -= BlockNotifier_OnBlock;
 			}
 
-			Interlocked.CompareExchange(ref _serviceStatus, Stopping, Running); // If running, make it stopping.
+			_ = Interlocked.CompareExchange(ref _serviceStatus, Stopping, Running); // If running, make it stopping.
 
 			while (Interlocked.CompareExchange(ref _serviceStatus, Stopped, NotStarted) == 2)
 			{

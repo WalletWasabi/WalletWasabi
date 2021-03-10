@@ -10,7 +10,7 @@ namespace WalletWasabi.Gui.Controls
 	{
 		public ExtendedListBox()
 		{
-			AddHandler(
+			_ = AddHandler(
 				PointerPressedEvent,
 				(sender, e) =>
 				{
@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.Controls
 
 					if (properties.IsLeftButtonPressed || properties.IsRightButtonPressed)
 					{
-						UpdateSelectionFromEventSource(
+						_ = UpdateSelectionFromEventSource(
 							e.Source,
 							true,
 							e.KeyModifiers.HasFlag(KeyModifiers.Shift),

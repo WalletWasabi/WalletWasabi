@@ -57,7 +57,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			var selectedWalletFilter = this.WhenValueChanged(t => t.SelectedWallet).Select(SelectedWalletFilter);
 
-			_wallets
+			_ = _wallets
 				.ToObservableChangeSet()
 				.Filter(selectedWalletFilter)
 				.Sort(SortExpressionComparer<WalletViewModelBase>.Descending(i => i.WalletState).ThenByDescending(i => i.IsLoggedIn).ThenByAscending(i => i.Title))
@@ -66,7 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				.Bind(out _items)
 				.AsObservableList();
 
-			Observable
+			_ = Observable
 				.FromEventPattern<WalletState>(walletManager, nameof(WalletWasabi.Wallets.WalletManager.WalletStateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(
@@ -89,7 +89,7 @@ namespace WalletWasabi.Fluent.ViewModels
 					AnyWalletStarted = Items.OfType<WalletViewModelBase>().Any(y => y.WalletState == WalletState.Started);
 				});
 
-			Observable
+			_ = Observable
 				.FromEventPattern<Wallet>(walletManager, nameof(WalletWasabi.Wallets.WalletManager.WalletAdded))
 				.Select(x => x.EventArgs)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -103,7 +103,7 @@ namespace WalletWasabi.Fluent.ViewModels
 					InsertWallet(vm);
 				});
 
-			RxApp.MainThreadScheduler.Schedule(() => EnumerateWallets(walletManager));
+			_ = RxApp.MainThreadScheduler.Schedule(() => EnumerateWallets(walletManager));
 		}
 
 		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _items;
@@ -125,7 +125,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			try
 			{
-				await Task.Run(async () => await WalletManager.StartWalletAsync(wallet));
+				_ = await Task.Run(async () => await WalletManager.StartWalletAsync(wallet));
 			}
 			catch (OperationCanceledException ex)
 			{
@@ -185,7 +185,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private void InsertWallet(WalletViewModelBase wallet)
 		{
-			_wallets.InsertSorted(wallet);
+			_ = _wallets.InsertSorted(wallet);
 
 			_walletDictionary.Add(wallet.Wallet, wallet);
 		}
@@ -196,7 +196,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			walletViewModel.Dispose();
 
-			_wallets.Remove(walletViewModel);
+			_ = _wallets.Remove(walletViewModel);
 
 			if (isLoggedIn)
 			{
@@ -206,11 +206,11 @@ namespace WalletWasabi.Fluent.ViewModels
 
 					RemoveActions(walletViewModel, actions, true);
 
-					_walletActionsDictionary.Remove(walletViewModel);
+					_ = _walletActionsDictionary.Remove(walletViewModel);
 				}
 			}
 
-			_walletDictionary.Remove(walletViewModel.Wallet);
+			_ = _walletDictionary.Remove(walletViewModel.Wallet);
 		}
 
 		private void EnumerateWallets(WalletManager walletManager)
@@ -300,7 +300,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (dispose)
 			{
-				_walletActionsDictionary.Remove(walletViewModel);
+				_ = _walletActionsDictionary.Remove(walletViewModel);
 			}
 		}
 	}

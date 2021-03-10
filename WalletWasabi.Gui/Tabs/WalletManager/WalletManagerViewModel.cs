@@ -92,7 +92,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			SelectedCategory = Categories.FirstOrDefault();
 
-			this.WhenAnyValue(x => x.SelectedCategory)
+			_ = this.WhenAnyValue(x => x.SelectedCategory)
 				.Subscribe(category =>
 				{
 					category?.OnCategorySelected();
@@ -102,7 +102,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			if (!walletManager.GetWallets().Any(wallet => wallet.State == WalletState.Started))
 			{
 				// If there aren't any opened wallet then close this walletmanager if the first wallet loaded.
-				Observable
+				_ = Observable
 					.FromEventPattern<WalletState>(walletManager, nameof(walletManager.WalletStateChanged))
 					.Select(x => x.EventArgs)
 					.Where(x => x == WalletState.Started)
@@ -113,7 +113,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						// Only close this tab if the user still looking at the load tab.
 						if (CurrentView == LoadWalletDesktop)
 						{
-							OnClose();
+							_ = OnClose();
 						}
 					}).DisposeWith(disposables);
 			}

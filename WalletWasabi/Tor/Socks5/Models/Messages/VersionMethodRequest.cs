@@ -13,8 +13,8 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 
 		public VersionMethodRequest(byte[] bytes)
 		{
-			Guard.NotNullOrEmpty(nameof(bytes), bytes);
-			Guard.InRangeAndNotNull($"{nameof(bytes)}.{nameof(bytes.Length)}", bytes.Length, 3, 257);
+			_ = Guard.NotNullOrEmpty(nameof(bytes), bytes);
+			_ = Guard.InRangeAndNotNull($"{nameof(bytes)}.{nameof(bytes.Length)}", bytes.Length, 3, 257);
 
 			Ver = new VerField(bytes[0]);
 			NMethods = new NMethodsField(bytes[1]);

@@ -423,7 +423,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await arena.SignTransactionAsync(txsigreq2);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.DoesNotContain(round.Id, arena.Rounds.Keys);
-			Assert.Single(arena.Rounds.Where(x => x.Value.IsBlameRound));
+			_ = Assert.Single(arena.Rounds.Where(x => x.Value.IsBlameRound));
 			var badOutpoint = alice3.Coins.Select(x => x.Outpoint).First();
 			Assert.Contains(badOutpoint, arena.Prison.GetInmates().Select(x => x.Utxo));
 

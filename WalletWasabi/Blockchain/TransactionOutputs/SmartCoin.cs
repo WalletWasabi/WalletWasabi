@@ -47,7 +47,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 
 			HdPubKey = pubKey;
 
-			Transaction.WalletOutputs.Add(this);
+			_ = Transaction.WalletOutputs.Add(this);
 		}
 
 		public SmartTransaction Transaction { get; }
@@ -78,8 +78,8 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			get => _spenderTransaction;
 			set
 			{
-				value?.WalletInputs.Add(this);
-				RaiseAndSetIfChanged(ref _spenderTransaction, value);
+				_ = (value?.WalletInputs.Add(this));
+				_ = RaiseAndSetIfChanged(ref _spenderTransaction, value);
 			}
 		}
 

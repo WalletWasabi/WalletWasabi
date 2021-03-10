@@ -14,7 +14,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.ByteArrayFields
 
 		public PortField(int dstPort)
 		{
-			Guard.MinimumAndNotNull(nameof(dstPort), dstPort, 0);
+			_ = Guard.MinimumAndNotNull(nameof(dstPort), dstPort, 0);
 
 			var bytes = BitConverter.GetBytes(dstPort);
 			if (bytes[2] != 0 || bytes[3] != 0)

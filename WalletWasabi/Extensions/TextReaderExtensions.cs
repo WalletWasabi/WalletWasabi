@@ -30,10 +30,10 @@ namespace System.IO
 
 				if (ch == '\r' && me.Peek() == '\n')
 				{
-					me.Read();
+					_ = me.Read();
 					return sb.ToString();
 				}
-				sb.Append((char)ch);
+				_ = sb.Append((char)ch);
 			}
 			if (sb.Length > 0)
 			{
@@ -58,7 +58,7 @@ namespace System.IO
 				{
 					return sb.ToString();
 				}
-				sb.Append((char)ch);
+				_ = sb.Append((char)ch);
 			}
 			if (sb.Length > 0)
 			{

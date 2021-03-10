@@ -33,7 +33,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			while (read >= 0)
 			{
 				read = await stream.ReadByteAsync(ctsToken).ConfigureAwait(false);
-				bab.Append((byte)read);
+				_ = bab.Append((byte)read);
 				if (LF == (byte)read)
 				{
 					break;
@@ -54,7 +54,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			var headers = "";
 			var firstRead = true;
 			var builder = new StringBuilder();
-			builder.Append(headers);
+			_ = builder.Append(headers);
 			while (true)
 			{
 				string header = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken).ConfigureAwait(false);
@@ -86,7 +86,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 					firstRead = false;
 				}
 
-				builder.Append(header + CRLF); // CRLF is part of the headerstring
+				_ = builder.Append(header + CRLF); // CRLF is part of the headerstring
 			}
 
 			headers = builder.ToString();
@@ -116,10 +116,10 @@ namespace WalletWasabi.Tor.Http.Helpers
 					{
 						return bab.ToString(encoding);
 					}
-					bab.Append(new byte[] { (byte)ch, (byte)ch2 });
+					_ = bab.Append(new byte[] { (byte)ch, (byte)ch2 });
 					continue;
 				}
-				bab.Append((byte)ch);
+				_ = bab.Append((byte)ch);
 			}
 
 			return bab.Length > 0
@@ -143,10 +143,10 @@ namespace WalletWasabi.Tor.Http.Helpers
 					unzipStream.CopyTo(targetStream);
 					decodedBodyArray = targetStream.ToArray();
 				}
-				contentHeaders.ContentEncoding.Remove("gzip");
+				_ = contentHeaders.ContentEncoding.Remove("gzip");
 				if (!contentHeaders.ContentEncoding.Any())
 				{
-					contentHeaders.Remove("Content-Encoding");
+					_ = contentHeaders.Remove("Content-Encoding");
 				}
 			}
 
@@ -318,9 +318,9 @@ namespace WalletWasabi.Tor.Http.Helpers
 				// above) as if they were appended to the message's header section.
 				CopyHeaders(trailerHeaderStruct.ResponseHeaders, responseHeaders.ResponseHeaders);
 
-				responseHeaders.ResponseHeaders.Remove("Transfer-Encoding");
-				responseHeaders.ContentHeaders.TryAddWithoutValidation("Content-Length", length.ToString());
-				responseHeaders.ResponseHeaders.Remove("Trailer");
+				_ = responseHeaders.ResponseHeaders.Remove("Transfer-Encoding");
+				_ = responseHeaders.ContentHeaders.TryAddWithoutValidation("Content-Length", length.ToString());
+				_ = responseHeaders.ResponseHeaders.Remove("Trailer");
 			}
 			if (requestHeaders is { })
 			{
@@ -332,9 +332,9 @@ namespace WalletWasabi.Tor.Http.Helpers
 				// above) as if they were appended to the message's header section.
 				CopyHeaders(trailerHeaderStruct.RequestHeaders, requestHeaders.RequestHeaders);
 
-				requestHeaders.RequestHeaders.Remove("Transfer-Encoding");
-				requestHeaders.ContentHeaders.TryAddWithoutValidation("Content-Length", length.ToString());
-				requestHeaders.RequestHeaders.Remove("Trailer");
+				_ = requestHeaders.RequestHeaders.Remove("Transfer-Encoding");
+				_ = requestHeaders.ContentHeaders.TryAddWithoutValidation("Content-Length", length.ToString());
+				_ = requestHeaders.RequestHeaders.Remove("Trailer");
 			}
 
 			return decodedBody.ToArray();
@@ -345,51 +345,51 @@ namespace WalletWasabi.Tor.Http.Helpers
 			// https://tools.ietf.org/html/rfc7230#section-4.1.2
 			// A sender MUST NOT generate a trailer that contains a field necessary
 			// for message framing (e.g., Transfer - Encoding and Content - Length),
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Transfer-Encoding");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Content-Length");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Transfer-Encoding");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Content-Length");
 			// routing (e.g., Host)
 			// request modifiers(e.g., controls and
 			// https://tools.ietf.org/html/rfc7231#section-5.1
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Cache-Control");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Expect");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Host");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Max-Forwards");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Pragma");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Range");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "TE");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Cache-Control");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Expect");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Host");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Max-Forwards");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Pragma");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Range");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "TE");
 			// conditionals in Section 5 of[RFC7231]),
 			// https://tools.ietf.org/html/rfc7231#section-5.2
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "If-Match");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "If-None-Match");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "If-Modified-Since");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "If-Unmodified-Since");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "If-Range");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "If-Match");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "If-None-Match");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "If-Modified-Since");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "If-Unmodified-Since");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "If-Range");
 			// authentication(e.g., see [RFC7235]
 			// https://tools.ietf.org/html/rfc7235#section-5.3
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Authorization");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Proxy-Authenticate");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Proxy-Authorization");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "WWW-Authenticate");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Authorization");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Proxy-Authenticate");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Proxy-Authorization");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "WWW-Authenticate");
 			// and[RFC6265]),
 			// https://tools.ietf.org/html/rfc6265
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Set-Cookie");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Cookie");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Set-Cookie");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Cookie");
 			// response control data(e.g., see Section 7.1 of[RFC7231]),
 			// https://tools.ietf.org/html/rfc7231#section-7.1
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Age");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Cache-Control");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Expires");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Date");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Location");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Retry-After");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Vary");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Warning");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Age");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Cache-Control");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Expires");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Date");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Location");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Retry-After");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Vary");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Warning");
 			// or determining how to process the payload(e.g.,
 			// Content - Encoding, Content - Type, Content - Range, and Trailer).
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Content-Encoding");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Content-Type");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Content-Range");
-			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Trailer");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Content-Encoding");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Content-Type");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Content-Range");
+			_ = trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Trailer");
 		}
 
 		public static void ParseFirstChunkLine(string firstChunkLine, out long chunkSize, out IEnumerable<string> chunkExtensions)
@@ -422,7 +422,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 				}
 				else
 				{
-					bab.Append((byte)read);
+					_ = bab.Append((byte)read);
 				}
 			}
 		}
@@ -431,7 +431,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 		{
 			try
 			{
-				Convert.ToInt32(length);
+				_ = Convert.ToInt32(length);
 			}
 			catch (OverflowException ex)
 			{
@@ -464,7 +464,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			{
 				if (contentHeaders is { } && contentHeaders.Contains("Content-Length"))
 				{
-					contentHeaders.Remove("Content-Length");
+					_ = contentHeaders.Remove("Content-Length");
 				}
 			}
 			// Any Content-Length field value greater than or equal to zero is valid.
@@ -495,7 +495,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 
 			foreach (var header in source)
 			{
-				destination.TryAddWithoutValidation(header.Key, header.Value);
+				_ = destination.TryAddWithoutValidation(header.Key, header.Value);
 			}
 		}
 	}

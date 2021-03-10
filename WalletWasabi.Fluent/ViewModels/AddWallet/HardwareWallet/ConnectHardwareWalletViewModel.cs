@@ -62,7 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				}
 			});
 
-			this.WhenAnyValue(x => x.Message)
+			_ = this.WhenAnyValue(x => x.Message)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(message => ConfirmationRequired = !string.IsNullOrEmpty(message));
 		}
@@ -215,12 +215,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			StartDetection();
 
-			Disposable.Create(async () =>
-				{
-					CancelCts.Cancel();
-					await AbandonedTasks.WhenAllAsync();
-					CancelCts.Dispose();
-				})
+			_ = Disposable.Create(async () =>
+				  {
+					  CancelCts.Cancel();
+					  await AbandonedTasks.WhenAllAsync();
+					  CancelCts.Dispose();
+				  })
 				.DisposeWith(disposables);
 		}
 	}

@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
 			if (RemoveIfExists && target.Classes.Contains(ClassName))
 			{
-				target.Classes.Remove(ClassName);
+				_ = target.Classes.Remove(ClassName);
 			}
 
 			target.Classes.Add(ClassName);

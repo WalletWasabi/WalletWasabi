@@ -46,7 +46,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			_wallets = new ObservableCollection<HardwareWalletViewModel>();
 			IsHwWalletSearchTextVisible = false;
 
-			this.WhenAnyValue(x => x.SelectedWallet)
+			_ = this.WhenAnyValue(x => x.SelectedWallet)
 				.Where(x => x is null)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
@@ -55,7 +55,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					SetLoadButtonText();
 				});
 
-			Wallets
+			_ = Wallets
 				.ToObservableChangeSet()
 				.ToCollection()
 				.Where(items => items.Any() && SelectedWallet is null)
@@ -63,7 +63,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SelectedWallet = x);
 
-			this.WhenAnyValue(x => x.IsBusy, x => x.IsHardwareBusy)
+			_ = this.WhenAnyValue(x => x.IsBusy, x => x.IsHardwareBusy)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SetLoadButtonText());
 
@@ -123,14 +123,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					var walletName = WalletManager.WalletDirectories.GetNextWalletName("Coldcard");
 					var walletFullPath = WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
 					var keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(mfp, extPubKey, walletFullPath);
-					WalletManager.AddWallet(keyManager);
+					_ = WalletManager.AddWallet(keyManager);
 					owner.SelectLoadWallet(keyManager);
 				}
 			});
 			EnumerateHardwareWalletsCommand = ReactiveCommand.CreateFromTask(async () => await EnumerateIfHardwareWalletsAsync());
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
-			Observable
+			_ = Observable
 				.Merge(LoadCommand.ThrownExceptions)
 				.Merge(OpenBrowserCommand.ThrownExceptions)
 				.Merge(ImportColdcardCommand.ThrownExceptions)
@@ -338,7 +338,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 					{
 						throw new InvalidOperationException("Hardware wallet did not provide fingerprint.");
 					}
-					WalletManager.AddWallet(KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.Fingerprint.Value, extPubKey, path));
+					_ = WalletManager.AddWallet(KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.Fingerprint.Value, extPubKey, path));
 				}
 
 				KeyManager keyManager = WalletManager.GetWalletByName(walletName).KeyManager;
@@ -384,7 +384,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 				{
 					var wallet = await Task.Run(async () => await WalletManager.StartWalletAsync(keyManager));
 					// Successfully initialized.
-					Owner.OnClose();
+					_ = Owner.OnClose();
 				}
 				catch (OperationCanceledException ex)
 				{

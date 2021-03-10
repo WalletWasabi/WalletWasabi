@@ -98,8 +98,8 @@ namespace WalletWasabi.Backend
 
 		private async Task InitializeP2pAsync(Network network, EndPoint endPoint, CancellationToken cancel)
 		{
-			Guard.NotNull(nameof(network), network);
-			Guard.NotNull(nameof(endPoint), endPoint);
+			_ = Guard.NotNull(nameof(network), network);
+			_ = Guard.NotNull(nameof(endPoint), endPoint);
 
 			// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
 			P2pNode = new(network, endPoint, new(), $"/WasabiCoordinator:{Constants.BackendMajorVersion}/");

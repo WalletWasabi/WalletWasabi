@@ -107,18 +107,18 @@ namespace WalletWasabi.Blockchain.Transactions
 			Logger.LogInfo("Calculating dynamic transaction fee...");
 
 			TransactionBuilder builder = Network.CreateTransactionBuilder();
-			builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs));
-			builder.AddCoins(allowedSmartCoinInputs.Select(c => c.Coin));
-			builder.SetLockTime(lockTimeSelector());
+			_ = builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs));
+			_ = builder.AddCoins(allowedSmartCoinInputs.Select(c => c.Coin));
+			_ = builder.SetLockTime(lockTimeSelector());
 
 			foreach (var request in payments.Requests.Where(x => x.Amount.Type == MoneyRequestType.Value))
 			{
 				var amountRequest = request.Amount;
 
-				builder.Send(request.Destination, amountRequest.Amount);
+				_ = builder.Send(request.Destination, amountRequest.Amount);
 				if (amountRequest.SubtractFee)
 				{
-					builder.SubtractFees();
+					_ = builder.SubtractFees();
 				}
 			}
 
@@ -132,11 +132,11 @@ namespace WalletWasabi.Blockchain.Transactions
 				var changeStrategy = payments.ChangeStrategy;
 				if (changeStrategy == ChangeStrategy.Custom)
 				{
-					builder.SetChange(changeScript);
+					_ = builder.SetChange(changeScript);
 				}
 				else if (changeStrategy == ChangeStrategy.AllRemainingCustom)
 				{
-					builder.SendAllRemaining(changeScript);
+					_ = builder.SendAllRemaining(changeScript);
 				}
 				else
 				{
@@ -145,17 +145,17 @@ namespace WalletWasabi.Blockchain.Transactions
 			}
 			else
 			{
-				KeyManager.AssertCleanKeysIndexed(isInternal: true);
-				KeyManager.AssertLockedInternalKeysIndexed(14);
+				_ = KeyManager.AssertCleanKeysIndexed(isInternal: true);
+				_ = KeyManager.AssertLockedInternalKeysIndexed(14);
 				changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).FirstOrDefault();
 
-				builder.SetChange(changeHdPubKey.P2wpkhScript);
+				_ = builder.SetChange(changeHdPubKey.P2wpkhScript);
 			}
 
 			builder.OptInRBF = true;
 
 			FeeRate feeRate = feeRateFetcher();
-			builder.SendEstimatedFees(feeRate);
+			_ = builder.SendEstimatedFees(feeRate);
 
 			var psbt = builder.BuildPSBT(false);
 
@@ -230,7 +230,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			{
 				IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(Password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
 				builder = builder.AddKeys(signingKeys.ToArray());
-				builder.SignPSBT(psbt);
+				_ = builder.SignPSBT(psbt);
 
 				var isPayjoin = false;
 				// Try to pay using payjoin
@@ -242,7 +242,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					psbt.AddPrevTxs(TransactionStore);
 				}
 
-				psbt.Finalize();
+				_ = psbt.Finalize();
 				tx = psbt.ExtractTransaction();
 
 				var checkResults = builder.Check(tx).ToList();
@@ -271,7 +271,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			var smartTransaction = new SmartTransaction(tx, Height.Unknown, label: SmartLabel.Merge(payments.Requests.Select(x => x.Label)));
 			foreach (var coin in spentCoins)
 			{
-				smartTransaction.WalletInputs.Add(coin);
+				_ = smartTransaction.WalletInputs.Add(coin);
 			}
 			var label = SmartLabel.Merge(payments.Requests.Select(x => x.Label).Concat(smartTransaction.WalletInputs.Select(x => x.HdPubKey.Label)));
 
@@ -283,7 +283,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				{
 					var smartCoin = new SmartCoin(smartTransaction, i, foundKey);
 					label = SmartLabel.Merge(label, smartCoin.HdPubKey.Label); // foundKey's label is already added to the coinlabel.
-					smartTransaction.WalletOutputs.Add(smartCoin);
+					_ = smartTransaction.WalletOutputs.Add(smartCoin);
 				}
 			}
 
@@ -319,7 +319,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath),
 					changeHdPubKey,
 					CancellationToken.None).GetAwaiter().GetResult(); // WTF??!
-				builder.SignPSBT(psbt);
+				_ = builder.SignPSBT(psbt);
 
 				Logger.LogInfo($"Payjoin payment was negotiated successfully.");
 			}

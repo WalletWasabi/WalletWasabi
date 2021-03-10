@@ -49,7 +49,7 @@ namespace WalletWasabi.Fluent
 						DataContext = MainViewModel.Instance
 					};
 
-					RxApp.MainThreadScheduler.Schedule(
+					_ = RxApp.MainThreadScheduler.Schedule(
 						async () =>
 						{
 							await _backendInitialiseAsync();

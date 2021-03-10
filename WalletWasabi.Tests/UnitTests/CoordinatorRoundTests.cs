@@ -25,9 +25,9 @@ namespace WalletWasabi.Tests.UnitTests
 			var tx = Network.Main.CreateTransaction();
 			tx.Version = 1;
 			tx.LockTime = LockTime.Zero;
-			tx.Inputs.Add(GetRandomOutPoint(), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
-			tx.Inputs.Add(GetRandomOutPoint(), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
-			tx.Outputs.Add(Money.Coins(1.9995m), new Key().ScriptPubKey);
+			_ = tx.Inputs.Add(GetRandomOutPoint(), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
+			_ = tx.Inputs.Add(GetRandomOutPoint(), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
+			_ = tx.Outputs.Add(Money.Coins(1.9995m), new Key().ScriptPubKey);
 
 			// Under normal circunstances
 			{

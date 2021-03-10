@@ -38,11 +38,11 @@ namespace WalletWasabi.WabiSabi.Crypto
 		internal void UpdateCredentials(IEnumerable<Credential> newCredentials, IEnumerable<Credential> oldCredentials)
 		{
 			var hs = oldCredentials.ToHashSet();
-			Credentials.RemoveWhere(x => hs.Contains(x));
+			_ = Credentials.RemoveWhere(x => hs.Contains(x));
 
 			foreach (var credential in newCredentials)
 			{
-				Credentials.Add(credential);
+				_ = Credentials.Add(credential);
 			}
 		}
 	}

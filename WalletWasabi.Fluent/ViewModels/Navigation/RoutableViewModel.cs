@@ -98,10 +98,10 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		{
 			foreach (var command in commands)
 			{
-				(command as IReactiveCommand)?.IsExecuting
+				_ = ((command as IReactiveCommand)?.IsExecuting
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Skip(1)
-					.Subscribe(x => IsBusy = x);
+					.Subscribe(x => IsBusy = x));
 			}
 		}
 
@@ -122,7 +122,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		protected async Task ShowErrorAsync(string title, string message, string caption)
 		{
 			var dialog = new ShowErrorDialogViewModel(message, title, caption);
-			await NavigateDialog(dialog, NavigationTarget.DialogScreen);
+			_ = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 		}
 	}
 }

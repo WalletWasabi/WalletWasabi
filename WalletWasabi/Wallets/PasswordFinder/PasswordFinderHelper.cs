@@ -39,7 +39,7 @@ namespace WalletWasabi.Wallets.PasswordFinder
 
 				try
 				{
-					encryptedSecret.GetKey(pwd);
+					_ = encryptedSecret.GetKey(pwd);
 					foundPassword = pwd;
 					return true;
 				}

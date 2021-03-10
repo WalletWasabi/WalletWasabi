@@ -18,7 +18,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 				{
 					throw new ArgumentException($"{nameof(confirmationTarget)} must be null.");
 				}
-				Guard.NotNull(nameof(feeRate), feeRate);
+				_ = Guard.NotNull(nameof(feeRate), feeRate);
 				if (feeRate < new FeeRate(1m))
 				{
 					throw new ArgumentOutOfRangeException(nameof(feeRate), feeRate, "Cannot be less than 1 sat/vByte.");
@@ -31,7 +31,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 				{
 					throw new ArgumentException($"{nameof(feeRate)} must be null.");
 				}
-				Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
+				_ = Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
 				_target = Guard.InRangeAndNotNull(nameof(confirmationTarget), confirmationTarget.Value, Constants.TwentyMinutesConfirmationTarget, Constants.SevenDaysConfirmationTarget);
 			}
 			else

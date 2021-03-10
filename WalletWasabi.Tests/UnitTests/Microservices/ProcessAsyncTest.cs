@@ -18,21 +18,21 @@ namespace WalletWasabi.Tests.UnitTests.Microservices
 		[Fact]
 		public async void SendCommandImmediateCancelAsync()
 		{
-			await Assert.ThrowsAsync<TaskCanceledException>(async () =>
-			{
-				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+			_ = await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+			  {
+				  using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
-				var startInfo = new ProcessStartInfo()
-				{
-					FileName = MicroserviceHelpers.GetBinaryPath("bitcoind"),
-					Arguments = "-regtest=1"
-				};
+				  var startInfo = new ProcessStartInfo()
+				  {
+					  FileName = MicroserviceHelpers.GetBinaryPath("bitcoind"),
+					  Arguments = "-regtest=1"
+				  };
 
-				using var process = new ProcessAsync(startInfo);
-				process.Start();
+				  using var process = new ProcessAsync(startInfo);
+				  process.Start();
 
-				await process.WaitForExitAsync(cts.Token, killOnCancel: true);
-			});
+				  await process.WaitForExitAsync(cts.Token, killOnCancel: true);
+			  });
 		}
 	}
 }

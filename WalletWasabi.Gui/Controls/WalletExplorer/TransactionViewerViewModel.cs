@@ -83,7 +83,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-			Observable
+			_ = Observable
 				.Merge(CopyBase64Psbt.ThrownExceptions)
 				.Merge(CopyTransactionHex.ThrownExceptions)
 				.Merge(ExportBinaryPsbt.ThrownExceptions)
@@ -133,7 +133,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen(disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.PrivacyMode)
+			_ = Global.UiConfig.WhenAnyValue(x => x.PrivacyMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{

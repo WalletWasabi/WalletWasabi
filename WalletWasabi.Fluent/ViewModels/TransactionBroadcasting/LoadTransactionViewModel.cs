@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		{
 			Network = network;
 
-			this.WhenAnyValue(x => x.FinalTransaction)
+			_ = this.WhenAnyValue(x => x.FinalTransaction)
 				.Where(x => x is { })
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(finalTransaction => Close(result: finalTransaction));
@@ -61,7 +61,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 					{
 						if (!signedPsbt.IsAllFinalized())
 						{
-							signedPsbt.Finalize();
+							_ = signedPsbt.Finalize();
 						}
 
 						FinalTransaction = signedPsbt.ExtractSmartTransaction();
@@ -110,7 +110,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 
 			if (!psbt.IsAllFinalized())
 			{
-				psbt.Finalize();
+				_ = psbt.Finalize();
 			}
 
 			return psbt.ExtractSmartTransaction();

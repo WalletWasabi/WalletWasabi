@@ -38,16 +38,16 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 
-			mainScreen.WhenAnyValue(x => x.CurrentPage)
+			_ = mainScreen.WhenAnyValue(x => x.CurrentPage)
 				.OfType<NavBarItemViewModel>()
 				.DistinctUntilChanged()
 				.Subscribe(x => CurrentPageChanged(x, walletManager));
 
-			this.WhenAnyValue(x => x.SelectedItem)
+			_ = this.WhenAnyValue(x => x.SelectedItem)
 				.OfType<NavBarItemViewModel>()
 				.Subscribe(NavigateItem);
 
-			this.WhenAnyValue(x => x.Items.Count)
+			_ = this.WhenAnyValue(x => x.Items.Count)
 				.Subscribe(x =>
 				{
 					if (x > 0 && SelectedItem is null)
@@ -59,7 +59,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 					}
 				});
 
-			this.WhenAnyValue(x => x.IsOpen)
+			_ = this.WhenAnyValue(x => x.IsOpen)
 				.Subscribe(x =>
 				{
 					if (SelectedItem is { })
@@ -68,7 +68,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 					}
 				});
 
-			this.WhenAnyValue(x => x.IsHidden)
+			_ = this.WhenAnyValue(x => x.IsHidden)
 				.Subscribe(
 					x =>
 				{
@@ -76,13 +76,13 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 					CurrentOpenPaneLength = x ? 0 : NormalOpenPaneLength;
 				});
 
-			this.WhenAnyValue(x => x.IsOpen, x => x.Actions.Count)
+			_ = this.WhenAnyValue(x => x.IsOpen, x => x.Actions.Count)
 				.Subscribe(x =>
 				{
 					HideItems = !x.Item1 && x.Item2 > 0;
 				});
 
-			_walletManager.WhenAnyValue(x => x.SelectedWallet)
+			_ = _walletManager.WhenAnyValue(x => x.SelectedWallet)
 				.OfType<NavBarItemViewModel>()
 				.Subscribe(x =>
 				{

@@ -69,7 +69,7 @@ namespace NBitcoin
 
 		public static void FromHex(this IBitcoinSerializable me, string hex)
 		{
-			Guard.NotNullOrEmptyOrWhitespace(nameof(hex), hex);
+			_ = Guard.NotNullOrEmptyOrWhitespace(nameof(hex), hex);
 			me.FromBytes(ByteHelpers.FromHex(hex));
 		}
 
@@ -159,7 +159,7 @@ namespace NBitcoin
 		/// </summary>
 		public static bool HasWitScript(this TxIn me)
 		{
-			Guard.NotNull(nameof(me), me);
+			_ = Guard.NotNull(nameof(me), me);
 
 			bool notNull = me.WitScript is { };
 			bool notEmpty = me.WitScript != WitScript.Empty;
@@ -194,7 +194,7 @@ namespace NBitcoin
 			}
 			else
 			{
-				me.Add(money, scriptPubKey);
+				_ = me.Add(money, scriptPubKey);
 			}
 		}
 
@@ -249,12 +249,12 @@ namespace NBitcoin
 
 			if (startWithM)
 			{
-				toStringBuilder.Insert(0, "m/");
+				_ = toStringBuilder.Insert(0, "m/");
 			}
 
 			if (format == "h")
 			{
-				toStringBuilder.Replace('\'', 'h');
+				_ = toStringBuilder.Replace('\'', 'h');
 			}
 
 			return toStringBuilder.ToString();
@@ -345,7 +345,7 @@ namespace NBitcoin
 				foreach (var node in nodes)
 				{
 					yield return node.Transaction;
-					parentCounter.Remove(node);
+					_ = parentCounter.Remove(node);
 					foreach (var child in node.Children)
 					{
 						parentCounter[child] = parentCounter[child] - 1;
@@ -423,7 +423,7 @@ namespace NBitcoin
 		public static void AddKeyPath(this PSBT psbt, HDFingerprint fp, HdPubKey hdPubKey, Script script)
 		{
 			var rootKeyPath = new RootedKeyPath(fp, hdPubKey.FullKeyPath);
-			psbt.AddKeyPath(hdPubKey.PubKey, rootKeyPath, script);
+			_ = psbt.AddKeyPath(hdPubKey.PubKey, rootKeyPath, script);
 		}
 
 		/// <summary>
@@ -484,7 +484,7 @@ namespace NBitcoin
 		{
 			BitcoinStream inputStream = new(input);
 			var instance = new T();
-			inputStream.ReadWrite(instance);
+			_ = inputStream.ReadWrite(instance);
 			if (inputStream.Inner.Length != inputStream.Inner.Position)
 			{
 				throw new FormatException("Expected end of stream");

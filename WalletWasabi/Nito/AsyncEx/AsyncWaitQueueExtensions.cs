@@ -33,11 +33,11 @@ namespace Nito.AsyncEx
 				{
 					lock (mutex)
 					{
-						@this.TryCancel(ret, token);
+						_ = @this.TryCancel(ret, token);
 					}
 				},
 				useSynchronizationContext: false);
-			ret.ContinueWith(_ => registration.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+			_ = ret.ContinueWith(_ => registration.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
 			return ret;
 		}
 	}

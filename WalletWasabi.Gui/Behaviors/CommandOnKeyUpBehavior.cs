@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.Behaviors
 				(sender, e) =>
 				{
 					CommandParameter = e;
-					ExecuteCommand();
+					_ = ExecuteCommand();
 				},
 				RoutingStrategies.Tunnel));
 		}

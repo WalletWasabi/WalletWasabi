@@ -8,8 +8,8 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		[JsonConstructor]
 		internal Proof(GroupElementVector publicNonces, ScalarVector responses)
 		{
-			Guard.NotNullOrInfinity(nameof(publicNonces), publicNonces);
-			Guard.NotNullOrEmpty(nameof(responses), responses);
+			_ = Guard.NotNullOrInfinity(nameof(publicNonces), publicNonces);
+			_ = Guard.NotNullOrEmpty(nameof(responses), responses);
 
 			PublicNonces = publicNonces;
 			Responses = responses;

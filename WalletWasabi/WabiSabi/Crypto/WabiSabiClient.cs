@@ -195,8 +195,8 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// <param name="registrationValidationData">The state data required to validate the issued credentials and the proofs.</param>
 		public void HandleResponse(CredentialsResponse registrationResponse, CredentialsResponseValidation registrationValidationData)
 		{
-			Guard.NotNull(nameof(registrationResponse), registrationResponse);
-			Guard.NotNull(nameof(registrationValidationData), registrationValidationData);
+			_ = Guard.NotNull(nameof(registrationResponse), registrationResponse);
+			_ = Guard.NotNull(nameof(registrationValidationData), registrationValidationData);
 
 			var issuedCredentialCount = registrationResponse.IssuedCredentials.Count();
 			var requestedCredentialCount = registrationValidationData.Requested.Count();

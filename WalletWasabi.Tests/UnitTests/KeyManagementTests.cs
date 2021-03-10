@@ -41,7 +41,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.MasterFingerprint, manager.ExtPubKey, true, null, new BlockchainState());
 			var sameManager2 = new KeyManager(manager.EncryptedSecret, manager.ChainCode, password);
 			Logger.TurnOff();
-			Assert.Throws<SecurityException>(() => new KeyManager(manager.EncryptedSecret, manager.ChainCode, "differentPassword"));
+			_ = Assert.Throws<SecurityException>(() => new KeyManager(manager.EncryptedSecret, manager.ChainCode, "differentPassword"));
 			Logger.TurnOn();
 
 			Assert.Equal(manager.ChainCode, sameManager.ChainCode);
@@ -80,7 +80,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.NotEqual(manager.EncryptedSecret, differentManager.EncryptedSecret);
 			Assert.NotEqual(manager.ExtPubKey, differentManager.ExtPubKey);
 
-			differentManager.AssertCleanKeysIndexed();
+			_ = differentManager.AssertCleanKeysIndexed();
 			var newKey = differentManager.GenerateNewKey("some-label", KeyState.Clean, true, false);
 			Assert.Equal(newKey.Index, differentManager.MinGapLimit);
 			Assert.Equal("999'/999'/999'/1/55", newKey.FullKeyPath.ToString());
@@ -92,7 +92,7 @@ namespace WalletWasabi.Tests.UnitTests
 			string password = "password";
 			var manager = KeyManager.CreateNew(out _, password);
 
-			manager.AssertCleanKeysIndexed();
+			_ = manager.AssertCleanKeysIndexed();
 			var lastKey = manager.GetKeys(KeyState.Clean, isInternal: false).Last();
 			lastKey.SetKeyState(KeyState.Used);
 			var newKeys = manager.AssertCleanKeysIndexed();
@@ -108,11 +108,11 @@ namespace WalletWasabi.Tests.UnitTests
 			DeleteFileAndDirectoryIfExists(filePath);
 
 			Logger.TurnOff();
-			Assert.Throws<FileNotFoundException>(() => KeyManager.FromFile(filePath));
+			_ = Assert.Throws<FileNotFoundException>(() => KeyManager.FromFile(filePath));
 			Logger.TurnOn();
 
 			var manager = KeyManager.CreateNew(out _, password, filePath);
-			KeyManager.FromFile(filePath);
+			_ = KeyManager.FromFile(filePath);
 
 			manager.ToFile();
 
@@ -125,7 +125,7 @@ namespace WalletWasabi.Tests.UnitTests
 				var isInternal = random.Next(2) == 0;
 				var label = RandomString.AlphaNumeric(21);
 				var keyState = (KeyState)random.Next(3);
-				manager.GenerateNewKey(label, keyState, isInternal, toFile: false);
+				_ = manager.GenerateNewKey(label, keyState, isInternal, toFile: false);
 			}
 			manager.ToFile();
 
@@ -177,7 +177,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var k = km.GenerateNewKey("", KeyState.Clean, true);
 			Assert.Equal(1, km.CountConsecutiveUnusedKeys(true));
 
-			km.GenerateNewKey("", KeyState.Locked, true);
+			_ = km.GenerateNewKey("", KeyState.Locked, true);
 			Assert.Equal(2, km.CountConsecutiveUnusedKeys(true));
 
 			k.SetKeyState(KeyState.Used);

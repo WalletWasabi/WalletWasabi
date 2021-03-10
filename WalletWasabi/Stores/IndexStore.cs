@@ -127,7 +127,7 @@ namespace WalletWasabi.Stores
 
 			try
 			{
-				FilterModel.FromLine(firstLine);
+				_ = FilterModel.FromLine(firstLine);
 			}
 			catch
 			{
@@ -402,7 +402,7 @@ namespace WalletWasabi.Stores
 				}
 				else
 				{
-					Interlocked.Exchange(ref _throttleId, 0); // So to notify the currently throttled threads that they do not have to run.
+					_ = Interlocked.Exchange(ref _throttleId, 0); // So to notify the currently throttled threads that they do not have to run.
 				}
 
 				using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))

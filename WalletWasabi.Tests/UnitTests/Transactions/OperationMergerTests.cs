@@ -76,10 +76,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(6, mergedOperations.Count());
 			var mergedOperationsArray = mergedOperations.ToArray();
 			Assert.Equal(5, Assert.IsType<Append>(mergedOperationsArray[0]).Transactions.Count());
-			Assert.Single(Assert.IsType<Remove>(mergedOperationsArray[1]).Transactions);
-			Assert.Single(Assert.IsType<Append>(mergedOperationsArray[2]).Transactions);
+			_ = Assert.Single(Assert.IsType<Remove>(mergedOperationsArray[1]).Transactions);
+			_ = Assert.Single(Assert.IsType<Append>(mergedOperationsArray[2]).Transactions);
 			Assert.Equal(3, Assert.IsType<Remove>(mergedOperationsArray[3]).Transactions.Count());
-			Assert.Single(Assert.IsType<Append>(mergedOperationsArray[4]).Transactions);
+			_ = Assert.Single(Assert.IsType<Append>(mergedOperationsArray[4]).Transactions);
 			Assert.Equal(2, Assert.IsType<Update>(mergedOperationsArray[5]).Transactions.Count());
 		}
 	}

@@ -45,7 +45,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				shell.Select(transactionInfo);
 			});
 
-			Observable
+			_ = Observable
 				.Merge(CopyTransactionId.ThrownExceptions)
 				.Merge(OpenTransactionInfo.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)

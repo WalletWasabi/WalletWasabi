@@ -100,7 +100,7 @@ namespace WalletWasabi.Blockchain.Keys
 		public void SetAnonymitySet(int anonset, uint256 reason)
 		{
 			AnonymitySet = anonset;
-			AnonymitySetReasons.Add(reason);
+			_ = AnonymitySetReasons.Add(reason);
 		}
 
 		public void SetLabel(SmartLabel label, KeyManager? kmToFile = null)

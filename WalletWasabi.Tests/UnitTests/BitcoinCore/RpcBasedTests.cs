@@ -172,7 +172,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			finally
 			{
 				await services.StopAllAsync(CancellationToken.None);
-				await coreNode.TryStopAsync();
+				_ = await coreNode.TryStopAsync();
 			}
 		}
 
@@ -188,7 +188,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				var network = rpc.Network;
 
 				var walletName = "wallet.dat";
-				await rpc.CreateWalletAsync(walletName);
+				_ = await rpc.CreateWalletAsync(walletName);
 
 				var key = new Key();
 				var blockId = await rpc.GenerateToAddressAsync(1, key.PubKey.WitHash.GetAddress(network));
@@ -196,26 +196,26 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				var coinBaseTx = block.Transactions[0];
 
 				var tx = Transaction.Create(network);
-				tx.Inputs.Add(coinBaseTx, 0);
-				tx.Outputs.Add(Money.Coins(49.9999m), new Key().PubKey.WitHash.GetAddress(network));
+				_ = tx.Inputs.Add(coinBaseTx, 0);
+				_ = tx.Outputs.Add(Money.Coins(49.9999m), new Key().PubKey.WitHash.GetAddress(network));
 				tx.Sign(key.GetBitcoinSecret(network), coinBaseTx.Outputs.AsCoins().First());
 				var valid = tx.Check();
 
 				var doubleSpend = Transaction.Create(network);
-				doubleSpend.Inputs.Add(coinBaseTx, 0);
-				doubleSpend.Outputs.Add(Money.Coins(49.998m), new Key().PubKey.WitHash.GetAddress(network));
+				_ = doubleSpend.Inputs.Add(coinBaseTx, 0);
+				_ = doubleSpend.Outputs.Add(Money.Coins(49.998m), new Key().PubKey.WitHash.GetAddress(network));
 				doubleSpend.Sign(key.GetBitcoinSecret(network), coinBaseTx.Outputs.AsCoins().First());
 				valid = doubleSpend.Check();
 
-				await rpc.GenerateAsync(101);
+				_ = await rpc.GenerateAsync(101);
 
 				var txId = await rpc.SendRawTransactionAsync(tx);
-				await Assert.ThrowsAsync<RPCException>(async () => await rpc.SendRawTransactionAsync(doubleSpend));
+				_ = await Assert.ThrowsAsync<RPCException>(async () => await rpc.SendRawTransactionAsync(doubleSpend));
 			}
 			finally
 			{
 				await services.StopAllAsync(CancellationToken.None);
-				await coreNode.TryStopAsync();
+				_ = await coreNode.TryStopAsync();
 			}
 		}
 
@@ -234,7 +234,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			finally
 			{
 				await services.StopAllAsync(CancellationToken.None);
-				await coreNode.TryStopAsync();
+				_ = await coreNode.TryStopAsync();
 			}
 		}
 
@@ -243,9 +243,9 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		{
 			var blockInfo = RpcParser.ParseVerboseBlockResponse(RpcOutput);
 			Assert.Equal(2, blockInfo.Transactions.Count());
-			Assert.Single(blockInfo.Transactions.ElementAt(0).Inputs);
+			_ = Assert.Single(blockInfo.Transactions.ElementAt(0).Inputs);
 			Assert.Equal(2, blockInfo.Transactions.ElementAt(0).Outputs.Count());
-			Assert.Single(blockInfo.Transactions.ElementAt(1).Inputs);
+			_ = Assert.Single(blockInfo.Transactions.ElementAt(1).Inputs);
 			Assert.Equal(2, blockInfo.Transactions.ElementAt(1).Outputs.Count());
 
 			Assert.Equal("01660101", blockInfo.Transactions.ElementAt(0).Inputs.ElementAt(0).Coinbase);

@@ -69,7 +69,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					});
 			});
 
-			this.WhenAnyValue(x => x.SelectedAddress)
+			_ = this.WhenAnyValue(x => x.SelectedAddress)
 				.Subscribe(async address =>
 				{
 					if (!Global.UiConfig.Autocopy || address is null)
@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					await address.TryCopyToClipboardAsync();
 				});
 
-			Observable
+			_ = Observable
 				.Merge(GenerateCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
@@ -118,7 +118,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen(disposables);
 
-			Observable
+			_ = Observable
 				.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => InitializeAddresses())

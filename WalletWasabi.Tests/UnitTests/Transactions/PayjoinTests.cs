@@ -29,7 +29,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				.AddKeys(key)
 				.Send(BitcoinFactory.CreateScript(), Money.Coins(0.5m))
 				.BuildPSBT(true);
-			tx.Finalize();
+			_ = tx.Finalize();
 			return tx;
 		}
 
@@ -80,7 +80,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// transaction that we sent to it and adds no inputs. This can give
 			// us the fake sense of privacy but it should be valid.
 			var mockHttpClient = new Mock<IHttpClient>();
-			mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()) )
+			_ = mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOk(req, psbt => psbt));
 
 			var payjoinClient = NewPayjoinClient(mockHttpClient.Object);
@@ -99,8 +99,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			Assert.Equal(TransactionCheckResult.Success, tx.Transaction.Transaction.Check());
 			Assert.True(tx.Signed);
-			Assert.Single(tx.InnerWalletOutputs);
-			Assert.Single(tx.OuterWalletOutputs);
+			_ = Assert.Single(tx.InnerWalletOutputs);
+			_ = Assert.Single(tx.OuterWalletOutputs);
 		}
 
 		[Fact]
@@ -110,7 +110,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// This tests the scenario where the payjoin server behaves as expected.
 			var mockHttpClient = new Mock<IHttpClient>();
-			mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()) )
+			_ = mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOk(req, psbt =>
 				{
 					var clientTx = psbt.ExtractTransaction();
@@ -120,13 +120,13 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 					}
 					var serverCoinKey = new Key();
 					var serverCoin = Coin(0.345m, serverCoinKey.PubKey.WitHash.ScriptPubKey);
-					clientTx.Inputs.Add(serverCoin.Outpoint);
+					_ = clientTx.Inputs.Add(serverCoin.Outpoint);
 					var paymentOutput = clientTx.Outputs.First(x => x.Value == amountToPay);
 					paymentOutput.Value += (Money)serverCoin.Amount;
 					var newPsbt = PSBT.FromTransaction(clientTx, Network.Main);
 					var serverCoinToSign = newPsbt.Inputs.FindIndexedInput(serverCoin.Outpoint);
 					serverCoinToSign.UpdateFromCoin(serverCoin);
-					serverCoinToSign.Sign(serverCoinKey);
+					_ = serverCoinToSign.Sign(serverCoinKey);
 					serverCoinToSign.FinalizeInput();
 					return newPsbt;
 				}));
@@ -182,21 +182,21 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
 			var mockHttpClient = new Mock<IHttpClient>();
-			mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()) )
+			_ = mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOk(req, psbt =>
 				{
 					var newCoin = psbt.Inputs[0].GetCoin();
 					if (newCoin is { })
 					{
 						newCoin.Outpoint.N = newCoin.Outpoint.N + 1;
-						psbt.AddCoins(newCoin);
+						_ = psbt.AddCoins(newCoin);
 					}
 					return psbt;
 				}));
 
 			var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
 			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
-			Assert.Single(tx.Transaction.Transaction.Inputs);
+			_ = Assert.Single(tx.Transaction.Transaction.Inputs);
 			///////
 
 			// The server tries to pay more to itself by taking from the change output
@@ -204,7 +204,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			payment = new PaymentIntent(destination, amountToPay);
 
 			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
-			mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()) )
+			_ = mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOk(req, psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
@@ -218,7 +218,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				}));
 
 			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
-			Assert.Single(tx.Transaction.Transaction.Inputs);
+			_ = Assert.Single(tx.Transaction.Transaction.Inputs);
 		}
 
 		[Fact]
@@ -230,7 +230,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// This tests the scenario where the payjoin server does not clean GloablXPubs.
 			var mockHttpClient = new Mock<IHttpClient>();
-			mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()) )
+			_ = mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOk(req, psbt =>
 				{
 					var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
@@ -240,11 +240,11 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
 			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
-			Assert.Single(tx.Transaction.Transaction.Inputs);
+			_ = Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
 			// This tests the scenario where the payjoin server includes keypath info in the inputs.
-			mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()) )
+			_ = mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOk(req, psbt =>
 				{
 					var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
@@ -253,11 +253,11 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				}));
 
 			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
-			Assert.Single(tx.Transaction.Transaction.Inputs);
+			_ = Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
 			// This tests the scenario where the payjoin server modifies the inputs sequence.
-			mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()) )
+			_ = mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOk(req, psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
@@ -266,38 +266,38 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				}));
 
 			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
-			Assert.Single(tx.Transaction.Transaction.Inputs);
+			_ = Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
 			// This tests the scenario where the payjoin server returns an unsigned input (fucking bastard).
-			mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()) )
+			_ = mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOk(req, psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
-					globalTx.Inputs.Add(GetRandomOutPoint());
+					_ = globalTx.Inputs.Add(GetRandomOutPoint());
 					return PSBT.FromTransaction(globalTx, Network.Main);
 				}));
 
 			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
-			Assert.Single(tx.Transaction.Transaction.Inputs);
+			_ = Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
 			// This tests the scenario where the payjoin server removes one of our inputs (probably to optimize it).
-			mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()) )
+			_ = mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOk(req, psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
 					globalTx.Inputs.Clear(); // remove all the inputs
-					globalTx.Inputs.Add(GetRandomOutPoint());
+					_ = globalTx.Inputs.Add(GetRandomOutPoint());
 					return PSBT.FromTransaction(globalTx, Network.Main);
 				}));
 
 			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
-			Assert.Single(tx.Transaction.Transaction.Inputs);
+			_ = Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
 			// This tests the scenario where the payjoin server includes keypath info in the outputs.
-			mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()) )
+			_ = mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOk(req, psbt =>
 				{
 					var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
@@ -306,11 +306,11 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				}));
 
 			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
-			Assert.Single(tx.Transaction.Transaction.Inputs);
+			_ = Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
 			// This tests the scenario where the payjoin server includes partial signatures.
-			mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()) )
+			_ = mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOk(req, psbt =>
 				{
 					var extPubkey = new ExtKey().Neuter().GetWif(Network.Main);
@@ -319,11 +319,11 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				}));
 
 			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
-			Assert.Single(tx.Transaction.Transaction.Inputs);
+			_ = Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
 			// This tests the scenario where the payjoin server modifies the original tx version.
-			mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()) )
+			_ = mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOk(req, psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
@@ -332,11 +332,11 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				}));
 
 			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
-			Assert.Single(tx.Transaction.Transaction.Inputs);
+			_ = Assert.Single(tx.Transaction.Transaction.Inputs);
 			////////
 
 			// This tests the scenario where the payjoin server modifies the original tx locktime value.
-			mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()) )
+			_ = mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOk(req, psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
@@ -345,7 +345,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				}));
 
 			tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
-			Assert.Single(tx.Transaction.Transaction.Inputs);
+			_ = Assert.Single(tx.Transaction.Transaction.Inputs);
 		}
 
 		[Fact]
@@ -359,7 +359,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
 			var mockHttpClient = new Mock<IHttpClient>();
-			mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()) )
+			_ = mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerOk(req, psbt =>
 				{
 					var globalTx = psbt.GetGlobalTransaction();
@@ -370,7 +370,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
 			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
-			Assert.Single(tx.Transaction.Transaction.Inputs);
+			_ = Assert.Single(tx.Transaction.Transaction.Inputs);
 		}
 
 		[Fact]
@@ -383,12 +383,12 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
 			var mockHttpClient = new Mock<IHttpClient>();
-			mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()) )
+			_ = mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
 				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerError(req, HttpStatusCode.InternalServerError, "-2345", "Internal Server Error"));
 
 			var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
 			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
-			Assert.Single(tx.Transaction.Transaction.Inputs);
+			_ = Assert.Single(tx.Transaction.Transaction.Inputs);
 		}
 
 		private static PayjoinClient NewPayjoinClient(IHttpClient client)

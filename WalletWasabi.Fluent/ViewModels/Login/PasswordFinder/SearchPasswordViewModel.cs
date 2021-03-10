@@ -38,11 +38,11 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 
 			var t = Task.Run(() => FindPassword(Options, cancelToken.Token));
 
-			Disposable.Create(async () =>
-			{
-				cancelToken.Cancel();
-				await t;
-			})
+			_ = Disposable.Create(async () =>
+			  {
+				  cancelToken.Cancel();
+				  await t;
+			  })
 			.DisposeWith(disposables);
 		}
 

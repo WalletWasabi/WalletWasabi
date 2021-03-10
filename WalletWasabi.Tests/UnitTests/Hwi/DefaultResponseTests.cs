@@ -34,13 +34,13 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		[MemberData(nameof(GetDifferentNetworkValues))]
 		public void CanCreate(Network network)
 		{
-			new HwiClient(network);
+			_ = new HwiClient(network);
 		}
 
 		[Fact]
 		public void ConstructorThrowsArgumentNullException()
 		{
-			Assert.Throws<ArgumentNullException>(() => new HwiClient(null!));
+			_ = Assert.Throws<ArgumentNullException>(() => new HwiClient(null!));
 		}
 
 		[Theory]
@@ -76,9 +76,9 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		{
 			using var cts = new CancellationTokenSource();
 			cts.Cancel();
-			await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.GetVersionAsync(cts.Token));
-			await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.GetHelpAsync(cts.Token));
-			await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.EnumerateAsync(cts.Token));
+			_ = await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.GetVersionAsync(cts.Token));
+			_ = await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.GetHelpAsync(cts.Token));
+			_ = await Assert.ThrowsAsync<OperationCanceledException>(async () => await client.EnumerateAsync(cts.Token));
 		}
 
 		[Theory]
@@ -91,11 +91,11 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			{
 				foreach (var wrongDevicePath in wrongDeviePaths)
 				{
-					await Assert.ThrowsAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, wrongDevicePath, cts.Token));
-					await Assert.ThrowsAsync<ArgumentException>(async () => await client.SetupAsync(deviceType, wrongDevicePath, false, cts.Token));
+					_ = await Assert.ThrowsAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, wrongDevicePath, cts.Token));
+					_ = await Assert.ThrowsAsync<ArgumentException>(async () => await client.SetupAsync(deviceType, wrongDevicePath, false, cts.Token));
 				}
-				await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.WipeAsync(deviceType, null!, cts.Token));
-				await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.SetupAsync(deviceType, null!, false, cts.Token));
+				_ = await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.WipeAsync(deviceType, null!, cts.Token));
+				_ = await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.SetupAsync(deviceType, null!, false, cts.Token));
 			}
 		}
 
@@ -116,7 +116,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 
 			cts.CancelAfter(ReasonableRequestTimeout * tasks.Count);
 
-			await Task.WhenAny(tasks);
+			_ = await Task.WhenAny(tasks);
 		}
 
 		[Fact]
@@ -132,7 +132,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			}
 			else
 			{
-				await Assert.ThrowsAsync<PlatformNotSupportedException>(async () => await pb.SendCommandAsync("enumerate", openConsole: true, cts.Token));
+				_ = await Assert.ThrowsAsync<PlatformNotSupportedException>(async () => await pb.SendCommandAsync("enumerate", openConsole: true, cts.Token));
 			}
 		}
 

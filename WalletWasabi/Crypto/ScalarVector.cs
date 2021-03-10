@@ -13,7 +13,7 @@ namespace WalletWasabi.Crypto
 		[JsonConstructor]
 		internal ScalarVector(IEnumerable<Scalar> scalars)
 		{
-			Guard.NotNullOrEmpty(nameof(scalars), scalars);
+			_ = Guard.NotNullOrEmpty(nameof(scalars), scalars);
 			Scalars = scalars.ToArray();
 		}
 
@@ -31,7 +31,7 @@ namespace WalletWasabi.Crypto
 
 		public static GroupElement operator *(ScalarVector scalars, GroupElementVector groupElements)
 		{
-			Guard.True(nameof(groupElements.Count), groupElements.Count == scalars.Count);
+			_ = Guard.True(nameof(groupElements.Count), groupElements.Count == scalars.Count);
 
 			var gej = ECMultContext.Instance.MultBatch(scalars.ToArray(), groupElements.Select(x => x.Ge).ToArray());
 			return new GroupElement( gej );
@@ -39,16 +39,16 @@ namespace WalletWasabi.Crypto
 
 		public static ScalarVector operator *(Scalar scalar, ScalarVector scalars)
 		{
-			Guard.NotNull(nameof(scalars), scalars);
+			_ = Guard.NotNull(nameof(scalars), scalars);
 
 			return new ScalarVector(scalars.Select(si => scalar * si));
 		}
 
 		public static ScalarVector operator +(ScalarVector scalars1, ScalarVector scalars2)
 		{
-			Guard.NotNull(nameof(scalars1), scalars1);
-			Guard.NotNull(nameof(scalars2), scalars2);
-			Guard.True(nameof(scalars1.Count), scalars1.Count == scalars2.Count);
+			_ = Guard.NotNull(nameof(scalars1), scalars1);
+			_ = Guard.NotNull(nameof(scalars2), scalars2);
+			_ = Guard.True(nameof(scalars1.Count), scalars1.Count == scalars2.Count);
 
 			return new ScalarVector(Enumerable.Zip(scalars1, scalars2, (s1, s2) => s1 + s2));
 		}

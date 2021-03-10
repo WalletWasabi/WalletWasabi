@@ -21,7 +21,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var builder = new StringBuilder();
 			for (int i = 0; i < 1000000; i++) // check 10MB
 			{
-				builder.Append("0123456789");
+				_ = builder.Append("0123456789");
 			}
 
 			toEncrypt = builder.ToString();
@@ -37,7 +37,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			decrypted = StringCipher.Decrypt(encypted, password);
 			Assert.Equal(toEncrypt, decrypted);
 			Logger.TurnOff();
-			Assert.Throws<CryptographicException>(() => StringCipher.Decrypt(encypted, "wrongpassword"));
+			_ = Assert.Throws<CryptographicException>(() => StringCipher.Decrypt(encypted, "wrongpassword"));
 			Logger.TurnOn();
 		}
 

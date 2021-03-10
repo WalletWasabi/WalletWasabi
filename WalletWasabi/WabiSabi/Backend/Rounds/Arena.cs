@@ -71,7 +71,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				if (round.InputCount < Config.MinInputCountByRound)
 				{
-					Rounds.Remove(round.Id);
+					_ = Rounds.Remove(round.Id);
 				}
 				else
 				{
@@ -95,11 +95,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					{
 						Prison.Note(alice, round.Id);
 					}
-					round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
+					_ = round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
 
 					if (round.InputCount < Config.MinInputCountByRound)
 					{
-						Rounds.Remove(round.Id);
+						_ = Rounds.Remove(round.Id);
 					}
 					else
 					{
@@ -125,7 +125,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					var spentCoins = round.Alices.SelectMany(x => x.Coins).ToArray();
 					foreach (var input in spentCoins.Select(x => x.Outpoint))
 					{
-						coinjoin.Inputs.Add(input);
+						_ = coinjoin.Inputs.Add(input);
 					}
 
 					// Add outputs:
@@ -185,7 +185,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						}
 
 						// Broadcasting.
-						await Rpc.SendRawTransactionAsync(coinjoin).ConfigureAwait(false);
+						_ = await Rpc.SendRawTransactionAsync(coinjoin).ConfigureAwait(false);
 						round.SetPhase(Phase.TransactionBroadcasting);
 
 						round.LogInfo($"Successfully broadcast the CoinJoin: {coinjoin.GetHash()}.");
@@ -218,8 +218,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				Prison.Note(alice, round.Id);
 			}
 
-			round.Alices.RemoveAll(x => alicesWhoDidntSign.Contains(x));
-			Rounds.Remove(round.Id);
+			_ = round.Alices.RemoveAll(x => alicesWhoDidntSign.Contains(x));
+			_ = Rounds.Remove(round.Id);
 
 			if (round.InputCount >= Config.MinInputCountByRound)
 			{
@@ -290,7 +290,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 				}
-				round.Alices.RemoveAll(x => x.Id == request.AliceId);
+				_ = round.Alices.RemoveAll(x => x.Id == request.AliceId);
 			}
 		}
 

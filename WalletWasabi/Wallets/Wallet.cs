@@ -36,15 +36,15 @@ namespace WalletWasabi.Wallets
 
 		public Wallet(string dataDir, Network network, KeyManager keyManager)
 		{
-			Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
+			_ = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 
 			RuntimeParams.SetDataDir(dataDir);
 			HandleFiltersLock = new AsyncLock();
 
-			KeyManager.AssertCleanKeysIndexed();
-			KeyManager.AssertLockedInternalKeysIndexed(14);
+			_ = KeyManager.AssertCleanKeysIndexed();
+			_ = KeyManager.AssertLockedInternalKeysIndexed(14);
 		}
 
 		public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -297,7 +297,7 @@ namespace WalletWasabi.Wallets
 			{
 				foreach (var coin in e.NewlySpentCoins.Concat(e.ReplacedCoins).Concat(e.SuccessfullyDoubleSpentCoins).Distinct())
 				{
-					ChaumianClient.ExposedLinks.TryRemove(coin.OutPoint, out _);
+					_ = ChaumianClient.ExposedLinks.TryRemove(coin.OutPoint, out _);
 				}
 			}
 			catch (Exception ex)
@@ -319,7 +319,7 @@ namespace WalletWasabi.Wallets
 							if (!newCoin.IsSpent() && Kitchen.HasIngredients
 								&& newCoin.HdPubKey.AnonymitySet < ServiceConfiguration.GetMixUntilAnonymitySetValue())
 							{
-								coinsToQueue.Add(newCoin);
+								_ = coinsToQueue.Add(newCoin);
 							}
 						}
 
@@ -344,7 +344,7 @@ namespace WalletWasabi.Wallets
 		{
 			try
 			{
-				TransactionProcessor.Process(tx);
+				_ = TransactionProcessor.Process(tx);
 			}
 			catch (Exception ex)
 			{
@@ -366,7 +366,7 @@ namespace WalletWasabi.Wallets
 
 					KeyManager.SetMaxBestHeight(new Height(invalidFilter.Header.Height - 1));
 					TransactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
-					BitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
+					_ = BitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
 				}
 			}
 			catch (Exception ex)
@@ -406,7 +406,7 @@ namespace WalletWasabi.Wallets
 
 				if (task is { })
 				{
-					await task.ConfigureAwait(false);
+					_ = await task.ConfigureAwait(false);
 				}
 			}
 			catch (Exception ex)
@@ -422,7 +422,7 @@ namespace WalletWasabi.Wallets
 
 			using (BenchmarkLogger.Measure(LogLevel.Info, "Initial Transaction Processing"))
 			{
-				TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
+				_ = TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 			}
 
 			// Go through the filters and queue to download the matches.
@@ -464,23 +464,23 @@ namespace WalletWasabi.Wallets
 						}
 						else
 						{
-							BitcoinStore.TransactionStore.MempoolStore.TryRemove(tx.GetHash(), out _);
+							_ = BitcoinStore.TransactionStore.MempoolStore.TryRemove(tx.GetHash(), out _);
 						}
 					}
 
-					TransactionProcessor.Process(txsToProcess);
+					_ = TransactionProcessor.Process(txsToProcess);
 				}
 				catch (Exception ex)
 				{
 					// When there's a connection failure do not clean the transactions, add them to processing.
-					TransactionProcessor.Process(BitcoinStore.TransactionStore.MempoolStore.GetTransactions());
+					_ = TransactionProcessor.Process(BitcoinStore.TransactionStore.MempoolStore.GetTransactions());
 
 					Logger.LogWarning(ex);
 				}
 			}
 			else
 			{
-				TransactionProcessor.Process(BitcoinStore.TransactionStore.MempoolStore.GetTransactions());
+				_ = TransactionProcessor.Process(BitcoinStore.TransactionStore.MempoolStore.GetTransactions());
 			}
 		}
 
@@ -498,7 +498,7 @@ namespace WalletWasabi.Wallets
 					Transaction tx = currentBlock.Transactions[i];
 					txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime));
 				}
-				TransactionProcessor.Process(txsToProcess);
+				_ = TransactionProcessor.Process(txsToProcess);
 				KeyManager.SetBestHeight(height);
 
 				NewBlockProcessed?.Invoke(this, currentBlock);

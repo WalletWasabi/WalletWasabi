@@ -296,7 +296,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					}
 					if (executeRunAbortion)
 					{
-						PhaseTimeoutLog.TryAdd((RoundId, Phase), DateTimeOffset.UtcNow);
+						_ = PhaseTimeoutLog.TryAdd((RoundId, Phase), DateTimeOffset.UtcNow);
 						string timedOutLogString = $"Round ({RoundId}): {phase} timed out after {timeout.TotalSeconds} seconds.";
 
 						if (phase == RoundPhase.ConnectionConfirmation)
@@ -495,7 +495,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			{
 				foreach (var input in alice.Inputs)
 				{
-					transaction.Inputs.Add(new TxIn(input.Outpoint));
+					_ = transaction.Inputs.Add(new TxIn(input.Outpoint));
 					spentCoins.Add(input);
 				}
 
@@ -665,7 +665,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 
 			// It is ok to remove these Alices, because these did not get blind signatures.
-			RemoveAlicesBy(alicesNotConfirmConnectionIds.Distinct().ToArray());
+			_ = RemoveAlicesBy(alicesNotConfirmConnectionIds.Distinct().ToArray());
 
 			int aliceCountAfterConnectionConfirmationTimeout = CountAlices();
 			int didNotConfirmCount = AnonymitySet - aliceCountAfterConnectionConfirmationTimeout;
@@ -884,8 +884,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		public static async Task<(Money feePerInputs, Money feePerOutputs)> CalculateFeesAsync(IRPCClient rpc, int confirmationTarget)
 		{
-			Guard.NotNull(nameof(rpc), rpc);
-			Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
+			_ = Guard.NotNull(nameof(rpc), rpc);
+			_ = Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
 
 			Money feePerInputs = null;
 			Money feePerOutputs = null;
@@ -1095,30 +1095,30 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 			if (foundAlice)
 			{
-				Task.Run(async () =>
-				{
+				_ = Task.Run(async () =>
+				  {
 					// 2. Delay asynchronously to the requested timeout
 					await Task.Delay(AliceRegistrationTimeout).ConfigureAwait(false);
 
-					using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
-					{
+					  using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
+					  {
 						// 3. If the round is still running and the phase is still InputRegistration
 						if (Status == CoordinatorRoundStatus.Running && Phase == RoundPhase.InputRegistration)
-						{
-							Alice alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
-							if (alice is { })
-							{
+						  {
+							  Alice alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
+							  if (alice is { })
+							  {
 								// 4. If LastSeen is not changed by then, remove Alice.
 								// But only if Alice didn't get blind sig yet.
 								if (alice.LastSeen == started && alice.State < AliceState.ConnectionConfirmed)
-								{
-									Alices.Remove(alice);
-									Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) timed out.");
-								}
-							}
-						}
-					}
-				});
+								  {
+									  _ = Alices.Remove(alice);
+									  Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) timed out.");
+								  }
+							  }
+						  }
+					  }
+				  });
 			}
 		}
 
@@ -1161,7 +1161,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 							Logger.LogInfo($"Round ({RoundId}): There are {count} occurrences of {value.ToString(true, false)} BTC output.");
 						}
 
-						await RpcClient.SendRawTransactionAsync(CoinJoin).ConfigureAwait(false);
+						_ = await RpcClient.SendRawTransactionAsync(CoinJoin).ConfigureAwait(false);
 						broadcasted = CoinJoin;
 						Succeed(syncLock: false);
 						Logger.LogInfo($"Round ({RoundId}): Successfully broadcasted the CoinJoin: {CoinJoin.GetHash()}.");
@@ -1266,18 +1266,18 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				{
 					if (resp is null)
 					{
-						alicesSpent.Add(alice);
+						_ = alicesSpent.Add(alice);
 					}
 					else if (resp.Confirmations <= 0)
 					{
-						alicesUnconfirmed.Add(alice);
+						_ = alicesUnconfirmed.Add(alice);
 					}
 				}
 
 				// Let's go through Alices those have spent inputs and remove them.
 				foreach (var alice in alicesSpent.Where(x => x.State < AliceState.ConnectionConfirmed))
 				{
-					Alices.Remove(alice);
+					_ = Alices.Remove(alice);
 					Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed, because of spent inputs.");
 				}
 
@@ -1301,7 +1301,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					// If there are unconfirmed Alices those are also spent Alices, then we don't need to double remove them.
 					foreach (var alice in alicesUnconfirmed.Except(alicesSpent).Where(x => x.State < AliceState.ConnectionConfirmed))
 					{
-						Alices.Remove(alice);
+						_ = Alices.Remove(alice);
 						Logger.LogInfo($"Round ({RoundId}): Alice ({alice.UniqueId}) removed, because of unconfirmed inputs.");
 					}
 				}

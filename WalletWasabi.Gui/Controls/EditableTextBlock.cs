@@ -55,17 +55,17 @@ namespace WalletWasabi.Gui.Controls
 					}
 				};
 
-			this.GetObservable(TextProperty).Subscribe(t => EditText = t);
+			_ = this.GetObservable(TextProperty).Subscribe(t => EditText = t);
 
-			this.GetObservable(InEditModeProperty).Subscribe(mode =>
-				{
-					if (mode && _textBox is { })
-					{
-						EnterEditMode();
-					}
-				});
+			_ = this.GetObservable(InEditModeProperty).Subscribe(mode =>
+				  {
+					  if (mode && _textBox is { })
+					  {
+						  EnterEditMode();
+					  }
+				  });
 
-			AddHandler(
+			_ = AddHandler(
 				PointerPressedEvent,
 				(sender, e) =>
 				{
@@ -95,7 +95,7 @@ namespace WalletWasabi.Gui.Controls
 				},
 				RoutingStrategies.Tunnel);
 
-			AddHandler(
+			_ = AddHandler(
 				PointerReleasedEvent,
 				(sender, e) =>
 				{
@@ -200,7 +200,7 @@ namespace WalletWasabi.Gui.Controls
 				_textBox.SelectionEnd = Text.Length;
 				_textBox.CaretIndex = Text.Length;
 
-				Dispatcher.UIThread.InvokeAsync(() => _textBox.Focus());
+				_ = Dispatcher.UIThread.InvokeAsync(() => _textBox.Focus());
 			}
 			else
 			{

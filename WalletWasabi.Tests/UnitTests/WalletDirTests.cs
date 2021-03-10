@@ -18,8 +18,8 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var walletsPath = Path.Combine(baseDir, WalletDirectories.WalletsDirName);
 			var walletsBackupPath = Path.Combine(baseDir, WalletDirectories.WalletsBackupDirName);
-			await IoHelpers.TryDeleteDirectoryAsync(walletsPath);
-			await IoHelpers.TryDeleteDirectoryAsync(walletsBackupPath);
+			_ = await IoHelpers.TryDeleteDirectoryAsync(walletsPath);
+			_ = await IoHelpers.TryDeleteDirectoryAsync(walletsBackupPath);
 
 			return (walletsPath, walletsBackupPath);
 		}
@@ -77,7 +77,7 @@ namespace WalletWasabi.Tests.UnitTests
 		public async Task ServesWalletFilesAsync()
 		{
 			var baseDir = Common.GetWorkDir();
-			await CleanupWalletDirectoriesAsync(baseDir);
+			_ = await CleanupWalletDirectoriesAsync(baseDir);
 
 			var walletDirectories = new WalletDirectories(Network.Main, baseDir);
 			string walletName = "FooWallet.json";
@@ -92,7 +92,7 @@ namespace WalletWasabi.Tests.UnitTests
 		public async Task EnsuresJsonAsync()
 		{
 			var baseDir = Common.GetWorkDir();
-			await CleanupWalletDirectoriesAsync(baseDir);
+			_ = await CleanupWalletDirectoriesAsync(baseDir);
 
 			var walletDirectories = new WalletDirectories(Network.Main, baseDir);
 			string walletName = "FooWallet";
@@ -108,7 +108,7 @@ namespace WalletWasabi.Tests.UnitTests
 		public async Task EnumerateFilesAsync()
 		{
 			var baseDir = Common.GetWorkDir();
-			await CleanupWalletDirectoriesAsync(baseDir);
+			_ = await CleanupWalletDirectoriesAsync(baseDir);
 
 			var walletDirectories = new WalletDirectories(Network.Main, baseDir);
 
@@ -137,7 +137,7 @@ namespace WalletWasabi.Tests.UnitTests
 		public async Task EnumerateOrdersByAccessAsync()
 		{
 			var baseDir = Common.GetWorkDir();
-			await CleanupWalletDirectoriesAsync(baseDir);
+			_ = await CleanupWalletDirectoriesAsync(baseDir);
 
 			var walletDirectories = new WalletDirectories(Network.Main, baseDir);
 
@@ -179,7 +179,7 @@ namespace WalletWasabi.Tests.UnitTests
 		public async Task GetNextWalletTestAsync()
 		{
 			var baseDir = Common.GetWorkDir();
-			await CleanupWalletDirectoriesAsync(baseDir);
+			_ = await CleanupWalletDirectoriesAsync(baseDir);
 			var walletDirectories = new WalletDirectories(Network.Main, baseDir);
 			IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 3.json"));
 

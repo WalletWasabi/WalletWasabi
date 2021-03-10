@@ -12,7 +12,7 @@ namespace WalletWasabi.Crypto
 		[JsonConstructor]
 		internal GroupElementVector(IEnumerable<GroupElement> groupElements)
 		{
-			Guard.NotNullOrEmpty(nameof(groupElements), groupElements);
+			_ = Guard.NotNullOrEmpty(nameof(groupElements), groupElements);
 			GroupElements = groupElements.ToArray();
 		}
 

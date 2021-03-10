@@ -295,7 +295,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 
 				(validCredentialRequest, validationData) = client.CreateRequest(Enumerable.Empty<long>(), client.Credentials.All);
 
-				issuer.HandleRequest(validCredentialRequest);
+				_ = issuer.HandleRequest(validCredentialRequest);
 				var ex = Assert.Throws<WabiSabiCryptoException>(() => issuer.HandleRequest(validCredentialRequest));
 				Assert.Equal(WabiSabiCryptoErrorCode.SerialNumberAlreadyUsed, ex.ErrorCode);
 			}

@@ -105,7 +105,7 @@ namespace WalletWasabi.Blockchain.Blocks
 			{
 				if (Chain.Any())
 				{
-					Chain.Remove(Chain.Last().Key);
+					_ = Chain.Remove(Chain.Last().Key);
 					if (Chain.Any())
 					{
 						var newLast = Chain.Last();

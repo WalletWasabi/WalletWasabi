@@ -74,10 +74,10 @@ namespace WalletWasabi.Tests.UnitTests
 		{
 			var collection1 = new int[] { 1, 3, 5, 14 };
 			var collection2 = new int[] { 7, 11, 13 };
-			Assert.ThrowsAny<InvalidOperationException>(() => collection1.ZipForceEqualLength(collection2));
+			_ = Assert.ThrowsAny<InvalidOperationException>(() => collection1.ZipForceEqualLength(collection2));
 			collection1 = new int[] { 1, 3, 5, 14 };
 			collection2 = new int[] { 7, 11, 13, 1, 2 };
-			Assert.ThrowsAny<InvalidOperationException>(() => collection1.ZipForceEqualLength(collection2));
+			_ = Assert.ThrowsAny<InvalidOperationException>(() => collection1.ZipForceEqualLength(collection2));
 			collection1 = new int[] { 1, 3, 5, 14, 3 };
 			collection2 = new int[] { 7, 11, 13, 1, 2 };
 			var tuple = collection1.ZipForceEqualLength(collection2).ToArray();

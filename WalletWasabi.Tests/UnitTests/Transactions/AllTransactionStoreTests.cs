@@ -22,8 +22,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var tx = Network.RegTest.CreateTransaction();
 			tx.Version = 1;
 			tx.LockTime = LockTime.Zero;
-			tx.Inputs.Add(new OutPoint(RandomUtils.GetUInt256(), 0), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
-			tx.Outputs.Add(Money.Coins(1), Script.Empty);
+			_ = tx.Inputs.Add(new OutPoint(RandomUtils.GetUInt256(), 0), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
+			_ = tx.Outputs.Add(Money.Coins(1), Script.Empty);
 			return new SmartTransaction(tx, new Height(height), blockHash);
 		}
 
@@ -387,7 +387,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				out SmartTransaction uTx1,
 				out SmartTransaction uTx2,
 				out SmartTransaction uTx3,
-				out SmartTransaction _,
+				out _,
 				out SmartTransaction cTx2,
 				out SmartTransaction cTx3);
 
@@ -433,7 +433,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.True(mytx2.Confirmed);
 
 			// Now reorg.
-			txStore.ReleaseToMempoolFromBlock(reorgedBlockHash);
+			_ = txStore.ReleaseToMempoolFromBlock(reorgedBlockHash);
 
 			// Two transactions are in the mempool store and unconfirmed.
 			Assert.True(txStore.MempoolStore.TryGetTransaction(uTx1.GetHash(), out SmartTransaction myReorgedTx1));

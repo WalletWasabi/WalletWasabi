@@ -161,7 +161,7 @@ namespace WalletWasabi.Backend.Controllers
 						{
 							return BadRequest("Cannot register an input twice.");
 						}
-						uniqueInputs.Add(outpoint);
+						_ = uniqueInputs.Add(outpoint);
 					}
 
 					var alicesToRemove = new HashSet<Guid>();
@@ -241,7 +241,7 @@ namespace WalletWasabi.Backend.Controllers
 							return BadRequest("Provided proof is invalid.");
 						}
 
-						inputs.Add(new Coin(inputProof.Input, txOut));
+						_ = inputs.Add(new Coin(inputProof.Input, txOut));
 					}
 
 					if (!allInputsConfirmed)
@@ -297,7 +297,7 @@ namespace WalletWasabi.Backend.Controllers
 
 					foreach (Guid aliceToRemove in alicesToRemove)
 					{
-						round.RemoveAlicesBy(aliceToRemove);
+						_ = round.RemoveAlicesBy(aliceToRemove);
 					}
 					round.AddAlice(alice);
 
@@ -451,7 +451,7 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				case RoundPhase.InputRegistration:
 					{
-						round.RemoveAlicesBy(uniqueIdGuid);
+						_ = round.RemoveAlicesBy(uniqueIdGuid);
 						return NoContent();
 					}
 				default:

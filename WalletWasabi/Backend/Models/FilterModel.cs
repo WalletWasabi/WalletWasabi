@@ -26,7 +26,7 @@ namespace WalletWasabi.Backend.Models
 
 		public static FilterModel FromLine(string line)
 		{
-			Guard.NotNullOrEmptyOrWhitespace(nameof(line), line);
+			_ = Guard.NotNullOrEmptyOrWhitespace(nameof(line), line);
 			string[] parts = line.Split(':');
 
 			if (parts.Length < 5)
@@ -47,15 +47,15 @@ namespace WalletWasabi.Backend.Models
 		public string ToLine()
 		{
 			var builder = new StringBuilder();
-			builder.Append(Header.Height);
-			builder.Append(':');
-			builder.Append(Header.BlockHash);
-			builder.Append(':');
-			builder.Append(Filter);
-			builder.Append(':');
-			builder.Append(Header.PrevHash);
-			builder.Append(':');
-			builder.Append(Header.BlockTime.ToUnixTimeSeconds());
+			_ = builder.Append(Header.Height);
+			_ = builder.Append(':');
+			_ = builder.Append(Header.BlockHash);
+			_ = builder.Append(':');
+			_ = builder.Append(Filter);
+			_ = builder.Append(':');
+			_ = builder.Append(Header.PrevHash);
+			_ = builder.Append(':');
+			_ = builder.Append(Header.BlockTime.ToUnixTimeSeconds());
 
 			return builder.ToString();
 		}

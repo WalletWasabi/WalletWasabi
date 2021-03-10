@@ -55,7 +55,7 @@ namespace WalletWasabi.Gui.Dialogs
 				},
 				canCancel);
 
-			Observable
+			_ = Observable
 				.Merge(OKCommand.ThrownExceptions)
 				.Merge(CancelCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)

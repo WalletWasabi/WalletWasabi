@@ -14,27 +14,27 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 
 			if (hwi.NeedsPinSent is true)
 			{
-				walletNameBuilder.Append(" - Needs PIN Sent");
+				_ = walletNameBuilder.Append(" - Needs PIN Sent");
 			}
 			else if (hwi.NeedsPassphraseSent is true)
 			{
-				walletNameBuilder.Append(" - Needs Passphrase Sent");
+				_ = walletNameBuilder.Append(" - Needs Passphrase Sent");
 			}
 			else if (!string.IsNullOrWhiteSpace(hwi.Error))
 			{
-				walletNameBuilder.Append($" - Error: {hwi.Error}");
+				_ = walletNameBuilder.Append($" - Error: {hwi.Error}");
 			}
 			else if (hwi.Code is { })
 			{
-				walletNameBuilder.Append($" - Error: {hwi.Code}");
+				_ = walletNameBuilder.Append($" - Error: {hwi.Code}");
 			}
 			else if (hwi.Fingerprint is null)
 			{
-				walletNameBuilder.Append(" - Could Not Acquire Fingerprint");
+				_ = walletNameBuilder.Append(" - Could Not Acquire Fingerprint");
 			}
 			else if (!hwi.IsInitialized())
 			{
-				walletNameBuilder.Append(" - Not initialized.");
+				_ = walletNameBuilder.Append(" - Not initialized.");
 			}
 
 			WalletName = walletNameBuilder.ToString();

@@ -17,7 +17,7 @@ namespace WalletWasabi.Gui.Behaviors
 		{
 			base.OnAttached();
 
-			this.GetObservable(CommandProperty)
+			_ = this.GetObservable(CommandProperty)
 				.Where(cmd => cmd is { })
 				.Subscribe(cmd =>
 				{

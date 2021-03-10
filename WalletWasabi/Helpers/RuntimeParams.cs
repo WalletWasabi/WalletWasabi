@@ -56,7 +56,7 @@ namespace WalletWasabi.Helpers
 				{
 					if (!Directory.Exists(FileDir))
 					{
-						Directory.CreateDirectory(FileDir);
+						_ = Directory.CreateDirectory(FileDir);
 					}
 
 					string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);

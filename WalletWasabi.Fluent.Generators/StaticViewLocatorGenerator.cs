@@ -109,7 +109,7 @@ namespace {namespaceNameLocator}
 {{
     public partial class {classNameLocator}
     {{");
-		source.Append($@"
+			_ = source.Append($@"
 		private static Dictionary<Type, Func<Control>> s_views = new()
 		{{
 ");
@@ -125,15 +125,15 @@ namespace {namespaceNameLocator}
 				var classNameViewSymbol = compilation.GetTypeByMetadataName(classNameView);
 				if (classNameViewSymbol is null || classNameViewSymbol.BaseType?.Equals(userControlViewSymbol, SymbolEqualityComparer.Default) != true)
 				{
-					source.AppendLine($@"			[typeof({classNameViewModel})] = () => new TextBlock() {{ Text = {("\"Not Found: " + classNameView + "\"")} }},");
+					_ = source.AppendLine($@"			[typeof({classNameViewModel})] = () => new TextBlock() {{ Text = {("\"Not Found: " + classNameView + "\"")} }},");
 				}
 				else
 				{
-					source.AppendLine($@"			[typeof({classNameViewModel})] = () => new {classNameView}(),");
+					_ = source.AppendLine($@"			[typeof({classNameViewModel})] = () => new {classNameView}(),");
 				}
 			}
 
-			source.Append($@"		}};
+			_ = source.Append($@"		}};
 	}}
 }}");
 

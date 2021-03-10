@@ -46,7 +46,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		{
 			IsLocked = false;
 
-			this.WhenAnyValue(x => x.IsAnimationRunning)
+			_ = this.WhenAnyValue(x => x.IsAnimationRunning)
 				.Where(x => !x)
 				.Take(1)
 				.Subscribe(x => MainWindowViewModel.Instance?.CloseLockScreen(this));

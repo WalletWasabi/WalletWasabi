@@ -41,7 +41,7 @@ namespace WalletWasabi.BitcoinCore
 
 		public static async Task<CoreNode> CreateAsync(CoreNodeParams coreNodeParams, CancellationToken cancel)
 		{
-			Guard.NotNull(nameof(coreNodeParams), coreNodeParams);
+			_ = Guard.NotNull(nameof(coreNodeParams), coreNodeParams);
 			using (BenchmarkLogger.Measure())
 			{
 				var coreNode = new CoreNode
@@ -57,7 +57,7 @@ namespace WalletWasabi.BitcoinCore
 				if (File.Exists(configPath))
 				{
 					var configString = await File.ReadAllTextAsync(configPath, cancel).ConfigureAwait(false);
-					coreNode.Config.AddOrUpdate(configString); // Bitcoin Core considers the last entry to be valid.
+					_ = coreNode.Config.AddOrUpdate(configString); // Bitcoin Core considers the last entry to be valid.
 				}
 				cancel.ThrowIfCancellationRequested();
 
@@ -87,15 +87,15 @@ namespace WalletWasabi.BitcoinCore
 
 				if (rpcHost is null)
 				{
-					coreNodeParams.RpcEndPointStrategy.EndPoint.TryGetHost(out rpcHost);
+					_ = coreNodeParams.RpcEndPointStrategy.EndPoint.TryGetHost(out rpcHost);
 				}
 
 				if (rpcPort is null)
 				{
-					coreNodeParams.RpcEndPointStrategy.EndPoint.TryGetPort(out rpcPort);
+					_ = coreNodeParams.RpcEndPointStrategy.EndPoint.TryGetPort(out rpcPort);
 				}
 
-				EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint? rpce);
+				_ = EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNode.Network.RPCPort, out EndPoint? rpce);
 				coreNode.RpcEndPoint = rpce;
 
 				var rpcClient = new RPCClient(
@@ -106,13 +106,13 @@ namespace WalletWasabi.BitcoinCore
 
 				if (coreNodeParams.TryRestart)
 				{
-					await coreNode.TryStopAsync(false).ConfigureAwait(false);
+					_ = await coreNode.TryStopAsync(false).ConfigureAwait(false);
 				}
 				cancel.ThrowIfCancellationRequested();
 
 				if (coreNodeParams.TryDeleteDataDir)
 				{
-					await IoHelpers.TryDeleteDirectoryAsync(coreNode.DataDir).ConfigureAwait(false);
+					_ = await IoHelpers.TryDeleteDirectoryAsync(coreNode.DataDir).ConfigureAwait(false);
 				}
 				cancel.ThrowIfCancellationRequested();
 
@@ -167,7 +167,7 @@ namespace WalletWasabi.BitcoinCore
 				// If the comment is not already present.
 				// And there would be new config entries added.
 				var throwAwayConfig = new CoreConfig(coreNode.Config);
-				throwAwayConfig.AddOrUpdate(string.Join(Environment.NewLine, desiredConfigLines));
+				_ = throwAwayConfig.AddOrUpdate(string.Join(Environment.NewLine, desiredConfigLines));
 				if (!coreNode.Config.ToString().Contains(sectionComment, StringComparison.Ordinal)
 					&& throwAwayConfig.Count != coreNode.Config.Count)
 				{

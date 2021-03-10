@@ -33,7 +33,7 @@ namespace WalletWasabi.Tor.Http
 		public TorHttpClient(Func<Uri> baseUriGetter, EndPoint torSocks5EndPoint, bool isolateStream = false)
 		{
 			BaseUriGetter = Guard.NotNull(nameof(baseUriGetter), baseUriGetter);
-			Guard.NotNull(nameof(torSocks5EndPoint), torSocks5EndPoint);
+			_ = Guard.NotNull(nameof(torSocks5EndPoint), torSocks5EndPoint);
 
 			TorSocks5EndPoint = torSocks5EndPoint;
 			TorSocks5Client = null;
@@ -74,7 +74,7 @@ namespace WalletWasabi.Tor.Http
 		/// <exception cref="OperationCanceledException">When <paramref name="cancel"/> is canceled by the user.</exception>
 		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
 		{
-			Guard.NotNull(nameof(method), method);
+			_ = Guard.NotNull(nameof(method), method);
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
 			Uri requestUri = new(BaseUriGetter(), relativeUri);
 			using HttpRequestMessage request = new(method, requestUri);

@@ -15,7 +15,7 @@ namespace WalletWasabi.Tests.UnitTests.Bases
 			{
 				ExceptionInfo lastException = let.Process(new ArgumentOutOfRangeException());
 
-				Assert.IsType<ArgumentOutOfRangeException>(lastException.Exception);
+				_ = Assert.IsType<ArgumentOutOfRangeException>(lastException.Exception);
 				Assert.Equal(1, lastException.ExceptionCount);
 			}
 
@@ -23,7 +23,7 @@ namespace WalletWasabi.Tests.UnitTests.Bases
 			{
 				ExceptionInfo lastException = let.Process(new ArgumentOutOfRangeException());
 
-				Assert.IsType<ArgumentOutOfRangeException>(lastException.Exception);
+				_ = Assert.IsType<ArgumentOutOfRangeException>(lastException.Exception);
 				Assert.Equal(2, lastException.ExceptionCount);
 			}
 
@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests.Bases
 			{
 				ExceptionInfo lastException = let.Process(new NotImplementedException());
 
-				Assert.IsType<NotImplementedException>(lastException.Exception);
+				_ = Assert.IsType<NotImplementedException>(lastException.Exception);
 				Assert.Equal(1, lastException.ExceptionCount);
 			}
 		}

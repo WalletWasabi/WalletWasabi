@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			{
 				Initialised = true;
 
-				KeyboardDevice.Instance.WhenAnyValue(x => x.FocusedElement)
+				_ = KeyboardDevice.Instance.WhenAnyValue(x => x.FocusedElement)
 				.OfType<IControl>()
 				.Subscribe(
 					x =>

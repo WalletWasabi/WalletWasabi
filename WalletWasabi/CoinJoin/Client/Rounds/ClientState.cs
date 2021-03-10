@@ -56,7 +56,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 			{
 				if (WaitingList.ContainsKey(coin))
 				{
-					WaitingList.Remove(coin);
+					_ = WaitingList.Remove(coin);
 					Logger.LogInfo($"Coin removed from the waiting list: {coin.Index}:{coin.TransactionId}.");
 				}
 			}
@@ -260,7 +260,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 								if (coinsThatCanBeConsolidated.Count() > 1) // Because the last one change should not be circulating, ruining privacy.
 								{
 									var bestCoinToAdd = coinsThatCanBeConsolidated.First();
-									bestSet.Add(bestCoinToAdd);
+									_ = bestSet.Add(bestCoinToAdd);
 								}
 							}
 						}
@@ -359,7 +359,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 
 		public void UpdateRoundsByStates(ConcurrentDictionary<OutPoint, IEnumerable<HdPubKeyBlindedPair>> exposedLinks, params RoundStateResponseBase[] allRunningRoundsStates)
 		{
-			Guard.NotNullOrEmpty(nameof(allRunningRoundsStates), allRunningRoundsStates);
+			_ = Guard.NotNullOrEmpty(nameof(allRunningRoundsStates), allRunningRoundsStates);
 			IsInErrorState = false;
 			lock (StateLock)
 			{
@@ -411,7 +411,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 
 					Logger.LogInfo($"Round ({round.State.RoundId}) removed. Reason: It's not running anymore.");
 				}
-				Rounds.RemoveAll(x => roundsToRemove.Contains(x.State.RoundId));
+				_ = Rounds.RemoveAll(x => roundsToRemove.Contains(x.State.RoundId));
 
 				foreach (ClientRound round in Rounds)
 				{

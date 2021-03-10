@@ -33,11 +33,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			var walletManager = walletManagerViewModel.WalletManager;
 			var network = walletManager.Network;
 
-			Mnemonics.ToObservableChangeSet().ToCollection()
+			_ = Mnemonics.ToObservableChangeSet().ToCollection()
 				.Select(x => x.Count == 12 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
 				.Subscribe(x => CurrentMnemonics = x);
 
-			this.WhenAnyValue(x => x.CurrentMnemonics)
+			_ = this.WhenAnyValue(x => x.CurrentMnemonics)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(Mnemonics)));
 
 			this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);

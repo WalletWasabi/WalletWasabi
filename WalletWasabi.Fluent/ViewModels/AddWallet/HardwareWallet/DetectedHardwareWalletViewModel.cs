@@ -70,11 +70,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			Disposable.Create(() =>
-				{
-					CancelCts.Cancel();
-					CancelCts.Dispose();
-				})
+			_ = Disposable.Create(() =>
+				  {
+					  CancelCts.Cancel();
+					  CancelCts.Dispose();
+				  })
 				.DisposeWith(disposables);
 		}
 	}

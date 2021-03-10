@@ -23,7 +23,7 @@ namespace WalletWasabi.Crypto.StrobeProtocol
 
 		public Strobe128(string procotol)
 		{
-			Guard.NotNullOrEmpty(nameof(procotol), procotol);
+			_ = Guard.NotNullOrEmpty(nameof(procotol), procotol);
 
 			var initialState = ByteHelpers.Combine(
 				new byte[] { 1, SpongeRate + 2, 1, 0, 1, 12 * 8 },  // F([[1, r/8, 1, 0, 1, 12·8]]
@@ -48,7 +48,7 @@ namespace WalletWasabi.Crypto.StrobeProtocol
 
 		public void AddAssociatedMetaData(byte[] data, bool more)
 		{
-			Guard.NotNull(nameof(data), data);
+			_ = Guard.NotNull(nameof(data), data);
 
 			BeginOperation(StrobeFlags.M | StrobeFlags.A, more);
 			Absorb(data);
@@ -56,7 +56,7 @@ namespace WalletWasabi.Crypto.StrobeProtocol
 
 		public void AddAssociatedData(byte[] data, bool more)
 		{
-			Guard.NotNull(nameof(data), data);
+			_ = Guard.NotNull(nameof(data), data);
 
 			BeginOperation(StrobeFlags.A, more);
 			Absorb(data);
@@ -70,7 +70,7 @@ namespace WalletWasabi.Crypto.StrobeProtocol
 
 		public void Key(byte[] data, bool more)
 		{
-			Guard.NotNull(nameof(data), data);
+			_ = Guard.NotNull(nameof(data), data);
 
 			BeginOperation(StrobeFlags.A | StrobeFlags.C, more);
 			Override(data);

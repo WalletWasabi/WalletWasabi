@@ -67,11 +67,11 @@ namespace WalletWasabi.Fluent.Controls
 				}
 			};
 
-			this.GetObservable(TextProperty).Subscribe(InputText);
-			this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay(false));
-			this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => UpdateDisplay(true));
-			this.GetObservable(AmountBtcProperty).Subscribe(_ => UpdateDisplay(true));
-			this.GetObservable(IsReadOnlyProperty).Subscribe(_ => UpdateDisplay(true));
+			_ = this.GetObservable(TextProperty).Subscribe(InputText);
+			_ = this.GetObservable(ConversionRateProperty).Subscribe(_ => UpdateDisplay(false));
+			_ = this.GetObservable(ConversionCurrencyCodeProperty).Subscribe(_ => UpdateDisplay(true));
+			_ = this.GetObservable(AmountBtcProperty).Subscribe(_ => UpdateDisplay(true));
+			_ = this.GetObservable(IsReadOnlyProperty).Subscribe(_ => UpdateDisplay(true));
 
 			Watermark = "0 BTC";
 			Text = string.Empty;

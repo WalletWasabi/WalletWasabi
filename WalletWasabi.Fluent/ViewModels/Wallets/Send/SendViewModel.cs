@@ -72,13 +72,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			this.ValidateProperty(x => x.To, ValidateToField);
 			this.ValidateProperty(x => x.AmountBtc, ValidateAmount);
 
-			this.WhenAnyValue(x => x.To)
+			_ = this.WhenAnyValue(x => x.To)
 				.Subscribe(ParseToField);
 
-			this.WhenAnyValue(x => x.AmountBtc)
+			_ = this.WhenAnyValue(x => x.AmountBtc)
 				.Subscribe(x => _transactionInfo.Amount = new Money(x, MoneyUnit.BTC));
 
-			this.WhenAnyValue(x => x.XAxisCurrentValue)
+			_ = this.WhenAnyValue(x => x.XAxisCurrentValue)
 				.Subscribe(x =>
 				{
 					if (x > 0)
@@ -88,13 +88,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 				});
 
-			this.WhenAnyValue(x => x.XAxisCurrentValueIndex)
+			_ = this.WhenAnyValue(x => x.XAxisCurrentValueIndex)
 				.Subscribe(SetXAxisCurrentValue);
 
-			Labels.ToObservableChangeSet().Subscribe(x =>
-			{
-				_transactionInfo.Labels = new SmartLabel(_labels.ToArray());
-			});
+			_ = Labels.ToObservableChangeSet().Subscribe(x =>
+			  {
+				  _transactionInfo.Labels = new SmartLabel(_labels.ToArray());
+			  });
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -232,7 +232,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			Dispatcher.UIThread.Post(() =>
 			{
-				TryParseUrl(s);
+				_ = TryParseUrl(s);
 
 				_parsingUrl = false;
 			});
@@ -323,12 +323,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				XAxisCurrentValue = _lastXAxisCurrentValue;
 			}
 
-			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
+			_ = _owner.Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => ExchangeRate = x)
 				.DisposeWith(disposables);
 
-			_owner.Wallet.TransactionProcessor.WhenAnyValue(x => x.Coins)
+			_ = _owner.Wallet.TransactionProcessor.WhenAnyValue(x => x.Coins)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -337,7 +337,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				})
 				.DisposeWith(disposables);
 
-			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate)
+			_ = _owner.Wallet.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate)
 				.Where(x => x is { })
 				.Select(x => x!.Estimations)
 				.ObserveOn(RxApp.MainThreadScheduler)

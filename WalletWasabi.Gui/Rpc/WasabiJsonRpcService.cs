@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui.Rpc
 			var walletGenerator = new WalletGenerator(Global.WalletManager.WalletDirectories.WalletsDir, Global.Network);
 			walletGenerator.TipHeight = Global.BitcoinStore.SmartHeaderChain.TipHeight;
 			var (keyManager, mnemonic) = walletGenerator.GenerateWallet(walletName, password);
-			Global.WalletManager.AddWallet(keyManager);
+			_ = Global.WalletManager.AddWallet(keyManager);
 			return mnemonic.ToString();
 		}
 
@@ -126,9 +126,9 @@ namespace WalletWasabi.Gui.Rpc
 		[JsonRpcMethod("build")]
 		public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string password = null)
 		{
-			Guard.NotNull(nameof(payments), payments);
-			Guard.NotNull(nameof(coins), coins);
-			Guard.InRangeAndNotNull(nameof(feeTarget), feeTarget, 2, Constants.SevenDaysConfirmationTarget);
+			_ = Guard.NotNull(nameof(payments), payments);
+			_ = Guard.NotNull(nameof(coins), coins);
+			_ = Guard.InRangeAndNotNull(nameof(feeTarget), feeTarget, 2, Constants.SevenDaysConfirmationTarget);
 			password = Guard.Correct(password);
 
 			AssertWalletIsLoaded();
@@ -208,17 +208,17 @@ namespace WalletWasabi.Gui.Rpc
 		[JsonRpcMethod("enqueue")]
 		public async Task EnqueueForCoinJoinAsync(OutPoint[] coins, string password = null)
 		{
-			Guard.NotNull(nameof(coins), coins);
+			_ = Guard.NotNull(nameof(coins), coins);
 
 			AssertWalletIsLoaded();
 			var coinsToMix = ActiveWallet.Coins.Where(x => coins.Any(y => y == x.OutPoint));
-			await ActiveWallet.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray()).ConfigureAwait(false);
+			_ = await ActiveWallet.ChaumianClient.QueueCoinsToMixAsync(password, coinsToMix.ToArray()).ConfigureAwait(false);
 		}
 
 		[JsonRpcMethod("dequeue")]
 		public async Task DequeueForCoinJoinAsync(OutPoint[] coins)
 		{
-			Guard.NotNull(nameof(coins), coins);
+			_ = Guard.NotNull(nameof(coins), coins);
 
 			AssertWalletIsLoaded();
 			var coinsToDequeue = ActiveWallet.Coins.Where(x => coins.Any(y => y == x.OutPoint));
@@ -236,7 +236,7 @@ namespace WalletWasabi.Gui.Rpc
 				ActiveWallet = wallet;
 				if (wallet.State == WalletState.Uninitialized)
 				{
-					Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
+					_ = Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
 				}
 			}
 			catch (InvalidOperationException) // wallet not found

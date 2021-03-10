@@ -42,7 +42,7 @@ namespace Microsoft.Extensions.Caching.Memory
 				if (!cache.TryGetValue(key, out value))
 				{
 					value = await factory.Invoke().ConfigureAwait(false);
-					cache.Set(key, value, options);
+					_ = cache.Set(key, value, options);
 					lock (AsyncLocksLock)
 					{
 						var cacheDic = AsyncLocks[cache];
@@ -51,7 +51,7 @@ namespace Microsoft.Extensions.Caching.Memory
 						// Cleanup the evicted asynclocks.
 						foreach (var toRemove in cacheDic.Keys.Where(x => !cache.TryGetValue(x, out _)).ToList())
 						{
-							cacheDic.Remove(toRemove);
+							_ = cacheDic.Remove(toRemove);
 						}
 					}
 				}

@@ -32,7 +32,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.Empty(arena.Rounds);
 			await arena.StartAsync(CancellationToken.None).ConfigureAwait(false);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
-			Assert.Single(arena.Rounds);
+			_ = Assert.Single(arena.Rounds);
 
 			await arena.StopAsync(CancellationToken.None);
 		}

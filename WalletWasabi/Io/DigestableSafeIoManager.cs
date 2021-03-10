@@ -199,7 +199,7 @@ namespace WalletWasabi.Io
 		{
 			if (string.IsNullOrWhiteSpace(line))
 			{
-				byteArrayBuilder.Append(0);
+				_ = byteArrayBuilder.Append(0);
 			}
 			else
 			{
@@ -211,12 +211,12 @@ namespace WalletWasabi.Io
 
 					var c = line[index];
 					var b = (byte)c;
-					byteArrayBuilder.Append(b);
+					_ = byteArrayBuilder.Append(b);
 				}
 				else
 				{
 					var b = Encoding.ASCII.GetBytes(line);
-					byteArrayBuilder.Append(b);
+					_ = byteArrayBuilder.Append(b);
 				}
 			}
 		}

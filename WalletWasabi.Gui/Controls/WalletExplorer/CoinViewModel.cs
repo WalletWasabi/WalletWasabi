@@ -65,18 +65,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ToProperty(this, x => x.Cluster, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.Status)
+			_ = this.WhenAnyValue(x => x.Status)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(ToolTip)));
 
-			Observable
+			_ = Observable
 				.Merge(Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend, x => x.Confirmed, x => x.CoinJoinInProgress).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern(Wallet.ChaumianClient, nameof(Wallet.ChaumianClient.StateUpdated)).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => RefreshSmartCoinStatus())
 				.DisposeWith(Disposables);
 
-			Global.BitcoinStore.SmartHeaderChain
+			_ = Global.BitcoinStore.SmartHeaderChain
 				.WhenAnyValue(x => x.TipHeight).Select(_ => Unit.Default)
 				.Merge(Model.WhenAnyValue(x => x.Height).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(0.1)) // DO NOT TAKE THIS THROTTLE OUT, OTHERWISE SYNCING WITH COINS IN THE WALLET WILL STACKOVERFLOW!
@@ -84,7 +84,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(Confirmations)))
 				.DisposeWith(Disposables);
 
-			Global.UiConfig
+			_ = Global.UiConfig
 				.WhenAnyValue(x => x.PrivacyMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
@@ -112,7 +112,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			CopyCluster = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Cluster));
 
-			Observable
+			_ = Observable
 				.Merge(DequeueCoin.ThrownExceptions) // Don't notify about it. Dequeue failure (and success) is notified by other mechanism.
 				.Merge(OpenCoinInfo.ThrownExceptions)
 				.Merge(CopyCluster.ThrownExceptions)

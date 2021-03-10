@@ -11,12 +11,12 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		public void RemovesEmptyDuplications()
 		{
 			var configStringBuilder = new StringBuilder("foo=bar");
-			configStringBuilder.Append(Environment.NewLine);
-			configStringBuilder.Append(Environment.NewLine);
-			configStringBuilder.Append(Environment.NewLine);
-			configStringBuilder.Append("bar=bar");
+			_ = configStringBuilder.Append(Environment.NewLine);
+			_ = configStringBuilder.Append(Environment.NewLine);
+			_ = configStringBuilder.Append(Environment.NewLine);
+			_ = configStringBuilder.Append("bar=bar");
 			var config = new CoreConfig();
-			config.AddOrUpdate(configStringBuilder.ToString());
+			_ = config.AddOrUpdate(configStringBuilder.ToString());
 			var expectedConfig =
 @"foo = bar
 
@@ -44,7 +44,7 @@ foo
 bar
 #qoo=boo";
 			var coreConfig = new CoreConfig();
-			coreConfig.AddOrUpdate(testConfig);
+			_ = coreConfig.AddOrUpdate(testConfig);
 
 			var expectedConfig =
 @"foo = bar
@@ -72,7 +72,7 @@ bar
 			Assert.Equal("buz quxx", v3);
 
 			var coreConfig2 = new CoreConfig();
-			coreConfig2.AddOrUpdate(testConfig);
+			_ = coreConfig2.AddOrUpdate(testConfig);
 
 			var configDic2 = coreConfig2.ToDictionary();
 
@@ -90,12 +90,12 @@ bar
 			var add2 = "foo=bar";
 			var add3 = "too=0";
 
-			coreConfig.AddOrUpdate(add1);
-			coreConfig2.AddOrUpdate(add1);
-			coreConfig.AddOrUpdate(add2);
-			coreConfig2.AddOrUpdate(add2);
-			coreConfig.AddOrUpdate(add3);
-			coreConfig2.AddOrUpdate(add3);
+			_ = coreConfig.AddOrUpdate(add1);
+			_ = coreConfig2.AddOrUpdate(add1);
+			_ = coreConfig.AddOrUpdate(add2);
+			_ = coreConfig2.AddOrUpdate(add2);
+			_ = coreConfig.AddOrUpdate(add3);
+			_ = coreConfig2.AddOrUpdate(add3);
 
 			configDic = coreConfig.ToDictionary();
 			configDic2 = coreConfig2.ToDictionary();
@@ -149,7 +149,7 @@ too = 0
 @"foo=bar
 buz=qux";
 			var coreConfig = new CoreConfig();
-			coreConfig.AddOrUpdate(testConfig);
+			_ = coreConfig.AddOrUpdate(testConfig);
 
 			var expectedConfig =
 @"foo = bar
@@ -159,7 +159,7 @@ buz = qux
 			Assert.Equal(expectedConfig, coreConfig.ToString());
 
 			var add1 = "foo=bar";
-			coreConfig.AddOrUpdate(add1);
+			_ = coreConfig.AddOrUpdate(add1);
 
 			Assert.Equal(expectedConfig, coreConfig.ToString());
 		}
@@ -182,7 +182,7 @@ bar=4
 buz=1
 test.buz=2";
 			var coreConfig = new CoreConfig();
-			coreConfig.AddOrUpdate(testConfig);
+			_ = coreConfig.AddOrUpdate(testConfig);
 
 			var expectedConfig =
 @"qux = 1

@@ -34,11 +34,11 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 				}
 			});
 
-			KeyPadCommand.ThrownExceptions
+			_ = KeyPadCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 
-			this.WhenAnyValue(x => x.PinInput)
+			_ = this.WhenAnyValue(x => x.PinInput)
 				.Throttle(TimeSpan.FromSeconds(2.5))
 				.Where(x => !string.IsNullOrWhiteSpace(x))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -50,7 +50,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 					}
 				});
 
-			this.WhenAnyValue(x => x.PinInput)
+			_ = this.WhenAnyValue(x => x.PinInput)
 				.Select(Guard.Correct)
 				.Where(x => x.Length != 0)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -63,7 +63,7 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 					}
 				});
 
-			this.WhenAnyValue(x => x.IsLocked)
+			_ = this.WhenAnyValue(x => x.IsLocked)
 				.Where(x => !x)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => PinInput = "");

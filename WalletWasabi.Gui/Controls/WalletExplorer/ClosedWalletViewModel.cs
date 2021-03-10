@@ -27,7 +27,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 						if (wallet.KeyManager.PasswordVerified is true)
 						{
-							await Task.Run(async () => await global.WalletManager.StartWalletAsync(Wallet));
+							_ = await Task.Run(async () => await global.WalletManager.StartWalletAsync(Wallet));
 						}
 						else
 						{

@@ -9,7 +9,7 @@ namespace WalletWasabi.BitcoinCore.Configuration
 	{
 		public static string GetConfigPrefix(Network network)
 		{
-			Guard.NotNull(nameof(network), network);
+			_ = Guard.NotNull(nameof(network), network);
 			if (network == Network.Main)
 			{
 				return "main";
@@ -30,7 +30,7 @@ namespace WalletWasabi.BitcoinCore.Configuration
 
 		public static IEnumerable<string> GetConfigPrefixesWithDots(Network network)
 		{
-			Guard.NotNull(nameof(network), network);
+			_ = Guard.NotNull(nameof(network), network);
 
 			yield return $"{GetConfigPrefix(network)}.";
 			if (network == Network.Main)
@@ -41,7 +41,7 @@ namespace WalletWasabi.BitcoinCore.Configuration
 
 		public static string GetDataDirPrefix(Network network)
 		{
-			Guard.NotNull(nameof(network), network);
+			_ = Guard.NotNull(nameof(network), network);
 			if (network == Network.Main)
 			{
 				return "";
@@ -62,7 +62,7 @@ namespace WalletWasabi.BitcoinCore.Configuration
 
 		public static string GetCommandLineArguments(Network network)
 		{
-			Guard.NotNull(nameof(network), network);
+			_ = Guard.NotNull(nameof(network), network);
 			if (network == Network.Main)
 			{
 				return "-regtest=0 -testnet=0";

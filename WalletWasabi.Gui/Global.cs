@@ -155,7 +155,7 @@ namespace WalletWasabi.Gui
 					using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
 					{
 						TorManager = new TorProcessManager(TorSettings, Config.TorSocks5EndPoint);
-						await TorManager.StartAsync(ensureRunning: true).ConfigureAwait(false);
+						_ = await TorManager.StartAsync(ensureRunning: true).ConfigureAwait(false);
 					}
 
 					var httpClient = (Tor.Http.TorHttpClient)HttpClientFactory.NewHttpClient(() => null!, isolateStream: false);
@@ -225,7 +225,7 @@ namespace WalletWasabi.Gui
 
 				#region MempoolInitialization
 
-				connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
+				_ = connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
 
 				#endregion MempoolInitialization
 
@@ -234,7 +234,7 @@ namespace WalletWasabi.Gui
 				#region AddressManagerInitialization
 
 				AddressManagerBehavior addressManagerBehavior = await addrManTask.ConfigureAwait(false);
-				connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
+				_ = connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
 
 				#endregion AddressManagerInitialization
 
@@ -251,11 +251,11 @@ namespace WalletWasabi.Gui
 
 						Node node = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint).ConfigureAwait(false);
 
-						Nodes.ConnectedNodes.Add(node);
+						_ = Nodes.ConnectedNodes.Add(node);
 
 						RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint).ConfigureAwait(false);
 
-						RegTestMempoolServingNode.Behaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
+						_ = RegTestMempoolServingNode.Behaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
 					}
 					catch (SocketException ex)
 					{
@@ -339,7 +339,7 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
-				InitializationCompleted.TrySetResult(true);
+				_ = InitializationCompleted.TrySetResult(true);
 			}
 		}
 
@@ -350,7 +350,7 @@ namespace WalletWasabi.Gui
 			connectionParameters.EndpointConnector = bestEffortEndpointConnector;
 			if (Config.UseTor)
 			{
-				connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
+				_ = connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
 			}
 			var nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Added += ConnectedNodes_OnAddedOrRemoved;
@@ -593,7 +593,7 @@ namespace WalletWasabi.Gui
 				try
 				{
 					using var initCompletitionWaitCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
-					await InitializationCompleted.Task.WithAwaitCancellationAsync(initCompletitionWaitCts.Token, 100).ConfigureAwait(false);
+					_ = await InitializationCompleted.Task.WithAwaitCancellationAsync(initCompletitionWaitCts.Token, 100).ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{
@@ -710,7 +710,7 @@ namespace WalletWasabi.Gui
 
 					if (Config.StopLocalBitcoinCoreOnShutdown)
 					{
-						await bitcoinCoreNode.TryStopAsync().ConfigureAwait(false);
+						_ = await bitcoinCoreNode.TryStopAsync().ConfigureAwait(false);
 					}
 				}
 

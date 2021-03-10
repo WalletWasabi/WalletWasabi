@@ -18,7 +18,7 @@ namespace WalletWasabi.Helpers
 
 		private static bool AssertBool(string parameterName, bool expectedValue, bool? value, string? description = null)
 		{
-			NotNull(parameterName, value);
+			_ = NotNull(parameterName, value);
 
 			if (value != expectedValue)
 			{
@@ -68,7 +68,7 @@ namespace WalletWasabi.Helpers
 
 		public static IEnumerable<T> NotNullOrEmpty<T>(string parameterName, IEnumerable<T> value)
 		{
-			NotNull(parameterName, value);
+			_ = NotNull(parameterName, value);
 
 			if (!value.Any())
 			{
@@ -80,7 +80,7 @@ namespace WalletWasabi.Helpers
 
 		public static T[] NotNullOrEmpty<T>(string parameterName, T[] value)
 		{
-			NotNull(parameterName, value);
+			_ = NotNull(parameterName, value);
 
 			if (!value.Any())
 			{
@@ -92,7 +92,7 @@ namespace WalletWasabi.Helpers
 
 		public static IDictionary<TKey, TValue> NotNullOrEmpty<TKey, TValue>(string parameterName, IDictionary<TKey, TValue> value)
 		{
-			NotNull(parameterName, value);
+			_ = NotNull(parameterName, value);
 			if (!value.Any())
 			{
 				throw new ArgumentException("Parameter cannot be empty.", parameterName);
@@ -102,7 +102,7 @@ namespace WalletWasabi.Helpers
 
 		public static string NotNullOrEmptyOrWhitespace(string parameterName, string value, bool trim = false)
 		{
-			NotNullOrEmpty(parameterName, value);
+			_ = NotNullOrEmpty(parameterName, value);
 
 			string trimmedValue = value.Trim();
 			if (trimmedValue.Length == 0)
@@ -122,7 +122,7 @@ namespace WalletWasabi.Helpers
 
 		public static T MinimumAndNotNull<T>(string parameterName, T value, T smallest) where T : IComparable
 		{
-			NotNull(parameterName, value);
+			_ = NotNull(parameterName, value);
 
 			if (value.CompareTo(smallest) < 0)
 			{
@@ -134,7 +134,7 @@ namespace WalletWasabi.Helpers
 
 		public static T InRangeAndNotNull<T>(string parameterName, T value, T smallest, T greatest) where T : IComparable
 		{
-			NotNull(parameterName, value);
+			_ = NotNull(parameterName, value);
 
 			if (value.CompareTo(smallest) < 0)
 			{

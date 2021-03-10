@@ -32,10 +32,10 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 
 		public PaymentIntent(IEnumerable<DestinationRequest> requests)
 		{
-			Guard.NotNullOrEmpty(nameof(requests), requests);
+			_ = Guard.NotNullOrEmpty(nameof(requests), requests);
 			foreach (var request in requests)
 			{
-				Guard.NotNull(nameof(request), request);
+				_ = Guard.NotNull(nameof(request), request);
 			}
 
 			var subtractFeeCount = requests.Count(x => x.Amount.SubtractFee);

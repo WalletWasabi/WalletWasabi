@@ -60,7 +60,7 @@ namespace WalletWasabi.Backend.Controllers
 					var cacheEntryOptions = new MemoryCacheEntryOptions()
 						.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
 
-					Cache.Set(cacheKey, exchangeRates, cacheEntryOptions);
+					_ = Cache.Set(cacheKey, exchangeRates, cacheEntryOptions);
 				}
 			}
 			return exchangeRates;

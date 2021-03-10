@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
 
 		public DialogScreenViewModel(NavigationTarget navigationTarget = NavigationTarget.DialogScreen) : base(navigationTarget)
 		{
-			this.WhenAnyValue(x => x.IsDialogOpen)
+			_ = this.WhenAnyValue(x => x.IsDialogOpen)
 				.Skip(1) // Skip the initial value change (which is false).
 				.DistinctUntilChanged()
 				.Subscribe(

@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("Lock"),
 				ReactiveCommand.Create(() => global.UiConfig.LockScreenActive = true));
 
-			Observable
+			_ = Observable
 				.Merge(ExitCommand.GetReactiveCommand().ThrownExceptions)
 				.Merge(ExitCommand.GetReactiveCommand().ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)

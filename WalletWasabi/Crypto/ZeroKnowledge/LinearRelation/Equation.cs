@@ -62,7 +62,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 			// challenge is 0), so only respond if that is the case
 			foreach (var secretNonce in secretNonces)
 			{
-				Guard.NotZero(nameof(secretNonce), secretNonce);
+				_ = Guard.NotZero(nameof(secretNonce), secretNonce);
 			}
 
 			// Taking the discrete logarithms of both sides of the verification

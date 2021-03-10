@@ -61,7 +61,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				});
 
-			ToggleSensitiveKeysCommand.ThrownExceptions
+			_ = ToggleSensitiveKeysCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{
@@ -166,13 +166,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Closing = new CancellationTokenSource();
 
-			Global.UiConfig.WhenAnyValue(x => x.PrivacyMode).Subscribe(_ =>
-				{
-					this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));
-					this.RaisePropertyChanged(nameof(ExtendedAccountZpub));
-				}).DisposeWith(disposables);
+			_ = Global.UiConfig.WhenAnyValue(x => x.PrivacyMode).Subscribe(_ =>
+				  {
+					  this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));
+					  this.RaisePropertyChanged(nameof(ExtendedAccountZpub));
+				  }).DisposeWith(disposables);
 
-			Closing.DisposeWith(disposables);
+			_ = Closing.DisposeWith(disposables);
 
 			base.OnOpen(disposables);
 		}

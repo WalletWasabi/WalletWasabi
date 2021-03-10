@@ -43,7 +43,7 @@ namespace Nito.AsyncEx
 			while (newId == 0);
 
 			// Update the Id unless another thread already updated it.
-			Interlocked.CompareExchange(ref id, newId, 0);
+			_ = Interlocked.CompareExchange(ref id, newId, 0);
 
 			// Return the current Id, regardless of whether it's our new Id or a new Id from another thread.
 			return id;

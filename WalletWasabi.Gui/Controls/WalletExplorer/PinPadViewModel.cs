@@ -27,13 +27,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SendPinCommand = ReactiveCommand.Create(() =>
 			{
 				DialogResult = true;
-				OnClose();
+				_ = OnClose();
 			},
 			this.WhenAny(x => x.MaskedPin, (maskedPin) => !string.IsNullOrWhiteSpace(maskedPin.Value)));
 
 			KeyPadCommand = ReactiveCommand.Create<string>((arg) => MaskedPin += arg);
 
-			Observable
+			_ = Observable
 				.Merge(SendPinCommand.ThrownExceptions)
 				.Merge(KeyPadCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)

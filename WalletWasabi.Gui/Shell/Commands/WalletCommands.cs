@@ -30,7 +30,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("LoadWallet"),
 				ReactiveCommand.Create(OnLoadWallet));
 
-			Observable
+			_ = Observable
 				.Merge(GenerateWalletCommand.GetReactiveCommand().ThrownExceptions)
 				.Merge(RecoverWalletCommand.GetReactiveCommand().ThrownExceptions)
 				.Merge(LoadWallet.GetReactiveCommand().ThrownExceptions)

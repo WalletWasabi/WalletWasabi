@@ -13,7 +13,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.OctetFields
 
 		public PLenField(PasswdField passwd)
 		{
-			Guard.NotNull(nameof(passwd), passwd);
+			_ = Guard.NotNull(nameof(passwd), passwd);
 
 			ByteValue = (byte)passwd.ToBytes().Length;
 		}

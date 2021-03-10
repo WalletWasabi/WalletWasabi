@@ -42,20 +42,20 @@ namespace WalletWasabi.Gui.ViewModels
 			ClipboardNotificationOpacity = 0;
 			_label = model.Label;
 
-			this.WhenAnyValue(x => x.IsExpanded)
+			_ = this.WhenAnyValue(x => x.IsExpanded)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Where(x => x)
 				.Take(1)
 				.Select(x =>
 				{
 					var encoder = new QrEncoder();
-					encoder.TryEncode(Address, out var qrCode);
+					_ = encoder.TryEncode(Address, out var qrCode);
 					return qrCode.Matrix.InternalArray;
 				})
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(qr => QrCode = qr, onError: ex => Logger.LogError(ex)); // Catch the exceptions everywhere (e.g.: Select) except in Subscribe.
 
-			Global.UiConfig
+			_ = Global.UiConfig
 				.WhenAnyValue(x => x.PrivacyMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
@@ -65,7 +65,7 @@ namespace WalletWasabi.Gui.ViewModels
 					this.RaisePropertyChanged(nameof(Label));
 				}).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.Label)
+			_ = this.WhenAnyValue(x => x.Label)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(newLabel =>
 				{
@@ -104,12 +104,12 @@ namespace WalletWasabi.Gui.ViewModels
 				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 				try
 				{
-					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, Model.FullKeyPath, cts.Token);
+					_ = await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, Model.FullKeyPath, cts.Token);
 				}
 				catch (HwiException)
 				{
 					await PinPadViewModel.UnlockAsync();
-					await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, Model.FullKeyPath, cts.Token);
+					_ = await client.DisplayAddressAsync(KeyManager.MasterFingerprint.Value, Model.FullKeyPath, cts.Token);
 				}
 			});
 
@@ -125,7 +125,7 @@ namespace WalletWasabi.Gui.ViewModels
 				}
 			});
 
-			Observable
+			_ = Observable
 				.Merge(ToggleQrCode.ThrownExceptions)
 				.Merge(SaveQRCode.ThrownExceptions)
 				.Merge(CopyAddress.ThrownExceptions)
@@ -183,7 +183,7 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				if (!IsPrivacyMode && !new SmartLabel(value).IsEmpty)
 				{
-					this.RaiseAndSetIfChanged(ref _label, value);
+					_ = this.RaiseAndSetIfChanged(ref _label, value);
 				}
 			}
 		}
@@ -253,7 +253,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public async Task SaveQRCodeAsync()
 		{
-			await ExecuteSaveQRCodeCommand?.Execute(Address);
+			_ = await ExecuteSaveQRCodeCommand?.Execute(Address);
 		}
 
 		#region IDisposable Support

@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SelectAllNonPrivateVisible = true;
 			SelectAllPrivateVisible = true;
 
-			this.WhenAnyValue(x => x.DataContext)
+			_ = this.WhenAnyValue(x => x.DataContext)
 				.Subscribe(dataContext =>
 				{
 					if (dataContext is CoinListViewModel viewmodel)

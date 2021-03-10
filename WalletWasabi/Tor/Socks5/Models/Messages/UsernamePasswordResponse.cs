@@ -10,7 +10,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Messages
 		/// <param name="bytes">2 bytes are required to be passed in.</param>
 		public UsernamePasswordResponse(byte[] bytes)
 		{
-			Guard.Same($"{nameof(bytes)}.{nameof(bytes.Length)}", 2, bytes.Length);
+			_ = Guard.Same($"{nameof(bytes)}.{nameof(bytes.Length)}", 2, bytes.Length);
 
 			Ver = new AuthVerField(bytes[0]);
 			Status = new AuthStatusField(bytes[1]);

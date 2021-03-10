@@ -170,7 +170,7 @@ namespace WalletWasabi.Wallets
 						// onlyForOnionHosts should connect to it if it's an onion endpoint automatically and non-Tor endpoints through clearnet/localhost
 						if (HttpClientFactory.IsTorEnabled)
 						{
-							nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(HttpClientFactory.TorEndpoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false));
+							_ = nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(HttpClientFactory.TorEndpoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false));
 						}
 
 						var localEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;

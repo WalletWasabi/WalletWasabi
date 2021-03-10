@@ -397,7 +397,7 @@ namespace WalletWasabi.Packager
 				process.WaitForExit();
 			}
 
-			IoHelpers.TryDeleteDirectoryAsync(path).GetAwaiter().GetResult();
+			_ = IoHelpers.TryDeleteDirectoryAsync(path).GetAwaiter().GetResult();
 		}
 
 		private static void UnlockKeychain()

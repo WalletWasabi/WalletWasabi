@@ -26,7 +26,7 @@ namespace WalletWasabi.Tests.UnitTests.Bases
 			await Task.Delay(50, cancel).ConfigureAwait(false);
 			RoundCounter++;
 
-			Semaphore.Release();
+			_ = Semaphore.Release();
 		}
 
 		public async Task<bool> WaitForNextRoundAsync()

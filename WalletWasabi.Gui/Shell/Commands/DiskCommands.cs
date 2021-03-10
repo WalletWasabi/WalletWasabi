@@ -22,7 +22,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 			var onOpenTorLogFile = ReactiveCommand.CreateFromTask(OnOpenTorLogFileAsync);
 			var onOpenConfigFile = ReactiveCommand.CreateFromTask(OnOpenConfigFileAsync);
 
-			Observable
+			_ = Observable
 				.Merge(onOpenConfigFile.ThrownExceptions)
 				.Merge(onOpenWalletsFolder.ThrownExceptions)
 				.Merge(onOpenLogFile.ThrownExceptions)

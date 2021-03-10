@@ -25,7 +25,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.OctetFields
 
 			if (IPAddress.TryParse(dstAddr, out IPAddress? address))
 			{
-				Guard.Same($"{nameof(address)}.{nameof(address.AddressFamily)}", AddressFamily.InterNetwork, address.AddressFamily);
+				_ = Guard.Same($"{nameof(address)}.{nameof(address.AddressFamily)}", AddressFamily.InterNetwork, address.AddressFamily);
 
 				ByteValue = IPv4.ToByte();
 			}

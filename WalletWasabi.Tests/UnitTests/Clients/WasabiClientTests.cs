@@ -44,7 +44,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			}
 
 			var mockTorHttpClient = new Mock<IHttpClient>();
-			mockTorHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<HttpContent?>(), It.IsAny<CancellationToken>()))
+			_ = mockTorHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<HttpContent?>(), It.IsAny<CancellationToken>()))
 				.Returns(async (HttpMethod method, string relativeUri, HttpContent? content, CancellationToken cancellation) => await FakeServerCodeAsync(method, relativeUri, content, cancellation));
 
 			var client = new WasabiClient(mockTorHttpClient.Object);
@@ -72,7 +72,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			Assert.Subset(WasabiClient.TransactionCache.Keys.ToHashSet(), txs.TakeLast(1_000).Select(x => x.GetHash()).ToHashSet());
 
 			// Requests transactions that are already in the cache
-			mockTorHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<HttpContent?>(), It.IsAny<CancellationToken>()))
+			_ = mockTorHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<HttpContent?>(), It.IsAny<CancellationToken>()))
 				.ThrowsAsync(new InvalidOperationException("The transaction should already be in the client cache. Http request was unexpected."));
 
 			var expectedTobeCachedTxId = mempool.Last().GetHash();
@@ -80,7 +80,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			Assert.Equal(expectedTobeCachedTxId, txs.Last().GetHash());
 
 			// Requests fails with Bad Request
-			mockTorHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<HttpContent?>(), It.IsAny<CancellationToken>()))
+			_ = mockTorHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<HttpContent?>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(new HttpResponseMessage(HttpStatusCode.BadRequest)
 				{
 					Content = new StringContent("\"Some RPC problem...\"")
@@ -98,11 +98,11 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			var tx = Network.RegTest.CreateTransaction();
 			foreach (var coin in coins)
 			{
-				tx.Inputs.Add(coin.Outpoint, Script.Empty, WitScript.Empty);
+				_ = tx.Inputs.Add(coin.Outpoint, Script.Empty, WitScript.Empty);
 			}
-			tx.Outputs.Add(Money.Coins(3), Script.Empty);
-			tx.Outputs.Add(Money.Coins(2), Script.Empty);
-			tx.Outputs.Add(Money.Coins(1), Script.Empty);
+			_ = tx.Outputs.Add(Money.Coins(3), Script.Empty);
+			_ = tx.Outputs.Add(Money.Coins(2), Script.Empty);
+			_ = tx.Outputs.Add(Money.Coins(1), Script.Empty);
 			return tx;
 		}
 
@@ -113,7 +113,7 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 			var max = int.Parse(WalletWasabi.Helpers.Constants.ClientSupportBackendVersionMax);
 			Assert.True(min <= max);
 
-			int.Parse(WalletWasabi.Helpers.Constants.BackendMajorVersion);
+			_ = int.Parse(WalletWasabi.Helpers.Constants.BackendMajorVersion);
 		}
 	}
 }

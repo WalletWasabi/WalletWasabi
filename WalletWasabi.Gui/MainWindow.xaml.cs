@@ -118,7 +118,7 @@ namespace WalletWasabi.Gui
 						var wm = IoC.Get<IShell>().Documents?.OfType<WalletManagerViewModel>().FirstOrDefault();
 						if (wm is { })
 						{
-							wm.OnClose();
+							_ = wm.OnClose();
 							Logger.LogInfo($"{nameof(WalletManagerViewModel)} closed.");
 						}
 					}
@@ -127,21 +127,21 @@ namespace WalletWasabi.Gui
 						Logger.LogWarning(ex);
 					}
 
-					Interlocked.Exchange(ref _closingState, 2); //now we can close the app
+					_ = Interlocked.Exchange(ref _closingState, 2); //now we can close the app
 					Close(); // start the closing process. Will call MainWindow_ClosingAsync again!
 				}
 				//let's go to finally
 			}
 			catch (Exception ex)
 			{
-				Interlocked.Exchange(ref _closingState, 0); //something happened back to starting point
+				_ = Interlocked.Exchange(ref _closingState, 0); //something happened back to starting point
 				Logger.LogWarning(ex);
 			}
 			finally
 			{
 				if (!closeApplication) //we are not closing the application for some reason
 				{
-					Interlocked.Exchange(ref _closingState, 0);
+					_ = Interlocked.Exchange(ref _closingState, 0);
 					// Re-enable enqueuing coins.
 					Global.WalletManager.SignalQuitPending(false);
 				}

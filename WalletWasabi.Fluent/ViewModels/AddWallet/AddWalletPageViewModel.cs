@@ -47,7 +47,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			var enableBack = default(IDisposable);
 
-			this.WhenAnyValue(x => x.CurrentTarget)
+			_ = this.WhenAnyValue(x => x.CurrentTarget)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -57,7 +57,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 						.Subscribe(y => EnableBack = y);
 				});
 
-			this.WhenAnyValue(x => x.WalletName)
+			_ = this.WhenAnyValue(x => x.WalletName)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);

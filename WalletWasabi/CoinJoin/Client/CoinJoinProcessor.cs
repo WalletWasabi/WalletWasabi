@@ -71,7 +71,7 @@ namespace WalletWasabi.CoinJoin.Client
 		{
 			try
 			{
-				await RpcClient.SendRawTransactionAsync(transaction.Transaction).ConfigureAwait(false);
+				_ = await RpcClient.SendRawTransactionAsync(transaction.Transaction).ConfigureAwait(false);
 				Logger.LogInfo($"Transaction is successfully broadcasted with RPC: {transaction.GetHash()}.");
 
 				return true;

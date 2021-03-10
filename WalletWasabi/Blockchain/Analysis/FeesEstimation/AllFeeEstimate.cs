@@ -17,7 +17,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		[JsonConstructor]
 		public AllFeeEstimate(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
 		{
-			Guard.NotNullOrEmpty(nameof(estimations), estimations);
+			_ = Guard.NotNullOrEmpty(nameof(estimations), estimations);
 
 			Type = type;
 			IsAccurate = isAccurate;
@@ -41,7 +41,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 				if (lastFeeRate > estimation.FeeRate)
 				{
 					lastFeeRate = estimation.FeeRate;
-					Estimations.TryAdd(estimation.ConfirmationTarget, estimation.FeeRate);
+					_ = Estimations.TryAdd(estimation.ConfirmationTarget, estimation.FeeRate);
 				}
 			}
 		}

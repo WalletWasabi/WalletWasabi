@@ -97,7 +97,7 @@ namespace WalletWasabi.Hwi
 
 		private async Task PromptPinImplAsync(HardwareWalletModels? deviceType, string devicePath, HDFingerprint? fingerprint, CancellationToken cancel)
 		{
-			await SendCommandAsync(
+			_ = await SendCommandAsync(
 				options: BuildOptions(deviceType, devicePath, fingerprint),
 				command: HwiCommands.PromptPin,
 				commandArguments: null,
@@ -110,7 +110,7 @@ namespace WalletWasabi.Hwi
 
 		private async Task SendPinImplAsync(HardwareWalletModels? deviceType, string devicePath, HDFingerprint? fingerprint, int pin, CancellationToken cancel)
 		{
-			await SendCommandAsync(
+			_ = await SendCommandAsync(
 				options: BuildOptions(deviceType, devicePath, fingerprint),
 				command: HwiCommands.SendPin,
 				commandArguments: pin.ToString(),
@@ -188,7 +188,7 @@ namespace WalletWasabi.Hwi
 
 			if (!signedPsbt.IsAllFinalized())
 			{
-				signedPsbt.Finalize();
+				_ = signedPsbt.Finalize();
 			}
 
 			return signedPsbt;
@@ -196,7 +196,7 @@ namespace WalletWasabi.Hwi
 
 		public async Task WipeAsync(HardwareWalletModels deviceType, string devicePath, CancellationToken cancel)
 		{
-			await SendCommandAsync(
+			_ = await SendCommandAsync(
 				options: BuildOptions(deviceType, devicePath, null),
 				command: HwiCommands.Wipe,
 				commandArguments: null,
@@ -206,7 +206,7 @@ namespace WalletWasabi.Hwi
 
 		public async Task SetupAsync(HardwareWalletModels deviceType, string devicePath, bool openConsole, CancellationToken cancel)
 		{
-			await SendCommandAsync(
+			_ = await SendCommandAsync(
 				options: BuildOptions(deviceType, devicePath, null, HwiOption.Interactive),
 				command: HwiCommands.Setup,
 				commandArguments: null,
@@ -216,7 +216,7 @@ namespace WalletWasabi.Hwi
 
 		public async Task RestoreAsync(HardwareWalletModels deviceType, string devicePath, bool openConsole, CancellationToken cancel)
 		{
-			await SendCommandAsync(
+			_ = await SendCommandAsync(
 				options: BuildOptions(deviceType, devicePath, null, HwiOption.Interactive),
 				command: HwiCommands.Restore,
 				commandArguments: null,
@@ -296,7 +296,7 @@ namespace WalletWasabi.Hwi
 			var notSupportedExceptionMessage = $"Provide either {nameof(fingerprint)} or {nameof(devicePath)}-{nameof(deviceType)} pair, not both.";
 			if (hasDeviceType)
 			{
-				Guard.NotNull(nameof(devicePath), devicePath);
+				_ = Guard.NotNull(nameof(devicePath), devicePath);
 				if (hasFingerprint)
 				{
 					throw new NotSupportedException(notSupportedExceptionMessage);

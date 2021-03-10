@@ -40,7 +40,7 @@ namespace WalletWasabi.Fluent.Behaviors
 
 		protected override void OnAttached(CompositeDisposable disposables)
 		{
-			AssociatedObject!.WhenAnyValue(x => x.Bounds)
+			_ = AssociatedObject!.WhenAnyValue(x => x.Bounds)
 				.DistinctUntilChanged()
 				.Subscribe(SplitViewBoundsChanged)
 				.DisposeWith(disposables);

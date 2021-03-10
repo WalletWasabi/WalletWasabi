@@ -19,7 +19,7 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
-			OpenBrowserCommand.ThrownExceptions
+			_ = OpenBrowserCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}

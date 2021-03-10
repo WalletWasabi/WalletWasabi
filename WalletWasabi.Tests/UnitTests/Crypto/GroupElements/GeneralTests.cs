@@ -22,15 +22,15 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			var large = new FE(uint.MaxValue);
 			var largest = new FE(uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue, uint.MaxValue);
 
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(FE.Zero, FE.Zero)));
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(one, FE.Zero)));
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(one, one)));
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(one, two)));
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(two, two)));
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(one, large)));
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(large, large)));
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(one, largest)));
-			Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(largest, largest)));
+			_ = Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(FE.Zero, FE.Zero)));
+			_ = Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(one, FE.Zero)));
+			_ = Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(one, one)));
+			_ = Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(one, two)));
+			_ = Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(two, two)));
+			_ = Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(one, large)));
+			_ = Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(large, large)));
+			_ = Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(one, largest)));
+			_ = Assert.Throws<ArgumentOutOfRangeException>(() => new GroupElement(new GE(largest, largest)));
 		}
 
 		[Fact]
@@ -66,7 +66,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			Assert.Equal(a.GetHashCode(), e.GetHashCode());
 
 			var singleSet = new HashSet<GroupElement> { a, b, c, d, e };
-			Assert.Single(singleSet);
+			_ = Assert.Single(singleSet);
 		}
 
 		[Fact]
@@ -168,21 +168,21 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		[Fact]
 		public void DeserializationThrows()
 		{
-			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(Array.Empty<byte>()));
-			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(new byte[] { 0 }));
-			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(new byte[] { 1 }));
-			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(new byte[] { 0, 1 }));
-			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(new byte[] { 0, 1 }));
+			_ = Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(Array.Empty<byte>()));
+			_ = Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(new byte[] { 0 }));
+			_ = Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(new byte[] { 1 }));
+			_ = Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(new byte[] { 0, 1 }));
+			_ = Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(new byte[] { 0, 1 }));
 
-			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 32, character: 0)));
-			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 63, character: 0)));
+			_ = Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 32, character: 0)));
+			_ = Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 63, character: 0)));
 			var infinity = GroupElement.FromBytes(FillByteArray(length: 33, character: 0));
 			Assert.True(infinity.IsInfinity);
-			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 64, character: 1)));
-			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 64, character: 2)));
-			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 65, character: 0)));
+			_ = Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 64, character: 1)));
+			_ = Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 64, character: 2)));
+			_ = Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(FillByteArray(length: 65, character: 0)));
 
-			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(ByteHelpers.FromHex("100000000000000000000000000000000000000000000000000000000000000000")));
+			_ = Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(ByteHelpers.FromHex("100000000000000000000000000000000000000000000000000000000000000000")));
 		}
 
 		[Theory]
@@ -217,7 +217,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 			Assert.Equal(GroupElement.Infinity, ge2);
 
 			// 2. Try defining non-infinity with zero coordinates should not work.
-			Assert.ThrowsAny<ArgumentException>(() => new GroupElement(new GE(FE.Zero, FE.Zero, infinity: false)));
+			_ = Assert.ThrowsAny<ArgumentException>(() => new GroupElement(new GE(FE.Zero, FE.Zero, infinity: false)));
 
 			ge = new GroupElement(EC.G) * new Scalar(1);
 			ge2 = GroupElement.FromBytes(ge.ToBytes());
@@ -262,10 +262,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		{
 			var serialized = FillByteArray(length: 33, character: 0);
 			serialized[0] = GE.SECP256K1_TAG_PUBKEY_EVEN;
-			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(serialized));
+			_ = Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(serialized));
 
 			serialized[0] = GE.SECP256K1_TAG_PUBKEY_ODD;
-			Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(serialized));
+			_ = Assert.ThrowsAny<ArgumentException>(() => GroupElement.FromBytes(serialized));
 		}
 
 		[Fact]
@@ -307,7 +307,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		[Fact]
 		public void ToHex()
 		{
-			Assert.Throws<NullReferenceException>(() => ByteHelpers.ToHex(null!));
+			_ = Assert.Throws<NullReferenceException>(() => ByteHelpers.ToHex(null!));
 			Assert.Equal("", ByteHelpers.ToHex(Array.Empty<byte>()));
 			Assert.Equal("0102", ByteHelpers.ToHex(0x01, 0x02));
 		}

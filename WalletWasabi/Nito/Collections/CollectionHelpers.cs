@@ -9,7 +9,7 @@ namespace Nito.Collections
 	{
 		public static IReadOnlyCollection<T> ReifyCollection<T>(IEnumerable<T> source)
 		{
-			Guard.NotNull(nameof(source), source);
+			_ = Guard.NotNull(nameof(source), source);
 
 			if (source is IReadOnlyCollection<T> result)
 			{

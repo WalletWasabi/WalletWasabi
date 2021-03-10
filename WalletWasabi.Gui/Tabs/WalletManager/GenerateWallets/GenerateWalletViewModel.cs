@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 
 			NextCommand = ReactiveCommand.Create(DoNextCommand, this.WhenAnyValue(x => x.Validations.Any).Select(x => !x));
 
-			NextCommand.ThrownExceptions
+			_ = NextCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 		}

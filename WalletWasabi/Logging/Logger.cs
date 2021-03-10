@@ -94,7 +94,7 @@ namespace WalletWasabi.Logging
 
 			foreach (var mode in modes)
 			{
-				Modes.Add(mode);
+				_ = Modes.Add(mode);
 			}
 		}
 
@@ -141,28 +141,28 @@ namespace WalletWasabi.Logging
 				var category = string.IsNullOrWhiteSpace(callerFilePath) ? "" : $"{EnvironmentHelpers.ExtractFileName(callerFilePath)} ({callerLineNumber})";
 
 				var messageBuilder = new StringBuilder();
-				messageBuilder.Append($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} [{Thread.CurrentThread.ManagedThreadId}] {level.ToString().ToUpperInvariant()}\t");
+				_ = messageBuilder.Append($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} [{Thread.CurrentThread.ManagedThreadId}] {level.ToString().ToUpperInvariant()}\t");
 
 				if (message.Length == 0)
 				{
 					if (category.Length == 0) // If both empty. It probably never happens though.
 					{
-						messageBuilder.Append($"{EntrySeparator}");
+						_ = messageBuilder.Append($"{EntrySeparator}");
 					}
 					else // If only the message is empty.
 					{
-						messageBuilder.Append($"{category}{EntrySeparator}");
+						_ = messageBuilder.Append($"{category}{EntrySeparator}");
 					}
 				}
 				else
 				{
 					if (category.Length == 0) // If only the category is empty.
 					{
-						messageBuilder.Append($"{message}{EntrySeparator}");
+						_ = messageBuilder.Append($"{message}{EntrySeparator}");
 					}
 					else // If none of them empty.
 					{
-						messageBuilder.Append($"{category}\t{message}{EntrySeparator}");
+						_ = messageBuilder.Append($"{category}\t{message}{EntrySeparator}");
 					}
 				}
 
@@ -170,7 +170,7 @@ namespace WalletWasabi.Logging
 
 				for (int i = 0; i < additionalEntrySeparators; i++)
 				{
-					messageBuilder.Insert(0, EntrySeparator);
+					_ = messageBuilder.Insert(0, EntrySeparator);
 				}
 
 				var finalFileMessage = messageBuilder.ToString();
@@ -240,7 +240,7 @@ namespace WalletWasabi.Logging
 
 				// If logging the failure is successful then clear the failure counter.
 				// If it's not the first time the logging failed, then we do not try to log logging failure, so clear the failure counter.
-				Interlocked.Exchange(ref LoggingFailedCount, 0);
+				_ = Interlocked.Exchange(ref LoggingFailedCount, 0);
 			}
 		}
 

@@ -24,7 +24,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		internal Statement(GroupElement[,] equations)
 		{
 			var terms = equations.GetLength(1);
-			Guard.True(nameof(terms), terms >= 2, $"Invalid {nameof(terms)}. It needs to have at least one generator and one public point.");
+			_ = Guard.True(nameof(terms), terms >= 2, $"Invalid {nameof(terms)}. It needs to have at least one generator and one public point.");
 
 			// make an equation out of each row taking the first element of each row as the public point
 			var rows = Enumerable.Range(0, equations.GetLength(0));
@@ -44,7 +44,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		{
 			// The responses matrix should match the generators in the equations and
 			// there should be once nonce per equation.
-			Guard.True(nameof(publicNonces), Equations.Count() == publicNonces.Count);
+			_ = Guard.True(nameof(publicNonces), Equations.Count() == publicNonces.Count);
 
 			return Equations.Zip(publicNonces, (equation, r) => equation.Verify(r, challenge, responses)).All(x => x);
 		}

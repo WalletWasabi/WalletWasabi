@@ -35,8 +35,8 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			using var secureRandom = new SecureRandom();
 			for (int i = 0; i < count; i++)
 			{
-				pseudoSet.Add(insecureRandom.GetBytes(10));
-				secureSet.Add(secureRandom.GetBytes(10));
+				_ = pseudoSet.Add(insecureRandom.GetBytes(10));
+				_ = secureSet.Add(secureRandom.GetBytes(10));
 			}
 			Assert.Equal(count, pseudoSet.Count);
 			Assert.Equal(count, secureSet.Count);
@@ -53,12 +53,12 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			foreach (var random in randoms)
 			{
-				Assert.Throws<ArgumentOutOfRangeException>(() => random.GetBytes(int.MinValue));
-				Assert.Throws<ArgumentOutOfRangeException>(() => random.GetBytes(-1));
-				Assert.Throws<ArgumentOutOfRangeException>(() => random.GetBytes(0));
+				_ = Assert.Throws<ArgumentOutOfRangeException>(() => random.GetBytes(int.MinValue));
+				_ = Assert.Throws<ArgumentOutOfRangeException>(() => random.GetBytes(-1));
+				_ = Assert.Throws<ArgumentOutOfRangeException>(() => random.GetBytes(0));
 
 				var r1 = random.GetBytes(1);
-				Assert.Single(r1);
+				_ = Assert.Single(r1);
 				var r2 = random.GetBytes(2);
 				Assert.Equal(2, r2.Length);
 			}
@@ -78,7 +78,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 				new Scalar(5),
 				new Scalar(5)
 			};
-			Assert.Single(singleSet);
+			_ = Assert.Single(singleSet);
 
 			var randoms = new List<WasabiRandom>
 			{
@@ -94,7 +94,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 				for (int i = 0; i < count; i++)
 				{
 					Scalar randomScalar = random.GetScalar();
-					set.Add(randomScalar);
+					_ = set.Add(randomScalar);
 				}
 				Assert.Equal(count, set.Count);
 			}

@@ -54,7 +54,7 @@ namespace NBitcoin.RPC
 		{
 			try
 			{
-				await rpc.UptimeAsync().ConfigureAwait(false);
+				_ = await rpc.UptimeAsync().ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -95,7 +95,7 @@ namespace NBitcoin.RPC
 
 			try
 			{
-				await Task.WhenAll(rpcFeeEstimationTasks).ConfigureAwait(false);
+				_ = await Task.WhenAll(rpcFeeEstimationTasks).ConfigureAwait(false);
 			}
 			catch
 			{
@@ -149,7 +149,7 @@ namespace NBitcoin.RPC
 			for (int i = 0; i < fakeOutputCount; i++)
 			{
 				var fakeOutputValue = totalFakeOutputsValue / fakeOutputCount;
-				fakeTransaction.Outputs.Add(fakeOutputValue, new Key());
+				_ = fakeTransaction.Outputs.Add(fakeOutputValue, new Key());
 			}
 			MempoolAcceptResult testMempoolAcceptResult = await rpc.TestMempoolAcceptAsync(fakeTransaction, allowHighFees: true).ConfigureAwait(false);
 
@@ -201,7 +201,7 @@ namespace NBitcoin.RPC
 					// If we asked to include the provided transaction hashes into the result then check which ones are confirmed and do so.
 					if (includingProvided)
 					{
-						hashSet.Add(txId);
+						_ = hashSet.Add(txId);
 					}
 
 					// Get all the dependents of all the dependents except the ones we already know of.

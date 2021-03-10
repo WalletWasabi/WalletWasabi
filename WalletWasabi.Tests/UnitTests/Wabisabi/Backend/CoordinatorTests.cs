@@ -18,7 +18,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task CanLiveAsync()
 		{
 			var workDir = Common.GetWorkDir();
-			await IoHelpers.TryDeleteDirectoryAsync(workDir);
+			_ = await IoHelpers.TryDeleteDirectoryAsync(workDir);
 			CoordinatorParameters coordinatorParameters = new(workDir);
 			using WabiSabiCoordinator coordinator = new(coordinatorParameters, new MockRpcClient());
 			await coordinator.StartAsync(CancellationToken.None);
@@ -29,7 +29,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		public async Task CanCancelAsync()
 		{
 			var workDir = Common.GetWorkDir();
-			await IoHelpers.TryDeleteDirectoryAsync(workDir);
+			_ = await IoHelpers.TryDeleteDirectoryAsync(workDir);
 			CoordinatorParameters coordinatorParameters = new(workDir);
 
 			using WabiSabiCoordinator coordinator = new(coordinatorParameters, new MockRpcClient());

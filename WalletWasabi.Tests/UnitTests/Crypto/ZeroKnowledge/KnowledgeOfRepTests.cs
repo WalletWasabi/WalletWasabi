@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 
 			var statement = new Statement(publicPoint, generators);
 			var mockRandom = new Mock<WasabiRandom>(MockBehavior.Strict);
-			mockRandom.Setup(rnd => rnd.GetBytes(32)).Returns(new byte[32]);
+			_ = mockRandom.Setup(rnd => rnd.GetBytes(32)).Returns(new byte[32]);
 			var proof = ProofSystemHelpers.Prove(statement, secrets, mockRandom.Object);
 			Assert.True(ProofSystemHelpers.Verify(statement, proof));
 		}
@@ -62,18 +62,18 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var three = new Scalar(3);
 
 			// Public point must be sum(generator * secret).
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(three * Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G, Generators.G, Generators.Ga), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.Ga, Generators.G), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Gg), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(Generators.G + three * Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)));
+			_ = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(three * Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)));
+			_ = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G, Generators.G, Generators.Ga), new ScalarVector(two, three)));
+			_ = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.Ga, Generators.G), new ScalarVector(two, three)));
+			_ = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Gg), new ScalarVector(two, three)));
+			_ = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(Generators.G + three * Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)));
+			_ = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)));
 
 			// Generators and secrets must be equal.
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.Gg, Generators.Ga), new ScalarVector(two)));
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.Gg), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga, Generators.Gg), new ScalarVector(two, three)));
+			_ = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.Gg, Generators.Ga), new ScalarVector(two)));
+			_ = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga), new ScalarVector(two, three)));
+			_ = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.Gg), new ScalarVector(two, three)));
+			_ = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Ga, Generators.Gg), new ScalarVector(two, three)));
 		}
 	}
 }

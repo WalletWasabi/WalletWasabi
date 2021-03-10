@@ -24,7 +24,7 @@ namespace WalletWasabi.Nito.AsyncEx
 			{
 				if (disposing)
 				{
-					Completion.TrySetResult();
+					_ = Completion.TrySetResult();
 				}
 
 				DisposedValue = true;

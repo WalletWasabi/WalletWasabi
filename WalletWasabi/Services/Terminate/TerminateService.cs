@@ -127,7 +127,7 @@ namespace WalletWasabi.Services.Terminate
 			}
 
 			// Indicate that the termination procedure finished. So other callers can return.
-			Interlocked.Exchange(ref _terminateStatus, TerminateStatusFinished);
+			_ = Interlocked.Exchange(ref _terminateStatus, TerminateStatusFinished);
 
 			Logger.LogSoftwareStopped("Wasabi");
 		}

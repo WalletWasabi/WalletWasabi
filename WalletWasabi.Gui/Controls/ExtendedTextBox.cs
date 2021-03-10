@@ -48,38 +48,38 @@ namespace WalletWasabi.Gui.Controls
 				}
 			});
 
-			Observable
+			_ = Observable
 				.Merge(CopyCommand.ThrownExceptions)
 				.Merge(PasteCommand.ThrownExceptions)
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogWarning(ex));
 
-			this.GetObservable(IsReadOnlyProperty).Subscribe(isReadOnly =>
-				{
-					if (ContextMenu is null)
-					{
-						return;
-					}
+			_ = this.GetObservable(IsReadOnlyProperty).Subscribe(isReadOnly =>
+				  {
+					  if (ContextMenu is null)
+					  {
+						  return;
+					  }
 
-					var items = ContextMenu.Items as Avalonia.Controls.Controls;
+					  var items = ContextMenu.Items as Avalonia.Controls.Controls;
 
-					if (isReadOnly)
-					{
-						if (items.Contains(_pasteItem))
-						{
-							items.Remove(_pasteItem);
-							_pasteItem = null;
-						}
-					}
-					else
-					{
-						if (!items.Contains(_pasteItem))
-						{
-							CreatePasteItem();
-							items.Add(_pasteItem);
-						}
-					}
-				});
+					  if (isReadOnly)
+					  {
+						  if (items.Contains(_pasteItem))
+						  {
+							  _ = items.Remove(_pasteItem);
+							  _pasteItem = null;
+						  }
+					  }
+					  else
+					  {
+						  if (!items.Contains(_pasteItem))
+						  {
+							  CreatePasteItem();
+							  items.Add(_pasteItem);
+						  }
+					  }
+				  });
 		}
 
 		private CompositeDisposable Disposables { get; }
@@ -182,7 +182,7 @@ namespace WalletWasabi.Gui.Controls
 				Items = new Avalonia.Controls.Controls()
 			};
 
-			Observable.FromEventPattern(ContextMenu, nameof(ContextMenu.MenuClosed))
+			_ = Observable.FromEventPattern(ContextMenu, nameof(ContextMenu.MenuClosed))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => Focus())
 				.DisposeWith(Disposables);

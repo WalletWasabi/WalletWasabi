@@ -19,11 +19,11 @@ namespace WalletWasabi.Tor.Http.Models
 			StringBuilder sb = new();
 			foreach (var field in Fields)
 			{
-				sb.Append(field.ToString(endWithCRLF: true));
+				_ = sb.Append(field.ToString(endWithCRLF: true));
 			}
 			if (endWithTwoCRLF)
 			{
-				sb.Append(CRLF);
+				_ = sb.Append(CRLF);
 			}
 			return sb.ToString();
 		}
@@ -83,7 +83,7 @@ namespace WalletWasabi.Tor.Http.Models
 
 			if (hostToCorrect is { })
 			{
-				hs.Fields.Remove(hostToCorrect);
+				_ = hs.Fields.Remove(hostToCorrect);
 				hs.Fields.Insert(0, hostToCorrect);
 			}
 
@@ -107,7 +107,7 @@ namespace WalletWasabi.Tor.Http.Models
 					var parts = field.Value.Trim().Split(',');
 					foreach (var part in parts)
 					{
-						allParts.Add(part.Trim());
+						_ = allParts.Add(part.Trim());
 					}
 				}
 			}
@@ -117,7 +117,7 @@ namespace WalletWasabi.Tor.Http.Models
 				{
 					throw new InvalidDataException("Invalid Content-Length.");
 				}
-				hs.Fields.RemoveAll(x => x.Name == "Content-Length");
+				_ = hs.Fields.RemoveAll(x => x.Name == "Content-Length");
 				hs.Fields.Add(new HeaderField("Content-Length", allParts.First()));
 			}
 		}
@@ -133,11 +133,11 @@ namespace WalletWasabi.Tor.Http.Models
 			{
 				if (field.Name.StartsWith("Content-", StringComparison.Ordinal))
 				{
-					message.Content.Headers.TryAddWithoutValidation(field.Name, field.Value);
+					_ = message.Content.Headers.TryAddWithoutValidation(field.Name, field.Value);
 				}
 				else
 				{
-					message.Headers.TryAddWithoutValidation(field.Name, field.Value);
+					_ = message.Headers.TryAddWithoutValidation(field.Name, field.Value);
 				}
 			}
 
@@ -159,11 +159,11 @@ namespace WalletWasabi.Tor.Http.Models
 			{
 				if (field.Name.StartsWith("Content-", StringComparison.Ordinal))
 				{
-					message.Content.Headers.TryAddWithoutValidation(field.Name, field.Value);
+					_ = message.Content.Headers.TryAddWithoutValidation(field.Name, field.Value);
 				}
 				else
 				{
-					message.Headers.TryAddWithoutValidation(field.Name, field.Value);
+					_ = message.Headers.TryAddWithoutValidation(field.Name, field.Value);
 				}
 			}
 

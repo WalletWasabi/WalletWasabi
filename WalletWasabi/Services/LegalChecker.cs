@@ -46,11 +46,11 @@ namespace WalletWasabi.Services
 
 			if (ProvisionalLegalDocument is { } provisional)
 			{
-				LatestDocumentTaskCompletion.TrySetResult(provisional);
+				_ = LatestDocumentTaskCompletion.TrySetResult(provisional);
 			}
 			else if (CurrentLegalDocument is { } current)
 			{
-				LatestDocumentTaskCompletion.TrySetResult(current);
+				_ = LatestDocumentTaskCompletion.TrySetResult(current);
 			}
 		}
 
@@ -100,7 +100,7 @@ namespace WalletWasabi.Services
 						await provisionalLegalDocument.ToFileAsync(ProvisionalLegalFolder).ConfigureAwait(false);
 
 						ProvisionalLegalDocument = provisionalLegalDocument;
-						LatestDocumentTaskCompletion.TrySetResult(ProvisionalLegalDocument);
+						_ = LatestDocumentTaskCompletion.TrySetResult(ProvisionalLegalDocument);
 					}
 				}
 
@@ -144,7 +144,7 @@ namespace WalletWasabi.Services
 					{
 						updateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
 					}
-					LatestDocumentTaskCompletion.TrySetCanceled();
+					_ = LatestDocumentTaskCompletion.TrySetCanceled();
 				}
 
 				_disposedValue = true;

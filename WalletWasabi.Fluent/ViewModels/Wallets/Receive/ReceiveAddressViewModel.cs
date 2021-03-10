@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 						var client = new HwiClient(network);
 						using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
-						await client.DisplayAddressAsync(masterFingerprint.Value, model.FullKeyPath, cts.Token);
+						_ = await client.DisplayAddressAsync(masterFingerprint.Value, model.FullKeyPath, cts.Token);
 					}
 					catch (FormatException ex) when (ex.Message.Contains("network") && network == Network.TestNet)
 					{
@@ -61,11 +61,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			{
 				if (QrCodeCommand is { } cmd)
 				{
-					await cmd.Execute(Address);
+					_ = await cmd.Execute(Address);
 				}
 			});
 
-			SaveQrCodeCommand.ThrownExceptions
+			_ = SaveQrCodeCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 
@@ -93,7 +93,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			try
 			{
 				var encoder = new QrEncoder();
-				encoder.TryEncode(Address, out var qrCode);
+				_ = encoder.TryEncode(Address, out var qrCode);
 				QrCode = qrCode.Matrix.InternalArray;
 			}
 			catch (Exception ex)

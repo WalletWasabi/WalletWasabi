@@ -46,7 +46,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 
 			RootList = new SourceList<WalletViewModelBase>();
-			RootList.Connect()
+			_ = RootList.Connect()
 				.Filter(x => (!IsPasswordRequired || !x.Wallet.KeyManager.IsWatchOnly))
 				.Sort(SortExpressionComparer<WalletViewModelBase>
 					.Descending(p => p.Wallet.KeyManager.GetLastAccessTime()),
@@ -57,18 +57,18 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				.Subscribe()
 				.DisposeWith(Disposables);
 
-			Observable.FromEventPattern<Wallet>(walletManager, nameof(walletManager.WalletAdded))
+			_ = Observable.FromEventPattern<Wallet>(walletManager, nameof(walletManager.WalletAdded))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => x.EventArgs)
 				.Subscribe(wallet => RootList.Add(new WalletViewModelBase(wallet)))
 				.DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.SelectedWallet)
+			_ = this.WhenAnyValue(x => x.SelectedWallet)
 				.Where(x => x is null)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => SelectedWallet = Wallets.FirstOrDefault());
 
-			Wallets
+			_ = Wallets
 				.ToObservableChangeSet()
 				.ToCollection()
 				.Where(items => items.Any() && SelectedWallet is null)
@@ -90,7 +90,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				.GetWallets()
 				.Select(x => new WalletViewModelBase(x)));
 
-			Observable
+			_ = Observable
 				.Merge(LoadCommand.ThrownExceptions)
 				.Merge(TestPasswordCommand.ThrownExceptions)
 				.Merge(OpenFolderCommand.ThrownExceptions)
@@ -206,7 +206,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 
 			try
 			{
-				await Task.Run(async () => await WalletManager.StartWalletAsync(keyManager));
+				_ = await Task.Run(async () => await WalletManager.StartWalletAsync(keyManager));
 				ResortTrigger.OnNext(new Unit());
 			}
 			catch (OperationCanceledException ex)

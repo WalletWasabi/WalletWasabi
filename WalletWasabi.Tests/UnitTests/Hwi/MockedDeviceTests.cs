@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
-			Assert.Single(enumerate);
+			_ = Assert.Single(enumerate);
 			HwiEnumerateEntry entry = enumerate.Single();
 			Assert.Equal(HardwareWalletModels.Trezor_T, entry.Model);
 			Assert.Equal("webusb: 001:4", entry.Path);
@@ -107,7 +107,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
-			Assert.Single(enumerate);
+			_ = Assert.Single(enumerate);
 			HwiEnumerateEntry entry = enumerate.Single();
 			Assert.Equal(HardwareWalletModels.Trezor_1, entry.Model);
 			string rawPath = "hid:\\\\\\\\?\\\\hid#vid_534c&pid_0001&mi_00#7&6f0b727&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
@@ -181,7 +181,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
-			Assert.Single(enumerate);
+			_ = Assert.Single(enumerate);
 			HwiEnumerateEntry entry = enumerate.Single();
 			Assert.Equal(HardwareWalletModels.Coldcard, entry.Model);
 			string rawPath = "\\\\\\\\?\\\\hid#vid_d13e&pid_cc10&mi_00#7&1b239988&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
@@ -268,7 +268,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
-			Assert.Single(enumerate);
+			_ = Assert.Single(enumerate);
 			HwiEnumerateEntry entry = enumerate.Single();
 			Assert.Equal(HardwareWalletModels.Ledger_Nano_S, entry.Model);
 			Assert.Equal(@"\\?\hid#vid_2c97&pid_0001&mi_00#7&e45ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}", entry.Path);
@@ -348,7 +348,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			IEnumerable<HwiEnumerateEntry> enumerate = await client.EnumerateAsync(cts.Token);
-			Assert.Single(enumerate);
+			_ = Assert.Single(enumerate);
 			HwiEnumerateEntry entry = enumerate.Single();
 			Assert.Equal(HardwareWalletModels.Ledger_Nano_X, entry.Model);
 			Assert.Equal(@"\\?\hid#vid_2c97&pid_0001&mi_00#7&e45ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}", entry.Path);

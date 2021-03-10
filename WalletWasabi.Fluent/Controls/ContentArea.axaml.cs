@@ -158,7 +158,7 @@ namespace WalletWasabi.Fluent.Controls
 
 				if (e.OldValue is IStyledElement oldValue)
 				{
-					oldValue.Classes.Remove(className);
+					_ = oldValue.Classes.Remove(className);
 				}
 
 				if (e.NewValue is IStyledElement newValue)

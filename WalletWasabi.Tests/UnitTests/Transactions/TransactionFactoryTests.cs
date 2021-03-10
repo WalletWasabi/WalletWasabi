@@ -139,7 +139,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			Assert.Equal(Money.Coins(0.16m), spentCoin200.Amount);
 			Assert.Equal(Money.Coins(0.04m), spentCoin100.Amount);
-			Assert.Single(result.OuterWalletOutputs);
+			_ = Assert.Single(result.OuterWalletOutputs);
 			Assert.False(result.SpendsUnconfirmed);
 
 			var tx = result.Transaction.Transaction;
@@ -184,7 +184,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var password = "foo";
 			var keyManager = ServiceFactory.CreateKeyManager(password);
 
-			keyManager.AssertCleanKeysIndexed();
+			_ = keyManager.AssertCleanKeysIndexed();
 
 			HdPubKey NewKey(string label) => keyManager.GenerateNewKey(label, KeyState.Used, true, false);
 			var scoins = new[]
@@ -289,7 +289,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
 
 			Assert.True(result.Signed);
-			Assert.Single(result.SpentCoins);
+			_ = Assert.Single(result.SpentCoins);
 			Assert.Equal(Money.Coins(1m), result.SpentCoins.Select(x => x.Amount).Sum());
 
 			var tx = result.Transaction.Transaction;
@@ -417,7 +417,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(Money.Coins(1.4m), result.SpentCoins.Select(x => x.Amount).Sum());
 
 			var tx = result.Transaction.Transaction;
-			Assert.Single(tx.Outputs);
+			_ = Assert.Single(tx.Outputs);
 		}
 
 		[Fact]
@@ -480,7 +480,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Contains(allowedCoins[1], result.SpentCoins);
 
 			var tx = result.Transaction.Transaction;
-			Assert.Single(tx.Outputs);
+			_ = Assert.Single(tx.Outputs);
 
 			var destinationutput = Assert.Single(tx.Outputs, x => x.ScriptPubKey == destination);
 			Assert.Equal(Money.Coins(0.13m), destinationutput.Value + result.Fee);
@@ -559,7 +559,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var payment = new PaymentIntent(key.ScriptPubKey, MoneyRequest.CreateAllRemaining(subtractFee: true));
 
 			var result = transactionFactory.BuildTransaction(payment, new FeeRate(44.25m));
-			Assert.Single(result.OuterWalletOutputs);
+			_ = Assert.Single(result.OuterWalletOutputs);
 			Assert.False(result.Signed);
 		}
 

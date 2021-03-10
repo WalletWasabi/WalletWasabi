@@ -99,7 +99,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			// if all synthetic nonce provider get the same randomness, nonce sequences
 			// with different witnesses or commitments should still diverge
 			var mockRandom = new Mock<WasabiRandom>();
-			mockRandom.Setup(rnd => rnd.GetBytes(32)).Returns(new byte[32]);
+			_ = mockRandom.Setup(rnd => rnd.GetBytes(32)).Returns(new byte[32]);
 
 			var commitment1 = new[] { Generators.Gx0 };
 			var commitment2 = new[] { Generators.Gx1 };
@@ -169,7 +169,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			var transcript = new Transcript(protocol);
 
-			Assert.ThrowsAny<ArgumentException>(() => transcript.CreateSyntheticSecretNonceProvider(Array.Empty<Scalar>(), rnd));
+			_ = Assert.ThrowsAny<ArgumentException>(() => transcript.CreateSyntheticSecretNonceProvider(Array.Empty<Scalar>(), rnd));
 		}
 	}
 }

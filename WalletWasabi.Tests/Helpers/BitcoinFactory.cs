@@ -34,41 +34,41 @@ namespace WalletWasabi.Tests.Helpers
 
 			for (int i = 0; i < othersInputCount; i++)
 			{
-				tx.Inputs.Add(CreateOutPoint());
+				_ = tx.Inputs.Add(CreateOutPoint());
 			}
 			var idx = (uint)othersInputCount - 1;
 			foreach (var (value, anonset, hdpk) in ownInputs)
 			{
 				idx++;
 				var sc = CreateSmartCoin(hdpk, value, idx, anonymitySet: anonset);
-				tx.Inputs.Add(sc.OutPoint);
-				walletInputs.Add(sc);
+				_ = tx.Inputs.Add(sc.OutPoint);
+				_ = walletInputs.Add(sc);
 			}
 
 			foreach (var output in othersOutputs)
 			{
-				tx.Outputs.Add(output);
+				_ = tx.Outputs.Add(output);
 			}
 			idx = (uint)othersOutputs.Count() - 1;
 			foreach (var txo in ownOutputs)
 			{
 				idx++;
 				var hdpk = txo.hdpk;
-				tx.Outputs.Add(new TxOut(txo.value, hdpk.P2wpkhScript));
+				_ = tx.Outputs.Add(new TxOut(txo.value, hdpk.P2wpkhScript));
 				var sc = new SmartCoin(new SmartTransaction(tx, Height.Mempool), idx, hdpk);
-				walletOutputs.Add(sc);
+				_ = walletOutputs.Add(sc);
 			}
 
 			var stx = new SmartTransaction(tx, Height.Mempool);
 
 			foreach (var sc in walletInputs)
 			{
-				stx.WalletInputs.Add(sc);
+				_ = stx.WalletInputs.Add(sc);
 			}
 
 			foreach (var sc in walletOutputs)
 			{
-				stx.WalletOutputs.Add(sc);
+				_ = stx.WalletOutputs.Add(sc);
 			}
 
 			return stx;
@@ -85,7 +85,7 @@ namespace WalletWasabi.Tests.Helpers
 			var height = confirmed ? new Height(CryptoHelpers.RandomInt(0, 200)) : Height.Mempool;
 			pubKey.SetKeyState(KeyState.Used);
 			var tx = Transaction.Create(Network.Main);
-			tx.Outputs.Add(new TxOut(amount, pubKey.P2wpkhScript));
+			_ = tx.Outputs.Add(new TxOut(amount, pubKey.P2wpkhScript));
 			var stx = new SmartTransaction(tx, height);
 			pubKey.SetAnonymitySet(anonymitySet, stx.GetHash());
 			return new SmartCoin(stx, index, pubKey);

@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			InitializeAddresses();
 
-			this.WhenAnyValue(x => x.SelectedAddress)
+			_ = this.WhenAnyValue(x => x.SelectedAddress)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(selected =>
 				{
@@ -52,7 +52,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			Observable
+			_ = Observable
 				.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => InitializeAddresses())

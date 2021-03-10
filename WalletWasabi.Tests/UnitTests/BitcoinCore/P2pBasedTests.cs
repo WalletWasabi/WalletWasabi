@@ -36,7 +36,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				var rpc = coreNode.RpcClient;
 
 				var walletName = "wallet.dat";
-				await rpc.CreateWalletAsync(walletName);
+				_ = await rpc.CreateWalletAsync(walletName);
 
 				await using IndexStore indexStore = new(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
 				await using AllTransactionStore transactionStore = new(Path.Combine(dir, "transactionStore"), network);
@@ -47,9 +47,9 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				await using BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, blocks);
 				await bitcoinStore.InitializeAsync();
 
-				await rpc.GenerateAsync(blockCount: 101);
+				_ = await rpc.GenerateAsync(blockCount: 101);
 
-				node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
+				_ = node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 				node.VersionHandshake();
 
 				using Key k = new();
@@ -93,7 +93,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			{
 				await services.StopAllAsync();
 				node.Disconnect();
-				await coreNode.TryStopAsync();
+				_ = await coreNode.TryStopAsync();
 			}
 		}
 
@@ -107,9 +107,9 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			{
 				var rpc = coreNode.RpcClient;
 				var walletName = "wallet.dat";
-				await rpc.CreateWalletAsync(walletName);
+				_ = await rpc.CreateWalletAsync(walletName);
 
-				await rpc.GenerateAsync(101);
+				_ = await rpc.GenerateAsync(101);
 				var network = rpc.Network;
 
 				var dir = Common.GetWorkDir();
@@ -144,7 +144,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			finally
 			{
 				await services.StopAllAsync();
-				await coreNode.TryStopAsync();
+				_ = await coreNode.TryStopAsync();
 			}
 		}
 
@@ -158,7 +158,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			{
 				var rpc = coreNode.RpcClient;
 				var walletName = "wallet.dat";
-				await rpc.CreateWalletAsync(walletName);
+				_ = await rpc.CreateWalletAsync(walletName);
 
 				BlockNotifier notifier = services.FirstOrDefault<BlockNotifier>();
 
@@ -218,7 +218,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			finally
 			{
 				await services.StopAllAsync();
-				await coreNode.TryStopAsync();
+				_ = await coreNode.TryStopAsync();
 			}
 		}
 	}

@@ -39,14 +39,14 @@ namespace WalletWasabi.Gui.Controls
 		{
 			CoercedSize = new Size();
 
-			this.WhenAnyValue(x => x.Matrix)
+			_ = this.WhenAnyValue(x => x.Matrix)
 				.Where(x => x is { })
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => FinalMatrix = AddPaddingToMatrix(x));
 
 			_saveCommand = ReactiveCommand.CreateFromTask<string, Unit>(SaveQRCodeAsync);
 
-			SaveCommand.ThrownExceptions
+			_ = SaveCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex =>
 				{

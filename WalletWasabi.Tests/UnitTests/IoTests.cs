@@ -127,7 +127,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			await ioman1.WriteAllLinesAsync(lines);
 
-			ioman1.TryReplaceMeWith(dummyFilePath);
+			_ = ioman1.TryReplaceMeWith(dummyFilePath);
 
 			var fruits = await ioman1.ReadAllLinesAsync();
 
@@ -159,7 +159,7 @@ namespace WalletWasabi.Tests.UnitTests
 				for (int i = 0; i < rnd.Next(10, 100); i++)
 				{
 					ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * rnd.NextDouble() + 65)));
-					builder.Append(ch);
+					_ = builder.Append(ch);
 				}
 				return builder.ToString();
 			}

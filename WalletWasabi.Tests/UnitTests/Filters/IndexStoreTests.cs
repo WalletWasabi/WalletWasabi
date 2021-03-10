@@ -50,7 +50,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 			};
 			await File.WriteAllLinesAsync(matureFilters, matureIndexStoreContent.Select(x => x.ToLine()));
 
-			await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync());
+			_ = await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync());
 			Assert.Equal(new uint256(3), headersChain.TipHash);
 			Assert.Equal(2u, headersChain.TipHeight);
 
@@ -80,7 +80,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 			};
 			await File.WriteAllLinesAsync(immatureFilters, immatureIndexStoreContent.Select(x => x.ToLine()));
 
-			await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync());
+			_ = await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync());
 			Assert.Equal(new uint256(3), headersChain.TipHash);
 			Assert.Equal(startingFilter.Header.Height + 2u, headersChain.TipHeight);
 
@@ -113,7 +113,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 			};
 			await File.WriteAllLinesAsync(immatureFilters, immatureIndexStoreContent.Select(x => x.ToLine()));
 
-			await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync());
+			_ = await Assert.ThrowsAsync<InvalidOperationException>(async () => await indexStore.InitializeAsync());
 			Assert.Equal(new uint256(3), headersChain.TipHash);
 			Assert.Equal(2u, headersChain.TipHeight);
 
@@ -165,7 +165,7 @@ namespace WalletWasabi.Tests.UnitTests.Filters
 		private async Task<(string dir, string matureFilters, string immatureFilters)> GetIndexStorePathsAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
 		{
 			var dir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), "IndexStore");
-			await IoHelpers.TryDeleteDirectoryAsync(dir);
+			_ = await IoHelpers.TryDeleteDirectoryAsync(dir);
 			var matureFilters = Path.Combine(dir, "MatureIndex.dat");
 			var immatureFilters = Path.Combine(dir, "ImmatureIndex.dat");
 			IoHelpers.EnsureContainingDirectoryExists(matureFilters);

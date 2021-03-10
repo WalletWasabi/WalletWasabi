@@ -28,8 +28,8 @@ namespace WalletWasabi.Wallets
 				WalletsBackupDir = Path.Combine(correctedWorkDir, WalletsBackupDirName, network.ToString());
 			}
 
-			Directory.CreateDirectory(WalletsDir);
-			Directory.CreateDirectory(WalletsBackupDir);
+			_ = Directory.CreateDirectory(WalletsDir);
+			_ = Directory.CreateDirectory(WalletsBackupDir);
 		}
 
 		public string WalletsDir { get; }

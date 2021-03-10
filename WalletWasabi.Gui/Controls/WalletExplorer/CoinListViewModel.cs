@@ -79,7 +79,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Select(_ => MyComparer);
 
 			RootList = new SourceList<CoinViewModel>();
-			RootList
+			_ = RootList
 				.Connect()
 				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold: 5)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -88,22 +88,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
 
-			this.WhenAnyValue(x => x.AmountSortDirection)
+			_ = this.WhenAnyValue(x => x.AmountSortDirection)
 				.Where(x => x != SortOrder.None)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SortColumn(x, nameof(AmountSortDirection)));
 
-			this.WhenAnyValue(x => x.ClusterSortDirection)
+			_ = this.WhenAnyValue(x => x.ClusterSortDirection)
 				.Where(x => x != SortOrder.None)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SortColumn(x, nameof(ClusterSortDirection)));
 
-			this.WhenAnyValue(x => x.StatusSortDirection)
+			_ = this.WhenAnyValue(x => x.StatusSortDirection)
 				.Where(x => x != SortOrder.None)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SortColumn(x, nameof(StatusSortDirection)));
 
-			this.WhenAnyValue(x => x.PrivacySortDirection)
+			_ = this.WhenAnyValue(x => x.PrivacySortDirection)
 				.Where(x => x != SortOrder.None)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => SortColumn(x, nameof(PrivacySortDirection)));
@@ -165,7 +165,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				CoinListShown?.Invoke(this, null); // Trigger this event to refresh the list.
 			});
 
-			Observable
+			_ = Observable
 				.Merge(InitList.ThrownExceptions)
 				.Merge(SelectNonPrivateCheckBoxCommand.ThrownExceptions)
 				.Merge(SelectPrivateCheckBoxCommand.ThrownExceptions)
@@ -440,13 +440,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				? new CompositeDisposable()
 				: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			UiConfig
+			_ = UiConfig
 				.WhenAnyValue(x => x.PrivacyMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedAmount)))
 				.DisposeWith(Disposables);
 
-			Observable
+			_ = Observable
 				.Merge(Observable.FromEventPattern<ProcessedResult>(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(1)) // Throttle TransactionProcessor events adds/removes.
 				.Merge(Observable.FromEventPattern(this, nameof(CoinListShown), RxApp.MainThreadScheduler).Select(_ => Unit.Default)) // Load the list immediately.
@@ -491,7 +491,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				})
 				.DisposeWith(Disposables);
 
-			Config
+			_ = Config
 				.WhenAnyValue(x => x.MixUntilAnonymitySet)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
@@ -511,7 +511,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SubscribeToCoinEvents(CoinViewModel cvm)
 		{
-			cvm.WhenAnyValue(x => x.IsSelected)
+			_ = cvm.WhenAnyValue(x => x.IsSelected)
 				.Synchronize(SelectionChangedLock) // Use the same lock to ensure thread safety.
 				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -541,7 +541,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				})
 				.DisposeWith(cvm.GetDisposables()); // Subscription will be disposed with the coinViewModel.
 
-			Observable
+			_ = Observable
 				.Merge(cvm.Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend, x => x.Confirmed, x => x.CoinJoinInProgress).Select(_ => Unit.Default))
 				.Merge(Observable.FromEventPattern(Wallet.ChaumianClient, nameof(Wallet.ChaumianClient.StateUpdated)).Select(_ => Unit.Default))
 				.Synchronize(StateChangedLock) // Use the same lock to ensure thread safety.

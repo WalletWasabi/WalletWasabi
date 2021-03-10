@@ -191,7 +191,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 			}
 			finally
 			{
-				BitcoinStore.MempoolService.TryRemoveFromBroadcastStore(transaction.GetHash()); // Remove it just to be sure. Probably has been removed previously.
+				_ = BitcoinStore.MempoolService.TryRemoveFromBroadcastStore(transaction.GetHash()); // Remove it just to be sure. Probably has been removed previously.
 			}
 		}
 
@@ -202,7 +202,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 				throw new InvalidOperationException("Trying to broadcast on RPC but it is not initialized.");
 			}
 
-			await RpcClient.SendRawTransactionAsync(transaction.Transaction).ConfigureAwait(false);
+			_ = await RpcClient.SendRawTransactionAsync(transaction.Transaction).ConfigureAwait(false);
 			BelieveTransaction(transaction);
 			Logger.LogInfo($"Transaction is successfully broadcasted with RPC: {transaction.GetHash()}.");
 		}

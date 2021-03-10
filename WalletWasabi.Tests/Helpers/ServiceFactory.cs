@@ -21,7 +21,7 @@ namespace WalletWasabi.Tests.Helpers
 			var password = "foo";
 			var keyManager = watchOnly ? CreateWatchOnlyKeyManager() : CreateKeyManager(password);
 
-			keyManager.AssertCleanKeysIndexed();
+			_ = keyManager.AssertCleanKeysIndexed();
 
 			var coinArray = coins.ToArray();
 			var keys = keyManager.GetKeys().Take(coinArray.Length).ToArray();

@@ -41,7 +41,7 @@ namespace WalletWasabi.Bases
 		public void TriggerRound()
 		{
 			// Note: All members of TaskCompletionSource<TResult> are thread-safe and may be used from multiple threads concurrently.
-			_tcs?.TrySetResult(true);
+			_ = (_tcs?.TrySetResult(true));
 		}
 
 		/// <summary>
@@ -53,7 +53,7 @@ namespace WalletWasabi.Bases
 								h => Tick += h,
 								h => Tick -= h);
 			TriggerRound();
-			await eventAwaiter.WaitAsync(timeout).ConfigureAwait(false);
+			_ = await eventAwaiter.WaitAsync(timeout).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -110,7 +110,7 @@ namespace WalletWasabi.Bases
 					}
 					else
 					{
-						linkedTcs.TrySetCanceled(stoppingToken); // Ensure that the tcs.Task is cleaned up.
+						_ = linkedTcs.TrySetCanceled(stoppingToken); // Ensure that the tcs.Task is cleaned up.
 					}
 				}
 				catch (TaskCanceledException ex)

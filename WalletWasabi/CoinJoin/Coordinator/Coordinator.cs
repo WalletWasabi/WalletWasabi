@@ -38,7 +38,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			CoinJoinsLock = new AsyncLock();
 			LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
 
-			Directory.CreateDirectory(FolderPath);
+			_ = Directory.CreateDirectory(FolderPath);
 
 			UtxoReferee = new UtxoReferee(Network, FolderPath, RpcClient, RoundConfig);
 
@@ -183,7 +183,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			// ban all the outputs of the transaction
 			tx.PrecomputeHash(false, true);
 
-			UnconfirmedCoinJoins.Remove(tx.GetHash()); // Locked outside.
+			_ = UnconfirmedCoinJoins.Remove(tx.GetHash()); // Locked outside.
 
 			if (RoundConfig.DosSeverity <= 1)
 			{
@@ -311,8 +311,8 @@ namespace WalletWasabi.CoinJoin.Coordinator
 						if (mempoolHashes is { })
 						{
 							var fallOuts = UnconfirmedCoinJoins.Where(x => !mempoolHashes.Contains(x));
-							CoinJoins.RemoveAll(x => fallOuts.Contains(x));
-							UnconfirmedCoinJoins.RemoveAll(x => fallOuts.Contains(x));
+							_ = CoinJoins.RemoveAll(x => fallOuts.Contains(x));
+							_ = UnconfirmedCoinJoins.RemoveAll(x => fallOuts.Contains(x));
 						}
 
 						uint256 coinJoinHash = round.CoinJoin.GetHash();

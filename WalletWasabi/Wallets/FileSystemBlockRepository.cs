@@ -221,7 +221,7 @@ namespace WalletWasabi.Wallets
 						byte[] blockBytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
 						block = Block.Load(blockBytes, Network);
 
-						new FileInfo(filePath)
+						_ = new FileInfo(filePath)
 						{
 							LastAccessTimeUtc = DateTime.UtcNow
 						};

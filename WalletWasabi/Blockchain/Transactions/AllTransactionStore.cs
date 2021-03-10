@@ -121,19 +121,19 @@ namespace WalletWasabi.Blockchain.Transactions
 			{
 				if (MempoolStore.TryRemove(hash, out SmartTransaction found))
 				{
-					found.TryUpdate(tx);
-					ConfirmedStore.TryAddOrUpdate(found);
+					_ = found.TryUpdate(tx);
+					_ = ConfirmedStore.TryAddOrUpdate(found);
 				}
 				else
 				{
-					ConfirmedStore.TryAddOrUpdate(tx);
+					_ = ConfirmedStore.TryAddOrUpdate(tx);
 				}
 			}
 			else
 			{
 				if (!ConfirmedStore.TryUpdate(tx))
 				{
-					MempoolStore.TryAddOrUpdate(tx);
+					_ = MempoolStore.TryAddOrUpdate(tx);
 				}
 			}
 		}
@@ -158,8 +158,8 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 				else if (tx.Confirmed && MempoolStore.TryRemove(hash, out SmartTransaction originalTx))
 				{
-					originalTx.TryUpdate(tx);
-					ConfirmedStore.TryAddOrUpdate(originalTx);
+					_ = originalTx.TryUpdate(tx);
+					_ = ConfirmedStore.TryAddOrUpdate(originalTx);
 					return true;
 				}
 				else if (MempoolStore.TryUpdate(tx))
@@ -182,7 +182,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					if (ConfirmedStore.Contains(hash)
 						&& MempoolStore.TryRemove(hash, out SmartTransaction uTx))
 					{
-						ConfirmedStore.TryAddOrUpdate(uTx);
+						_ = ConfirmedStore.TryAddOrUpdate(uTx);
 					}
 				}
 			}

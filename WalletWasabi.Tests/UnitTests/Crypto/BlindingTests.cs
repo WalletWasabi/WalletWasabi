@@ -36,11 +36,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			Assert.Equal(unblindedSignature.S, unblindedSignature2.S);
 			str += "o";
 			Assert.False(UnblindedSignature.TryParse(str, out _));
-			Assert.Throws<FormatException>(() => UnblindedSignature.Parse(str));
+			_ = Assert.Throws<FormatException>(() => UnblindedSignature.Parse(str));
 			byte[] overflow = new byte[64];
 			overflow.AsSpan().Fill(255);
 			Assert.False(UnblindedSignature.TryParse(overflow, out _));
-			Assert.Throws<FormatException>(() => UnblindedSignature.Parse(overflow));
+			_ = Assert.Throws<FormatException>(() => UnblindedSignature.Parse(overflow));
 		}
 
 		[Fact]

@@ -79,10 +79,10 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.Equal(2, invoked);
 
 			// Make sure cache2 call will fail.
-			await Assert.ThrowsAsync<ObjectDisposedException>(async () => await cache2.AtomicGetOrCreateAsync(
-					"the-same-key",
-				new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) },
-				() => Task.FromResult(ExpensiveComputation("Foo!"))));
+			_ = await Assert.ThrowsAsync<ObjectDisposedException>(async () => await cache2.AtomicGetOrCreateAsync(
+					  "the-same-key",
+				  new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) },
+				  () => Task.FromResult(ExpensiveComputation("Foo!"))));
 			Assert.Equal(2, invoked);
 		}
 
@@ -100,7 +100,7 @@ namespace WalletWasabi.Tests.UnitTests
 			using var expireKey1 = new CancellationTokenSource();
 
 			var options = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(10) };
-			options.AddExpirationToken(new CancellationChangeToken(expireKey1.Token));
+			_ = options.AddExpirationToken(new CancellationChangeToken(expireKey1.Token));
 			var result0 = await cache.AtomicGetOrCreateAsync(
 				"key1",
 				options,
@@ -211,7 +211,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			for (var i = 0; i < 10; i++)
 			{
-				await GreetMrLee(cache);
+				_ = await GreetMrLee(cache);
 			}
 
 			Assert.Equal(1, greatCalled);
@@ -227,7 +227,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			async Task<string> WaitUntilTrigger(string argument)
 			{
-				signal.Release();
+				_ = signal.Release();
 				if (!await trigger.WaitAsync(timeout))
 				{
 					throw new TimeoutException();
@@ -263,7 +263,7 @@ namespace WalletWasabi.Tests.UnitTests
 				() => Task.FromResult("Key2"));
 
 			// Different key should immediately added.
-			await task3.WithAwaitCancellationAsync(timeout);
+			_ = await task3.WithAwaitCancellationAsync(timeout);
 			Assert.True(task3.IsCompletedSuccessfully);
 
 			// Tasks are waiting for the factory method.
@@ -272,7 +272,7 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.False(task2.IsCompleted);
 
 			// Let the factory method finish.
-			trigger.Release();
+			_ = trigger.Release();
 			string result0 = await task0.WithAwaitCancellationAsync(timeout);
 			Assert.Equal(TaskStatus.RanToCompletion, task0.Status);
 			string result1 = await task1.WithAwaitCancellationAsync(timeout);

@@ -68,14 +68,14 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.True(txStore.Contains(stx.GetHash()));
 			Assert.Equal(stx, sameStx);
 
-			txStore.TryRemove(stx.GetHash(), out _);
+			_ = txStore.TryRemove(stx.GetHash(), out _);
 			Assert.True(txStore.IsEmpty());
 			Assert.Empty(txStore.GetTransactions());
-			txStore.TryAddOrUpdate(stx);
+			_ = txStore.TryAddOrUpdate(stx);
 
-			txStore.TryAddOrUpdate(stx);
-			Assert.Single(txStore.GetTransactions());
-			Assert.Single(txStore.GetTransactionHashes());
+			_ = txStore.TryAddOrUpdate(stx);
+			_ = Assert.Single(txStore.GetTransactions());
+			_ = Assert.Single(txStore.GetTransactionHashes());
 		}
 		
 		private static async Task<TransactionStore> CreateTransactionStoreAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
