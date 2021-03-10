@@ -23,6 +23,7 @@ using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 
@@ -137,6 +138,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 							Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 							return;
 						}
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+						await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
 					}
 				}
 
