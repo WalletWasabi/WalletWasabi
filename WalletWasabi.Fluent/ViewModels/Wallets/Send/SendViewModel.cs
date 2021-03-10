@@ -55,6 +55,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private string? _payJoinEndPoint;
 		private bool _parsingUrl;
 		private bool _updatingCurrentValue;
+		private double _lastXAxisCurrentValue;
 
 		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster)
 		{
@@ -62,6 +63,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_owner = walletVm;
 			_transactionInfo = new TransactionInfo();
 			_labels = new ObservableCollection<string>();
+			_lastXAxisCurrentValue = _xAxisCurrentValue;
 
 			ExchangeRate = walletVm.Wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();
@@ -144,6 +146,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
 			}, this.WhenAnyValue(x=>x.Labels.Count).Any());
+		}
+
+		public ICommand PasteCommand { get; }
+
+		private TimeSpan CalculateConfirmationTime(double targetBlock)
+		{
+			var timeInMinutes = Math.Ceiling(targetBlock) * 10;
+			var time = TimeSpan.FromMinutes(timeInMinutes);
+			return time;
 		}
 
 		private void SetXAxisCurrentValueIndex(double xAxisCurrentValue)
@@ -279,6 +290,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return result;
 		}
 
+		protected override void OnNavigatedFrom(bool isInHistory)
+		{
+			base.OnNavigatedFrom(isInHistory);
+			_lastXAxisCurrentValue = XAxisCurrentValue;
+			_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastXAxisCurrentValue);
+		}
+
 		protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 		{
 			if (!inHistory)
@@ -287,6 +305,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				AmountBtc = 0;
 				Labels.Clear();
 				ClearValidations();
+			}
+			else
+			{
+				XAxisCurrentValue = _lastXAxisCurrentValue;
 			}
 
 			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
@@ -508,7 +530,5 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			return (decimal)XAxisMaxValue;
 		}
-
-		public ICommand PasteCommand { get; }
 	}
 }

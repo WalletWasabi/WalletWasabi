@@ -1,8 +1,8 @@
 using System;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets.PasswordFinder;
 
@@ -73,13 +73,9 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 			RemainingMin = remainingTime.Minutes;
 			RemainingSec = remainingTime.Seconds;
 
-			HourText = $" hour{AddSIfPlural(RemainingHour)}{CloseSentenceIfZero(RemainingMin,RemainingSec)}";
-			MinText = $" minute{AddSIfPlural(RemainingMin)}{CloseSentenceIfZero(RemainingSec)}";
-			SecText = $" second{AddSIfPlural(RemainingSec)}.";
+			HourText = $" hour{TextHelpers.AddSIfPlural(RemainingHour)}{TextHelpers.CloseSentenceIfZero(RemainingMin,RemainingSec)}";
+			MinText = $" minute{TextHelpers.AddSIfPlural(RemainingMin)}{TextHelpers.CloseSentenceIfZero(RemainingSec)}";
+			SecText = $" second{TextHelpers.AddSIfPlural(RemainingSec)}.";
 		}
-
-		private static string AddSIfPlural(int n) => n > 1 ? "s" : "";
-
-		private static string CloseSentenceIfZero(params int[] counts) => counts.All(x => x == 0) ? "." : " ";
 	}
 }
