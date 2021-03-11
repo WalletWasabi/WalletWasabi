@@ -162,13 +162,13 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				var hexes = new Dictionary<uint256, string>();
 				var queryRpc = false;
-				IRPCClient batchingRpc = null;
-				List<Task<Transaction>> tasks = null;
+				IRPCClient? batchingRpc = RpcClient.PrepareBatch();
+				List<Task<Transaction>>? tasks = new();
 				lock (TransactionHexCacheLock)
 				{
 					foreach (var txid in parsedIds)
 					{
-						if (TransactionHexCache.TryGetValue(txid, out string hex))
+						if (TransactionHexCache.TryGetValue(txid, out string? hex))
 						{
 							hexes.Add(txid, hex);
 						}
@@ -177,8 +177,6 @@ namespace WalletWasabi.Backend.Controllers
 							if (!queryRpc)
 							{
 								queryRpc = true;
-								batchingRpc = RpcClient.PrepareBatch();
-								tasks = new List<Task<Transaction>>();
 							}
 							tasks.Add(batchingRpc.GetRawTransactionAsync(txid));
 						}
