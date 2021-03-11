@@ -146,11 +146,6 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 					_operationsEnabled = false;
 					Clear();
 					_operationsEnabled = true;
-
-					if (CurrentPage is { })
-					{
-						_backStack.Push(CurrentPage);
-					}
 					break;
 
 				case NavigationMode.Skip:
