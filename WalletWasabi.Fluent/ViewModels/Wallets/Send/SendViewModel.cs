@@ -15,13 +15,16 @@ using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
-using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.MathNet;
+using WalletWasabi.Fluent.Model;
 using WalletWasabi.Fluent.Validation;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 
@@ -122,37 +125,42 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						return allFilled && !hasError;
 					});
 
-			NextCommand = ReactiveCommand.Create(() =>
+			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var transactionInfo = _transactionInfo;
 				var wallet = _owner.Wallet;
 				var targetAnonymitySet = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 				var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
+				var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
 
-				if (mixedCoins.Any())
+				if (transactionInfo.Amount <= totalMixedCoinsAmount)
 				{
-					var intent = new PaymentIntent(
-						destination: transactionInfo.Address,
-						amount: transactionInfo.Amount,
-						subtractFee: false,
-						label: transactionInfo.Labels);
-
 					try
 					{
-						var txRes = wallet.BuildTransaction(
-							wallet.Kitchen.SaltSoup(),
-							intent,
-							FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-							allowUnconfirmed: true,
-							mixedCoins.Select(x => x.OutPoint));
+						try
+						{
+							var txRes = TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: false);
+							Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
+							return;
+						}
+						catch (InsufficientBalanceException)
+						{
+							var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private);
+							var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 
-						// Private coins are enough.
-						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
-						return;
+							if (result.Result)
+							{
+								var txRes = TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true);
+								Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
+								return;
+							}
+						}
 					}
-					catch (InsufficientBalanceException)
+					catch(Exception ex)
 					{
-						// Do Nothing
+						Logger.LogError(ex);
+						await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
+						return;
 					}
 				}
 
