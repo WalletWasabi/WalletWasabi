@@ -74,7 +74,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				if (round.InputCount < Config.MinInputCountByRound)
 				{
 					Rounds.Remove(round.Id);
-					round.LogInfo($"Round {round.Id} removed because the number of inputs was not enough.");
+					round.LogInfo($"Removed because the number of inputs was not enough.");
 				}
 				else
 				{
@@ -106,7 +106,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					if (round.InputCount < Config.MinInputCountByRound)
 					{
 						Rounds.Remove(round.Id);
-						round.LogInfo($"Round {round.Id} removed because the number of inputs was not enough.");
+						round.LogInfo($"Removed because the number of inputs was not enough.");
 					}
 					else
 					{
