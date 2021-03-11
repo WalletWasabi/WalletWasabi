@@ -81,8 +81,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					round.SetPhase(Phase.ConnectionConfirmation);
 				}
 			}
-
-			Logger.LogInfo("Input Registration Phase finished.");
 		}
 
 		private void StepConnectionConfirmationPhase()
@@ -116,8 +114,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					}
 				}
 			}
-
-			Logger.LogInfo("Connection Confirmation Phase finished.");
 		}
 
 		private void StepOutputRegistrationPhase()
@@ -171,8 +167,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					round.SetPhase(Phase.TransactionSigning);
 				}
 			}
-
-			Logger.LogInfo("Output Registration Phase finished.");
 		}
 
 		private async Task StepTransactionSigningPhaseAsync()
