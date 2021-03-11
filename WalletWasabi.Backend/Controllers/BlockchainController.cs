@@ -162,8 +162,8 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				var hexes = new Dictionary<uint256, string>();
 				var queryRpc = false;
-				IRPCClient? batchingRpc = RpcClient.PrepareBatch();
-				List<Task<Transaction>>? tasks = new();
+				IRPCClient batchingRpc = RpcClient.PrepareBatch();
+				List<Task<Transaction>> tasks = new();
 				lock (TransactionHexCacheLock)
 				{
 					foreach (var txid in parsedIds)
