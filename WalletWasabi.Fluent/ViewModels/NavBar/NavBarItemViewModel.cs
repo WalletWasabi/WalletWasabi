@@ -17,9 +17,10 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		[AutoNotify] private bool _isExpanded;
 		[AutoNotify] private bool _isEnabled = true;
 
-		protected NavBarItemViewModel()
+		protected NavBarItemViewModel(NavigationMode defaultNavigationMode = NavigationMode.Clear)
 		{
 			SelectionMode = NavBarItemSelectionMode.Selected;
+
 			OpenCommand = ReactiveCommand.Create(
 				() =>
 				{
@@ -29,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 					}
 					else
 					{
-						Navigate().To(this, NavigationMode.Clear);
+						Navigate().To(this, defaultNavigationMode);
 					}
 				});
 		}
