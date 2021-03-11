@@ -104,6 +104,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					_pocketSource.Add(new PocketViewModel(pocket));
 				}
+
+				if (_pocketSource.Count == 1)
+				{
+					_pocketSource.Items.First().IsSelected = true;
+				}
 			}
 		}
 	}
