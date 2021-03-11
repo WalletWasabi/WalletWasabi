@@ -22,6 +22,7 @@ using WalletWasabi.Fluent.Model;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -61,7 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private bool _updatingCurrentValue;
 		private double _lastXAxisCurrentValue;
 
-		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster)
+		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster) : base(NavigationMode.Normal)
 		{
 			_to = "";
 			_owner = walletVm;
