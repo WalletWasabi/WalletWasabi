@@ -74,7 +74,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				if (round.InputCount < Config.MinInputCountByRound)
 				{
 					Rounds.Remove(round.Id);
-					round.LogInfo($"Removed because the number of inputs was not enough.");
+					round.LogInfo("Removed because the number of inputs was not enough.");
 				}
 				else
 				{
@@ -100,13 +100,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					{
 						Prison.Note(alice, round.Id);
 					}
-					round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
-					round.LogInfo($"{alicesDidntConfirm.Length} alices removed because they didn't confirm.");
+					var numberAlicesRemoved = round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
+					round.LogInfo($"{numberAlicesRemoved} alices removed because they didn't confirm.");
 
 					if (round.InputCount < Config.MinInputCountByRound)
 					{
 						Rounds.Remove(round.Id);
-						round.LogInfo($"Removed because the number of inputs was not enough.");
+						round.LogInfo("Removed because the number of inputs was not enough.");
 					}
 					else
 					{
@@ -143,11 +143,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					{
 						coinjoin.Outputs.AddWithOptimize(bob.CalculateOutputAmount(round.FeeRate), bob.Script);
 					}
-					round.LogInfo($"{coinjoin.Outputs.Count} outputs were added.");
+					round.LogInfo($"{round.Bobs.Count} outputs were added.");
 
 					// Shuffle & sort:
 					// This is basically just decoration.
-					round.LogInfo("Shuffling and sorting inputs and outputs.");
 					coinjoin.Inputs.Shuffle();
 					coinjoin.Outputs.Shuffle();
 					coinjoin.Inputs.SortByAmount(spentCoins);
