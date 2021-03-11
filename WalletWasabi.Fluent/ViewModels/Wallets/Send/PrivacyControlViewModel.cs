@@ -74,12 +74,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 								var transactionResult = TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: true);
 								Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
 							}
+							else
+							{
+								Navigate().BackTo<SendViewModel>();
+							}
 						}
 					}
 					catch (Exception ex)
 					{
 						Logger.LogError(ex);
 						await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
+						Navigate().BackTo<SendViewModel>();
 					}
 				},
 				this.WhenAnyValue(x => x.EnoughSelected));

@@ -115,6 +115,16 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			}
 		}
 
+		public void BackTo<TViewModel>() where TViewModel : T
+		{
+			var previous = _backStack.Reverse().SingleOrDefault(x => x is TViewModel);
+
+			if (previous is { })
+			{
+				BackTo(previous);
+			}
+		}
+
 		public void To(T viewmodel, NavigationMode mode = NavigationMode.Normal)
 		{
 			var oldPage = CurrentPage;
