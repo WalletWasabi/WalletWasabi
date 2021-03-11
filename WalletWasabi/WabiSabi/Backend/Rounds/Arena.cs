@@ -64,7 +64,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void StepInputRegistrationPhase()
 		{
-			Logger.LogInfo("Starting Input Registration Phase.");
+			Logger.LogInfo($"Step {nameof(Phase.InputRegistration)} Phase.");
 
 			foreach (var round in Rounds.Values.Where(x =>
 				x.Phase == Phase.InputRegistration
@@ -85,7 +85,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void StepConnectionConfirmationPhase()
 		{
-			Logger.LogInfo("Starting Connection Confirmation Phase.");
+			Logger.LogInfo($"Step {nameof(Phase.ConnectionConfirmation)} Phase.");
 
 			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.ConnectionConfirmation).ToArray())
 			{
@@ -118,7 +118,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void StepOutputRegistrationPhase()
 		{
-			Logger.LogInfo("Starting Output Registration Phase.");
+			Logger.LogInfo($"Step {nameof(Phase.OutputRegistration)} Phase.");
 
 			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.OutputRegistration).ToArray())
 			{
