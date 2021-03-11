@@ -172,7 +172,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 						}
 						else
 						{
-							/////////////////
 							// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
 							foreach (SmartCoin doubleSpentCoin in doubleSpends)
 							{
