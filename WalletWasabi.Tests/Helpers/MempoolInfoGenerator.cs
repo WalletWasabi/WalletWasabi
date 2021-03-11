@@ -16,7 +16,7 @@ namespace WalletWasabi.Tests.Helpers
 			1200, 1400, 1700, 2000, 2500, 3000, 4000, 5000, 6000, 7000, 8000, 10000
 		};
 
-		public static (int from, int to)[] FeeRanges = FeeLimits.Zip(FeeLimits.Skip(1), (from, to) => (from, to)).ToArray();
+		public static (int from, int to)[] FeeRanges { get; } = FeeLimits.Zip(FeeLimits.Skip(1), (from, to) => (from, to)).ToArray();
 
 		public static FeeRate GenerateFeeRateForTarget(int target)
 			=> new FeeRate((decimal)(4_000 / (target * target) * Random.Gaussian(1.0, 0.2)));

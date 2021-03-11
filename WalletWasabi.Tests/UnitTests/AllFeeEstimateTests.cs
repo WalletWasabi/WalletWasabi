@@ -283,29 +283,5 @@ namespace WalletWasabi.Tests.UnitTests
 				Blocks = target,
 				FeeRate = new FeeRate(feeRate)
 			};
-
-		private static MemPoolInfo ParseMempoolInfo(double mempoolMinFee)
-		{
-			var mempoolInfoWithHistogram = File.ReadAllText("./UnitTests/Data/MempoolInfoWithHistogram.json");
-			var jo = JObject.Parse(mempoolInfoWithHistogram);
-			var feeHistogram = (JObject)jo["fee_histogram"];
-
-			return new MemPoolInfo()
-			{
-				MemPoolMinFee = mempoolMinFee,
-				Histogram = feeHistogram.Properties()
-					.Where(p => p.Name != "total_fees")
-					.Select(p => new FeeRateGroup
-					{
-						Group = int.Parse(p.Name),
-						Sizes = p.Value.Value<ulong>("sizes"),
-						Count = p.Value.Value<uint>("count"),
-						Fees = Money.Satoshis(p.Value.Value<ulong>("fees")),
-						From = new FeeRate(p.Value.Value<decimal>("from_feerate")),
-						To = new FeeRate(Math.Min(100_000, p.Value.Value<decimal>("to_feerate")))
-					})
-					.ToArray()
-			};
-		}
 	}
 }

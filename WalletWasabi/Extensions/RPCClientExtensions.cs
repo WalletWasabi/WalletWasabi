@@ -133,7 +133,7 @@ namespace NBitcoin.RPC
 				while (remainingSize > 0)
 				{
 					var chunckSize = (int)Math.Min(remainingSize, BlockSize);
-					yield return (Size: chunckSize, From: group.From, To: group.To);
+					yield return (chunckSize, group.From, group.To);
 					remainingSize -= BlockSize;
 				}
 			}

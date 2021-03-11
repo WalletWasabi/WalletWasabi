@@ -84,12 +84,12 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 				return new MemPoolInfo()
 				{
-					Size = Int32.Parse((string)response.Result["size"], CultureInfo.InvariantCulture),
-					Bytes = Int32.Parse((string)response.Result["bytes"], CultureInfo.InvariantCulture),
-					Usage = Int32.Parse((string)response.Result["usage"], CultureInfo.InvariantCulture),
-					MaxMemPool = Double.Parse((string)response.Result["maxmempool"], CultureInfo.InvariantCulture),
-					MemPoolMinFee = Double.Parse((string)response.Result["mempoolminfee"], CultureInfo.InvariantCulture),
-					MinRelayTxFee = Double.Parse((string)response.Result["minrelaytxfee"], CultureInfo.InvariantCulture),
+					Size = int.Parse((string)response.Result["size"], CultureInfo.InvariantCulture),
+					Bytes = int.Parse((string)response.Result["bytes"], CultureInfo.InvariantCulture),
+					Usage = int.Parse((string)response.Result["usage"], CultureInfo.InvariantCulture),
+					MaxMemPool = double.Parse((string)response.Result["maxmempool"], CultureInfo.InvariantCulture),
+					MemPoolMinFee = double.Parse((string)response.Result["mempoolminfee"], CultureInfo.InvariantCulture),
+					MinRelayTxFee = double.Parse((string)response.Result["minrelaytxfee"], CultureInfo.InvariantCulture),
 					Histogram = ExtractFeeRateGroups(response.Result["fee_histogram"]).ToArray()
 				};
 			}
