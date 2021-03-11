@@ -437,7 +437,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.DoesNotContain(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "E");
 			Assert.DoesNotContain(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "D"); // Wasabi forgot about it but that's not a problem.
 
-			// Replacement transactions tx2 and tx3 have to be removed because tx1 confirmed and then they are invalid.
+			// Replacement transaction tx3 have to be removed because tx1 confirmed and then they are invalid.
 			var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
 			Assert.DoesNotContain(tx3, mempool);
 		}
