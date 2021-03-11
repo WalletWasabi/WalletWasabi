@@ -8,7 +8,7 @@
              x:DataType="vm:PrivacyControlViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyControlView">
-    <c:ContentArea Title="Privacy Control"
+    <c:ContentArea Title="Send - Privacy Control"
                    Caption="Parts of your wallet are know to certain entities. Select the entities you can tolerate leaking information about this transaction:"
                    HorizontalAlignment="Left"
                    EnableBack="True"
