@@ -1,4 +1,3 @@
-using System;
 using ReactiveUI;
 using System.Windows.Input;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -33,18 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 						Navigate().To(this, NavigationMode.Clear);
 					}
 				});
-
-			this.WhenAnyValue(x => x.IsExpanded)
-				.Subscribe(x =>
-				{
-					if (Parent != null)
-					{
-						Parent.IsExpanded = x;
-					}
-				});
 		}
-
-		public NavBarItemViewModel? Parent { get; set; }
 
 		public NavBarItemSelectionMode SelectionMode { get; protected set; }
 
