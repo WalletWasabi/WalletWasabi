@@ -79,10 +79,10 @@ namespace NBitcoin.RPC
 
 			var minEstimations = GetFeeEstimationsFromMempoolInfo(mempoolInfo);
 
-			var fixedEstimations = smartEstimations.GroupJoin(minEstimations, 
+			var fixedEstimations = smartEstimations.GroupJoin(minEstimations,
 				outer => outer.Key,
 				inner => inner.Key,
-				(outer, inner) => new { Estimation = outer, MinimumFromMemPool = inner})
+				(outer, inner) => new { Estimation = outer, MinimumFromMemPool = inner })
 				.SelectMany(x => x.MinimumFromMemPool.DefaultIfEmpty(),
 					(a, b) => (Target: a.Estimation.Key, FeeRate: Math.Max((int)sanityFeeRate.SatoshiPerByte, Math.Max(a.Estimation.Value, b.Value))))
 				.ToDictionary(x => x.Target, x => x.FeeRate);
@@ -159,21 +159,21 @@ namespace NBitcoin.RPC
 			// they have target=1 while the fourth will need to wait and for that reason it
 			// is target=2
 			var accumulatedSizes = splittedFeeGroups
-				.Select(x => x.Size) 
+				.Select(x => x.Size)
 				.Scan(0m, (acc, size) => acc + size);
 
 			var feeGroupsByTarget = splittedFeeGroups.Zip(accumulatedSizes, (feeGroup, accumulatedSize) =>
 				(FeeRate: feeGroup.From, Target: (int)Math.Ceiling(1 + accumulatedSize / BlockSize)));
 
 			// Consolidates all the fee rate groups that share the same confirmation target.
-			// Following the previous example we have the fee rate groups with target in the 
+			// Following the previous example we have the fee rate groups with target in the
 			// form of (target, size, from, to)
 			//      [(1, 10kb, 400) (1, 55kb, 300) (1, 310kb, 200) (2, 700kb, 100)]
-			// 
+			//
 			// But what we need is the following:
 			//      [(1, 200) (2, 100)]
 			var consolidatedFeeGroupByTarget = feeGroupsByTarget
-				.GroupBy(x => x.Target, 
+				.GroupBy(x => x.Target,
 					(target, feeGroups) => (Target: target, FeeRate: feeGroups.LastOrDefault().FeeRate.SatoshiPerByte));
 
 			return consolidatedFeeGroupByTarget.ToDictionary(x => x.Target, x => (int)Math.Ceiling(x.FeeRate));

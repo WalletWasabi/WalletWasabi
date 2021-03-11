@@ -154,7 +154,7 @@ namespace WalletWasabi.Tests.UnitTests
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(6, any)).ReturnsAsync(FeeRateResponse(6, 75m));
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(8, any)).ReturnsAsync(FeeRateResponse(8, 70m));
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn<int>(2, 3, 5, 6, 8), any)).ThrowsAsync(new NoEstimationException(0));
-			
+
 			var allFee = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 			Assert.Equal(2, allFee.Estimations.Count);
 			Assert.False(allFee.Estimations.ContainsKey(3));
@@ -263,8 +263,8 @@ namespace WalletWasabi.Tests.UnitTests
 					Headers = 100_000L
 				});
 			mockRpc.Setup(rpc => rpc.GetPeersInfoAsync()).ReturnsAsync(
-				hasPeersInfo 
-					? new[] { new PeerInfo() } 
+				hasPeersInfo
+					? new[] { new PeerInfo() }
 					: Array.Empty<PeerInfo>());
 			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync()).ReturnsAsync(
 				new MemPoolInfo
@@ -295,7 +295,7 @@ namespace WalletWasabi.Tests.UnitTests
 				MemPoolMinFee = mempoolMinFee,
 				Histogram = feeHistogram.Properties()
 					.Where(p => p.Name != "total_fees")
-					.Select( p => new FeeRateGroup
+					.Select(p => new FeeRateGroup
 					{
 						Group = int.Parse(p.Name),
 						Sizes = p.Value.Value<ulong>("sizes"),

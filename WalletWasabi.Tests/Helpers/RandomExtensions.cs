@@ -3,7 +3,7 @@ using System;
 namespace WalletWasabi.Tests.Helpers
 {
 	public static class RandomExtensions
-	{	
+	{
 		public static double Gaussian(this Random random, double mean, double stddev)
 		{
 			var x1 = 1 - random.NextDouble();

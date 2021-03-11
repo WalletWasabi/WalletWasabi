@@ -66,10 +66,11 @@ namespace WalletWasabi.BitcoinCore.Rpc
 				var response = await Rpc.SendCommandAsync(RPCOperations.getmempoolinfo, true).ConfigureAwait(false);
 
 				static IEnumerable<FeeRateGroup> ExtractFeeRateGroups(JToken jt) =>
-					jt switch {
+					jt switch
+					{
 						JObject jo => jo.Properties()
 							.Where(p => p.Name != "total_fees")
-							.Select( p => new FeeRateGroup
+							.Select(p => new FeeRateGroup
 							{
 								Group = int.Parse(p.Name),
 								Sizes = p.Value.Value<ulong>("sizes"),
@@ -78,7 +79,8 @@ namespace WalletWasabi.BitcoinCore.Rpc
 								From = new FeeRate(p.Value.Value<decimal>("from_feerate")),
 								To = new FeeRate(Math.Min(50_000, p.Value.Value<decimal>("to_feerate")))
 							}),
-						_ => Enumerable.Empty<FeeRateGroup>() };
+						_ => Enumerable.Empty<FeeRateGroup>()
+					};
 
 				return new MemPoolInfo()
 				{

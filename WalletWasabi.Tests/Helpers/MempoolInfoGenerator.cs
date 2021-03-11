@@ -10,13 +10,13 @@ namespace WalletWasabi.Tests.Helpers
 		private static readonly Random Random = new Random();
 
 		private static readonly int[] FeeLimits = new[]
-		{ 
+		{
 			1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 17, 20, 25, 30, 40, 50, 60, 70, 80,
 			100, 120, 140, 170, 200, 250, 300, 400, 500, 600, 700, 800, 1000,
 			1200, 1400, 1700, 2000, 2500, 3000, 4000, 5000, 6000, 7000, 8000, 10000
 		};
 
-		public static (int from, int to)[] FeeRanges = FeeLimits.Zip(FeeLimits.Skip(1), (from, to) => (from, to)).ToArray(); 
+		public static (int from, int to)[] FeeRanges = FeeLimits.Zip(FeeLimits.Skip(1), (from, to) => (from, to)).ToArray();
 
 		public static FeeRate GenerateFeeRateForTarget(int target)
 			=> new FeeRate((decimal)(4_000 / (target * target) * Random.Gaussian(1.0, 0.2)));
@@ -26,7 +26,7 @@ namespace WalletWasabi.Tests.Helpers
 			var histogram = GenerateHistogram().ToArray();
 			var totalSize = (ulong)histogram.Sum(x => (decimal)x.Sizes);
 			var txCount = (ulong)histogram.Sum(x => (decimal)x.Count);
-			var isMemPoolAlmostFull = totalSize > 250_000_000; 
+			var isMemPoolAlmostFull = totalSize > 250_000_000;
 
 			return new MemPoolInfo
 			{
@@ -35,7 +35,7 @@ namespace WalletWasabi.Tests.Helpers
 				Bytes = (int)totalSize,
 				Size = (int)txCount,
 				MinRelayTxFee = 0.00001000,
-				MaxMemPool = 300_000_000 
+				MaxMemPool = 300_000_000
 			};
 		}
 
