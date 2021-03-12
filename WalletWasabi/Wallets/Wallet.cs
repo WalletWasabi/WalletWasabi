@@ -105,6 +105,7 @@ namespace WalletWasabi.Wallets
 			if (KeyManager.IsWatchOnly)
 			{
 				IsLoggedIn = true;
+				Kitchen.Cook("");
 			}
 			else if (PasswordHelper.TryPassword(KeyManager, password, out compatibilityPasswordUsed))
 			{

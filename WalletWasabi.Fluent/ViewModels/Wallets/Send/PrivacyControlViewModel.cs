@@ -7,9 +7,12 @@ using DynamicData.Aggregation;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
-using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Model;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
@@ -49,25 +52,40 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);
 
-			NextCommand = ReactiveCommand.Create(
-				() =>
+			NextCommand = ReactiveCommand.CreateFromTask(
+				async () =>
 				{
-					var coins = selectedList.Items.SelectMany(x => x.Coins);
+					var coins = selectedList.Items.SelectMany(x => x.Coins).ToArray();
 
-					var intent = new PaymentIntent(
-						transactionInfo.Address,
-						transactionInfo.Amount,
-						subtractFee: false,
-						transactionInfo.Labels);
+					try
+					{
+						try
+						{
+							var transactionResult = TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: false);
+							Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
+						}
+						catch (InsufficientBalanceException)
+						{
+							var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Pocket);
+							var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 
-					var transactionResult = _wallet.BuildTransaction(
-						_wallet.Kitchen.SaltSoup(),
-						intent,
-						FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-						true,
-						coins.Select(x => x.OutPoint));
-
-					Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
+							if (result.Result)
+							{
+								var transactionResult = TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: true);
+								Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
+							}
+							else
+							{
+								Navigate().BackTo<SendViewModel>();
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError(ex);
+						await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
+						Navigate().BackTo<SendViewModel>();
+					}
 				},
 				this.WhenAnyValue(x => x.EnoughSelected));
 		}
@@ -85,6 +103,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				foreach (var pocket in pockets)
 				{
 					_pocketSource.Add(new PocketViewModel(pocket));
+				}
+
+				if (_pocketSource.Count == 1)
+				{
+					_pocketSource.Items.First().IsSelected = true;
 				}
 			}
 		}
