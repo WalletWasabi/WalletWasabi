@@ -32,6 +32,8 @@ namespace WalletWasabi.Helpers
 				km.SetIcon(WalletType.Coldcard);
 			}
 
+			km.SetBestHeight(0);
+
 			return km;
 		}
 
