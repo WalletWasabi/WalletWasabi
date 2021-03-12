@@ -607,6 +607,11 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 		}
 
+		public void ResetHeight()
+		{
+			BlockchainState.Height = 0;
+		}
+
 		#region BlockchainState
 
 		public Height GetBestHeight()
