@@ -14,6 +14,7 @@
     <c:ContentArea Title="Send - Optimise your Privacy" Caption="Often a Bitcoin transaction will create change leaving a trace. If you’re willing to adjust your payment amount, you can improve your privacy and reduce your transaction costs."
                    HorizontalAlignment="Left"
                    EnableBack="True"
+                   EnableCancel="True"
                    EnableNext="True"
                    NextContent="Continue"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">

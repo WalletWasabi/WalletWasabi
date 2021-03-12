@@ -28,7 +28,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 		public ReceiveViewModel(WalletViewModelBase wallet, WalletManager walletManager, BitcoinStore bitcoinStore) : base(NavigationMode.Normal)
 		{
-			SelectionMode = NavBarItemSelectionMode.Button;
 			WasabiWallet = wallet.Wallet;
 			_reference = "";
 			_suggestions = GetLabels(walletManager, bitcoinStore);

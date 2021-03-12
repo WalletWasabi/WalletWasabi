@@ -53,7 +53,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
 				async () =>
 				{
-					var result = await NavigateDialog(new AdvancedRecoveryOptionsViewModel((AccountKeyPath, MinGapLimit)));
+					var result = await NavigateDialog(new AdvancedRecoveryOptionsViewModel((AccountKeyPath, MinGapLimit)), NavigationTarget.CompactDialogScreen);
 
 					if (result.Kind == DialogResultKind.Normal)
 					{
