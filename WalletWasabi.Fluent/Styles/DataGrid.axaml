@@ -53,7 +53,7 @@
     <Setter Property="Fill" Value="{DynamicResource DataGridRowSelectedBackgroundColor}" />
   </Style>
   <Style Selector="DataGridRow:selected /template/ Border#PART_SelectionIndicator">
-    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource DataGridRowIndicatorBrush}" />
   </Style>
   <Style Selector="DataGridRow /template/ Border#PART_SelectionIndicator">
     <Setter Property="BorderBrush" Value="Transparent" />
