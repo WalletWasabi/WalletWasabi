@@ -294,21 +294,10 @@ namespace WalletWasabi.Hwi
 			var hasFingerprint = fingerprint.HasValue;
 
 			// Fingerprint and devicetype-devicepath pair cannot happen the same time.
-			var notSupportedExceptionMessage = $"Provide either {nameof(fingerprint)} or {nameof(devicePath)}-{nameof(deviceType)} pair, not both.";
-			if (hasDeviceType)
+			if (!(hasDeviceType && hasDevicePath ^ hasFingerprint))
 			{
-				Guard.NotNull(nameof(devicePath), devicePath);
-				if (hasFingerprint)
-				{
-					throw new NotSupportedException(notSupportedExceptionMessage);
-				}
-			}
-			if (hasFingerprint)
-			{
-				if (hasDevicePath || hasDeviceType)
-				{
-					throw new NotSupportedException(notSupportedExceptionMessage);
-				}
+				var argumentExceptionMessage = $"Provide either {nameof(fingerprint)} or {nameof(devicePath)}-{nameof(deviceType)} pair, not both.";
+				throw new ArgumentException(argumentExceptionMessage);
 			}
 
 			if (hasDevicePath)
