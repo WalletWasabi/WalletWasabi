@@ -161,7 +161,6 @@ namespace WalletWasabi.Backend.Controllers
 			try
 			{
 				var hexes = new Dictionary<uint256, string>();
-				var queryRpc = false;
 				IRPCClient batchingRpc = RpcClient.PrepareBatch();
 				List<Task<Transaction>> tasks = new();
 				lock (TransactionHexCacheLock)
@@ -174,16 +173,12 @@ namespace WalletWasabi.Backend.Controllers
 						}
 						else
 						{
-							if (!queryRpc)
-							{
-								queryRpc = true;
-							}
 							tasks.Add(batchingRpc.GetRawTransactionAsync(txid));
 						}
 					}
 				}
 
-				if (queryRpc)
+				if (tasks.Any())
 				{
 					await batchingRpc.SendBatchAsync();
 
