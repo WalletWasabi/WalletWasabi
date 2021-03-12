@@ -69,45 +69,29 @@ namespace NBitcoin.RPC
 		/// </summary>
 		public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this IRPCClient rpc, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
 		{
-			NoEstimationException? noe = null;
-			Dictionary<int, int>? smartEstimations = null;
-			try
-			{
-				smartEstimations = (simulateIfRegTest && rpc.Network == Network.RegTest)
-					? SimulateRegTestFeeEstimation(estimateMode)
-					: await GetFeeEstimationsAsync(rpc, estimateMode).ConfigureAwait(false);
-			}
-			catch (NoEstimationException ex)
-			{
-				noe = ex;
-			}
+			var smartEstimations = (simulateIfRegTest && rpc.Network == Network.RegTest)
+				? SimulateRegTestFeeEstimation(estimateMode)
+				: await GetFeeEstimationsAsync(rpc, estimateMode).ConfigureAwait(false);
 
 			var mempoolInfo = await rpc.GetMempoolInfoAsync().ConfigureAwait(false);
-
-			if ((mempoolInfo.Histogram is null || !mempoolInfo.Histogram.Any()) && noe is not null)
-			{
-				throw noe;
-			}
 
 			var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
 			var rpcStatus = await rpc.GetRpcStatusAsync(CancellationToken.None).ConfigureAwait(false);
 
 			var minEstimations = GetFeeEstimationsFromMempoolInfo(mempoolInfo);
 
-			var fixedEstimations =
-				smartEstimations?
-					.GroupJoin(
-						minEstimations,
-						outer => outer.Key,
-						inner => inner.Key,
-						(outer, inner) => new { Estimation = outer, MinimumFromMemPool = inner })
-					.SelectMany(x =>
-						x.MinimumFromMemPool.DefaultIfEmpty(),
-						(a, b) => (
-							Target: a.Estimation.Key,
-							FeeRate: Math.Max((int)sanityFeeRate.SatoshiPerByte, Math.Max(a.Estimation.Value, b.Value))))
-					.ToDictionary(x => x.Target, x => x.FeeRate)
-				?? minEstimations;
+			var fixedEstimations = smartEstimations
+				.GroupJoin(
+					minEstimations,
+					outer => outer.Key,
+					inner => inner.Key,
+					(outer, inner) => new { Estimation = outer, MinimumFromMemPool = inner })
+				.SelectMany(x =>
+					x.MinimumFromMemPool.DefaultIfEmpty(),
+					(a, b) => (
+						Target: a.Estimation.Key,
+						FeeRate: Math.Max((int)sanityFeeRate.SatoshiPerByte, Math.Max(a.Estimation.Value, b.Value))))
+				.ToDictionary(x => x.Target, x => x.FeeRate);
 
 			return new AllFeeEstimate(
 				estimateMode,
