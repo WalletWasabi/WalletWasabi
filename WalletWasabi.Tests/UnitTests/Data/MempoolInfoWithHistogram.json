@@ -1,0 +1,327 @@
+{
+  "loaded": true,
+  "size": 56827,
+  "bytes": 64970534,
+  "usage": 246000736,
+  "maxmempool": 300000000,
+  "mempoolminfee": 0.00001000,
+  "minrelaytxfee": 0.00001000,
+  "fee_histogram": {
+    "1": {
+      "sizes": 27854158,
+      "count": 8878,
+      "fees": 29924539,
+      "from_feerate": 1,
+      "to_feerate": 2
+    },
+    "2": {
+      "sizes": 5231253,
+      "count": 2125,
+      "fees": 11978869,
+      "from_feerate": 2,
+      "to_feerate": 3
+    },
+    "3": {
+      "sizes": 3808889,
+      "count": 1165,
+      "fees": 13147115,
+      "from_feerate": 3,
+      "to_feerate": 4
+    },
+    "4": {
+      "sizes": 4892906,
+      "count": 1210,
+      "fees": 21175131,
+      "from_feerate": 4,
+      "to_feerate": 5
+    },
+    "5": {
+      "sizes": 2653957,
+      "count": 2043,
+      "fees": 13613998,
+      "from_feerate": 5,
+      "to_feerate": 6
+    },
+    "6": {
+      "sizes": 1158392,
+      "count": 2366,
+      "fees": 7282709,
+      "from_feerate": 6,
+      "to_feerate": 7
+    },
+    "7": {
+      "sizes": 604490,
+      "count": 1241,
+      "fees": 4475819,
+      "from_feerate": 7,
+      "to_feerate": 8
+    },
+    "8": {
+      "sizes": 1307544,
+      "count": 2000,
+      "fees": 11871943,
+      "from_feerate": 8,
+      "to_feerate": 10
+    },
+    "10": {
+      "sizes": 1744224,
+      "count": 2725,
+      "fees": 18145020,
+      "from_feerate": 10,
+      "to_feerate": 12
+    },
+    "12": {
+      "sizes": 1567440,
+      "count": 1682,
+      "fees": 19737486,
+      "from_feerate": 12,
+      "to_feerate": 14
+    },
+    "14": {
+      "sizes": 1130319,
+      "count": 2188,
+      "fees": 17391251,
+      "from_feerate": 14,
+      "to_feerate": 17
+    },
+    "17": {
+      "sizes": 658907,
+      "count": 1712,
+      "fees": 13311841,
+      "from_feerate": 17,
+      "to_feerate": 20
+    },
+    "20": {
+      "sizes": 1342660,
+      "count": 2624,
+      "fees": 30334655,
+      "from_feerate": 20,
+      "to_feerate": 25
+    },
+    "25": {
+      "sizes": 711823,
+      "count": 1726,
+      "fees": 19792604,
+      "from_feerate": 25,
+      "to_feerate": 30
+    },
+    "30": {
+      "sizes": 2558578,
+      "count": 3840,
+      "fees": 90229518,
+      "from_feerate": 30,
+      "to_feerate": 40
+    },
+    "40": {
+      "sizes": 1571973,
+      "count": 4374,
+      "fees": 71625095,
+      "from_feerate": 40,
+      "to_feerate": 50
+    },
+    "50": {
+      "sizes": 2460424,
+      "count": 5363,
+      "fees": 134513782,
+      "from_feerate": 50,
+      "to_feerate": 60
+    },
+    "60": {
+      "sizes": 1443759,
+      "count": 3464,
+      "fees": 90169762,
+      "from_feerate": 60,
+      "to_feerate": 70
+    },
+    "70": {
+      "sizes": 841095,
+      "count": 2301,
+      "fees": 61944686,
+      "from_feerate": 70,
+      "to_feerate": 80
+    },
+    "80": {
+      "sizes": 835969,
+      "count": 2257,
+      "fees": 64249597,
+      "from_feerate": 80,
+      "to_feerate": 100
+    },
+    "100": {
+      "sizes": 248221,
+      "count": 387,
+      "fees": 24588642,
+      "from_feerate": 100,
+      "to_feerate": 120
+    },
+    "120": {
+      "sizes": 235572,
+      "count": 747,
+      "fees": 30097870,
+      "from_feerate": 120,
+      "to_feerate": 140
+    },
+    "140": {
+      "sizes": 67132,
+      "count": 273,
+      "fees": 10217891,
+      "from_feerate": 140,
+      "to_feerate": 170
+    },
+    "170": {
+      "sizes": 23177,
+      "count": 69,
+      "fees": 4284162,
+      "from_feerate": 170,
+      "to_feerate": 200
+    },
+    "200": {
+      "sizes": 11655,
+      "count": 36,
+      "fees": 2495370,
+      "from_feerate": 200,
+      "to_feerate": 250
+    },
+    "250": {
+      "sizes": 2360,
+      "count": 14,
+      "fees": 567290,
+      "from_feerate": 250,
+      "to_feerate": 300
+    },
+    "300": {
+      "sizes": 2084,
+      "count": 9,
+      "fees": 750872,
+      "from_feerate": 300,
+      "to_feerate": 400
+    },
+    "400": {
+      "sizes": 546,
+      "count": 3,
+      "fees": 251392,
+      "from_feerate": 400,
+      "to_feerate": 500
+    },
+    "500": {
+      "sizes": 439,
+      "count": 2,
+      "fees": 238199,
+      "from_feerate": 500,
+      "to_feerate": 600
+    },
+    "600": {
+      "sizes": 332,
+      "count": 2,
+      "fees": 200000,
+      "from_feerate": 600,
+      "to_feerate": 700
+    },
+    "700": {
+      "sizes": 256,
+      "count": 1,
+      "fees": 200000,
+      "from_feerate": 700,
+      "to_feerate": 800
+    },
+    "800": {
+      "sizes": 0,
+      "count": 0,
+      "fees": 0,
+      "from_feerate": 800,
+      "to_feerate": 1000
+    },
+    "1000": {
+      "sizes": 0,
+      "count": 0,
+      "fees": 0,
+      "from_feerate": 1000,
+      "to_feerate": 1200
+    },
+    "1200": {
+      "sizes": 0,
+      "count": 0,
+      "fees": 0,
+      "from_feerate": 1200,
+      "to_feerate": 1400
+    },
+    "1400": {
+      "sizes": 0,
+      "count": 0,
+      "fees": 0,
+      "from_feerate": 1400,
+      "to_feerate": 1700
+    },
+    "1700": {
+      "sizes": 0,
+      "count": 0,
+      "fees": 0,
+      "from_feerate": 1700,
+      "to_feerate": 2000
+    },
+    "2000": {
+      "sizes": 0,
+      "count": 0,
+      "fees": 0,
+      "from_feerate": 2000,
+      "to_feerate": 2500
+    },
+    "2500": {
+      "sizes": 0,
+      "count": 0,
+      "fees": 0,
+      "from_feerate": 2500,
+      "to_feerate": 3000
+    },
+    "3000": {
+      "sizes": 0,
+      "count": 0,
+      "fees": 0,
+      "from_feerate": 3000,
+      "to_feerate": 4000
+    },
+    "4000": {
+      "sizes": 0,
+      "count": 0,
+      "fees": 0,
+      "from_feerate": 4000,
+      "to_feerate": 5000
+    },
+    "5000": {
+      "sizes": 0,
+      "count": 0,
+      "fees": 0,
+      "from_feerate": 5000,
+      "to_feerate": 6000
+    },
+    "6000": {
+      "sizes": 0,
+      "count": 0,
+      "fees": 0,
+      "from_feerate": 6000,
+      "to_feerate": 7000
+    },
+    "7000": {
+      "sizes": 0,
+      "count": 0,
+      "fees": 0,
+      "from_feerate": 7000,
+      "to_feerate": 8000
+    },
+    "8000": {
+      "sizes": 0,
+      "count": 0,
+      "fees": 0,
+      "from_feerate": 8000,
+      "to_feerate": 10000
+    },
+    "10000": {
+      "sizes": 0,
+      "count": 0,
+      "fees": 0,
+      "from_feerate": 10000,
+      "to_feerate": 9223372036854775807
+    },
+    "total_fees": 818807108
+  }
+}

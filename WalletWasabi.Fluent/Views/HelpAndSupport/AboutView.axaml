@@ -71,12 +71,6 @@
     <Style Selector="TextBox.Content">
       <Setter Property="Margin" Value="0 4 0 0" />
     </Style>
-    <Style Selector="Button > PathIcon">
-      <Setter Property="Opacity" Value="0.5" />
-    </Style>
-    <Style Selector="Button:pointerover > PathIcon">
-      <Setter Property="Opacity" Value="0.75" />
-    </Style>
   </UserControl.Styles>
   <Panel>
     <controls:ContentArea EnableNext="True" NextContent="Close">

@@ -19,6 +19,12 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<object> CommandParameterProperty =
 			AvaloniaProperty.Register<AnimatedButton, object>(nameof(CommandParameter));
 
+		public static readonly StyledProperty<double> InitialOpacityProperty =
+			AvaloniaProperty.Register<AnimatedButton, double>(nameof(InitialOpacity), 0.5);
+
+		public static readonly StyledProperty<double> PointerOverOpacityProperty =
+			AvaloniaProperty.Register<AnimatedButton, double>(nameof(PointerOverOpacity), 0.75);
+
 		public ICommand Command
 		{
 			get => GetValue(CommandProperty);
@@ -41,6 +47,18 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(ClickIconProperty);
 			set => SetValue(ClickIconProperty, value);
+		}
+
+		public double InitialOpacity
+		{
+			get => GetValue(InitialOpacityProperty);
+			set => SetValue(InitialOpacityProperty, value);
+		}
+
+		public double PointerOverOpacity
+		{
+			get => GetValue(PointerOverOpacityProperty);
+			set => SetValue(PointerOverOpacityProperty, value);
 		}
 	}
 }

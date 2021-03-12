@@ -48,26 +48,6 @@
       </Panel>
     </SplitView>
     <c:Dialog x:CompileBindings="False"
-              DataContext="{Binding DialogScreen}"
-              IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
-              EnableCancelOnPressed="False"
-              EnableCancelOnEscape="True"
-              IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
-              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-              HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
-              MaxContentWidth="800" MaxContentHeight="700">
-      <c:Dialog.Styles>
-        <Style Selector="c|Dialog /template/ Panel#PART_DialogHost">
-          <Setter Property="Margin" Value="20,30,20,20"/>
-        </Style>
-        <Style Selector="c|Dialog:open /template/ Panel#PART_Overlay">
-          <Setter Property="IsHitTestVisible" Value="False"/>
-          <Setter Property="Opacity" Value="1"/>
-        </Style>
-      </c:Dialog.Styles>
-      <ContentControl Content="{Binding CurrentPage}" />
-    </c:Dialog>
-    <c:Dialog x:CompileBindings="False"
               DataContext="{Binding FullScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
               EnableCancelOnPressed="False"
@@ -92,6 +72,17 @@
           <Setter Property="Opacity" Value="1"/>
         </Style>
       </c:Dialog.Styles>
+      <ContentControl Content="{Binding CurrentPage}" />
+    </c:Dialog>
+    <c:Dialog x:CompileBindings="False"
+              DataContext="{Binding DialogScreen}"
+              IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
+              EnableCancelOnPressed="False"
+              EnableCancelOnEscape="True"
+              IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+              HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+              MaxContentWidth="800" MaxContentHeight="700">
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
     <c:Dialog x:CompileBindings="False"
