@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -30,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			AddressText = info.Address.ToString();
 
-			ConfirmationTimeText = "~20 minutes ";
+			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
 
 			BtcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
 
@@ -41,7 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 				var authDialog = AuthorizationHelpers.GetAuthorizationDialog(wallet, transactionAuthorizationInfo);
-				var authDialogResult = await NavigateDialog(authDialog, NavigationTarget.DialogScreen);
+				var authDialogResult = await NavigateDialog(authDialog, authDialog.DefaultTarget);
 
 				if (authDialogResult.Result)
 				{

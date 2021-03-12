@@ -10,9 +10,9 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.OctetFields
 		// https://gitweb.torproject.org/torspec.git/tree/socks-extensions.txt
 		// IPv6 is not supported in CONNECT commands.
 
-		public static readonly AtypField IPv4 = new AtypField(0x01);
+		public static readonly AtypField IPv4 = new(0x01);
 
-		public static readonly AtypField DomainName = new AtypField(0x03);
+		public static readonly AtypField DomainName = new(0x03);
 
 		public AtypField(byte value)
 		{

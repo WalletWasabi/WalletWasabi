@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
@@ -14,12 +15,17 @@ using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
-using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Exceptions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.MathNet;
+using WalletWasabi.Fluent.Model;
 using WalletWasabi.Fluent.Validation;
+using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 
@@ -47,16 +53,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private double[] _yAxisValues;
 		[AutoNotify] private string[] _xAxisLabels;
 		[AutoNotify] private double  _xAxisCurrentValue = 36;
+		[AutoNotify] private int  _xAxisCurrentValueIndex;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _xAxisMinValue = 0;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _xAxisMaxValue = 9;
 
 		private string? _payJoinEndPoint;
 		private bool _parsingUrl;
+		private bool _updatingCurrentValue;
+		private double _lastXAxisCurrentValue;
 
-		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster)
+		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster) : base(NavigationMode.Normal)
 		{
 			_to = "";
 			_owner = walletVm;
 			_transactionInfo = new TransactionInfo();
 			_labels = new ObservableCollection<string>();
+			_lastXAxisCurrentValue = _xAxisCurrentValue;
 
 			ExchangeRate = walletVm.Wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();
@@ -76,8 +88,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					if (x > 0)
 					{
 						_transactionInfo.FeeRate = new FeeRate(GetYAxisValueFromXAxisCurrentValue(x));
+						SetXAxisCurrentValueIndex(x);
 					}
 				});
+
+			this.WhenAnyValue(x => x.XAxisCurrentValueIndex)
+				.Subscribe(SetXAxisCurrentValue);
 
 			Labels.ToObservableChangeSet().Subscribe(x =>
 			{
@@ -99,42 +115,94 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				_parsingUrl = false;
 			});
 
-			NextCommand = ReactiveCommand.Create(() =>
+			var nextCommandCanExecute =
+				this.WhenAnyValue(x => x.Labels, x => x.AmountBtc, x => x.To, x => x.XAxisCurrentValue).Select(_ => Unit.Default)
+					.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).Select(_ => Unit.Default))
+					.Select(_ =>
+					{
+						var allFilled = !string.IsNullOrEmpty(To) && AmountBtc > 0 && Labels.Any();
+						var hasError = Validations.Any;
+
+						return allFilled && !hasError;
+					});
+
+			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var transactionInfo = _transactionInfo;
 				var wallet = _owner.Wallet;
 				var targetAnonymitySet = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 				var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
+				var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
 
-				if (mixedCoins.Any())
+				if (transactionInfo.Amount <= totalMixedCoinsAmount)
 				{
-					var intent = new PaymentIntent(
-						destination: transactionInfo.Address,
-						amount: transactionInfo.Amount,
-						subtractFee: false,
-						label: transactionInfo.Labels);
-
 					try
 					{
-						var txRes = wallet.BuildTransaction(
-							wallet.Kitchen.SaltSoup(),
-							intent,
-							FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-							allowUnconfirmed: true,
-							mixedCoins.Select(x => x.OutPoint));
+						try
+						{
+							var txRes = TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: false);
+							Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
+							return;
+						}
+						catch (InsufficientBalanceException)
+						{
+							var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private);
+							var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 
-						// Private coins are enough.
-						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
-						return;
+							if (result.Result)
+							{
+								var txRes = TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true);
+								Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
+								return;
+							}
+						}
 					}
-					catch (NotEnoughFundsException)
+					catch(Exception ex)
 					{
-						// Do Nothing
+						Logger.LogError(ex);
+						await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
+						return;
 					}
 				}
 
-				Navigate().To(new PrivacyControlViewModel());
-			}, this.WhenAnyValue(x=>x.Labels.Count).Any());
+				Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
+			}, nextCommandCanExecute);
+		}
+
+		public ICommand PasteCommand { get; }
+
+		private TimeSpan CalculateConfirmationTime(double targetBlock)
+		{
+			var timeInMinutes = Math.Ceiling(targetBlock) * 10;
+			var time = TimeSpan.FromMinutes(timeInMinutes);
+			return time;
+		}
+
+		private void SetXAxisCurrentValueIndex(double xAxisCurrentValue)
+		{
+			if (!_updatingCurrentValue)
+			{
+				_updatingCurrentValue = true;
+				if (_xAxisValues is not null)
+				{
+					XAxisCurrentValueIndex = GetCurrentValueIndex(xAxisCurrentValue, _xAxisValues);
+				}
+				_updatingCurrentValue = false;
+			}
+		}
+
+		private void SetXAxisCurrentValue(int xAxisCurrentValueIndex)
+		{
+			if (_xAxisValues is not null)
+			{
+				if (!_updatingCurrentValue)
+				{
+					_updatingCurrentValue = true;
+					var index = _xAxisValues.Length - xAxisCurrentValueIndex - 1;
+					XAxisCurrentValue = _xAxisValues[index];
+					_updatingCurrentValue = false;
+				}
+			}
 		}
 
 		private void ValidateAmount(IValidationErrors errors)
@@ -243,6 +311,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return result;
 		}
 
+		protected override void OnNavigatedFrom(bool isInHistory)
+		{
+			base.OnNavigatedFrom(isInHistory);
+			_lastXAxisCurrentValue = XAxisCurrentValue;
+			_transactionInfo.ConfirmationTimeSpan = CalculateConfirmationTime(_lastXAxisCurrentValue);
+		}
+
 		protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 		{
 			if (!inHistory)
@@ -251,6 +326,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				AmountBtc = 0;
 				Labels.Clear();
 				ClearValidations();
+			}
+			else
+			{
+				XAxisCurrentValue = _lastXAxisCurrentValue;
 			}
 
 			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
@@ -364,9 +443,29 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				xAxisLabels = TestNetXAxisLabels;
 			}
 
+			_updatingCurrentValue = true;
 			XAxisLabels = xAxisLabels;
 			XAxisValues = xAxisValues;
 			YAxisValues = yAxisValues;
+			XAxisMinValue = 0;
+			XAxisMaxValue = xAxisValues.Length - 1;
+			XAxisCurrentValue = Math.Clamp(XAxisCurrentValue, XAxisMinValue, XAxisMaxValue);
+			XAxisCurrentValueIndex = GetCurrentValueIndex(XAxisCurrentValue, XAxisValues);
+			_updatingCurrentValue = false;
+		}
+
+		private int GetCurrentValueIndex(double xAxisCurrentValue, double[] xAxisValues)
+		{
+			for (var i = 0; i < xAxisValues.Length; i++)
+			{
+				if (xAxisValues[i] <= xAxisCurrentValue)
+				{
+					var index = xAxisValues.Length - i - 1;
+					return index;
+				}
+			}
+
+			return 0;
 		}
 
 		private void GetSmoothValuesSubdivide(double[] xs, double[] ys, out List<double> ts, out List<double> xts)
@@ -452,11 +551,5 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			return (decimal)XAxisMaxValue;
 		}
-
-		public ICommand PasteCommand { get; }
-
-		public double XAxisMinValue { get; set; } = 1;
-
-		public double XAxisMaxValue { get; set; } = 1008;
 	}
 }

@@ -1,9 +1,9 @@
-using ReactiveUI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using ReactiveUI;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.Validation
@@ -22,27 +22,26 @@ namespace WalletWasabi.Fluent.Validation
 
 		private Dictionary<string, ValidateMethod> ValidationMethods { get; }
 
-		public bool Any => ErrorsByPropertyName.Where(x => x.Value.Any()).Any();
+		public bool Any => ErrorsByPropertyName.Any(x => x.Value.Any());
 
-		public bool AnyErrors => ErrorsByPropertyName.Where(x => x.Value.Any(x => x.Severity == ErrorSeverity.Error)).Any();
+		public bool AnyErrors => ErrorsByPropertyName.Any(x => x.Value.Any(error => error.Severity == ErrorSeverity.Error));
 
-		public bool AnyWarnings => ErrorsByPropertyName.Where(x => x.Value.Any(x => x.Severity == ErrorSeverity.Warning)).Any();
+		public bool AnyWarnings => ErrorsByPropertyName.Any(x => x.Value.Any(error => error.Severity == ErrorSeverity.Warning));
 
-		public bool AnyInfos => ErrorsByPropertyName.Where(x => x.Value.Any(x => x.Severity == ErrorSeverity.Info)).Any();
+		public bool AnyInfos => ErrorsByPropertyName.Any(x => x.Value.Any(error => error.Severity == ErrorSeverity.Info));
 
-		IEnumerable<string> IValidations.Infos => ErrorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Info).Select(x => x.Message));
+		IEnumerable<string> IValidations.Infos => ErrorsByPropertyName.Values.SelectMany(x => x.Where(error => error.Severity == ErrorSeverity.Info).Select(error => error.Message));
 
-		IEnumerable<string> IValidations.Warnings => ErrorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Warning).Select(x => x.Message));
+		IEnumerable<string> IValidations.Warnings => ErrorsByPropertyName.Values.SelectMany(x => x.Where(error => error.Severity == ErrorSeverity.Warning).Select(error => error.Message));
 
-		IEnumerable<string> IValidations.Errors => ErrorsByPropertyName.Values.SelectMany(x => x.Where(x => x.Severity == ErrorSeverity.Error).Select(x => x.Message));
+		IEnumerable<string> IValidations.Errors => ErrorsByPropertyName.Values.SelectMany(x => x.Where(error => error.Severity == ErrorSeverity.Error).Select(error => error.Message));
 
 		public void Clear()
 		{
-			ErrorsByPropertyName.Clear();
-
 			foreach (var propertyName in ValidationMethods.Keys)
 			{
 				ValidateProperty(propertyName, true);
+				ErrorsByPropertyName[propertyName].Clear();
 			}
 		}
 
@@ -57,8 +56,10 @@ namespace WalletWasabi.Fluent.Validation
 
 		public void ValidateProperty(string propertyName, bool clear = false)
 		{
-			if (ValidationMethods.TryGetValue(propertyName, out ValidateMethod? validationMethod) && ErrorsByPropertyName.TryGetValue(propertyName, out ErrorDescriptors? currentErrors))
+			if (ValidationMethods.TryGetValue(propertyName, out ValidateMethod? validationMethod))
 			{
+				var currentErrors = ErrorsByPropertyName[propertyName];
+
 				// Copy the current errors.
 				var previousErrors = currentErrors.ToList();
 
@@ -84,11 +85,18 @@ namespace WalletWasabi.Fluent.Validation
 			ErrorsByPropertyName[propertyName] = ErrorDescriptors.Create();
 		}
 
-		public IEnumerable GetErrors(string propertyName)
+		public IEnumerable GetErrors(string? propertyName)
 		{
-			return ErrorsByPropertyName.ContainsKey(propertyName) && ErrorsByPropertyName[propertyName].Any()
-				? ErrorsByPropertyName[propertyName]
-				: ErrorDescriptors.Empty;
+			if (!string.IsNullOrWhiteSpace(propertyName))
+			{
+				return ErrorsByPropertyName.ContainsKey(propertyName) && ErrorsByPropertyName[propertyName].Any()
+					? ErrorsByPropertyName[propertyName]
+					: ErrorDescriptors.Empty;
+			}
+			else
+			{
+				return ErrorDescriptors.Empty;
+			}
 		}
 
 		private void UpdateAndNotify(List<ErrorDescriptor> currentErrors, List<ErrorDescriptor> previousErrors, string propertyName)
@@ -121,7 +129,7 @@ namespace WalletWasabi.Fluent.Validation
 				this.RaisePropertyChanged(nameof(Any));
 			}
 
-			propertiesToNotify.ForEach(x => this.RaisePropertyChanged(x));
+			propertiesToNotify.ForEach(this.RaisePropertyChanged);
 		}
 	}
 }

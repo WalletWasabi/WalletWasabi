@@ -27,11 +27,11 @@ namespace WalletWasabi.Crypto
 		public Scalar Ya { get; }
 
 		public CredentialIssuerParameters ComputeCredentialIssuerParameters() =>
-			new CredentialIssuerParameters(
+			new(
 				cw: W * Generators.Gw + Wp * Generators.Gwp,
 				i: Generators.GV - (X0 * Generators.Gx0 + X1 * Generators.Gx1 + Ya * Generators.Ga));
 
 		internal ScalarVector AsScalarVector() =>
-			new ScalarVector(W, Wp, X0, X1, Ya);
+			new(W, Wp, X0, X1, Ya);
 	}
 }

@@ -273,7 +273,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		public async void ModifiedPaste()
 		{
-			var text = await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync();
+			var text = (await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync()).Replace("\r", "").Replace("\n", "");
 
 			if (!string.IsNullOrEmpty(text) || ValidateEntryText(text))
 			{
@@ -343,6 +343,8 @@ namespace WalletWasabi.Fluent.Controls
 
 				_disposable.Add(Disposable.Create(() => _swapButton.Click -= SwapButtonOnClick));
 			}
+
+			UpdateDisplay(true);
 		}
 
 		private void SwapButtonOnClick(object? sender, RoutedEventArgs e)

@@ -214,7 +214,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		{
 			int eciValue = GetECIValueByName(encodingName);
 
-			BitList dataBits = new BitList
+			BitList dataBits = new()
 			{
 				{ ECIMode, ECIIndicatorNumBits }
 			};

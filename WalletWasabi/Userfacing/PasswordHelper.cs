@@ -27,7 +27,7 @@ namespace WalletWasabi.Userfacing
 
 			var buggyClipboard = StringCutIssue(originalPassword);
 
-			List<string> possiblePasswords = new List<string>()
+			List<string> possiblePasswords = new()
 			{
 				originalPassword,
 				buggyClipboard, // Should be here for every OP system. If I create a buggy wallet on OSX and transfer it to other system, it should also work.

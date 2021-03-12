@@ -17,7 +17,7 @@ namespace WalletWasabi.Packager
 			{
 				var lines = File.ReadAllLines(depsFilePath);
 
-				List<string> outLines = new List<string>();
+				List<string> outLines = new();
 				foreach (var line in lines)
 				{
 					// "sha512": "sha512-B0BYh5Fpeqp4GIbL5wEhde6M/dZ+s0tlXM0qMTvj4mTg9Rr4svVHGpn6dDp8pT2sB88ghxyLIpKGdx9Oj7f/pw==",

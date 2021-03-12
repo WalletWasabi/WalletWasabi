@@ -39,6 +39,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			Sequence().First();
 
 		internal ScalarVector GetScalarVector() =>
-			new ScalarVector(Sequence().Take(_secretCount));
+			new(Sequence().Take(_secretCount));
 	}
 }

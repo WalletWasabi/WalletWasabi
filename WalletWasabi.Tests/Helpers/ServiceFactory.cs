@@ -1,3 +1,4 @@
+using Moq;
 using NBitcoin;
 using System;
 using System.Collections.Generic;
@@ -13,9 +14,9 @@ namespace WalletWasabi.Tests.Helpers
 	public static class ServiceFactory
 	{
 		public static TransactionFactory CreateTransactionFactory(
-		   IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins,
-		   bool allowUnconfirmed = true,
-		   bool watchOnly = false)
+			IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins,
+			bool allowUnconfirmed = true,
+			bool watchOnly = false)
 		{
 			var password = "foo";
 			var keyManager = watchOnly ? CreateWatchOnlyKeyManager() : CreateKeyManager(password);
@@ -40,8 +41,8 @@ namespace WalletWasabi.Tests.Helpers
 				}
 			}
 			var coinsView = new CoinsView(scoins);
-			var transactionStore = new AllTransactionStoreMock(workFolderPath: ".", Network.Main);
-			return new TransactionFactory(Network.Main, keyManager, coinsView, transactionStore, password, allowUnconfirmed);
+			var mockTransactionStore = new Mock<AllTransactionStore>(".", Network.Main);
+			return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore.Object, password, allowUnconfirmed);
 		}
 
 		public static KeyManager CreateKeyManager(string password = "blahblahblah")
@@ -51,6 +52,6 @@ namespace WalletWasabi.Tests.Helpers
 			=> KeyManager.CreateNewWatchOnly(new Mnemonic(Wordlist.English, WordCount.Twelve).DeriveExtKey().Neuter());
 
 		public static BlockchainAnalyzer CreateBlockchainAnalyzer(int privacyLevelThreshold = 100)
-			=> new BlockchainAnalyzer(privacyLevelThreshold);
+			=> new(privacyLevelThreshold);
 	}
 }

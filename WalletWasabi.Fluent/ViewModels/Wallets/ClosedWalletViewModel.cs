@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Wallets;
@@ -21,11 +22,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				if (!Wallet.IsLoggedIn)
 				{
-					Navigate().To(new LoginViewModel(walletManagerViewModel, this));
+					Navigate().To(new LoginViewModel(walletManagerViewModel, this), NavigationMode.Clear);
 				}
 				else
 				{
-					Navigate().To(this);
+					Navigate().To(this, NavigationMode.Clear);
 				}
 			});
 		}
