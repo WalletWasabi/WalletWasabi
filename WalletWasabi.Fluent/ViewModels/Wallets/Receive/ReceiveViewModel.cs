@@ -7,6 +7,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
@@ -25,9 +26,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		[AutoNotify] private HashSet<string> _suggestions;
 		[AutoNotify] private bool _isExistingAddressesButtonVisible;
 
-		public ReceiveViewModel(WalletViewModelBase wallet, WalletManager walletManager, BitcoinStore bitcoinStore)
+		public ReceiveViewModel(WalletViewModelBase wallet, WalletManager walletManager, BitcoinStore bitcoinStore) : base(NavigationMode.Normal)
 		{
-			SelectionMode = NavBarItemSelectionMode.Button;
 			WasabiWallet = wallet.Wallet;
 			_reference = "";
 			_suggestions = GetLabels(walletManager, bitcoinStore);

@@ -42,7 +42,7 @@ namespace WalletWasabi.Gui.Controls
 
 			TextBox = new TextBlock();
 
-			Grid stackPnl = new Grid
+			Grid stackPnl = new()
 			{
 				Children =
 				{

@@ -1,4 +1,3 @@
-using System;
 using ReactiveUI;
 using System.Windows.Input;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -18,23 +17,23 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		[AutoNotify] private bool _isExpanded;
 		[AutoNotify] private bool _isEnabled = true;
 
-		protected NavBarItemViewModel()
+		protected NavBarItemViewModel(NavigationMode defaultNavigationMode = NavigationMode.Clear)
 		{
 			SelectionMode = NavBarItemSelectionMode.Selected;
 
-			OpenCommand = ReactiveCommand.Create(OnOpen);
-
-			this.WhenAnyValue(x => x.IsExpanded)
-				.Subscribe(x =>
+			OpenCommand = ReactiveCommand.Create(
+				() =>
 				{
-					if (Parent != null)
+					if (SelectionMode == NavBarItemSelectionMode.Toggle)
 					{
-						Parent.IsExpanded = x;
+						Toggle();
+					}
+					else
+					{
+						Navigate().To(this, defaultNavigationMode);
 					}
 				});
 		}
-
-		public NavBarItemViewModel? Parent { get; set; }
 
 		public NavBarItemSelectionMode SelectionMode { get; protected set; }
 
@@ -56,18 +55,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		}
 
 		public ICommand OpenCommand { get; protected set; }
-
-		private void OnOpen()
-		{
-			if (SelectionMode == NavBarItemSelectionMode.Toggle)
-			{
-				Toggle();
-			}
-			else
-			{
-				Navigate().To(this, NavigationMode.Clear);
-			}
-		}
 
 		public virtual void Toggle()
 		{

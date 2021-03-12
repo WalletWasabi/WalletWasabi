@@ -40,7 +40,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 
 		internal int Primitive { get; }
 
-		internal static GaloisField256 QRCodeGaloisField => new GaloisField256(QRCodeConstantVariable.QRCodePrimitive);
+		internal static GaloisField256 QRCodeGaloisField => new(QRCodeConstantVariable.QRCodePrimitive);
 
 		/// <returns>
 		/// Powers of a in GF table. Where a = 2

@@ -48,10 +48,10 @@ namespace WalletWasabi.WebClients.Wasabi
 		}
 
 		/// <summary>Tor SOCKS5 endpoint.</summary>
-		/// <remarks>The property should be <c>>private</c> when Tor refactoring is done.</remarks>
+		/// <remarks>The property should be <c>private</c> when Tor refactoring is done.</remarks>
 		public EndPoint? TorEndpoint { get; }
 
-		/// <remarks>The property should be <c>>private</c> when Tor refactoring is done.</remarks>
+		/// <remarks>The property should be <c>private</c> when Tor refactoring is done.</remarks>
 		public Func<Uri> BackendUriGetter { get; }
 
 		/// <summary>Whether Tor is enabled or disabled.</summary>
@@ -83,6 +83,19 @@ namespace WalletWasabi.WebClients.Wasabi
 			{
 				return new ClearnetHttpClient(HttpClient, baseUriFn);
 			}
+		}
+
+		/// <summary>Creates new <see cref="TorHttpClient"/>.</summary>
+		/// <remarks>Do not use this function unless <see cref="NewHttpClient(Func{Uri}, bool)"/> is not sufficient for your use case.</remarks>
+		/// <exception cref="InvalidOperationException"/>
+		public TorHttpClient NewTorHttpClient(bool isolateStream, Func<Uri>? baseUriFn = null)
+		{
+			if (TorEndpoint is null)
+			{
+				throw new InvalidOperationException("Tor is not enabled in the user settings.");
+			}
+
+			return new TorHttpClient(baseUriFn, TorEndpoint, isolateStream);			
 		}
 
 		/// <summary>

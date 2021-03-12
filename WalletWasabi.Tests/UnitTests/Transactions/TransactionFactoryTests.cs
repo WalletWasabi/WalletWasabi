@@ -223,7 +223,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore.Object, password);
 
 			// Two 0.9btc coins are enough
-			using Key key1 = new Key();
+			using Key key1 = new();
 			var payment = new PaymentIntent(key1.ScriptPubKey, Money.Coins(1.75m), label: "Sophie");
 			var feeRate = new FeeRate(2m);
 			var result = transactionFactory.BuildTransaction(payment, feeRate);
@@ -234,7 +234,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Contains(coinsByLabel["Donald, Jean, Lee, Onur"], result.SpentCoins);
 
 			// Three 0.9btc coins are enough
-			using Key key2 = new Key();
+			using Key key2 = new();
 			payment = new PaymentIntent(key2.ScriptPubKey, Money.Coins(1.85m), label: "Sophie");
 			feeRate = new FeeRate(2m);
 			result = transactionFactory.BuildTransaction(payment, feeRate);
@@ -247,7 +247,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// Four 0.9btc coins are enough but this time the more private cluster is NOT enough
 			// That's why it has to use the coins in the cluster number 1
-			using Key key3 = new Key();
+			using Key key3 = new();
 			payment = new PaymentIntent(key3.ScriptPubKey, Money.Coins(3.5m), label: "Sophie");
 			feeRate = new FeeRate(2m);
 			result = transactionFactory.BuildTransaction(payment, feeRate);
@@ -308,9 +308,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
 			});
 
-			using Key key1 = new Key();
-			using Key key2 = new Key();
-			using Key key3 = new Key();
+			using Key key1 = new();
+			using Key key2 = new();
+			using Key key3 = new();
 
 			var payment = new PaymentIntent(new[]
 			{
@@ -343,9 +343,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
 			});
 
-			using Key key1 = new Key();
-			using Key key2 = new Key();
-			using Key key3 = new Key();
+			using Key key1 = new();
+			using Key key2 = new();
+			using Key key3 = new();
 
 			var payment = new PaymentIntent(new[]
 			{

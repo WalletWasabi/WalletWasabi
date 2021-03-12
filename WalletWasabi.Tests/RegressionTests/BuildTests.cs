@@ -60,7 +60,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Helpers.Common.GetWorkDir();
-			CachedBlockProvider blockProvider = new CachedBlockProvider(
+			CachedBlockProvider blockProvider = new(
 				new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
 
@@ -224,7 +224,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 5. Create wallet service.
 			var workDir = Helpers.Common.GetWorkDir();
-			CachedBlockProvider blockProvider = new CachedBlockProvider(
+			CachedBlockProvider blockProvider = new(
 				new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
 			var walletManager = new WalletManager(network, workDir, new WalletDirectories(network, workDir));

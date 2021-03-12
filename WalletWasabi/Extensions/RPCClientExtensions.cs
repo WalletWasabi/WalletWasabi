@@ -37,7 +37,7 @@ namespace NBitcoin.RPC
 				: (Constants.SevenDaysConfirmationTarget + 1 + 5 - confirmationTarget) / 7; // Economical
 
 			Money feePerK = Money.Satoshis(satoshiPerByte * 1000);
-			FeeRate feeRate = new FeeRate(feePerK);
+			FeeRate feeRate = new(feePerK);
 			var resp = new EstimateSmartFeeResponse { Blocks = confirmationTarget, FeeRate = feeRate };
 			return resp;
 		}
@@ -69,17 +69,33 @@ namespace NBitcoin.RPC
 		/// </summary>
 		public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this IRPCClient rpc, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
 		{
-			var estimations = (simulateIfRegTest && rpc.Network == Network.RegTest)
+			var smartEstimations = (simulateIfRegTest && rpc.Network == Network.RegTest)
 				? SimulateRegTestFeeEstimation(estimateMode)
 				: await GetFeeEstimationsAsync(rpc, estimateMode).ConfigureAwait(false);
 
-			var rpcStatus = await rpc.GetRpcStatusAsync(CancellationToken.None).ConfigureAwait(false);
 			var mempoolInfo = await rpc.GetMempoolInfoAsync().ConfigureAwait(false);
+
 			var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
+			var rpcStatus = await rpc.GetRpcStatusAsync(CancellationToken.None).ConfigureAwait(false);
+
+			var minEstimations = GetFeeEstimationsFromMempoolInfo(mempoolInfo);
+
+			var fixedEstimations = smartEstimations
+				.GroupJoin(
+					minEstimations,
+					outer => outer.Key,
+					inner => inner.Key,
+					(outer, inner) => new { Estimation = outer, MinimumFromMemPool = inner })
+				.SelectMany(x =>
+					x.MinimumFromMemPool.DefaultIfEmpty(),
+					(a, b) => (
+						Target: a.Estimation.Key,
+						FeeRate: Math.Max((int)sanityFeeRate.SatoshiPerByte, Math.Max(a.Estimation.Value, b.Value))))
+				.ToDictionary(x => x.Target, x => x.FeeRate);
 
 			return new AllFeeEstimate(
 				estimateMode,
-				estimations.ToDictionary(x => x.Key, x => Math.Max(x.Value, (int)sanityFeeRate.SatoshiPerByte)),
+				fixedEstimations,
 				rpcStatus.Synchronized);
 		}
 
@@ -112,6 +128,66 @@ namespace NBitcoin.RPC
 				.Where(x => x.task.IsCompletedSuccessfully)
 				.Select(x => (x.target, feeRate: x.task.Result.FeeRate))
 				.ToDictionary(x => x.target, x => (int)Math.Ceiling(x.feeRate.SatoshiPerByte));
+		}
+
+		private static Dictionary<int, int> GetFeeEstimationsFromMempoolInfo(MemPoolInfo mempoolInfo)
+		{
+			if (mempoolInfo.Histogram is null || !mempoolInfo.Histogram.Any())
+			{
+				return new Dictionary<int, int>(0);
+			}
+
+			const int BlockSize = 1_000_000;
+			static IEnumerable<(int Size, FeeRate From, FeeRate To)> SplitFeeGroupInBlocks(FeeRateGroup group)
+			{
+				var remainingSize = (long)group.Sizes;
+				while (remainingSize > 0)
+				{
+					var chunckSize = (int)Math.Min(remainingSize, BlockSize);
+					yield return (chunckSize, group.From, group.To);
+					remainingSize -= BlockSize;
+				}
+			}
+			// Filter those groups with very high fee transactions (less than 0.1%).
+			// This is because in case a few transactions pay unreasonablely high fees
+			// then we don't want our estimations to be affected by those rare cases.
+			var relevantFeeGroups = mempoolInfo.Histogram
+				.OrderByDescending(x => x.Group)
+				.SkipWhile(x => x.Count < mempoolInfo.Size / 1_000);
+
+			// Splits multi-megabyte fee rate groups in 1mb chunck
+			// We need to count blocks (or 1MvB transaction chuncks) so, in case fee
+			// groups are bigger than 1MvB we split those in multiple 1MvB chuncks.
+			var splittedFeeGroups = relevantFeeGroups.SelectMany(x => SplitFeeGroupInBlocks(x));
+
+			// Assigns the corresponding confirmation target to the set of fee groups.
+			// We have multiple fee rate groups which size are in the range [0..1MvB)
+			//
+			// Example: imagine we have only 4 fee rate groups in the form (size, from, to)
+			//      [(10kb, 400, 500) (55kb, 300, 400) (310kb, 200, 300) (700kb, 100, 200)]
+			//
+			// In this case the three first fee rate groups fit well in the next block so
+			// they have target=1 while the fourth will need to wait and for that reason it
+			// is target=2
+			var accumulatedSizes = splittedFeeGroups
+				.Select(x => x.Size)
+				.Scan(0m, (acc, size) => acc + size);
+
+			var feeGroupsByTarget = splittedFeeGroups.Zip(accumulatedSizes, (feeGroup, accumulatedSize) =>
+				(FeeRate: feeGroup.From, Target: (int)Math.Ceiling(1 + accumulatedSize / BlockSize)));
+
+			// Consolidates all the fee rate groups that share the same confirmation target.
+			// Following the previous example we have the fee rate groups with target in the
+			// form of (target, size, from, to)
+			//      [(1, 10kb, 400) (1, 55kb, 300) (1, 310kb, 200) (2, 700kb, 100)]
+			//
+			// But what we need is the following:
+			//      [(1, 200) (2, 100)]
+			var consolidatedFeeGroupByTarget = feeGroupsByTarget
+				.GroupBy(x => x.Target,
+					(target, feeGroups) => (Target: target, FeeRate: feeGroups.LastOrDefault().FeeRate.SatoshiPerByte));
+
+			return consolidatedFeeGroupByTarget.ToDictionary(x => x.Target, x => (int)Math.Ceiling(x.FeeRate));
 		}
 
 		public static async Task<RpcStatus> GetRpcStatusAsync(this IRPCClient rpc, CancellationToken cancel)

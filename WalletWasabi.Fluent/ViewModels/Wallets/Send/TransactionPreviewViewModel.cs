@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -31,7 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			AddressText = info.Address.ToString();
 
-			ConfirmationTimeText = "~20 minutes ";
+			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
 
 			BtcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
 

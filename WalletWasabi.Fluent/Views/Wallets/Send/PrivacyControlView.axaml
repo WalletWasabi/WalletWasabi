@@ -8,11 +8,11 @@
              x:DataType="vm:PrivacyControlViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyControlView">
-    <c:ContentArea Title="Privacy Control"
+    <c:ContentArea Title="Send - Privacy Control"
                    Caption="Parts of your wallet are know to certain entities. Select the entities you can tolerate leaking information about this transaction:"
                    HorizontalAlignment="Left"
                    EnableBack="True"
-                   EnableCancel="False"
+                   EnableCancel="True"
                    EnableNext="True"
                    NextContent="Continue"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
@@ -33,11 +33,12 @@
             <DataGrid AutoGenerateColumns="False"
                       Margin="0 20"
                       Items="{Binding Pockets}">
-                <DataGrid.Styles>
-                    <Style Selector="DataGridRow:selected /template/ Border#PART_SelectionIndicator">
-                        <Setter Property="BorderBrush" Value="{x:Null}" />
-                    </Style>
-                </DataGrid.Styles>
+                <DataGrid.Resources>
+                    <SolidColorBrush x:Key="DataGridRowIndicatorBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="DataGridRowSelectedBackgroundColor" Color="Transparent" />
+                    <StaticResource x:Key="DataGridRowSelectedUnfocusedBackgroundColor"
+                                    ResourceKey="DataGridRowSelectedBackgroundColor" />
+                </DataGrid.Resources>
                 <DataGrid.Columns>
                     <DataGridTemplateColumn CanUserSort="False" CanUserResize="False" CanUserReorder="False">
                         <DataGridTemplateColumn.CellTemplate>

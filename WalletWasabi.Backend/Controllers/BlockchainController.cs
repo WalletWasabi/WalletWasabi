@@ -161,31 +161,24 @@ namespace WalletWasabi.Backend.Controllers
 			try
 			{
 				var hexes = new Dictionary<uint256, string>();
-				var queryRpc = false;
-				IRPCClient batchingRpc = null;
-				List<Task<Transaction>> tasks = null;
+				IRPCClient batchingRpc = RpcClient.PrepareBatch();
+				List<Task<Transaction>> tasks = new();
 				lock (TransactionHexCacheLock)
 				{
 					foreach (var txid in parsedIds)
 					{
-						if (TransactionHexCache.TryGetValue(txid, out string hex))
+						if (TransactionHexCache.TryGetValue(txid, out string? hex))
 						{
 							hexes.Add(txid, hex);
 						}
 						else
 						{
-							if (!queryRpc)
-							{
-								queryRpc = true;
-								batchingRpc = RpcClient.PrepareBatch();
-								tasks = new List<Task<Transaction>>();
-							}
 							tasks.Add(batchingRpc.GetRawTransactionAsync(txid));
 						}
 					}
 				}
 
-				if (queryRpc)
+				if (tasks.Any())
 				{
 					await batchingRpc.SendBatchAsync();
 
@@ -338,7 +331,7 @@ namespace WalletWasabi.Backend.Controllers
 
 		private async Task<StatusResponse> FetchStatusAsync()
 		{
-			StatusResponse status = new StatusResponse();
+			StatusResponse status = new();
 
 			// Updating the status of the filters.
 			if (DateTimeOffset.UtcNow - Global.IndexBuilderService.LastFilterBuildTime > FilterTimeout)

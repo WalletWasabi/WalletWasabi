@@ -52,7 +52,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 				node.VersionHandshake();
 
-				using Key k = new Key();
+				using Key k = new();
 				BitcoinWitPubKeyAddress address = k.PubKey.GetSegwitAddress(network);
 
 				// Number of transactions to send.
@@ -114,7 +114,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 				var dir = Common.GetWorkDir();
 
-				using Key k = new Key();
+				using Key k = new();
 				var addr = k.PubKey.GetSegwitAddress(network);
 				var notifier = coreNode.MempoolService;
 

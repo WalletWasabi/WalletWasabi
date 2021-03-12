@@ -9,7 +9,7 @@ namespace WalletWasabi.Gui.Converters
 {
 	public class ErrorSeverityColorConverter : IValueConverter
 	{
-		internal static Dictionary<ErrorSeverity, SolidColorBrush> ErrorSeverityColors = new Dictionary<ErrorSeverity, SolidColorBrush>
+		internal static Dictionary<ErrorSeverity, SolidColorBrush> ErrorSeverityColors = new()
 		{
 			{ ErrorSeverity.Default, new SolidColorBrush(Colors.White) },
 			{ ErrorSeverity.Info, new SolidColorBrush(Colors.LightCyan) },

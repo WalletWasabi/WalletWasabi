@@ -143,7 +143,7 @@ namespace WalletWasabi.Blockchain.Blocks
 
 		private async Task HandleMissedBlocksAsync(Block arrivedBlock)
 		{
-			List<Block> missedBlocks = new List<Block>
+			List<Block> missedBlocks = new()
 			{
 				arrivedBlock
 			};

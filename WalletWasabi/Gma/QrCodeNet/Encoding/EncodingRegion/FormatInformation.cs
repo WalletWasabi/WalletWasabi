@@ -75,7 +75,7 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 			//xor maskPattern
 			formatInfo ^= FormatInfoMaskPattern;
 
-			BitList resultBits = new BitList
+			BitList resultBits = new()
 			{
 				{ formatInfo, 15 }
 			};

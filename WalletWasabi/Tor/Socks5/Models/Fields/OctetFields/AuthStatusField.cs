@@ -4,7 +4,7 @@ namespace WalletWasabi.Tor.Socks5.Models.Fields.OctetFields
 {
 	public class AuthStatusField : OctetSerializableBase
 	{
-		public static AuthStatusField Success = new AuthStatusField(0x00);
+		public static AuthStatusField Success = new(0x00);
 
 		public AuthStatusField(byte value)
 		{

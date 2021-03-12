@@ -29,8 +29,8 @@ namespace WalletWasabi.Tests.UnitTests.Clients
 					? await content.ReadAsStringAsync(cancellation).ConfigureAwait(false)
 					: "";
 	
-				Uri baseUri = new Uri("http://127.0.0.1");
-				Uri uri = new Uri(baseUri, relativeUri);
+				Uri baseUri = new("http://127.0.0.1");
+				Uri uri = new(baseUri, relativeUri);
 				var parameters = HttpUtility.ParseQueryString(uri.Query);
 
 				Assert.True(parameters.Count <= 10);

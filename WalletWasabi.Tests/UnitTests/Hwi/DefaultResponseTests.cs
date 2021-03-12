@@ -85,17 +85,17 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
 		public async Task ThrowArgumentExceptionsForWrongDevicePathAsync(HwiClient client)
 		{
-			var wrongDeviePaths = new[] { "", " " };
+			var wrongDeviePaths = new[] { null, "", " " };
 			using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 			foreach (HardwareWalletModels deviceType in Enum.GetValues(typeof(HardwareWalletModels)).Cast<HardwareWalletModels>())
 			{
 				foreach (var wrongDevicePath in wrongDeviePaths)
 				{
-					await Assert.ThrowsAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, wrongDevicePath, cts.Token));
-					await Assert.ThrowsAsync<ArgumentException>(async () => await client.SetupAsync(deviceType, wrongDevicePath, false, cts.Token));
+					await Assert.ThrowsAnyAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, wrongDevicePath, cts.Token));
+					await Assert.ThrowsAnyAsync<ArgumentException>(async () => await client.SetupAsync(deviceType, wrongDevicePath, false, cts.Token));
 				}
-				await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.WipeAsync(deviceType, null!, cts.Token));
-				await Assert.ThrowsAsync<ArgumentNullException>(async () => await client.SetupAsync(deviceType, null!, false, cts.Token));
+				await Assert.ThrowsAnyAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, null!, cts.Token));
+				await Assert.ThrowsAnyAsync<ArgumentException>(async () => await client.SetupAsync(deviceType, null!, false, cts.Token));
 			}
 		}
 
@@ -157,7 +157,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		[InlineData("1.1-rc1\n", false)]
 		public void TryParseVersionTests(string input, bool isParsable)
 		{
-			Version expectedVersion = new Version(1, 1, 2);
+			Version expectedVersion = new(1, 1, 2);
 			Assert.Equal(isParsable, HwiParser.TryParseVersion(input, out Version? actualVersion));
 
 			if (isParsable)
