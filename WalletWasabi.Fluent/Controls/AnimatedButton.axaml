@@ -3,15 +3,15 @@
         xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
         xmlns:i="using:Avalonia.Xaml.Interactivity"
         xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
   <Design.PreviewWith>
-    <c:AnimatedButton />
+    <c:AnimatedButton InitialOpacity="0.5" PointerOverOpacity="0.75" />
   </Design.PreviewWith>
-  <Style Selector="Button > Panel > PathIcon">
-    <Setter Property="Opacity" Value="0.5" />
-  </Style>
+    <Style Selector="Button > Panel > PathIcon">
+      <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].InitialOpacity}" />
+    </Style>
     <Style Selector="Button:pointerover > Panel > PathIcon">
-      <Setter Property="Opacity" Value="0.75" />
+      <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
     </Style>
     <Style Selector="PathIcon.hidden">
       <Setter Property="IsVisible" Value="False" />
@@ -20,7 +20,7 @@
       <Style.Animations>
         <Animation Duration="0:0:1.4" Easing="{StaticResource FluentEasing}">
           <KeyFrame KeyTime="0:0:0.0">
-            <Setter Property="Opacity" Value="0.75" />
+            <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
           </KeyFrame>
           <KeyFrame KeyTime="0:0:0.2">
             <Setter Property="Opacity" Value="0.0" />
@@ -31,7 +31,7 @@
             <Setter Property="IsVisible" Value="True" />
           </KeyFrame>
           <KeyFrame KeyTime="0:0:1.4">
-            <Setter Property="Opacity" Value="0.75" />
+            <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
           </KeyFrame>
         </Animation>
       </Style.Animations>
@@ -44,10 +44,10 @@
             <Setter Property="IsVisible" Value="True" />
           </KeyFrame>
           <KeyFrame KeyTime="0:0:0.2">
-            <Setter Property="Opacity" Value="0.75" />
+            <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
           </KeyFrame>
           <KeyFrame KeyTime="0:0:0.8">
-            <Setter Property="Opacity" Value="0.75" />
+            <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
           </KeyFrame>
           <KeyFrame KeyTime="0:0:1.0">
             <Setter Property="Opacity" Value="0.0" />

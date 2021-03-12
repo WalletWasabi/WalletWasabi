@@ -21,7 +21,7 @@
   <c:ContentArea Title="{Binding Title}"
                  Caption="Type your wallet-specific recovery options and click Continue."
                  EnableCancel="True" CancelContent="Cancel"
-                 EnableNext="True" NextContent="Continue">
+                 EnableNext="True" NextContent="OK">
     <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380" Margin="30 0 0 0">
 
       <DockPanel>
