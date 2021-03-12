@@ -330,7 +330,7 @@ namespace WalletWasabi.Hwi.Parsers
 			return Version.Parse(onlyVersion);
 		}
 
-		public static string ToArgumentString(Network network, IEnumerable<HwiOption> options, HwiCommands? command, string commandArguments)
+		public static string ToArgumentString(Network network, IEnumerable<HwiOption> options, HwiCommands? command, string? commandArguments)
 		{
 			options ??= Enumerable.Empty<HwiOption>();
 			var fullOptions = new List<HwiOption>(options);
