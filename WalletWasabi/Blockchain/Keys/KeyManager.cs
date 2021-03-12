@@ -607,14 +607,6 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 		}
 
-		public void ResetHeight()
-		{
-			lock (BlockchainStateLock)
-			{
-				BlockchainState.Height = new Height(0);
-			}
-		}
-
 		#region BlockchainState
 
 		public Height GetBestHeight()
