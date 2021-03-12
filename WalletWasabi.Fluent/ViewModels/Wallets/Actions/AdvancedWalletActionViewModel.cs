@@ -1,4 +1,5 @@
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 {
@@ -11,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 		NavigationTarget = NavigationTarget.HomeScreen)]
 	public partial class AdvancedWalletActionViewModel : NavBarItemViewModel
 	{
-		public AdvancedWalletActionViewModel(WalletViewModelBase wallet)
+		public AdvancedWalletActionViewModel(WalletViewModelBase wallet) : base(NavigationMode.Normal)
 		{
 			Title = "Advanced";
 		}
