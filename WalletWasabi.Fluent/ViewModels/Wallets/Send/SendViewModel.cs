@@ -37,7 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		IconName = "wallet_action_send",
 		NavBarPosition = NavBarPosition.None,
 		Searchable = false,
-		NavigationTarget = NavigationTarget.HomeScreen)]
+		NavigationTarget = NavigationTarget.DialogScreen)]
 	public partial class SendViewModel : NavBarItemViewModel
 	{
 		private readonly WalletViewModel _owner;
