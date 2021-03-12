@@ -61,7 +61,6 @@
         </Style>
         <Style Selector="c|Dialog:open /template/ Panel#PART_Overlay">
           <Setter Property="IsHitTestVisible" Value="False"/>
-          <Setter Property="Opacity" Value="1"/>
         </Style>
         <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
           <Setter Property="Background" Value="{DynamicResource RegionColor}"/>
@@ -89,7 +88,6 @@
         </Style>
         <Style Selector="c|Dialog:open /template/ Panel#PART_Overlay">
           <Setter Property="IsHitTestVisible" Value="False"/>
-          <Setter Property="Opacity" Value="1"/>
         </Style>
       </c:Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />
@@ -107,7 +105,6 @@
         </Style>
         <Style Selector="c|Dialog:open /template/ Panel#PART_Overlay">
           <Setter Property="IsHitTestVisible" Value="False"/>
-          <Setter Property="Opacity" Value="1"/>
         </Style>
       </c:Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />
