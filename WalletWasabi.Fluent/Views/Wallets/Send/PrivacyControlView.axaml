@@ -12,7 +12,6 @@
                    Caption="Parts of your wallet are know to certain entities. Select the entities you can tolerate leaking information about this transaction:"
                    HorizontalAlignment="Left"
                    EnableBack="True"
-                   EnableCancel="False"
                    EnableNext="True"
                    NextContent="Continue"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
