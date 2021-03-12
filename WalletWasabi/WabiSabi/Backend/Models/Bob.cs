@@ -15,14 +15,13 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		/// </summary>
 		long CredentialAmount)
 	{
-
-		public int OutputVsize 
+		public int OutputVsize
 			=> Script.EstimateOutputVsize();
 
 		public Money CalculateOutputAmount(FeeRate feeRate)
 			=> CredentialAmount - feeRate.GetFee(OutputVsize);
 
-		public long CalculateWeight() 
+		public long CalculateWeight()
 			=> OutputVsize * 4;
 	}
 }
