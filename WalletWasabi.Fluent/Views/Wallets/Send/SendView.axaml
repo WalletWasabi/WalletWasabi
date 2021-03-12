@@ -101,7 +101,6 @@
     </UserControl.Styles>
     <c:ContentArea Title="Send" Caption=""
                   HorizontalAlignment="Left"
-                   EnableCancel="False"
                    EnableNext="True"
                    NextContent="Continue"
                    ClipToBounds="False"

@@ -10,7 +10,6 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionPreviewView">
     <c:ContentArea Title="Send - Preview Transaction" Caption=""
                    EnableBack="True"
-                   EnableCancel="True"
                    EnableNext="True" NextContent="Confirm"
                    IsBusy="{Binding IsBusy}"
                    ScrollViewer.VerticalScrollBarVisibility="Auto">
