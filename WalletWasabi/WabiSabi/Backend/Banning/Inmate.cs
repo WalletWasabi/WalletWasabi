@@ -11,21 +11,12 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 	/// <summary>
 	/// A UTXO that's living inside the prison.
 	/// </summary>
-	public class Inmate
+	public record Inmate(
+		OutPoint Utxo,
+		Punishment Punishment,
+		DateTimeOffset Started,
+		Guid LastDisruptedRoundId)
 	{
-		public Inmate(OutPoint utxo, Punishment punishment, DateTimeOffset started, Guid lastDisruptedRoundId)
-		{
-			Utxo = utxo;
-			Punishment = punishment;
-			Started = started;
-			LastDisruptedRoundId = lastDisruptedRoundId;
-		}
-
-		public OutPoint Utxo { get; }
-		public Punishment Punishment { get; }
-		public DateTimeOffset Started { get; }
-		public Guid LastDisruptedRoundId { get; }
-
 		public TimeSpan TimeSpent => DateTimeOffset.UtcNow - Started;
 
 		public static Inmate FromString(string str)
@@ -47,8 +38,6 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 		}
 
 		public override string ToString()
-		{
-			return $"{Started.ToUnixTimeSeconds()}:{Punishment}:{Utxo.Hash}:{Utxo.N}:{LastDisruptedRoundId}";
-		}
+			=> $"{Started.ToUnixTimeSeconds()}:{Punishment}:{Utxo.Hash}:{Utxo.N}:{LastDisruptedRoundId}";
 	}
 }
