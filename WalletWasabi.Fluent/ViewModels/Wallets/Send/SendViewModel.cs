@@ -146,12 +146,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						}
 						catch (InsufficientBalanceException)
 						{
-							var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private);
+							var txRes = TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true);
+							var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private, txRes);
 							var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 
 							if (result.Result)
 							{
-								var txRes = TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true);
 								Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 								return;
 							}
