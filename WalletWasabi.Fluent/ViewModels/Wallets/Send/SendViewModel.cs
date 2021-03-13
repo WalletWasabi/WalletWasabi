@@ -115,6 +115,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					});
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNext(broadcaster), nextCommandCanExecute);
+
+			EnableAutoBusyOn(NextCommand);
 		}
 
 		public ICommand PasteCommand { get; }
@@ -134,13 +136,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_parsingUrl = false;
 		}
 
+		private async Task OnNext(TransactionBroadcaster broadcaster)
+		{
+			var transactionInfo = _transactionInfo;
+			var wallet = _owner.Wallet;
+			var targetAnonymitySet = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+			var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
+			var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
 
-				if (transactionInfo.Amount <= totalMixedCoinsAmount)
+			if (transactionInfo.Amount <= totalMixedCoinsAmount)
+			{
+				try
 				{
 					try
 					{
-						var txRes = TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount,
-							transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: false);
+						var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address,
+							transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins,
+							subtractFee: false));
 						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 						return;
 					}
@@ -151,28 +163,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 						if (result.Result)
 						{
-							var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: false));
+							var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet,
+								transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate,
+								mixedCoins, subtractFee: true));
 							Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 							return;
 						}
-						catch (InsufficientBalanceException)
-						{
-							var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private);
-							var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
-
-							if (result.Result)
-							{
-								var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true));
-								Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
-								return;
-							}
-						}
-					}
-					catch(Exception ex)
-					{
-						Logger.LogError(ex);
-						await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
-						return;
 					}
 				}
 				catch (Exception ex)
@@ -184,10 +180,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 			}
 
-				Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
-			}, nextCommandCanExecute);
-
-			EnableAutoBusyOn(NextCommand);
+			Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
 		}
 
 		private TimeSpan CalculateConfirmationTime(double targetBlock)
