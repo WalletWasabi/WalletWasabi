@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -46,13 +47,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
 		{
-			IsBusy = true;
 			base.OnNavigatedTo(inHistory, disposables);
 
 			if (!inHistory)
 			{
 				RxApp.MainThreadScheduler.Schedule(async () =>
 				{
+					IsBusy = true;
+
 					var intent = new PaymentIntent(
 						_transactionInfo.Address,
 						MoneyRequest.CreateAllRemaining(subtractFee: true),
@@ -60,7 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					if (_requestedTransaction.SpentCoins.Count() > 1)
 					{
-						var smallerTransaction = _wallet.BuildTransaction(
+						var smallerTransaction = await Task.Run(() => _wallet.BuildTransaction(
 							_wallet.Kitchen.SaltSoup(),
 							intent,
 							FeeStrategy.CreateFromFeeRate(_transactionInfo.FeeRate),
@@ -69,7 +71,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 								.SpentCoins
 								.OrderBy(x => x.Amount)
 								.Skip(1)
-								.Select(x => x.OutPoint));
+								.Select(x => x.OutPoint)));
 
 						_privacySuggestions.Add(new PrivacySuggestionControlViewModel(
 							_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
@@ -82,12 +84,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					_privacySuggestions.Add(_defaultSelection);
 
-					var largerTransaction = _wallet.BuildTransaction(
+					var largerTransaction = await Task.Run(() => _wallet.BuildTransaction(
 						_wallet.Kitchen.SaltSoup(),
 						intent,
 						FeeStrategy.CreateFromFeeRate(_transactionInfo.FeeRate),
 						true,
-						_requestedTransaction.SpentCoins.Select(x => x.OutPoint));
+						_requestedTransaction.SpentCoins.Select(x => x.OutPoint)));
 
 					_privacySuggestions.Add(new PrivacySuggestionControlViewModel(
 						_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
