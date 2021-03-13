@@ -10,11 +10,10 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyControlView">
     <c:ContentArea Title="Send - Privacy Control"
                    Caption="Parts of your wallet are know to certain entities. Select the entities you can tolerate leaking information about this transaction:"
-                   HorizontalAlignment="Left"
                    EnableBack="True"
                    EnableCancel="True"
-                   EnableNext="True"
-                   NextContent="Continue"
+                   EnableNext="True" NextContent="Continue"
+                   IsBusy="{Binding IsBusy}"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DockPanel>
             <Panel MinHeight="60" DockPanel.Dock="Bottom">
