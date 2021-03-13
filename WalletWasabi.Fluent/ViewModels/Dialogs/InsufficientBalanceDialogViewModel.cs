@@ -18,13 +18,13 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			switch (type)
 			{
 				case BalanceType.Private:
-					Text = $"There are not enough private funds to cover the transaction fee. The closest Wasabi can do to your request is send {amount} BTC with a Fee of {fee} BTC using private funds.\nWould you like to do that?";
+					Text = $"There are not enough private funds to cover the transaction fee. The closest Wasabi can do to your request is send {amount} BTC with a fee of {fee} BTC.\nWould you like to do that?";
 					break;
 				case BalanceType.Pocket:
-					Text = $"There are not enough funds selected to cover the transaction fee. Wasabi can subtract the fee from the amount you are sending instead.\nWould you like to do that?";
+					Text = $"There are not enough funds selected to cover the transaction fee. The closest Wasabi can do to your request is send {amount} BTC with a fee of {fee} BTC.\nWould you like to do that?";
 					break;
 				default:
-					Text = $"There are not enough funds available to cover the transaction fee. Wasabi can subtract the fee from the amount you are sending instead.\nWould you like to do that?";
+					Text = $"There are not enough funds available to cover the transaction fee. The closest Wasabi can do to your request is send {amount} BTC with a fee of {fee} BTC.\nWould you like to do that?";
 					break;
 			}
 
