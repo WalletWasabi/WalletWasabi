@@ -150,9 +150,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					try
 					{
-						var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address,
-							transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins,
-							subtractFee: false));
+						var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: false));
 						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 						return;
 					}
@@ -163,9 +161,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 						if (result.Result)
 						{
-							var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet,
-								transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate,
-								mixedCoins, subtractFee: true));
+							var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true));
 							Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 							return;
 						}

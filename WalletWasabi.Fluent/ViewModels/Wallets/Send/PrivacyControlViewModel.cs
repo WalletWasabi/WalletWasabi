@@ -70,9 +70,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				try
 				{
-					var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet,
-						transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins,
-						subtractFee: false));
+					var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: false));
 					Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
 				}
 				catch (InsufficientBalanceException)
@@ -82,9 +80,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					if (result.Result)
 					{
-						var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet,
-							transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate,
-							coins, subtractFee: true));
+						var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: true));
 						Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
 					}
 					else
