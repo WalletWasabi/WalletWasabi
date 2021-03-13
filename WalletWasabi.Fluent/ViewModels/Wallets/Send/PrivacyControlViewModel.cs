@@ -92,8 +92,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
-				await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(),
-					"Wasabi was unable to create your transaction.");
+				await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
 				Navigate().BackTo<SendViewModel>();
 			}
 		}
