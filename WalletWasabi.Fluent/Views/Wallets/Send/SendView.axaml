@@ -104,6 +104,7 @@
                    EnableNext="True"
                    NextContent="Continue"
                    ClipToBounds="False"
+                   IsBusy="{Binding IsBusy}"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
         <DockPanel Margin="0 0 0 -32">
