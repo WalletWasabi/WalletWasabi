@@ -1,18 +1,18 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 
 namespace WalletWasabi.Fluent.Validation
 {
-	public class TextBoxValidation : AvaloniaObject
+	public class CheckMarkStatus
 	{
 		public static readonly AttachedProperty<bool> IsEnabledProperty =
-			AvaloniaProperty.RegisterAttached<IAvaloniaObject, bool>("IsEnabled", typeof(TextBoxValidation),
-				defaultBindingMode: BindingMode.TwoWay);
+			AvaloniaProperty.RegisterAttached<CheckMarkStatus, IAvaloniaObject, bool>("IsEnabled");
 
 		public static bool GetIsEnabled(IAvaloniaObject obj)
 		{
-			return (bool) obj.GetValue(IsEnabledProperty);
+			return obj.GetValue(IsEnabledProperty);
 		}
 
 		public static void SetIsEnabled(IAvaloniaObject obj, bool value)
