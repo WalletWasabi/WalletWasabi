@@ -74,7 +74,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				if (round.InputCount < Config.MinInputCountByRound)
 				{
 					Rounds.Remove(round.Id);
-					round.LogInfo("Removed because the number of inputs was not enough.");
+					round.LogInfo($"Removed because the number of inputs ({round.InputCount}) was not enough.");
 				}
 				else
 				{
@@ -106,7 +106,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					if (round.InputCount < Config.MinInputCountByRound)
 					{
 						Rounds.Remove(round.Id);
-						round.LogInfo("Removed because the number of inputs was not enough.");
+						round.LogInfo($"Removed because the number of inputs ({round.InputCount}) was not enough.");
 					}
 					else
 					{
@@ -296,11 +296,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				if (!Rounds.TryGetValue(request.RoundId, out var round))
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
 				}
 				if (round.Phase != Phase.InputRegistration)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase.");
 				}
 				round.Alices.RemoveAll(x => x.Id == request.AliceId);
 			}
@@ -312,13 +312,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				if (!Rounds.TryGetValue(request.RoundId, out var round))
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
 				}
 
 				var alice = round.Alices.FirstOrDefault(x => x.Id == request.AliceId);
 				if (alice is null)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({request.RoundId}): Alice ({request.AliceId}) not found.");
 				}
 
 				var amountZeroCredentialResponse = round.AmountCredentialIssuer.HandleRequest(request.ZeroAmountCredentialRequests);
@@ -329,11 +329,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				if (realWeightCredentialRequests.Delta != alice.CalculateRemainingWeightCredentials(round.RegistrableWeightCredentials))
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials, $"Round ({request.RoundId}): Incorrect requested weight credentials.");
 				}
 				if (realAmountCredentialRequests.Delta != alice.CalculateRemainingAmountCredentials(round.FeeRate))
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, $"Round ({request.RoundId}): Incorrect requested amount credentials.");
 				}
 
 				if (round.Phase == Phase.InputRegistration)
@@ -357,7 +357,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 				else
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase.");
 				}
 			}
 		}
@@ -368,7 +368,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				if (!Rounds.TryGetValue(request.RoundId, out var round))
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
 				}
 
 				var credentialAmount = -request.AmountCredentialRequests.Delta;
@@ -378,22 +378,22 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var outputValue = bob.CalculateOutputAmount(round.FeeRate);
 				if (outputValue < round.MinRegistrableAmount)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds, $"Round ({request.RoundId}): Not enough funds.");
 				}
 				if (outputValue > round.MaxRegistrableAmount)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds, $"Round ({request.RoundId}): Too much funds.");
 				}
 
 				var weightCredentialRequests = request.WeightCredentialRequests;
 				if (-weightCredentialRequests.Delta != bob.CalculateWeight())
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials, $"Round ({request.RoundId}): Incorrect requested weight credentials.");
 				}
 
 				if (round.Phase != Phase.OutputRegistration)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase.");
 				}
 
 				var amountCredentialResponse = round.AmountCredentialIssuer.HandleRequest(request.AmountCredentialRequests);
@@ -414,12 +414,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				if (!Rounds.TryGetValue(request.RoundId, out var round))
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
 				}
 
 				if (round.Phase != Phase.TransactionSigning)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase.");
 				}
 				foreach (var inputWitnessPair in request.InputWitnessPairs)
 				{
@@ -448,7 +448,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					// 5. Verify if currentIndexedInput is correctly signed, if not, return the specific error.
 					if (!currentIndexedInput.VerifyScript(registeredCoin, out ScriptError error))
 					{
-						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongCoinjoinSignature);
+						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongCoinjoinSignature, $"Round ({request.RoundId}): Wrong CoinJoin signature.");
 					}
 
 					// Finally add it to our CJ.
