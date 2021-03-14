@@ -36,7 +36,7 @@
         </TextBox>
       </StackPanel>
       <StackPanel>
-        <Label Content="Type the Minimum _Gap Limit:" Target="TbGapLimit" DockPanel.Dock="Top" />
+        <Label Content="Type the Minimum _Gap Limit:" Target="TbGapLimit" />
         <TextBox Name="TbGapLimit" Watermark="e.g., 63"
                  Text="{Binding MinGapLimit}"
                  DockPanel.Dock="Top"
