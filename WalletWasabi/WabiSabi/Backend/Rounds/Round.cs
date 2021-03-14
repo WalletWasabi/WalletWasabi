@@ -71,7 +71,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		public void SetPhase(Phase phase)
 		{
-			Logger.LogInfo($"Phase changed: {Phase} -> {phase}");
+			Logger.LogInfo($"Round ({Id}): Phase changed: {Phase} -> {phase}");
 			Phase = phase;
 
 			if (phase == Phase.ConnectionConfirmation)
