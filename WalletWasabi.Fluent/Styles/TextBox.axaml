@@ -123,4 +123,8 @@
       </ControlTemplate>
     </Setter>
   </Style>
+
+  <Style Selector="TextBox:not(:error) /template/ DataValidationErrors">
+    <Setter Property="IsVisible" Value="False"/>
+  </Style>
 </Styles>
