@@ -38,7 +38,7 @@
                       Margin="15  0"
                       VerticalAlignment="Center"
                       DockPanel.Dock="Right"
-                      Opacity="{Binding (validation:TextBoxValidation.IsEnabled), RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}" />
+                      Opacity="{Binding (validation:CheckMarkStatus.IsEnabled), RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}" />
             <Panel>
               <Border
                 Name="PART_BorderElement"
@@ -120,7 +120,7 @@
   </Style>
 
   <Style Selector="TextBox.hasCheckMarkBoolean /template/ PathIcon.checkMark.checkMarkBoolean">
-    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="IsVisible" Value="True" />
   </Style>
 
   <Style Selector="TextBox.selectable_text_block">
