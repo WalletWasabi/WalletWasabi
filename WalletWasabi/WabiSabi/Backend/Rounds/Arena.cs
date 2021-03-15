@@ -170,6 +170,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private async Task StepTransactionSigningPhaseAsync()
 		{
+			Logger.LogInfo($"Step {nameof(Phase.TransactionSigning)} Phase.");
+
 			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.TransactionSigning).ToArray())
 			{
 				var coinjoin = round.Coinjoin;
@@ -204,7 +206,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					}
 					else if (round.TransactionSigningStart + round.TransactionSigningTimeout < DateTimeOffset.UtcNow)
 					{
-						throw new TimeoutException($"Signing phase timed out after {round.TransactionSigningTimeout.TotalSeconds} seconds.");
+						throw new TimeoutException($"Round {round.Id}: Signing phase timed out after {round.TransactionSigningTimeout.TotalSeconds} seconds.");
 					}
 				}
 				catch (Exception ex)
