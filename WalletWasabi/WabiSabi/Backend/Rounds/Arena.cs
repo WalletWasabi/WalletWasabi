@@ -300,7 +300,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 				if (round.Phase != Phase.InputRegistration)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase.");
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
 				}
 				round.Alices.RemoveAll(x => x.Id == request.AliceId);
 			}
@@ -357,7 +357,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 				else
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase.");
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
 				}
 			}
 		}
@@ -393,7 +393,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				if (round.Phase != Phase.OutputRegistration)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase.");
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
 				}
 
 				var amountCredentialResponse = round.AmountCredentialIssuer.HandleRequest(request.AmountCredentialRequests);
@@ -419,7 +419,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				if (round.Phase != Phase.TransactionSigning)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase.");
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
 				}
 				foreach (var inputWitnessPair in request.InputWitnessPairs)
 				{
