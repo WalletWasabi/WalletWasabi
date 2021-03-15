@@ -14,7 +14,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		/// <summary>
 		/// Verifies HWI binaries distributed with Wasabi Wallet against checksums on https://github.com/bitcoin-core/HWI/releases/.
 		/// </summary>
-		/// <seealso href="https://github.com/bitcoin-core/HWI/releases/download/2.0.0-rc.3/SHA256SUMS.txt.asc">Our current HWI version is 2.0.0.</seealso>
+		/// <seealso href="https://github.com/bitcoin-core/HWI/releases/download/2.0.0/SHA256SUMS.txt.asc">Our current HWI version is 2.0.0.</seealso>
 		[Fact]
 		public void VerifyHwiBinaryChecksumHashes()
 		{
@@ -22,9 +22,9 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 
 			Dictionary<OSPlatform, string> expectedHashes = new()
 			{
-				{ OSPlatform.Windows, "14c5148c4948eb8c4e74ab92664924b9363b80ff0334c67e5bb3139cc0235154" },
-				{ OSPlatform.Linux, "80564b438207241ce7693ecd9f601453ef33cffdf5bc09fb7a31d3fdfbec6361" },
-				{ OSPlatform.OSX, "0f4f5ec90ee87ee8a20813a22e040a0b77ed934c9d93f88d4d17d4413a1f9376" },
+				{ OSPlatform.Windows, "e680a8f44f7a53f1ee4eb81261f4fe4f817030ebfa63b2a16950e36e5219db75" },
+				{ OSPlatform.Linux, "66c44787efa858938e902fba2e5110f327e36b24c61912e2f17918b7a2673a2f" },
+				{ OSPlatform.OSX, "a1796cbb9e81712447acc277b2c0074ebe40e9743b0b104cfdfb8570d3745253" },
 			};
 
 			foreach (var item in expectedHashes)
