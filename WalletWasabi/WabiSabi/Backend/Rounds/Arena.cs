@@ -100,8 +100,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					{
 						Prison.Note(alice, round.Id);
 					}
-					var numberAlicesRemoved = round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
-					round.LogInfo($"{numberAlicesRemoved} alices removed because they didn't confirm.");
+					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
+					round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
 
 					if (round.InputCount < Config.MinInputCountByRound)
 					{
@@ -266,7 +266,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var removedAliceCount = round.Alices.RemoveAll(x => x.Deadline < DateTimeOffset.UtcNow);
 				if (removedAliceCount > 0)
 				{
-					Logger.LogInfo($"{removedAliceCount} alices timed out and removed.");
+					round.LogInfo($"{removedAliceCount} alices timed out and removed.");
 				}
 			}
 		}
