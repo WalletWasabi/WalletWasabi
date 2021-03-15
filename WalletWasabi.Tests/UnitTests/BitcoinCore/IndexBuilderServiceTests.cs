@@ -1,3 +1,4 @@
+using Moq;
 using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.RPC;
@@ -5,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
@@ -124,28 +126,73 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			Assert.Equal(9, result.filters.Count());
 		}
 
-		private IEnumerable<VerboseBlockInfo> GenerateBlockchain()
+		[Fact]
+		public async Task IncludeTaprootScriptInFiltersAsync()
 		{
-			var height = 0u;
-			var genesis = new VerboseBlockInfo(uint256.Zero, 1_000_000, BlockHashFromHeight(height), DateTimeOffset.UtcNow.AddYears(-1), height, Enumerable.Empty<VerboseTransactionInfo>());
-			var currentBlock = genesis;
-			while (true)
+			var blockchain = GenerateBlockchain().Take(10).ToArray();
+			var mockRpcClient = new Mock<IRPCClient>();
+			mockRpcClient.SetupGet(rpc => rpc.Network).Returns(Network.RegTest);
+			mockRpcClient.Setup(rpc => rpc.GetBlockchainInfoAsync()).ReturnsAsync(new BlockchainInfo
 			{
-				yield return currentBlock;
-				height++;
-				currentBlock = new VerboseBlockInfo(
-					currentBlock.Hash,
-					currentBlock.Confirmations - 1,
-					BlockHashFromHeight(height),
-					currentBlock.BlockTime.AddMinutes(10),
-					height,
-					Enumerable.Empty<VerboseTransactionInfo>());
-			}
+				Headers = (ulong)blockchain.Length - 1,
+				Blocks = (ulong)blockchain.Length - 1,
+				InitialBlockDownload = false
+			});
+			mockRpcClient.Setup(rpc => rpc.GetBlockHashAsync(It.IsAny<int>()))
+				.ReturnsAsync((int height) => blockchain[height].Hash);
+			mockRpcClient.Setup(rpc => rpc.GetVerboseBlockAsync(It.IsAny<uint256>()))
+				.ReturnsAsync((uint256 hash) => blockchain.Single(x => x.Hash == hash));
+
+			var rpc = mockRpcClient.Object;
+			using var blockNotifier = new BlockNotifier(TimeSpan.MaxValue, rpc);
+			var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
+
+			indexer.Synchronize();
+
+			await Task.Delay(TimeSpan.FromSeconds(5));
+			Assert.False(indexer.IsRunning);  // we are done
+
+			var firstTaprootScript = blockchain.First()
+				.Transactions.First()
+				.Outputs.Where(x => x.PubkeyType == RpcPubkeyType.TxWitnessV1Taproot)
+				.Select(x => x.ScriptPubKey)
+				.First();
+
+			var result = indexer.GetFilterLinesExcluding(blockchain[0].Hash, 100, out var found);
+			static byte[] ComputeKey(uint256 blockId) => blockId.ToBytes()[0..16];
+
+			Assert.True(result.filters.Any(filterModel => 
+				filterModel.Filter.Match(
+					firstTaprootScript.ToCompressedBytes(), 
+					ComputeKey(filterModel.Header.BlockHash))));
 		}
 
-		private static uint256 BlockHashFromHeight(uint height)
-		{
-			return Hashes.DoubleSHA256(BitConverter.GetBytes(height));
-		}
+		private IEnumerable<VerboseBlockInfo> GenerateBlockchain() =>
+			from height in GenerateHeights()
+			select new VerboseBlockInfo(
+				BlockHashFromHeight(height),
+				height,
+				BlockHashFromHeight(height + 1),
+				DateTimeOffset.UtcNow.AddMinutes(height * 10),
+				height,
+				GenerateTransactions()
+				);
+
+		private IEnumerable<ulong> GenerateHeights() =>
+			Enumerable.Range(0, int.MaxValue).Select(x => (ulong)x);
+
+		private IEnumerable<VerboseTransactionInfo> GenerateTransactions() =>
+			from i in Enumerable.Range(0, 2)
+			select new VerboseTransactionInfo(
+				uint256.Zero,
+				Enumerable.Empty<VerboseInputInfo>(),
+				GenerateOutputs());
+
+		private IEnumerable<VerboseOutputInfo> GenerateOutputs() =>
+			from scriptType in new[]{ "witness_v0_scripthash", "witness_v1_taproot"}
+			select new VerboseOutputInfo(Money.Coins(1), Script.FromBytesUnsafe(new byte[]{ 0, 1, 2, 3}), scriptType);
+
+		private static uint256 BlockHashFromHeight(ulong height)
+			=> height == 0 ? uint256.Zero : Hashes.DoubleSHA256(BitConverter.GetBytes(height));
 	}
 }
