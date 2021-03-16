@@ -87,7 +87,7 @@ namespace WalletWasabi.Tests.Helpers
 			var tx = Transaction.Create(Network.Main);
 			tx.Outputs.Add(new TxOut(amount, pubKey.P2wpkhScript));
 			var stx = new SmartTransaction(tx, height);
-			pubKey.SetAnonymitySet(anonymitySet, stx.GetHash());
+			pubKey.SetAnonymitySet(anonymitySet, stx.GetHash(), true);
 			return new SmartCoin(stx, index, pubKey);
 		}
 

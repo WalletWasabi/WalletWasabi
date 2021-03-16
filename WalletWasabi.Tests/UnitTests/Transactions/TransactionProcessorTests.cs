@@ -1273,15 +1273,15 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			var notYetPrivateCoin = transactionProcessor.NewKey("");
 			transactionProcessor.Process(CreateCreditingTransaction(notYetPrivateCoin.P2wpkhScript, Money.Coins(1.0m)));
-			notYetPrivateCoin.SetAnonymitySet(targetAnonSet - 1, 0);
+			notYetPrivateCoin.SetAnonymitySet(targetAnonSet - 1, 0, true);
 
 			var privateCoin1 = transactionProcessor.NewKey("");
 			transactionProcessor.Process(CreateCreditingTransaction(privateCoin1.P2wpkhScript, Money.Coins(1.0m)));
-			privateCoin1.SetAnonymitySet(targetAnonSet, 0);
+			privateCoin1.SetAnonymitySet(targetAnonSet, 0, true);
 
 			var privateCoin2 = transactionProcessor.NewKey("");
 			transactionProcessor.Process(CreateCreditingTransaction(privateCoin2.P2wpkhScript, Money.Coins(1.0m)));
-			privateCoin2.SetAnonymitySet(targetAnonSet, 0);
+			privateCoin2.SetAnonymitySet(targetAnonSet, 0, true);
 
 			var pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins, targetAnonSet);
 			var aPocket = pockets.Single(x => x.SmartLabel == "A");
