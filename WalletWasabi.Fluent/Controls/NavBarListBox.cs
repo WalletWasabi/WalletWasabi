@@ -34,6 +34,7 @@ namespace WalletWasabi.Fluent.Controls
 		protected override void OnPointerPressed(PointerPressedEventArgs e)
 		{
 			var previousSelectedItem = SelectedItem;
+
 			// Console.WriteLine($"BEFORE OnPointerPressed {SelectedItem?.GetType().Name}");
 
 			base.OnPointerPressed(e);
