@@ -102,7 +102,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			if (!_walletManagerViewModel.WalletManager.AnyWallet(_ => true))
 			{
 				_addWalletPage.Navigate().To(_addWalletPage, NavigationMode.Clear);
-				// MainScreen.To(_addWalletPage);
 			}
 		}
 
