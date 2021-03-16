@@ -152,9 +152,10 @@ namespace WalletWasabi.Blockchain.Analysis
 					// If we already processed this transaction for this script
 					// then we'll go with normal processing.
 					// It may be a duplicated processing or new information arrived (like other wallet loaded)
+					// If there are more anonsets already
+					// then it's address reuse that we have already punished so leave it alone.
 					if (hdPubKey.OutputAnonSetReasons.Count == 1)
 					{
-						// If there are more anonsets already then it's address reuse so leave it alone.
 						hdPubKey.SetAnonymitySet(anonset, txid, true);
 					}
 				}
