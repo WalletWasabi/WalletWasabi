@@ -258,12 +258,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			if (Match(keymap.Paste))
 			{
-				var text = await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync();
-
-				if (!string.IsNullOrEmpty(text) && ValidateEntryText(text))
-				{
-					base.OnTextInput(new TextInputEventArgs { Text = text});
-				}
+				ModifiedPaste();
 			}
 			else
 			{
@@ -273,7 +268,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		public async void ModifiedPaste()
 		{
-			var text = (await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync()).Replace("\r", "").Replace("\n", "");
+			var text = (await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync()).Replace("\r", "").Replace("\n", "").Trim();
 
 			if (!string.IsNullOrEmpty(text) || ValidateEntryText(text))
 			{
