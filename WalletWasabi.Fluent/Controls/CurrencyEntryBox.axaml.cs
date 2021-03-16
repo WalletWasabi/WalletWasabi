@@ -226,8 +226,9 @@ namespace WalletWasabi.Fluent.Controls
 
 			if (IsConversionReversed)
 			{
-				// Fiat input restriction is to only allow 2 decimal places.
-				if (frac > 2 && fracStr.Count(x=>x == _decimalSeparator) > 1)
+				// Fiat input restriction is is to only allow 2 decimal places max
+				// and also 16 whole number places.
+				if ((whole > 16 && !trailingDecimal) || frac > 2)
 				{
 					return false;
 				}
@@ -268,9 +269,26 @@ namespace WalletWasabi.Fluent.Controls
 
 		public async void ModifiedPaste()
 		{
-			var text = (await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync()).Replace("\r", "").Replace("\n", "").Trim();
+			var text = await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync();
 
-			if (!string.IsNullOrEmpty(text) || ValidateEntryText(text))
+			if (string.IsNullOrEmpty(text))
+			{
+				return;
+			}
+
+			text = text.Replace("\r", "").Replace("\n", "").Trim();
+
+			// Based on broad M0 money supply figures (80 900 000 000 000.00 USD).
+			// so USD has 14 whole places + the decimal point + 2 decimal places = 17 characters.
+			// Bitcoin has "21 000 000 . 0000 0000".
+			// Coincidentally the same character count as USD... weird.
+			// Plus adding 4 characters for the group separators.
+			if (text.Length > 17 + 4)
+			{
+				text = text.Substring(0, 17 + 4);
+			}
+
+			if (ValidateEntryText(text))
 			{
 				base.OnTextInput(new TextInputEventArgs {Text = text});
 			}
