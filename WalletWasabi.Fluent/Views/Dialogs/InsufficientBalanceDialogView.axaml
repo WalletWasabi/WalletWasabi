@@ -20,7 +20,7 @@
         <Setter Property="Opacity" Value="0.85" />
       </Style>
     </c:ContentArea.Styles>
-    <c:QuestionControl Text="Would you like to this instead?"
+    <c:QuestionControl Text="Would you like to do this instead?"
                        YesCommand="{Binding NextCommand}"
                        NoCommand="{Binding CancelCommand}"
                        HighlightButton="YesButton">
