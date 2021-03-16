@@ -25,7 +25,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, reuse) });
 
 			// Make the reused key anonymity set something smaller than 109 (which should be the final anonymity set)
-			reuse.SetAnonymitySet(30, uint256.One, true);
+			reuse.SetAnonymitySet(30, uint256.One);
 
 			analyser.Analyze(tx);
 
@@ -49,7 +49,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, reuse) });
 
 			// Make the reused key anonymity set something smaller than 109 (which should be the final anonymity set)
-			reuse.SetAnonymitySet(30, uint256.One, true);
+			reuse.SetAnonymitySet(30, uint256.One);
 
 			analyser.Analyze(tx);
 			var inputAnonsets = tx.WalletInputs.Select(x => x.HdPubKey.AnonymitySet).ToArray();
@@ -86,7 +86,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 				new[] { (Money.Coins(1.1m), 100, BitcoinFactory.CreateHdPubKey(km)) },
 				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, reuse) });
 
-			reuse.SetAnonymitySet(30, uint256.One, true);
+			reuse.SetAnonymitySet(30, uint256.One);
 
 			analyser.Analyze(tx);
 
@@ -183,7 +183,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 				new[] { (Money.Coins(1.1m), 100, BitcoinFactory.CreateHdPubKey(ServiceFactory.CreateKeyManager())) },
 				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, reuse) });
 
-			reuse.SetAnonymitySet(30, uint256.One, true);
+			reuse.SetAnonymitySet(30, uint256.One);
 
 			analyser.Analyze(tx);
 

@@ -97,9 +97,9 @@ namespace WalletWasabi.Blockchain.Keys
 
 		private int HashCode { get; }
 
-		public void SetAnonymitySet(int anonset, uint256 reason, bool isOutput)
+		public void SetAnonymitySet(int anonset, uint256? reason = null)
 		{
-			if (isOutput)
+			if (reason is not null)
 			{
 				OutputAnonSetReasons.Add(reason);
 			}
