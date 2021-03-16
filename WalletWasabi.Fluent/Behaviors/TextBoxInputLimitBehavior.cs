@@ -38,10 +38,35 @@ namespace WalletWasabi.Fluent.Behaviors
 			AssociatedObject?
 				.AddDisposableHandler(TextBox.TextInputEvent, OnTextInput, RoutingStrategies.Tunnel)
 				.DisposeWith(disposables);
+
 			AssociatedObject?
 				.AddDisposableHandler(TextBox.KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel)
 				.DisposeWith(disposables);
+
+			AssociatedObject?.WhenAnyValue(x=>x.Text)
+				.Subscribe(OnTextChanged)
+				.DisposeWith(disposables);
 		}
+
+
+
+
+		private void OnTextChanged(string o)
+		{
+			if (string.IsNullOrWhiteSpace(o))
+			{
+				return;
+			}
+
+			if (o.Length > PasteCharCountLimit)
+			{
+				Dispatcher.UIThread.Post(() =>
+				{
+					AssociatedObject.Text = o.Substring(0, PasteCharCountLimit);
+				});
+			}
+		}
+
 
 		private async void OnKeyDown(object? sender, KeyEventArgs e)
 		{
