@@ -54,7 +54,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				? new HardwareWalletViewModel(uiConfig, wallet)
 				: wallet.KeyManager.IsWatchOnly
 					? new WatchOnlyWalletViewModel(uiConfig, wallet)
-					: new WalletViewModel(uiConfig,  wallet);
+					: new WalletViewModel(uiConfig, wallet);
 		}
 	}
 }

@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class CurrencyUtils
 	{
-		private static NumberFormatInfo FormatInfo = new NumberFormatInfo()
+		private static NumberFormatInfo FormatInfo = new()
 		{
 			CurrencyGroupSeparator = " ",
 			NumberGroupSeparator = " ",

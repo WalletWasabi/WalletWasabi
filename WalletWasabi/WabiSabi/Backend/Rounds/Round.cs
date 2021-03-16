@@ -71,6 +71,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		public void SetPhase(Phase phase)
 		{
+			if (!Enum.IsDefined<Phase>(phase))
+			{
+				throw new ArgumentException($"Invalid phase {phase}. This is a bug.", nameof(phase));
+			}
+			
 			Logger.LogInfo($"Round ({Id}): Phase changed: {Phase} -> {phase}");
 			Phase = phase;
 

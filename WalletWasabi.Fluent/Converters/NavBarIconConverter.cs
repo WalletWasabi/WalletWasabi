@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.Converters
 {
 	public class NavBarIconConverter : IValueConverter
 	{
-		public static readonly NavBarIconConverter Instance = new NavBarIconConverter();
+		public static readonly NavBarIconConverter Instance = new();
 
 		private NavBarIconConverter()
 		{

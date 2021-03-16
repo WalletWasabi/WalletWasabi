@@ -22,11 +22,11 @@ namespace Gma.QrCodeNet.Encoding.Versions
 
 			bool containECI = false;
 
-			BitList eciHeader = new BitList();
+			BitList eciHeader = new();
 
 			if (encodingName is not DefaultEncoding and not QRCodeConstantVariable.UTF8Encoding)
 			{
-				ECISet eciSet = new ECISet(ECISet.AppendOption.NameToValue);
+				ECISet eciSet = new(ECISet.AppendOption.NameToValue);
 				int eciValue = eciSet.GetECIValueByName(encodingName);
 
 				totalDataBits += ECISet.NumOfECIHeaderBits(eciValue);
@@ -63,7 +63,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 				throw new InvalidOperationException($"Unexpected version number: {versionNum}");
 			}
 
-			VersionControlStruct vcStruct = new VersionControlStruct();
+			VersionControlStruct vcStruct = new();
 
 			int version = versionNum;
 
@@ -75,7 +75,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 			int numDataBytes = numTotalBytes - ecBlocks.NumErrorCorrectionCodewards;
 			int numECBlocks = ecBlocks.NumBlocks;
 
-			VersionDetail vcDetail = new VersionDetail(version, numTotalBytes, numDataBytes, numECBlocks);
+			VersionDetail vcDetail = new(version, numTotalBytes, numDataBytes, numECBlocks);
 
 			vcStruct.VersionDetail = vcDetail;
 			return vcStruct;

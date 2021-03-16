@@ -10,6 +10,7 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ActionButton.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Checkmark.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/FontSizes.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/IconButton.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/InvisibleButton.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Label.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/OptionButton.axaml" />
@@ -18,6 +19,7 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/SplitView.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/TextBox.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/HyperlinkButton.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/AnimatedButton.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Controls/CurrencyEntryBox.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/DataGrid.axaml" />
 </Styles>

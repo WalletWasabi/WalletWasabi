@@ -57,7 +57,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			await using var transactionStore = new AllTransactionStore(Path.Combine(dataDir, "transactionStore"), network);
 			var mempoolService = new MempoolService();
 			var blocks = new FileSystemBlockRepository(Path.Combine(dataDir, "blocks"), network);
-			await using BitcoinStore bitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
+			await using BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, blocks);
 			await bitcoinStore.InitializeAsync();
 
 			var addressManagerFolderPath = Path.Combine(dataDir, "AddressManager");
@@ -94,11 +94,11 @@ namespace WalletWasabi.Tests.IntegrationTests
 			using var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
-			HttpClientFactory httpClientFactory = new HttpClientFactory(Common.TorSocks5Endpoint, backendUriGetter: () => new Uri("http://localhost:12345"));
-			WasabiSynchronizer syncer = new WasabiSynchronizer(network, bitcoinStore, httpClientFactory);
-			ServiceConfiguration serviceConfig = new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelStrong.ToString(), 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
-			CachedBlockProvider blockProvider = new CachedBlockProvider(
-				new P2pBlockProvider(nodes, null, syncer, serviceConfig, network),
+			HttpClientFactory httpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: () => new Uri("http://localhost:12345"));
+			WasabiSynchronizer syncer = new(network, bitcoinStore, httpClientFactory);
+			ServiceConfiguration serviceConfig = new(MixUntilAnonymitySet.PrivacyLevelStrong.ToString(), 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
+			CachedBlockProvider blockProvider = new(
+				new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfig, network),
 				bitcoinStore.BlockRepository);
 
 			using Wallet wallet = Wallet.CreateAndRegisterServices(

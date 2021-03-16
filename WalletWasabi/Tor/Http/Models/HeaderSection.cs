@@ -16,7 +16,7 @@ namespace WalletWasabi.Tor.Http.Models
 
 		public string ToString(bool endWithTwoCRLF)
 		{
-			StringBuilder sb = new StringBuilder();
+			StringBuilder sb = new();
 			foreach (var field in Fields)
 			{
 				sb.Append(field.ToString(endWithCRLF: true));

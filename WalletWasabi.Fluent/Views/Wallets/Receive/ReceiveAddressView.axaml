@@ -8,14 +8,6 @@
              x:DataType="receive:ReceiveAddressViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressView">
-  <UserControl.Styles>
-    <Style Selector="Button > PathIcon">
-      <Setter Property="Opacity" Value="0.5" />
-    </Style>
-    <Style Selector="Button:pointerover > PathIcon">
-      <Setter Property="Opacity" Value="0.75" />
-    </Style>
-  </UserControl.Styles>
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="OK"
                  EnableBack="True"
@@ -32,12 +24,15 @@
       <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="30">
         <DockPanel HorizontalAlignment="Center">
           <DockPanel>
-            <Button Margin="5 0 0 0" ToolTip.Tip="Show on the hardware wallet" DockPanel.Dock="Right" Classes="plain" Command="{Binding ShowOnHwWalletCommand}" IsVisible="{Binding IsHardwareWallet}">
-              <PathIcon Data="{StaticResource share_regular}"/>
-            </Button>
-            <Button Margin="10 0 0 0" ToolTip.Tip="Copy" DockPanel.Dock="Right" Classes="plain" Command="{Binding CopyAddressCommand}">
-              <PathIcon Data="{StaticResource copy_regular}"/>
-            </Button>
+            <c:AnimatedButton Margin="5 0 0 0" ToolTip.Tip="Show on the hardware wallet" DockPanel.Dock="Right"
+                              IsVisible="{Binding IsHardwareWallet}"
+                              Command="{Binding ShowOnHwWalletCommand}"
+                              NormalIcon="{StaticResource share_regular}"
+                              ClickIcon="{StaticResource copy_confirmed}"/>
+            <c:AnimatedButton Margin="10 0 0 0" ToolTip.Tip="Copy" DockPanel.Dock="Right"
+                              Command="{Binding CopyAddressCommand}"
+                              NormalIcon="{StaticResource copy_regular}"
+                              ClickIcon="{StaticResource copy_confirmed}"/>
             <TextBlock Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
           </DockPanel>
         </DockPanel>
@@ -45,7 +40,7 @@
       </StackPanel>
 
       <DockPanel MaxHeight="250" HorizontalAlignment="Center" Margin="0 0 -30 10">
-        <Button Command="{Binding SaveQrCodeCommand}" ToolTip.Tip="Save" Classes="plain" DockPanel.Dock="Right" VerticalAlignment="Bottom" Margin="10 0 0 0">
+        <Button Command="{Binding SaveQrCodeCommand}" ToolTip.Tip="Save" Classes="plain icon" DockPanel.Dock="Right" VerticalAlignment="Bottom" Margin="10 0 0 0">
           <PathIcon Data="{StaticResource save_regular}"/>
         </Button>
         <Viewbox HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Left">

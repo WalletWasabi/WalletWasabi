@@ -52,19 +52,19 @@ namespace WalletWasabi.Helpers
 
 		public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
-		public static readonly Version ClientVersion = new Version(1, 1, 12, 4);
-		public static readonly Version HwiVersion = new Version("1.2.1");
-		public static readonly Version BitcoinCoreVersion = new Version("0.21.0");
-		public static readonly Version LegalDocumentsVersion = new Version(2, 0);
+		public static readonly Version ClientVersion = new(1, 1, 12, 5);
+		public static readonly Version HwiVersion = new("2.0.0");
+		public static readonly Version BitcoinCoreVersion = new("0.21.0");
+		public static readonly Version LegalDocumentsVersion = new(2, 0);
 
-		public static readonly NodeRequirement NodeRequirements = new NodeRequirement
+		public static readonly NodeRequirement NodeRequirements = new()
 		{
 			RequiredServices = NodeServices.NODE_WITNESS,
 			MinVersion = ProtocolVersionWitnessVersion,
 			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true, SupportMempoolQuery = true }
 		};
 
-		public static readonly NodeRequirement LocalNodeRequirements = new NodeRequirement
+		public static readonly NodeRequirement LocalNodeRequirements = new()
 		{
 			RequiredServices = NodeServices.NODE_WITNESS,
 			MinVersion = ProtocolVersionWitnessVersion,

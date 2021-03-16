@@ -8,7 +8,7 @@
              x:DataType="vm:TransactionPreviewViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionPreviewView">
-    <c:ContentArea Title="Preview Transaction" Caption=""
+    <c:ContentArea Title="Send - Preview Transaction" Caption=""
                    EnableBack="True"
                    EnableCancel="True"
                    EnableNext="True" NextContent="Confirm"
@@ -86,9 +86,6 @@
                     </StackPanel>
                 </StackPanel>
             </StackPanel>
-
-            <TextBlock HorizontalAlignment="Center" Margin="0 5 0 0"
-                       Text="If this is correct click Confirm to authorise the transaction." />
         </StackPanel>
     </c:ContentArea>
 </UserControl>

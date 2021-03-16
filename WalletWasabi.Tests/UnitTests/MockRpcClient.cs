@@ -22,7 +22,7 @@ namespace WalletWasabi.Tests.UnitTests
 		public Func<Task<PeerInfo[]>> OnGetPeersInfoAsync { get; set; }
 
 		public Network Network { get; set; } = Network.RegTest;
-		public RPCCredentialString CredentialString => new RPCCredentialString();
+		public RPCCredentialString CredentialString => new();
 
 		public Task<uint256> GetBestBlockHashAsync()
 		{

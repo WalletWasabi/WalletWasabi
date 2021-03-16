@@ -25,19 +25,13 @@ namespace WalletWasabi.Tests.Helpers
 		public static InputRoundSignaturePair CreateInputRoundSignaturePair(Key? key = null, uint256? roundHash = null)
 		{
 			var rh = roundHash ?? BitcoinFactory.CreateUint256();
-			if (key is null)
-			{
-				using Key k = new();
-				return new InputRoundSignaturePair(
-						BitcoinFactory.CreateOutPoint(),
-						k.SignCompact(rh));
-			}
-			else
-			{
-				return new InputRoundSignaturePair(
-						BitcoinFactory.CreateOutPoint(),
-						key.SignCompact(rh));
-			}
+			var outpoint = BitcoinFactory.CreateOutPoint();
+			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", rh);
+
+			var signingKey = key ?? new();
+			return new InputRoundSignaturePair(
+				outpoint,
+				OwnershipProof.GenerateCoinJoinInputProof(signingKey, coinJoinInputCommitmentData).ToBytes());
 		}
 
 		public static InputRoundSignaturePair[] CreateInputRoundSignaturePairs(int count, uint256? roundHash = null)

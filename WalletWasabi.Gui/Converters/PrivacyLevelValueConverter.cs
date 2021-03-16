@@ -10,7 +10,7 @@ namespace WalletWasabi.Gui.Converters
 {
 	public class PrivacyLevelValueConverter : IValueConverter
 	{
-		private static readonly Dictionary<string, DrawingGroup> Cache = new Dictionary<string, DrawingGroup>();
+		private static readonly Dictionary<string, DrawingGroup> Cache = new();
 
 		public DrawingGroup GetIconByName(string icon)
 		{

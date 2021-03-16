@@ -6,10 +6,10 @@ namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 	{
 		internal static BitMatrix GetLowestPenaltyMatrix(this TriStateMatrix matrix, ErrorCorrectionLevel errorLevel)
 		{
-			PatternFactory patternFactory = new PatternFactory();
+			PatternFactory patternFactory = new();
 			int score = int.MaxValue;
 			int tempScore;
-			TriStateMatrix result = new TriStateMatrix(matrix.Width);
+			TriStateMatrix result = new(matrix.Width);
 			TriStateMatrix triMatrix;
 			foreach (Pattern pattern in patternFactory.AllPatterns())
 			{
@@ -27,7 +27,7 @@ namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 
 		internal static int PenaltyScore(this BitMatrix matrix)
 		{
-			PenaltyFactory penaltyFactory = new PenaltyFactory();
+			PenaltyFactory penaltyFactory = new();
 			return
 				penaltyFactory
 				.AllRules()

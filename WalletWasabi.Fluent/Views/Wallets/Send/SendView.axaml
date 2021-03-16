@@ -100,14 +100,14 @@
         </Style>
     </UserControl.Styles>
     <c:ContentArea Title="Send" Caption=""
-                  HorizontalAlignment="Left"
-                   EnableCancel="False"
+                   EnableCancel="True"
                    EnableNext="True"
                    NextContent="Continue"
                    ClipToBounds="False"
+                   IsBusy="{Binding IsBusy}"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-        <DockPanel ClipToBounds="False" Width="550" HorizontalAlignment="Stretch" Margin="0 0 0 -32">
+        <DockPanel Margin="0 0 0 -32">
             <StackPanel DockPanel.Dock="Top" Spacing="10">
                 <StackPanel.Styles>
                     <Style Selector="DockPanel > Label">
@@ -125,6 +125,7 @@
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
 
                                 <Button Classes="plain"
+                                        Focusable="False"
                                         KeyboardNavigation.IsTabStop="False"
                                         Command="{Binding PasteCommand}"
                                         ToolTip.Tip="Paste">
