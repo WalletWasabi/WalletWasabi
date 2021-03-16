@@ -50,6 +50,11 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				model = "ledger_nano_s";
 				rawPath = "\\\\\\\\?\\\\hid#vid_2c97&pid_0001&mi_00#7&e45ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
 			}
+			else if (Model == HardwareWalletModels.Ledger_Nano_X)
+			{
+				model = "ledger_nano_x";
+				rawPath = "\\\\\\\\?\\\\hid#vid_2c97&pid_0001&mi_00#7&e45ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
+			}
 			else
 			{
 				throw new NotImplementedException("Mock missing.");
@@ -81,6 +86,10 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				{
 					response = $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"fingerprint\": \"4054d6f6\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false}}]\r\n";
 				}
+				else if (Model == HardwareWalletModels.Ledger_Nano_X)
+				{
+					response = $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"fingerprint\": \"4054d6f6\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false}}]\r\n";
+				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} wipe"))
 			{
@@ -95,6 +104,10 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				else if (Model == HardwareWalletModels.Ledger_Nano_S)
 				{
 					response = "{\"error\": \"The Ledger Nano S does not support wiping via software\", \"code\": -9}\r\n";
+				}
+				else if (Model == HardwareWalletModels.Ledger_Nano_X)
+				{
+					response = "{\"error\": \"The Ledger Nano X does not support wiping via software\", \"code\": -9}\r\n";
 				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} setup"))
@@ -111,6 +124,10 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				{
 					response = "{\"error\": \"The Ledger Nano S does not support software setup\", \"code\": -9}\r\n";
 				}
+				else if (Model == HardwareWalletModels.Ledger_Nano_X)
+				{
+					response = "{\"error\": \"The Ledger Nano X does not support wiping via software\", \"code\": -9}\r\n";
+				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} --interactive setup"))
 			{
@@ -125,6 +142,10 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				else if (Model == HardwareWalletModels.Ledger_Nano_S)
 				{
 					response = "{\"error\": \"The Ledger Nano S does not support software setup\", \"code\": -9}\r\n";
+				}
+				else if (Model == HardwareWalletModels.Ledger_Nano_X)
+				{
+					response = "{\"error\": \"The Ledger Nano X does not support wiping via software\", \"code\": -9}\r\n";
 				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} --interactive restore"))
@@ -141,6 +162,10 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				{
 					response = "{\"error\": \"The Ledger Nano S does not support restoring via software\", \"code\": -9}\r\n";
 				}
+				else if (Model == HardwareWalletModels.Ledger_Nano_X)
+				{
+					response = "{\"error\": \"The Ledger Nano X does not support wiping via software\", \"code\": -9}\r\n";
+				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} promptpin"))
 			{
@@ -155,6 +180,10 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				else if (Model == HardwareWalletModels.Ledger_Nano_S)
 				{
 					response = "{\"error\": \"The Ledger Nano S does not need a PIN sent from the host\", \"code\": -9}\r\n";
+				}
+				else if (Model == HardwareWalletModels.Ledger_Nano_X)
+				{
+					response = "{\"error\": \"The Ledger Nano X does not support wiping via software\", \"code\": -9}\r\n";
 				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} sendpin", true))
@@ -171,17 +200,21 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				{
 					response = "{\"error\": \"The Ledger Nano S does not need a PIN sent from the host\", \"code\": -9}\r\n";
 				}
+				else if (Model == HardwareWalletModels.Ledger_Nano_X)
+				{
+					response = "{\"error\": \"The Ledger Nano X does not support wiping via software\", \"code\": -9}\r\n";
+				}
 			}
 			else if (CompareGetXbpubArguments(arguments, out string xpub))
 			{
-				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Coldcard || Model == HardwareWalletModels.Trezor_1 || Model == HardwareWalletModels.Ledger_Nano_S)
+				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Coldcard || Model == HardwareWalletModels.Trezor_1 || Model == HardwareWalletModels.Ledger_Nano_S || Model == HardwareWalletModels.Ledger_Nano_X)
 				{
 					response = $"{{\"xpub\": \"{xpub}\"}}\r\n";
 				}
 			}
 			else if (CompareArguments(out bool t1, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h --addr-type wit", false))
 			{
-				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Coldcard || Model == HardwareWalletModels.Trezor_1 || Model == HardwareWalletModels.Ledger_Nano_S)
+				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Coldcard || Model == HardwareWalletModels.Trezor_1 || Model == HardwareWalletModels.Ledger_Nano_S || Model == HardwareWalletModels.Ledger_Nano_X)
 				{
 					response = t1
 					   ? "{\"address\": \"tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy\"}\r\n"
@@ -190,7 +223,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			}
 			else if (CompareArguments(out bool t2, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h/1 --addr-type wit", false))
 			{
-				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Coldcard || Model == HardwareWalletModels.Trezor_1 || Model == HardwareWalletModels.Ledger_Nano_S)
+				if (Model == HardwareWalletModels.Trezor_T || Model == HardwareWalletModels.Coldcard || Model == HardwareWalletModels.Trezor_1 || Model == HardwareWalletModels.Ledger_Nano_S || Model == HardwareWalletModels.Ledger_Nano_X)
 				{
 					response = t2
 					   ? "{\"address\": \"tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6\"}\r\n"
