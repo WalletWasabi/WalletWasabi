@@ -418,7 +418,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			tx2.Transaction.Outputs[0].Value = Money.Coins(0.7m);
 			transactionProcessor.Process(tx2);
 
-			// Spend it coin
+			// Spend the replaceable coin
 			var tx3 = CreateSpendingTransaction(createdCoin, transactionProcessor.NewKey("E").P2wpkhScript);
 			tx3.Transaction.Outputs[0].Value = Money.Coins(0.9m);
 			transactionProcessor.Process(tx3);
@@ -437,13 +437,13 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.DoesNotContain(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "E");
 			Assert.DoesNotContain(transactionProcessor.Coins, coin => coin.HdPubKey.Label == "D"); // Wasabi forgot about it but that's not a problem.
 
-			// Replacement transaction tx3 have to be removed because tx1 confirmed and then they are invalid.
+			// Replacement transaction tx3 has to be removed because tx1 confirmed and then it is invalid.
 			var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
 			Assert.DoesNotContain(tx3, mempool);
 		}
 
 		[Fact]
-		public async Task RecognizeReplaceableCoinsCorrectly()
+		public async Task RecognizeReplaceableCoinsCorrectlyAsync()
 		{
 			// --tx0 ---> (A) -(replaceable)--tx1 -+--> (B) --tx2---> (D)
 			//                                     |
