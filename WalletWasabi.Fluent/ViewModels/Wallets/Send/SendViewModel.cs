@@ -149,7 +149,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						catch (InsufficientBalanceException)
 						{
 							var txRes = TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true);
-							var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private, txRes);
+							var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private, txRes, wallet.Synchronizer.UsdExchangeRate);
 							var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 
 							if (result.Result)

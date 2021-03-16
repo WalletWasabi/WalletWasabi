@@ -10,10 +10,16 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	[NavigationMetaData(Title = "Insufficient Balance")]
 	public partial class InsufficientBalanceDialogViewModel : DialogViewModelBase<bool>
 	{
-		public InsufficientBalanceDialogViewModel(BalanceType type, BuildTransactionResult transaction)
+		public InsufficientBalanceDialogViewModel(BalanceType type, BuildTransactionResult transaction, decimal usdExchangeRate)
 		{
-			AmountBtc = transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
-			// AmountFee = transaction.Fee;
+			var destinationAmount = transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+			var fee = transaction.Fee;
+
+			BtcAmountText = $"{destinationAmount} bitcoins ";
+			FiatAmountText = $"(≈{(destinationAmount * usdExchangeRate).FormattedFiat()} USD) ";
+
+			BtcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
+			FiatFeeText = $"(≈{(fee.ToDecimal(MoneyUnit.BTC) * usdExchangeRate).FormattedFiat()} USD)";
 
 			switch (type)
 			{
@@ -32,10 +38,15 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));
 		}
 
+		public string FiatFeeText { get; set; }
+
+		public string BtcFeeText { get; set; }
+
+		public string FiatAmountText { get; set; }
+
+		public string BtcAmountText { get; set; }
+
 		public string Caption { get; }
 
-		public decimal AmountBtc { get; }
-
-		public decimal AmountFee { get; }
 	}
 }
