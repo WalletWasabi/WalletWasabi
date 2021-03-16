@@ -9,6 +9,15 @@ namespace WalletWasabi.Fluent.Controls
 {
 	public class NavBarListBox : ListBox, IStyleable
 	{
+		public static readonly StyledProperty<bool> ReSelectSelectedItemProperty =
+			AvaloniaProperty.Register<NavBarListBox, bool>(nameof(ReSelectSelectedItem), true);
+
+		public bool ReSelectSelectedItem
+		{
+			get => GetValue(ReSelectSelectedItemProperty);
+			set => SetValue(ReSelectSelectedItemProperty, value);
+		}
+
 		Type IStyleable.StyleKey => typeof(ListBox);
 
 		protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -41,13 +50,16 @@ namespace WalletWasabi.Fluent.Controls
 
 			// Console.WriteLine($"AFTER OnPointerPressed {SelectedItem?.GetType().Name}");
 
-			var isSameSelectedItem = previousSelectedItem is not null && previousSelectedItem == SelectedItem;
-			Console.WriteLine($"OnPointerPressed {isSameSelectedItem}");
-			if (isSameSelectedItem)
+			if (ReSelectSelectedItem)
 			{
-				Console.WriteLine($"RESELECT OnPointerPressed");
-				SelectedItem = null;
-				SelectedItem = previousSelectedItem;
+				var isSameSelectedItem = previousSelectedItem is not null && previousSelectedItem == SelectedItem;
+				Console.WriteLine($"OnPointerPressed {isSameSelectedItem}");
+				if (isSameSelectedItem)
+				{
+					Console.WriteLine($"RESELECT OnPointerPressed");
+					SelectedItem = null;
+					SelectedItem = previousSelectedItem;
+				}
 			}
 		}
 	}
