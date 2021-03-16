@@ -177,14 +177,23 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			e.Handled = !ValidateEntryText(e.Text);
+			var preComposedText = PreComposeText(e.Text);
+
+			decimal fiatValue = 0;
+
+			e.Handled = !(ValidateEntryText(preComposedText) &&
+			            decimal.TryParse(preComposedText, NumberStyles.Number, _customCultureInfo, out fiatValue));
+
+			if (IsConversionReversed & !e.Handled)
+			{
+				e.Handled = FiatToBitcoin(fiatValue) >= Constants.MaximumNumberOfBitcoins;
+			}
+
 			base.OnTextInput(e);
 		}
 
-		private bool ValidateEntryText(string input)
+		private bool ValidateEntryText(string preComposedText)
 		{
-			var preComposedText = PreComposeText(input);
-
 			// Check if it has a decimal separator.
 			var trailingDecimal = preComposedText.Length > 0 && preComposedText[^1] == _decimalSeparator;
 			var match = _regexBTCFormat.Match(preComposedText);
