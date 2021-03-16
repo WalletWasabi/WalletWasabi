@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Threading;
@@ -134,13 +135,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
 				var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
 
+
 				if (transactionInfo.Amount <= totalMixedCoinsAmount)
 				{
 					try
 					{
 						try
 						{
-							var txRes = TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: false);
+							var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: false));
 							Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 							return;
 						}
@@ -167,6 +169,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
 			}, nextCommandCanExecute);
+
+			EnableAutoBusyOn(NextCommand);
 		}
 
 		public ICommand PasteCommand { get; }
