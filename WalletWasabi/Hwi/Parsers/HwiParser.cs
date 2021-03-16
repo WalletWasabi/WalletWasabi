@@ -342,19 +342,14 @@ namespace WalletWasabi.Hwi.Parsers
 
 			var optionsString = string.Join(" --", fullOptions.Select(x =>
 			{
-				string optionString;
-				if (x.Type == HwiOptions.DeviceType)
+				string optionString = x.Type switch
 				{
-					optionString = "device-type";
-				}
-				else if (x.Type == HwiOptions.DevicePath)
-				{
-					optionString = "device-path";
-				}
-				else
-				{
-					optionString = x.Type.ToString().ToLowerInvariant();
-				}
+					HwiOptions.DeviceType => "device-type",
+					HwiOptions.DevicePath => "device-path",
+					HwiOptions.TestNet => "chain test",
+					_ => x.Type.ToString().ToLowerInvariant(),
+				};
+
 				if (string.IsNullOrWhiteSpace(x.Arguments))
 				{
 					return optionString;
