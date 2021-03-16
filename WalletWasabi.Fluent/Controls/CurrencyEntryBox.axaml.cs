@@ -290,7 +290,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			if (ValidateEntryText(text))
 			{
-				base.OnTextInput(new TextInputEventArgs {Text = text});
+				OnTextInput(new TextInputEventArgs {Text = text});
 			}
 		}
 
