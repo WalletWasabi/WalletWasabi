@@ -50,7 +50,7 @@ namespace WalletWasabi.WabiSabi.Backend
 		[DefaultValueMoneyBtc("43000")]
 		[JsonProperty(PropertyName = "MaxRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
-		public Money MaxRegistrableAmount { get; set; } = Money.Coins(43000m);
+		public Money MaxRegistrableAmount { get; set; } = Money.Coins(43_000m);
 
 		/// <summary>
 		/// How much weight units the server gives to alices per registrations.
@@ -60,7 +60,7 @@ namespace WalletWasabi.WabiSabi.Backend
 		/// </summary>
 		[DefaultValue(1000)]
 		[JsonProperty(PropertyName = "RegistrableWeightCredentials", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public uint RegistrableWeightCredentials { get; set; } = 1000;
+		public uint RegistrableWeightCredentials { get; set; } = 1_000;
 
 		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "AllowNotedInputRegistration", DefaultValueHandling = DefaultValueHandling.Populate)]
