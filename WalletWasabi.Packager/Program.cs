@@ -110,19 +110,19 @@ namespace WalletWasabi.Packager
 			string torWinZip = Path.Combine(torDaemonsDir, "tor-win64.zip");
 			IoHelpers.BetterExtractZipToDirectoryAsync(torWinZip, tempDir).GetAwaiter().GetResult();
 			var winDigest = File.ReadAllBytes(Path.Combine(tempDir, "Tor", "tor.exe"));
+			IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter().GetResult();
 
 			string torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
 			IoHelpers.BetterExtractZipToDirectoryAsync(torLinuxZip, tempDir).GetAwaiter().GetResult();
-			File.Move(Path.Combine(tempDir, "Tor", "tor"), Path.Combine(tempDir, "TorLin"));
 			var linDigest = File.ReadAllBytes(Path.Combine(tempDir, "Tor", "tor"));
+			IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter().GetResult();
 
 			string torOsxZip = Path.Combine(torDaemonsDir, "tor-osx64.zip");
 			IoHelpers.BetterExtractZipToDirectoryAsync(torOsxZip, tempDir).GetAwaiter().GetResult();
 			var macDigest = File.ReadAllBytes(Path.Combine(tempDir, "Tor", "tor")).Concat(File.ReadAllBytes(Path.Combine(tempDir, "Tor", "tor.real"))).ToArray();
 
-			var tempDirInfo = new DirectoryInfo(tempDir);
 			Console.WriteLine("Digests:");
-			foreach (var bytes in new[] { winDigest, linDigest, macDigest })
+			foreach (var bytes in new[] { linDigest, macDigest, winDigest })
 			{
 				var hash = ByteHelpers.ToHex(IoHelpers.GetHashFile(bytes)).ToLowerInvariant();
 				Console.WriteLine($"{hash}");
