@@ -147,12 +147,16 @@ namespace WalletWasabi.Blockchain.Analysis
 					// If it's a reuse of another output' pubkey, then intersection punishment can only go as low as the inherited anonset.
 					hdPubKey.SetAnonymitySet(Math.Max(newInputAnonset, Intersect(new[] { anonset, hdPubKey.AnonymitySet }, 1)), txid);
 				}
-				else if (hdPubKey.AnonymitySetReasons.Contains(txid))
+				else if (hdPubKey.AnonymitySets.ContainsKey(txid))
 				{
 					// If we already processed this transaction for this script
-					// then we'll go with normal processing, it's not an address reuse,
-					// it's just we're processing the transaction twice.
-					hdPubKey.SetAnonymitySet(anonset, txid);
+					// then we'll go with normal processing.
+					// It may be a duplicated processing or new information arrived (like other wallet loaded)
+					if (hdPubKey.AnonymitySets.Count == 1)
+					{
+						// If there are more anonsets already then it's address reuse so leave it alone.
+						hdPubKey.SetAnonymitySet(anonset, txid);
+					}
 				}
 				else
 				{
