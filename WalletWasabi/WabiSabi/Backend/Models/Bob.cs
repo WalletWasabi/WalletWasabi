@@ -7,27 +7,21 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.WabiSabi.Backend.Models
 {
-	public class Bob
-	{
-		public Bob(Script script, long credentialAmount)
-		{
-			Script = script;
-			CredentialAmount = credentialAmount;
-		}
-
-		public Script Script { get; }
-
+	public record Bob(
+		Script Script,
 		/// <summary>
 		/// This is slightly larger than the final TXO amount,
 		/// because the fees are coming down from this.
 		/// </summary>
-		public long CredentialAmount { get; }
-
-		public int OutputVsize => Script.EstimateOutputVsize();
+		long CredentialAmount)
+	{
+		public int OutputVsize
+			=> Script.EstimateOutputVsize();
 
 		public Money CalculateOutputAmount(FeeRate feeRate)
 			=> CredentialAmount - feeRate.GetFee(OutputVsize);
 
-		public long CalculateWeight() => OutputVsize * 4;
+		public long CalculateWeight()
+			=> OutputVsize * 4;
 	}
 }
