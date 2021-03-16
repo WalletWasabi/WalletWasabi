@@ -12,19 +12,19 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	{
 		public InsufficientBalanceDialogViewModel(BalanceType type, BuildTransactionResult transaction)
 		{
-			var amount = transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
-			var fee = transaction.Fee;
+			AmountBtc = transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+			// AmountFee = transaction.Fee;
 
 			switch (type)
 			{
 				case BalanceType.Private:
-					Text = $"There are not enough private funds to cover the transaction fee. The closest Wasabi can do to your request is send {amount} BTC with a fee of {fee} BTC.\nWould you like to do that?";
+					Caption = $"There are not enough private funds to cover the transaction fee. The closest Wasabi can do to your request is send:";
 					break;
 				case BalanceType.Pocket:
-					Text = $"There are not enough funds selected to cover the transaction fee. The closest Wasabi can do to your request is send {amount} BTC with a fee of {fee} BTC.\nWould you like to do that?";
+					Caption = $"There are not enough funds selected to cover the transaction fee. The closest Wasabi can do to your request is send:";
 					break;
 				default:
-					Text = $"There are not enough funds available to cover the transaction fee. The closest Wasabi can do to your request is send {amount} BTC with a fee of {fee} BTC.\nWould you like to do that?";
+					Caption = $"There are not enough funds available to cover the transaction fee. The closest Wasabi can do to your request is send:";
 					break;
 			}
 
@@ -32,6 +32,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));
 		}
 
-		public string Text { get; }
+		public string Caption { get; }
+
+		public decimal AmountBtc { get; }
+
+		public decimal AmountFee { get; }
 	}
 }
