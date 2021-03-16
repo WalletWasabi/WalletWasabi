@@ -97,15 +97,14 @@ namespace System.IO
 			}
 		}
 
-		public static byte[] GetHashFile(string filePath)
+		public static byte[] GetHashFile(byte[] bytes)
 		{
-			var bytes = File.ReadAllBytes(filePath);
 			return HashHelpers.GenerateSha256Hash(bytes);
 		}
 
-		public static bool CheckExpectedHash(string filePath, string sourceFolderPath)
+		public static bool CheckExpectedHash(byte[] bytes, string sourceFolderPath)
 		{
-			var fileHash = GetHashFile(filePath);
+			var fileHash = GetHashFile(bytes);
 			try
 			{
 				var digests = File.ReadAllLines(Path.Combine(sourceFolderPath, "digests.txt"));

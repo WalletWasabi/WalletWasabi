@@ -162,7 +162,7 @@ namespace WalletWasabi.Hwi
 			var response = await SendCommandAsync(
 				options: BuildOptions(deviceType, devicePath, fingerprint),
 				command: HwiCommands.DisplayAddress,
-				commandArguments: $"--path {keyPath.ToString(true, "h")} --wpkh",
+				commandArguments: $"--path {keyPath.ToString(true, "h")} --addr-type wit",
 				openConsole: false,
 				cancel).ConfigureAwait(false);
 

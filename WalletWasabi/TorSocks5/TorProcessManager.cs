@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
@@ -78,23 +79,31 @@ namespace WalletWasabi.TorSocks5
 						var torDir = Path.Combine(dataDir, "tor");
 						var torDataDir = Path.Combine(dataDir, "tordata");
 						var torPath = "";
-						var hashSourcePath = "";
+						byte[] hashSourceBytes = null;
 						var geoIpPath = "";
 						var geoIp6Path = "";
 						var fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
+
 						if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
 							torPath = $@"{torDir}/Tor/tor";
-							hashSourcePath = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-								? $@"{torDir}/Tor/tor.real"
-								: $@"{torDir}/Tor/tor";
+
+							if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+							{
+								hashSourceBytes = File.ReadAllBytes($@"{torDir}/Tor/tor.real").Concat(File.ReadAllBytes($@"{torDir}/Tor/tor")).ToArray();
+							}
+							else
+							{
+								hashSourceBytes = File.ReadAllBytes($@"{torDir}/Tor/tor");
+							}
+
 							geoIpPath = $@"{torDir}/Data/Tor/geoip";
 							geoIp6Path = $@"{torDir}/Data/Tor/geoip6";
 						}
 						else // If Windows
 						{
 							torPath = $@"{torDir}\Tor\tor.exe";
-							hashSourcePath = $@"{torDir}\Tor\tor.exe";
+							hashSourceBytes = File.ReadAllBytes($@"{torDir}\Tor\tor.exe");
 							geoIpPath = $@"{torDir}\Data\Tor\geoip";
 							geoIp6Path = $@"{torDir}\Data\Tor\geoip6";
 						}
@@ -104,7 +113,7 @@ namespace WalletWasabi.TorSocks5
 							Logger.LogInfo($"Tor instance NOT found at '{torPath}'. Attempting to acquire it ...");
 							InstallTor(torDir);
 						}
-						else if (!IoHelpers.CheckExpectedHash(hashSourcePath, Path.Combine(fullBaseDirectory, "TorDaemons")))
+						else if (!IoHelpers.CheckExpectedHash(hashSourceBytes, Path.Combine(fullBaseDirectory, "TorDaemons")))
 						{
 							Logger.LogInfo($"Updating Tor...");
 

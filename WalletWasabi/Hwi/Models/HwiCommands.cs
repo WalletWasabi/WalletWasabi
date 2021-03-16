@@ -60,7 +60,7 @@ namespace WalletWasabi.Hwi.Models
 		/// <remarks>
 		/// Notable arguments:
 		/// <list type="table">
-		/// <item><c>--path</c> - Derivation path, default follows BIP43 convention, e.g. m/84h/0h/0h/1/* with --wpkh --internal. If this argument and --internal is not given, both internal and external keypools will be returned.</item>
+		/// <item><c>--path</c> - Derivation path, default follows BIP43 convention, e.g. m/84h/0h/0h/1/* with --addr-type wit --internal. If this argument and --internal is not given, both internal and external keypools will be returned.</item>
 		/// <item><c>start</c>  - The index to start at.</item>
 		/// <item><c>end</c>    - The index to end at.</item>
 		/// </list>
