@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels.LineChartDemo
 {
 	public class XYLineChartViewModel
 	{
-		public List<double> XAxisValues => new List<double>()
+		public List<double> XAxisValues => new()
 		{
 			1008,
 			432,
@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.LineChartDemo
 			1,
 		};
 
-		public List<double> YAxisValues => new List<double>()
+		public List<double> YAxisValues => new()
 		{
 			4,
 			4,

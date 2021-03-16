@@ -152,12 +152,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			{
 				_selectedItem.IsSelected = false;
 				_selectedItem.IsExpanded = false;
-
-				if (_selectedItem.Parent is { })
-				{
-					_selectedItem.Parent.IsSelected = false;
-					_selectedItem.Parent.IsExpanded = false;
-				}
 			}
 
 			RaiseAndChangeSelectedItem(null);
@@ -167,12 +161,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			{
 				_selectedItem.IsSelected = true;
 				_selectedItem.IsExpanded = IsOpen;
-
-				if (_selectedItem.Parent is { })
-				{
-					_selectedItem.Parent.IsSelected = true;
-					_selectedItem.Parent.IsExpanded = true;
-				}
 			}
 		}
 

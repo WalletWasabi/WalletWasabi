@@ -18,7 +18,7 @@ namespace Nito.Disposables
 		/// </summary>
 		private readonly BoundActionField<T> _context;
 
-		private readonly ManualResetEventSlim _mre = new ManualResetEventSlim();
+		private readonly ManualResetEventSlim _mre = new();
 
 		/// <summary>
 		/// Creates a disposable for the specified context.

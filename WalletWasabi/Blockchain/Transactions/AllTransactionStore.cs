@@ -241,7 +241,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		{
 			lock (Lock)
 			{
-				List<SmartTransaction> reorgedTxs = new List<SmartTransaction>();
+				List<SmartTransaction> reorgedTxs = new();
 				foreach (var txHash in ConfirmedStore
 					.GetTransactions()
 					.Where(tx => tx.BlockHash == blockHash)

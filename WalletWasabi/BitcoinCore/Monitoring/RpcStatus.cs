@@ -44,7 +44,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 		public int PeersCount { get; }
 		public bool Synchronized { get; }
 
-		public static RpcStatus Responsive(ulong headers, ulong blocks, int peersCount) => new RpcStatus(true, headers, blocks, peersCount);
+		public static RpcStatus Responsive(ulong headers, ulong blocks, int peersCount) => new(true, headers, blocks, peersCount);
 
 		public override string ToString() => Status;
 

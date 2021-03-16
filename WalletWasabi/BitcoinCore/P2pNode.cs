@@ -183,7 +183,7 @@ namespace WalletWasabi.BitcoinCore
 
 		private static async Task DisconnectAsync(Node node, CancellationToken cancel)
 		{
-			TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+			TaskCompletionSource<bool> tcs = new();
 			node.Disconnected += Node_Disconnected;
 			try
 			{

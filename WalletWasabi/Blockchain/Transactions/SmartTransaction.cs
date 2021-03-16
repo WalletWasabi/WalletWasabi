@@ -99,7 +99,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		/// * Explicitly by using a nSequence &lt; (0xffffffff - 1) or,
 		/// * Implicitly in case one of its unconfirmed ancestors are replaceable
 		/// </summary>
-		public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement);
+		public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement || WalletInputs.Any(x => x.IsReplaceable()));
 
 		#endregion Members
 

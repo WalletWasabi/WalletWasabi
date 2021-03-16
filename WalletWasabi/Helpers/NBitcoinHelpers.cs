@@ -132,7 +132,7 @@ namespace WalletWasabi.Helpers
 				throw new FormatException("Invalid address manager file");
 			}
 
-			BitcoinStream stream = new BitcoinStream(data) { Type = SerializationType.Disk };
+			BitcoinStream stream = new(data) { Type = SerializationType.Disk };
 			uint magic = 0;
 			stream.ReadWrite(ref magic);
 			if (expectedNetwork is { } && expectedNetwork.Magic != magic)

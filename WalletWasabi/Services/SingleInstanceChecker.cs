@@ -77,12 +77,12 @@ namespace WalletWasabi.Services
 			try
 			{
 				// Signal to the other instance, that there was an attempt to start the software.
-				using TcpClient client = new TcpClient()
+				using TcpClient client = new()
 				{
 					NoDelay = true
 				};
 
-				using CancellationTokenSource timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+				using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(10));
 				using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(DisposeCts.Token, timeoutCts.Token);
 
 				await client.ConnectAsync(IPAddress.Loopback, Port, cts.Token).ConfigureAwait(false);
