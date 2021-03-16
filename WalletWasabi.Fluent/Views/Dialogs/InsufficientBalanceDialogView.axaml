@@ -24,32 +24,31 @@
                        YesCommand="{Binding NextCommand}"
                        NoCommand="{Binding CancelCommand}"
                        HighlightButton="YesButton">
-     <WrapPanel Margin="0 0 0 40" HorizontalAlignment="Center">
-
-       <StackPanel Orientation="Horizontal" Spacing="30" Margin="20">
-         <PathIcon Width="24" Height="24" Data="{StaticResource btc_logo}"
-                   Foreground="{DynamicResource SystemAccentColor}" />
-         <StackPanel Spacing="5">
-           <TextBlock Text="a total of " Classes="storyline" />
-           <StackPanel Orientation="Horizontal" Spacing="5">
-             <TextBlock Classes="field" Text="{Binding BtcAmountText}" />
-             <TextBlock Classes="field" Text="{Binding FiatAmountText}" />
-           </StackPanel>
-         </StackPanel>
+      <WrapPanel Margin="0 0 0 40" HorizontalAlignment="Center">
+        <StackPanel Orientation="Horizontal" Spacing="30" Margin="20">
+          <PathIcon Width="30" Height="30" Data="{StaticResource btc_logo}"
+                            Foreground="{DynamicResource SystemAccentColor}" />
+          <StackPanel Spacing="5">
+            <TextBlock Text="a total of " Classes="storyline" />
+            <StackPanel Orientation="Horizontal" Spacing="5">
+              <TextBlock Classes="field" Text="{Binding BtcAmountText}" />
+              <TextBlock Classes="field" Text="{Binding FiatAmountText}" />
+            </StackPanel>
+          </StackPanel>
        </StackPanel>
 
-       <StackPanel Orientation="Horizontal" Spacing="30" Margin="20">
-         <PathIcon Width="24" Height="24" Data="{StaticResource paper_cash_regular}"
+        <StackPanel Orientation="Horizontal" Spacing="30" Margin="20">
+          <PathIcon Width="30" Height="30" Data="{StaticResource paper_cash_regular}"
                    Foreground="{DynamicResource SystemAccentColor}" />
-         <StackPanel Spacing="5">
-           <TextBlock Classes="storyline" Text="for an additional charge of" />
-           <StackPanel Orientation="Horizontal" Spacing="5">
-             <TextBlock Classes="field" Text="{Binding BtcFeeText}" />
-             <TextBlock Classes="field" Text="{Binding FiatFeeText}" />
-           </StackPanel>
-         </StackPanel>
-       </StackPanel>
-     </WrapPanel>
+          <StackPanel Spacing="5">
+            <TextBlock Classes="storyline" Text="for an additional charge of" />
+            <StackPanel Orientation="Horizontal" Spacing="5">
+              <TextBlock Classes="field" Text="{Binding BtcFeeText}" />
+              <TextBlock Classes="field" Text="{Binding FiatFeeText}" />
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+      </WrapPanel>
     </c:QuestionControl>
   </c:ContentArea>
 </UserControl>

@@ -47,6 +47,5 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		public string BtcAmountText { get; set; }
 
 		public string Caption { get; }
-
 	}
 }
