@@ -235,7 +235,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			if (IsConversionReversed)
 			{
-				// Fiat input restriction is is to only allow 2 decimal places max
+				// Fiat input restriction is to only allow 2 decimal places max
 				// and also 16 whole number places.
 				if ((whole > 16 && !trailingDecimal) || frac > 2)
 				{
