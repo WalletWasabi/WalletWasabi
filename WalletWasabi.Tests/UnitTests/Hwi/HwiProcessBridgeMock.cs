@@ -126,7 +126,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				}
 				else if (Model == HardwareWalletModels.Ledger_Nano_X)
 				{
-					response = "{\"error\": \"The Ledger Nano X does not support wiping via software\", \"code\": -9}\r\n";
+					response = "{\"error\": \"The Ledger Nano X does not support software setup\", \"code\": -9}\r\n";
 				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} --interactive setup"))
@@ -145,7 +145,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				}
 				else if (Model == HardwareWalletModels.Ledger_Nano_X)
 				{
-					response = "{\"error\": \"The Ledger Nano X does not support wiping via software\", \"code\": -9}\r\n";
+					response = "{\"error\": \"The Ledger Nano X does not support software setup\", \"code\": -9}\r\n";
 				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} --interactive restore"))
@@ -164,7 +164,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				}
 				else if (Model == HardwareWalletModels.Ledger_Nano_X)
 				{
-					response = "{\"error\": \"The Ledger Nano X does not support wiping via software\", \"code\": -9}\r\n";
+					response = "{\"error\": \"The Ledger Nano X does not support restoring via software\", \"code\": -9}\r\n";
 				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} promptpin"))
@@ -183,7 +183,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				}
 				else if (Model == HardwareWalletModels.Ledger_Nano_X)
 				{
-					response = "{\"error\": \"The Ledger Nano X does not support wiping via software\", \"code\": -9}\r\n";
+					response = "{\"error\": \"The Ledger Nano X does not need a PIN sent from the host\", \"code\": -9}\r\n";
 				}
 			}
 			else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} sendpin", true))
@@ -202,7 +202,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				}
 				else if (Model == HardwareWalletModels.Ledger_Nano_X)
 				{
-					response = "{\"error\": \"The Ledger Nano X does not support wiping via software\", \"code\": -9}\r\n";
+					response = "{\"error\": \"The Ledger Nano X does not need a PIN sent from the host\", \"code\": -9}\r\n";
 				}
 			}
 			else if (CompareGetXbpubArguments(arguments, out string xpub))
