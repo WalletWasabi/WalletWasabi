@@ -119,7 +119,7 @@ namespace WalletWasabi.Packager
 
 			string torOsxZip = Path.Combine(torDaemonsDir, "tor-osx64.zip");
 			IoHelpers.BetterExtractZipToDirectoryAsync(torOsxZip, tempDir).GetAwaiter().GetResult();
-			var macDigest = File.ReadAllBytes(Path.Combine(tempDir, "Tor", "tor")).Concat(File.ReadAllBytes(Path.Combine(tempDir, "Tor", "tor.real"))).ToArray();
+			var macDigest = File.ReadAllBytes(Path.Combine(tempDir, "Tor", "tor.real")).Concat(File.ReadAllBytes(Path.Combine(tempDir, "Tor", "tor"))).ToArray();
 
 			Console.WriteLine("Digests:");
 			foreach (var bytes in new[] { linDigest, macDigest, winDigest })
