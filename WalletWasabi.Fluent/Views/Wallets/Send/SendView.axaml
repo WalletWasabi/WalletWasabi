@@ -106,7 +106,7 @@
                    ClipToBounds="False"
                    IsBusy="{Binding IsBusy}"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
-
+        <ScrollViewer>
         <DockPanel Margin="0 0 0 -32">
             <StackPanel DockPanel.Dock="Top" Spacing="10">
                 <StackPanel.Styles>
@@ -201,5 +201,6 @@
                 </c:LineChart>
             </DockPanel>
         </DockPanel>
+        </ScrollViewer>
     </c:ContentArea>
 </UserControl>
