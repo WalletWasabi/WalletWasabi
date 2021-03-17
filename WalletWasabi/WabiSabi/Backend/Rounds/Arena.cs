@@ -64,6 +64,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void StepInputRegistrationPhase()
 		{
+			Logger.LogInfo($"Step {nameof(Phase.InputRegistration)} Phase.");
+
 			foreach (var round in Rounds.Values.Where(x =>
 				x.Phase == Phase.InputRegistration
 				&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(x)))
@@ -72,6 +74,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				if (round.InputCount < Config.MinInputCountByRound)
 				{
 					Rounds.Remove(round.Id);
+					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase.");
 				}
 				else
 				{
@@ -82,6 +85,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void StepConnectionConfirmationPhase()
 		{
+			Logger.LogInfo($"Step {nameof(Phase.ConnectionConfirmation)} Phase.");
+
 			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.ConnectionConfirmation).ToArray())
 			{
 				if (round.Alices.All(x => x.ConfirmedConnetion))
@@ -95,11 +100,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					{
 						Prison.Note(alice, round.Id);
 					}
-					round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
+					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
+					round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
 
 					if (round.InputCount < Config.MinInputCountByRound)
 					{
 						Rounds.Remove(round.Id);
+						round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase.");
 					}
 					else
 					{
@@ -111,6 +118,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void StepOutputRegistrationPhase()
 		{
+			Logger.LogInfo($"Step {nameof(Phase.OutputRegistration)} Phase.");
+
 			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.OutputRegistration).ToArray())
 			{
 				long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
@@ -127,12 +136,14 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					{
 						coinjoin.Inputs.Add(input);
 					}
+					round.LogInfo($"{coinjoin.Inputs.Count} inputs were added.");
 
 					// Add outputs:
 					foreach (var bob in round.Bobs)
 					{
 						coinjoin.Outputs.AddWithOptimize(bob.CalculateOutputAmount(round.FeeRate), bob.Script);
 					}
+					round.LogInfo($"{round.Bobs.Count} outputs were added.");
 
 					// Shuffle & sort:
 					// This is basically just decoration.
@@ -147,6 +158,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					{
 						var diffMoney = Money.Satoshis(diff);
 						coinjoin.Outputs.AddWithOptimize(diffMoney, Config.BlameScript);
+						round.LogInfo("Filled up the outputs to build a reasonable transaction because some alice failed to provide its output.");
 					}
 
 					round.EncryptedCoinjoin = StringCipher.Encrypt(coinjoin.ToHex(), round.UnsignedTxSecret);
@@ -158,6 +170,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private async Task StepTransactionSigningPhaseAsync()
 		{
+			Logger.LogInfo($"Step {nameof(Phase.TransactionSigning)} Phase.");
+
 			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.TransactionSigning).ToArray())
 			{
 				var coinjoin = round.Coinjoin;
@@ -192,7 +206,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					}
 					else if (round.TransactionSigningStart + round.TransactionSigningTimeout < DateTimeOffset.UtcNow)
 					{
-						throw new TimeoutException($"Signing phase timed out after {round.TransactionSigningTimeout.TotalSeconds} seconds.");
+						throw new TimeoutException($"Round {round.Id}: Signing phase timed out after {round.TransactionSigningTimeout.TotalSeconds} seconds.");
 					}
 				}
 				catch (Exception ex)
@@ -254,7 +268,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var removedAliceCount = round.Alices.RemoveAll(x => x.Deadline < DateTimeOffset.UtcNow);
 				if (removedAliceCount > 0)
 				{
-					Logger.LogInfo($"{removedAliceCount} alices timed out and removed.");
+					round.LogInfo($"{removedAliceCount} alices timed out and removed.");
 				}
 			}
 		}
@@ -284,11 +298,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				if (!Rounds.TryGetValue(request.RoundId, out var round))
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
 				}
 				if (round.Phase != Phase.InputRegistration)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
 				}
 				round.Alices.RemoveAll(x => x.Id == request.AliceId);
 			}
@@ -300,13 +314,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				if (!Rounds.TryGetValue(request.RoundId, out var round))
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
 				}
 
 				var alice = round.Alices.FirstOrDefault(x => x.Id == request.AliceId);
 				if (alice is null)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceNotFound, $"Round ({request.RoundId}): Alice ({request.AliceId}) not found.");
 				}
 
 				var amountZeroCredentialResponse = round.AmountCredentialIssuer.HandleRequest(request.ZeroAmountCredentialRequests);
@@ -317,11 +331,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				if (realWeightCredentialRequests.Delta != alice.CalculateRemainingWeightCredentials(round.RegistrableWeightCredentials))
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials, $"Round ({request.RoundId}): Incorrect requested weight credentials.");
 				}
 				if (realAmountCredentialRequests.Delta != alice.CalculateRemainingAmountCredentials(round.FeeRate))
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, $"Round ({request.RoundId}): Incorrect requested amount credentials.");
 				}
 
 				if (round.Phase == Phase.InputRegistration)
@@ -345,7 +359,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 				else
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
 				}
 			}
 		}
@@ -356,7 +370,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				if (!Rounds.TryGetValue(request.RoundId, out var round))
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
 				}
 
 				var credentialAmount = -request.AmountCredentialRequests.Delta;
@@ -366,22 +380,22 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var outputValue = bob.CalculateOutputAmount(round.FeeRate);
 				if (outputValue < round.MinRegistrableAmount)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds, $"Round ({request.RoundId}): Not enough funds.");
 				}
 				if (outputValue > round.MaxRegistrableAmount)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds, $"Round ({request.RoundId}): Too much funds.");
 				}
 
 				var weightCredentialRequests = request.WeightCredentialRequests;
 				if (-weightCredentialRequests.Delta != bob.CalculateWeight())
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials, $"Round ({request.RoundId}): Incorrect requested weight credentials.");
 				}
 
 				if (round.Phase != Phase.OutputRegistration)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
 				}
 
 				var amountCredentialResponse = round.AmountCredentialIssuer.HandleRequest(request.AmountCredentialRequests);
@@ -402,12 +416,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				if (!Rounds.TryGetValue(request.RoundId, out var round))
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
 				}
 
 				if (round.Phase != Phase.TransactionSigning)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
 				}
 				foreach (var inputWitnessPair in request.InputWitnessPairs)
 				{
@@ -436,7 +450,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					// 5. Verify if currentIndexedInput is correctly signed, if not, return the specific error.
 					if (!currentIndexedInput.VerifyScript(registeredCoin, out ScriptError error))
 					{
-						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongCoinjoinSignature);
+						throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongCoinjoinSignature, $"Round ({request.RoundId}): Wrong CoinJoin signature.");
 					}
 
 					// Finally add it to our CJ.
