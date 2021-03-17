@@ -47,24 +47,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					Navigate().To(this, NavigationMode.Clear);
 				}
 			});
-
-			this.WhenAnyValue(x => x.Percent)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(percent =>
-				{
-					if (_stopwatch is null || _startingPercent is null)
-					{
-						return;
-					}
-
-					var percentText = $"{Percent}% completed";
-
-					var remainingMilliseconds = (_stopwatch.Elapsed.TotalMilliseconds / percent - _startingPercent.Value) * (100 - percent);
-					var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds(remainingMilliseconds));
-					var remainingTimeText = string.IsNullOrEmpty(userFriendlyTime) ? "" : $"- {userFriendlyTime} remaining";
-
-					EstimationText = $"{percentText} {remainingTimeText}";
-				});
 		}
 
 		public override string IconName => "web_asset_regular";
@@ -95,9 +77,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 						// Store the percentage we started on. It is needed for better remaining time calculation.
 						_startingPercent ??= Percent;
+
+						SetStatusText(Percent, _startingPercent.Value, _stopwatch);
 					}
 				})
 				.DisposeWith(disposables);
+		}
+
+		private void SetStatusText(uint percent, uint startingPercent, Stopwatch stopwatch)
+		{
+			var percentText = $"{percent}% completed";
+
+			var remainingMilliseconds = (stopwatch.Elapsed.TotalMilliseconds / percent - startingPercent) * (100 - percent);
+			var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds(remainingMilliseconds));
+			var remainingTimeText = string.IsNullOrEmpty(userFriendlyTime) ? "" : $"- {userFriendlyTime} remaining";
+
+			EstimationText = $"{percentText} {remainingTimeText}";
 		}
 
 		public static WalletViewModelBase Create(WalletManagerViewModel walletManager, Wallet wallet)
