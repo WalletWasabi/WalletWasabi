@@ -231,7 +231,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
 			var km = ServiceFactory.CreateKeyManager();
 			var equalOutputAmount = Money.Coins(1m);
-			var destination = new Key();
+			using var destination = new Key();
 			var reusedTxOut = new TxOut(equalOutputAmount, destination);
 			var tx = BitcoinFactory.CreateSmartTransaction(
 				othersInputCount: 9,
@@ -245,8 +245,6 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 
 			// Normally it'd be 10, but because of reuse it should be only 8.
 			Assert.Equal(8, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
-
-			destination.Dispose();
 		}
 
 		[Fact]
