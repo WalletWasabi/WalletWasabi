@@ -86,6 +86,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		private void SetStatusText(uint percent, uint startingPercent, Stopwatch stopwatch)
 		{
+			if (percent == 0)
+			{
+				return;
+			}
+
 			var percentText = $"{percent}% completed";
 
 			var remainingMilliseconds = (stopwatch.Elapsed.TotalMilliseconds / percent - startingPercent) * (100 - percent);
