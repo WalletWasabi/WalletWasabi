@@ -60,18 +60,8 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var newOutputAnonsets = tx.WalletOutputs.Select(x => x.HdPubKey.AnonymitySet).ToArray();
 
 			// Anonsets should not change.
-			for (int i = 0; i < inputAnonsets.Length; i++)
-			{
-				var anonset = inputAnonsets[i];
-				var newAnonset = newInputAnonsets[i];
-				Assert.Equal(anonset, newAnonset);
-			}
-			for (int i = 0; i < outputAnonsets.Length; i++)
-			{
-				var anonset = outputAnonsets[i];
-				var newAnonset = newOutputAnonsets[i];
-				Assert.Equal(anonset, newAnonset);
-			}
+			Assert.Equal<int[]>(inputAnonsets, newInputAnonsets);
+			Assert.Equal<int[]>(outputAnonsets, newOutputAnonsets);
 		}
 
 		[Fact]
