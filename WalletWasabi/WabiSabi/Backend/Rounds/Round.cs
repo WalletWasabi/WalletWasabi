@@ -75,8 +75,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			{
 				throw new ArgumentException($"Invalid phase {phase}. This is a bug.", nameof(phase));
 			}
-			
-			Logger.LogInfo($"Round ({Id}): Phase changed: {Phase} -> {phase}");
+
+			this.LogInfo($"Phase changed: {Phase} -> {phase}");
 			Phase = phase;
 
 			if (phase == Phase.ConnectionConfirmation)
