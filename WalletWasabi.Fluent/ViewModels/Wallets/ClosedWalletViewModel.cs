@@ -80,9 +80,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				.Subscribe(_ =>
 				{
 					var segwitActivationHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
-					if (_wallet.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
+					if (_wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight
 					    && lastProcessedFilterHeight > segwitActivationHeight
-					    && _smartHeaderChain.TipHeight is uint tipHeight
+					    && _smartHeaderChain.TipHeight is { } tipHeight
 					    && tipHeight > segwitActivationHeight)
 					{
 						var allFilters = tipHeight - segwitActivationHeight;
@@ -93,7 +93,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 						Percent = (uint)Math.Round(perc);
 
-						// Store the percentage we started on. It is needed for better ETA calculation.
+						// Store the percentage we started on. It is needed for better remaining time calculation.
 						_startingPercent ??= Percent;
 					}
 				})
