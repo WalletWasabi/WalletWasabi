@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		private readonly SmartHeaderChain _smartHeaderChain;
 
 		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
-		[AutoNotify] private string _estimationText;
+		[AutoNotify] private string _statusText;
 		[AutoNotify] private uint _percent;
 
 		private Stopwatch? _stopwatch;
@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			_wallet = wallet;
 			_items = new ObservableCollection<NavBarItemViewModel>();
 			_smartHeaderChain = walletManagerViewModel.BitcoinStore.SmartHeaderChain;
-			_estimationText = "";
+			_statusText = "";
 			_percent = 0;
 
 			OpenCommand = ReactiveCommand.Create(() =>
@@ -97,7 +97,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds(remainingMilliseconds));
 			var remainingTimeText = string.IsNullOrEmpty(userFriendlyTime) ? "" : $"- {userFriendlyTime} remaining";
 
-			EstimationText = $"{percentText} {remainingTimeText}";
+			StatusText = $"{percentText} {remainingTimeText}";
 		}
 
 		public static WalletViewModelBase Create(WalletManagerViewModel walletManager, Wallet wallet)
