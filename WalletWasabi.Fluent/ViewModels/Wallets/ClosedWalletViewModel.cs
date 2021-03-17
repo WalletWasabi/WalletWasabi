@@ -25,7 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify] private uint _percent;
 
 		private Stopwatch? _stopwatch;
-		private uint _startingPercent = 0;
+		private uint? _startingPercent;
 
 		protected ClosedWalletViewModel(WalletManagerViewModel walletManagerViewModel, Wallet wallet)
 			: base(wallet)
@@ -52,13 +52,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(percent =>
 				{
-					if (_stopwatch is null)
+					if (_stopwatch is null || _startingPercent is null)
 					{
 						return;
 					}
 
-					var remainingMilliseconds = (_stopwatch.Elapsed.TotalMilliseconds / percent - _startingPercent) * (100 - percent);
-					EstimationText = $"{Percent}% completed - {TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds(remainingMilliseconds))} remaining";
+					var percentText = $"{Percent}% completed";
+
+					var remainingMilliseconds = (_stopwatch.Elapsed.TotalMilliseconds / percent - _startingPercent.Value) * (100 - percent);
+					var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds(remainingMilliseconds));
+					var remainingTimeText = string.IsNullOrEmpty(userFriendlyTime) ? "" : $"- {userFriendlyTime} remaining";
+
+					EstimationText = $"{percentText} {remainingTimeText}";
 				});
 		}
 
@@ -86,12 +91,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 							? 100
 							: (decimal) processedFilters / allFilters * 100;
 
-						Percent = (uint)perc;
+						Percent = (uint)Math.Round(perc);
 
-						if (Percent < _startingPercent)
-						{
-							_startingPercent = Percent;
-						}
+						// Store the percentage we started on. It is needed for better ETA calculation.
+						_startingPercent ??= Percent;
 					}
 				})
 				.DisposeWith(disposables);
