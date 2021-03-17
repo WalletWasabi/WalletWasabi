@@ -25,6 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify] private uint _percent;
 
 		private Stopwatch? _stopwatch;
+		private uint _startingPercent = 0;
 
 		protected ClosedWalletViewModel(WalletManagerViewModel walletManagerViewModel, Wallet wallet)
 			: base(wallet)
@@ -56,7 +57,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 						return;
 					}
 
-					var remainingMilliseconds = (_stopwatch.Elapsed.TotalMilliseconds / percent) * (100 - percent); // TODO: needs to be improved
+					var remainingMilliseconds = (_stopwatch.Elapsed.TotalMilliseconds / percent - _startingPercent) * (100 - percent);
 					EstimationText = $"{Percent}% completed - {TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds(remainingMilliseconds))} remaining";
 				});
 		}
@@ -86,6 +87,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 							: (decimal) processedFilters / allFilters * 100;
 
 						Percent = (uint)perc;
+
+						if (Percent < _startingPercent)
+						{
+							_startingPercent = Percent;
+						}
 					}
 				})
 				.DisposeWith(disposables);
