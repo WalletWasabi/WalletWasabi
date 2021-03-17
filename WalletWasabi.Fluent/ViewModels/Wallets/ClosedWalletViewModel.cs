@@ -15,15 +15,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class ClosedWalletViewModel : WalletViewModelBase
 	{
+		private readonly Wallet _wallet;
+		private readonly SmartHeaderChain _smartHeaderChain;
+
 		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
 		[AutoNotify] private string _estimationText;
-		[AutoNotify] private decimal _percent;
+		[AutoNotify] private uint _percent;
 
-		private SmartHeaderChain _smartHeaderChain;
 
 		protected ClosedWalletViewModel(WalletManagerViewModel walletManagerViewModel, Wallet wallet)
 			: base(wallet)
 		{
+			_wallet = wallet;
 			_items = new ObservableCollection<NavBarItemViewModel>();
 			_smartHeaderChain = walletManagerViewModel.BitcoinStore.SmartHeaderChain;
 			_estimationText = "";
@@ -48,39 +51,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			IDisposable? walletCheckingInterval = null;
-			Observable.FromEventPattern<bool>(typeof(Wallet), nameof(Wallet.InitializingChanged))
+			Observable.Interval(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
+				.Subscribe(_ =>
 				{
-					if (x.EventArgs && x.Sender is Wallet wallet)
+					var segwitActivationHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
+					if (_wallet.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
+					    && lastProcessedFilterHeight > segwitActivationHeight
+					    && _smartHeaderChain.TipHeight is uint tipHeight
+					    && tipHeight > segwitActivationHeight)
 					{
-						walletCheckingInterval ??= Observable.Interval(TimeSpan.FromSeconds(1))
-							.ObserveOn(RxApp.MainThreadScheduler)
-							.Subscribe(_ =>
-							{
-								var segwitActivationHeight = SmartHeader.GetStartingHeader(wallet.Network).Height;
-								if (wallet.LastProcessedFilter?.Header?.Height is uint lastProcessedFilterHeight
-								    && lastProcessedFilterHeight > segwitActivationHeight
-								    && _smartHeaderChain.TipHeight is uint tipHeight
-								    && tipHeight > segwitActivationHeight)
-								{
-									var allFilters = tipHeight - segwitActivationHeight;
-									var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
-									var perc = allFilters == 0
-										? 100
-										: ((decimal) processedFilters / allFilters * 100);
+						var allFilters = tipHeight - segwitActivationHeight;
+						var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
+						var perc = allFilters == 0
+							? 100
+							: (decimal)processedFilters / allFilters * 100;
 
-									Percent = perc;
-									EstimationText = $"{Percent}% completed - 25 minutes remaining";
-								}
-							})
-							.DisposeWith(disposables);
-					}
-					else
-					{
-						walletCheckingInterval?.Dispose();
-						walletCheckingInterval = null;
+						Percent = (uint)perc;
+						EstimationText = $"{Percent}% completed - 25 minutes remaining";
 					}
 				})
 				.DisposeWith(disposables);
