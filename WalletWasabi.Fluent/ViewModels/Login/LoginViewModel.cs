@@ -48,6 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 				if (legalResult)
 				{
+					Navigate().To(closedWalletViewModel);
 					await LoginWalletAsync(walletManagerViewModel, closedWalletViewModel);
 				}
 				else
