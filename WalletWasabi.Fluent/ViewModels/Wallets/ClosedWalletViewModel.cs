@@ -69,11 +69,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					{
 						var allFilters = tipHeight - segwitActivationHeight;
 						var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
-						var perc = allFilters == 0
-							? 100
-							: (decimal) processedFilters / allFilters * 100;
+						var percent = (decimal) processedFilters / allFilters * 100;
 
-						SetStatusText(perc, _stopwatch.ElapsedMilliseconds);
+						SetStatusText(percent, _stopwatch.ElapsedMilliseconds);
 					}
 				})
 				.DisposeWith(disposables);
