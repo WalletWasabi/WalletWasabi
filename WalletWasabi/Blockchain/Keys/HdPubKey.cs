@@ -59,7 +59,7 @@ namespace WalletWasabi.Blockchain.Keys
 			set => RaiseAndSetIfChanged(ref _cluster, value);
 		}
 
-		public HashSet<uint256> OutputAnonSetReasons { get; set; } = new();
+		public HashSet<uint256> OutputAnonSetReasons { get; } = new();
 
 		public int AnonymitySet
 		{
