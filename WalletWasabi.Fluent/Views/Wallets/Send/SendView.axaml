@@ -76,7 +76,7 @@
             <Setter Property="YAxisStrokeThickness" Value="0.7" />
             <Setter Property="YAxisArrowSize" Value="3.5" />
             <Setter Property="YAxisMinViableWidth" Value="0"/>
-            <Setter Property="YAxisMinViableHeight" Value="140"/>
+            <Setter Property="YAxisMinViableHeight" Value="120"/>
         </Style>
         <!-- LineChart YAxis Title -->
         <Style Selector="c|LineChart.yAxisTitle">
