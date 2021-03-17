@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			_wallet = wallet;
 			_items = new ObservableCollection<NavBarItemViewModel>();
 			_smartHeaderChain = walletManagerViewModel.BitcoinStore.SmartHeaderChain;
-			_statusText = "";
+			_statusText = " ";
 			_percent = 0;
 
 			OpenCommand = ReactiveCommand.Create(() =>
