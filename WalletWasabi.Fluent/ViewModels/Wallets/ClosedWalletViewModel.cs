@@ -1,9 +1,11 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -22,6 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify] private string _estimationText;
 		[AutoNotify] private uint _percent;
 
+		private Stopwatch? _stopwatch;
 
 		protected ClosedWalletViewModel(WalletManagerViewModel walletManagerViewModel, Wallet wallet)
 			: base(wallet)
@@ -43,6 +46,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					Navigate().To(this, NavigationMode.Clear);
 				}
 			});
+
+			this.WhenAnyValue(x => x.Percent)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(percent =>
+				{
+					if (_stopwatch is null)
+					{
+						return;
+					}
+
+					var remainingMilliseconds = (_stopwatch.Elapsed.TotalMilliseconds / percent) * (100 - percent); // TODO: needs to be improved
+					EstimationText = $"{Percent}% completed - {TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds(remainingMilliseconds))} remaining";
+				});
 		}
 
 		public override string IconName => "web_asset_regular";
@@ -50,6 +66,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
+
+			_stopwatch ??= Stopwatch.StartNew();
 
 			Observable.Interval(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -65,10 +83,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 						var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
 						var perc = allFilters == 0
 							? 100
-							: (decimal)processedFilters / allFilters * 100;
+							: (decimal) processedFilters / allFilters * 100;
 
 						Percent = (uint)perc;
-						EstimationText = $"{Percent}% completed - 25 minutes remaining";
 					}
 				})
 				.DisposeWith(disposables);
