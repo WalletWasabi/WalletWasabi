@@ -12,11 +12,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	public partial class ClosedWalletViewModel : WalletViewModelBase
 	{
 		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
+		[AutoNotify] private string _estimationText;
+		[AutoNotify] private double _percent;
 
 		protected ClosedWalletViewModel(WalletManagerViewModel walletManagerViewModel, Wallet wallet)
 			: base(wallet)
 		{
 			_items = new ObservableCollection<NavBarItemViewModel>();
+
+			_estimationText = "55% completed - 25 minutes remaining";
+			_percent = 55;
 
 			OpenCommand = ReactiveCommand.Create(() =>
 			{
