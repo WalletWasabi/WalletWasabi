@@ -73,27 +73,27 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 							? 100
 							: (decimal) processedFilters / allFilters * 100;
 
-						Percent = (uint)Math.Round(perc);
-
-						// Store the percentage we started on. It is needed for better remaining time calculation.
-						_startingPercent ??= Percent;
-
-						SetStatusText(Percent, _startingPercent.Value, _stopwatch);
+						SetStatusText(perc, _stopwatch.ElapsedMilliseconds);
 					}
 				})
 				.DisposeWith(disposables);
 		}
 
-		private void SetStatusText(uint percent, uint startingPercent, Stopwatch stopwatch)
+		private void SetStatusText(decimal percent, double elapsedMilliseconds)
 		{
-			if (percent == 0)
+			var tempPercent = (uint) Math.Round(percent);
+			_startingPercent ??= tempPercent; // Store the percentage we started on. It is needed for better remaining time calculation.
+			var realProcessedPercent = tempPercent - _startingPercent.Value;
+
+			if (tempPercent == 0 || realProcessedPercent == 0)
 			{
 				return;
 			}
 
-			var percentText = $"{percent}% completed";
+			Percent = tempPercent;
+			var percentText = $"{Percent}% completed";
 
-			var remainingMilliseconds = (stopwatch.Elapsed.TotalMilliseconds / percent - startingPercent) * (100 - percent);
+			var remainingMilliseconds = elapsedMilliseconds / realProcessedPercent * (100 - Percent);
 			var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds(remainingMilliseconds));
 			var remainingTimeText = string.IsNullOrEmpty(userFriendlyTime) ? "" : $"- {userFriendlyTime} remaining";
 
