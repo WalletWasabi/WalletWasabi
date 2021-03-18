@@ -19,10 +19,8 @@ using UnblindedSignature = WalletWasabi.Crypto.UnblindedSignature;
 
 namespace WalletWasabi.CoinJoin.Client.Clients
 {
-	public abstract class AliceClientBase : IDisposable
+	public abstract class AliceClientBase
 	{
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
 		protected AliceClientBase(
 			long roundId,
 			IEnumerable<BitcoinAddress> registeredAddresses,
@@ -66,46 +64,39 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				Inputs = inputs
 			};
 			AliceClient4 client = new(roundId, registeredAddresses, signerPubKeys, requesters, network, httpClient);
-			try
+			
+			// Correct it if forgot to set.
+			if (request.RoundId != roundId)
 			{
-				// Correct it if forgot to set.
-				if (request.RoundId != roundId)
+				if (request.RoundId == 0)
 				{
-					if (request.RoundId == 0)
-					{
-						request.RoundId = roundId;
-					}
-					else
-					{
-						throw new NotSupportedException($"InputRequest {nameof(roundId)} does not match to the provided {nameof(roundId)}: {request.RoundId} != {roundId}.");
-					}
+					request.RoundId = roundId;
 				}
-
-				using StringContent content = request.ToHttpStringContent();
-				using HttpResponseMessage response = await client.HttpClient.SendAsync(HttpMethod.Post, $"/api/v{WasabiClient.ApiVersion}/btc/chaumiancoinjoin/inputs/", content).ConfigureAwait(false);
-
-				if (response.StatusCode != HttpStatusCode.OK)
+				else
 				{
-					await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
+					throw new NotSupportedException($"InputRequest {nameof(roundId)} does not match to the provided {nameof(roundId)}: {request.RoundId} != {roundId}.");
 				}
-
-				var inputsResponse = await response.Content.ReadAsJsonAsync<InputsResponse>().ConfigureAwait(false);
-
-				if (inputsResponse.RoundId != roundId) // This should never happen. If it does, that's a bug in the coordinator.
-				{
-					throw new NotSupportedException($"Coordinator assigned us to the wrong round: {inputsResponse.RoundId}. Requested round: {roundId}.");
-				}
-
-				client.UniqueId = inputsResponse.UniqueId;
-				Logger.LogInfo($"Round ({client.RoundId}), Alice ({client.UniqueId}): Registered {request.Inputs.Count()} inputs.");
-
-				return client;
 			}
-			catch
+
+			using StringContent content = request.ToHttpStringContent();
+			using HttpResponseMessage response = await client.HttpClient.SendAsync(HttpMethod.Post, $"/api/v{WasabiClient.ApiVersion}/btc/chaumiancoinjoin/inputs/", content).ConfigureAwait(false);
+
+			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				client?.Dispose();
-				throw;
+				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
+
+			var inputsResponse = await response.Content.ReadAsJsonAsync<InputsResponse>().ConfigureAwait(false);
+
+			if (inputsResponse.RoundId != roundId) // This should never happen. If it does, that's a bug in the coordinator.
+			{
+				throw new NotSupportedException($"Coordinator assigned us to the wrong round: {inputsResponse.RoundId}. Requested round: {roundId}.");
+			}
+
+			client.UniqueId = inputsResponse.UniqueId;
+			Logger.LogInfo($"Round ({client.RoundId}), Alice ({client.UniqueId}): Registered {request.Inputs.Count()} inputs.");
+
+			return client;
 		}
 
 		public async Task<(RoundPhase currentPhase, IEnumerable<ActiveOutput> activeOutputs)> PostConfirmationAsync()
@@ -210,26 +201,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
 			Logger.LogInfo($"Round ({RoundId}), Alice ({UniqueId}): Posted {signatures.Count} signatures.");
-		}
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					(HttpClient as IDisposable)?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
+		}		
 	}
 }
