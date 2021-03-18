@@ -43,25 +43,25 @@ namespace WalletWasabi.Fluent.Converters
 
 		private static Bitmap GetBitmap(WalletType type)
 		{
-			Uri uri = new("avares://WalletWasabi.Fluent/Assets/HardwareIcons/generic.png");
+			Uri uri = new("avares://WalletWasabi.Fluent/Assets/WalletIcons/Dark/generic.png");
 
 			switch (type)
 			{
 				case WalletType.Coldcard:
-					uri = new("avares://WalletWasabi.Fluent/Assets/HardwareIcons/coldcard.png");
+					uri = new("avares://WalletWasabi.Fluent/Assets/WalletIcons/Dark/coldcard.png");
 					break;
 
 				case WalletType.Trezor:
-					uri = new("avares://WalletWasabi.Fluent/Assets/HardwareIcons/trezor.png");
+					uri = new("avares://WalletWasabi.Fluent/Assets/WalletIcons/Dark/trezor.png");
 					break;
 
 				case WalletType.Ledger:
-					uri = new("avares://WalletWasabi.Fluent/Assets/HardwareIcons/ledger.png");
+					uri = new("avares://WalletWasabi.Fluent/Assets/WalletIcons/Dark/ledger.png");
 					break;
 
 				case WalletType.Normal:
 				case WalletType.Unknown:
-					uri = new("avares://WalletWasabi.Fluent/Assets/HardwareIcons/normal.png");
+					uri = new("avares://WalletWasabi.Fluent/Assets/WalletIcons/Dark/normal.png");
 					break;
 			}
 
