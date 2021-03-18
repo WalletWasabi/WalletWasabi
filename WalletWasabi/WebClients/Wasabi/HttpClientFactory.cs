@@ -3,6 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Socks5;
+using WalletWasabi.Tor.Socks5.Pool;
 
 namespace WalletWasabi.WebClients.Wasabi
 {
@@ -37,7 +39,8 @@ namespace WalletWasabi.WebClients.Wasabi
 			// Connecting to loopback's URIs cannot be done via Tor.
 			if (TorEndpoint is { } && !BackendUriGetter().IsLoopback)
 			{
-				BackendHttpClient = new TorHttpClient(BackendUriGetter, TorEndpoint, isolateStream: false);
+				TorHttpPool = new TorHttpPool(TorEndpoint);
+				BackendHttpClient = new TorHttpClient(BackendUriGetter, TorHttpPool, isolateStream: false);
 			}
 			else
 			{
@@ -63,6 +66,9 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <summary>.NET HTTP client to be used by <see cref="ClearnetHttpClient"/> instances.</summary>
 		private HttpClient HttpClient { get; }
 
+		/// <summary>Available only when Tor is enabled in User settings.</summary>
+		private TorHttpPool? TorHttpPool { get; }
+
 		/// <summary>Backend HTTP client, shared instance.</summary>
 		private IHttpClient BackendHttpClient { get; }
 
@@ -72,12 +78,12 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <summary>
 		/// Creates new <see cref="TorHttpClient"/> or <see cref="ClearnetHttpClient"/> based on user settings.
 		/// </summary>
-		public IHttpClient NewHttpClient(Func<Uri> baseUriFn, bool isolateStream)
+		public IHttpClient NewHttpClient(Func<Uri>? baseUriFn, bool isolateStream)
 		{
 			// Connecting to loopback's URIs cannot be done via Tor.
-			if (TorEndpoint is { } && !BackendUriGetter().IsLoopback)
+			if (TorHttpPool is { } && !BackendUriGetter().IsLoopback)
 			{
-				return new TorHttpClient(baseUriFn, TorEndpoint, isolateStream);
+				return new TorHttpClient(baseUriFn, TorHttpPool, isolateStream);
 			}
 			else
 			{
@@ -95,7 +101,7 @@ namespace WalletWasabi.WebClients.Wasabi
 				throw new InvalidOperationException("Tor is not enabled in the user settings.");
 			}
 
-			return new TorHttpClient(baseUriFn, TorEndpoint, isolateStream);			
+			return (TorHttpClient)NewHttpClient(baseUriFn, isolateStream);
 		}
 
 		/// <summary>

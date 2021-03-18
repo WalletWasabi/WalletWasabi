@@ -32,7 +32,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor;
-using WalletWasabi.Userfacing;
+using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 

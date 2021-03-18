@@ -7,6 +7,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
+using WalletWasabi.Tor.Socks5.Pool;
 
 namespace WalletWasabi.Tor
 {
@@ -35,13 +36,13 @@ namespace WalletWasabi.Tor
 		/// <inheritdoc/>
 		protected override async Task ActionAsync(CancellationToken token)
 		{
-			if (TorHttpClient.TorDoesntWorkSince is { }) // If Tor misbehaves.
+			if (TorHttpPool.TorDoesntWorkSince is { }) // If Tor misbehaves.
 			{
-				TimeSpan torMisbehavedFor = DateTimeOffset.UtcNow - TorHttpClient.TorDoesntWorkSince ?? TimeSpan.Zero;
+				TimeSpan torMisbehavedFor = DateTimeOffset.UtcNow - TorHttpPool.TorDoesntWorkSince ?? TimeSpan.Zero;
 
 				if (torMisbehavedFor > CheckIfRunningAfterTorMisbehavedFor)
 				{
-					if (TorHttpClient.LatestTorException is TorConnectCommandFailedException torEx)
+					if (TorHttpPool.LatestTorException is TorConnectCommandFailedException torEx)
 					{
 						if (torEx.RepField == RepField.HostUnreachable)
 						{
@@ -50,7 +51,7 @@ namespace WalletWasabi.Tor
 							using var _ = await HttpClient.SendAsync(request, token).ConfigureAwait(false);
 
 							// Check if it changed in the meantime...
-							if (TorHttpClient.LatestTorException is TorConnectCommandFailedException torEx2 && torEx2.RepField == RepField.HostUnreachable)
+							if (TorHttpPool.LatestTorException is TorConnectCommandFailedException torEx2 && torEx2.RepField == RepField.HostUnreachable)
 							{
 								// Fallback here...
 								RequestFallbackAddressUsage = true;
@@ -59,7 +60,7 @@ namespace WalletWasabi.Tor
 					}
 					else
 					{
-						bool isRunning = await TorProcessManager.IsTorRunningAsync().ConfigureAwait(false);
+						bool isRunning = await HttpClient.IsTorRunningAsync().ConfigureAwait(false);
 
 						if (!isRunning)
 						{

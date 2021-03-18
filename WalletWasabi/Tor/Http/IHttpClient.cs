@@ -21,6 +21,11 @@ namespace WalletWasabi.Tor.Http
 		/// <exception cref="InvalidOperationException"/>
 		async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent? content = null, CancellationToken cancel = default)
 		{
+			if (BaseUriGetter is null)
+			{
+				throw new InvalidOperationException($"{nameof(BaseUriGetter)} is not set.");
+			}
+
 			Uri? baseUri = BaseUriGetter.Invoke();
 
 			if (baseUri is null)
