@@ -72,7 +72,7 @@ namespace WalletWasabi.Blockchain.Analysis
 
 			foreach (var key in distinctWalletInputPubKeys)
 			{
-				key.SetAnonymitySet(newInputAnonset, tx.GetHash());
+				key.SetAnonymitySet(newInputAnonset);
 			}
 		}
 
@@ -147,12 +147,17 @@ namespace WalletWasabi.Blockchain.Analysis
 					// If it's a reuse of another output' pubkey, then intersection punishment can only go as low as the inherited anonset.
 					hdPubKey.SetAnonymitySet(Math.Max(newInputAnonset, Intersect(new[] { anonset, hdPubKey.AnonymitySet }, 1)), txid);
 				}
-				else if (hdPubKey.AnonymitySetReasons.Contains(txid))
+				else if (hdPubKey.OutputAnonSetReasons.Contains(txid))
 				{
 					// If we already processed this transaction for this script
-					// then we'll go with normal processing, it's not an address reuse,
-					// it's just we're processing the transaction twice.
-					hdPubKey.SetAnonymitySet(anonset, txid);
+					// then we'll go with normal processing.
+					// It may be a duplicated processing or new information arrived (like other wallet loaded)
+					// If there are more anonsets already
+					// then it's address reuse that we have already punished so leave it alone.
+					if (hdPubKey.OutputAnonSetReasons.Count == 1)
+					{
+						hdPubKey.SetAnonymitySet(anonset, txid);
+					}
 				}
 				else
 				{
@@ -178,7 +183,7 @@ namespace WalletWasabi.Blockchain.Analysis
 			{
 				foreach (var key in distinctWalletInputPubKeys)
 				{
-					key.SetAnonymitySet(smallestOutputAnonset, tx.GetHash());
+					key.SetAnonymitySet(smallestOutputAnonset);
 				}
 			}
 		}
@@ -216,7 +221,11 @@ namespace WalletWasabi.Blockchain.Analysis
 			// or at the very least assume that all the changes in the tx is ours.
 			// For example even if the assumed change output is a payment to someone, a blockchain analyzer
 			// probably would just assume it's ours and go on with its life.
-			foreach (var key in tx.WalletInputs.Concat(tx.WalletOutputs).Select(x => x.HdPubKey))
+			foreach (var key in tx.WalletInputs.Select(x => x.HdPubKey))
+			{
+				key.SetAnonymitySet(1);
+			}
+			foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
 			{
 				key.SetAnonymitySet(1, tx.GetHash());
 			}
