@@ -1,9 +1,7 @@
 using System;
 using System.Linq;
-using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
@@ -66,10 +64,7 @@ namespace WalletWasabi.Fluent.Converters
 					break;
 			}
 
-			var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
-
-			using var image = assets.Open(uri);
-			return new Bitmap(image);
+			return AssetHelpers.GetBitmapAsset(uri);
 		}
 	}
 }
