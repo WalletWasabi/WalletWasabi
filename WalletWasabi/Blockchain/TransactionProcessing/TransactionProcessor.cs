@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionProcessing
@@ -31,6 +32,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 
 		private static object Lock { get; } = new object();
 		public AllTransactionStore TransactionStore { get; }
+		private HashSet<uint256> Aware { get; } = new();
 
 		public KeyManager KeyManager { get; }
 
@@ -78,11 +80,32 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 		public IEnumerable<ProcessedResult> Process(params SmartTransaction[] txs)
 			=> Process(txs as IEnumerable<SmartTransaction>);
 
+		private Dictionary<uint256, string> Processed { get; } = new();
+
+		/// <summary>
+		/// Was the transaction already processed by the transaction processor?
+		/// </summary>
+		public bool IsAware(uint256 tx)
+		{
+			lock (Lock)
+			{
+				return Aware.Contains(tx);
+			}
+		}
+
 		public ProcessedResult Process(SmartTransaction tx)
 		{
 			ProcessedResult ret;
 			lock (Lock)
 			{
+				Aware.Add(tx.GetHash());
+				if (Processed.TryGetValue(tx.GetHash(), out var stack))
+				{
+					Logger.LogWarning(tx.GetHash().ToString());
+					Logger.LogWarning(stack);
+					Logger.LogWarning(Environment.StackTrace);
+				}
+				Processed.AddOrReplace(tx.GetHash(), Environment.StackTrace);
 				try
 				{
 					QueuedTxCount = 1;

@@ -345,7 +345,10 @@ namespace WalletWasabi.Wallets
 		{
 			try
 			{
-				TransactionProcessor.Process(tx);
+				if (!TransactionProcessor.IsAware(tx.GetHash()))
+				{
+					TransactionProcessor.Process(tx);
+				}
 			}
 			catch (Exception ex)
 			{
