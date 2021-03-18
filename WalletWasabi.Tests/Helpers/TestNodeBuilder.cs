@@ -17,8 +17,7 @@ namespace WalletWasabi.Tests.Helpers
 		public static async Task<CoreNode> CreateAsync(HostedServices hostedServices, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", string additionalFolder = "", MempoolService? mempoolService = null)
 		{
 			var network = Network.RegTest;
-			return await CoreNode.CreateAsync(
-				new CoreNodeParams(
+			var nodeParameters = new CoreNodeParams(
 					network,
 					mempoolService ?? new MempoolService(),
 					hostedServices,
@@ -32,7 +31,16 @@ namespace WalletWasabi.Tests.Helpers
 					mempoolReplacement: "fee,optin",
 					userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
 					fallbackFee: Money.Coins(0.0002m), // https://github.com/bitcoin/bitcoin/pull/16524
-					new MemoryCache(new MemoryCacheOptions())),
+					new MemoryCache(new MemoryCacheOptions()));
+			nodeParameters.ListenOnion = 0;
+			nodeParameters.Discover = 0;
+			nodeParameters.DnsSeed = 0;
+			nodeParameters.FixedSeeds = 0;
+			nodeParameters.Upnp = 0;
+			nodeParameters.NatPmp = 0;
+			nodeParameters.PersistMempool = 0;
+			return await CoreNode.CreateAsync(
+				nodeParameters,
 				CancellationToken.None);
 		}
 	}
