@@ -1,5 +1,4 @@
 using System;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -7,7 +6,6 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Login;
-using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
@@ -20,7 +18,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		private readonly Wallet _wallet;
 		private readonly SmartHeaderChain _smartHeaderChain;
 
-		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _items;
 		[AutoNotify] private string _statusText;
 		[AutoNotify] private uint _percent;
 
@@ -31,7 +28,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			: base(wallet)
 		{
 			_wallet = wallet;
-			_items = new ObservableCollection<NavBarItemViewModel>();
 			_smartHeaderChain = walletManagerViewModel.BitcoinStore.SmartHeaderChain;
 			_statusText = " ";
 			_percent = 0;
