@@ -71,13 +71,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 						var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
 						var percent = (decimal) processedFilters / allFilters * 100;
 
-						SetStatusText(percent, _stopwatch.ElapsedMilliseconds);
+						UpdateStatus(percent, _stopwatch.ElapsedMilliseconds);
 					}
 				})
 				.DisposeWith(disposables);
 		}
 
-		private void SetStatusText(decimal percent, double elapsedMilliseconds)
+		private void UpdateStatus(decimal percent, double elapsedMilliseconds)
 		{
 			var tempPercent = (uint) Math.Round(percent);
 			_startingPercent ??= tempPercent; // Store the percentage we started on. It is needed for better remaining time calculation.
