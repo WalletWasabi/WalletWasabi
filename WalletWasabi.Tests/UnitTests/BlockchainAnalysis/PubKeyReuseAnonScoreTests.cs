@@ -38,7 +38,6 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		[Fact]
 		public void AddressReusePunishmentProcessTwice()
 		{
-			// If there's reuse in input and output side, then output side didn't gain, nor lose anonymity.
 			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
 			var km = ServiceFactory.CreateKeyManager();
 			var reuse = BitcoinFactory.CreateHdPubKey(km);
