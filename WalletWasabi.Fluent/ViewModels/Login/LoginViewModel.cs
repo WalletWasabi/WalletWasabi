@@ -1,3 +1,4 @@
+using System.Reactive.Concurrency;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
@@ -48,8 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 				if (legalResult)
 				{
-					Navigate().To(closedWalletViewModel);
-					await LoginWalletAsync(walletManagerViewModel, closedWalletViewModel);
+					LoginWallet(walletManagerViewModel, closedWalletViewModel);
 				}
 				else
 				{
@@ -80,20 +80,11 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 		public ICommand ForgotPasswordCommand { get; }
 
-		private async Task LoginWalletAsync(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel)
+		private void LoginWallet(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel)
 		{
 			closedWalletViewModel.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
-
-			var destination = await walletManagerViewModel.LoadWalletAsync(closedWalletViewModel);
-
-			if (destination is { })
-			{
-				Navigate().To(destination, NavigationMode.Clear);
-			}
-			else
-			{
-				await ShowErrorAsync(Title, "Error", "Wasabi was unable to login and load your wallet.");
-			}
+			RxApp.MainThreadScheduler.Schedule(async () => await walletManagerViewModel.LoadWalletAsync(closedWalletViewModel));
+			Navigate().To(closedWalletViewModel, NavigationMode.Clear);
 		}
 
 		private async Task<bool> ShowLegalAsync(LegalChecker legalChecker)
