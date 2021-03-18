@@ -25,7 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify] private uint _percent;
 
 		private Stopwatch? _stopwatch;
-		private uint? _startingPercent;
+		private uint? _startingFilterIndex;
 
 		protected ClosedWalletViewModel(WalletManagerViewModel walletManagerViewModel, Wallet wallet)
 			: base(wallet)
@@ -69,21 +69,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					{
 						var allFilters = tipHeight - segwitActivationHeight;
 						var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
-						var percent = (decimal) processedFilters / allFilters * 100;
 
-						UpdateStatus(percent, _stopwatch.ElapsedMilliseconds);
+						UpdateStatus(allFilters, processedFilters, _stopwatch.ElapsedMilliseconds);
 					}
 				})
 				.DisposeWith(disposables);
 		}
 
-		private void UpdateStatus(decimal percent, double elapsedMilliseconds)
+		private void UpdateStatus(uint allFilters, uint processedFilters, long elapsedMilliseconds)
 		{
-			var tempPercent = (uint) Math.Round(percent);
-			_startingPercent ??= tempPercent; // Store the percentage we started on. It is needed for better remaining time calculation.
-			var realProcessedPercent = tempPercent - _startingPercent.Value;
+			var percent = (decimal) processedFilters / allFilters * 100;
+			_startingFilterIndex ??= processedFilters;
+			var realProcessedFilters = processedFilters - _startingFilterIndex.Value;
+			var remainingFilterCount = allFilters - processedFilters;
 
-			if (tempPercent == 0 || realProcessedPercent == 0)
+			var tempPercent = (uint) Math.Round(percent);
+
+			if (tempPercent == 0 || realProcessedFilters == 0 || remainingFilterCount == 0)
 			{
 				return;
 			}
@@ -91,8 +93,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			Percent = tempPercent;
 			var percentText = $"{Percent}% completed";
 
-			var remainingMilliseconds = elapsedMilliseconds / realProcessedPercent * (100 - Percent);
-			var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds(remainingMilliseconds));
+			var remainingMilliseconds = (decimal) elapsedMilliseconds / realProcessedFilters * (remainingFilterCount);
+			var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds((uint)remainingMilliseconds));
 			var remainingTimeText = string.IsNullOrEmpty(userFriendlyTime) ? "" : $"- {userFriendlyTime} remaining";
 
 			StatusText = $"{percentText} {remainingTimeText}";
