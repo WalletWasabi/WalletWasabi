@@ -4,6 +4,7 @@ using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
@@ -129,24 +130,22 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public void IncludeTaprootScriptInFilters()
 		{
-			var block = GenerateBlockchain().First();
+			var getBlockRpcRawResponse = File.ReadAllText("./UnitTests/Data/VerboseBlock.json");
+
+			var block = RpcParser.ParseVerboseBlockResponse(getBlockRpcRawResponse);
 			var filter = IndexBuilderService.BuildFilterForBlock(block);
 
-			var firstTaprootScript = block
-				.Transactions.First()
-				.Outputs.Where(x => x.PubkeyType == RpcPubkeyType.TxWitnessV1Taproot)
-				.Select(x => x.ScriptPubKey)
-				.First();
+			var txOutputs = block.Transactions.SelectMany(x => x.Outputs);
+			var prevTxOutputs = block.Transactions.SelectMany(x => x.Inputs.Where(y => y.PrevOutput is { }).Select(y => y.PrevOutput));
+			var allOutputs = txOutputs.Concat(prevTxOutputs);
 
-			var firstTaprootScript2 = block
-				.Transactions.First()
-				.Outputs.Where(x => x.PubkeyType == RpcPubkeyType.TxWitnessV1Taproot)
-				.Select(x => x.ScriptPubKey)
-				.First();
+			var indexableOutputs = allOutputs.Where(x => x.PubkeyType is RpcPubkeyType.TxWitnessV0Keyhash or RpcPubkeyType.TxWitnessV1Taproot);
+			var nonIndexableOutputs = allOutputs.Except(indexableOutputs);
 
 			static byte[] ComputeKey(uint256 blockId) => blockId.ToBytes()[0..16];
 
-			Assert.True(filter.Match(firstTaprootScript.ToCompressedBytes(), ComputeKey(block.Hash)));
+			Assert.All(indexableOutputs, x => Assert.True(filter.Match(x.ScriptPubKey.ToCompressedBytes(), ComputeKey(block.Hash))));
+			Assert.All(nonIndexableOutputs, x => Assert.False(filter.Match(x.ScriptPubKey.ToCompressedBytes(), ComputeKey(block.Hash))));
 		}
 
 		private IEnumerable<VerboseBlockInfo> GenerateBlockchain() =>
@@ -158,7 +157,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				DateTimeOffset.UtcNow.AddMinutes(height * 10),
 				height,
 				GenerateTransactions().ToList()
-				);
+			);
 
 		private IEnumerable<ulong> GenerateHeights() =>
 			Enumerable.Range(0, int.MaxValue).Select(x => (ulong)x);
@@ -171,7 +170,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				GenerateOutputs().ToList());
 
 		private IEnumerable<VerboseOutputInfo> GenerateOutputs() =>
-			from scriptType in new[]{ "witness_v0_keyhash", "witness_v1_taproot"}
+			from scriptType in new[] { "witness_v0_keyhash", "witness_v1_taproot" }
 			select new VerboseOutputInfo(Money.Coins(1), Script.FromBytesUnsafe(RandomUtils.GetBytes(40)), scriptType);
 
 		private static uint256 BlockHashFromHeight(ulong height)
