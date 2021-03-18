@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Converters
@@ -43,25 +44,25 @@ namespace WalletWasabi.Fluent.Converters
 
 		private static Bitmap GetBitmap(WalletType type)
 		{
-			Uri uri = new("avares://WalletWasabi.Fluent/Assets/WalletIcons/Dark/generic.png");
+			Uri uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/generic.png");
 
 			switch (type)
 			{
 				case WalletType.Coldcard:
-					uri = new("avares://WalletWasabi.Fluent/Assets/WalletIcons/Dark/coldcard.png");
+					uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/coldcard.png");
 					break;
 
 				case WalletType.Trezor:
-					uri = new("avares://WalletWasabi.Fluent/Assets/WalletIcons/Dark/trezor.png");
+					uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/trezor.png");
 					break;
 
 				case WalletType.Ledger:
-					uri = new("avares://WalletWasabi.Fluent/Assets/WalletIcons/Dark/ledger.png");
+					uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/ledger.png");
 					break;
 
 				case WalletType.Normal:
 				case WalletType.Unknown:
-					uri = new("avares://WalletWasabi.Fluent/Assets/WalletIcons/Dark/normal.png");
+					uri = new($"avares://WalletWasabi.Fluent/Assets/WalletIcons/{ThemeHelper.CurrentTheme}/normal.png");
 					break;
 			}
 
