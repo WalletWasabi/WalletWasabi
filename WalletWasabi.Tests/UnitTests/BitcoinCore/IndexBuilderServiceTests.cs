@@ -149,29 +149,15 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		}
 
 		private IEnumerable<VerboseBlockInfo> GenerateBlockchain() =>
-			from height in GenerateHeights()
+			from height in Enumerable.Range(0, int.MaxValue).Select(x => (ulong)x)
 			select new VerboseBlockInfo(
 				BlockHashFromHeight(height),
 				height,
 				BlockHashFromHeight(height + 1),
 				DateTimeOffset.UtcNow.AddMinutes(height * 10),
 				height,
-				GenerateTransactions().ToList()
+				Enumerable.Empty<VerboseTransactionInfo>()
 			);
-
-		private IEnumerable<ulong> GenerateHeights() =>
-			Enumerable.Range(0, int.MaxValue).Select(x => (ulong)x);
-
-		private IEnumerable<VerboseTransactionInfo> GenerateTransactions() =>
-			from i in Enumerable.Range(0, 2)
-			select new VerboseTransactionInfo(
-				RandomUtils.GetUInt256(),
-				Enumerable.Empty<VerboseInputInfo>(),
-				GenerateOutputs().ToList());
-
-		private IEnumerable<VerboseOutputInfo> GenerateOutputs() =>
-			from scriptType in new[] { "witness_v0_keyhash", "witness_v1_taproot" }
-			select new VerboseOutputInfo(Money.Coins(1), Script.FromBytesUnsafe(RandomUtils.GetBytes(40)), scriptType);
 
 		private static uint256 BlockHashFromHeight(ulong height)
 			=> height == 0 ? uint256.Zero : Hashes.DoubleSHA256(BitConverter.GetBytes(height));
