@@ -80,7 +80,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 		public IEnumerable<ProcessedResult> Process(params SmartTransaction[] txs)
 			=> Process(txs as IEnumerable<SmartTransaction>);
 
-		private Dictionary<uint256, string> Processed { get; } = new();
 
 		/// <summary>
 		/// Was the transaction already processed by the transaction processor?
@@ -99,13 +98,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			lock (Lock)
 			{
 				Aware.Add(tx.GetHash());
-				if (Processed.TryGetValue(tx.GetHash(), out var stack))
-				{
-					Logger.LogWarning(tx.GetHash().ToString());
-					Logger.LogWarning(stack);
-					Logger.LogWarning(Environment.StackTrace);
-				}
-				Processed.AddOrReplace(tx.GetHash(), Environment.StackTrace);
 				try
 				{
 					QueuedTxCount = 1;
