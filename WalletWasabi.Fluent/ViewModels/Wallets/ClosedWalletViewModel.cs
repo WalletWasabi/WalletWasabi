@@ -15,7 +15,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class ClosedWalletViewModel : WalletViewModelBase
 	{
-		private readonly Wallet _wallet;
 		private readonly SmartHeaderChain _smartHeaderChain;
 
 		[AutoNotify] private string _statusText;
@@ -27,7 +26,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		protected ClosedWalletViewModel(WalletManagerViewModel walletManagerViewModel, Wallet wallet)
 			: base(wallet)
 		{
-			_wallet = wallet;
 			_smartHeaderChain = walletManagerViewModel.BitcoinStore.SmartHeaderChain;
 			_statusText = " ";
 			_percent = 0;
@@ -57,8 +55,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
-					var segwitActivationHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
-					if (_wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight
+					var segwitActivationHeight = SmartHeader.GetStartingHeader(Wallet.Network).Height;
+					if (Wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight
 					    && lastProcessedFilterHeight > segwitActivationHeight
 					    && _smartHeaderChain.TipHeight is { } tipHeight
 					    && tipHeight > segwitActivationHeight)
