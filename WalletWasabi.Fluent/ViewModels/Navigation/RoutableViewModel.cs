@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 	{
 		[AutoNotify] private bool _isBusy;
 		[AutoNotify] private bool _enableCancelOnPressed;
-		[AutoNotify] private bool _enableCancelOnEscape;
+		[AutoNotify] private bool _enableCancelOnEscape = true;
 		[AutoNotify] private bool _enableBack;
 		[AutoNotify] private bool _enableCancel;
 
