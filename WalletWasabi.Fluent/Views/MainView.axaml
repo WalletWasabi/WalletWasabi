@@ -50,8 +50,8 @@
     <c:Dialog x:CompileBindings="False"
               DataContext="{Binding FullScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
-              EnableCancelOnPressed="False"
-              EnableCancelOnEscape="True"
+              EnableCancelOnPressed="{Binding CurrentPage.EnableCancelOnPressed, FallbackValue=False}"
+              EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
               IsEnabled="{Binding $parent.DataContext.IsFullScreenEnabled}"
               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -77,8 +77,8 @@
     <c:Dialog x:CompileBindings="False"
               DataContext="{Binding DialogScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
-              EnableCancelOnPressed="False"
-              EnableCancelOnEscape="True"
+              EnableCancelOnPressed="{Binding CurrentPage.EnableCancelOnPressed, FallbackValue=False}"
+              EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
               IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
@@ -88,8 +88,8 @@
     <c:Dialog x:CompileBindings="False"
               DataContext="{Binding CompactDialogScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
-              EnableCancelOnPressed="False"
-              EnableCancelOnEscape="True"
+              EnableCancelOnPressed="{Binding CurrentPage.EnableCancelOnPressed, FallbackValue=False}"
+              EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
               IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <ContentControl Content="{Binding CurrentPage}" />
