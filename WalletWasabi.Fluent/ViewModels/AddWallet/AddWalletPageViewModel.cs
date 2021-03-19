@@ -33,8 +33,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		[AutoNotify] private string _walletName = "";
 		[AutoNotify] private bool _optionsEnabled;
-		[AutoNotify] private bool _enableBack;
-		[AutoNotify] private bool _enableCancel;
 
 		public AddWalletPageViewModel(
 			WalletManagerViewModel walletManagerViewModel,
@@ -123,7 +121,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			_enableCancel = CurrentTarget != NavigationTarget.HomeScreen;
+			EnableCancel = CurrentTarget != NavigationTarget.HomeScreen;
 
 			this.RaisePropertyChanged(WalletName);
 
