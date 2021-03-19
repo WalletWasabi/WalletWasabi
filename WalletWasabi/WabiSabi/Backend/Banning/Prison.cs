@@ -31,10 +31,7 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 
 		public (int noted, int banned) CountInmates()
 		{
-			lock (Lock)
-			{
-				return (Inmates.Count(x => x.Value.Punishment == Punishment.Noted), Inmates.Count(x => x.Value.Punishment == Punishment.Banned));
-			}
+			return (Inmates.Count(x => x.Value.Punishment == Punishment.Noted), Inmates.Count(x => x.Value.Punishment == Punishment.Banned));
 		}
 
 		public void Note(Alice alice, Guid lastDisruptedRoundId)
@@ -71,18 +68,18 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 
 		public bool TryRelease(OutPoint utxo, [NotNullWhen(returnValue: true)] out Inmate? inmate)
 		{
-			lock (Lock)
+			if (Inmates.TryGetValue(utxo, out inmate))
 			{
-				if (Inmates.TryGetValue(utxo, out inmate))
+				lock (Lock)
 				{
 					Inmates.Remove(utxo);
 					ChangeId = Guid.NewGuid();
-					return true;
 				}
-				else
-				{
-					return false;
-				}
+				return true;
+			}
+			else
+			{
+				return false;
 			}
 		}
 
@@ -112,18 +109,12 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 
 		public bool TryGet(OutPoint utxo, [NotNullWhen(returnValue: true)] out Inmate? inmate)
 		{
-			lock (Lock)
-			{
-				return Inmates.TryGetValue(utxo, out inmate);
-			}
+			return Inmates.TryGetValue(utxo, out inmate);
 		}
 
 		public IEnumerable<Inmate> GetInmates()
 		{
-			lock (Lock)
-			{
-				return Inmates.Select(x => x.Value).ToList();
-			}
+			return Inmates.Select(x => x.Value).ToList();
 		}
 	}
 }
