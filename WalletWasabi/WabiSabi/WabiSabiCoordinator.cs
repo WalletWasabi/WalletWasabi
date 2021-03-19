@@ -45,9 +45,10 @@ namespace WalletWasabi.WabiSabi
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
-			await ConfigWatcher.StartAsync(stoppingToken).ConfigureAwait(false);
-			await Warden.StartAsync(stoppingToken).ConfigureAwait(false);
-			await Arena.StartAsync(stoppingToken).ConfigureAwait(false);
+			await Task.WhenAll(
+				ConfigWatcher.StartAsync(stoppingToken),
+				Warden.StartAsync(stoppingToken),
+				Arena.StartAsync(stoppingToken)).ConfigureAwait(false);
 		}
 
 		public override async Task StopAsync(CancellationToken cancellationToken)
@@ -55,10 +56,11 @@ namespace WalletWasabi.WabiSabi
 			await Postman.DisposeAsync().ConfigureAwait(false);
 
 			await base.StopAsync(cancellationToken).ConfigureAwait(false);
-
-			await Arena.StopAsync(cancellationToken).ConfigureAwait(false);
-			await ConfigWatcher.StopAsync(cancellationToken).ConfigureAwait(false);
-			await Warden.StopAsync(cancellationToken).ConfigureAwait(false);
+			
+			await Task.WhenAll(
+				Arena.StopAsync(cancellationToken),
+				ConfigWatcher.StopAsync(cancellationToken),
+				Warden.StopAsync(cancellationToken)).ConfigureAwait(false);
 		}
 
 		public override void Dispose()
