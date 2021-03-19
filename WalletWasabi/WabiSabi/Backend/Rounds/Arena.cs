@@ -219,12 +219,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private async Task FailTransactionSigningPhaseAsync(Round round)
 		{
-			var alicesWhoDidntSign = round
-				.Alices
-				.Where(x => !x
-					.Coins
-					.Select(x => x.Outpoint)
-					.All(y => round.Coinjoin.Inputs.Where(x => x.HasWitScript()).Select(x => x.PrevOut).Contains(y)))
+			var unsignedCoins = round.Coinjoin.Inputs.Where(x => !x.HasWitScript()).Select(x => x.PrevOut);
+			var alicesWhoDidntSign = round.Alices
+				.SelectMany(alice => alice.Coins, (alice, coin) => (Alice: alice, coin.Outpoint))
+				.Where(x => unsignedCoins.Contains(x.Outpoint))
+				.Select(x => x.Alice)
 				.ToHashSet();
 
 			foreach (var alice in alicesWhoDidntSign)
