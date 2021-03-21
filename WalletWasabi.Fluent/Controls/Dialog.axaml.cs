@@ -15,6 +15,15 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> IsDialogOpenProperty =
 			AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
 
+		public static readonly StyledProperty<bool> IsBusyProperty =
+			AvaloniaProperty.Register<Dialog, bool>(nameof(IsBusy));
+
+		public static readonly StyledProperty<bool> IsBackEnabledProperty =
+			AvaloniaProperty.Register<Dialog, bool>(nameof(IsBackEnabled));
+
+		public static readonly StyledProperty<bool> IsCancelEnabledProperty =
+			AvaloniaProperty.Register<Dialog, bool>(nameof(IsCancelEnabled));
+
 		public static readonly StyledProperty<bool> EnableCancelOnPressedProperty =
 			AvaloniaProperty.Register<Dialog, bool>(nameof(EnableCancelOnPressed));
 
@@ -31,6 +40,24 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(IsDialogOpenProperty);
 			set => SetValue(IsDialogOpenProperty, value);
+		}
+
+		public bool IsBusy
+		{
+			get => GetValue(IsBusyProperty);
+			set => SetValue(IsBusyProperty, value);
+		}
+
+		public bool IsBackEnabled
+		{
+			get => GetValue(IsBackEnabledProperty);
+			set => SetValue(IsBackEnabledProperty, value);
+		}
+
+		public bool IsCancelEnabled
+		{
+			get => GetValue(IsCancelEnabledProperty);
+			set => SetValue(IsCancelEnabledProperty, value);
 		}
 
 		public bool EnableCancelOnPressed
