@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent
 
 		public void Execute(GeneratorExecutionContext context)
 		{
-			context.AddSource("StaticViewLocatorAttribute", SourceText.From(AttributeText, Encoding.UTF8));
+			context.AddSource("StaticViewLocatorAttribute.cs", SourceText.From(AttributeText, Encoding.UTF8));
 
 			if (context.SyntaxReceiver is not SyntaxReceiver receiver)
 			{

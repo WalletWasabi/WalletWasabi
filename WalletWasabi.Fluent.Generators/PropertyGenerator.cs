@@ -65,9 +65,9 @@ namespace WalletWasabi.Fluent
 		{
 			if (context.Compilation.GetTypeByMetadataName("WalletWasabi.Fluent.PropertyModifier") == null)
 			{
-				context.AddSource("PropertyModifier", SourceText.From(ModifierText, Encoding.UTF8));
+				context.AddSource("PropertyModifier.cs", SourceText.From(ModifierText, Encoding.UTF8));
 			}
-			context.AddSource("PropertyAttribute", SourceText.From(AttributeText, Encoding.UTF8));
+			context.AddSource("PropertyAttribute.cs", SourceText.From(AttributeText, Encoding.UTF8));
 
 			if (context.SyntaxReceiver is not SyntaxReceiver receiver)
 			{
