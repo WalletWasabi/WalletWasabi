@@ -26,7 +26,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		private RoundPhase _phase;
 		private CoordinatorRoundStatus _status;
 
-		public CoordinatorRound(IRPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate)
+		public CoordinatorRound(IRPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate, TimeSpan inputRegistrationTimeOut)
 		{
 			try
 			{
@@ -41,7 +41,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				ConfiguredConfirmationTargetReductionRate = configuredConfirmationTargetReductionRate;
 				CoordinatorFeePercent = config.CoordinatorFeePercent;
 				AnonymitySet = config.AnonymitySet;
-				InputRegistrationTimeout = TimeSpan.FromSeconds(config.InputRegistrationTimeout);
+				InputRegistrationTimeout = inputRegistrationTimeOut;
 				SetInputRegistrationTimesout();
 				ConnectionConfirmationTimeout = TimeSpan.FromSeconds(config.ConnectionConfirmationTimeout);
 				OutputRegistrationTimeout = TimeSpan.FromSeconds(config.OutputRegistrationTimeout);
