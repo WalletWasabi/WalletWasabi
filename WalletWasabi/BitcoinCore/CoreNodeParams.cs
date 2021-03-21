@@ -52,6 +52,14 @@ namespace WalletWasabi.BitcoinCore
 		public string MempoolReplacement { get; }
 		public string UserAgent { get; }
 		public Money FallbackFee { get; }
+		public int? Listen { get; set; }
+		public int? ListenOnion { get; set; }
+		public int? Discover { get; set; }
+		public int? DnsSeed { get; set; }
+		public int? FixedSeeds { get; set; }
+		public int? Upnp { get; set; }
+		public int? NatPmp { get; set; }
+		public int? PersistMempool { get; set; }
 		public EndPointStrategy P2pEndPointStrategy { get; }
 		public EndPointStrategy RpcEndPointStrategy { get; }
 		public IMemoryCache Cache { get; }

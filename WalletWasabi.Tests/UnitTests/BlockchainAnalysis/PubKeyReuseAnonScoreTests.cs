@@ -19,7 +19,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var km = ServiceFactory.CreateKeyManager();
 			var reuse = BitcoinFactory.CreateHdPubKey(km);
 			var tx = BitcoinFactory.CreateSmartTransaction(
-				9,
+				othersInputCount: 9,
 				Enumerable.Repeat(Money.Coins(1m), 9),
 				new[] { (Money.Coins(1.1m), 100, BitcoinFactory.CreateHdPubKey(km)) },
 				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, reuse) });
@@ -36,13 +36,41 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 		}
 
 		[Fact]
+		public void AddressReusePunishmentProcessTwice()
+		{
+			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
+			var km = ServiceFactory.CreateKeyManager();
+			var reuse = BitcoinFactory.CreateHdPubKey(km);
+			var tx = BitcoinFactory.CreateSmartTransaction(
+				othersInputCount: 9,
+				Enumerable.Repeat(Money.Coins(1m), 9),
+				new[] { (Money.Coins(1.1m), 100, BitcoinFactory.CreateHdPubKey(km)) },
+				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, reuse) });
+
+			// Make the reused key anonymity set something smaller than 109 (which should be the final anonymity set)
+			reuse.SetAnonymitySet(30, uint256.One);
+
+			analyser.Analyze(tx);
+			var inputAnonsets = tx.WalletInputs.Select(x => x.HdPubKey.AnonymitySet).ToArray();
+			var outputAnonsets = tx.WalletOutputs.Select(x => x.HdPubKey.AnonymitySet).ToArray();
+
+			analyser.Analyze(tx);
+			var newInputAnonsets = tx.WalletInputs.Select(x => x.HdPubKey.AnonymitySet).ToArray();
+			var newOutputAnonsets = tx.WalletOutputs.Select(x => x.HdPubKey.AnonymitySet).ToArray();
+
+			// Anonsets should not change.
+			Assert.Equal<int[]>(inputAnonsets, newInputAnonsets);
+			Assert.Equal<int[]>(outputAnonsets, newOutputAnonsets);
+		}
+
+		[Fact]
 		public void SelfSpendReuse()
 		{
 			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
 			var km = ServiceFactory.CreateKeyManager();
 			var reuse = BitcoinFactory.CreateHdPubKey(km);
 			var tx = BitcoinFactory.CreateSmartTransaction(
-				0,
+				othersInputCount: 0,
 				Enumerable.Empty<Money>(),
 				new[] { (Money.Coins(1.1m), 100, BitcoinFactory.CreateHdPubKey(km)) },
 				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, reuse) });
@@ -66,7 +94,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var km = ServiceFactory.CreateKeyManager();
 			var key = BitcoinFactory.CreateHdPubKey(km);
 			var tx = BitcoinFactory.CreateSmartTransaction(
-				0,
+				othersInputCount: 0,
 				Enumerable.Repeat(Money.Coins(1m), 9),
 				new[] { (Money.Coins(1.1m), 100, key), (Money.Coins(1.2m), 100, key), (Money.Coins(1.3m), 100, key), (Money.Coins(1.4m), 100, key) },
 				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, BitcoinFactory.CreateHdPubKey(km)) });
@@ -85,7 +113,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var km = ServiceFactory.CreateKeyManager();
 			var key = BitcoinFactory.CreateHdPubKey(km);
 			var tx = BitcoinFactory.CreateSmartTransaction(
-				0,
+				othersInputCount: 0,
 				Enumerable.Empty<Money>(),
 				new[] { (Money.Coins(1.1m), 100, key), (Money.Coins(1.2m), 100, key), (Money.Coins(1.3m), 100, key), (Money.Coins(1.4m), 100, key) },
 				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, BitcoinFactory.CreateHdPubKey(km)) });
@@ -103,7 +131,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var km = ServiceFactory.CreateKeyManager();
 			var key = BitcoinFactory.CreateHdPubKey(km);
 			var tx = BitcoinFactory.CreateSmartTransaction(
-				9,
+				othersInputCount: 9,
 				Enumerable.Repeat(Money.Coins(1m), 9),
 				new[] { (Money.Coins(1.1m), 100, key), (Money.Coins(1.2m), 100, key), (Money.Coins(1.3m), 100, key), (Money.Coins(1.4m), 100, key) },
 				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, BitcoinFactory.CreateHdPubKey(km)) });
@@ -121,7 +149,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
 			var key = BitcoinFactory.CreateHdPubKey(ServiceFactory.CreateKeyManager());
 			var tx = BitcoinFactory.CreateSmartTransaction(
-				9,
+				othersInputCount: 9,
 				Enumerable.Repeat(Money.Coins(1m), 9),
 				new[] { (Money.Coins(1.1m), 100, key) },
 				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, key) });
@@ -139,7 +167,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
 			var reuse = BitcoinFactory.CreateHdPubKey(ServiceFactory.CreateKeyManager());
 			var tx = BitcoinFactory.CreateSmartTransaction(
-				9,
+				othersInputCount: 9,
 				Enumerable.Repeat(Money.Coins(1m), 9),
 				new[] { (Money.Coins(1.1m), 100, BitcoinFactory.CreateHdPubKey(ServiceFactory.CreateKeyManager())) },
 				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, reuse) });
@@ -160,7 +188,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var km = ServiceFactory.CreateKeyManager();
 			var key = BitcoinFactory.CreateHdPubKey(km);
 			var tx = BitcoinFactory.CreateSmartTransaction(
-				9,
+				othersInputCount: 9,
 				Enumerable.Repeat(Money.Coins(1m), 9).Concat(Enumerable.Repeat(Money.Coins(2m), 7)),
 				new[] { (Money.Coins(1.1m), 100, BitcoinFactory.CreateHdPubKey(km)) },
 				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, key), (Money.Coins(2m), HdPubKey.DefaultHighAnonymitySet, key) });
@@ -181,7 +209,7 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var km = ServiceFactory.CreateKeyManager();
 			var key = BitcoinFactory.CreateHdPubKey(km);
 			var tx = BitcoinFactory.CreateSmartTransaction(
-				9,
+				othersInputCount: 9,
 				Enumerable.Repeat(Money.Coins(1m), 9).Concat(Enumerable.Repeat(Money.Coins(2m), 8)).Concat(Enumerable.Repeat(Money.Coins(3m), 7)).Concat(Enumerable.Repeat(Money.Coins(4m), 6)).Concat(Enumerable.Repeat(Money.Coins(5m), 5)).Concat(Enumerable.Repeat(Money.Coins(6m), 4)),
 				new[] { (Money.Coins(1.1m), 100, BitcoinFactory.CreateHdPubKey(km)) },
 				new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, key), (Money.Coins(2m), HdPubKey.DefaultHighAnonymitySet, key), (Money.Coins(3m), HdPubKey.DefaultHighAnonymitySet, key), (Money.Coins(4m), HdPubKey.DefaultHighAnonymitySet, key), (Money.Coins(5m), HdPubKey.DefaultHighAnonymitySet, key), (Money.Coins(6m), HdPubKey.DefaultHighAnonymitySet, key) });
@@ -202,9 +230,10 @@ namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis
 			var analyser = ServiceFactory.CreateBlockchainAnalyzer();
 			var km = ServiceFactory.CreateKeyManager();
 			var equalOutputAmount = Money.Coins(1m);
-			var reusedTxOut = new TxOut(equalOutputAmount, new Key());
+			using var destination = new Key();
+			var reusedTxOut = new TxOut(equalOutputAmount, destination);
 			var tx = BitcoinFactory.CreateSmartTransaction(
-				9,
+				othersInputCount: 9,
 				Common.Repeat(() => new TxOut(equalOutputAmount, new Key()), 7).Concat(new[] { reusedTxOut, reusedTxOut }),
 				new[] { (Money.Coins(1.1m), 1, BitcoinFactory.CreateHdPubKey(km)) },
 				new[] { (equalOutputAmount, HdPubKey.DefaultHighAnonymitySet, BitcoinFactory.CreateHdPubKey(km)) });
