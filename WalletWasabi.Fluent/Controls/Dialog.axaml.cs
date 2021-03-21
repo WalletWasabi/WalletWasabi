@@ -125,7 +125,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void CancelKeyDown(object? sender, KeyEventArgs e)
 		{
-			if (e.Key == Key.Escape && EnableCancelOnEscape)
+			if (e.Key == Key.Escape && EnableCancelOnEscape && !IsBusy && IsCancelEnabled)
 			{
 				Close();
 			}
