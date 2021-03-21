@@ -46,6 +46,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			base.OnPointerPressed(e);
 
+			// Trigger SelectedItem change notification on pointer pressed event when it was already selected.
 			if (ReSelectSelectedItem)
 			{
 				var isSameSelectedItem = previousSelectedItem is not null && previousSelectedItem == SelectedItem;
