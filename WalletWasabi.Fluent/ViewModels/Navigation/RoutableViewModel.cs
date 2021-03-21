@@ -41,7 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		{
 			if (_currentDisposable is { })
 			{
-				throw new Exception("Cant navigate to something that has already been navigated to.");
+				throw new Exception("Can't navigate to something that has already been navigated to.");
 			}
 
 			_currentDisposable = new CompositeDisposable();
