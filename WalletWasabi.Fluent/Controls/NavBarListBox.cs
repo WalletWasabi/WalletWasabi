@@ -20,18 +20,6 @@ namespace WalletWasabi.Fluent.Controls
 
 		Type IStyleable.StyleKey => typeof(ListBox);
 
-		protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-		{
-			base.OnAttachedToVisualTree(e);
-
-			this.GetObservable(SelectedItemProperty).Subscribe(OnSelectedItemPropertyChanged);
-		}
-
-		private void OnSelectedItemPropertyChanged(object? obj)
-		{
-			Console.WriteLine($"OnSelectedItemPropertyChanged {obj?.GetType().Name}");
-		}
-
 		protected override IItemContainerGenerator CreateItemContainerGenerator()
 		{
 			return new ItemContainerGenerator<NavBarItem>(
