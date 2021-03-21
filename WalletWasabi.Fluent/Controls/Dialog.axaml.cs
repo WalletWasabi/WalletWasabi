@@ -92,6 +92,11 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				PseudoClasses.Set(":open", change.NewValue.GetValueOrDefault<bool>());
 			}
+
+			if (change.Property == IsBusyProperty)
+			{
+				PseudoClasses.Set(":busy", change.NewValue.GetValueOrDefault<bool>());
+			}
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
