@@ -60,7 +60,7 @@ namespace WalletWasabi.Nito.AsyncEx
 				{
 					if (whenAllTask.Exception is { } aggregatedException)
 					{
-						// Catch every exceptions but log only non-cancellation ones.
+						// Catch every exception but log only non-cancellation ones.
 						foreach (var exc in aggregatedException.InnerExceptions.Where(ex => ex is not OperationCanceledException))
 						{
 							Logger.LogDebug(exc);
