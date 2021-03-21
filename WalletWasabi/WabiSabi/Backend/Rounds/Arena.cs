@@ -64,8 +64,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void StepInputRegistrationPhase()
 		{
-			Logger.LogInfo($"Step {nameof(Phase.InputRegistration)} Phase.");
-
 			foreach (var round in Rounds.Values.Where(x =>
 				x.Phase == Phase.InputRegistration
 				&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(x)))
@@ -85,8 +83,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void StepConnectionConfirmationPhase()
 		{
-			Logger.LogInfo($"Step {nameof(Phase.ConnectionConfirmation)} Phase.");
-
 			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.ConnectionConfirmation).ToArray())
 			{
 				if (round.Alices.All(x => x.ConfirmedConnetion))
@@ -118,8 +114,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void StepOutputRegistrationPhase()
 		{
-			Logger.LogInfo($"Step {nameof(Phase.OutputRegistration)} Phase.");
-
 			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.OutputRegistration).ToArray())
 			{
 				long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.FeeRate));
@@ -170,8 +164,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private async Task StepTransactionSigningPhaseAsync()
 		{
-			Logger.LogInfo($"Step {nameof(Phase.TransactionSigning)} Phase.");
-
 			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.TransactionSigning).ToArray())
 			{
 				var coinjoin = round.Coinjoin;
