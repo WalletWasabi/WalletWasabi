@@ -210,7 +210,7 @@ namespace WalletWasabi.Fluent.Controls
 				return false;
 			}
 
-			// Reject and dont process the input if the string doesnt match.
+			// Reject and don't process the input if the string doesn't match.
 			if (!match.Success)
 			{
 				return false;
