@@ -47,6 +47,7 @@ namespace WalletWasabi.Fluent.Controls
 			base.OnPointerPressed(e);
 
 			// Trigger SelectedItem change notification on pointer pressed event when it was already selected.
+			// This enables view model to receive change notification on pointer pressed events using SelectedItem observable.
 			if (ReSelectSelectedItem)
 			{
 				var isSameSelectedItem = previousSelectedItem is not null && previousSelectedItem == SelectedItem;
