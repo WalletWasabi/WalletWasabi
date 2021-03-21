@@ -44,19 +44,13 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var previousSelectedItem = SelectedItem;
 
-			// Console.WriteLine($"BEFORE OnPointerPressed {SelectedItem?.GetType().Name}");
-
 			base.OnPointerPressed(e);
-
-			// Console.WriteLine($"AFTER OnPointerPressed {SelectedItem?.GetType().Name}");
 
 			if (ReSelectSelectedItem)
 			{
 				var isSameSelectedItem = previousSelectedItem is not null && previousSelectedItem == SelectedItem;
-				Console.WriteLine($"OnPointerPressed {isSameSelectedItem}");
 				if (isSameSelectedItem)
 				{
-					Console.WriteLine($"RESELECT OnPointerPressed");
 					SelectedItem = null;
 					SelectedItem = previousSelectedItem;
 				}
