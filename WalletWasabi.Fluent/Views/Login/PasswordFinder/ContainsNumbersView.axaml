@@ -10,8 +10,8 @@
              x:Class="WalletWasabi.Fluent.Views.Login.PasswordFinder.ContainsNumbersView">
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="False"
-                 EnableCancel="True"
-                 EnableBack="True"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
     <c:QuestionControl Text="Does your password contains numbers?"

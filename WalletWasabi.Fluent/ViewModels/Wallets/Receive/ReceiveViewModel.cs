@@ -37,6 +37,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Select(reference => !string.IsNullOrEmpty(reference));
 
+			EnableCancel = true;
+
+			EnableBack = false;
+
 			NextCommand = ReactiveCommand.Create(
 				() =>
 				{

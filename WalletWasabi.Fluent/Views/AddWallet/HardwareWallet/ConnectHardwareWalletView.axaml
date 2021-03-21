@@ -11,8 +11,9 @@
 
   <c:ContentArea Title="{Binding Title}"
                  Caption="Connect your hardware wallet to the PC"
-                 EnableCancel="True" CancelContent="Cancel"
-                 EnableBack="True"
+                 CancelContent="Cancel"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}"
                  EnableNext="{Binding ConfirmationRequired}" NextContent="Continue"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <Grid RowDefinitions="*,3*,Auto">

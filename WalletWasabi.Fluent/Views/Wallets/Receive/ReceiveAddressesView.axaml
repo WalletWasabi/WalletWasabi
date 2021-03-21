@@ -9,8 +9,8 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressesView">
   <c:ContentArea Title="{Binding Title}"
-                 EnableBack="True"
-                 EnableCancel="True">
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}">
     <DataGrid Items="{Binding Addresses}"
               SelectedItem="{Binding SelectedAddress, Mode=TwoWay}"
               CanUserSortColumns="True">

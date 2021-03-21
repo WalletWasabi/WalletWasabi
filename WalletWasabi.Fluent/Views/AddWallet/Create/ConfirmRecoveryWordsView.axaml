@@ -15,8 +15,8 @@
     <KeyBinding Gesture="Enter" Command="{Binding NextCommand}" />
   </UserControl.KeyBindings>
   <c:ContentArea Title="{Binding Title}" Caption="Type the required recovery words"
-                 EnableBack="True"
-                 EnableCancel="False"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue"
                  EnableSkip="{Binding IsSkipEnable}">
     <ScrollViewer>

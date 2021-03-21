@@ -42,6 +42,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 
+			EnableCancel = true;
+
+			EnableBack = true;
+
 			NextCommandCanExecute =
 				this.WhenAnyValue(x => x.CurrentMnemonics)
 					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);

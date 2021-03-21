@@ -12,7 +12,8 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveView">
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Continue"
-                 EnableCancel="True">
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}">
     <DockPanel>
       <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
         <Label Content="_Reference" Target="ReferenceTbx" HorizontalAlignment="Left" FontWeight="Normal" />

@@ -13,6 +13,10 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 		{
 			Options = options;
 
+			EnableCancel = true;
+
+			EnableBack = true;
+
 			YesCommand = ReactiveCommand.Create(() => SetAnswer(true));
 			NoCommand = ReactiveCommand.Create(() => SetAnswer(false));
 		}

@@ -31,6 +31,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			TypeName = device.Model.FriendlyName();
 
+			EnableCancel = false;
+
+			EnableBack = false;
+
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				try

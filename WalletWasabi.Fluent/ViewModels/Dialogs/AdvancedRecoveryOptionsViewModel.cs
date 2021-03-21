@@ -19,6 +19,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			this.ValidateProperty(x => x.AccountKeyPath, ValidateAccountKeyPath);
 			this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
 
+			EnableCancel = true;
+
+			EnableBack = false;
+
 			var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
 
 			var nextCommandCanExecute = this.WhenAnyValue(

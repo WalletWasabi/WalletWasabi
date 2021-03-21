@@ -38,6 +38,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			FiatFeeText =
 				$"(≈{(fee.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD)";
 
+			EnableCancel = true;
+
+			EnableBack = true;
+
 			NextCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);

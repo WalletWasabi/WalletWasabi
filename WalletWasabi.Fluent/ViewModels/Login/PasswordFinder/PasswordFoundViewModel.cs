@@ -12,6 +12,10 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 		{
 			_password = password;
 
+			EnableCancel = false;
+
+			EnableBack = false;
+
 			NextCommand = CancelCommand;
 		}
 	}

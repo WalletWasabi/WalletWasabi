@@ -100,8 +100,8 @@
         </Style>
     </UserControl.Styles>
     <c:ContentArea Title="Send" Caption=""
-                   EnableCancel="True"
-                   EnableNext="True"
+                   EnableCancel="{Binding EnableCancel}"
+                   EnableBack="{Binding EnableBack}"
                    NextContent="Continue"
                    ClipToBounds="False"
                    IsBusy="{Binding IsBusy}"

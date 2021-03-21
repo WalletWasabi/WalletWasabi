@@ -28,6 +28,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			Network = wallet.Network;
 			_addresses = new ObservableCollection<AddressViewModel>();
 
+			EnableCancel = true;
+
+			EnableBack = true;
+
 			InitializeAddresses();
 
 			this.WhenAnyValue(x => x.SelectedAddress)
