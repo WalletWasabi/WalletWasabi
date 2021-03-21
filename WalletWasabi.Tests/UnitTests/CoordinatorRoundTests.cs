@@ -19,7 +19,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var roundConfig = new CoordinatorRoundConfig();
 			var utxoReferee = new UtxoReferee(Network.Main, "./", rpc, roundConfig);
 			var confirmationTarget = 12;
-			var round = new CoordinatorRound(rpc, utxoReferee, roundConfig, adjustedConfirmationTarget: confirmationTarget, confirmationTarget, roundConfig.ConfirmationTargetReductionRate, TimeSpan.FromSeconds(RoundConfig.InputRegistrationTimeout));
+			var round = new CoordinatorRound(rpc, utxoReferee, roundConfig, adjustedConfirmationTarget: confirmationTarget, confirmationTarget, roundConfig.ConfirmationTargetReductionRate, TimeSpan.FromSeconds(roundConfig.InputRegistrationTimeout));
 
 			static OutPoint GetRandomOutPoint() => new(RandomUtils.GetUInt256(), 0);
 			var tx = Network.Main.CreateTransaction();
