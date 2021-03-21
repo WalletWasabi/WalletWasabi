@@ -166,7 +166,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 		private void SetSelectedItem(NavBarItemViewModel? value)
 		{
-			// Console.WriteLine($"NAVBAR SetSelectedItem {value?.GetType().Name}");
 			if (value is null || value.SelectionMode == NavBarItemSelectionMode.Selected)
 			{
 				Select(value);
@@ -229,7 +228,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 		private void NavigateItem(NavBarItemViewModel x)
 		{
-			// Console.WriteLine($"NAVBAR NavigateItem {x?.GetType().Name}");
 			if (!_isNavigating)
 			{
 				_isNavigating = true;
