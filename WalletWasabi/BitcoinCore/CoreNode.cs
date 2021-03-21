@@ -163,6 +163,46 @@ namespace WalletWasabi.BitcoinCore
 					desiredConfigLines.Add($"{configPrefix}.fallbackfee = {coreNodeParams.FallbackFee.ToString(fplus: false, trimExcessZero: true)}");
 				}
 
+				if (coreNodeParams.ListenOnion is { })
+				{
+					desiredConfigLines.Add($"{configPrefix}.listenonion = {coreNodeParams.ListenOnion}");
+				}
+
+				if (coreNodeParams.Listen is { })
+				{
+					desiredConfigLines.Add($"{configPrefix}.listen = {coreNodeParams.Listen}");
+				}
+
+				if (coreNodeParams.Discover is { })
+				{
+					desiredConfigLines.Add($"{configPrefix}.discover = {coreNodeParams.Discover}");
+				}
+
+				if (coreNodeParams.DnsSeed is { })
+				{
+					desiredConfigLines.Add($"{configPrefix}.dnsseed = {coreNodeParams.DnsSeed}");
+				}
+
+				if (coreNodeParams.FixedSeeds is { })
+				{
+					desiredConfigLines.Add($"{configPrefix}.fixedseeds = {coreNodeParams.FixedSeeds}");
+				}
+
+				if (coreNodeParams.Upnp is { })
+				{
+					desiredConfigLines.Add($"{configPrefix}.upnp = {coreNodeParams.Upnp}");
+				}
+
+				if (coreNodeParams.NatPmp is { })
+				{
+					desiredConfigLines.Add($"{configPrefix}.natpmp = {coreNodeParams.NatPmp}");
+				}
+
+				if (coreNodeParams.PersistMempool is { })
+				{
+					desiredConfigLines.Add($"{configPrefix}.persistmempool = {coreNodeParams.PersistMempool}");
+				}
+
 				var sectionComment = $"# The following configuration options were added or modified by Wasabi Wallet.";
 				// If the comment is not already present.
 				// And there would be new config entries added.
