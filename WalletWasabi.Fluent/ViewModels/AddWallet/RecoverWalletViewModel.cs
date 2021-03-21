@@ -42,13 +42,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 
-			FinishCommandCanExecute =
+			NextCommandCanExecute =
 				this.WhenAnyValue(x => x.CurrentMnemonics)
 					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
 				async () => await OnNext(walletManager, network, walletName),
-				FinishCommandCanExecute);
+				NextCommandCanExecute);
 
 			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
 				async () =>
@@ -118,7 +118,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
-		public IObservable<bool> FinishCommandCanExecute { get; }
+		public IObservable<bool> NextCommandCanExecute { get; }
 
 		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 
