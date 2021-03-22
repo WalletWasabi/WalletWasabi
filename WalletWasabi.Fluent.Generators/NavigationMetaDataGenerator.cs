@@ -95,7 +95,7 @@ namespace WalletWasabi.Fluent
 				return;
 			}
 
-			var options = (context.Compilation as CSharpCompilation)?.SyntaxTrees[0].Options as CSharpParseOptions;
+			var options = context.ParseOptions as CSharpParseOptions;
 			var compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(SourceText.From(AttributeText, Encoding.UTF8), options));
 
 			var attributeSymbol = compilation.GetTypeByMetadataName("WalletWasabi.Fluent.NavigationMetaDataAttribute");
