@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -38,31 +39,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			FiatFeeText =
 				$"(≈{(fee.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD)";
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
-				var authDialog = AuthorizationHelpers.GetAuthorizationDialog(wallet, transactionAuthorizationInfo);
-				var authDialogResult = await NavigateDialog(authDialog, authDialog.DefaultTarget);
+			EnableCancel = true;
 
-				if (authDialogResult.Result)
-				{
-					IsBusy = true;
+			EnableBack = true;
 
-					// Dequeue any coin-joining coins.
-					await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
-
-					await broadcaster.SendTransactionAsync(transactionAuthorizationInfo.Transaction);
-					Navigate().Clear();
-
-					IsBusy = false;
-				}
-				else if (authDialogResult.Kind == DialogResultKind.Normal)
-				{
-					await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "");
-				}
-			});
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNext(wallet, broadcaster, transaction));
 		}
-
 		public string BtcAmountText { get; }
 
 		public string FiatAmountText { get; }
@@ -76,5 +58,29 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public string BtcFeeText { get; }
 
 		public string FiatFeeText { get; }
+
+		private async Task OnNext(Wallet wallet, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)
+		{
+			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
+			var authDialog = AuthorizationHelpers.GetAuthorizationDialog(wallet, transactionAuthorizationInfo);
+			var authDialogResult = await NavigateDialog(authDialog, authDialog.DefaultTarget);
+
+			if (authDialogResult.Result)
+			{
+				IsBusy = true;
+
+				// Dequeue any coin-joining coins.
+				await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
+
+				await broadcaster.SendTransactionAsync(transactionAuthorizationInfo.Transaction);
+				Navigate().Clear();
+
+				IsBusy = false;
+			}
+			else if (authDialogResult.Kind == DialogResultKind.Normal)
+			{
+				await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "");
+			}
+		}
 	}
 }

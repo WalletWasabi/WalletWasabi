@@ -11,9 +11,9 @@
              x:Class="WalletWasabi.Fluent.Views.Login.PasswordFinder.SelectCharsetView">
   <c:ContentArea Title="{Binding Title}"
                  Caption="Please select the character set"
-                 EnableNext="False"
-                 EnableCancel="True"
-                 EnableBack="True">
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}"
+                 EnableNext="False">
 
     <ListBox Items="{Binding Charsets}"
              SelectedItem="{Binding SelectedCharset}"

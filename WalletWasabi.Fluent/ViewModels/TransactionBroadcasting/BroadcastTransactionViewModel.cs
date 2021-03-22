@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -76,26 +77,35 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				? null
 				: TotalInputValue - TotalOutputValue;
 
+			EnableCancel = true;
+
+			EnableBack = false;
+
+			this.WhenAnyValue(x => x.IsBusy)
+				.Subscribe(x => EnableCancel = !x);
+
 			var nextCommandCanExecute = this.WhenAnyValue(x => x.IsBusy)
 				.Select(x => !x);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () =>
-				{
-					try
-					{
-						await broadcaster.SendTransactionAsync(transaction);
-						Navigate().To(new SuccessBroadcastTransactionViewModel());
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-						await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to broadcast the transaction.");
-					}
-				},
+				async () => await OnNext(broadcaster, transaction),
 				nextCommandCanExecute);
 
 			EnableAutoBusyOn(NextCommand);
+		}
+
+		private async Task OnNext(TransactionBroadcaster broadcaster, SmartTransaction transaction)
+		{
+			try
+			{
+				await broadcaster.SendTransactionAsync(transaction);
+				Navigate().To(new SuccessBroadcastTransactionViewModel());
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to broadcast the transaction.");
+			}
 		}
 	}
 }

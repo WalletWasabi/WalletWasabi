@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -12,8 +13,19 @@ namespace WalletWasabi.Fluent.Controls
 	/// </summary>
 	public class Dialog : ContentControl
 	{
+		private Panel? _dismissPanel;
+
 		public static readonly StyledProperty<bool> IsDialogOpenProperty =
 			AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
+
+		public static readonly StyledProperty<bool> IsBusyProperty =
+			AvaloniaProperty.Register<Dialog, bool>(nameof(IsBusy));
+
+		public static readonly StyledProperty<bool> IsBackEnabledProperty =
+			AvaloniaProperty.Register<Dialog, bool>(nameof(IsBackEnabled));
+
+		public static readonly StyledProperty<bool> IsCancelEnabledProperty =
+			AvaloniaProperty.Register<Dialog, bool>(nameof(IsCancelEnabled));
 
 		public static readonly StyledProperty<bool> EnableCancelOnPressedProperty =
 			AvaloniaProperty.Register<Dialog, bool>(nameof(EnableCancelOnPressed));
@@ -31,6 +43,24 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(IsDialogOpenProperty);
 			set => SetValue(IsDialogOpenProperty, value);
+		}
+
+		public bool IsBusy
+		{
+			get => GetValue(IsBusyProperty);
+			set => SetValue(IsBusyProperty, value);
+		}
+
+		public bool IsBackEnabled
+		{
+			get => GetValue(IsBackEnabledProperty);
+			set => SetValue(IsBackEnabledProperty, value);
+		}
+
+		public bool IsCancelEnabled
+		{
+			get => GetValue(IsCancelEnabledProperty);
+			set => SetValue(IsCancelEnabledProperty, value);
 		}
 
 		public bool EnableCancelOnPressed
@@ -65,23 +95,22 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				PseudoClasses.Set(":open", change.NewValue.GetValueOrDefault<bool>());
 			}
+
+			if (change.Property == IsBusyProperty)
+			{
+				PseudoClasses.Set(":busy", change.NewValue.GetValueOrDefault<bool>());
+			}
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
 		{
 			base.OnApplyTemplate(e);
 
-			var overlayButton = e.NameScope.Find<Panel>("PART_Overlay");
-			overlayButton.PointerPressed += (_, _) =>
-			{
-				if (EnableCancelOnPressed)
-				{
-					Close();
-				}
-			};
+			_dismissPanel = e.NameScope.Find<Panel>("PART_Dismiss");
 
 			if (this.GetVisualRoot() is TopLevel topLevel)
 			{
+				topLevel.AddHandler(PointerPressedEvent, CancelPointerPressed, RoutingStrategies.Tunnel);
 				topLevel.AddHandler(KeyDownEvent, CancelKeyDown, RoutingStrategies.Tunnel);
 			}
 		}
@@ -91,9 +120,21 @@ namespace WalletWasabi.Fluent.Controls
 			IsDialogOpen = false;
 		}
 
+		private void CancelPointerPressed(object? sender, PointerPressedEventArgs e)
+		{
+			if (IsDialogOpen && EnableCancelOnPressed && !IsBusy && IsCancelEnabled && _dismissPanel is not null)
+			{
+				var point = e.GetPosition(_dismissPanel);
+				if (!_dismissPanel.Bounds.Contains(point))
+				{
+					Close();
+				}
+			}
+		}
+
 		private void CancelKeyDown(object? sender, KeyEventArgs e)
 		{
-			if (e.Key == Key.Escape && EnableCancelOnEscape)
+			if (e.Key == Key.Escape && EnableCancelOnEscape && !IsBusy && IsCancelEnabled)
 			{
 				Close();
 			}

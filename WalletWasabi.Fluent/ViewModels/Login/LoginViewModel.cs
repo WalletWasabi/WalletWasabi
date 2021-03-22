@@ -1,3 +1,4 @@
+using System.Reactive.Concurrency;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
@@ -7,6 +8,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Login
 {
@@ -27,46 +29,54 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			WalletIcon = wallet.KeyManager.Icon;
 			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				string? compatibilityPasswordUsed = null;
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNext(walletManagerViewModel, closedWalletViewModel, wallet));
 
-				var isPasswordCorrect = await Task.Run(() => wallet.TryLogin(Password, out compatibilityPasswordUsed));
+			OkCommand = ReactiveCommand.Create(OnOk);
 
-				if (!isPasswordCorrect)
-				{
-					ErrorMessage = "The password is incorrect! Try Again.";
-					return;
-				}
-
-				if (compatibilityPasswordUsed is { })
-				{
-					await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
-				}
-
-				var legalResult = await ShowLegalAsync(walletManagerViewModel.LegalChecker);
-
-				if (legalResult)
-				{
-					await LoginWalletAsync(walletManagerViewModel, closedWalletViewModel);
-				}
-				else
-				{
-					wallet.Logout();
-					ErrorMessage = "You must accept the Terms and Conditions!";
-				}
-			});
-
-			OkCommand = ReactiveCommand.Create(() =>
-			{
-				Password = "";
-				ErrorMessage = "";
-			});
-
-			ForgotPasswordCommand = ReactiveCommand.Create(() =>
-				Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet)));
+			ForgotPasswordCommand = ReactiveCommand.Create(() => OnForgotPassword(wallet));
 
 			EnableAutoBusyOn(NextCommand);
+		}
+
+		private async Task OnNext(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel, Wallet wallet)
+		{
+			string? compatibilityPasswordUsed = null;
+
+			var isPasswordCorrect = await Task.Run(() => wallet.TryLogin(Password, out compatibilityPasswordUsed));
+
+			if (!isPasswordCorrect)
+			{
+				ErrorMessage = "The password is incorrect! Try Again.";
+				return;
+			}
+
+			if (compatibilityPasswordUsed is { })
+			{
+				await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
+			}
+
+			var legalResult = await ShowLegalAsync(walletManagerViewModel.LegalChecker);
+
+			if (legalResult)
+			{
+				LoginWallet(walletManagerViewModel, closedWalletViewModel);
+			}
+			else
+			{
+				wallet.Logout();
+				ErrorMessage = "You must accept the Terms and Conditions!";
+			}
+		}
+
+		private void OnOk()
+		{
+			Password = "";
+			ErrorMessage = "";
+		}
+
+		private void OnForgotPassword(Wallet wallet)
+		{
+			Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet));
 		}
 
 		public string? WalletIcon { get; }
@@ -79,20 +89,11 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 		public ICommand ForgotPasswordCommand { get; }
 
-		private async Task LoginWalletAsync(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel)
+		private void LoginWallet(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel)
 		{
 			closedWalletViewModel.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
-
-			var destination = await walletManagerViewModel.LoadWalletAsync(closedWalletViewModel);
-
-			if (destination is { })
-			{
-				Navigate().To(destination, NavigationMode.Clear);
-			}
-			else
-			{
-				await ShowErrorAsync(Title, "Error", "Wasabi was unable to login and load your wallet.");
-			}
+			RxApp.MainThreadScheduler.Schedule(async () => await walletManagerViewModel.LoadWalletAsync(closedWalletViewModel));
+			Navigate().To(closedWalletViewModel, NavigationMode.Clear);
 		}
 
 		private async Task<bool> ShowLegalAsync(LegalChecker legalChecker)

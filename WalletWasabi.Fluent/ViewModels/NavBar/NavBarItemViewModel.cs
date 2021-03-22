@@ -22,17 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			SelectionMode = NavBarItemSelectionMode.Selected;
 
 			OpenCommand = ReactiveCommand.Create(
-				() =>
-				{
-					if (SelectionMode == NavBarItemSelectionMode.Toggle)
-					{
-						Toggle();
-					}
-					else
-					{
-						Navigate().To(this, defaultNavigationMode);
-					}
-				});
+				() => OnOpen(defaultNavigationMode));
 		}
 
 		public NavBarItemSelectionMode SelectionMode { get; protected set; }
@@ -55,6 +45,18 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		}
 
 		public ICommand OpenCommand { get; protected set; }
+
+		private void OnOpen(NavigationMode defaultNavigationMode)
+		{
+			if (SelectionMode == NavBarItemSelectionMode.Toggle)
+			{
+				Toggle();
+			}
+			else
+			{
+				Navigate().To(this, defaultNavigationMode);
+			}
+		}
 
 		public virtual void Toggle()
 		{

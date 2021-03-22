@@ -10,14 +10,14 @@
              x:Class="WalletWasabi.Fluent.Views.Login.PasswordFinder.ContainsSymbolsView">
   <c:ContentArea Title="{Binding Title}"
                  EnableNext="False"
-                 EnableCancel="True"
-                 EnableBack="True"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
     <c:QuestionControl Text="Does your password contains special characters?"
                        YesCommand="{Binding YesCommand}"
                        NoCommand="{Binding NoCommand}"
-                       Icon="/Assets/PasswordFinder/symbols.png"
+                       Icon="{Binding Icon}"
                        HighlightButton="Both"/>
   </c:ContentArea>
 </UserControl>

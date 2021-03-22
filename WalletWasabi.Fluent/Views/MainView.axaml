@@ -50,26 +50,22 @@
     <c:Dialog x:CompileBindings="False"
               DataContext="{Binding FullScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
-              EnableCancelOnPressed="False"
-              EnableCancelOnEscape="True"
+              IsBusy="{Binding CurrentPage.IsBusy, FallbackValue=False}"
+              IsBackEnabled="{Binding CurrentPage.EnableBack, FallbackValue=False}"
+              IsCancelEnabled="{Binding CurrentPage.EnableCancel, FallbackValue=False}"
+              EnableCancelOnPressed="{Binding CurrentPage.EnableCancelOnPressed, FallbackValue=True}"
+              EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
               IsEnabled="{Binding $parent.DataContext.IsFullScreenEnabled}"
               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <c:Dialog.Styles>
-        <Style Selector="c|Dialog /template/ Panel#PART_DialogHost">
-          <Setter Property="Margin" Value="20,30,20,20"/>
+        <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
+          <Setter Property="Background" Value="{DynamicResource RegionColor}"/>
         </Style>
         <Style Selector="c|Dialog /template/ Border#PART_Border">
           <Setter Property="Margin" Value="0"/>
           <Setter Property="CornerRadius" Value="0"/>
           <Setter Property="BoxShadow" Value=""/>
-        </Style>
-        <Style Selector="c|Dialog /template/ Panel#PART_Overlay">
-          <Setter Property="Background" Value="{DynamicResource RegionColor}"/>
-        </Style>
-        <Style Selector="c|Dialog:open /template/ Panel#PART_Overlay">
-          <Setter Property="IsHitTestVisible" Value="False"/>
-          <Setter Property="Opacity" Value="1"/>
         </Style>
       </c:Dialog.Styles>
       <ContentControl Content="{Binding CurrentPage}" />
@@ -77,8 +73,11 @@
     <c:Dialog x:CompileBindings="False"
               DataContext="{Binding DialogScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
-              EnableCancelOnPressed="False"
-              EnableCancelOnEscape="True"
+              IsBusy="{Binding CurrentPage.IsBusy, FallbackValue=False}"
+              IsBackEnabled="{Binding CurrentPage.EnableBack, FallbackValue=False}"
+              IsCancelEnabled="{Binding CurrentPage.EnableCancel, FallbackValue=False}"
+              EnableCancelOnPressed="{Binding CurrentPage.EnableCancelOnPressed, FallbackValue=True}"
+              EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
               IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
@@ -88,8 +87,11 @@
     <c:Dialog x:CompileBindings="False"
               DataContext="{Binding CompactDialogScreen}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
-              EnableCancelOnPressed="False"
-              EnableCancelOnEscape="True"
+              IsBusy="{Binding CurrentPage.IsBusy, FallbackValue=False}"
+              IsBackEnabled="{Binding CurrentPage.EnableBack, FallbackValue=False}"
+              IsCancelEnabled="{Binding CurrentPage.EnableCancel, FallbackValue=False}"
+              EnableCancelOnPressed="{Binding CurrentPage.EnableCancelOnPressed, FallbackValue=True}"
+              EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
               IsEnabled="{Binding $parent.DataContext.IsDialogScreenEnabled}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <ContentControl Content="{Binding CurrentPage}" />

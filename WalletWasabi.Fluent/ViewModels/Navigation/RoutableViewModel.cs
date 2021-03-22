@@ -12,6 +12,10 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 	public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	{
 		[AutoNotify] private bool _isBusy;
+		[AutoNotify] private bool _enableCancelOnPressed = true;
+		[AutoNotify] private bool _enableCancelOnEscape = true;
+		[AutoNotify] private bool _enableBack;
+		[AutoNotify] private bool _enableCancel;
 
 		public abstract string Title { get; protected set; }
 
@@ -41,7 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		{
 			if (_currentDisposable is { })
 			{
-				throw new Exception("Cant navigate to something that has already been navigated to.");
+				throw new Exception("Can't navigate to something that has already been navigated to.");
 			}
 
 			_currentDisposable = new CompositeDisposable();

@@ -83,6 +83,10 @@
     <Setter Property="TextBlock.FontSize" Value="{DynamicResource FontSizeH3}" />
   </Style>
 
+  <Style Selector="c|ContentArea :is(Control).title TextBlock, c|ContentArea :is(TextBlock).title">
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
   <Style Selector="c|ContentArea :is(Control).caption TextBlock, c|ContentArea :is(TextBlock).caption">
     <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     <Setter Property="FontSize" Value="{DynamicResource FontSizeH7}" />
