@@ -102,6 +102,7 @@
     <c:ContentArea Title="Send" Caption=""
                    EnableCancel="{Binding EnableCancel}"
                    EnableBack="{Binding EnableBack}"
+                   EnableNext="True"
                    NextContent="Continue"
                    ClipToBounds="False"
                    IsBusy="{Binding IsBusy}"
