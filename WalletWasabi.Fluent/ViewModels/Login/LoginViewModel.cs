@@ -52,33 +52,20 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 			if (compatibilityPasswordUsed is { })
 			{
-				string? compatibilityPasswordUsed = null;
+				await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
+			}
 
-				var isPasswordCorrect = await Task.Run(() => wallet.TryLogin(Password, out compatibilityPasswordUsed));
+			var legalResult = await ShowLegalAsync(walletManagerViewModel.LegalChecker);
 
-				if (!isPasswordCorrect)
-				{
-					ErrorMessage = "The password is incorrect! Try Again.";
-					return;
-				}
-
-				if (compatibilityPasswordUsed is { })
-				{
-					await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
-				}
-
-				var legalResult = await ShowLegalAsync(walletManagerViewModel.LegalChecker);
-
-				if (legalResult)
-				{
-					LoginWallet(walletManagerViewModel, closedWalletViewModel);
-				}
-				else
-				{
-					wallet.Logout();
-					ErrorMessage = "You must accept the Terms and Conditions!";
-				}
-			});
+			if (legalResult)
+			{
+				LoginWallet(walletManagerViewModel, closedWalletViewModel);
+			}
+			else
+			{
+				wallet.Logout();
+				ErrorMessage = "You must accept the Terms and Conditions!";
+			}
 		}
 
 		private void OnOk()
