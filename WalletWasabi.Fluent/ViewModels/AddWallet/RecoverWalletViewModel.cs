@@ -125,7 +125,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
-		public IObservable<bool> FinishCommandCanExecute { get; }
+		public IObservable<bool> NextCommandCanExecute { get; }
 
 		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 
