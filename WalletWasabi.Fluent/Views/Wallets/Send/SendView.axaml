@@ -164,6 +164,7 @@
                         KeyboardNavigation.IsTabStop="False"
                         DockPanel.Dock="Bottom"
                         Classes="cursor"
+                        Focusable="True"
                         Minimum="{Binding XAxisMinValue}"
                         Maximum="{Binding XAxisMaxValue}"
                         Value="{Binding XAxisCurrentValueIndex}">
@@ -182,6 +183,7 @@
                              AreaStrokeLineCap="Round"
                              AreaMinViableWidth="40"
                              AreaMinViableHeight="20"
+                             Focusable="True"
                              YAxisTitle="More Expensive">
                     <c:LineChart.AreaFill>
                         <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
