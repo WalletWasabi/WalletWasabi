@@ -53,7 +53,8 @@
                      IsVisible="{Binding IsPasswordNeeded}">
             <TextBox DockPanel.Dock="Top" Text="{Binding Password}" Watermark="Password" PasswordChar="•" Classes="revealPasswordButton">
               <i:Interaction.Behaviors>
-                <behaviors:FocusOnAttachedBehavior />
+                 <behaviors:TextBoxInputLimitBehavior/>
+                 <behaviors:FocusOnAttachedBehavior />
               </i:Interaction.Behaviors>
             </TextBox>
             <Panel Margin="0 -20 0 0 ">
