@@ -202,8 +202,8 @@ namespace WalletWasabi.Fluent.Controls
 			var wholeStr = match.Groups["Whole"].ToString();
 			var whole = _regexGroupAndDecimal.Replace(wholeStr, "").Length;
 
-			var fracStr = match.Groups["Frac"].ToString();
-			var frac = fracStr.Length;
+			var fracStr = match.Groups["Frac"].ToString().Replace($"{_groupSeparator}", "");
+			var frac = _regexGroupAndDecimal.Replace(fracStr, "").Length;
 
 			// Check for consecutive spaces (2 or more) and leading spaces.
 			var rule1 = preComposedText.Length > 1 && (preComposedText[0] == _groupSeparator ||
