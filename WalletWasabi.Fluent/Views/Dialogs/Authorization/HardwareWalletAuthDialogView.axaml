@@ -14,7 +14,6 @@
   </UserControl.KeyBindings>
   <c:ContentArea Title="{Binding Title}"
                  Caption="Connect your hardware wallet, then press Continue to sign your transaction."
-                 EnableBack="True"
                  EnableCancel="True" CancelContent="Cancel"
                  EnableNext="True" NextContent="Continue"
                  IsBusy="{Binding IsBusy}"
