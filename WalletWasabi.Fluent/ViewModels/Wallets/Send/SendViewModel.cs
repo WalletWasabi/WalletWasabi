@@ -101,6 +101,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				_transactionInfo.Labels = new SmartLabel(_labels.ToArray());
 			});
 
+			EnableCancel = true;
+
+			EnableBack = true;
+
 			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPaste());
 
 			var nextCommandCanExecute =

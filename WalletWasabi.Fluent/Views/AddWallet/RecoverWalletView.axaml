@@ -12,15 +12,16 @@
              x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoverWalletView">
     <c:ContentArea x:Name="RecoveryPageRoot"
                    Title="{Binding Title}" Caption="Type in your 12 recovery words and click Continue."
-                   EnableBack="True"
-                   EnableCancel="True" CancelContent="Cancel"
+                   CancelContent="Cancel"
+                   EnableCancel="{Binding EnableCancel}"
+                   EnableBack="{Binding EnableBack}"
                    EnableNext="True" NextContent="Finish"
                    IsBusy="{Binding IsBusy}">
         <StackPanel>
             <DockPanel>
                 <PathIcon Name="IconCheckmark" Classes="checkMark" Margin="15 42 0 0" VerticalAlignment="Top"
                           DockPanel.Dock="Right"
-                          Opacity="{Binding FinishCommandCanExecute^}" />
+                          Opacity="{Binding NextCommandCanExecute^}" />
                 <Label Content="_Type in your recovery words here:" Target="SeedTagsBox" DockPanel.Dock="Top" />
                 <c:TagsBox x:Name="SeedTagsBox"
                            DockPanel.Dock="Top"

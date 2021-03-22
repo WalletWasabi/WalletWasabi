@@ -20,7 +20,9 @@
   </UserControl.Styles>
   <c:ContentArea Title="{Binding Title}"
                  Caption="Type your wallet-specific recovery options and click Continue."
-                 EnableCancel="True" CancelContent="Cancel"
+                 CancelContent="Cancel"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="OK">
     <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380" Margin="30 0 0 0">
       <StackPanel>

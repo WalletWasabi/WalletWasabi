@@ -26,6 +26,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			GenerateQrCode();
 
+			EnableCancel = false;
+
+			EnableBack = true;
+
 			CopyAddressCommand = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Address));
 
 			ShowOnHwWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnShowOnHwWallet(model, network, masterFingerprint));

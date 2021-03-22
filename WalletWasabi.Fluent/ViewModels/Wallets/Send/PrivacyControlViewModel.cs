@@ -53,6 +53,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);
 
+			EnableCancel = true;
+
+			EnableBack = true;
+
 			NextCommand = ReactiveCommand.CreateFromTask(
 				async () => await OnNext(wallet, transactionInfo, broadcaster, selectedList),
 				this.WhenAnyValue(x => x.EnoughSelected));

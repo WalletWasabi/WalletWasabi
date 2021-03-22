@@ -22,6 +22,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 				MnemonicWords.Add(new RecoveryWordViewModel(i + 1, mnemonic.Words[i]));
 			}
 
+			EnableCancel = true;
+
+			EnableBack = true;
+
 			NextCommand = ReactiveCommand.Create(() => OnNext(keyManager, walletManager));
 
 			CancelCommand = ReactiveCommand.Create(OnCancel);

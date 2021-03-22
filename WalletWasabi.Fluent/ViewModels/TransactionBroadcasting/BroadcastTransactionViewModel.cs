@@ -77,6 +77,13 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				? null
 				: TotalInputValue - TotalOutputValue;
 
+			EnableCancel = true;
+
+			EnableBack = false;
+
+			this.WhenAnyValue(x => x.IsBusy)
+				.Subscribe(x => EnableCancel = !x);
+
 			var nextCommandCanExecute = this.WhenAnyValue(x => x.IsBusy)
 				.Select(x => !x);
 

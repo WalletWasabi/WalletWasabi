@@ -18,8 +18,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			IsHardwareWallet = keyManager.IsHardwareWallet;
 			WalletName = keyManager.WalletName;
 
+			EnableCancel = false;
+
+			EnableBack = false;
+
 			NextCommand = ReactiveCommand.Create(() => OnNext(walletManager, keyManager));
 		}
+
 		public string? WalletIcon { get; }
 
 		public bool IsHardwareWallet { get; }

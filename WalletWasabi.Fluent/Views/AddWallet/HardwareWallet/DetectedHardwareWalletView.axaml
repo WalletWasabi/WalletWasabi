@@ -11,8 +11,8 @@
              x:Class="WalletWasabi.Fluent.Views.AddWallet.HardwareWallet.DetectedHardwareWalletView">
   <c:ContentArea Title="{Binding Title}"
                  IsBusy="{Binding IsBusy}"
-                 EnableCancel="False"
-                 EnableBack="False"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}"
                  EnableNext="False"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
 

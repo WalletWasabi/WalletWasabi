@@ -13,6 +13,10 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 	{
 		public PasswordFinderIntroduceViewModel(Wallet wallet)
 		{
+			EnableCancel = true;
+
+			EnableBack = false;
+
 			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNext(wallet));
 		}
 

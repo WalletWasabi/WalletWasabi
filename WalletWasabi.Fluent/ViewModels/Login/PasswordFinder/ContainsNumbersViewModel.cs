@@ -15,6 +15,10 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 			Options = options;
 			Icon = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/PasswordFinder/{ThemeHelper.CurrentTheme}/numbers.png");
 
+			EnableCancel = true;
+
+			EnableBack = true;
+
 			YesCommand = ReactiveCommand.Create(() => SetAnswer(true));
 			NoCommand = ReactiveCommand.Create(() => SetAnswer(false));
 		}
