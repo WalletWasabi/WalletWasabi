@@ -8,6 +8,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Login
 {
@@ -28,7 +29,28 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			WalletIcon = wallet.KeyManager.Icon;
 			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () =>
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNext(walletManagerViewModel, closedWalletViewModel, wallet));
+
+			OkCommand = ReactiveCommand.Create(OnOk);
+
+			ForgotPasswordCommand = ReactiveCommand.Create(() => OnForgotPassword(wallet));
+
+			EnableAutoBusyOn(NextCommand);
+		}
+
+		private async Task OnNext(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel, Wallet wallet)
+		{
+			string? compatibilityPasswordUsed = null;
+
+			var isPasswordCorrect = await Task.Run(() => wallet.TryLogin(Password, out compatibilityPasswordUsed));
+
+			if (!isPasswordCorrect)
+			{
+				ErrorMessage = "The password is incorrect! Try Again.";
+				return;
+			}
+
+			if (compatibilityPasswordUsed is { })
 			{
 				string? compatibilityPasswordUsed = null;
 
@@ -57,17 +79,17 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 					ErrorMessage = "You must accept the Terms and Conditions!";
 				}
 			});
+		}
 
-			OkCommand = ReactiveCommand.Create(() =>
-			{
-				Password = "";
-				ErrorMessage = "";
-			});
+		private void OnOk()
+		{
+			Password = "";
+			ErrorMessage = "";
+		}
 
-			ForgotPasswordCommand = ReactiveCommand.Create(() =>
-				Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet)));
-
-			EnableAutoBusyOn(NextCommand);
+		private void OnForgotPassword(Wallet wallet)
+		{
+			Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet));
 		}
 
 		public string? WalletIcon { get; }

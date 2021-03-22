@@ -34,7 +34,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			await Task.Delay(50);
 
-			// Tasks should still running.
+			// Tasks should still be running.
 			Assert.False(waitAllTask.IsCompleted);
 
 			// Cancel most of the Tasks.
@@ -42,10 +42,10 @@ namespace WalletWasabi.Tests.UnitTests
 
 			await Task.Delay(50);
 
-			// One task should still running.
+			// One task should still be running.
 			Assert.False(waitAllTask.IsCompleted);
 
-			// Try to await but is should not finish before the cancellation so we will get OperationCanceledException.
+			// Try to await but it should not finish before the cancellation so we will get OperationCanceledException.
 			await Assert.ThrowsAsync<OperationCanceledException>(async () => await waitAllTask.WithAwaitCancellationAsync(50));
 
 			// Ok now cancel the last Task.

@@ -30,17 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			_statusText = " ";
 			_percent = 0;
 
-			OpenCommand = ReactiveCommand.Create(() =>
-			{
-				if (!Wallet.IsLoggedIn)
-				{
-					Navigate().To(new LoginViewModel(walletManagerViewModel, this), NavigationMode.Clear);
-				}
-				else
-				{
-					Navigate().To(this, NavigationMode.Clear);
-				}
-			});
+			OpenCommand = ReactiveCommand.Create(() => OnOpen(walletManagerViewModel));
 		}
 
 		public override string IconName => "web_asset_regular";
@@ -92,6 +82,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			var remainingTimeText = string.IsNullOrEmpty(userFriendlyTime) ? "" : $"- {userFriendlyTime} remaining";
 
 			StatusText = $"{percentText} {remainingTimeText}";
+		}
+		
+		private void OnOpen(WalletManagerViewModel walletManagerViewModel)
+		{
+			if (!Wallet.IsLoggedIn)
+			{
+				Navigate().To(new LoginViewModel(walletManagerViewModel, this), NavigationMode.Clear);
+			}
+			else
+			{
+				Navigate().To(this, NavigationMode.Clear);
+			}
 		}
 
 		public static WalletViewModelBase Create(WalletManagerViewModel walletManager, Wallet wallet)

@@ -36,31 +36,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			AbandonedTasks = new AbandonedTasks();
 			CancelCts = new CancellationTokenSource();
 
-			NextCommand = ReactiveCommand.Create(() =>
-			{
-				if (DetectedDevice is { } device)
-				{
-					NavigateToNext(device);
-					return;
-				}
-
-				StartDetection();
-			});
+			NextCommand = ReactiveCommand.Create(OnNext);
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask(async () =>
 				await IoHelpers.OpenBrowserAsync("https://docs.wasabiwallet.io/using-wasabi/ColdWasabi.html#using-hardware-wallet-step-by-step"));
 
-			NavigateToExistingWalletLoginCommand = ReactiveCommand.Create(() =>
-			{
-				var navBar = NavigationManager.Get<NavBarViewModel>();
-
-				if (ExistingWallet is { } && navBar is { })
-				{
-					navBar.SelectedItem = ExistingWallet;
-					Navigate().Clear();
-					ExistingWallet.OpenCommand.Execute(default);
-				}
-			});
+			NavigateToExistingWalletLoginCommand = ReactiveCommand.Create(execute: OnNavigateToExistingWalletLogin);
 
 			this.WhenAnyValue(x => x.Message)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -84,6 +65,37 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		public ICommand OpenBrowserCommand { get; }
 
 		public ICommand NavigateToExistingWalletLoginCommand { get; }
+
+		public WalletType Ledger => WalletType.Ledger;
+
+		public WalletType Coldcard => WalletType.Coldcard;
+
+		public WalletType Trezor => WalletType.Trezor;
+
+		public WalletType Generic => WalletType.Unknown;
+
+		private void OnNext()
+		{
+			if (DetectedDevice is { } device)
+			{
+				NavigateToNext(device);
+				return;
+			}
+
+			StartDetection();
+		}
+
+		private void OnNavigateToExistingWalletLogin()
+		{
+			var navBar = NavigationManager.Get<NavBarViewModel>();
+
+			if (ExistingWallet is { } && navBar is { })
+			{
+				navBar.SelectedItem = ExistingWallet;
+				Navigate().Clear();
+				ExistingWallet.OpenCommand.Execute(default);
+			}
+		}
 
 		private void StartDetection()
 		{
