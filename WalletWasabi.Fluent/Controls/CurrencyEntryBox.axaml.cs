@@ -182,7 +182,7 @@ namespace WalletWasabi.Fluent.Controls
 			decimal fiatValue = 0;
 
 			e.Handled = !(ValidateEntryText(preComposedText) &&
-			            decimal.TryParse(preComposedText, NumberStyles.Number, _customCultureInfo, out fiatValue));
+			            decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number, _customCultureInfo, out fiatValue));
 
 			if (IsConversionReversed & !e.Handled)
 			{
@@ -219,7 +219,7 @@ namespace WalletWasabi.Fluent.Controls
 				return false;
 			}
 
-			// Reject and don't process the input if the string doesn't match.
+			// Reject and dont process the input if the string doesnt match.
 			if (!match.Success)
 			{
 				return false;
@@ -229,7 +229,6 @@ namespace WalletWasabi.Fluent.Controls
 			switch (preComposedText.Length)
 			{
 				case 1 when preComposedText[0] == _decimalSeparator && !trailingDecimal:
-				case 1 when preComposedText[0] == _groupSeparator && !fracStr.Contains(_groupSeparator):
 					return false;
 			}
 
