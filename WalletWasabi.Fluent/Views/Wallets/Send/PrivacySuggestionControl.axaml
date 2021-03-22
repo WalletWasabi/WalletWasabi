@@ -20,7 +20,7 @@
                 <TextBlock Text="{Binding Caption}" HorizontalAlignment="Center" Opacity="0.6" />
             </StackPanel>
         </Panel>
-        <Separator Height="1" Background="#FFFFFF" Opacity="0.2"   />
+        <Separator Height="1" Background="{DynamicResource SeparatorBackgroundBrush}" Opacity="0.2"   />
         <ItemsControl HorizontalAlignment="Center" Items="{Binding Benefits}">
             <ItemsControl.Styles>
                 <Style Selector="TextBlock">
