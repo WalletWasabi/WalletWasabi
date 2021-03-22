@@ -88,7 +88,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						Navigate().BackTo<SendViewModel>();
 					}
 				}
-				}
 			}
 			catch (Exception ex)
 			{
