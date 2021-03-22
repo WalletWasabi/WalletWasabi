@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			BtcAmountText = $"{destinationAmount} bitcoins ";
 			FiatAmountText = $"(≈{(destinationAmount * usdExchangeRate).FormattedFiat()} USD) ";
 
-			BtcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
+			BtcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
 			FiatFeeText = $"(≈{(fee.ToDecimal(MoneyUnit.BTC) * usdExchangeRate).FormattedFiat()} USD)";
 
 			switch (type)
