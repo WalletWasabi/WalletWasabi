@@ -2,20 +2,21 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
+using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Validation
 {
 	public class CheckMarkStatus
 	{
 		public static readonly AttachedProperty<bool> IsEnabledProperty =
-			AvaloniaProperty.RegisterAttached<CheckMarkStatus, IAvaloniaObject, bool>("IsEnabled");
+			AvaloniaProperty.RegisterAttached<CheckMarkStatus, Visual, bool>("IsEnabled");
 
-		public static bool GetIsEnabled(IAvaloniaObject obj)
+		public static bool GetIsEnabled(Visual obj)
 		{
 			return obj.GetValue(IsEnabledProperty);
 		}
 
-		public static void SetIsEnabled(IAvaloniaObject obj, bool value)
+		public static void SetIsEnabled(Visual obj, bool value)
 		{
 			obj.SetValue(IsEnabledProperty, value);
 		}
