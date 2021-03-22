@@ -71,6 +71,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_labels = new ObservableCollection<string>();
 			_lastXAxisCurrentValue = _xAxisCurrentValue;
 
+			SelectionMode = NavBarItemSelectionMode.Button;
+
 			ExchangeRate = walletVm.Wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();
 
