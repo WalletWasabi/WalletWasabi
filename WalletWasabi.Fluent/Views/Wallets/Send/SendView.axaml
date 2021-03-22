@@ -124,14 +124,12 @@
                         </i:Interaction.Behaviors>
                         <TextBox.InnerRightContent>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
-
-                                <Button Classes="plain"
-                                        Focusable="False"
-                                        KeyboardNavigation.IsTabStop="False"
-                                        Command="{Binding PasteCommand}"
-                                        ToolTip.Tip="Paste">
-                                    <PathIcon Data="{StaticResource paste_regular}" Width="13" />
-                                </Button>
+                                <c:AnimatedButton KeyboardNavigation.IsTabStop="False"
+                                                  Focusable="False"
+                                                  Command="{Binding PasteCommand}"
+                                                  ToolTip.Tip="Paste"
+                                                  NormalIcon="{StaticResource paste_regular}"
+                                                  ClickIcon="{StaticResource copy_confirmed}" />
                             </StackPanel>
                         </TextBox.InnerRightContent>
                     </TextBox>
