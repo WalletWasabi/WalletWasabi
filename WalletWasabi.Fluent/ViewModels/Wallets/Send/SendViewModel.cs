@@ -156,12 +156,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 					catch (InsufficientBalanceException)
 					{
-						var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private);
+						var txRes = TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true);
+						var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private, txRes, wallet.Synchronizer.UsdExchangeRate);
 						var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 
 						if (result.Result)
 						{
-							var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true));
 							Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 							return;
 						}
@@ -170,8 +170,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				catch (Exception ex)
 				{
 					Logger.LogError(ex);
-					await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(),
-						"Wasabi was unable to create your transaction.");
+					await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
 					return;
 				}
 			}
