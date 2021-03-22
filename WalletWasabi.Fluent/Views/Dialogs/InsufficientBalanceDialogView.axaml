@@ -25,8 +25,8 @@
                        NoCommand="{Binding CancelCommand}"
                        HighlightButton="YesButton">
       <StackPanel Spacing="20">
-        <StackPanel Orientation="Horizontal" Spacing="30" Margin="20">
-          <PathIcon Width="30" Height="30" Data="{StaticResource btc_logo}"
+        <StackPanel Orientation="Horizontal" Spacing="30">
+          <PathIcon Width="24" Height="24" Data="{StaticResource btc_logo}"
                             Foreground="{DynamicResource SystemAccentColor}" />
           <StackPanel Spacing="5">
             <TextBlock Text="Send a total of " Classes="storyline" />
@@ -39,8 +39,8 @@
 
         <Separator />
 
-        <StackPanel Orientation="Horizontal" Spacing="30" Margin="20">
-          <PathIcon Width="30" Height="30" Data="{StaticResource paper_cash_regular}"
+        <StackPanel Orientation="Horizontal" Spacing="30">
+          <PathIcon Width="24" Height="24" Data="{StaticResource paper_cash_regular}"
                    Foreground="{DynamicResource SystemAccentColor}" />
           <StackPanel Spacing="5">
             <TextBlock Classes="storyline" Text="for an additional charge of" />
