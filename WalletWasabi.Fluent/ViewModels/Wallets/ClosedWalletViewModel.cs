@@ -17,9 +17,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	{
 		private readonly SmartHeaderChain _smartHeaderChain;
 
-		[AutoNotify] private string _statusText;
-		[AutoNotify] private uint _percent;
-
 		private Stopwatch? _stopwatch;
 		private uint? _startingFilterIndex;
 
@@ -27,11 +24,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			: base(wallet)
 		{
 			_smartHeaderChain = walletManagerViewModel.BitcoinStore.SmartHeaderChain;
-			_statusText = " ";
-			_percent = 0;
 
 			OpenCommand = ReactiveCommand.Create(() => OnOpen(walletManagerViewModel));
 		}
+
+		public LoadingControlViewModel Loading { get; } = new ();
 
 		public override string IconName => "web_asset_regular";
 
@@ -74,16 +71,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				return;
 			}
 
-			Percent = tempPercent;
-			var percentText = $"{Percent}% completed";
+			Loading.Percent = tempPercent;
+			var percentText = $"{Loading.Percent}% completed";
 
 			var remainingMilliseconds = elapsedMilliseconds / realProcessedFilters * remainingFilterCount;
 			var userFriendlyTime = TextHelpers.TimeSpanToFriendlyString(TimeSpan.FromMilliseconds(remainingMilliseconds));
 			var remainingTimeText = string.IsNullOrEmpty(userFriendlyTime) ? "" : $"- {userFriendlyTime} remaining";
 
-			StatusText = $"{percentText} {remainingTimeText}";
+			Loading.StatusText = $"{percentText} {remainingTimeText}";
 		}
-		
+
 		private void OnOpen(WalletManagerViewModel walletManagerViewModel)
 		{
 			if (!Wallet.IsLoggedIn)
