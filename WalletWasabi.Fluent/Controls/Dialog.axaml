@@ -60,6 +60,10 @@
     <Setter Property="CornerRadius" Value="4"/>
     <Setter Property="BoxShadow" Value="{DynamicResource DialogBoxShadow}"/>
   </Style>
+  <Style Selector="c|Dialog /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="MinWidth" Value="382" />
+    <Setter Property="MinHeight" Value="284" />
+  </Style>
 
   <!-- Dialog Opened State -->
   <Style Selector="c|Dialog:open /template/ Panel#PART_DialogHost">
