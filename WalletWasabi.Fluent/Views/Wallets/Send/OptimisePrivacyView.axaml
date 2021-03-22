@@ -29,6 +29,7 @@
                     </Style>
                     <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
                         <Setter Property="CornerRadius" Value="4" />
+                        <Setter Property="Margin" Value="5" />
                     </Style>
                     <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
                         <Setter Property="Background" Value="#353535" />
@@ -36,12 +37,12 @@
                 </ListBox.Styles>
                 <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal" Spacing="10" />
+                        <WrapPanel Orientation="Horizontal" />
                     </ItemsPanelTemplate>
                 </ListBox.ItemsPanel>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <local:PrivacySuggestionControl HorizontalAlignment="Stretch" />
+                        <local:PrivacySuggestionControl />
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>

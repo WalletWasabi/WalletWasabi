@@ -1,6 +1,7 @@
-using System.Reactive;
 using System.Windows.Input;
+using Avalonia.Media;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets.PasswordFinder;
 
@@ -12,6 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 		public ContainsSymbolsViewModel(PasswordFinderOptions options)
 		{
 			Options = options;
+			Icon = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/PasswordFinder/{ThemeHelper.CurrentTheme}/symbols.png");
 
 			EnableCancel = true;
 
@@ -26,6 +28,8 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 		public ICommand YesCommand { get; }
 
 		public ICommand NoCommand { get; }
+
+		public IImage Icon { get; }
 
 		private void SetAnswer(bool ans)
 		{

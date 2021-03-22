@@ -88,7 +88,7 @@ namespace WalletWasabi.Fluent
 
 		public void Execute(GeneratorExecutionContext context)
 		{
-			context.AddSource("NavigationMetaDataAttribute", SourceText.From(AttributeText, Encoding.UTF8));
+			context.AddSource("NavigationMetaDataAttribute.cs", SourceText.From(AttributeText, Encoding.UTF8));
 
 			if (context.SyntaxReceiver is not SyntaxReceiver receiver)
 			{

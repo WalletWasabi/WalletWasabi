@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -12,6 +13,8 @@ namespace WalletWasabi.Fluent.Controls
 	/// </summary>
 	public class Dialog : ContentControl
 	{
+		private Panel? _dismissPanel;
+
 		public static readonly StyledProperty<bool> IsDialogOpenProperty =
 			AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
 
@@ -103,17 +106,11 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			base.OnApplyTemplate(e);
 
-			var overlayButton = e.NameScope.Find<Panel>("PART_Overlay");
-			overlayButton.PointerPressed += (_, _) =>
-			{
-				if (EnableCancelOnPressed && !IsBusy && IsCancelEnabled)
-				{
-					Close();
-				}
-			};
+			_dismissPanel = e.NameScope.Find<Panel>("PART_Dismiss");
 
 			if (this.GetVisualRoot() is TopLevel topLevel)
 			{
+				topLevel.AddHandler(PointerPressedEvent, CancelPointerPressed, RoutingStrategies.Tunnel);
 				topLevel.AddHandler(KeyDownEvent, CancelKeyDown, RoutingStrategies.Tunnel);
 			}
 		}
@@ -121,6 +118,18 @@ namespace WalletWasabi.Fluent.Controls
 		private void Close()
 		{
 			IsDialogOpen = false;
+		}
+
+		private void CancelPointerPressed(object? sender, PointerPressedEventArgs e)
+		{
+			if (IsDialogOpen && EnableCancelOnPressed && !IsBusy && IsCancelEnabled && _dismissPanel is not null)
+			{
+				var point = e.GetPosition(_dismissPanel);
+				if (!_dismissPanel.Bounds.Contains(point))
+				{
+					Close();
+				}
+			}
 		}
 
 		private void CancelKeyDown(object? sender, KeyEventArgs e)

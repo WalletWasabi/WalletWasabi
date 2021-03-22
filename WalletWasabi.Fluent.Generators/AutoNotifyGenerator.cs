@@ -51,8 +51,8 @@ namespace WalletWasabi.Fluent
 
 		public void Execute(GeneratorExecutionContext context)
 		{
-			context.AddSource("AccessModifier", SourceText.From(ModifierText, Encoding.UTF8));
-			context.AddSource("AutoNotifyAttribute", SourceText.From(AttributeText, Encoding.UTF8));
+			context.AddSource("AccessModifier.cs", SourceText.From(ModifierText, Encoding.UTF8));
+			context.AddSource("AutoNotifyAttribute.cs", SourceText.From(AttributeText, Encoding.UTF8));
 
 			if (context.SyntaxReceiver is not SyntaxReceiver receiver)
 			{
