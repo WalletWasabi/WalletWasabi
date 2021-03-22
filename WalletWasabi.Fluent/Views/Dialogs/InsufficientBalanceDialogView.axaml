@@ -24,18 +24,20 @@
                        YesCommand="{Binding NextCommand}"
                        NoCommand="{Binding CancelCommand}"
                        HighlightButton="YesButton">
-      <WrapPanel Margin="0 0 0 40" HorizontalAlignment="Center">
+      <StackPanel Spacing="20">
         <StackPanel Orientation="Horizontal" Spacing="30" Margin="20">
           <PathIcon Width="30" Height="30" Data="{StaticResource btc_logo}"
                             Foreground="{DynamicResource SystemAccentColor}" />
           <StackPanel Spacing="5">
-            <TextBlock Text="a total of " Classes="storyline" />
+            <TextBlock Text="Send a total of " Classes="storyline" />
             <StackPanel Orientation="Horizontal" Spacing="5">
               <TextBlock Classes="field" Text="{Binding BtcAmountText}" />
               <TextBlock Classes="field" Text="{Binding FiatAmountText}" />
             </StackPanel>
           </StackPanel>
        </StackPanel>
+
+        <Separator />
 
         <StackPanel Orientation="Horizontal" Spacing="30" Margin="20">
           <PathIcon Width="30" Height="30" Data="{StaticResource paper_cash_regular}"
@@ -48,7 +50,7 @@
             </StackPanel>
           </StackPanel>
         </StackPanel>
-      </WrapPanel>
+      </StackPanel>
     </c:QuestionControl>
   </c:ContentArea>
 </UserControl>

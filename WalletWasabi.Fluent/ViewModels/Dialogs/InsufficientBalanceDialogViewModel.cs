@@ -24,13 +24,13 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			switch (type)
 			{
 				case BalanceType.Private:
-					Caption = $"There are not enough private funds to cover the transaction fee. The closest Wasabi can do to your request is to send";
+					Caption = $"There are not enough private funds to cover the transaction fee. Alternatively you could:";
 					break;
 				case BalanceType.Pocket:
-					Caption = $"There are not enough funds selected to cover the transaction fee. The closest Wasabi can do to your request is to send";
+					Caption = $"There are not enough funds selected to cover the transaction fee. Alternatively you could:";
 					break;
 				default:
-					Caption = $"There are not enough funds available to cover the transaction fee. The closest Wasabi can do to your request is to send";
+					Caption = $"There are not enough funds available to cover the transaction fee. Alternatively you could:";
 					break;
 			}
 
