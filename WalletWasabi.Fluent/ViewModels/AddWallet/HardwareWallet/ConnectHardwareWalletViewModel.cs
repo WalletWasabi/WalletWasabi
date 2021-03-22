@@ -85,6 +85,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public ICommand NavigateToExistingWalletLoginCommand { get; }
 
+		public WalletType Ledger => WalletType.Ledger;
+
+		public WalletType Coldcard => WalletType.Coldcard;
+
+		public WalletType Trezor => WalletType.Trezor;
+
+		public WalletType Generic => WalletType.Unknown;
+
 		private void StartDetection()
 		{
 			Message = "";
