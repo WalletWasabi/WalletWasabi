@@ -74,7 +74,7 @@ namespace WalletWasabi.Fluent.Desktop
 
 					Logger.LogSoftwareStarted("Wasabi GUI");
 					BuildAvaloniaApp()
-						.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled))
+						.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light))
 						.StartWithClassicDesktopLifetime(args);
 				}
 				catch (OperationCanceledException ex)

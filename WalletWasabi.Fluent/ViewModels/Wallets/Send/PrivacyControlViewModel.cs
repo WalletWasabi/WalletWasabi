@@ -54,46 +54,49 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () =>
-				{
-					var coins = selectedList.Items.SelectMany(x => x.Coins).ToArray();
-
-					try
-					{
-						try
-						{
-							var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: false));
-							Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
-						}
-						catch (InsufficientBalanceException)
-						{
-							var transactionResult = TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: true);
-							var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Pocket, transactionResult, wallet.Synchronizer.UsdExchangeRate);
-							var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
-
-							if (result.Result)
-							{
-								Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
-							}
-							else
-							{
-								Navigate().BackTo<SendViewModel>();
-							}
-						}
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-						await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
-						Navigate().BackTo<SendViewModel>();
-					}
-				},
+				async () => await OnNext(wallet, transactionInfo, broadcaster, selectedList),
 				this.WhenAnyValue(x => x.EnoughSelected));
 
 			EnableAutoBusyOn(NextCommand);
 		}
 
 		public ReadOnlyObservableCollection<PocketViewModel> Pockets => _pockets;
+
+		private async Task OnNext(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster, IObservableList<PocketViewModel> selectedList)
+		{
+			var coins = selectedList.Items.SelectMany(x => x.Coins).ToArray();
+
+			try
+			{
+				try
+				{
+					var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: false));
+					Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
+				}
+				catch (InsufficientBalanceException)
+				{
+					var transactionResult = TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: true);
+					var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Pocket, transactionResult, wallet.Synchronizer.UsdExchangeRate);
+					var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
+
+					if (result.Result)
+					{
+						Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
+					}
+					else
+					{
+						Navigate().BackTo<SendViewModel>();
+					}
+				}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
+				Navigate().BackTo<SendViewModel>();
+			}
+		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{

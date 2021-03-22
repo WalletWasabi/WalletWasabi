@@ -28,55 +28,59 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				.Subscribe(finalTransaction => Close(result: finalTransaction));
 
 			ImportTransactionCommand = ReactiveCommand.CreateFromTask(
-				async () =>
-				{
-					try
-					{
-						var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", new[] {"psbt", "*"});
-						if (path is { })
-						{
-							FinalTransaction = await ParseTransactionAsync(path);
-						}
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-						await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to load the transaction.");
-					}
-				},
+				async () => await OnImportTransaction(),
 				outputScheduler: RxApp.MainThreadScheduler);
 
-			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
+			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPaste());
+		}
+
+		private async Task OnImportTransaction()
+		{
+			try
 			{
-				try
+				var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", new[] {"psbt", "*"});
+				if (path is { })
 				{
-					var textToPaste = await Application.Current.Clipboard.GetTextAsync();
-
-					if (string.IsNullOrWhiteSpace(textToPaste))
-					{
-						throw new InvalidDataException("The clipboard is empty!");
-					}
-
-					if (PSBT.TryParse(textToPaste, Network, out var signedPsbt))
-					{
-						if (!signedPsbt.IsAllFinalized())
-						{
-							signedPsbt.Finalize();
-						}
-
-						FinalTransaction = signedPsbt.ExtractSmartTransaction();
-					}
-					else
-					{
-						FinalTransaction = new SmartTransaction(Transaction.Parse(textToPaste, Network), Models.Height.Unknown);
-					}
+					FinalTransaction = await ParseTransactionAsync(path);
 				}
-				catch (Exception ex)
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to load the transaction.");
+			}
+		}
+
+		private async Task OnPaste()
+		{
+			try
+			{
+				var textToPaste = await Application.Current.Clipboard.GetTextAsync();
+
+				if (string.IsNullOrWhiteSpace(textToPaste))
 				{
-					Logger.LogError(ex);
-					await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to paste the transaction.");
+					throw new InvalidDataException("The clipboard is empty!");
 				}
-			});
+
+				if (PSBT.TryParse(textToPaste, Network, out var signedPsbt))
+				{
+					if (!signedPsbt.IsAllFinalized())
+					{
+						signedPsbt.Finalize();
+					}
+
+					FinalTransaction = signedPsbt.ExtractSmartTransaction();
+				}
+				else
+				{
+					FinalTransaction = new SmartTransaction(Transaction.Parse(textToPaste, Network), Models.Height.Unknown);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to paste the transaction.");
+			}
 		}
 
 		private Network Network { get; }
