@@ -294,6 +294,11 @@ namespace WalletWasabi.Wallets
 
 		private async void TransactionProcessor_WalletRelevantTransactionProcessedAsync(object? sender, ProcessedResult e)
 		{
+			if (State != WalletState.Started)
+			{
+				return;
+			}
+
 			try
 			{
 				foreach (var coin in e.NewlySpentCoins.Concat(e.ReplacedCoins).Concat(e.SuccessfullyDoubleSpentCoins).Distinct())
@@ -338,11 +343,21 @@ namespace WalletWasabi.Wallets
 
 		private void ChaumianClient_OnDequeue(object? sender, DequeueResult e)
 		{
+			if (State != WalletState.Started)
+			{
+				return;
+			}
+
 			OnDequeue?.Invoke(this, e);
 		}
 
 		private void Mempool_TransactionReceived(object? sender, SmartTransaction tx)
 		{
+			if (State != WalletState.Started)
+			{
+				return;
+			}
+
 			try
 			{
 				if (!TransactionProcessor.IsAware(tx.GetHash()))
@@ -358,6 +373,11 @@ namespace WalletWasabi.Wallets
 
 		private async void IndexDownloader_ReorgedAsync(object? sender, FilterModel invalidFilter)
 		{
+			if (State != WalletState.Started)
+			{
+				return;
+			}
+
 			try
 			{
 				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
@@ -381,6 +401,11 @@ namespace WalletWasabi.Wallets
 
 		private async void IndexDownloader_NewFilterAsync(object? sender, FilterModel filterModel)
 		{
+			if (State != WalletState.Started)
+			{
+				return;
+			}
+
 			try
 			{
 				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
