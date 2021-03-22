@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableCancel));
 
 		public static readonly StyledProperty<bool> EnableNextProperty =
-			AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableNext), true);
+			AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableNext));
 
 		public static readonly StyledProperty<bool> EnableSkipProperty =
 			AvaloniaProperty.Register<ContentArea, bool>(nameof(EnableSkip));
