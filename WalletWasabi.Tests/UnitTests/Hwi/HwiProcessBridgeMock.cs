@@ -210,7 +210,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 					response = $"{{\"xpub\": \"{xpub}\"}}\r\n";
 				}
 			}
-			else if (CompareArguments(out bool t1, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h --wpkh", false))
+			else if (CompareArguments(out bool t1, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h --addr-type wit", false))
 			{
 				if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Coldcard or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X)
 				{
@@ -219,7 +219,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 						: "{\"address\": \"bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah\"}\r\n";
 				}
 			}
-			else if (CompareArguments(out bool t2, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h/1 --wpkh", false))
+			else if (CompareArguments(out bool t2, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h/1 --addr-type wit", false))
 			{
 				if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Coldcard or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X)
 				{
@@ -236,7 +236,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 
 		private static bool CompareArguments(out bool isTestNet, string arguments, string desired, bool useStartWith = false)
 		{
-			var testnetDesired = $"--testnet {desired}";
+			var testnetDesired = $"--chain test {desired}";
 			isTestNet = false;
 
 			if (useStartWith)

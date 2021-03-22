@@ -163,7 +163,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 		{
 			// This test also tests that the min input count multiplier is applied
 			// against the max input count by round number and not against the
-			// number of inputs awaited by the blame round intself.
+			// number of inputs awaited by the blame round itself.
 			WabiSabiConfig cfg = new()
 			{
 				BlameInputRegistrationTimeout = TimeSpan.Zero,
