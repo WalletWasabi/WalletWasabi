@@ -81,7 +81,7 @@
                 <StackPanel Spacing="5">
                     <TextBlock Classes="storyline" Text="for an additional charge of" />
                     <StackPanel Orientation="Horizontal" Spacing="5">
-                        <TextBlock Classes="field" Text="{Binding BtcFeeText, FallbackValue=235 satoshis}" />
+                        <TextBlock Classes="field" Text="{Binding BtcFeeText, FallbackValue=235 sats}" />
                         <TextBlock Classes="field" Text="{Binding FiatFeeText, FallbackValue=(≈55.34 USD)}" />
                     </StackPanel>
                 </StackPanel>
