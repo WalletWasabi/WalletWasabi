@@ -106,7 +106,7 @@ namespace WalletWasabi.TorSocks5
 						hashSourceBytes = File.ReadAllBytes(torPath);
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 						{
-							hashSourceBytes.Concat(File.ReadAllBytes($@"{torDir}/Tor/tor.real"));
+							hashSourceBytes = hashSourceBytes.Concat(File.ReadAllBytes($@"{torDir}/Tor/tor.real")).ToArray();
 						}
 
 						if (!IoHelpers.CheckExpectedHash(hashSourceBytes, Path.Combine(fullBaseDirectory, "TorDaemons")))
