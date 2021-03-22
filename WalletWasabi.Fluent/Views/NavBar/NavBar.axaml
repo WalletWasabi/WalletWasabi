@@ -100,10 +100,10 @@
         </c:NavBarListBox.ItemTemplate>
       </c:NavBarListBox>
       <Separator />
-      <!-- Actions List -->
-      <c:NavBarListBox Items="{Binding Actions}"
+      <!-- Selected Wallet List -->
+      <c:NavBarListBox Items="{Binding SelectedWallets}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                       Name="ActionsListBox"
+                       Name="SelectedWalletListBox"
                        RenderTransformOrigin="0%,50%">
         <c:NavBarListBox.Styles>
           <Style Selector=":is(ListBox):not(:empty)">
@@ -162,6 +162,68 @@
                 </PathIcon>
               </Panel>
               <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
+            </Panel>
+          </DataTemplate>
+        </c:NavBarListBox.DataTemplates>
+      </c:NavBarListBox>
+      <!-- Actions List -->
+      <c:NavBarListBox Items="{Binding Actions}"
+                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                       Name="ActionsListBox"
+                       RenderTransformOrigin="0%,50%">
+        <c:NavBarListBox.Styles>
+          <Style Selector=":is(ListBox)">
+            <Setter Property="ItemsPanel">
+              <Setter.Value>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="{Binding HideItems, Mode=OneWay, Converter={x:Static conv:NavBarActionsOrientationConverter.Instance}}" HorizontalAlignment="Left" />
+                </ItemsPanelTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>
+          <Style Selector=":is(ListBox):not(:empty)">
+            <Style.Animations>
+              <Animation Delay="0:0:0.0" Duration="0:0:0.175">
+                <KeyFrame Cue="0%">
+                  <Setter Property="Opacity" Value="0.0"/>
+                </KeyFrame>
+                <KeyFrame Cue="0.1%" KeySpline="{StaticResource FluentKeySpline}">
+                  <Setter Property="TranslateTransform.X" Value="-40"/>
+                  <Setter Property="ScaleTransform.ScaleX" Value="0.98"/>
+                  <Setter Property="ScaleTransform.ScaleY" Value="0.98"/>
+                </KeyFrame>
+                <KeyFrame Cue="99%">
+                  <Setter Property="Opacity" Value="1.0"/>
+                </KeyFrame>
+                <KeyFrame Cue="100%" KeySpline="{StaticResource FluentKeySpline}">
+                  <Setter Property="TranslateTransform.X" Value="0"/>
+                  <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                  <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                </KeyFrame>
+              </Animation>
+            </Style.Animations>
+          </Style>
+          <Style Selector="c|NavBarItem">
+            <Setter Property="IndicatorOrientation" Value="Horizontal" />
+            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
+            <Setter Property="IsHitTestVisible" Value="{Binding IsEnabled}" x:CompileBindings="False" />
+            <Setter Property="Focusable" Value="{Binding IsEnabled}" x:CompileBindings="False" />
+            <Setter Property="IsEnabled" Value="{Binding IsEnabled}" x:CompileBindings="False" />
+          </Style>
+          <Style Selector="c|NavBarItem:disabled PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+          </Style>
+        </c:NavBarListBox.Styles>
+        <c:NavBarListBox.DataTemplates>
+          <DataTemplate DataType="vm:NavBarItemViewModel">
+            <Panel>
+              <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
+                <PathIcon HorizontalAlignment="Left">
+                  <PathIcon.Data>
+                    <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                  </PathIcon.Data>
+                </PathIcon>
+              </Panel>
             </Panel>
           </DataTemplate>
         </c:NavBarListBox.DataTemplates>
