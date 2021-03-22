@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent
 
 		public void Execute(GeneratorExecutionContext context)
 		{
-			context.AddSource("StaticViewLocatorAttribute", SourceText.From(AttributeText, Encoding.UTF8));
+			context.AddSource("StaticViewLocatorAttribute.cs", SourceText.From(AttributeText, Encoding.UTF8));
 
 			if (context.SyntaxReceiver is not SyntaxReceiver receiver)
 			{
@@ -84,8 +84,7 @@ namespace WalletWasabi.Fluent
 
 		private static string? ProcessClass(Compilation compilation, INamedTypeSymbol namedTypeSymbolLocator, List<INamedTypeSymbol> namedTypeSymbolViewModels)
 		{
-			if (!namedTypeSymbolLocator.ContainingSymbol.Equals(namedTypeSymbolLocator.ContainingNamespace,
-				SymbolEqualityComparer.Default))
+			if (!namedTypeSymbolLocator.ContainingSymbol.Equals(namedTypeSymbolLocator.ContainingNamespace, SymbolEqualityComparer.Default))
 			{
 				return null;
 			}
@@ -94,8 +93,7 @@ namespace WalletWasabi.Fluent
 
             var format = new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints | SymbolDisplayGenericsOptions.IncludeVariance
-            );
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints | SymbolDisplayGenericsOptions.IncludeVariance);
 
 			string classNameLocator = namedTypeSymbolLocator.ToDisplayString(format);
 
