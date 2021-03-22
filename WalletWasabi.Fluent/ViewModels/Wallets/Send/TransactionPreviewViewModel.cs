@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
 
-			BtcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
+			BtcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
 
 			FiatFeeText =
 				$"(≈{(fee.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD)";
