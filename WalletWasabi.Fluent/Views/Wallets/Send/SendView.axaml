@@ -76,7 +76,7 @@
             <Setter Property="YAxisStrokeThickness" Value="0.7" />
             <Setter Property="YAxisArrowSize" Value="3.5" />
             <Setter Property="YAxisMinViableWidth" Value="0"/>
-            <Setter Property="YAxisMinViableHeight" Value="140"/>
+            <Setter Property="YAxisMinViableHeight" Value="120"/>
         </Style>
         <!-- LineChart YAxis Title -->
         <Style Selector="c|LineChart.yAxisTitle">
@@ -105,9 +105,9 @@
                    NextContent="Continue"
                    ClipToBounds="False"
                    IsBusy="{Binding IsBusy}"
-                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                   ScrollViewer.VerticalScrollBarVisibility="Auto">
 
-        <DockPanel Margin="0 0 0 -32">
+        <DockPanel>
             <StackPanel DockPanel.Dock="Top" Spacing="10">
                 <StackPanel.Styles>
                     <Style Selector="DockPanel > Label">
@@ -203,5 +203,6 @@
                 </c:LineChart>
             </DockPanel>
         </DockPanel>
+
     </c:ContentArea>
 </UserControl>
