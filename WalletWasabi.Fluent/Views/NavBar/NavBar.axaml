@@ -71,7 +71,8 @@
       </Border>
       <!-- TopItems List -->
       <c:NavBarListBox Items="{Binding TopItems}"
-                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                       Name="TopListBox">
         <c:NavBarListBox.Styles>
           <Style Selector="c|NavBarItem">
             <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
@@ -194,7 +195,8 @@
       <Separator />
       <!-- BottomItems List -->
       <c:NavBarListBox Items="{Binding BottomItems}"
-                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                       Name="BottomListBox">
         <c:NavBarListBox.Styles>
           <Style Selector=":is(ListBox)">
             <Setter Property="ItemsPanel">
