@@ -32,7 +32,7 @@
                         <Setter Property="Margin" Value="5" />
                     </Style>
                     <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-                        <Setter Property="Background" Value="#353535" />
+                        <Setter Property="Background" Value="{DynamicResource PrivacySuggestionControlSelectedBackground}" />
                     </Style>
                 </ListBox.Styles>
                 <ListBox.ItemsPanel>
