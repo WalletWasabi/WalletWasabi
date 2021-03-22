@@ -1,11 +1,9 @@
-using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Controls
 {
-	public class LoadingControl : ContentControl
+	public class LoadingControl : UserControl
 	{
 		public static readonly StyledProperty<double> PercentProperty =
 			AvaloniaProperty.Register<LoadingControl, double>(nameof(Percent));
