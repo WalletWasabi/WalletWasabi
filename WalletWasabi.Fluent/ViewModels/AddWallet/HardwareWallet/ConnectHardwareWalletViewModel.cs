@@ -41,7 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask(async () =>
 				await IoHelpers.OpenBrowserAsync("https://docs.wasabiwallet.io/using-wasabi/ColdWasabi.html#using-hardware-wallet-step-by-step"));
 
-			NavigateToExistingWalletLoginCommand = ReactiveCommand.Create(OnNavigateToExistingWalletLogin);
+			NavigateToExistingWalletLoginCommand = ReactiveCommand.Create(execute: OnNavigateToExistingWalletLogin);
 
 			this.WhenAnyValue(x => x.Message)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -65,6 +65,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		public ICommand OpenBrowserCommand { get; }
 
 		public ICommand NavigateToExistingWalletLoginCommand { get; }
+
+		public WalletType Ledger => WalletType.Ledger;
+
+		public WalletType Coldcard => WalletType.Coldcard;
+
+		public WalletType Trezor => WalletType.Trezor;
+
+		public WalletType Generic => WalletType.Unknown;
 
 		private void OnNext()
 		{
