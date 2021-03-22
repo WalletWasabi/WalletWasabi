@@ -18,9 +18,8 @@
                  EnableCancel="True" CancelContent="Cancel"
                  EnableNext="True" NextContent="Continue"
                  IsBusy="{Binding IsBusy}"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                 Height="300">
-    <Viewbox>
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <Viewbox MaxHeight="150">
       <Image>
         <Image.Source>
           <MultiBinding Converter="{x:Static conv:WalletIconConverter.TypesToImage}">
