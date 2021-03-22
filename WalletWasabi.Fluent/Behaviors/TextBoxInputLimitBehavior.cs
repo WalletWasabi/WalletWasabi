@@ -48,9 +48,6 @@ namespace WalletWasabi.Fluent.Behaviors
 				.DisposeWith(disposables);
 		}
 
-
-
-
 		private void OnTextChanged(string o)
 		{
 			if (string.IsNullOrWhiteSpace(o))
@@ -66,7 +63,6 @@ namespace WalletWasabi.Fluent.Behaviors
 				});
 			}
 		}
-
 
 		private async void OnKeyDown(object? sender, KeyEventArgs e)
 		{
