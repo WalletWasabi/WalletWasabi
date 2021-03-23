@@ -358,7 +358,6 @@ namespace WalletWasabi.Wallets
 
 		private async void IndexDownloader_ReorgedAsync(object? sender, FilterModel invalidFilter)
 		{
-			return;
 			try
 			{
 				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
@@ -382,7 +381,6 @@ namespace WalletWasabi.Wallets
 
 		private async void IndexDownloader_NewFilterAsync(object? sender, FilterModel filterModel)
 		{
-			return;
 			try
 			{
 				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
