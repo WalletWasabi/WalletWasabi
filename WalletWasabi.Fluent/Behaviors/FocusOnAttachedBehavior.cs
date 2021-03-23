@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.Behaviors
 		{
 			if (IsEnabled)
 			{
-				Dispatcher.UIThread.Post(() => { AssociatedObject?.Focus(); });
+				Dispatcher.UIThread.Post(() => AssociatedObject?.Focus());
 			}
 		}
 	}

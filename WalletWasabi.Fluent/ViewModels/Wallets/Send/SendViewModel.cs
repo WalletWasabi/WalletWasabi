@@ -96,10 +96,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			this.WhenAnyValue(x => x.XAxisCurrentValueIndex)
 				.Subscribe(SetXAxisCurrentValue);
 
-			Labels.ToObservableChangeSet().Subscribe(x =>
-			{
-				_transactionInfo.Labels = new SmartLabel(_labels.ToArray());
-			});
+			Labels.ToObservableChangeSet().Subscribe(x => _transactionInfo.Labels = new SmartLabel(_labels.ToArray()));
 
 			EnableCancel = true;
 
