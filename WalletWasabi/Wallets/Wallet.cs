@@ -429,6 +429,8 @@ namespace WalletWasabi.Wallets
 				TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 			}
 
+			Logger.LogInfo($"GapLimit: {KeyManager.CountConsecutiveUnusedKeys(true)}");
+
 			// Go through the filters and queue to download the matches.
 			await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
 			{
