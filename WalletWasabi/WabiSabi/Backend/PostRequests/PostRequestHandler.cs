@@ -14,7 +14,7 @@ using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.PostRequests
 {
-	public class PostRequestHandler : IAsyncDisposable
+	public class PostRequestHandler : IAsyncDisposable, IRequestHandler
 	{
 		public PostRequestHandler(WabiSabiConfig config, Prison prison, Arena arena, IRPCClient rpc)
 		{
