@@ -220,19 +220,19 @@ namespace {namespaceName}
 				if (!overridenSetterModifierOpt.IsNull && overridenSetterModifierOpt.Value is not null)
 				{
 					var value = (int)overridenSetterModifierOpt.Value;
+
+					// 0 - None
+					// 1 - Public
+					// 2 - Protected
+					// 3 - Private
+					// 4 - Internal
 					return value switch
 					{
-						// None
 						0 => null,
-						// Public
 						1 => "",
-						// Protected
 						2 => "protected ",
-						// Private
 						3 => "private ",
-						// Internal
 						4 => "internal ",
-						// Default
 						_ => ""
 					};
 				}
