@@ -18,8 +18,4 @@
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.1" PrivateAssets="all" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Compile Remove="PropertyGenerator.cs" />
-	</ItemGroup>
-
 </Project>
