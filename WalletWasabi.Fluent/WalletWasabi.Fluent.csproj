@@ -25,7 +25,9 @@
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj" />
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
-		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\WalletWasabi.Fluent.Generators.AutoNotify\WalletWasabi.Fluent.Generators.AutoNotify.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\WalletWasabi.Fluent.Generators.NavigationMetaData\WalletWasabi.Fluent.Generators.NavigationMetaData.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\WalletWasabi.Fluent.Generators.StaticViewLocator123\WalletWasabi.Fluent.Generators.StaticViewLocator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
 	<ItemGroup>
