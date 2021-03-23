@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.Behaviors
 			AvaloniaProperty.RegisterDirect<TextBoxInputLimitBehavior, int>(nameof(PasteCharCountLimit),
 				o => o.PasteCharCountLimit,
 				(o,
-					v) => o.PasteCharCountLimit = v, unsetValue: 120);
+					v) => o.PasteCharCountLimit = v, unsetValue: 150);
 
 		public int PasteCharCountLimit
 		{
