@@ -153,7 +153,7 @@ namespace WalletWasabi.Wallets
 
 				BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 				BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
-				BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
+				BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceivedAsync;
 
 				BlockProvider = blockProvider;
 
@@ -278,7 +278,7 @@ namespace WalletWasabi.Wallets
 				{
 					BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
 					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
-					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
+					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceivedAsync;
 					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
 					ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
 
@@ -341,13 +341,16 @@ namespace WalletWasabi.Wallets
 			OnDequeue?.Invoke(this, e);
 		}
 
-		private void Mempool_TransactionReceived(object? sender, SmartTransaction tx)
+		private async void Mempool_TransactionReceivedAsync(object? _, SmartTransaction tx)
 		{
 			try
 			{
-				if (!TransactionProcessor.IsAware(tx.GetHash()))
+				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 				{
-					TransactionProcessor.Process(tx);
+					if (!TransactionProcessor.IsAware(tx.GetHash()))
+					{
+						TransactionProcessor.Process(tx);
+					}
 				}
 			}
 			catch (Exception ex)
