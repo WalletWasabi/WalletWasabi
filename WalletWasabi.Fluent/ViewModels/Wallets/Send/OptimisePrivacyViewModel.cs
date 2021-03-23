@@ -39,10 +39,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			_privacySuggestions = new ObservableCollection<PrivacySuggestionControlViewModel>();
 
-			NextCommand = ReactiveCommand.Create(() =>
-			{
-				Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, SelectedPrivacySuggestion!.TransactionResult));
-			}, this.WhenAnyValue(x => x.SelectedPrivacySuggestion).Select(x => x is { }));
+			EnableCancel = true;
+
+			EnableBack = true;
+
+			NextCommand = ReactiveCommand.Create(
+				() => OnNext(wallet, transactionInfo, broadcaster),
+				this.WhenAnyValue(x => x.SelectedPrivacySuggestion).Select(x => x is { }));
+		}
+
+		private void OnNext(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
+		{
+			Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster,
+				SelectedPrivacySuggestion!.TransactionResult));
 		}
 
 		protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)

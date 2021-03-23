@@ -179,24 +179,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 									continue;
 								}
 
-								var scripts = FetchScripts(block);
-
-								GolombRiceFilter filter;
-								if (scripts.Any())
-								{
-									filter = new GolombRiceFilterBuilder()
-										.SetKey(block.Hash)
-										.SetP(20)
-										.SetM(1 << 20)
-										.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
-										.Build();
-								}
-								else
-								{
-									// We cannot have empty filters, because there was a bug in GolombRiceFilterBuilder that evaluates empty filters to true.
-									// And this must be fixed in a backwards compatible way, so we create a fake filter with a random scp instead.
-									filter = CreateDummyEmptyFilter(block.Hash);
-								}
+								var filter = BuildFilterForBlock(block);
 
 								var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
 								var filterModel = new FilterModel(smartHeader, filter);
@@ -238,7 +221,28 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			});
 		}
 
-		private List<Script> FetchScripts(VerboseBlockInfo block)
+		internal static GolombRiceFilter BuildFilterForBlock(VerboseBlockInfo block)
+		{
+			var scripts = FetchScripts(block);
+
+			if (scripts.Any())
+			{
+				return new GolombRiceFilterBuilder()
+					.SetKey(block.Hash)
+					.SetP(20)
+					.SetM(1 << 20)
+					.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
+					.Build();
+			}
+			else
+			{
+				// We cannot have empty filters, because there was a bug in GolombRiceFilterBuilder that evaluates empty filters to true.
+				// And this must be fixed in a backwards compatible way, so we create a fake filter with a random scp instead.
+				return CreateDummyEmptyFilter(block.Hash);
+			}
+		}
+
+		private static List<Script> FetchScripts(VerboseBlockInfo block)
 		{
 			var scripts = new List<Script>();
 
@@ -246,7 +250,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			{
 				foreach (var input in tx.Inputs)
 				{
-					if (input.PrevOutput?.PubkeyType == RpcPubkeyType.TxWitnessV0Keyhash)
+					if (input.PrevOutput is { PubkeyType: RpcPubkeyType.TxWitnessV0Keyhash or RpcPubkeyType.TxWitnessV1Taproot })
 					{
 						scripts.Add(input.PrevOutput.ScriptPubKey);
 					}
@@ -254,7 +258,7 @@ namespace WalletWasabi.Blockchain.BlockFilters
 
 				foreach (var output in tx.Outputs)
 				{
-					if (output.PubkeyType == RpcPubkeyType.TxWitnessV0Keyhash)
+					if (output is { PubkeyType: RpcPubkeyType.TxWitnessV0Keyhash or RpcPubkeyType.TxWitnessV1Taproot })
 					{
 						scripts.Add(output.ScriptPubKey);
 					}

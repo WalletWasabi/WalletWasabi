@@ -1,6 +1,10 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:converters="using:WalletWasabi.Gui.Converters">
+        xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+        xmlns:i="using:Avalonia.Xaml.Interactivity"
+        xmlns:converters="using:WalletWasabi.Gui.Converters"
+        xmlns:validation="clr-namespace:WalletWasabi.Fluent.Validation"
+        xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters">
   <Styles.Resources>
     <Thickness x:Key="TextControlBorderThemeThickness">0,0,0,2</Thickness>
     <Thickness x:Key="TextControlBorderThemeThicknessFocused">0,0,0,2</Thickness>
@@ -24,59 +28,72 @@
 
           <DataValidationErrors DockPanel.Dock="Bottom" Margin="0 10 0 0" />
 
-          <Panel>
-            <Border
-              Name="PART_BorderElement"
-              Background="{TemplateBinding Background}"
-              BorderBrush="{TemplateBinding BorderBrush}"
-              BorderThickness="{TemplateBinding BorderThickness}"
-              MinWidth="{TemplateBinding MinWidth}"
-              MinHeight="{TemplateBinding MinHeight}">
-            </Border>
+          <DockPanel>
+            <PathIcon Classes="checkMark checkMarkDataValidation" Margin="15  0" VerticalAlignment="Center" DockPanel.Dock="Right">
+              <i:Interaction.Behaviors>
+                <behaviors:CheckMarkVisibilityBehavior OwnerTextBox="{Binding ., RelativeSource={RelativeSource TemplatedParent}}" />
+              </i:Interaction.Behaviors>
+            </PathIcon>
+            <PathIcon Classes="checkMark checkMarkBoolean"
+                      Margin="15  0"
+                      VerticalAlignment="Center"
+                      DockPanel.Dock="Right"
+                      Opacity="{Binding (validation:CheckMarkStatus.IsEnabled), RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}" />
+            <Panel>
+              <Border
+                Name="PART_BorderElement"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                MinWidth="{TemplateBinding MinWidth}"
+                MinHeight="{TemplateBinding MinHeight}">
+              </Border>
 
-            <Border
-              Margin="{TemplateBinding BorderThickness}">
-              <Grid ColumnDefinitions="Auto,*,Auto">
-                <ContentPresenter Grid.Column="0" Grid.ColumnSpan="1" Content="{TemplateBinding InnerLeftContent}" />
-                <DockPanel x:Name="PART_InnerDockPanel" Grid.Column="1" Grid.ColumnSpan="1" Margin="{TemplateBinding Padding}">
-                  <TextBlock Name="PART_FloatingWatermark"
-                             Foreground="{DynamicResource SystemAccentColor}"
-                             FontSize="{TemplateBinding FontSize}"
-                             Text="{TemplateBinding Watermark}"
-                             DockPanel.Dock="Top" />
-                  <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
-                                VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
-                      <Panel>
-                        <TextBlock Name="PART_Watermark"
-                                Opacity="0.5"
-                                Text="{TemplateBinding Watermark}"
-                                TextAlignment="{TemplateBinding TextAlignment}"
-                                TextWrapping="{TemplateBinding TextWrapping}"
-                                IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
-                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                        <TextPresenter Name="PART_TextPresenter"
-                                       Text="{TemplateBinding Text, Mode=TwoWay}"
-                                       CaretIndex="{TemplateBinding CaretIndex}"
-                                       SelectionStart="{TemplateBinding SelectionStart}"
-                                       SelectionEnd="{TemplateBinding SelectionEnd}"
-                                       TextAlignment="{TemplateBinding TextAlignment}"
-                                       TextWrapping="{TemplateBinding TextWrapping}"
-                                       PasswordChar="{TemplateBinding PasswordChar}"
-                                       RevealPassword="{TemplateBinding RevealPassword}"
-                                       SelectionBrush="{TemplateBinding SelectionBrush}"
-                                       SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
-                                       CaretBrush="{TemplateBinding CaretBrush}"
-                                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                      </Panel>
-                    </ScrollViewer>
-                </DockPanel>
-                <ContentPresenter Grid.Column="2" Grid.ColumnSpan="1" Content="{TemplateBinding InnerRightContent}" />
-              </Grid>
-            </Border>
-          </Panel>
+              <Border
+                Margin="{TemplateBinding BorderThickness}">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <ContentPresenter Grid.Column="0" Grid.ColumnSpan="1" Content="{TemplateBinding InnerLeftContent}" />
+                  <DockPanel x:Name="PART_InnerDockPanel" Grid.Column="1" Grid.ColumnSpan="1" Margin="{TemplateBinding Padding}">
+                    <TextBlock Name="PART_FloatingWatermark"
+                               Foreground="{DynamicResource SystemAccentColor}"
+                               FontSize="{TemplateBinding FontSize}"
+                               Text="{TemplateBinding Watermark}"
+                               DockPanel.Dock="Top" />
+                    <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                                  VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
+                        <Panel>
+                          <TextBlock Name="PART_Watermark"
+                                  Opacity="0.5"
+                                  Text="{TemplateBinding Watermark}"
+                                  TextAlignment="{TemplateBinding TextAlignment}"
+                                  TextWrapping="{TemplateBinding TextWrapping}"
+                                  IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                          <TextPresenter Name="PART_TextPresenter"
+                                         Text="{TemplateBinding Text, Mode=TwoWay}"
+                                         CaretIndex="{TemplateBinding CaretIndex}"
+                                         SelectionStart="{TemplateBinding SelectionStart}"
+                                         SelectionEnd="{TemplateBinding SelectionEnd}"
+                                         TextAlignment="{TemplateBinding TextAlignment}"
+                                         TextWrapping="{TemplateBinding TextWrapping}"
+                                         PasswordChar="{TemplateBinding PasswordChar}"
+                                         RevealPassword="{TemplateBinding RevealPassword}"
+                                         SelectionBrush="{TemplateBinding SelectionBrush}"
+                                         SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                                         CaretBrush="{TemplateBinding CaretBrush}"
+                                         HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                         VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Panel>
+                      </ScrollViewer>
+                  </DockPanel>
+                  <ContentPresenter Grid.Column="2" Grid.ColumnSpan="1" Content="{TemplateBinding InnerRightContent}" />
+                </Grid>
+              </Border>
+            </Panel>
+          </DockPanel>
         </DockPanel>
+
       </ControlTemplate>
     </Setter>
   </Style>
@@ -88,6 +105,22 @@
   <!-- TODO: temporary fix to prevent layout issue when error occurs  -->
   <Style Selector="TextBox /template/ DataValidationErrors">
     <Setter Property="MinHeight" Value="20" />
+  </Style>
+
+  <Style Selector="TextBox:not(.hasCheckMark) /template/ PathIcon.checkMark.checkMarkDataValidation">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+
+  <Style Selector="TextBox.hasCheckMark /template/ PathIcon.checkMark.checkMarkDataValidation">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+
+  <Style Selector="TextBox:not(.hasCheckMarkBoolean) /template/ PathIcon.checkMark.checkMarkBoolean">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+
+  <Style Selector="TextBox.hasCheckMarkBoolean /template/ PathIcon.checkMark.checkMarkBoolean">
+    <Setter Property="IsVisible" Value="True" />
   </Style>
 
   <Style Selector="TextBox.selectable_text_block">

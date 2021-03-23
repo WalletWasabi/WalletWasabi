@@ -177,14 +177,23 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			e.Handled = !ValidateEntryText(e.Text);
+			var preComposedText = PreComposeText(e.Text);
+
+			decimal fiatValue = 0;
+
+			e.Handled = !(ValidateEntryText(preComposedText) &&
+			            decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number, _customCultureInfo, out fiatValue));
+
+			if (IsConversionReversed & !e.Handled)
+			{
+				e.Handled = FiatToBitcoin(fiatValue) >= Constants.MaximumNumberOfBitcoins;
+			}
+
 			base.OnTextInput(e);
 		}
 
-		private bool ValidateEntryText(string input)
+		private bool ValidateEntryText(string preComposedText)
 		{
-			var preComposedText = PreComposeText(input);
-
 			// Check if it has a decimal separator.
 			var trailingDecimal = preComposedText.Length > 0 && preComposedText[^1] == _decimalSeparator;
 			var match = _regexBTCFormat.Match(preComposedText);
@@ -193,8 +202,8 @@ namespace WalletWasabi.Fluent.Controls
 			var wholeStr = match.Groups["Whole"].ToString();
 			var whole = _regexGroupAndDecimal.Replace(wholeStr, "").Length;
 
-			var fracStr = match.Groups["Frac"].ToString();
-			var frac = fracStr.Length;
+			var fracStr = match.Groups["Frac"].ToString().Replace($"{_groupSeparator}", "");
+			var frac = _regexGroupAndDecimal.Replace(fracStr, "").Length;
 
 			// Check for consecutive spaces (2 or more) and leading spaces.
 			var rule1 = preComposedText.Length > 1 && (preComposedText[0] == _groupSeparator ||
@@ -220,14 +229,14 @@ namespace WalletWasabi.Fluent.Controls
 			switch (preComposedText.Length)
 			{
 				case 1 when preComposedText[0] == _decimalSeparator && !trailingDecimal:
-				case 1 when preComposedText[0] == _groupSeparator && !fracStr.Contains(_groupSeparator):
 					return false;
 			}
 
 			if (IsConversionReversed)
 			{
-				// Fiat input restriction is to only allow 2 decimal places.
-				if (frac > 2 && fracStr.Count(x=>x == _decimalSeparator) > 1)
+				// Fiat input restriction is to only allow 2 decimal places max
+				// and also 16 whole number places.
+				if ((whole > 16 && !trailingDecimal) || frac > 2)
 				{
 					return false;
 				}
@@ -258,12 +267,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			if (Match(keymap.Paste))
 			{
-				var text = await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync();
-
-				if (!string.IsNullOrEmpty(text) && ValidateEntryText(text))
-				{
-					base.OnTextInput(new TextInputEventArgs { Text = text});
-				}
+				ModifiedPaste();
 			}
 			else
 			{
@@ -273,11 +277,28 @@ namespace WalletWasabi.Fluent.Controls
 
 		public async void ModifiedPaste()
 		{
-			var text = (await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync()).Replace("\r", "").Replace("\n", "");
+			var text = await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync();
 
-			if (!string.IsNullOrEmpty(text) || ValidateEntryText(text))
+			if (string.IsNullOrEmpty(text))
 			{
-				base.OnTextInput(new TextInputEventArgs {Text = text});
+				return;
+			}
+
+			text = text.Replace("\r", "").Replace("\n", "").Trim();
+
+			// Based on broad M0 money supply figures (80 900 000 000 000.00 USD).
+			// so USD has 14 whole places + the decimal point + 2 decimal places = 17 characters.
+			// Bitcoin has "21 000 000 . 0000 0000".
+			// Coincidentally the same character count as USD... weird.
+			// Plus adding 4 characters for the group separators.
+			if (text.Length > 17 + 4)
+			{
+				text = text.Substring(0, 17 + 4);
+			}
+
+			if (ValidateEntryText(text))
+			{
+				OnTextInput(new TextInputEventArgs {Text = text});
 			}
 		}
 

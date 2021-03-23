@@ -11,6 +11,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	{
 		public AboutAdvancedInfoViewModel()
 		{
+			EnableCancel = false;
+
+			EnableBack = false;
+
 			NextCommand = CancelCommand;
 		}
 

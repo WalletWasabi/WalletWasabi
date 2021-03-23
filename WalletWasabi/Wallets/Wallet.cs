@@ -347,7 +347,10 @@ namespace WalletWasabi.Wallets
 			{
 				using (await HandleFiltersLock.LockAsync().ConfigureAwait(false))
 				{
-					TransactionProcessor.Process(tx);
+					if (!TransactionProcessor.IsAware(tx.GetHash()))
+					{
+						TransactionProcessor.Process(tx);
+					}
 				}
 			}
 			catch (Exception ex)
@@ -432,10 +435,7 @@ namespace WalletWasabi.Wallets
 			// Go through the filters and queue to download the matches.
 			await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) =>
 			{
-				if (filterModel.Filter is { }) // Filter can be null if there is no bech32 tx.
-				{
-					await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false);
-				}
+				await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false);
 			},
 			new Height(bestKeyManagerHeight.Value + 1), cancel).ConfigureAwait(false);
 		}

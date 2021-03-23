@@ -18,7 +18,8 @@
         </Style>
     </UserControl.Styles>
     <controls:ContentArea Title="Advanced Information"
-                          EnableCancel="False"
+                          EnableCancel="{Binding EnableCancel}"
+                          EnableBack="{Binding EnableBack}"
                           EnableNext="True" NextContent="OK">
         <StackPanel HorizontalAlignment="Center" Spacing="20" MinWidth="380" Margin="30 0 0 0">
             <StackPanel>

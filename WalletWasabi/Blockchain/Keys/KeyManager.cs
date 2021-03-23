@@ -48,6 +48,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 			BlockchainState = blockchainState ?? new BlockchainState();
 			AccountKeyPath = accountKeyPath ?? DefaultAccountKeyPath;
+			Init();
 
 			SetFilePath(filePath);
 			ToFileLock = new object();
@@ -76,6 +77,7 @@ namespace WalletWasabi.Blockchain.Keys
 			MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 			AccountKeyPath = accountKeyPath ?? DefaultAccountKeyPath;
 			ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
+			Init();
 
 			SetFilePath(filePath);
 			ToFileLock = new object();
@@ -206,7 +208,18 @@ namespace WalletWasabi.Blockchain.Keys
 			// Backwards compatibility:
 			km.PasswordVerified ??= true;
 
+			km.Init();
+
 			return km;
+		}
+
+		public AddressDeriver InternalAddressDeriver { get; private set; }
+		public AddressDeriver ExternalAddressDeriver { get; private set; }
+
+		public void Init()
+		{
+			InternalAddressDeriver = new AddressDeriver(ExtPubKey, AccountKeyPath, true, GetKeys(isInternal: true).Count(), 500);
+			ExternalAddressDeriver = new AddressDeriver(ExtPubKey, AccountKeyPath, false, GetKeys(isInternal: false).Count(), 500);
 		}
 
 		public void SetFilePath(string filePath)

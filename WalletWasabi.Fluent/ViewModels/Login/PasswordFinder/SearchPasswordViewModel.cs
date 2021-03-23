@@ -26,6 +26,10 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 			_hourText = "";
 			_minText = "";
 			_secText = "";
+
+			EnableCancel = true;
+
+			EnableBack = false;
 		}
 
 		public PasswordFinderOptions Options { get; }

@@ -42,30 +42,20 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 
-			FinishCommandCanExecute =
+			EnableCancel = true;
+
+			EnableBack = true;
+
+			NextCommandCanExecute =
 				this.WhenAnyValue(x => x.CurrentMnemonics)
 					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
 				async () => await OnNext(walletManager, network, walletName),
-				FinishCommandCanExecute);
+				NextCommandCanExecute);
 
 			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
-				async () =>
-				{
-					var result = await NavigateDialog(new AdvancedRecoveryOptionsViewModel((AccountKeyPath, MinGapLimit)), NavigationTarget.CompactDialogScreen);
-
-					if (result.Kind == DialogResultKind.Normal)
-					{
-						var (accountKeyPathIn, minGapLimitIn) = result.Result;
-
-						if (accountKeyPathIn is { } && minGapLimitIn is { })
-						{
-							AccountKeyPath = accountKeyPathIn;
-							MinGapLimit = (int)minGapLimitIn;
-						}
-					}
-				});
+				async () => await OnAdvancedRecoveryOptionsDialog());
 
 			EnableAutoBusyOn(NextCommand);
 		}
@@ -118,7 +108,24 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
-		public IObservable<bool> FinishCommandCanExecute { get; }
+		private async Task OnAdvancedRecoveryOptionsDialog()
+		{
+			var result = await NavigateDialog(new AdvancedRecoveryOptionsViewModel((AccountKeyPath, MinGapLimit)),
+				NavigationTarget.CompactDialogScreen);
+
+			if (result.Kind == DialogResultKind.Normal)
+			{
+				var (accountKeyPathIn, minGapLimitIn) = result.Result;
+
+				if (accountKeyPathIn is { } && minGapLimitIn is { })
+				{
+					AccountKeyPath = accountKeyPathIn;
+					MinGapLimit = (int) minGapLimitIn;
+				}
+			}
+		}
+
+		public IObservable<bool> NextCommandCanExecute { get; }
 
 		public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 

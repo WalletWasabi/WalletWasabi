@@ -2,8 +2,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
+             xmlns:local="using:WalletWasabi.Fluent.Views.Wallets"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.ClosedWalletView">
-  <c:ProgressRing Margin="15" IsIndeterminate="True" Height="100" Width="100" VerticalAlignment="Center" HorizontalAlignment="Center" />
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.ClosedWalletView"
+             x:DataType="wallets:ClosedWalletViewModel">
+  <local:LoadingControl DataContext="{Binding Loading}" />
 </UserControl>

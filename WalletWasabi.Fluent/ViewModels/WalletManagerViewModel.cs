@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
@@ -114,7 +113,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public LegalChecker LegalChecker { get; }
 
-		public async Task<WalletViewModelBase?> LoadWalletAsync(ClosedWalletViewModel closedWalletViewModel)
+		public async Task LoadWalletAsync(ClosedWalletViewModel closedWalletViewModel)
 		{
 			var wallet = closedWalletViewModel.Wallet;
 
@@ -135,13 +134,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				Logger.LogError(ex);
 			}
-
-			if (_walletDictionary.ContainsKey(wallet))
-			{
-				return _walletDictionary[wallet];
-			}
-
-			return null;
 		}
 
 		private void OpenClosedWallet(WalletManager walletManager, UiConfig uiConfig, ClosedWalletViewModel closedWalletViewModel)

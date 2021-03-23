@@ -101,20 +101,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				_transactionInfo.Labels = new SmartLabel(_labels.ToArray());
 			});
 
-			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				var text = await Application.Current.Clipboard.GetTextAsync();
+			EnableCancel = true;
 
-				_parsingUrl = true;
+			EnableBack = true;
 
-				if (!TryParseUrl(text))
-				{
-					To = text;
-					// todo validation errors.
-				}
-
-				_parsingUrl = false;
-			});
+			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPaste());
 
 			var nextCommandCanExecute =
 				this.WhenAnyValue(x => x.Labels, x => x.AmountBtc, x => x.To, x => x.XAxisCurrentValue).Select(_ => Unit.Default)
@@ -127,53 +118,69 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						return allFilled && !hasError;
 					});
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				var transactionInfo = _transactionInfo;
-				var wallet = _owner.Wallet;
-				var targetAnonymitySet = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
-				var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
-				var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
-
-
-				if (transactionInfo.Amount <= totalMixedCoinsAmount)
-				{
-					try
-					{
-						try
-						{
-							var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: false));
-							Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
-							return;
-						}
-						catch (InsufficientBalanceException)
-						{
-							var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private);
-							var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
-
-							if (result.Result)
-							{
-								var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true));
-								Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
-								return;
-							}
-						}
-					}
-					catch(Exception ex)
-					{
-						Logger.LogError(ex);
-						await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
-						return;
-					}
-				}
-
-				Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
-			}, nextCommandCanExecute);
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNext(broadcaster), nextCommandCanExecute);
 
 			EnableAutoBusyOn(NextCommand);
 		}
 
 		public ICommand PasteCommand { get; }
+
+		private async Task OnPaste()
+		{
+			var text = await Application.Current.Clipboard.GetTextAsync();
+
+			_parsingUrl = true;
+
+			if (!TryParseUrl(text))
+			{
+				To = text;
+				// todo validation errors.
+			}
+
+			_parsingUrl = false;
+		}
+
+		private async Task OnNext(TransactionBroadcaster broadcaster)
+		{
+			var transactionInfo = _transactionInfo;
+			var wallet = _owner.Wallet;
+			var targetAnonymitySet = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+			var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
+			var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
+
+			if (transactionInfo.Amount <= totalMixedCoinsAmount)
+			{
+				try
+				{
+					try
+					{
+						var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: false));
+						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
+						return;
+					}
+					catch (InsufficientBalanceException)
+					{
+						var txRes = TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true);
+						var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private, txRes, wallet.Synchronizer.UsdExchangeRate);
+						var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
+
+						if (result.Result)
+						{
+							Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
+							return;
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError(ex);
+					await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
+					return;
+				}
+			}
+
+			Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
+		}
 
 		private TimeSpan CalculateConfirmationTime(double targetBlock)
 		{
