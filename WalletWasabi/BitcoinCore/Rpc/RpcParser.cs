@@ -19,6 +19,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 				"nulldata" => RpcPubkeyType.TxNullData,
 				"witness_v0_keyhash" => RpcPubkeyType.TxWitnessV0Keyhash,
 				"witness_v0_scripthash" => RpcPubkeyType.TxWitnessV0Scripthash,
+				"witness_v1_taproot" => RpcPubkeyType.TxWitnessV1Taproot,
 				"witness_unknown" => RpcPubkeyType.TxWitnessUnknown,
 				_ => RpcPubkeyType.Unknown
 			};
