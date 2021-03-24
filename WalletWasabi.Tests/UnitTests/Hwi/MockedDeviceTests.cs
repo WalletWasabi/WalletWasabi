@@ -494,8 +494,8 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				HardwareWalletModels.Trezor_T => "webusb: 001:4",
 				HardwareWalletModels.Trezor_1 => "hid:\\\\\\\\?\\\\hid#vid_534c&pid_0001&mi_00#7&6f0b727&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}",
 				HardwareWalletModels.Coldcard => @"\\\\?\\hid#vid_d13e&pid_cc10&mi_00#7&1b239988&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}",
-				HardwareWalletModels.Ledger_Nano_S => @"\\\\\\\\?\\\\hid#vid_2c97&pid_0001&mi_00#7&e45ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}",
-				HardwareWalletModels.Ledger_Nano_X => @"\\\\\\\\?\\\\hid#vid_2c97&pid_0001&mi_00#7&e45ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}",
+				HardwareWalletModels.Ledger_Nano_S => "\\\\\\\\?\\\\hid#vid_2c97&pid_0001&mi_00#7&e45ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}",
+				HardwareWalletModels.Ledger_Nano_X => "\\\\\\\\?\\\\hid#vid_2c97&pid_0001&mi_00#7&e45ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}",
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 
@@ -557,7 +557,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				response = model switch
 				{
 					HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_1 => SuccessTrueResponse,
-					HardwareWalletModels.Coldcard => "{\"error\": \"The Coldcard does not support restoring via software\", \"code\": -9}\r\n";,
+					HardwareWalletModels.Coldcard => "{\"error\": \"The Coldcard does not support restoring via software\", \"code\": -9}\r\n",
 					HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not support restoring via software\", \"code\": -9}\r\n",
 					HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not support restoring via software\", \"code\": -9}\r\n",
 					_ => throw new NotImplementedException("Something went wrong, this should not happen")
@@ -579,7 +579,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				response = model switch
 				{
 					HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_1 => "{\"error\": \"The PIN has already been sent to this device\", \"code\": -11}",
-					HardwareWalletModels.Coldcard => "{\"error\": \"The PIN has already been sent to this device\", \"code\": -11}",
+					HardwareWalletModels.Coldcard => "{\"error\": \"The Coldcard does not need a PIN sent from the host\", \"code\": -9}\r\n",
 					HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not need a PIN sent from the host\", \"code\": -9}\r\n",
 					HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not need a PIN sent from the host\", \"code\": -9}\r\n",
 					_ => throw new NotImplementedException("Something went wrong, this should not happen")
