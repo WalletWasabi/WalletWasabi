@@ -16,7 +16,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 {
-	public class WabiSabiApiClientTests
+	public class CoordinatorClientTests
 	{
 		[Fact]
 		public async Task RegisterInputAsyncTest()
