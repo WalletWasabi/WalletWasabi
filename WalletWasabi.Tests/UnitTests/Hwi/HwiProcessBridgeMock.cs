@@ -9,7 +9,7 @@ using WalletWasabi.Hwi.ProcessBridge;
 
 namespace WalletWasabi.Tests.UnitTests.Hwi
 {
-	public class HwiProcessBridgeMock : IHwiProcessInvoker
+	/*public class HwiProcessBridgeMock : IHwiProcessInvoker
 	{
 		public HwiProcessBridgeMock(HardwareWalletModels model)
 		{
@@ -294,5 +294,5 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 
 			return extPubKey is { };
 		}
-	}
+	}*/
 }
