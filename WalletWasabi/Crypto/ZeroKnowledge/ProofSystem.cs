@@ -186,11 +186,11 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		public static Statement ZeroProofStatement(GroupElement ma)
 			=> RangeProofStatement(ma, Array.Empty<GroupElement>(), 0);
 
-		public static Statement RangeProofStatement(GroupElement ma, IEnumerable<GroupElement> bitCommitments, int rangeProofWidth)
+		public static Statement RangeProofStatement(GroupElement ma, IEnumerable<GroupElement> bitCommitments, int width)
 		{
+			Guard.InRangeAndNotNull(nameof(width), width, 0, 255);
 			var b = bitCommitments.ToArray();
-			var width = b.Length; // can be 0
-			Guard.InRangeAndNotNull(nameof(width), width, 0, rangeProofWidth);
+			Guard.Equals(b.Length, width);
 
 			var rows = width * 2 + 1; // two equations per bit, and one for the sum
 			var columns = width * 3 + 1 + 1; // three witness components per bit and one for the Ma randomness, plus one for the public inputs
