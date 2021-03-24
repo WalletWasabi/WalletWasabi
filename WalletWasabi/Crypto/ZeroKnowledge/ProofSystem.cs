@@ -204,7 +204,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			// Ma, proven by showing that the public input is a commitment to 0 (only
 			// Gh term required to represent it). The per-bit witness terms of this
 			// equation are added in the loop below.
-			var powersOfTwo = Generators.GetPowersOfTwo(rangeProofWidth).AsSpan(0, width);
+			var powersOfTwo = Generators.ScalarPowersOfTwo.AsSpan(0, width);
 			var bitsTotal = new GroupElement(ECMultContext.Instance.MultBatch(powersOfTwo, b.Select(x => x.Ge).ToArray()));
 
 			equations[0, 0] = ma - bitsTotal;
@@ -227,7 +227,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 			for (int i = 0; i < width; i++)
 			{
 				// Add [ -r_i * 2^i * Gh ] term to first equation.
-				equations[0, RndColumn(i)] = Generators.GetNegateGh2i(rangeProofWidth)[i];
+				equations[0, RndColumn(i)] = Generators.NegatedGhPowersOfTwo[i];
 
 				// Add equation proving B is a Pedersen commitment to b:
 				//   [ B = b*Gg + r*Gh ]

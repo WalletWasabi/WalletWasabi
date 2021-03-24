@@ -8,11 +8,6 @@ namespace WalletWasabi.Crypto.Groups
 {
 	public static class Generators
 	{
-		private static Dictionary<int, GroupElement[]> RangeProofWidthNegateGh2iPairs { get; } = new();
-		private static object RangeProofWidthNegateGh2iPairsLock { get; } = new();
-		private static Dictionary<int, Scalar[]> RangeProofWidthPowersOfTwoPairs { get; } = new();
-		private static object RangeProofWidthPowersOfTwoPairsLock { get; } = new();
-
 		/// <summary>
 		/// Base point defined in the secp256k1 standard used in ECDSA public key derivation.
 		/// </summary>
@@ -63,32 +58,15 @@ namespace WalletWasabi.Crypto.Groups
 		/// </summary>
 		public static GroupElement Gs { get; } = FromText("Gs");
 
-		public static GroupElement[] GetNegateGh2i(int rangeProofWidth)
-		{
-			lock (RangeProofWidthNegateGh2iPairsLock)
-			{
-				if (!RangeProofWidthNegateGh2iPairs.TryGetValue(rangeProofWidth, out var negateGh2i))
-				{
-					var negatedGh = Gh.Negate();
-					negateGh2i = GetPowersOfTwo(rangeProofWidth).Select(b => b * negatedGh).ToArray();
-					RangeProofWidthNegateGh2iPairs.Add(rangeProofWidth, negateGh2i);
-				}
-				return negateGh2i;
-			}
-		}
+		/// <summary>
+		/// Scalars corresponding to 2^i, used in range proofs.
+		/// </summary>
+		public static Scalar[] ScalarPowersOfTwo { get; } = Enumerable.Range(0, 255).Select(i => Scalar.Zero.CAddBit((uint)i, 1)).ToArray();
 
-		public static Scalar[] GetPowersOfTwo(int rangeProofWidth)
-		{
-			lock (RangeProofWidthPowersOfTwoPairsLock)
-			{
-				if (!RangeProofWidthPowersOfTwoPairs.TryGetValue(rangeProofWidth, out var powerOfTwo))
-				{
-					powerOfTwo = Enumerable.Range(0, rangeProofWidth).Select(i => Scalar.Zero.CAddBit((uint)i, 1)).ToArray();
-					RangeProofWidthPowersOfTwoPairs.Add(rangeProofWidth, powerOfTwo);
-				}
-				return powerOfTwo;
-			}
-		}
+		/// <summary>
+		/// Generators corresponding to -(2^i) * Gh, used in range proofs.
+		/// </summary>
+		public static GroupElement[] NegatedGhPowersOfTwo { get; } = ScalarPowersOfTwo.Select(b => b.Negate() * Gh).ToArray();
 
 		public static bool TryGetFriendlyGeneratorName(GroupElement? ge, out string name)
 		{
