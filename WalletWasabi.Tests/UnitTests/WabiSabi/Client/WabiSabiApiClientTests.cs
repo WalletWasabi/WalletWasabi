@@ -1,8 +1,9 @@
 using Moq;
 using NBitcoin;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
@@ -40,9 +41,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, 2, rnd, 4300000000000ul);
 			var weightClient = new WabiSabiClient(round.WeightCredentialIssuerParameters, 2, rnd, 2000ul);
 
-			var apiClient = new WabiSabiApiClient(amountClient, weightClient, coordinator);
+			var apiClient = new CoordinatorClient(amountClient, weightClient, coordinator);
 
-			await apiClient.RegisterInputAsync(Money.Coins(1m), outpoint, key, round.Id, round.Hash);
+			var aliceId = await apiClient.RegisterInputAsync(Money.Coins(1m), outpoint, key, round.Id, round.Hash);
+
+			Assert.NotEqual(Guid.Empty, aliceId);
+			Assert.Empty(apiClient.WabiSabiClientAmount.Credentials.Valuable);
 		}
 	}
 }

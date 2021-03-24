@@ -10,9 +10,9 @@ using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client
 {
-	public class WabiSabiApiClient
+	public class CoordinatorClient
 	{
-		public WabiSabiApiClient(WabiSabiClient wabiSabiClientAmount, WabiSabiClient wabiSabiClientWeight, IRequestHandler requestHandler)
+		public CoordinatorClient(WabiSabiClient wabiSabiClientAmount, WabiSabiClient wabiSabiClientWeight, IRequestHandler requestHandler)
 		{
 			WabiSabiClientAmount = wabiSabiClientAmount;
 			WabiSabiClientWeight = wabiSabiClientWeight;
@@ -23,23 +23,23 @@ namespace WalletWasabi.WabiSabi.Client
 		public WabiSabiClient WabiSabiClientWeight { get; }
 		public IRequestHandler RequestHandler { get; }
 
-		public Task RegisterInputAsync(Money amount, OutPoint outPoint, Key key, Guid roundId, uint256 roundHash) =>
+		public ValueTask<Guid> RegisterInputAsync(Money amount, OutPoint outPoint, Key key, Guid roundId, uint256 roundHash) =>
 			RegisterInputAsync(
 				new[] { amount },
 				new[] { outPoint },
 				new[] { key },
 				roundId,
 				roundHash);
-				
-		public async Task RegisterInputAsync(
-			IEnumerable<Money> amounts, 
-			IEnumerable<OutPoint> outPoints, 
+
+		public async ValueTask<Guid> RegisterInputAsync(
+			IEnumerable<Money> amounts,
+			IEnumerable<OutPoint> outPoints,
 			IEnumerable<Key> keys,
 			Guid roundId,
 			uint256 roundHash)
 		{
 			static byte[] GenerateOwnershipProof(Key key, uint256 roundHash) => OwnershipProof.GenerateCoinJoinInputProof(
-				key, 
+				key,
 				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundHash)).ToBytes();
 
 			var registrableInputs = outPoints
@@ -58,6 +58,8 @@ namespace WalletWasabi.WabiSabi.Client
 
 			WabiSabiClientAmount.HandleResponse(inputRegistrationResponse.AmountCredentials, zeroAmountCredentialResponseValidation);
 			WabiSabiClientWeight.HandleResponse(inputRegistrationResponse.WeightCredentials, zeroWeightCredentialResponseValidation);
+
+			return inputRegistrationResponse.AliceId;
 		}
 	}
 }
