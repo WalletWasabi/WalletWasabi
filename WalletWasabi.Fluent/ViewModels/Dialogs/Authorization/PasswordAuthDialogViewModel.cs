@@ -14,6 +14,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 		{
 			_wallet = wallet;
 			_password = "";
+
+			EnableCancel = true;
+
+			EnableBack = false;
 		}
 
 		protected override void OnDialogClosed()

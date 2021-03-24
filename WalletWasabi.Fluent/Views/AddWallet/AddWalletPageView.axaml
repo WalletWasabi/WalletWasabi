@@ -11,8 +11,8 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.AddWalletPageView">
   <c:ContentArea Title="{Binding Title}" Caption="Type in your wallet's name and select an option:"
-                 EnableBack="{Binding EnableBack}"
                  EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}"
                  IsBusy="{Binding IsBusy}">
     <DockPanel>
       <StackPanel DockPanel.Dock="Top" Margin="0 0 0 20">

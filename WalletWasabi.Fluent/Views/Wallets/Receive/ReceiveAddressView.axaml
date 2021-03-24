@@ -9,8 +9,9 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressView">
   <c:ContentArea Title="{Binding Title}"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="OK"
-                 EnableBack="True"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel LastChildFill="True">
       <DockPanel.Styles>

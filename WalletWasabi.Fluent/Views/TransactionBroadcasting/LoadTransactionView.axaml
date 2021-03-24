@@ -10,7 +10,8 @@
              x:Class="WalletWasabi.Fluent.Views.TransactionBroadcasting.LoadTransactionView">
 <c:ContentArea Title="{Binding Title}"
                Caption="Paste or import the transaction and broadcast it to the network."
-               EnableCancel="True">
+               EnableCancel="{Binding EnableCancel}"
+               EnableBack="{Binding EnableBack}">
     <StackPanel Orientation="Horizontal" Spacing="50" HorizontalAlignment="Center" VerticalAlignment="Center">
         <StackPanel.Styles>
             <Style Selector="c|TileButton">

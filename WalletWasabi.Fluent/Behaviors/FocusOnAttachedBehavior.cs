@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Threading;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
@@ -18,7 +19,7 @@ namespace WalletWasabi.Fluent.Behaviors
 		{
 			if (IsEnabled)
 			{
-				AssociatedObject?.Focus();
+				Dispatcher.UIThread.Post(() => AssociatedObject?.Focus());
 			}
 		}
 	}

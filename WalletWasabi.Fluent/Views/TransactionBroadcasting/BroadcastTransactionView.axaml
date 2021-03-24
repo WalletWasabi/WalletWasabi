@@ -11,7 +11,8 @@
              x:Class="WalletWasabi.Fluent.Views.TransactionBroadcasting.BroadcastTransactionView">
     <c:ContentArea Title="{Binding Title}"
                    Caption="{Binding TransactionId}"
-                   EnableCancel="{Binding !IsBusy}"
+                   EnableCancel="{Binding EnableCancel}"
+                   EnableBack="{Binding EnableBack}"
                    EnableNext="True" NextContent="Broadcast"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
 

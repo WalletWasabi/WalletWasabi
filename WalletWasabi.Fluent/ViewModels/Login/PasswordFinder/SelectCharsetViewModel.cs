@@ -17,6 +17,10 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 		{
 			Title = "Password Finder";
 
+			EnableCancel = true;
+
+			EnableBack = true;
+
 			this.WhenAnyValue(x => x.SelectedCharset)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>

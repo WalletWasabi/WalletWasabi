@@ -3,16 +3,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              mc:Ignorable="d"
              x:DataType="vm:PrivacySuggestionControlViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacySuggestionControl">
     <StackPanel Spacing="20">
-        <Panel MinHeight="150" MinWidth="200">
+        <Panel MinHeight="150" MinWidth="150">
             <StackPanel Spacing="10" VerticalAlignment="Top" TextBlock.Foreground="{Binding OptimisationLevel, Converter={x:Static conv:PrivacyOptimisationLevelConverters.OptimisationLevelToBrushConverter}}">
                 <Panel>
                     <Ellipse Stroke="{Binding OptimisationLevel, Converter={x:Static conv:PrivacyOptimisationLevelConverters.OptimisationLevelToBrushConverter}, FallbackValue=White}" StrokeThickness="4" Height="115" Width="115" />
@@ -23,7 +20,7 @@
                 <TextBlock Text="{Binding Caption}" HorizontalAlignment="Center" Opacity="0.6" />
             </StackPanel>
         </Panel>
-        <Separator Height="1" Background="#FFFFFF" Opacity="0.2"   />
+        <Separator Height="1" Background="{DynamicResource SeparatorBackgroundBrush}" Opacity="0.2"   />
         <ItemsControl HorizontalAlignment="Center" Items="{Binding Benefits}">
             <ItemsControl.Styles>
                 <Style Selector="TextBlock">

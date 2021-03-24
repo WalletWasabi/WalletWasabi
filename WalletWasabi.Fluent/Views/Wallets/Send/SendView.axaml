@@ -76,7 +76,7 @@
             <Setter Property="YAxisStrokeThickness" Value="0.7" />
             <Setter Property="YAxisArrowSize" Value="3.5" />
             <Setter Property="YAxisMinViableWidth" Value="0"/>
-            <Setter Property="YAxisMinViableHeight" Value="140"/>
+            <Setter Property="YAxisMinViableHeight" Value="120"/>
         </Style>
         <!-- LineChart YAxis Title -->
         <Style Selector="c|LineChart.yAxisTitle">
@@ -100,14 +100,15 @@
         </Style>
     </UserControl.Styles>
     <c:ContentArea Title="Send" Caption=""
-                   EnableCancel="True"
+                   EnableCancel="{Binding EnableCancel}"
+                   EnableBack="{Binding EnableBack}"
                    EnableNext="True"
                    NextContent="Continue"
                    ClipToBounds="False"
                    IsBusy="{Binding IsBusy}"
-                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                   ScrollViewer.VerticalScrollBarVisibility="Auto">
 
-        <DockPanel Margin="0 0 0 -32">
+        <DockPanel>
             <StackPanel DockPanel.Dock="Top" Spacing="10">
                 <StackPanel.Styles>
                     <Style Selector="DockPanel > Label">
@@ -123,14 +124,12 @@
                         </i:Interaction.Behaviors>
                         <TextBox.InnerRightContent>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
-
-                                <Button Classes="plain"
-                                        Focusable="False"
-                                        KeyboardNavigation.IsTabStop="False"
-                                        Command="{Binding PasteCommand}"
-                                        ToolTip.Tip="Paste">
-                                    <PathIcon Data="{StaticResource paste_regular}" Width="13" />
-                                </Button>
+                                <c:AnimatedButton KeyboardNavigation.IsTabStop="False"
+                                                  Focusable="False"
+                                                  Command="{Binding PasteCommand}"
+                                                  ToolTip.Tip="Paste"
+                                                  NormalIcon="{StaticResource paste_regular}"
+                                                  ClickIcon="{StaticResource copy_confirmed}" />
                             </StackPanel>
                         </TextBox.InnerRightContent>
                     </TextBox>
@@ -161,14 +160,17 @@
 
             <DockPanel MinHeight="80">
                 <Slider x:Name="CursorValue2"
+                        Margin="10,0,10,0"
                         KeyboardNavigation.IsTabStop="False"
                         DockPanel.Dock="Bottom"
                         Classes="cursor"
+                        Focusable="True"
                         Minimum="{Binding XAxisMinValue}"
                         Maximum="{Binding XAxisMaxValue}"
                         Value="{Binding XAxisCurrentValueIndex}">
                 </Slider>
                 <c:LineChart x:Name="GradientLineChart"
+                             Margin="10,0,10,0"
                              Classes="cursor border xAxisLabels yAxis yAxisTitle"
                              MinHeight="30"
                              XAxisLabels="{Binding XAxisLabels}"
@@ -181,6 +183,7 @@
                              AreaStrokeLineCap="Round"
                              AreaMinViableWidth="40"
                              AreaMinViableHeight="20"
+                             Focusable="True"
                              YAxisTitle="More Expensive">
                     <c:LineChart.AreaFill>
                         <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
@@ -201,5 +204,6 @@
                 </c:LineChart>
             </DockPanel>
         </DockPanel>
+
     </c:ContentArea>
 </UserControl>

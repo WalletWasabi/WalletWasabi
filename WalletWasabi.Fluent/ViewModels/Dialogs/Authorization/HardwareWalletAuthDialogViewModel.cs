@@ -25,6 +25,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 			_wallet = wallet;
 			_transactionAuthorizationInfo = transactionAuthorizationInfo;
 			WalletIcon = _wallet.KeyManager.Icon;
+
+			EnableCancel = true;
+
+			EnableBack = true;
 		}
 
 		public string? WalletIcon { get; }

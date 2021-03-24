@@ -18,6 +18,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		public LegalDocumentsViewModel(string content)
 		{
 			Content = content;
+
+			EnableCancel = false;
+
+			EnableBack = true;
+
 			NextCommand = BackCommand;
 		}
 	}
