@@ -443,19 +443,28 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			}
 		}
 
-		public IHwiProcessInvoker GetMockedHwiProcessBridge(HardwareWalletModels model)
+		private IHwiProcessInvoker GetMockedHwiProcessBridge(HardwareWalletModels model)
 		{
 			var mockedBridge = new Mock<IHwiProcessInvoker>();
 
+			//Mocking out SendCommandAsync
+			//IsAny part: Accepting the params from outside
+			//Below Returns part: Sending them to our mocked method with the HW Model
+			//					  We don't have the Model property so we need to send it in
 			mockedBridge.Setup(x => x.SendCommandAsync(
 				It.IsAny<string>(),
 				It.IsAny<bool>(),
 				It.IsAny<CancellationToken>(),
-				It.IsAny<Action<StreamWriter>?>()))
-				.Returns((string arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter>? writer)
-				=>
-				SendCommandAsyncMock(arguments, openConsole, model, cancel, writer))
-				;
+				It.IsAny<Action<StreamWriter>?>())
+				)
+				.Returns
+				(
+				(string arguments,
+				bool openConsole,
+				CancellationToken cancel,
+				Action<StreamWriter>? writer)
+				=> SendCommandAsyncMock(arguments, openConsole, model, cancel, writer)
+				);
 
 			return mockedBridge.Object;
 		}
@@ -676,6 +685,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				: Task.FromResult((response, code));
 		}
 
+		//Helper methods for SendCommandAsyncMock
 		private bool CompareArgumentsMock(out bool isTestNet, string arguments, string desired, bool useStartWith = false)
 		{
 			var testnetDesired = $"--chain test {desired}";
