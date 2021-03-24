@@ -221,16 +221,16 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 				int confirmationTarget = await AdjustConfirmationTargetAsync(lockCoinJoins: true).ConfigureAwait(false);
 
-				var defaultTimeout = TimeSpan.FromSeconds(RoundConfig.InputRegistrationTimeout);
+				var configuredTimeout = TimeSpan.FromSeconds(RoundConfig.InputRegistrationTimeout);
 				if (runningRoundCount == 0)
 				{
-					var round = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate, defaultTimeout);
+					var round = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate, configuredTimeout);
 					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					round.StatusChanged += Round_StatusChangedAsync;
 					await round.ExecuteNextPhaseAsync(RoundPhase.InputRegistration, feePerInputs, feePerOutputs).ConfigureAwait(false);
 					Rounds.Add(round);
 
-					var round2 = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate, 2 * defaultTimeout);
+					var round2 = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate, 2 * configuredTimeout);
 					round2.StatusChanged += Round_StatusChangedAsync;
 					round2.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					await round2.ExecuteNextPhaseAsync(RoundPhase.InputRegistration, feePerInputs, feePerOutputs).ConfigureAwait(false);
@@ -238,13 +238,29 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				}
 				else if (runningRoundCount == 1)
 				{
-					// If only one round is running then get its timeout
-					// if that's larger than the default timeout
-					// then we must make the new round's timeout smaller: existing round timeout / 2 for best spacing
-					// else larger: existing round timeout + default timeout
-					var existingRoundTimeout = Rounds.FirstOrDefault(x => x.Status == CoordinatorRoundStatus.Running)?.InputRegistrationTimeout ?? TimeSpan.Zero;
-					var timeout = existingRoundTimeout > defaultTimeout ? existingRoundTimeout / 2 : existingRoundTimeout + defaultTimeout;
-					var round = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate, timeout);
+					// If only one round is running, get the remaining time
+					var remainingTimeout = Rounds.FirstOrDefault(x => x.Status == CoordinatorRoundStatus.Running)?.RemainingInputRegistrationTime ?? TimeSpan.Zero;
+
+					TimeSpan? timeout = null;
+					if (remainingTimeout <= configuredTimeout)
+					{
+						// If it's smaller or equal than the configured timeout,
+						// then the new round's timeout should happen remaining + configured timeout.
+						timeout = remainingTimeout + configuredTimeout;
+					}
+					else if (remainingTimeout > 2 * configuredTimeout)
+					{
+						// If the remaining timeout is larger then 2 times the configured timeout,
+						// then configuration has changed, so make the configured timeout the new round's timeout.
+						timeout = configuredTimeout;
+					}
+					else
+					{
+						// Else halven the remaining timeout.
+						timeout = remainingTimeout / 2;
+					}
+
+					var round = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate, timeout.Value);
 					round.StatusChanged += Round_StatusChangedAsync;
 					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					await round.ExecuteNextPhaseAsync(RoundPhase.InputRegistration, feePerInputs, feePerOutputs).ConfigureAwait(false);

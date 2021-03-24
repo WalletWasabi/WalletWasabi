@@ -192,7 +192,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		public TimeSpan AliceRegistrationTimeout => ConnectionConfirmationTimeout;
 
 		public TimeSpan InputRegistrationTimeout { get; }
-		public DateTimeOffset InputRegistrationTimesout { get; set; }
+		public DateTimeOffset InputRegistrationTimesout { get; private set; }
+		public TimeSpan RemainingInputRegistrationTime => InputRegistrationTimesout - DateTimeOffset.UtcNow;
 
 		public TimeSpan ConnectionConfirmationTimeout { get; }
 
