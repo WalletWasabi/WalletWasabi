@@ -55,7 +55,7 @@ namespace System
 					}
 				}
 
-				return ex.ToTypeMessageString();
+				return trimmed;
 			}
 		}
 
