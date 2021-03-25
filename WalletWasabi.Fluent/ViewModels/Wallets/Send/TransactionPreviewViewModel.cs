@@ -43,6 +43,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			EnableBack = true;
 
+			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
+			IsPayJoin = PayJoinUrl is { };
+
 			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNext(wallet, broadcaster, transaction));
 		}
 		public string BtcAmountText { get; }
@@ -58,6 +61,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public string BtcFeeText { get; }
 
 		public string FiatFeeText { get; }
+
+		public string? PayJoinUrl { get; }
+
+		public bool IsPayJoin { get; }
 
 		private async Task OnNext(Wallet wallet, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)
 		{

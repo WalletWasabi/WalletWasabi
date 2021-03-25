@@ -62,6 +62,19 @@
 
             <Separator />
 
+            <StackPanel Orientation="Horizontal" Spacing="30" IsVisible="{Binding IsPayJoin}">
+                <PathIcon Width="24" Height="24"
+                          Foreground="{DynamicResource SystemAccentColor}" />
+                <StackPanel Spacing="5">
+                    <TextBlock Classes="storyline"
+                               Text="PayJoin will be used to protect your privacy" />
+                    <TextBlock Classes="field"
+                               Text="{Binding PayJoinUrl, FallbackValue=https://testnet.demo.btcpayserver.org/BTC/pj}" />
+                </StackPanel>
+            </StackPanel>
+
+            <Separator IsVisible="{Binding IsPayJoin}" />
+
             <StackPanel Orientation="Horizontal" Spacing="30">
                 <PathIcon Width="24" Height="24" Data="{StaticResource timer_regular}"
                           Foreground="{DynamicResource SystemAccentColor}" />
