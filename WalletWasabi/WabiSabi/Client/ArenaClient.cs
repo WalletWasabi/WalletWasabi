@@ -64,15 +64,14 @@ namespace WalletWasabi.WabiSabi.Client
 			return inputRegistrationResponse.AliceId;
 		}
 
-		public async Task ConfirmConnectionAsync(Guid roundId, Guid aliceId, IEnumerable<Credential> credentialsToPresent, IEnumerable<Money> newAmount)
+		public async Task ConfirmConnectionAsync(Guid roundId, Guid aliceId, IEnumerable<long> inputsRegistrationWeight, IEnumerable<Credential> credentialsToPresent, IEnumerable<Money> newAmount)
 		{
 			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
 				newAmount.Select(x => x.Satoshi),
 				credentialsToPresent);
 
-			var inputsCount = 1; // ?
 			var (realWeightCredentialRequest, realWeightCredentialResponseValidation) = WeightCredentialClient.CreateRequest(
-				new[] { 1_000L - (inputsCount) * 4 * Constants.P2wpkhInputVirtualSize },
+				inputsRegistrationWeight,
 				WeightCredentialClient.Credentials.ZeroValue.Take(2));
 
 			var (zeroAmountCredentialRequest, zeroAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequestForZeroAmount();

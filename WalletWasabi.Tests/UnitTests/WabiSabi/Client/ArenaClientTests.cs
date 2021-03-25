@@ -41,8 +41,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			var rnd = new InsecureRandom();
 			var protocolCredentialNumber = 2;
-			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, protocolCredentialNumber, rnd, 4_300_000_000_000ul); // TODO: remove  hardcoded max value
-			var weightClient = new WabiSabiClient(round.WeightCredentialIssuerParameters, protocolCredentialNumber, rnd, 1_000ul); // TODO: remove  hardcoded max value
+			var protocolMaxWeightPerAlice = 1_000L;
+			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, protocolCredentialNumber, rnd, 4_300_000_000_000ul);
+			var weightClient = new WabiSabiClient(round.WeightCredentialIssuerParameters, protocolCredentialNumber, rnd, (ulong)protocolMaxWeightPerAlice);
 
 			var apiClient = new ArenaClient(amountClient, weightClient, coordinator);
 
@@ -57,10 +58,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				Money.Coins(.25m)
 			};
 
+			var inputWeight = 4 * Constants.P2wpkhInputVirtualSize;
+			var inputRemainingWeights = new[] { protocolMaxWeightPerAlice - inputWeight };
+
 			// Phase: Input Registration
 			await apiClient.ConfirmConnectionAsync(
 				round.Id,
 				aliceId,
+				inputRemainingWeights,
 				apiClient.AmountCredentialClient.Credentials.ZeroValue.Take(protocolCredentialNumber),
 				reissuanceAmounts);
 
@@ -71,6 +76,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await apiClient.ConfirmConnectionAsync(
 				round.Id,
 				aliceId,
+				inputRemainingWeights,
 				apiClient.AmountCredentialClient.Credentials.ZeroValue.Take(protocolCredentialNumber),
 				reissuanceAmounts);
 
