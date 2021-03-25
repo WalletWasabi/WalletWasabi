@@ -72,11 +72,6 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				if (!request.Script.IsScriptType(ScriptType.P2WPKH))
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed);
-				}
-
 				return await Arena.RegisterOutputAsync(request).ConfigureAwait(false);
 			}
 		}
