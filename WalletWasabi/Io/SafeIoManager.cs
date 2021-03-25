@@ -40,7 +40,7 @@ namespace WalletWasabi.Io
 			}
 		}
 
-		public new bool TryReplaceMeWith(string sourcePath)
+		public bool TryReplaceMeWith(string sourcePath)
 		{
 			if (File.Exists(sourcePath))
 			{
@@ -152,7 +152,7 @@ namespace WalletWasabi.Io
 		/// </summary>
 		/// <returns>The StreamReader where you can use ReadLineAsync() for example.</returns>
 		/// <param name="bufferSize">Size of the bytes to handle sync way. The default is 1Mb.</param>
-		public new StreamReader OpenText(int bufferSize = Constants.BigFileReadWriteBufferSize)
+		public StreamReader OpenText(int bufferSize = Constants.BigFileReadWriteBufferSize)
 		{
 			var filePath = FilePath;
 			if (TryGetSafestFileVersion(out string? safestFilePath))
