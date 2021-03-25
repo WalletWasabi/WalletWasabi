@@ -37,7 +37,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 					Confirmations = 200,
 					TxOut = new TxOut(Money.Coins(1m), key.PubKey.WitHash.GetAddress(Network.Main)),
 				});
-			await using var coordinator = new PostRequestHandler(config, new Prison(), arena, mockRpc.Object);
+			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
 
 			var rnd = new InsecureRandom();
 			var protocolCredentialNumber = 2;

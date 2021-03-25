@@ -14,7 +14,7 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class ArenaClient
 	{
-		public ArenaClient(WabiSabiClient amountCredentialClient, WabiSabiClient weightCredentialClient, IRequestHandler requestHandler)
+		public ArenaClient(WabiSabiClient amountCredentialClient, WabiSabiClient weightCredentialClient, IArenaRequestHandler requestHandler)
 		{
 			AmountCredentialClient = amountCredentialClient;
 			WeightCredentialClient = weightCredentialClient;
@@ -23,7 +23,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public WabiSabiClient AmountCredentialClient { get; }
 		public WabiSabiClient WeightCredentialClient { get; }
-		public IRequestHandler RequestHandler { get; }
+		public IArenaRequestHandler RequestHandler { get; }
 
 		public ValueTask<Guid> RegisterInputAsync(Money amount, OutPoint outPoint, Key key, Guid roundId, uint256 roundHash) =>
 			RegisterInputAsync(

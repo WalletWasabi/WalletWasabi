@@ -3,7 +3,7 @@ using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.PostRequests
 {
-	public interface IRequestHandler
+	public interface IArenaRequestHandler
 	{
 		Task<InputsRegistrationResponse> RegisterInputAsync(InputsRegistrationRequest request);
 		Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request);
