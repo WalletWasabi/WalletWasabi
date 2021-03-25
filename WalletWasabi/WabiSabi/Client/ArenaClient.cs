@@ -12,17 +12,17 @@ using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client
 {
-	public class CoordinatorClient
+	public class ArenaClient
 	{
-		public CoordinatorClient(WabiSabiClient wabiSabiClientAmount, WabiSabiClient wabiSabiClientWeight, IRequestHandler requestHandler)
+		public ArenaClient(WabiSabiClient amountCredentialClient, WabiSabiClient weightCredentialClient, IRequestHandler requestHandler)
 		{
-			WabiSabiClientAmount = wabiSabiClientAmount;
-			WabiSabiClientWeight = wabiSabiClientWeight;
+			AmountCredentialClient = amountCredentialClient;
+			WeightCredentialClient = weightCredentialClient;
 			RequestHandler = requestHandler;
 		}
 
-		public WabiSabiClient WabiSabiClientAmount { get; }
-		public WabiSabiClient WabiSabiClientWeight { get; }
+		public WabiSabiClient AmountCredentialClient { get; }
+		public WabiSabiClient WeightCredentialClient { get; }
 		public IRequestHandler RequestHandler { get; }
 
 		public ValueTask<Guid> RegisterInputAsync(Money amount, OutPoint outPoint, Key key, Guid roundId, uint256 roundHash) =>
@@ -48,36 +48,36 @@ namespace WalletWasabi.WabiSabi.Client
 				.Zip(keys, (outPoint, key) => (outPoint, key))
 				.Select(x => new InputRoundSignaturePair(x.outPoint, GenerateOwnershipProof(x.key, roundHash)));
 
-			var (zeroAmountCredentialRequest, zeroAmountCredentialResponseValidation) = WabiSabiClientAmount.CreateRequestForZeroAmount();
-			var (zeroWeightCredentialRequest, zeroWeightCredentialResponseValidation) = WabiSabiClientWeight.CreateRequestForZeroAmount();
+			var (zeroAmountCredentialRequest, zeroAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequestForZeroAmount();
+			var (zeroWeightCredentialRequest, zeroWeightCredentialResponseValidation) = WeightCredentialClient.CreateRequestForZeroAmount();
 
 			var inputRegistrationResponse = await RequestHandler.RegisterInputAsync(
 				new InputsRegistrationRequest(
 					roundId,
 					registrableInputs,
 					zeroAmountCredentialRequest,
-					zeroWeightCredentialRequest));
+					zeroWeightCredentialRequest)).ConfigureAwait(false);
 
-			WabiSabiClientAmount.HandleResponse(inputRegistrationResponse.AmountCredentials, zeroAmountCredentialResponseValidation);
-			WabiSabiClientWeight.HandleResponse(inputRegistrationResponse.WeightCredentials, zeroWeightCredentialResponseValidation);
+			AmountCredentialClient.HandleResponse(inputRegistrationResponse.AmountCredentials, zeroAmountCredentialResponseValidation);
+			WeightCredentialClient.HandleResponse(inputRegistrationResponse.WeightCredentials, zeroWeightCredentialResponseValidation);
 
 			return inputRegistrationResponse.AliceId;
 		}
 
 		public async Task ConfirmConnectionAsync(Guid roundId, Guid aliceId, IEnumerable<Credential> credentialsToPresent, IEnumerable<Money> newAmount)
 		{
-			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = WabiSabiClientAmount.CreateRequest(
+			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
 				newAmount.Select(x => x.Satoshi),
 				credentialsToPresent);
 
 			var inputsCount = 1; // ?
-			var (realWeightCredentialRequest, realWeightCredentialResponseValidation) = WabiSabiClientWeight.CreateRequest(
+			var (realWeightCredentialRequest, realWeightCredentialResponseValidation) = WeightCredentialClient.CreateRequest(
 				new[] { 1_000L - (inputsCount) * 4 * Constants.P2wpkhInputVirtualSize },
-				WabiSabiClientWeight.Credentials.ZeroValue.Take(2)
+				WeightCredentialClient.Credentials.ZeroValue.Take(2)
 			);
 
-			var (zeroAmountCredentialRequest, zeroAmountCredentialResponseValidation) = WabiSabiClientAmount.CreateRequestForZeroAmount();
-			var (zeroWeightCredentialRequest, zeroWeightCredentialResponseValidation) = WabiSabiClientWeight.CreateRequestForZeroAmount();
+			var (zeroAmountCredentialRequest, zeroAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequestForZeroAmount();
+			var (zeroWeightCredentialRequest, zeroWeightCredentialResponseValidation) = WeightCredentialClient.CreateRequestForZeroAmount();
 
 			var confirmConnectionResponse = await RequestHandler.ConfirmConnectionAsync(
 				new ConnectionConfirmationRequest(
@@ -86,15 +86,15 @@ namespace WalletWasabi.WabiSabi.Client
 					zeroAmountCredentialRequest,
 					realAmountCredentialRequest,
 					zeroWeightCredentialRequest,
-					realWeightCredentialRequest));
+					realWeightCredentialRequest)).ConfigureAwait(false);
 
 			if (confirmConnectionResponse is { RealAmountCredentials: {}, RealWeightCredentials: {} })
 			{
-				WabiSabiClientAmount.HandleResponse(confirmConnectionResponse.RealAmountCredentials, realAmountCredentialResponseValidation);
-				WabiSabiClientWeight.HandleResponse(confirmConnectionResponse.RealWeightCredentials, realWeightCredentialResponseValidation);
+				AmountCredentialClient.HandleResponse(confirmConnectionResponse.RealAmountCredentials, realAmountCredentialResponseValidation);
+				WeightCredentialClient.HandleResponse(confirmConnectionResponse.RealWeightCredentials, realWeightCredentialResponseValidation);
 			}
-			WabiSabiClientAmount.HandleResponse(confirmConnectionResponse.ZeroAmountCredentials, zeroAmountCredentialResponseValidation);
-			WabiSabiClientWeight.HandleResponse(confirmConnectionResponse.ZeroWeightCredentials, zeroWeightCredentialResponseValidation);
+			AmountCredentialClient.HandleResponse(confirmConnectionResponse.ZeroAmountCredentials, zeroAmountCredentialResponseValidation);
+			WeightCredentialClient.HandleResponse(confirmConnectionResponse.ZeroWeightCredentials, zeroWeightCredentialResponseValidation);
 		}
 	}
 }

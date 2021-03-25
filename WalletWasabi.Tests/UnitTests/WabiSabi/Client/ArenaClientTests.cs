@@ -16,7 +16,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 {
-	public class CoordinatorClientTests
+	public class ArenaClientTests
 	{
 		[Fact]
 		public async Task RegisterInputAsyncTest()
@@ -38,30 +38,41 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await using var coordinator = new PostRequestHandler(config, new Prison(), arena, mockRpc.Object);
 
 			var rnd = new InsecureRandom();
-			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, 2, rnd, 4_300_000_000_000ul); // TODO: remove  hardcoded max value
-			var weightClient = new WabiSabiClient(round.WeightCredentialIssuerParameters, 2, rnd, 1_000ul); // TODO: remove  hardcoded max value
+			var protocolCredentialNumber = 2;
+			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, protocolCredentialNumber, rnd, 4_300_000_000_000ul); // TODO: remove  hardcoded max value
+			var weightClient = new WabiSabiClient(round.WeightCredentialIssuerParameters, protocolCredentialNumber, rnd, 1_000ul); // TODO: remove  hardcoded max value
 
-			var apiClient = new CoordinatorClient(amountClient, weightClient, coordinator);
+			var apiClient = new ArenaClient(amountClient, weightClient, coordinator);
 
 			var aliceId = await apiClient.RegisterInputAsync(Money.Coins(1m), outpoint, key, round.Id, round.Hash);
 
 			Assert.NotEqual(Guid.Empty, aliceId);
-			Assert.Empty(apiClient.WabiSabiClientAmount.Credentials.Valuable);
+			Assert.Empty(apiClient.AmountCredentialClient.Credentials.Valuable);
 
-			var reissuanceAmounts = new[] { 
-				Money.Coins(.75m) - round.FeeRate.GetFee(/*Constants.P2wpkhInputVirtualSize*/ 68), 
+			var reissuanceAmounts = new[] {
+				Money.Coins(.75m) - round.FeeRate.GetFee(/*Constants.P2wpkhInputVirtualSize*/ 68),
 				Money.Coins(.25m)
 			};
 
+			// Phase: Input Registration
+			await apiClient.ConfirmConnectionAsync(
+				round.Id,
+				aliceId,
+				apiClient.AmountCredentialClient.Credentials.ZeroValue.Take(protocolCredentialNumber),
+				reissuanceAmounts);
+
+			Assert.Empty(apiClient.AmountCredentialClient.Credentials.Valuable);
+
+			// Phase: Connection Confirmation
 			round.SetPhase(Phase.ConnectionConfirmation);
 			await apiClient.ConfirmConnectionAsync(
 				round.Id,
 				aliceId,
-				apiClient.WabiSabiClientAmount.Credentials.ZeroValue,
+				apiClient.AmountCredentialClient.Credentials.ZeroValue.Take(protocolCredentialNumber),
 				reissuanceAmounts);
 
-			Assert.Single(apiClient.WabiSabiClientAmount.Credentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.First());
-			Assert.Single(apiClient.WabiSabiClientAmount.Credentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.Last());
+			Assert.Single(apiClient.AmountCredentialClient.Credentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.First());
+			Assert.Single(apiClient.AmountCredentialClient.Credentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.Last());
 		}
 	}
 }
