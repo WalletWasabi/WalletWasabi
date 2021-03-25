@@ -24,11 +24,15 @@ using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Gui;
 using WalletWasabi.Gui.Converters;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.Userfacing;
+using WalletWasabi.WebClients.PayJoin;
+using WalletWasabi.WebClients.Wasabi;
+using Constants = WalletWasabi.Helpers.Constants;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
@@ -42,7 +46,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	public partial class SendViewModel : NavBarItemViewModel
 	{
 		private readonly WalletViewModel _owner;
+		private readonly Config _config;
+		private readonly HttpClientFactory _httpClientFactory;
 		private readonly TransactionInfo _transactionInfo;
+
 		[AutoNotify] private string _to;
 		[AutoNotify] private decimal _amountBtc;
 		[AutoNotify] private decimal _exchangeRate;
@@ -63,10 +70,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private bool _updatingCurrentValue;
 		private double _lastXAxisCurrentValue;
 
-		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster) : base(NavigationMode.Normal)
+		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster, Config config, HttpClientFactory httpClientFactory) : base(NavigationMode.Normal)
 		{
 			_to = "";
 			_owner = walletVm;
+			_config = config;
+			_httpClientFactory = httpClientFactory;
 			_transactionInfo = new TransactionInfo();
 			_labels = new ObservableCollection<string>();
 			_lastXAxisCurrentValue = _xAxisCurrentValue;
@@ -177,6 +186,34 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 
 			Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
+		}
+
+		private IPayjoinClient? GetPayjoinClient()
+		{
+			if (!string.IsNullOrWhiteSpace(_payJoinEndPoint) &&
+			    Uri.IsWellFormedUriString(_payJoinEndPoint, UriKind.Absolute))
+			{
+				var payjoinEndPointUri = new Uri(_payJoinEndPoint);
+				if (!_config.UseTor)
+				{
+					if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
+					{
+						Logger.LogWarning("PayJoin server is an onion service but Tor is disabled. Ignoring...");
+						return null;
+					}
+
+					if (_config.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
+					{
+						Logger.LogWarning("PayJoin server is not exposed as an onion service nor https. Ignoring...");
+						return null;
+					}
+				}
+
+				IHttpClient httpClient = _httpClientFactory.NewHttpClient(() => payjoinEndPointUri, isolateStream: false);
+				return new PayjoinClient(payjoinEndPointUri, httpClient);
+			}
+
+			return null;
 		}
 
 		private TimeSpan CalculateConfirmationTime(double targetBlock)
