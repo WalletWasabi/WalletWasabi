@@ -74,9 +74,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				if (transactionInfo.PayJoinClient is { })
 				{
-					var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: false, transactionInfo.PayJoinClient));
-					Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
-					return;
+					try
+					{
+						var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: false, transactionInfo.PayJoinClient));
+						Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
+						return;
+					}
+					catch (InsufficientBalanceException)
+					{
+						await ShowErrorAsync("Transaction Building", "There are not enough funds selected to cover the transaction fee.", "Wasabi was unable to create your transaction.");
+						return;
+					}
 				}
 
 				try

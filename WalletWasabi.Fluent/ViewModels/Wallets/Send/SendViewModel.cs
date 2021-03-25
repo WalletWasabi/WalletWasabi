@@ -170,9 +170,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					if (IsPayJoin)
 					{
-						var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: false, transactionInfo.PayJoinClient));
-						Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, txRes));
-						return;
+						try
+						{
+							var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: false, transactionInfo.PayJoinClient));
+							Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, txRes));
+							return;
+						}
+						catch (InsufficientBalanceException)
+						{
+							await ShowErrorAsync("Transaction Building", "There are not enough private funds to cover the transaction fee", "Wasabi was unable to create your transaction.");
+							Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
+							return;
+						}
 					}
 
 					try
