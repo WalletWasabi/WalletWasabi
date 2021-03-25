@@ -73,8 +73,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var inputsCount = 1; // ?
 			var (realWeightCredentialRequest, realWeightCredentialResponseValidation) = WeightCredentialClient.CreateRequest(
 				new[] { 1_000L - (inputsCount) * 4 * Constants.P2wpkhInputVirtualSize },
-				WeightCredentialClient.Credentials.ZeroValue.Take(2)
-			);
+				WeightCredentialClient.Credentials.ZeroValue.Take(2));
 
 			var (zeroAmountCredentialRequest, zeroAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequestForZeroAmount();
 			var (zeroWeightCredentialRequest, zeroWeightCredentialResponseValidation) = WeightCredentialClient.CreateRequestForZeroAmount();
@@ -88,7 +87,7 @@ namespace WalletWasabi.WabiSabi.Client
 					zeroWeightCredentialRequest,
 					realWeightCredentialRequest)).ConfigureAwait(false);
 
-			if (confirmConnectionResponse is { RealAmountCredentials: {}, RealWeightCredentials: {} })
+			if (confirmConnectionResponse is { RealAmountCredentials: { }, RealWeightCredentials: { } })
 			{
 				AmountCredentialClient.HandleResponse(confirmConnectionResponse.RealAmountCredentials, realAmountCredentialResponseValidation);
 				WeightCredentialClient.HandleResponse(confirmConnectionResponse.RealWeightCredentials, realWeightCredentialResponseValidation);

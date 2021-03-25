@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
@@ -30,7 +31,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			var mockRpc = new Mock<IRPCClient>();
 			mockRpc.Setup(rpc => rpc.GetTxOutAsync(outpoint.Hash, (int)outpoint.N, true))
-				.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse{
+				.ReturnsAsync(new NBitcoin.RPC.GetTxOutResponse
+				{
 					IsCoinBase = false,
 					Confirmations = 200,
 					TxOut = new TxOut(Money.Coins(1m), key.PubKey.WitHash.GetAddress(Network.Main)),
@@ -49,8 +51,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			Assert.NotEqual(Guid.Empty, aliceId);
 			Assert.Empty(apiClient.AmountCredentialClient.Credentials.Valuable);
 
-			var reissuanceAmounts = new[] {
-				Money.Coins(.75m) - round.FeeRate.GetFee(/*Constants.P2wpkhInputVirtualSize*/ 68),
+			var reissuanceAmounts = new[]
+			{
+				Money.Coins(.75m) - round.FeeRate.GetFee(Constants.P2wpkhInputVirtualSize),
 				Money.Coins(.25m)
 			};
 
