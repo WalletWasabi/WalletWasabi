@@ -46,8 +46,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	public partial class SendViewModel : NavBarItemViewModel
 	{
 		private readonly WalletViewModel _owner;
-		private readonly Config _config;
-		private readonly HttpClientFactory _httpClientFactory;
 		private readonly TransactionInfo _transactionInfo;
 
 		[AutoNotify] private string _to;
@@ -64,8 +62,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private int  _xAxisCurrentValueIndex;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _xAxisMinValue = 0;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _xAxisMaxValue = 9;
+		[AutoNotify] private string? _payJoinEndPoint;
 
-		private string? _payJoinEndPoint;
 		private bool _parsingUrl;
 		private bool _updatingCurrentValue;
 		private double _lastXAxisCurrentValue;
@@ -74,8 +72,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			_to = "";
 			_owner = walletVm;
-			_config = config;
-			_httpClientFactory = httpClientFactory;
 			_transactionInfo = new TransactionInfo();
 			_labels = new ObservableCollection<string>();
 			_lastXAxisCurrentValue = _xAxisCurrentValue;
@@ -104,6 +100,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			this.WhenAnyValue(x => x.XAxisCurrentValueIndex)
 				.Subscribe(SetXAxisCurrentValue);
+
+			this.WhenAnyValue(x => x.PayJoinEndPoint)
+				.Subscribe(endPoint =>
+				{
+					if (endPoint is { })
+					{
+						_transactionInfo.PayJoinClient = GetPayjoinClient(endPoint, config, httpClientFactory);
+						IsPayJoin = true;
+					}
+					else
+					{
+						IsPayJoin = false;
+					}
+				});
 
 			Labels.ToObservableChangeSet().Subscribe(x => _transactionInfo.Labels = new SmartLabel(_labels.ToArray()));
 
@@ -158,6 +168,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				try
 				{
+					if (IsPayJoin)
+					{
+						var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: false, transactionInfo.PayJoinClient));
+						Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, txRes));
+						return;
+					}
+
 					try
 					{
 						var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: false));
@@ -166,7 +183,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 					catch (InsufficientBalanceException)
 					{
-						var txRes = TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true);
+						var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true));
 						var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private, txRes, wallet.Synchronizer.UsdExchangeRate);
 						var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 
@@ -188,13 +205,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
 		}
 
-		private IPayjoinClient? GetPayjoinClient()
+		private IPayjoinClient? GetPayjoinClient(string endPoint, Config config, HttpClientFactory httpClientFactory)
 		{
-			if (!string.IsNullOrWhiteSpace(_payJoinEndPoint) &&
-			    Uri.IsWellFormedUriString(_payJoinEndPoint, UriKind.Absolute))
+			if (!string.IsNullOrWhiteSpace(endPoint) &&
+			    Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 			{
-				var payjoinEndPointUri = new Uri(_payJoinEndPoint);
-				if (!_config.UseTor)
+				var payjoinEndPointUri = new Uri(endPoint);
+				if (!config.UseTor)
 				{
 					if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 					{
@@ -202,14 +219,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						return null;
 					}
 
-					if (_config.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
+					if (config.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
 					{
 						Logger.LogWarning("PayJoin server is not exposed as an onion service nor https. Ignoring...");
 						return null;
 					}
 				}
 
-				IHttpClient httpClient = _httpClientFactory.NewHttpClient(() => payjoinEndPointUri, isolateStream: false);
+				IHttpClient httpClient = httpClientFactory.NewHttpClient(() => payjoinEndPointUri, isolateStream: false);
 				return new PayjoinClient(payjoinEndPointUri, httpClient);
 			}
 
@@ -333,7 +350,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					if (!wallet.KeyManager.IsHardwareWallet)
 					{
-						_payJoinEndPoint = endPoint;
+						PayJoinEndPoint = endPoint;
 					}
 					else
 					{
@@ -342,16 +359,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 				else
 				{
-					_payJoinEndPoint = null;
+					PayJoinEndPoint = null;
 				}
 			}
 			else
 			{
 				IsFixedAmount = false;
-				_payJoinEndPoint = null;
+				PayJoinEndPoint = null;
 			}
-
-			IsPayJoin = _payJoinEndPoint is { };
 
 			return result;
 		}
