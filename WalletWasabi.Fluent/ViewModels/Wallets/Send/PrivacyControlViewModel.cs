@@ -72,6 +72,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			try
 			{
+				if (transactionInfo.PayJoinClient is { })
+				{
+					var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: false, transactionInfo.PayJoinClient));
+					Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
+				}
+
 				try
 				{
 					var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: false));
@@ -79,7 +85,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 				catch (InsufficientBalanceException)
 				{
-					var transactionResult = TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: true);
+					var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: true));
 					var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Pocket, transactionResult, wallet.Synchronizer.UsdExchangeRate);
 					var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 
