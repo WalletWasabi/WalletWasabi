@@ -25,31 +25,17 @@
                        NoCommand="{Binding CancelCommand}"
                        HighlightButton="YesButton">
       <StackPanel Spacing="20">
-        <StackPanel Orientation="Horizontal" Spacing="30">
-          <PathIcon Width="24" Height="24" Data="{StaticResource btc_logo}"
-                            Foreground="{DynamicResource SystemAccentColor}" />
-          <StackPanel Spacing="5">
-            <TextBlock Text="Send a total of " Classes="storyline" />
-            <StackPanel Orientation="Horizontal" Spacing="5">
-              <TextBlock Classes="field" Text="{Binding BtcAmountText}" />
-              <TextBlock Classes="field" Text="{Binding FiatAmountText}" />
-            </StackPanel>
-          </StackPanel>
-       </StackPanel>
+
+        <c:PreviewItem Icon="{StaticResource btc_logo}"
+                       Text="A total of"
+                       Content="{Binding AmountText, FallbackValue=0.213 BTC (≈55.34 USD)}" />
 
         <Separator />
 
-        <StackPanel Orientation="Horizontal" Spacing="30">
-          <PathIcon Width="24" Height="24" Data="{StaticResource paper_cash_regular}"
-                   Foreground="{DynamicResource SystemAccentColor}" />
-          <StackPanel Spacing="5">
-            <TextBlock Classes="storyline" Text="for an additional charge of" />
-            <StackPanel Orientation="Horizontal" Spacing="5">
-              <TextBlock Classes="field" Text="{Binding BtcFeeText}" />
-              <TextBlock Classes="field" Text="{Binding FiatFeeText}" />
-            </StackPanel>
-          </StackPanel>
-        </StackPanel>
+        <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
+                       Text="via Bitcoin address"
+                       Content="{Binding FeeText, FallbackValue=235 satoshis (≈55.34 USD)}" />
+
       </StackPanel>
     </c:QuestionControl>
   </c:ContentArea>
