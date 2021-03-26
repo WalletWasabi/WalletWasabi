@@ -228,7 +228,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			InputRegistrationTimesout = DateTimeOffset.UtcNow + InputRegistrationTimeout;
 		}
 
-		public async Task ExecuteNextPhaseAsync(RoundPhase expectedPhase, Money? feePerInputs = null, Money? feePerOutputs = null)
+		public async Task ExecuteNextPhaseAsync(RoundPhase expectedPhase)
 		{
 			using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
 			{
@@ -243,7 +243,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 							return;
 						}
 
-						await MoveToInputRegistrationAsync(feePerInputs, feePerOutputs).ConfigureAwait(false);
+						await MoveToInputRegistrationAsync().ConfigureAwait(false);
 					}
 					else if (Status != CoordinatorRoundStatus.Running) // Aborted or succeeded, swallow.
 					{
@@ -629,20 +629,12 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			Phase = RoundPhase.ConnectionConfirmation;
 		}
 
-		private async Task MoveToInputRegistrationAsync(Money feePerInputs, Money feePerOutputs)
+		private async Task MoveToInputRegistrationAsync()
 		{
 			// Calculate fees.
-			if (feePerInputs is null || feePerOutputs is null)
-			{
-				(Money feePerInputs, Money feePerOutputs) fees = await CalculateFeesAsync(RpcClient, AdjustedConfirmationTarget).ConfigureAwait(false);
-				FeePerInputs = feePerInputs ?? fees.feePerInputs;
-				FeePerOutputs = feePerOutputs ?? fees.feePerOutputs;
-			}
-			else
-			{
-				FeePerInputs = feePerInputs;
-				FeePerOutputs = feePerOutputs;
-			}
+			(Money feePerInputs, Money feePerOutputs) fees = await CalculateFeesAsync(RpcClient, AdjustedConfirmationTarget).ConfigureAwait(false);
+			FeePerInputs = fees.feePerInputs;
+			FeePerOutputs = fees.feePerOutputs;
 
 			Status = CoordinatorRoundStatus.Running;
 		}
