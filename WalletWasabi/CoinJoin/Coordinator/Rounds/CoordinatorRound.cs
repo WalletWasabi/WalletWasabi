@@ -193,7 +193,22 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		public TimeSpan InputRegistrationTimeout { get; }
 		public DateTimeOffset InputRegistrationTimesout { get; private set; }
-		public TimeSpan RemainingInputRegistrationTime => InputRegistrationTimesout - DateTimeOffset.UtcNow;
+
+		public TimeSpan RemainingInputRegistrationTime
+		{
+			get
+			{
+				var remaining = InputRegistrationTimesout - DateTimeOffset.UtcNow;
+				if (Phase == RoundPhase.InputRegistration && remaining > TimeSpan.Zero)
+				{
+					return remaining;
+				}
+				else
+				{
+					return TimeSpan.Zero;
+				}
+			}
+		}
 
 		public TimeSpan ConnectionConfirmationTimeout { get; }
 
