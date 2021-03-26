@@ -5,14 +5,15 @@
   <Style Selector="c|PreviewItem">
     <Setter Property="Template">
       <ControlTemplate>
-        <StackPanel Orientation="Horizontal" Spacing="30">
+        <DockPanel>
           <PathIcon Width="{TemplateBinding IconSize}" Height="{TemplateBinding IconSize}" Data="{TemplateBinding Icon}"
-                    Foreground="{DynamicResource SystemAccentColor}" />
-          <StackPanel Spacing="5">
-            <TextBlock Name="PART_Text" Text="{TemplateBinding Text}" />
-            <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
-          </StackPanel>
-        </StackPanel>
+                    Foreground="{DynamicResource SystemAccentColor}"
+                    DockPanel.Dock="Left"/>
+          <DockPanel DockPanel.Dock="Right" Margin="30 0 0 0">
+            <TextBlock Name="PART_Text" Text="{TemplateBinding Text}" DockPanel.Dock="Top" Margin="0 0 0 5"/>
+            <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" DockPanel.Dock="Bottom"/>
+          </DockPanel>
+        </DockPanel>
       </ControlTemplate>
     </Setter>
   </Style>
