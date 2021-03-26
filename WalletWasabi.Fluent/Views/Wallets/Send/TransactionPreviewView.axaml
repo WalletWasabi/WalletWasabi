@@ -15,36 +15,26 @@
                    IsBusy="{Binding IsBusy}"
                    ScrollViewer.VerticalScrollBarVisibility="Auto">
         <StackPanel Spacing="20">
-
             <c:PreviewItem Icon="{StaticResource btc_logo}"
                            Text="A total of"
                            Content="{Binding AmountText, FallbackValue=0.213 BTC (≈55.34 USD)}" />
-
             <Separator />
-
             <c:PreviewItem Icon="{StaticResource entities_regular}"
                            Text="Will be sent to and / or known by">
                 <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}" />
             </c:PreviewItem>
-
             <Separator />
-
             <c:PreviewItem Icon="{StaticResource transceive_regular}"
                            Text="via Bitcoin address"
                            Content="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
             <Separator />
-
-
             <c:PreviewItem Icon="{StaticResource timer_regular}"
                            Text="via Bitcoin address"
                            Content="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
-
             <Separator />
-
             <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
                            Text="via Bitcoin address"
                            Content="{Binding FeeText, FallbackValue=235 satoshis (≈55.34 USD)}" />
-
         </StackPanel>
     </c:ContentArea>
 </UserControl>
