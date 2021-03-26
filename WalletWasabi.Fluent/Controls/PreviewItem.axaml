@@ -9,7 +9,7 @@
           <PathIcon Width="{TemplateBinding IconSize}" Height="{TemplateBinding IconSize}" Data="{TemplateBinding Icon}"
                     Foreground="{DynamicResource SystemAccentColor}" />
           <StackPanel Spacing="5">
-            <TextBlock Text="{TemplateBinding Text}" Classes="storyline" />
+            <TextBlock Name="PART_Text" Text="{TemplateBinding Text}" />
             <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
           </StackPanel>
         </StackPanel>
@@ -17,12 +17,12 @@
     </Setter>
   </Style>
 
-  <Style Selector="c|PreviewItem#PART_ContentPresenter :is(TextBlock)">
-    <Setter Property="FontSize" Value="14" />
+  <Style Selector="c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="TextBlock.FontSize" Value="14" />
     <Setter Property="Opacity" Value="0.85" />
   </Style>
 
-  <Style Selector="TextBlock.storyline">
+  <Style Selector="c|PreviewItem /template/ TextBlock#PART_Text">
     <Setter Property="Opacity" Value="0.6" />
     <Setter Property="FontSize" Value="14" />
   </Style>

@@ -20,13 +20,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, TransactionBroadcaster broadcaster,
 			BuildTransactionResult transaction)
 		{
+			EnableCancel = true;
+			EnableBack = true;
+
 			var destinationAmount = transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
-
-			var fee = transaction.Fee;
-
-			BtcAmountText = $"{destinationAmount} bitcoins ";
-
-			FiatAmountText = $"(≈{(destinationAmount * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD) ";
+			var btcAmountText = $"{destinationAmount} bitcoins ";
+			var fiatAmountText = $"(≈{(destinationAmount * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD) ";
+			AmountText = $"{btcAmountText}{fiatAmountText}";
 
 			Labels = info.Labels.Labels.ToArray();
 
@@ -34,20 +34,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
 
-			BtcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
-
-			FiatFeeText =
+			var fee = transaction.Fee;
+			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
+			var fiatFeeText =
 				$"(≈{(fee.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD)";
-
-			EnableCancel = true;
-
-			EnableBack = true;
+			FeeText = $"{btcFeeText}{fiatFeeText}";
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNext(wallet, broadcaster, transaction));
 		}
-		public string BtcAmountText { get; }
 
-		public string FiatAmountText { get; }
+		public string AmountText { get; }
 
 		public string[] Labels { get; }
 
@@ -55,9 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public string ConfirmationTimeText { get; }
 
-		public string BtcFeeText { get; }
-
-		public string FiatFeeText { get; }
+		public string FeeText { get; }
 
 		private async Task OnNext(Wallet wallet, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)
 		{
