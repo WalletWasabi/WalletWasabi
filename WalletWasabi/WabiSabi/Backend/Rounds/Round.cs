@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Crypto.StrobeProtocol;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -18,6 +19,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
 	public class Round
 	{
+		private static readonly string DomainSeparatorTag = "domain-separator";
+
 		public Round(RoundParameters roundParameters)
 		{
 			RoundParameters = roundParameters;
@@ -30,7 +33,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 			Coinjoin = Transaction.Create(Network);
 
-			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{RegistrableWeightCredentials}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
+			Hash = CalculateHash();
 		}
 
 		public uint256 Hash { get; }
@@ -122,6 +125,36 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 
 			return false;
+		}
+
+		private uint256 CalculateHash()
+		{
+			var strobe = new Strobe128("WabiSabi_v1.0");
+
+			void append(string fieldName, object fieldValue)
+			{
+				strobe.AddAssociatedMetaData(Encoding.UTF8.GetBytes(fieldName), false);
+
+				var serializedValue = Encoding.UTF8.GetBytes($"{fieldValue}");
+				strobe.AddAssociatedMetaData(BitConverter.GetBytes(serializedValue.Length), true);
+				strobe.AddAssociatedData(serializedValue, false);
+			}
+
+			// start every transcript with a domain separator tag
+			append(DomainSeparatorTag, "round-parameters");
+
+			append(nameof(Id), Id);
+			append(nameof(MaxInputCountByAlice), MaxInputCountByAlice);
+			append(nameof(MinRegistrableAmount), MinRegistrableAmount);
+			append(nameof(MaxRegistrableAmount), MaxRegistrableAmount);
+			append(nameof(RegistrableWeightCredentials), RegistrableWeightCredentials); // TODO rename: WeightAllocationPerAlice
+			append(nameof(AmountCredentialIssuerParameters), AmountCredentialIssuerParameters);
+			append(nameof(WeightCredentialIssuerParameters), WeightCredentialIssuerParameters);
+			append(nameof(FeeRate), FeeRate.SatoshiPerByte);
+
+			// TODO add: total weight limit,
+
+			return new uint256(strobe.Prf(32, false));
 		}
 	}
 }
