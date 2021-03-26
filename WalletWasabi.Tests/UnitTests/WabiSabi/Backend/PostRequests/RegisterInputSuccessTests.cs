@@ -36,7 +36,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			using Key key = new();
 
-			await using PostRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
+			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
 
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
@@ -60,7 +60,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var preAlice = WabiSabiFactory.CreateAlice(req.InputRoundSignaturePairs);
 			round.Alices.Add(preAlice);
 
-			await using PostRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
+			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
 			var resp = await handler.RegisterInputAsync(req);
 			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
@@ -83,7 +83,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var preAlice = WabiSabiFactory.CreateAlice(req.InputRoundSignaturePairs);
 			anotherRound.Alices.Add(preAlice);
 
-			await using PostRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
+			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
 			var resp = await handler.RegisterInputAsync(req);
 			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);

@@ -14,9 +14,9 @@ using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.PostRequests
 {
-	public class PostRequestHandler : IAsyncDisposable
+	public class ArenaRequestHandler : IAsyncDisposable, IArenaRequestHandler
 	{
-		public PostRequestHandler(WabiSabiConfig config, Prison prison, Arena arena, IRPCClient rpc)
+		public ArenaRequestHandler(WabiSabiConfig config, Prison prison, Arena arena, IRPCClient rpc)
 		{
 			Config = config;
 			Prison = prison;
@@ -96,7 +96,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			{
 				if (DisposeStarted)
 				{
-					throw new ObjectDisposedException(nameof(PostRequestHandler));
+					throw new ObjectDisposedException(nameof(ArenaRequestHandler));
 				}
 			}
 		}

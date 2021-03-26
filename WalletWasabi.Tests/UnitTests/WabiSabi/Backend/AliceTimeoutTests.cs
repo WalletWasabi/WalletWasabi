@@ -35,7 +35,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			};
 
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
-			await using PostRequestHandler handler = new(cfg, new Prison(), arena, rpc);
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
 			await handler.RegisterInputAsync(req);
 
@@ -60,7 +60,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
-			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 
 			Assert.Single(round.Alices);
 			DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
@@ -84,7 +84,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
-			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 
 			Assert.Single(round.Alices);
 			DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
@@ -110,7 +110,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
-			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 
 			Assert.Equal(3, round.Alices.Count);
 			DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
@@ -133,7 +133,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
-			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 
 			Assert.Single(round.Alices);
 			DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
