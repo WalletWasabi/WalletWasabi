@@ -34,7 +34,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			Assert.NotNull(resp);
 			Assert.NotNull(resp.AmountCredentials);
 			Assert.NotNull(resp.WeightCredentials);
-			Assert.NotNull(resp.UnsignedTransactionSecret);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
