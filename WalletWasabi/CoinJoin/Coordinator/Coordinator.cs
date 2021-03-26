@@ -438,7 +438,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 		{
 			using (RoundsListLock.Lock())
 			{
-				return Rounds.Where(x => x.Status == CoordinatorRoundStatus.Running).ToArray();
+				return Rounds.Where(x => x.Status == CoordinatorRoundStatus.Running).OrderBy(x => x.RemainingInputRegistrationTime).ToArray();
 			}
 		}
 
