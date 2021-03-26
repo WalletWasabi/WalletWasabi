@@ -94,5 +94,43 @@ namespace WalletWasabi.WabiSabi.Client
 			AmountCredentialClient.HandleResponse(confirmConnectionResponse.ZeroAmountCredentials, zeroAmountCredentialResponseValidation);
 			WeightCredentialClient.HandleResponse(confirmConnectionResponse.ZeroWeightCredentials, zeroWeightCredentialResponseValidation);
 		}
+
+		public async Task SignTransactionAsync(Guid roundId, IEnumerable<ICoin> coinsToSign, BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin)
+		{
+			if (unsignedCoinJoin.Inputs.Count == 0)
+			{
+				throw new ArgumentException("No inputs to sign.", nameof(unsignedCoinJoin));
+			}
+
+			if (!coinsToSign.Any())
+			{
+				throw new ArgumentException("No coins were provided.", nameof(coinsToSign));
+			}
+
+			var myInputs = coinsToSign.ToDictionary(c => c.Outpoint);
+			var signedCoinJoin = unsignedCoinJoin.Clone();
+			List<InputWitnessPair> signatures = new();
+
+			foreach (var txInput in signedCoinJoin.Inputs.AsIndexedInputs().Where(input => myInputs.ContainsKey(input.PrevOut)))
+			{
+				var coin = myInputs[txInput.PrevOut];
+
+				signedCoinJoin.Sign(bitcoinSecret, coin);
+
+				if (!txInput.VerifyScript(coin, out _))
+				{
+					throw new InvalidOperationException("Witness is missing.");
+				}
+
+				signatures.Add(new InputWitnessPair(txInput.Index, txInput.WitScript));
+			}
+
+			if (myInputs.Count != signatures.Count)
+			{
+				throw new InvalidOperationException("Missing signatures.");
+			}
+
+			await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, signatures)).ConfigureAwait(false);
+		}
 	}
 }
