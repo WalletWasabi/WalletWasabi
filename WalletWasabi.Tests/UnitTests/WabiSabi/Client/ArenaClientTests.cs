@@ -121,6 +121,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await Assert.ThrowsAsync<InvalidOperationException>(async () => await apiClient.SignTransactionAsync(round.Id, alice2.Coins.ToArray(), new BitcoinSecret(key2, Network.Main), coinjoin));
 
 			coinjoin.Inputs.Add(alice2.Coins.First().Outpoint);
+
 			// Trying to sign coins with the wrong secret.
 			await Assert.ThrowsAsync<InvalidOperationException>(async () => await apiClient.SignTransactionAsync(round.Id, alice1.Coins.ToArray(), new BitcoinSecret(key2, Network.Main), coinjoin));
 
