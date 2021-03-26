@@ -155,8 +155,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						round.LogInfo("Filled up the outputs to build a reasonable transaction because some alice failed to provide its output.");
 					}
 
-					round.EncryptedCoinjoin = StringCipher.Encrypt(coinjoin.ToHex(), round.UnsignedTxSecret);
-
 					round.SetPhase(Phase.TransactionSigning);
 				}
 			}
@@ -395,7 +393,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				round.Bobs.Add(bob);
 
 				return new(
-					round.UnsignedTxSecret,
 					amountCredentialResponse,
 					weightCredentialResponse);
 			}
