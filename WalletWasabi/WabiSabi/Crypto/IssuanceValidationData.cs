@@ -4,7 +4,7 @@ using WalletWasabi.Crypto.Groups;
 
 namespace WalletWasabi.WabiSabi.Crypto
 {
-	public class IssuanceValidationData
+	public record IssuanceValidationData
 	{
 		internal IssuanceValidationData(long amount, Scalar r, GroupElement ma)
 		{

@@ -33,7 +33,7 @@ namespace WalletWasabi.Crypto
 		}
 	}
 
-	public class CoinJoinInputCommitmentData
+	public record CoinJoinInputCommitmentData
 	{
 		private byte[] _coordinatorIdentifier;
 		private byte[] _roundIdentifier;
