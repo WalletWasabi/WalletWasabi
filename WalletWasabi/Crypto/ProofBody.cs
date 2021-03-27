@@ -54,4 +54,3 @@ namespace WalletWasabi.Crypto
 			scriptPubKey.ToBytes().Concat(commitmentData);
 	}
 }
-
