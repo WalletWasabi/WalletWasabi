@@ -68,6 +68,26 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		}
 
 		[Fact]
+		public async Task NonStandardOutputAsync()
+		{
+			WabiSabiConfig cfg = new();
+			var round = WabiSabiFactory.CreateRound(cfg);
+			round.SetPhase(Phase.OutputRegistration);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+			using Key key = new();
+
+			var sha256Bounty = Script.FromHex("aa20000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f87");
+			var req = WabiSabiFactory.CreateOutputRegistrationRequest(round, sha256Bounty);
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterOutputAsync(req));
+
+			// The following assertion requires standardness to be checked before allowed script types
+			Assert.Equal(WabiSabiProtocolErrorCode.NonStandardOutput, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
 		public async Task NotEnoughFundsAsync()
 		{
 			WabiSabiConfig cfg = new() { MinRegistrableAmount = Money.Coins(2) };

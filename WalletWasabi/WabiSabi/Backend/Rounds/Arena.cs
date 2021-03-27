@@ -364,6 +364,16 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				var credentialAmount = -request.AmountCredentialRequests.Delta;
 
+				if (!StandardScripts.IsStandardScriptPubKey(request.Script))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NonStandardOutput, $"Round ({request.RoundId}): Non standard output.");
+				}
+
+				if (!request.Script.IsScriptType(ScriptType.P2WPKH))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed, $"Round ({request.RoundId}): Script not allowed.");
+				}
+
 				Bob bob = new(request.Script, credentialAmount);
 
 				var outputValue = bob.CalculateOutputAmount(round.FeeRate);
