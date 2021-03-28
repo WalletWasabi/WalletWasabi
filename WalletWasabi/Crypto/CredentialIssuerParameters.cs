@@ -3,7 +3,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto
 {
-	public class CredentialIssuerParameters
+	public record CredentialIssuerParameters
 	{
 		public CredentialIssuerParameters(GroupElement cw, GroupElement i)
 		{

@@ -98,10 +98,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			this.WhenAnyValue(x => x.XAxisCurrentValueIndex)
 				.Subscribe(SetXAxisCurrentValue);
 
-			Labels.ToObservableChangeSet().Subscribe(x =>
-			{
-				_transactionInfo.Labels = new SmartLabel(_labels.ToArray());
-			});
+			Labels.ToObservableChangeSet().Subscribe(x => _transactionInfo.Labels = new SmartLabel(_labels.ToArray()));
 
 			EnableCancel = true;
 
@@ -162,7 +159,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 					catch (InsufficientBalanceException)
 					{
-						var txRes = TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true);
+						var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true));
 						var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private, txRes, wallet.Synchronizer.UsdExchangeRate);
 						var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 

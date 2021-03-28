@@ -4,7 +4,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 {
-	internal class Knowledge
+	internal record Knowledge
 	{
 		internal Knowledge(Statement statement, ScalarVector witness)
 		{

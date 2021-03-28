@@ -207,7 +207,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			var rangeProof = ProofSystemHelpers.Prove(knowledge, rnd);
 
-			Assert.Equal(pass, ProofSystemHelpers.Verify(ProofSystem.RangeProofStatement(commitment, bitCommitments, 42), rangeProof));
+			Assert.Equal(pass, ProofSystemHelpers.Verify(ProofSystem.RangeProofStatement(commitment, bitCommitments, width), rangeProof));
 
 			if (!pass)
 			{

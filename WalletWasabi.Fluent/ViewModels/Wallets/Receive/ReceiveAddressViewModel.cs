@@ -34,7 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			ShowOnHwWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnShowOnHwWallet(model, network, masterFingerprint));
 
-			SaveQrCodeCommand = ReactiveCommand.CreateFromTask(async () => { await OnSaveQrCode(); });
+			SaveQrCodeCommand = ReactiveCommand.CreateFromTask(async () => await OnSaveQrCode());
 
 			SaveQrCodeCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)

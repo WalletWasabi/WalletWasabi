@@ -106,7 +106,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 				bitcoinStore,
 				keyManager,
 				syncer,
-				nodes,
 				dataDir,
 				new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelStrong.ToString(), 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
 				syncer,

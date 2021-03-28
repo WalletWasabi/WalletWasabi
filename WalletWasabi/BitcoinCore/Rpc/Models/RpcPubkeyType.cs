@@ -11,6 +11,7 @@ namespace WalletWasabi.BitcoinCore.Rpc.Models
 		TxNullData,
 		TxWitnessV0Keyhash,
 		TxWitnessV0Scripthash,
+		TxWitnessV1Taproot,
 		TxWitnessUnknown,
 	}
 }

@@ -112,7 +112,7 @@ namespace WalletWasabi.Wallets
 								continue;
 							}
 
-							DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}. Block downloaded: {block.GetHash()}.");
+							DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
 
 							await NodeTimeoutsAsync(false).ConfigureAwait(false);
 						}

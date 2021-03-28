@@ -155,8 +155,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						round.LogInfo("Filled up the outputs to build a reasonable transaction because some alice failed to provide its output.");
 					}
 
-					round.EncryptedCoinjoin = StringCipher.Encrypt(coinjoin.ToHex(), round.UnsignedTxSecret);
-
 					round.SetPhase(Phase.TransactionSigning);
 				}
 			}
@@ -211,12 +209,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private async Task FailTransactionSigningPhaseAsync(Round round)
 		{
-			var alicesWhoDidntSign = round
-				.Alices
-				.Where(x => !x
-					.Coins
-					.Select(x => x.Outpoint)
-					.All(y => round.Coinjoin.Inputs.Where(x => x.HasWitScript()).Select(x => x.PrevOut).Contains(y)))
+			var unsignedCoins = round.Coinjoin.Inputs.Where(x => !x.HasWitScript()).Select(x => x.PrevOut);
+			var alicesWhoDidntSign = round.Alices
+				.SelectMany(alice => alice.Coins, (alice, coin) => (Alice: alice, coin.Outpoint))
+				.Where(x => unsignedCoins.Contains(x.Outpoint))
+				.Select(x => x.Alice)
 				.ToHashSet();
 
 			foreach (var alice in alicesWhoDidntSign)
@@ -367,6 +364,16 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				var credentialAmount = -request.AmountCredentialRequests.Delta;
 
+				if (!StandardScripts.IsStandardScriptPubKey(request.Script))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NonStandardOutput, $"Round ({request.RoundId}): Non standard output.");
+				}
+
+				if (!request.Script.IsScriptType(ScriptType.P2WPKH))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed, $"Round ({request.RoundId}): Script not allowed.");
+				}
+
 				Bob bob = new(request.Script, credentialAmount);
 
 				var outputValue = bob.CalculateOutputAmount(round.FeeRate);
@@ -396,7 +403,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				round.Bobs.Add(bob);
 
 				return new(
-					round.UnsignedTxSecret,
 					amountCredentialResponse,
 					weightCredentialResponse);
 			}
