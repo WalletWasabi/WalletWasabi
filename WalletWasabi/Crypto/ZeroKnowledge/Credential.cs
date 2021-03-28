@@ -6,7 +6,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 	/// <summary>
 	/// Represents an anonymous credential and its represented data.
 	/// </summary>
-	public class Credential
+	public record Credential
 	{
 		/// <summary>
 		/// Initializes a new Credential instance.

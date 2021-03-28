@@ -29,8 +29,6 @@ namespace WalletWasabi.Stores
 			BlockRepository = blockRepository;
 		}
 
-		public bool IsInitialized { get; private set; }
-
 		public IndexStore IndexStore { get; }
 		public AllTransactionStore TransactionStore { get; }
 		public SmartHeaderChain SmartHeaderChain => IndexStore.SmartHeaderChain;
@@ -54,8 +52,6 @@ namespace WalletWasabi.Stores
 				};
 
 				await Task.WhenAll(initTasks).ConfigureAwait(false);
-
-				IsInitialized = true;
 			}
 		}
 

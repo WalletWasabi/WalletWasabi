@@ -35,7 +35,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			signedCoinJoin.Sign(key.GetBitcoinSecret(Network.Main), alice.Coins.First());
 
 			var req = new TransactionSignaturesRequest(round.Id, new[] { new InputWitnessPair(0, signedCoinJoin.Inputs[0].WitScript) });
-			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			await handler.SignTransactionAsync(req);
 			Assert.True(round.Coinjoin.Inputs.First().HasWitScript());
 			await arena.StopAsync(CancellationToken.None);
@@ -45,7 +45,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		public async Task RoundNotFoundAsync()
 		{
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
-			await using PostRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
+			await using ArenaRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
 			var req = new TransactionSignaturesRequest(Guid.NewGuid(), null!);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.SignTransactionAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
@@ -66,7 +66,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 				if (phase != Phase.TransactionSigning)
 				{
 					round.SetPhase(phase);
-					await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+					await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.SignTransactionAsync(req));
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 				}
@@ -96,7 +96,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			signedCoinJoin.Sign(key2.GetBitcoinSecret(Network.Main), alice2.Coins.First());
 
 			var req = new TransactionSignaturesRequest(round.Id, new[] { new InputWitnessPair(0, signedCoinJoin.Inputs[0].WitScript) });
-			await using PostRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.SignTransactionAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.WrongCoinjoinSignature, ex.ErrorCode);
 			await arena.StopAsync(CancellationToken.None);

@@ -77,7 +77,6 @@ namespace WalletWasabi.Wallets
 		public KeyManager KeyManager { get; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		public CoinJoinClient ChaumianClient { get; private set; }
-		public NodesGroup Nodes { get; private set; }
 		public ServiceConfiguration ServiceConfiguration { get; private set; }
 		public string WalletName => KeyManager.WalletName;
 
@@ -125,7 +124,6 @@ namespace WalletWasabi.Wallets
 		public void RegisterServices(
 			BitcoinStore bitcoinStore,
 			WasabiSynchronizer syncer,
-			NodesGroup nodes,
 			ServiceConfiguration serviceConfiguration,
 			IFeeProvider feeProvider,
 			IBlockProvider blockProvider)
@@ -138,7 +136,6 @@ namespace WalletWasabi.Wallets
 			try
 			{
 				BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
-				Nodes = Guard.NotNull(nameof(nodes), nodes);
 				Synchronizer = Guard.NotNull(nameof(syncer), syncer);
 				ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 				FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
@@ -184,13 +181,6 @@ namespace WalletWasabi.Wallets
 				if (!Synchronizer.IsRunning)
 				{
 					throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
-				}
-
-				while (!BitcoinStore.IsInitialized)
-				{
-					await Task.Delay(100, cancel).ConfigureAwait(false);
-
-					cancel.ThrowIfCancellationRequested();
 				}
 
 				using (BenchmarkLogger.Measure())
@@ -514,10 +504,10 @@ namespace WalletWasabi.Wallets
 			State = WalletState.WaitingForInit;
 		}
 
-		public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, NodesGroup nodes, string dataDir, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, IBlockProvider blockProvider)
+		public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, IBlockProvider blockProvider)
 		{
 			var wallet = new Wallet(dataDir, network, keyManager);
-			wallet.RegisterServices(bitcoinStore, synchronizer, nodes, serviceConfiguration, feeProvider, blockProvider);
+			wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
 			return wallet;
 		}
 	}
