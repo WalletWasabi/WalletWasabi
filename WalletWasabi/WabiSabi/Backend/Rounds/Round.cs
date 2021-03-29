@@ -38,6 +38,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public Money MinRegistrableAmount => RoundParameters.MinRegistrableAmount;
 		public Money MaxRegistrableAmount => RoundParameters.MaxRegistrableAmount;
 		public uint RegistrableWeightCredentialsPerRequest => RoundParameters.RegistrableWeightCredentialsPerRequest;
+		public uint TotalRegistrableWeightCredentials => RoundParameters.TotalRegistrableWeightCredentials;
 		public FeeRate FeeRate => RoundParameters.FeeRate;
 		public WasabiRandom Random => RoundParameters.Random;
 		public CredentialIssuer AmountCredentialIssuer { get; }
