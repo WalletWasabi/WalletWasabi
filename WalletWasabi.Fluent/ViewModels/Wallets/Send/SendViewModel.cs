@@ -309,9 +309,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private void ValidateToField(IValidationErrors errors)
 		{
 			if (!string.IsNullOrWhiteSpace(To) &&
-				!AddressStringParser.TryParse(To, _owner.Wallet.Network, out BitcoinUrlBuilder? url))
+				!AddressStringParser.TryParse(To, _owner.Wallet.Network, out _))
 			{
 				errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
+			}
+			else if (IsPayJoin && _owner.Wallet.KeyManager.IsHardwareWallet)
+			{
+				errors.Add(ErrorSeverity.Error, "PayJoin is not possible with hardware wallets.");
 			}
 		}
 
@@ -353,6 +357,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 				}
 
+				if (url.UnknowParameters.TryGetValue("pj", out var endPoint))
+				{
+					PayJoinEndPoint = endPoint;
+				}
+				else
+				{
+					PayJoinEndPoint = null;
+				}
+
 				if (url.Address is { })
 				{
 					_transactionInfo.Address = url.Address;
@@ -369,21 +382,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					IsFixedAmount = false;
 				}
 
-				if (url.UnknowParameters.TryGetValue("pj", out var endPoint))
-				{
-					if (!wallet.KeyManager.IsHardwareWallet)
-					{
-						PayJoinEndPoint = endPoint;
-					}
-					else
-					{
-						// Validation error... "Payjoin not available! for hw wallets."
-					}
-				}
-				else
-				{
-					PayJoinEndPoint = null;
-				}
 			}
 			else
 			{
