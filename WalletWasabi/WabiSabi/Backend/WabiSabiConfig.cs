@@ -65,9 +65,9 @@ namespace WalletWasabi.WabiSabi.Backend
 		/// <summary>
 		/// Calculation can be found here https://github.com/zkSNACKs/WalletWasabi/issues/5438.
 		/// </summary>
-		[DefaultValue(399834)]
+		[DefaultValue(399818)]
 		[JsonProperty(PropertyName = "MaxCoinJoinTransactionWeight", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public uint MaxCoinJoinTransactionWeight { get; set; } = 399834;
+		public uint MaxCoinJoinTransactionWeight { get; set; } = 399818;
 
 		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "AllowNotedInputRegistration", DefaultValueHandling = DefaultValueHandling.Populate)]
