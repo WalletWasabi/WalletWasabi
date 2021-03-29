@@ -118,6 +118,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			try
 			{
+				// Do not add the PayJoin client yet, it will be added before broadcasting.
 				var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
 				Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
 			}
