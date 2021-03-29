@@ -3,7 +3,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
-	public class Proof
+	public record Proof
 	{
 		[JsonConstructor]
 		internal Proof(GroupElementVector publicNonces, ScalarVector responses)
