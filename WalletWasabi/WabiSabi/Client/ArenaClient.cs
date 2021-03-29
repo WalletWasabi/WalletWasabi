@@ -109,9 +109,15 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var myInputs = coinsToSign.ToDictionary(c => c.Outpoint);
 			var signedCoinJoin = unsignedCoinJoin.Clone();
-			List<InputWitnessPair> signatures = new();
+			var myInputsFromCoinJoin = signedCoinJoin.Inputs.AsIndexedInputs().Where(input => myInputs.ContainsKey(input.PrevOut)).ToArray();
 
-			foreach (var txInput in signedCoinJoin.Inputs.AsIndexedInputs().Where(input => myInputs.ContainsKey(input.PrevOut)))
+			if (myInputs.Count != myInputsFromCoinJoin.Length)
+			{
+				throw new InvalidOperationException($"Missing inputs. Number of inputs: {myInputs.Count} actual: {myInputsFromCoinJoin.Length}.");
+			}
+
+			List<InputWitnessPair> signatures = new();
+			foreach (var txInput in myInputsFromCoinJoin)
 			{
 				var coin = myInputs[txInput.PrevOut];
 
@@ -123,11 +129,6 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 
 				signatures.Add(new InputWitnessPair(txInput.Index, txInput.WitScript));
-			}
-
-			if (myInputs.Count != signatures.Count)
-			{
-				throw new InvalidOperationException($"Missing signatures. Number of signatures: {signatures.Count} actual: {myInputs.Count}.");
 			}
 
 			await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, signatures)).ConfigureAwait(false);
