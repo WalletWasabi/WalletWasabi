@@ -117,9 +117,9 @@ namespace WalletWasabi.WabiSabi.Client
 
 				signedCoinJoin.Sign(bitcoinSecret, coin);
 
-				if (!txInput.VerifyScript(coin, out _))
+				if (!txInput.VerifyScript(coin, out var error))
 				{
-					throw new InvalidOperationException("Witness is missing.");
+					throw new InvalidOperationException($"Witness is missing. Reason {nameof(ScriptError)} code: {error}.");
 				}
 
 				signatures.Add(new InputWitnessPair(txInput.Index, txInput.WitScript));
@@ -127,7 +127,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			if (myInputs.Count != signatures.Count)
 			{
-				throw new InvalidOperationException("Missing signatures.");
+				throw new InvalidOperationException($"Missing signatures. Number of signatures: {signatures.Count} actual: {myInputs.Count}.");
 			}
 
 			await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, signatures)).ConfigureAwait(false);
