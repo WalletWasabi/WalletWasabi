@@ -176,11 +176,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				if (IsPayJoin)
 				{
-					await BuildPayJoinTransactionAsync(wallet, transactionInfo, broadcaster);
+					await BuildTransactionAsPayJoinAsync(wallet, transactionInfo, broadcaster);
 				}
 				else
 				{
-					await BuildNormalTransactionAsync(wallet, transactionInfo, broadcaster, totalMixedCoinsAmount);
+					await BuildTransactionAsNormalAsync(wallet, transactionInfo, broadcaster, totalMixedCoinsAmount);
 				}
 			}
 			catch (Exception ex)
@@ -190,7 +190,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private async Task BuildNormalTransactionAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster, Money totalMixedCoinsAmount)
+		private async Task BuildTransactionAsNormalAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster, Money totalMixedCoinsAmount)
 		{
 			try
 			{
@@ -214,7 +214,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private async Task BuildPayJoinTransactionAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
+		private async Task BuildTransactionAsPayJoinAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
 		{
 			try
 			{

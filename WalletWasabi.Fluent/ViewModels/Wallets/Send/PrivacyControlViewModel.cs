@@ -75,7 +75,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				if (transactionInfo.PayJoinClient is { })
 				{
-					await BuildPayJoinTransactionAsync(wallet, transactionInfo, broadcaster);
+					await BuildTransactionAsPayJoinAsync(wallet, transactionInfo, broadcaster);
 				}
 				else
 				{
@@ -114,7 +114,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private async Task BuildPayJoinTransactionAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
+		private async Task BuildTransactionAsPayJoinAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
 		{
 			try
 			{
