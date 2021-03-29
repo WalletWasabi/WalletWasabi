@@ -68,6 +68,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private bool _parsingUrl;
 		private bool _updatingCurrentValue;
 		private double _lastXAxisCurrentValue;
+		private FeeRate _feeRate;
 
 		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster, Config config, HttpClientFactory httpClientFactory) : base(NavigationMode.Normal)
 		{
@@ -94,7 +95,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					if (x > 0)
 					{
-						_transactionInfo.FeeRate = new FeeRate(GetYAxisValueFromXAxisCurrentValue(x));
+						_feeRate = new FeeRate(GetYAxisValueFromXAxisCurrentValue(_lastXAxisCurrentValue));
 						SetXAxisCurrentValueIndex(x);
 					}
 				});
@@ -165,6 +166,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
 			var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
 			transactionInfo.Coins = mixedCoins;
+			transactionInfo.FeeRate = _feeRate;
 
 			if (transactionInfo.Amount > totalMixedCoinsAmount)
 			{
