@@ -27,6 +27,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		IncorrectRequestedAmountCredentials,
 		WrongCoinjoinSignature,
 		AliceAlreadyRegistered,
+		NonStandardOutput,
 		TooMuchTotalWeight
 	}
 }
