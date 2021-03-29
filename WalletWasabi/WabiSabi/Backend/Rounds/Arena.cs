@@ -326,7 +326,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, $"Round ({request.RoundId}): Incorrect requested amount credentials.");
 				}
-				if (round.WeightCredentialIssuer.Balance + realAmountCredentialRequests.Delta > Config.TotalRegistrableWeightCredentials)
+				if (round.WeightCredentialIssuer.Balance + realWeightCredentialRequests.Delta > Config.TotalRegistrableWeightCredentials)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchTotalWeight);
 				}
