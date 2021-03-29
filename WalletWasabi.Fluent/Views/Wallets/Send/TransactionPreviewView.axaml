@@ -28,7 +28,7 @@
                            Text="via Bitcoin address"
                            Content="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
             <Separator />
-            <c:PreviewItem Icon="{StaticResource timer_regular}"
+            <c:PreviewItem Icon=""
                            Text="PayJoin will be used to protect your privacy"
                            Content="{Binding PayJoinUrl, FallbackValue=https://testnet.demo.btcpayserver.org/BTC/pj}"
                            IsVisible="{Binding IsPayJoin}" />
