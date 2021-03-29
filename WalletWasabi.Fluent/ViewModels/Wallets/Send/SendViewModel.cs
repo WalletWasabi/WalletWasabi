@@ -95,7 +95,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					if (x > 0)
 					{
-						_feeRate = new FeeRate(GetYAxisValueFromXAxisCurrentValue(_lastXAxisCurrentValue));
+						_feeRate = new FeeRate(GetYAxisValueFromXAxisCurrentValue(x));
 						SetXAxisCurrentValueIndex(x);
 					}
 				});
