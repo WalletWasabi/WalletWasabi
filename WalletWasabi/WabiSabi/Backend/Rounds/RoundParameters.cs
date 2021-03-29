@@ -24,7 +24,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			MaxInputCountByAlice = wabiSabiConfig.MaxInputCountByAlice;
 			MinRegistrableAmount = wabiSabiConfig.MinRegistrableAmount;
 			MaxRegistrableAmount = wabiSabiConfig.MaxRegistrableAmount;
-			RegistrableWeightCredentials = wabiSabiConfig.RegistrableWeightCredentialsPerRequest;
+			RegistrableWeightCredentialsPerRequest = wabiSabiConfig.RegistrableWeightCredentialsPerRequest;
 
 			// Note that input registration timeouts can be modified runtime.
 			ConnectionConfirmationTimeout = wabiSabiConfig.ConnectionConfirmationTimeout;
@@ -47,7 +47,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public uint MaxInputCountByAlice { get; }
 		public Money MinRegistrableAmount { get; }
 		public Money MaxRegistrableAmount { get; }
-		public uint RegistrableWeightCredentials { get; }
+		public uint RegistrableWeightCredentialsPerRequest { get; }
 		public Round? BlameOf { get; }
 		public bool IsBlameRound { get; }
 		public ISet<OutPoint> BlameWhitelist { get; }

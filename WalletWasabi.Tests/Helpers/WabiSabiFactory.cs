@@ -191,7 +191,7 @@ namespace WalletWasabi.Tests.Helpers
 				new[] { amount?.Satoshi ?? alice?.CalculateRemainingAmountCredentials(round!.FeeRate).Satoshi ?? 1000L },
 				zeroPresentables.amountCredentials);
 			var (realWeightCredentialRequest, _) = weClient.CreateRequest(
-				new[] { weight ?? alice?.CalculateRemainingWeightCredentials(round!.RegistrableWeightCredentials) ?? 1000L },
+				new[] { weight ?? alice?.CalculateRemainingWeightCredentials(round!.RegistrableWeightCredentialsPerRequest) ?? 1000L },
 				zeroPresentables.weightCredentials);
 
 			return (realAmountCredentialRequest, realWeightCredentialRequest);
@@ -207,7 +207,7 @@ namespace WalletWasabi.Tests.Helpers
 				new[] { alice?.CalculateRemainingAmountCredentials(round!.FeeRate).Satoshi ?? 1000L },
 				zeroPresentables.amountCredentials);
 			var (realWeightCredentialRequest, _) = weClient.CreateRequest(
-				new[] { alice?.CalculateRemainingWeightCredentials(round!.RegistrableWeightCredentials) ?? 1000L },
+				new[] { alice?.CalculateRemainingWeightCredentials(round!.RegistrableWeightCredentialsPerRequest) ?? 1000L },
 				zeroPresentables.weightCredentials);
 
 			var (zeroAmountCredentialRequest, _) = amClient.CreateRequestForZeroAmount();
@@ -243,7 +243,7 @@ namespace WalletWasabi.Tests.Helpers
 				new[] { alice.CalculateRemainingAmountCredentials(round.FeeRate).Satoshi },
 				zeroPresentables.amountCredentials);
 			var (realWeightCredentialRequest, weVal) = weClient.CreateRequest(
-				new[] { alice.CalculateRemainingWeightCredentials(round.RegistrableWeightCredentials) },
+				new[] { alice.CalculateRemainingWeightCredentials(round.RegistrableWeightCredentialsPerRequest) },
 				zeroPresentables.weightCredentials);
 
 			var (zeroAmountCredentialRequest, _) = amClient.CreateRequestForZeroAmount();
@@ -272,7 +272,7 @@ namespace WalletWasabi.Tests.Helpers
 			var (amCredentialRequest, amValid) = amClient.CreateRequest(
 				new[] { alice?.CalculateRemainingAmountCredentials(round!.FeeRate).Satoshi ?? 1000L },
 				zeroPresentables.amountCredentials);
-			long startingWeightCredentialAmount = alice?.CalculateRemainingWeightCredentials(round!.RegistrableWeightCredentials) ?? 1000L;
+			long startingWeightCredentialAmount = alice?.CalculateRemainingWeightCredentials(round!.RegistrableWeightCredentialsPerRequest) ?? 1000L;
 			var (weCredentialRequest, weValid) = weClient.CreateRequest(
 				new[] { startingWeightCredentialAmount },
 				zeroPresentables.weightCredentials);
@@ -314,7 +314,7 @@ namespace WalletWasabi.Tests.Helpers
 			foreach (var ccresp in ccresps)
 			{
 				var alice = round.Alices.First(x => x.Id == ccresp.aliceId);
-				var startingWeightCredentialAmount = alice.CalculateRemainingWeightCredentials(round!.RegistrableWeightCredentials);
+				var startingWeightCredentialAmount = alice.CalculateRemainingWeightCredentials(round!.RegistrableWeightCredentialsPerRequest);
 				var script = BitcoinFactory.CreateScript();
 				var weight = script.EstimateOutputVsize() * 4;
 				ret.Add(new OutputRegistrationRequest(

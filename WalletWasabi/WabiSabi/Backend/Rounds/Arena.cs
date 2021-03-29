@@ -318,7 +318,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var realAmountCredentialRequests = request.RealAmountCredentialRequests;
 				var realWeightCredentialRequests = request.RealWeightCredentialRequests;
 
-				if (realWeightCredentialRequests.Delta != alice.CalculateRemainingWeightCredentials(round.RegistrableWeightCredentials))
+				if (realWeightCredentialRequests.Delta != alice.CalculateRemainingWeightCredentials(round.RegistrableWeightCredentialsPerRequest))
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials, $"Round ({request.RoundId}): Incorrect requested weight credentials.");
 				}

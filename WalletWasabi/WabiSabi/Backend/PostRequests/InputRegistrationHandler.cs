@@ -117,7 +117,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 			}
 
-			if (inputWeightSum > round.RegistrableWeightCredentials)
+			if (inputWeightSum > round.RegistrableWeightCredentialsPerRequest)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchWeight);
 			}

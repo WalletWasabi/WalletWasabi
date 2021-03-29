@@ -23,13 +23,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			RoundParameters = roundParameters;
 
 			AmountCredentialIssuer = new(new(Random), 2, Random, MaxRegistrableAmount);
-			WeightCredentialIssuer = new(new(Random), 2, Random, RegistrableWeightCredentials);
+			WeightCredentialIssuer = new(new(Random), 2, Random, RegistrableWeightCredentialsPerRequest);
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			WeightCredentialIssuerParameters = WeightCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 
 			Coinjoin = Transaction.Create(Network);
 
-			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{RegistrableWeightCredentials}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
+			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{RegistrableWeightCredentialsPerRequest}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
 		}
 
 		public uint256 Hash { get; }
@@ -37,7 +37,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public uint MaxInputCountByAlice => RoundParameters.MaxInputCountByAlice;
 		public Money MinRegistrableAmount => RoundParameters.MinRegistrableAmount;
 		public Money MaxRegistrableAmount => RoundParameters.MaxRegistrableAmount;
-		public uint RegistrableWeightCredentials => RoundParameters.RegistrableWeightCredentials;
+		public uint RegistrableWeightCredentialsPerRequest => RoundParameters.RegistrableWeightCredentialsPerRequest;
 		public FeeRate FeeRate => RoundParameters.FeeRate;
 		public WasabiRandom Random => RoundParameters.Random;
 		public CredentialIssuer AmountCredentialIssuer { get; }
