@@ -338,7 +338,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		[Fact]
 		public async Task TooMuchWeightAsync()
 		{
-			WabiSabiConfig cfg = new() { RegistrableWeightCredentials = 1 };
+			WabiSabiConfig cfg = new() { RegistrableWeightCredentialsPerRequest = 1 };
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			using Key key = new();

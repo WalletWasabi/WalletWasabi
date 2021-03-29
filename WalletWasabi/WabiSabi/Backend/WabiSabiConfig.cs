@@ -60,7 +60,7 @@ namespace WalletWasabi.WabiSabi.Backend
 		/// </summary>
 		[DefaultValue(1000)]
 		[JsonProperty(PropertyName = "RegistrableWeightCredentials", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public uint RegistrableWeightCredentials { get; set; } = 1_000;
+		public uint RegistrableWeightCredentialsPerRequest { get; set; } = 1_000;
 
 		/// <summary>
 		/// Calculation can be found here https://github.com/zkSNACKs/WalletWasabi/issues/5438.

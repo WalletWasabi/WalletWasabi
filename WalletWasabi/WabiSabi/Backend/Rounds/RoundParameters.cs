@@ -24,7 +24,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			MaxInputCountByAlice = wabiSabiConfig.MaxInputCountByAlice;
 			MinRegistrableAmount = wabiSabiConfig.MinRegistrableAmount;
 			MaxRegistrableAmount = wabiSabiConfig.MaxRegistrableAmount;
-			RegistrableWeightCredentials = wabiSabiConfig.RegistrableWeightCredentials;
+			RegistrableWeightCredentials = wabiSabiConfig.RegistrableWeightCredentialsPerRequest;
 
 			// Note that input registration timeouts can be modified runtime.
 			ConnectionConfirmationTimeout = wabiSabiConfig.ConnectionConfirmationTimeout;
