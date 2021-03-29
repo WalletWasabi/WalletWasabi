@@ -352,6 +352,26 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		}
 
 		[Fact]
+		public async Task TooMuchTotalWeightAsync()
+		{
+			WabiSabiConfig cfg = new() { TotalRegistrableWeightCredentials = 500 };
+			var round = WabiSabiFactory.CreateRound(cfg);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+			using Key key = new();
+
+			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
+
+			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
+			await handler.RegisterInputAsync(req);
+
+			var creq = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.ConfirmConnectionAsync(creq));
+			Assert.Equal(WabiSabiProtocolErrorCode.TooMuchTotalWeight, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
 		public async Task AliceAlreadyRegisteredIntraRoundAsync()
 		{
 			WabiSabiConfig cfg = new();
