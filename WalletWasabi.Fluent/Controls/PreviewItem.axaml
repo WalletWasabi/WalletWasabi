@@ -28,5 +28,8 @@
     <Setter Property="FontSize" Value="14" />
   </Style>
 
+  <Style Selector="c|PreviewItem :is(Control) TextBlock, c|PreviewItem :is(TextBlock)">
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
 
 </Styles>
