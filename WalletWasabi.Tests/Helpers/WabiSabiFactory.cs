@@ -153,13 +153,13 @@ namespace WalletWasabi.Tests.Helpers
 					ai.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
 					ai.NumberOfCredentials,
 					rnd,
-					ai.MaxAmount);
+					ai.MaxAmountPerRequest);
 
 			var wc = new WabiSabiClient(
 					wi.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
 					wi.NumberOfCredentials,
 					rnd,
-					wi.MaxAmount);
+					wi.MaxAmountPerRequest);
 
 			return (ac, wc, ai, wi);
 		}

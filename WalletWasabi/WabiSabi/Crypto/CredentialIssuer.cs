@@ -53,18 +53,20 @@ namespace WalletWasabi.WabiSabi.Crypto
 			CredentialIssuerSecretKey credentialIssuerSecretKey,
 			int numberOfCredentials,
 			WasabiRandom randomNumberGenerator,
-			ulong maxAmount)
+			ulong maxAmountPerRequest,
+			ulong totalBalance)
 		{
-			MaxAmount = maxAmount;
-			RangeProofWidth = (int)Math.Ceiling(Math.Log2(MaxAmount));
+			MaxAmountPerRequest = maxAmountPerRequest;
+			TotalBalance = totalBalance;
+			RangeProofWidth = (int)Math.Ceiling(Math.Log2(maxAmountPerRequest));
 			CredentialIssuerSecretKey = Guard.NotNull(nameof(credentialIssuerSecretKey), credentialIssuerSecretKey);
 			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
 			CredentialIssuerParameters = CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 		}
 
-		public ulong MaxAmount { get; }
-
+		public ulong MaxAmountPerRequest { get; }
+		public ulong TotalBalance { get; }
 		public int RangeProofWidth { get; }
 
 		// Keeps track of the used serial numbers. This is part of
@@ -122,6 +124,13 @@ namespace WalletWasabi.WabiSabi.Crypto
 			if (Balance + registrationRequest.Delta < 0)
 			{
 				throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.NegativeBalance);
+			}
+
+			var additionalBalance = registrationRequest.IsNullRequest ? 0 : registrationRequest.Delta;
+
+			if (additionalBalance > 0 && (ulong)(Balance + additionalBalance) > TotalBalance)
+			{
+				throw new WabiSabiCryptoException(WabiSabiCryptoErrorCode.TotalExceeded);
 			}
 
 			// Check that the range proofs are of the appropriate bitwidth
