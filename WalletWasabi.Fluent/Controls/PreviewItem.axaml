@@ -26,6 +26,7 @@
   <Style Selector="c|PreviewItem /template/ TextBlock#PART_Text">
     <Setter Property="Opacity" Value="0.6" />
     <Setter Property="FontSize" Value="14" />
+    <Setter Property="TextWrapping" Value="Wrap" />
   </Style>
 
   <Style Selector="c|PreviewItem :is(Control) TextBlock, c|PreviewItem :is(TextBlock)">
