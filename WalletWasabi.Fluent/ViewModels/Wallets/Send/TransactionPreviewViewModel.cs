@@ -5,6 +5,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Model;
@@ -17,9 +18,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	[NavigationMetaData(Title = "Transaction Preview")]
 	public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
+		private readonly Wallet _wallet;
+		private readonly TransactionInfo _info;
+
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, TransactionBroadcaster broadcaster,
 			BuildTransactionResult transaction)
 		{
+			_wallet = wallet;
+			_info = info;
 			EnableCancel = true;
 			EnableBack = true;
 
@@ -73,7 +79,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				// Dequeue any coin-joining coins.
 				await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
 
-				await broadcaster.SendTransactionAsync(transactionAuthorizationInfo.Transaction);
+				var finalTransaction = GetFinalTransaction(transactionAuthorizationInfo.Transaction, _info);
+				await broadcaster.SendTransactionAsync(finalTransaction);
 				Navigate().Clear();
 
 				IsBusy = false;
@@ -82,6 +89,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "");
 			}
+		}
+
+		private SmartTransaction GetFinalTransaction(SmartTransaction transaction, TransactionInfo info)
+		{
+			if (info.PayJoinClient is null)
+			{
+				return transaction;
+			}
+
+			var payJoinTransaction = TransactionHelpers.BuildTransaction(_wallet, info.Address, info.Amount, info.Labels, info.FeeRate, info.Coins, false, info.PayJoinClient);
+
+			return payJoinTransaction.Transaction;
 		}
 	}
 }
