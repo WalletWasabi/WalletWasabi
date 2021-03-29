@@ -21,12 +21,12 @@ namespace WalletWasabi.Fluent.Helpers
 				label: labels);
 
 			var txRes = wallet.BuildTransaction(
-				wallet.Kitchen.SaltSoup(),
-				intent,
-				FeeStrategy.CreateFromFeeRate(feeRate),
+				password: wallet.Kitchen.SaltSoup(),
+				payments: intent,
+				feeStrategy: FeeStrategy.CreateFromFeeRate(feeRate),
 				allowUnconfirmed: true,
-				coins.Select(coin => coin.OutPoint),
-				payJoinClient);
+				allowedInputs: coins.Select(coin => coin.OutPoint),
+				payjoinClient: payJoinClient);
 
 			return txRes;
 		}
