@@ -79,7 +79,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 				else
 				{
-					await BuildNormalTransactionAsync(wallet, transactionInfo, broadcaster);
+					await BuildTransactionAsNormalAsync(wallet, transactionInfo, broadcaster);
 				}
 			}
 			catch (Exception ex)
@@ -90,7 +90,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private async Task BuildNormalTransactionAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
+		private async Task BuildTransactionAsNormalAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
 		{
 			try
 			{
