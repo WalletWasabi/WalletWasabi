@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
@@ -14,6 +15,11 @@ namespace WalletWasabi.Fluent.Helpers
 	{
 		public static BuildTransactionResult BuildTransaction(Wallet wallet, BitcoinAddress address, Money amount, SmartLabel labels, FeeRate feeRate, IEnumerable<SmartCoin> coins, bool subtractFee, IPayjoinClient? payJoinClient = null)
 		{
+			if (payJoinClient is { } && subtractFee)
+			{
+				throw new InvalidOperationException("Not possible to subtract the fee.");
+			}
+
 			var intent = new PaymentIntent(
 				destination: address,
 				amount: amount,
@@ -33,6 +39,11 @@ namespace WalletWasabi.Fluent.Helpers
 
 		public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, bool subtractFee = false, bool isPayJoin = false)
 		{
+			if (isPayJoin && subtractFee)
+			{
+				throw new InvalidOperationException("Not possible to subtract the fee.");
+			}
+
 			return BuildTransaction(
 				wallet,
 				transactionInfo.Address,
