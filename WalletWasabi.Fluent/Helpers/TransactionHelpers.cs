@@ -4,6 +4,7 @@ using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 
@@ -28,6 +29,20 @@ namespace WalletWasabi.Fluent.Helpers
 				payJoinClient);
 
 			return txRes;
+		}
+
+		public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, bool subtractFee = false, bool isPayJoin = false)
+		{
+			return BuildTransaction(
+				wallet,
+				transactionInfo.Address,
+				transactionInfo.Amount,
+				transactionInfo.Labels,
+				transactionInfo.FeeRate,
+				transactionInfo.Coins,
+				subtractFee,
+				isPayJoin ? transactionInfo.PayJoinClient : null);
+
 		}
 	}
 }

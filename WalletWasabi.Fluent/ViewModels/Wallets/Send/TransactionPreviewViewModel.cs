@@ -91,14 +91,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private SmartTransaction GetFinalTransaction(SmartTransaction transaction, TransactionInfo info)
+		private SmartTransaction GetFinalTransaction(SmartTransaction transaction, TransactionInfo transactionInfo)
 		{
-			if (info.PayJoinClient is null)
+			if (transactionInfo.PayJoinClient is null)
 			{
 				return transaction;
 			}
 
-			var payJoinTransaction = TransactionHelpers.BuildTransaction(_wallet, info.Address, info.Amount, info.Labels, info.FeeRate, info.Coins, false, info.PayJoinClient);
+			var payJoinTransaction = TransactionHelpers.BuildTransaction(_wallet, transactionInfo, subtractFee: false, isPayJoin: true);
 
 			return payJoinTransaction.Transaction;
 		}

@@ -165,6 +165,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var targetAnonymitySet = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 			var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
 			var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
+			transactionInfo.Coins = mixedCoins;
 
 			if (transactionInfo.Amount > totalMixedCoinsAmount)
 			{
@@ -176,11 +177,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				if (IsPayJoin)
 				{
-					await BuildPayJoinTransactionAsync(wallet, transactionInfo, mixedCoins, broadcaster);
+					await BuildPayJoinTransactionAsync(wallet, transactionInfo, broadcaster);
 				}
 				else
 				{
-					await BuildNormalTransactionAsync(wallet, transactionInfo, mixedCoins, broadcaster, totalMixedCoinsAmount);
+					await BuildNormalTransactionAsync(wallet, transactionInfo, broadcaster, totalMixedCoinsAmount);
 				}
 			}
 			catch (Exception ex)
@@ -190,16 +191,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private async Task BuildNormalTransactionAsync(Wallet wallet, TransactionInfo transactionInfo, List<SmartCoin> coins, TransactionBroadcaster broadcaster, Money totalMixedCoinsAmount)
+		private async Task BuildNormalTransactionAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster, Money totalMixedCoinsAmount)
 		{
 			try
 			{
-				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: false));
+				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo));
 				Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
 			}
 			catch (InsufficientBalanceException)
 			{
-				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: true));
+				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, transactionInfo.Coins, subtractFee: true));
 				var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private, txRes, wallet.Synchronizer.UsdExchangeRate);
 				var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 
@@ -214,11 +215,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private async Task BuildPayJoinTransactionAsync(Wallet wallet, TransactionInfo transactionInfo, List<SmartCoin> coins, TransactionBroadcaster broadcaster)
+		private async Task BuildPayJoinTransactionAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
 		{
 			try
 			{
-				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: false));
+				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo));
 				Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, txRes));
 			}
 			catch (InsufficientBalanceException)
