@@ -20,7 +20,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		{
 			using var cts = new CancellationTokenSource(5_000);
 
-			Dictionary<OSPlatform, string> expectedHashes = new()
+			Dictionary<OSPlatform, string> expectedHashes = new Dictionary<OSPlatform, string>()
 			{
 				{ OSPlatform.Windows, "2cfdd6ae51e345f8c70214d626430c8d236336688a87f7d85fc6f3d6a8392da8" },
 				{ OSPlatform.Linux, "ca1f91593b3c0a99269ecbc0f85aced08e2dec4bf263cfb25429e047e63e38d5" },
