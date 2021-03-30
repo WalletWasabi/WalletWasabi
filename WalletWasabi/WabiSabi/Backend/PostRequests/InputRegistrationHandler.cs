@@ -127,10 +127,15 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 			}
 
+			if (!round.TryAddMoreWeight((uint)inputWeightSum))
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchTotalWeight);
+			}
+
 			var amountCredentialResponse = round.AmountCredentialIssuer.HandleRequest(zeroAmountCredentialRequests);
 			var weightCredentialResponse = round.WeightCredentialIssuer.HandleRequest(zeroWeightCredentialRequests);
 
-			RemoveDuplicateAlices(rounds, alice);
+			RemoveDuplicateAlices(rounds, alice); //TODO: handle removed Alices weight credentials.
 
 			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
 			round.Alices.Add(alice);

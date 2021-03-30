@@ -30,6 +30,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Coinjoin = Transaction.Create(Network);
 
 			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{RegistrableWeightCredentials}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
+
+			RemainingWeightUnits = 399_818; //TODO: move this to WabiSabiConfig.
 		}
 
 		public uint256 Hash { get; }
@@ -65,6 +67,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public DateTimeOffset OutputRegistrationStart { get; private set; }
 		public DateTimeOffset TransactionSigningStart { get; private set; }
 		public DateTimeOffset TransactionBroadcastingStart { get; private set; }
+		public ulong RemainingWeightUnits { get; private set; }
 
 		public void SetPhase(Phase phase)
 		{
@@ -119,6 +122,19 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 
 			return false;
+		}
+
+		public bool TryAddMoreWeight(uint inputWeightSum)
+		{
+			var toSubstract = RegistrableWeightCredentials - inputWeightSum;
+
+			if (RemainingWeightUnits < toSubstract)
+			{
+				return false;
+			}
+
+			RemainingWeightUnits -= toSubstract;
+			return true;
 		}
 	}
 }
