@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             mc:Ignorable="d"
+             x:DataType="vm:SendSuccessViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendSuccessView">
+  <c:ContentArea Title="{Binding Title}"
+                 Caption=""
+                 EnableNext="True" NextContent="Done"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+    <DockPanel>
+      <TextBlock Text="Your transaction has been successfully sent." DockPanel.Dock="Bottom"/>
+
+      <Viewbox MaxHeight="150" Margin="40">
+        <PathIcon Data="{StaticResource copy_confirmed}" Opacity="0.6" />
+      </Viewbox>
+    </DockPanel>
+  </c:ContentArea>
+</UserControl>
