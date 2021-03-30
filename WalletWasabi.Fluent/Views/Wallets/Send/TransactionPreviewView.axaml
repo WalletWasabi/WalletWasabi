@@ -29,11 +29,11 @@
                            Content="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
             <Separator />
             <c:PreviewItem Icon="{StaticResource timer_regular}"
-                           Text="via Bitcoin address"
+                           Text="Bitcoin miners will work hard to confirm your transaction within"
                            Content="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
             <Separator />
             <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                           Text="via Bitcoin address"
+                           Text="for an additional charge of"
                            Content="{Binding FeeText, FallbackValue=235 satoshis (≈55.34 USD)}" />
         </StackPanel>
     </c:ContentArea>
