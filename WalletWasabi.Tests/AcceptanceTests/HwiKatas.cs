@@ -37,7 +37,6 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			// Connect and initialize your Trezor T with the following seed phrase:
 			// more maid moon upgrade layer alter marine screen benefit way cover alcohol
 			// Run this test.
-			// displayaddress request: refuse 1 time
 			// displayaddress request: confirm 2 times
 			// displayaddress request: confirm 1 time
 			// signtx request: refuse 1 time
@@ -68,16 +67,16 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			// Trezor T doesn't support it.
 			await Assert.ThrowsAsync<HwiException>(async () => await client.SendPinAsync(deviceType, devicePath, 1111, cts.Token));
 
-			KeyPath keyPath1 = KeyManager.DefaultAccountKeyPath;
-			KeyPath keyPath2 = KeyManager.DefaultAccountKeyPath.Derive(1);
+			//Because of the Trezor T 2.3.5 firmware update,
+			//we cannot use any longer the KeyManager.DefaultAccountKeyPath
+			//Either this or introduce 2 more static readonly field in KeyManager
+			KeyPath keyPath1 = new("m/84h/0h/0h/0/0");
+			KeyPath keyPath2 = new("m/84h/0h/0h/0/1");
 			ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
 			ExtPubKey xpub2 = await client.GetXpubAsync(deviceType, devicePath, keyPath2, cts.Token);
 			Assert.NotNull(xpub1);
 			Assert.NotNull(xpub2);
 			Assert.NotEqual(xpub1, xpub2);
-
-			// USER SHOULD REFUSE ACTION
-			await Assert.ThrowsAsync<HwiException>(async () => await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token));
 
 			// USER: CONFIRM
 			BitcoinWitPubKeyAddress address1 = await client.DisplayAddressAsync(deviceType, devicePath, keyPath1, cts.Token);
