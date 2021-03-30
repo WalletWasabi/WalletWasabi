@@ -68,7 +68,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task<bool> AuthorizeAsync(Wallet wallet, TransactionAuthorizationInfo transactionAuthorizationInfo)
 		{
-			if (!wallet.KeyManager.IsHardwareWallet && string.IsNullOrEmpty(wallet.Kitchen.SaltSoup()))
+			if (!wallet.KeyManager.IsHardwareWallet && string.IsNullOrEmpty(wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
 			{
 				return true;
 			}
