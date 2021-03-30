@@ -119,7 +119,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			// <-------------------------->
 
 			var states = await satoshiClient.GetAllRoundStatesAsync();
-			Assert.Equal(2, states.Count());
+			Assert.Single(states);
 			foreach (var rs in states)
 			{
 				// Never changes.
