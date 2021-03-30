@@ -5,6 +5,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Model;
@@ -61,20 +62,25 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (authDialogResult.Result)
 			{
-				IsBusy = true;
-
-				// Dequeue any coin-joining coins.
-				await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
-
-				await broadcaster.SendTransactionAsync(transactionAuthorizationInfo.Transaction);
-				Navigate().Clear();
-
-				IsBusy = false;
+				await SendTransaction(wallet, broadcaster, transactionAuthorizationInfo.Transaction);
 			}
 			else if (authDialogResult.Kind == DialogResultKind.Normal)
 			{
 				await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "");
 			}
+		}
+
+		private async Task SendTransaction(Wallet wallet, TransactionBroadcaster broadcaster, SmartTransaction transaction)
+		{
+			IsBusy = true;
+
+			// Dequeue any coin-joining coins.
+			await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
+
+			await broadcaster.SendTransactionAsync(transaction);
+			Navigate().Clear();
+
+			IsBusy = false;
 		}
 	}
 }
