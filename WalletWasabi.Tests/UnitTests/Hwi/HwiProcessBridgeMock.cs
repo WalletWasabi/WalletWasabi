@@ -210,7 +210,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 					response = $"{{\"xpub\": \"{xpub}\"}}\r\n";
 				}
 			}
-			else if (CompareArguments(out bool t1, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h --addr-type wit", false))
+			else if (CompareArguments(out bool t1, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84'/0'/0' --addr-type wit", false))
 			{
 				if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Coldcard or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X)
 				{
@@ -219,7 +219,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 						: "{\"address\": \"bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah\"}\r\n";
 				}
 			}
-			else if (CompareArguments(out bool t2, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h/1 --addr-type wit", false))
+			else if (CompareArguments(out bool t2, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84'/0'/0'/1 --addr-type wit", false))
 			{
 				if (Model is HardwareWalletModels.Trezor_T or HardwareWalletModels.Coldcard or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X)
 				{
@@ -282,11 +282,11 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 			{
 				// The +1 is the space.
 				var keyPath = arguments[(arguments.IndexOf(command) + command.Length + 1)..];
-				if (keyPath == "m/84h/0h/0h")
+				if (keyPath == "m/84'/0'/0'")
 				{
 					extPubKey = "xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M";
 				}
-				else if (keyPath == "m/84h/0h/0h/1")
+				else if (keyPath == "m/84'/0'/0'/1")
 				{
 					extPubKey = "xpub6FJS1ne3STcKdQ9JLXNzZXidmCNZ9dxLiy7WVvsRkcmxjJsrDKJKEAXq4MGyEBM3vHEw2buqXezfNK5SNBrkwK7Fxjz1TW6xzRr2pUyMWFu";
 				}

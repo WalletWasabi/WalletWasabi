@@ -123,7 +123,7 @@ namespace WalletWasabi.Hwi
 
 		private async Task<ExtPubKey> GetXpubImplAsync(HardwareWalletModels? deviceType, string? devicePath, HDFingerprint? fingerprint, KeyPath keyPath, CancellationToken cancel)
 		{
-			string keyPathString = keyPath.ToString(true, "h");
+			string keyPathString = keyPath.ToString(true, "'");
 			var response = await SendCommandAsync(
 				options: BuildOptions(deviceType, devicePath, fingerprint),
 				command: HwiCommands.GetXpub,
@@ -147,7 +147,7 @@ namespace WalletWasabi.Hwi
 			var response = await SendCommandAsync(
 				options: BuildOptions(deviceType, devicePath, fingerprint),
 				command: HwiCommands.DisplayAddress,
-				commandArguments: $"--path {keyPath.ToString(true, "h")} --addr-type wit",
+				commandArguments: $"--path {keyPath.ToString(true, "'")} --addr-type wit",
 				openConsole: false,
 				cancel).ConfigureAwait(false);
 
