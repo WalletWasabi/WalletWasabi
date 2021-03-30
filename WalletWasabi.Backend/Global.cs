@@ -92,7 +92,7 @@ namespace WalletWasabi.Backend
 			IndexBuilderService.Synchronize();
 			Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
 
-			await Coordinator.MakeSureTwoRunningRoundsAsync();
+			await Coordinator.MakeSureInputregistrableRoundRunningAsync();
 			Logger.LogInfo("Chaumian CoinJoin Coordinator is successfully initialized and started two new rounds.");
 		}
 

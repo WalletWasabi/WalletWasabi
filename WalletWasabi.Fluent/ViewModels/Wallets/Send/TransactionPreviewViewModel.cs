@@ -62,7 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			if (authResult)
 			{
 				await SendTransaction(wallet, broadcaster, transactionAuthorizationInfo.Transaction);
-				Navigate().Clear();
+				Navigate().To(new SendSuccessViewModel());
 			}
 		}
 
