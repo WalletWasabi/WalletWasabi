@@ -43,6 +43,8 @@ namespace WalletWasabi.WabiSabi.Crypto
 	/// </remarks>
 	public class CredentialIssuer
 	{
+		public const int CredentialsPerRequest = 2;
+
 		/// <summary>
 		/// Initializes a new instance of the CredentialIssuer class.
 		/// </summary>
@@ -58,7 +60,11 @@ namespace WalletWasabi.WabiSabi.Crypto
 			MaxAmount = maxAmount;
 			RangeProofWidth = (int)Math.Ceiling(Math.Log2(MaxAmount));
 			CredentialIssuerSecretKey = Guard.NotNull(nameof(credentialIssuerSecretKey), credentialIssuerSecretKey);
-			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
+			if (numberOfCredentials != CredentialsPerRequest)
+			{
+				throw new ArgumentNullException(nameof(numberOfCredentials), $"Parameter must be equal to {CredentialsPerRequest}.");
+			}
+			NumberOfCredentials = numberOfCredentials;
 			CredentialIssuerParameters = CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 		}
