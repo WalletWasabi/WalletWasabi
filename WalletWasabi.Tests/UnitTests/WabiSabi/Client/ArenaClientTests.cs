@@ -128,10 +128,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			Assert.False(round.Coinjoin.HasWitness);
 
 			await apiClient.SignTransactionAsync(round.Id, alice1.Coins.ToArray(), new BitcoinSecret(key1, Network.Main), coinjoin);
-			Assert.False(round.Coinjoin.Inputs.All(i => i.HasWitScript()));
+			Assert.True(round.Coinjoin.Inputs.Where(i => alice1.Coins.Select(c => c.Outpoint).Contains(i.PrevOut)).All(i => i.HasWitScript()));
 
 			await apiClient.SignTransactionAsync(round.Id, alice2.Coins.ToArray(), new BitcoinSecret(key2, Network.Main), coinjoin);
-			Assert.True(round.Coinjoin.Inputs.All(i => i.HasWitScript()));
+			Assert.True(round.Coinjoin.Inputs.Where(i => alice2.Coins.Select(c => c.Outpoint).Contains(i.PrevOut)).All(i => i.HasWitScript()));
 		}
 	}
 }
