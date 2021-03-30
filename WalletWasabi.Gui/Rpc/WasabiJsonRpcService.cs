@@ -167,6 +167,19 @@ namespace WalletWasabi.Gui.Rpc
 			};
 		}
 
+		[JsonRpcMethod("broadcast")]
+		public async Task<object> SendRawTransactionAsync(string txHex)
+		{
+			txHex = Guard.Correct(txHex);
+			var smartTx = new SmartTransaction(Transaction.Parse(txHex, Global.Network), Height.Mempool);
+
+			await Global.TransactionBroadcaster.SendTransactionAsync(smartTx).ConfigureAwait(false);
+			return new
+			{
+				txid = smartTx.Transaction.GetHash()
+			};
+		}
+
 		[JsonRpcMethod("gethistory")]
 		public object[] GetHistory()
 		{
