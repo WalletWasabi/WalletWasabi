@@ -65,6 +65,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public DateTimeOffset OutputRegistrationStart { get; private set; }
 		public DateTimeOffset TransactionSigningStart { get; private set; }
 		public DateTimeOffset TransactionBroadcastingStart { get; private set; }
+		public int InitialInputVsizeAllocation { get; set; } = 99954; // TODO compute as CoinjoinState.Parameters.MaxWeight - CoinjoinState.Parameters.SharedOverhead, mutable for testing until then
+		public int RemainingInputVsizeAllocation => InitialInputVsizeAllocation - Alices.Count() * (int)((RegistrableWeightCredentials+3)/4); // TODO remove weight
 
 		public void SetPhase(Phase phase)
 		{

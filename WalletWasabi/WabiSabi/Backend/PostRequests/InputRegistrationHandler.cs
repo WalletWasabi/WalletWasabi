@@ -79,9 +79,8 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 			}
 
-			var alice = new Alice(coinRoundSignaturePairs);
+			var coins = coinRoundSignaturePairs.Select(x => x.Key);
 
-			var coins = alice.Coins;
 			if (round.MaxInputCountByAlice < coins.Count())
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooManyInputs);
@@ -91,9 +90,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNotWhitelisted);
 			}
 
-			var inputValueSum = Money.Zero;
-			var inputWeightSum = 0;
-			foreach (var coinRoundSignaturePair in alice.CoinRoundSignaturePairs)
+			foreach (var coinRoundSignaturePair in coinRoundSignaturePairs)
 			{
 				var coin = coinRoundSignaturePair.Key;
 				var signature = coinRoundSignaturePair.Value;
@@ -103,22 +100,20 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongRoundSignature);
 				}
-				inputValueSum += coin.TxOut.Value;
-
-				// Convert conservative P2WPKH size in virtual bytes to weight units.
-				inputWeightSum += Constants.WitnessScaleFactor * coin.TxOut.ScriptPubKey.EstimateInputVsize();
 			}
 
-			if (inputValueSum < round.MinRegistrableAmount)
+			var alice = new Alice(coinRoundSignaturePairs);
+
+			if (alice.TotalInputAmount < round.MinRegistrableAmount)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
 			}
-			if (inputValueSum > round.MaxRegistrableAmount)
+			if (alice.TotalInputAmount > round.MaxRegistrableAmount)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 			}
 
-			if (inputWeightSum > round.RegistrableWeightCredentials)
+			if (alice.TotalInputVsize > round.RegistrableWeightCredentials)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchWeight);
 			}
@@ -128,6 +123,10 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 			}
 
+			if (round.RemainingInputVsizeAllocation < (round.RegistrableWeightCredentials+3)/4) // TODO standardize on vsize
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchTotalWeight);
+			}
 			var commitAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(zeroAmountCredentialRequests);
 			var commitWeightCredentialResponse = round.WeightCredentialIssuer.PrepareResponse(zeroWeightCredentialRequests);
 
