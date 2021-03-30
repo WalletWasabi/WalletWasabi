@@ -127,7 +127,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			Assert.False(round.Coinjoin.HasWitness);
 
-			// Trying to sign coins with the wrong secret.
 			await apiClient.SignTransactionAsync(round.Id, alice1.Coins.ToArray(), new BitcoinSecret(key1, Network.Main), coinjoin);
 			Assert.False(round.Coinjoin.Inputs.All(i => i.HasWitScript()));
 
