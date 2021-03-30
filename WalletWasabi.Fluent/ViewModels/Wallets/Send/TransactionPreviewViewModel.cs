@@ -81,7 +81,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				var finalTransaction = GetFinalTransaction(transactionAuthorizationInfo.Transaction, _info);
 				await broadcaster.SendTransactionAsync(finalTransaction);
-				Navigate().Clear();
+				Navigate().To(new SendSuccessViewModel());
 
 				IsBusy = false;
 			}

@@ -34,11 +34,11 @@
                            IsVisible="{Binding IsPayJoin}" />
             <Separator IsVisible="{Binding IsPayJoin}" />
             <c:PreviewItem Icon="{StaticResource timer_regular}"
-                           Text="via Bitcoin address"
-                           Content="{Binding ConfirmationTimeText, FallbackValue=~20 minutes}" />
+                           Text="Bitcoin miners will work hard to confirm your transaction within"
+                           Content="{Binding ConfirmationTimeText, FallbackValue=~20 minutes }" />
             <Separator />
             <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                           Text="via Bitcoin address"
+                           Text="for an additional charge of"
                            Content="{Binding FeeText, FallbackValue=235 satoshis (≈55.34 USD)}" />
         </StackPanel>
     </c:ContentArea>
