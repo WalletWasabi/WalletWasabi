@@ -57,17 +57,31 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private async Task OnNext(Wallet wallet, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)
 		{
 			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
-			var authDialog = AuthorizationHelpers.GetAuthorizationDialog(wallet, transactionAuthorizationInfo);
-			var authDialogResult = await NavigateDialog(authDialog, authDialog.DefaultTarget);
 
-			if (authDialogResult.Result)
+			var authResult = await AuthorizeAsync(wallet, transactionAuthorizationInfo);
+
+			if (authResult)
 			{
 				await SendTransaction(wallet, broadcaster, transactionAuthorizationInfo.Transaction);
 			}
-			else if (authDialogResult.Kind == DialogResultKind.Normal)
+		}
+
+		private async Task<bool> AuthorizeAsync(Wallet wallet, TransactionAuthorizationInfo transactionAuthorizationInfo)
+		{
+			if (!wallet.KeyManager.IsHardwareWallet && string.IsNullOrEmpty(wallet.Kitchen.SaltSoup()))
+			{
+				return true;
+			}
+
+			var authDialog = AuthorizationHelpers.GetAuthorizationDialog(wallet, transactionAuthorizationInfo);
+			var authDialogResult = await NavigateDialog(authDialog, authDialog.DefaultTarget);
+
+			if (!authDialogResult.Result && authDialogResult.Kind == DialogResultKind.Normal)
 			{
 				await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "");
 			}
+
+			return authDialogResult.Result;
 		}
 
 		private async Task SendTransaction(Wallet wallet, TransactionBroadcaster broadcaster, SmartTransaction transaction)
