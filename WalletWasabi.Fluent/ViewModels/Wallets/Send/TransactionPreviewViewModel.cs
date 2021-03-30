@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -63,6 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			if (authResult)
 			{
 				await SendTransaction(wallet, broadcaster, transactionAuthorizationInfo.Transaction);
+				Navigate().Clear();
 			}
 		}
 
@@ -92,7 +92,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
 
 			await broadcaster.SendTransactionAsync(transaction);
-			Navigate().Clear();
 
 			IsBusy = false;
 		}
