@@ -67,7 +67,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
 
 				await broadcaster.SendTransactionAsync(transactionAuthorizationInfo.Transaction);
-				Navigate().Clear();
+				Navigate().To(new SendSuccessViewModel());
 
 				IsBusy = false;
 			}

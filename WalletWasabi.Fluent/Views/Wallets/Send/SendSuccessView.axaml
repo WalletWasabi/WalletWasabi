@@ -9,14 +9,13 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendSuccessView">
   <c:ContentArea Title="{Binding Title}"
-                 Caption=""
                  EnableNext="True" NextContent="Done"
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
-    <DockPanel>
-      <TextBlock Text="Your transaction has been successfully sent." DockPanel.Dock="Bottom"/>
+    <DockPanel VerticalAlignment="Center">
+      <TextBlock Text="Your transaction has been successfully sent." DockPanel.Dock="Bottom" TextAlignment="Center" TextWrapping="Wrap"/>
 
       <Viewbox MaxHeight="150" Margin="40">
-        <PathIcon Data="{StaticResource copy_confirmed}" Opacity="0.6" />
+        <PathIcon Data="{StaticResource copy_confirmed}" Opacity="0.6" Foreground="{DynamicResource SystemAccentColor}"/>
       </Viewbox>
     </DockPanel>
   </c:ContentArea>

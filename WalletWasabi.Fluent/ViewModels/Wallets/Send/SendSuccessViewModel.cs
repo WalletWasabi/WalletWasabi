@@ -3,7 +3,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
-	[NavigationMetaData(Title = "Send - Success")]
+	[NavigationMetaData(Title = "Payment successful")]
 	public partial class SendSuccessViewModel : RoutableViewModel
 	{
 		public SendSuccessViewModel()
