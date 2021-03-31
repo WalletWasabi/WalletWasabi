@@ -53,18 +53,14 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// <param name="randomNumberGenerator">The random number generator.</param>
 		public CredentialIssuer(
 			CredentialIssuerSecretKey credentialIssuerSecretKey,
-			int numberOfCredentials,
 			WasabiRandom randomNumberGenerator,
-			ulong maxAmount)
+			ulong maxAmount,
+			int numberOfCredentials = CredentialsPerRequest)
 		{
 			MaxAmount = maxAmount;
 			RangeProofWidth = (int)Math.Ceiling(Math.Log2(MaxAmount));
 			CredentialIssuerSecretKey = Guard.NotNull(nameof(credentialIssuerSecretKey), credentialIssuerSecretKey);
-			if (numberOfCredentials != CredentialsPerRequest)
-			{
-				throw new ArgumentNullException(nameof(numberOfCredentials), $"Parameter must be equal to {CredentialsPerRequest}.");
-			}
-			NumberOfCredentials = numberOfCredentials;
+			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 2, 3);
 			CredentialIssuerParameters = CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 		}

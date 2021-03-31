@@ -22,8 +22,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			RoundParameters = roundParameters;
 
-			AmountCredentialIssuer = new(new(Random), 2, Random, MaxRegistrableAmount);
-			WeightCredentialIssuer = new(new(Random), 2, Random, RegistrableWeightCredentials);
+			AmountCredentialIssuer = new(new(Random), Random, MaxRegistrableAmount);
+			WeightCredentialIssuer = new(new(Random), Random, RegistrableWeightCredentials);
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			WeightCredentialIssuerParameters = WeightCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 

@@ -41,10 +41,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
 
 			var rnd = new InsecureRandom();
-			var protocolCredentialNumber = 2;
+			var protocolCredentialNumber = CredentialIssuer.CredentialsPerRequest;
 			var protocolMaxWeightPerAlice = 1_000L;
-			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, protocolCredentialNumber, rnd, 4_300_000_000_000ul);
-			var weightClient = new WabiSabiClient(round.WeightCredentialIssuerParameters, protocolCredentialNumber, rnd, (ulong)protocolMaxWeightPerAlice);
+			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, rnd, 4_300_000_000_000ul);
+			var weightClient = new WabiSabiClient(round.WeightCredentialIssuerParameters, rnd, (ulong)protocolMaxWeightPerAlice);
 
 			var apiClient = new ArenaClient(amountClient, weightClient, coordinator);
 
@@ -106,8 +106,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
 
 			var rnd = new InsecureRandom();
-			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, 2, rnd, 4300000000000ul);
-			var weightClient = new WabiSabiClient(round.WeightCredentialIssuerParameters, 2, rnd, 2000ul);
+			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, rnd, 4300000000000ul);
+			var weightClient = new WabiSabiClient(round.WeightCredentialIssuerParameters, rnd, 2000ul);
 			var apiClient = new ArenaClient(amountClient, weightClient, coordinator);
 
 			round.SetPhase(Phase.TransactionSigning);

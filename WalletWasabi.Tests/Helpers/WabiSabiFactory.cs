@@ -147,17 +147,15 @@ namespace WalletWasabi.Tests.Helpers
 		public static (WabiSabiClient amountClient, WabiSabiClient weightClient, CredentialIssuer amountIssuer, CredentialIssuer weightIssuer) CreateWabiSabiClientsAndIssuers(Round? round)
 		{
 			var rnd = new InsecureRandom();
-			var ai = round?.AmountCredentialIssuer ?? new CredentialIssuer(new CredentialIssuerSecretKey(rnd), 2, rnd, 4300000000000);
-			var wi = round?.WeightCredentialIssuer ?? new CredentialIssuer(new CredentialIssuerSecretKey(rnd), 2, rnd, 2000ul);
+			var ai = round?.AmountCredentialIssuer ?? new CredentialIssuer(new CredentialIssuerSecretKey(rnd), rnd, 4300000000000);
+			var wi = round?.WeightCredentialIssuer ?? new CredentialIssuer(new CredentialIssuerSecretKey(rnd), rnd, 2000ul);
 			var ac = new WabiSabiClient(
 					ai.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
-					ai.NumberOfCredentials,
 					rnd,
 					ai.MaxAmount);
 
 			var wc = new WabiSabiClient(
 					wi.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters(),
-					wi.NumberOfCredentials,
 					rnd,
 					wi.MaxAmount);
 

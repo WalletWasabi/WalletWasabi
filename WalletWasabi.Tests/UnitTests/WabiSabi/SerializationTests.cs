@@ -154,12 +154,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 				new MoneySatoshiJsonConverter()
 			};
 
-			var numberOfCredentials = 2;
+			var numberOfCredentials = CredentialIssuer.CredentialsPerRequest;
 			using var rnd = new SecureRandom();
 			var sk = new CredentialIssuerSecretKey(rnd);
 
-			var issuer = new CredentialIssuer(sk, numberOfCredentials, rnd, 4300000000000);
-			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), numberOfCredentials, rnd, 4300000000000);
+			var issuer = new CredentialIssuer(sk, rnd, 4300000000000);
+			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
 			(CredentialsRequest credentialRequest, CredentialsResponseValidation validationData) = client.CreateRequestForZeroAmount();
 			var credentialResponse = issuer.HandleRequest(credentialRequest);
 			client.HandleResponse(credentialResponse, validationData);
