@@ -74,9 +74,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (authResult)
 			{
+				IsBusy = true;
+
 				try
 				{
-					var finalTransaction = GetFinalTransaction(transactionAuthorizationInfo.Transaction, _info);
+					var finalTransaction = await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
 					await SendTransaction(wallet, broadcaster, finalTransaction);
 					Navigate().To(new SendSuccessViewModel());
 				}
@@ -84,6 +86,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(), "Wasabi was unable to send your transaction.");
 				}
+
+				IsBusy = false;
 			}
 		}
 
@@ -107,24 +111,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task SendTransaction(Wallet wallet, TransactionBroadcaster broadcaster, SmartTransaction transaction)
 		{
-			IsBusy = true;
-
 			// Dequeue any coin-joining coins.
 			await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
 
 			await broadcaster.SendTransactionAsync(transaction);
-
-			IsBusy = false;
 		}
 
-		private SmartTransaction GetFinalTransaction(SmartTransaction transaction, TransactionInfo transactionInfo)
+		private async Task<SmartTransaction> GetFinalTransactionAsync(SmartTransaction transaction, TransactionInfo transactionInfo)
 		{
 			if (transactionInfo.PayJoinClient is null)
 			{
 				return transaction;
 			}
 
-			var payJoinTransaction = TransactionHelpers.BuildTransaction(_wallet, transactionInfo, subtractFee: false, isPayJoin: true);
+			var payJoinTransaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo, subtractFee: false, isPayJoin: true));
 
 			return payJoinTransaction.Transaction;
 		}
