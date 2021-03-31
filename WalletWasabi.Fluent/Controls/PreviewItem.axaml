@@ -2,35 +2,40 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="using:WalletWasabi.Fluent.Controls">
 
-  <Style Selector="c|PreviewItem">
-    <Setter Property="Template">
-      <ControlTemplate>
-        <DockPanel>
-          <PathIcon Width="{TemplateBinding IconSize}" Height="{TemplateBinding IconSize}" Data="{TemplateBinding Icon}"
-                    Foreground="{DynamicResource SystemAccentColor}"
-                    DockPanel.Dock="Left"/>
-          <DockPanel DockPanel.Dock="Right" Margin="30 0 0 0">
-            <TextBlock Name="PART_Text" Text="{TemplateBinding Text}" DockPanel.Dock="Top" Margin="0 0 0 5"/>
-            <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" DockPanel.Dock="Bottom"/>
-          </DockPanel>
-        </DockPanel>
-      </ControlTemplate>
-    </Setter>
-  </Style>
+    <Style Selector="c|PreviewItem">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <DockPanel>
+                    <PathIcon Width="{TemplateBinding IconSize}" Height="{TemplateBinding IconSize}"
+                              Data="{TemplateBinding Icon}" Opacity="0.6"
+                              DockPanel.Dock="Left" />
+                    <DockPanel DockPanel.Dock="Right" Margin="30 0 0 0">
+                        <TextBlock Name="PART_Text" Text="{TemplateBinding Text}" DockPanel.Dock="Top" Margin="0 0 0 5" />
+                        <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}" DockPanel.Dock="Bottom" />
+                    </DockPanel>
+                </DockPanel>
+            </ControlTemplate>
+        </Setter>
+    </Style>
 
-  <Style Selector="c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="TextBlock.FontSize" Value="14" />
-    <Setter Property="Opacity" Value="0.85" />
-  </Style>
+    <Style Selector="c|PreviewItem /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="TextBlock.FontSize" Value="14" />
+        <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemAccentColor}" />
+    </Style>
 
-  <Style Selector="c|PreviewItem /template/ TextBlock#PART_Text">
-    <Setter Property="Opacity" Value="0.6" />
-    <Setter Property="FontSize" Value="14" />
-    <Setter Property="TextWrapping" Value="Wrap" />
-  </Style>
+    <Style Selector="c|PreviewItem /template/ TextBlock#PART_Text">
+        <Setter Property="Opacity" Value="0.6" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
 
-  <Style Selector="c|PreviewItem :is(Control) TextBlock, c|PreviewItem :is(TextBlock)">
-    <Setter Property="TextWrapping" Value="Wrap" />
-  </Style>
+    <Style Selector="c|PreviewItem :is(Control) TextBlock, c|PreviewItem :is(TextBlock)">
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="c|PreviewItem :is(Control) c|TagControl">
+        <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+    </Style>
 
 </Styles>
