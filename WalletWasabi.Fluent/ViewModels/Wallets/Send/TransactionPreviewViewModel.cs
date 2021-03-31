@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -69,26 +68,45 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private async Task OnNext(Wallet wallet, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)
 		{
 			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
+
+			var authResult = await AuthorizeAsync(wallet, transactionAuthorizationInfo);
+
+			if (authResult)
+			{
+				var finalTransaction = GetFinalTransaction(transactionAuthorizationInfo.Transaction, _info);
+				await SendTransaction(wallet, broadcaster, finalTransaction);
+				Navigate().To(new SendSuccessViewModel());
+			}
+		}
+
+		private async Task<bool> AuthorizeAsync(Wallet wallet, TransactionAuthorizationInfo transactionAuthorizationInfo)
+		{
+			if (!wallet.KeyManager.IsHardwareWallet && string.IsNullOrEmpty(wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
+			{
+				return true;
+			}
+
 			var authDialog = AuthorizationHelpers.GetAuthorizationDialog(wallet, transactionAuthorizationInfo);
 			var authDialogResult = await NavigateDialog(authDialog, authDialog.DefaultTarget);
 
-			if (authDialogResult.Result)
-			{
-				IsBusy = true;
-
-				// Dequeue any coin-joining coins.
-				await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
-
-				var finalTransaction = GetFinalTransaction(transactionAuthorizationInfo.Transaction, _info);
-				await broadcaster.SendTransactionAsync(finalTransaction);
-				Navigate().To(new SendSuccessViewModel());
-
-				IsBusy = false;
-			}
-			else if (authDialogResult.Kind == DialogResultKind.Normal)
+			if (!authDialogResult.Result && authDialogResult.Kind == DialogResultKind.Normal)
 			{
 				await ShowErrorAsync("Authorization", "The Authorization has failed, please try again.", "");
 			}
+
+			return authDialogResult.Result;
+		}
+
+		private async Task SendTransaction(Wallet wallet, TransactionBroadcaster broadcaster, SmartTransaction transaction)
+		{
+			IsBusy = true;
+
+			// Dequeue any coin-joining coins.
+			await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
+
+			await broadcaster.SendTransactionAsync(transaction);
+
+			IsBusy = false;
 		}
 
 		private SmartTransaction GetFinalTransaction(SmartTransaction transaction, TransactionInfo transactionInfo)
