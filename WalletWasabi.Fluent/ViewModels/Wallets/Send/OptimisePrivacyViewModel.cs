@@ -84,12 +84,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 						_privacySuggestions.Add(new PrivacySuggestionControlViewModel(
 							_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
-							PrivacyOptimisationLevel.Better, "Improved Privacy"));
+							PrivacyOptimisationLevel.Better, _wallet.Synchronizer.UsdExchangeRate, "Improved Privacy"));
 					}
 
 					_defaultSelection = new PrivacySuggestionControlViewModel(
 						_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), _requestedTransaction,
-						PrivacyOptimisationLevel.Standard);
+						PrivacyOptimisationLevel.Standard, _wallet.Synchronizer.UsdExchangeRate);
 
 					_privacySuggestions.Add(_defaultSelection);
 
@@ -102,7 +102,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					_privacySuggestions.Add(new PrivacySuggestionControlViewModel(
 						_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
-						PrivacyOptimisationLevel.Better, "Improved Privacy"));
+						PrivacyOptimisationLevel.Better, _wallet.Synchronizer.UsdExchangeRate, "Improved Privacy"));
 
 					SelectedPrivacySuggestion = _defaultSelection;
 
