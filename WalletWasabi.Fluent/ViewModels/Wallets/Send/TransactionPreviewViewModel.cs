@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -73,9 +74,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (authResult)
 			{
-				var finalTransaction = GetFinalTransaction(transactionAuthorizationInfo.Transaction, _info);
-				await SendTransaction(wallet, broadcaster, finalTransaction);
-				Navigate().To(new SendSuccessViewModel());
+				try
+				{
+					var finalTransaction = GetFinalTransaction(transactionAuthorizationInfo.Transaction, _info);
+					await SendTransaction(wallet, broadcaster, finalTransaction);
+					Navigate().To(new SendSuccessViewModel());
+				}
+				catch (Exception ex)
+				{
+					await ShowErrorAsync("Transaction", ex.ToUserFriendlyString(), "Wasabi was unable to send your transaction.");
+				}
 			}
 		}
 
