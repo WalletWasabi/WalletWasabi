@@ -70,6 +70,29 @@ namespace WalletWasabi.WabiSabi.Client
 			await RequestHandler.RemoveInputAsync(new InputsRemovalRequest(roundId, aliceId)).ConfigureAwait(false);
 		}
 
+		public async Task RegisterOutputAsync(Guid roundId, TxOut output, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Credential> weightCredentialsToPresent)
+		{
+			var presentedAmount = amountCredentialsToPresent.Take(2).Sum(x => (long)x.Amount.ToUlong());
+			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
+				new[] { presentedAmount - output.Value.Satoshi },
+				amountCredentialsToPresent.Take(2));
+
+			var presentedWeight = weightCredentialsToPresent.Take(2).Sum(x => (long)x.Amount.ToUlong());
+			var (realWeightCredentialRequest, realWeightCredentialResponseValidation) = WeightCredentialClient.CreateRequest(
+				new[] { presentedWeight - (long)output.GetWeight() },
+				weightCredentialsToPresent.Take(2));
+
+			var outputRegistrationResponse = await RequestHandler.RegisterOutputAsync(
+				new OutputRegistrationRequest(
+					roundId,
+					output.ScriptPubKey,
+					realAmountCredentialRequest,
+					realWeightCredentialRequest));
+
+			AmountCredentialClient.HandleResponse(outputRegistrationResponse.AmountCredentials, realAmountCredentialResponseValidation);
+			WeightCredentialClient.HandleResponse(outputRegistrationResponse.WeightCredentials, realWeightCredentialResponseValidation);
+		}
+
 		public async Task ConfirmConnectionAsync(Guid roundId, Guid aliceId, IEnumerable<long> inputsRegistrationWeight, IEnumerable<Credential> credentialsToPresent, IEnumerable<Money> newAmount)
 		{
 			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(

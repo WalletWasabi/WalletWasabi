@@ -492,5 +492,11 @@ namespace NBitcoin
 
 			return instance;
 		}
+
+		public static int GetWeight(this TxOut output)
+		{
+			const int WITNESS_SCALE_FACTOR = 4;
+			return WITNESS_SCALE_FACTOR * Constants.OutputSizeInBytes;
+		}
 	}
 }
