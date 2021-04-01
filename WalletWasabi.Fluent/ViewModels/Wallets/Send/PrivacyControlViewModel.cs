@@ -95,7 +95,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			try
 			{
 				var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
-				Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
+				Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, transactionResult));
 			}
 			catch (InsufficientBalanceException)
 			{
@@ -105,7 +105,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (result.Result)
 				{
-					Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
+					Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, transactionResult));
 				}
 				else
 				{

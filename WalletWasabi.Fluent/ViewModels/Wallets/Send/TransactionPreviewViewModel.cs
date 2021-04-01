@@ -32,7 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			var destinationAmount = transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 			var btcAmountText = $"{destinationAmount} bitcoins ";
-			var fiatAmountText = $"(≈{(destinationAmount * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD) ";
+			var fiatAmountText = destinationAmount.GenerateFiatText(wallet.Synchronizer.UsdExchangeRate, "USD");
 			AmountText = $"{btcAmountText}{fiatAmountText}";
 
 			Labels = info.Labels.Labels.ToArray();
@@ -43,8 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			var fee = transaction.Fee;
 			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
-			var fiatFeeText =
-				$"(≈{(fee.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD)";
+			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(wallet.Synchronizer.UsdExchangeRate, "USD");
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
 			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
