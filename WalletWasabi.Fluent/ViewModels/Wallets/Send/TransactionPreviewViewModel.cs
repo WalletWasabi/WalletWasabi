@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
-using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -59,7 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			Labels = _info.Labels.Concat(_info.FinalLabels).ToArray();
+			Labels = _info.Labels.Concat(_info.PocketLabels).ToArray();
 		}
 
 		private async Task OnNext(Wallet wallet, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)

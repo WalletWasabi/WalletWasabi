@@ -109,15 +109,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			base.OnNavigatedFrom(isInHistory);
 
-			var pocketLabels = Pockets.Where(x => x.IsSelected).Select(x => x.Labels);
+			var selectedPocketLabels = Pockets.Where(x => x.IsSelected).Select(x => x.Labels);
 
-			List<string> finalLabel = new();
-			foreach (var labels in pocketLabels)
+			List<string> pocketLabels = new();
+			foreach (var labels in selectedPocketLabels)
 			{
-				finalLabel.AddRange(labels);
+				pocketLabels.AddRange(labels);
 			}
 
-			_transactionInfo.FinalLabels = new SmartLabel(finalLabel);
+			_transactionInfo.PocketLabels = new SmartLabel(pocketLabels);
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
