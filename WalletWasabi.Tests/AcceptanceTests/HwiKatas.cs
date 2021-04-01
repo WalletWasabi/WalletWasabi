@@ -37,7 +37,7 @@ namespace WalletWasabi.Tests.AcceptanceTests
 			// Connect and initialize your Trezor T with the following seed phrase:
 			// more maid moon upgrade layer alter marine screen benefit way cover alcohol
 			// Run this test.
-			// displayaddress request: confirm 2 times
+			// displayaddress request: confirm 1 time
 			// displayaddress request: confirm 1 time
 			// signtx request: refuse 1 time
 			// signtx request: Hold to confirm
@@ -69,7 +69,6 @@ namespace WalletWasabi.Tests.AcceptanceTests
 
 			// Because of the Trezor T 2.3.5 firmware update,
 			// we cannot use any longer the KeyManager.DefaultAccountKeyPath.
-			// Either this or introduce 2 more static readonly field in KeyManager.
 			KeyPath keyPath1 = new("m/84h/0h/0h/0/0");
 			KeyPath keyPath2 = new("m/84h/0h/0h/0/1");
 			ExtPubKey xpub1 = await client.GetXpubAsync(deviceType, devicePath, keyPath1, cts.Token);
