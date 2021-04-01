@@ -28,10 +28,11 @@
                            Text="via Bitcoin address"
                            Content="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
             <Separator />
-            <c:PreviewItem Icon=""
+            <c:PreviewItem Icon="{StaticResource lock_shield_regular}"
                            Text="PayJoin will be used to protect your privacy"
-                           Content="{Binding PayJoinUrl, FallbackValue=https://testnet.demo.btcpayserver.org/BTC/pj}"
-                           IsVisible="{Binding IsPayJoin}" />
+                           IsVisible="{Binding IsPayJoin}">
+                <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png" ToolTip.Tip="{Binding PayJoinUrl}" HorizontalAlignment="Left" Margin="0 8 0 0" />
+            </c:PreviewItem>
             <Separator IsVisible="{Binding IsPayJoin}" />
             <c:PreviewItem Icon="{StaticResource timer_regular}"
                            Text="Bitcoin miners will work hard to confirm your transaction within"
