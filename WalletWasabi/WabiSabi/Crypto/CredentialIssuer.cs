@@ -63,6 +63,8 @@ namespace WalletWasabi.WabiSabi.Crypto
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 		}
 
+		public delegate CredentialsResponse CommitResponse();
+
 		public ulong MaxAmount { get; }
 
 		public int RangeProofWidth { get; }
@@ -91,9 +93,19 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// issues the credentials.
 		/// </summary>
 		/// <param name="registrationRequest">The request containing the credentials presentations, credential requests and the proofs.</param>
-		/// <returns>The <see cref="CredentialsResponse">registration response</see> containing the requested credentials and the proofs.</returns>
+		/// <returns>The <see cref="CredentialsResponse">registration response</see> containing the issued credentials and the proofs.</returns>
 		/// <exception cref="WabiSabiCryptoException">Error code: <see cref="WabiSabiCryptoErrorCode">WabiSabiErrorCode</see></exception>
 		public CredentialsResponse HandleRequest(CredentialsRequest registrationRequest)
+			=> PrepareResponse(registrationRequest)();
+
+		/// <summary>
+		/// Validate the <see cref="CredentialsRequest">credentials registration requests</see> and
+		/// prepare to mark the serial numbers as used and issue the credentials.
+		/// </summary>
+		/// <param name="registrationRequest">The request containing the credentials presentations, credential requests and the proofs.</param>
+		/// <returns>The <see cref="CommitResponse">delegate</see> which returns the <see cref="CredentialsResponse">response</see> with the issued credentials and the proofs.</returns>
+		/// <exception cref="WabiSabiCryptoException">Error code: <see cref="WabiSabiCryptoErrorCode">WabiSabiErrorCode</see></exception>
+		public CommitResponse PrepareResponse(CredentialsRequest registrationRequest)
 		{
 			Guard.NotNull(nameof(registrationRequest), registrationRequest);
 
@@ -200,14 +212,17 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var macs = credentials.Select(x => x.Mac);
 			var response = new CredentialsResponse(macs, proofs);
 
-			// Register the serial numbers to prevent credential reuse.
-			foreach (var presentation in presented)
+			return delegate
 			{
-				SerialNumbers.Add(presentation.S);
-			}
-			Balance += registrationRequest.Delta;
+				// Register the serial numbers to prevent credential reuse.
+				foreach (var presentation in presented)
+				{
+					SerialNumbers.Add(presentation.S);
+				}
+				Balance += registrationRequest.Delta;
 
-			return response;
+				return response;
+			};
 		}
 
 		private (MAC Mac, Knowledge Knowledge) IssueCredential(GroupElement ma, Scalar t)
