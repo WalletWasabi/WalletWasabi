@@ -10,6 +10,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	{
 		public SmartLabel Labels { get; set; }
 
+		public SmartLabel FinalLabels { get; set; }
+
 		public BitcoinAddress Address { get; set; }
 
 		public Money Amount { get; set; }

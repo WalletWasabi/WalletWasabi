@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -7,6 +8,7 @@ using DynamicData;
 using DynamicData.Aggregation;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Helpers;
@@ -22,6 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	public partial class PrivacyControlViewModel : RoutableViewModel
 	{
 		private readonly Wallet _wallet;
+		private readonly TransactionInfo _transactionInfo;
 		private readonly SourceList<PocketViewModel> _pocketSource;
 		private readonly ReadOnlyObservableCollection<PocketViewModel> _pockets;
 
@@ -31,6 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
 		{
 			_wallet = wallet;
+			_transactionInfo = transactionInfo;
 
 			_pocketSource = new SourceList<PocketViewModel>();
 
@@ -99,6 +103,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
 				Navigate().BackTo<SendViewModel>();
 			}
+		}
+
+		protected override void OnNavigatedFrom(bool isInHistory)
+		{
+			base.OnNavigatedFrom(isInHistory);
+
+			var pocketLabels = Pockets.Where(x => x.IsSelected).Select(x => x.Labels);
+
+			List<string> finalLabel = new();
+			foreach (var labels in pocketLabels)
+			{
+				finalLabel.AddRange(labels);
+			}
+
+			_transactionInfo.FinalLabels = new SmartLabel(finalLabel);
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
