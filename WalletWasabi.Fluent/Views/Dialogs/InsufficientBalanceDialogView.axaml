@@ -16,11 +16,11 @@
                        HighlightButton="YesButton">
       <StackPanel Spacing="20">
         <c:PreviewItem Icon="{StaticResource btc_logo}"
-                       Text="A total of"
+                       Text="Send a total of"
                        Content="{Binding AmountText, FallbackValue=0.213 BTC (≈55.34 USD)}" />
         <Separator />
         <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
-                       Text="via Bitcoin address"
+                       Text="for an additional fee of"
                        Content="{Binding FeeText, FallbackValue=235 satoshis (≈55.34 USD)}" />
       </StackPanel>
     </c:QuestionControl>
