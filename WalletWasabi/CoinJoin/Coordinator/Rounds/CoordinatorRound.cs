@@ -1061,6 +1061,14 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 		}
 
+		public IEnumerable<Alice> GetAlicesBy(BitcoinAddress changeOutputAddress)
+		{
+			using (RoundSynchronizerLock.Lock())
+			{
+				return Alices.Where(x => x.ChangeOutputAddress == changeOutputAddress).ToList();
+			}
+		}
+
 		public Alice TryGetAliceBy(Guid uniqueId)
 		{
 			using (RoundSynchronizerLock.Lock())

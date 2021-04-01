@@ -153,6 +153,11 @@ namespace WalletWasabi.Backend.Controllers
 						}
 					}
 
+					if (round.GetAlicesBy(request.ChangeOutputAddress).ToArray().Length != 0)
+					{
+						return BadRequest($"Cannot register a ChangeOutputAddress twice.");
+					}
+
 					var uniqueInputs = new HashSet<OutPoint>();
 					foreach (InputProofModel inputProof in request.Inputs)
 					{
