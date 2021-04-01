@@ -124,7 +124,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			round.SetPhase(Phase.ConnectionConfirmation);
 			var fundingTx = BitcoinFactory.CreateSmartTransaction(ownOutputCount: 1);
 			var coin = fundingTx.WalletOutputs.First().Coin;
-			var alice = new Alice(new Dictionary<Coin, byte[]> { { coin, new byte[] { 0, 1, 2, 3} } });
+			var alice = new Alice(new Dictionary<Coin, byte[]> { { coin, Enumerable.Empty<byte>() } });
 			round.Alices.Add(alice);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
 
