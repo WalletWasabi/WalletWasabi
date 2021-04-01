@@ -79,7 +79,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var presentedWeight = weightCredentialsToPresent.Take(2).Sum(x => (long)x.Amount.ToUlong());
 			var (realWeightCredentialRequest, realWeightCredentialResponseValidation) = WeightCredentialClient.CreateRequest(
-				new[] { presentedWeight - (long)output.GetWeight() },
+				new[] { presentedWeight - output.GetWeight() },
 				weightCredentialsToPresent.Take(2));
 
 			var outputRegistrationResponse = await RequestHandler.RegisterOutputAsync(
@@ -87,7 +87,7 @@ namespace WalletWasabi.WabiSabi.Client
 					roundId,
 					output.ScriptPubKey,
 					realAmountCredentialRequest,
-					realWeightCredentialRequest));
+					realWeightCredentialRequest)).ConfigureAwait(false);
 
 			AmountCredentialClient.HandleResponse(outputRegistrationResponse.AmountCredentials, realAmountCredentialResponseValidation);
 			WeightCredentialClient.HandleResponse(outputRegistrationResponse.WeightCredentials, realWeightCredentialResponseValidation);
