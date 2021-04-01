@@ -49,7 +49,7 @@
             <Setter Property="XAxisLabelFontFamily" Value="Arial" />
             <Setter Property="XAxisLabelFontStyle" Value="Normal" />
             <Setter Property="XAxisLabelFontWeight" Value="Normal" />
-            <Setter Property="XAxisLabelFontSize" Value="10" />
+            <Setter Property="XAxisLabelFontSize" Value="12" />
         </Style>
         <!-- LineChart Cursor -->
         <Style Selector="c|LineChart.cursor">
