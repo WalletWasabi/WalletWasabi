@@ -11,6 +11,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Model;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
@@ -128,8 +129,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				}
 				catch (Exception ex)
 				{
-					var errorMessage = $"The PayJoin endpoint has failed, the original transaction will be sent.\n\n{ex.ToUserFriendlyString()}";
-					await ShowErrorAsync("PayJoin", errorMessage, "Wasabi was unable to create your PayJoin transaction.");
+					Logger.LogError(ex);
 				}
 			}
 
