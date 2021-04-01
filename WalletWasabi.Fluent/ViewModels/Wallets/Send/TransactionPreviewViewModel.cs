@@ -119,14 +119,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task<SmartTransaction> GetFinalTransactionAsync(SmartTransaction transaction, TransactionInfo transactionInfo)
 		{
-			if (transactionInfo.PayJoinClient is null)
+			if (transactionInfo.PayJoinClient is { })
 			{
-				return transaction;
+				try
+				{
+					var payJoinTransaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo, subtractFee: false, isPayJoin: true));
+					return payJoinTransaction.Transaction;
+				}
+				catch (Exception ex)
+				{
+					var errorMessage = $"The PayJoin endpoint has failed, the original transaction will be sent.\n\n{ex.ToUserFriendlyString()}";
+					await ShowErrorAsync("PayJoin", errorMessage, "Wasabi was unable to create your PayJoin transaction.");
+				}
 			}
 
-			var payJoinTransaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo, subtractFee: false, isPayJoin: true));
-
-			return payJoinTransaction.Transaction;
+			return transaction;
 		}
 	}
 }
