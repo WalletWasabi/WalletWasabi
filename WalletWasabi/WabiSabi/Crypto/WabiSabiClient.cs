@@ -38,7 +38,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 
 		public int RangeProofWidth { get; }
 
-		private int NumberOfCredentials { get; }
+		public int NumberOfCredentials { get; }
 
 		private CredentialIssuerParameters CredentialIssuerParameters { get; }
 
