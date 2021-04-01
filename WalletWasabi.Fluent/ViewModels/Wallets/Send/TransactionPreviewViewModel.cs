@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
@@ -22,6 +23,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _info;
 
+		[AutoNotify] private string _confirmationTimeText;
+
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, TransactionBroadcaster broadcaster,
 			BuildTransactionResult transaction)
 		{
@@ -29,6 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_info = info;
 			EnableCancel = true;
 			EnableBack = true;
+			_confirmationTimeText = "";
 
 			var destinationAmount = transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 			var btcAmountText = $"{destinationAmount} bitcoins ";
@@ -38,8 +42,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			Labels = info.Labels.Labels.ToArray();
 
 			AddressText = info.Address.ToString();
-
-			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
 
 			var fee = transaction.Fee;
 			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
@@ -58,13 +60,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public string AddressText { get; }
 
-		public string ConfirmationTimeText { get; }
-
 		public string FeeText { get; }
 
 		public string? PayJoinUrl { get; }
 
 		public bool IsPayJoin { get; }
+
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			base.OnNavigatedTo(isInHistory, disposables);
+
+			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(_info.ConfirmationTimeSpan)} ";
+		}
 
 		private async Task OnNext(Wallet wallet, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)
 		{
