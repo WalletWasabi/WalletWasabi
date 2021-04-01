@@ -8,6 +8,7 @@ using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client
@@ -62,6 +63,11 @@ namespace WalletWasabi.WabiSabi.Client
 			WeightCredentialClient.HandleResponse(inputRegistrationResponse.WeightCredentials, zeroWeightCredentialResponseValidation);
 
 			return inputRegistrationResponse.AliceId;
+		}
+
+		public async Task RemoveInputAsync(Guid roundId, Guid aliceId)
+		{
+			await RequestHandler.RemoveInputAsync(new InputsRemovalRequest(roundId, aliceId)).ConfigureAwait(false);
 		}
 
 		public async Task ConfirmConnectionAsync(Guid roundId, Guid aliceId, IEnumerable<long> inputsRegistrationWeight, IEnumerable<Credential> credentialsToPresent, IEnumerable<Money> newAmount)
