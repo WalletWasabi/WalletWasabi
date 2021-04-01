@@ -182,7 +182,7 @@ namespace WalletWasabi.Gui
 				catch
 				{
 					// If our internal data structures in the Bitcoin Store gets corrupted, then it's better to rescan all the wallets.
-					WalletManager.SetMaxBestHeight(0);
+					WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network).Height);
 					throw;
 				}
 
