@@ -448,7 +448,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				xAxisValues = xs.Reverse().ToArray();
 				yAxisValues = ys.Reverse().ToArray();
 #endif
-				xAxisLabels = TestNetXAxisLabels;
+				// xAxisLabels = TestNetXAxisLabels;
+				var labels = TestNetXAxisValues.Select(x => x)
+					.Select(x => FeeTargetTimeConverter.Convert((int)x, "m", "h", "h", "d", "d"))
+					.Reverse()
+					.ToArray();
+				xAxisLabels = labels;
 			}
 
 			_updatingCurrentValue = true;
