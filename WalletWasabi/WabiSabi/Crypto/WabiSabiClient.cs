@@ -107,6 +107,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			{
 				credentialAmountsToRequest.Add(0);
 			}
+			credentialAmountsToRequest.Shuffle();
 
 			// Make sure we present always the same number of credentials (except for Null requests)
 			var missingCredentialPresent = NumberOfCredentials - credentialsToPresent.Count();
