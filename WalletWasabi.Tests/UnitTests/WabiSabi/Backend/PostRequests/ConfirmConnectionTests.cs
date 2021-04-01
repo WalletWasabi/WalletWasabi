@@ -11,6 +11,7 @@ using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
@@ -173,6 +174,60 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.ConfirmConnectionAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, ex.ErrorCode);
 			Assert.False(alice.ConfirmedConnetion);
+
+			await arena.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
+		public async Task InvalidRequestedWeightCredentialsAsync()
+		{
+			WabiSabiConfig cfg = new();
+			var round = WabiSabiFactory.CreateRound(cfg);
+			round.SetPhase(Phase.ConnectionConfirmation);
+			var alice = WabiSabiFactory.CreateAlice();
+			round.Alices.Add(alice);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+
+			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
+
+			// invalidate serial numbers
+			round.WeightCredentialIssuer.HandleRequest(req.RealWeightCredentialRequests);
+			Assert.Equal(0, round.AmountCredentialIssuer.Balance);
+			Assert.Equal(req.RealWeightCredentialRequests.Delta, round.WeightCredentialIssuer.Balance);
+
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			var ex = await Assert.ThrowsAsync<WabiSabiCryptoException>(async () => await handler.ConfirmConnectionAsync(req));
+			Assert.Equal(WabiSabiCryptoErrorCode.SerialNumberAlreadyUsed, ex.ErrorCode);
+			Assert.False(alice.ConfirmedConnetion);
+			Assert.Equal(0, round.AmountCredentialIssuer.Balance);
+			Assert.Equal(req.RealWeightCredentialRequests.Delta, round.WeightCredentialIssuer.Balance);
+
+			await arena.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
+		public async Task InvalidRequestedAmountCredentialsAsync()
+		{
+			WabiSabiConfig cfg = new();
+			var round = WabiSabiFactory.CreateRound(cfg);
+			round.SetPhase(Phase.ConnectionConfirmation);
+			var alice = WabiSabiFactory.CreateAlice();
+			round.Alices.Add(alice);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+
+			var req = WabiSabiFactory.CreateConnectionConfirmationRequest(round);
+
+			// invalidate serial numbers
+			round.AmountCredentialIssuer.HandleRequest(req.RealAmountCredentialRequests);
+			Assert.Equal(req.RealAmountCredentialRequests.Delta, round.AmountCredentialIssuer.Balance);
+			Assert.Equal(0, round.WeightCredentialIssuer.Balance);
+
+			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
+			var ex = await Assert.ThrowsAsync<WabiSabiCryptoException>(async () => await handler.ConfirmConnectionAsync(req));
+			Assert.Equal(WabiSabiCryptoErrorCode.SerialNumberAlreadyUsed, ex.ErrorCode);
+			Assert.False(alice.ConfirmedConnetion);
+			Assert.Equal(req.RealAmountCredentialRequests.Delta, round.AmountCredentialIssuer.Balance);
+			Assert.Equal(0, round.WeightCredentialIssuer.Balance);
 
 			await arena.StopAsync(CancellationToken.None);
 		}

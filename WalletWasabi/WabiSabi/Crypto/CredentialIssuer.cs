@@ -72,7 +72,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		private HashSet<GroupElement> SerialNumbers { get; } = new HashSet<GroupElement>();
 
 		// Canary test check to ensure credential balance is never negative
-		private long Balance { get; set; } = 0;
+		public long Balance { get; private set; } = 0;
 
 		private WasabiRandom RandomNumberGenerator { get; }
 
