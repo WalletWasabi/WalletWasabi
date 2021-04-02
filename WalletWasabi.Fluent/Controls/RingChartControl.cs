@@ -13,7 +13,8 @@ namespace WalletWasabi.Fluent.Controls
 	{
 		static RingChartControl()
 		{
-			AffectsRender<RingChartControl>(DataPointsProperty);
+			AffectsRender<RingChartControl>(DataPointsProperty, RadiusProperty, ThicknessProperty, StartAngleProperty, EndAngleProperty);
+			AffectsMeasure<RingChartControl>(DataPointsProperty, RadiusProperty, ThicknessProperty, StartAngleProperty, EndAngleProperty);
 		}
 
 		public static readonly StyledProperty<IList<(IBrush, double)>> DataPointsProperty =
@@ -27,9 +28,6 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<double> EndAngleProperty =
 			AvaloniaProperty.Register<RingChartControl, double>("EndAngle", 360);
-
-		public static readonly StyledProperty<Point> CenterProperty =
-			AvaloniaProperty.Register<RingChartControl, Point>("Center");
 
 		public static readonly StyledProperty<double> ThicknessProperty =
 			AvaloniaProperty.Register<RingChartControl, double>("Thickness", 6);
@@ -45,17 +43,17 @@ namespace WalletWasabi.Fluent.Controls
 			return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
 		}
 
-		public Point PolarToCartesian(double angleRad, double radius)
+		protected override Size MeasureOverride(Size availableSize)
 		{
-			double x = radius * Math.Cos(angleRad);
-			double y = radius * Math.Sin(angleRad);
-			return new Point(x, y);
+			return new ((Radius * 2) + Thickness, (Radius * 2) + Thickness);
 		}
 
 		private Geometry GetArcGeometry(double startAngle, double endAngle, bool isPathClosed = false)
 		{
 			var startRadians = ConvertToRadians(startAngle) - (Math.PI / 2);
 			var endRadians = ConvertToRadians(endAngle) - (Math.PI / 2);
+
+			var center = new Point(Radius+(Thickness/2), Radius+(Thickness/2));
 
 			if (endRadians < startRadians)
 			{
@@ -65,8 +63,8 @@ namespace WalletWasabi.Fluent.Controls
 			var d = SweepDirection.Clockwise;
 			var largeArc = (endAngle - startAngle) > 180.0;
 
-			Point p0 = Center + new Vector(Math.Cos(startRadians), Math.Sin(startRadians)) * Radius;
-			Point p1 = Center + new Vector(Math.Cos(endRadians), Math.Sin(endRadians)) * Radius;
+			Point p0 = center + new Vector(Math.Cos(startRadians), Math.Sin(startRadians)) * Radius;
+			Point p1 = center + new Vector(Math.Cos(endRadians), Math.Sin(endRadians)) * Radius;
 
 			PathSegments segments = new()
 			{
@@ -119,12 +117,6 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(EndAngleProperty, value);
 		}
 
-		public Point Center
-		{
-			get => GetValue(CenterProperty);
-			set => SetValue(CenterProperty, value);
-		}
-
 		public double Thickness
 		{
 			get => GetValue(ThicknessProperty);
@@ -145,12 +137,13 @@ namespace WalletWasabi.Fluent.Controls
 				var lastAngle = StartAngle;
 				var lastData = 0d;
 
-				foreach (var dataPoint in DataPoints.OrderBy(x=>x.value))
+				foreach (var dataPoint in DataPoints.OrderBy(x => x.value))
 				{
 					lastData += dataPoint.value;
 					var curValue = Map((dataPoint.value == 1.0 ? 0.99 : lastData), 0, 1, StartAngle, EndAngle);
 
-					context.DrawGeometry(null, new ImmutablePen(dataPoint.color, Thickness), GetArcGeometry(lastAngle, curValue, (dataPoint.value == 1.0d)));
+					context.DrawGeometry(null, new ImmutablePen(dataPoint.color, Thickness),
+						GetArcGeometry(lastAngle, curValue, (dataPoint.value == 1.0d)));
 
 					lastAngle = curValue;
 				}
