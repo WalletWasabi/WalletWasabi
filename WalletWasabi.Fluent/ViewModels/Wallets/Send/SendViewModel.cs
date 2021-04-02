@@ -43,6 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	public partial class SendViewModel : NavBarItemViewModel
 	{
 		private readonly WalletViewModel _owner;
+		private readonly UiConfig _uiConfig;
 		private readonly TransactionInfo _transactionInfo;
 		[AutoNotify] private string _to;
 		[AutoNotify] private decimal _amountBtc;
@@ -69,6 +70,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			_to = "";
 			_owner = walletVm;
+			_uiConfig = uiConfig;
 			_transactionInfo = new TransactionInfo();
 			_labels = new ObservableCollection<string>();
 			_lastXAxisCurrentValue = _xAxisCurrentValue;
@@ -389,6 +391,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				UpdateFeeEstimates(_owner.Wallet.Synchronizer.AllFeeEstimate.Estimations);
 			}
+
+			_uiConfig.WhenAnyValue(x => x.Autocopy)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => _isAutoPasteEnabled = x);
 
 			base.OnNavigatedTo(inHistory, disposables);
 		}
