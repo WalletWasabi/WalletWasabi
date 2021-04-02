@@ -12,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 	public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	{
 		[AutoNotify] private bool _isBusy;
-		[AutoNotify] private bool _enableCancelOnPressed = true;
+		[AutoNotify] private bool _enableCancelOnPressed;
 		[AutoNotify] private bool _enableCancelOnEscape = true;
 		[AutoNotify] private bool _enableBack;
 		[AutoNotify] private bool _enableCancel;
