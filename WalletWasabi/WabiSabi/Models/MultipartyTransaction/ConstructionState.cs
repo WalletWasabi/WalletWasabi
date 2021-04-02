@@ -17,7 +17,11 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 		public int OutputsVsize => Outputs.Sum(x => x.ScriptPubKey.EstimateOutputVsize());
 
 		public int EstimatedVsize => MultipartyTransactionParameters.SharedOverhead + EstimatedInputsVsize + OutputsVsize;
-		public FeeRate EffectiveFeeRate => new FeeRate(Balance, EstimatedVsize);
+		// With no coordinator fees we can't ensure that the shared overhead
+		// of the transaction also pays at the nominal feerate so this will have
+		// to do for now, but in the future EstimatedVsize should be used
+		// including the shared overhead
+		public FeeRate EffectiveFeeRate => new FeeRate(Balance, EstimatedInputsVsize + OutputsVsize);
 
 		// TODO ownership proofs and spend status also in scope
 		public ConstructionState AddInput(Coin coin)

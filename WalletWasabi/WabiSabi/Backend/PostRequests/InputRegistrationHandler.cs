@@ -13,6 +13,7 @@ using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Backend.PostRequests
 {
@@ -81,6 +82,11 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 
 			var coins = coinRoundSignaturePairs.Select(x => x.Key);
 
+			if (round.IsInputRegistrationEnded(config.MaxInputCountByRound, config.GetInputRegistrationTimeout(round)))
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+			}
+
 			if (round.MaxInputCountByAlice < coins.Count())
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooManyInputs);
@@ -118,9 +124,13 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchVsize);
 			}
 
-			if (round.IsInputRegistrationEnded(config.MaxInputCountByRound, config.GetInputRegistrationTimeout(round)))
+			// Compute but don't commit updated CoinJoin to round state, it will
+			// be re-calculated on input confirmation. This is computed it here
+			// for validation purposes.
+			var state = round.CoinjoinState.AssertConstruction();
+			foreach (var coin in alice.Coins)
 			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
+				state = state.AddInput(coin);
 			}
 
 			if (round.RemainingInputVsizeAllocation < round.PerAliceVsizeAllocation)
@@ -135,8 +145,8 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
 			round.Alices.Add(alice);
 
-			return new(alice.Id, 
-				commitAmountCredentialResponse.Commit(), 
+			return new(alice.Id,
+				commitAmountCredentialResponse.Commit(),
 				commitVsizeCredentialResponse.Commit());
 		}
 
@@ -147,7 +157,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 			}
-			
+
 			var aliceOutPoints = alice.Coins.Select(x => x.Outpoint).ToHashSet();
 			var flattenTable = rounds.SelectMany(x => x.Alices.SelectMany(y => y.Coins.Select(z => (Round: x, Alice: y, Output: z.Outpoint))));
 
