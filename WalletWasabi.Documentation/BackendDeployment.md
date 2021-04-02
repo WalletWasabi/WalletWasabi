@@ -69,6 +69,8 @@ https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubunt
 Putty (Copypaste with Ctrl+Insert and Shift+Insert)
 https://www.digitalocean.com/community/tutorials/how-to-use-ssh-keys-with-putty-on-digitalocean-droplets-windows-users
 
+Make sure the new user's SSH pubkey added to ~/.ssh/authorized_keys on the server as well. 
+
 ### Create a New User and Grant Administrative Privileges
 
 ```sh
