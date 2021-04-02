@@ -1,8 +1,8 @@
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	{
 		private readonly TransactionInfo _info;
 
-		[AutoNotify] private string[]? _labels;
+		[AutoNotify] private SmartLabel? _labels;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, TransactionBroadcaster broadcaster,
 			BuildTransactionResult transaction)
@@ -58,7 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			Labels = _info.Labels.ToArray();
+			Labels = _info.Labels;
 		}
 
 		private async Task OnNext(Wallet wallet, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)
