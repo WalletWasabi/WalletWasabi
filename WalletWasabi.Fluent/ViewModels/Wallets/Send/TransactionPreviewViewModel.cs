@@ -58,7 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			Labels = _info.PocketLabels is { } ? _info.Labels.Concat(_info.PocketLabels).ToArray() : _info.Labels.ToArray();
+			Labels = _info.Labels.ToArray();
 		}
 
 		private async Task OnNext(Wallet wallet, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)
