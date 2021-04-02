@@ -9,4 +9,13 @@
   <Style Selector="Button.plain /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
   </Style>
+
+  <Style Selector="Button.subtle">
+    <Setter Property="Opacity" Value="0.6" />
+    <Setter Property="Focusable" Value="False" />
+  </Style>
+
+  <Style Selector="Button:pointerover.subtle">
+    <Setter Property="Opacity" Value="1" />
+  </Style>
 </Styles>

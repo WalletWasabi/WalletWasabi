@@ -1,6 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:WalletWasabi.Fluent.Controls">
+        xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
   <Styles.Resources>
   </Styles.Resources>
   <Style Selector="c|Dialog">
@@ -19,6 +19,9 @@
                     Background="{DynamicResource RegionColor}"
                     MaxWidth="{TemplateBinding MaxContentWidth}" MaxHeight="{TemplateBinding MaxContentHeight}">
               <Panel Name="PART_Dismiss">
+                <Button x:Name="PART_CloseButton" VerticalAlignment="Top" HorizontalAlignment="Right" Classes="plain subtle" Margin="16" IsVisible="{Binding !$parent[c:Dialog].IsBusy}">
+                  <PathIcon Data="{StaticResource dismiss_circle_regular}" />
+                </Button>
                 <ContentPresenter Name="PART_ContentPresenter" Margin="16 28 16 16"
                                   Background="{TemplateBinding Background}"
                                   BorderBrush="{TemplateBinding BorderBrush}"

@@ -1,3 +1,4 @@
+using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
@@ -14,6 +15,7 @@ namespace WalletWasabi.Fluent.Controls
 	public class Dialog : ContentControl
 	{
 		private Panel? _dismissPanel;
+		private CompositeDisposable _disposables;
 
 		public static readonly StyledProperty<bool> IsDialogOpenProperty =
 			AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
@@ -106,12 +108,31 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			base.OnApplyTemplate(e);
 
+			_disposables?.Dispose();
+			_disposables = new CompositeDisposable();
+
 			_dismissPanel = e.NameScope.Find<Panel>("PART_Dismiss");
+
+			var closeButton = e.NameScope.Find<Button>("PART_CloseButton");
+
+			closeButton.AddDisposableHandler(Button.ClickEvent, CloseButtonClicked, RoutingStrategies.Bubble)
+				.DisposeWith(_disposables);
 
 			if (this.GetVisualRoot() is TopLevel topLevel)
 			{
-				topLevel.AddHandler(PointerPressedEvent, CancelPointerPressed, RoutingStrategies.Tunnel);
-				topLevel.AddHandler(KeyDownEvent, CancelKeyDown, RoutingStrategies.Tunnel);
+				topLevel.AddDisposableHandler(PointerPressedEvent, CancelPointerPressed, RoutingStrategies.Tunnel)
+					.DisposeWith(_disposables);
+
+				topLevel.AddDisposableHandler(KeyDownEvent, CancelKeyDown, RoutingStrategies.Tunnel)
+					.DisposeWith(_disposables);
+			}
+		}
+
+		private void CloseButtonClicked(object? sender, RoutedEventArgs e)
+		{
+			if (!IsBusy)
+			{
+				Close();
 			}
 		}
 
