@@ -61,7 +61,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				Money.Coins(.25m)
 			};
 
-			var inputWeight = 4 * Constants.P2wpkhInputVirtualSize;
+			var inputWeight = Constants.WitnessScaleFactor * Constants.P2wpkhInputVirtualSize;
 			var inputRemainingWeights = new[] { protocolMaxWeightPerAlice - inputWeight };
 
 			// Phase: Input Registration

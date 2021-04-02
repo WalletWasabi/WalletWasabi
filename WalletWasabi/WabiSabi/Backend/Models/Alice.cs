@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Backend.Models
 {
@@ -20,7 +21,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		public IEnumerable<Coin> Coins { get; }
 		public IDictionary<Coin, byte[]> CoinRoundSignaturePairs { get; }
 		public Money TotalInputAmount => Coins.Sum(x => x.Amount);
-		public long TotalInputWeight => TotalInputVsize * 4;
+		public long TotalInputWeight => Constants.WitnessScaleFactor * TotalInputVsize;
 		public int TotalInputVsize => Coins.Sum(x => x.ScriptPubKey.EstimateInputVsize());
 
 		public bool ConfirmedConnetion { get; set; } = false;
