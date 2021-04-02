@@ -1,4 +1,3 @@
-using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
@@ -18,14 +17,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	[NavigationMetaData(Title = "Transaction Preview")]
 	public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
-		private readonly TransactionInfo _info;
-
-		[AutoNotify] private SmartLabel? _labels;
-
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, TransactionBroadcaster broadcaster,
 			BuildTransactionResult transaction)
 		{
-			_info = info;
 			EnableCancel = true;
 			EnableBack = true;
 
@@ -35,6 +29,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			AmountText = $"{btcAmountText}{fiatAmountText}";
 
 			AddressText = info.Address.ToString();
+
+			Labels = info.Labels;
 
 			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
 
@@ -52,14 +48,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public string ConfirmationTimeText { get; }
 
+		public SmartLabel Labels { get; }
+
 		public string FeeText { get; }
-
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-		{
-			base.OnNavigatedTo(isInHistory, disposables);
-
-			Labels = _info.Labels;
-		}
 
 		private async Task OnNext(Wallet wallet, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)
 		{

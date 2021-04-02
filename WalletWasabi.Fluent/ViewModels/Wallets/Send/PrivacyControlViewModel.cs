@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -24,7 +23,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	public partial class PrivacyControlViewModel : RoutableViewModel
 	{
 		private readonly Wallet _wallet;
-		private readonly TransactionInfo _transactionInfo;
 		private readonly SourceList<PocketViewModel> _pocketSource;
 		private readonly ReadOnlyObservableCollection<PocketViewModel> _pockets;
 
@@ -34,7 +32,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
 		{
 			_wallet = wallet;
-			_transactionInfo = transactionInfo;
 
 			_pocketSource = new SourceList<PocketViewModel>();
 
@@ -53,6 +50,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC) - x;
 					EnoughSelected = StillNeeded <= 0;
+				});
+
+			_pocketSource
+				.Connect()
+				.WhenValueChanged(x => x.IsSelected)
+				.Subscribe(_ =>
+				{
+					var selectedPocketLabels = Pockets.Where(x => x.IsSelected).Select(x => x.Labels);
+					transactionInfo.PocketLabels = SmartLabel.Merge(selectedPocketLabels);
 				});
 
 			StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);
@@ -103,14 +109,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
 				Navigate().BackTo<SendViewModel>();
 			}
-		}
-
-		protected override void OnNavigatedFrom(bool isInHistory)
-		{
-			base.OnNavigatedFrom(isInHistory);
-
-			var selectedPocketLabels = Pockets.Where(x => x.IsSelected).Select(x => x.Labels);
-			_transactionInfo.PocketLabels = SmartLabel.Merge(selectedPocketLabels);
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
