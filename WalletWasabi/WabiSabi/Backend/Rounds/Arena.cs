@@ -139,13 +139,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					}
 					round.LogInfo($"{round.Bobs.Count} outputs were added.");
 
-					// Shuffle & sort:
-					// This is basically just decoration.
-					coinjoin.Inputs.Shuffle();
-					coinjoin.Outputs.Shuffle();
-					coinjoin.Inputs.SortByAmount(spentCoins);
-					coinjoin.Outputs.SortByAmount();
-
 					// If timeout we must fill up the outputs to build a reasonable transaction.
 					// This won't be signed by the alice who failed to provide output, so we know who to ban.
 					if (diff > round.MinRegistrableAmount)
