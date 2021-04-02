@@ -394,7 +394,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			_uiConfig.WhenAnyValue(x => x.Autocopy)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => _isAutoPasteEnabled = x);
+				.Subscribe(x => _isAutoPasteEnabled = x)
+				.DisposeWith(disposables);
 
 			base.OnNavigatedTo(inHistory, disposables);
 		}
