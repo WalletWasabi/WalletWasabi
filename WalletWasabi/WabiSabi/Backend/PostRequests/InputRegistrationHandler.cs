@@ -55,10 +55,6 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputImmature);
 				}
-				if (!txOutResponse.TxOut.ScriptPubKey.IsScriptType(ScriptType.P2WPKH))
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed);
-				}
 
 				coinRoundSignaturePairs.Add(new Coin(input, txOutResponse.TxOut), inputRoundSignaturePair.RoundSignature);
 			}
@@ -96,6 +92,15 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNotWhitelisted);
 			}
 
+			// Compute but don't commit updated CoinJoin to round state, it will
+			// be re-calculated on input confirmation. This is computed it here
+			// for validation purposes.
+			var state = round.CoinjoinState.AssertConstruction();
+			foreach (var coin in coins)
+			{
+				state = state.AddInput(coin);
+			}
+
 			foreach (var coinRoundSignaturePair in coinRoundSignaturePairs)
 			{
 				var coin = coinRoundSignaturePair.Key;
@@ -122,15 +127,6 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			if (alice.TotalInputVsize > round.PerAliceVsizeAllocation)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchVsize);
-			}
-
-			// Compute but don't commit updated CoinJoin to round state, it will
-			// be re-calculated on input confirmation. This is computed it here
-			// for validation purposes.
-			var state = round.CoinjoinState.AssertConstruction();
-			foreach (var coin in alice.Coins)
-			{
-				state = state.AddInput(coin);
 			}
 
 			if (round.RemainingInputVsizeAllocation < round.PerAliceVsizeAllocation)
