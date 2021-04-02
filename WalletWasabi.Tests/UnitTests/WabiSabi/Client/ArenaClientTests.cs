@@ -99,13 +99,15 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			await apiClient.RegisterOutputAsync(
 				round.Id, 
-				new TxOut(reissuanceAmounts[0],	destinationKey1.PubKey.WitHash.ScriptPubKey),
+				reissuanceAmounts[0],
+				destinationKey1.PubKey.WitHash.ScriptPubKey,
 				apiClient.AmountCredentialClient.Credentials.Valuable,
 				apiClient.WeightCredentialClient.Credentials.Valuable);
 
 			await apiClient.RegisterOutputAsync(
 				round.Id, 
-				new TxOut(reissuanceAmounts[1],	destinationKey2.PubKey.WitHash.ScriptPubKey),
+				reissuanceAmounts[1],
+				destinationKey2.PubKey.WitHash.ScriptPubKey,
 				apiClient.AmountCredentialClient.Credentials.Valuable,
 				apiClient.WeightCredentialClient.Credentials.Valuable);
 

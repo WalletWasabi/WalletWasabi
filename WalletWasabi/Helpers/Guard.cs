@@ -137,7 +137,7 @@ namespace WalletWasabi.Helpers
 			var count = container.Count();
 			if (count < minCount || count > maxCount)
 			{
-				throw new ArgumentOutOfRangeException(containerName, count, $"{containerName}.Count() cannot be less than {minCount} or greater than .");
+				throw new ArgumentOutOfRangeException(containerName, count, $"{containerName}.Count() cannot be less than {minCount} or greater than {maxCount}.");
 			}
 			return container;
 		}

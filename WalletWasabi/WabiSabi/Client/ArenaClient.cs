@@ -70,25 +70,25 @@ namespace WalletWasabi.WabiSabi.Client
 			await RequestHandler.RemoveInputAsync(new InputsRemovalRequest(roundId, aliceId)).ConfigureAwait(false);
 		}
 
-		public async Task RegisterOutputAsync(Guid roundId, TxOut output, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Credential> weightCredentialsToPresent)
+		public async Task RegisterOutputAsync(Guid roundId, long value, Script scriptPubKey, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Credential> weightCredentialsToPresent)
 		{
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
 			Guard.InRange(nameof(weightCredentialsToPresent), weightCredentialsToPresent, 0, WeightCredentialClient.NumberOfCredentials);
 
 			var presentedAmount = amountCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
 			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
-				new[] { presentedAmount - output.Value.Satoshi },
+				new[] { presentedAmount - value },
 				amountCredentialsToPresent);
 
 			var presentedWeight = weightCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
 			var (realWeightCredentialRequest, realWeightCredentialResponseValidation) = WeightCredentialClient.CreateRequest(
-				new[] { presentedWeight - output.GetWeight() },
+				new[] { presentedWeight - 4 * scriptPubKey.EstimateOutputVsize() },
 				weightCredentialsToPresent);
 
 			var outputRegistrationResponse = await RequestHandler.RegisterOutputAsync(
 				new OutputRegistrationRequest(
 					roundId,
-					output.ScriptPubKey,
+					scriptPubKey,
 					realAmountCredentialRequest,
 					realWeightCredentialRequest)).ConfigureAwait(false);
 
