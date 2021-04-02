@@ -42,7 +42,7 @@
                     <DataGridTemplateColumn CanUserSort="False" CanUserResize="False" CanUserReorder="False">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="vm:PocketViewModel">
-                                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" />
+                                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" Focusable="False" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
