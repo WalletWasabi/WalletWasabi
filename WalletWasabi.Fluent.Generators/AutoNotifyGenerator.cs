@@ -45,13 +45,13 @@ namespace WalletWasabi.Fluent
 }";
 		public void Initialize(GeneratorInitializationContext context)
 		{
+			// System.Diagnostics.Debugger.Launch();
 			context.RegisterForPostInitialization((i) =>
 			{
 				i.AddSource("AccessModifier.cs", SourceText.From(ModifierText, Encoding.UTF8));
 				i.AddSource("AutoNotifyAttribute.cs", SourceText.From(AttributeText, Encoding.UTF8));
 			});
 
-			// System.Diagnostics.Debugger.Launch();
 			context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
 		}
 
