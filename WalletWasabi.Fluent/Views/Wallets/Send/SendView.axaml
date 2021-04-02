@@ -160,7 +160,7 @@
 
             <DockPanel MinHeight="80">
                 <Slider x:Name="CursorValue2"
-                        Margin="10,0,10,0"
+                        Margin="18,0,18,0"
                         KeyboardNavigation.IsTabStop="False"
                         DockPanel.Dock="Bottom"
                         Classes="cursor"
@@ -170,7 +170,7 @@
                         Value="{Binding XAxisCurrentValueIndex}">
                 </Slider>
                 <c:LineChart x:Name="GradientLineChart"
-                             Margin="10,0,10,0"
+                             Margin="18,0,18,0"
                              Classes="cursor border xAxisLabels yAxis yAxisTitle"
                              MinHeight="30"
                              XAxisLabels="{Binding XAxisLabels}"
