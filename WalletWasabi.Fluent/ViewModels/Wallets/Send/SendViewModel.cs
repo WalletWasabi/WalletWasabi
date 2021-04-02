@@ -24,6 +24,7 @@ using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Gui;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -62,14 +63,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private bool _parsingUrl;
 		private bool _updatingCurrentValue;
 		private double _lastXAxisCurrentValue;
+		private bool _isAutoPasteEnabled;
 
-		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster) : base(NavigationMode.Normal)
+		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster, UiConfig uiConfig) : base(NavigationMode.Normal)
 		{
 			_to = "";
 			_owner = walletVm;
 			_transactionInfo = new TransactionInfo();
 			_labels = new ObservableCollection<string>();
 			_lastXAxisCurrentValue = _xAxisCurrentValue;
+			_isAutoPasteEnabled = uiConfig.Autocopy;
 
 			ExchangeRate = walletVm.Wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();
@@ -103,6 +106,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			EnableBack = true;
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPaste());
+			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPaste());
 
 			var nextCommandCanExecute =
 				this.WhenAnyValue(x => x.Labels, x => x.AmountBtc, x => x.To, x => x.XAxisCurrentValue).Select(_ => Unit.Default)
@@ -121,6 +125,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		}
 
 		public ICommand PasteCommand { get; }
+
+		public ICommand AutoPasteCommand { get; }
+
+		private async Task OnAutoPaste()
+		{
+			if (string.IsNullOrEmpty(To) && _isAutoPasteEnabled)
+			{
+				await OnPaste();
+			}
+		}
 
 		private async Task OnPaste()
 		{
