@@ -349,10 +349,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
-					PriorLabels.Clear();
-					PriorLabels.AddRange(x.SelectMany(coin => coin.HdPubKey.Label.Labels).Distinct());
+					PriorLabels.AddRange(x.SelectMany(coin => coin.HdPubKey.Label.Labels));
+
+					PriorLabels = new ObservableCollection<string>(PriorLabels.Distinct());
 				})
 				.DisposeWith(disposables);
+
+			PriorLabels.AddRange(_owner.Wallet
+				.KeyManager
+				.GetLabels()
+				.Select(x=>x.ToString()
+					.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+					.SelectMany(x=>x));
+
+			PriorLabels = new ObservableCollection<string>(PriorLabels.Distinct());
 
 			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate)
 				.Where(x => x is { })
