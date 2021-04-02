@@ -17,7 +17,7 @@
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DockPanel>
             <Panel MinHeight="60" DockPanel.Dock="Bottom">
-                <c:InfoMessage x:Name="AmountWarning" Foreground="{DynamicResource WarningMessageForeground}" HorizontalAlignment="Center"
+                <c:InfoMessage Foreground="{DynamicResource WarningMessageForeground}" HorizontalAlignment="Center"
                                VerticalAlignment="Top" IsVisible="{Binding !EnoughSelected}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Insufficient funds selected. Select at least another " />
@@ -25,9 +25,13 @@
                         <TextBlock Text=" BTC" />
                     </StackPanel>
                 </c:InfoMessage>
-                <c:InfoMessage IsVisible="{Binding !#AmountWarning.IsVisible}"
+                <c:InfoMessage IsVisible="{Binding ShowCjNotice}"
                     Content="Not in a hurry? Consider making more of your funds private by CoinJoining before making this transaction."
                     HorizontalAlignment="Center" VerticalAlignment="Top" />
+                <c:InfoMessage VerticalAlignment="Top"
+                               Foreground="{DynamicResource WarningMessageForeground}"
+                               IsVisible="{Binding PrivateFundsSelected}"
+                               Content="Warning! Using both private and non-private funds in the same transaction can destroy your privacy." />
             </Panel>
             <DataGrid AutoGenerateColumns="False"
                       Margin="0 20"
