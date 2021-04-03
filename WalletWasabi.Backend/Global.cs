@@ -1,6 +1,7 @@
 using NBitcoin;
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -92,8 +93,8 @@ namespace WalletWasabi.Backend
 			IndexBuilderService.Synchronize();
 			Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
 
-			await Coordinator.MakeSureTwoRunningRoundsAsync();
-			Logger.LogInfo("Chaumian CoinJoin Coordinator is successfully initialized and started two new rounds.");
+			await Coordinator.MakeSureInputregistrableRoundRunningAsync();
+			Logger.LogInfo($"Chaumian CoinJoin Coordinator is successfully initialized and started '{Coordinator.GetRunningRounds().Count()}' new round(s).");
 		}
 
 		private async Task InitializeP2pAsync(Network network, EndPoint endPoint, CancellationToken cancel)

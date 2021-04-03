@@ -52,8 +52,8 @@ namespace WalletWasabi.Helpers
 
 		public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
-		public static readonly Version ClientVersion = new(1, 1, 12, 6);
-		public static readonly Version HwiVersion = new("2.0.0");
+		public static readonly Version ClientVersion = new(1, 1, 12, 8);
+		public static readonly Version HwiVersion = new("2.0.1");
 		public static readonly Version BitcoinCoreVersion = new("0.21.0");
 		public static readonly Version LegalDocumentsVersion = new(2, 0);
 

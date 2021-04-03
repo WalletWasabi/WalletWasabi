@@ -36,7 +36,7 @@ namespace WalletWasabi.WabiSabi
 
 		public CoordinatorParameters Parameters { get; }
 		public IRPCClient Rpc { get; }
-		public PostRequestHandler Postman { get; }
+		public ArenaRequestHandler Postman { get; }
 		public Arena Arena { get; }
 
 		public string WorkDir => Parameters.CoordinatorDataDir;

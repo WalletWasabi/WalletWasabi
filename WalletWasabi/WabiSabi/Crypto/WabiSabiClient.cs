@@ -24,14 +24,15 @@ namespace WalletWasabi.WabiSabi.Crypto
 			CredentialIssuerParameters credentialIssuerParameters,
 			int numberOfCredentials,
 			WasabiRandom randomNumberGenerator,
-			ulong maxAmount)
+			ulong maxAmount,
+			CredentialPool? credentialPool = null)
 		{
 			MaxAmount = maxAmount;
 			RangeProofWidth = (int)Math.Ceiling(Math.Log2(MaxAmount));
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
 			CredentialIssuerParameters = Guard.NotNull(nameof(credentialIssuerParameters), credentialIssuerParameters);
-			Credentials = new CredentialPool();
+			Credentials = credentialPool ?? new CredentialPool();
 		}
 
 		public ulong MaxAmount { get; }

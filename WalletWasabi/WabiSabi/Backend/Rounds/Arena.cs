@@ -155,8 +155,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						round.LogInfo("Filled up the outputs to build a reasonable transaction because some alice failed to provide its output.");
 					}
 
-					round.EncryptedCoinjoin = StringCipher.Encrypt(coinjoin.ToHex(), round.UnsignedTxSecret);
-
 					round.SetPhase(Phase.TransactionSigning);
 				}
 			}
@@ -366,6 +364,16 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				var credentialAmount = -request.AmountCredentialRequests.Delta;
 
+				if (!StandardScripts.IsStandardScriptPubKey(request.Script))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NonStandardOutput, $"Round ({request.RoundId}): Non standard output.");
+				}
+
+				if (!request.Script.IsScriptType(ScriptType.P2WPKH))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed, $"Round ({request.RoundId}): Script not allowed.");
+				}
+
 				Bob bob = new(request.Script, credentialAmount);
 
 				var outputValue = bob.CalculateOutputAmount(round.FeeRate);
@@ -395,7 +403,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				round.Bobs.Add(bob);
 
 				return new(
-					round.UnsignedTxSecret,
 					amountCredentialResponse,
 					weightCredentialResponse);
 			}

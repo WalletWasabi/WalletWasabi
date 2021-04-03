@@ -157,7 +157,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 					catch (InsufficientBalanceException)
 					{
-						var txRes = TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true);
+						var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true));
 						var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private, txRes, wallet.Synchronizer.UsdExchangeRate);
 						var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 
@@ -349,10 +349,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
-					PriorLabels.Clear();
-					PriorLabels.AddRange(x.SelectMany(coin => coin.HdPubKey.Label.Labels).Distinct());
+					PriorLabels.AddRange(x.SelectMany(coin => coin.HdPubKey.Label.Labels));
+
+					PriorLabels = new ObservableCollection<string>(PriorLabels.Distinct());
 				})
 				.DisposeWith(disposables);
+
+			PriorLabels.AddRange(_owner.Wallet
+				.KeyManager
+				.GetLabels()
+				.Select(x=>x.ToString()
+					.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+					.SelectMany(x=>x));
+
+			PriorLabels = new ObservableCollection<string>(PriorLabels.Distinct());
 
 			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate)
 				.Where(x => x is { })
@@ -448,7 +458,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				xAxisValues = xs.Reverse().ToArray();
 				yAxisValues = ys.Reverse().ToArray();
 #endif
-				xAxisLabels = TestNetXAxisLabels;
+				// xAxisLabels = TestNetXAxisLabels;
+				var labels = TestNetXAxisValues.Select(x => x)
+					.Select(x => FeeTargetTimeConverter.Convert((int)x, "m", "h", "h", "d", "d"))
+					.Reverse()
+					.ToArray();
+				xAxisLabels = labels;
 			}
 
 			_updatingCurrentValue = true;

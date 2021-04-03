@@ -6,7 +6,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto
 {
-	public class MAC : IEquatable<MAC>
+	public record MAC
 	{
 		[JsonConstructor]
 		private MAC(Scalar t, GroupElement v)
@@ -18,17 +18,6 @@ namespace WalletWasabi.Crypto
 		public Scalar T { get; }
 		public GroupElement V { get; }
 		internal GroupElement U => GenerateU(T);
-
-		public static bool operator ==(MAC? a, MAC? b) => (a?.T, a?.V) == (b?.T, b?.V);
-
-		public static bool operator !=(MAC? a, MAC? b) => !(a == b);
-
-		public override bool Equals(object? obj) => Equals(obj as MAC);
-
-		public bool Equals(MAC? other) => this == other;
-
-		public override int GetHashCode() =>
-			HashCode.Combine(T, V).GetHashCode();
 
 		public static MAC ComputeMAC(CredentialIssuerSecretKey sk, GroupElement ma, Scalar t)
 		{

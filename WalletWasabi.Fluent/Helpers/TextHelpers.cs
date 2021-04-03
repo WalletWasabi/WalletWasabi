@@ -46,5 +46,10 @@ namespace WalletWasabi.Fluent.Helpers
 
 			return result;
 		}
+
+		public static string GenerateFiatText(this decimal amountBtc, decimal exchangeRate, string fiatCode)
+		{
+			return $"(≈{(amountBtc * exchangeRate).FormattedFiat()} {fiatCode}) ";
+		}
 	}
 }
