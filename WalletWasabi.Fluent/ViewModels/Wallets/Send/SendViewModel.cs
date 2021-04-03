@@ -133,20 +133,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (string.IsNullOrEmpty(To) && isAutoPasteEnabled)
 			{
-				await OnPaste();
+				await OnPaste(pasteIfInvalid: false);
 			}
 		}
 
-		private async Task OnPaste()
+		private async Task OnPaste(bool pasteIfInvalid = true)
 		{
 			var text = await Application.Current.Clipboard.GetTextAsync();
 
 			_parsingUrl = true;
 
-			if (!TryParseUrl(text))
+			if (!TryParseUrl(text) && pasteIfInvalid)
 			{
 				To = text;
-				// todo validation errors.
 			}
 
 			_parsingUrl = false;
