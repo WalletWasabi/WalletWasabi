@@ -10,7 +10,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 	{
 		public static int SharedOverhead = 4*(4 + 4 + 3 + 3) + 1 + 1; // version, locktime, two 3 byte varints are non-witness data, marker and flags are witness data
 
-		public static ImmutableSortedSet<ScriptType> OnlyP2WPKH = ImmutableSortedSet<ScriptType>.Empty.Add(ScriptType.P2WPKH);
+		public static ImmutableSortedSet<ScriptType> OnlyP2WPKH = ImmutableSortedSet.Create<ScriptType>(ScriptType.P2WPKH);
 
 		public ImmutableSortedSet<ScriptType> AllowedInputTypes { get; init; } = OnlyP2WPKH;
 		public ImmutableSortedSet<ScriptType> AllowedOutputTypes { get; init; } = OnlyP2WPKH;

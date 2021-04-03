@@ -20,7 +20,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 		public int EstimatedInputsVsize => Inputs.Sum(x => x.TxOut.ScriptPubKey.EstimateInputVsize());
 		public int OutputsVsize => Outputs.Sum(x => x.ScriptPubKey.EstimateOutputVsize());
 
-		public IEnumerable<Coin> UnsignedInputs => Enumerable.Range(0, Inputs.Length).Where(i => !IsInputSigned(i)).Select(i => Inputs[i]);
+		public IEnumerable<Coin> UnsignedInputs => Inputs.Where((_, i) => !IsInputSigned(i));
 
 		public bool IsInputSigned(int index) => Witnesses.ContainsKey(index);
 
