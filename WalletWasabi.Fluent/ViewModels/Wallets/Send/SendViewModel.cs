@@ -24,6 +24,7 @@ using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Gui;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -42,6 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	public partial class SendViewModel : NavBarItemViewModel
 	{
 		private readonly WalletViewModel _owner;
+		private readonly UiConfig _uiConfig;
 		private readonly TransactionInfo _transactionInfo;
 		[AutoNotify] private string _to;
 		[AutoNotify] private decimal _amountBtc;
@@ -63,7 +65,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private bool _updatingCurrentValue;
 		private double _lastXAxisCurrentValue;
 
-		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster) : base(NavigationMode.Normal)
+		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster, UiConfig uiConfig) : base(NavigationMode.Normal)
 		{
 			_to = "";
 			_owner = walletVm;
@@ -103,6 +105,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			EnableBack = true;
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPaste());
+			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPaste(uiConfig));
 
 			var nextCommandCanExecute =
 				this.WhenAnyValue(x => x.Labels, x => x.AmountBtc, x => x.To, x => x.XAxisCurrentValue).Select(_ => Unit.Default)
@@ -122,16 +125,27 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public ICommand PasteCommand { get; }
 
-		private async Task OnPaste()
+		public ICommand AutoPasteCommand { get; }
+
+		private async Task OnAutoPaste(UiConfig uiConfig)
+		{
+			var isAutoPasteEnabled = uiConfig.Autocopy;
+
+			if (string.IsNullOrEmpty(To) && isAutoPasteEnabled)
+			{
+				await OnPaste(pasteIfInvalid: false);
+			}
+		}
+
+		private async Task OnPaste(bool pasteIfInvalid = true)
 		{
 			var text = await Application.Current.Clipboard.GetTextAsync();
 
 			_parsingUrl = true;
 
-			if (!TryParseUrl(text))
+			if (!TryParseUrl(text) && pasteIfInvalid)
 			{
 				To = text;
-				// todo validation errors.
 			}
 
 			_parsingUrl = false;
