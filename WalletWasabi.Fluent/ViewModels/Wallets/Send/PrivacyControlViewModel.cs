@@ -27,6 +27,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		[AutoNotify] private decimal _stillNeeded;
 		[AutoNotify] private bool _enoughSelected;
+		[AutoNotify] private bool _privateFundsSelected;
+		[AutoNotify] private bool _showCjNotice;
 
 		public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
 		{
@@ -47,8 +49,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			selected.Sum(x => x.TotalBtc)
 				.Subscribe(x =>
 				{
+					PrivateFundsSelected = selectedList.Items.Any(pocket =>
+						pocket.Labels.FirstOrDefault() == CoinPocketHelper.PrivateFundsText);
+
 					StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC) - x;
-					EnoughSelected = StillNeeded <= 0;
+					EnoughSelected = StillNeeded <= 0 || PrivateFundsSelected;
+
+					ShowCjNotice = !PrivateFundsSelected && EnoughSelected;
 				});
 
 			StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);
