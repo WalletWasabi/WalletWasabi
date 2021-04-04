@@ -17,7 +17,7 @@ namespace WalletWasabi.Wallets
 		{
 			Network = network;
 			var correctedWorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
-			if (network.NetworkType == NetworkType.Mainnet)
+			if (network == Network.Main)
 			{
 				WalletsDir = Path.Combine(correctedWorkDir, WalletsDirName);
 				WalletsBackupDir = Path.Combine(correctedWorkDir, WalletsBackupDirName);
