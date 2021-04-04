@@ -64,7 +64,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				Inputs = inputs
 			};
 			AliceClient4 client = new(roundId, registeredAddresses, signerPubKeys, requesters, network, httpClient);
-			
+
 			// Correct it if forgot to set.
 			if (request.RoundId != roundId)
 			{
@@ -201,6 +201,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
 			Logger.LogInfo($"Round ({RoundId}), Alice ({UniqueId}): Posted {signatures.Count} signatures.");
-		}		
+		}
 	}
 }

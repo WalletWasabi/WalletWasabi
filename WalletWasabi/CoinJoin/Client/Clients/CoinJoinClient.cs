@@ -1044,7 +1044,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			IHttpClient satoshiHttpClient = factory.NewBackendHttpClient(isolateStream: true);
 			SatoshiClient satoshiClient = new(satoshiHttpClient);
 			RoundStateResponse4 state = (RoundStateResponse4)await satoshiClient.GetRoundStateAsync(roundId).ConfigureAwait(false);
-			
+
 			PubKey[] signerPubKeys = state.SignerPubKeys.ToArray();
 			PublicNonceWithIndex[] numerateNonces = state.RPubKeys.ToArray();
 			List<Requester> requesters = new();

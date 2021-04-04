@@ -254,7 +254,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			Stream transportStream = connection.GetTransportStream();
 
 			try
-			{				
+			{
 				await transportStream.WriteAsync(bytes.AsMemory(0, bytes.Length), token).ConfigureAwait(false);
 				await transportStream.FlushAsync(token).ConfigureAwait(false);
 			}
@@ -329,7 +329,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		public void Dispose()
 		{
 			// Dispose of unmanaged resources.
-			Dispose(true);			
+			Dispose(true);
 		}
 	}
 
