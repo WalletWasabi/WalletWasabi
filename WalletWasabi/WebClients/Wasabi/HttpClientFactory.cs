@@ -24,14 +24,14 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <param name="torEndPoint">If <c>null</c> then clearnet (not over Tor) is used, otherwise HTTP requests are routed through provided Tor endpoint.</param>
 		public HttpClientFactory(EndPoint? torEndPoint, Func<Uri> backendUriGetter)
 		{
-			SocketHandler = new SocketsHttpHandler()
+			SocketHandler = new()
 			{
 				// Only GZip is currently used by Wasabi Backend.
 				AutomaticDecompression = DecompressionMethods.GZip,
 				PooledConnectionLifetime = TimeSpan.FromMinutes(5)
 			};
 
-			HttpClient = new HttpClient(SocketHandler);
+			HttpClient = new(SocketHandler);
 
 			TorEndpoint = torEndPoint;
 			BackendUriGetter = backendUriGetter;
@@ -39,7 +39,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			// Connecting to loopback's URIs cannot be done via Tor.
 			if (TorEndpoint is { } && !BackendUriGetter().IsLoopback)
 			{
-				TorHttpPool = new TorHttpPool(TorEndpoint);
+				TorHttpPool = new(TorEndpoint);
 				BackendHttpClient = new TorHttpClient(BackendUriGetter, TorHttpPool, isolateStream: false);
 			}
 			else
@@ -47,7 +47,7 @@ namespace WalletWasabi.WebClients.Wasabi
 				BackendHttpClient = new ClearnetHttpClient(HttpClient, BackendUriGetter);
 			}
 
-			SharedWasabiClient = new WasabiClient(BackendHttpClient);
+			SharedWasabiClient = new(BackendHttpClient);
 		}
 
 		/// <summary>Tor SOCKS5 endpoint.</summary>

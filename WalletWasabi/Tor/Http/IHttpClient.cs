@@ -33,8 +33,8 @@ namespace WalletWasabi.Tor.Http
 				throw new InvalidOperationException("Base URI is not set.");
 			}
 
-			var requestUri = new Uri(baseUri, relativeUri);
-			using var httpRequestMessage = new HttpRequestMessage(method, requestUri);
+			Uri requestUri = new(baseUri, relativeUri);
+			using HttpRequestMessage httpRequestMessage = new(method, requestUri);
 
 			if (content is { })
 			{

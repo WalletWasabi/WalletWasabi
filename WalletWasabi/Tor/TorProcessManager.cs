@@ -27,7 +27,7 @@ namespace WalletWasabi.Tor
 			TorSocks5EndPoint = torSocks5EndPoint;
 			TorProcess = null;
 			Settings = settings;
-			TcpConnectionFactory = new TorTcpConnectionFactory(torSocks5EndPoint);
+			TcpConnectionFactory = new(torSocks5EndPoint);
 
 			IoHelpers.EnsureContainingDirectoryExists(Settings.LogFilePath);
 		}
@@ -89,7 +89,7 @@ namespace WalletWasabi.Tor
 					Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
 				}
 
-				TorProcess = new ProcessAsync(startInfo);
+				TorProcess = new(startInfo);
 
 				Logger.LogInfo($"Starting Tor process ...");
 				TorProcess.Start();
@@ -147,7 +147,7 @@ namespace WalletWasabi.Tor
 				try
 				{
 					TorProcess.Kill();
-					using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+					using CancellationTokenSource cts = new(TimeSpan.FromMinutes(1));
 					await TorProcess.WaitForExitAsync(cts.Token, killOnCancel: true).ConfigureAwait(false);
 
 					Logger.LogInfo($"Tor process killed successfully.");

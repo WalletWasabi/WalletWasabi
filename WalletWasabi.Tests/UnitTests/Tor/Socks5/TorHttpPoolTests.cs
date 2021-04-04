@@ -105,8 +105,8 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				int n = new Random().Next(0, 1_000_000);
 				string pipeName = $"{testName}.Pipe.{n}";
 
-				Server = new NamedPipeServerStream(pipeName, PipeDirection.InOut, maxNumberOfServerInstances: 4, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-				Client = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+				Server = new(pipeName, PipeDirection.InOut, maxNumberOfServerInstances: 4, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+				Client = new(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
 			}
 
 			public NamedPipeServerStream Server { get; }

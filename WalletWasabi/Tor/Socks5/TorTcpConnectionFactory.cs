@@ -60,7 +60,7 @@ namespace WalletWasabi.Tor.Socks5
 
 			try
 			{
-				tcpClient = new TcpClient(TorSocks5EndPoint.AddressFamily);
+				tcpClient = new(TorSocks5EndPoint.AddressFamily);
 
 				transportStream = await ConnectAsync(tcpClient, cancellationToken).ConfigureAwait(false);
 				await HandshakeAsync(tcpClient, isolateStream, cancellationToken).ConfigureAwait(false);
@@ -118,7 +118,7 @@ namespace WalletWasabi.Tor.Socks5
 			try
 			{
 				// Internal TCP client may close, so we need a new instance here.
-				using var tcpClient = new TcpClient(TorSocks5EndPoint.AddressFamily);
+				using TcpClient tcpClient = new(TorSocks5EndPoint.AddressFamily);
 				await ConnectAsync(tcpClient).ConfigureAwait(false);
 				await HandshakeAsync(tcpClient, isolateStream: false).ConfigureAwait(false);
 
@@ -152,7 +152,7 @@ namespace WalletWasabi.Tor.Socks5
 			// username / password fields of this message to be empty. This technically
 			// violates RFC1929[4], but ensures interoperability with somewhat broken
 			// SOCKS5 client implementations.
-			var methods = new MethodsField(isolateStream ? MethodField.UsernamePassword : MethodField.NoAuthenticationRequired);
+			MethodsField methods = new(isolateStream ? MethodField.UsernamePassword : MethodField.NoAuthenticationRequired);
 
 			byte[] receiveBuffer = await SendRequestAsync(tcpClient, new VersionMethodRequest(methods), cancellationToken).ConfigureAwait(false);
 
@@ -177,13 +177,13 @@ namespace WalletWasabi.Tor.Socks5
 				// sub-negotiation begins. This begins with the client producing a
 				// Username / Password request:
 				var identity = RandomString.CapitalAlphaNumeric(21);
-				var uName = new UNameField(uName: identity);
-				var passwd = new PasswdField(password: identity);
-				var usernamePasswordRequest = new UsernamePasswordRequest(uName, passwd);
+				UNameField uName = new(uName: identity);
+				PasswdField passwd = new(password: identity);
+				UsernamePasswordRequest usernamePasswordRequest = new(uName, passwd);
 
 				receiveBuffer = await SendRequestAsync(tcpClient, usernamePasswordRequest, cancellationToken).ConfigureAwait(false);
 
-				var userNamePasswordResponse = new UsernamePasswordResponse(receiveBuffer);
+				UsernamePasswordResponse userNamePasswordResponse = new(receiveBuffer);
 
 				if (userNamePasswordResponse.Ver != usernamePasswordRequest.Ver)
 				{
@@ -204,7 +204,7 @@ namespace WalletWasabi.Tor.Socks5
 		private static async Task<SslStream> UpgradeToSslAsync(TcpClient tcpClient, string host)
 		{
 			SslStream sslStream = new(tcpClient.GetStream(), leaveInnerStreamOpen: true);
-			await sslStream.AuthenticateAsClientAsync(host, new X509CertificateCollection(), true).ConfigureAwait(false);
+			await sslStream.AuthenticateAsClientAsync(host, new(), true).ConfigureAwait(false);
 			return sslStream;
 		}
 
@@ -227,7 +227,7 @@ namespace WalletWasabi.Tor.Socks5
 
 			try
 			{
-				TorSocks5Request connectionRequest = new(cmd: CmdField.Connect, new AddrField(host), new PortField(port));
+				TorSocks5Request connectionRequest = new(cmd: CmdField.Connect, new(host), new(port));
 
 				byte[] receiveBuffer = await SendRequestAsync(tcpClient, connectionRequest, cancellationToken).ConfigureAwait(false);
 

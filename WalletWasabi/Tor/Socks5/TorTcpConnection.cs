@@ -30,7 +30,7 @@ namespace WalletWasabi.Tor.Socks5
 		}
 
 		/// <remarks>Lock object to guard <see cref="State"/> property.</remarks>
-		private object StateLock { get; } = new object();
+		private object StateLock { get; } = new();
 
 		/// <remarks>All access to this property must be guarded by <see cref="StateLock"/>.</remarks>
 		public TcpConnectionState State { get; private set; }

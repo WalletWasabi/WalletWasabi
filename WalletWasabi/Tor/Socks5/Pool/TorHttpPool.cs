@@ -32,7 +32,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 
 		public TorHttpPool(EndPoint endpoint)
 		{
-			TcpConnectionFactory = new TorTcpConnectionFactory(endpoint);
+			TcpConnectionFactory = new(endpoint);
 		}
 
 		/// <summary>Use in tests.</summary>
@@ -45,10 +45,10 @@ namespace WalletWasabi.Tor.Socks5.Pool
 
 		/// <summary>Key is always a URI host. Value is a list of pool connections that can connect to the URI host.</summary>
 		/// <remarks>All access to this object must be guarded by <see cref="ObtainPoolConnectionLock"/>.</remarks>
-		private Dictionary<string, List<TorTcpConnection>> ConnectionPerHost { get; } = new Dictionary<string, List<TorTcpConnection>>();
+		private Dictionary<string, List<TorTcpConnection>> ConnectionPerHost { get; } = new();
 
 		/// <remarks>Lock object required for the combination of <see cref="TorTcpConnection"/> selection or creation in <see cref="ObtainFreeConnectionAsync(HttpRequestMessage, bool, CancellationToken)"/>.</remarks>
-		private AsyncLock ObtainPoolConnectionLock { get; } = new AsyncLock();
+		private AsyncLock ObtainPoolConnectionLock { get; } = new();
 
 		private TorTcpConnectionFactory TcpConnectionFactory { get; }
 
@@ -246,7 +246,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			// other than those acting as tunnels) MUST send their own HTTP - version
 			// in forwarded messages.
 			request.Version = HttpProtocol.HTTP11.Version;
-			request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+			request.Headers.AcceptEncoding.Add(new("gzip"));
 
 			string requestString = await request.ToHttpStringAsync(token).ConfigureAwait(false);
 			byte[] bytes = Encoding.UTF8.GetBytes(requestString);
@@ -279,7 +279,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		{
 			if (!ConnectionPerHost.ContainsKey(host))
 			{
-				ConnectionPerHost.Add(host, new List<TorTcpConnection>());
+				ConnectionPerHost.Add(host, new());
 			}
 
 			List<TorTcpConnection> hostConnections = ConnectionPerHost[host];

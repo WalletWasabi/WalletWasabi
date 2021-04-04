@@ -159,7 +159,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				stream.WriteByte(MethodField.NoAuthenticationRequired.ToByte());
 				stream.Flush();
 
-				TorSocks5Request expectedConnectionRequest = new(cmd: CmdField.Connect, new AddrField(httpRequestHost), new PortField(httpRequestPort));
+				TorSocks5Request expectedConnectionRequest = new(cmd: CmdField.Connect, new(httpRequestHost), new(httpRequestPort));
 
 				int i = 0;
 				foreach (byte byteValue in expectedConnectionRequest.ToBytes())
