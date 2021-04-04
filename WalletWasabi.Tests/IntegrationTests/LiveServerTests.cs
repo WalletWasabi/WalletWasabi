@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -48,13 +49,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 		#region Blockchain
 
 		[Theory]
-		[InlineData(NetworkType.Mainnet)]
-		[InlineData(NetworkType.Testnet)]
-		public async Task GetFiltersAsync(NetworkType networkType)
+		[MemberData(nameof(GetNetworks))]
+		public async Task GetFiltersAsync(Network network)
 		{
-			Network network = (networkType == NetworkType.Mainnet) ? Network.Main : Network.TestNet;
-
-			TorHttpClient torHttpClient = MakeTorHttpClient(networkType);
+			TorHttpClient torHttpClient = MakeTorHttpClient(network);
 			WasabiClient client = new(torHttpClient);
 
 			var filterModel = StartingFilters.GetStartingFilter(network);
@@ -66,11 +64,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 		}
 
 		[Theory]
-		[InlineData(NetworkType.Mainnet)]
-		[InlineData(NetworkType.Testnet)]
-		public async Task GetAllRoundStatesAsync(NetworkType networkType)
+		[MemberData(nameof(GetNetworks))]
+		public async Task GetAllRoundStatesAsync(Network network)
 		{
-			TorHttpClient torHttpClient = MakeTorHttpClient(networkType);
+			TorHttpClient torHttpClient = MakeTorHttpClient(network);
 			SatoshiClient client = new(torHttpClient);
 			var states = await client.GetAllRoundStatesAsync();
 			Assert.True(states.NotNullAndNotEmpty());
@@ -78,22 +75,20 @@ namespace WalletWasabi.Tests.IntegrationTests
 		}
 
 		[Theory]
-		[InlineData(NetworkType.Mainnet)]
-		[InlineData(NetworkType.Testnet)]
-		public async Task GetTransactionsAsync(NetworkType networkType)
+		[MemberData(nameof(GetNetworks))]
+		public async Task GetTransactionsAsync(Network network)
 		{
-			TorHttpClient torHttpClient = MakeTorHttpClient(networkType);
+			TorHttpClient torHttpClient = MakeTorHttpClient(network);
 			WasabiClient client = new(torHttpClient);
 
-			var randomTxIds = Enumerable.Range(0, 20).Select(_ => RandomUtils.GetUInt256());
-			var network = networkType == NetworkType.Mainnet ? Network.Main : Network.TestNet;
+			IEnumerable<uint256> randomTxIds = Enumerable.Range(0, 20).Select(_ => RandomUtils.GetUInt256());
 
 			var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
 				await client.GetTransactionsAsync(network, randomTxIds.Take(4), CancellationToken.None));
 			Assert.Equal("Bad Request\nNo such mempool or blockchain transaction. Use gettransaction for wallet transactions.", ex.Message);
 
 			var mempoolTxIds = await client.GetMempoolHashesAsync(CancellationToken.None);
-			randomTxIds = Enumerable.Range(0, 5).Select(_ => mempoolTxIds.RandomElement()).Distinct().ToArray();
+			randomTxIds = Enumerable.Range(0, 5).Select(_ => mempoolTxIds.RandomElement()!).Distinct().ToArray();
 			var txs = await client.GetTransactionsAsync(network, randomTxIds, CancellationToken.None);
 			var returnedTxIds = txs.Select(tx => tx.GetHash());
 			Assert.Equal(returnedTxIds.OrderBy(x => x).ToArray(), randomTxIds.OrderBy(x => x).ToArray());
@@ -104,11 +99,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 		#region Offchain
 
 		[Theory]
-		[InlineData(NetworkType.Mainnet)]
-		[InlineData(NetworkType.Testnet)]
-		public async Task GetExchangeRateAsync(NetworkType networkType) // xunit wtf: If this function is called GetExchangeRatesAsync, it'll stuck on 1 CPU VMs (Manjuro, Fedora)
+		[MemberData(nameof(GetNetworks))]
+		public async Task GetExchangeRateAsync(Network network)
 		{
-			TorHttpClient torHttpClient = MakeTorHttpClient(networkType);
+			TorHttpClient torHttpClient = MakeTorHttpClient(network);
 			WasabiClient client = new(torHttpClient);
 
 			var exchangeRates = await client.GetExchangeRatesAsync();
@@ -121,11 +115,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 		#region Software
 
 		[Theory]
-		[InlineData(NetworkType.Mainnet)]
-		[InlineData(NetworkType.Testnet)]
-		public async Task GetVersionsTestsAsync(NetworkType networkType)
+		[MemberData(nameof(GetNetworks))]
+		public async Task GetVersionsTestsAsync(Network network)
 		{
-			TorHttpClient torHttpClient = MakeTorHttpClient(networkType);
+			TorHttpClient torHttpClient = MakeTorHttpClient(network);
 			WasabiClient client = new(torHttpClient);
 
 			var versions = await client.GetVersionsAsync(CancellationToken.None);
@@ -136,11 +129,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 		}
 
 		[Theory]
-		[InlineData(NetworkType.Mainnet)]
-		[InlineData(NetworkType.Testnet)]
-		public async Task CheckUpdatesTestsAsync(NetworkType networkType)
+		[MemberData(nameof(GetNetworks))]
+		public async Task CheckUpdatesTestsAsync(Network network)
 		{
-			TorHttpClient torHttpClient = MakeTorHttpClient(networkType);
+			TorHttpClient torHttpClient = MakeTorHttpClient(network);
 			WasabiClient client = new(torHttpClient);
 
 			var updateStatus = await client.CheckUpdatesAsync(CancellationToken.None);
@@ -162,11 +154,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 		#region Wasabi
 
 		[Theory]
-		[InlineData(NetworkType.Mainnet)]
-		[InlineData(NetworkType.Testnet)]
-		public async Task GetLegalDocumentsTestsAsync(NetworkType networkType)
+		[MemberData(nameof(GetNetworks))]
+		public async Task GetLegalDocumentsTestsAsync(Network network)
 		{
-			TorHttpClient torHttpClient = MakeTorHttpClient(networkType);
+			TorHttpClient torHttpClient = MakeTorHttpClient(network);
 			WasabiClient client = new(torHttpClient);
 
 			var content = await client.GetLegalDocumentsAsync(CancellationToken.None);
@@ -179,10 +170,16 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 		#endregion Wasabi
 
-		private TorHttpClient MakeTorHttpClient(NetworkType networkType)
+		private TorHttpClient MakeTorHttpClient(Network network)
 		{
-			Uri baseUri = LiveServerTestsFixture.UriMappings[networkType];
+			Uri baseUri = LiveServerTestsFixture.UriMappings[network];
 			return new(baseUri, TorHttpPool);
+		}
+
+		public static IEnumerable<object[]> GetNetworks()
+		{
+			yield return new object[] { Network.Main };
+			yield return new object[] { Network.TestNet };
 		}
 	}
 }
