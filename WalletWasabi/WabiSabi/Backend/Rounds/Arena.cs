@@ -240,17 +240,18 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private async Task CreateRoundsAsync()
 		{
-			if(!(Rpc.Network == Network.RegTest))
+			
+			if (!Rounds.Values.Any(x => !x.IsBlameRound && x.Phase == Phase.InputRegistration))
 			{
-				if (!Rounds.Values.Any(x => !x.IsBlameRound && x.Phase == Phase.InputRegistration))
-				{
-					var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative).ConfigureAwait(false)).FeeRate;
+				var mempoolInfo = await Rpc.GetMempoolInfoAsync().ConfigureAwait(false);
+				var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
+				var estimateSmartFeeResponse = await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, sanityFeeRate, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false);
 
-					RoundParameters roundParams = new(Config, Network, Random, feeRate);
-					Round r = new(roundParams);
-					Rounds.Add(r.Id, r);
-				}
+				RoundParameters roundParams = new(Config, Network, Random,estimateSmartFeeResponse.FeeRate);
+				Round r = new(roundParams);
+				Rounds.Add(r.Id, r);
 			}
+			
 		}
 
 		private void TimeoutAlices()
