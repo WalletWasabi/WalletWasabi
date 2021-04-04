@@ -67,51 +67,51 @@ namespace WalletWasabi.WabiSabi.Client
 				.Zip(keys, (outPoint, key) => (outPoint, key))
 				.Select(x => new InputRoundSignaturePair(x.outPoint, GenerateOwnershipProof(x.key, roundHash)));
 
-			var (zeroAmountCredentialRequest, zeroAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequestForZeroAmount();
-			var (zeroWeightCredentialRequest, zeroWeightCredentialResponseValidation) = WeightCredentialClient.CreateRequestForZeroAmount();
+			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
+			var zeroWeightCredentialRequestData = WeightCredentialClient.CreateRequestForZeroAmount();
 
 			var inputRegistrationResponse = await RequestHandler.RegisterInputAsync(
 				new InputsRegistrationRequest(
 					roundId,
 					registrableInputs,
-					zeroAmountCredentialRequest,
-					zeroWeightCredentialRequest)).ConfigureAwait(false);
+					zeroAmountCredentialRequestData.CredentialsRequest,
+					zeroWeightCredentialRequestData.CredentialsRequest)).ConfigureAwait(false);
 
-			AmountCredentialClient.HandleResponse(inputRegistrationResponse.AmountCredentials, zeroAmountCredentialResponseValidation);
-			WeightCredentialClient.HandleResponse(inputRegistrationResponse.WeightCredentials, zeroWeightCredentialResponseValidation);
+			AmountCredentialClient.HandleResponse(inputRegistrationResponse.AmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
+			WeightCredentialClient.HandleResponse(inputRegistrationResponse.WeightCredentials, zeroWeightCredentialRequestData.CredentialsResponseValidation);
 
 			return inputRegistrationResponse.AliceId;
 		}
 
 		public async Task ConfirmConnectionAsync(Guid roundId, Guid aliceId, IEnumerable<long> inputsRegistrationWeight, IEnumerable<Credential> credentialsToPresent, IEnumerable<Money> newAmount)
 		{
-			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
+			var realAmountCredentialRequestData = AmountCredentialClient.CreateRequest(
 				newAmount.Select(x => x.Satoshi),
 				credentialsToPresent);
 
-			var (realWeightCredentialRequest, realWeightCredentialResponseValidation) = WeightCredentialClient.CreateRequest(
+			var realWeightCredentialRequestData = WeightCredentialClient.CreateRequest(
 				inputsRegistrationWeight,
 				WeightCredentialClient.Credentials.ZeroValue.Take(2));
 
-			var (zeroAmountCredentialRequest, zeroAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequestForZeroAmount();
-			var (zeroWeightCredentialRequest, zeroWeightCredentialResponseValidation) = WeightCredentialClient.CreateRequestForZeroAmount();
+			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
+			var zeroWeightCredentialRequestData = WeightCredentialClient.CreateRequestForZeroAmount();
 
 			var confirmConnectionResponse = await RequestHandler.ConfirmConnectionAsync(
 				new ConnectionConfirmationRequest(
 					roundId,
 					aliceId,
-					zeroAmountCredentialRequest,
-					realAmountCredentialRequest,
-					zeroWeightCredentialRequest,
-					realWeightCredentialRequest)).ConfigureAwait(false);
+					zeroAmountCredentialRequestData.CredentialsRequest,
+					realAmountCredentialRequestData.CredentialsRequest,
+					zeroWeightCredentialRequestData.CredentialsRequest,
+					realWeightCredentialRequestData.CredentialsRequest)).ConfigureAwait(false);
 
 			if (confirmConnectionResponse is { RealAmountCredentials: { }, RealWeightCredentials: { } })
 			{
-				AmountCredentialClient.HandleResponse(confirmConnectionResponse.RealAmountCredentials, realAmountCredentialResponseValidation);
-				WeightCredentialClient.HandleResponse(confirmConnectionResponse.RealWeightCredentials, realWeightCredentialResponseValidation);
+				AmountCredentialClient.HandleResponse(confirmConnectionResponse.RealAmountCredentials, realAmountCredentialRequestData.CredentialsResponseValidation);
+				WeightCredentialClient.HandleResponse(confirmConnectionResponse.RealWeightCredentials, realWeightCredentialRequestData.CredentialsResponseValidation);
 			}
-			AmountCredentialClient.HandleResponse(confirmConnectionResponse.ZeroAmountCredentials, zeroAmountCredentialResponseValidation);
-			WeightCredentialClient.HandleResponse(confirmConnectionResponse.ZeroWeightCredentials, zeroWeightCredentialResponseValidation);
+			AmountCredentialClient.HandleResponse(confirmConnectionResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
+			WeightCredentialClient.HandleResponse(confirmConnectionResponse.ZeroWeightCredentials, zeroWeightCredentialRequestData.CredentialsResponseValidation);
 		}
 
 		public async Task SignTransactionAsync(Guid roundId, IEnumerable<ICoin> coinsToSign, BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin)
