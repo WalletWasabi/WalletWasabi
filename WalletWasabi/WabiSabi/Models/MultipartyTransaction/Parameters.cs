@@ -15,7 +15,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 		public ImmutableSortedSet<ScriptType> AllowedInputTypes { get; init; } = OnlyP2WPKH;
 		public ImmutableSortedSet<ScriptType> AllowedOutputTypes { get; init; } = OnlyP2WPKH;
 
-		// These parameters need to be comitted to the transcript, but we want
+		// These parameters need to be committed to the transcript, but we want
 		// the NBitcoin supplied default values, hence the private static property
 		private static StandardTransactionPolicy StandardTransactionPolicy { get; } = new();
 		public int MaxTransactionSize { get; init; } = (int)StandardTransactionPolicy.MaxTransactionSize;
