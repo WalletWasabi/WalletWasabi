@@ -100,17 +100,24 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void UpdateDelay(bool isDialogOpen)
 		{
-			_canCancelOnPointerPressed = false;
-			CancelPointerPressedDelay?.Cancel();
-
-			if (isDialogOpen)
+			try
 			{
-				CancelPointerPressedDelay = new CancellationTokenSource();
+				_canCancelOnPointerPressed = false;
+				CancelPointerPressedDelay?.Cancel();
 
-				Task.Delay(TimeSpan.FromSeconds(1), CancelPointerPressedDelay.Token).ContinueWith(_ =>
+				if (isDialogOpen)
 				{
-					_canCancelOnPointerPressed = true;
-				});
+					CancelPointerPressedDelay = new CancellationTokenSource();
+
+					Task.Delay(TimeSpan.FromSeconds(1), CancelPointerPressedDelay.Token).ContinueWith(_ =>
+					{
+						_canCancelOnPointerPressed = true;
+					});
+				}
+			}
+			catch (OperationCanceledException)
+			{
+				// ignored
 			}
 		}
 
