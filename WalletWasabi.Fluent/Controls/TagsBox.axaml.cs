@@ -137,6 +137,8 @@ namespace WalletWasabi.Fluent.Controls
 			_autoCompleteBox.DropDownClosed += OnAutoCompleteBoxDropDownClosed;
 			_autoCompleteBox.TemplateApplied += OnAutoCompleteBoxTemplateApplied;
 
+			_autoCompleteBox.FilterMode = AutoCompleteFilterMode.StartsWith;
+
 			Disposable.Create(
 					() =>
 					{
@@ -158,6 +160,7 @@ namespace WalletWasabi.Fluent.Controls
 		private void OnAutoCompleteBoxTemplateApplied(object? sender, TemplateAppliedEventArgs e)
 		{
 			_internalTextBox = e.NameScope.Find<TextBox>("PART_TextBox");
+
 			_internalTextBox.WhenAnyValue(x => x.IsFocused)
 				.Subscribe(isFocused =>
 				{
@@ -165,6 +168,8 @@ namespace WalletWasabi.Fluent.Controls
 					{
 						return;
 					}
+
+
 
 					var currentText = (_autoCompleteBox?.Text ?? "").Trim();
 
