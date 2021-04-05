@@ -25,6 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private readonly TransactionInfo _info;
 
 		[AutoNotify] private string _confirmationTimeText;
+		[AutoNotify] private SmartLabel _labels;
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, TransactionBroadcaster broadcaster,
 			BuildTransactionResult transaction)
@@ -68,6 +69,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			base.OnNavigatedTo(isInHistory, disposables);
 
 			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(_info.ConfirmationTimeSpan)} ";
+			Labels = _info.Labels;
 		}
 
 		private async Task OnNext(Wallet wallet, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)
