@@ -14,12 +14,12 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		{
 			var destinationAmount = transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 			var btcAmountText = $"{destinationAmount} bitcoins ";
-			var fiatAmountText = $"(≈{(destinationAmount * usdExchangeRate).FormattedFiat()} USD) ";
+			var fiatAmountText = destinationAmount.GenerateFiatText(usdExchangeRate, "USD");
 			AmountText = $"{btcAmountText}{fiatAmountText}";
 
 			var fee = transaction.Fee;
 			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
-			var fiatFeeText = $"(≈{(fee.ToDecimal(MoneyUnit.BTC) * usdExchangeRate).FormattedFiat()} USD)";
+			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(usdExchangeRate, "USD");
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
 			switch (type)

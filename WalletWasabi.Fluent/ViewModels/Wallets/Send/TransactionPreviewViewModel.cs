@@ -1,7 +1,7 @@
-using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
@@ -25,19 +25,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			var destinationAmount = transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 			var btcAmountText = $"{destinationAmount} bitcoins ";
-			var fiatAmountText = $"(≈{(destinationAmount * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD) ";
+			var fiatAmountText = destinationAmount.GenerateFiatText(wallet.Synchronizer.UsdExchangeRate, "USD");
 			AmountText = $"{btcAmountText}{fiatAmountText}";
 
-			Labels = info.Labels.Labels.ToArray();
-
 			AddressText = info.Address.ToString();
+
+			Labels = info.Labels;
 
 			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
 
 			var fee = transaction.Fee;
 			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
-			var fiatFeeText =
-				$"(≈{(fee.ToDecimal(MoneyUnit.BTC) * wallet.Synchronizer.UsdExchangeRate).FormattedFiat()} USD)";
+			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(wallet.Synchronizer.UsdExchangeRate, "USD");
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNext(wallet, broadcaster, transaction));
@@ -45,11 +44,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public string AmountText { get; }
 
-		public string[] Labels { get; }
-
 		public string AddressText { get; }
 
 		public string ConfirmationTimeText { get; }
+
+		public SmartLabel Labels { get; }
 
 		public string FeeText { get; }
 

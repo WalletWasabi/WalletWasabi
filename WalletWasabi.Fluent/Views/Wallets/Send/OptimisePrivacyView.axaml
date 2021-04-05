@@ -19,7 +19,7 @@
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DockPanel>
             <Panel DockPanel.Dock="Bottom" Margin="0 30 0 0" MinHeight="22">
-                <c:InfoMessage  IsVisible="{Binding ExactAmountWarningVisible}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Content="Some services only accept the exact amount that was requested." Foreground="{DynamicResource PrivacyOptimisationLevelStandardBrush}" />
+                <c:InfoMessage  IsVisible="{Binding ExactAmountWarningVisible}" VerticalAlignment="Bottom" HorizontalAlignment="Center" Content="Some services only accept the exact amount that was requested." Foreground="{DynamicResource PrivacyLevelMediumBrush}" />
             </Panel>
             <ListBox DockPanel.Dock="Top" Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Center" Items="{Binding PrivacySuggestions}" SelectedItem="{Binding SelectedPrivacySuggestion}">
                 <ListBox.Styles>
@@ -30,9 +30,6 @@
                     <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
                         <Setter Property="CornerRadius" Value="4" />
                         <Setter Property="Margin" Value="5" />
-                    </Style>
-                    <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-                        <Setter Property="Background" Value="{DynamicResource PrivacySuggestionControlSelectedBackground}" />
                     </Style>
                 </ListBox.Styles>
                 <ListBox.ItemsPanel>

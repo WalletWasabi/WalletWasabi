@@ -40,18 +40,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				});
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
 
-			var rnd = new InsecureRandom();
-			var protocolCredentialNumber = 2;
-			var protocolMaxWeightPerAlice = 1_000L;
-			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, protocolCredentialNumber, rnd, 4_300_000_000_000ul);
-			var weightClient = new WabiSabiClient(round.WeightCredentialIssuerParameters, protocolCredentialNumber, rnd, (ulong)protocolMaxWeightPerAlice);
-
-			var apiClient = new ArenaClient(amountClient, weightClient, coordinator);
+			var apiClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, coordinator, new InsecureRandom());
+			var amountCredentials = apiClient.AmountCredentialClient.Credentials;
+			var weightCredentials = apiClient.WeightCredentialClient.Credentials;
 
 			var aliceId = await apiClient.RegisterInputAsync(Money.Coins(1m), outpoint, key, round.Id, round.Hash);
 
 			Assert.NotEqual(Guid.Empty, aliceId);
-			Assert.Empty(apiClient.AmountCredentialClient.Credentials.Valuable);
+			Assert.Empty(amountCredentials.Valuable);
 
 			var reissuanceAmounts = new[]
 			{
@@ -60,17 +56,17 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			};
 
 			var inputWeight = 4 * Constants.P2wpkhInputVirtualSize;
-			var inputRemainingWeights = new[] { protocolMaxWeightPerAlice - inputWeight };
+			var inputRemainingWeights = new[] { (long)ArenaClient.ProtocolMaxWeightPerAlice - inputWeight };
 
 			// Phase: Input Registration
 			await apiClient.ConfirmConnectionAsync(
 				round.Id,
 				aliceId,
 				inputRemainingWeights,
-				apiClient.AmountCredentialClient.Credentials.ZeroValue.Take(protocolCredentialNumber),
+				amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
 				reissuanceAmounts);
 
-			Assert.Empty(apiClient.AmountCredentialClient.Credentials.Valuable);
+			Assert.Empty(amountCredentials.Valuable);
 
 			// Phase: Connection Confirmation
 			round.SetPhase(Phase.ConnectionConfirmation);
@@ -78,11 +74,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				round.Id,
 				aliceId,
 				inputRemainingWeights,
-				apiClient.AmountCredentialClient.Credentials.ZeroValue.Take(protocolCredentialNumber),
+				amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
 				reissuanceAmounts);
 
-			Assert.Single(apiClient.AmountCredentialClient.Credentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.First());
-			Assert.Single(apiClient.AmountCredentialClient.Credentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.Last());
+			Assert.Single(amountCredentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.First());
+			Assert.Single(amountCredentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.Last());
 		}
 
 		[Fact]
