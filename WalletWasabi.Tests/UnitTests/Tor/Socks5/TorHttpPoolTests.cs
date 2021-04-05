@@ -35,7 +35,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 
 			using TorTcpConnection connection = new(tcpClient: null!, transportStream.Client, allowRecycling: true);
 
-			Mock<TorTcpConnectionFactory> mockFactory = new(MockBehavior.Strict, null!);
+			Mock<TorTcpConnectionFactory> mockFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
 			mockFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).ReturnsAsync(connection);
 
 			using TorHttpPool pool = new(mockFactory.Object);
