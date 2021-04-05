@@ -32,7 +32,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor;
-using WalletWasabi.Userfacing;
+using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -172,10 +172,19 @@ namespace WalletWasabi.Gui
 
 				#region BitcoinStoreInitialization
 
-				await bstoreInitTask.ConfigureAwait(false);
+				try
+				{
+					await bstoreInitTask.ConfigureAwait(false);
 
-				// Make sure that the height of the wallets will not be better than the current height of the filters.
-				WalletManager.SetMaxBestHeight(BitcoinStore.IndexStore.SmartHeaderChain.TipHeight);
+					// Make sure that the height of the wallets will not be better than the current height of the filters.
+					WalletManager.SetMaxBestHeight(BitcoinStore.IndexStore.SmartHeaderChain.TipHeight);
+				}
+				catch (Exception ex) when (ex is not OperationCanceledException)
+				{
+					// If our internal data structures in the Bitcoin Store gets corrupted, then it's better to rescan all the wallets.
+					WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network).Height);
+					throw;
+				}
 
 				#endregion BitcoinStoreInitialization
 

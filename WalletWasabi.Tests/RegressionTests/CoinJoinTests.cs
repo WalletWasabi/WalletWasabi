@@ -119,7 +119,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			// <-------------------------->
 
 			var states = await satoshiClient.GetAllRoundStatesAsync();
-			Assert.Equal(2, states.Count());
+			Assert.Single(states);
 			foreach (var rs in states)
 			{
 				// Never changes.
@@ -261,7 +261,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			blindedOutputScriptsHash = new uint256(NBitcoin.Crypto.Hashes.SHA256(blindedData.BlindedOutput.ToBytes()));
 			proof = key.SignCompact(blindedOutputScriptsHash);
 			inputsRequest.Inputs.First().Proof = proof;
-			using (var aliceClient = await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest))
+			var aliceClient = await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest);
 			{
 				// Test DelayedClientRoundRegistration logic.
 				ClientRoundRegistration first = null;
@@ -309,7 +309,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			Assert.Equal(2, currentRound.AnonymitySet);
 			Assert.Equal(0, currentRound.CountAlices());
 
-			using (var aliceClient = await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest))
+			aliceClient = await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest);
 			{
 				Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
 				Assert.True(aliceClient.RoundId > 0);
@@ -375,7 +375,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				h => currentRound.PhaseChanged += h,
 				h => currentRound.PhaseChanged -= h);
 
-			using (var aliceClient = await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest))
+			aliceClient = await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest);
 			{
 				Assert.Equal(2, currentRound.AnonymitySet);
 				Assert.Equal(2, currentRound.CountAlices());
@@ -461,7 +461,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					new InputProofModel { Input = coin.Outpoint, Proof = key.SignCompact(blindedOutputScriptsHash) }
 				}
 			};
-			using (var aliceClient = await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputRequest))
+			aliceClient = await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputRequest);
 			{
 				Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
 				Assert.True(aliceClient.RoundId > 0);
@@ -510,7 +510,8 @@ namespace WalletWasabi.Tests.RegressionTests
 					new InputProofModel { Input = coin.Outpoint, Proof = key.SignCompact(blindedOutputScriptsHash) }
 				}
 			};
-			using (var aliceClient = await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputRequest))
+
+			aliceClient = await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputRequest);
 			{
 				Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
 				Assert.True(aliceClient.RoundId > 0);
@@ -591,8 +592,9 @@ namespace WalletWasabi.Tests.RegressionTests
 					new InputProofModel { Input = input2, Proof = key2.SignCompact(blindedOutputScriptsHash2) }
 				}
 			};
-			using (var aliceClient1 = await CreateNewAliceClientAsync(roundId, new[] { outputAddress1 }, signerPubKeys, new[] { requester1 }, inputRequest1))
-			using (var aliceClient2 = await CreateNewAliceClientAsync(roundId, new[] { outputAddress2 }, signerPubKeys, new[] { requester2 }, inputRequest2))
+
+			var aliceClient1 = await CreateNewAliceClientAsync(roundId, new[] { outputAddress1 }, signerPubKeys, new[] { requester1 }, inputRequest1);
+			var aliceClient2 = await CreateNewAliceClientAsync(roundId, new[] { outputAddress2 }, signerPubKeys, new[] { requester2 }, inputRequest2);
 			{
 				Assert.Equal(aliceClient2.RoundId, aliceClient1.RoundId);
 				Assert.NotEqual(aliceClient2.UniqueId, aliceClient1.UniqueId);

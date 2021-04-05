@@ -33,7 +33,7 @@ sudo service nginx start
 rm -rf WalletWasabi/WalletWasabi.Backend/bin && dotnet publish ~/WalletWasabi/WalletWasabi.Backend --configuration Release --self-contained false
 sudo systemctl start walletwasabi.service
 echo -n 'Tor: '; systemctl is-active tor; echo -n 'Wasabi: '; systemctl is-active walletwasabi; echo -n 'Bitcoind: '; ps -C bitcoind >/dev/null && echo "active" || echo "incative";
-tail -10000 ~/.walletwasabi/backend/Logs.txt
+tail -200 ~/.walletwasabi/backend/Logs.txt
 
 # Advanced status checks
 systemctl status nginx
@@ -68,6 +68,8 @@ https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubunt
 
 Putty (Copypaste with Ctrl+Insert and Shift+Insert)
 https://www.digitalocean.com/community/tutorials/how-to-use-ssh-keys-with-putty-on-digitalocean-droplets-windows-users
+
+Make sure the new user's SSH pubkey added to ~/.ssh/authorized_keys on the server as well. 
 
 ### Create a New User and Grant Administrative Privileges
 

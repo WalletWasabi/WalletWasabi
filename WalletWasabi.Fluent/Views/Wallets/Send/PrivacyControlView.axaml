@@ -9,7 +9,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyControlView">
     <c:ContentArea Title="Send - Privacy Control"
-                   Caption="Parts of your wallet are know to certain entities. Select the entities you can tolerate leaking information about this transaction:"
+                   Caption="Parts of your wallet are known to certain entities. Select the entities you can tolerate leaking information about this transaction:"
                    EnableCancel="{Binding EnableCancel}"
                    EnableBack="{Binding EnableBack}"
                    EnableNext="True" NextContent="Continue"
@@ -25,9 +25,13 @@
                         <TextBlock Text=" BTC" />
                     </StackPanel>
                 </c:InfoMessage>
-                <c:InfoMessage
+                <c:InfoMessage IsVisible="{Binding ShowCjNotice}"
                     Content="Not in a hurry? Consider making more of your funds private by CoinJoining before making this transaction."
-                    HorizontalAlignment="Center" VerticalAlignment="Bottom" />
+                    HorizontalAlignment="Center" VerticalAlignment="Top" />
+                <c:InfoMessage VerticalAlignment="Top"
+                               Foreground="{DynamicResource WarningMessageForeground}"
+                               IsVisible="{Binding PrivateFundsSelected}"
+                               Content="Warning! Using both private and non-private funds in the same transaction can destroy your privacy." />
             </Panel>
             <DataGrid AutoGenerateColumns="False"
                       Margin="0 20"
@@ -42,7 +46,7 @@
                     <DataGridTemplateColumn CanUserSort="False" CanUserResize="False" CanUserReorder="False">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="vm:PocketViewModel">
-                                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" />
+                                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsSelected}" Focusable="False" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
