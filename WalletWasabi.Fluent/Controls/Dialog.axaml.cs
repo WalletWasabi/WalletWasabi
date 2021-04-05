@@ -95,7 +95,7 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(MaxContentWidthProperty, value);
 		}
 
-		private CancellationTokenSource CancelPointerPressedDelay { get; set; }
+		private CancellationTokenSource? CancelPointerPressedDelay { get; set; }
 
 		private void UpdateDelay(bool isDialogOpen)
 		{
