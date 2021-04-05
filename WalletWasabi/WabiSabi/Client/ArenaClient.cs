@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
@@ -14,6 +15,24 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class ArenaClient
 	{
+		public static readonly int ProtocolCredentialNumber = 2;
+		public static readonly ulong ProtocolMaxAmountPerAlice = 4_300_000_000_000ul;
+		public static readonly ulong ProtocolMaxWeightPerAlice = 1_000ul;
+
+		public ArenaClient(
+			CredentialIssuerParameters amountCredentialIssuerParameters,
+			CredentialIssuerParameters weightCredentialIssuerParameters,
+			IArenaRequestHandler requestHandler,
+			WasabiRandom random)
+		{
+			var amountCredentials = new CredentialPool();
+			var weightCredentials = new CredentialPool();
+
+			AmountCredentialClient = new WabiSabiClient(amountCredentialIssuerParameters, ProtocolCredentialNumber, random, ProtocolMaxAmountPerAlice, amountCredentials);
+			WeightCredentialClient = new WabiSabiClient(weightCredentialIssuerParameters, ProtocolCredentialNumber, random, ProtocolMaxWeightPerAlice, weightCredentials);			
+			RequestHandler = requestHandler;
+		}
+
 		public ArenaClient(WabiSabiClient amountCredentialClient, WabiSabiClient weightCredentialClient, IArenaRequestHandler requestHandler)
 		{
 			AmountCredentialClient = amountCredentialClient;
