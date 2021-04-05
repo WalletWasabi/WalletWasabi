@@ -321,8 +321,8 @@ namespace WalletWasabi.Tests.Helpers
 				ret.Add(new OutputRegistrationRequest(
 					round.Id,
 					script,
-					ccresp.amountClient.CreateRequest(Array.Empty<long>(), ccresp.amountClient.Credentials.Valuable).Item1,
-					ccresp.weightClient.CreateRequest(new[] { startingWeightCredentialAmount - weight }, ccresp.weightClient.Credentials.Valuable).Item1));
+					ccresp.amountClient.CreateRequest(Array.Empty<long>(), ccresp.amountClient.Credentials.Valuable).CredentialsRequest,
+					ccresp.weightClient.CreateRequest(new[] { startingWeightCredentialAmount - weight }, ccresp.weightClient.Credentials.Valuable).CredentialsRequest));
 			}
 
 			return ret;

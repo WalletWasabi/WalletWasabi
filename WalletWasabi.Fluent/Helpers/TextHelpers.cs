@@ -49,7 +49,12 @@ namespace WalletWasabi.Fluent.Helpers
 
 		public static string GenerateFiatText(this decimal amountBtc, decimal exchangeRate, string fiatCode)
 		{
-			return $"(≈{(amountBtc * exchangeRate).FormattedFiat()} {fiatCode}) ";
+			return GenerateFiatText(amountBtc * exchangeRate, fiatCode);
+		}
+
+		public static string GenerateFiatText(this decimal amountFiat, string fiatCode)
+		{
+			return $"(≈{(amountFiat).FormattedFiat()} {fiatCode}) ";
 		}
 	}
 }

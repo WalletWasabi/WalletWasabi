@@ -25,7 +25,7 @@
                 <Label Content="_Type in your recovery words here:" Target="SeedTagsBox" DockPanel.Dock="Top" />
                 <c:TagsBox x:Name="SeedTagsBox"
                            DockPanel.Dock="Top"
-                           ItemCountLimit="12"
+                           ItemCountLimit="24"
                            SuggestionsAreCaseSensitive="False"
                            RestrictInputToSuggestions="True"
                            Items="{Binding Mnemonics}"
