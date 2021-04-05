@@ -150,7 +150,7 @@ namespace WalletWasabi.Gui
 
 				#region TorProcessInitialization
 
-				if (Config.UseTor)
+				if (Config.UseTor && Network != Network.RegTest)
 				{
 					using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
 					{
