@@ -1061,11 +1061,11 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 		}
 
-		public IEnumerable<Alice> GetAlicesBy(BitcoinAddress changeOutputAddress)
+		public bool IsChangeOutputRegistered(BitcoinAddress changeOutputAddress)
 		{
 			using (RoundSynchronizerLock.Lock())
 			{
-				return Alices.Where(x => x.ChangeOutputAddress == changeOutputAddress).ToList();
+				return Alices.Where(x => x.ChangeOutputAddress == changeOutputAddress).Any();
 			}
 		}
 
