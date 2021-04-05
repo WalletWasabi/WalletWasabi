@@ -160,7 +160,6 @@ namespace WalletWasabi.Fluent.Controls
 		private void OnAutoCompleteBoxTemplateApplied(object? sender, TemplateAppliedEventArgs e)
 		{
 			_internalTextBox = e.NameScope.Find<TextBox>("PART_TextBox");
-
 			_internalTextBox.WhenAnyValue(x => x.IsFocused)
 				.Subscribe(isFocused =>
 				{
