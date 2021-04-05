@@ -15,7 +15,7 @@ using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client
 {
-	public class AliceClient : BackgroundService
+	public class AliceClient : BackgroundService, IAsyncDisposable
 	{
 		private Guid AliceId { get; }
 		private Guid RoundId { get; }
@@ -91,6 +91,11 @@ namespace WalletWasabi.WabiSabi.Client
 			await client.StartAsync(CancellationToken.None).ConfigureAwait(false);
 
 			return client;
+		}
+
+		public async ValueTask DisposeAsync()
+		{
+			return await StopAsync(CancellationToken.None).ConfigureAwait(false);
 		}
 	}
 }
