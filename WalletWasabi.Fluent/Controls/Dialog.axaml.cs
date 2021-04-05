@@ -42,6 +42,11 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<double> MaxContentWidthProperty =
 			AvaloniaProperty.Register<Dialog, double>(nameof(MaxContentWidth), double.PositiveInfinity);
 
+		public Dialog()
+		{
+			this.GetObservable(IsDialogOpenProperty).Subscribe(UpdateDelay);
+		}
+
 		public bool IsDialogOpen
 		{
 			get => GetValue(IsDialogOpenProperty);
@@ -91,11 +96,6 @@ namespace WalletWasabi.Fluent.Controls
 		}
 
 		private CancellationTokenSource CancelPointerPressedDelay { get; set; }
-
-		public Dialog()
-		{
-			this.GetObservable(IsDialogOpenProperty).Subscribe(UpdateDelay);
-		}
 
 		private void UpdateDelay(bool isDialogOpen)
 		{
