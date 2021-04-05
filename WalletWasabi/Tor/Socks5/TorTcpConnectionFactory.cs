@@ -28,8 +28,8 @@ namespace WalletWasabi.Tor.Socks5
 			TorSocks5EndPoint = endPoint;
 			if (TorSocks5EndPoint.TryGetHostAndPort(out var host, out var port))
 			{
-				Host = host;
-				Port = port.Value;
+				TorHost = host;
+				TorPort = port.Value;
 			}
 			else
 			{
@@ -38,8 +38,8 @@ namespace WalletWasabi.Tor.Socks5
 		}
 
 		private EndPoint TorSocks5EndPoint { get; }
-		private string Host { get; }
-		private int Port { get; }
+		private string TorHost { get; }
+		private int TorPort { get; }
 
 		/// <summary>
 		/// Creates a new connected TCP client connected to Tor SOCKS5 endpoint.
@@ -104,7 +104,7 @@ namespace WalletWasabi.Tor.Socks5
 		{
 			try
 			{
-				await tcpClient.ConnectAsync(Host, Port, cancellationToken).ConfigureAwait(false);
+				await tcpClient.ConnectAsync(TorHost, TorPort, cancellationToken).ConfigureAwait(false);
 				return tcpClient.GetStream();
 			}
 			catch (SocketException ex) when (ex.ErrorCode is 10061 or 111 or 61)
@@ -112,7 +112,7 @@ namespace WalletWasabi.Tor.Socks5
 				// 10061 ~ "No connection could be made because the target machine actively refused it" on Windows.
 				// 111   ~ "Connection refused" on Linux.
 				// 61    ~ "Connection refused" on macOS.
-				throw new TorConnectionException($"Could not connect to Tor SOCKSPort at '{Host}:{Port}'. Is Tor running?", ex);
+				throw new TorConnectionException($"Could not connect to Tor SOCKSPort at '{TorHost}:{TorPort}'. Is Tor running?", ex);
 			}
 		}
 
