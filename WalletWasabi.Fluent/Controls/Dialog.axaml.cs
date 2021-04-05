@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.Controls
 	public class Dialog : ContentControl
 	{
 		private Panel? _dismissPanel;
-		private bool _canCancelOnPointerPressed = false;
+		private bool _canCancelOnPointerPressed;
 
 		public static readonly StyledProperty<bool> IsDialogOpenProperty =
 			AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
