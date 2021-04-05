@@ -169,8 +169,6 @@ namespace WalletWasabi.Fluent.Controls
 						return;
 					}
 
-
-
 					var currentText = (_autoCompleteBox?.Text ?? "").Trim();
 
 					if (RestrictInputToSuggestions &&
