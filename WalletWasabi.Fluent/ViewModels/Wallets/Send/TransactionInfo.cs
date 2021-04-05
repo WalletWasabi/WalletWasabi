@@ -9,7 +9,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
 	public class TransactionInfo
 	{
-		public SmartLabel Labels { get; set; }
+		public SmartLabel SendLabels { private get; set; }
+
+		public SmartLabel? PocketLabels { private get; set; }
+
+		public SmartLabel Labels => SmartLabel.Merge(SendLabels, PocketLabels);
 
 		public BitcoinAddress Address { get; set; }
 
