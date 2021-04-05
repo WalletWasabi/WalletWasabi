@@ -1,3 +1,6 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
@@ -14,6 +17,7 @@ namespace WalletWasabi.Fluent.Controls
 	public class Dialog : ContentControl
 	{
 		private Panel? _dismissPanel;
+		private bool _canCancelOnPointerPressed = false;
 
 		public static readonly StyledProperty<bool> IsDialogOpenProperty =
 			AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
@@ -87,6 +91,29 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(MaxContentWidthProperty, value);
 		}
 
+		private CancellationTokenSource CancelPointerPressedDelay { get; set; }
+
+		public Dialog()
+		{
+			this.GetObservable(IsDialogOpenProperty).Subscribe(UpdateDelay);
+		}
+
+		private void UpdateDelay(bool isDialogOpen)
+		{
+			_canCancelOnPointerPressed = false;
+			CancelPointerPressedDelay?.Cancel();
+
+			if (isDialogOpen)
+			{
+				CancelPointerPressedDelay = new CancellationTokenSource();
+
+				Task.Delay(TimeSpan.FromSeconds(1), CancelPointerPressedDelay.Token).ContinueWith(_ =>
+				{
+					_canCancelOnPointerPressed = true;
+				});
+			}
+		}
+
 		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
 		{
 			base.OnPropertyChanged(change);
@@ -122,7 +149,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void CancelPointerPressed(object? sender, PointerPressedEventArgs e)
 		{
-			if (IsDialogOpen && EnableCancelOnPressed && !IsBusy && IsCancelEnabled && _dismissPanel is not null)
+			if (IsDialogOpen && EnableCancelOnPressed && !IsBusy && IsCancelEnabled && _dismissPanel is not null && _canCancelOnPointerPressed)
 			{
 				var point = e.GetPosition(_dismissPanel);
 				if (!_dismissPanel.Bounds.Contains(point))
