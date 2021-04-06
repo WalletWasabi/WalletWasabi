@@ -34,7 +34,12 @@ namespace WalletWasabi.BitcoinCore.Rpc
 				blockInfoJson = parsed;
 			}
 
-			var previousBlockHash = blockInfoJson.GetProperty("previousblockhash").GetString();
+			string? previousBlockHash = null;
+			if (blockInfoJson.TryGetProperty("previousblockhash", out var prevBlockHashJson))
+			{
+				previousBlockHash = prevBlockHashJson.GetString();
+			}
+
 			var transaction = new List<VerboseTransactionInfo>();
 
 			var blockInfo = new VerboseBlockInfo(
