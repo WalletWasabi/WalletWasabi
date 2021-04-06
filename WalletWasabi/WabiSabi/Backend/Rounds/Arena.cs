@@ -242,7 +242,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			if (!Rounds.Values.Any(x => !x.IsBlameRound && x.Phase == Phase.InputRegistration))
 			{
-				var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative).ConfigureAwait(false)).FeeRate;
+				var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false)).FeeRate;
 
 				RoundParameters roundParams = new(Config, Network, Random, feeRate);
 				Round r = new(roundParams);
