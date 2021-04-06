@@ -19,6 +19,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -27,8 +28,10 @@ namespace WalletWasabi.Fluent.ViewModels
 		private readonly Dictionary<Wallet, WalletViewModelBase> _walletDictionary;
 		private readonly Dictionary<WalletViewModelBase, List<NavBarItemViewModel>> _walletActionsDictionary;
 		private readonly ReadOnlyObservableCollection<NavBarItemViewModel> _items;
+		private readonly Config _config;
 		private readonly UiConfig _uiConfig;
 		private readonly TransactionBroadcaster _transactionBroadcaster;
+		private readonly HttpClientFactory _httpClientFactory;
 		private NavBarItemViewModel? _currentSelection;
 		[AutoNotify] private WalletViewModelBase? _selectedWallet;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
@@ -37,8 +40,8 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private ObservableCollection<WalletViewModelBase> _wallets;
 		[AutoNotify] private bool _anyWalletStarted;
 
-		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig, BitcoinStore bitcoinStore,
-			LegalChecker legalChecker, TransactionBroadcaster broadcaster)
+		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig, Config config, BitcoinStore bitcoinStore,
+			LegalChecker legalChecker, TransactionBroadcaster broadcaster, HttpClientFactory httpClientFactory)
 		{
 			WalletManager = walletManager;
 			BitcoinStore = bitcoinStore;
@@ -48,8 +51,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			_actions = new ObservableCollection<NavBarItemViewModel>();
 			_wallets = new ObservableCollection<WalletViewModelBase>();
 			_loggedInAndSelectedAlwaysFirst = true;
+			_config = config;
 			_uiConfig = uiConfig;
 			_transactionBroadcaster = broadcaster;
+			_httpClientFactory = httpClientFactory;
 
 			static Func<WalletViewModelBase, bool> SelectedWalletFilter(WalletViewModelBase? selected)
 			{
@@ -268,7 +273,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (wallet.KeyManager.IsHardwareWallet || !wallet.KeyManager.IsWatchOnly)
 			{
-				actions.Add(new SendViewModel(walletViewModel, _transactionBroadcaster, _uiConfig));
+				actions.Add(new SendViewModel(walletViewModel, _transactionBroadcaster, _config, _uiConfig, _httpClientFactory));
 			}
 
 			actions.Add(new ReceiveViewModel(walletViewModel, WalletManager, BitcoinStore));
