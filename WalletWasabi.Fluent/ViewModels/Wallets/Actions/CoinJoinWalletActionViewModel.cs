@@ -15,6 +15,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 		public CoinJoinWalletActionViewModel(WalletViewModelBase wallet) : base(NavigationMode.Normal)
 		{
 			Title = "CoinJoin";
+
+			SelectionMode = NavBarItemSelectionMode.Selected;
 		}
 	}
 }

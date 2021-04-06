@@ -26,10 +26,14 @@ using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Converters;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.Userfacing;
+using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.PayJoin;
+using WalletWasabi.WebClients.Wasabi;
+using Constants = WalletWasabi.Helpers.Constants;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
@@ -45,6 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private readonly WalletViewModel _owner;
 		private readonly UiConfig _uiConfig;
 		private readonly TransactionInfo _transactionInfo;
+
 		[AutoNotify] private string _to;
 		[AutoNotify] private decimal _amountBtc;
 		[AutoNotify] private decimal _exchangeRate;
@@ -59,19 +64,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private int  _xAxisCurrentValueIndex;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _xAxisMinValue = 0;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _xAxisMaxValue = 9;
+		[AutoNotify] private string? _payJoinEndPoint;
 
-		private string? _payJoinEndPoint;
 		private bool _parsingUrl;
 		private bool _updatingCurrentValue;
 		private double _lastXAxisCurrentValue;
+		private FeeRate _feeRate;
 
-		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster, UiConfig uiConfig) : base(NavigationMode.Normal)
+		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster, Config config, UiConfig uiConfig, HttpClientFactory httpClientFactory) : base(NavigationMode.Normal)
 		{
 			_to = "";
 			_owner = walletVm;
 			_transactionInfo = new TransactionInfo();
 			_labels = new ObservableCollection<string>();
 			_lastXAxisCurrentValue = _xAxisCurrentValue;
+
+			SelectionMode = NavBarItemSelectionMode.Button;
 
 			ExchangeRate = walletVm.Wallet.Synchronizer.UsdExchangeRate;
 			PriorLabels = new();
@@ -90,7 +98,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					if (x > 0)
 					{
-						_transactionInfo.FeeRate = new FeeRate(GetYAxisValueFromXAxisCurrentValue(x));
+						_feeRate = new FeeRate(GetYAxisValueFromXAxisCurrentValue(x));
 						SetXAxisCurrentValueIndex(x);
 					}
 				});
@@ -98,9 +106,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			this.WhenAnyValue(x => x.XAxisCurrentValueIndex)
 				.Subscribe(SetXAxisCurrentValue);
 
-			Labels.ToObservableChangeSet().Subscribe(x => _transactionInfo.SendLabels = new SmartLabel(_labels.ToArray()));
+			this.WhenAnyValue(x => x.PayJoinEndPoint)
+				.Subscribe(endPoint =>
+				{
+					if (endPoint is { })
+					{
+						_transactionInfo.PayJoinClient = GetPayjoinClient(endPoint, config, httpClientFactory);
+						IsPayJoin = true;
+					}
+					else
+					{
+						IsPayJoin = false;
+					}
+				});
 
-			EnableCancel = true;
+			Labels.ToObservableChangeSet().Subscribe(x => _transactionInfo.SendLabels = new SmartLabel(_labels.ToArray()));
 
 			EnableBack = true;
 
@@ -158,39 +178,98 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var targetAnonymitySet = wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
 			var mixedCoins = wallet.Coins.Where(x => x.HdPubKey.AnonymitySet >= targetAnonymitySet).ToList();
 			var totalMixedCoinsAmount = Money.FromUnit(mixedCoins.Sum(coin => coin.Amount), MoneyUnit.Satoshi);
+			transactionInfo.Coins = mixedCoins;
+			transactionInfo.FeeRate = _feeRate;
 
-			if (transactionInfo.Amount <= totalMixedCoinsAmount)
+			if (transactionInfo.Amount > totalMixedCoinsAmount)
 			{
-				try
-				{
-					try
-					{
-						var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: false));
-						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
-						return;
-					}
-					catch (InsufficientBalanceException)
-					{
-						var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, mixedCoins, subtractFee: true));
-						var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private, txRes, wallet.Synchronizer.UsdExchangeRate);
-						var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
-
-						if (result.Result)
-						{
-							Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
-							return;
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError(ex);
-					await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
-					return;
-				}
+				Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
+				return;
 			}
 
-			Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
+			try
+			{
+				if (IsPayJoin)
+				{
+					await BuildTransactionAsPayJoinAsync(wallet, transactionInfo, broadcaster);
+				}
+				else
+				{
+					await BuildTransactionAsNormalAsync(wallet, transactionInfo, broadcaster, totalMixedCoinsAmount);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
+			}
+		}
+
+		private async Task BuildTransactionAsNormalAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster, Money totalMixedCoinsAmount)
+		{
+			try
+			{
+				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo));
+				Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
+			}
+			catch (InsufficientBalanceException)
+			{
+				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, transactionInfo.Coins, subtractFee: true));
+				var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private, txRes, wallet.Synchronizer.UsdExchangeRate);
+				var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
+
+				if (result.Result)
+				{
+					Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
+				}
+				else
+				{
+					Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
+				}
+			}
+		}
+
+		private async Task BuildTransactionAsPayJoinAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
+		{
+			try
+			{
+				// Do not add the PayJoin client yet, it will be added before broadcasting.
+				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo));
+				Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, txRes));
+			}
+			catch (InsufficientBalanceException)
+			{
+				await ShowErrorAsync("Transaction Building", "There are not enough private funds to cover the transaction fee", "Wasabi was unable to create your transaction.");
+				Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
+			}
+		}
+
+		private IPayjoinClient? GetPayjoinClient(string endPoint, Config config, HttpClientFactory httpClientFactory)
+		{
+			if (!string.IsNullOrWhiteSpace(endPoint) &&
+			    Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
+			{
+				var payjoinEndPointUri = new Uri(endPoint);
+				if (!config.UseTor)
+				{
+					if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
+					{
+						Logger.LogWarning("PayJoin server is an onion service but Tor is disabled. Ignoring...");
+						return null;
+					}
+
+					if (config.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
+					{
+						Logger.LogWarning("PayJoin server is not exposed as an onion service nor https. Ignoring...");
+						return null;
+					}
+				}
+
+				IHttpClient httpClient = httpClientFactory.NewHttpClient(() => payjoinEndPointUri, isolateStream: false);
+				return new PayjoinClient(payjoinEndPointUri, httpClient);
+			}
+
+			return null;
 		}
 
 		private TimeSpan CalculateConfirmationTime(double targetBlock)
@@ -246,9 +325,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private void ValidateToField(IValidationErrors errors)
 		{
 			if (!string.IsNullOrWhiteSpace(To) &&
-				!AddressStringParser.TryParse(To, _owner.Wallet.Network, out BitcoinUrlBuilder? url))
+				!AddressStringParser.TryParse(To, _owner.Wallet.Network, out _))
 			{
 				errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
+			}
+			else if (IsPayJoin && _owner.Wallet.KeyManager.IsHardwareWallet)
+			{
+				errors.Add(ErrorSeverity.Error, "PayJoin is not possible with hardware wallets.");
 			}
 		}
 
@@ -290,6 +373,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 				}
 
+				if (url.UnknowParameters.TryGetValue("pj", out var endPoint))
+				{
+					PayJoinEndPoint = endPoint;
+				}
+				else
+				{
+					PayJoinEndPoint = null;
+				}
+
 				if (url.Address is { })
 				{
 					_transactionInfo.Address = url.Address;
@@ -306,29 +398,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					IsFixedAmount = false;
 				}
 
-				if (url.UnknowParameters.TryGetValue("pj", out var endPoint))
-				{
-					if (!wallet.KeyManager.IsHardwareWallet)
-					{
-						_payJoinEndPoint = endPoint;
-					}
-					else
-					{
-						// Validation error... "Payjoin not available! for hw wallets."
-					}
-				}
-				else
-				{
-					_payJoinEndPoint = null;
-				}
 			}
 			else
 			{
 				IsFixedAmount = false;
-				_payJoinEndPoint = null;
+				PayJoinEndPoint = null;
 			}
-
-			IsPayJoin = _payJoinEndPoint is { };
 
 			return result;
 		}

@@ -10,28 +10,24 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.PrivacyControlView">
     <c:ContentArea Title="Send - Privacy Control"
                    Caption="Parts of your wallet are known to certain entities. Select the entities you can tolerate leaking information about this transaction:"
-                   EnableCancel="{Binding EnableCancel}"
                    EnableBack="{Binding EnableBack}"
                    EnableNext="True" NextContent="Continue"
                    IsBusy="{Binding IsBusy}"
                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DockPanel>
             <Panel MinHeight="60" DockPanel.Dock="Bottom">
-                <c:InfoMessage Foreground="{DynamicResource WarningMessageForeground}" HorizontalAlignment="Center"
-                               VerticalAlignment="Top" IsVisible="{Binding !EnoughSelected}">
+                <c:InfoMessage Foreground="{DynamicResource WarningMessageForeground}"
+                               HorizontalAlignment="Center"
+                               IsVisible="{Binding !EnoughSelected}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Insufficient funds selected. Select at least another " />
                         <TextBlock Text="{Binding StillNeeded}" />
                         <TextBlock Text=" BTC" />
                     </StackPanel>
                 </c:InfoMessage>
-                <c:InfoMessage IsVisible="{Binding ShowCjNotice}"
+                <c:InfoMessage IsVisible="{Binding EnoughSelected}"
                     Content="Not in a hurry? Consider making more of your funds private by CoinJoining before making this transaction."
-                    HorizontalAlignment="Center" VerticalAlignment="Top" />
-                <c:InfoMessage VerticalAlignment="Top"
-                               Foreground="{DynamicResource WarningMessageForeground}"
-                               IsVisible="{Binding PrivateFundsSelected}"
-                               Content="Warning! Using both private and non-private funds in the same transaction can destroy your privacy." />
+                    HorizontalAlignment="Center" />
             </Panel>
             <DataGrid AutoGenerateColumns="False"
                       Margin="0 20"
@@ -59,7 +55,14 @@
                     <DataGridTemplateColumn CanUserSort="False" Width="*" Header="Labels">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="vm:PocketViewModel">
-                                <c:TagsBox Items="{Binding Labels}" IsReadOnly="True" />
+                                <Panel x:Name="ContainerPanel" HorizontalAlignment="Left">
+                                    <c:TagsBox Items="{Binding Labels}" IsReadOnly="True" HorizontalAlignment="Left" />
+                                    <Popup IsOpen="{Binding IsWarningOpen, Mode=TwoWay, FallbackValue=False}" PlacementTarget="ContainerPanel" PlacementMode="Right">
+                                        <c:InfoMessage Classes="overlay" Padding="15" MaxWidth="400" Foreground="{DynamicResource SystemErrorTextColor}">
+                                            <TextBlock Text="{Binding WarningMessage}" TextWrapping="Wrap" />
+                                        </c:InfoMessage>
+                                    </Popup>
+                                </Panel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
