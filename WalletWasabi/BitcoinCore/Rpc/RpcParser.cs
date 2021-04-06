@@ -44,7 +44,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 			var blockInfo = new VerboseBlockInfo(
 				hash: uint256.Parse(blockInfoJson.GetProperty("hash").GetString()),
-				prevBlockHash: previousBlockHash is { } ? uint256.Parse(previousBlockHash) : uint256.Zero,
+				prevBlockHash: previousBlockHash is not null ? uint256.Parse(previousBlockHash) : uint256.Zero,
 				confirmations: blockInfoJson.GetProperty("confirmations").GetUInt64(),
 				height: blockInfoJson.GetProperty("height").GetUInt64(),
 				blockTime: Utils.UnixTimeToDateTime(blockInfoJson.GetProperty("time").GetUInt32()),
