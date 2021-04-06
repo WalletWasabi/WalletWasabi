@@ -1,11 +1,11 @@
 using NBitcoin;
 using ReactiveUI;
-using Splat;
 using System;
 using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using WalletWasabi.Blockchain.TransactionBroadcasting;
+using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Wallets.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
@@ -53,6 +53,25 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		public override string IconName => "web_asset_regular";
 
 		public HistoryViewModel History { get; }
+
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			base.OnNavigatedTo(isInHistory, disposables);
+
+			Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed))
+				.Merge(Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)))
+				.Throttle(TimeSpan.FromSeconds(3))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(async _ => await UpdateAsync())
+				.DisposeWith(disposables);
+
+			RxApp.MainThreadScheduler.Schedule(async () => await UpdateAsync());
+		}
+
+		private async Task UpdateAsync()
+		{
+			await History.UpdateHistoryAsync();
+		}
 
 		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet, BitcoinStore bitcoinStore)
 		{
