@@ -132,6 +132,16 @@ namespace WalletWasabi.Helpers
 			return value;
 		}
 
+		public static IEnumerable<T> InRange<T>(string containerName, IEnumerable<T> container, int minCount, int maxCount)
+		{
+			var count = container.Count();
+			if (count < minCount || count > maxCount)
+			{
+				throw new ArgumentOutOfRangeException(containerName, count, $"{containerName}.Count() cannot be less than {minCount} or greater than {maxCount}.");
+			}
+			return container;
+		}
+
 		public static T InRangeAndNotNull<T>(string parameterName, T value, T smallest, T greatest) where T : IComparable
 		{
 			NotNull(parameterName, value);
