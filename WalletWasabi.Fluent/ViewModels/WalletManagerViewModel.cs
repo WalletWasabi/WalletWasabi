@@ -37,6 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
 		[AutoNotify] private bool _loggedInAndSelectedAlwaysFirst;
 		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _actions;
+		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _selectedWallets;
 		[AutoNotify] private ObservableCollection<WalletViewModelBase> _wallets;
 		[AutoNotify] private bool _anyWalletStarted;
 
@@ -49,6 +50,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 			_walletActionsDictionary = new Dictionary<WalletViewModelBase, List<NavBarItemViewModel>>();
 			_actions = new ObservableCollection<NavBarItemViewModel>();
+			_selectedWallets = new ObservableCollection<NavBarItemViewModel>();
 			_wallets = new ObservableCollection<WalletViewModelBase>();
 			_loggedInAndSelectedAlwaysFirst = true;
 			_config = config;
@@ -290,12 +292,15 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		private void InsertActions(WalletViewModelBase walletViewModel, IEnumerable<NavBarItemViewModel> actions)
 		{
-			_actions.AddRange(actions.ToList().Prepend(walletViewModel));
+			// _actions.AddRange(actions.ToList().Prepend(walletViewModel));
+			_actions.AddRange(actions.ToList());
+			_selectedWallets.Add(walletViewModel);
 		}
 
 		private void RemoveActions(WalletViewModelBase walletViewModel, IEnumerable<NavBarItemViewModel> actions, bool dispose = false)
 		{
 			_actions.Clear();
+			_selectedWallets.Clear();
 
 			if (dispose)
 			{
