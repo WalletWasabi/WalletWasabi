@@ -100,8 +100,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			Labels.ToObservableChangeSet().Subscribe(x => _transactionInfo.SendLabels = new SmartLabel(_labels.ToArray()));
 
-			EnableCancel = true;
-
 			EnableBack = true;
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPaste());
