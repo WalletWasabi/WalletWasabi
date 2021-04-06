@@ -95,7 +95,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async ValueTask DisposeAsync()
 		{
-			return await StopAsync(CancellationToken.None).ConfigureAwait(false);
+			await StopAsync(CancellationToken.None).ConfigureAwait(false);
 		}
 	}
 }
