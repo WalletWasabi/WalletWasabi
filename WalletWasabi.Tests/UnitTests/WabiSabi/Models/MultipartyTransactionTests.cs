@@ -13,14 +13,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 {
 	public class MultipartyTransactionTests
 	{
-		private static MoneyRange DefaultAllowedAmounts = new (Money.Zero, Money.Coins(1));
-		private static Parameters DefaultParameters = new (FeeRate.Zero, DefaultAllowedAmounts, DefaultAllowedAmounts, Network.Main);
+		private static MoneyRange DefaultAllowedAmounts = new(Money.Zero, Money.Coins(1));
+		private static Parameters DefaultParameters = new(FeeRate.Zero, DefaultAllowedAmounts, DefaultAllowedAmounts, Network.Main);
 
 		private static void ThrowsProtocolException(WabiSabiProtocolErrorCode expectedError, Action action) =>
 			Assert.Equal(expectedError, Assert.Throws<WabiSabiProtocolException>(action).ErrorCode);
 
 		[Fact]
-		public void TwoPartyNoFees()
+		public void TwoPartiesNoFees()
 		{
 			using Key key1 = new();
 			using Key key2 = new();
@@ -54,14 +54,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 
 			var twoInputs = oneInput.AddInput(alice2Coin);
 
-			Assert.Equal(2, twoInputs.Inputs.Count());
+			Assert.Equal(2, twoInputs.Inputs.Count);
 			Assert.Empty(twoInputs.Outputs);
 
 			// address reuse bad
 			var bob1 = new TxOut(Money.Coins(1), alice1Coin.ScriptPubKey);
 			var withOutput = twoInputs.AddOutput(bob1);
 
-			Assert.Equal(2, withOutput.Inputs.Count());
+			Assert.Equal(2, withOutput.Inputs.Count);
 			Assert.Single(withOutput.Outputs);
 
 			var bob2 = new TxOut(Money.Coins(1), alice2Coin.ScriptPubKey);
@@ -69,7 +69,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			Assert.Equal(Money.Zero, noFeeTx.Balance);
 
 			var tx = noFeeTx.CreateUnsignedTransaction();
-			Assert.Equal(2, tx.Inputs.Count());
+			Assert.Equal(2, tx.Inputs.Count);
 			Assert.Equal(2, tx.Outputs.Count);
 			Assert.Contains(alice1Coin.Outpoint, tx.Inputs.Select(x => x.PrevOut));
 			Assert.Contains(alice2Coin.Outpoint, tx.Inputs.Select(x => x.PrevOut));
@@ -178,7 +178,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			var bob1 = new TxOut(Money.Coins(1), alice1Coin.ScriptPubKey);
 			var withOutput = state.AddOutput(bob1);
 
-			Assert.Equal(2, withOutput.Inputs.Count());
+			Assert.Equal(2, withOutput.Inputs.Count);
 			Assert.Single(withOutput.Outputs);
 
 			var bob2 = new TxOut(Money.Coins(1), alice2Coin.ScriptPubKey);
