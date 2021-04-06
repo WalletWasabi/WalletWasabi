@@ -3,32 +3,101 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.History"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.History.HistoryTable">
-  <DataGrid Items="{Binding Histories}">
+  <DataGrid Items="{Binding Histories}" Width="1000" Height="300" HorizontalAlignment="Left" VerticalAlignment="Top">
+    <DataGrid.Styles>
+      <Style Selector="PathIcon">
+        <Setter Property="Width" Value="20"/>
+        <Setter Property="Height" Value="20"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+      </Style>
+
+      <Style Selector="TextBlock">
+        <Setter Property="VerticalAlignment" Value="Center"/>
+      </Style>
+    </DataGrid.Styles>
     <DataGrid.Columns>
+      <!-- Date -->
       <DataGridTextColumn Header="Date"
                           x:DataType="history:HistoryItemViewModel"
                           Binding="{Binding Date}"
                           Width="*" />
-      <DataGridTextColumn Header="Labels"
-                          x:DataType="history:HistoryItemViewModel"
-                          Binding="{Binding Labels}"
-                          Width="2*" />
-      <DataGridTextColumn Header="Outgoing"
-                          x:DataType="history:HistoryItemViewModel"
-                          Binding="{Binding OutgoingAmount}"
-                          Width="*" />
-      <DataGridTextColumn Header="Incoming"
-                          x:DataType="history:HistoryItemViewModel"
-                          Binding="{Binding IncomingAmount}"
-                          Width="*" />
-      <DataGridTextColumn Header="Status"
-                          x:DataType="history:HistoryItemViewModel"
-                          Binding="{Binding Confirmed}"
-                          Width="*" />
+      <!-- Labels -->
+      <DataGridTemplateColumn Header="Labels"
+                              Width="2*"
+                              SortMemberPath="Labels">
+        <DataGridTemplateColumn.CellTemplate>
+          <DataTemplate>
+            <c:TagsBox x:DataType="history:HistoryItemViewModel" Items="{Binding Labels}" IsReadOnly="True"
+                       Margin="10 0" />
+          </DataTemplate>
+        </DataGridTemplateColumn.CellTemplate>
+      </DataGridTemplateColumn>
+
+      <!-- Outgoing -->
+      <DataGridTemplateColumn Header="Outgoing"
+                              Width="*"
+                              SortMemberPath="Outgoing">
+        <DataGridTemplateColumn.CellTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal" Spacing="10"
+                        x:DataType="history:HistoryItemViewModel"
+                        IsVisible="{Binding !!OutgoingAmount}"
+                        Margin="10 0">
+              <LayoutTransformControl VerticalAlignment="Center">
+                <LayoutTransformControl.LayoutTransform>
+                  <RotateTransform Angle="180" />
+                </LayoutTransformControl.LayoutTransform>
+                <PathIcon Data="{StaticResource chevron_down_circle_regular}" Opacity="0.6" />
+              </LayoutTransformControl>
+              <TextBlock Text="{Binding OutgoingAmount}" />
+            </StackPanel>
+          </DataTemplate>
+        </DataGridTemplateColumn.CellTemplate>
+      </DataGridTemplateColumn>
+
+      <!-- Incoming -->
+      <DataGridTemplateColumn Header="Incoming"
+                              Width="*"
+                              SortMemberPath="Incoming">
+        <DataGridTemplateColumn.CellTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal" Spacing="10"
+                        x:DataType="history:HistoryItemViewModel"
+                        IsVisible="{Binding !!IncomingAmount}"
+                        Margin="10 0">
+              <PathIcon Data="{StaticResource chevron_down_circle_regular}" Opacity="0.6" />
+              <TextBlock Text="{Binding IncomingAmount}" />
+            </StackPanel>
+          </DataTemplate>
+        </DataGridTemplateColumn.CellTemplate>
+      </DataGridTemplateColumn>
+
+      <!-- Status -->
+      <DataGridTemplateColumn Header="Status"
+                              Width="*"
+                              SortMemberPath="Status">
+        <DataGridTemplateColumn.CellTemplate>
+          <DataTemplate>
+            <Panel x:DataType="history:HistoryItemViewModel">
+              <StackPanel Orientation="Horizontal" Spacing="10" Margin="10 0" IsVisible="{Binding IsConfirmed}">
+                <PathIcon Data="{StaticResource checkmark_filled}"
+                          Foreground="{DynamicResource SystemControlBackgroundAccentBrush}" />
+                <TextBlock Text="Confirmed" />
+              </StackPanel>
+
+              <StackPanel Orientation="Horizontal" Spacing="10" Margin="10 0" IsVisible="{Binding !IsConfirmed}">
+                <PathIcon Data="{StaticResource channel_regular}" Opacity="0.6"/>
+                <TextBlock Text="Pending" />
+              </StackPanel>
+            </Panel>
+          </DataTemplate>
+        </DataGridTemplateColumn.CellTemplate>
+      </DataGridTemplateColumn>
     </DataGrid.Columns>
   </DataGrid>
 </UserControl>

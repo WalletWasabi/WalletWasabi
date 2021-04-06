@@ -10,25 +10,25 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 	{
 		public HistoryItemViewModel(TransactionSummary transactionSummary, BitcoinStore bitcoinStore)
 		{
-			Date = transactionSummary.DateTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+			Date = transactionSummary.DateTime.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
 
 			var confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int) bitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
-			Confirmed = confirmations > 0;
+			IsConfirmed = confirmations > 0;
 
 			var amount = transactionSummary.Amount;
 			if (amount < 0)
 			{
-				OutgoingAmount = amount.ToString(fplus: true, trimExcessZero: true);
+				OutgoingAmount = (amount * -1).ToString(fplus: false, trimExcessZero: true);
 			}
 			else
 			{
-				IncomingAmount = amount.ToString(fplus: true, trimExcessZero: true);
+				IncomingAmount = amount.ToString(fplus: false, trimExcessZero: true);
 			}
 
 			Labels = transactionSummary.Label;
 		}
 
-		public bool Confirmed { get; }
+		public bool IsConfirmed { get; }
 
 		public string Date { get; }
 
