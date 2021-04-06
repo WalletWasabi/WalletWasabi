@@ -7,7 +7,7 @@ namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 	/// Maintains the state needed to validate the credentials once the coordinator
 	/// issues them.
 	/// </summary>
-	public class CredentialsResponseValidation
+	public record CredentialsResponseValidation
 	{
 		internal CredentialsResponseValidation(
 			Transcript transcript,

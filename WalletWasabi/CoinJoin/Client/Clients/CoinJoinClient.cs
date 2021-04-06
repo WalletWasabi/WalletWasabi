@@ -425,18 +425,11 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			foreach (var activeOutput in shuffledOutputs)
 			{
 				IHttpClient httpClient = Synchronizer.HttpClientFactory.NewBackendHttpClient(isolateStream: true);
-				try
+				var bobClient = new BobClient(httpClient);
+				if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput).ConfigureAwait(false))
 				{
-					var bobClient = new BobClient(httpClient);
-					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput).ConfigureAwait(false))
-					{
-						Logger.LogWarning($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.");
-						break;
-					}
-				}
-				finally
-				{
-					(httpClient as IDisposable)?.Dispose();
+					Logger.LogWarning($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.");
+					break;
 				}
 
 				// Unblind our exposed links.
@@ -533,7 +526,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					Logger.LogWarning(ex.Message.Split('\n')[1]);
 
 					await DequeueCoinsFromMixNoLockAsync(coinReference, DequeueReason.Banned).ConfigureAwait(false);
-					aliceClient?.Dispose();
 					return;
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("Provided input is not unspent", StringComparison.InvariantCultureIgnoreCase))
@@ -553,19 +545,16 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					Logger.LogWarning(ex.Message.Split('\n')[1]);
 
 					await DequeueCoinsFromMixNoLockAsync(coinReference, DequeueReason.Spent).ConfigureAwait(false);
-					aliceClient?.Dispose();
 					return;
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("No such running round in InputRegistration", StringComparison.InvariantCultureIgnoreCase))
 				{
 					Logger.LogInfo("Client tried to register a round that is not in InputRegistration anymore. Trying again later.");
-					aliceClient?.Dispose();
 					return;
 				}
 				catch (HttpRequestException ex) when (RpcErrorTools.IsTooLongMempoolChainError(ex.Message))
 				{
 					Logger.LogInfo("Coordinator failed because too much unconfirmed parent transactions. Trying again later.");
-					aliceClient?.Dispose();
 					return;
 				}
 
@@ -588,7 +577,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				if (roundRegistered is null)
 				{
 					// If our SatoshiClient does not yet know about the round, because of delay, then delay the round registration.
-					DelayedRoundRegistration?.Dispose();
 					DelayedRoundRegistration = registration;
 				}
 
@@ -999,8 +987,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 			using (await MixLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				State.DisposeAllAliceClients();
-
 				IEnumerable<OutPoint> allCoins = State.GetAllQueuedCoins();
 				foreach (var coinReference in allCoins)
 				{
@@ -1053,19 +1039,11 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		private async Task<AliceClientBase> CreateAliceClientAsync(long roundId, List<OutPoint> registrableCoins, (HdPubKey change, IEnumerable<HdPubKey> actives) outputAddresses)
 		{
-			RoundStateResponse4 state;
 			HttpClientFactory factory = Synchronizer.HttpClientFactory;
 
 			IHttpClient satoshiHttpClient = factory.NewBackendHttpClient(isolateStream: true);
-			try
-			{
-				var satoshiClient = new SatoshiClient(satoshiHttpClient);
-				state = (RoundStateResponse4)await satoshiClient.GetRoundStateAsync(roundId).ConfigureAwait(false);
-			}
-			finally
-			{
-				(satoshiHttpClient as IDisposable)?.Dispose();
-			}
+			SatoshiClient satoshiClient = new(satoshiHttpClient);
+			RoundStateResponse4 state = (RoundStateResponse4)await satoshiClient.GetRoundStateAsync(roundId).ConfigureAwait(false);
 
 			PubKey[] signerPubKeys = state.SignerPubKeys.ToArray();
 			PublicNonceWithIndex[] numerateNonces = state.RPubKeys.ToArray();

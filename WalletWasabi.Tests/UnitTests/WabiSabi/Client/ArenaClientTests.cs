@@ -40,15 +40,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				});
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
 
-			var rnd = new InsecureRandom();
-			var amountCredentials = new CredentialPool();
-			var weightCredentials = new CredentialPool();
-			var protocolCredentialNumber = 2;
-			var protocolMaxWeightPerAlice = 1_000L;
-			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, protocolCredentialNumber, rnd, 4_300_000_000_000ul, amountCredentials);
-			var weightClient = new WabiSabiClient(round.WeightCredentialIssuerParameters, protocolCredentialNumber, rnd, (ulong)protocolMaxWeightPerAlice, weightCredentials);
-
-			var apiClient = new ArenaClient(amountClient, weightClient, coordinator);
+			var apiClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, coordinator, new InsecureRandom());
+			var amountCredentials = apiClient.AmountCredentialClient.Credentials;
+			var weightCredentials = apiClient.WeightCredentialClient.Credentials;
 
 			var aliceId = await apiClient.RegisterInputAsync(Money.Coins(1m), outpoint, key, round.Id, round.Hash);
 
@@ -62,14 +56,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			};
 
 			var inputWeight = 4 * Constants.P2wpkhInputVirtualSize;
-			var inputRemainingWeights = new[] { protocolMaxWeightPerAlice - inputWeight };
+			var inputRemainingWeights = new[] { (long)ArenaClient.ProtocolMaxWeightPerAlice - inputWeight };
 
 			// Phase: Input Registration
 			await apiClient.ConfirmConnectionAsync(
 				round.Id,
 				aliceId,
 				inputRemainingWeights,
-				amountCredentials.ZeroValue.Take(protocolCredentialNumber),
+				amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
 				reissuanceAmounts);
 
 			Assert.Empty(amountCredentials.Valuable);
@@ -80,7 +74,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				round.Id,
 				aliceId,
 				inputRemainingWeights,
-				amountCredentials.ZeroValue.Take(protocolCredentialNumber),
+				amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
 				reissuanceAmounts);
 
 			Assert.Single(amountCredentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.First());

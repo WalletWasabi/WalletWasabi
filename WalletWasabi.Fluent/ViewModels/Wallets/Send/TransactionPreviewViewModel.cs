@@ -1,7 +1,7 @@
-using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
@@ -28,9 +28,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			var fiatAmountText = destinationAmount.GenerateFiatText(wallet.Synchronizer.UsdExchangeRate, "USD");
 			AmountText = $"{btcAmountText}{fiatAmountText}";
 
-			Labels = info.Labels.Labels.ToArray();
-
 			AddressText = info.Address.ToString();
+
+			Labels = info.Labels;
 
 			ConfirmationTimeText = $"Approximately {TextHelpers.TimeSpanToFriendlyString(info.ConfirmationTimeSpan)} ";
 
@@ -44,11 +44,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public string AmountText { get; }
 
-		public string[] Labels { get; }
-
 		public string AddressText { get; }
 
 		public string ConfirmationTimeText { get; }
+
+		public SmartLabel Labels { get; }
 
 		public string FeeText { get; }
 

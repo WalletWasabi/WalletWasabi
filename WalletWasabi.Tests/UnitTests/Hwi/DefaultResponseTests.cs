@@ -34,7 +34,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 		[MemberData(nameof(GetDifferentNetworkValues))]
 		public void CanCreate(Network network)
 		{
-			new HwiClient(network);
+			_ = new HwiClient(network);
 		}
 
 		[Fact]

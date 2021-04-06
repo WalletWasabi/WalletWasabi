@@ -13,7 +13,7 @@ namespace WalletWasabi.Tests.UnitTests.Microservices
 	public class ProcessAsyncTest
 	{
 		/// <summary>
-		/// Tests that we can start Bitcoin daemon (testnet) using <see cref="ProcessAsync"/> API.
+		/// Tests that we can start Bitcoin daemon (regtest) using <see cref="ProcessAsync"/> API.
 		/// </summary>
 		[Fact]
 		public async void SendCommandImmediateCancelAsync()

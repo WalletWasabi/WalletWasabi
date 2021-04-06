@@ -7,6 +7,7 @@ using DynamicData;
 using DynamicData.Aggregation;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Helpers;
@@ -27,6 +28,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		[AutoNotify] private decimal _stillNeeded;
 		[AutoNotify] private bool _enoughSelected;
+		[AutoNotify] private bool _privateFundsSelected;
+		[AutoNotify] private bool _showCjNotice;
 
 		public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
 		{
@@ -47,8 +50,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			selected.Sum(x => x.TotalBtc)
 				.Subscribe(x =>
 				{
+					PrivateFundsSelected = selectedList.Items.Any(pocket =>
+						pocket.Labels.FirstOrDefault() == CoinPocketHelper.PrivateFundsText);
+
 					StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC) - x;
-					EnoughSelected = StillNeeded <= 0;
+					EnoughSelected = StillNeeded <= 0 || PrivateFundsSelected;
+
+					ShowCjNotice = !PrivateFundsSelected && EnoughSelected;
+				});
+
+			_pocketSource
+				.Connect()
+				.WhenValueChanged(x => x.IsSelected)
+				.Subscribe(_ =>
+				{
+					var selectedPocketLabels = Pockets.Where(x => x.IsSelected).Select(x => x.Labels);
+					transactionInfo.PocketLabels = SmartLabel.Merge(selectedPocketLabels);
 				});
 
 			StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);

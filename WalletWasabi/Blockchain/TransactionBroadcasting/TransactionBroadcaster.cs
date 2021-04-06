@@ -91,31 +91,24 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 			Logger.LogInfo("Broadcasting with backend...");
 			IHttpClient httpClient = HttpClientFactory.NewBackendHttpClient(isolateStream: true);
 
+			WasabiClient client = new(httpClient);
+
 			try
 			{
-				var client = new WasabiClient(httpClient);
-
-				try
-				{
-					await client.BroadcastAsync(transaction).ConfigureAwait(false);
-				}
-				catch (HttpRequestException ex2) when (RpcErrorTools.IsSpentError(ex2.Message))
-				{
-					if (transaction.Transaction.Inputs.Count == 1) // If we tried to only spend one coin, then we can mark it as spent. If there were more coins, then we do not know.
-					{
-						OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
-						foreach (var coin in WalletManager.CoinsByOutPoint(input))
-						{
-							coin.SpentAccordingToBackend = true;
-						}
-					}
-
-					throw;
-				}
+				await client.BroadcastAsync(transaction).ConfigureAwait(false);
 			}
-			finally
+			catch (HttpRequestException ex2) when (RpcErrorTools.IsSpentError(ex2.Message))
 			{
-				(httpClient as IDisposable)?.Dispose();
+				if (transaction.Transaction.Inputs.Count == 1) // If we tried to only spend one coin, then we can mark it as spent. If there were more coins, then we do not know.
+				{
+					OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
+					foreach (var coin in WalletManager.CoinsByOutPoint(input))
+					{
+						coin.SpentAccordingToBackend = true;
+					}
+				}
+
+				throw;
 			}
 
 			BelieveTransaction(transaction);
