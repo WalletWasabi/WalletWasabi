@@ -232,7 +232,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private async Task CreateBlameRoundAsync(Round round)
 		{
-			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative).ConfigureAwait(false)).FeeRate;
+			var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false)).FeeRate;
 			RoundParameters parameters = new(Config, Network, Random, feeRate, blameOf: round);
 			Round blameRound = new(parameters);
 			Rounds.Add(blameRound.Id, blameRound);

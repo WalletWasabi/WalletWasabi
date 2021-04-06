@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Backend.Models
 {
@@ -22,6 +23,6 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 			=> CredentialAmount - feeRate.GetFee(OutputVsize);
 
 		public long CalculateWeight()
-			=> OutputVsize * 4;
+			=> Constants.WitnessScaleFactor * OutputVsize;
 	}
 }

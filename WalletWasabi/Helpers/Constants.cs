@@ -17,7 +17,9 @@ namespace WalletWasabi.Helpers
 		public const string ConfirmedTransactionsVersion = "2";
 
 		public const uint ProtocolVersionWitnessVersion = 70012;
-
+		
+		public const int WitnessScaleFactor = 4;
+		
 		public const int P2wpkhInputSizeInBytes = 41;
 		public const int P2wpkhInputVirtualSize = 68;
 		public const int P2pkhInputSizeInBytes = 145;
