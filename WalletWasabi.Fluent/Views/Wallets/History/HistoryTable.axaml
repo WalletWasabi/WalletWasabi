@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.History"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="history:HistoryViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.History.HistoryTable">
+  <DataGrid Items="{Binding Histories}">
+    <DataGrid.Columns>
+      <DataGridTextColumn Header="Date"
+                          x:DataType="history:HistoryItemViewModel"
+                          Binding="{Binding Date}"
+                          Width="*" />
+      <DataGridTextColumn Header="Labels"
+                          x:DataType="history:HistoryItemViewModel"
+                          Binding="{Binding Labels}"
+                          Width="2*" />
+      <DataGridTextColumn Header="Outgoing"
+                          x:DataType="history:HistoryItemViewModel"
+                          Binding="{Binding OutgoingAmount}"
+                          Width="*" />
+      <DataGridTextColumn Header="Incoming"
+                          x:DataType="history:HistoryItemViewModel"
+                          Binding="{Binding IncomingAmount}"
+                          Width="*" />
+      <DataGridTextColumn Header="Status"
+                          x:DataType="history:HistoryItemViewModel"
+                          Binding="{Binding Confirmed}"
+                          Width="*" />
+    </DataGrid.Columns>
+  </DataGrid>
+</UserControl>
