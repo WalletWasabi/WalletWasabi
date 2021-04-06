@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 			_histories = new ObservableCollection<HistoryItemViewModel>();
 		}
 
-		private async Task TryRewriteTableAsync()
+		public async Task UpdateHistoryAsync()
 		{
 			try
 			{

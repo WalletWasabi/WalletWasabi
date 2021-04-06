@@ -7,16 +7,18 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
+using WalletWasabi.Fluent.ViewModels.Wallets.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Gui;
 using WalletWasabi.Logging;
+using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class WalletViewModel : WalletViewModelBase
 	{
-		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
+		protected WalletViewModel(UiConfig uiConfig, Wallet wallet, BitcoinStore bitcoinStore) : base(wallet)
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
@@ -42,19 +44,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					}
 				})
 				.DisposeWith(Disposables);
+
+			History = new HistoryViewModel(wallet, bitcoinStore);
 		}
 
 		private CompositeDisposable Disposables { get; set; }
 
 		public override string IconName => "web_asset_regular";
 
-		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet)
+		public HistoryViewModel History { get; }
+
+		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet, BitcoinStore bitcoinStore)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new HardwareWalletViewModel(uiConfig, wallet)
+				? new HardwareWalletViewModel(uiConfig, wallet, bitcoinStore)
 				: wallet.KeyManager.IsWatchOnly
-					? new WatchOnlyWalletViewModel(uiConfig, wallet)
-					: new WalletViewModel(uiConfig, wallet);
+					? new WatchOnlyWalletViewModel(uiConfig, wallet, bitcoinStore)
+					: new WalletViewModel(uiConfig, wallet, bitcoinStore);
 		}
 	}
 }
