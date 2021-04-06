@@ -70,8 +70,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);
 
-			EnableCancel = true;
-
 			EnableBack = true;
 
 			NextCommand = ReactiveCommand.CreateFromTask(
