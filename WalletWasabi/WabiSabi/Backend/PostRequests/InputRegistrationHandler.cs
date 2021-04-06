@@ -113,7 +113,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 			}
 
-			if (alice.TotalInputVsize > round.RegistrableWeightCredentials)
+			if (alice.TotalInputVsize > round.PerAliceVsizeAllocation)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchWeight);
 			}
@@ -123,7 +123,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 			}
 
-			if (round.RemainingInputVsizeAllocation < (round.RegistrableWeightCredentials+3)/4) // TODO standardize on vsize
+			if (round.RemainingInputVsizeAllocation < round.PerAliceVsizeAllocation)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchTotalWeight);
 			}
