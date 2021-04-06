@@ -32,6 +32,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			_reference = "";
 			_suggestions = GetLabels(walletManager, bitcoinStore);
 
+			SelectionMode = NavBarItemSelectionMode.Button;
+
 			var nextCommandCanExecute =
 				this.WhenAnyValue(x => x.Reference)
 					.ObserveOn(RxApp.MainThreadScheduler)

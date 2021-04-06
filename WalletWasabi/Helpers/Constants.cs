@@ -17,7 +17,9 @@ namespace WalletWasabi.Helpers
 		public const string ConfirmedTransactionsVersion = "2";
 
 		public const uint ProtocolVersionWitnessVersion = 70012;
-
+		
+		public const int WitnessScaleFactor = 4;
+		
 		public const int P2wpkhInputSizeInBytes = 41;
 		public const int P2wpkhInputVirtualSize = 68;
 		public const int P2pkhInputSizeInBytes = 145;
@@ -52,7 +54,7 @@ namespace WalletWasabi.Helpers
 
 		public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
-		public static readonly Version ClientVersion = new(1, 1, 12, 7);
+		public static readonly Version ClientVersion = new(1, 1, 12, 8);
 		public static readonly Version HwiVersion = new("2.0.1");
 		public static readonly Version BitcoinCoreVersion = new("0.21.0");
 		public static readonly Version LegalDocumentsVersion = new(2, 0);

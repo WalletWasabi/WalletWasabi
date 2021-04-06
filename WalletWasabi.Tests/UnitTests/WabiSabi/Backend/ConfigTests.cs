@@ -5,6 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
+using NBitcoin;
+using NBitcoin.RPC;
+using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.JsonConverters.Timing;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
@@ -21,7 +25,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var workDir = Common.GetWorkDir();
 			await IoHelpers.TryDeleteDirectoryAsync(workDir);
 			CoordinatorParameters coordinatorParameters = new(workDir);
-			using WabiSabiCoordinator coordinator = new(coordinatorParameters, new MockRpcClient());
+			using WabiSabiCoordinator coordinator = new(coordinatorParameters, NewMockRpcClient());
 			await coordinator.StartAsync(CancellationToken.None);
 
 			Assert.True(File.Exists(Path.Combine(workDir, "WabiSabiConfig.json")));
@@ -37,7 +41,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			CoordinatorParameters coordinatorParameters = new(workDir);
 
 			// Create the config first with default value.
-			using WabiSabiCoordinator coordinator = new(coordinatorParameters, new MockRpcClient());
+			using WabiSabiCoordinator coordinator = new(coordinatorParameters, NewMockRpcClient());
 			await coordinator.StartAsync(CancellationToken.None);
 			await coordinator.StopAsync(CancellationToken.None);
 
@@ -51,7 +55,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			configChanger.ToFile();
 
 			// Assert the new value is loaded and not the default one.
-			using WabiSabiCoordinator coordinator2 = new(coordinatorParameters, new MockRpcClient());
+			using WabiSabiCoordinator coordinator2 = new(coordinatorParameters, NewMockRpcClient());
 			await coordinator2.StartAsync(CancellationToken.None);
 			Assert.Equal(newTarget, coordinator2.Config.ConfirmationTarget);
 			await coordinator2.StopAsync(CancellationToken.None);
@@ -65,7 +69,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			CoordinatorParameters coordinatorParameters = new(workDir);
 
 			// Create the config first with default value.
-			using WabiSabiCoordinator coordinator = new(coordinatorParameters, new MockRpcClient());
+			using WabiSabiCoordinator coordinator = new(coordinatorParameters, NewMockRpcClient());
 			await coordinator.StartAsync(CancellationToken.None);
 			await coordinator.StopAsync(CancellationToken.None);
 
@@ -78,7 +82,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 
 			// Assert the new default value is loaded.
 			CoordinatorParameters coordinatorParameters2 = new(workDir);
-			using WabiSabiCoordinator coordinator2 = new(coordinatorParameters2, new MockRpcClient());
+			using WabiSabiCoordinator coordinator2 = new(coordinatorParameters2, NewMockRpcClient());
 			await coordinator2.StartAsync(CancellationToken.None);
 			var defaultValue = TimeSpanJsonConverter.Parse("0d 3h 0m 0s");
 			Assert.Equal(TimeSpan.FromHours(3), defaultValue);
@@ -97,7 +101,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 			CoordinatorParameters coordinatorParameters = new(workDir);
-			using WabiSabiCoordinator coordinator = new(coordinatorParameters, new MockRpcClient());
+			using WabiSabiCoordinator coordinator = new(coordinatorParameters, NewMockRpcClient());
 			await coordinator.StartAsync(CancellationToken.None);
 
 			var configPath = Path.Combine(workDir, "WabiSabiConfig.json");
@@ -120,6 +124,15 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.Equal(newTarget, coordinator.Config.ConfirmationTarget);
 
 			await coordinator.StopAsync(CancellationToken.None);
+		}
+
+		private static IRPCClient NewMockRpcClient()
+		{
+			var rpcMock = new Mock<IRPCClient>();
+			rpcMock.SetupGet(rpc => rpc.Network).Returns(Network.Main);
+			rpcMock.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>()))
+				.ReturnsAsync(new EstimateSmartFeeResponse { FeeRate = new FeeRate(10m) });
+			return rpcMock.Object;
 		}
 	}
 }

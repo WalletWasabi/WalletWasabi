@@ -49,13 +49,22 @@ namespace WalletWasabi.Blockchain.Blocks
 		/// Where the first possible bech32 transaction ever can be found.
 		/// </summary>
 		public static SmartHeader GetStartingHeader(Network network)
-			=> network.NetworkType switch
+		{
+			if (network == Network.Main)
 			{
-				NetworkType.Mainnet => StartingHeaderMain,
-				NetworkType.Testnet => StartingHeaderTestNet,
-				NetworkType.Regtest => StartingHeaderRegTest,
-				_ => throw new NotSupportedNetworkException(network)
-			};
+				return StartingHeaderMain;
+			}
+			else if (network == Network.TestNet)
+			{
+				return StartingHeaderTestNet;
+			}
+			else if (network == Network.RegTest)
+			{
+				return StartingHeaderRegTest;
+			}
+
+			throw new NotSupportedNetworkException(network);
+		}
 
 		#endregion SpecialHeaders
 	}

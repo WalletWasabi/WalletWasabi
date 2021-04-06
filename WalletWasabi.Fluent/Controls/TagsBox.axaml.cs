@@ -137,6 +137,8 @@ namespace WalletWasabi.Fluent.Controls
 			_autoCompleteBox.DropDownClosed += OnAutoCompleteBoxDropDownClosed;
 			_autoCompleteBox.TemplateApplied += OnAutoCompleteBoxTemplateApplied;
 
+			_autoCompleteBox.FilterMode = AutoCompleteFilterMode.StartsWith;
+
 			Disposable.Create(
 					() =>
 					{

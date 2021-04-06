@@ -24,21 +24,22 @@ namespace WalletWasabi.WabiSabi.Crypto
 			CredentialIssuerParameters credentialIssuerParameters,
 			int numberOfCredentials,
 			WasabiRandom randomNumberGenerator,
-			ulong maxAmount)
+			ulong maxAmount,
+			CredentialPool? credentialPool = null)
 		{
 			MaxAmount = maxAmount;
 			RangeProofWidth = (int)Math.Ceiling(Math.Log2(MaxAmount));
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
 			CredentialIssuerParameters = Guard.NotNull(nameof(credentialIssuerParameters), credentialIssuerParameters);
-			Credentials = new CredentialPool();
+			Credentials = credentialPool ?? new CredentialPool();
 		}
 
 		public ulong MaxAmount { get; }
 
 		public int RangeProofWidth { get; }
 
-		private int NumberOfCredentials { get; }
+		public int NumberOfCredentials { get; }
 
 		private CredentialIssuerParameters CredentialIssuerParameters { get; }
 
@@ -58,7 +59,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// registration request message that has to be sent to the coordinator is a null request, in this
 		/// way the coordinator issues `k` zero-value credentials that can be used in following requests.
 		/// </remarks>
-		public (ZeroCredentialsRequest, CredentialsResponseValidation) CreateRequestForZeroAmount()
+		public ZeroCredentialsRequestData CreateRequestForZeroAmount()
 		{
 			var credentialsToRequest = new IssuanceRequest[NumberOfCredentials];
 			var knowledge = new Knowledge[NumberOfCredentials];
@@ -76,7 +77,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 
 			var transcript = BuildTransnscript(isNullRequest: true);
 
-			return (
+			return new (
 				new ZeroCredentialsRequest(
 					credentialsToRequest,
 					ProofSystem.Prove(transcript, knowledge, RandomNumberGenerator)),
@@ -96,7 +97,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// A tuple containing the registration request message instance and the registration validation data
 		/// to be used to validate the coordinator response message (the issued credentials).
 		/// </returns>
-		public (RealCredentialsRequest, CredentialsResponseValidation) CreateRequest(
+		public RealCredentialsRequestData CreateRequest(
 			IEnumerable<long> amountsToRequest,
 			IEnumerable<Credential> credentialsToPresent)
 		{
@@ -171,7 +172,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			knowledgeToProve.Add(balanceKnowledge);
 
 			var transcript = BuildTransnscript(isNullRequest: false);
-			return (
+			return new (
 				new RealCredentialsRequest(
 					amountsToRequest.Sum() - credentialsToPresent.Sum(x => (long)x.Amount.ToUlong()),
 					presentations,

@@ -15,6 +15,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Actions
 		public AdvancedWalletActionViewModel(WalletViewModelBase wallet) : base(NavigationMode.Normal)
 		{
 			Title = "Advanced";
+
+			SelectionMode = NavBarItemSelectionMode.Selected;
 		}
 	}
 }
