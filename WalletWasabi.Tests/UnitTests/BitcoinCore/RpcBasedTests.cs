@@ -190,21 +190,23 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				var walletName = "wallet.dat";
 				await rpc.CreateWalletAsync(walletName);
 
-				var key = new Key();
-				var blockId = await rpc.GenerateToAddressAsync(1, key.PubKey.WitHash.GetAddress(network));
+				using var k1 = new Key();
+				var blockId = await rpc.GenerateToAddressAsync(1, k1.PubKey.WitHash.GetAddress(network));
 				var block = await rpc.GetBlockAsync(blockId[0]);
 				var coinBaseTx = block.Transactions[0];
 
 				var tx = Transaction.Create(network);
 				tx.Inputs.Add(coinBaseTx, 0);
-				tx.Outputs.Add(Money.Coins(49.9999m), new Key().PubKey.WitHash.GetAddress(network));
-				tx.Sign(key.GetBitcoinSecret(network), coinBaseTx.Outputs.AsCoins().First());
+				using var k2 = new Key();
+				tx.Outputs.Add(Money.Coins(49.9999m), k2.PubKey.WitHash.GetAddress(network));
+				tx.Sign(k1.GetBitcoinSecret(network), coinBaseTx.Outputs.AsCoins().First());
 				var valid = tx.Check();
 
 				var doubleSpend = Transaction.Create(network);
 				doubleSpend.Inputs.Add(coinBaseTx, 0);
-				doubleSpend.Outputs.Add(Money.Coins(49.998m), new Key().PubKey.WitHash.GetAddress(network));
-				doubleSpend.Sign(key.GetBitcoinSecret(network), coinBaseTx.Outputs.AsCoins().First());
+				using var k3 = new Key();
+				doubleSpend.Outputs.Add(Money.Coins(49.998m), k3.PubKey.WitHash.GetAddress(network));
+				doubleSpend.Sign(k1.GetBitcoinSecret(network), coinBaseTx.Outputs.AsCoins().First());
 				valid = doubleSpend.Check();
 
 				await rpc.GenerateAsync(101);
@@ -252,10 +254,14 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			Assert.Equal(RpcPubkeyType.TxPubkeyhash, blockInfo.Transactions.ElementAt(0).Outputs.ElementAt(0).PubkeyType);
 			Assert.Equal(RpcPubkeyType.TxNullData, blockInfo.Transactions.ElementAt(0).Outputs.ElementAt(1).PubkeyType);
 
-			Assert.Equal(Money.Coins(50), blockInfo.Transactions.ElementAt(1).Inputs.ElementAt(0).PrevOutput.Value);
+			var in0 = blockInfo.Transactions.ElementAt(1).Inputs.ElementAt(0);
+			Assert.False(in0.IsCoinbase);
+			var prevOut0 = in0.PrevOutput;
+			Assert.Equal(Money.Coins(50), prevOut0?.Value);
+			Assert.Equal(RpcPubkeyType.TxPubkeyhash, prevOut0?.PubkeyType);
+
 			Assert.Equal(Money.Coins((decimal)48.99995500), blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(0).Value);
 			Assert.Equal(Money.Coins((decimal)1.00000000), blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(1).Value);
-			Assert.Equal(RpcPubkeyType.TxPubkeyhash, blockInfo.Transactions.ElementAt(1).Inputs.ElementAt(0).PrevOutput.PubkeyType);
 			Assert.Equal(RpcPubkeyType.TxPubkeyhash, blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(0).PubkeyType);
 			Assert.Equal(RpcPubkeyType.TxPubkeyhash, blockInfo.Transactions.ElementAt(1).Outputs.ElementAt(1).PubkeyType);
 		}
