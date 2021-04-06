@@ -71,8 +71,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);
 
-			EnableCancel = true;
-
 			EnableBack = true;
 
 			NextCommand = ReactiveCommand.CreateFromTask(
@@ -86,7 +84,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task OnNext(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster, IObservableList<PocketViewModel> selectedList)
 		{
-			var coins = selectedList.Items.SelectMany(x => x.Coins).ToArray();
+			transactionInfo.Coins = selectedList.Items.SelectMany(x => x.Coins).ToArray();
 
 			if (_privatePocket != null)
 			{
@@ -95,25 +93,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			try
 			{
-				try
+				if (transactionInfo.PayJoinClient is { })
 				{
-					var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: false));
-					Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, transactionResult));
+					await BuildTransactionAsPayJoinAsync(wallet, transactionInfo, broadcaster);
 				}
-				catch (InsufficientBalanceException)
+				else
 				{
-					var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: true));
-					var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Pocket, transactionResult, wallet.Synchronizer.UsdExchangeRate);
-					var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
-
-					if (result.Result)
-					{
-						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, transactionResult));
-					}
-					else
-					{
-						Navigate().BackTo<SendViewModel>();
-					}
+					await BuildTransactionAsNormalAsync(wallet, transactionInfo, broadcaster);
 				}
 			}
 			catch (Exception ex)
@@ -121,6 +107,44 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				Logger.LogError(ex);
 				await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
 				Navigate().BackTo<SendViewModel>();
+			}
+		}
+
+		private async Task BuildTransactionAsNormalAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
+		{
+			try
+			{
+				var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
+				Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, transactionResult));
+			}
+			catch (InsufficientBalanceException)
+			{
+				var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo, subtractFee: true));
+				var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Pocket, transactionResult, wallet.Synchronizer.UsdExchangeRate);
+				var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
+
+				if (result.Result)
+				{
+					Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, transactionResult));
+				}
+				else
+				{
+					Navigate().BackTo<SendViewModel>();
+				}
+			}
+		}
+
+		private async Task BuildTransactionAsPayJoinAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
+		{
+			try
+			{
+				// Do not add the PayJoin client yet, it will be added before broadcasting.
+				var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
+				Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
+			}
+			catch (InsufficientBalanceException)
+			{
+				await ShowErrorAsync("Transaction Building", "There are not enough funds selected to cover the transaction fee.", "Wasabi was unable to create your transaction.");
 			}
 		}
 
