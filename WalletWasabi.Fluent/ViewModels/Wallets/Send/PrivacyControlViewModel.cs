@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Aggregation;
@@ -25,11 +26,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private readonly Wallet _wallet;
 		private readonly SourceList<PocketViewModel> _pocketSource;
 		private readonly ReadOnlyObservableCollection<PocketViewModel> _pockets;
+		private PocketViewModel? _privatePocket;
+		private readonly IObservableList<PocketViewModel> _selectedList;
 
 		[AutoNotify] private decimal _stillNeeded;
 		[AutoNotify] private bool _enoughSelected;
-		[AutoNotify] private bool _privateFundsSelected;
-		[AutoNotify] private bool _showCjNotice;
 
 		public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
 		{
@@ -45,18 +46,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.AutoRefresh()
 				.Filter(x => x.IsSelected);
 
-			var selectedList = selected.AsObservableList();
+			_selectedList = selected.AsObservableList();
 
 			selected.Sum(x => x.TotalBtc)
 				.Subscribe(x =>
 				{
-					PrivateFundsSelected = selectedList.Items.Any(pocket =>
-						pocket.Labels.FirstOrDefault() == CoinPocketHelper.PrivateFundsText);
+					if (_privatePocket is { })
+					{
+						_privatePocket.IsWarningOpen = _privatePocket.IsSelected && _selectedList.Count > 1;
+					}
 
 					StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC) - x;
-					EnoughSelected = StillNeeded <= 0 || PrivateFundsSelected;
-
-					ShowCjNotice = !PrivateFundsSelected && EnoughSelected;
+					EnoughSelected = StillNeeded <= 0;
 				});
 
 			_pocketSource
@@ -73,7 +74,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			EnableBack = true;
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNext(wallet, transactionInfo, broadcaster, selectedList),
+				async () => await OnNext(wallet, transactionInfo, broadcaster, _selectedList),
 				this.WhenAnyValue(x => x.EnoughSelected));
 
 			EnableAutoBusyOn(NextCommand);
@@ -84,6 +85,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private async Task OnNext(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster, IObservableList<PocketViewModel> selectedList)
 		{
 			transactionInfo.Coins = selectedList.Items.SelectMany(x => x.Coins).ToArray();
+
+			if (_privatePocket != null)
+			{
+				_privatePocket.IsSelected = false;
+			}
 
 			try
 			{
@@ -152,13 +158,31 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				foreach (var pocket in pockets)
 				{
-					_pocketSource.Add(new PocketViewModel(pocket));
-				}
+					if (pocket.SmartLabel.Labels.Any(x => x == CoinPocketHelper.PrivateFundsText))
+					{
+						_privatePocket = new PocketViewModel(pocket)
+						{
+							WarningMessage =
+								"Warning, using both private and non-private funds in the same transaction can destroy your privacy."
+						};
 
-				if (_pocketSource.Count == 1)
-				{
-					_pocketSource.Items.First().IsSelected = true;
+						_pocketSource.Add(_privatePocket);
+					}
+					else
+					{
+						_pocketSource.Add(new PocketViewModel(pocket));
+					}
 				}
+			}
+
+			foreach (var pocket in _pockets)
+			{
+				pocket.IsSelected = false;
+			}
+
+			if (_pocketSource.Count == 1)
+			{
+				_pocketSource.Items.First().IsSelected = true;
 			}
 		}
 	}
