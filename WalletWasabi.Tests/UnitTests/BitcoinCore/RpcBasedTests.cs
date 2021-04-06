@@ -15,7 +15,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 	{
 		#region Mocked RPC response
 
-		public const string RpcOutput = @"
+		public static string RpcOutput = @"
 		{
 		    'hash': '27cac34bec2bfc3422c352d558b4db29e6d7e8114db2dbc955df06a63cda82fe',
 		    'confirmations': 1,
@@ -145,7 +145,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		    'chainwork': '00000000000000000000000000000000000000000000000000000000000000ce',
 		    'nTx': 2,
 		    'previousblockhash': '1d434df0cdd3fe26535ebe9734ef013b036441be38921606a9336ce74ab1cf04'
-		}";
+		}".Replace("'", "\"");
 
 		#endregion Mocked RPC response
 
