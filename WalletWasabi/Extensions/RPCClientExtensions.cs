@@ -23,10 +23,10 @@ namespace NBitcoin.RPC
 			else
 			{
 				result = await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode).ConfigureAwait(false);
-			}
 
-			var mempoolInfo = await rpc.GetMempoolInfoAsync().ConfigureAwait(false);
-			result.FeeRate = FeeRate.Max(mempoolInfo.GetSanityFeeRate(), result.FeeRate);
+				var mempoolInfo = await rpc.GetMempoolInfoAsync().ConfigureAwait(false);
+				result.FeeRate = FeeRate.Max(mempoolInfo.GetSanityFeeRate(), result.FeeRate);
+			}
 
 			return result;
 		}
