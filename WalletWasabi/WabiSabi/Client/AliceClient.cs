@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
@@ -38,7 +39,7 @@ namespace WalletWasabi.WabiSabi.Client
 				await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken).ConfigureAwait(false);
 				await ConfirmConnectionAsync().ConfigureAwait(false);
 			}
-			while (!stoppingToken.IsCancellationRequested);
+			while (!ArenaClient.AmountCredentialClient.Credentials.Valuable.Any());
 		}
 
 		private async Task ConfirmConnectionAsync()
