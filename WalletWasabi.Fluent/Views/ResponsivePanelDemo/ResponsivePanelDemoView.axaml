@@ -16,7 +16,7 @@
             <c:ResponsivePanel Grid.Row="0"
                                AspectRatio="NaN"
                                ColumnHints="1, 2, 3"
-                               WidthTriggers="150, 300, 500"
+                               WidthTriggers="300, 450, 650"
                                UseLayoutRounding="False"
                                Background="LightGray">
                 <Border CornerRadius="4" Margin="4" Background="Red" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1" />
