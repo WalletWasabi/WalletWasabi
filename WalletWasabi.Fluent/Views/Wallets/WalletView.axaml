@@ -4,10 +4,13 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
+             xmlns:views="using:WalletWasabi.Fluent.Views.ResponsivePanelDemo"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
     <controls:ContentArea Title="{Binding Title}"
-                          Caption="Wallet Home Page, currently under construction." />
+                          Caption="Wallet Home Page, currently under construction.">
+        <views:ResponsivePanelDemoView/>
+    </controls:ContentArea>
 </UserControl>
