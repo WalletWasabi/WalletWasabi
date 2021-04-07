@@ -54,15 +54,13 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var amountCredentials = ArenaClient.AmountCredentialClient.Credentials;
 
-			await ArenaClient.ConfirmConnectionAsync(
+			return await ArenaClient.ConfirmConnectionAsync(
 				RoundId,
 				AliceId,
 				inputRemainingWeights,
 				amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
 				Coins.Select(c => c.Amount)
 				).ConfigureAwait(false);
-
-			return ArenaClient.AmountCredentialClient.Credentials.Valuable.Any();
 		}
 
 		public async Task RemoveInputAsync()
