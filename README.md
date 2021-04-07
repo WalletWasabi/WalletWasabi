@@ -8,6 +8,32 @@
     An open-source, non-custodial, privacy-focused Bitcoin wallet for desktop.
 </h3>
 
+<h3 align="center">
+  <a href="https://wasabiwallet.io">
+    Website
+  </a>
+  <span> | </span>
+  <a href="https://docs.wasabiwallet.io/">
+    Documentation
+  </a>
+  <span> | </span>
+  <a href="https://docs.wasabiwallet.io/building-wasabi/TechnicalOverview.html#v-general-wallet-features">
+    API
+  </a>
+  <span> | </span>
+  <a href="https://github.com/zkSNACKs/WalletWasabi/discussions/5185">
+    Support
+  </a>
+  <span> | </span>
+  <a href="https://www.youtube.com/channel/UCobsrSexTuVkL39mbrQ35VQ">
+    YouTube
+  </a>
+  <span> | </span>
+  <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt">
+    PGP
+  </a>
+</div>
+
 | Code Quality           | Windows Tests           | Linux Tests             | macOS Tests             | Continuous Delivery       | Deterministic builds      | License                   |
 | :----------------------| :-----------------------| :-----------------------| :-----------------------| :-------------------------| :-------------------------| :-------------------------|
 | [![CodeFactor][9]][10] | [![Build Status][1]][2] | [![Build Status][3]][4] | [![Build Status][5]][6] | [![Build Status][11]][12] | [![Build Status][13]][14] | [![GitHub license][7]][8] |
