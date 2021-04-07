@@ -4,6 +4,7 @@
   </a>
 </p>
 
+<p align="center"> An open-source, non-custodial, privacy-focused Bitcoin wallet for desktop. </p>
 
 | Code Quality           | Windows Tests           | Linux Tests             | macOS Tests             | Continuous Delivery       | Deterministic builds      | License                   |
 | :----------------------| :-----------------------| :-----------------------| :-----------------------| :-------------------------| :-------------------------| :-------------------------|
@@ -24,9 +25,9 @@
 [13]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.DeterministicBuild?branchName=master
 [14]: https://dev.azure.com/zkSNACKs/Wasabi/_build/latest?definitionId=13&branchName=master
 
-[Wasabi Wallet](https://wasabiwallet.io) is an open-source, non-custodial, privacy-focused Bitcoin wallet for desktop.
-
-![](https://i.imgur.com/4tazbiF.png)
+<p align="center">
+  <img height="240" src="https://i.imgur.com/4tazbiF.png"/>
+</p>
 
 Note that [Wasabi Wallet 2.0](https://blog.wasabiwallet.io/wasabi-wallet-2/) is in the works, which means some code you may want to work on is about to be obsoleted. The most affected code is the UI and CoinJoin parts.
 
