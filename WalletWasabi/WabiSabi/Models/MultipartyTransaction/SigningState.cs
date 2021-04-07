@@ -6,17 +6,17 @@ using WalletWasabi.WabiSabi.Backend.Models;
 
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 {
-	public record Signing(Parameters Parameters, ImmutableArray<Coin> Inputs, ImmutableArray<TxOut> Outputs) : State
+	public record SigningState(MultipartyTransactionParameters Parameters, ImmutableArray<Coin> Inputs, ImmutableArray<TxOut> Outputs) : State
 	{
 		public ImmutableDictionary<int, WitScript> Witnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
 
-		public bool IsFullySigned => Witnesses.Count() == Inputs.Length;
+		public bool IsFullySigned => Witnesses.Count == Inputs.Length;
 
 		public FeeRate EffectiveFeeRate => new FeeRate(Balance, EstimatedVsize);
 
 		public Money Balance => Inputs.Sum(x => x.Amount) - Outputs.Sum(x => x.Value);
 
-		public int EstimatedVsize => Parameters.SharedOverhead + EstimatedInputsVsize + OutputsVsize;
+		public int EstimatedVsize => MultipartyTransactionParameters.SharedOverhead + EstimatedInputsVsize + OutputsVsize;
 		public int EstimatedInputsVsize => Inputs.Sum(x => x.TxOut.ScriptPubKey.EstimateInputVsize());
 		public int OutputsVsize => Outputs.Sum(x => x.ScriptPubKey.EstimateOutputVsize());
 
@@ -25,7 +25,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 		public bool IsInputSigned(int index) => Witnesses.ContainsKey(index);
 
 
-		public Signing AddWitness(int index, WitScript witness)
+		public SigningState AddWitness(int index, WitScript witness)
 		{
 			if (IsInputSigned(index))
 			{

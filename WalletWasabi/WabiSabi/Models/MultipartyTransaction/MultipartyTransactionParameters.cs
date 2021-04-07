@@ -6,7 +6,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 {
 	// This represents parameters all clients must agree on to produce a valid &
 	// standard transaction subject to constraints.
-	public record Parameters(FeeRate FeeRate, MoneyRange AllowedInputAmounts, MoneyRange AllowedOutputAmounts, Network Network)
+	public record MultipartyTransactionParameters(FeeRate FeeRate, MoneyRange AllowedInputAmounts, MoneyRange AllowedOutputAmounts, Network Network)
 	{
 		public static int SharedOverhead = 4*(4 + 4 + 3 + 3) + 1 + 1; // version, locktime, two 3 byte varints are non-witness data, marker and flags are witness data
 
