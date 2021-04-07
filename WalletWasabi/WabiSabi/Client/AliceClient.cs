@@ -17,10 +17,10 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class AliceClient : BackgroundService, IAsyncDisposable
 	{
-		private Guid AliceId { get; }
-		private Guid RoundId { get; }
+		public Guid AliceId { get; }
+		public Guid RoundId { get; }
 		private ArenaClient ArenaClient { get; }
-		public IEnumerable<Coin> Coins { get; }
+		private IEnumerable<Coin> Coins { get; }
 
 		public AliceClient(Guid aliceId, Guid roundId, ArenaClient arenaClient, IEnumerable<Coin> coins)
 		{
