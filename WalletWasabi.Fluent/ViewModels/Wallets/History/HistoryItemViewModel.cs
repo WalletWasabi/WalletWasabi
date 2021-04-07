@@ -18,11 +18,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 			var amount = transactionSummary.Amount;
 			if (amount < 0)
 			{
-				OutgoingAmount = (amount * -1).ToString(fplus: false, trimExcessZero: true);
+				OutgoingAmount = (amount * -1).ToString(fplus: false);
 			}
 			else
 			{
-				IncomingAmount = amount.ToString(fplus: false, trimExcessZero: true);
+				IncomingAmount = amount.ToString(fplus: false);
 			}
 
 			Labels = transactionSummary.Label;

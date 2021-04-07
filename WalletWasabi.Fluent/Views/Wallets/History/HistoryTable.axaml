@@ -9,13 +9,19 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.History.HistoryTable">
   <DockPanel LastChildFill="True">
+
     <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
+
+      <!-- Hide CJ switch -->
       <StackPanel Orientation="Horizontal" Spacing="10" DockPanel.Dock="Right">
         <TextBlock Text="Hide CoinJoin transactions" VerticalAlignment="Center" Opacity="0.6"/>
         <ToggleSwitch IsChecked="{Binding HideCoinJoin}" OnContent="{x:Null}" OffContent="{x:Null}" VerticalAlignment="Center"/>
       </StackPanel>
+
+      <!-- Title -->
       <Label Content="Transaction History" DockPanel.Dock="Left" FontWeight="Bold" FontSize="16"/>
     </DockPanel>
+
     <DataGrid Items="{Binding Histories}" DockPanel.Dock="Bottom">
       <DataGrid.Styles>
         <Style Selector="PathIcon">
@@ -23,25 +29,31 @@
           <Setter Property="Height" Value="20"/>
           <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
-
         <Style Selector="TextBlock">
           <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
+        <Style Selector="StackPanel">
+          <Setter Property="Orientation" Value="Horizontal" />
+          <Setter Property="Spacing" Value="10" />
+          <Setter Property="Margin" Value="10 0" />
+        </Style>
       </DataGrid.Styles>
+
       <DataGrid.Columns>
+
         <!-- Date -->
         <DataGridTextColumn Header="Date"
                             x:DataType="history:HistoryItemViewModel"
                             Binding="{Binding Date}"
                             Width="*" />
+
         <!-- Labels -->
         <DataGridTemplateColumn Header="Labels"
                                 Width="2*"
                                 SortMemberPath="Labels">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <c:TagsBox x:DataType="history:HistoryItemViewModel" Items="{Binding Labels}" IsReadOnly="True"
-                         Margin="10 0" />
+              <c:TagsBox x:DataType="history:HistoryItemViewModel" Items="{Binding Labels}" IsReadOnly="True" Margin="10 0" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
@@ -49,13 +61,11 @@
         <!-- Outgoing -->
         <DataGridTemplateColumn Header="Outgoing"
                                 Width="*"
-                                SortMemberPath="Outgoing">
+                                SortMemberPath="OutgoingAmount">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <StackPanel Orientation="Horizontal" Spacing="10"
-                          x:DataType="history:HistoryItemViewModel"
-                          IsVisible="{Binding !!OutgoingAmount}"
-                          Margin="10 0">
+              <StackPanel x:DataType="history:HistoryItemViewModel"
+                          IsVisible="{Binding !!OutgoingAmount}">
                 <LayoutTransformControl VerticalAlignment="Center">
                   <LayoutTransformControl.LayoutTransform>
                     <RotateTransform Angle="180" />
@@ -71,13 +81,11 @@
         <!-- Incoming -->
         <DataGridTemplateColumn Header="Incoming"
                                 Width="*"
-                                SortMemberPath="Incoming">
+                                SortMemberPath="IncomingAmount">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <StackPanel Orientation="Horizontal" Spacing="10"
-                          x:DataType="history:HistoryItemViewModel"
-                          IsVisible="{Binding !!IncomingAmount}"
-                          Margin="10 0">
+              <StackPanel x:DataType="history:HistoryItemViewModel"
+                          IsVisible="{Binding !!IncomingAmount}">
                 <PathIcon Data="{StaticResource chevron_down_circle_regular}" Opacity="0.6" />
                 <TextBlock Text="{Binding IncomingAmount, StringFormat={}{0} BTC}" />
               </StackPanel>
@@ -88,17 +96,17 @@
         <!-- Status -->
         <DataGridTemplateColumn Header="Status"
                                 Width="*"
-                                SortMemberPath="Status">
+                                SortMemberPath="IsConfirmed">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <Panel x:DataType="history:HistoryItemViewModel">
-                <StackPanel Orientation="Horizontal" Spacing="10" Margin="10 0" IsVisible="{Binding IsConfirmed}">
+                <StackPanel IsVisible="{Binding IsConfirmed}">
                   <PathIcon Data="{StaticResource checkmark_filled}"
                             Foreground="{DynamicResource SystemControlBackgroundAccentBrush}" />
                   <TextBlock Text="Confirmed" />
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal" Spacing="10" Margin="10 0" IsVisible="{Binding !IsConfirmed}">
+                <StackPanel IsVisible="{Binding !IsConfirmed}">
                   <PathIcon Data="{StaticResource channel_regular}" Opacity="0.6"/>
                   <TextBlock Text="Pending" />
                 </StackPanel>
