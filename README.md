@@ -4,7 +4,9 @@
   </a>
 </p>
 
-<p align="center"> An open-source, non-custodial, privacy-focused Bitcoin wallet for desktop. </p>
+<h3 align="center">
+    An open-source, non-custodial, privacy-focused Bitcoin wallet for desktop.
+</h3>
 
 | Code Quality           | Windows Tests           | Linux Tests             | macOS Tests             | Continuous Delivery       | Deterministic builds      | License                   |
 | :----------------------| :-----------------------| :-----------------------| :-----------------------| :-------------------------| :-------------------------| :-------------------------|
@@ -25,25 +27,31 @@
 [13]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.DeterministicBuild?branchName=master
 [14]: https://dev.azure.com/zkSNACKs/Wasabi/_build/latest?definitionId=13&branchName=master
 
+<br>
+
 <p align="center">
-  <img height="240" src="https://i.imgur.com/4tazbiF.png"/>
+  <img height="360" src="https://i.imgur.com/4tazbiF.png"/>
 </p>
 
 Note that [Wasabi Wallet 2.0](https://blog.wasabiwallet.io/wasabi-wallet-2/) is in the works, which means some code you may want to work on is about to be obsoleted. The most affected code is the UI and CoinJoin parts.
 
 For more information, please check out the [Wasabi Documentation](https://docs.wasabiwallet.io), an archive of knowledge about the nuances of Bitcoin privacy and how to use Wasabi.
 
+<br>
+
 # 💻 [Download Wasabi](https://github.com/zkSNACKs/WalletWasabi/releases)
+
+<br>
 
 # 🏗️ Build From Source Code
 
-## Get The Requirements
+### Get The Requirements
 
 1. Get Git: https://git-scm.com/downloads
 2. Get .NET 5.0 SDK: https://dotnet.microsoft.com/download
 3. Optionally disable .NET's telemetry by typing `export DOTNET_CLI_TELEMETRY_OPTOUT=1` on Linux and macOS or `setx DOTNET_CLI_TELEMETRY_OPTOUT 1` on Windows.
 
-## Get Wasabi
+### Get Wasabi
 
 Clone & Restore & Build
 
@@ -53,11 +61,11 @@ cd WalletWasabi/WalletWasabi.Gui
 dotnet build
 ```
 
-## Run Wasabi
+### Run Wasabi
 
 Run Wasabi with `dotnet run` from the `WalletWasabi.Gui` folder.
 
-## Update Wasabi
+### Update Wasabi
 
 ```sh
 git pull
