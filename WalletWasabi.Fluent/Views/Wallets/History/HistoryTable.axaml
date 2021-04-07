@@ -8,7 +8,7 @@
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.History.HistoryTable">
-  <DataGrid Items="{Binding Histories}" Width="1000" Height="300" HorizontalAlignment="Left" VerticalAlignment="Top">
+  <DataGrid Items="{Binding Histories}">
     <DataGrid.Styles>
       <Style Selector="PathIcon">
         <Setter Property="Width" Value="20"/>
@@ -54,7 +54,7 @@
                 </LayoutTransformControl.LayoutTransform>
                 <PathIcon Data="{StaticResource chevron_down_circle_regular}" Opacity="0.6" />
               </LayoutTransformControl>
-              <TextBlock Text="{Binding OutgoingAmount}" />
+              <TextBlock Text="{Binding OutgoingAmount, StringFormat={}{0} BTC}" />
             </StackPanel>
           </DataTemplate>
         </DataGridTemplateColumn.CellTemplate>
@@ -71,7 +71,7 @@
                         IsVisible="{Binding !!IncomingAmount}"
                         Margin="10 0">
               <PathIcon Data="{StaticResource chevron_down_circle_regular}" Opacity="0.6" />
-              <TextBlock Text="{Binding IncomingAmount}" />
+              <TextBlock Text="{Binding IncomingAmount, StringFormat={}{0} BTC}" />
             </StackPanel>
           </DataTemplate>
         </DataGridTemplateColumn.CellTemplate>

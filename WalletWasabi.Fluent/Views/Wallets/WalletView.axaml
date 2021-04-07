@@ -11,6 +11,6 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
     <c:ContentArea Title="{Binding Title}"
                           Caption="Wallet Home Page, currently under construction." >
-      <history:HistoryTable DataContext="{Binding History}"/>
+      <history:HistoryTable DataContext="{Binding History}" MaxWidth="1000" Height="300" HorizontalAlignment="Stretch" VerticalAlignment="Top"/>
     </c:ContentArea>
 </UserControl>

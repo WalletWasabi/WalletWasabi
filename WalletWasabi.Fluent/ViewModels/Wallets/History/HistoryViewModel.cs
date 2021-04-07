@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 
 				Histories.Clear();
 				var trs = txRecordList.Select(transactionSummary => new HistoryItemViewModel(transactionSummary, _bitcoinStore));
-				Histories.AddRange(trs);
+				Histories.AddRange(trs.Reverse());
 			}
 			catch (Exception ex)
 			{
