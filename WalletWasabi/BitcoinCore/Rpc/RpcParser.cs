@@ -40,7 +40,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 				previousBlockHash = prevBlockHashJson.GetString();
 			}
 
-			var transaction = new List<VerboseTransactionInfo>();
+			var transactions = new List<VerboseTransactionInfo>();
 
 			var blockInfo = new VerboseBlockInfo(
 				hash: uint256.Parse(blockInfoJson.GetProperty("hash").GetString()),
@@ -48,7 +48,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 				confirmations: blockInfoJson.GetProperty("confirmations").GetUInt64(),
 				height: blockInfoJson.GetProperty("height").GetUInt64(),
 				blockTime: Utils.UnixTimeToDateTime(blockInfoJson.GetProperty("time").GetUInt32()),
-				transactions: transaction);
+				transactions: transactions);
 
 			var array = blockInfoJson.GetProperty("tx").EnumerateArray().ToArray();
 			for (uint i = 0; i < array.Length; i++)
@@ -92,7 +92,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 					outputs.Add(output);
 				}
 
-				transaction.Add(tx);
+				transactions.Add(tx);
 			}
 
 			return blockInfo;
