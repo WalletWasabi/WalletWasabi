@@ -20,9 +20,9 @@ namespace WalletWasabi.WabiSabi.Client
 		private Guid AliceId { get; }
 		private Guid RoundId { get; }
 		private ArenaClient ArenaClient { get; }
-		public IEnumerable<ICoin> Coins { get; }
+		public IEnumerable<Coin> Coins { get; }
 
-		public AliceClient(Guid aliceId, Guid roundId, ArenaClient arenaClient, IEnumerable<ICoin> coins)
+		public AliceClient(Guid aliceId, Guid roundId, ArenaClient arenaClient, IEnumerable<Coin> coins)
 		{
 			AliceId = aliceId;
 			RoundId = roundId;
@@ -53,7 +53,7 @@ namespace WalletWasabi.WabiSabi.Client
 				AliceId,
 				inputRemainingWeights,
 				amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
-				Coins.Select(c => (Money)c.Amount)
+				Coins.Select(c => c.Amount)
 				).ConfigureAwait(false);
 		}
 
@@ -72,12 +72,12 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public static async Task<AliceClient> CreateNewAsync(
 			ArenaClient arenaClient,
-			IEnumerable<ICoin> coinsToRegister,
+			IEnumerable<Coin> coinsToRegister,
 			BitcoinSecret bitcoinSecret,
 			Guid roundId,
 			uint256 roundHash)
 		{
-			IEnumerable<Money> amounts = coinsToRegister.Select(c => (Money)c.Amount);
+			IEnumerable<Money> amounts = coinsToRegister.Select(c => c.Amount);
 			IEnumerable<OutPoint> outPoints = coinsToRegister.Select(c => c.Outpoint);
 			IEnumerable<Key> keys = Enumerable.Repeat(bitcoinSecret.PrivateKey, coinsToRegister.Count());
 
