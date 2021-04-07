@@ -7,18 +7,17 @@ using WalletWasabi.WabiSabi.Backend.Models;
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 {
 	// This class represents actions of the BIP 370 creator and constructor roles
-	public record ConstructionState(MultipartyTransactionParameters Parameters) : State
+	public record ConstructionState(MultipartyTransactionParameters Parameters) : IState
 	{
 		public ImmutableList<Coin> Inputs { get; init; } = ImmutableList<Coin>.Empty;
 		public ImmutableList<TxOut> Outputs { get; init; } = ImmutableList<TxOut>.Empty;
 
-		public FeeRate EffectiveFeeRate => new FeeRate(Balance, EstimatedVsize);
-
 		public Money Balance => Inputs.Sum(x => x.Amount) - Outputs.Sum(x => x.Value);
-
-		public int EstimatedVsize => MultipartyTransactionParameters.SharedOverhead + EstimatedInputsVsize + OutputsVsize;
 		public int EstimatedInputsVsize => Inputs.Sum(x => x.TxOut.ScriptPubKey.EstimateInputVsize());
 		public int OutputsVsize => Outputs.Sum(x => x.ScriptPubKey.EstimateOutputVsize());
+
+		public int EstimatedVsize => MultipartyTransactionParameters.SharedOverhead + EstimatedInputsVsize + OutputsVsize;
+		public FeeRate EffectiveFeeRate => new FeeRate(Balance, EstimatedVsize);
 
 		// TODO ownership proofs and spend status also in scope
 		public ConstructionState AddInput(Coin coin)
