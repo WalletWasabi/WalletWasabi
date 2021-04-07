@@ -2,6 +2,7 @@ using NBitcoin;
 using ReactiveUI;
 using Splat;
 using System;
+using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -14,8 +15,27 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
+	public readonly struct DataLegend
+	{
+		public DataLegend(Money amount, string label, string hexColor, double percentShare)
+		{
+			Amount = amount;
+			Label = label;
+			HexColor = hexColor;
+			PercentShare = percentShare;
+		}
+
+		public Money Amount { get; }
+		public string Label { get; }
+		public string HexColor { get; }
+		public double PercentShare { get; }
+	}
+
 	public partial class WalletViewModel : WalletViewModelBase
 	{
+		[AutoNotify] private IList<(string color, double percentShare)> _testDataPoints;
+		[AutoNotify] private IList<DataLegend> _testDataPointsLegend;
+
 		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
@@ -42,6 +62,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					}
 				})
 				.DisposeWith(Disposables);
+
+			TestDataPoints = new List<(string, double)>()
+			{
+				("#72BD81", 0.8d),
+				("#F9DE7D", 0.2d)
+			};
+
+			TestDataPointsLegend = new List<DataLegend>
+			{
+				new (Money.Parse("0.77508"),"Private", "#F9DE7D", 0.2 ),
+				new (Money.Parse("3.10032"),"Not Private", "#72BD81", 0.8)
+			};
 		}
 
 		private CompositeDisposable Disposables { get; set; }

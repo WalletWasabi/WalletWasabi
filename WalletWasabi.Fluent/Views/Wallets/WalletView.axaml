@@ -4,10 +4,42 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
-    <controls:ContentArea Title="{Binding Title}"
-                          Caption="Wallet Home Page, currently under construction." />
+    <Panel>
+        <Panel Width="228" Height="260" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Border CornerRadius="4" Background="#2B2B2B" Padding="16">
+                <DockPanel LastChildFill="True" TextBlock.FontSize="11">
+
+                    <StackPanel DockPanel.Dock="Top">
+                        <TextBlock>Coin Privacy</TextBlock>
+                        <TextBlock Opacity="0.5">in Percentage %</TextBlock>
+                    </StackPanel>
+
+                    <ItemsRepeater DockPanel.Dock="Bottom" Margin="0,0,0,-8" Items="{Binding TestDataPointsLegend}">
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="wallets:DataLegend">
+                                <DockPanel  Margin="0,8">
+                                    <Ellipse DockPanel.Dock="Left" Margin="0,0,8,0" HorizontalAlignment="Left" Width="10" Height="10"   Fill="{Binding HexColor, Converter={x:Static converters:ColorStringConverters.HexColorToBrush}}" />
+                                    <TextBlock DockPanel.Dock="Left" HorizontalAlignment="Left"  Text="{Binding Amount, Converter={x:Static converters:MoneyConverters.MoneyToString}}" />
+                                    <TextBlock DockPanel.Dock="Right" Margin="8,0,0,0" HorizontalAlignment="Right" Text="{Binding PercentShare, StringFormat=\{0:P1\}}" />
+                                    <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Right"  Text="{Binding Label}" />
+                                </DockPanel>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                        <ItemsRepeater.Layout>
+                            <StackLayout></StackLayout>
+                        </ItemsRepeater.Layout>
+                    </ItemsRepeater>
+
+                    <Panel Margin="8" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <controls:RingChartControl DataPoints="{Binding TestDataPoints}" />
+                    </Panel>
+                </DockPanel>
+            </Border>
+        </Panel>
+    </Panel>
 </UserControl>

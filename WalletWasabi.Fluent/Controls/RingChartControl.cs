@@ -13,15 +13,14 @@ namespace WalletWasabi.Fluent.Controls
 	{
 		static RingChartControl()
 		{
-			AffectsRender<RingChartControl>(DataPointsProperty, RadiusProperty, ThicknessProperty, StartAngleProperty, EndAngleProperty);
-			AffectsMeasure<RingChartControl>(DataPointsProperty, RadiusProperty, ThicknessProperty, StartAngleProperty, EndAngleProperty);
+			AffectsRender<RingChartControl>(DataPointsProperty, ThicknessProperty, StartAngleProperty,
+				EndAngleProperty);
+			AffectsMeasure<RingChartControl>(DataPointsProperty, ThicknessProperty, StartAngleProperty,
+				EndAngleProperty);
 		}
 
-		public static readonly StyledProperty<IList<(IBrush, double)>> DataPointsProperty =
-			AvaloniaProperty.Register<RingChartControl, IList<(IBrush, double)>>("DataPoints");
-
-		public static readonly StyledProperty<double> RadiusProperty =
-			AvaloniaProperty.Register<RingChartControl, double>("Radius", 60);
+		public static readonly StyledProperty<IList<(string ColorHex, double PercentShare)>> DataPointsProperty =
+			AvaloniaProperty.Register<RingChartControl, IList<(string ColorHex, double PercentShare)>>("DataPoints");
 
 		public static readonly StyledProperty<double> StartAngleProperty =
 			AvaloniaProperty.Register<RingChartControl, double>("StartAngle", 0);
@@ -32,7 +31,7 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<double> ThicknessProperty =
 			AvaloniaProperty.Register<RingChartControl, double>("Thickness", 6);
 
-		public IList<(IBrush color, double value)> DataPoints
+		public IList<(string ColorHex, double PercentShare)> DataPoints
 		{
 			get => GetValue(DataPointsProperty);
 			set => SetValue(DataPointsProperty, value);
@@ -43,17 +42,19 @@ namespace WalletWasabi.Fluent.Controls
 			return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
 		}
 
-		protected override Size MeasureOverride(Size availableSize)
-		{
-			return new ((Radius * 2) + Thickness, (Radius * 2) + Thickness);
-		}
+ 		protected override Size MeasureOverride(Size availableSize)
+        {
+	        Radius = (Math.Min(availableSize.Height, availableSize.Width) / 2) - Thickness;
+	        var s = new Size((Radius * 2) + Thickness, (Radius * 2) + Thickness);
+	        return s;
+        }
 
 		private Geometry GetArcGeometry(double startAngle, double endAngle, bool isPathClosed = false)
 		{
 			var startRadians = ConvertToRadians(startAngle) - (Math.PI / 2);
 			var endRadians = ConvertToRadians(endAngle) - (Math.PI / 2);
 
-			var center = new Point(Radius+(Thickness/2), Radius+(Thickness/2));
+			var center = new Point(Radius + (Thickness / 2), Radius + (Thickness / 2));
 
 			if (endRadians < startRadians)
 			{
@@ -99,11 +100,7 @@ namespace WalletWasabi.Fluent.Controls
 			return (Math.PI / 180d) * angle;
 		}
 
-		public double Radius
-		{
-			get => GetValue(RadiusProperty);
-			set => SetValue(RadiusProperty, value);
-		}
+		private double Radius { get; set; }
 
 		public double StartAngle
 		{
@@ -130,20 +127,22 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			var total = DataPoints.Sum(x => x.value);
+			var total = DataPoints.Sum(x => x.PercentShare);
 
 			if (total <= 1.0)
 			{
 				var lastAngle = StartAngle;
 				var lastData = 0d;
 
-				foreach (var dataPoint in DataPoints.OrderBy(x => x.value))
+				foreach (var dataPoint in DataPoints.OrderBy(x => x.PercentShare))
 				{
-					lastData += dataPoint.value;
-					var curValue = Map((dataPoint.value == 1.0 ? 0.99 : lastData), 0, 1, StartAngle, EndAngle);
+					var brush = new ImmutableSolidColorBrush(Color.Parse(dataPoint.ColorHex));
 
-					context.DrawGeometry(null, new ImmutablePen(dataPoint.color, Thickness),
-						GetArcGeometry(lastAngle, curValue, (dataPoint.value == 1.0d)));
+					lastData += dataPoint.PercentShare;
+					var curValue = Map((dataPoint.PercentShare == 1.0 ? 0.99 : lastData), 0, 1, StartAngle, EndAngle);
+
+					context.DrawGeometry(null, new ImmutablePen(brush, Thickness),
+						GetArcGeometry(lastAngle, curValue, (dataPoint.PercentShare == 1.0d)));
 
 					lastAngle = curValue;
 				}
