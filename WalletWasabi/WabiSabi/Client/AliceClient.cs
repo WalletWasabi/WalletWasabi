@@ -60,7 +60,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public async Task RemoveInputAsync()
 		{
 			await ArenaClient.RemoveInputAsync(RoundId, AliceId).ConfigureAwait(false);
-			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Unconfirmed connection.");
+			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Inputs removed.");
 		}
 
 		public async Task SignTransactionAsync(BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin)
