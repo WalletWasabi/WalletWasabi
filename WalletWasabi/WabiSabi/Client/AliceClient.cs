@@ -33,16 +33,14 @@ namespace WalletWasabi.WabiSabi.Client
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
-			// Input registration phase
 			do
 			{
 				await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken).ConfigureAwait(false);
-				await ConfirmConnectionAsync().ConfigureAwait(false);
 			}
-			while (!ArenaClient.AmountCredentialClient.Credentials.Valuable.Any());
+			while (!await ConfirmConnectionAsync().ConfigureAwait(false));
 		}
 
-		private async Task ConfirmConnectionAsync()
+		private async Task<bool> ConfirmConnectionAsync()
 		{
 			var inputWeight = 4 * Constants.P2wpkhInputVirtualSize;
 			var inputRemainingWeights = new[] { (long)ArenaClient.ProtocolMaxWeightPerAlice - inputWeight };
@@ -56,6 +54,8 @@ namespace WalletWasabi.WabiSabi.Client
 				amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
 				Coins.Select(c => c.Amount)
 				).ConfigureAwait(false);
+
+			return ArenaClient.AmountCredentialClient.Credentials.Valuable.Any();
 		}
 
 		public async Task RemoveInputAsync()
