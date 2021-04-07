@@ -13,7 +13,7 @@ namespace NBitcoin.RPC
 {
 	public static class RPCClientExtensions
 	{
-		public static async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, FeeRate sanityFeeRate, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
+		public static async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
 		{
 			EstimateSmartFeeResponse result;
 			if (simulateIfRegTest && rpc.Network == Network.RegTest)
@@ -23,9 +23,10 @@ namespace NBitcoin.RPC
 			else
 			{
 				result = await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode).ConfigureAwait(false);
-			}
 
-			result.FeeRate = FeeRate.Max(sanityFeeRate, result.FeeRate);
+				var mempoolInfo = await rpc.GetMempoolInfoAsync().ConfigureAwait(false);
+				result.FeeRate = FeeRate.Max(mempoolInfo.GetSanityFeeRate(), result.FeeRate);
+			}
 
 			return result;
 		}

@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Aggregation;
@@ -25,11 +26,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private readonly Wallet _wallet;
 		private readonly SourceList<PocketViewModel> _pocketSource;
 		private readonly ReadOnlyObservableCollection<PocketViewModel> _pockets;
+		private PocketViewModel? _privatePocket;
+		private readonly IObservableList<PocketViewModel> _selectedList;
 
 		[AutoNotify] private decimal _stillNeeded;
 		[AutoNotify] private bool _enoughSelected;
-		[AutoNotify] private bool _privateFundsSelected;
-		[AutoNotify] private bool _showCjNotice;
 
 		public PrivacyControlViewModel(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
 		{
@@ -45,18 +46,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.AutoRefresh()
 				.Filter(x => x.IsSelected);
 
-			var selectedList = selected.AsObservableList();
+			_selectedList = selected.AsObservableList();
 
 			selected.Sum(x => x.TotalBtc)
 				.Subscribe(x =>
 				{
-					PrivateFundsSelected = selectedList.Items.Any(pocket =>
-						pocket.Labels.FirstOrDefault() == CoinPocketHelper.PrivateFundsText);
+					if (_privatePocket is { })
+					{
+						_privatePocket.IsWarningOpen = _privatePocket.IsSelected && _selectedList.Count > 1;
+					}
 
 					StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC) - x;
-					EnoughSelected = StillNeeded <= 0 || PrivateFundsSelected;
-
-					ShowCjNotice = !PrivateFundsSelected && EnoughSelected;
+					EnoughSelected = StillNeeded <= 0;
 				});
 
 			_pocketSource
@@ -70,12 +71,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);
 
-			EnableCancel = true;
-
 			EnableBack = true;
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNext(wallet, transactionInfo, broadcaster, selectedList),
+				async () => await OnNext(wallet, transactionInfo, broadcaster, _selectedList),
 				this.WhenAnyValue(x => x.EnoughSelected));
 
 			EnableAutoBusyOn(NextCommand);
@@ -85,29 +84,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		private async Task OnNext(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster, IObservableList<PocketViewModel> selectedList)
 		{
-			var coins = selectedList.Items.SelectMany(x => x.Coins).ToArray();
+			transactionInfo.Coins = selectedList.Items.SelectMany(x => x.Coins).ToArray();
+
+			if (_privatePocket != null)
+			{
+				_privatePocket.IsSelected = false;
+			}
 
 			try
 			{
-				try
+				if (transactionInfo.PayJoinClient is { })
 				{
-					var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: false));
-					Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, transactionResult));
+					await BuildTransactionAsPayJoinAsync(wallet, transactionInfo, broadcaster);
 				}
-				catch (InsufficientBalanceException)
+				else
 				{
-					var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo.Address, transactionInfo.Amount, transactionInfo.Labels, transactionInfo.FeeRate, coins, subtractFee: true));
-					var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Pocket, transactionResult, wallet.Synchronizer.UsdExchangeRate);
-					var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
-
-					if (result.Result)
-					{
-						Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, transactionResult));
-					}
-					else
-					{
-						Navigate().BackTo<SendViewModel>();
-					}
+					await BuildTransactionAsNormalAsync(wallet, transactionInfo, broadcaster);
 				}
 			}
 			catch (Exception ex)
@@ -115,6 +107,44 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				Logger.LogError(ex);
 				await ShowErrorAsync("Transaction Building", ex.ToUserFriendlyString(), "Wasabi was unable to create your transaction.");
 				Navigate().BackTo<SendViewModel>();
+			}
+		}
+
+		private async Task BuildTransactionAsNormalAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
+		{
+			try
+			{
+				var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
+				Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, transactionResult));
+			}
+			catch (InsufficientBalanceException)
+			{
+				var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo, subtractFee: true));
+				var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Pocket, transactionResult, wallet.Synchronizer.UsdExchangeRate);
+				var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
+
+				if (result.Result)
+				{
+					Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, transactionResult));
+				}
+				else
+				{
+					Navigate().BackTo<SendViewModel>();
+				}
+			}
+		}
+
+		private async Task BuildTransactionAsPayJoinAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
+		{
+			try
+			{
+				// Do not add the PayJoin client yet, it will be added before broadcasting.
+				var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo));
+				Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, transactionResult));
+			}
+			catch (InsufficientBalanceException)
+			{
+				await ShowErrorAsync("Transaction Building", "There are not enough funds selected to cover the transaction fee.", "Wasabi was unable to create your transaction.");
 			}
 		}
 
@@ -128,13 +158,31 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				foreach (var pocket in pockets)
 				{
-					_pocketSource.Add(new PocketViewModel(pocket));
-				}
+					if (pocket.SmartLabel.Labels.Any(x => x == CoinPocketHelper.PrivateFundsText))
+					{
+						_privatePocket = new PocketViewModel(pocket)
+						{
+							WarningMessage =
+								"Warning, using both private and non-private funds in the same transaction can destroy your privacy."
+						};
 
-				if (_pocketSource.Count == 1)
-				{
-					_pocketSource.Items.First().IsSelected = true;
+						_pocketSource.Add(_privatePocket);
+					}
+					else
+					{
+						_pocketSource.Add(new PocketViewModel(pocket));
+					}
 				}
+			}
+
+			foreach (var pocket in _pockets)
+			{
+				pocket.IsSelected = false;
+			}
+
+			if (_pocketSource.Count == 1)
+			{
+				_pocketSource.Items.First().IsSelected = true;
 			}
 		}
 	}
