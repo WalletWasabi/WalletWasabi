@@ -27,8 +27,8 @@
             </c:ResponsivePanel>
 
             <DockPanel Grid.Row="1">
-                <Label Content="Transaction History" Margin="0,12,0,12" FontSize="16" DockPanel.Dock="Top"/>
-                <DataGrid  AutoGenerateColumns="False" Margin="0">
+                <Label Content="Transaction History" Margin="12,12,12,12" FontSize="16" DockPanel.Dock="Top"/>
+                <DataGrid  AutoGenerateColumns="False" Margin="12,0,12,0">
                     <DataGrid.Columns>
                         <DataGridTextColumn CanUserSort="False" Header="Date"/>
                         <DataGridTextColumn CanUserSort="False" Header="Description"/>
