@@ -47,16 +47,22 @@
                             Binding="{Binding Date}"
                             Width="*" />
 
-        <!-- Labels -->
-        <DataGridTemplateColumn Header="Labels"
-                                Width="2*"
-                                SortMemberPath="Labels">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <c:TagsBox x:DataType="history:HistoryItemViewModel" Items="{Binding Labels}" IsReadOnly="True" Margin="10 -2 10 -9" Padding="0" />
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
+        <!-- Date -->
+        <DataGridTextColumn Header="Transaction ID"
+                            x:DataType="history:HistoryItemViewModel"
+                            Binding="{Binding TransactionId}"
+                            Width="2*" />
+
+        <!-- ~1~ Labels @1@ -->
+        <!-- <DataGridTemplateColumn Header="Labels" -->
+        <!--                         Width="2*" -->
+        <!--                         SortMemberPath="Labels"> -->
+        <!--   <DataGridTemplateColumn.CellTemplate> -->
+        <!--     <DataTemplate> -->
+        <!--       <c:TagsBox x:DataType="history:HistoryItemViewModel" Items="{Binding Labels}" IsReadOnly="True" Margin="10 -2 10 -9" Padding="0" /> -->
+        <!--     </DataTemplate> -->
+        <!--   </DataGridTemplateColumn.CellTemplate> -->
+        <!-- </DataGridTemplateColumn> -->
 
         <!-- Outgoing -->
         <DataGridTemplateColumn Header="Outgoing"

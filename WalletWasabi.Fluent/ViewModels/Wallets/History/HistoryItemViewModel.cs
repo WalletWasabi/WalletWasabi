@@ -1,4 +1,5 @@
 using System.Globalization;
+using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
@@ -28,7 +29,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 			Labels = transactionSummary.Label;
 
 			IsCoinJoin = transactionSummary.IsLikelyCoinJoinOutput;
+
+			TransactionId = transactionSummary.TransactionId.ToString();
 		}
+
+		public string TransactionId { get; }
 
 		public bool IsConfirmed { get; }
 
