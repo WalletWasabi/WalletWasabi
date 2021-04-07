@@ -9,7 +9,7 @@ namespace WalletWasabi.BitcoinCore.Rpc.Models
 {
 	public class TransactionBlockInfo
 	{
-		public TransactionBlockInfo(uint256 blockHash, DateTimeOffset? blockTime, uint? blockIndex)
+		public TransactionBlockInfo(uint256 blockHash, DateTimeOffset blockTime, uint blockIndex)
 		{
 			BlockHash = blockHash;
 			BlockTime = blockTime;
@@ -17,7 +17,7 @@ namespace WalletWasabi.BitcoinCore.Rpc.Models
 		}
 
 		public uint256 BlockHash { get; }
-		public DateTimeOffset? BlockTime { get; }
-		public uint? BlockIndex { get; }
+		public DateTimeOffset BlockTime { get; }
+		public uint BlockIndex { get; }
 	}
 }
