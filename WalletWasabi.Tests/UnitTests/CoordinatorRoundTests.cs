@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
+using NBitcoin.RPC;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.CoinJoin.Coordinator.Banning;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
@@ -16,6 +17,13 @@ namespace WalletWasabi.Tests.UnitTests
 		public async Task SsAsync()
 		{
 			var rpc = new MockRpcClient();
+			rpc.Network = Network.Main;
+			rpc.OnEstimateSmartFeeAsync = (confTarget, estMode) => Task.FromResult(new EstimateSmartFeeResponse
+			{
+				Blocks = 1,
+				FeeRate = new FeeRate(10m)
+			});
+
 			var roundConfig = new CoordinatorRoundConfig();
 			var utxoReferee = new UtxoReferee(Network.Main, "./", rpc, roundConfig);
 			var confirmationTarget = 12;
@@ -70,6 +78,13 @@ namespace WalletWasabi.Tests.UnitTests
 			const int OutputSizeInBytes = 33;
 
 			var rpc = new MockRpcClient();
+			rpc.Network = Network.Main;
+			rpc.OnEstimateSmartFeeAsync = (confTarget, estMode) => Task.FromResult(new EstimateSmartFeeResponse
+			{
+				Blocks = 1,
+				FeeRate = new FeeRate(10m)
+			});
+
 			{
 				rpc.OnGetMempoolInfoAsync = () => Task.FromResult(new MemPoolInfo
 				{
