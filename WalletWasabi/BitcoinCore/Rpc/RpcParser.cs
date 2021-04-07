@@ -68,12 +68,14 @@ namespace WalletWasabi.BitcoinCore.Rpc
 					}
 					else
 					{
+						var prevOut = txinJson.GetProperty("prevout");
+						var scriptPubKey = prevOut.GetProperty("scriptPubKey");
 						input = new VerboseInputInfo(
 							outPoint: new OutPoint(uint256.Parse(txinJson.GetProperty("txid").GetString()), txinJson.GetProperty("vout").GetUInt32()),
 							prevOutput: new VerboseOutputInfo(
-								value: Money.Coins(txinJson.GetProperty("prevout").GetProperty("value").GetDecimal()),
-								scriptPubKey: Script.FromHex(txinJson.GetProperty("prevout").GetProperty("scriptPubKey").GetProperty("hex").GetString()),
-								pubkeyType: txinJson.GetProperty("prevout").GetProperty("scriptPubKey").GetProperty("type").GetString()));
+								value: Money.Coins(prevOut.GetProperty("value").GetDecimal()),
+								scriptPubKey: Script.FromHex(scriptPubKey.GetProperty("hex").GetString()),
+								pubkeyType: scriptPubKey.GetProperty("type").GetString()));
 					}
 
 					inputs.Add(input);
@@ -81,10 +83,11 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 				foreach (var txoutJson in txJson.GetProperty("vout").EnumerateArray())
 				{
+					var scriptPubKey = txoutJson.GetProperty("scriptPubKey");
 					var output = new VerboseOutputInfo(
 						value: Money.Coins(txoutJson.GetProperty("value").GetDecimal()),
-						scriptPubKey: Script.FromHex(txoutJson.GetProperty("scriptPubKey").GetProperty("hex").GetString()),
-						pubkeyType: txoutJson.GetProperty("scriptPubKey").GetProperty("type").GetString());
+						scriptPubKey: Script.FromHex(scriptPubKey.GetProperty("hex").GetString()),
+						pubkeyType: scriptPubKey.GetProperty("type").GetString());
 
 					outputs.Add(output);
 				}
