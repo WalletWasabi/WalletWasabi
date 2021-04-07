@@ -36,12 +36,12 @@ namespace WalletWasabi.WabiSabi.Client
 			do
 			{
 				await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken).ConfigureAwait(false);
-				await ConfirmationAsync().ConfigureAwait(false);
+				await ConfirmConnectionAsync().ConfigureAwait(false);
 			}
 			while (!stoppingToken.IsCancellationRequested);
 		}
 
-		private async Task ConfirmationAsync()
+		private async Task ConfirmConnectionAsync()
 		{
 			var inputWeight = 4 * Constants.P2wpkhInputVirtualSize;
 			var inputRemainingWeights = new[] { (long)ArenaClient.ProtocolMaxWeightPerAlice - inputWeight };
@@ -57,14 +57,13 @@ namespace WalletWasabi.WabiSabi.Client
 				).ConfigureAwait(false);
 		}
 
-		public async Task UnConfirmationAsync()
+		public async Task RemoveInputAsync()
 		{
-			throw new NotImplementedException();
-			// TODO: Add .RequestHandler.RemoveInputAsync() to ArenaClient.
-			// Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Unconfirmed connection.");
+			await ArenaClient.RemoveInputAsync(RoundId, AliceId).ConfigureAwait(false);
+			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Unconfirmed connection.");
 		}
 
-		public async Task PostSignaturesAsync(BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin)
+		public async Task SignTransactionAsync(BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin)
 		{
 			await ArenaClient.SignTransactionAsync(RoundId, CoinsToRegister, bitcoinSecret, unsignedCoinJoin).ConfigureAwait(false);
 
