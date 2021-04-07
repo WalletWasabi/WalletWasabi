@@ -33,11 +33,18 @@ namespace WalletWasabi.WabiSabi.Client
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
-			do
+			try
 			{
-				await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken).ConfigureAwait(false);
+				do
+				{
+					await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken).ConfigureAwait(false);
+				}
+				while (!await ConfirmConnectionAsync().ConfigureAwait(false));
 			}
-			while (!await ConfirmConnectionAsync().ConfigureAwait(false));
+			catch (Exception ex)
+			{
+				Logger.LogError($"Round ({RoundId}), Alice ({AliceId}): ConfirmConnection failed, reason: '{ex}'");
+			}
 		}
 
 		private async Task<bool> ConfirmConnectionAsync()
