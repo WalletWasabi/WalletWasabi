@@ -1,4 +1,9 @@
-![](https://i.imgur.com/4GO7nnY.png)
+<p align="center">
+  <a href="https://wasabiwallet.io">
+    <img src="https://user-images.githubusercontent.com/51679301/113864078-23c53900-97b3-11eb-9374-32577c58273d.png"/>
+  </a>
+</p>
+
 
 | Code Quality           | Windows Tests           | Linux Tests             | macOS Tests             | Continuous Delivery       | Deterministic builds      | License                   |
 | :----------------------| :-----------------------| :-----------------------| :-----------------------| :-------------------------| :-------------------------| :-------------------------|
@@ -27,9 +32,9 @@ Note that [Wasabi Wallet 2.0](https://blog.wasabiwallet.io/wasabi-wallet-2/) is 
 
 For more information, please check out the [Wasabi Documentation](https://docs.wasabiwallet.io), an archive of knowledge about the nuances of Bitcoin privacy and how to use Wasabi.
 
-# [Download Wasabi](https://github.com/zkSNACKs/WalletWasabi/releases)
+# 💻 [Download Wasabi](https://github.com/zkSNACKs/WalletWasabi/releases)
 
-# Build From Source Code
+# 🏗️ Build From Source Code
 
 ## Get The Requirements
 
