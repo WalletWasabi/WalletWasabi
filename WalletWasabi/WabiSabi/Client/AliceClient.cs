@@ -20,14 +20,14 @@ namespace WalletWasabi.WabiSabi.Client
 		private Guid AliceId { get; }
 		private Guid RoundId { get; }
 		private ArenaClient ArenaClient { get; }
-		public IEnumerable<ICoin> CoinsToRegister { get; }
+		public IEnumerable<ICoin> Coins { get; }
 
-		public AliceClient(Guid aliceId, Guid roundId, ArenaClient arenaClient, IEnumerable<ICoin> coinsToRegister)
+		public AliceClient(Guid aliceId, Guid roundId, ArenaClient arenaClient, IEnumerable<ICoin> coins)
 		{
 			AliceId = aliceId;
 			RoundId = roundId;
 			ArenaClient = arenaClient;
-			CoinsToRegister = coinsToRegister;
+			Coins = coins;
 		}
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -53,7 +53,7 @@ namespace WalletWasabi.WabiSabi.Client
 				AliceId,
 				inputRemainingWeights,
 				amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
-				CoinsToRegister.Select(c => (Money)c.Amount)
+				Coins.Select(c => (Money)c.Amount)
 				).ConfigureAwait(false);
 		}
 
@@ -65,9 +65,9 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task SignTransactionAsync(BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin)
 		{
-			await ArenaClient.SignTransactionAsync(RoundId, CoinsToRegister, bitcoinSecret, unsignedCoinJoin).ConfigureAwait(false);
+			await ArenaClient.SignTransactionAsync(RoundId, Coins, bitcoinSecret, unsignedCoinJoin).ConfigureAwait(false);
 
-			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Posted {CoinsToRegister.Count()} signatures.");
+			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Posted {Coins.Count()} signatures.");
 		}
 
 		public static async Task<AliceClient> CreateNewAsync(
