@@ -1,8 +1,10 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
+using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Logging;
 using WalletWasabi.Stores;
@@ -16,12 +18,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 		private readonly BitcoinStore _bitcoinStore;
 
 		[AutoNotify] private ObservableCollection<HistoryItemViewModel> _histories;
+		[AutoNotify] private bool _hideCoinJoin;
 
 		public HistoryViewModel(Wallet wallet, BitcoinStore bitcoinStore)
 		{
 			_wallet = wallet;
 			_bitcoinStore = bitcoinStore;
 			_histories = new ObservableCollection<HistoryItemViewModel>();
+
+			this.WhenAnyValue(x => x.HideCoinJoin)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(async _ => await UpdateHistoryAsync());
 		}
 
 		public async Task UpdateHistoryAsync()
@@ -33,6 +40,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 
 				Histories.Clear();
 				var trs = txRecordList.Select(transactionSummary => new HistoryItemViewModel(transactionSummary, _bitcoinStore));
+
+				if (HideCoinJoin)
+				{
+					trs = trs.Where(x => !x.IsCoinJoin);
+				}
+
 				Histories.AddRange(trs.Reverse());
 			}
 			catch (Exception ex)

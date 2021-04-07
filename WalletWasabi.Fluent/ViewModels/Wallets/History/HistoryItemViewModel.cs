@@ -26,6 +26,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 			}
 
 			Labels = transactionSummary.Label;
+
+			IsCoinJoin = transactionSummary.IsLikelyCoinJoinOutput;
 		}
 
 		public bool IsConfirmed { get; }
@@ -37,5 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 		public string? IncomingAmount { get; }
 
 		public string? OutgoingAmount { get; }
+
+		public bool IsCoinJoin { get; }
 	}
 }
