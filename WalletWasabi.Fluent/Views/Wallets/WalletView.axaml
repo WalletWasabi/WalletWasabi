@@ -12,9 +12,9 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
     <c:ContentArea Title="{Binding Title}"
                           Caption="Wallet Home Page, currently under construction." >
-      <DockPanel>
+      <DockPanel LastChildFill="True">
         <history:HistoryTable DataContext="{Binding History}" MaxWidth="1000" Height="300" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" DockPanel.Dock="Bottom"/>
         <views:ResponsivePanelDemoView/>
-      </DockPanel  
+      </DockPanel>
     </c:ContentArea>
 </UserControl>
