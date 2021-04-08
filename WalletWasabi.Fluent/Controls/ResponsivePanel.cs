@@ -239,7 +239,7 @@ namespace WalletWasabi.Fluent.Controls
 				}
 			}
 
-			// Console.WriteLine($"Item WxH: {itemWidth}x{itemHeight} Panel WxH: {itemWidth * totalColumns}x{itemHeight * totalRows} RxC: {totalRows}x{totalColumns}");
+			// Console.WriteLine($"CxR: {totalColumns}x{totalRows} Item WxH: {itemWidth}x{itemHeight} Panel WxH: {itemWidth * totalColumns}x{itemHeight * totalRows}");
 			return new Size(itemWidth * totalColumns, itemHeight * totalRows);
 		}
 
