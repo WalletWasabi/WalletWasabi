@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var apiClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, coordinator, new InsecureRandom());
 
 			var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);
-			AliceClient aliceClient = await AliceClient.CreateNewAsync(apiClient, new[] { coin1.Coin }, bitcoinSecret, round.Id, round.Hash);
+			await using var aliceClient = await AliceClient.CreateNewAsync(apiClient, new[] { coin1.Coin }, bitcoinSecret, round.Id, round.Hash);
 		}
 	}
 }
