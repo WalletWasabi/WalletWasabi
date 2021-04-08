@@ -199,7 +199,7 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			var itemWidth = double.IsNaN(ItemWidth) ? width / totalColumns : ItemWidth;
-			var itemHeight = double.IsNaN(ItemWidth)
+			var itemHeight = double.IsNaN(ItemHeight)
 				? double.IsNaN(aspectRatio) ? height / totalRows : itemWidth * aspectRatio
 				: ItemHeight;
 
