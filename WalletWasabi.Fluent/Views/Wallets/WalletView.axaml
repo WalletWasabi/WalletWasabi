@@ -6,17 +6,18 @@
              xmlns:tiles="using:WalletWasabi.Fluent.Views.Wallets.Home.Tiles"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.Views.Wallets.History"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
     <c:ContentArea Title="{Binding Title}">
         <DockPanel>
-            <Grid ColumnDefinitions="*,*,*,*,*,*" DockPanel.Dock="Top">
+            <Grid ColumnDefinitions="*,*,*,*,*,*" RowDefinitions="*,*, *" DockPanel.Dock="Top">
                 <tiles:WalletBalanceTileView Grid.ColumnSpan="3" HorizontalAlignment="Left"
                     DataContext="{Binding BalanceTile}" Width="310" Height="150" />
+                <tiles:WalletBalanceChartTileView Grid.Column="3" Grid.ColumnSpan="3" Grid.RowSpan="2" Height="310" />
             </Grid>
-            <history:HistoryTable DataContext="{Binding History}" MaxWidth="1000" Height="300"
+            <history:HistoryTable DataContext="{Binding History}" MaxWidth="1000"
                                   HorizontalAlignment="Stretch" VerticalAlignment="Top" />
         </DockPanel>
     </c:ContentArea>
