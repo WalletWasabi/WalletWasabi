@@ -87,24 +87,32 @@ namespace WalletWasabi.Fluent.Controls
 		static ResponsivePanel()
 		{
 			AffectsParentMeasure<ResponsivePanel>(
+				ItemWidthProperty,
+				ItemHeightProperty,
 				AspectRatioProperty,
 				ColumnHintsProperty,
 				WidthTriggersProperty,
 				ColumnSpanProperty,
 				RowSpanProperty);
 			AffectsParentArrange<ResponsivePanel>(
+				ItemWidthProperty,
+				ItemHeightProperty,
 				AspectRatioProperty,
 				ColumnHintsProperty,
 				WidthTriggersProperty,
 				ColumnSpanProperty,
 				RowSpanProperty);
 			AffectsMeasure<ResponsivePanel>(
+				ItemWidthProperty,
+				ItemHeightProperty,
 				AspectRatioProperty,
 				ColumnHintsProperty,
 				WidthTriggersProperty,
 				ColumnSpanProperty,
 				RowSpanProperty);
 			AffectsArrange<ResponsivePanel>(
+				ItemWidthProperty,
+				ItemHeightProperty,
 				AspectRatioProperty,
 				ColumnHintsProperty,
 				WidthTriggersProperty,
