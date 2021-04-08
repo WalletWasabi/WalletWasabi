@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -46,7 +47,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var apiClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, coordinator, new InsecureRandom());
 
 			var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);
-			await using var aliceClient = await AliceClient.CreateNewAsync(apiClient, new[] { coin1.Coin }, bitcoinSecret, round.Id, round.Hash);
+			var aliceClient = await AliceClient.CreateNewAsync(apiClient, new[] { coin1.Coin }, bitcoinSecret, round.Id, round.Hash);
+
+			await aliceClient.ConfirmConnectionAsync(TimeSpan.FromSeconds(10), CancellationToken.None);
 		}
 	}
 }

@@ -16,7 +16,7 @@ using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client
 {
-	public class AliceClient : BackgroundService, IAsyncDisposable
+	public class AliceClient
 	{
 		public AliceClient(Guid aliceId, Guid roundId, ArenaClient arenaClient, IEnumerable<Coin> coins)
 		{
@@ -31,19 +31,11 @@ namespace WalletWasabi.WabiSabi.Client
 		private ArenaClient ArenaClient { get; }
 		private IEnumerable<Coin> Coins { get; }
 
-		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+		public async Task ConfirmConnectionAsync(TimeSpan confirmInterval, CancellationToken token)
 		{
-			try
+			while (!await ConfirmConnectionAsync().ConfigureAwait(false))
 			{
-				do
-				{
-					await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken).ConfigureAwait(false);
-				}
-				while (!await ConfirmConnectionAsync().ConfigureAwait(false));
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError($"Round ({RoundId}), Alice ({AliceId}): ConfirmConnection failed, reason: '{ex}'");
+				await Task.Delay(confirmInterval, token).ConfigureAwait(false);
 			}
 		}
 
@@ -94,14 +86,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			Logger.LogInfo($"Round ({roundId}), Alice ({aliceId}): Registered {amounts.Count()} inputs.");
 
-			await client.StartAsync(CancellationToken.None).ConfigureAwait(false);
-
 			return client;
-		}
-
-		public async ValueTask DisposeAsync()
-		{
-			await StopAsync(CancellationToken.None).ConfigureAwait(false);
 		}
 	}
 }
