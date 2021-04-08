@@ -3,14 +3,21 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:tiles="using:WalletWasabi.Fluent.Views.Wallets.Home.Tiles"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.Views.Wallets.History"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
-    <c:ContentArea Title="{Binding Title}"
-                          Caption="Wallet Home Page, currently under construction." >
-      <history:HistoryTable DataContext="{Binding History}" MaxWidth="1000" Height="300" HorizontalAlignment="Stretch" VerticalAlignment="Top"/>
+    <c:ContentArea Title="{Binding Title}">
+        <DockPanel>
+            <Grid ColumnDefinitions="*,*,*,*,*,*" DockPanel.Dock="Top">
+                <tiles:WalletBalanceTileView Grid.ColumnSpan="3" HorizontalAlignment="Left"
+                    DataContext="{Binding BalanceTile}" Width="310" Height="150" />
+            </Grid>
+            <history:HistoryTable DataContext="{Binding History}" MaxWidth="1000" Height="300"
+                                  HorizontalAlignment="Stretch" VerticalAlignment="Top" />
+        </DockPanel>
     </c:ContentArea>
 </UserControl>

@@ -8,6 +8,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Wallets.History;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Gui;
 using WalletWasabi.Logging;
@@ -46,6 +47,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				.DisposeWith(Disposables);
 
 			History = new HistoryViewModel(wallet);
+			BalanceTile = new WalletBalanceTileViewModel(wallet);
 		}
 
 		private CompositeDisposable Disposables { get; set; }
@@ -53,6 +55,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		public override string IconName => "web_asset_regular";
 
 		public HistoryViewModel History { get; }
+
+		public WalletBalanceTileViewModel BalanceTile { get; }
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{

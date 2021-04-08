@@ -2,7 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              mc:Ignorable="d" d:DesignWidth="310" d:DesignHeight="150"
+             x:DataType="vm:WalletBalanceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceTileView">
     <Border ClipToBounds="False" CornerRadius="5" Background="#2b2b2b" Margin="6" Padding="16" BoxShadow="{DynamicResource InfoBoxShadow}">
         <DockPanel>
@@ -16,8 +18,8 @@
                     </Panel>
                 </Viewbox>
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="3.874 BTC" FontSize="24" />
-                    <TextBlock Text="≈ 218,197 USD" Opacity="0.8" FontSize="12"/>
+                    <TextBlock Text="{Binding BalanceBtc, FallbackValue='1.21230001 BTC'}" FontSize="24" />
+                    <TextBlock Text="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}" HorizontalAlignment="Right" Opacity="0.8" FontSize="12"/>
                 </StackPanel>
             </StackPanel>
         </DockPanel>
