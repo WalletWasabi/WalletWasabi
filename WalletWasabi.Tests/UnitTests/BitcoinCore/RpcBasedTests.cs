@@ -15,7 +15,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 	{
 		#region Mocked RPC response
 
-		public static string RpcOutput = @"
+		private static string RpcOutput = @"
 		{
 		    'hash': '27cac34bec2bfc3422c352d558b4db29e6d7e8114db2dbc955df06a63cda82fe',
 		    'confirmations': 1,
