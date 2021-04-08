@@ -39,10 +39,25 @@
       <DataGrid.Columns>
 
         <!-- Date -->
-        <DataGridTextColumn Header="Date"
+        <DataGridTextColumn Header="Date / Time"
                             x:DataType="history:HistoryItemViewModel"
                             Binding="{Binding Date}"
                             Width="*" />
+
+        <!-- Incoming -->
+        <DataGridTemplateColumn Header="Incoming"
+                                Width="*"
+                                SortMemberPath="IncomingAmount">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <StackPanel x:DataType="history:HistoryItemViewModel"
+                          IsVisible="{Binding !!IncomingAmount}">
+                <PathIcon Data="{StaticResource chevron_down_circle_regular}" Opacity="0.6" />
+                <TextBlock Text="{Binding IncomingAmount, StringFormat={}{0} BTC}" />
+              </StackPanel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
 
         <!-- Outgoing -->
         <DataGridTemplateColumn Header="Outgoing"
@@ -59,20 +74,6 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <!-- Incoming -->
-        <DataGridTemplateColumn Header="Incoming"
-                                Width="*"
-                                SortMemberPath="IncomingAmount">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <StackPanel x:DataType="history:HistoryItemViewModel"
-                          IsVisible="{Binding !!IncomingAmount}">
-                <PathIcon Data="{StaticResource chevron_down_circle_regular}" Opacity="0.6" />
-                <TextBlock Text="{Binding IncomingAmount, StringFormat={}{0} BTC}" />
-              </StackPanel>
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
 
         <!-- Status -->
         <DataGridTemplateColumn Header="Status"
