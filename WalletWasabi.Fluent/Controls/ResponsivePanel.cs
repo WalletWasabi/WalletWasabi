@@ -209,7 +209,7 @@ namespace WalletWasabi.Fluent.Controls
 				rowIncrement = Math.Max(rowSpan, rowIncrement);
 				currentColumn += columnSpan;
 
-				if (currentColumn >= totalColumns)
+				if (currentColumn >= totalColumns || i == children.Count - 1)
 				{
 					currentColumn = 0;
 					totalRows += rowIncrement;
