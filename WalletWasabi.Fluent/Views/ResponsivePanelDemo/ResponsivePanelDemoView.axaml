@@ -44,19 +44,6 @@
                 <Border CornerRadius="4" Margin="4" Background="Black" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 2, 2" c:ResponsivePanel.RowSpan="1, 2, 2"/>
             </c:ResponsivePanel>-->
 
-            <DockPanel Grid.Row="1">
-                <Label Content="Transaction History" Margin="12,12,12,12" FontSize="16" DockPanel.Dock="Top"/>
-                <DataGrid  AutoGenerateColumns="False" Margin="12,0,12,0">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn CanUserSort="False" Header="Date"/>
-                        <DataGridTextColumn CanUserSort="False" Header="Description"/>
-                        <DataGridTextColumn CanUserSort="False" Header="Outgoing"/>
-                        <DataGridTextColumn CanUserSort="False" Header="Incoming"/>
-                        <DataGridTextColumn CanUserSort="False" Header="Status"/>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </DockPanel>
-
         </Grid>
 
     </DockPanel>

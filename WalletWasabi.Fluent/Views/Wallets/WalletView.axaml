@@ -2,15 +2,19 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
+             xmlns:history="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.History"
              xmlns:views="using:WalletWasabi.Fluent.Views.ResponsivePanelDemo"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
-    <controls:ContentArea Title="{Binding Title}"
-                          Caption="Wallet Home Page, currently under construction.">
+    <c:ContentArea Title="{Binding Title}"
+                          Caption="Wallet Home Page, currently under construction." >
+      <DockPanel LastChildFill="True">
+        <history:HistoryTable DataContext="{Binding History}" MaxWidth="1000" Height="300" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" DockPanel.Dock="Bottom"/>
         <views:ResponsivePanelDemoView/>
-    </controls:ContentArea>
+      </DockPanel>
+    </c:ContentArea>
 </UserControl>
