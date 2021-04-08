@@ -18,18 +18,20 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class AliceClient
 	{
-		public AliceClient(Guid aliceId, Guid roundId, ArenaClient arenaClient, IEnumerable<Coin> coins)
+		public AliceClient(Guid aliceId, Guid roundId, ArenaClient arenaClient, IEnumerable<Coin> coins, FeeRate feeRate)
 		{
 			AliceId = aliceId;
 			RoundId = roundId;
 			ArenaClient = arenaClient;
 			Coins = coins;
+			FeeRate = feeRate;
 		}
 
 		public Guid AliceId { get; }
 		public Guid RoundId { get; }
 		private ArenaClient ArenaClient { get; }
 		private IEnumerable<Coin> Coins { get; }
+		private FeeRate FeeRate { get; }
 
 		public async Task ConfirmConnectionAsync(TimeSpan confirmInterval, CancellationToken token)
 		{
@@ -46,13 +48,34 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var amountCredentials = ArenaClient.AmountCredentialClient.Credentials;
 
+			var remainingFee = FeeRate.GetFee(Constants.P2wpkhInputVirtualSize);
+			List<Money> amounts = new();
+			foreach (Money amount in Coins.Select(c => c.Amount))
+			{
+				Money resultAmount = amount;
+				if (remainingFee > Money.Zero)
+				{
+					resultAmount = amount - remainingFee;
+					resultAmount = resultAmount < Money.Zero ? Money.Zero : resultAmount;
+
+					remainingFee -= amount;
+					remainingFee = remainingFee < Money.Zero ? Money.Zero : remainingFee;
+				}
+				amounts.Add(resultAmount);
+			}
+
+			if (remainingFee > Money.Zero)
+			{
+				throw new InvalidOperationException($"Round({ RoundId }), Alice({ AliceId}): Not enough funds to pay for the fees.");
+			}
+
 			return await ArenaClient
 				.ConfirmConnectionAsync(
 					RoundId,
 					AliceId,
 					inputRemainingWeights,
 					amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
-					Coins.Select(c => c.Amount))
+					amounts)
 				.ConfigureAwait(false);
 		}
 
@@ -74,7 +97,8 @@ namespace WalletWasabi.WabiSabi.Client
 			IEnumerable<Coin> coinsToRegister,
 			BitcoinSecret bitcoinSecret,
 			Guid roundId,
-			uint256 roundHash)
+			uint256 roundHash,
+			FeeRate feeRate)
 		{
 			IEnumerable<Money> amounts = coinsToRegister.Select(c => c.Amount);
 			IEnumerable<OutPoint> outPoints = coinsToRegister.Select(c => c.Outpoint);
@@ -82,7 +106,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			Guid aliceId = await arenaClient.RegisterInputAsync(amounts, outPoints, keys, roundId, roundHash).ConfigureAwait(false);
 
-			AliceClient client = new(aliceId, roundId, arenaClient, coinsToRegister);
+			AliceClient client = new(aliceId, roundId, arenaClient, coinsToRegister, feeRate);
 
 			Logger.LogInfo($"Round ({roundId}), Alice ({aliceId}): Registered {amounts.Count()} inputs.");
 

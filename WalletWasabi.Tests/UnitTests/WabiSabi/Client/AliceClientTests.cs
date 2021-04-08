@@ -45,11 +45,17 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
 			var apiClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, coordinator, new InsecureRandom());
+			Assert.Equal(Phase.InputRegistration, arena.Rounds.First().Value.Phase);
 
 			var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);
-			var aliceClient = await AliceClient.CreateNewAsync(apiClient, new[] { coin1.Coin }, bitcoinSecret, round.Id, round.Hash);
+			var aliceClient = await AliceClient.CreateNewAsync(apiClient, new[] { coin1.Coin }, bitcoinSecret, round.Id, round.Hash, round.FeeRate);
 
-			await aliceClient.ConfirmConnectionAsync(TimeSpan.FromSeconds(10), CancellationToken.None);
+			Task confirmationTask = aliceClient.ConfirmConnectionAsync(TimeSpan.FromSeconds(3), CancellationToken.None);
+
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
+			await confirmationTask;
+
+			Assert.Equal(Phase.ConnectionConfirmation, arena.Rounds.First().Value.Phase);
 		}
 	}
 }
