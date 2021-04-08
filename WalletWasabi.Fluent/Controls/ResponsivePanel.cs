@@ -7,6 +7,12 @@ namespace WalletWasabi.Fluent.Controls
 {
     public class ResponsivePanel : Panel
     {
+	    public static readonly StyledProperty<double> ItemWidthProperty =
+		    AvaloniaProperty.Register<ResponsivePanel, double>(nameof(ItemWidth), double.NaN);
+
+	    public static readonly StyledProperty<double> ItemHeightProperty =
+		    AvaloniaProperty.Register<ResponsivePanel, double>(nameof(ItemHeight), double.NaN);
+
         public static readonly StyledProperty<double> AspectRatioProperty =
             AvaloniaProperty.Register<ResponsivePanel, double>(nameof(AspectRatio), double.NaN);
 
@@ -46,10 +52,22 @@ namespace WalletWasabi.Fluent.Controls
             element!.SetValue(RowSpanProperty, value);
         }
 
+        public double ItemWidth
+        {
+            get => GetValue(ItemWidthProperty);
+            set => SetValue(ItemWidthProperty, value);
+        }
+
+        public double ItemHeight
+        {
+	        get => GetValue(ItemHeightProperty);
+	        set => SetValue(ItemHeightProperty, value);
+        }
+
         public double AspectRatio
         {
-            get => GetValue(AspectRatioProperty);
-            set => SetValue(AspectRatioProperty, value);
+	        get => GetValue(AspectRatioProperty);
+	        set => SetValue(AspectRatioProperty, value);
         }
 
         public AvaloniaList<int> ColumnHints
@@ -158,8 +176,10 @@ namespace WalletWasabi.Fluent.Controls
                 }
             }
 
-            var itemWidth = width / totalColumns;
-            var itemHeight = double.IsNaN(aspectRatio) ? height/ totalRows : itemWidth * aspectRatio;
+            var itemWidth = double.IsNaN(ItemWidth) ? width / totalColumns : ItemWidth;
+            var itemHeight = double.IsNaN(ItemWidth)
+	            ? double.IsNaN(aspectRatio) ? height/ totalRows : itemWidth * aspectRatio
+	            : ItemHeight;
 
             for (var i = 0; i < children.Count; i++)
             {
