@@ -45,7 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		{
 			return item =>
 			{
-				if (!showCoinJoin)
+				if (showCoinJoin)
 				{
 					return true;
 				}
