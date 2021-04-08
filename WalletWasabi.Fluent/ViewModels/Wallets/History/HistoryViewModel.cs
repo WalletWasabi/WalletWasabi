@@ -17,28 +17,28 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 		private readonly Wallet _wallet;
 		private readonly BitcoinStore _bitcoinStore;
 
-		[AutoNotify] private ObservableCollection<HistoryItemViewModel> _histories;
+		[AutoNotify] private ObservableCollection<HistoryItemViewModel> _transactions;
 		[AutoNotify] private bool _showCoinJoin;
 
 		public HistoryViewModel(Wallet wallet)
 		{
 			_wallet = wallet;
 			_bitcoinStore = wallet.BitcoinStore;
-			_histories = new ObservableCollection<HistoryItemViewModel>();
+			_transactions = new ObservableCollection<HistoryItemViewModel>();
 
 			this.WhenAnyValue(x => x.ShowCoinJoin)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(async _ => await UpdateHistoryAsync());
+				.Subscribe(async _ => await UpdateAsync());
 		}
 
-		public async Task UpdateHistoryAsync()
+		public async Task UpdateAsync()
 		{
 			try
 			{
 				var historyBuilder = new TransactionHistoryBuilder(_wallet);
 				var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
 
-				Histories.Clear();
+				Transactions.Clear();
 				var trs = txRecordList.Select(transactionSummary => new HistoryItemViewModel(transactionSummary, _bitcoinStore));
 
 				if (!ShowCoinJoin)
@@ -46,7 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 					trs = trs.Where(x => !x.IsCoinJoin);
 				}
 
-				Histories.AddRange(trs.Reverse());
+				Transactions.AddRange(trs.Reverse());
 			}
 			catch (Exception ex)
 			{

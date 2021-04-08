@@ -19,7 +19,7 @@
       <Label Content="Transaction History" DockPanel.Dock="Left" FontWeight="Bold" FontSize="16"/>
     </DockPanel>
 
-    <DataGrid Items="{Binding Histories}" DockPanel.Dock="Bottom">
+    <DataGrid Items="{Binding Transactions}" DockPanel.Dock="Bottom">
       <DataGrid.Styles>
         <Style Selector="PathIcon">
           <Setter Property="Width" Value="15"/>

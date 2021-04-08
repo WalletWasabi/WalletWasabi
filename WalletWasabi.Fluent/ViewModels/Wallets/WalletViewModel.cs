@@ -70,7 +70,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		private async Task UpdateAsync()
 		{
-			await History.UpdateHistoryAsync();
+			await History.UpdateAsync();
 		}
 
 		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet)
