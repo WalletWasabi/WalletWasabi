@@ -42,13 +42,7 @@
         <DataGridTextColumn Header="Date"
                             x:DataType="history:HistoryItemViewModel"
                             Binding="{Binding Date}"
-                            Width="Auto" />
-
-        <!-- Transaction ID -->
-        <DataGridTextColumn Header="Transaction ID"
-                            x:DataType="history:HistoryItemViewModel"
-                            Binding="{Binding TransactionId}"
-                            Width="2*" />
+                            Width="*" />
 
         <!-- Outgoing -->
         <DataGridTemplateColumn Header="Outgoing"
