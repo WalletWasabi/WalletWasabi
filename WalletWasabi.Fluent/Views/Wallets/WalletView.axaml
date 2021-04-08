@@ -11,7 +11,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
     <c:ContentArea Title="{Binding Title}"
-                   Caption="Wallet Home Page, currently under construction.">
+                   Caption="Wallet Home Page, currently under construction." ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DockPanel VerticalAlignment="Top">
             <c:ResponsivePanel
                 DockPanel.Dock="Top"
@@ -33,7 +33,7 @@
                     c:ResponsivePanel.ColumnSpan="1, 2, 2" c:ResponsivePanel.RowSpan="1, 2, 2" />
             </c:ResponsivePanel>
             <history:HistoryTable DataContext="{Binding History}" MaxWidth="1000"
-                                  HorizontalAlignment="Stretch" VerticalAlignment="Top" />
+                                  HorizontalAlignment="Left" VerticalAlignment="Top" />
         </DockPanel>
     </c:ContentArea>
 </UserControl>
