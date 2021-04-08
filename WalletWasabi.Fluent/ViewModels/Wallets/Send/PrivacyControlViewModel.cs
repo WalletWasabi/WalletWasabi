@@ -65,7 +65,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				.WhenValueChanged(x => x.IsSelected)
 				.Subscribe(_ =>
 				{
-					var selectedPocketLabels = Pockets.Where(x => x.IsSelected).Select(x => x.Labels);
+					var selectedPocketLabels = Pockets.Where(x => x.IsSelected)
+													  .Select(x => x.Labels)
+													  .Where(label => label != CoinPocketHelper.PrivateFundsText && label != CoinPocketHelper.UnlabelledFundsText);
 					transactionInfo.PocketLabels = SmartLabel.Merge(selectedPocketLabels);
 				});
 
