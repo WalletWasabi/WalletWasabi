@@ -42,7 +42,7 @@
         <DataGridTextColumn Header="Date / Time"
                             x:DataType="history:HistoryItemViewModel"
                             Binding="{Binding Date}"
-                            Width="*" />
+                            Width="Auto" />
 
         <!-- Incoming -->
         <DataGridTemplateColumn Header="Incoming"
