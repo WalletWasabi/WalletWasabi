@@ -254,7 +254,6 @@ namespace WalletWasabi.Fluent.Controls
 		protected override Size MeasureOverride(Size availableSize)
 		{
 			var measureSize = MeasureArrange(availableSize, true);
-			// return new Size(availableSize.Width, availableSize.Height);
 			// Console.WriteLine($"MeasureOverride: {measureSize}");
 			return measureSize;
 		}
@@ -262,7 +261,7 @@ namespace WalletWasabi.Fluent.Controls
 		protected override Size ArrangeOverride(Size finalSize)
 		{
 			var arrangeSize = MeasureArrange(finalSize, false);
-			// return finalSize;
+			// Console.WriteLine($"ArrangeOverride: {arrangeSize}");
 			return arrangeSize;
 		}
 	}
