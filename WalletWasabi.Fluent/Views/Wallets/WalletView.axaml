@@ -27,8 +27,9 @@
                         c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1" />
                 <Border CornerRadius="4" Margin="4" Background="Blue"
                         c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1" />
-                <Border CornerRadius="4" Margin="4" Background="Yellow"
-                        c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 2" />
+
+                <tiles:WalletPieChartTileView DataContext="{Binding WalletPieChart}" c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 2" />
+
                 <tiles:WalletBalanceChartTileView
                     c:ResponsivePanel.ColumnSpan="1, 2, 2" c:ResponsivePanel.RowSpan="1, 2, 2" />
             </c:ResponsivePanel>
