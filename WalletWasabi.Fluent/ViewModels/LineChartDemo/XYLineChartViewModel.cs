@@ -20,18 +20,26 @@ namespace WalletWasabi.Fluent.ViewModels.LineChartDemo
 			1,
 		};
 
+		public List<string> XAxisLabels => new List<string>()
+		{
+			"Jan," +
+			"Feb," +
+			"March",
+			"April"
+		};
+
 		public List<double> YAxisValues => new()
 		{
-			4,
-			4,
-			7,
-			22,
-			57,
-			97,
-			102,
-			123,
-			123,
-			185
+			0.2,
+			0.81,
+			2.23,
+			2.12,
+			1.8,
+			1.33,
+			3.33,
+			4.44,
+			4.21,
+			4.01
 		};
 	}
 }
