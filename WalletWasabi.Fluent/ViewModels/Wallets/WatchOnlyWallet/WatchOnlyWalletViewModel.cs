@@ -1,5 +1,6 @@
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Gui;
+using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet
