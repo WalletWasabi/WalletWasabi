@@ -44,7 +44,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				})
 				.DisposeWith(Disposables);
 
-			History = new HistoryViewModel(wallet);
+			History = new HistoryViewModel(wallet, uiConfig);
 		}
 
 		private CompositeDisposable Disposables { get; set; }
