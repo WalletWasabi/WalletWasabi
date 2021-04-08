@@ -5,7 +5,7 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:tiles="using:WalletWasabi.Fluent.Views.Wallets.Home.Tiles"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
-             xmlns:history="using:WalletWasabi.Fluent.Views.Wallets.History"
+             xmlns:history="using:WalletWasabi.Fluent.Views.Wallets.Home.History"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="850"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"

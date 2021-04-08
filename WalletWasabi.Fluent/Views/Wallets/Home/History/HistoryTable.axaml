@@ -2,14 +2,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.History"
+             xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.History.HistoryTable">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.HistoryTable">
   <DockPanel LastChildFill="True">
     <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
-      <!-- Hide CJ switch -->
+      <!-- Show CJ switch -->
       <StackPanel Orientation="Horizontal" Spacing="10" DockPanel.Dock="Right">
         <TextBlock Text="Show CoinJoin" VerticalAlignment="Center" Opacity="0.6"/>
         <ToggleSwitch IsChecked="{Binding ShowCoinJoin}" OnContent="{x:Null}" OffContent="{x:Null}" VerticalAlignment="Center"/>
@@ -41,7 +41,7 @@
         <!-- Date -->
         <DataGridTextColumn Header="Date / Time"
                             x:DataType="history:HistoryItemViewModel"
-                            Binding="{Binding Date}"
+                            Binding="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
                             Width="Auto" />
 
         <!-- Incoming -->
