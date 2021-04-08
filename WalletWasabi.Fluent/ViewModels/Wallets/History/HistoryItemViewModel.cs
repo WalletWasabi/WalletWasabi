@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 	{
 		public HistoryItemViewModel(TransactionSummary transactionSummary, BitcoinStore bitcoinStore)
 		{
-			Date = transactionSummary.DateTime.ToLocalTime().ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
+			Date = transactionSummary.DateTime.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
 			IsCoinJoin = transactionSummary.IsLikelyCoinJoinOutput;
 			TransactionId = transactionSummary.TransactionId.ToString();
 
