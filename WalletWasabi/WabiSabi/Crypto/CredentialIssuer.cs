@@ -212,7 +212,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var macs = credentials.Select(x => x.Mac);
 			var response = new CredentialsResponse(macs, proofs);
 
-			return delegate
+			return () =>
 			{
 				// Register the serial numbers to prevent credential reuse.
 				foreach (var presentation in presented)
