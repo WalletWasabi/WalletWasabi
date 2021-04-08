@@ -35,8 +35,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			TestDataPointsLegend = new List<DataLegend>
 			{
-				new (Money.Parse("0.77508"),"Private", "#F9DE7D", 0.2 ),
-				new (Money.Parse("3.10032"),"Not Private", "#72BD81", 0.8)
+				new (Money.Parse("0.77508"), "Private",  "#F9DE7D",  0.2 ),
+				new (Money.Parse("3.10032"), "Not Private",  "#72BD81",  0.8)
 			};
 		}
 	}
