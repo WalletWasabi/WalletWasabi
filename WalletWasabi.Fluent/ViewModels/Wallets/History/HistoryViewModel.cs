@@ -20,10 +20,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 		[AutoNotify] private ObservableCollection<HistoryItemViewModel> _histories;
 		[AutoNotify] private bool _showCoinJoin;
 
-		public HistoryViewModel(Wallet wallet, BitcoinStore bitcoinStore)
+		public HistoryViewModel(Wallet wallet)
 		{
 			_wallet = wallet;
-			_bitcoinStore = bitcoinStore;
+			_bitcoinStore = wallet.BitcoinStore;
 			_histories = new ObservableCollection<HistoryItemViewModel>();
 
 			this.WhenAnyValue(x => x.ShowCoinJoin)

@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class WalletViewModel : WalletViewModelBase
 	{
-		protected WalletViewModel(UiConfig uiConfig, Wallet wallet, BitcoinStore bitcoinStore) : base(wallet)
+		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
@@ -45,7 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				})
 				.DisposeWith(Disposables);
 
-			History = new HistoryViewModel(wallet, bitcoinStore);
+			History = new HistoryViewModel(wallet);
 		}
 
 		private CompositeDisposable Disposables { get; set; }
@@ -73,13 +73,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			await History.UpdateHistoryAsync();
 		}
 
-		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet, BitcoinStore bitcoinStore)
+		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new HardwareWalletViewModel(uiConfig, wallet, bitcoinStore)
+				? new HardwareWalletViewModel(uiConfig, wallet)
 				: wallet.KeyManager.IsWatchOnly
-					? new WatchOnlyWalletViewModel(uiConfig, wallet, bitcoinStore)
-					: new WalletViewModel(uiConfig, wallet, bitcoinStore);
+					? new WatchOnlyWalletViewModel(uiConfig, wallet)
+					: new WalletViewModel(uiConfig, wallet);
 		}
 	}
 }
