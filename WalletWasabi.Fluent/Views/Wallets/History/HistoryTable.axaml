@@ -25,8 +25,8 @@
     <DataGrid Items="{Binding Histories}" DockPanel.Dock="Bottom">
       <DataGrid.Styles>
         <Style Selector="PathIcon">
-          <Setter Property="Width" Value="20"/>
-          <Setter Property="Height" Value="20"/>
+          <Setter Property="Width" Value="15"/>
+          <Setter Property="Height" Value="15"/>
           <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
         <Style Selector="TextBlock">
@@ -45,24 +45,13 @@
         <DataGridTextColumn Header="Date"
                             x:DataType="history:HistoryItemViewModel"
                             Binding="{Binding Date}"
-                            Width="*" />
+                            Width="Auto" />
 
-        <!-- Date -->
+        <!-- Transaction ID -->
         <DataGridTextColumn Header="Transaction ID"
                             x:DataType="history:HistoryItemViewModel"
                             Binding="{Binding TransactionId}"
                             Width="2*" />
-
-        <!-- ~1~ Labels @1@ -->
-        <!-- <DataGridTemplateColumn Header="Labels" -->
-        <!--                         Width="2*" -->
-        <!--                         SortMemberPath="Labels"> -->
-        <!--   <DataGridTemplateColumn.CellTemplate> -->
-        <!--     <DataTemplate> -->
-        <!--       <c:TagsBox x:DataType="history:HistoryItemViewModel" Items="{Binding Labels}" IsReadOnly="True" Margin="10 -2 10 -9" Padding="0" /> -->
-        <!--     </DataTemplate> -->
-        <!--   </DataGridTemplateColumn.CellTemplate> -->
-        <!-- </DataGridTemplateColumn> -->
 
         <!-- Outgoing -->
         <DataGridTemplateColumn Header="Outgoing"
@@ -96,11 +85,11 @@
 
         <!-- Status -->
         <DataGridTemplateColumn Header="Status"
-                                Width="*"
+                                Width="Auto"
                                 SortMemberPath="IsConfirmed">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <Panel x:DataType="history:HistoryItemViewModel">
+              <Panel x:DataType="history:HistoryItemViewModel" Margin="0 0 10 0">
                 <StackPanel IsVisible="{Binding IsConfirmed}">
                   <PathIcon Data="{StaticResource checkmark_filled}"
                             Foreground="{DynamicResource SystemControlBackgroundAccentBrush}" />

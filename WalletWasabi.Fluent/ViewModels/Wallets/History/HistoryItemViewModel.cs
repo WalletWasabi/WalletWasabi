@@ -11,7 +11,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 	{
 		public HistoryItemViewModel(TransactionSummary transactionSummary, BitcoinStore bitcoinStore)
 		{
-			Date = transactionSummary.DateTime.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
+			Date = transactionSummary.DateTime.ToLocalTime().ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
+			IsCoinJoin = transactionSummary.IsLikelyCoinJoinOutput;
+			TransactionId = transactionSummary.TransactionId.ToString();
 
 			var confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int) bitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
 			IsConfirmed = confirmations > 0;
@@ -25,12 +27,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 			{
 				IncomingAmount = amount.ToString(fplus: false);
 			}
-
-			Labels = transactionSummary.Label;
-
-			IsCoinJoin = transactionSummary.IsLikelyCoinJoinOutput;
-
-			TransactionId = transactionSummary.TransactionId.ToString();
 		}
 
 		public string TransactionId { get; }
@@ -38,8 +34,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 		public bool IsConfirmed { get; }
 
 		public string Date { get; }
-
-		public SmartLabel Labels { get; }
 
 		public string? IncomingAmount { get; }
 
