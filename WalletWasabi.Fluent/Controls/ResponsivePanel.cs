@@ -144,6 +144,16 @@ namespace WalletWasabi.Fluent.Controls
 				throw new Exception($"Number of width triggers must be equal to the number of column triggers.");
 			}
 
+			if (double.IsNaN(ItemWidth) && double.IsInfinity(width))
+			{
+				throw new Exception($"The {nameof(ItemWidth)} can't be NaN and panel {nameof(width)} can't be infinity at same time.");
+			}
+
+			if (double.IsNaN(ItemHeight) && double.IsInfinity(height))
+			{
+				throw new Exception($"The {nameof(ItemHeight)} can't be NaN and panel {nameof(height)} can't be infinity at same time.");
+			}
+
 			if (double.IsNaN(aspectRatio))
 			{
 				if (height == 0 || double.IsInfinity(height))
