@@ -162,16 +162,9 @@ namespace WalletWasabi.Fluent.Controls
 				throw new Exception($"The {nameof(ItemHeight)} can't be NaN and panel {nameof(height)} can't be infinity at same time.");
 			}
 
-			if (double.IsNaN(aspectRatio))
+			if (double.IsNaN(aspectRatio) && (height == 0 || double.IsInfinity(height)))
 			{
-				if (height == 0 || double.IsInfinity(height))
-				{
-					aspectRatio = 1.0;
-				}
-				// else
-				// {
-				//     aspectRatio = Math.Min(height, width) / Math.Max(height, width);
-				// }
+				aspectRatio = 1.0;
 			}
 
 			var totalColumns = 1;
