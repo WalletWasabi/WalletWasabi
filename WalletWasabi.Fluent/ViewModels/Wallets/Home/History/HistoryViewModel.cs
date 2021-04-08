@@ -11,7 +11,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.History
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 {
 	public partial class HistoryViewModel
 	{

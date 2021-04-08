@@ -3,7 +3,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.History
+namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 {
 	public class HistoryItemViewModel
 	{
