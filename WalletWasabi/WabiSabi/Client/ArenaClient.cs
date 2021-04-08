@@ -141,16 +141,15 @@ namespace WalletWasabi.WabiSabi.Client
 					zeroWeightCredentialRequestData.CredentialsRequest,
 					realWeightCredentialRequestData.CredentialsRequest)).ConfigureAwait(false);
 
-			bool gotRealCredentials = false;
+			AmountCredentialClient.HandleResponse(confirmConnectionResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
+			WeightCredentialClient.HandleResponse(confirmConnectionResponse.ZeroWeightCredentials, zeroWeightCredentialRequestData.CredentialsResponseValidation);
 			if (confirmConnectionResponse is { RealAmountCredentials: { }, RealWeightCredentials: { } })
 			{
 				AmountCredentialClient.HandleResponse(confirmConnectionResponse.RealAmountCredentials, realAmountCredentialRequestData.CredentialsResponseValidation);
 				WeightCredentialClient.HandleResponse(confirmConnectionResponse.RealWeightCredentials, realWeightCredentialRequestData.CredentialsResponseValidation);
-				gotRealCredentials = true;
+				return true;
 			}
-			AmountCredentialClient.HandleResponse(confirmConnectionResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
-			WeightCredentialClient.HandleResponse(confirmConnectionResponse.ZeroWeightCredentials, zeroWeightCredentialRequestData.CredentialsResponseValidation);
-			return gotRealCredentials;
+			return false
 		}
 
 		public async Task SignTransactionAsync(Guid roundId, IEnumerable<ICoin> coinsToSign, BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin)
