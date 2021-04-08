@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -11,9 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	{
 		public SmartLabel SendLabels { private get; set; }
 
-		public SmartLabel? PocketLabels { private get; set; }
-
-		public SmartLabel Labels => SmartLabel.Merge(SendLabels, PocketLabels);
+		public SmartLabel Labels => SmartLabel.Merge(SendLabels, SmartLabel.Merge(Coins.Select(x => x.HdPubKey.Cluster.Labels)));
 
 		public BitcoinAddress Address { get; set; }
 
