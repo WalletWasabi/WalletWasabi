@@ -139,13 +139,13 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			var prevTxOutputs = block.Transactions.SelectMany(x => x.Inputs.Where(y => y.PrevOutput is { }).Select(y => y.PrevOutput));
 			var allOutputs = txOutputs.Concat(prevTxOutputs);
 
-			var indexableOutputs = allOutputs.Where(x => x.PubkeyType is RpcPubkeyType.TxWitnessV0Keyhash or RpcPubkeyType.TxWitnessV1Taproot);
+			var indexableOutputs = allOutputs.Where(x => x?.PubkeyType is RpcPubkeyType.TxWitnessV0Keyhash or RpcPubkeyType.TxWitnessV1Taproot);
 			var nonIndexableOutputs = allOutputs.Except(indexableOutputs);
 
 			static byte[] ComputeKey(uint256 blockId) => blockId.ToBytes()[0..16];
 
-			Assert.All(indexableOutputs, x => Assert.True(filter.Match(x.ScriptPubKey.ToCompressedBytes(), ComputeKey(block.Hash))));
-			Assert.All(nonIndexableOutputs, x => Assert.False(filter.Match(x.ScriptPubKey.ToCompressedBytes(), ComputeKey(block.Hash))));
+			Assert.All(indexableOutputs, x => Assert.True(filter.Match(x?.ScriptPubKey.ToCompressedBytes(), ComputeKey(block.Hash))));
+			Assert.All(nonIndexableOutputs, x => Assert.False(filter.Match(x?.ScriptPubKey.ToCompressedBytes(), ComputeKey(block.Hash))));
 		}
 
 		private IEnumerable<VerboseBlockInfo> GenerateBlockchain() =>

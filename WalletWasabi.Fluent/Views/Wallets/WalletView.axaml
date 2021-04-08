@@ -5,12 +5,16 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.History"
+             xmlns:views="using:WalletWasabi.Fluent.Views.ResponsivePanelDemo"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
     <c:ContentArea Title="{Binding Title}"
                           Caption="Wallet Home Page, currently under construction." >
-      <history:HistoryTable DataContext="{Binding History}" MaxWidth="1000" Height="300" HorizontalAlignment="Stretch" VerticalAlignment="Top"/>
+      <DockPanel>
+        <history:HistoryTable DataContext="{Binding History}" MaxWidth="1000" Height="300" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" DockPanel.Dock="Bottom"/>
+        <views:ResponsivePanelDemoView/>
+      </DockPanel  
     </c:ContentArea>
 </UserControl>
