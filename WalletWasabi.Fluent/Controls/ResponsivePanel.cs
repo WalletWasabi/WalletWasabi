@@ -239,7 +239,7 @@ namespace WalletWasabi.Fluent.Controls
 				}
 			}
 
-			return new Size(width, itemHeight * totalRows);
+			return new Size(itemWidth * totalColumns, itemHeight * totalRows);
 		}
 
 		protected override Size MeasureOverride(Size availableSize)
