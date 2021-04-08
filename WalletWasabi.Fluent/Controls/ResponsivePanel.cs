@@ -169,12 +169,21 @@ namespace WalletWasabi.Fluent.Controls
 			var totalColumns = 1;
 			var layoutIndex = 0;
 
-			for (var i = 0; i < widthTriggers.Count; i++)
+			if (double.IsInfinity(width))
 			{
-				if (width > widthTriggers[i])
+				var i = columnHints.Count - 1;
+				totalColumns = columnHints[i];
+				layoutIndex = i;
+			}
+			else
+			{
+				for (var i = 0; i < widthTriggers.Count; i++)
 				{
-					totalColumns = columnHints[i];
-					layoutIndex = i;
+					if (width > widthTriggers[i])
+					{
+						totalColumns = columnHints[i];
+						layoutIndex = i;
+					}
 				}
 			}
 
