@@ -4,7 +4,7 @@ namespace WalletWasabi.BitcoinCore.Rpc.Models
 {
 	public class VerboseOutputInfo
 	{
-		public VerboseOutputInfo(Money value, Script scriptPubKey, string pubkeyType)
+		public VerboseOutputInfo(Money value, Script scriptPubKey, string? pubkeyType)
 		{
 			Value = value;
 			ScriptPubKey = scriptPubKey;
