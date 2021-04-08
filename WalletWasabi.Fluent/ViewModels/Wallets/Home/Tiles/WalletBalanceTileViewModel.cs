@@ -18,7 +18,5 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			_balanceFiat = wallet1.Coins.Confirmed().TotalAmount().ToDecimal(MoneyUnit.BTC)
 				.GenerateFiatText(wallet.Synchronizer.UsdExchangeRate, "USD");
 		}
-
-
 	}
 }

@@ -11,10 +11,9 @@
             BoxShadow="{DynamicResource InfoBoxShadow}">
         <DockPanel>
             <TextBlock Text="Wallet Privacy Status" DockPanel.Dock="Top" />
-            <DockPanel LastChildFill="True" TextBlock.FontSize="11">
+            <DockPanel LastChildFill="True" TextBlock.FontSize="12">
 
                 <StackPanel DockPanel.Dock="Top">
-                    <TextBlock>Coin Privacy</TextBlock>
                     <TextBlock Opacity="0.5">in Percentage %</TextBlock>
                 </StackPanel>
 
