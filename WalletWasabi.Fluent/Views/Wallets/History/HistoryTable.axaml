@@ -3,18 +3,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.History"
-             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.History.HistoryTable">
   <DockPanel LastChildFill="True">
-
     <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
-
       <!-- Hide CJ switch -->
       <StackPanel Orientation="Horizontal" Spacing="10" DockPanel.Dock="Right">
-        <TextBlock Text="Hide CoinJoin transactions" VerticalAlignment="Center" Opacity="0.6"/>
+        <TextBlock Text="Hide CoinJoin" VerticalAlignment="Center" Opacity="0.6"/>
         <ToggleSwitch IsChecked="{Binding HideCoinJoin}" OnContent="{x:Null}" OffContent="{x:Null}" VerticalAlignment="Center"/>
       </StackPanel>
 
@@ -90,12 +87,13 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <Panel x:DataType="history:HistoryItemViewModel" Margin="0 0 10 0">
+                <!-- Confirmed -->
                 <StackPanel IsVisible="{Binding IsConfirmed}">
                   <PathIcon Data="{StaticResource checkmark_filled}"
                             Foreground="{DynamicResource SystemControlBackgroundAccentBrush}" />
                   <TextBlock Text="Confirmed" />
                 </StackPanel>
-
+                <!-- Pending -->
                 <StackPanel IsVisible="{Binding !IsConfirmed}">
                   <PathIcon Data="{StaticResource channel_regular}" Opacity="0.6"/>
                   <TextBlock Text="Pending" />
