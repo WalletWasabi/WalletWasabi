@@ -18,11 +18,6 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class AliceClient : BackgroundService, IAsyncDisposable
 	{
-		public Guid AliceId { get; }
-		public Guid RoundId { get; }
-		private ArenaClient ArenaClient { get; }
-		private IEnumerable<Coin> Coins { get; }
-
 		public AliceClient(Guid aliceId, Guid roundId, ArenaClient arenaClient, IEnumerable<Coin> coins)
 		{
 			AliceId = aliceId;
@@ -30,6 +25,11 @@ namespace WalletWasabi.WabiSabi.Client
 			ArenaClient = arenaClient;
 			Coins = coins;
 		}
+
+		public Guid AliceId { get; }
+		public Guid RoundId { get; }
+		private ArenaClient ArenaClient { get; }
+		private IEnumerable<Coin> Coins { get; }
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
@@ -54,13 +54,14 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var amountCredentials = ArenaClient.AmountCredentialClient.Credentials;
 
-			return await ArenaClient.ConfirmConnectionAsync(
-				RoundId,
-				AliceId,
-				inputRemainingWeights,
-				amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
-				Coins.Select(c => c.Amount)
-				).ConfigureAwait(false);
+			return await ArenaClient
+				.ConfirmConnectionAsync(
+					RoundId,
+					AliceId,
+					inputRemainingWeights,
+					amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
+					Coins.Select(c => c.Amount))
+				.ConfigureAwait(false);
 		}
 
 		public async Task RemoveInputAsync()
