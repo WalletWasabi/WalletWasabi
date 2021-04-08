@@ -25,8 +25,8 @@
                 <Border CornerRadius="4" Margin="4" Background="Red" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 1, 1, 2" c:ResponsivePanel.RowSpan="1, 1, 1, 1" />
                 <Border CornerRadius="4" Margin="4" Background="Green" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1, 1" />
                 <Border CornerRadius="4" Margin="4" Background="Blue" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1, 1" />
-                <Border CornerRadius="4" Margin="4" Background="Yellow" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 1, 1, 2" c:ResponsivePanel.RowSpan="1, 1, 2, 2" />
-                <Border CornerRadius="4" Margin="4" Background="Black" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 2, 2, 2" c:ResponsivePanel.RowSpan="1, 2, 2, 2"/>
+                <Border CornerRadius="4" Margin="4" Background="Yellow" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 2, 2" />
+                <Border CornerRadius="4" Margin="4" Background="Black" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 2, 2, 3" c:ResponsivePanel.RowSpan="1, 2, 2, 2"/>
             </c:ResponsivePanel>
 
             <!--<c:ResponsivePanel Grid.Row="0"
