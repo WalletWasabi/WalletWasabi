@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 		private readonly BitcoinStore _bitcoinStore;
 
 		[AutoNotify] private ObservableCollection<HistoryItemViewModel> _histories;
-		[AutoNotify] private bool _hideCoinJoin;
+		[AutoNotify] private bool _showCoinJoin;
 
 		public HistoryViewModel(Wallet wallet, BitcoinStore bitcoinStore)
 		{
@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 			_bitcoinStore = bitcoinStore;
 			_histories = new ObservableCollection<HistoryItemViewModel>();
 
-			this.WhenAnyValue(x => x.HideCoinJoin)
+			this.WhenAnyValue(x => x.ShowCoinJoin)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async _ => await UpdateHistoryAsync());
 		}
@@ -41,7 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.History
 				Histories.Clear();
 				var trs = txRecordList.Select(transactionSummary => new HistoryItemViewModel(transactionSummary, _bitcoinStore));
 
-				if (HideCoinJoin)
+				if (!ShowCoinJoin)
 				{
 					trs = trs.Where(x => !x.IsCoinJoin);
 				}

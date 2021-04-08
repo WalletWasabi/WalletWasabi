@@ -11,8 +11,8 @@
     <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
       <!-- Hide CJ switch -->
       <StackPanel Orientation="Horizontal" Spacing="10" DockPanel.Dock="Right">
-        <TextBlock Text="Hide CoinJoin" VerticalAlignment="Center" Opacity="0.6"/>
-        <ToggleSwitch IsChecked="{Binding HideCoinJoin}" OnContent="{x:Null}" OffContent="{x:Null}" VerticalAlignment="Center"/>
+        <TextBlock Text="Show CoinJoin" VerticalAlignment="Center" Opacity="0.6"/>
+        <ToggleSwitch IsChecked="{Binding ShowCoinJoin}" OnContent="{x:Null}" OffContent="{x:Null}" VerticalAlignment="Center"/>
       </StackPanel>
 
       <!-- Title -->
