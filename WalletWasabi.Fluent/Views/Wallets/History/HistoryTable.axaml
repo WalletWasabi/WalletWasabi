@@ -41,7 +41,7 @@
         <!-- Date -->
         <DataGridTextColumn Header="Date / Time"
                             x:DataType="history:HistoryItemViewModel"
-                            Binding="{Binding Date}"
+                            Binding="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
                             Width="Auto" />
 
         <!-- Incoming -->
