@@ -44,7 +44,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 							EditConfigOnSave(config);
 							config.ToFile();
 
-							IsRestartNeeded();
+							IsRestartNeeded(ConfigOnOpen);
 						}
 					}
 					catch (Exception ex)
@@ -56,17 +56,12 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		protected abstract void EditConfigOnSave(Config config);
 
-		protected static void IsRestartNeeded()
+		private static void IsRestartNeeded(Config configOnOpen)
 		{
-			if (ConfigOnOpen is null)
-			{
-				return;
-			}
-
-			var currentConfig = new Config(ConfigOnOpen.FilePath);
+			var currentConfig = new Config(configOnOpen.FilePath);
 			currentConfig.LoadFile();
 
-			var configChanged = !ConfigOnOpen.AreDeepEqual(currentConfig);
+			var configChanged = !configOnOpen.AreDeepEqual(currentConfig);
 
 			RestartNeeded?.Invoke(
 				typeof(SettingsTabViewModelBase),
