@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Binding;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Logging;
@@ -62,8 +63,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
 
 				_transactionSourceList.Clear();
-				var trs = txRecordList.Select(transactionSummary => new HistoryItemViewModel(transactionSummary, _bitcoinStore));
-				_transactionSourceList.AddRange(trs.Reverse());
+
+				Money balance = Money.Zero;
+				foreach (var transactionSummary in txRecordList)
+				{
+					balance += transactionSummary.Amount;
+					_transactionSourceList.Add(new HistoryItemViewModel(transactionSummary, _bitcoinStore, balance));
+				}
 			}
 			catch (Exception ex)
 			{

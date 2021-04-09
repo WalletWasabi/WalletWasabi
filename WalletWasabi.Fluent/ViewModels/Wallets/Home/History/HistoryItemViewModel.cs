@@ -8,10 +8,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 {
 	public class HistoryItemViewModel
 	{
-		public HistoryItemViewModel(TransactionSummary transactionSummary, BitcoinStore bitcoinStore)
+		public HistoryItemViewModel(TransactionSummary transactionSummary, BitcoinStore bitcoinStore, Money balance)
 		{
 			Date = transactionSummary.DateTime.ToLocalTime();
 			IsCoinJoin = transactionSummary.IsLikelyCoinJoinOutput;
+			Balance = balance;
 
 			var confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int) bitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
 			IsConfirmed = confirmations > 0;
