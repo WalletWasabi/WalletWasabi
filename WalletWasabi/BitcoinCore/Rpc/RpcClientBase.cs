@@ -147,7 +147,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 		public async Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId)
 		{
 			var resp = await Rpc.SendCommandAsync(RPCOperations.getblock, blockId, 3).ConfigureAwait(false);
-			return RpcParser.ParseVerboseBlockResponse(resp.Result.ToString());
+			return RpcParser.ParseVerboseBlockResponse(resp.ResultString);
 		}
 
 		public async Task<uint256[]> GenerateToAddressAsync(int nBlocks, BitcoinAddress address)

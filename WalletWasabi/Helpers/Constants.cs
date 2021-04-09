@@ -18,6 +18,8 @@ namespace WalletWasabi.Helpers
 
 		public const uint ProtocolVersionWitnessVersion = 70012;
 
+		public const int WitnessScaleFactor = 4;
+
 		public const int P2wpkhInputSizeInBytes = 41;
 		public const int P2wpkhInputVirtualSize = 68;
 		public const int P2pkhInputSizeInBytes = 145;
@@ -29,6 +31,7 @@ namespace WalletWasabi.Helpers
 
 		public const decimal MaximumNumberOfBitcoins = 20999999.9769m;
 
+		public const int FastestConfirmationTarget = 1;
 		public const int TwentyMinutesConfirmationTarget = 2;
 		public const int OneDayConfirmationTarget = 144;
 		public const int SevenDaysConfirmationTarget = 1008;

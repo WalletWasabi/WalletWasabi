@@ -1,0 +1,51 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="732" d:DesignHeight="650"
+             x:Class="WalletWasabi.Fluent.Views.ResponsivePanelDemo.ResponsivePanelDemoView">
+
+    <DockPanel>
+
+        <!-- For adaptive height set RowDefinitions="Auto,*" and AspectRatio="0.5" -->
+        <!-- For fixed height set RowDefinitions="350,*" and AspectRatio="NaN" -->
+        <!-- When ItemWidth and ItemHeight are NaN AspectRatio and ColumnHints is using for sizing items -->
+
+        <Grid RowDefinitions="402,*">
+
+            <c:ResponsivePanel Grid.Row="0"
+                               AspectRatio="NaN"
+                               ItemWidth="228"
+                               ItemHeight="126"
+                               ColumnHints="1, 2, 3"
+                               WidthTriggers="300, 450, 650"
+                               UseLayoutRounding="False"
+                               Background="LightGray">
+                <Border CornerRadius="4" Margin="4" Background="Red" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1" />
+                <Border CornerRadius="4" Margin="4" Background="Green" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1" />
+                <Border CornerRadius="4" Margin="4" Background="Blue" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1" />
+                <Border CornerRadius="4" Margin="4" Background="Yellow" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 2" />
+                <Border CornerRadius="4" Margin="4" Background="Black" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 2, 2" c:ResponsivePanel.RowSpan="1, 2, 2"/>
+            </c:ResponsivePanel>
+
+            <!--<c:ResponsivePanel Grid.Row="0"
+                               AspectRatio="NaN"
+                               ItemWidth="NaN"
+                               ItemHeight="NaN"
+                               ColumnHints="1, 2, 3"
+                               WidthTriggers="300, 450, 650"
+                               UseLayoutRounding="False"
+                               Background="LightGray">
+                <Border CornerRadius="4" Margin="4" Background="Red" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1" />
+                <Border CornerRadius="4" Margin="4" Background="Green" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1" />
+                <Border CornerRadius="4" Margin="4" Background="Blue" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1" />
+                <Border CornerRadius="4" Margin="4" Background="Yellow" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 2" />
+                <Border CornerRadius="4" Margin="4" Background="Black" ToolTip.Tip="{Binding $self.Bounds.Size}" c:ResponsivePanel.ColumnSpan="1, 2, 2" c:ResponsivePanel.RowSpan="1, 2, 2"/>
+            </c:ResponsivePanel>-->
+
+        </Grid>
+
+    </DockPanel>
+
+</UserControl>

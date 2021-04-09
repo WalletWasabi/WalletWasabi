@@ -12,13 +12,13 @@ namespace WalletWasabi.Tor.Http
 	/// <remarks>Inner <see cref="HttpClient"/> instance is thread-safe.</remarks>
 	public class ClearnetHttpClient : IHttpClient
 	{
-		public ClearnetHttpClient(HttpClient httpClient, Func<Uri> baseUriGetter)
+		public ClearnetHttpClient(HttpClient httpClient, Func<Uri>? baseUriGetter)
 		{
 			BaseUriGetter = baseUriGetter;
 			HttpClient = httpClient;
 		}
 
-		public Func<Uri> BaseUriGetter { get; }
+		public Func<Uri>? BaseUriGetter { get; }
 
 		/// <summary>Predefined HTTP client that handles HTTP requests when Tor is disabled.</summary>
 		private HttpClient HttpClient { get; }

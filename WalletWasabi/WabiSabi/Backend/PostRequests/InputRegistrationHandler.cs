@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -105,7 +106,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				inputValueSum += coin.TxOut.Value;
 
 				// Convert conservative P2WPKH size in virtual bytes to weight units.
-				inputWeightSum += coin.TxOut.ScriptPubKey.EstimateInputVsize() * 4;
+				inputWeightSum += Constants.WitnessScaleFactor * coin.TxOut.ScriptPubKey.EstimateInputVsize();
 			}
 
 			if (inputValueSum < round.MinRegistrableAmount)
@@ -127,15 +128,15 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 			}
 
-			var amountCredentialResponse = round.AmountCredentialIssuer.HandleRequest(zeroAmountCredentialRequests);
-			var weightCredentialResponse = round.WeightCredentialIssuer.HandleRequest(zeroWeightCredentialRequests);
+			var commitAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(zeroAmountCredentialRequests);
+			var commitWeightCredentialResponse = round.WeightCredentialIssuer.PrepareResponse(zeroWeightCredentialRequests);
 
 			RemoveDuplicateAlices(rounds, alice);
 
 			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
 			round.Alices.Add(alice);
 
-			return new(alice.Id, amountCredentialResponse, weightCredentialResponse);
+			return new(alice.Id, commitAmountCredentialResponse(), commitWeightCredentialResponse());
 		}
 
 		private static void RemoveDuplicateAlices(IDictionary<Guid, Round> rounds, Alice alice)
