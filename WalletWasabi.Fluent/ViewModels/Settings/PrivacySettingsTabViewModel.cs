@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private int _mediumPrivacyLevel;
 		[AutoNotify] private int _strongPrivacyLevel;
 
-		public PrivacySettingsTabViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
+		public PrivacySettingsTabViewModel(Config config) : base(config)
 		{
 			_minimalPrivacyLevel = config.PrivacyLevelSome;
 			_mediumPrivacyLevel = config.PrivacyLevelFine;

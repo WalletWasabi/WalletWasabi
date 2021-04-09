@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private bool _customChangeAddress;
 		[AutoNotify] private FeeDisplayFormat _selectedFeeDisplayFormat;
 
-		public GeneralSettingsTabViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
+		public GeneralSettingsTabViewModel(Config config, UiConfig uiConfig) : base(config)
 		{
 			_darkModeEnabled = uiConfig.DarkModeEnabled;
 			_autoCopy = uiConfig.Autocopy;
@@ -44,7 +44,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					x =>
 					{
 						uiConfig.DarkModeEnabled = x;
-						// IsRestartNeeded(x);
 						Navigate(NavigationTarget.CompactDialogScreen).To(new ThemeChangeViewModel(x ? Theme.Dark : Theme.Light));
 					});
 
