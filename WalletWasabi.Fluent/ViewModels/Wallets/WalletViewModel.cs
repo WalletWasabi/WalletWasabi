@@ -1,6 +1,7 @@
 using NBitcoin;
 using ReactiveUI;
 using System;
+using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -8,6 +9,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Gui;
 using WalletWasabi.Logging;
@@ -45,6 +47,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				.DisposeWith(Disposables);
 
 			History = new HistoryViewModel(wallet, uiConfig);
+			BalanceTile = new WalletBalanceTileViewModel(wallet);
+			WalletPieChart = new WalletPieChartTileViewModel(wallet);
 		}
 
 		private CompositeDisposable Disposables { get; set; }
@@ -52,6 +56,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		public override string IconName => "web_asset_regular";
 
 		public HistoryViewModel History { get; }
+
+		public WalletBalanceTileViewModel BalanceTile { get; }
+
+		public WalletPieChartTileViewModel WalletPieChart { get; }
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{

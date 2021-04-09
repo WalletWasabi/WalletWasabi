@@ -7,9 +7,9 @@ namespace WalletWasabi.Fluent.Converters
 	{
 		public static readonly IValueConverter MoneyToString =
 			new FuncValueConverter<Money?, string>(x => x switch
-				{
-					null => "Unknown",
-					{ } => x.ToString(fplus: false, trimExcessZero: true),
-				});
+			{
+				null => "Unknown",
+				{ } => x.ToString(fplus: false, trimExcessZero: true),
+			});
 	}
 }
