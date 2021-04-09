@@ -1,6 +1,5 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
@@ -8,6 +7,7 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui;
 using WalletWasabi.Logging;
 using WalletWasabi.Stores;
@@ -15,7 +15,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 {
-	public partial class HistoryViewModel
+	[NavigationMetaData(Title = "Transaction History")]
+	public partial class HistoryViewModel : RoutableViewModel
 	{
 		private readonly Wallet _wallet;
 		private readonly BitcoinStore _bitcoinStore;
@@ -23,6 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		private readonly SourceList<HistoryItemViewModel> _transactionSourceList;
 
 		[AutoNotify] private bool _showCoinJoin;
+		[AutoNotify] private HistoryItemViewModel? _selectedItem;
 
 		public HistoryViewModel(Wallet wallet, UiConfig uiConfig)
 		{
@@ -44,6 +46,28 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			this.WhenAnyValue(x => x.ShowCoinJoin)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(showCoinJoin => uiConfig.ShowCoinJoinInHistory = showCoinJoin);
+
+			this.WhenAnyValue(x => x.SelectedItem)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(selectedItem =>
+				{
+					if (selectedItem is null)
+					{
+						Console.WriteLine("Selection is null");
+						return;
+					}
+
+					Console.WriteLine("Navigate to Detals");
+					Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel());
+				});
+
+			this.WhenAnyValue(x => x.SelectedItem)
+				.Throttle(TimeSpan.FromMilliseconds(100))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					SelectedItem = null;
+				});
 		}
 
 		public ReadOnlyObservableCollection<HistoryItemViewModel> Transactions => _transactions;

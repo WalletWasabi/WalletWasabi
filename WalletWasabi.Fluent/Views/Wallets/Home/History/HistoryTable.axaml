@@ -16,10 +16,12 @@
       </StackPanel>
 
       <!-- Title -->
-      <Label Content="Transaction History" DockPanel.Dock="Left" FontWeight="Bold" FontSize="16"/>
+      <Label Content="{Binding Title}" DockPanel.Dock="Left" FontWeight="Bold" FontSize="16"/>
     </DockPanel>
 
-    <DataGrid Items="{Binding Transactions}" DockPanel.Dock="Bottom">
+    <DataGrid Items="{Binding Transactions}"
+              SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+              DockPanel.Dock="Bottom">
       <DataGrid.Styles>
         <Style Selector="PathIcon">
           <Setter Property="Width" Value="15"/>
@@ -120,11 +122,11 @@
 
         <!-- Status -->
         <DataGridTemplateColumn Header="Status"
-                                Width="Auto"
+                                Width="140"
                                 SortMemberPath="IsConfirmed">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <Panel x:DataType="history:HistoryItemViewModel" Margin="0 0 0 0">
+              <Panel x:DataType="history:HistoryItemViewModel">
                 <!-- Confirmed -->
                 <StackPanel IsVisible="{Binding IsConfirmed}">
                   <PathIcon Data="{StaticResource checkmark_filled}"
