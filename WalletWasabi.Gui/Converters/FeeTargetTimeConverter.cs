@@ -11,7 +11,11 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public static string Convert(int feeTarget, string minutesLabel, string hourLabel, string hoursLabel, string dayLabel, string daysLabel)
 		{
-			if (feeTarget <= 6) // minutes
+			if (feeTarget == Constants.FastestConfirmationTarget)
+			{
+				return "fastest";
+			}
+			else if (feeTarget is >= Constants.TwentyMinutesConfirmationTarget and <= 6) // minutes
 			{
 				return $"{feeTarget}0{minutesLabel}";
 			}
@@ -31,7 +35,7 @@ namespace WalletWasabi.Gui.Converters
 			}
 			else
 			{
-				return "Invalid";
+				return "invalid";
 			}
 		}
 
