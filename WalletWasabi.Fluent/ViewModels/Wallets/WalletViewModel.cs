@@ -1,12 +1,15 @@
 using NBitcoin;
 using ReactiveUI;
-using Splat;
 using System;
+using System.Collections.Generic;
 using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using WalletWasabi.Blockchain.TransactionBroadcasting;
+using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
+using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Gui;
 using WalletWasabi.Logging;
@@ -42,11 +45,40 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					}
 				})
 				.DisposeWith(Disposables);
+
+			History = new HistoryViewModel(wallet);
+			BalanceTile = new WalletBalanceTileViewModel(wallet);
+			WalletPieChart = new WalletPieChartTileViewModel(wallet);
 		}
 
 		private CompositeDisposable Disposables { get; set; }
 
 		public override string IconName => "web_asset_regular";
+
+		public HistoryViewModel History { get; }
+
+		public WalletBalanceTileViewModel BalanceTile { get; }
+
+		public WalletPieChartTileViewModel WalletPieChart { get; }
+
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			base.OnNavigatedTo(isInHistory, disposables);
+
+			Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed))
+				.Merge(Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)))
+				.Throttle(TimeSpan.FromSeconds(3))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(async _ => await UpdateAsync())
+				.DisposeWith(disposables);
+
+			RxApp.MainThreadScheduler.Schedule(async () => await UpdateAsync());
+		}
+
+		private async Task UpdateAsync()
+		{
+			await History.UpdateAsync();
+		}
 
 		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet)
 		{

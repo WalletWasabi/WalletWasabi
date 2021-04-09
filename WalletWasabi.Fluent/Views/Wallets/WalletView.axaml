@@ -2,12 +2,41 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             xmlns:tiles="using:WalletWasabi.Fluent.Views.Wallets.Home.Tiles"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:history="using:WalletWasabi.Fluent.Views.Wallets.Home.History"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="850"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
-    <controls:ContentArea Title="{Binding Title}"
-                          Caption="Wallet Home Page, currently under construction." />
+    <c:ContentArea Title="{Binding Title}"
+                   Caption="Wallet Home Page, currently under construction." ScrollViewer.VerticalScrollBarVisibility="Disabled">
+        <DockPanel VerticalAlignment="Top">
+            <c:ResponsivePanel
+                DockPanel.Dock="Top"
+                AspectRatio="NaN"
+                ItemWidth="330"
+                ItemHeight="150"
+                ColumnHints="1, 2, 3"
+                WidthTriggers="300, 450, 650"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                UseLayoutRounding="False">
+                <tiles:WalletBalanceTileView
+                    c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1" />
+                <Border CornerRadius="4" Margin="4" Background="Green"
+                        c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1" />
+                <Border CornerRadius="4" Margin="4" Background="Blue"
+                        c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1" />
+
+                <tiles:WalletPieChartTileView DataContext="{Binding WalletPieChart}" c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 2" />
+
+                <tiles:WalletBalanceChartTileView
+                    c:ResponsivePanel.ColumnSpan="1, 2, 2" c:ResponsivePanel.RowSpan="1, 2, 2" />
+            </c:ResponsivePanel>
+            <history:HistoryTable DataContext="{Binding History}" MaxWidth="1000"
+                                  HorizontalAlignment="Left" VerticalAlignment="Top" />
+        </DockPanel>
+    </c:ContentArea>
 </UserControl>

@@ -60,15 +60,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					EnoughSelected = StillNeeded <= 0;
 				});
 
-			_pocketSource
-				.Connect()
-				.WhenValueChanged(x => x.IsSelected)
-				.Subscribe(_ =>
-				{
-					var selectedPocketLabels = Pockets.Where(x => x.IsSelected).Select(x => x.Labels);
-					transactionInfo.PocketLabels = SmartLabel.Merge(selectedPocketLabels);
-				});
-
 			StillNeeded = transactionInfo.Amount.ToDecimal(MoneyUnit.BTC);
 
 			EnableBack = true;
