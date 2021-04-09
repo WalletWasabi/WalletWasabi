@@ -72,7 +72,7 @@
             <DataTemplate>
               <StackPanel x:DataType="history:HistoryItemViewModel"
                           IsVisible="{Binding !!IncomingAmount}">
-                <PathIcon Data="{StaticResource arrow_down_left_regular}" Opacity="0.6" />
+                <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6" />
                 <TextBlock Text="{Binding IncomingAmount, StringFormat={}{0} BTC}" />
               </StackPanel>
             </DataTemplate>
