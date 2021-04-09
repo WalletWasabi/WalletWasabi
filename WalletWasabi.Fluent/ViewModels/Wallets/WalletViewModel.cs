@@ -46,7 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				})
 				.DisposeWith(Disposables);
 
-			History = new HistoryViewModel(wallet);
+			History = new HistoryViewModel(wallet, uiConfig);
 			BalanceTile = new WalletBalanceTileViewModel(wallet);
 			WalletPieChart = new WalletPieChartTileViewModel(wallet);
 		}

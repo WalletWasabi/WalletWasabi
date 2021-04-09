@@ -20,6 +20,8 @@
                 ItemHeight="150"
                 ColumnHints="1, 2, 3"
                 WidthTriggers="300, 450, 650"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
                 UseLayoutRounding="False">
                 <tiles:WalletBalanceTileView
                     c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1" />

@@ -8,6 +8,7 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Gui;
 using WalletWasabi.Logging;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
@@ -23,10 +24,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 		[AutoNotify] private bool _showCoinJoin;
 
-		public HistoryViewModel(Wallet wallet)
+		public HistoryViewModel(Wallet wallet, UiConfig uiConfig)
 		{
 			_wallet = wallet;
 			_bitcoinStore = wallet.BitcoinStore;
+			_showCoinJoin = uiConfig.ShowCoinJoinInHistory;
 			_transactionSourceList = new SourceList<HistoryItemViewModel>();
 
 			var coinJoinFilter = this.WhenAnyValue(x => x.ShowCoinJoin).Select(CoinJoinFilter);
@@ -38,6 +40,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				.Sort(SortExpressionComparer<HistoryItemViewModel>.Descending(x => x.OrderIndex))
 				.Bind(out _transactions)
 				.Subscribe();
+
+			this.WhenAnyValue(x => x.ShowCoinJoin)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(showCoinJoin => uiConfig.ShowCoinJoinInHistory = showCoinJoin);
 		}
 
 		public ReadOnlyObservableCollection<HistoryItemViewModel> Transactions => _transactions;
