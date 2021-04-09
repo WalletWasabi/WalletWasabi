@@ -41,7 +41,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 	/// used as a key, in this way using a standard solution it is possible to respond with the exact
 	/// same valid credentials to the client without performance penalties.
 	/// </remarks>
-	public partial class CredentialIssuer
+	public class CredentialIssuer
 	{
 		/// <summary>
 		/// Initializes a new instance of the CredentialIssuer class.
