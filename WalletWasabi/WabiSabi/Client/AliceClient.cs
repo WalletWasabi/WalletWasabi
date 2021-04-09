@@ -48,26 +48,15 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var amountCredentials = ArenaClient.AmountCredentialClient.Credentials;
 
-			var remainingFee = FeeRate.GetFee(Constants.P2wpkhInputVirtualSize);
-			List<Money> amounts = new();
-			foreach (Money amount in Coins.Select(c => c.Amount))
-			{
-				Money resultAmount = amount;
-				if (remainingFee > Money.Zero)
-				{
-					resultAmount = amount - remainingFee;
-					resultAmount = resultAmount < Money.Zero ? Money.Zero : resultAmount;
+			var totalFeeToPay = FeeRate.GetFee(Coins.Sum(c => c.ScriptPubKey.EstimateInputVsize()));
+			var totalAmount = Coins.Sum(coin => coin.Amount);
 
-					remainingFee -= amount;
-					remainingFee = remainingFee < Money.Zero ? Money.Zero : remainingFee;
-				}
-				amounts.Add(resultAmount);
-			}
-
-			if (remainingFee > Money.Zero)
+			if (totalFeeToPay > totalAmount)
 			{
 				throw new InvalidOperationException($"Round({ RoundId }), Alice({ AliceId}): Not enough funds to pay for the fees.");
 			}
+
+			var amountsToRequest = new[] { totalAmount - totalFeeToPay };
 
 			return await ArenaClient
 				.ConfirmConnectionAsync(
@@ -75,7 +64,7 @@ namespace WalletWasabi.WabiSabi.Client
 					AliceId,
 					inputRemainingWeights,
 					amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
-					amounts)
+					amountsToRequest)
 				.ConfigureAwait(false);
 		}
 
