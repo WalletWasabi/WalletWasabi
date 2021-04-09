@@ -237,6 +237,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			private readonly CredentialsResponse _response;
 			private readonly long _delta;
 			private readonly IEnumerable<GroupElement> _serialNumbers;
+			private bool _committed;
 
 			public PreparedCredentialsResponse(CredentialIssuer issuer, CredentialsResponse response, long delta, IEnumerable<GroupElement> serialNumbers)
 			{
@@ -244,10 +245,16 @@ namespace WalletWasabi.WabiSabi.Crypto
 				_response = response;
 				_delta = delta;
 				_serialNumbers = serialNumbers;
+				_committed = false;
 			}
 
 			public CredentialsResponse Commit()
 			{
+				if (_committed)
+				{
+					throw new InvalidOperationException("The instance was already committed.");
+				}
+				_committed = true;
 				return _issuer.Commit(_response, _delta, _serialNumbers);
 			}
 		}
