@@ -122,10 +122,10 @@ namespace WalletWasabi.Fluent.Controls
 
 		private struct Item
 		{
-			public int Column;
-			public int Row;
-			public int ColumnSpan;
-			public int RowSpan;
+			internal int Column;
+			internal int Row;
+			internal int ColumnSpan;
+			internal int RowSpan;
 		}
 
 		private Size MeasureArrange(Size panelSize, bool isMeasure)
