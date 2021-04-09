@@ -52,13 +52,14 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <Panel x:DataType="history:HistoryItemViewModel">
-                <Viewbox IsVisible="{Binding !IsCoinJoin}" Height="20" Width="20">
-
-                </Viewbox>
-
-                <Viewbox IsVisible="{Binding IsCoinJoin}" Height="20" Width="20">
-                  <PathIcon Data="{StaticResource shield_regular}" Opacity="0.6"/>
-                </Viewbox>
+                <StackPanel IsVisible="{Binding !IsCoinJoin}">
+                  <PathIcon Data="{StaticResource normal_transaction}" Opacity="0.6" Width="20"/>
+                  <TextBlock Text="Normal" />
+                </StackPanel>
+                <StackPanel IsVisible="{Binding IsCoinJoin}">
+                  <PathIcon Data="{StaticResource shield_regular}" Opacity="0.6" Width="20" Height="20" />
+                  <TextBlock Text="CoinJoin" />
+                </StackPanel>
               </Panel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
