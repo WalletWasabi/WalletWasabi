@@ -44,7 +44,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private async Task<bool> ConfirmConnectionAsync()
 		{
 			var inputWeight = 4 * Constants.P2wpkhInputVirtualSize;
-			var inputRemainingWeights = new[] { (long)ArenaClient.ProtocolMaxWeightPerAlice - inputWeight };
+			var inputRemainingWeights = new[] { (long)ArenaClient.ProtocolMaxWeightPerAlice - Coins.Count() * inputWeight };
 
 			var amountCredentials = ArenaClient.AmountCredentialClient.Credentials;
 
