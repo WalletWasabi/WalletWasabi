@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
-using SharpDX.Direct2D1;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Gui;
 using WalletWasabi.Logging;
