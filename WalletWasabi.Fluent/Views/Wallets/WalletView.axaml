@@ -13,11 +13,19 @@
     <c:ContentArea Title="{Binding Title}"
                    Caption="Wallet Home Page, currently under construction." ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DockPanel VerticalAlignment="Top">
+            <ScrollViewer Name="ScrollViewer"
+                          DockPanel.Dock="Top"
+                          Width="{Binding #HistoryTable.Bounds.Width}"
+                          HorizontalAlignment="Left"
+                          VerticalAlignment="Top"
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                          ScrollViewer.VerticalScrollBarVisibility="Disabled">
             <c:ResponsivePanel
                 DockPanel.Dock="Top"
                 AspectRatio="NaN"
                 ItemWidth="330"
                 ItemHeight="150"
+                WidthSource="{Binding #ScrollViewer.Bounds.Width}"
                 ColumnHints="1, 2, 3"
                 WidthTriggers="300, 450, 650"
                 HorizontalAlignment="Left"
@@ -35,7 +43,8 @@
                 <tiles:WalletBalanceChartTileView
                     c:ResponsivePanel.ColumnSpan="1, 2, 2" c:ResponsivePanel.RowSpan="1, 2, 2" />
             </c:ResponsivePanel>
-            <history:HistoryTable DataContext="{Binding History}" MaxWidth="1000"
+            </ScrollViewer>
+            <history:HistoryTable Name="HistoryTable" DataContext="{Binding History}" MaxWidth="1000"
                                   HorizontalAlignment="Left" VerticalAlignment="Top" />
         </DockPanel>
     </c:ContentArea>
