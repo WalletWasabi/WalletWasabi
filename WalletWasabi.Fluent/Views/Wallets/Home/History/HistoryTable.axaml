@@ -42,6 +42,7 @@
         <DataGridTextColumn Header="Date / Time"
                             x:DataType="history:HistoryItemViewModel"
                             Binding="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
+                            SortMemberPath="OrderIndex"
                             Width="Auto" />
 
         <!-- Type -->
@@ -51,18 +52,12 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <Panel x:DataType="history:HistoryItemViewModel">
-
                 <Viewbox IsVisible="{Binding !IsCoinJoin}" Height="20" Width="20">
-                  <Panel>
-                    <Ellipse Stroke="{DynamicResource TextControlForeground}" StrokeThickness="4" Height="115" Width="115" />
-                    <Ellipse Stroke="{DynamicResource TextControlForeground}" StrokeThickness="4" StrokeDashArray="2, 1"
-                             Height="100" Width="100" />
-                    <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50" Opacity="0.6"/>
-                  </Panel>
+
                 </Viewbox>
 
                 <Viewbox IsVisible="{Binding IsCoinJoin}" Height="20" Width="20">
-                  <PathIcon Data="{StaticResource shield_regular}" Foreground="{DynamicResource SystemAccentColor}" Opacity="0.6"/>
+                  <PathIcon Data="{StaticResource shield_regular}" Opacity="0.6"/>
                 </Viewbox>
               </Panel>
             </DataTemplate>
@@ -105,7 +100,19 @@
                                 SortMemberPath="Balance">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <TextBlock x:DataType="history:HistoryItemViewModel" Text="{Binding Balance}" />
+              <StackPanel>
+                <Viewbox Height="20" Width="20">
+                  <Panel>
+                    <Ellipse Stroke="{DynamicResource TextControlForeground}" StrokeThickness="4" Height="115"
+                             Width="115" />
+                    <Ellipse Stroke="{DynamicResource TextControlForeground}" StrokeThickness="4"
+                             StrokeDashArray="2, 1"
+                             Height="100" Width="100" />
+                    <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50" Opacity="0.6" />
+                  </Panel>
+                </Viewbox>
+              <TextBlock x:DataType="history:HistoryItemViewModel" Text="{Binding Balance, StringFormat={}{0} BTC}" />
+              </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>

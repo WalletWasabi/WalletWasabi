@@ -35,7 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				.Connect()
 				.Filter(coinJoinFilter)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Sort(SortExpressionComparer<HistoryItemViewModel>.Descending(x => x.Date))
+				.Sort(SortExpressionComparer<HistoryItemViewModel>.Descending(x => x.OrderIndex))
 				.Bind(out _transactions)
 				.Subscribe();
 		}
@@ -61,14 +61,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			{
 				var historyBuilder = new TransactionHistoryBuilder(_wallet);
 				var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
-
 				_transactionSourceList.Clear();
 
 				Money balance = Money.Zero;
-				foreach (var transactionSummary in txRecordList)
+				for (var i = 0; i < txRecordList.Count; i++)
 				{
+					var transactionSummary = txRecordList[i];
 					balance += transactionSummary.Amount;
-					_transactionSourceList.Add(new HistoryItemViewModel(transactionSummary, _bitcoinStore, balance));
+					_transactionSourceList.Add(new HistoryItemViewModel(i, transactionSummary, _bitcoinStore, balance));
 				}
 			}
 			catch (Exception ex)
