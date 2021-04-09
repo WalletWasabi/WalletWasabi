@@ -1,0 +1,11 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             x:DataType="settings:ThemeChangeViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Settings.ThemeChangeView">
+  <TextBlock Text="Wasabi changing theme"/>
+</UserControl>
