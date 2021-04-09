@@ -15,6 +15,7 @@ using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Crypto;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
@@ -44,7 +45,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				});
 
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
-			var apiClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, coordinator, new InsecureRandom());
+
+			CredentialPool amountCredentialPool = new();
+			CredentialPool weightCredentialPool = new();
+			var apiClient = new ArenaClient(amountCredentialPool, weightCredentialPool, round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, coordinator, new InsecureRandom());
 			Assert.Equal(Phase.InputRegistration, arena.Rounds.First().Value.Phase);
 
 			var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);
