@@ -13,6 +13,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<double> ItemHeightProperty =
 			AvaloniaProperty.Register<ResponsivePanel, double>(nameof(ItemHeight), double.NaN);
 
+		public static readonly StyledProperty<double> WidthSourceProperty =
+			AvaloniaProperty.Register<ResponsivePanel, double>(nameof(WidthSource), double.NaN);
+
 		public static readonly StyledProperty<double> AspectRatioProperty =
 			AvaloniaProperty.Register<ResponsivePanel, double>(nameof(AspectRatio), double.NaN);
 
@@ -66,6 +69,12 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(ItemHeightProperty, value);
 		}
 
+		public double WidthSource
+		{
+			get => GetValue(WidthSourceProperty);
+			set => SetValue(WidthSourceProperty, value);
+		}
+
 		public double AspectRatio
 		{
 			get => GetValue(AspectRatioProperty);
@@ -89,6 +98,7 @@ namespace WalletWasabi.Fluent.Controls
 			AffectsParentMeasure<ResponsivePanel>(
 				ItemWidthProperty,
 				ItemHeightProperty,
+				WidthSourceProperty,
 				AspectRatioProperty,
 				ColumnHintsProperty,
 				WidthTriggersProperty,
@@ -97,6 +107,7 @@ namespace WalletWasabi.Fluent.Controls
 			AffectsParentArrange<ResponsivePanel>(
 				ItemWidthProperty,
 				ItemHeightProperty,
+				WidthSourceProperty,
 				AspectRatioProperty,
 				ColumnHintsProperty,
 				WidthTriggersProperty,
@@ -105,6 +116,7 @@ namespace WalletWasabi.Fluent.Controls
 			AffectsMeasure<ResponsivePanel>(
 				ItemWidthProperty,
 				ItemHeightProperty,
+				WidthSourceProperty,
 				AspectRatioProperty,
 				ColumnHintsProperty,
 				WidthTriggersProperty,
@@ -113,6 +125,7 @@ namespace WalletWasabi.Fluent.Controls
 			AffectsArrange<ResponsivePanel>(
 				ItemWidthProperty,
 				ItemHeightProperty,
+				WidthSourceProperty,
 				AspectRatioProperty,
 				ColumnHintsProperty,
 				WidthTriggersProperty,
@@ -134,7 +147,7 @@ namespace WalletWasabi.Fluent.Controls
 			var widthTriggers = WidthTriggers;
 			var columnHints = ColumnHints;
 			var aspectRatio = AspectRatio;
-			var width = panelSize.Width;
+			var width = double.IsNaN(WidthSource) ? panelSize.Width : WidthSource;
 			var height = panelSize.Height;
 
 			if (widthTriggers.Count <= 0)
