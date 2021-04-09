@@ -44,6 +44,17 @@
                             Binding="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
                             Width="Auto" />
 
+        <!-- Type -->
+        <DataGridTemplateColumn Header="Type"
+                                Width="Auto"
+                                SortMemberPath="IsCoinJoin">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:DataType="history:HistoryItemViewModel" Text="{Binding IsCoinJoin}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
         <!-- Incoming -->
         <DataGridTemplateColumn Header="Incoming"
                                 Width="*"
@@ -74,6 +85,16 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
+        <!-- Balance -->
+        <DataGridTemplateColumn Header="Balance"
+                                Width="*"
+                                SortMemberPath="Balance">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:DataType="history:HistoryItemViewModel" Text="{Binding Balance}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
 
         <!-- Status -->
         <DataGridTemplateColumn Header="Status"
@@ -81,7 +102,7 @@
                                 SortMemberPath="IsConfirmed">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <Panel x:DataType="history:HistoryItemViewModel" Margin="0 0 10 0">
+              <Panel x:DataType="history:HistoryItemViewModel" Margin="0 0 0 0">
                 <!-- Confirmed -->
                 <StackPanel IsVisible="{Binding IsConfirmed}">
                   <PathIcon Data="{StaticResource checkmark_filled}"

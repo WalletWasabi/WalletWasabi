@@ -1,4 +1,5 @@
 using System;
+using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
@@ -25,6 +26,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				IncomingAmount = amount.ToString(fplus: false);
 			}
 		}
+
+		public Money Balance { get; set; }
 
 		public DateTimeOffset Date { get; set; }
 
