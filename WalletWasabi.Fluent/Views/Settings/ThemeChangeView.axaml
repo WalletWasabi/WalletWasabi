@@ -7,5 +7,16 @@
              x:DataType="settings:ThemeChangeViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Settings.ThemeChangeView">
-  <TextBlock Text="Wasabi changing theme"/>
+  <DockPanel VerticalAlignment="Center" Margin="40">
+    <TextBlock Text="Wasabi is changing theme..."
+               FontSize="20"
+               FontWeight="ExtraLight"
+               DockPanel.Dock="Bottom"
+               Margin="10 20 10 0"
+               TextAlignment="Center"
+               TextWrapping="Wrap"/>
+    <Viewbox MaxHeight="200">
+      <Image Source="avares://WalletWasabi.Fluent/Assets/Theme/wasabi_theme_change.png"/>
+    </Viewbox>
+  </DockPanel>
 </UserControl>
