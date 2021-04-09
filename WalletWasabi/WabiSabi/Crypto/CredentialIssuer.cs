@@ -41,7 +41,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 	/// used as a key, in this way using a standard solution it is possible to respond with the exact
 	/// same valid credentials to the client without performance penalties.
 	/// </remarks>
-	public class CredentialIssuer
+	public partial class CredentialIssuer
 	{
 		/// <summary>
 		/// Initializes a new instance of the CredentialIssuer class.
@@ -226,9 +226,19 @@ namespace WalletWasabi.WabiSabi.Crypto
 			return response;
 		}
 
-		public interface ICommitableCredentialsResponse
+		private (MAC Mac, Knowledge Knowledge) IssueCredential(GroupElement ma, Scalar t)
 		{
-			CredentialsResponse Commit();
+			var sk = CredentialIssuerSecretKey;
+			var mac = MAC.ComputeMAC(sk, ma, t);
+			var knowledge = ProofSystem.IssuerParametersKnowledge(mac, ma, sk);
+			return (mac, knowledge);
+		}
+
+		private Transcript BuildTransnscript(bool isNullRequest)
+		{
+			var label = $"UnifiedRegistration/{NumberOfCredentials}/{isNullRequest}";
+			var encodedLabel = Encoding.UTF8.GetBytes(label);
+			return new Transcript(encodedLabel);
 		}
 
 		private class PreparedCredentialsResponse : ICommitableCredentialsResponse 
@@ -257,21 +267,6 @@ namespace WalletWasabi.WabiSabi.Crypto
 				_committed = true;
 				return _issuer.Commit(_response, _delta, _serialNumbers);
 			}
-		}
-
-		private (MAC Mac, Knowledge Knowledge) IssueCredential(GroupElement ma, Scalar t)
-		{
-			var sk = CredentialIssuerSecretKey;
-			var mac = MAC.ComputeMAC(sk, ma, t);
-			var knowledge = ProofSystem.IssuerParametersKnowledge(mac, ma, sk);
-			return (mac, knowledge);
-		}
-
-		private Transcript BuildTransnscript(bool isNullRequest)
-		{
-			var label = $"UnifiedRegistration/{NumberOfCredentials}/{isNullRequest}";
-			var encodedLabel = Encoding.UTF8.GetBytes(label);
-			return new Transcript(encodedLabel);
 		}
 	}
 }
