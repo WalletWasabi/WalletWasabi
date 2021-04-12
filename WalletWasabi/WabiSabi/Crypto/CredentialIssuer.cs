@@ -63,8 +63,6 @@ namespace WalletWasabi.WabiSabi.Crypto
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 		}
 
-		public delegate CredentialsResponse CommitResponse();
-
 		public ulong MaxAmount { get; }
 
 		public int RangeProofWidth { get; }
@@ -96,16 +94,16 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// <returns>The <see cref="CredentialsResponse">registration response</see> containing the issued credentials and the proofs.</returns>
 		/// <exception cref="WabiSabiCryptoException">Error code: <see cref="WabiSabiCryptoErrorCode">WabiSabiErrorCode</see></exception>
 		public CredentialsResponse HandleRequest(CredentialsRequest registrationRequest)
-			=> PrepareResponse(registrationRequest)();
+			=> PrepareResponse(registrationRequest).Commit();
 
 		/// <summary>
 		/// Validate the <see cref="CredentialsRequest">credentials registration requests</see> and
 		/// prepare to mark the serial numbers as used and issue the credentials.
 		/// </summary>
 		/// <param name="registrationRequest">The request containing the credentials presentations, credential requests and the proofs.</param>
-		/// <returns>The <see cref="CommitResponse">delegate</see> which returns the <see cref="CredentialsResponse">response</see> with the issued credentials and the proofs.</returns>
+		/// <returns>The <see cref="ICommitableCredentialsResponse">The response ready to be committed to</see> which returns the <see cref="ICommitableCredentialsResponse">response</see> with the issued credentials and the proofs.</returns>
 		/// <exception cref="WabiSabiCryptoException">Error code: <see cref="WabiSabiCryptoErrorCode">WabiSabiErrorCode</see></exception>
-		public CommitResponse PrepareResponse(CredentialsRequest registrationRequest)
+		public ICommitableCredentialsResponse PrepareResponse(CredentialsRequest registrationRequest)
 		{
 			Guard.NotNull(nameof(registrationRequest), registrationRequest);
 
@@ -212,17 +210,20 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var macs = credentials.Select(x => x.Mac);
 			var response = new CredentialsResponse(macs, proofs);
 
-			return () =>
-			{
-				// Register the serial numbers to prevent credential reuse.
-				foreach (var presentation in presented)
-				{
-					SerialNumbers.Add(presentation.S);
-				}
-				Balance += registrationRequest.Delta;
+			var serialNumbers = presented.Select(x => x.S);
+			return new PreparedCredentialsResponse(this, response, registrationRequest.Delta, serialNumbers);
+		}
 
-				return response;
-			};
+		private CredentialsResponse Commit(CredentialsResponse response, long delta, IEnumerable<GroupElement> serialNumbers)
+		{
+			// Register the serial numbers to prevent credential reuse.
+			foreach (var serialNumber in serialNumbers)
+			{
+				SerialNumbers.Add(serialNumber);
+			}
+			Balance += delta;
+
+			return response;
 		}
 
 		private (MAC Mac, Knowledge Knowledge) IssueCredential(GroupElement ma, Scalar t)
@@ -238,6 +239,34 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var label = $"UnifiedRegistration/{NumberOfCredentials}/{isNullRequest}";
 			var encodedLabel = Encoding.UTF8.GetBytes(label);
 			return new Transcript(encodedLabel);
+		}
+
+		private class PreparedCredentialsResponse : ICommitableCredentialsResponse 
+		{
+			private readonly CredentialIssuer _issuer;
+			private readonly CredentialsResponse _response;
+			private readonly long _delta;
+			private readonly IEnumerable<GroupElement> _serialNumbers;
+			private bool _committed;
+
+			public PreparedCredentialsResponse(CredentialIssuer issuer, CredentialsResponse response, long delta, IEnumerable<GroupElement> serialNumbers)
+			{
+				_issuer = issuer;
+				_response = response;
+				_delta = delta;
+				_serialNumbers = serialNumbers;
+				_committed = false;
+			}
+
+			public CredentialsResponse Commit()
+			{
+				if (_committed)
+				{
+					throw new InvalidOperationException("The instance was already committed.");
+				}
+				_committed = true;
+				return _issuer.Commit(_response, _delta, _serialNumbers);
+			}
 		}
 	}
 }

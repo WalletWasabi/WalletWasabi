@@ -42,11 +42,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				});
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
 
-			var apiClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, coordinator, new InsecureRandom());
-			var amountCredentials = apiClient.AmountCredentialClient.Credentials;
-			var weightCredentials = apiClient.WeightCredentialClient.Credentials;
+			CredentialPool amountCredentials = new();
+			CredentialPool weightCredentials = new();
+			var aliceArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, amountCredentials, weightCredentials, coordinator, new InsecureRandom());
 
-			var aliceId = await apiClient.RegisterInputAsync(Money.Coins(1m), outpoint, key, round.Id, round.Hash);
+			var aliceId = await aliceArenaClient.RegisterInputAsync(Money.Coins(1m), outpoint, key, round.Id, round.Hash);
 
 			Assert.NotEqual(Guid.Empty, aliceId);
 			Assert.Empty(amountCredentials.Valuable);
@@ -63,7 +63,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			// Phase: Input Registration
 			Assert.Equal(Phase.InputRegistration, round.Phase);
 
-			await apiClient.ConfirmConnectionAsync(
+			await aliceArenaClient.ConfirmConnectionAsync(
 				round.Id,
 				aliceId,
 				inputRemainingWeights,
@@ -76,36 +76,38 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 			// Phase: Connection Confirmation
-			await apiClient.ConfirmConnectionAsync(
+			await aliceArenaClient.ConfirmConnectionAsync(
 				round.Id,
 				aliceId,
 				inputRemainingWeights,
 				amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
 				reissuanceAmounts);
 
-			Assert.Single(apiClient.AmountCredentialClient.Credentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.First());
-			Assert.Single(apiClient.AmountCredentialClient.Credentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.Last());
+			Assert.Single(amountCredentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.First());
+			Assert.Single(amountCredentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.Last());
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
 
-			// Phase: Output Registration
-			using var destinationKey1 = new Key(); 
-			using var destinationKey2 = new Key(); 
+			var bobArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, amountCredentials, weightCredentials, coordinator, new InsecureRandom());
 
-			await apiClient.RegisterOutputAsync(
-				round.Id, 
+			// Phase: Output Registration
+			using var destinationKey1 = new Key();
+			using var destinationKey2 = new Key();
+
+			await bobArenaClient.RegisterOutputAsync(
+				round.Id,
 				reissuanceAmounts[0],
 				destinationKey1.PubKey.WitHash.ScriptPubKey,
-				apiClient.AmountCredentialClient.Credentials.Valuable,
-				apiClient.WeightCredentialClient.Credentials.Valuable);
+				amountCredentials.Valuable,
+				weightCredentials.Valuable);
 
-			await apiClient.RegisterOutputAsync(
-				round.Id, 
+			await bobArenaClient.RegisterOutputAsync(
+				round.Id,
 				reissuanceAmounts[1],
 				destinationKey2.PubKey.WitHash.ScriptPubKey,
-				apiClient.AmountCredentialClient.Credentials.Valuable,
-				apiClient.WeightCredentialClient.Credentials.Valuable);
+				amountCredentials.Valuable,
+				weightCredentials.Valuable);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
