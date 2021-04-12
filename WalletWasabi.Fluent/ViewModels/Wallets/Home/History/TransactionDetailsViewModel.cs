@@ -20,12 +20,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
 			Confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int) bitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
 			IsConfirmed = Confirmations > 0;
-			Amount = transactionSummary.Amount;
+			Amount = transactionSummary.Amount.ToString(fplus: false);
 
 			NextCommand = ReactiveCommand.Create(OnNext);
 		}
 
-		public Money Amount { get; set; }
+		public string Amount { get; set; }
 
 		public bool IsConfirmed { get; set; }
 
