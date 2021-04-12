@@ -43,13 +43,14 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var totalFeeToPay = FeeRate.GetFee(Coins.Sum(c => c.ScriptPubKey.EstimateInputVsize()));
 			var totalAmount = Coins.Sum(coin => coin.Amount);
+			var effectiveAmmout = totalAmount - totalFeeToPay;
 
-			if (totalFeeToPay >= totalAmount)
+			if (effectiveAmmout <= Money.Zero)
 			{
 				throw new InvalidOperationException($"Round({ RoundId }), Alice({ AliceId}): Not enough funds to pay for the fees.");
 			}
 
-			var amountsToRequest = new[] { totalAmount - totalFeeToPay };
+			var amountsToRequest = new[] { effectiveAmmout };
 
 			return await ArenaClient
 				.ConfirmConnectionAsync(
