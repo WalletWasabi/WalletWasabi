@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		public double PercentShare { get; }
 	}
 
-	public partial class WalletPieChartTileViewModel : ViewModelBase
+	public partial class WalletPieChartTileViewModel : TileViewModel
 	{
 		[AutoNotify] private IList<(string color, double percentShare)> _testDataPoints;
 		[AutoNotify] private IList<DataLegend> _testDataPointsLegend;

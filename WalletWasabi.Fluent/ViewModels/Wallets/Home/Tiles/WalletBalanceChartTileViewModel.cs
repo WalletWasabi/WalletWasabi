@@ -11,7 +11,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
-	public partial class WalletBalanceChartTileViewModel : ViewModelBase
+	public partial class WalletBalanceChartTileViewModel : TileViewModel
 	{
 		private readonly ReadOnlyObservableCollection<HistoryItemViewModel> _history;
 		private readonly ReadOnlyObservableCollection<double> _yValues;

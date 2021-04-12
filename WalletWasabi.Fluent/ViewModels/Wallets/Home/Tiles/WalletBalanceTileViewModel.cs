@@ -6,7 +6,7 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
-	public partial class WalletBalanceTileViewModel : ViewModelBase
+	public partial class WalletBalanceTileViewModel : TileViewModel
 	{
 		private readonly Wallet _wallet;
 		[AutoNotify] private string _balanceBtc;
@@ -23,10 +23,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		private void UpdateBalance()
 		{
-			BalanceBtc = _wallet.Coins.Confirmed().TotalAmount().ToDecimal(MoneyUnit.BTC)
+			BalanceBtc = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC)
 				.FormattedBtc() + " BTC";
 
-			BalanceFiat = _wallet.Coins.Confirmed().TotalAmount().ToDecimal(MoneyUnit.BTC)
+			BalanceFiat = _wallet.Coins.TotalAmount().ToDecimal(MoneyUnit.BTC)
 				.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 		}
 	}
