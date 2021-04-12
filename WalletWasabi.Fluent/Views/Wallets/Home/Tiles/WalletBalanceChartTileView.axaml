@@ -6,9 +6,6 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.LineChartDemo"
              mc:Ignorable="d" d:DesignWidth="620" d:DesignHeight="310"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceChartTileView">
-             <UserControl.DataContext>
-                     <vm:XYLineChartViewModel/>
-             </UserControl.DataContext>
     <UserControl.Styles>
         <!-- LineChart Area -->
         <Style Selector="c|LineChart.area">
@@ -74,8 +71,8 @@
             <c:LineChart x:Name="GradientLineChart" DockPanel.Dock="Left" Margin="30"
                          Classes="area border xAxis xAxisLabels yAxis yAxisLabels"
                          XAxisLabels="{Binding XAxisLabels}"
-                         XAxisValues="{Binding XAxisValues}"
-                         YAxisValues="{Binding YAxisValues}">
+                         XAxisValues="{Binding XValues}"
+                         YAxisValues="{Binding YValues}">
             </c:LineChart>
         </DockPanel>
     </Border>

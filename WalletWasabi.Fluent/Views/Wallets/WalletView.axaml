@@ -32,7 +32,7 @@
 
                 <tiles:WalletPieChartTileView DataContext="{Binding WalletPieChart}" c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 2" />
 
-                <tiles:WalletBalanceChartTileView
+                <tiles:WalletBalanceChartTileView DataContext="{Binding BalanceChartTile}"
                     c:ResponsivePanel.ColumnSpan="1, 2, 2" c:ResponsivePanel.RowSpan="1, 2, 2" />
             </c:ResponsivePanel>
             <history:HistoryTable DataContext="{Binding History}" MaxWidth="1000"

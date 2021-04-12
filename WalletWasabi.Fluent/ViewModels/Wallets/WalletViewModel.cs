@@ -48,6 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			History = new HistoryViewModel(wallet, uiConfig);
 			BalanceTile = new WalletBalanceTileViewModel(wallet);
+			BalanceChartTile = new WalletBalanceChartTileViewModel(History.Transactions);
 			WalletPieChart = new WalletPieChartTileViewModel(wallet);
 		}
 
@@ -58,6 +59,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		public HistoryViewModel History { get; }
 
 		public WalletBalanceTileViewModel BalanceTile { get; }
+
+		public WalletBalanceChartTileViewModel BalanceChartTile { get; }
 
 		public WalletPieChartTileViewModel WalletPieChart { get; }
 
