@@ -41,7 +41,8 @@ namespace WalletWasabi.Fluent.Converters
 					}
 					else
 					{
-						throw new InvalidCastException($"Could not convert '{s}' to {typeof(double)}.");
+						// throw new InvalidCastException($"Could not convert '{s}' to {typeof(double)}.");
+						return null;
 					}
 				}
 

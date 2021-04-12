@@ -41,7 +41,8 @@ namespace WalletWasabi.Fluent.Converters
 					}
 					else
 					{
-						throw new InvalidCastException($"Could not convert '{s}' to {typeof(int)}.");
+						// throw new InvalidCastException($"Could not convert '{s}' to {typeof(int)}.");
+						return null;
 					}
 				}
 
