@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet
 {
 	public class HardwareWalletViewModel : WalletViewModel
 	{
-		internal HardwareWalletViewModel(UiConfig uiConfig, Wallet wallet) : base(uiConfig, wallet)
+		internal HardwareWalletViewModel(Config config, UiConfig uiConfig, Wallet wallet) : base(config, uiConfig, wallet)
 		{
 		}
 	}
