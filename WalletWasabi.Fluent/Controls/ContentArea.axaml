@@ -50,26 +50,19 @@
                 </Button>
               </StackPanel>
             </Panel>
-            <Panel ClipToBounds="True">
+            <Panel>
               <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
                             VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}"
-                            ClipToBounds="False"
                             Margin="0 0 0 32" Padding="0 0 10 0">
-                <ScrollViewer.Styles>
-                  <Style Selector="ScrollViewer /template/ ScrollContentPresenter#PART_ContentPresenter">
-                    <Setter Property="ClipToBounds" Value="False" />
-                  </Style>
-                </ScrollViewer.Styles>
                 <ContentControl Name="PART_ContentPresenter"
-                                  ClipToBounds="False"
-                                  Background="{TemplateBinding Background}"
-                                  BorderBrush="{TemplateBinding BorderBrush}"
-                                  BorderThickness="{TemplateBinding BorderThickness}"
-                                  ContentTemplate="{TemplateBinding ContentTemplate}"
-                                  Content="{TemplateBinding Content}"
-                                  Padding="{TemplateBinding Padding}"
-                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                Content="{TemplateBinding Content}"
+                                Padding="{TemplateBinding Padding}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
               </ScrollViewer>
             </Panel>
           </DockPanel>
