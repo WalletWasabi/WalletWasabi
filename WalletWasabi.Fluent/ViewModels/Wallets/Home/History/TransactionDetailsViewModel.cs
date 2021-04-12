@@ -5,9 +5,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 	[NavigationMetaData(Title = "Transaction Details")]
 	public partial class TransactionDetailsViewModel : RoutableViewModel
 	{
-		public TransactionDetailsViewModel()
+		public TransactionDetailsViewModel(HistoryItemViewModel historyItem)
 		{
+			HistoryItem = historyItem;
 			EnableCancel = true;
 		}
+
+		public HistoryItemViewModel HistoryItem { get; }
 	}
 }

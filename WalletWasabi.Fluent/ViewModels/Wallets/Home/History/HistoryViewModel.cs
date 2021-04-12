@@ -53,12 +53,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				{
 					if (selectedItem is null)
 					{
-						Console.WriteLine("Selection is null");
 						return;
 					}
 
-					Console.WriteLine("Navigate to Detals");
-					Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel());
+					Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(selectedItem));
 				});
 
 			this.WhenAnyValue(x => x.SelectedItem)
