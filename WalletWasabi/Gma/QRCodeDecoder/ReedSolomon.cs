@@ -1,4 +1,4 @@
-﻿/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
 //
 //	QR Code Library
 //
@@ -47,279 +47,372 @@ namespace QRCodeDecoderLibrary
 {
 	internal class ReedSolomon
 	{
-	internal static int INCORRECTABLE_ERROR = -1;
+		internal static int INCORRECTABLE_ERROR = -1;
 
-	internal static int CorrectData
-			(
-			byte[]	ReceivedData,		// recived data buffer with data and error correction code
-			int		DataLength,			// length of data in the buffer (note sometimes the array is longer than data) 
-			int		ErrCorrCodewords	// numer of error correction codewords
-			)
+		internal static int CorrectData
+				(
+				byte[] receivedData,        // recived data buffer with data and error correction code
+				int dataLength,         // length of data in the buffer (note sometimes the array is longer than data)
+				int errCorrCodewords    // numer of error correction codewords
+				)
 		{
-		// calculate syndrome vector
-		int[] Syndrome = CalculateSyndrome(ReceivedData, DataLength, ErrCorrCodewords);
+			// calculate syndrome vector
+			int[]? syndrome = CalculateSyndrome(receivedData, dataLength, errCorrCodewords);
 
-		// received data has no error
-		// note: this should not happen because we call this method only if error was detected
-		if(Syndrome == null) return 0;
+			// received data has no error
+			// note: this should not happen because we call this method only if error was detected
+			if (syndrome == null)
+			{
+				return 0;
+			}
+
+			// Modified Berlekamp-Massey
+			// calculate sigma and omega
+			int[] sigma = new int[errCorrCodewords / 2 + 2];
+			int[] omega = new int[errCorrCodewords / 2 + 1];
+			int errorCount = CalculateSigmaMBM(sigma, omega, syndrome, errCorrCodewords);
+
+			// data cannot be corrected
+			if (errorCount <= 0)
+			{
+				return INCORRECTABLE_ERROR;
+			}
+
+			// look for error position using Chien search
+			int[] errorPosition = new int[errorCount];
+			if (!ChienSearch(errorPosition, dataLength, errorCount, sigma))
+			{
+				return INCORRECTABLE_ERROR;
+			}
+
+			// correct data array based on position array
+			ApplyCorrection(receivedData, dataLength, errorCount, errorPosition, sigma, omega);
+
+			// return error count before it was corrected
+			return errorCount;
+		}
+
+		// Syndrome vector calculation
+		// S0 = R0 + R1 +        R2 + ....        + Rn
+		// S1 = R0 + R1 * A**1 + R2 * A**2 + .... + Rn * A**n
+		// S2 = R0 + R1 * A**2 + R2 * A**4 + .... + Rn * A**2n
+		// ....
+		// Sm = R0 + R1 * A**m + R2 * A**2m + .... + Rn * A**mn
+
+		internal static int[]? CalculateSyndrome
+				(
+				byte[] receivedData,        // recived data buffer with data and error correction code
+				int dataLength,         // length of data in the buffer (note sometimes the array is longer than data)
+				int errCorrCodewords    // numer of error correction codewords
+				)
+		{
+			// allocate syndrome vector
+			int[] syndrome = new int[errCorrCodewords];
+
+			// reset error indicator
+			bool error = false;
+
+			// syndrome[zero] special case
+			// Total = Data[0] + Data[1] + ... Data[n]
+			int total = receivedData[0];
+			for (int sumIndex = 1; sumIndex < dataLength; sumIndex++)
+			{
+				total = receivedData[sumIndex] ^ total;
+			}
+
+			syndrome[0] = total;
+			if (total != 0)
+			{
+				error = true;
+			}
+
+			// all other synsromes
+			for (int index = 1; index < errCorrCodewords; index++)
+			{
+				// Total = Data[0] + Data[1] * Alpha + Data[2] * Alpha ** 2 + ... Data[n] * Alpha ** n
+				total = receivedData[0];
+				for (int indexT = 1; indexT < dataLength; indexT++)
+				{
+					total = receivedData[indexT] ^ MultiplyIntByExp(total, index);
+				}
+
+				syndrome[index] = total;
+				if (total != 0)
+				{
+					error = true;
+				}
+			}
+
+			// if there is an error return syndrome vector otherwise return null
+			return error ? syndrome : null;
+		}
 
 		// Modified Berlekamp-Massey
-		// calculate sigma and omega
-		int[] Sigma = new int[ErrCorrCodewords / 2 + 2];
-		int[] Omega = new int[ErrCorrCodewords / 2 + 1];
-		int ErrorCount = CalculateSigmaMBM(Sigma, Omega, Syndrome, ErrCorrCodewords);
-
-		// data cannot be corrected
-		if(ErrorCount <= 0) return INCORRECTABLE_ERROR;
-
-		// look for error position using Chien search
-		int[] ErrorPosition = new int[ErrorCount];
-		if(!ChienSearch(ErrorPosition, DataLength, ErrorCount, Sigma)) return INCORRECTABLE_ERROR;
-
-		// correct data array based on position array
-		ApplyCorrection(ReceivedData, DataLength, ErrorCount, ErrorPosition, Sigma, Omega);
-
-		// return error count before it was corrected
-		return ErrorCount;
-		}
-
-	// Syndrome vector calculation
-	// S0 = R0 + R1 +        R2 + ....        + Rn
-	// S1 = R0 + R1 * A**1 + R2 * A**2 + .... + Rn * A**n
-	// S2 = R0 + R1 * A**2 + R2 * A**4 + .... + Rn * A**2n
-	// ....
-	// Sm = R0 + R1 * A**m + R2 * A**2m + .... + Rn * A**mn
-
-	internal static int[] CalculateSyndrome
-			(
-			byte[]		ReceivedData,		// recived data buffer with data and error correction code
-			int		DataLength,			// length of data in the buffer (note sometimes the array is longer than data) 
-			int		ErrCorrCodewords	// numer of error correction codewords
-			)
+		internal static int CalculateSigmaMBM
+				(
+				int[] sigma,
+				int[] omega,
+				int[] syndrome,
+				int errCorrCodewords
+				)
 		{
-		// allocate syndrome vector
-		int[] Syndrome = new int[ErrCorrCodewords];
+			int[] polyC = new int[errCorrCodewords];
+			int[] polyB = new int[errCorrCodewords];
+			polyC[1] = 1;
+			polyB[0] = 1;
+			int errorControl = 1;
+			int errorCount = 0;
+			int m = -1;
 
-		// reset error indicator
-		bool Error = false;
-
-		// syndrome[zero] special case
-		// Total = Data[0] + Data[1] + ... Data[n]
-		int Total = ReceivedData[0];
-		for(int SumIndex = 1; SumIndex < DataLength; SumIndex++) Total = ReceivedData[SumIndex] ^ Total;
-		Syndrome[0] = Total;
-		if(Total != 0) Error = true;
-
-		// all other synsromes
-		for(int Index = 1; Index < ErrCorrCodewords;  Index++)
+			for (int errCorrIndex = 0; errCorrIndex < errCorrCodewords; errCorrIndex++)
 			{
-			// Total = Data[0] + Data[1] * Alpha + Data[2] * Alpha ** 2 + ... Data[n] * Alpha ** n
-			Total = ReceivedData[0];
-			for(int IndexT = 1; IndexT < DataLength; IndexT++) Total = ReceivedData[IndexT] ^ MultiplyIntByExp(Total, Index);
-			Syndrome[Index] = Total;
-			if(Total != 0) Error = true;
-			}
-
-		// if there is an error return syndrome vector otherwise return null
-		return Error ? Syndrome : null;
-		}
-
-	// Modified Berlekamp-Massey
-	internal static int CalculateSigmaMBM
-			(
-			int[]		Sigma,
-			int[]		Omega,
-			int[]		Syndrome,
-			int		ErrCorrCodewords
-			)
-		{
-		int[] PolyC = new int[ErrCorrCodewords];
-		int[] PolyB = new int[ErrCorrCodewords];
-		PolyC[1] = 1;
-		PolyB[0] = 1;
-		int ErrorControl = 1;
-		int ErrorCount = 0;		// L
-		int m = -1;
-
-		for(int ErrCorrIndex = 0; ErrCorrIndex < ErrCorrCodewords; ErrCorrIndex++)
-			{
-			// Calculate the discrepancy
-			int Dis = Syndrome[ErrCorrIndex];
-			for(int i = 1; i <= ErrorCount; i++) Dis ^= Multiply(PolyB[i], Syndrome[ErrCorrIndex - i]);
-
-			if(Dis != 0)
+				// Calculate the discrepancy
+				int dis = syndrome[errCorrIndex];
+				for (int i = 1; i <= errorCount; i++)
 				{
-				int DisExp = StaticTables.IntToExp[Dis];
-				int[] WorkPolyB = new int[ErrCorrCodewords];
-				for(int Index = 0; Index <= ErrCorrIndex; Index++) WorkPolyB[Index] = PolyB[Index] ^ MultiplyIntByExp(PolyC[Index], DisExp);
-				int js = ErrCorrIndex - m;
-				if(js > ErrorCount)
+					dis ^= Multiply(polyB[i], syndrome[errCorrIndex - i]);
+				}
+
+				if (dis != 0)
+				{
+					int disExp = StaticTables.IntToExp[dis];
+					int[] workPolyB = new int[errCorrCodewords];
+					for (int index = 0; index <= errCorrIndex; index++)
 					{
-					m = ErrCorrIndex - ErrorCount;
-					ErrorCount = js;
-					if(ErrorCount > ErrCorrCodewords / 2) return INCORRECTABLE_ERROR;
-					for(int Index = 0; Index <= ErrorControl; Index++) PolyC[Index] = DivideIntByExp(PolyB[Index], DisExp);
-					ErrorControl = ErrorCount;
+						workPolyB[index] = polyB[index] ^ MultiplyIntByExp(polyC[index], disExp);
 					}
-				PolyB = WorkPolyB;
+
+					int js = errCorrIndex - m;
+					if (js > errorCount)
+					{
+						m = errCorrIndex - errorCount;
+						errorCount = js;
+						if (errorCount > errCorrCodewords / 2)
+						{
+							return INCORRECTABLE_ERROR;
+						}
+
+						for (int index = 0; index <= errorControl; index++)
+						{
+							polyC[index] = DivideIntByExp(polyB[index], disExp);
+						}
+
+						errorControl = errorCount;
+					}
+					polyB = workPolyB;
 				}
 
-			// shift polynomial right one
-			Array.Copy(PolyC, 0, PolyC, 1, Math.Min(PolyC.Length - 1, ErrorControl));
-			PolyC[0] = 0;
-			ErrorControl++;
+				// shift polynomial right one
+				Array.Copy(polyC, 0, polyC, 1, Math.Min(polyC.Length - 1, errorControl));
+				polyC[0] = 0;
+				errorControl++;
 			}
 
-		PolynomialMultiply(Omega, PolyB, Syndrome);
-		Array.Copy(PolyB, 0, Sigma, 0, Math.Min(PolyB.Length, Sigma.Length));
-		return ErrorCount;
+			PolynomialMultiply(omega, polyB, syndrome);
+			Array.Copy(polyB, 0, sigma, 0, Math.Min(polyB.Length, sigma.Length));
+			return errorCount;
 		}
 
-	// Chien search is a fast algorithm for determining roots of polynomials defined over a finite field.
-	// The most typical use of the Chien search is in finding the roots of error-locator polynomials
-	// encountered in decoding Reed-Solomon codes and BCH codes.
-	private static bool ChienSearch
-			(
-			int[]	ErrorPosition,
-			int		DataLength,
-			int		ErrorCount,
-			int[]	Sigma
-			)
+		// Chien search is a fast algorithm for determining roots of polynomials defined over a finite field.
+		// The most typical use of the Chien search is in finding the roots of error-locator polynomials
+		// encountered in decoding Reed-Solomon codes and BCH codes.
+		private static bool ChienSearch
+				(
+				int[] errorPosition,
+				int dataLength,
+				int errorCount,
+				int[] sigma
+				)
 		{
-		// last error
-		int LastPosition = Sigma[1];
+			// last error
+			int lastPosition = sigma[1];
 
-		// one error
-		if(ErrorCount == 1)
+			// one error
+			if (errorCount == 1)
 			{
-			// position is out of range
-			if(StaticTables.IntToExp[LastPosition] >= DataLength) return false;
-
-			// save the only error position in position array
-			ErrorPosition[0] = LastPosition;
-			return true;
-			}
-
-		// we start at last error position
-		int PosIndex = ErrorCount - 1;
-		for(int DataIndex = 0; DataIndex < DataLength; DataIndex++)
-			{
-			int DataIndexInverse = 255 - DataIndex;
-			int Total = 1;
-			for(int Index = 1; Index <= ErrorCount; Index++) Total ^= MultiplyIntByExp(Sigma[Index], (DataIndexInverse * Index) % 255);
-			if(Total != 0) continue;
-
-			int Position = StaticTables.ExpToInt[DataIndex];
-			LastPosition ^=  Position;
-			ErrorPosition[PosIndex--] = Position;
-			if(PosIndex == 0)
-				{
 				// position is out of range
-				if(StaticTables.IntToExp[LastPosition] >= DataLength)  return false;
-				ErrorPosition[0] = LastPosition;
-				return true;
-				}
-			}
-
-		// search failed
-		return false;
-		}
-
-	private static void ApplyCorrection
-			(
-			byte[]	ReceivedData,
-			int		DataLength,
-			int		ErrorCount,
-			int[]	ErrorPosition,
-			int[]	Sigma,
-			int[]	Omega
-			)
-		{
-		for(int ErrIndex = 0; ErrIndex < ErrorCount; ErrIndex++)
-			{
-			int ps = ErrorPosition[ErrIndex];
-			int zlog = 255 - StaticTables.IntToExp[ps];
-			int OmegaTotal = Omega[0];
-			for(int Index = 1; Index < ErrorCount; Index++) OmegaTotal ^= MultiplyIntByExp(Omega[Index], (zlog * Index) % 255);
-			int SigmaTotal = Sigma[1];
-			for(int j = 2; j < ErrorCount; j += 2) SigmaTotal ^= MultiplyIntByExp(Sigma[j + 1], (zlog * j) % 255);
-			ReceivedData[DataLength - 1 - StaticTables.IntToExp[ps]] ^= (byte) MultiplyDivide(ps, OmegaTotal, SigmaTotal);
-			}
-		return;
-		}
-
-	internal static void PolynominalDivision(byte[] Polynomial, int PolyLength, byte[] Generator, int ErrCorrCodewords)
-		{
-		int DataCodewords = PolyLength - ErrCorrCodewords;
-
-		// error correction polynomial division
-		for(int Index = 0; Index < DataCodewords; Index++)
-			{
-			// current first codeword is zero
-			if(Polynomial[Index] == 0) continue;
-
-			// current first codeword is not zero
-			int Multiplier = StaticTables.IntToExp[Polynomial[Index]];
-
-			// loop for error correction coofficients
-			for(int GeneratorIndex = 0; GeneratorIndex < ErrCorrCodewords; GeneratorIndex++)
+				if (StaticTables.IntToExp[lastPosition] >= dataLength)
 				{
-				Polynomial[Index + 1 + GeneratorIndex] = (byte) (Polynomial[Index + 1 + GeneratorIndex] ^ StaticTables.ExpToInt[Generator[GeneratorIndex] + Multiplier]);
+					return false;
+				}
+
+				// save the only error position in position array
+				errorPosition[0] = lastPosition;
+				return true;
+			}
+
+			// we start at last error position
+			int posIndex = errorCount - 1;
+			for (int dataIndex = 0; dataIndex < dataLength; dataIndex++)
+			{
+				int dataIndexInverse = 255 - dataIndex;
+				int total = 1;
+				for (int index = 1; index <= errorCount; index++)
+				{
+					total ^= MultiplyIntByExp(sigma[index], (dataIndexInverse * index) % 255);
+				}
+
+				if (total != 0)
+				{
+					continue;
+				}
+
+				int position = StaticTables.ExpToInt[dataIndex];
+				lastPosition ^= position;
+				errorPosition[posIndex--] = position;
+				if (posIndex == 0)
+				{
+					// position is out of range
+					if (StaticTables.IntToExp[lastPosition] >= dataLength)
+					{
+						return false;
+					}
+
+					errorPosition[0] = lastPosition;
+					return true;
 				}
 			}
-		return;
+
+			// search failed
+			return false;
 		}
 
-	internal static int Multiply
-			(
-			int Int1,
-			int Int2
-			)
+		private static void ApplyCorrection
+				(
+				byte[] receivedData,
+				int dataLength,
+				int errorCount,
+				int[] errorPosition,
+				int[] sigma,
+				int[] omega
+				)
 		{
-		return (Int1 == 0 || Int2 == 0) ? 0 : StaticTables.ExpToInt[StaticTables.IntToExp[Int1] + StaticTables.IntToExp[Int2]];
-		}
-
-	internal static int MultiplyIntByExp
-			(
-			int Int,
-			int Exp
-			)
-		{
-		return Int == 0 ? 0 : StaticTables.ExpToInt[StaticTables.IntToExp[Int] + Exp];
-		}
-
-	internal static int MultiplyDivide
-			(
-			int Int1,
-			int Int2,
-			int Int3
-			)
-		{
-		return (Int1 == 0 || Int2 == 0) ? 0 : StaticTables.ExpToInt[(StaticTables.IntToExp[Int1] + StaticTables.IntToExp[Int2] - StaticTables.IntToExp[Int3] + 255) % 255];
-		}
-
-	internal static int DivideIntByExp
-			(
-			int Int,
-			int Exp
-			)
-		{
-		return Int == 0 ? 0 : StaticTables.ExpToInt[StaticTables.IntToExp[Int] - Exp + 255];
-		}
-
-	internal static void PolynomialMultiply(int[] Result, int[] Poly1, int[] Poly2)
-		{
-		Array.Clear(Result, 0, Result.Length);
-		for(int Index1 = 0; Index1 < Poly1.Length; Index1++)
+			if (receivedData is null)
 			{
-			if(Poly1[Index1] == 0) continue;
-			int loga = StaticTables.IntToExp[Poly1[Index1]];
-			int Index2End = Math.Min(Poly2.Length, Result.Length - Index1);
-			// = Sum(Poly1[Index1] * Poly2[Index2]) for all Index2
-			for(int Index2 = 0; Index2 < Index2End; Index2++)
-				if(Poly2[Index2] != 0) Result[Index1 + Index2] ^= StaticTables.ExpToInt[loga + StaticTables.IntToExp[Poly2[Index2]]];
+				throw new ArgumentNullException(nameof(receivedData));
 			}
-		return;
+
+			if (errorPosition is null)
+			{
+				throw new ArgumentNullException(nameof(errorPosition));
+			}
+
+			if (sigma is null)
+			{
+				throw new ArgumentNullException(nameof(sigma));
+			}
+
+			if (omega is null)
+			{
+				throw new ArgumentNullException(nameof(omega));
+			}
+
+			for (int errIndex = 0; errIndex < errorCount; errIndex++)
+			{
+				int ps = errorPosition[errIndex];
+				int zlog = 255 - StaticTables.IntToExp[ps];
+				int omegaTotal = omega[0];
+				for (int index = 1; index < errorCount; index++)
+				{
+					omegaTotal ^= MultiplyIntByExp(omega[index], (zlog * index) % 255);
+				}
+
+				int sigmaTotal = sigma[1];
+				for (int j = 2; j < errorCount; j += 2)
+				{
+					sigmaTotal ^= MultiplyIntByExp(sigma[j + 1], (zlog * j) % 255);
+				}
+
+				receivedData[dataLength - 1 - StaticTables.IntToExp[ps]] ^= (byte)MultiplyDivide(ps, omegaTotal, sigmaTotal);
+			}
+			return;
+		}
+
+		internal static void PolynominalDivision(byte[] polynomial, int polyLength, byte[] generator, int errCorrCodewords)
+		{
+			int dataCodewords = polyLength - errCorrCodewords;
+
+			// error correction polynomial division
+			for (int index = 0; index < dataCodewords; index++)
+			{
+				// current first codeword is zero
+				if (polynomial[index] == 0)
+				{
+					continue;
+				}
+
+				// current first codeword is not zero
+				int multiplier = StaticTables.IntToExp[polynomial[index]];
+
+				// loop for error correction coofficients
+				for (int generatorIndex = 0; generatorIndex < errCorrCodewords; generatorIndex++)
+				{
+					polynomial[index + 1 + generatorIndex] = (byte)(polynomial[index + 1 + generatorIndex] ^ StaticTables.ExpToInt[generator[generatorIndex] + multiplier]);
+				}
+			}
+			return;
+		}
+
+		internal static int Multiply
+				(
+				int int1,
+				int int2
+				)
+		{
+			return (int1 == 0 || int2 == 0) ? 0 : StaticTables.ExpToInt[StaticTables.IntToExp[int1] + StaticTables.IntToExp[int2]];
+		}
+
+		internal static int MultiplyIntByExp
+				(
+				int integer,
+				int exp
+				)
+		{
+			return integer == 0 ? 0 : StaticTables.ExpToInt[StaticTables.IntToExp[integer] + exp];
+		}
+
+		internal static int MultiplyDivide
+				(
+				int int1,
+				int int2,
+				int int3
+				)
+		{
+			return (int1 == 0 || int2 == 0) ? 0 : StaticTables.ExpToInt[(StaticTables.IntToExp[int1] + StaticTables.IntToExp[int2] - StaticTables.IntToExp[int3] + 255) % 255];
+		}
+
+		internal static int DivideIntByExp
+				(
+				int integer,
+				int exp
+				)
+		{
+			return integer == 0 ? 0 : StaticTables.ExpToInt[StaticTables.IntToExp[integer] - exp + 255];
+		}
+
+		internal static void PolynomialMultiply(int[] result, int[] poly1, int[] poly2)
+		{
+			Array.Clear(result, 0, result.Length);
+
+			for (int index1 = 0; index1 < poly1.Length; index1++)
+			{
+				if (poly1[index1] == 0)
+				{
+					continue;
+				}
+
+				int loga = StaticTables.IntToExp[poly1[index1]];
+				int index2End = Math.Min(poly2.Length, result.Length - index1);
+				// = Sum(Poly1[Index1] * Poly2[Index2]) for all Index2
+				for (int index2 = 0; index2 < index2End; index2++)
+				{
+					if (poly2[index2] != 0)
+					{
+						result[index1 + index2] ^= StaticTables.ExpToInt[loga + StaticTables.IntToExp[poly2[index2]]];
+					}
+				}
+			}
+			return;
 		}
 	}
 }
