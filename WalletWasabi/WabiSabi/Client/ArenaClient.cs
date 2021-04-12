@@ -21,10 +21,10 @@ namespace WalletWasabi.WabiSabi.Client
 		public static readonly ulong ProtocolMaxWeightPerAlice = 1_000ul;
 
 		public ArenaClient(
-			CredentialPool amountCredentialPool,
-			CredentialPool weightCredentialPool,
 			CredentialIssuerParameters amountCredentialIssuerParameters,
 			CredentialIssuerParameters weightCredentialIssuerParameters,
+			CredentialPool amountCredentialPool,
+			CredentialPool weightCredentialPool,
 			IArenaRequestHandler requestHandler,
 			WasabiRandom random)
 		{
