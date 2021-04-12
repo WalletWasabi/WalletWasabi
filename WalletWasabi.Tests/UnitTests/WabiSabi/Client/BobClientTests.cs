@@ -15,6 +15,7 @@ using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Crypto;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
@@ -43,12 +44,16 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 					TxOut = coin1.TxOut,
 				});
 
+			CredentialPool amountCredential = new();
+			CredentialPool weightCredential = new();
+
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
-			var apiClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, coordinator, new InsecureRandom());
+			var aliceArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, amountCredential, weightCredential, coordinator, new InsecureRandom());
+			var bobArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, amountCredential, weightCredential, coordinator, new InsecureRandom());
 			Assert.Equal(Phase.InputRegistration, round.Phase);
 
 			var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);
-			var aliceClient = await AliceClient.CreateNewAsync(apiClient, new[] { coin1.Coin }, bitcoinSecret, round.Id, round.Hash, round.FeeRate);
+			var aliceClient = await AliceClient.CreateNewAsync(aliceArenaClient, new[] { coin1.Coin }, bitcoinSecret, round.Id, round.Hash, round.FeeRate);
 
 			Task confirmationTask = aliceClient.ConfirmConnectionAsync(TimeSpan.FromSeconds(3), CancellationToken.None);
 
@@ -66,16 +71,16 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using var destinationKey3 = new Key();
 			using var destinationKey4 = new Key();
 
-			var bobClient = new BobClient(round.Id, apiClient);
+			var bobClient = new BobClient(round.Id, bobArenaClient);
 			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey1.PubKey.WitHash.ScriptPubKey);
 
 			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey2.PubKey.WitHash.ScriptPubKey);
 
 			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey3.PubKey.WitHash.ScriptPubKey);
 
-			await bobClient.RegisterOutputAsync(apiClient.AmountCredentialClient.Credentials.Valuable.Sum(c => c.Amount.ToMoney()), destinationKey4.PubKey.WitHash.ScriptPubKey);
+			await bobClient.RegisterOutputAsync(amountCredential.Valuable.Sum(c => c.Amount.ToMoney()), destinationKey4.PubKey.WitHash.ScriptPubKey);
 
-			Assert.Empty(apiClient.AmountCredentialClient.Credentials.Valuable);
+			Assert.Empty(amountCredential.Valuable);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
 
