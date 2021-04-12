@@ -217,10 +217,10 @@ namespace QRCodeDecoderLibrary
 
 		internal int ImageWidth;
 		internal int ImageHeight;
-		internal bool[,]? BlackWhiteImage;
-		internal List<Finder>? FinderList;
-		internal List<Finder>? AlignList;
-		internal List<byte[]>? DataArrayList;
+		internal bool[,] BlackWhiteImage;
+		internal List<Finder> FinderList;
+		internal List<Finder> AlignList;
+		internal List<byte[]> DataArrayList;
 		internal int MaxCodewords;
 		internal int MaxDataCodewords;
 		internal int MaxDataBits;
@@ -230,12 +230,12 @@ namespace QRCodeDecoderLibrary
 		internal int BlocksGroup2;
 		internal int DataCodewordsGroup2;
 
-		internal byte[]? CodewordsArray;
+		internal byte[] CodewordsArray;
 		internal int CodewordsPtr;
 		internal uint BitBuffer;
 		internal int BitBufferLen;
-		internal byte[,]? BaseMatrix;
-		internal byte[,]? MaskMatrix;
+		internal byte[,] BaseMatrix;
+		internal byte[,] MaskMatrix;
 
 		internal bool Trans4Mode;
 
@@ -285,7 +285,7 @@ namespace QRCodeDecoderLibrary
 		/// </summary>
 		/// <param name="inputImage">Input image</param>
 		/// <returns>Output byte arrays</returns>
-		public byte[][]? ImageDecoder(Bitmap inputImage)
+		public byte[][] ImageDecoder(Bitmap inputImage)
 		{
 			try
 			{
@@ -371,7 +371,7 @@ namespace QRCodeDecoderLibrary
 							}
 
 							// decode using 4 points
-							if (AlignList is { })
+							if (!(AlignList is null))
 							{
 								foreach (Finder align in AlignList)
 								{
@@ -504,16 +504,11 @@ namespace QRCodeDecoderLibrary
 			for (int row = 0; row < ImageHeight; row++)
 			{
 				// look for first black pixel
-				int col;
-				for (col = 0; col < ImageWidth && !BlackWhiteImage[row, col]; col++)
-				{
-					;
-				}
-
-				if (col == ImageWidth)
-				{
-					continue;
-				}
+				int col = 0;
+				while(col < ImageWidth && !BlackWhiteImage[row, col])
+                {
+					col++;
+                }
 
 				// first black
 				posPtr = 0;
@@ -524,9 +519,10 @@ namespace QRCodeDecoderLibrary
 				{
 					// look for next white
 					// if black is all the way to the edge, set next white after the edge
-					for (; col < ImageWidth && BlackWhiteImage[row, col]; col++)
-					{
-						;
+					while(col < ImageWidth && BlackWhiteImage[row, col])
+                    {
+						col++;
+
 					}
 
 					colPos[posPtr++] = col;
@@ -536,10 +532,10 @@ namespace QRCodeDecoderLibrary
 					}
 
 					// look for next black
-					for (; col < ImageWidth && !BlackWhiteImage[row, col]; col++)
-					{
-						;
-					}
+					while (col < ImageWidth && !BlackWhiteImage[row, col])
+                    {
+						col++;
+                    }
 
 					if (col == ImageWidth)
 					{
@@ -2179,17 +2175,22 @@ namespace QRCodeDecoderLibrary
 		internal int DataLengthBits(EncodingMode encodingMode)
 		{
 			// Data length bits
-			return encodingMode switch
+			switch (encodingMode)
 			{
-				EncodingMode.Numeric => QRCodeVersion < 10 ? 10 : (QRCodeVersion < 27 ? 12 : 14),
+				// numeric mode
+				case EncodingMode.Numeric:
+					return QRCodeVersion < 10 ? 10 : (QRCodeVersion < 27 ? 12 : 14);
 
-				EncodingMode.AlphaNumeric => QRCodeVersion < 10 ? 9 : (QRCodeVersion < 27 ? 11 : 13),
+				// alpha numeric mode
+				case EncodingMode.AlphaNumeric:
+					return QRCodeVersion < 10 ? 9 : (QRCodeVersion < 27 ? 11 : 13);
 
-				EncodingMode.Byte => QRCodeVersion < 10 ? 8 : 16,
-
-				_ => throw new ApplicationException("Unsupported encoding mode " + encodingMode.ToString()),
-			};
-		}
+				// byte mode
+				case EncodingMode.Byte:
+					return QRCodeVersion < 10 ? 8 : 16;
+			}
+			throw new ApplicationException("Unsupported encoding mode " + encodingMode.ToString());
+	}
 
 		////////////////////////////////////////////////////////////////////
 		// Set data and error correction codewords length
