@@ -10,11 +10,12 @@
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
-    <c:ContentArea Title="{Binding Title}"
-                   Caption="Wallet Home Page, currently under construction." ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <c:ContentArea Title="{Binding WalletName}"
+                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DockPanel VerticalAlignment="Top">
             <c:ResponsivePanel
                 DockPanel.Dock="Top"
+                Margin="-6 0"
                 AspectRatio="NaN"
                 ItemWidth="330"
                 ItemHeight="150"
