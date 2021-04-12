@@ -136,7 +136,9 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
 			round.Alices.Add(alice);
 
-			return new(alice.Id, commitAmountCredentialResponse(), commitWeightCredentialResponse());
+			return new(alice.Id, 
+				commitAmountCredentialResponse.Commit(), 
+				commitWeightCredentialResponse.Commit());
 		}
 
 		private static void RemoveDuplicateAlices(IDictionary<Guid, Round> rounds, Alice alice)

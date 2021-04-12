@@ -331,8 +331,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
 					return new(
-						commitAmountZeroCredentialResponse(),
-						commitWeightZeroCredentialResponse());
+						commitAmountZeroCredentialResponse.Commit(),
+						commitWeightZeroCredentialResponse.Commit());
 				}
 				else if (round.Phase == Phase.ConnectionConfirmation)
 				{
@@ -341,10 +341,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					alice.ConfirmedConnetion = true;
 
 					return new(
-						commitAmountZeroCredentialResponse(),
-						commitWeightZeroCredentialResponse(),
-						commitAmountRealCredentialResponse(),
-						commitWeightRealCredentialResponse());
+						commitAmountZeroCredentialResponse.Commit(),
+						commitWeightZeroCredentialResponse.Commit(),
+						commitAmountRealCredentialResponse.Commit(),
+						commitWeightRealCredentialResponse.Commit());
 				}
 				else
 				{
@@ -403,8 +403,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				round.Bobs.Add(bob);
 
 				return new(
-					commitAmountCredentialResponse(),
-					commitWeightCredentialResponse());
+					commitAmountCredentialResponse.Commit(),
+					commitWeightCredentialResponse.Commit());
 			}
 		}
 
