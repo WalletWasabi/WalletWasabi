@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.ResponsivePanelDemo"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="850"
              x:Class="WalletWasabi.Fluent.Views.ResponsivePanelDemo.ResponsivePanelDemoView">
@@ -21,9 +22,9 @@
             <Label Content="AspectRatio"/>
             <TextBox Text="{Binding AspectRatio}"/>
             <Label Content="ColumnHints"/>
-            <TextBox Text="{Binding ColumnHints, Mode=OneWay}"/>
+            <TextBox Text="{Binding ColumnHints, Converter={x:Static conv:ColumnHintsConverter.Instance}}"/>
             <Label Content="WidthTriggers"/>
-            <TextBox Text="{Binding WidthTriggers, Mode=OneWay}"/>
+            <TextBox Text="{Binding WidthTriggers, Converter={x:Static conv:WidthTriggersConverter.Instance}}"/>
         </StackPanel>
 
         <!-- For adaptive height set RowDefinitions="Auto,*" and AspectRatio="0.5" -->
