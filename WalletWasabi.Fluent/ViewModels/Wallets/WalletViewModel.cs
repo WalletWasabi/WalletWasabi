@@ -21,31 +21,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	{
 		protected WalletViewModel(Config config, UiConfig uiConfig, Wallet wallet) : base(wallet)
 		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			Disposables = Disposables is null
+				? new CompositeDisposable()
+				: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			var balanceChanged = Observable.Merge(
-				Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
+					Observable.FromEventPattern(Wallet.TransactionProcessor,
+							nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
+						.Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(0.1))
 				.Merge(uiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
 				.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
 				.ObserveOn(RxApp.MainThreadScheduler);
-
-				balanceChanged.Subscribe(
-					_ =>
-				{
-					try
-					{
-						var balance = Wallet.Coins.TotalAmount();
-						Title = $"{WalletName} ({(uiConfig.PrivacyMode ? "#########" : balance.ToString(false))} BTC)";
-
-						TitleTip = balance.ToUsdString(Wallet.Synchronizer.UsdExchangeRate, uiConfig.PrivacyMode);
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-					}
-				})
-				.DisposeWith(Disposables);
 
 			History = new HistoryViewModel(wallet, uiConfig);
 			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged);
