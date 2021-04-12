@@ -21,9 +21,9 @@
             <Label Content="AspectRatio"/>
             <TextBox Text="{Binding AspectRatio}"/>
             <Label Content="ColumnHints"/>
-            <!-- <TextBox Text="{Binding ColumnHints}"/> -->
+            <TextBox Text="{Binding ColumnHints, Mode=OneWay}"/>
             <Label Content="WidthTriggers"/>
-            <!-- <TextBox Text="{Binding WidthTriggers}"/> -->
+            <TextBox Text="{Binding WidthTriggers, Mode=OneWay}"/>
         </StackPanel>
 
         <!-- For adaptive height set RowDefinitions="Auto,*" and AspectRatio="0.5" -->
