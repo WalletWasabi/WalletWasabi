@@ -28,7 +28,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var config = new WabiSabiConfig { MaxInputCountByRound = 1 };
 			var round = WabiSabiFactory.CreateRound(config);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
 			var km = ServiceFactory.CreateKeyManager("");
 			var key = BitcoinFactory.CreateHdPubKey(km);
@@ -57,12 +57,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			Task confirmationTask = aliceClient.ConfirmConnectionAsync(TimeSpan.FromSeconds(3), CancellationToken.None);
 
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			await confirmationTask;
 
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
 
@@ -82,7 +82,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			Assert.Empty(amountCredential.Valuable);
 
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 			Assert.Equal(4, round.Coinjoin.Outputs.Count);
