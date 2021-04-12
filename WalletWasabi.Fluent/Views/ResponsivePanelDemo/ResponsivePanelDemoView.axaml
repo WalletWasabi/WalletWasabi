@@ -16,7 +16,7 @@
         <!-- For fixed height set RowDefinitions="350,*" and AspectRatio="NaN" -->
         <!-- When ItemWidth and ItemHeight are NaN AspectRatio and ColumnHints is using for sizing items -->
 
-        <StackPanel DockPanel.Dock="Left" Width="200" Margin="0,12,0,0">
+        <StackPanel DockPanel.Dock="Left" Width="200" Margin="0,0,20,0">
             <Label Content="ItemWidth"/>
             <TextBox Text="{Binding ItemWidth}"/>
             <Label Content="ItemHeight"/>
