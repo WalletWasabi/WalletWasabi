@@ -1,3 +1,4 @@
+using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
@@ -8,7 +9,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		public TransactionDetailsViewModel(HistoryItemViewModel historyItem)
 		{
 			HistoryItem = historyItem;
-			EnableCancel = true;
+
+			NextCommand = ReactiveCommand.Create(OnNext);
+		}
+
+		private void OnNext()
+		{
+			Navigate().Clear();
 		}
 
 		public HistoryItemViewModel HistoryItem { get; }

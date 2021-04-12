@@ -11,59 +11,61 @@
   <c:ContentArea Title="{Binding Title}"
                  NextContent="Done" EnableNext="True"
                  EnableCancel="{Binding EnableCancel}">
-    <StackPanel Spacing="20" DataContext="{Binding HistoryItem}">
+    <StackPanel Spacing="15" DataContext="{Binding HistoryItem}">
 
       <!-- Date -->
       <c:PreviewItem Icon="{StaticResource timer_regular}"
-                     Text="Date"
-                     Content="{Binding Date}" />
+                     Text="Date / Time"
+                     Content="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}" />
       <Separator />
 
       <!-- Transaction ID -->
-      <c:PreviewItem Icon=""
+      <c:PreviewItem Icon="{StaticResource transaction_id}"
                      Text="Transaction ID"
                      Content="{Binding TransactionId}" />
       <Separator />
 
       <!-- Status -->
-      <c:PreviewItem Icon=""
-                     Text="Status"
-                     Content="{Binding IsConfirmed}" />
+      <c:PreviewItem Icon="{StaticResource status_regular}"
+                     Text="Status">
+        <Panel>
+          <TextBlock Text="Confirmed" IsVisible="{Binding IsConfirmed}" />
+          <TextBlock Text="Pending" IsVisible="{Binding !IsConfirmed}" />
+        </Panel>
+      </c:PreviewItem>
       <Separator />
 
       <!-- Incoming amount  -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Text="Incoming amount"
-                     Content="{Binding IncomingAmount}"
+                     Content="{Binding IncomingAmount, StringFormat={}{0} BTC}"
                      IsVisible="{Binding !!IncomingAmount}"/>
       <Separator IsVisible="{Binding !!IncomingAmount}" />
 
       <!-- Outgoing amount  -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
-                     Text="outgoing amount"
-                     Content="{Binding OutgoingAmount}"
+                     Text="Outgoing amount"
+                     Content="{Binding OutgoingAmount, StringFormat={}{0} BTC}"
                      IsVisible="{Binding !!OutgoingAmount}" />
       <Separator IsVisible="{Binding !!OutgoingAmount}" />
 
+      <!-- Block height -->
+      <c:PreviewItem Icon="{StaticResource block_height}"
+                     Text="Block height"
+                     Content="{Binding BlockHeight}" />
+      <Separator />
+
+      <!-- Confirmations -->
+      <c:PreviewItem Icon="{StaticResource copy_confirmed}"
+                     Text="Confirmations"
+                     Content="{Binding Confirmations}" />
+      <Separator />
 
       <!-- Labels -->
       <c:PreviewItem Icon="{StaticResource entities_regular}"
                      Text="Labels">
         <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}" />
       </c:PreviewItem>
-      <Separator />
-
-      <!-- Block height -->
-      <c:PreviewItem Icon=""
-                     Text="Block height"
-                     Content="{Binding BlockHeight}" />
-      <Separator />
-
-      <!-- Confirmations -->
-      <c:PreviewItem Icon=""
-                     Text="Confirmations"
-                     Content="{Binding Confirmations}" />
-      <Separator />
 
     </StackPanel>
   </c:ContentArea>
