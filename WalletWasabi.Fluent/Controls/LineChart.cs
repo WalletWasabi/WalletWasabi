@@ -554,8 +554,9 @@ namespace WalletWasabi.Fluent.Controls
 			var constrainWidthMax = 0.0;
 			var constrainHeightMax = 0.0;
 
-			foreach (var label in state.YAxisLabels)
+			for (var index = state.YAxisLabels.Count - 1; index >= 0; index--)
 			{
+				var label = state.YAxisLabels[index];
 				var formattedText = CreateFormattedText(label, typeface, alignment, fontSize, Size.Empty);
 				formattedTextLabels.Add(formattedText);
 				constrainWidthMax = Math.Max(constrainWidthMax, formattedText.Bounds.Width);
