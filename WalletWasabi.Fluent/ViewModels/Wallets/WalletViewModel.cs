@@ -23,13 +23,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Observable.Merge(
+			var balanceChanged = Observable.Merge(
 				Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(0.1))
 				.Merge(uiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
 				.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(
+				.ObserveOn(RxApp.MainThreadScheduler);
+
+				balanceChanged.Subscribe(
 					_ =>
 				{
 					try
@@ -47,7 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				.DisposeWith(Disposables);
 
 			History = new HistoryViewModel(wallet, uiConfig);
-			BalanceTile = new WalletBalanceTileViewModel(wallet);
+			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged);
 			BalanceChartTile = new WalletBalanceChartTileViewModel(History.Transactions);
 			WalletPieChart = new WalletPieChartTileViewModel(wallet);
 		}
