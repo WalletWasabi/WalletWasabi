@@ -190,23 +190,18 @@ namespace WalletWasabi.Fluent.Controls
 				aspectRatio = 1.0;
 			}
 
-			var totalColumns = 1;
-			var layoutIndex = 0;
+			var layoutIndex = columnHints.Count - 1;
+			var totalColumns = columnHints[layoutIndex];
 
-			if (double.IsInfinity(width))
-			{
-				var i = columnHints.Count - 1;
-				totalColumns = columnHints[i];
-				layoutIndex = i;
-			}
-			else
+			if (!double.IsInfinity(width))
 			{
 				for (var i = 0; i < widthTriggers.Count; i++)
 				{
-					if (width > widthTriggers[i])
+					if (width < widthTriggers[i])
 					{
 						totalColumns = columnHints[i];
 						layoutIndex = i;
+						break;
 					}
 				}
 			}
