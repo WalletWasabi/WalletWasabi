@@ -150,6 +150,11 @@ namespace WalletWasabi.Fluent.Controls
 			var width = double.IsNaN(WidthSource) ? panelSize.Width : WidthSource;
 			var height = panelSize.Height;
 
+			if (widthTriggers is null || columnHints is null)
+			{
+				return Size.Empty;
+			}
+
 			if (widthTriggers.Count <= 0)
 			{
 				throw new Exception($"No width trigger specified in {nameof(WidthTriggers)} property.");
