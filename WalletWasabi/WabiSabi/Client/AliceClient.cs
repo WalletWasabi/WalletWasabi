@@ -44,7 +44,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var totalFeeToPay = FeeRate.GetFee(Coins.Sum(c => c.ScriptPubKey.EstimateInputVsize()));
 			var totalAmount = Coins.Sum(coin => coin.Amount);
 
-			if (totalFeeToPay > totalAmount)
+			if (totalFeeToPay >= totalAmount)
 			{
 				throw new InvalidOperationException($"Round({ RoundId }), Alice({ AliceId}): Not enough funds to pay for the fees.");
 			}
