@@ -1,6 +1,5 @@
 using System;
 using NBitcoin;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
@@ -11,15 +10,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 	{
 		public HistoryItemViewModel(int orderIndex, TransactionSummary transactionSummary, BitcoinStore bitcoinStore, Money balance)
 		{
+			TransactionSummary = transactionSummary;
 			Date = transactionSummary.DateTime.ToLocalTime();
 			IsCoinJoin = transactionSummary.IsLikelyCoinJoinOutput;
 			OrderIndex = orderIndex;
 			Balance = balance;
-			Labels = transactionSummary.Label;
-			TransactionId = transactionSummary.TransactionId.ToString();
-			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
-			Confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int) bitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
-			IsConfirmed = Confirmations > 0;
+
+			var confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int) bitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
+			IsConfirmed = confirmations > 0;
 
 			var amount = transactionSummary.Amount;
 			if (amount < 0)
@@ -32,13 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			}
 		}
 
-		public int Confirmations { get; }
-
-		public int BlockHeight { get; }
-
-		public string TransactionId { get; set; }
-
-		public SmartLabel Labels { get; set; }
+		public TransactionSummary TransactionSummary { get; }
 
 		public int OrderIndex { get; }
 
