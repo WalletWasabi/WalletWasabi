@@ -157,27 +157,32 @@ namespace WalletWasabi.Fluent.Controls
 
 			if (widthTriggers.Count <= 0)
 			{
-				throw new Exception($"No width trigger specified in {nameof(WidthTriggers)} property.");
+				// TODO: throw new Exception($"No width trigger specified in {nameof(WidthTriggers)} property.");
+				return Size.Empty;
 			}
 
 			if (columnHints.Count <= 0)
 			{
-				throw new Exception($"No column hints specified in {nameof(ColumnHints)} property.");
+				// TODO: throw new Exception($"No column hints specified in {nameof(ColumnHints)} property.");
+				return Size.Empty;
 			}
 
 			if (widthTriggers.Count != columnHints.Count)
 			{
-				throw new Exception($"Number of width triggers must be equal to the number of column triggers.");
+				// TODO: throw new Exception($"Number of width triggers must be equal to the number of column triggers.");
+				return Size.Empty;
 			}
 
 			if (double.IsNaN(ItemWidth) && double.IsInfinity(width))
 			{
-				throw new Exception($"The {nameof(ItemWidth)} can't be NaN and panel {nameof(width)} can't be infinity at same time.");
+				// TODO: throw new Exception($"The {nameof(ItemWidth)} can't be NaN and panel {nameof(width)} can't be infinity at same time.");
+				return Size.Empty;
 			}
 
 			if (double.IsNaN(ItemHeight) && double.IsInfinity(height))
 			{
-				throw new Exception($"The {nameof(ItemHeight)} can't be NaN and panel {nameof(height)} can't be infinity at same time.");
+				// TODO: throw new Exception($"The {nameof(ItemHeight)} can't be NaN and panel {nameof(height)} can't be infinity at same time.");
+				return Size.Empty;
 			}
 
 			if (double.IsNaN(aspectRatio) && (height == 0 || double.IsInfinity(height)))
