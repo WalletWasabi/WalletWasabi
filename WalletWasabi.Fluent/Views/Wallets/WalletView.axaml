@@ -26,7 +26,7 @@
                 AspectRatio="NaN"
                 ItemWidth="330"
                 ItemHeight="150"
-                WidthSource="ScrollViewer"
+                WidthSource="{Binding #ScrollViewer.Bounds.Width}"
                 ColumnHints="1, 2, 3"
                 WidthTriggers="300, 660, 990"
                 HorizontalAlignment="Left"
