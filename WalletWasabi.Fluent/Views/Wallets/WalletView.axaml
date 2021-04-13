@@ -28,7 +28,7 @@
                 ItemHeight="150"
                 WidthSource="{Binding #ScrollViewer.Bounds.Width}"
                 ColumnHints="1, 2, 3"
-                WidthTriggers="300, 450, 650"
+                WidthTriggers="300, 660, 990"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
                 UseLayoutRounding="False">
