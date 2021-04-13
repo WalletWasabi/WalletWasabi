@@ -5,7 +5,7 @@
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.ResponsivePanelDemo"
-             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="850"
+             mc:Ignorable="d" d:DesignWidth="1300" d:DesignHeight="850"
              x:Class="WalletWasabi.Fluent.Views.ResponsivePanelDemo.ResponsiveLayoutDemoView">
     <UserControl.DataContext>
         <vm:ResponsiveLayoutDemoViewModel/>
