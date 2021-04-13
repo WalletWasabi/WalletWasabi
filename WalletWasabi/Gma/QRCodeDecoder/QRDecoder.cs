@@ -2174,21 +2174,16 @@ namespace QRCodeDecoderLibrary
 		internal int DataLengthBits(EncodingMode encodingMode)
 		{
 			// Data length bits
-			switch (encodingMode)
+			return encodingMode switch
 			{
 				// numeric mode
-				case EncodingMode.Numeric:
-					return QRCodeVersion < 10 ? 10 : (QRCodeVersion < 27 ? 12 : 14);
-
+				EncodingMode.Numeric => QRCodeVersion < 10 ? 10 : (QRCodeVersion < 27 ? 12 : 14),
 				// alpha numeric mode
-				case EncodingMode.AlphaNumeric:
-					return QRCodeVersion < 10 ? 9 : (QRCodeVersion < 27 ? 11 : 13);
-
+				EncodingMode.AlphaNumeric => QRCodeVersion < 10 ? 9 : (QRCodeVersion < 27 ? 11 : 13),
 				// byte mode
-				case EncodingMode.Byte:
-					return QRCodeVersion < 10 ? 8 : 16;
-			}
-			throw new ApplicationException("Unsupported encoding mode " + encodingMode.ToString());
+				EncodingMode.Byte => QRCodeVersion < 10 ? 8 : 16,
+				_ => throw new ApplicationException("Unsupported encoding mode " + encodingMode.ToString()),
+			};
 		}
 
 		////////////////////////////////////////////////////////////////////
