@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class WalletViewModel : WalletViewModelBase
 	{
-		protected WalletViewModel(Config config, UiConfig uiConfig, Wallet wallet) : base(wallet)
+		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
 		{
 			Disposables = Disposables is null
 				? new CompositeDisposable()
@@ -35,7 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			History = new HistoryViewModel(wallet, uiConfig);
 			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged);
 			BalanceChartTile = new WalletBalanceChartTileViewModel(History.Transactions);
-			WalletPieChart = new WalletPieChartTileViewModel(wallet, config, balanceChanged);
+			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged);
 		}
 
 		private CompositeDisposable Disposables { get; set; }
@@ -71,13 +71,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			await History.UpdateAsync();
 		}
 
-		public static WalletViewModel Create(Config config, UiConfig uiConfig, Wallet wallet)
+		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new HardwareWalletViewModel(config, uiConfig, wallet)
+				? new HardwareWalletViewModel(uiConfig, wallet)
 				: wallet.KeyManager.IsWatchOnly
-					? new WatchOnlyWalletViewModel(config, uiConfig, wallet)
-					: new WalletViewModel(config, uiConfig, wallet);
+					? new WatchOnlyWalletViewModel(uiConfig, wallet)
+					: new WalletViewModel(uiConfig, wallet);
 		}
 	}
 }

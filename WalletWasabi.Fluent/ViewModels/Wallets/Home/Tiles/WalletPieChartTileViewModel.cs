@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using NBitcoin;
-using WalletWasabi.Gui;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
@@ -27,15 +26,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 	public partial class WalletPieChartTileViewModel : TileViewModel
 	{
 		private readonly Wallet _wallet;
-		private readonly Config _config;
 
 		[AutoNotify] private IList<(string color, double percentShare)>? _testDataPoints;
 		[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
 
-		public WalletPieChartTileViewModel(Wallet wallet, Config config, IObservable<Unit> balanceChanged)
+		public WalletPieChartTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged)
 		{
 			_wallet = wallet;
-			_config = config;
 
 			balanceChanged.Subscribe(_ => Update());
 
@@ -44,8 +41,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		private void Update()
 		{
-			var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet > _config.PrivacyLevelStrong);
-			var normalCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < _config.PrivacyLevelStrong);
+			var privateThreshold = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+
+			var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
+			var normalCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold);
 			var totalCount = (double)_wallet.Coins.Count();
 
 			var pcPrivate = (privateCoins.Count() / totalCount);
