@@ -69,6 +69,7 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(ItemHeightProperty, value);
 		}
 
+		[ResolveByName]
 		public double WidthSource
 		{
 			get => GetValue(WidthSourceProperty);
