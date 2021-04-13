@@ -55,8 +55,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			base.OnNavigatedTo(isInHistory, disposables);
 
 			Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed))
-				.Merge(
-					Observable.FromEventPattern(Wallet.TransactionProcessor,
+				.Merge(Observable.FromEventPattern(
+					Wallet.TransactionProcessor,
 					nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)))
 				.Throttle(TimeSpan.FromSeconds(3))
 				.ObserveOn(RxApp.MainThreadScheduler)
