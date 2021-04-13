@@ -16,10 +16,6 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class ArenaClient
 	{
-		public static readonly int ProtocolCredentialNumber = 2;
-		public static readonly ulong ProtocolMaxAmountPerAlice = 4_300_000_000_000ul;
-		public static readonly ulong ProtocolMaxVsizePerAlice = 250ul;
-
 		public ArenaClient(
 			CredentialIssuerParameters amountCredentialIssuerParameters,
 			CredentialIssuerParameters vsizeCredentialIssuerParameters,
@@ -28,8 +24,8 @@ namespace WalletWasabi.WabiSabi.Client
 			IArenaRequestHandler requestHandler,
 			WasabiRandom random)
 		{
-			AmountCredentialClient = new WabiSabiClient(amountCredentialIssuerParameters, ProtocolCredentialNumber, random, ProtocolMaxAmountPerAlice, amountCredentialPool);
-			VsizeCredentialClient = new WabiSabiClient(vsizeCredentialIssuerParameters, ProtocolCredentialNumber, random, ProtocolMaxVsizePerAlice, vsizeCredentialPool);
+			AmountCredentialClient = new WabiSabiClient(amountCredentialIssuerParameters, ProtocolConstants.CredentialNumber, random, ProtocolConstants.MaxAmountPerAlice, amountCredentialPool);
+			VsizeCredentialClient = new WabiSabiClient(vsizeCredentialIssuerParameters, ProtocolConstants.CredentialNumber, random, ProtocolConstants.MaxVsizePerAlice, vsizeCredentialPool);
 			RequestHandler = requestHandler;
 		}
 

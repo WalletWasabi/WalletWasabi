@@ -58,9 +58,9 @@ namespace WalletWasabi.WabiSabi.Backend
 		/// The width of the rangeproofs are calculated from this, so don't choose stupid numbers.
 		/// Consider that it applies to registrations, not for inputs. This usually consists one input, but can be more.
 		/// </summary>
-		[DefaultValue(250)]
+		[DefaultValue(ProtocolConstants.MaxVsizePerAlice)]
 		[JsonProperty(PropertyName = "RegistrableVsizeCredentials", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public uint RegistrableVsizeCredentials { get; set; } = 250;
+		public uint RegistrableVsizeCredentials { get; set; } = ProtocolConstants.MaxVsizePerAlice;
 
 		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "AllowNotedInputRegistration", DefaultValueHandling = DefaultValueHandling.Populate)]

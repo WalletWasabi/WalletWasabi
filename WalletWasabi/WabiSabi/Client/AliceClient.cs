@@ -37,7 +37,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private async Task<bool> ConfirmConnectionAsync()
 		{
 			var inputVsize = Constants.P2wpkhInputVirtualSize;
-			var inputRemainingVsizes = new[] { (long)ArenaClient.ProtocolMaxVsizePerAlice - Coins.Count() * inputVsize };
+			var inputRemainingVsizes = new[] { (long)ProtocolConstants.MaxVsizePerAlice - Coins.Count() * inputVsize };
 
 			var amountCredentials = ArenaClient.AmountCredentialClient.Credentials;
 
@@ -56,7 +56,7 @@ namespace WalletWasabi.WabiSabi.Client
 					RoundId,
 					AliceId,
 					inputRemainingVsizes,
-					amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
+					amountCredentials.ZeroValue.Take(ProtocolConstants.CredentialNumber),
 					amountsToRequest)
 				.ConfigureAwait(false);
 		}

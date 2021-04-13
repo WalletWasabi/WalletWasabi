@@ -8,6 +8,7 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -58,7 +59,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			};
 
 			var inputVsize = Constants.P2wpkhInputVirtualSize;
-			var inputRemainingVsizes = new[] { (long)ArenaClient.ProtocolMaxVsizePerAlice - inputVsize };
+			var inputRemainingVsizes = new[] { (long)ProtocolConstants.MaxVsizePerAlice - inputVsize };
 
 			// Phase: Input Registration
 			Assert.Equal(Phase.InputRegistration, round.Phase);
@@ -67,7 +68,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				round.Id,
 				aliceId,
 				inputRemainingVsizes,
-				amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
+				amountCredentials.ZeroValue.Take(ProtocolConstants.CredentialNumber),
 				reissuanceAmounts);
 
 			Assert.Empty(amountCredentials.Valuable);
@@ -80,7 +81,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				round.Id,
 				aliceId,
 				inputRemainingVsizes,
-				amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
+				amountCredentials.ZeroValue.Take(ProtocolConstants.CredentialNumber),
 				reissuanceAmounts);
 
 			Assert.Single(amountCredentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.First());
