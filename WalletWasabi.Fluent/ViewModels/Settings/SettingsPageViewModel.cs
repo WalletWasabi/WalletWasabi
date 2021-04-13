@@ -19,14 +19,12 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		public SettingsPageViewModel(Config config, UiConfig uiConfig)
 		{
-			Title = "Settings";
-
 			_selectedTab = 0;
 
 			GeneralSettingsTab = new GeneralSettingsTabViewModel(config, uiConfig);
-			PrivacySettingsTab = new PrivacySettingsTabViewModel(config, uiConfig);
-			NetworkSettingsTab = new NetworkSettingsTabViewModel(config, uiConfig);
-			BitcoinTabSettings = new BitcoinTabSettingsViewModel(config, uiConfig);
+			PrivacySettingsTab = new PrivacySettingsTabViewModel(config);
+			NetworkSettingsTab = new NetworkSettingsTabViewModel(config);
+			BitcoinTabSettings = new BitcoinTabSettingsViewModel(config);
 		}
 
 		public GeneralSettingsTabViewModel GeneralSettingsTab { get; }
