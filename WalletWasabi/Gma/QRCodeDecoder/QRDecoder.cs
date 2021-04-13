@@ -498,7 +498,6 @@ namespace QRCodeDecoderLibrary
 
 			// look for finder patterns
 			int[] colPos = new int[ImageWidth + 1];
-			int posPtr = 0;
 
 			// scan one row at a time
 			for (int row = 0; row < ImageHeight; row++)
@@ -511,7 +510,7 @@ namespace QRCodeDecoderLibrary
 				}
 
 				// first black
-				posPtr = 0;
+				int posPtr = 0;
 				colPos[posPtr++] = col;
 
 				// loop for pairs
@@ -596,7 +595,6 @@ namespace QRCodeDecoderLibrary
 
 			// look for finder patterns
 			int[] colPos = new int[areaWidth + 1];
-			int posPtr = 0;
 
 			// area right and bottom
 			int areaRight = areaLeft + areaWidth;
@@ -618,7 +616,7 @@ namespace QRCodeDecoderLibrary
 				}
 
 				// first black
-				posPtr = 0;
+				int posPtr = 0;
 				colPos[posPtr++] = col;
 
 				// loop for pairs
@@ -698,7 +696,6 @@ namespace QRCodeDecoderLibrary
 
 			// look for finder patterns
 			int[] rowPos = new int[ImageHeight + 1];
-			int posPtr = 0;
 
 			// scan one column at a time
 			for (int col = 0; col < ImageWidth; col++)
@@ -722,7 +719,7 @@ namespace QRCodeDecoderLibrary
 				}
 
 				// first black
-				posPtr = 0;
+				int posPtr = 0;
 				rowPos[posPtr++] = row;
 
 				// loop for pairs
@@ -810,7 +807,6 @@ namespace QRCodeDecoderLibrary
 
 			// look for finder patterns
 			int[] rowPos = new int[areaHeight + 1];
-			int posPtr = 0;
 
 			// area right and bottom
 			int areaRight = areaLeft + areaWidth;
@@ -838,7 +834,7 @@ namespace QRCodeDecoderLibrary
 				}
 
 				// first black
-				posPtr = 0;
+				int posPtr = 0;
 				rowPos[posPtr++] = row;
 
 				// loop for pairs
