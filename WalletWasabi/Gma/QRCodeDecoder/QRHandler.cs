@@ -52,36 +52,36 @@ namespace QRCodeDecoder
 
 		private void OnLoadButtonClick(object sender, EventArgs e)
 		{
-			_qRCodeDecoder = new QRDecoder();
+			// _qRCodeDecoder = new QRDecoder();
 			// Get the image file to decode
-			//OpenFileDialog dialog = new OpenFileDialog
-			//{
+			// OpenFileDialog dialog = new OpenFileDialog
+			// {
 			//	Filter = "Image Files(*.png;*.jpg;*.gif;*.tif)|*.png;*.jpg;*.gif;*.tif;*.bmp)|All files (*.*)|*.*",
 			//	Title = "Load QR Code Image",
 			//	InitialDirectory = Directory.GetCurrentDirectory(),
 			//	RestoreDirectory = true,
 			//	FileName = string.Empty
-			//};
+			// };
 
 			//// display dialog box
-			//if (dialog.ShowDialog() != DialogResult.OK)
-			//{
+			// if (dialog.ShowDialog() != DialogResult.OK)
+			// {
 			//	return;
-			//}
+			// }
 
 			//// load image to bitmap
-			//_qRCodeInputImage = new Bitmap(dialog.FileName);
+			// _qRCodeInputImage = new Bitmap(dialog.FileName);
 
 			//// decode image IMPORTANT
-			//byte[][]? dataByteArray = _qRCodeDecoder.ImageDecoder(_qRCodeInputImage);
+			// byte[][]? dataByteArray = _qRCodeDecoder.ImageDecoder(_qRCodeInputImage);
 
-			//if (dataByteArray is null)
-			//{
+			// if (dataByteArray is null)
+			// {
 			//	AddressLabel.Text = "No data could be displayed";
 			//	return;
-			//}
+			// }
 			//// convert results to text IMPORTANT
-			//AddressLabel.Text = QRCodeResult(dataByteArray);
+			// AddressLabel.Text = QRCodeResult(dataByteArray);
 
 			return;
 		}

@@ -70,13 +70,7 @@ namespace QRCodeDecoderLibrary
 		/// <summary>
 		/// Constructor during horizontal scan
 		/// </summary>
-		internal Finder
-				(
-				int row,
-				int col1,
-				int col2,
-				double hModule
-				)
+		internal Finder(int row, int col1, int col2, double hModule)
 		{
 			Row = row;
 			Col1 = col1;
@@ -89,13 +83,7 @@ namespace QRCodeDecoderLibrary
 		/// <summary>
 		/// Match during vertical scan
 		/// </summary>
-		internal void Match
-				(
-				int col,
-				int row1,
-				int row2,
-				double vModule
-				)
+		internal void Match(int col, int row1, int row2, double vModule)
 		{
 			// test if horizontal and vertical are not related
 			if (col < Col1 || col >= Col2 || Row < row1 || Row >= row2)
@@ -136,10 +124,7 @@ namespace QRCodeDecoderLibrary
 		/// <summary>
 		/// Horizontal and vertical scans overlap
 		/// </summary>
-		internal bool Overlap
-				(
-				Finder other
-				)
+		internal bool Overlap(Finder other)
 		{
 			return other.Col1 < Col2 && other.Col2 >= Col1 && other.Row1 < Row2 && other.Row2 >= Row1;
 		}
