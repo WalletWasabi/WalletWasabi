@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.ResponsivePanelDemo
 				new TestTileItemViewModel()
 				{
 					Background = Brushes.Blue,
-					ColumnSpan = new() {1, 1, 1, 1  },
+					ColumnSpan = new() { 1, 1, 1, 1 },
 					RowSpan = new() { 1, 1, 1, 1 }
 				},
 				new TestTileItemViewModel()
