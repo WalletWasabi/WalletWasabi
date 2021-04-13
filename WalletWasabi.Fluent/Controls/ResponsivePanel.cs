@@ -163,25 +163,25 @@ namespace WalletWasabi.Fluent.Controls
 
 			if (columnHints.Count <= 0)
 			{
-				// TODO: throw new Exception($"No column hints specified in {nameof(ColumnHints)} property.");
+				// No column hints specified in ColumnHints property.
 				return Size.Empty;
 			}
 
 			if (widthTriggers.Count != columnHints.Count)
 			{
-				// TODO: throw new Exception($"Number of width triggers must be equal to the number of column triggers.");
+				// Number of width triggers must be equal to the number of column triggers.
 				return Size.Empty;
 			}
 
 			if (double.IsNaN(ItemWidth) && double.IsInfinity(width))
 			{
-				// TODO: throw new Exception($"The {nameof(ItemWidth)} can't be NaN and panel {nameof(width)} can't be infinity at same time.");
+				// The ItemWidth can't be NaN and panel width can't be infinity at same time.
 				return Size.Empty;
 			}
 
 			if (double.IsNaN(ItemHeight) && double.IsInfinity(height))
 			{
-				// TODO: throw new Exception($"The {nameof(ItemHeight)} can't be NaN and panel {nameof(height)} can't be infinity at same time.");
+				// The ItemHeight can't be NaN and panel height can't be infinity at same time.
 				return Size.Empty;
 			}
 
