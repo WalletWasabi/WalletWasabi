@@ -1,5 +1,8 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Reactive;
+using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
@@ -26,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		[AutoNotify] private bool _showCoinJoin;
 		[AutoNotify] private HistoryItemViewModel? _selectedItem;
 
-		public HistoryViewModel(Wallet wallet, UiConfig uiConfig)
+		public HistoryViewModel(Wallet wallet, UiConfig uiConfig, IObservable<Unit> updateTrigger)
 		{
 			_wallet = wallet;
 			_bitcoinStore = wallet.BitcoinStore;
@@ -56,7 +59,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 						return;
 					}
 
-					Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(selectedItem.TransactionSummary, _bitcoinStore, wallet));
+					Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(selectedItem.TransactionSummary, _bitcoinStore, wallet, updateTrigger));
 				});
 
 			this.WhenAnyValue(x => x.SelectedItem)
@@ -66,6 +69,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				{
 					SelectedItem = null;
 				});
+
+			updateTrigger.Subscribe(async _ => await UpdateAsync());
+			RxApp.MainThreadScheduler.Schedule(async () => await UpdateAsync());
 		}
 
 		public ReadOnlyObservableCollection<HistoryItemViewModel> Transactions => _transactions;

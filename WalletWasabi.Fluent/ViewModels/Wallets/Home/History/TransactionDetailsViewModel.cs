@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
@@ -21,6 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 	{
 		private readonly BitcoinStore _bitcoinStore;
 		private readonly Wallet _wallet;
+		private readonly IObservable<Unit> _updateTrigger;
 
 		[AutoNotify] private bool _isConfirmed;
 		[AutoNotify] private int _confirmations;
@@ -30,10 +31,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		[AutoNotify] private SmartLabel? _labels;
 		[AutoNotify] private uint256? _transactionId;
 
-		public TransactionDetailsViewModel(TransactionSummary transactionSummary, BitcoinStore bitcoinStore, Wallet wallet)
+		public TransactionDetailsViewModel(TransactionSummary transactionSummary, BitcoinStore bitcoinStore, Wallet wallet, IObservable<Unit> updateTrigger)
 		{
 			_bitcoinStore = bitcoinStore;
 			_wallet = wallet;
+			_updateTrigger = updateTrigger;
 
 			NextCommand = ReactiveCommand.Create(OnNext);
 			CopyTransactionIdCommand = ReactiveCommand.CreateFromTask(OnCopyTransactionId);
@@ -73,10 +75,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			Observable.FromEventPattern(_wallet, nameof(_wallet.NewFilterProcessed))
-				.Merge(Observable.FromEventPattern(_wallet.TransactionProcessor, nameof(_wallet.TransactionProcessor.WalletRelevantTransactionProcessed)))
-				.Throttle(TimeSpan.FromSeconds(3))
-				.ObserveOn(RxApp.MainThreadScheduler)
+			_updateTrigger
 				.Subscribe(async _ => await UpdateCurrentTransactionAsync())
 				.DisposeWith(disposables);
 		}
