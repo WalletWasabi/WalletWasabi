@@ -133,7 +133,7 @@ namespace WalletWasabi.Fluent.Controls
 				RowSpanProperty);
 		}
 
-		private struct Item
+		internal struct Item
 		{
 			internal int Column;
 			internal int Row;
@@ -141,67 +141,70 @@ namespace WalletWasabi.Fluent.Controls
 			internal int RowSpan;
 		}
 
-		private Size MeasureArrange(Size panelSize, bool isMeasure)
+		internal struct State
 		{
-			var children = Children;
-			var widthTriggers = WidthTriggers;
-			var columnHints = ColumnHints;
-			var aspectRatio = AspectRatio;
-			var width = double.IsNaN(WidthSource) ? panelSize.Width : WidthSource;
-			var height = panelSize.Height;
-			var itemWidth = ItemWidth;
-			var itemHeight = ItemHeight;
+			internal AvaloniaList<IControl> Children;
+			internal double ItemWidth;
+			internal double ItemHeight;
+			internal double AspectRatio;
+			internal AvaloniaList<int> ColumnHints;
+			internal AvaloniaList<double> WidthTriggers;
+			internal double Width;
+			internal double Height;
+		}
 
-			if (widthTriggers is null || columnHints is null)
+		internal static bool Validate(ref State state)
+		{
+			if (state.WidthTriggers is null || state.ColumnHints is null)
 			{
-				return Size.Empty;
+				return false;
 			}
 
-			if (widthTriggers.Count <= 0)
+			if (state.WidthTriggers.Count <= 0)
 			{
 				// TODO: throw new Exception($"No width trigger specified in {nameof(WidthTriggers)} property.");
-				return Size.Empty;
+				return false;
 			}
 
-			if (columnHints.Count <= 0)
+			if (state.ColumnHints.Count <= 0)
 			{
 				// No column hints specified in ColumnHints property.
-				return Size.Empty;
+				return false;
 			}
 
-			if (widthTriggers.Count != columnHints.Count)
+			if (state.WidthTriggers.Count != state.ColumnHints.Count)
 			{
 				// Number of width triggers must be equal to the number of column triggers.
-				return Size.Empty;
+				return false;
 			}
 
-			if (double.IsNaN(itemWidth) && double.IsInfinity(width))
+			if (double.IsNaN(state.ItemWidth) && double.IsInfinity(state.Width))
 			{
 				// The ItemWidth can't be NaN and panel width can't be infinity at same time.
-				return Size.Empty;
+				return false;
 			}
 
-			if (double.IsNaN(itemHeight) && double.IsInfinity(height))
+			if (double.IsNaN(state.ItemHeight) && double.IsInfinity(state.Height))
 			{
 				// The ItemHeight can't be NaN and panel height can't be infinity at same time.
-				return Size.Empty;
+				return false;
 			}
 
-			if (double.IsNaN(aspectRatio) && (height == 0 || double.IsInfinity(height)))
-			{
-				aspectRatio = 1.0;
-			}
+			return true;
+		}
 
+		internal static Size MeasureArrange(ref State state, bool isMeasure)
+		{
 			var layoutIndex = 0;
-			var totalColumns = columnHints[layoutIndex];
+			var totalColumns = state.ColumnHints[layoutIndex];
 
-			if (!double.IsInfinity(width))
+			if (!double.IsInfinity(state.Width))
 			{
-				for (var i = widthTriggers.Count - 1; i >= 0; i--)
+				for (var i = state.WidthTriggers.Count - 1; i >= 0; i--)
 				{
-					if (width >= widthTriggers[i])
+					if (state.Width >= state.WidthTriggers[i])
 					{
-						totalColumns = columnHints[i];
+						totalColumns = state.ColumnHints[i];
 						layoutIndex = i;
 						break;
 					}
@@ -211,11 +214,11 @@ namespace WalletWasabi.Fluent.Controls
 			var currentColumn = 0;
 			var totalRows = 0;
 			var rowIncrement = 1;
-			var items = new Item[children.Count];
+			var items = new Item[state.Children.Count];
 
-			for (var i = 0; i < children.Count; i++)
+			for (var i = 0; i < state.Children.Count; i++)
 			{
-				var element = children[i];
+				var element = state.Children[i];
 				var columnSpan = GetColumnSpan((Control) element)[layoutIndex];
 				var rowSpan = GetRowSpan((Control) element)[layoutIndex];
 
@@ -230,7 +233,7 @@ namespace WalletWasabi.Fluent.Controls
 				rowIncrement = Math.Max(rowSpan, rowIncrement);
 				currentColumn += columnSpan;
 
-				if (currentColumn >= totalColumns || i == children.Count - 1)
+				if (currentColumn >= totalColumns || i == state.Children.Count - 1)
 				{
 					currentColumn = 0;
 					totalRows += rowIncrement;
@@ -238,14 +241,14 @@ namespace WalletWasabi.Fluent.Controls
 				}
 			}
 
-			var columnWidth = double.IsNaN(itemWidth) ? width / totalColumns : itemWidth;
-			var rowHeight = double.IsNaN(itemHeight)
-				? double.IsNaN(aspectRatio) ? height / totalRows : columnWidth * aspectRatio
-				: itemHeight;
+			var columnWidth = double.IsNaN(state.ItemWidth) ? state.Width / totalColumns : state.ItemWidth;
+			var rowHeight = double.IsNaN(state.ItemHeight)
+				? double.IsNaN(state.AspectRatio) ? state.Height / totalRows : columnWidth * state.AspectRatio
+				: state.ItemHeight;
 
-			for (var i = 0; i < children.Count; i++)
+			for (var i = 0; i < state.Children.Count; i++)
 			{
-				var element = children[i];
+				var element = state.Children[i];
 				var size = new Size(columnWidth * items[i].ColumnSpan, rowHeight * items[i].RowSpan);
 				var position = new Point(items[i].Column * columnWidth, items[i].Row * rowHeight);
 				var rect = new Rect(position, size);
@@ -261,6 +264,23 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			return new Size(columnWidth * totalColumns, rowHeight * totalRows);
+		}
+
+		private Size MeasureArrange(Size panelSize, bool isMeasure)
+		{
+			var state = new State()
+			{
+				Children = Children,
+				ItemWidth = ItemWidth,
+				ItemHeight = ItemHeight,
+				AspectRatio = double.IsNaN(AspectRatio) && (panelSize.Height == 0 || double.IsInfinity(panelSize.Height)) ? 1.0 : AspectRatio,
+				ColumnHints = ColumnHints,
+				WidthTriggers = WidthTriggers,
+				Width = double.IsNaN(WidthSource) ? panelSize.Width : WidthSource,
+				Height = panelSize.Height
+			};
+
+			return !Validate(ref state) ? Size.Empty : MeasureArrange(ref state, isMeasure);
 		}
 
 		protected override Size MeasureOverride(Size availableSize)
