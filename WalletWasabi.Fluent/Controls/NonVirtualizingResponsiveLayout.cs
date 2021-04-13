@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Specialized;
 using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
@@ -117,6 +118,11 @@ namespace WalletWasabi.Fluent.Controls
         protected override Size ArrangeOverride(NonVirtualizingLayoutContext context, Size finalSize)
         {
 	        return MeasureArrange(finalSize, context, false);
+        }
+
+        protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+        {
+	        InvalidateMeasure();
         }
     }
 }
