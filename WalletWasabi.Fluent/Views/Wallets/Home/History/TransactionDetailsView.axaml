@@ -22,8 +22,18 @@
 
       <!-- Transaction ID -->
       <c:PreviewItem Icon="{StaticResource transaction_id}"
-                     Text="Transaction ID"
-                     Content="{Binding TransactionId}" />
+                     Text="Transaction ID">
+        <DockPanel HorizontalAlignment="Left">
+          <c:AnimatedButton Margin="5 0 0 0"
+                            Command="{Binding CopyTransactionIdCommand}"
+                            ToolTip.Tip="Copy"
+                            NormalIcon="{StaticResource copy_regular}"
+                            ClickIcon="{StaticResource copy_confirmed}"
+                            InitialOpacity="0.6"
+                            DockPanel.Dock="Right"/>
+          <TextBlock Text="{Binding TransactionId}"/>
+        </DockPanel>
+      </c:PreviewItem>
 
       <Separator />
 
