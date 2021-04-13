@@ -66,12 +66,7 @@ namespace QRCodeDecoderLibrary
 		// QR corner constructor
 		/////////////////////////////////////////////////////////////////////
 
-		private Corner
-				(
-				Finder topLeftFinder,
-				Finder topRightFinder,
-				Finder bottomLeftFinder
-				)
+		private Corner(Finder topLeftFinder, Finder topRightFinder, Finder bottomLeftFinder)
 		{
 			// save three finders
 			TopLeftFinder = topLeftFinder;
@@ -98,12 +93,7 @@ namespace QRCodeDecoderLibrary
 		// Test QR corner for validity
 		/////////////////////////////////////////////////////////////////////
 
-		internal static Corner? CreateCorner
-				(
-				Finder topLeftFinder,
-				Finder topRightFinder,
-				Finder bottomLeftFinder
-				)
+		internal static Corner? CreateCorner(Finder topLeftFinder, Finder topRightFinder, Finder bottomLeftFinder)
 		{
 			// try all three possible permutation of three finders
 			for (int index = 0; index < 3; index++)
