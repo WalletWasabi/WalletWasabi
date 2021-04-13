@@ -263,14 +263,12 @@ namespace WalletWasabi.Fluent.Controls
 
 		protected override Size MeasureOverride(Size availableSize)
 		{
-			var measureSize = MeasureArrange(availableSize, true);
-			return measureSize;
+			return MeasureArrange(availableSize, true);
 		}
 
 		protected override Size ArrangeOverride(Size finalSize)
 		{
-			var arrangeSize = MeasureArrange(finalSize, false);
-			return arrangeSize;
+			return MeasureArrange(finalSize, false);
 		}
 	}
 }
