@@ -41,13 +41,13 @@
 
 	<ItemGroup>
 		<None Update="UnitTests\QrCode\QrTestResources\AddressTest1.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="UnitTests\QrCode\QrTestResources\AddressTest2.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="UnitTests\QrCode\QrTestResources\NotBitcoinAddress.jpg">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="xunit.runner.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>

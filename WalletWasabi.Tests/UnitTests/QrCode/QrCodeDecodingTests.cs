@@ -13,14 +13,14 @@ namespace WalletWasabi.Tests.UnitTests.QrCode
 {
 	public class QrCodeDecodingTests
 	{
-		private readonly string commonPartialPath = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "UnitTests", "QrCode", "QrTestResources");
+		private readonly string _commonPartialPath = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "UnitTests", "QrCode", "QrTestResources");
 
 		[Fact]
 		public void GetCorrectAddressFromImage()
 		{
 			QRDecoder qRDecoder = new();
 
-			string path = Path.Combine(commonPartialPath, "AddressTest1.png");
+			string path = Path.Combine(_commonPartialPath, "AddressTest1.png");
 			using Bitmap qRCodeInputImage = new Bitmap(path);
 			byte[][]? dataByteArray = qRDecoder.ImageDecoder(qRCodeInputImage);
 			Assert.NotNull(dataByteArray);
@@ -28,7 +28,7 @@ namespace WalletWasabi.Tests.UnitTests.QrCode
 			string address = qRDecoder.QRCodeResult(dataByteArray);
 			Assert.Equal(expectedAddress, address);
 
-			string otherPath = Path.Combine(commonPartialPath, "AddressTest2.png");
+			string otherPath = Path.Combine(_commonPartialPath, "AddressTest2.png");
 			using Bitmap otherQRCodeInputImage = new Bitmap(otherPath);
 			byte[][]? otherDataByteArray = qRDecoder.ImageDecoder(otherQRCodeInputImage);
 			Assert.NotNull(otherDataByteArray);
@@ -45,12 +45,12 @@ namespace WalletWasabi.Tests.UnitTests.QrCode
 		{
 			QRDecoder qRDecoder = new();
 
-			string path = Path.Combine(commonPartialPath, "AddressTest1.png");
+			string path = Path.Combine(_commonPartialPath, "AddressTest1.png");
 			using Bitmap qRCodeInputImage = new Bitmap(path);
 			byte[][]? dataByteArray = qRDecoder.ImageDecoder(qRCodeInputImage);
 			Assert.NotNull(dataByteArray);
 
-			string otherPath = Path.Combine(commonPartialPath, "NotBitcoinAddress.jpg");
+			string otherPath = Path.Combine(_commonPartialPath, "NotBitcoinAddress.jpg");
 			using Bitmap notValidInputImage = new Bitmap(otherPath);
 			byte[][]? notValidDataByteArray = qRDecoder.ImageDecoder(notValidInputImage);
 			Assert.Null(notValidDataByteArray);
