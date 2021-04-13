@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
+using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -12,8 +14,12 @@ namespace WalletWasabi.Fluent.Controls
 {
 	public partial class LineChart : Control
 	{
+		private readonly Dictionary<INotifyCollectionChanged, IDisposable> _collectionChangedSubscriptions;
+
 		public LineChart()
 		{
+			_collectionChangedSubscriptions = new Dictionary<INotifyCollectionChanged, IDisposable>();
+
 			AddHandler(PointerPressedEvent, PointerPressedHandler, RoutingStrategies.Tunnel);
 			AddHandler(PointerReleasedEvent, PointerReleasedHandler, RoutingStrategies.Tunnel);
 			AddHandler(PointerMovedEvent, PointerMovedHandler, RoutingStrategies.Tunnel);
@@ -60,7 +66,8 @@ namespace WalletWasabi.Fluent.Controls
 			return geometry;
 		}
 
-		private static FormattedText CreateFormattedText(string text, Typeface typeface, TextAlignment alignment, double fontSize, Size constraint)
+		private static FormattedText CreateFormattedText(string text, Typeface typeface, TextAlignment alignment,
+			double fontSize, Size constraint)
 		{
 			return new FormattedText()
 			{
@@ -103,6 +110,7 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				return null;
 			}
+
 			var cursorHitTestSize = 5;
 			var cursorStrokeThickness = CursorStrokeThickness;
 			var cursorHitTestRect = new Rect(
@@ -134,8 +142,8 @@ namespace WalletWasabi.Fluent.Controls
 
 				var cursorHitTestRect = GetXAxisCursorHitTestRect();
 				var cursorSizeWestEast = cursorHitTestRect is not null && cursorHitTestRect.Value.Contains(position);
-				Cursor = cursorSizeWestEast ?
-					new Cursor(StandardCursorType.SizeWestEast)
+				Cursor = cursorSizeWestEast
+					? new Cursor(StandardCursorType.SizeWestEast)
 					: new Cursor(StandardCursorType.Arrow);
 			}
 		}
@@ -154,6 +162,7 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				Cursor = new Cursor(StandardCursorType.Arrow);
 			}
+
 			_captured = false;
 		}
 
@@ -470,7 +479,8 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				formattedTextLabels[i].Constraint = constraintMax;
 
-				var origin = new Point(i * state.XAxisLabelStep - constraintMax.Width / 2 + state.AreaMargin.Left, originTop);
+				var origin = new Point(i * state.XAxisLabelStep - constraintMax.Width / 2 + state.AreaMargin.Left,
+					originTop);
 				var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
 				var xPosition = origin.X + constraintMax.Width / 2;
 				var yPosition = origin.Y + constraintMax.Height / 2;
@@ -570,7 +580,8 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				formattedTextLabels[i].Constraint = constraintMax;
 
-				var origin = new Point(originLeft - constraintMax.Width, i * state.YAxisLabelStep - constraintMax.Height / 2 + state.AreaMargin.Top);
+				var origin = new Point(originLeft - constraintMax.Width,
+					i * state.YAxisLabelStep - constraintMax.Height / 2 + state.AreaMargin.Top);
 				var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
 				var xPosition = origin.X + constraintMax.Width / 2;
 				var yPosition = origin.Y + constraintMax.Height / 2;
@@ -646,6 +657,43 @@ namespace WalletWasabi.Fluent.Controls
 			var rect = new Rect(0, 0, state.ChartWidth, state.ChartHeight);
 			var rectDeflate = rect.Deflate(thickness * 0.5);
 			context.DrawRectangle(Brushes.Transparent, pen, rectDeflate, radiusX, radiusY);
+		}
+
+		private void UpdateSubscription(INotifyCollectionChanged? oldValue, INotifyCollectionChanged? newValue)
+		{
+			if (oldValue is { } && _collectionChangedSubscriptions.ContainsKey(oldValue))
+			{
+				_collectionChangedSubscriptions[oldValue].Dispose();
+				_collectionChangedSubscriptions.Remove(oldValue);
+			}
+
+			if (newValue is { })
+			{
+				newValue.CollectionChanged += ItemsPropertyCollectionChanged;
+
+				_collectionChangedSubscriptions[newValue] = Disposable.Create(() =>
+				{
+					newValue.CollectionChanged -= ItemsPropertyCollectionChanged;
+				});
+			}
+		}
+
+		private void ItemsPropertyCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+		{
+			InvalidateVisual();
+		}
+
+		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+		{
+			base.OnPropertyChanged(change);
+
+			if (change.Property == XAxisValuesProperty || change.Property == YAxisValuesProperty ||
+			    change.Property == XAxisLabelsProperty || change.Property == YAxisLabelsProperty)
+			{
+				UpdateSubscription(
+					change.OldValue.GetValueOrDefault<INotifyCollectionChanged>(),
+					change.NewValue.GetValueOrDefault<INotifyCollectionChanged>());
+			}
 		}
 
 		public override void Render(DrawingContext context)
