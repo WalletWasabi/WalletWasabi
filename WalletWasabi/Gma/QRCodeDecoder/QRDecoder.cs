@@ -64,155 +64,32 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Text;
+using WalletWasabi.Logging;
 
 namespace QRCodeDecoderLibrary
 {
-	/// <summary>
-	/// QR Code error correction code enumeration
-	/// </summary>
-	public enum ErrorCorrection
-	{
-		/// <summary>
-		/// Low (01)
-		/// </summary>
-		L,
-
-		/// <summary>
-		/// Medium (00)
-		/// </summary>
-		M,
-
-		/// <summary>
-		/// Medium-high (11)
-		/// </summary>
-		Q,
-
-		/// <summary>
-		/// High (10)
-		/// </summary>
-		H,
-	}
-
-	/// <summary>
-	/// QR Code encoding modes
-	/// </summary>
-	public enum EncodingMode
-	{
-		/// <summary>
-		/// Terminator
-		/// </summary>
-		Terminator,
-
-		/// <summary>
-		/// Numeric
-		/// </summary>
-		Numeric,
-
-		/// <summary>
-		/// Alpha numeric
-		/// </summary>
-		AlphaNumeric,
-
-		/// <summary>
-		/// Append
-		/// </summary>
-		Append,
-
-		/// <summary>
-		/// byte encoding
-		/// </summary>
-		Byte,
-
-		/// <summary>
-		/// FNC1 first
-		/// </summary>
-		FNC1First,
-
-		/// <summary>
-		/// Unknown encoding constant
-		/// </summary>
-		Unknown6,
-
-		/// <summary>
-		/// Extended Channel Interpretaion (ECI) mode
-		/// </summary>
-		ECI,
-
-		/// <summary>
-		/// Kanji encoding (not implemented by this software)
-		/// </summary>
-		Kanji,
-
-		/// <summary>
-		/// FNC1 second
-		/// </summary>
-		FNC1Second,
-
-		/// <summary>
-		/// Unknown encoding constant
-		/// </summary>
-		Unknown10,
-
-		/// <summary>
-		/// Unknown encoding constant
-		/// </summary>
-		Unknown11,
-
-		/// <summary>
-		/// Unknown encoding constant
-		/// </summary>
-		Unknown12,
-
-		/// <summary>
-		/// Unknown encoding constant
-		/// </summary>
-		Unknown13,
-
-		/// <summary>
-		/// Unknown encoding constant
-		/// </summary>
-		Unknown14,
-
-		/// <summary>
-		/// Unknown encoding constant
-		/// </summary>
-		Unknown15,
-	}
-
 	public class QRDecoder
 	{
 		public const string VersionNumber = "Rev 2.1.0 - 2019-07-22";
 
-		/// <summary>
-		/// Gets QR Code matrix version
-		/// </summary>
+		// Gets QR Code matrix version
 		public int QRCodeVersion { get; internal set; }
 
-		/// <summary>
-		/// Gets QR Code matrix dimension in bits
-		/// </summary>
+		// Gets QR Code matrix dimension in bits
 		public int QRCodeDimension { get; internal set; }
 
-		/// <summary>
-		/// Gets QR Code error correction code (L, M, Q, H)
-		/// </summary>
+		// Gets QR Code error correction code (L, M, Q, H)
 		public ErrorCorrection ErrorCorrection { get; internal set; }
 
-		/// <summary>
-		/// Error correction percent (L, M, Q, H)
-		/// </summary>
+		// Error correction percent (L, M, Q, H)
 #pragma warning disable IDE1006 // Naming Styles
 		public int[] ErrCorrPercent = new int[] { 7, 15, 25, 30 };
 #pragma warning restore IDE1006 // Naming Styles
 
-		/// <summary>
-		/// Get mask code (0 to 7)
-		/// </summary>
+		// Get mask code (0 to 7)
 		public int MaskCode { get; internal set; }
 
-		/// <summary>
-		/// ECI Assignment Value
-		/// </summary>
+		// ECI Assignment Value
 		public int ECIAssignValue { get; internal set; }
 
 		internal int ImageWidth;
@@ -261,16 +138,12 @@ namespace QRCodeDecoderLibrary
 
 		internal const double SIGNATURE_MAX_DEVIATION = 0.25;
 		internal const double HOR_VERT_SCAN_MAX_DISTANCE = 2.0;
-		internal const double MODULE_SIZE_DEVIATION = 0.5; // 0.75;
+		internal const double MODULE_SIZE_DEVIATION = 0.5;
 		internal const double CORNER_SIDE_LENGTH_DEV = 0.8;
 		internal const double CORNER_RIGHT_ANGLE_DEV = 0.25; // about Sin(4 deg)
 		internal const double ALIGNMENT_SEARCH_AREA = 0.3;
 
-		/// <summary>
-		/// Convert byte array to string using UTF8 encoding
-		/// </summary>
-		/// <param name="dataArray">Input array</param>
-		/// <returns>Output string</returns>
+		// Convert byte array to string using UTF8 encoding, MIGHT BE DELETED LATER
 		public static string ByteArrayToStr(byte[] dataArray)
 		{
 			/*Decoder decoder = Encoding.UTF8.GetDecoder();
@@ -280,11 +153,7 @@ namespace QRCodeDecoderLibrary
 			return Encoding.UTF8.GetString(dataArray);
 		}
 
-		/// <summary>
-		/// QRCode image decoder
-		/// </summary>
-		/// <param name="inputImage">Input image</param>
-		/// <returns>Output byte arrays</returns>
+		// QRCode image decoder
 		public byte[][] ImageDecoder(Bitmap inputImage)
 		{
 			try
@@ -336,8 +205,7 @@ namespace QRCodeDecoderLibrary
 							// get corner info (version, error code and mask) continue if failed OR
 							// decode corner using three finders
 							// continue if successful OR
-							// qr code version 1 has no alignment mark
-							// in other words decode failed OR
+							// qr code version 1 has no alignment mark in other words decode failed
 							if (corner == null || !GetQRCodeCornerInfo(corner) || DecodeQRCodeCorner(corner) || QRCodeVersion == 1)
 							{
 								continue;
@@ -351,7 +219,7 @@ namespace QRCodeDecoderLibrary
 							}
 
 							// decode using 4 points
-							if (!(AlignList is null))
+							if (AlignList is { })
 							{
 								foreach (Finder align in AlignList)
 								{
@@ -368,7 +236,7 @@ namespace QRCodeDecoderLibrary
 						}
 						catch (Exception e)
 						{
-							Console.WriteLine(e);
+							Logger.LogError(e);
 						}
 					}
 				}
@@ -384,10 +252,7 @@ namespace QRCodeDecoderLibrary
 			return DataArrayList.ToArray();
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Convert image to black and white boolean matrix
-		////////////////////////////////////////////////////////////////////
-
 		internal bool ConvertImageToBlackAndWhite(Bitmap inputImage)
 		{
 			// lock image bits
@@ -468,10 +333,7 @@ namespace QRCodeDecoderLibrary
 			return true;
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// search row by row for finders blocks
-		////////////////////////////////////////////////////////////////////
-
 		internal bool HorizontalFindersSearch()
 		{
 			// create empty finders list
@@ -496,7 +358,7 @@ namespace QRCodeDecoderLibrary
 				colPos[posPtr++] = col;
 
 				// loop for pairs
-				for (; ; )
+				while (true)
 				{
 					// look for next white
 					// if black is all the way to the edge, set next white after the edge
@@ -559,17 +421,8 @@ namespace QRCodeDecoderLibrary
 			return true;
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// search row by row for alignment blocks
-		////////////////////////////////////////////////////////////////////
-
-		internal bool HorizontalAlignmentSearch
-				(
-				int areaLeft,
-				int areaTop,
-				int areaWidth,
-				int areaHeight
-				)
+		internal bool HorizontalAlignmentSearch(int areaLeft, int areaTop, int areaWidth, int areaHeight)
 		{
 			// create empty finders list
 			AlignList = new List<Finder>();
@@ -602,7 +455,7 @@ namespace QRCodeDecoderLibrary
 				colPos[posPtr++] = col;
 
 				// loop for pairs
-				for (; ; )
+				while (true)
 				{
 					// look for next white
 					// if black is all the way to the edge, set next white after the edge
@@ -659,10 +512,7 @@ namespace QRCodeDecoderLibrary
 			return AlignList.Count != 0;
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// search column by column for finders blocks
-		////////////////////////////////////////////////////////////////////
-
 		internal void VerticalFindersSearch()
 		{
 			// active columns
@@ -705,7 +555,7 @@ namespace QRCodeDecoderLibrary
 				rowPos[posPtr++] = row;
 
 				// loop for pairs
-				for (; ; )
+				while (true)
 				{
 					// look for next white
 					// if black is all the way to the edge, set next white after the edge
@@ -721,10 +571,6 @@ namespace QRCodeDecoderLibrary
 					}
 
 					// look for next black
-					for (; row < ImageHeight && !BlackWhiteImage[row, col]; row++)
-					{
-						;
-					}
 					while (row < ImageHeight && !BlackWhiteImage[row, col])
 					{
 						row++;
@@ -769,10 +615,7 @@ namespace QRCodeDecoderLibrary
 			}
 		}
 
-		////////////////////////////////////////////////////////////////////
-		// search column by column for finders blocks
-		////////////////////////////////////////////////////////////////////
-
+		// Search column by column for finders blocks
 		internal void VerticalAlignmentSearch(int areaLeft, int areaTop, int areaWidth, int areaHeight)
 		{
 			// active columns
@@ -819,7 +662,7 @@ namespace QRCodeDecoderLibrary
 				rowPos[posPtr++] = row;
 
 				// loop for pairs
-				for (; ; )
+				while (true)
 				{
 					// look for next white
 					// if black is all the way to the edge, set next white after the edge
@@ -879,10 +722,7 @@ namespace QRCodeDecoderLibrary
 			}
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// search column by column for finders blocks
-		////////////////////////////////////////////////////////////////////
-
 		internal bool RemoveUnusedFinders()
 		{
 			// remove all entries without a match
@@ -932,10 +772,7 @@ namespace QRCodeDecoderLibrary
 			return true;
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// search column by column for finders blocks
-		////////////////////////////////////////////////////////////////////
-
 		internal bool RemoveUnusedAlignMarks()
 		{
 			// remove all entries without a match
@@ -973,10 +810,7 @@ namespace QRCodeDecoderLibrary
 			return AlignList.Count != 0;
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// test finder signature 1 1 3 1 1
-		////////////////////////////////////////////////////////////////////
-
 		internal bool TestFinderSig(int[] pos, int[] len, int index, out double module)
 		{
 			module = (pos[index + 5] - pos[index]) / 7.0;
@@ -1009,10 +843,7 @@ namespace QRCodeDecoderLibrary
 			return true;
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// test alignment signature n 1 1 1 n
-		////////////////////////////////////////////////////////////////////
-
 		internal bool TestAlignSig(int[] pos, int[] len, int index, out double module)
 		{
 			module = (pos[index + 4] - pos[index + 1]) / 3.0;
@@ -1045,10 +876,7 @@ namespace QRCodeDecoderLibrary
 			return true;
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Build corner list
-		////////////////////////////////////////////////////////////////////
-
 		internal List<Corner> BuildCornerList()
 		{
 			// empty list
@@ -1143,10 +971,7 @@ namespace QRCodeDecoderLibrary
 			return true;
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Search for QR Code version
-		////////////////////////////////////////////////////////////////////
-
 		internal bool DecodeQRCodeCorner(Corner corner)
 		{
 			try
@@ -1289,10 +1114,7 @@ namespace QRCodeDecoderLibrary
 			matrix[0, 3] -= matrix[0, 1] * matrix[1, 3];
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Get image pixel color
-		////////////////////////////////////////////////////////////////////
-
 		internal bool GetModule(int row, int col)
 		{
 			// get module based on three finders
@@ -1312,10 +1134,7 @@ namespace QRCodeDecoderLibrary
 			return BlackWhiteImage[trans4Row, trans4Col];
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// search row by row for finders blocks
-		////////////////////////////////////////////////////////////////////
-
 		internal bool FindAlignmentMark(Corner corner)
 		{
 			// alignment mark estimated position
@@ -1474,10 +1293,7 @@ namespace QRCodeDecoderLibrary
 			Trans4Mode = true;
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Get version code bits top right
-		////////////////////////////////////////////////////////////////////
-
 		internal int GetVersionOne()
 		{
 			int versionCode = 0;
@@ -1491,10 +1307,7 @@ namespace QRCodeDecoderLibrary
 			return TestVersionCode(versionCode);
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Get version code bits bottom left
-		////////////////////////////////////////////////////////////////////
-
 		internal int GetVersionTwo()
 		{
 			int versionCode = 0;
@@ -1508,10 +1321,7 @@ namespace QRCodeDecoderLibrary
 			return TestVersionCode(versionCode);
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Test version code bits
-		////////////////////////////////////////////////////////////////////
-
 		internal int TestVersionCode(int versionCode)
 		{
 			// format info
@@ -1549,10 +1359,7 @@ namespace QRCodeDecoderLibrary
 			return error <= 3 ? bestInfo + 7 : 0;
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Get format info around top left corner
-		////////////////////////////////////////////////////////////////////
-
 		public int GetFormatInfoOne()
 		{
 			int info = 0;
@@ -1566,10 +1373,7 @@ namespace QRCodeDecoderLibrary
 			return TestFormatInfo(info);
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Get format info around top right and bottom left corners
-		////////////////////////////////////////////////////////////////////
-
 		internal int GetFormatInfoTwo()
 		{
 			int info = 0;
@@ -1595,10 +1399,7 @@ namespace QRCodeDecoderLibrary
 			return TestFormatInfo(info);
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Test format info bits
-		////////////////////////////////////////////////////////////////////
-
 		internal int TestFormatInfo(int formatInfo)
 		{
 			// format info
@@ -1639,10 +1440,7 @@ namespace QRCodeDecoderLibrary
 			return count;
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Convert image to qr code matrix and test fixed modules
-		////////////////////////////////////////////////////////////////////
-
 		internal void ConvertImageToMatrix()
 		{
 			// loop for all modules
@@ -1682,10 +1480,7 @@ namespace QRCodeDecoderLibrary
 			}
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Unload matrix data from base matrix
-		////////////////////////////////////////////////////////////////////
-
 		internal void UnloadDataFromMatrix()
 		{
 			// input array pointer initialization
@@ -1772,10 +1567,7 @@ namespace QRCodeDecoderLibrary
 			}
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Restore interleave data and error correction blocks
-		////////////////////////////////////////////////////////////////////
-
 		internal void RestoreBlocks()
 		{
 			// allocate temp codewords array
@@ -1925,10 +1717,7 @@ namespace QRCodeDecoderLibrary
 			}
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Convert bit array to byte array
-		////////////////////////////////////////////////////////////////////
-
 		internal byte[] DecodeData()
 		{
 			// bit buffer initial condition
@@ -2087,13 +1876,8 @@ namespace QRCodeDecoderLibrary
 				}
 			}
 
-			// save data
 			return dataSeg.ToArray();
 		}
-
-		////////////////////////////////////////////////////////////////////
-		// Read data from codeword array
-		////////////////////////////////////////////////////////////////////
 
 		internal int ReadBitsFromCodewordsArray(int bits)
 		{
@@ -2113,10 +1897,7 @@ namespace QRCodeDecoderLibrary
 			return data;
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Set encoded data bits length
-		////////////////////////////////////////////////////////////////////
-
 		internal int DataLengthBits(EncodingMode encodingMode)
 		{
 			// Data length bits
@@ -2129,10 +1910,7 @@ namespace QRCodeDecoderLibrary
 			};
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Set data and error correction codewords length
-		////////////////////////////////////////////////////////////////////
-
 		internal void SetDataCodewordsLength()
 		{
 			// index shortcut
@@ -2161,18 +1939,10 @@ namespace QRCodeDecoderLibrary
 			ErrCorrCodewords = (MaxCodewords - MaxDataCodewords) / (BlocksGroup1 + BlocksGroup2);
 		}
 
-		////////////////////////////////////////////////////////////////////
-		// Format info to error correction code
-		////////////////////////////////////////////////////////////////////
-
 		internal ErrorCorrection FormatInfoToErrCode(int info)
 		{
 			return (ErrorCorrection)(info ^ 1);
 		}
-
-		////////////////////////////////////////////////////////////////////
-		// Build Base Matrix
-		////////////////////////////////////////////////////////////////////
 
 		internal void BuildBaseMatrix()
 		{
@@ -2266,10 +2036,7 @@ namespace QRCodeDecoderLibrary
 			}
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Apply Mask
-		////////////////////////////////////////////////////////////////////
-
 		internal void ApplyMask(int mask)
 		{
 			MaskMatrix = (byte[,])BaseMatrix.Clone();
@@ -2310,11 +2077,8 @@ namespace QRCodeDecoderLibrary
 			return;
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Apply Mask 0
 		// (row + column) % 2 == 0
-		////////////////////////////////////////////////////////////////////
-
 		internal void ApplyMask0()
 		{
 			for (int row = 0; row < QRCodeDimension; row += 2)
@@ -2334,11 +2098,8 @@ namespace QRCodeDecoderLibrary
 			}
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Apply Mask 1
 		// row % 2 == 0
-		////////////////////////////////////////////////////////////////////
-
 		internal void ApplyMask1()
 		{
 			for (int row = 0; row < QRCodeDimension; row += 2)
@@ -2353,11 +2114,8 @@ namespace QRCodeDecoderLibrary
 			}
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Apply Mask 2
 		// column % 3 == 0
-		////////////////////////////////////////////////////////////////////
-
 		internal void ApplyMask2()
 		{
 			for (int row = 0; row < QRCodeDimension; row++)
@@ -2372,11 +2130,8 @@ namespace QRCodeDecoderLibrary
 			}
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Apply Mask 3
 		// (row + column) % 3 == 0
-		////////////////////////////////////////////////////////////////////
-
 		internal void ApplyMask3()
 		{
 			for (int row = 0; row < QRCodeDimension; row += 3)
@@ -2401,11 +2156,8 @@ namespace QRCodeDecoderLibrary
 			}
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Apply Mask 4
 		// ((row / 2) + (column / 3)) % 2 == 0
-		////////////////////////////////////////////////////////////////////
-
 		internal void ApplyMask4()
 		{
 			for (int row = 0; row < QRCodeDimension; row += 4)
@@ -2475,11 +2227,8 @@ namespace QRCodeDecoderLibrary
 			}
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Apply Mask 5
 		// ((row * column) % 2) + ((row * column) % 3) == 0
-		////////////////////////////////////////////////////////////////////
-
 		internal void ApplyMask5()
 		{
 			for (int row = 0; row < QRCodeDimension; row += 6)
@@ -2525,11 +2274,8 @@ namespace QRCodeDecoderLibrary
 			}
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Apply Mask 6
 		// (((row * column) % 2) + ((row * column) mod 3)) mod 2 == 0
-		////////////////////////////////////////////////////////////////////
-
 		internal void ApplyMask6()
 		{
 			for (int row = 0; row < QRCodeDimension; row += 6)
@@ -2615,11 +2361,8 @@ namespace QRCodeDecoderLibrary
 			}
 		}
 
-		////////////////////////////////////////////////////////////////////
 		// Apply Mask 7
 		// (((row + column) % 2) + ((row * column) mod 3)) mod 2 == 0
-		////////////////////////////////////////////////////////////////////
-
 		internal void ApplyMask7()
 		{
 			for (int row = 0; row < QRCodeDimension; row += 6)
