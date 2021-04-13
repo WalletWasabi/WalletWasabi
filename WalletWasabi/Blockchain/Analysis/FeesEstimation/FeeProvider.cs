@@ -9,6 +9,8 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {
 	public class FeeProvider : IDisposable
 	{
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
 		public FeeProvider(WasabiSynchronizer synchronizer, RpcFeeNotifier? rpcNotifier)
 		{
 			Synchronizer = synchronizer;
@@ -40,34 +42,34 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			var notify = false;
 			lock (Lock)
 			{
-				// If the fee was never set yet, then we should set it regardless where it came from.
 				if (AllFeeEstimate is null)
 				{
+					// If the fee was never set yet, then we should set it regardless where it came from.
 					notify = TrySetAllFeeEstimate(fees);
 				}
-				// If the fee was inaccurate and the new fee is accurate, then we should set it regardless where it came from.
 				else if (!AllFeeEstimate.IsAccurate && fees.IsAccurate)
 				{
+					// If the fee was inaccurate and the new fee is accurate, then we should set it regardless where it came from.
 					notify = TrySetAllFeeEstimate(fees);
 				}
-				// If the fee was accurate and the new fee is inaccurate, then we should leave the fees alone.
 				else if (AllFeeEstimate.IsAccurate && !fees.IsAccurate)
 				{
+					// If the fee was accurate and the new fee is inaccurate, then we should leave the fees alone.
 					return;
 				}
-				// If the fee is coming from the user's full node, then set it.
 				else if (sender is RpcFeeNotifier)
 				{
+					// If the fee is coming from the user's full node, then set it.
 					notify = TrySetAllFeeEstimate(fees);
 				}
-				// If fee is coming from the the backend and user doesn't use a full node, then set the fees.
 				else if (sender is WasabiSynchronizer && RpcNotifier is null)
 				{
+					// If fee is coming from the the backend and user doesn't use a full node, then set the fees.
 					notify = TrySetAllFeeEstimate(fees);
 				}
-				// If fee is coming from the the backend, user uses a full node, but it doesn't provide fees, then set the fees.
 				else if (sender is WasabiSynchronizer && RpcNotifier is not null && RpcNotifier.InError is true)
 				{
+					// If fee is coming from the the backend, user uses a full node, but it doesn't provide fees, then set the fees.
 					notify = TrySetAllFeeEstimate(fees);
 				}
 			}
@@ -93,8 +95,6 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		}
 
 		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{
