@@ -49,12 +49,7 @@ namespace QRCodeDecoderLibrary
 	{
 		internal static int INCORRECTABLE_ERROR = -1;
 
-		internal static int CorrectData
-				(
-				byte[] receivedData,        // recived data buffer with data and error correction code
-				int dataLength,         // length of data in the buffer (note sometimes the array is longer than data)
-				int errCorrCodewords    // numer of error correction codewords
-				)
+		internal static int CorrectData(byte[] receivedData, int dataLength, int errCorrCodewords)
 		{
 			// calculate syndrome vector
 			int[]? syndrome = CalculateSyndrome(receivedData, dataLength, errCorrCodewords);
@@ -99,12 +94,7 @@ namespace QRCodeDecoderLibrary
 		// ....
 		// Sm = R0 + R1 * A**m + R2 * A**2m + .... + Rn * A**mn
 
-		internal static int[]? CalculateSyndrome
-				(
-				byte[] receivedData,        // recived data buffer with data and error correction code
-				int dataLength,         // length of data in the buffer (note sometimes the array is longer than data)
-				int errCorrCodewords    // numer of error correction codewords
-				)
+		internal static int[]? CalculateSyndrome(byte[] receivedData, int dataLength, int errCorrCodewords)
 		{
 			// allocate syndrome vector
 			int[] syndrome = new int[errCorrCodewords];
@@ -148,13 +138,7 @@ namespace QRCodeDecoderLibrary
 		}
 
 		// Modified Berlekamp-Massey
-		internal static int CalculateSigmaMBM
-				(
-				int[] sigma,
-				int[] omega,
-				int[] syndrome,
-				int errCorrCodewords
-				)
+		internal static int CalculateSigmaMBM(int[] sigma, int[] omega, int[] syndrome, int errCorrCodewords)
 		{
 			int[] polyC = new int[errCorrCodewords];
 			int[] polyB = new int[errCorrCodewords];
@@ -216,13 +200,7 @@ namespace QRCodeDecoderLibrary
 		// Chien search is a fast algorithm for determining roots of polynomials defined over a finite field.
 		// The most typical use of the Chien search is in finding the roots of error-locator polynomials
 		// encountered in decoding Reed-Solomon codes and BCH codes.
-		private static bool ChienSearch
-				(
-				int[] errorPosition,
-				int dataLength,
-				int errorCount,
-				int[] sigma
-				)
+		private static bool ChienSearch(int[] errorPosition, int dataLength, int errorCount, int[] sigma)
 		{
 			// last error
 			int lastPosition = sigma[1];
@@ -277,15 +255,7 @@ namespace QRCodeDecoderLibrary
 			return false;
 		}
 
-		private static void ApplyCorrection
-				(
-				byte[] receivedData,
-				int dataLength,
-				int errorCount,
-				int[] errorPosition,
-				int[] sigma,
-				int[] omega
-				)
+		private static void ApplyCorrection(byte[] receivedData, int dataLength, int errorCount, int[] errorPosition, int[] sigma, int[] omega)
 		{
 			if (receivedData is null)
 			{
@@ -353,39 +323,22 @@ namespace QRCodeDecoderLibrary
 			return;
 		}
 
-		internal static int Multiply
-				(
-				int int1,
-				int int2
-				)
+		internal static int Multiply(int int1, int int2)
 		{
 			return (int1 == 0 || int2 == 0) ? 0 : StaticTables.ExpToInt[StaticTables.IntToExp[int1] + StaticTables.IntToExp[int2]];
 		}
 
-		internal static int MultiplyIntByExp
-				(
-				int integer,
-				int exp
-				)
+		internal static int MultiplyIntByExp(int integer, int exp)
 		{
 			return integer == 0 ? 0 : StaticTables.ExpToInt[StaticTables.IntToExp[integer] + exp];
 		}
 
-		internal static int MultiplyDivide
-				(
-				int int1,
-				int int2,
-				int int3
-				)
+		internal static int MultiplyDivide(int int1, int int2, int int3)
 		{
 			return (int1 == 0 || int2 == 0) ? 0 : StaticTables.ExpToInt[(StaticTables.IntToExp[int1] + StaticTables.IntToExp[int2] - StaticTables.IntToExp[int3] + 255) % 255];
 		}
 
-		internal static int DivideIntByExp
-				(
-				int integer,
-				int exp
-				)
+		internal static int DivideIntByExp(int integer, int exp)
 		{
 			return integer == 0 ? 0 : StaticTables.ExpToInt[StaticTables.IntToExp[integer] - exp + 255];
 		}
@@ -403,6 +356,7 @@ namespace QRCodeDecoderLibrary
 
 				int loga = StaticTables.IntToExp[poly1[index1]];
 				int index2End = Math.Min(poly2.Length, result.Length - index1);
+
 				// = Sum(Poly1[Index1] * Poly2[Index2]) for all Index2
 				for (int index2 = 0; index2 < index2End; index2++)
 				{
