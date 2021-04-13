@@ -36,9 +36,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var resp = await handler.ConfirmConnectionAsync(req);
 			Assert.NotNull(resp);
 			Assert.NotNull(resp.ZeroAmountCredentials);
-			Assert.NotNull(resp.ZeroWeightCredentials);
+			Assert.NotNull(resp.ZeroVsizeCredentials);
 			Assert.Null(resp.RealAmountCredentials);
-			Assert.Null(resp.RealWeightCredentials);
+			Assert.Null(resp.RealVsizeCredentials);
 			Assert.NotEqual(preDeadline, alice.Deadline);
 			Assert.True(minAliceDeadline <= alice.Deadline);
 			Assert.False(alice.ConfirmedConnetion);
@@ -63,9 +63,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var resp = await handler.ConfirmConnectionAsync(req);
 			Assert.NotNull(resp);
 			Assert.NotNull(resp.ZeroAmountCredentials);
-			Assert.NotNull(resp.ZeroWeightCredentials);
+			Assert.NotNull(resp.ZeroVsizeCredentials);
 			Assert.NotNull(resp.RealAmountCredentials);
-			Assert.NotNull(resp.RealWeightCredentials);
+			Assert.NotNull(resp.RealVsizeCredentials);
 			Assert.Equal(preDeadline, alice.Deadline);
 			Assert.True(alice.ConfirmedConnetion);
 
@@ -143,11 +143,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 				req.AliceId,
 				req.ZeroAmountCredentialRequests,
 				req.RealAmountCredentialRequests,
-				req.ZeroWeightCredentialRequests,
-				WabiSabiFactory.CreateRealCredentialRequests(round, null, 234).weightReq);
+				req.ZeroVsizeCredentialRequests,
+				WabiSabiFactory.CreateRealCredentialRequests(round, null, 234).vsizeReq);
 			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.ConfirmConnectionAsync(req));
-			Assert.Equal(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials, ex.ErrorCode);
+			Assert.Equal(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, ex.ErrorCode);
 			Assert.False(alice.ConfirmedConnetion);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -169,8 +169,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 				req.AliceId,
 				req.ZeroAmountCredentialRequests,
 				WabiSabiFactory.CreateRealCredentialRequests(round, Money.Coins(3), null).amountReq,
-				req.ZeroWeightCredentialRequests,
-				req.RealWeightCredentialRequests);
+				req.ZeroVsizeCredentialRequests,
+				req.RealVsizeCredentialRequests);
 			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.ConfirmConnectionAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, ex.ErrorCode);
@@ -183,16 +183,16 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		public async Task InvalidRequestedAmountCredentialsAsync()
 		{
 			await InvalidRequestedCredentialsAsync(
-				(round) => (round.AmountCredentialIssuer, round.WeightCredentialIssuer),
+				(round) => (round.AmountCredentialIssuer, round.VsizeCredentialIssuer),
 				(request) => request.RealAmountCredentialRequests);
 		}
 
 		[Fact]
-		public async Task InvalidRequestedWeightCredentialsAsync()
+		public async Task InvalidRequestedVsizeCredentialsAsync()
 		{
 			await InvalidRequestedCredentialsAsync(
-				(round) => (round.WeightCredentialIssuer, round.AmountCredentialIssuer),
-				(request) => request.RealWeightCredentialRequests);
+				(round) => (round.VsizeCredentialIssuer, round.AmountCredentialIssuer),
+				(request) => request.RealVsizeCredentialRequests);
 		}
 
 		private async Task InvalidRequestedCredentialsAsync(

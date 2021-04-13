@@ -1,18 +1,11 @@
-using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Bases;
-using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
-using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client
 {
@@ -43,8 +36,8 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task<bool> ConfirmConnectionAsync()
 		{
-			var inputWeight = 4 * Constants.P2wpkhInputVirtualSize;
-			var inputRemainingWeights = new[] { (long)ArenaClient.ProtocolMaxWeightPerAlice - Coins.Count() * inputWeight };
+			var inputVsize = Constants.P2wpkhInputVirtualSize;
+			var inputRemainingVsizes = new[] { (long)ArenaClient.ProtocolMaxVsizePerAlice - Coins.Count() * inputVsize };
 
 			var amountCredentials = ArenaClient.AmountCredentialClient.Credentials;
 
@@ -62,7 +55,7 @@ namespace WalletWasabi.WabiSabi.Client
 				.ConfirmConnectionAsync(
 					RoundId,
 					AliceId,
-					inputRemainingWeights,
+					inputRemainingVsizes,
 					amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
 					amountsToRequest)
 				.ConfigureAwait(false);

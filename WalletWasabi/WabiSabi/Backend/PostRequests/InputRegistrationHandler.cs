@@ -70,7 +70,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			Guid roundId,
 			IDictionary<Coin, byte[]> coinRoundSignaturePairs,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
-			ZeroCredentialsRequest zeroWeightCredentialRequests,
+			ZeroCredentialsRequest zeroVsizeCredentialRequests,
 			IDictionary<Guid, Round> rounds,
 			Network network)
 		{
@@ -92,7 +92,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			}
 
 			var inputValueSum = Money.Zero;
-			var inputWeightSum = 0;
+			var inputVsizeSum = 0;
 			foreach (var coinRoundSignaturePair in alice.CoinRoundSignaturePairs)
 			{
 				var coin = coinRoundSignaturePair.Key;
@@ -104,9 +104,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongRoundSignature);
 				}
 				inputValueSum += coin.TxOut.Value;
-
-				// Convert conservative P2WPKH size in virtual bytes to weight units.
-				inputWeightSum += Constants.WitnessScaleFactor * coin.TxOut.ScriptPubKey.EstimateInputVsize();
+				inputVsizeSum += coin.TxOut.ScriptPubKey.EstimateInputVsize();
 			}
 
 			if (inputValueSum < round.MinRegistrableAmount)
@@ -118,9 +116,9 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 			}
 
-			if (inputWeightSum > round.RegistrableWeightCredentials)
+			if (inputVsizeSum > round.RegistrableVsizeCredentials)
 			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchWeight);
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchVsize);
 			}
 
 			if (round.IsInputRegistrationEnded(config.MaxInputCountByRound, config.GetInputRegistrationTimeout(round)))
@@ -129,7 +127,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			}
 
 			var commitAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(zeroAmountCredentialRequests);
-			var commitWeightCredentialResponse = round.WeightCredentialIssuer.PrepareResponse(zeroWeightCredentialRequests);
+			var commitVsizeCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(zeroVsizeCredentialRequests);
 
 			RemoveDuplicateAlices(rounds, alice);
 
@@ -138,7 +136,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 
 			return new(alice.Id, 
 				commitAmountCredentialResponse.Commit(), 
-				commitWeightCredentialResponse.Commit());
+				commitVsizeCredentialResponse.Commit());
 		}
 
 		private static void RemoveDuplicateAlices(IDictionary<Guid, Round> rounds, Alice alice)

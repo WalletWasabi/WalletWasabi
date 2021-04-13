@@ -313,11 +313,11 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 
 				var realAmountCredentialRequests = request.RealAmountCredentialRequests;
-				var realWeightCredentialRequests = request.RealWeightCredentialRequests;
+				var realVsizeCredentialRequests = request.RealVsizeCredentialRequests;
 
-				if (realWeightCredentialRequests.Delta != alice.CalculateRemainingWeightCredentials(round.RegistrableWeightCredentials))
+				if (realVsizeCredentialRequests.Delta != alice.CalculateRemainingSizeCredentials(round.RegistrableVsizeCredentials))
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials, $"Round ({request.RoundId}): Incorrect requested weight credentials.");
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, $"Round ({request.RoundId}): Incorrect requested weight credentials.");
 				}
 				if (realAmountCredentialRequests.Delta != alice.CalculateRemainingAmountCredentials(round.FeeRate))
 				{
@@ -325,26 +325,26 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 
 				var commitAmountZeroCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(request.ZeroAmountCredentialRequests);
-				var commitWeightZeroCredentialResponse = round.WeightCredentialIssuer.PrepareResponse(request.ZeroWeightCredentialRequests);
+				var commitVsizeZeroCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(request.ZeroVsizeCredentialRequests);
 
 				if (round.Phase == Phase.InputRegistration)
 				{
 					alice.SetDeadlineRelativeTo(round.ConnectionConfirmationTimeout);
 					return new(
 						commitAmountZeroCredentialResponse.Commit(),
-						commitWeightZeroCredentialResponse.Commit());
+						commitVsizeZeroCredentialResponse.Commit());
 				}
 				else if (round.Phase == Phase.ConnectionConfirmation)
 				{
 					var commitAmountRealCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(realAmountCredentialRequests);
-					var commitWeightRealCredentialResponse = round.WeightCredentialIssuer.PrepareResponse(realWeightCredentialRequests);
+					var commitVsizeRealCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(realVsizeCredentialRequests);
 					alice.ConfirmedConnetion = true;
 
 					return new(
 						commitAmountZeroCredentialResponse.Commit(),
-						commitWeightZeroCredentialResponse.Commit(),
+						commitVsizeZeroCredentialResponse.Commit(),
 						commitAmountRealCredentialResponse.Commit(),
-						commitWeightRealCredentialResponse.Commit());
+						commitVsizeRealCredentialResponse.Commit());
 				}
 				else
 				{
@@ -386,10 +386,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds, $"Round ({request.RoundId}): Too much funds.");
 				}
 
-				var weightCredentialRequests = request.WeightCredentialRequests;
-				if (-weightCredentialRequests.Delta != bob.CalculateWeight())
+				var vsizeCredentialRequests = request.VsizeCredentialRequests;
+				if (-vsizeCredentialRequests.Delta != bob.OutputVsize)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials, $"Round ({request.RoundId}): Incorrect requested weight credentials.");
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, $"Round ({request.RoundId}): Incorrect requested weight credentials.");
 				}
 
 				if (round.Phase != Phase.OutputRegistration)
@@ -398,13 +398,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 
 				var commitAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(request.AmountCredentialRequests);
-				var commitWeightCredentialResponse = round.WeightCredentialIssuer.PrepareResponse(weightCredentialRequests);
+				var commitVsizeCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(vsizeCredentialRequests);
 
 				round.Bobs.Add(bob);
 
 				return new(
 					commitAmountCredentialResponse.Commit(),
-					commitWeightCredentialResponse.Commit());
+					commitVsizeCredentialResponse.Commit());
 			}
 		}
 
