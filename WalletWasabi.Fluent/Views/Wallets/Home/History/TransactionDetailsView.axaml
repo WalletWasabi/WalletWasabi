@@ -9,6 +9,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.TransactionDetailsView">
   <c:ContentArea Title="{Binding Title}"
+                 Caption="{Binding LastUpdated, StringFormat='Last updated at {0:MM/dd/yyyy HH:mm:ss}'}"
                  NextContent="Done" EnableNext="True"
                  EnableCancel="{Binding EnableCancel}">
     <StackPanel Spacing="15">

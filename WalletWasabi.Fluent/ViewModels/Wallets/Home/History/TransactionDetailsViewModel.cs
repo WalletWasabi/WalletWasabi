@@ -29,6 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		[AutoNotify] private string? _amount;
 		[AutoNotify] private SmartLabel? _labels;
 		[AutoNotify] private uint256? _transactionId;
+		[AutoNotify] private DateTimeOffset _lastUpdated;
 
 		public TransactionDetailsViewModel(TransactionSummary transactionSummary, BitcoinStore bitcoinStore, Wallet wallet)
 		{
@@ -62,6 +63,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			Confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int) _bitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
 			IsConfirmed = Confirmations > 0;
 			Amount = transactionSummary.Amount.ToString(fplus: false);
+
+			LastUpdated = DateTimeOffset.Now.ToLocalTime();
 		}
 
 		private void OnNext()
