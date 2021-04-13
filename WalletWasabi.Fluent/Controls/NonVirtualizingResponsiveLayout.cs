@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Specialized;
 using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
