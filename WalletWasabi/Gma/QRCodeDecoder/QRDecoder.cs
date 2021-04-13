@@ -876,37 +876,6 @@ namespace QRCodeDecoderLibrary
 			return true;
 		}
 
-		// Build corner list
-		internal List<Corner> BuildCornerList()
-		{
-			// empty list
-			List<Corner> corners = new List<Corner>();
-
-			// look for all possible 3 finder patterns
-			int index1End = FinderList.Count - 2;
-			int index2End = FinderList.Count - 1;
-			int index3End = FinderList.Count;
-			for (int index1 = 0; index1 < index1End; index1++)
-			{
-				for (int index2 = index1 + 1; index2 < index2End; index2++)
-				{
-					for (int index3 = index2 + 1; index3 < index3End; index3++)
-					{
-						// find 3 finders arranged in L shape
-						Corner corner = Corner.CreateCorner(FinderList[index1], FinderList[index2], FinderList[index3]);
-
-						// add corner to list
-						if (corner != null)
-						{
-							corners.Add(corner);
-						}
-					}
-				}
-			}
-
-			return corners.Count == 0 ? null : corners;
-		}
-
 		internal bool GetQRCodeCornerInfo(Corner corner)
 		{
 			try
@@ -964,7 +933,7 @@ namespace QRCodeDecoderLibrary
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine(e);
+				Logger.LogError(e);
 				return false;
 			}
 
@@ -1494,7 +1463,7 @@ namespace QRCodeDecoderLibrary
 
 			// step state
 			int state = 0;
-			for (; ; )
+			while (true)
 			{
 				// current module is data
 				if ((MaskMatrix[row, col] & StaticTables.NonData) == 0)
@@ -2473,7 +2442,7 @@ namespace QRCodeDecoderLibrary
 			// image has one QR code
 			if (dataByteArray.Length == 1)
 			{
-				return ForDisplay(QRDecoder.ByteArrayToStr(dataByteArray[0]));
+				return ByteArrayToStr(dataByteArray[0]);
 			}
 
 			// image has more than one QR code
@@ -2486,54 +2455,9 @@ namespace QRCodeDecoderLibrary
 				}
 
 				str.AppendFormat("QR Code {0}\r\n", index + 1);
-				str.Append(ForDisplay(QRDecoder.ByteArrayToStr(dataByteArray[index])));
+				str.Append(ByteArrayToStr(dataByteArray[index]));
 			}
 			return str.ToString();
-		}
-
-		private string ForDisplay(string result)
-		{
-			int index;
-			for (index = 0; index < result.Length && (result[index] >= ' ' && result[index] <= '~' || result[index] >= 160); index++)
-			{
-				;
-			}
-
-			if (index == result.Length)
-			{
-				return result;
-			}
-
-			StringBuilder display = new StringBuilder(result.Substring(0, index));
-			for (; index < result.Length; index++)
-			{
-				char oneChar = result[index];
-				if (oneChar >= ' ' && oneChar <= '~' || oneChar >= 160)
-				{
-					display.Append(oneChar);
-					continue;
-				}
-
-				if (oneChar == '\r')
-				{
-					display.Append("\r\n");
-					if (index + 1 < result.Length && result[index + 1] == '\n')
-					{
-						index++;
-					}
-
-					continue;
-				}
-
-				if (oneChar == '\n')
-				{
-					display.Append("\r\n");
-					continue;
-				}
-
-				display.Append('¿');
-			}
-			return display.ToString();
 		}
 	}
 }
