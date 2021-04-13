@@ -241,7 +241,7 @@ namespace WalletWasabi.BitcoinCore
 
 				coreNode.HostedServices.Register(new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
 				coreNode.HostedServices.Register(new RpcMonitor(TimeSpan.FromSeconds(7), coreNode.RpcClient), "RPC Monitor");
-				coreNode.HostedServices.Register(new RpcFeeProvider(TimeSpan.FromMinutes(1), coreNode.RpcClient), "RPC Fee Provider");
+				coreNode.HostedServices.Register(new RpcFeeNotifier(TimeSpan.FromMinutes(1), coreNode.RpcClient), "RPC Fee Provider");
 
 				return coreNode;
 			}

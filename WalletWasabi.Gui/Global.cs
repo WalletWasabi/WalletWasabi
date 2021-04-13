@@ -55,7 +55,7 @@ namespace WalletWasabi.Gui
 
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
-		public FeeProviders FeeProviders { get; private set; }
+		public FeeProvider FeeProvider { get; private set; }
 		public WalletManager WalletManager { get; }
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
@@ -222,11 +222,10 @@ namespace WalletWasabi.Gui
 					Logger.LogError(ex);
 				}
 
+				var rpcFeeNotifier = HostedServices.FirstOrDefault<RpcFeeNotifier>();
+				FeeProvider = new FeeProvider(Synchronizer, rpcFeeNotifier);
+
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
-
-				var rpcFeeProvider = HostedServices.FirstOrDefault<RpcFeeProvider>();
-
-				FeeProviders = new FeeProviders(Synchronizer, rpcFeeProvider);
 
 				#endregion BitcoinCoreInitialization
 
@@ -344,7 +343,7 @@ namespace WalletWasabi.Gui
 
 				cancel.ThrowIfCancellationRequested();
 
-				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, FeeProviders, blockProvider);
+				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, FeeProvider, blockProvider);
 			}
 			finally
 			{
@@ -633,12 +632,12 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
 				}
 
-				Logger.LogDebug($"Step: {nameof(FeeProviders)}.", nameof(Global));
+				Logger.LogDebug($"Step: {nameof(FeeProvider)}.", nameof(Global));
 
-				if (FeeProviders is { } feeProviders)
+				if (FeeProvider is { } feeProviders)
 				{
 					feeProviders.Dispose();
-					Logger.LogInfo($"Disposed {nameof(FeeProviders)}.");
+					Logger.LogInfo($"Disposed {nameof(FeeProvider)}.");
 				}
 
 				Logger.LogDebug($"Step: {nameof(CoinJoinProcessor)}.", nameof(Global));

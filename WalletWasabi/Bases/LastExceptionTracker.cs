@@ -1,4 +1,5 @@
 using System;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Bases
 {
@@ -25,6 +26,7 @@ namespace WalletWasabi.Bases
 			}
 			else
 			{
+				Logger.LogError(currentException);
 				LastException = new ExceptionInfo(currentException);
 			}
 

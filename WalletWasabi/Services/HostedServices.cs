@@ -16,7 +16,6 @@ namespace WalletWasabi.Services
 
 		private object ServicesLock { get; } = new object();
 		private bool IsStartAllAsyncStarted { get; set; } = false;
-		private bool IsStartAllAsyncCompleted { get; set; } = false;
 
 		public void Register(IHostedService service, string friendlyName)
 		{
@@ -65,8 +64,6 @@ namespace WalletWasabi.Services
 			{
 				throw new AggregateException(exceptions);
 			}
-
-			IsStartAllAsyncCompleted = true;
 		}
 
 		public async Task StopAllAsync(CancellationToken token = default)
@@ -97,10 +94,6 @@ namespace WalletWasabi.Services
 
 		public T FirstOrDefault<T>() where T : class
 		{
-			if (!IsStartAllAsyncCompleted)
-			{
-				throw new InvalidOperationException("Services are not yet started.");
-			}
 			lock (ServicesLock)
 			{
 				var found = Services.FirstOrDefault(x => x.Service is T);

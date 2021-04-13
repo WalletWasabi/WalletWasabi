@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin.RPC;
@@ -9,45 +10,32 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.BitcoinCore.Monitoring
 {
-	public class RpcFeeProvider : PeriodicRunner, IFeeProvider
+	public class RpcFeeNotifier : PeriodicRunner
 	{
-		private AllFeeEstimate _allFeeEstimate;
-
-		public RpcFeeProvider(TimeSpan period, IRPCClient rpcClient) : base(period)
+		public RpcFeeNotifier(TimeSpan period, IRPCClient rpcClient) : base(period)
 		{
 			RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
 		}
 
-		public event EventHandler<AllFeeEstimate>? AllFeeEstimateChanged;
-
-		public AllFeeEstimate AllFeeEstimate
-		{
-			get => _allFeeEstimate;
-			private set
-			{
-				if (value != _allFeeEstimate)
-				{
-					_allFeeEstimate = value;
-					AllFeeEstimateChanged?.Invoke(this, value);
-				}
-			}
-		}
+		public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
 
 		public IRPCClient RpcClient { get; set; }
+		public bool InError { get; private set; } = false;
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
 			try
 			{
 				var allFeeEstimate = await RpcClient.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true).ConfigureAwait(false);
-				AllFeeEstimate = allFeeEstimate;
+				if (allFeeEstimate?.Estimations?.Any() is true)
+				{
+					AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
+				}
+				InError = false;
 			}
 			catch
 			{
-				if (AllFeeEstimate is { })
-				{
-					AllFeeEstimate = new AllFeeEstimate(AllFeeEstimate, false);
-				}
+				InError = true;
 				throw;
 			}
 		}

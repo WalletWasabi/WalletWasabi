@@ -18,7 +18,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class WasabiSynchronizer : NotifyPropertyChangedBase, IFeeProvider
+	public class WasabiSynchronizer : NotifyPropertyChangedBase
 	{
 		private const long StateNotStarted = 0;
 
@@ -29,8 +29,6 @@ namespace WalletWasabi.Services
 		private const long StateStopped = 3;
 
 		private decimal _usdExchangeRate;
-
-		private AllFeeEstimate? _allFeeEstimate;
 
 		private TorStatus _torStatus;
 
@@ -58,7 +56,7 @@ namespace WalletWasabi.Services
 
 		#region EventsPropertiesMembers
 
-		public event EventHandler<AllFeeEstimate>? AllFeeEstimateChanged;
+		public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
 
 		public event EventHandler<bool>? ResponseArrivedIsGenSocksServFail;
 
@@ -80,18 +78,6 @@ namespace WalletWasabi.Services
 		{
 			get => _usdExchangeRate;
 			private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value);
-		}
-
-		public AllFeeEstimate? AllFeeEstimate
-		{
-			get => _allFeeEstimate;
-			private set
-			{
-				if (RaiseAndSetIfChanged(ref _allFeeEstimate, value))
-				{
-					AllFeeEstimateChanged?.Invoke(this, value);
-				}
-			}
 		}
 
 		public TorStatus TorStatus
@@ -230,10 +216,11 @@ namespace WalletWasabi.Services
 								throw;
 							}
 
-							if (response.AllFeeEstimate is { } && response.AllFeeEstimate.Estimations.Any())
+							var allFeeEstimate = response.AllFeeEstimate;
+							if (allFeeEstimate?.Estimations?.Any() is true)
 							{
 								lastFeeQueried = DateTimeOffset.UtcNow;
-								AllFeeEstimate = response.AllFeeEstimate;
+								AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
 							}
 
 							if (response.Filters.Count() == maxFiltersToSyncAtInitialization)

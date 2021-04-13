@@ -7,6 +7,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Mempool;
@@ -96,6 +97,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
 			HttpClientFactory httpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: () => new Uri("http://localhost:12345"));
 			WasabiSynchronizer syncer = new(network, bitcoinStore, httpClientFactory);
+			using var feeProvider = new FeeProvider(syncer, null);
 			ServiceConfiguration serviceConfig = new(MixUntilAnonymitySet.PrivacyLevelStrong.ToString(), 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
 			CachedBlockProvider blockProvider = new(
 				new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfig, network),
@@ -108,7 +110,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				syncer,
 				dataDir,
 				new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelStrong.ToString(), 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
-				syncer,
+				feeProvider,
 				blockProvider);
 			Assert.True(Directory.Exists(blocks.BlocksFolderPath));
 
