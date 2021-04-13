@@ -162,7 +162,7 @@ namespace WalletWasabi.Gui.ViewModels
 			UseTor = Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
 			UseBitcoinCore = Config.StartLocalBitcoinCoreOnStartup;
 
-			var updateChecker = HostedServices.FirstOrDefault<UpdateChecker>();
+			var updateChecker = HostedServices.First<UpdateChecker>();
 			Guard.NotNull(nameof(updateChecker), updateChecker);
 			UpdateStatus = updateChecker.UpdateStatus;
 

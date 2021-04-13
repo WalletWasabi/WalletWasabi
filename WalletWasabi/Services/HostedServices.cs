@@ -92,7 +92,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public T FirstOrDefault<T>() where T : class
+		public T? FirstOrDefault<T>() where T : class, IHostedService
 		{
 			lock (ServicesLock)
 			{
@@ -103,6 +103,11 @@ namespace WalletWasabi.Services
 				}
 				return found.Service as T;
 			}
+		}
+
+		public T First<T>() where T : class, IHostedService
+		{
+			return FirstOrDefault<T>() ?? throw new InvalidOperationException("No matching element.");
 		}
 
 		#region IDisposable Support

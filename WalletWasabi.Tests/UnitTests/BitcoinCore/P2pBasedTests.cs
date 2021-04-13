@@ -160,7 +160,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				var walletName = "wallet.dat";
 				await rpc.CreateWalletAsync(walletName);
 
-				BlockNotifier notifier = services.FirstOrDefault<BlockNotifier>();
+				BlockNotifier notifier = services.First<BlockNotifier>();
 
 				// Make sure we get notification for one block.
 				EventAwaiter<Block> blockEventAwaiter = new(h => notifier.OnBlock += h, h => notifier.OnBlock -= h);

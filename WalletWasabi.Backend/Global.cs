@@ -87,7 +87,7 @@ namespace WalletWasabi.Backend
 			// Initialize index building
 			var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
-			var blockNotifier = HostedServices.FirstOrDefault<BlockNotifier>();
+			var blockNotifier = HostedServices.First<BlockNotifier>();
 			IndexBuilderService = new(RpcClient, blockNotifier, indexFilePath);
 			Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
 			IndexBuilderService.Synchronize();
