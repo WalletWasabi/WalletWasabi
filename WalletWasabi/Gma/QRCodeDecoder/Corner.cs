@@ -98,7 +98,7 @@ namespace QRCodeDecoderLibrary
 		// Test QR corner for validity
 		/////////////////////////////////////////////////////////////////////
 
-		internal static Corner CreateCorner
+		internal static Corner? CreateCorner
 				(
 				Finder topLeftFinder,
 				Finder topRightFinder,

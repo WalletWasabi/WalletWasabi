@@ -285,7 +285,7 @@ namespace QRCodeDecoderLibrary
 		/// </summary>
 		/// <param name="inputImage">Input image</param>
 		/// <returns>Output byte arrays</returns>
-		public byte[][] ImageDecoder(Bitmap inputImage)
+		public byte[][]? ImageDecoder(Bitmap inputImage)
 		{
 			try
 			{
@@ -334,7 +334,7 @@ namespace QRCodeDecoderLibrary
 						try
 						{
 							// find 3 finders arranged in L shape
-							Corner corner = Corner.CreateCorner(FinderList[index1], FinderList[index2], FinderList[index3]);
+							Corner? corner = Corner.CreateCorner(FinderList[index1], FinderList[index2], FinderList[index3]);
 
 							// not a valid corner
 							if (corner == null)
@@ -505,10 +505,10 @@ namespace QRCodeDecoderLibrary
 			{
 				// look for first black pixel
 				int col = 0;
-				while(col < ImageWidth && !BlackWhiteImage[row, col])
-                {
+				while (col < ImageWidth && !BlackWhiteImage[row, col])
+				{
 					col++;
-                }
+				}
 
 				// first black
 				posPtr = 0;
@@ -519,10 +519,9 @@ namespace QRCodeDecoderLibrary
 				{
 					// look for next white
 					// if black is all the way to the edge, set next white after the edge
-					while(col < ImageWidth && BlackWhiteImage[row, col])
-                    {
+					while (col < ImageWidth && BlackWhiteImage[row, col])
+					{
 						col++;
-
 					}
 
 					colPos[posPtr++] = col;
@@ -533,9 +532,9 @@ namespace QRCodeDecoderLibrary
 
 					// look for next black
 					while (col < ImageWidth && !BlackWhiteImage[row, col])
-                    {
+					{
 						col++;
-                    }
+					}
 
 					if (col == ImageWidth)
 					{
@@ -1087,7 +1086,7 @@ namespace QRCodeDecoderLibrary
 		// Build corner list
 		////////////////////////////////////////////////////////////////////
 
-		internal List<Corner> BuildCornerList()
+		internal List<Corner>? BuildCornerList()
 		{
 			// empty list
 			List<Corner> corners = new List<Corner>();
@@ -1103,7 +1102,7 @@ namespace QRCodeDecoderLibrary
 					for (int index3 = index2 + 1; index3 < index3End; index3++)
 					{
 						// find 3 finders arranged in L shape
-						Corner corner = Corner.CreateCorner(FinderList[index1], FinderList[index2], FinderList[index3]);
+						Corner? corner = Corner.CreateCorner(FinderList[index1], FinderList[index2], FinderList[index3]);
 
 						// add corner to list
 						if (corner != null)
@@ -2190,7 +2189,7 @@ namespace QRCodeDecoderLibrary
 					return QRCodeVersion < 10 ? 8 : 16;
 			}
 			throw new ApplicationException("Unsupported encoding mode " + encodingMode.ToString());
-	}
+		}
 
 		////////////////////////////////////////////////////////////////////
 		// Set data and error correction codewords length

@@ -57,7 +57,7 @@ namespace QRCodeDecoderLibrary
 				)
 		{
 			// calculate syndrome vector
-			int[] syndrome = CalculateSyndrome(receivedData, dataLength, errCorrCodewords);
+			int[]? syndrome = CalculateSyndrome(receivedData, dataLength, errCorrCodewords);
 
 			// received data has no error
 			// note: this should not happen because we call this method only if error was detected
@@ -99,7 +99,7 @@ namespace QRCodeDecoderLibrary
 		// ....
 		// Sm = R0 + R1 * A**m + R2 * A**2m + .... + Rn * A**mn
 
-		internal static int[] CalculateSyndrome
+		internal static int[]? CalculateSyndrome
 				(
 				byte[] receivedData,        // recived data buffer with data and error correction code
 				int dataLength,         // length of data in the buffer (note sometimes the array is longer than data)
