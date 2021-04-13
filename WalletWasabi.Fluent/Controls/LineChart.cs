@@ -9,6 +9,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -225,9 +226,15 @@ namespace WalletWasabi.Fluent.Controls
 
 			var pointStep = state.AreaWidth / (xAxisValues.Count - 1);
 
+			var min = xAxisValues.Min();
+			var max = xAxisValues.Max();
+
+			var xAxisScaler = new StraightLineFormula();
+			xAxisScaler.CalculateFrom(min, max, 0, state.AreaWidth);
+
 			for (var i = 0; i < yAxisValuesScaled.Count; i++)
 			{
-				state.Points[i] = new Point(i * pointStep, yAxisValuesScaled[i]);
+				state.Points[i] = new Point(xAxisScaler.GetYforX(xAxisValues[yAxisValuesScaled.Count -1 - i]), yAxisValuesScaled[i]);
 			}
 		}
 
