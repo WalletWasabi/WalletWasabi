@@ -9,13 +9,12 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
-using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Fluent.Controls
 {
 	public partial class LineChart : Control
 	{
-		private Dictionary<INotifyCollectionChanged, IDisposable> _collectionChangedSubscriptions;
+		private readonly Dictionary<INotifyCollectionChanged, IDisposable> _collectionChangedSubscriptions;
 
 		public LineChart()
 		{
@@ -665,6 +664,7 @@ namespace WalletWasabi.Fluent.Controls
 			if (oldValue is { } && _collectionChangedSubscriptions.ContainsKey(oldValue))
 			{
 				_collectionChangedSubscriptions[oldValue].Dispose();
+				_collectionChangedSubscriptions.Remove(oldValue);
 			}
 
 			if (newValue is { })
