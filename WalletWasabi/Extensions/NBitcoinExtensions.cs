@@ -456,29 +456,19 @@ namespace NBitcoin
 			return sanityFee;
 		}
 
-		public static int EstimateOutputVsize(this Script script)
-		{
-			if (script.IsScriptType(ScriptType.P2WPKH))
+		public static int EstimateOutputVsize(this Script scriptPubKey) =>
+			StandardScripts.IsStandardScriptPubKey(scriptPubKey) switch
 			{
-				return Constants.OutputSizeInBytes;
-			}
-			else
-			{
-				throw new NotImplementedException($"Weight estimation isn't implemented for provided script type.");
-			}
-		}
+				true => new TxOut(Money.Zero, scriptPubKey).GetSerializedSize(),
+				false => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
+			};
 
-		public static int EstimateInputVsize(this Script script)
-		{
-			if (script.IsScriptType(ScriptType.P2WPKH))
+		public static int EstimateInputVsize(this Script scriptPubKey) =>
+			scriptPubKey.IsScriptType(ScriptType.P2WPKH) switch
 			{
-				return Constants.P2wpkhInputVirtualSize;
-			}
-			else
-			{
-				throw new NotImplementedException($"Weight estimation isn't implemented for provided script type.");
-			}
-		}
+				true => Constants.P2wpkhInputVirtualSize,
+				false => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
+			};
 
 		public static T FromBytes<T>(byte[] input) where T : IBitcoinSerializable, new()
 		{
