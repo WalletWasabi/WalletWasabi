@@ -582,13 +582,7 @@ namespace QRCodeDecoderLibrary
 		// search row by row for alignment blocks
 		////////////////////////////////////////////////////////////////////
 
-		internal bool HorizontalAlignmentSearch
-				(
-				int areaLeft,
-				int areaTop,
-				int areaWidth,
-				int areaHeight
-				)
+		internal bool HorizontalAlignmentSearch(int areaLeft, int areaTop, int areaWidth, int areaHeight)
 		{
 			// create empty finders list
 			AlignList = new List<Finder>();
@@ -787,13 +781,7 @@ namespace QRCodeDecoderLibrary
 		// search column by column for finders blocks
 		////////////////////////////////////////////////////////////////////
 
-		internal void VerticalAlignmentSearch
-				(
-				int areaLeft,
-				int areaTop,
-				int areaWidth,
-				int areaHeight
-				)
+		internal void VerticalAlignmentSearch(int areaLeft, int areaTop, int areaWidth, int areaHeight)
 		{
 			// active columns
 			bool[] activeColumn = new bool[areaWidth];
@@ -998,13 +986,7 @@ namespace QRCodeDecoderLibrary
 		// test finder signature 1 1 3 1 1
 		////////////////////////////////////////////////////////////////////
 
-		internal bool TestFinderSig
-				(
-				int[] pos,
-				int[] len,
-				int index,
-				out double module
-				)
+		internal bool TestFinderSig(int[] pos, int[] len, int index, out double module)
 		{
 			module = (pos[index + 5] - pos[index]) / 7.0;
 			double maxDev = SIGNATURE_MAX_DEVIATION * module;
@@ -1040,13 +1022,7 @@ namespace QRCodeDecoderLibrary
 		// test alignment signature n 1 1 1 n
 		////////////////////////////////////////////////////////////////////
 
-		internal bool TestAlignSig
-				(
-				int[] pos,
-				int[] len,
-				int index,
-				out double module
-				)
+		internal bool TestAlignSig(int[] pos, int[] len, int index, out double module)
 		{
 			module = (pos[index + 4] - pos[index + 1]) / 3.0;
 			double maxDev = SIGNATURE_MAX_DEVIATION * module;
@@ -2142,10 +2118,7 @@ namespace QRCodeDecoderLibrary
 		// Read data from codeword array
 		////////////////////////////////////////////////////////////////////
 
-		internal int ReadBitsFromCodewordsArray
-				(
-				int bits
-				)
+		internal int ReadBitsFromCodewordsArray(int bits)
 		{
 			if (bits > BitBufferLen)
 			{
@@ -2777,10 +2750,7 @@ namespace QRCodeDecoderLibrary
 		/// </summary>
 		/// <param name="dataByteArray"></param>
 		/// <returns></returns>
-		public string QRCodeResult
-				(
-				byte[][] dataByteArray
-				)
+		public string QRCodeResult(byte[][] dataByteArray)
 		{
 			// no QR code
 			if (dataByteArray == null)
@@ -2809,10 +2779,7 @@ namespace QRCodeDecoderLibrary
 			return str.ToString();
 		}
 
-		private string ForDisplay
-				(
-				string result
-				)
+		private string ForDisplay(string result)
 		{
 			int index;
 			for (index = 0; index < result.Length && (result[index] >= ' ' && result[index] <= '~' || result[index] >= 160); index++)
