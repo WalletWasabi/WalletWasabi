@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reactive;
 using NBitcoin;
 using WalletWasabi.Wallets;
 
@@ -20,23 +23,43 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		public double PercentShare { get; }
 	}
 
-	public partial class WalletPieChartTileViewModel : ViewModelBase
+	public partial class WalletPieChartTileViewModel : TileViewModel
 	{
-		[AutoNotify] private IList<(string color, double percentShare)> _testDataPoints;
-		[AutoNotify] private IList<DataLegend> _testDataPointsLegend;
+		private readonly Wallet _wallet;
 
-		public WalletPieChartTileViewModel(Wallet wallet)
+		[AutoNotify] private IList<(string color, double percentShare)>? _testDataPoints;
+		[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
+
+		public WalletPieChartTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged)
 		{
+			_wallet = wallet;
+
+			balanceChanged.Subscribe(_ => Update());
+
+			Update();
+		}
+
+		private void Update()
+		{
+			var privateThreshold = _wallet.ServiceConfiguration.GetMixUntilAnonymitySetValue();
+
+			var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
+			var normalCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold);
+			var totalCount = (double)_wallet.Coins.Count();
+
+			var pcPrivate = (privateCoins.Count() / totalCount);
+			var pcNormal = (normalCoins.Count() / totalCount);
+
 			TestDataPoints = new List<(string, double)>()
 			{
-				("#72BD81", 0.8d),
-				("#F9DE7D", 0.2d)
+				("#72BD81", pcPrivate),
+				("#F9DE7D", pcNormal)
 			};
 
 			TestDataPointsLegend = new List<DataLegend>
 			{
-				new (Money.Parse("0.77508"), "Private",  "#F9DE7D",  0.2 ),
-				new (Money.Parse("3.10032"), "Not Private",  "#72BD81",  0.8)
+				new (privateCoins.TotalAmount(), "Private",  "#F9DE7D",  pcPrivate),
+				new (normalCoins.TotalAmount(), "Not Private",  "#72BD81",  pcNormal)
 			};
 		}
 	}

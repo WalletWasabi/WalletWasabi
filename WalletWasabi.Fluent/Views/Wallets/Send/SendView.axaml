@@ -9,8 +9,7 @@
              mc:Ignorable="d"
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView"
-             ClipToBounds="False">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
     <UserControl.Styles>
         <!-- Slider Fee -->
         <Style Selector="Slider.cursor">
@@ -103,7 +102,6 @@
                    EnableBack="{Binding EnableBack}"
                    EnableNext="True"
                    NextContent="Continue"
-                   ClipToBounds="False"
                    IsBusy="{Binding IsBusy}"
                    ScrollViewer.VerticalScrollBarVisibility="Auto">
 

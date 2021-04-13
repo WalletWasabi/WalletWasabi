@@ -10,8 +10,8 @@
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
-    <c:ContentArea Title="{Binding Title}"
-                   Caption="Wallet Home Page, currently under construction." ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <c:ContentArea Title="{Binding WalletName}"
+                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <DockPanel VerticalAlignment="Top">
             <ScrollViewer Name="ScrollViewer"
                           DockPanel.Dock="Top"
@@ -22,6 +22,7 @@
                           ScrollViewer.VerticalScrollBarVisibility="Disabled">
             <c:ResponsivePanel
                 DockPanel.Dock="Top"
+                Margin="-6 0"
                 AspectRatio="NaN"
                 ItemWidth="330"
                 ItemHeight="150"
@@ -31,7 +32,7 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
                 UseLayoutRounding="False">
-                <tiles:WalletBalanceTileView
+                <tiles:WalletBalanceTileView DataContext="{Binding BalanceTile}"
                     c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1" />
                 <Border CornerRadius="4" Margin="4" Background="Green"
                         c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1" />
@@ -40,7 +41,7 @@
 
                 <tiles:WalletPieChartTileView DataContext="{Binding WalletPieChart}" c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 2" />
 
-                <tiles:WalletBalanceChartTileView
+                <tiles:WalletBalanceChartTileView DataContext="{Binding BalanceChartTile}"
                     c:ResponsivePanel.ColumnSpan="1, 2, 2" c:ResponsivePanel.RowSpan="1, 2, 2" />
             </c:ResponsivePanel>
             </ScrollViewer>

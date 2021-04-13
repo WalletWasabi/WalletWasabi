@@ -1,7 +1,5 @@
-using NBitcoin;
 using ReactiveUI;
 using System;
-using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -12,7 +10,6 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Gui;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -21,34 +18,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	{
 		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
 		{
-			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
+			Disposables = Disposables is null
+				? new CompositeDisposable()
+				: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			Observable.Merge(
-				Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))
+			var balanceChanged = Observable.Merge(
+					Observable.FromEventPattern(
+							Wallet.TransactionProcessor,
+							nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
+						.Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(0.1))
 				.Merge(uiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
 				.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(
-					_ =>
-				{
-					try
-					{
-						var balance = Wallet.Coins.TotalAmount();
-						Title = $"{WalletName} ({(uiConfig.PrivacyMode ? "#########" : balance.ToString(false))} BTC)";
-
-						TitleTip = balance.ToUsdString(Wallet.Synchronizer.UsdExchangeRate, uiConfig.PrivacyMode);
-					}
-					catch (Exception ex)
-					{
-						Logger.LogError(ex);
-					}
-				})
-				.DisposeWith(Disposables);
+				.ObserveOn(RxApp.MainThreadScheduler);
 
 			History = new HistoryViewModel(wallet, uiConfig);
-			BalanceTile = new WalletBalanceTileViewModel(wallet);
-			WalletPieChart = new WalletPieChartTileViewModel(wallet);
+			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged);
+			BalanceChartTile = new WalletBalanceChartTileViewModel(History.Transactions);
+			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged);
 		}
 
 		private CompositeDisposable Disposables { get; set; }
@@ -59,6 +46,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		public WalletBalanceTileViewModel BalanceTile { get; }
 
+		public WalletBalanceChartTileViewModel BalanceChartTile { get; }
+
 		public WalletPieChartTileViewModel WalletPieChart { get; }
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -66,7 +55,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			base.OnNavigatedTo(isInHistory, disposables);
 
 			Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed))
-				.Merge(Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)))
+				.Merge(Observable.FromEventPattern(
+					Wallet.TransactionProcessor,
+					nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)))
 				.Throttle(TimeSpan.FromSeconds(3))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async _ => await UpdateAsync())
