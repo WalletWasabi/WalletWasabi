@@ -13,6 +13,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<double> ItemHeightProperty =
 			AvaloniaProperty.Register<ResponsivePanel, double>(nameof(ItemHeight), double.NaN);
 
+		public static readonly StyledProperty<double> WidthSourceProperty =
+			AvaloniaProperty.Register<ResponsivePanel, double>(nameof(WidthSource), double.NaN);
+
 		public static readonly StyledProperty<double> AspectRatioProperty =
 			AvaloniaProperty.Register<ResponsivePanel, double>(nameof(AspectRatio), double.NaN);
 
@@ -66,6 +69,12 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(ItemHeightProperty, value);
 		}
 
+		public double WidthSource
+		{
+			get => GetValue(WidthSourceProperty);
+			set => SetValue(WidthSourceProperty, value);
+		}
+
 		public double AspectRatio
 		{
 			get => GetValue(AspectRatioProperty);
@@ -89,6 +98,7 @@ namespace WalletWasabi.Fluent.Controls
 			AffectsParentMeasure<ResponsivePanel>(
 				ItemWidthProperty,
 				ItemHeightProperty,
+				WidthSourceProperty,
 				AspectRatioProperty,
 				ColumnHintsProperty,
 				WidthTriggersProperty,
@@ -97,6 +107,7 @@ namespace WalletWasabi.Fluent.Controls
 			AffectsParentArrange<ResponsivePanel>(
 				ItemWidthProperty,
 				ItemHeightProperty,
+				WidthSourceProperty,
 				AspectRatioProperty,
 				ColumnHintsProperty,
 				WidthTriggersProperty,
@@ -105,6 +116,7 @@ namespace WalletWasabi.Fluent.Controls
 			AffectsMeasure<ResponsivePanel>(
 				ItemWidthProperty,
 				ItemHeightProperty,
+				WidthSourceProperty,
 				AspectRatioProperty,
 				ColumnHintsProperty,
 				WidthTriggersProperty,
@@ -113,6 +125,7 @@ namespace WalletWasabi.Fluent.Controls
 			AffectsArrange<ResponsivePanel>(
 				ItemWidthProperty,
 				ItemHeightProperty,
+				WidthSourceProperty,
 				AspectRatioProperty,
 				ColumnHintsProperty,
 				WidthTriggersProperty,
@@ -134,32 +147,42 @@ namespace WalletWasabi.Fluent.Controls
 			var widthTriggers = WidthTriggers;
 			var columnHints = ColumnHints;
 			var aspectRatio = AspectRatio;
-			var width = panelSize.Width;
+			var width = double.IsNaN(WidthSource) ? panelSize.Width : WidthSource;
 			var height = panelSize.Height;
+
+			if (widthTriggers is null || columnHints is null)
+			{
+				return Size.Empty;
+			}
 
 			if (widthTriggers.Count <= 0)
 			{
-				throw new Exception($"No width trigger specified in {nameof(WidthTriggers)} property.");
+				// TODO: throw new Exception($"No width trigger specified in {nameof(WidthTriggers)} property.");
+				return Size.Empty;
 			}
 
 			if (columnHints.Count <= 0)
 			{
-				throw new Exception($"No column hints specified in {nameof(ColumnHints)} property.");
+				// TODO: throw new Exception($"No column hints specified in {nameof(ColumnHints)} property.");
+				return Size.Empty;
 			}
 
 			if (widthTriggers.Count != columnHints.Count)
 			{
-				throw new Exception($"Number of width triggers must be equal to the number of column triggers.");
+				// TODO: throw new Exception($"Number of width triggers must be equal to the number of column triggers.");
+				return Size.Empty;
 			}
 
 			if (double.IsNaN(ItemWidth) && double.IsInfinity(width))
 			{
-				throw new Exception($"The {nameof(ItemWidth)} can't be NaN and panel {nameof(width)} can't be infinity at same time.");
+				// TODO: throw new Exception($"The {nameof(ItemWidth)} can't be NaN and panel {nameof(width)} can't be infinity at same time.");
+				return Size.Empty;
 			}
 
 			if (double.IsNaN(ItemHeight) && double.IsInfinity(height))
 			{
-				throw new Exception($"The {nameof(ItemHeight)} can't be NaN and panel {nameof(height)} can't be infinity at same time.");
+				// TODO: throw new Exception($"The {nameof(ItemHeight)} can't be NaN and panel {nameof(height)} can't be infinity at same time.");
+				return Size.Empty;
 			}
 
 			if (double.IsNaN(aspectRatio) && (height == 0 || double.IsInfinity(height)))
@@ -167,23 +190,18 @@ namespace WalletWasabi.Fluent.Controls
 				aspectRatio = 1.0;
 			}
 
-			var totalColumns = 1;
 			var layoutIndex = 0;
+			var totalColumns = columnHints[layoutIndex];
 
-			if (double.IsInfinity(width))
+			if (!double.IsInfinity(width))
 			{
-				var i = columnHints.Count - 1;
-				totalColumns = columnHints[i];
-				layoutIndex = i;
-			}
-			else
-			{
-				for (var i = 0; i < widthTriggers.Count; i++)
+				for (var i = widthTriggers.Count - 1; i >= 0; i--)
 				{
-					if (width > widthTriggers[i])
+					if (width >= widthTriggers[i])
 					{
 						totalColumns = columnHints[i];
 						layoutIndex = i;
+						break;
 					}
 				}
 			}
