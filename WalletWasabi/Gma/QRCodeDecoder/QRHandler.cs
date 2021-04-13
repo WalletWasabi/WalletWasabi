@@ -109,7 +109,7 @@ namespace QRCodeDecoder
 			}
 
 			// image has more than one QR code
-			StringBuilder str = new StringBuilder();
+			StringBuilder str = new();
 			for (int index = 0; index < dataByteArray.Length; index++)
 			{
 				if (index != 0)
@@ -139,7 +139,7 @@ namespace QRCodeDecoder
 				return result;
 			}
 
-			StringBuilder display = new StringBuilder(result.Substring(0, index));
+			StringBuilder display = new(result.Substring(0, index));
 			for (; index < result.Length; index++)
 			{
 				char oneChar = result[index];

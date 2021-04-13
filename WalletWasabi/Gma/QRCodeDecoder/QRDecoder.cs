@@ -1085,7 +1085,7 @@ namespace QRCodeDecoderLibrary
 		internal List<Corner>? BuildCornerList()
 		{
 			// empty list
-			List<Corner> corners = new List<Corner>();
+			List<Corner> corners = new();
 
 			// look for all possible 3 finder patterns
 			int index1End = FinderList.Count - 2;
@@ -1984,7 +1984,7 @@ namespace QRCodeDecoderLibrary
 			CodewordsPtr = 4;
 
 			// allocate data byte list
-			List<byte> dataSeg = new List<byte>();
+			List<byte> dataSeg = new();
 
 			// reset ECI assignment value
 			ECIAssignValue = -1;
