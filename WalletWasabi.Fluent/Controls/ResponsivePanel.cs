@@ -149,6 +149,8 @@ namespace WalletWasabi.Fluent.Controls
 			var aspectRatio = AspectRatio;
 			var width = double.IsNaN(WidthSource) ? panelSize.Width : WidthSource;
 			var height = panelSize.Height;
+			var itemWidth = ItemWidth;
+			var itemHeight = ItemHeight;
 
 			if (widthTriggers is null || columnHints is null)
 			{
@@ -173,13 +175,13 @@ namespace WalletWasabi.Fluent.Controls
 				return Size.Empty;
 			}
 
-			if (double.IsNaN(ItemWidth) && double.IsInfinity(width))
+			if (double.IsNaN(itemWidth) && double.IsInfinity(width))
 			{
 				// The ItemWidth can't be NaN and panel width can't be infinity at same time.
 				return Size.Empty;
 			}
 
-			if (double.IsNaN(ItemHeight) && double.IsInfinity(height))
+			if (double.IsNaN(itemHeight) && double.IsInfinity(height))
 			{
 				// The ItemHeight can't be NaN and panel height can't be infinity at same time.
 				return Size.Empty;
@@ -236,16 +238,16 @@ namespace WalletWasabi.Fluent.Controls
 				}
 			}
 
-			var itemWidth = double.IsNaN(ItemWidth) ? width / totalColumns : ItemWidth;
-			var itemHeight = double.IsNaN(ItemHeight)
-				? double.IsNaN(aspectRatio) ? height / totalRows : itemWidth * aspectRatio
-				: ItemHeight;
+			var columnWidth = double.IsNaN(itemWidth) ? width / totalColumns : itemWidth;
+			var rowHeight = double.IsNaN(itemHeight)
+				? double.IsNaN(aspectRatio) ? height / totalRows : columnWidth * aspectRatio
+				: itemHeight;
 
 			for (var i = 0; i < children.Count; i++)
 			{
 				var element = children[i];
-				var size = new Size(itemWidth * items[i].ColumnSpan, itemHeight * items[i].RowSpan);
-				var position = new Point(items[i].Column * itemWidth, items[i].Row * itemHeight);
+				var size = new Size(columnWidth * items[i].ColumnSpan, rowHeight * items[i].RowSpan);
+				var position = new Point(items[i].Column * columnWidth, items[i].Row * rowHeight);
 				var rect = new Rect(position, size);
 
 				if (isMeasure)
@@ -258,7 +260,7 @@ namespace WalletWasabi.Fluent.Controls
 				}
 			}
 
-			return new Size(itemWidth * totalColumns, itemHeight * totalRows);
+			return new Size(columnWidth * totalColumns, rowHeight * totalRows);
 		}
 
 		protected override Size MeasureOverride(Size availableSize)
