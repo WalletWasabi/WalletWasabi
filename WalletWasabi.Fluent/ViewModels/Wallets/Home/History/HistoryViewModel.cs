@@ -56,7 +56,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 						return;
 					}
 
-					Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(selectedItem.TransactionSummary, _bitcoinStore));
+					Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(selectedItem.TransactionSummary, _bitcoinStore, wallet));
 				});
 
 			this.WhenAnyValue(x => x.SelectedItem)
