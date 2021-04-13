@@ -1,7 +1,5 @@
-using NBitcoin;
 using ReactiveUI;
 using System;
-using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -12,7 +10,6 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Gui;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -26,7 +23,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			var balanceChanged = Observable.Merge(
-					Observable.FromEventPattern(Wallet.TransactionProcessor,
+					Observable.FromEventPattern(
+							Wallet.TransactionProcessor,
 							nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
 						.Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(0.1))
@@ -57,7 +55,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			base.OnNavigatedTo(isInHistory, disposables);
 
 			Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed))
-				.Merge(Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)))
+				.Merge(Observable.FromEventPattern(Wallet.TransactionProcessor,
+					nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)))
 				.Throttle(TimeSpan.FromSeconds(3))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async _ => await UpdateAsync())
