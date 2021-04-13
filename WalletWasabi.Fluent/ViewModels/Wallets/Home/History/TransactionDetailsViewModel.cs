@@ -3,6 +3,8 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using System.Windows.Input;
+using Avalonia;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -34,8 +36,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			_wallet = wallet;
 
 			NextCommand = ReactiveCommand.Create(OnNext);
+			CopyTransactionIdCommand = ReactiveCommand.CreateFromTask(OnCopyTransactionId);
 
 			UpdateValues(transactionSummary);
+		}
+
+		public ICommand CopyTransactionIdCommand { get; set; }
+
+		private async Task OnCopyTransactionId()
+		{
+			if (TransactionId is null)
+			{
+				return;
+			}
+
+			await Application.Current.Clipboard.SetTextAsync(TransactionId.ToString());
 		}
 
 		private void UpdateValues(TransactionSummary transactionSummary)
