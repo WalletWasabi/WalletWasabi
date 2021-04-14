@@ -94,7 +94,7 @@ namespace QRCodeDecoderLibrary
 		internal bool[,] BlackWhiteImage;
 		internal List<Finder> FinderList;
 		internal List<Finder> AlignList;
-		internal List<byte[]> DataArrayList;
+		internal List<string> DataArrayList;
 		internal int MaxCodewords;
 		internal int MaxDataCodewords;
 		internal int MaxDataBits;
@@ -141,12 +141,12 @@ namespace QRCodeDecoderLibrary
 		internal const double ALIGNMENT_SEARCH_AREA = 0.3;
 
 		// QRCode image decoder
-		public IEnumerable<byte[]> SearchQrCodes(Bitmap inputImage)
+		public IEnumerable<string> SearchQrCodes(Bitmap inputImage)
 		{
 			try
 			{
 				// empty data string output
-				DataArrayList = new List<byte[]>();
+				DataArrayList = new List<string>();
 
 				// save image dimension
 				ImageWidth = inputImage.Width;
@@ -156,7 +156,7 @@ namespace QRCodeDecoderLibrary
 				// horizontal search for finders
 				if (!ConvertImageToBlackAndWhite(inputImage) || !HorizontalFindersSearch())
 				{
-					return Enumerable.Empty<byte[]>();
+					return Enumerable.Empty<string>();
 				}
 
 				// vertical search for finders
@@ -165,7 +165,7 @@ namespace QRCodeDecoderLibrary
 				// remove unused finders
 				if (!RemoveUnusedFinders())
 				{
-					return Enumerable.Empty<byte[]>();
+					return Enumerable.Empty<string>();
 				}
 			}
 			catch (Exception e)
@@ -232,7 +232,7 @@ namespace QRCodeDecoderLibrary
 			// not found exit
 			if (DataArrayList.Count == 0)
 			{
-				return Enumerable.Empty<byte[]>();
+				return Enumerable.Empty<string>();
 			}
 
 			// successful exit
@@ -957,7 +957,8 @@ namespace QRCodeDecoderLibrary
 
 				// decode data
 				byte[] dataArray = DecodeData();
-				DataArrayList.Add(dataArray);
+				var decoded = Encoding.UTF8.GetString(dataArray);
+				DataArrayList.Add(decoded);
 
 				return true;
 			}
@@ -2416,36 +2417,6 @@ namespace QRCodeDecoderLibrary
 					}
 				}
 			}
-		}
-
-		public string QRCodeResult(IEnumerable<byte[]> dataByteCollection)
-		{
-			var dataByteArray = dataByteCollection.ToArray();
-			// no QR code
-			if (dataByteArray == null)
-			{
-				return string.Empty;
-			}
-
-			// image has one QR code
-			if (dataByteArray.Length == 1)
-			{
-				return Encoding.UTF8.GetString(dataByteArray[0]);
-			}
-
-			// image has more than one QR code
-			StringBuilder str = new();
-			for (int index = 0; index < dataByteArray.Length; index++)
-			{
-				if (index != 0)
-				{
-					str.Append("\r\n");
-				}
-
-				str.AppendFormat("QR Code {0}\r\n", index + 1);
-				str.Append(Encoding.UTF8.GetString(dataByteArray[index]));
-			}
-			return str.ToString();
 		}
 	}
 }

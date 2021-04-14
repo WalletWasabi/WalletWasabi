@@ -23,17 +23,17 @@ namespace WalletWasabi.Tests.UnitTests.QrCode
 			string path = Path.Combine(_commonPartialPath, "AddressTest1.png");
 			using Bitmap qRCodeInputImage = new(path);
 			var dataByteArray = decoder.SearchQrCodes(qRCodeInputImage);
-			Assert.NotNull(dataByteArray);
+			Assert.NotEmpty(dataByteArray);
 			string expectedAddress = "tb1ql27ya3gufs5h0ptgjhjd0tm52fq6q0xrav7xza";
-			string address = decoder.QRCodeResult(dataByteArray);
+			string address = dataByteArray.First();
 			Assert.Equal(expectedAddress, address);
 
 			string otherPath = Path.Combine(_commonPartialPath, "AddressTest2.png");
 			using Bitmap otherQRCodeInputImage = new(otherPath);
 			var otherDataByteArray = decoder.SearchQrCodes(otherQRCodeInputImage);
-			Assert.NotNull(otherDataByteArray);
+			Assert.NotEmpty(otherDataByteArray);
 			string otherExpectedAddress = "tb1qfas0k9rn8daqggu7wzp2yne9qdd5fr5wf2u478";
-			string address2 = decoder.QRCodeResult(otherDataByteArray);
+			string address2 = otherDataByteArray.First();
 			Assert.Equal(otherExpectedAddress, address2);
 
 			Assert.NotEqual(dataByteArray, otherDataByteArray);
@@ -41,7 +41,7 @@ namespace WalletWasabi.Tests.UnitTests.QrCode
 		}
 
 		[Fact]
-		public void IncorrectImageReturnsNull()
+		public void IncorrectImageReturnsEmpty()
 		{
 			QRDecoder decoder = new();
 
