@@ -24,7 +24,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		public long TotalInputWeight => Constants.WitnessScaleFactor * TotalInputVsize;
 		public int TotalInputVsize => Coins.Sum(x => x.ScriptPubKey.EstimateInputVsize());
 
-		public bool ConfirmedConnetion { get; set; } = false;
+		public bool ConfirmedConnection { get; set; } = false;
 
 		public long CalculateRemainingWeightCredentials(uint maxRegistrableWeight) => maxRegistrableWeight - TotalInputWeight;
 
