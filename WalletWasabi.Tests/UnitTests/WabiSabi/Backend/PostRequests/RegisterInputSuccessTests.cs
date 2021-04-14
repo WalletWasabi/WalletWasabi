@@ -81,6 +81,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 
 			// Make sure an Alice have already been registered with the same input.
 			var preAlice = WabiSabiFactory.CreateAlice(req.InputRoundSignaturePairs);
+
+			var initialRemaining = anotherRound.RemainingInputVsizeAllocation;
 			anotherRound.Alices.Add(preAlice);
 
 			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
@@ -88,6 +90,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var resp = await handler.RegisterInputAsync(req);
 			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
 			Assert.Empty(anotherRound.Alices);
+			Assert.Equal(initialRemaining, anotherRound.RemainingInputVsizeAllocation);
 
 			await arena.StopAsync(CancellationToken.None);
 		}

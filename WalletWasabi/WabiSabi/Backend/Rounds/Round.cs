@@ -23,13 +23,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			RoundParameters = roundParameters;
 
 			AmountCredentialIssuer = new(new(Random), 2, Random, MaxRegistrableAmount);
-			VsizeCredentialIssuer = new(new(Random), 2, Random, RegistrableVsizeCredentials);
+			VsizeCredentialIssuer = new(new(Random), 2, Random, PerAliceVsizeAllocation);
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			VsizeCredentialIssuerParameters = VsizeCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 
 			Coinjoin = Transaction.Create(Network);
 
-			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{RegistrableVsizeCredentials}{AmountCredentialIssuerParameters}{VsizeCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
+			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{PerAliceVsizeAllocation}{AmountCredentialIssuerParameters}{VsizeCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
 		}
 
 		public uint256 Hash { get; }
@@ -37,7 +37,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public uint MaxInputCountByAlice => RoundParameters.MaxInputCountByAlice;
 		public Money MinRegistrableAmount => RoundParameters.MinRegistrableAmount;
 		public Money MaxRegistrableAmount => RoundParameters.MaxRegistrableAmount;
-		public uint RegistrableVsizeCredentials => RoundParameters.RegistrableVsizeCredentials;
+		public uint PerAliceVsizeAllocation => RoundParameters.PerAliceVsizeAllocation;
 		public FeeRate FeeRate => RoundParameters.FeeRate;
 		public WasabiRandom Random => RoundParameters.Random;
 		public CredentialIssuer AmountCredentialIssuer { get; }
@@ -65,6 +65,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public DateTimeOffset OutputRegistrationStart { get; private set; }
 		public DateTimeOffset TransactionSigningStart { get; private set; }
 		public DateTimeOffset TransactionBroadcastingStart { get; private set; }
+		public int InitialInputVsizeAllocation { get; set; } = 99954; // TODO compute as CoinjoinState.Parameters.MaxWeight - CoinjoinState.Parameters.SharedOverhead, mutable for testing until then
+		public int RemainingInputVsizeAllocation => InitialInputVsizeAllocation - Alices.Count * (int)PerAliceVsizeAllocation;
 
 		public void SetPhase(Phase phase)
 		{
