@@ -48,9 +48,10 @@
                                 SortMemberPath="OrderIndex">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <Panel x:DataType="history:HistoryItemViewModel">
-                <TextBlock Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}" Classes="monoSpaced"/>
-              </Panel>
+              <TextBlock x:DataType="history:HistoryItemViewModel"
+                         Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
+                         Classes="monoSpaced"
+                         Margin="10 0" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
@@ -84,8 +85,8 @@
               <StackPanel x:DataType="history:HistoryItemViewModel"
                           IsVisible="{Binding !!IncomingAmount}"
                           HorizontalAlignment="Right">
-                <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6" />
                 <TextBlock Classes="monoSpaced" Text="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
+                <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
@@ -100,8 +101,8 @@
               <StackPanel x:DataType="history:HistoryItemViewModel"
                           IsVisible="{Binding !!OutgoingAmount}"
                           HorizontalAlignment="Right">
-                <PathIcon Data="{StaticResource arrow_up_right_regular}" Opacity="0.6" />
                 <TextBlock Classes="monoSpaced" Text="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
+                <PathIcon Data="{StaticResource arrow_up_right_regular}" Opacity="0.6" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
@@ -113,19 +114,11 @@
                                 SortMemberPath="Balance">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <StackPanel HorizontalAlignment="Right">
-                <Viewbox Height="20" Width="20">
-                  <Panel>
-                    <Ellipse Stroke="{DynamicResource TextControlForeground}" StrokeThickness="4" Height="115"
-                             Width="115" />
-                    <Ellipse Stroke="{DynamicResource TextControlForeground}" StrokeThickness="4"
-                             StrokeDashArray="2, 1"
-                             Height="100" Width="100" />
-                    <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50" Opacity="0.6" />
-                  </Panel>
-                </Viewbox>
-              <TextBlock Classes="monoSpaced" x:DataType="history:HistoryItemViewModel" Text="{Binding Balance, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
-              </StackPanel>
+              <TextBlock Classes="monoSpaced"
+                         HorizontalAlignment="Right"
+                         x:DataType="history:HistoryItemViewModel"
+                         Text="{Binding Balance, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
+                         Margin="10 0"/>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>

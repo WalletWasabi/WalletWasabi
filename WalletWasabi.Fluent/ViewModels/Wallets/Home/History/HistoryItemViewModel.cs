@@ -22,13 +22,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			var amount = transactionSummary.Amount;
 			if (amount < 0)
 			{
-				// OutgoingAmount = amount * -1;
-				OutgoingAmount = (amount * -1) + Money.FromUnit(new Random().Next(0,2000), MoneyUnit.BTC);
+				OutgoingAmount = amount * -1;
 			}
 			else
 			{
-				// IncomingAmount = amount;
-				IncomingAmount = amount + Money.FromUnit(new Random().Next(0, 2000), MoneyUnit.BTC);
+				IncomingAmount = amount;
 			}
 		}
 
