@@ -34,6 +34,7 @@ using WalletWasabi.Stores;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Gui
@@ -55,7 +56,7 @@ namespace WalletWasabi.Gui
 
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
-		public FeeProvider FeeProvider { get; private set; }
+		public BlockstreamInfoClient BlockstreamClient { get; private set; }
 		public WalletManager WalletManager { get; }
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
@@ -102,6 +103,7 @@ namespace WalletWasabi.Gui
 					: new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
 
 				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, HttpClientFactory);
+				BlockstreamClient = new BlockstreamInfoClient(Network, HttpClientFactory.TorHttpPool);
 				LegalChecker = new(DataDir);
 				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 			}
@@ -112,6 +114,7 @@ namespace WalletWasabi.Gui
 		private bool InitializationStarted { get; set; } = false;
 
 		private CancellationTokenSource StoppingCts { get; }
+		public FeeProvider FeeProvider => HostedServices.First<FeeProvider>();
 
 		public async Task InitializeNoWalletAsync(TerminateService terminateService)
 		{
@@ -223,7 +226,7 @@ namespace WalletWasabi.Gui
 				}
 
 				var rpcFeeNotifier = HostedServices.FirstOrDefault<RpcFeeNotifier>();
-				FeeProvider = new FeeProvider(Synchronizer, rpcFeeNotifier);
+				HostedServices.Register(new FeeProvider(TimeSpan.FromMinutes(3), Synchronizer, rpcFeeNotifier, BlockstreamClient), "Fee Provider");
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
@@ -630,14 +633,6 @@ namespace WalletWasabi.Gui
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await rpcServer.StopAsync(cts.Token).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
-				}
-
-				Logger.LogDebug($"Step: {nameof(FeeProvider)}.", nameof(Global));
-
-				if (FeeProvider is { } feeProviders)
-				{
-					feeProviders.Dispose();
-					Logger.LogInfo($"Disposed {nameof(FeeProvider)}.");
 				}
 
 				Logger.LogDebug($"Step: {nameof(CoinJoinProcessor)}.", nameof(Global));

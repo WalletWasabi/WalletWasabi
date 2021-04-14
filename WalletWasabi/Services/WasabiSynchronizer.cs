@@ -216,7 +216,7 @@ namespace WalletWasabi.Services
 								throw;
 							}
 
-							var bestFees = response.BestFeeEstimates;
+							var bestFees = response.AllFeeEstimate;
 							if (bestFees?.Estimations?.Any() is true)
 							{
 								lastFeeQueried = DateTimeOffset.UtcNow;

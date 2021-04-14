@@ -1,20 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.WebClients.BlockstreamInfo;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {
-	public class FeeProvider : IDisposable
+	public class FeeProvider : PeriodicRunner
 	{
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		public FeeProvider(WasabiSynchronizer synchronizer, RpcFeeNotifier? rpcNotifier)
+		public FeeProvider(TimeSpan period, WasabiSynchronizer synchronizer, RpcFeeNotifier? rpcNotifier, BlockstreamInfoClient blockstreamClient)
+			: base(period)
 		{
 			Synchronizer = synchronizer;
 			RpcNotifier = rpcNotifier;
+			BlockstreamClient = blockstreamClient;
 
 			Synchronizer.BestFeeEstimatesArrived += OnBestFeeEstimatesArrived;
 
@@ -30,6 +35,24 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		private object Lock { get; } = new object();
 		public WasabiSynchronizer Synchronizer { get; }
 		public RpcFeeNotifier? RpcNotifier { get; }
+		public BlockstreamInfoClient BlockstreamClient { get; }
+
+		protected override async Task ActionAsync(CancellationToken cancel)
+		{
+			if (CanUseExternalApi())
+			{
+				var fees = await BlockstreamClient.GetFeeEstimatesAsync(cancel).ConfigureAwait(false);
+				OnBestFeeEstimatesArrived(BlockstreamClient, fees);
+			}
+		}
+
+		private bool CanUseExternalApi()
+		{
+			// If Tor is running or manually turnd off and the backend still not connected, then we can make this request.
+			// Plus the RPC must be not setup or be in error.
+			return (Synchronizer.TorStatus != TorStatus.NotRunning && Synchronizer.BackendStatus == BackendStatus.NotConnected)
+							&& (RpcNotifier is null || RpcNotifier.InError);
+		}
 
 		private void OnBestFeeEstimatesArrived(object? sender, BestFeeEstimates fees)
 		{
@@ -72,6 +95,10 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 					// If fee is coming from the the backend, user uses a full node, but it doesn't provide fees, then set the fees.
 					notify = TrySetBestFeeEstimates(fees);
 				}
+				else if (sender is BlockstreamInfoClient && CanUseExternalApi())
+				{
+					notify = TrySetBestFeeEstimates(fees);
+				}
 			}
 
 			if (notify)
@@ -94,33 +121,16 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			return false;
 		}
 
-		#region IDisposable Support
-
-		protected virtual void Dispose(bool disposing)
+		public override void Dispose()
 		{
-			if (!_disposedValue)
+			Synchronizer.BestFeeEstimatesArrived -= OnBestFeeEstimatesArrived;
+
+			if (RpcNotifier is not null)
 			{
-				if (disposing)
-				{
-					Synchronizer.BestFeeEstimatesArrived -= OnBestFeeEstimatesArrived;
-
-					if (RpcNotifier is not null)
-					{
-						RpcNotifier.BestFeeEstimatesArrived -= OnBestFeeEstimatesArrived;
-					}
-				}
-
-				_disposedValue = true;
+				RpcNotifier.BestFeeEstimatesArrived -= OnBestFeeEstimatesArrived;
 			}
-		}
 
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
+			base.Dispose();
 		}
-
-		#endregion IDisposable Support
 	}
 }
