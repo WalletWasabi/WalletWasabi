@@ -22,8 +22,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
+			var initialRemaining = round.RemainingInputVsizeAllocation;
 			var alice = WabiSabiFactory.CreateAlice();
 			round.Alices.Add(alice);
+			Assert.True(round.RemainingInputVsizeAllocation < initialRemaining);
+
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
@@ -35,6 +38,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			// There was the alice we want to remove so success.
 			req = new InputsRemovalRequest(round.Id, alice.Id);
 			await handler.RemoveInputAsync(req);
+
+			// Ensure that removing an alice freed up the input weight
+			// allocation from the round
+			Assert.Equal(initialRemaining, round.RemainingInputVsizeAllocation);
 
 			await arena.StopAsync(CancellationToken.None);
 		}

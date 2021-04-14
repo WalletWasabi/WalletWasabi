@@ -16,10 +16,12 @@
       </StackPanel>
 
       <!-- Title -->
-      <Label Content="Transaction History" DockPanel.Dock="Left" FontWeight="Bold" FontSize="16"/>
+      <Label Content="{Binding Title}" DockPanel.Dock="Left" FontWeight="Bold" FontSize="16"/>
     </DockPanel>
 
-    <DataGrid Items="{Binding Transactions}" DockPanel.Dock="Bottom">
+    <DataGrid Items="{Binding Transactions}"
+              SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+              DockPanel.Dock="Bottom">
       <DataGrid.Styles>
         <Style Selector="PathIcon">
           <Setter Property="Width" Value="15"/>
@@ -42,7 +44,28 @@
         <DataGridTextColumn Header="Date / Time"
                             x:DataType="history:HistoryItemViewModel"
                             Binding="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
+                            SortMemberPath="OrderIndex"
                             Width="Auto" />
+
+        <!-- Type -->
+        <DataGridTemplateColumn Header="Type"
+                                Width="Auto"
+                                SortMemberPath="IsCoinJoin">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Panel x:DataType="history:HistoryItemViewModel">
+                <StackPanel IsVisible="{Binding !IsCoinJoin}">
+                  <PathIcon Data="{StaticResource normal_transaction}" Opacity="0.6" Width="20"/>
+                  <TextBlock Text="Normal" />
+                </StackPanel>
+                <StackPanel IsVisible="{Binding IsCoinJoin}">
+                  <PathIcon Data="{StaticResource shield_regular}" Opacity="0.6" Width="20" Height="20" />
+                  <TextBlock Text="CoinJoin" />
+                </StackPanel>
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
 
         <!-- Incoming -->
         <DataGridTemplateColumn Header="Incoming"
@@ -52,7 +75,7 @@
             <DataTemplate>
               <StackPanel x:DataType="history:HistoryItemViewModel"
                           IsVisible="{Binding !!IncomingAmount}">
-                <PathIcon Data="{StaticResource chevron_down_circle_regular}" Opacity="0.6" />
+                <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6" />
                 <TextBlock Text="{Binding IncomingAmount, StringFormat={}{0} BTC}" />
               </StackPanel>
             </DataTemplate>
@@ -67,21 +90,43 @@
             <DataTemplate>
               <StackPanel x:DataType="history:HistoryItemViewModel"
                           IsVisible="{Binding !!OutgoingAmount}">
-                <PathIcon Data="{StaticResource chevron_up_circle_regular}" Opacity="0.6" />
+                <PathIcon Data="{StaticResource arrow_up_right_regular}" Opacity="0.6" />
                 <TextBlock Text="{Binding OutgoingAmount, StringFormat={}{0} BTC}" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
+        <!-- Balance -->
+        <DataGridTemplateColumn Header="Balance"
+                                Width="*"
+                                SortMemberPath="Balance">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <StackPanel>
+                <Viewbox Height="20" Width="20">
+                  <Panel>
+                    <Ellipse Stroke="{DynamicResource TextControlForeground}" StrokeThickness="4" Height="115"
+                             Width="115" />
+                    <Ellipse Stroke="{DynamicResource TextControlForeground}" StrokeThickness="4"
+                             StrokeDashArray="2, 1"
+                             Height="100" Width="100" />
+                    <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50" Opacity="0.6" />
+                  </Panel>
+                </Viewbox>
+              <TextBlock x:DataType="history:HistoryItemViewModel" Text="{Binding Balance, StringFormat={}{0} BTC}" />
+              </StackPanel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
 
         <!-- Status -->
         <DataGridTemplateColumn Header="Status"
-                                Width="Auto"
+                                Width="140"
                                 SortMemberPath="IsConfirmed">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <Panel x:DataType="history:HistoryItemViewModel" Margin="0 0 10 0">
+              <Panel x:DataType="history:HistoryItemViewModel">
                 <!-- Confirmed -->
                 <StackPanel IsVisible="{Binding IsConfirmed}">
                   <PathIcon Data="{StaticResource checkmark_filled}"

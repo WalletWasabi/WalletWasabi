@@ -120,7 +120,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 				});
 
-			Labels.ToObservableChangeSet().Subscribe(x => _transactionInfo.SendLabels = new SmartLabel(_labels.ToArray()));
+			Labels.ToObservableChangeSet().Subscribe(x => _transactionInfo.UserLabels = new SmartLabel(_labels.ToArray()));
 
 			EnableBack = true;
 

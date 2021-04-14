@@ -23,14 +23,13 @@ namespace WalletWasabi.WabiSabi.Client
 		public ArenaClient(
 			CredentialIssuerParameters amountCredentialIssuerParameters,
 			CredentialIssuerParameters weightCredentialIssuerParameters,
+			CredentialPool amountCredentialPool,
+			CredentialPool weightCredentialPool,
 			IArenaRequestHandler requestHandler,
 			WasabiRandom random)
 		{
-			var amountCredentials = new CredentialPool();
-			var weightCredentials = new CredentialPool();
-
-			AmountCredentialClient = new WabiSabiClient(amountCredentialIssuerParameters, ProtocolCredentialNumber, random, ProtocolMaxAmountPerAlice, amountCredentials);
-			WeightCredentialClient = new WabiSabiClient(weightCredentialIssuerParameters, ProtocolCredentialNumber, random, ProtocolMaxWeightPerAlice, weightCredentials);			
+			AmountCredentialClient = new WabiSabiClient(amountCredentialIssuerParameters, ProtocolCredentialNumber, random, ProtocolMaxAmountPerAlice, amountCredentialPool);
+			WeightCredentialClient = new WabiSabiClient(weightCredentialIssuerParameters, ProtocolCredentialNumber, random, ProtocolMaxWeightPerAlice, weightCredentialPool);
 			RequestHandler = requestHandler;
 		}
 
@@ -115,7 +114,7 @@ namespace WalletWasabi.WabiSabi.Client
 			WeightCredentialClient.HandleResponse(outputRegistrationResponse.WeightCredentials, realWeightCredentialResponseValidation);
 		}
 
-		public async Task ConfirmConnectionAsync(Guid roundId, Guid aliceId, IEnumerable<long> inputsRegistrationWeight, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Money> newAmount)
+		public async Task<bool> ConfirmConnectionAsync(Guid roundId, Guid aliceId, IEnumerable<long> inputsRegistrationWeight, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Money> newAmount)
 		{
 			Guard.InRange(nameof(newAmount), newAmount, 1, AmountCredentialClient.NumberOfCredentials);
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 1, AmountCredentialClient.NumberOfCredentials);
@@ -141,13 +140,17 @@ namespace WalletWasabi.WabiSabi.Client
 					zeroWeightCredentialRequestData.CredentialsRequest,
 					realWeightCredentialRequestData.CredentialsRequest)).ConfigureAwait(false);
 
+			AmountCredentialClient.HandleResponse(confirmConnectionResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
+			WeightCredentialClient.HandleResponse(confirmConnectionResponse.ZeroWeightCredentials, zeroWeightCredentialRequestData.CredentialsResponseValidation);
+
 			if (confirmConnectionResponse is { RealAmountCredentials: { }, RealWeightCredentials: { } })
 			{
 				AmountCredentialClient.HandleResponse(confirmConnectionResponse.RealAmountCredentials, realAmountCredentialRequestData.CredentialsResponseValidation);
 				WeightCredentialClient.HandleResponse(confirmConnectionResponse.RealWeightCredentials, realWeightCredentialRequestData.CredentialsResponseValidation);
+				return true;
 			}
-			AmountCredentialClient.HandleResponse(confirmConnectionResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
-			WeightCredentialClient.HandleResponse(confirmConnectionResponse.ZeroWeightCredentials, zeroWeightCredentialRequestData.CredentialsResponseValidation);
+
+			return false;
 		}
 
 		public async Task SignTransactionAsync(Guid roundId, IEnumerable<ICoin> coinsToSign, BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin)
