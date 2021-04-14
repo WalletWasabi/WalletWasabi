@@ -55,13 +55,12 @@
 //	Version 2.1 2019/07/22
 //		Add support for ECI Assignment Value
 /////////////////////////////////////////////////////////////////////
-//#pragma warning disable IDE1006 // Naming Styles
-//#pragma warning disable IDE0011 // Add braces
 
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using WalletWasabi.Logging;
@@ -70,8 +69,6 @@ namespace QRCodeDecoderLibrary
 {
 	public class QRDecoder
 	{
-		public const string VersionNumber = "Rev 2.1.0 - 2019-07-22";
-
 		// Gets QR Code matrix version
 		public int QRCodeVersion { get; internal set; }
 
@@ -143,18 +140,8 @@ namespace QRCodeDecoderLibrary
 		internal const double CORNER_RIGHT_ANGLE_DEV = 0.25; // about Sin(4 deg)
 		internal const double ALIGNMENT_SEARCH_AREA = 0.3;
 
-		// Convert byte array to string using UTF8 encoding, MIGHT BE DELETED LATER
-		public static string ByteArrayToStr(byte[] dataArray)
-		{
-			/*Decoder decoder = Encoding.UTF8.GetDecoder();
-			int charCount = decoder.GetCharCount(dataArray, 0, dataArray.Length);
-			char[] charArray = new char[charCount];
-			decoder.GetChars(dataArray, 0, dataArray.Length, charArray, 0);*/
-			return Encoding.UTF8.GetString(dataArray);
-		}
-
 		// QRCode image decoder
-		public byte[][] ImageDecoder(Bitmap inputImage)
+		public IEnumerable<byte[]> SearchQrCodes(Bitmap inputImage)
 		{
 			try
 			{
@@ -169,7 +156,7 @@ namespace QRCodeDecoderLibrary
 				// horizontal search for finders
 				if (!ConvertImageToBlackAndWhite(inputImage) || !HorizontalFindersSearch())
 				{
-					return null;
+					return Enumerable.Empty<byte[]>();
 				}
 
 				// vertical search for finders
@@ -178,12 +165,12 @@ namespace QRCodeDecoderLibrary
 				// remove unused finders
 				if (!RemoveUnusedFinders())
 				{
-					return null;
+					return Enumerable.Empty<byte[]>();
 				}
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine(e);
+				Logger.LogDebug(e);
 			}
 
 			// look for all possible 3 finder patterns
@@ -245,7 +232,7 @@ namespace QRCodeDecoderLibrary
 			// not found exit
 			if (DataArrayList.Count == 0)
 			{
-				return null;
+				return Enumerable.Empty<byte[]>();
 			}
 
 			// successful exit
@@ -976,7 +963,7 @@ namespace QRCodeDecoderLibrary
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine(e);
+				Logger.LogDebug(e);
 				return false;
 			}
 		}
@@ -1695,7 +1682,7 @@ namespace QRCodeDecoderLibrary
 			CodewordsPtr = 4;
 
 			// allocate data byte list
-			List<byte> dataSeg = new List<byte>();
+			List<byte> dataSeg = new();
 
 			// reset ECI assignment value
 			ECIAssignValue = -1;
@@ -2431,8 +2418,9 @@ namespace QRCodeDecoderLibrary
 			}
 		}
 
-		public string QRCodeResult(byte[][] dataByteArray)
+		public string QRCodeResult(IEnumerable<byte[]> dataByteCollection)
 		{
+			var dataByteArray = dataByteCollection.ToArray();
 			// no QR code
 			if (dataByteArray == null)
 			{
@@ -2442,11 +2430,11 @@ namespace QRCodeDecoderLibrary
 			// image has one QR code
 			if (dataByteArray.Length == 1)
 			{
-				return ByteArrayToStr(dataByteArray[0]);
+				return Encoding.UTF8.GetString(dataByteArray[0]);
 			}
 
 			// image has more than one QR code
-			StringBuilder str = new StringBuilder();
+			StringBuilder str = new();
 			for (int index = 0; index < dataByteArray.Length; index++)
 			{
 				if (index != 0)
@@ -2455,7 +2443,7 @@ namespace QRCodeDecoderLibrary
 				}
 
 				str.AppendFormat("QR Code {0}\r\n", index + 1);
-				str.Append(ByteArrayToStr(dataByteArray[index]));
+				str.Append(Encoding.UTF8.GetString(dataByteArray[index]));
 			}
 			return str.ToString();
 		}

@@ -18,22 +18,22 @@ namespace WalletWasabi.Tests.UnitTests.QrCode
 		[Fact]
 		public void GetCorrectAddressFromImage()
 		{
-			QRDecoder qRDecoder = new();
+			QRDecoder decoder = new();
 
 			string path = Path.Combine(_commonPartialPath, "AddressTest1.png");
-			using Bitmap qRCodeInputImage = new Bitmap(path);
-			byte[][]? dataByteArray = qRDecoder.ImageDecoder(qRCodeInputImage);
+			using Bitmap qRCodeInputImage = new(path);
+			var dataByteArray = decoder.SearchQrCodes(qRCodeInputImage);
 			Assert.NotNull(dataByteArray);
 			string expectedAddress = "tb1ql27ya3gufs5h0ptgjhjd0tm52fq6q0xrav7xza";
-			string address = qRDecoder.QRCodeResult(dataByteArray);
+			string address = decoder.QRCodeResult(dataByteArray);
 			Assert.Equal(expectedAddress, address);
 
 			string otherPath = Path.Combine(_commonPartialPath, "AddressTest2.png");
-			using Bitmap otherQRCodeInputImage = new Bitmap(otherPath);
-			byte[][]? otherDataByteArray = qRDecoder.ImageDecoder(otherQRCodeInputImage);
+			using Bitmap otherQRCodeInputImage = new(otherPath);
+			var otherDataByteArray = decoder.SearchQrCodes(otherQRCodeInputImage);
 			Assert.NotNull(otherDataByteArray);
 			string otherExpectedAddress = "tb1qfas0k9rn8daqggu7wzp2yne9qdd5fr5wf2u478";
-			string address2 = qRDecoder.QRCodeResult(otherDataByteArray);
+			string address2 = decoder.QRCodeResult(otherDataByteArray);
 			Assert.Equal(otherExpectedAddress, address2);
 
 			Assert.NotEqual(dataByteArray, otherDataByteArray);
@@ -43,26 +43,17 @@ namespace WalletWasabi.Tests.UnitTests.QrCode
 		[Fact]
 		public void IncorrectImageReturnsNull()
 		{
-			QRDecoder qRDecoder = new();
+			QRDecoder decoder = new();
 
 			string path = Path.Combine(_commonPartialPath, "AddressTest1.png");
-			using Bitmap qRCodeInputImage = new Bitmap(path);
-			byte[][]? dataByteArray = qRDecoder.ImageDecoder(qRCodeInputImage);
-			Assert.NotNull(dataByteArray);
+			using Bitmap qRCodeInputImage = new(path);
+			var dataByteArray = decoder.SearchQrCodes(qRCodeInputImage);
+			Assert.Single(dataByteArray);
 
 			string otherPath = Path.Combine(_commonPartialPath, "NotBitcoinAddress.jpg");
-			using Bitmap notValidInputImage = new Bitmap(otherPath);
-			byte[][]? notValidDataByteArray = qRDecoder.ImageDecoder(notValidInputImage);
-			Assert.Null(notValidDataByteArray);
-		}
-
-		[Fact]
-		public void ByteArrayToCorrectString()
-		{
-			string expectedString = "Expected String";
-			byte[] bytes = Encoding.UTF8.GetBytes(expectedString);
-			string output = QRDecoder.ByteArrayToStr(bytes);
-			Assert.Equal(expectedString, output);
+			using Bitmap notValidInputImage = new(otherPath);
+			var notValidDataByteArray = decoder.SearchQrCodes(notValidInputImage);
+			Assert.Empty(notValidDataByteArray);
 		}
 	}
 }
