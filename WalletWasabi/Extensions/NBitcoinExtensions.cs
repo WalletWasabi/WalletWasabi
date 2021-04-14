@@ -457,11 +457,7 @@ namespace NBitcoin
 		}
 
 		public static int EstimateOutputVsize(this Script scriptPubKey) =>
-			StandardScripts.IsStandardScriptPubKey(scriptPubKey) switch
-			{
-				true => new TxOut(Money.Zero, scriptPubKey).GetSerializedSize(),
-				false => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
-			};
+			new TxOut(Money.Zero, scriptPubKey).GetSerializedSize();
 
 		public static int EstimateInputVsize(this Script scriptPubKey) =>
 			scriptPubKey.IsScriptType(ScriptType.P2WPKH) switch
