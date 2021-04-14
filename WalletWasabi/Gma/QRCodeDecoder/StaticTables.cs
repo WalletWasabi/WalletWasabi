@@ -45,6 +45,30 @@ namespace QRCodeDecoderLibrary
 {
 	internal class StaticTables
 	{
+		// Error correction block information
+		// A-Number of blocks in group 1
+		internal const int BLOCKS_GROUP1 = 0;
+
+		// B-Number of data codewords in blocks of group 1
+		internal const int DATA_CODEWORDS_GROUP1 = 1;
+
+		// C-Number of blocks in group 2
+		internal const int BLOCKS_GROUP2 = 2;
+
+		// D-Number of data codewords in blocks of group 2
+		internal const int DATA_CODEWORDS_GROUP2 = 3;
+
+		internal const byte White = 0;
+		internal const byte Black = 1;
+		internal const byte NonData = 2;
+		internal const byte Fixed = 4;
+		internal const byte DataWhite = White;
+		internal const byte DataBlack = Black;
+		internal const byte FormatWhite = NonData | White;
+		internal const byte FormatBlack = NonData | Black;
+		internal const byte FixedWhite = Fixed | NonData | White;
+		internal const byte FixedBlack = Fixed | NonData | Black;
+
 		// alignment symbols position as function of dimension
 		internal static readonly byte[][] AlignmentPositionArray =
 			{
@@ -176,30 +200,6 @@ namespace QRCodeDecoderLibrary
 			(byte) '/',	// 43
 			(byte) ':',	// 44
 			};
-
-		// Error correction block information
-		// A-Number of blocks in group 1
-		internal const int BLOCKS_GROUP1 = 0;
-
-		// B-Number of data codewords in blocks of group 1
-		internal const int DATA_CODEWORDS_GROUP1 = 1;
-
-		// C-Number of blocks in group 2
-		internal const int BLOCKS_GROUP2 = 2;
-
-		// D-Number of data codewords in blocks of group 2
-		internal const int DATA_CODEWORDS_GROUP2 = 3;
-
-		internal const byte White = 0;
-		internal const byte Black = 1;
-		internal const byte NonData = 2;
-		internal const byte Fixed = 4;
-		internal const byte DataWhite = White;
-		internal const byte DataBlack = Black;
-		internal const byte FormatWhite = NonData | White;
-		internal const byte FormatBlack = NonData | Black;
-		internal const byte FixedWhite = Fixed | NonData | White;
-		internal const byte FixedBlack = Fixed | NonData | Black;
 
 		internal static readonly byte[,] ECBlockInfo =
 			{
