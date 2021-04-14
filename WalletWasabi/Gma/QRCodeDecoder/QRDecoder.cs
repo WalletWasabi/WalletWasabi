@@ -91,10 +91,10 @@ namespace QRCodeDecoderLibrary
 
 		internal int ImageWidth;
 		internal int ImageHeight;
-		internal bool[,] BlackWhiteImage;
-		internal List<Finder> FinderList;
-		internal List<Finder> AlignList;
-		internal List<string> DataArrayList;
+		internal bool[,] BlackWhiteImage = new bool[0, 0];
+		internal List<Finder> FinderList = new();
+		internal List<Finder> AlignList = new();
+		internal List<string> DataArrayList = new();
 		internal int MaxCodewords;
 		internal int MaxDataCodewords;
 		internal int MaxDataBits;
@@ -104,12 +104,12 @@ namespace QRCodeDecoderLibrary
 		internal int BlocksGroup2;
 		internal int DataCodewordsGroup2;
 
-		internal byte[] CodewordsArray;
+		internal byte[] CodewordsArray = Array.Empty<byte>();
 		internal int CodewordsPtr;
 		internal uint BitBuffer;
 		internal int BitBufferLen;
-		internal byte[,] BaseMatrix;
-		internal byte[,] MaskMatrix;
+		internal byte[,] BaseMatrix = new byte[1, 1];
+		internal byte[,] MaskMatrix = new byte[1, 1];
 
 		internal bool Trans4Mode;
 
@@ -186,14 +186,24 @@ namespace QRCodeDecoderLibrary
 						try
 						{
 							// find 3 finders arranged in L shape
-							Corner corner = Corner.CreateCorner(FinderList[index1], FinderList[index2], FinderList[index3]);
+							Corner? corner = Corner.CreateCorner(FinderList[index1], FinderList[index2], FinderList[index3]);
 
-							// not a valid corner OR
-							// get corner info (version, error code and mask) continue if failed OR
-							// decode corner using three finders
-							// continue if successful OR
+							// not a valid corner
 							// qr code version 1 has no alignment mark in other words decode failed
-							if (corner == null || !GetQRCodeCornerInfo(corner) || DecodeQRCodeCorner(corner) || QRCodeVersion == 1)
+							if (corner is null || QRCodeVersion == 1)
+							{
+								continue;
+							}
+
+							// get corner info (version, error code and mask) continue if failed
+							if (!GetQRCodeCornerInfo(corner))
+							{
+								continue;
+							}
+
+							// decode corner using three finders
+							// continue if successful
+							if (DecodeQRCodeCorner(corner))
 							{
 								continue;
 							}
