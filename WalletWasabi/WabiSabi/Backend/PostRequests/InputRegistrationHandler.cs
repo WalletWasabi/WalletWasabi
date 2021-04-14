@@ -148,7 +148,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 			}
 			
-			var aliceOutPoints = alice.Coins.Select(x => x.Outpoint).ToList();
+			var aliceOutPoints = alice.Coins.Select(x => x.Outpoint).ToHashSet();
 			var flattenTable = rounds.SelectMany(x => x.Alices.SelectMany(y => y.Coins.Select(z => (Round: x, Alice: y, Output: z.Outpoint))));
 
 			foreach (var (round, aliceInRound, _) in flattenTable.Where(x => aliceOutPoints.Contains(x.Output)))
