@@ -22,11 +22,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			var amount = transactionSummary.Amount;
 			if (amount < 0)
 			{
-				OutgoingAmount = (amount * -1).ToString(fplus: false);
+				OutgoingAmount = (amount * -1).ToString();
 			}
 			else
 			{
-				IncomingAmount = amount.ToString(fplus: false);
+				IncomingAmount = amount.ToString();
 			}
 		}
 
