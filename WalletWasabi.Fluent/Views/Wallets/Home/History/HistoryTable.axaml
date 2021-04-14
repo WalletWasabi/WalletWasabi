@@ -21,6 +21,7 @@
 
     <DataGrid Items="{Binding Transactions}"
               SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+              CanUserResizeColumns="False"
               DockPanel.Dock="Bottom">
       <DataGrid.Styles>
         <Style Selector="PathIcon">
