@@ -12,11 +12,6 @@
         <DockPanel>
             <TextBlock Text="Wallet Privacy Status" DockPanel.Dock="Top" />
             <DockPanel LastChildFill="True" TextBlock.FontSize="12">
-
-                <StackPanel DockPanel.Dock="Top">
-                    <TextBlock Opacity="0.5">in Percentage %</TextBlock>
-                </StackPanel>
-
                 <ItemsRepeater DockPanel.Dock="Bottom" Margin="0,0,0,-8" Items="{Binding TestDataPointsLegend}">
                     <ItemsRepeater.ItemTemplate>
                         <DataTemplate x:DataType="wallets:DataLegend">

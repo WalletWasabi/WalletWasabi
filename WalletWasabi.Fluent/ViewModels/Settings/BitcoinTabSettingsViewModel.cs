@@ -31,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private string _bitcoinP2PEndPoint;
 		[AutoNotify] private string _dustThreshold;
 
-		public BitcoinTabSettingsViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
+		public BitcoinTabSettingsViewModel(Config config) : base(config)
 		{
 			this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 			this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);

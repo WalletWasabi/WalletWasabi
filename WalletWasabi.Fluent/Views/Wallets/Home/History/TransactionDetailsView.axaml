@@ -1,0 +1,79 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
+             xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="history:TransactionDetailsViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.TransactionDetailsView">
+  <c:ContentArea Title="{Binding Title}"
+                 NextContent="Done" EnableNext="True"
+                 EnableCancel="{Binding EnableCancel}">
+    <StackPanel Spacing="15">
+
+      <!-- Date -->
+      <c:PreviewItem Icon="{StaticResource timer_regular}"
+                     Text="Date / Time"
+                     Content="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}" />
+
+      <Separator />
+
+      <!-- Transaction ID -->
+      <c:PreviewItem Icon="{StaticResource transaction_id}"
+                     Text="Transaction ID">
+        <DockPanel HorizontalAlignment="Left">
+          <c:AnimatedButton Margin="5 0 0 0"
+                            Command="{Binding CopyTransactionIdCommand}"
+                            ToolTip.Tip="Copy"
+                            NormalIcon="{StaticResource copy_regular}"
+                            ClickIcon="{StaticResource copy_confirmed}"
+                            InitialOpacity="0.6"
+                            DockPanel.Dock="Right"/>
+          <TextBlock Text="{Binding TransactionId}"/>
+        </DockPanel>
+      </c:PreviewItem>
+
+      <Separator />
+
+      <!-- Status -->
+      <c:PreviewItem Icon="{StaticResource status_regular}"
+                     Text="Status">
+        <Panel>
+          <TextBlock Text="Confirmed" IsVisible="{Binding IsConfirmed}" />
+          <TextBlock Text="Pending" IsVisible="{Binding !IsConfirmed}" />
+        </Panel>
+      </c:PreviewItem>
+
+      <Separator />
+
+      <!-- Incoming amount  -->
+      <c:PreviewItem Icon="{StaticResource btc_logo}"
+                     Text="Amount"
+                     Content="{Binding Amount, StringFormat={}{0} BTC}"/>
+
+      <Separator />
+
+      <!-- Block height -->
+      <c:PreviewItem Icon="{StaticResource block_height}"
+                     Text="Block height"
+                     Content="{Binding BlockHeight}" />
+      <Separator />
+
+      <!-- Confirmations -->
+      <c:PreviewItem Icon="{StaticResource copy_confirmed}"
+                     Text="Confirmations"
+                     Content="{Binding Confirmations}" />
+
+      <Separator />
+
+      <!-- Labels -->
+      <c:PreviewItem Icon="{StaticResource entities_regular}"
+                     Text="Labels">
+        <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}" />
+      </c:PreviewItem>
+
+    </StackPanel>
+  </c:ContentArea>
+</UserControl>
