@@ -9,7 +9,9 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
+using WalletWasabi.Tor.Socks5.Pool;
 
 namespace WalletWasabi.WebClients.BlockstreamInfo
 {
@@ -17,17 +19,27 @@ namespace WalletWasabi.WebClients.BlockstreamInfo
 	{
 		private bool _disposedValue;
 
-		public BlockstreamInfoClient(Network network)
+		public BlockstreamInfoClient(Network network, TorHttpPool? pool = null)
 		{
-			HttpClient = new HttpClient();
-			HttpClient.BaseAddress = new Uri(network == Network.TestNet ? "https://blockstream.info/testnet" : "https://blockstream.info");
+			if (pool is not null)
+			{
+				TorHttpClient = new TorHttpClient(new Uri(network == Network.TestNet ? "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion/testnet" : "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion"), pool);
+			}
+			else
+			{
+				HttpClient = new HttpClient();
+				HttpClient.BaseAddress = new Uri(network == Network.TestNet ? "https://blockstream.info/testnet" : "https://blockstream.info");
+			}
 		}
 
-		public HttpClient HttpClient { get; }
+		public TorHttpClient? TorHttpClient { get; }
+		public HttpClient? HttpClient { get; }
 
 		public async Task<BestFeeEstimates> GetFeeEstimatesAsync(CancellationToken cancel)
 		{
-			using HttpResponseMessage response = await HttpClient.GetAsync("api/fee-estimates", cancel).ConfigureAwait(false);
+			using HttpResponseMessage response = TorHttpClient is not null
+				? await TorHttpClient.SendAsync(HttpMethod.Get, "api/fee-estimates", null, cancel).ConfigureAwait(false)
+				: await HttpClient!.GetAsync("api/fee-estimates", cancel).ConfigureAwait(false);
 
 			if (!response.IsSuccessStatusCode)
 			{
