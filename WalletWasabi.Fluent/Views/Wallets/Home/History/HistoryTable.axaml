@@ -69,7 +69,7 @@
         </DataGridTemplateColumn>
 
         <!-- Incoming -->
-        <DataGridTemplateColumn Header="Incoming"
+        <DataGridTemplateColumn Header="Incoming (BTC)"
                                 Width="*"
                                 SortMemberPath="IncomingAmount">
           <DataGridTemplateColumn.CellTemplate>
@@ -77,14 +77,14 @@
               <StackPanel x:DataType="history:HistoryItemViewModel"
                           IsVisible="{Binding !!IncomingAmount}">
                 <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6" />
-                <TextBlock Text="{Binding IncomingAmount, StringFormat={}{0} BTC}" />
+                <TextBlock Text="{Binding IncomingAmount}" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
         <!-- Outgoing -->
-        <DataGridTemplateColumn Header="Outgoing"
+        <DataGridTemplateColumn Header="Outgoing (BTC)"
                                 Width="*"
                                 SortMemberPath="OutgoingAmount">
           <DataGridTemplateColumn.CellTemplate>
@@ -92,14 +92,14 @@
               <StackPanel x:DataType="history:HistoryItemViewModel"
                           IsVisible="{Binding !!OutgoingAmount}">
                 <PathIcon Data="{StaticResource arrow_up_right_regular}" Opacity="0.6" />
-                <TextBlock Text="{Binding OutgoingAmount, StringFormat={}{0} BTC}" />
+                <TextBlock Text="{Binding OutgoingAmount}" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
         <!-- Balance -->
-        <DataGridTemplateColumn Header="Balance"
+        <DataGridTemplateColumn Header="Balance (BTC)"
                                 Width="*"
                                 SortMemberPath="Balance">
           <DataGridTemplateColumn.CellTemplate>
@@ -115,7 +115,7 @@
                     <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50" Opacity="0.6" />
                   </Panel>
                 </Viewbox>
-              <TextBlock x:DataType="history:HistoryItemViewModel" Text="{Binding Balance, StringFormat={}{0} BTC}" />
+              <TextBlock x:DataType="history:HistoryItemViewModel" Text="{Binding Balance}" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
