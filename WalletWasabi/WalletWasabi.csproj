@@ -31,6 +31,7 @@
 		<PackageReference Include="NBitcoin" Version="5.0.73" />
 		<PackageReference Include="NBitcoin.Secp256k1" Version="1.0.10" />
 		<PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+		<PackageReference Include="runtime.osx.10.10-x64.CoreCompat.System.Drawing" Version="5.8.64" />
 	</ItemGroup>
 
 	<ItemGroup>
