@@ -91,6 +91,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			var bobArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, amountCredentials, weightCredentials, coordinator, new InsecureRandom());
 
+			await bobArenaClient.ReissuanceAsync(round.Id, reissuanceAmounts[0], amountCredentials.Valuable);
+			await bobArenaClient.ReissuanceAsync(round.Id, reissuanceAmounts[1], amountCredentials.Valuable);
+
+			var amount1 = amountCredentials.Valuable.First(ac => ac.Amount.ToMoney().Satoshi == reissuanceAmounts[0].Satoshi);
+			var amount2 = amountCredentials.Valuable.First(ac => ac.Amount.ToMoney().Satoshi == reissuanceAmounts[1].Satoshi);
+
+			// What about weightCredentials?
+
 			// Phase: Output Registration
 			using var destinationKey1 = new Key();
 			using var destinationKey2 = new Key();
