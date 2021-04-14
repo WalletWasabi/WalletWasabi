@@ -94,8 +94,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await bobArenaClient.ReissuanceAsync(round.Id, reissuanceAmounts[0], amountCredentials.Valuable);
 			await bobArenaClient.ReissuanceAsync(round.Id, reissuanceAmounts[1], amountCredentials.Valuable);
 
-			var amount1 = amountCredentials.Valuable.First(ac => ac.Amount.ToMoney().Satoshi == reissuanceAmounts[0].Satoshi);
-			var amount2 = amountCredentials.Valuable.First(ac => ac.Amount.ToMoney().Satoshi == reissuanceAmounts[1].Satoshi);
+			var cred1 = amountCredentials.Valuable.First(ac => ac.Amount.ToMoney().Satoshi == reissuanceAmounts[0].Satoshi);
+			var cred2 = amountCredentials.Valuable.First(ac => ac.Amount.ToMoney().Satoshi == reissuanceAmounts[1].Satoshi);
 
 			// What about weightCredentials?
 
@@ -107,14 +107,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				round.Id,
 				reissuanceAmounts[0],
 				destinationKey1.PubKey.WitHash.ScriptPubKey,
-				amountCredentials.Valuable,
+				new[] { cred1 },
 				weightCredentials.Valuable);
 
 			await bobArenaClient.RegisterOutputAsync(
 				round.Id,
 				reissuanceAmounts[1],
 				destinationKey2.PubKey.WitHash.ScriptPubKey,
-				amountCredentials.Valuable,
+				new[] { cred2 },
 				weightCredentials.Valuable);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
