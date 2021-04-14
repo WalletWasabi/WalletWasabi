@@ -69,6 +69,44 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
+		public void AllFeeEstimateHandlesOne()
+		{
+			// If there's no 2, this'll be 2.
+			var estimations = new Dictionary<int, int>
+			{
+				{ 1, 20 }
+			};
+
+			var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+			Assert.Single(allFee.Estimations);
+			Assert.Equal(estimations[1], allFee.Estimations[2]);
+
+			// If there's 2, 1 is dismissed.
+			estimations = new Dictionary<int, int>
+			{
+				{ 1, 20 },
+				{ 2, 21 }
+			};
+
+			allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+			Assert.Single(allFee.Estimations);
+			Assert.Equal(estimations[2], allFee.Estimations[2]);
+		}
+
+		[Fact]
+		public void EndOfTheRange()
+		{
+			var estimations = new Dictionary<int, int>
+			{
+				{ 1007, 20 }
+			};
+
+			var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+			var est = Assert.Single(allFee.Estimations);
+			Assert.Equal(1008, est.Key);
+		}
+
+		[Fact]
 		public void AllFeeEstimateHandlesInconsistentData()
 		{
 			var estimations = new Dictionary<int, int>
