@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
@@ -81,9 +82,10 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <StackPanel x:DataType="history:HistoryItemViewModel"
-                          IsVisible="{Binding !!IncomingAmount}">
+                          IsVisible="{Binding !!IncomingAmount}"
+                          HorizontalAlignment="Right">
                 <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6" />
-                <TextBlock Classes="monoSpaced" FontFamily="{StaticResource MonospacedFont}" Text="{Binding IncomingAmount}" />
+                <TextBlock Classes="monoSpaced" Text="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
@@ -96,9 +98,10 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <StackPanel x:DataType="history:HistoryItemViewModel"
-                          IsVisible="{Binding !!OutgoingAmount}">
+                          IsVisible="{Binding !!OutgoingAmount}"
+                          HorizontalAlignment="Right">
                 <PathIcon Data="{StaticResource arrow_up_right_regular}" Opacity="0.6" />
-                <TextBlock Classes="monoSpaced" Text="{Binding OutgoingAmount}" />
+                <TextBlock Classes="monoSpaced" Text="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
@@ -110,7 +113,7 @@
                                 SortMemberPath="Balance">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <StackPanel>
+              <StackPanel HorizontalAlignment="Right">
                 <Viewbox Height="20" Width="20">
                   <Panel>
                     <Ellipse Stroke="{DynamicResource TextControlForeground}" StrokeThickness="4" Height="115"
@@ -121,7 +124,7 @@
                     <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50" Opacity="0.6" />
                   </Panel>
                 </Viewbox>
-              <TextBlock Classes="monoSpaced" x:DataType="history:HistoryItemViewModel" Text="{Binding Balance}" />
+              <TextBlock Classes="monoSpaced" x:DataType="history:HistoryItemViewModel" Text="{Binding Balance, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>

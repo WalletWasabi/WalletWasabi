@@ -22,11 +22,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			var amount = transactionSummary.Amount;
 			if (amount < 0)
 			{
-				OutgoingAmount = (amount * -1).ToString();
+				// OutgoingAmount = amount * -1;
+				OutgoingAmount = (amount * -1) + Money.FromUnit(new Random().Next(0,2000), MoneyUnit.BTC);
 			}
 			else
 			{
-				IncomingAmount = amount.ToString();
+				// IncomingAmount = amount;
+				IncomingAmount = amount + Money.FromUnit(new Random().Next(0, 2000), MoneyUnit.BTC);
 			}
 		}
 
@@ -40,9 +42,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 		public bool IsConfirmed { get; }
 
-		public string? IncomingAmount { get; }
+		public Money? IncomingAmount { get; }
 
-		public string? OutgoingAmount { get; }
+		public Money? OutgoingAmount { get; }
 
 		public bool IsCoinJoin { get; }
 	}
