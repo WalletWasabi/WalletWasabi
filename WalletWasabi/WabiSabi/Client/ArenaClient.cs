@@ -114,6 +114,31 @@ namespace WalletWasabi.WabiSabi.Client
 			WeightCredentialClient.HandleResponse(outputRegistrationResponse.WeightCredentials, realWeightCredentialResponseValidation);
 		}
 
+		public async Task ReissuanceAsync(Guid roundId, long value, IEnumerable<Credential> amountCredentialsToPresent)
+		{
+			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
+
+			var presentedAmount = amountCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
+
+			var amount1 = value;
+			var amount2 = presentedAmount - value;
+
+			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
+				new[] { amount1, amount2 },
+				amountCredentialsToPresent);
+
+			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
+
+			var reissuanceResponse = await RequestHandler.ReissuanceAsync(
+				new ReissuanceRequest(
+					roundId,
+					realAmountCredentialRequest,
+					zeroAmountCredentialRequestData.CredentialsRequest)).ConfigureAwait(false);
+
+			AmountCredentialClient.HandleResponse(reissuanceResponse.RealAmountCredentials, realAmountCredentialResponseValidation);
+			AmountCredentialClient.HandleResponse(reissuanceResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
+		}
+
 		public async Task<bool> ConfirmConnectionAsync(Guid roundId, Guid aliceId, IEnumerable<long> inputsRegistrationWeight, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Money> newAmount)
 		{
 			Guard.InRange(nameof(newAmount), newAmount, 1, AmountCredentialClient.NumberOfCredentials);

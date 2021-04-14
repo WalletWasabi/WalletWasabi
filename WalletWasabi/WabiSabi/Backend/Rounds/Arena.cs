@@ -457,6 +457,45 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
+		public async Task<ReissuanceResponse> ReissuanceAsync(ReissuanceRequest request)
+		{
+			using (await AsyncLock.LockAsync().ConfigureAwait(false))
+			{
+				if (!Rounds.TryGetValue(request.RoundId, out var round))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
+				}
+
+				if (request.RealAmountCredentialRequests.Delta != 0)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.DeltaNotZero, $"Round ({request.RoundId}): Delta can be zero only at reissuance.");
+				}
+
+				if (request.RealAmountCredentialRequests.Requested.Count() != 2)
+				{
+					throw new NotImplementedException(); // TODO
+				}
+
+				if (request.ZeroAmountCredentialRequests.Requested.Count() != 2)
+				{
+					throw new NotImplementedException(); // TODO
+				}
+
+				if (round.Phase != Phase.ConnectionConfirmation || round.Phase != Phase.OutputRegistration)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
+				}
+
+				var commitRealAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(request.RealAmountCredentialRequests);
+				var commitZeroAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(request.ZeroAmountCredentialRequests);
+
+				return new(
+					commitRealAmountCredentialResponse.Commit(),
+					commitZeroAmountCredentialResponse.Commit()
+					);
+			}
+		}
+
 		public override void Dispose()
 		{
 			Random.Dispose();
