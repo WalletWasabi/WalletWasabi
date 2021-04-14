@@ -55,5 +55,19 @@ namespace WalletWasabi.Tests.UnitTests.QrCode
 			var notValidDataByteArray = decoder.SearchQrCodes(notValidInputImage);
 			Assert.Empty(notValidDataByteArray);
 		}
+
+		[Fact]
+		public void GetAddressFromPictureTakenByPhone()
+		{
+			QRDecoder decoder = new();
+			string expectedOutput = "tb1qutgpgraaze3hqnvt2xyw5acsmd3urprk3ff27d";
+
+			string path = Path.Combine(_commonPartialPath, "QrByPhone.jpg");
+			using Bitmap inputImage = new(path);
+			var dataCollection = decoder.SearchQrCodes(inputImage);
+
+			Assert.Single(dataCollection);
+			Assert.Equal(expectedOutput, dataCollection.First());
+		}
 	}
 }
