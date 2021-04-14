@@ -57,12 +57,40 @@ namespace WalletWasabi.Tests.UnitTests.QrCode
 		}
 
 		[Fact]
-		public void GetAddressFromPictureTakenByPhone()
+		public void DecodePictureTakenByPhone()
 		{
 			QRDecoder decoder = new();
 			string expectedOutput = "tb1qutgpgraaze3hqnvt2xyw5acsmd3urprk3ff27d";
 
 			string path = Path.Combine(_commonPartialPath, "QrByPhone.jpg");
+			using Bitmap inputImage = new(path);
+			var dataCollection = decoder.SearchQrCodes(inputImage);
+
+			Assert.Single(dataCollection);
+			Assert.Equal(expectedOutput, dataCollection.First());
+		}
+
+		[Fact]
+		public void DecodeDifficultPictureTakenByPhone()
+		{
+			QRDecoder decoder = new();
+			string expectedOutput = "Top right corner";
+
+			string path = Path.Combine(_commonPartialPath, "QrBrick.jpg");
+			using Bitmap inputImage = new(path);
+			var dataCollection = decoder.SearchQrCodes(inputImage);
+
+			Assert.Single(dataCollection);
+			Assert.Equal(expectedOutput, dataCollection.First());
+		}
+
+		[Fact]
+		public void DecodePictureWithZebraBackground()
+		{
+			QRDecoder decoder = new();
+			string expectedOutput = "Let's see a Zebra.";
+
+			string path = Path.Combine(_commonPartialPath, "QRwithZebraBackground.png");
 			using Bitmap inputImage = new(path);
 			var dataCollection = decoder.SearchQrCodes(inputImage);
 
