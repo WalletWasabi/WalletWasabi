@@ -42,11 +42,17 @@
       <DataGrid.Columns>
 
         <!-- Date -->
-        <DataGridTextColumn Header="Date / Time"
-                            x:DataType="history:HistoryItemViewModel"
-                            Binding="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
-                            SortMemberPath="OrderIndex"
-                            Width="Auto" />
+        <DataGridTemplateColumn Header="Date / Time"
+                                Width="Auto"
+                                SortMemberPath="OrderIndex">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Panel x:DataType="history:HistoryItemViewModel">
+                <TextBlock Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}" Classes="monoSpaced"/>
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
 
         <!-- Type -->
         <DataGridTemplateColumn Header="Type"
