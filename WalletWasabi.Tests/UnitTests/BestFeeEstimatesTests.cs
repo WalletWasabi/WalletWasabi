@@ -16,10 +16,10 @@ using Moq;
 
 namespace WalletWasabi.Tests.UnitTests
 {
-	public class AllFeeEstimateTests
+	public class BestFeeEstimatesTests
 	{
 		[Fact]
-		public void AllFeeEstimateSerialization()
+		public void BestFeeEstimatesSerialization()
 		{
 			var estimations = new Dictionary<int, int>
 			{
@@ -27,9 +27,9 @@ namespace WalletWasabi.Tests.UnitTests
 				{ 3, 20 },
 				{ 19, 1 }
 			};
-			var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
-			var serialized = JsonConvert.SerializeObject(allFee);
-			var deserialized = JsonConvert.DeserializeObject<AllFeeEstimate>(serialized);
+			var bestFees = new BestFeeEstimates(EstimateSmartFeeMode.Conservative, estimations, true);
+			var serialized = JsonConvert.SerializeObject(bestFees);
+			var deserialized = JsonConvert.DeserializeObject<BestFeeEstimates>(serialized);
 
 			Assert.Equal(estimations[2], deserialized.Estimations[2]);
 			Assert.Equal(estimations[3], deserialized.Estimations[3]);
@@ -38,7 +38,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public void AllFeeEstimateOrdersByTarget()
+		public void BestFeeEstimatesOrdersByTarget()
 		{
 			var estimations = new Dictionary<int, int>
 			{
@@ -48,14 +48,14 @@ namespace WalletWasabi.Tests.UnitTests
 				{ 20, 1 }
 			};
 
-			var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
-			Assert.Equal(estimations[2], allFee.Estimations[2]);
-			Assert.Equal(estimations[3], allFee.Estimations[3]);
-			Assert.Equal(estimations[19], allFee.Estimations[36]);
+			var bestFees = new BestFeeEstimates(EstimateSmartFeeMode.Conservative, estimations, true);
+			Assert.Equal(estimations[2], bestFees.Estimations[2]);
+			Assert.Equal(estimations[3], bestFees.Estimations[3]);
+			Assert.Equal(estimations[19], bestFees.Estimations[36]);
 		}
 
 		[Fact]
-		public void AllFeeEstimateHandlesDuplicate()
+		public void BestFeeEstimatesHandlesDuplicate()
 		{
 			var estimations = new Dictionary<int, int>
 			{
@@ -63,13 +63,13 @@ namespace WalletWasabi.Tests.UnitTests
 				{ 3, 20 }
 			};
 
-			var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
-			Assert.Single(allFee.Estimations);
-			Assert.Equal(estimations[2], allFee.Estimations[2]);
+			var bestFees = new BestFeeEstimates(EstimateSmartFeeMode.Conservative, estimations, true);
+			Assert.Single(bestFees.Estimations);
+			Assert.Equal(estimations[2], bestFees.Estimations[2]);
 		}
 
 		[Fact]
-		public void AllFeeEstimateHandlesOne()
+		public void BestFeeEstimatesHandlesOne()
 		{
 			// If there's no 2, this'll be 2.
 			var estimations = new Dictionary<int, int>
@@ -77,9 +77,9 @@ namespace WalletWasabi.Tests.UnitTests
 				{ 1, 20 }
 			};
 
-			var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
-			Assert.Single(allFee.Estimations);
-			Assert.Equal(estimations[1], allFee.Estimations[2]);
+			var bestFees = new BestFeeEstimates(EstimateSmartFeeMode.Conservative, estimations, true);
+			Assert.Single(bestFees.Estimations);
+			Assert.Equal(estimations[1], bestFees.Estimations[2]);
 
 			// If there's 2, 1 is dismissed.
 			estimations = new Dictionary<int, int>
@@ -88,9 +88,9 @@ namespace WalletWasabi.Tests.UnitTests
 				{ 2, 21 }
 			};
 
-			allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
-			Assert.Single(allFee.Estimations);
-			Assert.Equal(estimations[2], allFee.Estimations[2]);
+			bestFees = new BestFeeEstimates(EstimateSmartFeeMode.Conservative, estimations, true);
+			Assert.Single(bestFees.Estimations);
+			Assert.Equal(estimations[2], bestFees.Estimations[2]);
 		}
 
 		[Fact]
@@ -101,13 +101,13 @@ namespace WalletWasabi.Tests.UnitTests
 				{ 1007, 20 }
 			};
 
-			var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
-			var est = Assert.Single(allFee.Estimations);
+			var bestFees = new BestFeeEstimates(EstimateSmartFeeMode.Conservative, estimations, true);
+			var est = Assert.Single(bestFees.Estimations);
 			Assert.Equal(1008, est.Key);
 		}
 
 		[Fact]
-		public void AllFeeEstimateHandlesInconsistentData()
+		public void BestFeeEstimatesHandlesInconsistentData()
 		{
 			var estimations = new Dictionary<int, int>
 			{
@@ -115,9 +115,9 @@ namespace WalletWasabi.Tests.UnitTests
 				{ 3, 21 }
 			};
 
-			var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
-			Assert.Single(allFee.Estimations);
-			Assert.Equal(estimations[2], allFee.Estimations[2]);
+			var bestFees = new BestFeeEstimates(EstimateSmartFeeMode.Conservative, estimations, true);
+			Assert.Single(bestFees.Estimations);
+			Assert.Equal(estimations[2], bestFees.Estimations[2]);
 
 			estimations = new Dictionary<int, int>
 			{
@@ -128,10 +128,10 @@ namespace WalletWasabi.Tests.UnitTests
 				{ 6, 4 },
 			};
 
-			allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
-			Assert.Equal(2, allFee.Estimations.Count);
-			Assert.Equal(estimations[2], allFee.Estimations[2]);
-			Assert.Equal(estimations[6], allFee.Estimations[6]);
+			bestFees = new BestFeeEstimates(EstimateSmartFeeMode.Conservative, estimations, true);
+			Assert.Equal(2, bestFees.Estimations.Count);
+			Assert.Equal(estimations[2], bestFees.Estimations[2]);
+			Assert.Equal(estimations[6], bestFees.Estimations[6]);
 		}
 
 		[Fact]
@@ -155,7 +155,7 @@ namespace WalletWasabi.Tests.UnitTests
 				.ThrowsAsync(new NoEstimationException(1));
 			mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
 
-			await Assert.ThrowsAsync<NoEstimationException>(async () => await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative));
+			await Assert.ThrowsAsync<NoEstimationException>(async () => await mockRpc.Object.EstimateBestFeesAsync(EstimateSmartFeeMode.Conservative));
 		}
 
 		[Fact]
@@ -176,7 +176,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
 
-			var ex = await Assert.ThrowsAsync<RPCException>(async () => await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative));
+			var ex = await Assert.ThrowsAsync<RPCException>(async () => await mockRpc.Object.EstimateBestFeesAsync(EstimateSmartFeeMode.Conservative));
 			Assert.Equal(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, ex.RPCCode);
 			Assert.Equal("Error-EstimateSmartFee", ex.Message);
 		}
@@ -193,11 +193,11 @@ namespace WalletWasabi.Tests.UnitTests
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(8, any)).ReturnsAsync(FeeRateResponse(8, 70m));
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn<int>(2, 3, 5, 6, 8), any)).ThrowsAsync(new NoEstimationException(0));
 
-			var allFee = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
-			Assert.Equal(2, allFee.Estimations.Count);
-			Assert.False(allFee.Estimations.ContainsKey(3));
-			Assert.False(allFee.Estimations.ContainsKey(5));
-			Assert.False(allFee.Estimations.ContainsKey(8));
+			var bestFees = await mockRpc.Object.EstimateBestFeesAsync(EstimateSmartFeeMode.Conservative);
+			Assert.Equal(2, bestFees.Estimations.Count);
+			Assert.False(bestFees.Estimations.ContainsKey(3));
+			Assert.False(bestFees.Estimations.ContainsKey(5));
+			Assert.False(bestFees.Estimations.ContainsKey(8));
 		}
 
 		[Fact]
@@ -217,12 +217,12 @@ namespace WalletWasabi.Tests.UnitTests
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(1008, any)).ReturnsAsync(FeeRateResponse(1008, 31m));
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn<int>(2, 3, 5, 6, 8, 11, 13, 15, 1008), any)).ThrowsAsync(new NoEstimationException(0));
 
-			var allFee = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
-			Assert.True(allFee.IsAccurate);
-			Assert.Equal(3, allFee.Estimations.Count);
-			Assert.Equal(99, allFee.Estimations[2]);
-			Assert.Equal(75, allFee.Estimations[6]);
-			Assert.Equal(31, allFee.Estimations[1008]);
+			var bestFees = await mockRpc.Object.EstimateBestFeesAsync(EstimateSmartFeeMode.Conservative);
+			Assert.True(bestFees.IsAccurate);
+			Assert.Equal(3, bestFees.Estimations.Count);
+			Assert.Equal(99, bestFees.Estimations[2]);
+			Assert.Equal(75, bestFees.Estimations[6]);
+			Assert.Equal(31, bestFees.Estimations[1008]);
 		}
 
 		[Fact]
@@ -253,10 +253,10 @@ namespace WalletWasabi.Tests.UnitTests
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(1008, any)).ReturnsAsync(FeeRateResponse(1008, 1m));
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn<int>(2, 3, 5, 6, 8, 11, 13, 15, 1008), any)).ThrowsAsync(new NoEstimationException(0));
 
-			var allFee = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
-			Assert.Equal(3_500, allFee.Estimations[2]);
-			Assert.True(allFee.Estimations[3] > 500);
-			Assert.True(allFee.Estimations[1008] > 1);
+			var bestFees = await mockRpc.Object.EstimateBestFeesAsync(EstimateSmartFeeMode.Conservative);
+			Assert.Equal(3_500, bestFees.Estimations[2]);
+			Assert.True(bestFees.Estimations[3] > 500);
+			Assert.True(bestFees.Estimations[1008] > 1);
 		}
 
 		[Fact]
@@ -269,7 +269,7 @@ namespace WalletWasabi.Tests.UnitTests
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn<int>(2), any)).ThrowsAsync(new NoEstimationException(0));
 
 			// Do not throw exception
-			await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
+			await mockRpc.Object.EstimateBestFeesAsync(EstimateSmartFeeMode.Conservative);
 		}
 
 		[Fact]
@@ -281,7 +281,7 @@ namespace WalletWasabi.Tests.UnitTests
 				var mempoolInfo = MempoolInfoGenerator.GenerateMempoolInfo();
 				mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync()).ReturnsAsync(mempoolInfo);
 				mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), EstimateSmartFeeMode.Conservative)).ReturnsAsync(FeeRateResponse(2, 120m));
-				var feeRates = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
+				var feeRates = await mockRpc.Object.EstimateBestFeesAsync(EstimateSmartFeeMode.Conservative);
 				var estimations = feeRates.Estimations;
 
 				Assert.Subset(Constants.ConfirmationTargets.ToHashSet(), estimations.Keys.ToHashSet());

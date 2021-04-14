@@ -17,7 +17,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 			RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
 		}
 
-		public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
+		public event EventHandler<BestFeeEstimates>? BestFeeEstimatesArrived;
 
 		public IRPCClient RpcClient { get; set; }
 		public bool InError { get; private set; } = false;
@@ -26,10 +26,10 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 		{
 			try
 			{
-				var allFeeEstimate = await RpcClient.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true).ConfigureAwait(false);
-				if (allFeeEstimate?.Estimations?.Any() is true)
+				var bestFeeEstimates = await RpcClient.EstimateBestFeesAsync(EstimateSmartFeeMode.Conservative, true).ConfigureAwait(false);
+				if (bestFeeEstimates?.Estimations?.Any() is true)
 				{
-					AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
+					BestFeeEstimatesArrived?.Invoke(this, bestFeeEstimates);
 				}
 				InError = false;
 			}

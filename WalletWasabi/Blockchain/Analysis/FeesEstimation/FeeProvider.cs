@@ -16,22 +16,22 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			Synchronizer = synchronizer;
 			RpcNotifier = rpcNotifier;
 
-			Synchronizer.AllFeeEstimateArrived += OnAllFeeEstimateArrived;
+			Synchronizer.BestFeeEstimatesArrived += OnBestFeeEstimatesArrived;
 
 			if (RpcNotifier is not null)
 			{
-				RpcNotifier.AllFeeEstimateArrived += OnAllFeeEstimateArrived;
+				RpcNotifier.BestFeeEstimatesArrived += OnBestFeeEstimatesArrived;
 			}
 		}
 
-		public event EventHandler<AllFeeEstimate>? AllFeeEstimateChanged;
+		public event EventHandler<BestFeeEstimates>? BestFeeEstimatesChanged;
 
-		public AllFeeEstimate? AllFeeEstimate { get; private set; }
+		public BestFeeEstimates? BestFeeEstimates { get; private set; }
 		private object Lock { get; } = new object();
 		public WasabiSynchronizer Synchronizer { get; }
 		public RpcFeeNotifier? RpcNotifier { get; }
 
-		private void OnAllFeeEstimateArrived(object? sender, AllFeeEstimate fees)
+		private void OnBestFeeEstimatesArrived(object? sender, BestFeeEstimates fees)
 		{
 			// Only go further if we have estimations.
 			if (fees?.Estimations?.Any() is not true)
@@ -42,17 +42,17 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			var notify = false;
 			lock (Lock)
 			{
-				if (AllFeeEstimate is null)
+				if (BestFeeEstimates is null)
 				{
 					// If the fee was never set yet, then we should set it regardless where it came from.
-					notify = TrySetAllFeeEstimate(fees);
+					notify = TrySetBestFeeEstimates(fees);
 				}
-				else if (!AllFeeEstimate.IsAccurate && fees.IsAccurate)
+				else if (!BestFeeEstimates.IsAccurate && fees.IsAccurate)
 				{
 					// If the fee was inaccurate and the new fee is accurate, then we should set it regardless where it came from.
-					notify = TrySetAllFeeEstimate(fees);
+					notify = TrySetBestFeeEstimates(fees);
 				}
-				else if (AllFeeEstimate.IsAccurate && !fees.IsAccurate)
+				else if (BestFeeEstimates.IsAccurate && !fees.IsAccurate)
 				{
 					// If the fee was accurate and the new fee is inaccurate, then we should leave the fees alone.
 					return;
@@ -60,17 +60,17 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 				else if (sender is RpcFeeNotifier)
 				{
 					// If the fee is coming from the user's full node, then set it.
-					notify = TrySetAllFeeEstimate(fees);
+					notify = TrySetBestFeeEstimates(fees);
 				}
 				else if (sender is WasabiSynchronizer && RpcNotifier is null)
 				{
 					// If fee is coming from the the backend and user doesn't use a full node, then set the fees.
-					notify = TrySetAllFeeEstimate(fees);
+					notify = TrySetBestFeeEstimates(fees);
 				}
 				else if (sender is WasabiSynchronizer && RpcNotifier is not null && RpcNotifier.InError is true)
 				{
 					// If fee is coming from the the backend, user uses a full node, but it doesn't provide fees, then set the fees.
-					notify = TrySetAllFeeEstimate(fees);
+					notify = TrySetBestFeeEstimates(fees);
 				}
 			}
 
@@ -80,15 +80,15 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 				var from = fees.Estimations.First();
 				var to = fees.Estimations.Last();
 				Logger.LogInfo($"{accuracy} fee rates are acquired from {sender?.GetType()?.Name} ranging from target {from.Key} at {from.Value} sat/b to target {to.Key} at {to.Value} sat/b.");
-				AllFeeEstimateChanged?.Invoke(this, AllFeeEstimate!);
+				BestFeeEstimatesChanged?.Invoke(this, BestFeeEstimates!);
 			}
 		}
 
-		private bool TrySetAllFeeEstimate(AllFeeEstimate fees)
+		private bool TrySetBestFeeEstimates(BestFeeEstimates fees)
 		{
-			if (AllFeeEstimate != fees)
+			if (BestFeeEstimates != fees)
 			{
-				AllFeeEstimate = fees;
+				BestFeeEstimates = fees;
 				return true;
 			}
 			return false;
@@ -102,11 +102,11 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			{
 				if (disposing)
 				{
-					Synchronizer.AllFeeEstimateArrived -= OnAllFeeEstimateArrived;
+					Synchronizer.BestFeeEstimatesArrived -= OnBestFeeEstimatesArrived;
 
 					if (RpcNotifier is not null)
 					{
-						RpcNotifier.AllFeeEstimateArrived -= OnAllFeeEstimateArrived;
+						RpcNotifier.BestFeeEstimatesArrived -= OnBestFeeEstimatesArrived;
 					}
 				}
 

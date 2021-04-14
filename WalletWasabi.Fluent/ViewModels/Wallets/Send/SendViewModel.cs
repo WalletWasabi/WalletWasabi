@@ -455,15 +455,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			var feeProvider = _owner.Wallet.FeeProvider;
 			Observable
-				.FromEventPattern(feeProvider, nameof(feeProvider.AllFeeEstimateChanged))
-				.Select(x => (x.EventArgs as AllFeeEstimate)!.Estimations)
+				.FromEventPattern(feeProvider, nameof(feeProvider.BestFeeEstimatesChanged))
+				.Select(x => (x.EventArgs as BestFeeEstimates)!.Estimations)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(UpdateFeeEstimates)
 				.DisposeWith(disposables);
 
-			if (feeProvider.AllFeeEstimate is { })
+			if (feeProvider.BestFeeEstimates is { })
 			{
-				UpdateFeeEstimates(feeProvider.AllFeeEstimate.Estimations);
+				UpdateFeeEstimates(feeProvider.BestFeeEstimates.Estimations);
 			}
 
 			base.OnNavigatedTo(inHistory, disposables);

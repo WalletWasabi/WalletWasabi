@@ -59,20 +59,20 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest("Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.");
 			}
 
-			AllFeeEstimate estimation = await GetAllFeeEstimateAsync(mode);
+			BestFeeEstimates estimation = await GetBestFeeEstimatesAsync(mode);
 
 			return Ok(estimation.Estimations);
 		}
 
-		internal async Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode)
+		internal async Task<BestFeeEstimates> GetBestFeeEstimatesAsync(EstimateSmartFeeMode mode)
 		{
-			var cacheKey = $"{nameof(GetAllFeeEstimateAsync)}_{mode}";
+			var cacheKey = $"{nameof(GetBestFeeEstimatesAsync)}_{mode}";
 			var cacheOptions = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) };
 
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				cacheOptions,
-				() => RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true));
+				() => RpcClient.EstimateBestFeesAsync(mode, simulateIfRegTest: true));
 		}
 
 		/// <summary>

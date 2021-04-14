@@ -12,10 +12,10 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 	/// Estimates for 1w, 3d, 1d, 12h, 6h, 3h, 1h, 30m, 20m.
 	/// </summary>
 	[JsonObject(MemberSerialization.OptIn)]
-	public class AllFeeEstimate : IEquatable<AllFeeEstimate>
+	public class BestFeeEstimates : IEquatable<BestFeeEstimates>
 	{
 		[JsonConstructor]
-		public AllFeeEstimate(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
+		public BestFeeEstimates(EstimateSmartFeeMode type, IDictionary<int, int> estimations, bool isAccurate)
 		{
 			Guard.NotNullOrEmpty(nameof(estimations), estimations);
 
@@ -46,7 +46,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			}
 		}
 
-		public AllFeeEstimate(AllFeeEstimate other, bool isAccurate)
+		public BestFeeEstimates(BestFeeEstimates other, bool isAccurate)
 			: this(other.Type, other.Estimations, isAccurate)
 		{
 		}
@@ -78,9 +78,9 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 		#region Equality
 
-		public override bool Equals(object? obj) => Equals(obj as AllFeeEstimate);
+		public override bool Equals(object? obj) => Equals(obj as BestFeeEstimates);
 
-		public bool Equals(AllFeeEstimate? other) => this == other;
+		public bool Equals(BestFeeEstimates? other) => this == other;
 
 		public override int GetHashCode()
 		{
@@ -94,7 +94,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			return hash;
 		}
 
-		public static bool operator ==(AllFeeEstimate? x, AllFeeEstimate? y)
+		public static bool operator ==(BestFeeEstimates? x, BestFeeEstimates? y)
 		{
 			if (ReferenceEquals(x, y))
 			{
@@ -143,7 +143,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			return equal;
 		}
 
-		public static bool operator !=(AllFeeEstimate? x, AllFeeEstimate? y) => !(x == y);
+		public static bool operator !=(BestFeeEstimates? x, BestFeeEstimates? y) => !(x == y);
 
 		#endregion Equality
 	}

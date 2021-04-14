@@ -25,7 +25,7 @@ namespace WalletWasabi.WebClients.BlockstreamInfo
 
 		public HttpClient HttpClient { get; }
 
-		public async Task<AllFeeEstimate> GetFeeEstimatesAsync(CancellationToken cancel)
+		public async Task<BestFeeEstimates> GetFeeEstimatesAsync(CancellationToken cancel)
 		{
 			using HttpResponseMessage response = await HttpClient.GetAsync("api/fee-estimates", cancel).ConfigureAwait(false);
 
@@ -42,7 +42,7 @@ namespace WalletWasabi.WebClients.BlockstreamInfo
 				myDic.Add(int.Parse(elem.Name), (int)Math.Ceiling(elem.Value.GetDouble()));
 			}
 
-			return new AllFeeEstimate(EstimateSmartFeeMode.Conservative, myDic, isAccurate: true);
+			return new BestFeeEstimates(EstimateSmartFeeMode.Conservative, myDic, isAccurate: true);
 		}
 
 		protected virtual void Dispose(bool disposing)

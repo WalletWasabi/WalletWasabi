@@ -56,7 +56,7 @@ namespace WalletWasabi.Services
 
 		#region EventsPropertiesMembers
 
-		public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
+		public event EventHandler<BestFeeEstimates>? BestFeeEstimatesArrived;
 
 		public event EventHandler<bool>? ResponseArrivedIsGenSocksServFail;
 
@@ -216,11 +216,11 @@ namespace WalletWasabi.Services
 								throw;
 							}
 
-							var allFeeEstimate = response.AllFeeEstimate;
-							if (allFeeEstimate?.Estimations?.Any() is true)
+							var bestFees = response.BestFeeEstimates;
+							if (bestFees?.Estimations?.Any() is true)
 							{
 								lastFeeQueried = DateTimeOffset.UtcNow;
-								AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
+								BestFeeEstimatesArrived?.Invoke(this, bestFees);
 							}
 
 							if (response.Filters.Count() == maxFiltersToSyncAtInitialization)

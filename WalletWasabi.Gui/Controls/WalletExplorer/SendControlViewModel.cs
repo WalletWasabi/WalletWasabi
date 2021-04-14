@@ -553,7 +553,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);
 		}
 
-		public bool IsEstimateAvailable => Global.FeeProvider?.AllFeeEstimate is { };
+		public bool IsEstimateAvailable => Global.FeeProvider?.BestFeeEstimates is { };
 
 		public string AmountWatermarkText
 		{
@@ -634,7 +634,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFees()
 		{
-			AllFeeEstimate allFeeEstimate = Global.FeeProvider?.AllFeeEstimate;
+			BestFeeEstimates allFeeEstimate = Global.FeeProvider?.BestFeeEstimates;
 
 			int feeTarget = -1; // 1 => 10 minutes
 			if (IsSliderFeeUsed && allFeeEstimate is { })
@@ -795,7 +795,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeeTargetLimits()
 		{
-			var allFeeEstimate = Global.FeeProvider?.AllFeeEstimate;
+			var allFeeEstimate = Global.FeeProvider?.BestFeeEstimates;
 
 			if (allFeeEstimate is { })
 			{
@@ -872,7 +872,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public override void OnOpen(CompositeDisposable disposables)
 		{
 			Observable
-				.FromEventPattern<AllFeeEstimate>(Global.FeeProvider, nameof(Global.FeeProvider.AllFeeEstimateChanged))
+				.FromEventPattern<BestFeeEstimates>(Global.FeeProvider, nameof(Global.FeeProvider.BestFeeEstimatesChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(IsEstimateAvailable)))
 				.DisposeWith(disposables);
@@ -880,7 +880,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.RaisePropertyChanged(nameof(IsEstimateAvailable));
 
 			Observable
-				.FromEventPattern<AllFeeEstimate>(Global.FeeProvider, nameof(Global.FeeProvider.AllFeeEstimateChanged))
+				.FromEventPattern<BestFeeEstimates>(Global.FeeProvider, nameof(Global.FeeProvider.BestFeeEstimatesChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{

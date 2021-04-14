@@ -78,7 +78,7 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				try
 				{
-					response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(mode);
+					response.BestFeeEstimates = await BlockchainController.GetBestFeeEstimatesAsync(mode);
 				}
 				catch (Exception ex)
 				{
