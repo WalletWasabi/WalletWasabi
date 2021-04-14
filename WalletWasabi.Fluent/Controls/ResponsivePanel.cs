@@ -139,6 +139,7 @@ namespace WalletWasabi.Fluent.Controls
 			internal int Row;
 			internal int ColumnSpan;
 			internal int RowSpan;
+			internal bool IsVisible;
 		}
 
 		private Size MeasureArrange(Size panelSize, bool isMeasure)
@@ -216,14 +217,21 @@ namespace WalletWasabi.Fluent.Controls
 				var element = children[i];
 				var columnSpan = GetColumnSpan((Control) element)[layoutIndex];
 				var rowSpan = GetRowSpan((Control) element)[layoutIndex];
+				var isVisible = element.IsVisible && columnSpan > 0 && rowSpan > 0;
 
 				items[i] = new Item()
 				{
 					Column = currentColumn,
 					Row = totalRows,
 					ColumnSpan = columnSpan,
-					RowSpan = rowSpan
+					RowSpan = rowSpan,
+					IsVisible = isVisible
 				};
+
+				if (!isVisible)
+				{
+					continue;
+				}
 
 				rowIncrement = Math.Max(rowSpan, rowIncrement);
 				currentColumn += columnSpan;
