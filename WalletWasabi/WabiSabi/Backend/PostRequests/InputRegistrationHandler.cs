@@ -151,7 +151,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			var aliceOutPoints = alice.Coins.Select(x => x.Outpoint).ToList();
 			var flattenTable = rounds.SelectMany(x => x.Alices.SelectMany(y => y.Coins.Select(z => (Round: x, Alice: y, Output: z.Outpoint))));
 
-			foreach (var (round, aliceInRound, _) in flattenTable.Where(x => aliceOutPoints.Contains(x.Output))
+			foreach (var (round, aliceInRound, _) in flattenTable.Where(x => aliceOutPoints.Contains(x.Output)))
 			{
 				if (round.Alices.Remove(aliceInRound))
 				{
