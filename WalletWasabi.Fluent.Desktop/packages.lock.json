@@ -435,11 +435,6 @@
           "Microsoft.NETCore.Targets": "1.0.1"
         }
       },
-      "runtime.osx.10.10-x64.CoreCompat.System.Drawing": {
-        "type": "Transitive",
-        "resolved": "5.8.64",
-        "contentHash": "Ey7xQgWwixxdrmhzEUvaR4kxZDSQMWQScp8ViLvmL5xCBKG6U3TaMv/jzHilpfQXpHmJ4IylKGzzMvnYX2FwHQ=="
-      },
       "SkiaSharp": {
         "type": "Transitive",
         "resolved": "2.80.2",
@@ -994,8 +989,7 @@
           "Microsoft.Win32.SystemEvents": "5.0.0",
           "NBitcoin": "5.0.73",
           "NBitcoin.Secp256k1": "1.0.10",
-          "System.Drawing.Common": "5.0.2",
-          "runtime.osx.10.10-x64.CoreCompat.System.Drawing": "5.8.64"
+          "System.Drawing.Common": "5.0.2"
         }
       },
       "walletwasabi.fluent": {
@@ -1192,11 +1186,6 @@
         "type": "Transitive",
         "resolved": "4.3.0",
         "contentHash": "KeLz4HClKf+nFS7p/6Fi/CqyLXh81FpiGzcmuS8DGi9lUqSnZ6Es23/gv2O+1XVGfrbNmviF7CckBpavkBoIFQ=="
-      },
-      "runtime.osx.10.10-x64.CoreCompat.System.Drawing": {
-        "type": "Transitive",
-        "resolved": "5.8.64",
-        "contentHash": "Ey7xQgWwixxdrmhzEUvaR4kxZDSQMWQScp8ViLvmL5xCBKG6U3TaMv/jzHilpfQXpHmJ4IylKGzzMvnYX2FwHQ=="
       },
       "runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.OpenSsl": {
         "type": "Transitive",
@@ -1729,11 +1718,6 @@
         "resolved": "4.3.0",
         "contentHash": "KeLz4HClKf+nFS7p/6Fi/CqyLXh81FpiGzcmuS8DGi9lUqSnZ6Es23/gv2O+1XVGfrbNmviF7CckBpavkBoIFQ=="
       },
-      "runtime.osx.10.10-x64.CoreCompat.System.Drawing": {
-        "type": "Transitive",
-        "resolved": "5.8.64",
-        "contentHash": "Ey7xQgWwixxdrmhzEUvaR4kxZDSQMWQScp8ViLvmL5xCBKG6U3TaMv/jzHilpfQXpHmJ4IylKGzzMvnYX2FwHQ=="
-      },
       "runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.OpenSsl": {
         "type": "Transitive",
         "resolved": "4.3.0",
@@ -2213,11 +2197,6 @@
         "type": "Transitive",
         "resolved": "4.3.0",
         "contentHash": "OhBAVBQG5kFj1S+hCEQ3TUHBAEtZ3fbEMgZMRNdN8A0Pj4x+5nTELEqL59DU0TjKVE6II3dqKw4Dklb3szT65w=="
-      },
-      "runtime.osx.10.10-x64.CoreCompat.System.Drawing": {
-        "type": "Transitive",
-        "resolved": "5.8.64",
-        "contentHash": "Ey7xQgWwixxdrmhzEUvaR4kxZDSQMWQScp8ViLvmL5xCBKG6U3TaMv/jzHilpfQXpHmJ4IylKGzzMvnYX2FwHQ=="
       },
       "runtime.win.System.Diagnostics.Debug": {
         "type": "Transitive",

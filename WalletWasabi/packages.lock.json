@@ -38,12 +38,6 @@
         "resolved": "1.0.10",
         "contentHash": "+CbOOtba1tv4p0G8uKRmwH4he5LXNtqfxdIrDi0RcVViR7HRTbaoDE7tJ7cAkg7pxuiNHGkpvtn+rFgkPxYgYw=="
       },
-      "runtime.osx.10.10-x64.CoreCompat.System.Drawing": {
-        "type": "Direct",
-        "requested": "[5.8.64, )",
-        "resolved": "5.8.64",
-        "contentHash": "Ey7xQgWwixxdrmhzEUvaR4kxZDSQMWQScp8ViLvmL5xCBKG6U3TaMv/jzHilpfQXpHmJ4IylKGzzMvnYX2FwHQ=="
-      },
       "System.Drawing.Common": {
         "type": "Direct",
         "requested": "[5.0.2, )",
@@ -302,12 +296,6 @@
         "dependencies": {
           "Microsoft.NETCore.Platforms": "5.0.0"
         }
-      },
-      "runtime.osx.10.10-x64.CoreCompat.System.Drawing": {
-        "type": "Direct",
-        "requested": "[5.8.64, )",
-        "resolved": "5.8.64",
-        "contentHash": "Ey7xQgWwixxdrmhzEUvaR4kxZDSQMWQScp8ViLvmL5xCBKG6U3TaMv/jzHilpfQXpHmJ4IylKGzzMvnYX2FwHQ=="
       },
       "System.Drawing.Common": {
         "type": "Direct",
@@ -611,12 +599,6 @@
           "Microsoft.NETCore.Platforms": "5.0.0"
         }
       },
-      "runtime.osx.10.10-x64.CoreCompat.System.Drawing": {
-        "type": "Direct",
-        "requested": "[5.8.64, )",
-        "resolved": "5.8.64",
-        "contentHash": "Ey7xQgWwixxdrmhzEUvaR4kxZDSQMWQScp8ViLvmL5xCBKG6U3TaMv/jzHilpfQXpHmJ4IylKGzzMvnYX2FwHQ=="
-      },
       "System.Drawing.Common": {
         "type": "Direct",
         "requested": "[5.0.2, )",
@@ -918,12 +900,6 @@
         "dependencies": {
           "Microsoft.NETCore.Platforms": "5.0.0"
         }
-      },
-      "runtime.osx.10.10-x64.CoreCompat.System.Drawing": {
-        "type": "Direct",
-        "requested": "[5.8.64, )",
-        "resolved": "5.8.64",
-        "contentHash": "Ey7xQgWwixxdrmhzEUvaR4kxZDSQMWQScp8ViLvmL5xCBKG6U3TaMv/jzHilpfQXpHmJ4IylKGzzMvnYX2FwHQ=="
       },
       "System.Drawing.Common": {
         "type": "Direct",
