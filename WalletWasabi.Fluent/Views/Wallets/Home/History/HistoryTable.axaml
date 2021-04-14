@@ -77,7 +77,7 @@
               <StackPanel x:DataType="history:HistoryItemViewModel"
                           IsVisible="{Binding !!IncomingAmount}">
                 <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6" />
-                <TextBlock Text="{Binding IncomingAmount}" />
+                <TextBlock Classes="monoSpaced" FontFamily="{StaticResource MonospacedFont}" Text="{Binding IncomingAmount}" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
@@ -92,7 +92,7 @@
               <StackPanel x:DataType="history:HistoryItemViewModel"
                           IsVisible="{Binding !!OutgoingAmount}">
                 <PathIcon Data="{StaticResource arrow_up_right_regular}" Opacity="0.6" />
-                <TextBlock Text="{Binding OutgoingAmount}" />
+                <TextBlock Classes="monoSpaced" Text="{Binding OutgoingAmount}" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
@@ -115,7 +115,7 @@
                     <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50" Opacity="0.6" />
                   </Panel>
                 </Viewbox>
-              <TextBlock x:DataType="history:HistoryItemViewModel" Text="{Binding Balance}" />
+              <TextBlock Classes="monoSpaced" x:DataType="history:HistoryItemViewModel" Text="{Binding Balance}" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>

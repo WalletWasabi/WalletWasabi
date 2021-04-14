@@ -5,6 +5,7 @@
     <sys:Double x:Key="IconElementThemeHeight">16</sys:Double>
     <Easing x:Key="FluentEasing">0.4,0,0.6,1</Easing>
     <KeySpline x:Key="FluentKeySpline">0.4,0,0.6,1</KeySpline>
+    <FontFamily x:Key="MonospacedFont">avares://WalletWasabi.Fluent/Assets/Fonts/CascadiaCode.ttf</FontFamily>
   </Styles.Resources>
 
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ActionButton.axaml" />
