@@ -32,7 +32,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			var km = ServiceFactory.CreateKeyManager("");
 			var key = BitcoinFactory.CreateHdPubKey(km);
-			SmartCoin coin1 = BitcoinFactory.CreateSmartCoin(key, Money.Coins(1m));
+			SmartCoin coin1 = BitcoinFactory.CreateSmartCoin(key, Money.Coins(2m));
 			var outpoint = coin1.OutPoint;
 
 			var mockRpc = new Mock<IRPCClient>();
@@ -59,11 +59,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			await confirmationTask;
-
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
-
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
 
 			using var destinationKey1 = new Key();
@@ -73,19 +71,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			var bobClient = new BobClient(round.Id, bobArenaClient);
 			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey1.PubKey.WitHash.ScriptPubKey);
-
 			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey2.PubKey.WitHash.ScriptPubKey);
-
 			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey3.PubKey.WitHash.ScriptPubKey);
+			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey4.PubKey.WitHash.ScriptPubKey);
 
-			await bobClient.RegisterOutputAsync(amountCredential.Valuable.Sum(c => c.Amount.ToMoney()), destinationKey4.PubKey.WitHash.ScriptPubKey);
-
-			Assert.Empty(amountCredential.Valuable);
-
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
-
-			Assert.Equal(Phase.TransactionSigning, round.Phase);
-			Assert.Equal(4, round.Coinjoin.Outputs.Count);
+			Assert.Equal(4, round.Bobs.Count);
 		}
 	}
 }
