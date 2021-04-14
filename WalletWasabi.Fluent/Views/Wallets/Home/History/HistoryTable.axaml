@@ -4,6 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
@@ -24,6 +26,9 @@
               SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
               CanUserResizeColumns="False"
               DockPanel.Dock="Bottom">
+      <i:Interaction.Behaviors>
+        <behaviors:HideDataGridColumnBehavior HideThresholdWidth="900" ColumnHeader="Type"/>
+      </i:Interaction.Behaviors>
       <DataGrid.Styles>
         <Style Selector="PathIcon">
           <Setter Property="Width" Value="15"/>
@@ -118,7 +123,7 @@
                          HorizontalAlignment="Right"
                          x:DataType="history:HistoryItemViewModel"
                          Text="{Binding Balance, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
-                         Margin="10 0"/>
+                         Margin="10 0" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
