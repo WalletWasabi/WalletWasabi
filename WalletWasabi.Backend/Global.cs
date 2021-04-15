@@ -38,7 +38,6 @@ namespace WalletWasabi.Backend
 		public IndexBuilderService IndexBuilderService { get; private set; }
 
 		public Coordinator Coordinator { get; private set; }
-		public WabiSabiCoordinator WabiSabiCoordinator { get; private set; }
 
 		public Config Config { get; private set; }
 
@@ -57,8 +56,7 @@ namespace WalletWasabi.Backend
 			await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint(), cancel);
 
 			CoordinatorParameters coordinatorParameters = new(DataDir);
-			WabiSabiCoordinator = new(coordinatorParameters, RpcClient);
-			HostedServices.Register<WabiSabiCoordinator>(WabiSabiCoordinator, "WabiSabi Coordinator");
+			HostedServices.Register<WabiSabiCoordinator>(new WabiSabiCoordinator(coordinatorParameters, RpcClient), "WabiSabi Coordinator");
 
 			if (roundConfig.FilePath is { })
 			{
