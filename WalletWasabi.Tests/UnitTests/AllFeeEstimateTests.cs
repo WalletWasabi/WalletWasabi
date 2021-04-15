@@ -19,7 +19,7 @@ namespace WalletWasabi.Tests.UnitTests
 	public class AllFeeEstimateTests
 	{
 		[Fact]
-		public void AllFeeEstimateSerialization()
+		public void Serialization()
 		{
 			var estimations = new Dictionary<int, int>
 			{
@@ -38,7 +38,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public void AllFeeEstimateOrdersByTarget()
+		public void OrdersByTarget()
 		{
 			var estimations = new Dictionary<int, int>
 			{
@@ -55,7 +55,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public void AllFeeEstimateHandlesDuplicate()
+		public void HandlesDuplicate()
 		{
 			var estimations = new Dictionary<int, int>
 			{
@@ -69,7 +69,45 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public void AllFeeEstimateHandlesInconsistentData()
+		public void HandlesOne()
+		{
+			// If there's no 2, this'll be 2.
+			var estimations = new Dictionary<int, int>
+			{
+				{ 1, 20 }
+			};
+
+			var allFees = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+			Assert.Single(allFees.Estimations);
+			Assert.Equal(estimations[1], allFees.Estimations[2]);
+
+			// If there's 2, 1 is dismissed.
+			estimations = new Dictionary<int, int>
+			{
+				{ 1, 20 },
+				{ 2, 21 }
+			};
+
+			allFees = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+			Assert.Single(allFees.Estimations);
+			Assert.Equal(estimations[2], allFees.Estimations[2]);
+		}
+
+		[Fact]
+		public void EndOfTheRange()
+		{
+			var estimations = new Dictionary<int, int>
+			{
+				{ 1007, 20 }
+			};
+
+			var allFees = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+			var est = Assert.Single(allFees.Estimations);
+			Assert.Equal(1008, est.Key);
+		}
+
+		[Fact]
+		public void HandlesInconsistentData()
 		{
 			var estimations = new Dictionary<int, int>
 			{
