@@ -199,7 +199,6 @@ namespace WalletWasabi.Gui
 								new CoreNodeParams(
 									Network,
 									BitcoinStore.MempoolService,
-									HostedServices,
 									Config.LocalBitcoinCoreDataDir,
 									tryRestart: false,
 									tryDeleteDataDir: false,
@@ -213,6 +212,10 @@ namespace WalletWasabi.Gui
 									Cache),
 								cancel)
 							.ConfigureAwait(false);
+
+						HostedServices.Register<BlockNotifier>(new BlockNotifier(TimeSpan.FromSeconds(7), BitcoinCoreNode.RpcClient, BitcoinCoreNode.P2pNode), "Block Notifier");
+						HostedServices.Register<RpcMonitor>(new RpcMonitor(TimeSpan.FromSeconds(7), BitcoinCoreNode.RpcClient), "RPC Monitor");
+						HostedServices.Register<RpcFeeProvider>(new RpcFeeProvider(TimeSpan.FromMinutes(1), BitcoinCoreNode.RpcClient), "RPC Fee Provider");
 					}
 				}
 				catch (Exception ex)

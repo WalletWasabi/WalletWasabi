@@ -29,8 +29,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 		{
 			RuntimeParams.SetDataDir(Path.Combine(Common.DataDir, "RegTests", "Backend"));
 			RuntimeParams.LoadAsync().GetAwaiter().GetResult();
-			var hostedServices = new HostedServices();
-			BackendRegTestNode = TestNodeBuilder.CreateAsync(hostedServices, callerFilePath: "RegTests", callerMemberName: "BitcoinCoreData").GetAwaiter().GetResult();
+			BackendRegTestNode = TestNodeBuilder.CreateAsync(callerFilePath: "RegTests", callerMemberName: "BitcoinCoreData").GetAwaiter().GetResult();
 
 			var walletName = "wallet.dat";
 			BackendRegTestNode.RpcClient.CreateWalletAsync(walletName).GetAwaiter().GetResult();
@@ -79,15 +78,15 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			}
 
 			Global = global;
-			Global.HostedServices = hostedServices;
 			var hostInitializationTask = BackendHost.RunWithTasksAsync();
 			Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}");
 
 			HttpClient = new HttpClient();
 			BackendHttpClient = new ClearnetHttpClient(HttpClient, () => BackendEndPointUri);
 
+			// Wait for server to initialize
 			var delayTask = Task.Delay(3000);
-			Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
+			Task.WaitAny(delayTask, hostInitializationTask);
 		}
 
 		/// <summary>String representation of backend URI: <c>http://localhost:RANDOM_PORT</c>.</summary>
