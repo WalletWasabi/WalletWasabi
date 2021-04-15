@@ -4,6 +4,13 @@ using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Controls
 {
+	public enum AxisPlotMode
+	{
+		Normal,
+		EvenlySpaced,
+		Logarithmic
+	}
+
 	public partial class LineChart
 	{
 		// Area
@@ -69,6 +76,9 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<double> XAxisMinViableWidthProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMinViableWidth), double.MinValue);
+
+		public static readonly StyledProperty<AxisPlotMode> XAxisPlotModeProperty =
+			AvaloniaProperty.Register<LineChart, AxisPlotMode>(nameof(XAxisPlotMode), AxisPlotMode.Normal);
 
 		// XAxis Label
 
@@ -497,6 +507,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(XAxisMinViableWidthProperty);
 			set => SetValue(XAxisMinViableWidthProperty, value);
+		}
+
+		public AxisPlotMode XAxisPlotMode
+		{
+			get => GetValue(XAxisPlotModeProperty);
+			set => SetValue(XAxisPlotModeProperty, value);
 		}
 
 		// XAxis Label

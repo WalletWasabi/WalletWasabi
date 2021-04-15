@@ -224,17 +224,37 @@ namespace WalletWasabi.Fluent.Controls
 
 			state.Points = new Point[yAxisValues.Count];
 
-			var pointStep = state.AreaWidth / (xAxisValues.Count - 1);
+			var xAxisValuesEnumerable = xAxisValues as IEnumerable<double>;
 
-			var min = xAxisValues.Min();
-			var max = xAxisValues.Max();
-
-			var xAxisScaler = new StraightLineFormula();
-			xAxisScaler.CalculateFrom(min, max, 0, state.AreaWidth);
-
-			for (var i = 0; i < yAxisValuesScaled.Count; i++)
+			switch (XAxisPlotMode)
 			{
-				state.Points[i] = new Point(xAxisScaler.GetYforX(xAxisValues[yAxisValuesScaled.Count -1 - i]), yAxisValuesScaled[i]);
+				case AxisPlotMode.Normal:
+					var min = xAxisValues.Min();
+					var max = xAxisValues.Max();
+
+					var xAxisScaler = new StraightLineFormula();
+					xAxisScaler.CalculateFrom(min, max, 0, state.AreaWidth);
+
+					xAxisValuesEnumerable = xAxisValuesEnumerable.Select(x => xAxisScaler.GetYforX(x));
+					break;
+
+				case AxisPlotMode.EvenlySpaced:
+					var pointStep = state.AreaWidth / (xAxisValues.Count - 1);
+
+					xAxisValuesEnumerable = Enumerable.Range(0, xAxisValues.Count).Select(x => pointStep * x);
+					break;
+
+				case AxisPlotMode.Logarithmic:
+					break;
+			}
+
+			using (var enumerator = xAxisValuesEnumerable.GetEnumerator())
+			{
+				for (var i = 0; i < yAxisValuesScaled.Count; i++)
+				{
+					state.Points[i] = new Point(enumerator.Current, yAxisValuesScaled[i]);
+					enumerator.MoveNext();
+				}
 			}
 		}
 
