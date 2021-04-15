@@ -8,6 +8,7 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -27,7 +28,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var config = new WabiSabiConfig { MaxInputCountByRound = 1 };
 			var round = WabiSabiFactory.CreateRound(config);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
 			using var key = new Key();
 			var outpoint = BitcoinFactory.CreateOutPoint();
@@ -43,8 +44,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
 
 			CredentialPool amountCredentials = new();
-			CredentialPool weightCredentials = new();
-			var aliceArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, amountCredentials, weightCredentials, coordinator, new InsecureRandom());
+			CredentialPool vsizeCredentials = new();
+			var aliceArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, amountCredentials, vsizeCredentials, coordinator, new InsecureRandom());
 
 			var aliceId = await aliceArenaClient.RegisterInputAsync(Money.Coins(1m), outpoint, key, round.Id, round.Hash);
 
@@ -57,8 +58,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				Money.Coins(.25m)
 			};
 
-			var inputWeight = Constants.WitnessScaleFactor * Constants.P2wpkhInputVirtualSize;
-			var inputRemainingWeights = new[] { (long)ArenaClient.ProtocolMaxWeightPerAlice - inputWeight };
+			var inputVsize = Constants.P2wpkhInputVirtualSize;
+			var inputRemainingVsizes = new[] { ProtocolConstants.MaxVsizePerAlice - inputVsize };
 
 			// Phase: Input Registration
 			Assert.Equal(Phase.InputRegistration, round.Phase);
@@ -66,30 +67,30 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await aliceArenaClient.ConfirmConnectionAsync(
 				round.Id,
 				aliceId,
-				inputRemainingWeights,
-				amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
+				inputRemainingVsizes,
+				amountCredentials.ZeroValue.Take(ProtocolConstants.CredentialNumber),
 				reissuanceAmounts);
 
 			Assert.Empty(amountCredentials.Valuable);
 
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 			// Phase: Connection Confirmation
 			await aliceArenaClient.ConfirmConnectionAsync(
 				round.Id,
 				aliceId,
-				inputRemainingWeights,
-				amountCredentials.ZeroValue.Take(ArenaClient.ProtocolCredentialNumber),
+				inputRemainingVsizes,
+				amountCredentials.ZeroValue.Take(ProtocolConstants.CredentialNumber),
 				reissuanceAmounts);
 
 			Assert.Single(amountCredentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.First());
 			Assert.Single(amountCredentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.Last());
 
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
 
-			var bobArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, amountCredentials, weightCredentials, coordinator, new InsecureRandom());
+			var bobArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, amountCredentials, vsizeCredentials, coordinator, new InsecureRandom());
 
 			// Phase: Output Registration
 			using var destinationKey1 = new Key();
@@ -100,16 +101,16 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				reissuanceAmounts[0],
 				destinationKey1.PubKey.WitHash.ScriptPubKey,
 				amountCredentials.Valuable,
-				weightCredentials.Valuable);
+				vsizeCredentials.Valuable);
 
 			await bobArenaClient.RegisterOutputAsync(
 				round.Id,
 				reissuanceAmounts[1],
 				destinationKey2.PubKey.WitHash.ScriptPubKey,
 				amountCredentials.Valuable,
-				weightCredentials.Valuable);
+				vsizeCredentials.Valuable);
 
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
 			Assert.Equal(1, round.Coinjoin.Inputs.Count);
@@ -159,7 +160,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			var rnd = new InsecureRandom();
 			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, 2, rnd, 4300000000000ul);
-			var weightClient = new WabiSabiClient(round.WeightCredentialIssuerParameters, 2, rnd, 2000ul);
+			var weightClient = new WabiSabiClient(round.VsizeCredentialIssuerParameters, 2, rnd, 2000ul);
 			var apiClient = new ArenaClient(amountClient, weightClient, coordinator);
 
 			round.SetPhase(Phase.TransactionSigning);

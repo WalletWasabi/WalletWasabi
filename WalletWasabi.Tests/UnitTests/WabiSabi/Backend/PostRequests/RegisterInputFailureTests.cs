@@ -83,6 +83,33 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		}
 
 		[Fact]
+		public async Task InputRegistrationFullWeightAsync()
+		{
+			WabiSabiConfig cfg = new();
+			var round = WabiSabiFactory.CreateRound(cfg);
+			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
+			using Key key = new();
+
+			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
+
+			// TODO add configuration parameter
+			round.InitialInputVsizeAllocation = (int)round.PerAliceVsizeAllocation;
+
+			// Add an alice
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			round.Alices.Add(WabiSabiFactory.CreateAlice());
+
+			Assert.Equal(0, round.RemainingInputVsizeAllocation);
+
+			// try to add an additional input
+			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
+			Assert.Equal(WabiSabiProtocolErrorCode.TooMuchTotalWeight, ex.ErrorCode);
+
+			await arena.StopAsync(CancellationToken.None);
+		}
+
+		[Fact]
 		public async Task InputRegistrationTimedoutAsync()
 		{
 			WabiSabiConfig cfg = new() { StandardInputRegistrationTimeout = TimeSpan.Zero };
@@ -336,9 +363,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		}
 
 		[Fact]
-		public async Task TooMuchWeightAsync()
+		public async Task TooMuchVsizeAsync()
 		{
-			WabiSabiConfig cfg = new() { RegistrableWeightCredentials = 1 };
+			WabiSabiConfig cfg = new() { PerAliceVsizeAllocation = 1 };
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			using Key key = new();
@@ -346,7 +373,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
-			Assert.Equal(WabiSabiProtocolErrorCode.TooMuchWeight, ex.ErrorCode);
+			Assert.Equal(WabiSabiProtocolErrorCode.TooMuchVsize, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
 		}

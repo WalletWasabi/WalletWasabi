@@ -45,7 +45,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					request.RoundId,
 					coinRoundSignaturePairs,
 					request.ZeroAmountCredentialRequests,
-					request.ZeroWeightCredentialRequests).ConfigureAwait(false);
+					request.ZeroVsizeCredentialRequests).ConfigureAwait(false);
 			}
 		}
 

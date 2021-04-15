@@ -133,20 +133,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 		}
 
 		[Fact]
-		public async Task CanRequestOnionV2Async()
-		{
-			using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
-
-			TorHttpClient client = MakeTorHttpClient(new("http://expyuzz4wqqyqhjn.onion/"));
-			HttpResponseMessage response = await client.SendAsync(HttpMethod.Get, relativeUri: "", null, ctsTimeout.Token);
-			var content = await response.Content.ReadAsStringAsync(ctsTimeout.Token);
-
-			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-			Assert.Contains("tor", content, StringComparison.OrdinalIgnoreCase);
-		}
-
-		[Fact]
 		public async Task CanRequestOnionV3Async()
 		{
 			using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
