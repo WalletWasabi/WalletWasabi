@@ -128,7 +128,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		}
 
 		[Fact]
-		public async Task IncorrectRequestedWeightCredentialsAsync()
+		public async Task IncorrectRequestedVsizeCredentialsAsync()
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
