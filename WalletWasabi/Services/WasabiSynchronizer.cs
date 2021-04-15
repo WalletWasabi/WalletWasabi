@@ -18,7 +18,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class WasabiSynchronizer : NotifyPropertyChangedBase, IFeeProvider
+	public class WasabiSynchronizer : NotifyPropertyChangedBase
 	{
 		private const long StateNotStarted = 0;
 
@@ -29,8 +29,6 @@ namespace WalletWasabi.Services
 		private const long StateStopped = 3;
 
 		private decimal _usdExchangeRate;
-
-		private AllFeeEstimate? _allFeeEstimate;
 
 		private TorStatus _torStatus;
 
@@ -58,7 +56,7 @@ namespace WalletWasabi.Services
 
 		#region EventsPropertiesMembers
 
-		public event EventHandler<AllFeeEstimate>? AllFeeEstimateChanged;
+		public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
 
 		public event EventHandler<bool>? ResponseArrivedIsGenSocksServFail;
 
@@ -80,18 +78,6 @@ namespace WalletWasabi.Services
 		{
 			get => _usdExchangeRate;
 			private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value);
-		}
-
-		public AllFeeEstimate? AllFeeEstimate
-		{
-			get => _allFeeEstimate;
-			private set
-			{
-				if (RaiseAndSetIfChanged(ref _allFeeEstimate, value))
-				{
-					AllFeeEstimateChanged?.Invoke(this, value);
-				}
-			}
 		}
 
 		public TorStatus TorStatus
@@ -127,12 +113,11 @@ namespace WalletWasabi.Services
 
 		#region Initializers
 
-		public void Start(TimeSpan requestInterval, TimeSpan feeQueryRequestInterval, int maxFiltersToSyncAtInitialization)
+		public void Start(TimeSpan requestInterval, int maxFiltersToSyncAtInitialization)
 		{
-			Logger.LogTrace($"> {nameof(requestInterval)}={requestInterval}, {nameof(feeQueryRequestInterval)}={feeQueryRequestInterval}, {nameof(maxFiltersToSyncAtInitialization)}={maxFiltersToSyncAtInitialization}");
+			Logger.LogTrace($"> {nameof(requestInterval)}={requestInterval}, {nameof(maxFiltersToSyncAtInitialization)}={maxFiltersToSyncAtInitialization}");
 
 			Guard.NotNull(nameof(requestInterval), requestInterval);
-			Guard.MinimumAndNotNull(nameof(feeQueryRequestInterval), feeQueryRequestInterval, requestInterval);
 			Guard.MinimumAndNotNull(nameof(maxFiltersToSyncAtInitialization), maxFiltersToSyncAtInitialization, 0);
 
 			MaxRequestIntervalForMixing = requestInterval; // Let's start with this, it'll be modified from outside.
@@ -148,7 +133,6 @@ namespace WalletWasabi.Services
 
 				try
 				{
-					DateTimeOffset lastFeeQueried = DateTimeOffset.UtcNow - feeQueryRequestInterval;
 					bool ignoreRequestInterval = false;
 					var hashChain = BitcoinStore.SmartHeaderChain;
 					EnableRequests();
@@ -161,13 +145,6 @@ namespace WalletWasabi.Services
 								await Task.Delay(3000, StopCts.Token).ConfigureAwait(false);
 							}
 
-							EstimateSmartFeeMode? estimateMode = null;
-							TimeSpan elapsed = DateTimeOffset.UtcNow - lastFeeQueried;
-							if (elapsed >= feeQueryRequestInterval)
-							{
-								estimateMode = EstimateSmartFeeMode.Conservative;
-							}
-
 							SynchronizeResponse response;
 
 							var lastUsedApiVersion = WasabiClient.ApiVersion;
@@ -178,7 +155,7 @@ namespace WalletWasabi.Services
 									return;
 								}
 
-								response = await WasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, estimateMode, StopCts.Token)
+								response = await WasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, EstimateSmartFeeMode.Conservative, StopCts.Token)
 									.WithAwaitCancellationAsync(StopCts.Token, 300)
 									.ConfigureAwait(false);
 
@@ -230,10 +207,10 @@ namespace WalletWasabi.Services
 								throw;
 							}
 
-							if (response.AllFeeEstimate is { } && response.AllFeeEstimate.Estimations.Any())
+							var allFees = response.AllFeeEstimate;
+							if (allFees?.Estimations?.Any() is true)
 							{
-								lastFeeQueried = DateTimeOffset.UtcNow;
-								AllFeeEstimate = response.AllFeeEstimate;
+								AllFeeEstimateArrived?.Invoke(this, allFees);
 							}
 
 							if (response.Filters.Count() == maxFiltersToSyncAtInitialization)
