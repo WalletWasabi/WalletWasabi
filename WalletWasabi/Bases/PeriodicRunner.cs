@@ -94,8 +94,7 @@ namespace WalletWasabi.Bases
 				catch (Exception ex)
 				{
 					// Exception encountered, process it.
-					ExceptionInfo info = ExceptionTracker.Process(ex);
-					Logger.LogError(info.Exception);
+					ExceptionTracker.Process(ex);
 				}
 
 				// Wait for the next round.
