@@ -36,6 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			_bitcoinStore = bitcoinStore;
 			_wallet = wallet;
 			_updateTrigger = updateTrigger;
+			EnableCancel = true;
 
 			NextCommand = ReactiveCommand.Create(OnNext);
 			CopyTransactionIdCommand = ReactiveCommand.CreateFromTask(OnCopyTransactionId);
