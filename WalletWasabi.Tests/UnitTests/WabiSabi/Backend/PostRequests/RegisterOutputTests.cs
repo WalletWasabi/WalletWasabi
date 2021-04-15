@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			Assert.NotEmpty(round.Bobs);
 			Assert.NotNull(resp);
 			Assert.NotNull(resp.AmountCredentials);
-			Assert.NotNull(resp.WeightCredentials);
+			Assert.NotNull(resp.VsizeCredentials);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -124,7 +124,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		}
 
 		[Fact]
-		public async Task IncorrectRequestedWeightCredentialsAsync()
+		public async Task IncorrectRequestedVsizeCredentialsAsync()
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
@@ -133,10 +133,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 
-			var req = WabiSabiFactory.CreateOutputRegistrationRequest(round, weight: 30);
+			var req = WabiSabiFactory.CreateOutputRegistrationRequest(round, vsize: 30);
 
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterOutputAsync(req));
-			Assert.Equal(WabiSabiProtocolErrorCode.IncorrectRequestedWeightCredentials, ex.ErrorCode);
+			Assert.Equal(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
