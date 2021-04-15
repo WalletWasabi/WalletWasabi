@@ -72,7 +72,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var cjfile = Path.Combine(folder, $"CoinJoins{network}.txt");
 			File.WriteAllLines(cjfile, new[] { coinbaseTxId.ToString(), offchainTxId.ToString(), mempoolTxId.ToString() });
 
-			using (var coordinatorToTest = new Coordinator(network, global.HostedServices.FirstOrDefault<BlockNotifier>(), folder, rpc, coordinator.RoundConfig))
+			using (var coordinatorToTest = new Coordinator(network, global.HostedServices.Get<BlockNotifier>(), folder, rpc, coordinator.RoundConfig))
 			{
 				var txIds = await File.ReadAllLinesAsync(cjfile);
 
@@ -84,7 +84,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				Directory.CreateDirectory(folder);
 				File.WriteAllLines(cjfile, new[] { coinbaseTxId.ToString(), "This line is invalid (the file is corrupted)", offchainTxId.ToString() });
 
-				var coordinatorToTest2 = new Coordinator(network, global.HostedServices.FirstOrDefault<BlockNotifier>(), folder, rpc, coordinatorToTest.RoundConfig);
+				var coordinatorToTest2 = new Coordinator(network, global.HostedServices.Get<BlockNotifier>(), folder, rpc, coordinatorToTest.RoundConfig);
 				coordinatorToTest2?.Dispose();
 				txIds = await File.ReadAllLinesAsync(cjfile);
 				Assert.Single(txIds);
