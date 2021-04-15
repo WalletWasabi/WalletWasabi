@@ -138,13 +138,11 @@ namespace WalletWasabi.Gui
 				var userAgent = Constants.UserAgents.RandomElement();
 				var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
 
-				UpdateChecker updateChecker = new(TimeSpan.FromMinutes(7), Synchronizer);
-				await LegalChecker.InitializeAsync(updateChecker).ConfigureAwait(false);
-				HostedServices.Register(updateChecker, "Software Update Checker");
+				HostedServices.Register<UpdateChecker>(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
-				HostedServices.Register(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
+				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
 
-				HostedServices.Register(new SystemAwakeChecker(WalletManager), "System Awake Checker");
+				HostedServices.Register<SystemAwakeChecker>(new SystemAwakeChecker(WalletManager), "System Awake Checker");
 
 				cancel.ThrowIfCancellationRequested();
 
@@ -160,7 +158,7 @@ namespace WalletWasabi.Gui
 
 					Tor.Http.TorHttpClient torHttpClient = HttpClientFactory.NewTorHttpClient(isolateStream: false);
 #pragma warning disable CA2000 // Dispose objects before losing scope
-					HostedServices.Register(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackBackendUri: Config.GetFallbackBackendUri(), torHttpClient, TorManager), nameof(TorMonitor));
+					HostedServices.Register<TorMonitor>(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackBackendUri: Config.GetFallbackBackendUri(), torHttpClient, TorManager), nameof(TorMonitor));
 #pragma warning restore CA2000 // Dispose objects before losing scope
 				}
 
@@ -222,11 +220,9 @@ namespace WalletWasabi.Gui
 					Logger.LogError(ex);
 				}
 
+				FeeProviders = new FeeProviders(Synchronizer, HostedServices.GetOrDefault<RpcFeeProvider>());
+
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
-
-				var rpcFeeProvider = HostedServices.FirstOrDefault<RpcFeeProvider>();
-
-				FeeProviders = new FeeProviders(Synchronizer, rpcFeeProvider);
 
 				#endregion BitcoinCoreInitialization
 
