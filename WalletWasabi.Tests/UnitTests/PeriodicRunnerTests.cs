@@ -59,5 +59,13 @@ namespace WalletWasabi.Tests.UnitTests
 			await runner.StopAsync(cts.Token);
 			await runnerTask;
 		}
+
+		[Fact]
+		public async Task FailingRunnerTestsAsync()
+		{
+			using FailingRunner failingRunner = new();
+			await failingRunner.StartAsync(CancellationToken.None);
+			await Assert.ThrowsAsync<InvalidOperationException>(async () => await failingRunner.StopAsync(CancellationToken.None, true));
+		}
 	}
 }

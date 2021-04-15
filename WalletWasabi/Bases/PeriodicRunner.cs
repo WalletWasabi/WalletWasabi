@@ -118,5 +118,15 @@ namespace WalletWasabi.Bases
 				}
 			}
 		}
+
+		public Task StopAsync(CancellationToken cancellationToken, bool throwOnError = false)
+		{
+			if (throwOnError && ExceptionTracker.LastException is { } ex)
+			{
+				throw new InvalidOperationException($"{nameof(PeriodicRunner)} had an exception: '{ex}'");
+			}
+
+			return base.StopAsync(cancellationToken);
+		}
 	}
 }
