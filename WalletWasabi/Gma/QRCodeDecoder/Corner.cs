@@ -11,7 +11,7 @@
 //	For full version history please look at QRDecoder.cs
 //
 //	QR Code Library C# class library and the attached test/demo
-//  applications are free software.
+//	applications are free software.
 //	Software developed by this author is licensed under CPOL 1.02.
 //	Some portions of the QRCodeVideoDecoder are licensed under GNU Lesser
 //	General Public License v3.0.
@@ -170,9 +170,7 @@ namespace QRCodeDecoderLibrary
 				topModules += TopLineLength * TopLineLength /
 					(Math.Abs(TopLineDeltaX) * 0.5 * (TopLeftFinder.HModule + TopRightFinder.HModule));
 			}
-
-			// top line is mostly vertical
-			else
+			else // top line is mostly vertical
 			{
 				topModules += TopLineLength * TopLineLength /
 					(Math.Abs(TopLineDeltaY) * 0.5 * (TopLeftFinder.VModule + TopRightFinder.VModule));
@@ -187,9 +185,7 @@ namespace QRCodeDecoderLibrary
 				leftModules += LeftLineLength * LeftLineLength /
 					(Math.Abs(LeftLineDeltaY) * 0.5 * (TopLeftFinder.VModule + BottomLeftFinder.VModule));
 			}
-
-			// left line is mostly horizontal
-			else
+			else // left line is mostly horizontal
 			{
 				leftModules += LeftLineLength * LeftLineLength /
 					(Math.Abs(LeftLineDeltaX) * 0.5 * (TopLeftFinder.HModule + BottomLeftFinder.HModule));
