@@ -8,6 +8,6 @@ namespace WalletWasabi.WabiSabi.Models
 		Guid RoundId,
 		Script Script,
 		RealCredentialsRequest AmountCredentialRequests,
-		RealCredentialsRequest WeightCredentialRequests
+		RealCredentialsRequest VsizeCredentialRequests
 	);
 }

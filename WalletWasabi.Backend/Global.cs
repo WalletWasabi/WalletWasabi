@@ -33,7 +33,7 @@ namespace WalletWasabi.Backend
 
 		public P2pNode P2pNode { get; private set; }
 
-		public HostedServices HostedServices { get; set; }
+		public HostedServices HostedServices { get; }
 
 		public IndexBuilderService IndexBuilderService { get; private set; }
 

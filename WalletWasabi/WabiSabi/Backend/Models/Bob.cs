@@ -21,8 +21,5 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 
 		public Money CalculateOutputAmount(FeeRate feeRate)
 			=> CredentialAmount - feeRate.GetFee(OutputVsize);
-
-		public long CalculateWeight()
-			=> Constants.WitnessScaleFactor * OutputVsize;
 	}
 }

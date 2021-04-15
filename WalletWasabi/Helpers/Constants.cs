@@ -18,10 +18,8 @@ namespace WalletWasabi.Helpers
 
 		public const uint ProtocolVersionWitnessVersion = 70012;
 
-		public const int WitnessScaleFactor = 4;
-
 		public const int P2wpkhInputSizeInBytes = 41;
-		public const int P2wpkhInputVirtualSize = 68;
+		public const int P2wpkhInputVirtualSize = 69;
 		public const int P2pkhInputSizeInBytes = 145;
 		public const int OutputSizeInBytes = 33;
 

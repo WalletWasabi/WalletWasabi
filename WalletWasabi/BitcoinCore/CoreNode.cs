@@ -31,7 +31,6 @@ namespace WalletWasabi.BitcoinCore
 		public EndPoint RpcEndPoint { get; private set; }
 		public IRPCClient RpcClient { get; private set; }
 		private BitcoindRpcProcessBridge Bridge { get; set; }
-		public HostedServices HostedServices { get; private set; }
 		public string DataDir { get; private set; }
 		public Network Network { get; private set; }
 		public MempoolService MempoolService { get; private set; }
@@ -46,7 +45,6 @@ namespace WalletWasabi.BitcoinCore
 			{
 				var coreNode = new CoreNode
 				{
-					HostedServices = coreNodeParams.HostedServices,
 					DataDir = coreNodeParams.DataDir,
 					Network = coreNodeParams.Network,
 					MempoolService = coreNodeParams.MempoolService
@@ -238,10 +236,6 @@ namespace WalletWasabi.BitcoinCore
 				coreNode.P2pNode = new P2pNode(coreNode.Network, coreNode.P2pEndPoint, coreNode.MempoolService, coreNodeParams.UserAgent);
 				await coreNode.P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
 				cancel.ThrowIfCancellationRequested();
-
-				coreNode.HostedServices.Register<BlockNotifier>(new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
-				coreNode.HostedServices.Register<RpcMonitor>(new RpcMonitor(TimeSpan.FromSeconds(7), coreNode.RpcClient), "RPC Monitor");
-				coreNode.HostedServices.Register<RpcFeeProvider>(new RpcFeeProvider(TimeSpan.FromMinutes(1), coreNode.RpcClient), "RPC Fee Provider");
 
 				return coreNode;
 			}

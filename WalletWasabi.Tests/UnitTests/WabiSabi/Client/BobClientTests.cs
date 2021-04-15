@@ -45,11 +45,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				});
 
 			CredentialPool amountCredential = new();
-			CredentialPool weightCredential = new();
+			CredentialPool vsizeCredential = new();
 
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
-			var aliceArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, amountCredential, weightCredential, coordinator, new InsecureRandom());
-			var bobArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, amountCredential, weightCredential, coordinator, new InsecureRandom());
+			var aliceArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, amountCredential, vsizeCredential, coordinator, new InsecureRandom());
+			var bobArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, amountCredential, vsizeCredential, coordinator, new InsecureRandom());
 			Assert.Equal(Phase.InputRegistration, round.Phase);
 
 			var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);
