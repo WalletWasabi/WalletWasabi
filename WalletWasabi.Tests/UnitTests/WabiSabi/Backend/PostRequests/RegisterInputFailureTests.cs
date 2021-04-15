@@ -83,7 +83,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		}
 
 		[Fact]
-		public async Task InputRegistrationFullWeightAsync()
+		public async Task InputRegistrationFullVsizeAsync()
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
@@ -104,7 +104,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			// try to add an additional input
 			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
-			Assert.Equal(WabiSabiProtocolErrorCode.TooMuchTotalWeight, ex.ErrorCode);
+			Assert.Equal(WabiSabiProtocolErrorCode.VsizeQuotaExceeded, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
 		}

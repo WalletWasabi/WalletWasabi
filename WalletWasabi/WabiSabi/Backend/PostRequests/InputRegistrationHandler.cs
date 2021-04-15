@@ -125,7 +125,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 
 			if (round.RemainingInputVsizeAllocation < round.PerAliceVsizeAllocation)
 			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchTotalWeight);
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.VsizeQuotaExceeded);
 			}
 			var commitAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(zeroAmountCredentialRequests);
 			var commitVsizeCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(zeroVsizeCredentialRequests);
