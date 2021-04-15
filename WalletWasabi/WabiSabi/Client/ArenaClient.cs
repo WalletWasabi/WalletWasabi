@@ -118,13 +118,8 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
 
-			var presentedAmount = amountCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
-
-			var amount1 = value;
-			var amount2 = presentedAmount - value;
-
 			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
-				new[] { amount1, amount2 },
+				new[] { value },
 				amountCredentialsToPresent);
 
 			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
