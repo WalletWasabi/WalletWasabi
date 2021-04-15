@@ -33,13 +33,14 @@ namespace WalletWasabi.Fluent.Behaviors
 				.WhenAnyValue(x => x.Bounds.Width)
 				.Subscribe(width =>
 				{
-					var firstOrDefault = AssociatedObject.Columns.FirstOrDefault(x => ReferenceEquals(x.Header, ColumnHeader));
+					var column = AssociatedObject.Columns.FirstOrDefault(x => ReferenceEquals(x.Header, ColumnHeader));
 
-					if (firstOrDefault is { } column)
+					if (column is { })
 					{
 						column.IsVisible = width > HideThresholdWidth;
 					}
-				});
+				})
+				.DisposeWith(disposables);
 		}
 	}
 }

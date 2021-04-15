@@ -21,15 +21,17 @@ namespace WalletWasabi.Fluent.Converters
 					return "";
 				}
 
+				const int WholeGroupSize = 3;
+
 				var moneyString = money.ToString();
 
 				moneyString = moneyString.Insert(moneyString.Length - 4, " ");
 
-				var startIndex = moneyString.IndexOf(".", StringComparison.Ordinal) - 3;
+				var startIndex = moneyString.IndexOf(".", StringComparison.Ordinal) - WholeGroupSize;
 
 				if (startIndex > 0)
 				{
-					for (var i = startIndex; i > 0; i -= 3)
+					for (var i = startIndex; i > 0; i -= WholeGroupSize)
 					{
 						moneyString = moneyString.Insert(i, " ");
 					}
