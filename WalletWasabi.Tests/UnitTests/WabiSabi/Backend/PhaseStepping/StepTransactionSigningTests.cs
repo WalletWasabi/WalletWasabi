@@ -403,7 +403,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 
 			// Make sure not all alices signed.
 			var alice3 = WabiSabiFactory.CreateAlice();
-			alice3.ConfirmedConnetion = true;
+			alice3.ConfirmedConnection = true;
 			round.Alices.Add(alice3);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);

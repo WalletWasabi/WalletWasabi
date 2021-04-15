@@ -41,7 +41,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			Assert.Null(resp.RealVsizeCredentials);
 			Assert.NotEqual(preDeadline, alice.Deadline);
 			Assert.True(minAliceDeadline <= alice.Deadline);
-			Assert.False(alice.ConfirmedConnetion);
+			Assert.False(alice.ConfirmedConnection);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -67,7 +67,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			Assert.NotNull(resp.RealAmountCredentials);
 			Assert.NotNull(resp.RealVsizeCredentials);
 			Assert.Equal(preDeadline, alice.Deadline);
-			Assert.True(alice.ConfirmedConnetion);
+			Assert.True(alice.ConfirmedConnection);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -107,7 +107,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 				}
 			}
 			Assert.Equal(preDeadline, alice.Deadline);
-			Assert.False(alice.ConfirmedConnetion);
+			Assert.False(alice.ConfirmedConnection);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -148,7 +148,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.ConfirmConnectionAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, ex.ErrorCode);
-			Assert.False(alice.ConfirmedConnetion);
+			Assert.False(alice.ConfirmedConnection);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -174,7 +174,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.ConfirmConnectionAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.IncorrectRequestedAmountCredentials, ex.ErrorCode);
-			Assert.False(alice.ConfirmedConnetion);
+			Assert.False(alice.ConfirmedConnection);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -218,7 +218,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			var ex = await Assert.ThrowsAsync<WabiSabiCryptoException>(async () => await handler.ConfirmConnectionAsync(req));
 			Assert.Equal(WabiSabiCryptoErrorCode.SerialNumberAlreadyUsed, ex.ErrorCode);
-			Assert.False(alice.ConfirmedConnetion);
+			Assert.False(alice.ConfirmedConnection);
 			Assert.Equal(0, issuer2.Balance);
 			Assert.Equal(credentialsRequest.Delta, issuer.Balance);
 			await arena.StopAsync(CancellationToken.None);

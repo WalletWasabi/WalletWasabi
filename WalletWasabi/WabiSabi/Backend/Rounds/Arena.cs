@@ -85,13 +85,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.ConnectionConfirmation).ToArray())
 			{
-				if (round.Alices.All(x => x.ConfirmedConnetion))
+				if (round.Alices.All(x => x.ConfirmedConnection))
 				{
 					round.SetPhase(Phase.OutputRegistration);
 				}
 				else if (round.ConnectionConfirmationStart + round.ConnectionConfirmationTimeout < DateTimeOffset.UtcNow)
 				{
-					var alicesDidntConfirm = round.Alices.Where(x => !x.ConfirmedConnetion).ToArray();
+					var alicesDidntConfirm = round.Alices.Where(x => !x.ConfirmedConnection).ToArray();
 					foreach (var alice in alicesDidntConfirm)
 					{
 						Prison.Note(alice, round.Id);
@@ -338,7 +338,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					var commitAmountRealCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(realAmountCredentialRequests);
 					var commitVsizeRealCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(realVsizeCredentialRequests);
-					alice.ConfirmedConnetion = true;
+					alice.ConfirmedConnection = true;
 
 					return new(
 						commitAmountZeroCredentialResponse.Commit(),

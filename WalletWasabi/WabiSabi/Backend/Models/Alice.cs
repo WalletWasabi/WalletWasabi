@@ -22,7 +22,8 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		public IDictionary<Coin, byte[]> CoinRoundSignaturePairs { get; }
 		public Money TotalInputAmount => Coins.Sum(x => x.Amount);
 		public int TotalInputVsize => Coins.Sum(x => x.ScriptPubKey.EstimateInputVsize());
-		public bool ConfirmedConnetion { get; set; } = false;
+
+		public bool ConfirmedConnection { get; set; } = false;
 
 		public long CalculateRemainingVsizeCredentials(uint maxRegistrableSize) => maxRegistrableSize - TotalInputVsize;
 
