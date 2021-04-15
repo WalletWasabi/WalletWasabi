@@ -94,7 +94,11 @@ namespace WalletWasabi.Bases
 				catch (Exception ex)
 				{
 					// Exception encountered, process it.
-					ExceptionTracker.Process(ex);
+					var info = ExceptionTracker.Process(ex);
+					if (info.IsFirst)
+					{
+						Logger.LogError(info.Exception);
+					}
 				}
 
 				// Wait for the next round.
