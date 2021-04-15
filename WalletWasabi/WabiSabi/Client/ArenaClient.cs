@@ -114,7 +114,7 @@ namespace WalletWasabi.WabiSabi.Client
 			WeightCredentialClient.HandleResponse(outputRegistrationResponse.WeightCredentials, realWeightCredentialResponseValidation);
 		}
 
-		public async Task ReissuanceAsync(Guid roundId, long value, IEnumerable<Credential> amountCredentialsToPresent)
+		public async Task ReissueCredentialAsync(Guid roundId, long value, IEnumerable<Credential> amountCredentialsToPresent)
 		{
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
 
@@ -129,8 +129,8 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
 
-			var reissuanceResponse = await RequestHandler.ReissuanceAsync(
-				new ReissuanceRequest(
+			var reissuanceResponse = await RequestHandler.ReissueCredentialAsync(
+				new ReissueCredentialRequest(
 					roundId,
 					realAmountCredentialRequest,
 					zeroAmountCredentialRequestData.CredentialsRequest)).ConfigureAwait(false);

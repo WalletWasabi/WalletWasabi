@@ -91,8 +91,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			var bobArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.WeightCredentialIssuerParameters, amountCredentials, weightCredentials, coordinator, new InsecureRandom());
 
-			await bobArenaClient.ReissuanceAsync(round.Id, reissuanceAmounts[0], amountCredentials.Valuable);
-			await bobArenaClient.ReissuanceAsync(round.Id, reissuanceAmounts[1], amountCredentials.Valuable);
+			await bobArenaClient.ReissueCredentialAsync(round.Id, reissuanceAmounts[0], amountCredentials.Valuable);
+			await bobArenaClient.ReissueCredentialAsync(round.Id, reissuanceAmounts[1], amountCredentials.Valuable);
 
 			var cred1 = amountCredentials.Valuable.First(ac => ac.Amount.ToMoney().Satoshi == reissuanceAmounts[0].Satoshi);
 			var cred2 = amountCredentials.Valuable.First(ac => ac.Amount.ToMoney().Satoshi == reissuanceAmounts[1].Satoshi);

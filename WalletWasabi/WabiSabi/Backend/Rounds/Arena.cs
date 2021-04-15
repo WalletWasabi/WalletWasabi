@@ -457,7 +457,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public async Task<ReissuanceResponse> ReissuanceAsync(ReissuanceRequest request)
+		public async Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request)
 		{
 			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{

@@ -96,7 +96,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			}
 		}
 
-		public async Task<ReissuanceResponse> ReissuanceAsync(ReissuanceRequest request)
+		public async Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))

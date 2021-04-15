@@ -15,6 +15,6 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 
 		Task SignTransactionAsync(TransactionSignaturesRequest request);
 
-		Task<ReissuanceResponse> ReissuanceAsync(ReissuanceRequest request);
+		Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request);
 	}
 }

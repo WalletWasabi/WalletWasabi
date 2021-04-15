@@ -7,7 +7,7 @@ using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 
 namespace WalletWasabi.WabiSabi.Models
 {
-	public record ReissuanceResponse(
+	public record ReissueCredentialResponse(
 		CredentialsResponse RealAmountCredentials,
 		CredentialsResponse ZeroAmountCredentials
 	);
