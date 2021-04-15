@@ -11,7 +11,7 @@
 //	For full version history please look at QRDecoder.cs
 //
 //	QR Code Library C# class library and the attached test/demo
-//  applications are free software.
+//	applications are free software.
 //	Software developed by this author is licensed under CPOL 1.02.
 //	Some portions of the QRCodeVideoDecoder are licensed under GNU Lesser
 //	General Public License v3.0.
