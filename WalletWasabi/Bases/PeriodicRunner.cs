@@ -123,7 +123,7 @@ namespace WalletWasabi.Bases
 		{
 			if (throwOnError && ExceptionTracker.LastException is { } ex)
 			{
-				throw new InvalidOperationException($"{nameof(PeriodicRunner)} had an exception: '{ex}'");
+				throw ex.Exception;
 			}
 
 			return base.StopAsync(cancellationToken);
