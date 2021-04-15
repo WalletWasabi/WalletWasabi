@@ -596,7 +596,7 @@ namespace WalletWasabi.Backend.Controllers
 						}
 						else
 						{
-							return NotFound("Hex not found. This is impossible.");
+							return NotFound("Hex not found. This should never happen.");
 						}
 					}
 				default:
