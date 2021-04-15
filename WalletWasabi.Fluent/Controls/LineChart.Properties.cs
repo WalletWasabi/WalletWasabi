@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Media;
@@ -49,6 +50,9 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<IList<double>?> XAxisValuesProperty =
 			AvaloniaProperty.Register<LineChart, IList<double>?>(nameof(XAxisValues));
+
+		public static readonly StyledProperty<double?> XAxisMinimumProperty =
+			AvaloniaProperty.Register<LineChart, double?>(nameof(XAxisMinimum));
 
 		public static readonly StyledProperty<bool> XAxisLogarithmicScaleProperty =
 			AvaloniaProperty.Register<LineChart, bool>(nameof(XAxisLogarithmicScale));
@@ -453,6 +457,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(XAxisValuesProperty);
 			set => SetValue(XAxisValuesProperty, value);
+		}
+
+		public double? XAxisMinimum
+		{
+			get => GetValue(XAxisMinimumProperty);
+			set => SetValue(XAxisMinimumProperty, value);
 		}
 
 		public bool XAxisLogarithmicScale

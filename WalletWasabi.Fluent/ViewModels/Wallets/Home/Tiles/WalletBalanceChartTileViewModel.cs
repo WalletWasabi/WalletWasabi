@@ -55,6 +55,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		private readonly ReadOnlyObservableCollection<HistoryItemViewModel> _history;
 		[AutoNotify] private ObservableCollection<double> _yValues;
 		[AutoNotify] private ObservableCollection<double> _xValues;
+		[AutoNotify] private double? _xMinimum;
+
 		private TimeSpan _sampleTime;
 		private TimeSpan _sampleLimit;
 
@@ -113,8 +115,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			});
 		}
 
+		private double? GetMinimum(TimeSpan limit)
+		{
+			var latest = _history.FirstOrDefault();
+
+			if (latest is { })
+			{
+				return (double) (latest.Date - limit).ToUnixTimeMilliseconds();
+			}
+
+			return null;
+		}
+
 		private void UpdateSample()
 		{
+			XMinimum = GetMinimum(_sampleLimit);
 			var values = _history.TimeSampleDataSet(x => x.Date, x => x.Balance, _sampleTime, _sampleLimit);
 
 			XValues.Clear();

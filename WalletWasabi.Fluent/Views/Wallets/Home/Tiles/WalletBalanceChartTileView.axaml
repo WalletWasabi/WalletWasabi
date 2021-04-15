@@ -77,6 +77,7 @@
             </StackPanel>
             <c:LineChart x:CompileBindings="True" x:DataType="vm:WalletBalanceChartTileViewModel" x:Name="GradientLineChart" DockPanel.Dock="Left" Margin="30"
                          Classes="area border xAxis xAxisLabels yAxis yAxisLabels"
+                         XAxisMinimum="{Binding XMinimum}"
                          XAxisValues="{Binding XValues}"
                          YAxisValues="{Binding YValues}">
                 <c:LineChart.AreaFill>
