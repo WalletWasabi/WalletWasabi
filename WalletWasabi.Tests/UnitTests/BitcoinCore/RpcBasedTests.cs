@@ -152,9 +152,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task AllFeeEstimateAsync()
 		{
-			using var services = new HostedServices();
-			var coreNode = await TestNodeBuilder.CreateAsync(services);
-			await services.StartAllAsync(CancellationToken.None);
+			var coreNode = await TestNodeBuilder.CreateAsync();
 			try
 			{
 				var rpc = coreNode.RpcClient;
@@ -171,7 +169,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
-				await services.StopAllAsync(CancellationToken.None);
 				await coreNode.TryStopAsync();
 			}
 		}
@@ -179,9 +176,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task CantDoubleSpendAsync()
 		{
-			using var services = new HostedServices();
-			var coreNode = await TestNodeBuilder.CreateAsync(services);
-			await services.StartAllAsync(CancellationToken.None);
+			var coreNode = await TestNodeBuilder.CreateAsync();
 			try
 			{
 				var rpc = coreNode.RpcClient;
@@ -216,7 +211,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
-				await services.StopAllAsync(CancellationToken.None);
 				await coreNode.TryStopAsync();
 			}
 		}
@@ -224,9 +218,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task VerboseBlockInfoAsync()
 		{
-			using var services = new HostedServices();
-			var coreNode = await TestNodeBuilder.CreateAsync(services);
-			await services.StartAllAsync(CancellationToken.None);
+			var coreNode = await TestNodeBuilder.CreateAsync();
 			try
 			{
 				var rpc = coreNode.RpcClient;
@@ -235,7 +227,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
-				await services.StopAllAsync(CancellationToken.None);
 				await coreNode.TryStopAsync();
 			}
 		}

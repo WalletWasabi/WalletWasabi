@@ -16,21 +16,14 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task CanBuildCoreNodeAsync()
 		{
-			using var services = new HostedServices();
-			var coreNode = await TestNodeBuilder.CreateAsync(services);
-			await services.StartAllAsync(CancellationToken.None);
+			var coreNode = await TestNodeBuilder.CreateAsync();
 			await coreNode.TryStopAsync();
-			await services.StopAllAsync(CancellationToken.None);
 		}
 
 		[Fact]
 		public async Task NodesDifferAsync()
 		{
-			using var services1 = new HostedServices();
-			using var services2 = new HostedServices();
-			var coreNodes = await Task.WhenAll(TestNodeBuilder.CreateAsync(services1, additionalFolder: "0"), TestNodeBuilder.CreateAsync(services2, additionalFolder: "1"));
-			await services1.StartAllAsync(CancellationToken.None);
-			await services2.StartAllAsync(CancellationToken.None);
+			var coreNodes = await Task.WhenAll(TestNodeBuilder.CreateAsync(additionalFolder: "0"), TestNodeBuilder.CreateAsync(additionalFolder: "1"));
 			CoreNode node1 = coreNodes[0];
 			CoreNode node2 = coreNodes[1];
 			try
@@ -41,8 +34,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
-				await services1.StopAllAsync(CancellationToken.None);
-				await services2.StopAllAsync(CancellationToken.None);
 				await Task.WhenAll(node1.TryStopAsync(), node2.TryStopAsync());
 			}
 		}
@@ -50,9 +41,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task RpcWorksAsync()
 		{
-			using var services = new HostedServices();
-			var coreNode = await TestNodeBuilder.CreateAsync(services);
-			await services.StartAllAsync(CancellationToken.None);
+			var coreNode = await TestNodeBuilder.CreateAsync();
 			try
 			{
 				var blockCount = await coreNode.RpcClient.GetBlockCountAsync();
@@ -60,7 +49,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
-				await services.StopAllAsync(CancellationToken.None);
 				await coreNode.TryStopAsync();
 			}
 		}
@@ -68,9 +56,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task P2pWorksAsync()
 		{
-			using var services = new HostedServices();
-			var coreNode = await TestNodeBuilder.CreateAsync(services);
-			await services.StartAllAsync(CancellationToken.None);
+			var coreNode = await TestNodeBuilder.CreateAsync();
 			using var node = await coreNode.CreateNewP2pNodeAsync();
 			try
 			{
@@ -80,7 +66,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
-				await services.StopAllAsync(CancellationToken.None);
 				node.Disconnect();
 				await coreNode.TryStopAsync();
 			}
