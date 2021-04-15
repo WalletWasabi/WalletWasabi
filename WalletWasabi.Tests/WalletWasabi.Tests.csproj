@@ -64,19 +64,13 @@
 		<None Update="UnitTests\QrCode\QrTestResources\QRwithZebraBackground.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="UnitTests\QrCode\QrTestResources\Random_address_ starting_with_1.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="UnitTests\QrCode\QrTestResources\Random_Bech32.jpg">
+		<None Update="UnitTests\QrCode\QrTestResources\Random_address_starting_with_1.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="UnitTests\QrCode\QrTestResources\Special_signs.jpg">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="UnitTests\QrCode\QrTestResources\Text_QR-code.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="UnitTests\QrCode\QrTestResources\URL_QR-code.jpg">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="xunit.runner.json">

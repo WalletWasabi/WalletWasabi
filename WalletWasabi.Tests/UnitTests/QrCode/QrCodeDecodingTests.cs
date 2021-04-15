@@ -101,7 +101,7 @@ namespace WalletWasabi.Tests.UnitTests.QrCode
             string path = Path.Combine(_commonPartialPath, "Mouse_over_the_QR-code.jpg");
             using Bitmap inputImage = new(path);
 
-            //Returns null because of the mouse over the QR image
+            //Returns null because of the mouse over the image
             var dataCollection = decoder.SearchQrCodes(inputImage);
 
             Assert.Empty(dataCollection);
@@ -115,6 +115,20 @@ namespace WalletWasabi.Tests.UnitTests.QrCode
 
             string path = Path.Combine(_commonPartialPath, "Payment_details_included.jpg");
             using Bitmap inputImage = new(path);
+            var dataCollection = decoder.SearchQrCodes(inputImage);
+
+            Assert.Equal(expectedOutput, dataCollection.First());
+        }
+
+        [Fact]
+        public void DecodePictureWithLegacyAddress()
+        {
+            QRDecoder decoder = new();
+            string expectedOutput = "bitcoin:1EYTGtG4LnFfiMvjJdsU7GMGCQvsRSjYhx";
+
+            string path = Path.Combine(_commonPartialPath, "Random_address_starting_with_1.png");
+            using Bitmap inputImage = new(path);
+
             var dataCollection = decoder.SearchQrCodes(inputImage);
 
             Assert.Equal(expectedOutput, dataCollection.First());
