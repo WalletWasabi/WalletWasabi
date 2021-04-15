@@ -78,11 +78,15 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			}
 
 			Global = global;
-			BackendHost.RunWithTasksAsync().GetAwaiter().GetResult();
+			var hostInitializationTask = BackendHost.RunWithTasksAsync();
 			Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}");
 
 			HttpClient = new HttpClient();
 			BackendHttpClient = new ClearnetHttpClient(HttpClient, () => BackendEndPointUri);
+
+			// Wait for server to initialize
+			var delayTask = Task.Delay(3000);
+			Task.WaitAny(delayTask, hostInitializationTask);
 		}
 
 		/// <summary>String representation of backend URI: <c>http://localhost:RANDOM_PORT</c>.</summary>
