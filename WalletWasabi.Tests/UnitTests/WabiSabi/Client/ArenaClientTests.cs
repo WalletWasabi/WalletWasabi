@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
@@ -94,34 +95,40 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			Assert.Equal(4, amountCredentials.ZeroValue.Count());
 
-			await bobArenaClient.ReissueCredentialAsync(round.Id, reissuanceAmounts[0], amountCredentials.Valuable);
-			Assert.Equal(8, amountCredentials.ZeroValue.Count());
-
-			await bobArenaClient.ReissueCredentialAsync(round.Id, reissuanceAmounts[1], amountCredentials.Valuable);
-			Assert.Equal(12, amountCredentials.ZeroValue.Count());
-
-			var cred1 = amountCredentials.Valuable.First(ac => ac.Amount.ToMoney().Satoshi == reissuanceAmounts[0].Satoshi);
-			var cred2 = amountCredentials.Valuable.First(ac => ac.Amount.ToMoney().Satoshi == reissuanceAmounts[1].Satoshi);
-
-			// What about weightCredentials?
-
 			// Phase: Output Registration
 			using var destinationKey1 = new Key();
 			using var destinationKey2 = new Key();
+
+			await bobArenaClient.ReissueCredentialAsync(
+				round.Id,
+				reissuanceAmounts[0],
+				destinationKey1.PubKey.WitHash.ScriptPubKey,
+				reissuanceAmounts[1],
+				destinationKey2.PubKey.WitHash.ScriptPubKey,
+				amountCredentials.Valuable,
+				vsizeCredentials.Valuable);
+
+			Assert.Equal(8, amountCredentials.ZeroValue.Count());
+
+			Credential amountCred1 = amountCredentials.Valuable.First(ac => ac.Amount.ToMoney().Satoshi == reissuanceAmounts[0].Satoshi);
+			Credential amountCred2 = amountCredentials.Valuable.First(ac => ac.Amount.ToMoney().Satoshi == reissuanceAmounts[1].Satoshi);
+
+			Credential vsizeCred1 = vsizeCredentials.Valuable.First();
+			Credential vsizeCred2 = vsizeCredentials.Valuable.Last();
 
 			await bobArenaClient.RegisterOutputAsync(
 				round.Id,
 				reissuanceAmounts[0],
 				destinationKey1.PubKey.WitHash.ScriptPubKey,
-				new[] { cred1 },
-				vsizeCredentials.Valuable);
+				new[] { amountCred1 },
+				new[] { vsizeCred1 });
 
 			await bobArenaClient.RegisterOutputAsync(
 				round.Id,
 				reissuanceAmounts[1],
 				destinationKey2.PubKey.WitHash.ScriptPubKey,
-				new[] { cred2 },
-				vsizeCredentials.Valuable);
+				new[] { amountCred2 },
+				new[] { vsizeCred2 });
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);

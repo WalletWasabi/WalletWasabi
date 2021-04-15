@@ -110,27 +110,32 @@ namespace WalletWasabi.WabiSabi.Client
 			VsizeCredentialClient.HandleResponse(outputRegistrationResponse.VsizeCredentials, realVsizeCredentialResponseValidation);
 		}
 
-		public async Task ReissueCredentialAsync(Guid roundId, long value, IEnumerable<Credential> amountCredentialsToPresent)
+		public async Task ReissueCredentialAsync(Guid roundId, long value1, Script scriptPubKey1, long value2, Script scriptPubKey2, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Credential> vsizeCredentialsToPresent)
 		{
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
 
-			var presentedAmount = amountCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
-
 			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
-				new[] { value, presentedAmount - value },
+				new[] { value1, value2 },
 				amountCredentialsToPresent);
 
 			var zeroAmountCredentialRequestData1 = AmountCredentialClient.CreateRequestForZeroAmount();
 			var zeroAmountCredentialRequestData2 = AmountCredentialClient.CreateRequestForZeroAmount();
 
+			var presentedVsize = vsizeCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
+			var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
+				new[] { (long)scriptPubKey1.EstimateOutputVsize(), scriptPubKey2.EstimateOutputVsize() },
+				vsizeCredentialsToPresent);
+
 			var reissuanceResponse = await RequestHandler.ReissueCredentialAsync(
 				new ReissueCredentialRequest(
 					roundId,
 					realAmountCredentialRequest,
+					realVsizeCredentialRequest,
 					zeroAmountCredentialRequestData1.CredentialsRequest,
 					zeroAmountCredentialRequestData2.CredentialsRequest)).ConfigureAwait(false);
 
 			AmountCredentialClient.HandleResponse(reissuanceResponse.RealAmountCredentials, realAmountCredentialResponseValidation);
+			VsizeCredentialClient.HandleResponse(reissuanceResponse.RealVsizeCredentials, realVsizeCredentialResponseValidation);
 			AmountCredentialClient.HandleResponse(reissuanceResponse.ZeroAmountCredentials1, zeroAmountCredentialRequestData1.CredentialsResponseValidation);
 			AmountCredentialClient.HandleResponse(reissuanceResponse.ZeroAmountCredentials2, zeroAmountCredentialRequestData2.CredentialsResponseValidation);
 		}

@@ -466,22 +466,19 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
 				}
 
-				if (request.RealAmountCredentialRequests.Requested.Count() != 2)
-				{
-					throw new NotImplementedException(); // TODO
-				}
-
 				if (round.Phase is not (Phase.ConnectionConfirmation or Phase.OutputRegistration))
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
 				}
 
 				var commitRealAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(request.RealAmountCredentialRequests);
+				var commitRealVsizeCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(request.RealVsizeCredentialRequests);
 				var commitZeroAmountCredentialResponse1 = round.AmountCredentialIssuer.PrepareResponse(request.ZeroAmountCredentialRequests1);
 				var commitZeroAmountCredentialResponse2 = round.AmountCredentialIssuer.PrepareResponse(request.ZeroAmountCredentialRequests2);
 
 				return new(
 					commitRealAmountCredentialResponse.Commit(),
+					commitRealVsizeCredentialResponse.Commit(),
 					commitZeroAmountCredentialResponse1.Commit(),
 					commitZeroAmountCredentialResponse2.Commit()
 					);
