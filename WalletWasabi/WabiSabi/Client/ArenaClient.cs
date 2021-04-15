@@ -110,7 +110,6 @@ namespace WalletWasabi.WabiSabi.Client
 			VsizeCredentialClient.HandleResponse(outputRegistrationResponse.VsizeCredentials, realVsizeCredentialResponseValidation);
 		}
 
-<<<<<<< HEAD
 		public async Task ReissueCredentialAsync(Guid roundId, long value, IEnumerable<Credential> amountCredentialsToPresent)
 		{
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
@@ -133,10 +132,7 @@ namespace WalletWasabi.WabiSabi.Client
 			AmountCredentialClient.HandleResponse(reissuanceResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
 		}
 
-		public async Task<bool> ConfirmConnectionAsync(Guid roundId, Guid aliceId, IEnumerable<long> inputsRegistrationWeight, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Money> newAmount)
-=======
 		public async Task<bool> ConfirmConnectionAsync(Guid roundId, Guid aliceId, IEnumerable<long> inputsRegistrationVsize, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Money> newAmount)
->>>>>>> master
 		{
 			Guard.InRange(nameof(newAmount), newAmount, 1, AmountCredentialClient.NumberOfCredentials);
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 1, AmountCredentialClient.NumberOfCredentials);
