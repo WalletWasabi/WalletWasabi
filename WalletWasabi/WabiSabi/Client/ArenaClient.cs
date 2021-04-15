@@ -120,16 +120,19 @@ namespace WalletWasabi.WabiSabi.Client
 				new[] { value, presentedAmount - value },
 				amountCredentialsToPresent);
 
-			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
+			var zeroAmountCredentialRequestData1 = AmountCredentialClient.CreateRequestForZeroAmount();
+			var zeroAmountCredentialRequestData2 = AmountCredentialClient.CreateRequestForZeroAmount();
 
 			var reissuanceResponse = await RequestHandler.ReissueCredentialAsync(
 				new ReissueCredentialRequest(
 					roundId,
 					realAmountCredentialRequest,
-					zeroAmountCredentialRequestData.CredentialsRequest)).ConfigureAwait(false);
+					zeroAmountCredentialRequestData1.CredentialsRequest,
+					zeroAmountCredentialRequestData2.CredentialsRequest)).ConfigureAwait(false);
 
 			AmountCredentialClient.HandleResponse(reissuanceResponse.RealAmountCredentials, realAmountCredentialResponseValidation);
-			AmountCredentialClient.HandleResponse(reissuanceResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
+			AmountCredentialClient.HandleResponse(reissuanceResponse.ZeroAmountCredentials1, zeroAmountCredentialRequestData1.CredentialsResponseValidation);
+			AmountCredentialClient.HandleResponse(reissuanceResponse.ZeroAmountCredentials2, zeroAmountCredentialRequestData2.CredentialsResponseValidation);
 		}
 
 		public async Task<bool> ConfirmConnectionAsync(Guid roundId, Guid aliceId, IEnumerable<long> inputsRegistrationVsize, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Money> newAmount)

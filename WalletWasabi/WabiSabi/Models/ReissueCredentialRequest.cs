@@ -6,6 +6,7 @@ namespace WalletWasabi.WabiSabi.Models
 	public record ReissueCredentialRequest(
 		Guid RoundId,
 		RealCredentialsRequest RealAmountCredentialRequests,
-		ZeroCredentialsRequest ZeroAmountCredentialRequests
+		ZeroCredentialsRequest ZeroAmountCredentialRequests1,
+		ZeroCredentialsRequest ZeroAmountCredentialRequests2
 	);
 }
