@@ -60,12 +60,25 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// way the coordinator issues `k` zero-value credentials that can be used in following requests.
 		/// </remarks>
 		public ZeroCredentialsRequestData CreateRequestForZeroAmount()
+			=> CreateRequestForZeroAmount(NumberOfCredentials);
+			
+		/// <summary>
+		/// Creates a <see cref="CredentialsRequest">credential registration request messages</see>
+		/// for requesting `credentialCount` zero-value credentials.
+		/// </summary>
+		/// <remarks>
+		/// The request messages created by CreateRequestForZeroAmount are called null requests. In some
+		/// situations it can be convenient to request more than `k` zero-value credentials that can be 
+		/// used in following requests.
+		/// </remarks>
+		public ZeroCredentialsRequestData CreateRequestForZeroAmount(int credentialCount)
 		{
-			var credentialsToRequest = new IssuanceRequest[NumberOfCredentials];
-			var knowledge = new Knowledge[NumberOfCredentials];
-			var validationData = new IssuanceValidationData[NumberOfCredentials];
+			Guard.InRangeAndNotNull(nameof(credentialCount), credentialCount, NumberOfCredentials, 100);
+			var credentialsToRequest = new IssuanceRequest[credentialCount];
+			var knowledge = new Knowledge[credentialCount];
+			var validationData = new IssuanceValidationData[credentialCount];
 
-			for (var i = 0; i < NumberOfCredentials; i++)
+			for (var i = 0; i < credentialCount; i++)
 			{
 				var randomness = RandomNumberGenerator.GetScalar(allowZero: false);
 				var ma = randomness * Generators.Gh;
