@@ -28,7 +28,11 @@
               DockPanel.Dock="Bottom">
       <i:Interaction.Behaviors>
         <behaviors:HideDataGridColumnBehavior HideThresholdWidth="900" ColumnHeader="Type"/>
+        <behaviors:HideDataGridColumnBehavior HideThresholdWidth="800" ColumnHeader="Balance (BTC)"/>
+        <behaviors:HideDataGridColumnBehavior HideThresholdWidth="620" ColumnHeader="Status"/>
+        <behaviors:HideDataGridColumnBehavior HideThresholdWidth="480" ColumnHeader="Date / Time"/>
       </i:Interaction.Behaviors>
+
       <DataGrid.Styles>
         <Style Selector="PathIcon">
           <Setter Property="Width" Value="15"/>
