@@ -55,7 +55,7 @@ namespace WalletWasabi.Gui
 
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
-		public FeeProviders FeeProviders { get; private set; }
+		public HybridFeeProvider FeeProvider { get; private set; }
 		public WalletManager WalletManager { get; }
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
@@ -220,11 +220,15 @@ namespace WalletWasabi.Gui
 					Logger.LogError(ex);
 				}
 
-				FeeProviders = new FeeProviders(Synchronizer, HostedServices.GetOrDefault<RpcFeeProvider>());
+				#endregion BitcoinCoreInitialization
+
+				#region FeeProviderInitialization
+
+				FeeProvider = new HybridFeeProvider(Synchronizer, HostedServices.GetOrDefault<RpcFeeProvider>());
+
+				#endregion FeeProviderInitialization
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
-
-				#endregion BitcoinCoreInitialization
 
 				cancel.ThrowIfCancellationRequested();
 
@@ -297,7 +301,7 @@ namespace WalletWasabi.Gui
 
 				int maxFiltSyncCount = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
 
-				Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), maxFiltSyncCount);
+				Synchronizer.Start(requestInterval, maxFiltSyncCount);
 				Logger.LogInfo("Start synchronizing filters...");
 
 				#endregion SynchronizerInitialization
@@ -340,7 +344,7 @@ namespace WalletWasabi.Gui
 
 				cancel.ThrowIfCancellationRequested();
 
-				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, FeeProviders, blockProvider);
+				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, FeeProvider, blockProvider);
 			}
 			finally
 			{
@@ -629,12 +633,12 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
 				}
 
-				Logger.LogDebug($"Step: {nameof(FeeProviders)}.", nameof(Global));
+				Logger.LogDebug($"Step: {nameof(FeeProvider)}.", nameof(Global));
 
-				if (FeeProviders is { } feeProviders)
+				if (FeeProvider is { } feeProviders)
 				{
 					feeProviders.Dispose();
-					Logger.LogInfo($"Disposed {nameof(FeeProviders)}.");
+					Logger.LogInfo($"Disposed {nameof(FeeProvider)}.");
 				}
 
 				Logger.LogDebug($"Step: {nameof(CoinJoinProcessor)}.", nameof(Global));

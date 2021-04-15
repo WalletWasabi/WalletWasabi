@@ -58,7 +58,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		/// Gets a value indicating whether the fee has been fetched from a fully synced node.
 		/// </summary>
 		[JsonProperty]
-		public bool IsAccurate { get; }
+		public bool IsAccurate { get; set; }
 
 		/// <summary>
 		/// Gets the fee estimations: int: fee target, int: satoshi/vByte
