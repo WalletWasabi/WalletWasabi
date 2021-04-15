@@ -44,8 +44,8 @@ namespace WalletWasabi.Tests.UnitTests.QrCode
 		{
 			QRDecoder decoder = new();
 
-			string otherPath = Path.Combine(_commonPartialPath, "NotBitcoinAddress.jpg");
-			using Bitmap notValidInputImage = new(otherPath);
+			string path = Path.Combine(_commonPartialPath, "NotBitcoinAddress.jpg");
+			using Bitmap notValidInputImage = new(path);
 			var notValidDataByteArray = decoder.SearchQrCodes(notValidInputImage);
 
 			Assert.Empty(notValidDataByteArray);

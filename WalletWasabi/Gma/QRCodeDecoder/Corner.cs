@@ -170,9 +170,7 @@ namespace QRCodeDecoderLibrary
 				topModules += TopLineLength * TopLineLength /
 					(Math.Abs(TopLineDeltaX) * 0.5 * (TopLeftFinder.HModule + TopRightFinder.HModule));
 			}
-
-			// top line is mostly vertical
-			else
+			else // top line is mostly vertical
 			{
 				topModules += TopLineLength * TopLineLength /
 					(Math.Abs(TopLineDeltaY) * 0.5 * (TopLeftFinder.VModule + TopRightFinder.VModule));
@@ -187,9 +185,7 @@ namespace QRCodeDecoderLibrary
 				leftModules += LeftLineLength * LeftLineLength /
 					(Math.Abs(LeftLineDeltaY) * 0.5 * (TopLeftFinder.VModule + BottomLeftFinder.VModule));
 			}
-
-			// left line is mostly horizontal
-			else
+			else // left line is mostly horizontal
 			{
 				leftModules += LeftLineLength * LeftLineLength /
 					(Math.Abs(LeftLineDeltaX) * 0.5 * (TopLeftFinder.HModule + BottomLeftFinder.HModule));
