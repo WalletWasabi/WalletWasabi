@@ -94,8 +94,8 @@
               <StackPanel x:DataType="history:HistoryItemViewModel"
                           IsVisible="{Binding !!IncomingAmount}"
                           HorizontalAlignment="Right">
-                <TextBlock Classes="monoSpaced" Text="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
                 <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6" />
+                <TextBlock Classes="monoSpaced" Text="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
@@ -110,8 +110,8 @@
               <StackPanel x:DataType="history:HistoryItemViewModel"
                           IsVisible="{Binding !!OutgoingAmount}"
                           HorizontalAlignment="Right">
-                <TextBlock Classes="monoSpaced" Text="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
                 <PathIcon Data="{StaticResource arrow_up_right_regular}" Opacity="0.6" />
+                <TextBlock Classes="monoSpaced" Text="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
