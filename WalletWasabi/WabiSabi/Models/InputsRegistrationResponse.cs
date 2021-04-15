@@ -6,6 +6,6 @@ namespace WalletWasabi.WabiSabi.Models
 	public record InputsRegistrationResponse(
 		Guid AliceId,
 		CredentialsResponse AmountCredentials,
-		CredentialsResponse WeightCredentials
+		CredentialsResponse VsizeCredentials
 	);
 }

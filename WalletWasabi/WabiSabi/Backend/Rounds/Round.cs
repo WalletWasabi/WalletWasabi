@@ -23,13 +23,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			RoundParameters = roundParameters;
 
 			AmountCredentialIssuer = new(new(Random), 2, Random, MaxRegistrableAmount);
-			WeightCredentialIssuer = new(new(Random), 2, Random, RegistrableWeightCredentials);
+			VsizeCredentialIssuer = new(new(Random), 2, Random, PerAliceVsizeAllocation);
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
-			WeightCredentialIssuerParameters = WeightCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
+			VsizeCredentialIssuerParameters = VsizeCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 
 			Coinjoin = Transaction.Create(Network);
 
-			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{PerAliceVsizeAllocation}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
+			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{PerAliceVsizeAllocation}{AmountCredentialIssuerParameters}{VsizeCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
 		}
 
 		public uint256 Hash { get; }
@@ -38,13 +38,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public Money MinRegistrableAmount => RoundParameters.MinRegistrableAmount;
 		public Money MaxRegistrableAmount => RoundParameters.MaxRegistrableAmount;
 		public uint PerAliceVsizeAllocation => RoundParameters.PerAliceVsizeAllocation;
-		public uint RegistrableWeightCredentials => 4 * PerAliceVsizeAllocation; // TODO remove weight
 		public FeeRate FeeRate => RoundParameters.FeeRate;
 		public WasabiRandom Random => RoundParameters.Random;
 		public CredentialIssuer AmountCredentialIssuer { get; }
-		public CredentialIssuer WeightCredentialIssuer { get; }
+		public CredentialIssuer VsizeCredentialIssuer { get; }
 		public CredentialIssuerParameters AmountCredentialIssuerParameters { get; }
-		public CredentialIssuerParameters WeightCredentialIssuerParameters { get; }
+		public CredentialIssuerParameters VsizeCredentialIssuerParameters { get; }
 		public Guid Id { get; } = Guid.NewGuid();
 		public List<Alice> Alices { get; } = new();
 		public int InputCount => Alices.Sum(x => x.Coins.Count());
