@@ -67,5 +67,13 @@ namespace WalletWasabi.Tests.UnitTests
 			await failingRunner.StartAsync(CancellationToken.None);
 			await Assert.ThrowsAsync<NotImplementedException>(async () => await failingRunner.StopAsync(CancellationToken.None, true));
 		}
+
+		[Fact]
+		public async Task FailingRunnerNoThrowTestsAsync()
+		{
+			using FailingRunner failingRunner = new();
+			await failingRunner.StartAsync(CancellationToken.None);
+			await failingRunner.StopAsync(CancellationToken.None, false);
+		}
 	}
 }
