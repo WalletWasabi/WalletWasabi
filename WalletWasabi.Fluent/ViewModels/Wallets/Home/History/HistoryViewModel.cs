@@ -2,7 +2,6 @@ using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
@@ -47,7 +46,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				.Filter(coinJoinFilter)
 				.Bind(out _transactions)
 				.Subscribe();
-
 
 			this.WhenAnyValue(x => x.ShowCoinJoin)
 				.ObserveOn(RxApp.MainThreadScheduler)
