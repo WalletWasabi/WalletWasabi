@@ -298,6 +298,8 @@ namespace WalletWasabi.Fluent.Controls
 			}
 			else
 			{
+				state.Points = new Point[xAxisValues.Count];
+
 				using (var enumerator = xAxisValuesEnumerable.GetEnumerator())
 				{
 					for (var i = 0; i < yAxisValuesScaled.Count; i++)
