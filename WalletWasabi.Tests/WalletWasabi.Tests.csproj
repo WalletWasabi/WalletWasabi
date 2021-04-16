@@ -46,8 +46,11 @@
 		<None Update="UnitTests\QrCode\QrTestResources\AddressTest2.png">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+		<None Update="UnitTests\QrCode\QrTestResources\DoubleQRCode.png">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 		<None Update="UnitTests\QrCode\QrTestResources\Mouse_over_the_QR-code.jpg">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="UnitTests\QrCode\QrTestResources\NotBitcoinAddress.jpg">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
