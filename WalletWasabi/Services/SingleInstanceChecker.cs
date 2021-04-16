@@ -118,7 +118,7 @@ namespace WalletWasabi.Services
 			var task = TaskStartTcpListener;
 			if (task is null)
 			{
-				throw new InvalidOperationException("This is impossible!");
+				throw new InvalidOperationException("This should never happen!");
 			}
 
 			TcpListener? listener = null;
