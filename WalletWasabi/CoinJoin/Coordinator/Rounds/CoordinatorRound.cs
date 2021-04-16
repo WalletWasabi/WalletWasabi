@@ -646,7 +646,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			if (collision is { })
 			{
 				newDenomination -= Money.Satoshis(1);
-				Logger.LogDebug($"This is impossibru. The new base denomination is exactly the same as the one of the mixing level. Adjusted the new denomination one satoshi less.");
+				Logger.LogDebug($"This should never happen. The new base denomination is exactly the same as the one of the mixing level. Adjusted the new denomination one satoshi less.");
 			}
 
 			return newDenomination;
