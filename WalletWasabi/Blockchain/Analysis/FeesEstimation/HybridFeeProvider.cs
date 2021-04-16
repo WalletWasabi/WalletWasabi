@@ -37,17 +37,17 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			}
 		}
 
-		private void Synchronizer_ResponseArrived(object? sender, SynchronizeResponse response)
-		{
-			OnAllFeeEstimateArrived(sender, response.AllFeeEstimate);
-		}
-
 		public event EventHandler<AllFeeEstimate>? AllFeeEstimateChanged;
 
 		public WasabiSynchronizer Synchronizer { get; }
 		public RpcFeeProvider? RpcFeeProvider { get; }
 		private object Lock { get; } = new object();
 		public AllFeeEstimate? AllFeeEstimate { get; private set; }
+
+		private void Synchronizer_ResponseArrived(object? sender, SynchronizeResponse response)
+		{
+			OnAllFeeEstimateArrived(sender, response.AllFeeEstimate);
+		}
 
 		private void OnAllFeeEstimateArrived(object? sender, AllFeeEstimate? fees)
 		{
