@@ -58,7 +58,7 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:DataType="history:HistoryItemViewModel"
-                         Text="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
+                         Text="{Binding Date, Mode=OneWay, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
                          Classes="monoSpaced"
                          Margin="10 0" />
             </DataTemplate>
@@ -95,7 +95,7 @@
                           IsVisible="{Binding !!IncomingAmount}"
                           HorizontalAlignment="Right">
                 <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6" />
-                <TextBlock Classes="monoSpaced" Text="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
+                <TextBlock Classes="monoSpaced" Text="{Binding IncomingAmount, Mode=OneWay, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
@@ -111,7 +111,7 @@
                           IsVisible="{Binding !!OutgoingAmount}"
                           HorizontalAlignment="Right">
                 <PathIcon Data="{StaticResource arrow_up_right_regular}" Opacity="0.6" />
-                <TextBlock Classes="monoSpaced" Text="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
+                <TextBlock Classes="monoSpaced" Text="{Binding OutgoingAmount, Mode=OneWay, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
@@ -126,7 +126,7 @@
               <TextBlock Classes="monoSpaced"
                          HorizontalAlignment="Right"
                          x:DataType="history:HistoryItemViewModel"
-                         Text="{Binding Balance, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
+                         Text="{Binding Balance, Mode=OneWay, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
                          Margin="10 0" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
