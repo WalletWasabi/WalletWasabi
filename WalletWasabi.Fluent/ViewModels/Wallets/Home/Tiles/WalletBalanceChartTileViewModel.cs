@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			var currentTime = timeSampler(source.First());
 			var endTime = currentTime - limit;
 
-			var lastFound = (currentTime, sampler(source.First()));
+			var lastFound = (timestamp: currentTime, result: sampler(source.First()));
 
 			yield return lastFound;
 
@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				}
 				else
 				{
-					yield return lastFound;
+					yield return (currentTime, lastFound.result);
 				}
 
 				currentTime -= interval;
