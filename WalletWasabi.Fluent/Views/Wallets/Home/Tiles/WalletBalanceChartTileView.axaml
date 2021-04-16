@@ -67,15 +67,18 @@
     </UserControl.Styles>
     <Border ClipToBounds="False" CornerRadius="5" Background="#2b2b2b" Margin="6" Padding="16" BoxShadow="{DynamicResource InfoBoxShadow}">
         <DockPanel>
-            <StackPanel Orientation="Horizontal" Spacing="10" DockPanel.Dock="Top">
-                <TextBlock Text="Balance over time" DockPanel.Dock="Top" />
-                <Button Content="1D" Command="{Binding DayCommand}" />
-                <Button Content="1W" Command="{Binding WeekCommand}" />
-                <Button Content="1M" Command="{Binding MonthCommand}" />
-                <Button Content="3M" Command="{Binding ThreeMonthCommand}" />
-                <Button Content="6M" Command="{Binding SixMonthCommand}" />
-                <Button Content="1Y" Command="{Binding YearCommand}" />
-            </StackPanel>
+            <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch" Margin="0,0,30,0">
+                <TextBlock Text="Balance over time" DockPanel.Dock="Left"/>
+                <StackPanel Orientation="Horizontal" Spacing="10" DockPanel.Dock="Right">
+                    <Button Content="1D" Background="Transparent" Opacity="0.5" Command="{Binding DayCommand}" />
+                    <Button Content="1W" Background="Transparent" Opacity="0.5" Command="{Binding WeekCommand}" />
+                    <Button Content="1M" Background="Transparent" Opacity="0.5" Command="{Binding MonthCommand}" />
+                    <Button Content="3M" Background="Transparent" Opacity="0.5" Command="{Binding ThreeMonthCommand}" />
+                    <Button Content="6M" Background="Transparent" Opacity="0.5" Command="{Binding SixMonthCommand}" />
+                    <Button Content="1Y" Background="Transparent" Opacity="0.5" Command="{Binding YearCommand}" />
+                </StackPanel>
+                <Panel/>
+            </DockPanel>
             <c:LineChart x:CompileBindings="True" x:DataType="vm:WalletBalanceChartTileViewModel" x:Name="GradientLineChart" DockPanel.Dock="Left" Margin="30"
                          Classes="area border xAxis xAxisLabels yAxis yAxisLabels"
                          SmoothCurve="True"
