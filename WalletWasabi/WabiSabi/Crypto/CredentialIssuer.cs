@@ -47,18 +47,16 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// Initializes a new instance of the CredentialIssuer class.
 		/// </summary>
 		/// <param name="credentialIssuerSecretKey">The <see cref="CredentialIssuerSecretKey">coordinator's secret key</see> used to issue the credentials.</param>
-		/// <param name="numberOfCredentials">The number of credentials that the protocol handles in each request/response.</param>
 		/// <param name="randomNumberGenerator">The random number generator.</param>
 		public CredentialIssuer(
 			CredentialIssuerSecretKey credentialIssuerSecretKey,
-			int numberOfCredentials,
 			WasabiRandom randomNumberGenerator,
 			ulong maxAmount)
 		{
 			MaxAmount = maxAmount;
 			RangeProofWidth = (int)Math.Ceiling(Math.Log2(MaxAmount));
 			CredentialIssuerSecretKey = Guard.NotNull(nameof(credentialIssuerSecretKey), credentialIssuerSecretKey);
-			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
+			NumberOfCredentials = ProtocolConstants.CredentialNumber;
 			CredentialIssuerParameters = CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 		}

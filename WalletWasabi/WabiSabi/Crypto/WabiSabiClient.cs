@@ -22,7 +22,6 @@ namespace WalletWasabi.WabiSabi.Crypto
 	{
 		public WabiSabiClient(
 			CredentialIssuerParameters credentialIssuerParameters,
-			int numberOfCredentials,
 			WasabiRandom randomNumberGenerator,
 			ulong maxAmount,
 			CredentialPool? credentialPool = null)
@@ -30,7 +29,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			MaxAmount = maxAmount;
 			RangeProofWidth = (int)Math.Ceiling(Math.Log2(MaxAmount));
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
-			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
+			NumberOfCredentials = ProtocolConstants.CredentialNumber;
 			CredentialIssuerParameters = Guard.NotNull(nameof(credentialIssuerParameters), credentialIssuerParameters);
 			Credentials = credentialPool ?? new CredentialPool();
 		}

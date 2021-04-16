@@ -24,8 +24,8 @@ namespace WalletWasabi.WabiSabi.Client
 			IArenaRequestHandler requestHandler,
 			WasabiRandom random)
 		{
-			AmountCredentialClient = new WabiSabiClient(amountCredentialIssuerParameters, ProtocolConstants.CredentialNumber, random, ProtocolConstants.MaxAmountPerAlice, amountCredentialPool);
-			VsizeCredentialClient = new WabiSabiClient(vsizeCredentialIssuerParameters, ProtocolConstants.CredentialNumber, random, ProtocolConstants.MaxVsizePerAlice, vsizeCredentialPool);
+			AmountCredentialClient = new WabiSabiClient(amountCredentialIssuerParameters, random, ProtocolConstants.MaxAmountPerAlice, amountCredentialPool);
+			VsizeCredentialClient = new WabiSabiClient(vsizeCredentialIssuerParameters, random, ProtocolConstants.MaxVsizePerAlice, vsizeCredentialPool);
 			RequestHandler = requestHandler;
 		}
 
