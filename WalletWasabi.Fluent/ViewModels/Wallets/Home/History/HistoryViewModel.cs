@@ -24,6 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		private readonly Wallet _wallet;
 		private readonly BitcoinStore _bitcoinStore;
 		private readonly ReadOnlyObservableCollection<HistoryItemViewModel> _transactions;
+		private readonly ReadOnlyObservableCollection<HistoryItemViewModel> _unfilteredTransactions;
 		private readonly SourceList<HistoryItemViewModel> _transactionSourceList;
 
 		[AutoNotify] private bool _showCoinJoin;
@@ -40,11 +41,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 			_transactionSourceList
 				.Connect()
-				.Filter(coinJoinFilter)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Sort(SortExpressionComparer<HistoryItemViewModel>.Descending(x => x.OrderIndex))
+				.Bind(out _unfilteredTransactions)
+				.Filter(coinJoinFilter)
 				.Bind(out _transactions)
 				.Subscribe();
+
 
 			this.WhenAnyValue(x => x.ShowCoinJoin)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -73,6 +76,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			updateTrigger.Subscribe(async _ => await UpdateAsync());
 			RxApp.MainThreadScheduler.Schedule(async () => await UpdateAsync());
 		}
+
+		public ReadOnlyObservableCollection<HistoryItemViewModel> UnfilteredTransactions => _unfilteredTransactions;
 
 		public ReadOnlyObservableCollection<HistoryItemViewModel> Transactions => _transactions;
 
