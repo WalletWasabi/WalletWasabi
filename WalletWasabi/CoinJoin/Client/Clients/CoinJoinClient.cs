@@ -518,7 +518,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 					if (coin is null)
 					{
-						throw new NotSupportedException("This is impossible.");
+						throw new NotSupportedException("This should never happen.");
 					}
 
 					coin.BannedUntilUtc = DateTimeOffset.UtcNow + TimeSpan.FromMinutes(minuteInt);
@@ -537,7 +537,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 					if (coin is null)
 					{
-						throw new NotSupportedException("This is impossible.");
+						throw new NotSupportedException("This should never happen.");
 					}
 
 					coin.SpentAccordingToBackend = true;
@@ -564,7 +564,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 					if (coin is null)
 					{
-						throw new NotSupportedException("This is impossible.");
+						throw new NotSupportedException("This should never happen.");
 					}
 
 					coinsRegistered.Add(coin);
@@ -1080,7 +1080,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 				if (coin is null)
 				{
-					throw new NotSupportedException("This is impossible.");
+					throw new NotSupportedException("This should never happen.");
 				}
 
 				coin.Secret ??= KeyManager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
