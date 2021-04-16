@@ -115,6 +115,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				_sampleLimit = TimeSpan.FromDays(365);
 				UpdateSample();
 			});
+
+			AllCommand = ReactiveCommand.Create(() =>
+			{
+				if (_history.Any())
+				{
+					var newest = _history.First().Date;
+					var oldest = _history.Last().Date - TimeSpan.FromDays(1);
+
+					_sampleLimit = newest - oldest;
+					_sampleTime = _sampleLimit / 75;
+
+					UpdateSample();
+				}
+			});
 		}
 
 		private double? GetMinimum(TimeSpan limit)
@@ -207,5 +221,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		public ICommand SixMonthCommand { get; }
 
 		public ICommand YearCommand { get; }
+
+		public ICommand AllCommand { get; }
 	}
 }
