@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
@@ -20,7 +21,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			Synchronizer = synchronizer;
 			RpcFeeProvider = rpcFeeProvider;
 
-			Synchronizer.AllFeeEstimateArrived += OnAllFeeEstimateArrived;
+			Synchronizer.ResponseArrived += Synchronizer_ResponseArrived;
 
 			if (RpcFeeProvider is not null)
 			{
@@ -43,7 +44,12 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		private object Lock { get; } = new object();
 		public AllFeeEstimate? AllFeeEstimate { get; private set; }
 
-		private void OnAllFeeEstimateArrived(object? sender, AllFeeEstimate fees)
+		private void Synchronizer_ResponseArrived(object? sender, SynchronizeResponse response)
+		{
+			OnAllFeeEstimateArrived(sender, response.AllFeeEstimate);
+		}
+
+		private void OnAllFeeEstimateArrived(object? sender, AllFeeEstimate? fees)
 		{
 			// Only go further if we have estimations.
 			if (fees?.Estimations?.Any() is not true)
@@ -115,7 +121,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			{
 				if (disposing)
 				{
-					Synchronizer.AllFeeEstimateArrived -= OnAllFeeEstimateArrived;
+					Synchronizer.ResponseArrived -= Synchronizer_ResponseArrived;
 
 					if (RpcFeeProvider is not null)
 					{
