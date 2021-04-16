@@ -129,5 +129,24 @@ namespace WalletWasabi.Tests.UnitTests.QrCode
 
 			Assert.Equal(expectedOutput, dataCollection.First());
 		}
+
+		[Fact]
+		public void DecodeQrCodeInsideQrCode()
+		{
+			QRDecoder decoder = new();
+
+			// If there are two QR Codes on the picture, it will find both, even if they are
+			// stacked on eachother, until the QR Code's quality is okay and is still readable
+			string path = Path.Combine(_commonPartialPath, "DoubleQRCode.png");
+			string firstExpectedOutput = "Big QR Code";
+			string secondExpectedOutput = "Small QR Code";
+			using Bitmap inputImage = new(path);
+			int expectedLength = 2;
+			var dataCollection = decoder.SearchQrCodes(inputImage).ToArray();
+
+			Assert.Equal(expectedLength, dataCollection.Length);
+			Assert.Equal(firstExpectedOutput, dataCollection[0]);
+			Assert.Equal(secondExpectedOutput, dataCollection[1]);
+		}
 	}
 }
