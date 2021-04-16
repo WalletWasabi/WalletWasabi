@@ -468,12 +468,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				if (round.Phase is not (Phase.ConnectionConfirmation or Phase.OutputRegistration))
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({round.Id}): Wrong phase ({round.Phase}).");
 				}
 
 				if (request.RealAmountCredentialRequests.Delta != 0)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.DeltaNotZero, $"Round ({request.RoundId}): Amount credentials delta must be zero.");
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.DeltaNotZero, $"Round ({round.Id}): Amount credentials delta must be zero.");
 				}
 
 				//if (request.RealVsizeCredentialRequests.Delta != 0)
@@ -483,12 +483,12 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				if (request.RealAmountCredentialRequests.Requested.Count() != ProtocolConstants.CredentialNumber)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongNumberOfCreds, $"Round ({request.RoundId}): Incorrect requested number of amount credentials.");
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongNumberOfCreds, $"Round ({round.Id}): Incorrect requested number of amount credentials.");
 				}
 
 				if (request.RealVsizeCredentialRequests.Requested.Count() != ProtocolConstants.CredentialNumber)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongNumberOfCreds, $"Round ({request.RoundId}): Incorrect requested number of weight credentials.");
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongNumberOfCreds, $"Round ({round.Id}): Incorrect requested number of weight credentials.");
 				}
 
 				var commitRealAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(request.RealAmountCredentialRequests);
