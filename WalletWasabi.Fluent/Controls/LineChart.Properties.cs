@@ -46,6 +46,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<double> AreaMinViableWidthProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(AreaMinViableWidth), double.MinValue);
 
+		public static readonly StyledProperty<bool> SmoothCurveProperty =
+			AvaloniaProperty.Register<LineChart, bool>(nameof(SmoothCurve));
+
 		// XAxis
 
 		public static readonly StyledProperty<IList<double>?> XAxisValuesProperty =
@@ -449,6 +452,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(AreaMinViableWidthProperty);
 			set => SetValue(AreaMinViableWidthProperty, value);
+		}
+
+		public bool SmoothCurve
+		{
+			get => GetValue(SmoothCurveProperty);
+			set => SetValue(SmoothCurveProperty, value);
 		}
 
 		// XAxis

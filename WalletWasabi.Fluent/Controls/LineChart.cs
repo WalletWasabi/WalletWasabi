@@ -10,6 +10,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.MathNet;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -197,6 +198,49 @@ namespace WalletWasabi.Fluent.Controls
 			return state;
 		}
 
+		private static IEnumerable<(double x, double y)> SplineInterpolate(double[] xs, double[] ys)
+		{
+			const int Divisions = 256;
+
+			if (xs.Length > 2)
+			{
+				var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
+
+				for (var i = 0; i < xs.Length - 1; i++)
+				{
+					var a = xs[i];
+					var b = xs[i + 1];
+					var range = b - a;
+					var step = range / Divisions;
+
+					var t0 = xs[i];
+
+					var xt0 = spline.Interpolate(xs[i]);
+
+					yield return (t0, xt0);
+
+					for (var t = a + step; t < b; t += step)
+					{
+						var xt = spline.Interpolate(t);
+
+						yield return (t, xt);
+					}
+				}
+
+				var tn = xs[^1];
+				var xtn = spline.Interpolate(xs[^1]);
+
+				yield return (tn, xtn);
+			}
+			else
+			{
+				for (var i = 0; i < xs.Length; i++)
+				{
+					yield return (xs[i], ys[i]);
+				}
+			}
+		}
+
 		private void SetStateAreaPoints(LineChartState state)
 		{
 			var xAxisValues = XAxisValues;
@@ -222,8 +266,6 @@ namespace WalletWasabi.Fluent.Controls
 				.Select(y => ScaleVertical(y, yAxisValuesLogScaledMax, state.AreaHeight))
 				.ToList();
 
-			state.Points = new Point[yAxisValues.Count];
-
 			var xAxisValuesEnumerable = xAxisValues as IEnumerable<double>;
 
 			switch (XAxisPlotMode)
@@ -248,12 +290,21 @@ namespace WalletWasabi.Fluent.Controls
 					break;
 			}
 
-			using (var enumerator = xAxisValuesEnumerable.GetEnumerator())
+			if (SmoothCurve)
 			{
-				for (var i = 0; i < yAxisValuesScaled.Count; i++)
+				var interpolated = SplineInterpolate(xAxisValuesEnumerable.ToArray(), yAxisValuesScaled.ToArray());
+
+				state.Points = interpolated.Select(pt => new Point(pt.x, pt.y)).ToArray();
+			}
+			else
+			{
+				using (var enumerator = xAxisValuesEnumerable.GetEnumerator())
 				{
-					state.Points[i] = new Point(enumerator.Current, yAxisValuesScaled[i]);
-					enumerator.MoveNext();
+					for (var i = 0; i < yAxisValuesScaled.Count; i++)
+					{
+						state.Points[i] = new Point(enumerator.Current, yAxisValuesScaled[i]);
+						enumerator.MoveNext();
+					}
 				}
 			}
 		}
