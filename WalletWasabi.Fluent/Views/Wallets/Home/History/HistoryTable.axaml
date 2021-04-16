@@ -74,7 +74,7 @@
               <Panel x:DataType="history:HistoryItemViewModel">
                 <StackPanel IsVisible="{Binding !IsCoinJoin}">
                   <PathIcon Data="{StaticResource normal_transaction}" Opacity="0.6" Width="20"/>
-                  <TextBlock Text="Normal" />
+                  <TextBlock Text="Transaction" />
                 </StackPanel>
                 <StackPanel IsVisible="{Binding IsCoinJoin}">
                   <PathIcon Data="{StaticResource shield_regular}" Opacity="0.6" Width="20" Height="20" />
