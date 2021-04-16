@@ -56,8 +56,6 @@ namespace WalletWasabi.Services
 
 		#region EventsPropertiesMembers
 
-		public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
-
 		public event EventHandler<bool>? ResponseArrivedIsGenSocksServFail;
 
 		public event EventHandler<SynchronizeResponse>? ResponseArrived;
@@ -205,12 +203,6 @@ namespace WalletWasabi.Services
 								BackendStatus = BackendStatus.Connected;
 								HandleIfGenSocksServFail(ex);
 								throw;
-							}
-
-							var allFees = response.AllFeeEstimate;
-							if (allFees?.Estimations?.Any() is true)
-							{
-								AllFeeEstimateArrived?.Invoke(this, allFees);
 							}
 
 							if (response.Filters.Count() == maxFiltersToSyncAtInitialization)
