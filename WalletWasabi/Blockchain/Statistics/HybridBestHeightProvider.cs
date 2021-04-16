@@ -116,31 +116,6 @@ namespace WalletWasabi.Blockchain.Statistics
 						}
 					}
 				}
-				//else if (sender is WasabiSynchronizer && RpcMonitor is null)
-				//{
-				//	// If it is coming from the the backend and user doesn't use a full node, then set the fees.
-				//	notify = SetBestHeight(height);
-				//}
-				//else if (sender is WasabiSynchronizer && RpcMonitor?.InError is true)
-				//{
-				//	// If data is coming from the the backend, user uses a full node, but it doesn't provide data, then set it.
-				//	notify = SetBestHeight(height);
-				//}
-				//else if (sender is WasabiSynchronizer && RpcMonitor?.IsSynchronized is false)
-				//{
-				//	// If data is coming from the the backend, user uses a full node, but it isn't synchronized yet, then set it.
-				//	notify = SetBestHeight(height);
-				//}
-				//else if (sender is RpcMonitor && RpcMonitor.IsSynchronized is true)
-				//{
-				//	// If our RPC is synchronized, then it probably has its height reight.
-				//	notify = SetBestHeight(height);
-				//}
-				//else if (sender is RpcMonitor && Synchronizer.BackendStatus != BackendStatus.Connected)
-				//{
-				//	// If backend isn't connected, then even if non synchrnonized data comes from RPC, let's believe it.
-				//	notify = SetBestHeight(height);
-				//}
 			}
 
 			if (notify)

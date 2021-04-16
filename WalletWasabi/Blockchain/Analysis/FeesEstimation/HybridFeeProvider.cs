@@ -129,7 +129,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 			var current = AllFeeEstimate;
 			if (fees is null
 				|| fees == current
-				|| current is not null && ((!fees.IsAccurate && current.IsAccurate) || fees.Estimations.Count <= current.Estimations.Count))
+				|| (current is not null && ((!fees.IsAccurate && current.IsAccurate) || fees.Estimations.Count <= current.Estimations.Count)))
 			{
 				return false;
 			}
