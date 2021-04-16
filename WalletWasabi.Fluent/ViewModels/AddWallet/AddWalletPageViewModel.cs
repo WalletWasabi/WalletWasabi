@@ -172,7 +172,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			EnableCancel = CurrentTarget != NavigationTarget.HomeScreen;
+			var enableCancel = CurrentTarget != NavigationTarget.HomeScreen;
+			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 
 			this.RaisePropertyChanged(WalletName);
 

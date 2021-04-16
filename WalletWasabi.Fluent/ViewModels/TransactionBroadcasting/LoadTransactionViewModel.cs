@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		{
 			Network = network;
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = false;
 

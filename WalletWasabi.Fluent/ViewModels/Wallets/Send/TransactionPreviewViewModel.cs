@@ -32,7 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			_wallet = wallet;
 			_info = info;
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
 			_confirmationTimeText = "";
 

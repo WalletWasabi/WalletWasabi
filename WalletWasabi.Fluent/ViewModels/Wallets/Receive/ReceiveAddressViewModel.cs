@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			GenerateQrCode();
 
-			EnableCancel = false;
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = true;
 

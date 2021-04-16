@@ -27,7 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 			_minText = "";
 			_secText = "";
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = false;
 		}
