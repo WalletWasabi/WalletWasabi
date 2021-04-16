@@ -35,8 +35,8 @@
 
       <DataGrid.Styles>
         <Style Selector="PathIcon">
-          <Setter Property="Width" Value="20"/>
-          <Setter Property="Height" Value="20"/>
+          <Setter Property="Width" Value="15"/>
+          <Setter Property="Height" Value="15"/>
           <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
         <Style Selector="TextBlock">
@@ -71,26 +71,48 @@
                                 SortMemberPath="IsCoinJoin">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <PathIcon x:DataType="history:HistoryItemViewModel"
-                        ToolTip.Tip="{Binding Type, Converter={x:Static converters:EnumConverters.ToFriendlyName}}"
-                        Data="{Binding Type, Converter={x:Static converters:TransactionTypeToResourceConverter.ToResource}}"
-                        Opacity="0.6"
-                        HorizontalAlignment="Center" />
+              <Panel x:DataType="history:HistoryItemViewModel">
+                <StackPanel IsVisible="{Binding !IsCoinJoin}">
+                  <PathIcon Data="{StaticResource normal_transaction}" Opacity="0.6" Width="20"/>
+                  <TextBlock Text="Normal" />
+                </StackPanel>
+                <StackPanel IsVisible="{Binding IsCoinJoin}">
+                  <PathIcon Data="{StaticResource shield_regular}" Opacity="0.6" Width="20" Height="20" />
+                  <TextBlock Text="CoinJoin" />
+                </StackPanel>
+              </Panel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <!-- Amount -->
-        <DataGridTemplateColumn Header="Amount (BTC)"
+        <!-- Incoming -->
+        <DataGridTemplateColumn Header="Incoming (BTC)"
                                 Width="*"
-                                SortMemberPath="Amount">
+                                SortMemberPath="IncomingAmount">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <TextBlock Classes="monoSpaced"
-                         x:DataType="history:HistoryItemViewModel"
-                         Text="{Binding Amount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
-                         HorizontalAlignment="Right"
-                         Margin="10 0"/>
+              <StackPanel x:DataType="history:HistoryItemViewModel"
+                          IsVisible="{Binding !!IncomingAmount}"
+                          HorizontalAlignment="Right">
+                <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6" />
+                <TextBlock Classes="monoSpaced" Text="{Binding IncomingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
+              </StackPanel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- Outgoing -->
+        <DataGridTemplateColumn Header="Outgoing (BTC)"
+                                Width="*"
+                                SortMemberPath="OutgoingAmount">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <StackPanel x:DataType="history:HistoryItemViewModel"
+                          IsVisible="{Binding !!OutgoingAmount}"
+                          HorizontalAlignment="Right">
+                <PathIcon Data="{StaticResource arrow_up_right_regular}" Opacity="0.6" />
+                <TextBlock Classes="monoSpaced" Text="{Binding OutgoingAmount, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
+              </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>

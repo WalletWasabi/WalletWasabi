@@ -1,7 +1,6 @@
 using System;
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.Model;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
 
@@ -23,24 +22,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			var amount = transactionSummary.Amount;
 			if (amount < 0)
 			{
-				Amount = amount * -1;
-				Type = TransactionType.Outgoing;
+				OutgoingAmount = amount * -1;
 			}
 			else
 			{
-				Amount = amount;
-				Type = TransactionType.Incoming;
+				IncomingAmount = amount;
 			}
-
-			if (IsCoinJoin)
-			{
-				Type = TransactionType.CoinJoin;
-			}
-
-			//TODO: Self Spend type
 		}
-
-		public TransactionType Type { get; }
 
 		public TransactionSummary TransactionSummary { get; }
 
@@ -52,7 +40,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 		public bool IsConfirmed { get; }
 
-		public Money Amount { get; }
+		public Money? IncomingAmount { get; }
+
+		public Money? OutgoingAmount { get; }
 
 		public bool IsCoinJoin { get; }
 	}
