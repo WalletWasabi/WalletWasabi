@@ -40,7 +40,7 @@
         <c:TileButton Text="Import a wallet"
                       Icon="{StaticResource import_regular}"
                       Command="{Binding ImportWalletCommand}"/>
-        <c:TileButton Text="Recover a wallet"
+        <c:TileButton Text="Type in recovery words"
                       Icon="{StaticResource recover_arrow_right_regular}"
                       Command="{Binding RecoverWalletCommand}"/>
       </WrapPanel>
