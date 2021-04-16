@@ -114,17 +114,23 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
 
+			var presentedAmount = amountCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
+			if (value1 + value2 != presentedAmount)
+			{
+				throw new InvalidOperationException($"Reissuence amounts must equal with the sum of the presented ones.");
+			}
+
+			var presentedVsize = vsizeCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
+			var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
+				new[] { (long)scriptPubKey1.EstimateOutputVsize(), scriptPubKey2.EstimateOutputVsize() },
+				vsizeCredentialsToPresent);
+
 			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
 				new[] { value1, value2 },
 				amountCredentialsToPresent);
 
 			var zeroAmountCredentialRequestData1 = AmountCredentialClient.CreateRequestForZeroAmount();
 			var zeroAmountCredentialRequestData2 = AmountCredentialClient.CreateRequestForZeroAmount();
-
-			var presentedVsize = vsizeCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
-			var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
-				new[] { (long)scriptPubKey1.EstimateOutputVsize(), scriptPubKey2.EstimateOutputVsize() },
-				vsizeCredentialsToPresent);
 
 			var reissuanceResponse = await RequestHandler.ReissueCredentialAsync(
 				new ReissueCredentialRequest(
