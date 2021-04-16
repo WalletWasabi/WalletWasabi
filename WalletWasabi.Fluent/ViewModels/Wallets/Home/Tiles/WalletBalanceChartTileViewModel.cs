@@ -65,8 +65,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		public WalletBalanceChartTileViewModel(ReadOnlyObservableCollection<HistoryItemViewModel> history)
 		{
-			_sampleTime = TimeSpan.FromDays(1);
-			_sampleLimit = TimeSpan.FromDays(30);
+			_sampleTime = TimeSpan.FromDays(2);
+			_sampleLimit = TimeSpan.FromDays(90);
 
 			_history = history;
 			_yValues = new ObservableCollection<double>();
@@ -159,12 +159,36 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				var maxX = XValues.Max();
 				var halfX = minX + ((maxX - minX) / 2);
 
-				XLabels = new List<string>
+				var range = DateTimeOffset.FromUnixTimeMilliseconds((long)maxX) -
+				            DateTimeOffset.FromUnixTimeMilliseconds((long)minX);
+
+				if (range <= TimeSpan.FromDays(1))
 				{
-					DateTimeOffset.FromUnixTimeMilliseconds((long) minX).DateTime.ToString("M"),
-					DateTimeOffset.FromUnixTimeMilliseconds((long) halfX).DateTime.ToString("M"),
-					DateTimeOffset.FromUnixTimeMilliseconds((long) maxX).DateTime.ToString("M"),
-				};
+					XLabels = new List<string>
+					{
+						DateTimeOffset.FromUnixTimeMilliseconds((long) minX).DateTime.ToString("t"),
+						DateTimeOffset.FromUnixTimeMilliseconds((long) halfX).DateTime.ToString("t"),
+						DateTimeOffset.FromUnixTimeMilliseconds((long) maxX).DateTime.ToString("t"),
+					};
+				}
+				else if (range <= TimeSpan.FromDays(7))
+				{
+					XLabels = new List<string>
+					{
+						DateTimeOffset.FromUnixTimeMilliseconds((long) minX).DateTime.ToString("dddd MMM-d"),
+						DateTimeOffset.FromUnixTimeMilliseconds((long) halfX).DateTime.ToString("dddd MMM-d"),
+						DateTimeOffset.FromUnixTimeMilliseconds((long) maxX).DateTime.ToString("dddd MMM-d"),
+					};
+				}
+				else
+				{
+					XLabels = new List<string>
+					{
+						DateTimeOffset.FromUnixTimeMilliseconds((long) minX).DateTime.ToString("MMM-d"),
+						DateTimeOffset.FromUnixTimeMilliseconds((long) halfX).DateTime.ToString("MMM-d"),
+						DateTimeOffset.FromUnixTimeMilliseconds((long) maxX).DateTime.ToString("MMM-d"),
+					};
+				}
 			}
 			else
 			{
