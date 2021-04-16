@@ -17,6 +17,7 @@ using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
+using WalletWasabi.Blockchain.Statistics;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
@@ -56,6 +57,7 @@ namespace WalletWasabi.Gui
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		public HybridFeeProvider FeeProvider { get; private set; }
+		public HybridBestHeightProvider BestHeightProvider { get; private set; }
 		public WalletManager WalletManager { get; }
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
@@ -215,7 +217,7 @@ namespace WalletWasabi.Gui
 
 						HostedServices.Register<BlockNotifier>(new BlockNotifier(TimeSpan.FromSeconds(7), BitcoinCoreNode.RpcClient, BitcoinCoreNode.P2pNode), "Block Notifier");
 						HostedServices.Register<RpcMonitor>(new RpcMonitor(TimeSpan.FromSeconds(7), BitcoinCoreNode.RpcClient), "RPC Monitor");
-						HostedServices.Register<RpcFeeProvider>(new RpcFeeProvider(TimeSpan.FromMinutes(1), BitcoinCoreNode.RpcClient), "RPC Fee Provider");
+						HostedServices.Register<RpcFeeProvider>(new RpcFeeProvider(TimeSpan.FromMinutes(1), BitcoinCoreNode.RpcClient, HostedServices.Get<RpcMonitor>()), "RPC Fee Provider");
 					}
 				}
 				catch (Exception ex)
@@ -230,6 +232,12 @@ namespace WalletWasabi.Gui
 				FeeProvider = new HybridFeeProvider(Synchronizer, HostedServices.GetOrDefault<RpcFeeProvider>());
 
 				#endregion FeeProviderInitialization
+
+				#region BestHeightProviderInitialization
+
+				BestHeightProvider = new HybridBestHeightProvider(Synchronizer, HostedServices.GetOrDefault<RpcMonitor>());
+
+				#endregion BestHeightProviderInitialization
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
