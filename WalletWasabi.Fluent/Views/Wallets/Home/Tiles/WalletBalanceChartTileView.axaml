@@ -65,7 +65,7 @@
             <Setter Property="YAxisLabelOpacity" Value="0.8" />
         </Style>
     </UserControl.Styles>
-    <Border ClipToBounds="False" CornerRadius="5" Background="#2b2b2b" Margin="6" Padding="16" BoxShadow="{DynamicResource InfoBoxShadow}">
+    <Border ClipToBounds="False" CornerRadius="5" Background="{DynamicResource TileRegionColor}" Margin="6" Padding="16" BoxShadow="{DynamicResource InfoBoxShadow}">
         <DockPanel>
             <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch" Margin="0,0,30,0">
                 <TextBlock Text="Balance over time" DockPanel.Dock="Left"/>
