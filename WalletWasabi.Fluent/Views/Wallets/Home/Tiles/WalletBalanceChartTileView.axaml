@@ -70,13 +70,13 @@
             <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch" Margin="0,0,30,0">
                 <TextBlock Text="Balance over time" DockPanel.Dock="Left"/>
                 <StackPanel Orientation="Horizontal" Spacing="10" DockPanel.Dock="Right">
+                    <RadioButton Classes="text" Content="All" Command="{Binding AllCommand}" />
                     <RadioButton Classes="text" Content="1D" Command="{Binding DayCommand}" />
                     <RadioButton Classes="text" Content="1W" Command="{Binding WeekCommand}" />
                     <RadioButton Classes="text" Content="1M" Command="{Binding MonthCommand}" />
                     <RadioButton Classes="text" Content="3M" Command="{Binding ThreeMonthCommand}" IsChecked="True" />
                     <RadioButton Classes="text" Content="6M" Command="{Binding SixMonthCommand}" />
                     <RadioButton Classes="text" Content="1Y" Command="{Binding YearCommand}" />
-                    <RadioButton Classes="text" Content="All" Command="{Binding AllCommand}" />
                 </StackPanel>
                 <Panel/>
             </DockPanel>
