@@ -56,7 +56,6 @@ namespace WalletWasabi.WabiSabi.Crypto
 			MaxAmount = maxAmount;
 			RangeProofWidth = (int)Math.Ceiling(Math.Log2(MaxAmount));
 			CredentialIssuerSecretKey = Guard.NotNull(nameof(credentialIssuerSecretKey), credentialIssuerSecretKey);
-			NumberOfCredentials = ProtocolConstants.CredentialNumber;
 			CredentialIssuerParameters = CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 		}
@@ -82,7 +81,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// Gets the number of credentials that have to be requested/presented
 		/// This parameter is called `k` in the WabiSabi paper.
 		/// </summary>
-		public int NumberOfCredentials { get; }
+		public int NumberOfCredentials => ProtocolConstants.CredentialNumber;
 
 		/// <summary>
 		/// Process the <see cref="CredentialsRequest">credentials registration requests</see> and
