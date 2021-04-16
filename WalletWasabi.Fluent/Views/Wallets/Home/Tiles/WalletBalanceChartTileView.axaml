@@ -57,6 +57,7 @@
         </Style>
         <!-- LineChart YAxis Labels -->
         <Style Selector="c|LineChart.yAxisLabels">
+            <Setter Property="YAxisLabelForeground" Value="{DynamicResource TextForegroundColor}" />
             <Setter Property="YAxisLabelAngle" Value="0" />
             <Setter Property="YAxisLabelOffset" Value="-10,0" />
             <Setter Property="YAxisLabelAlignment" Value="Right" />
@@ -80,7 +81,9 @@
                          SmoothCurve="True"
                          XAxisMinimum="{Binding XMinimum}"
                          XAxisValues="{Binding XValues}"
-                         YAxisValues="{Binding YValues}">
+                         XAxisLabels="{Binding XLabels}"
+                         YAxisValues="{Binding YValues}"
+                         YAxisLabels="{Binding YLabels}">
                 <c:LineChart.AreaFill>
                     <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%" Opacity="0.2">
                         <LinearGradientBrush.GradientStops>

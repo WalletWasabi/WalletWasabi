@@ -56,6 +56,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify] private ObservableCollection<double> _yValues;
 		[AutoNotify] private ObservableCollection<double> _xValues;
 		[AutoNotify] private double? _xMinimum;
+		[AutoNotify] private List<string> _yLabels;
+		[AutoNotify] private List<string> _xLabels;
 
 		private TimeSpan _sampleTime;
 		private TimeSpan _sampleLimit;
@@ -139,6 +141,34 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			{
 				YValues.Add((double) balance.ToDecimal(MoneyUnit.BTC));
 				XValues.Add((double) timestamp.ToUnixTimeMilliseconds());
+			}
+
+			if (YValues.Any())
+			{
+				var maxY = YValues.Max();
+				YLabels = new List<string> {"0", (maxY / 2).ToString("F2"), maxY.ToString("F2")};
+			}
+			else
+			{
+				YLabels = null;
+			}
+
+			if (XValues.Any())
+			{
+				var minX = XValues.Min();
+				var maxX = XValues.Max();
+				var halfX = minX + ((maxX - minX) / 2);
+
+				XLabels = new List<string>
+				{
+					DateTimeOffset.FromUnixTimeMilliseconds((long) minX).DateTime.ToString("M"),
+					DateTimeOffset.FromUnixTimeMilliseconds((long) halfX).DateTime.ToString("M"),
+					DateTimeOffset.FromUnixTimeMilliseconds((long) maxX).DateTime.ToString("M"),
+				};
+			}
+			else
+			{
+				XLabels = null;
 			}
 		}
 
