@@ -56,8 +56,6 @@ namespace WalletWasabi.Services
 
 		#region EventsPropertiesMembers
 
-		public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
-
 		public event EventHandler<bool>? ResponseArrivedIsGenSocksServFail;
 
 		public event EventHandler<SynchronizeResponse>? ResponseArrived;
@@ -155,7 +153,8 @@ namespace WalletWasabi.Services
 									return;
 								}
 
-								response = await WasabiClient.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, EstimateSmartFeeMode.Conservative, StopCts.Token)
+								response = await WasabiClient
+									.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, EstimateSmartFeeMode.Conservative, StopCts.Token)
 									.WithAwaitCancellationAsync(StopCts.Token, 300)
 									.ConfigureAwait(false);
 
@@ -205,12 +204,6 @@ namespace WalletWasabi.Services
 								BackendStatus = BackendStatus.Connected;
 								HandleIfGenSocksServFail(ex);
 								throw;
-							}
-
-							var allFees = response.AllFeeEstimate;
-							if (allFees?.Estimations?.Any() is true)
-							{
-								AllFeeEstimateArrived?.Invoke(this, allFees);
 							}
 
 							if (response.Filters.Count() == maxFiltersToSyncAtInitialization)
