@@ -128,5 +128,12 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			var dialog = new ShowErrorDialogViewModel(message, title, caption);
 			await NavigateDialog(dialog, NavigationTarget.DialogScreen);
 		}
+
+		protected void SetupCancel(bool enableCancel, bool enableCancelOnEscape, bool enableCancelOnPressed)
+		{
+			EnableCancel = enableCancel;
+			EnableCancelOnEscape = enableCancelOnEscape;
+			EnableCancelOnPressed = enableCancelOnPressed;
+		}
 	}
 }
