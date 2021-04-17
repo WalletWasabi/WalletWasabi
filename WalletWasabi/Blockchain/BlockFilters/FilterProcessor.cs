@@ -13,7 +13,7 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.BlockFilters
 {
-	public class FilterProcessor
+	public class FilterProcessor : IDisposable
 	{
 		private volatile bool _disposedValue = false; // To detect redundant calls
 
