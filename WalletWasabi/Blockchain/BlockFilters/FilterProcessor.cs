@@ -35,10 +35,10 @@ namespace WalletWasabi.Blockchain.BlockFilters
 			var filters = response.Filters;
 			FiltersResponseState filtersResponseState = response.FiltersResponseState;
 
-			await ProcessAsync(serverBestHeight, filters, filtersResponseState).ConfigureAwait(false);
+			await ProcessAsync(serverBestHeight, filtersResponseState, filters).ConfigureAwait(false);
 		}
 
-		private async Task ProcessAsync(uint serverBestHeight, IEnumerable<FilterModel> filters, FiltersResponseState filtersResponseState)
+		private async Task ProcessAsync(uint serverBestHeight, FiltersResponseState filtersResponseState, IEnumerable<FilterModel> filters)
 		{
 			try
 			{
