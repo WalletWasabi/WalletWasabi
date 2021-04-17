@@ -1,6 +1,6 @@
 using System.Linq;
 using Xunit;
-using QRCodeDecoderLibrary;
+using WalletWasabi.Fluent.QRCodeDecoder;
 using System.Drawing;
 using System.IO;
 using WalletWasabi.Helpers;

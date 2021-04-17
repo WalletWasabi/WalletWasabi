@@ -43,7 +43,7 @@
 
 using System;
 
-namespace QRCodeDecoderLibrary
+namespace WalletWasabi.Fluent.QRCodeDecoder
 {
 	/// <summary>
 	/// QR code finder class

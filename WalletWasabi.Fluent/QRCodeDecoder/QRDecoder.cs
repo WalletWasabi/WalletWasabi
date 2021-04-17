@@ -65,7 +65,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using WalletWasabi.Logging;
 
-namespace QRCodeDecoderLibrary
+namespace WalletWasabi.Fluent.QRCodeDecoder
 {
 	public class QRDecoder
 	{

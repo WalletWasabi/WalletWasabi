@@ -1,4 +1,4 @@
-namespace QRCodeDecoderLibrary
+namespace WalletWasabi.Fluent.QRCodeDecoder
 {
 	public enum EncodingMode
 	{

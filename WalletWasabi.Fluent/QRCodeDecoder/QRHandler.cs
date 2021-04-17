@@ -27,13 +27,12 @@
 //	For version history please refer to QRDecoder.cs
 /////////////////////////////////////////////////////////////////////
 
-using QRCodeDecoderLibrary;
 using System;
 using System.Drawing;
 using System.IO;
 using System.Text;
 
-namespace QRCodeDecoder
+namespace WalletWasabi.Fluent.QRCodeDecoder
 {
 	/// <summary>
 	/// Test QR Code Decoder
