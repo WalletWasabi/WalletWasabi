@@ -15,9 +15,9 @@ using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
-using WalletWasabi.Blockchain.Statistics;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
@@ -57,7 +57,7 @@ namespace WalletWasabi.Gui
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		public HybridFeeProvider FeeProvider { get; private set; }
-		public HybridBestHeightProvider BestHeightProvider { get; private set; }
+		public FilterProcessor FilterProcessor { get; private set; }
 		public WalletManager WalletManager { get; }
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
@@ -103,7 +103,7 @@ namespace WalletWasabi.Gui
 					? new HttpClientFactory(Config.TorSocks5EndPoint, backendUriGetter: () => Config.GetCurrentBackendUri())
 					: new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
 
-				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, HttpClientFactory);
+				Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 				LegalChecker = new(DataDir);
 				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 			}
@@ -233,11 +233,11 @@ namespace WalletWasabi.Gui
 
 				#endregion FeeProviderInitialization
 
-				#region BestHeightProviderInitialization
+				#region FilterProcessorInitialization
 
-				BestHeightProvider = new HybridBestHeightProvider(Synchronizer, HostedServices.GetOrDefault<RpcMonitor>());
+				FilterProcessor = new FilterProcessor(Synchronizer, BitcoinStore);
 
-				#endregion BestHeightProviderInitialization
+				#endregion FilterProcessorInitialization
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
@@ -320,7 +320,7 @@ namespace WalletWasabi.Gui
 				cancel.ThrowIfCancellationRequested();
 
 				TransactionBroadcaster.Initialize(Nodes, BitcoinCoreNode?.RpcClient);
-				CoinJoinProcessor = new CoinJoinProcessor(Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
+				CoinJoinProcessor = new CoinJoinProcessor(Network, Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
 
 				#region JsonRpcServerInitialization
 
@@ -642,6 +642,14 @@ namespace WalletWasabi.Gui
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await rpcServer.StopAsync(cts.Token).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
+				}
+
+				Logger.LogDebug($"Step: {nameof(FilterProcessor)}.", nameof(Global));
+
+				if (FilterProcessor is { } filterProcessor)
+				{
+					filterProcessor.Dispose();
+					Logger.LogInfo($"Disposed {nameof(FilterProcessor)}.");
 				}
 
 				Logger.LogDebug($"Step: {nameof(FeeProvider)}.", nameof(Global));

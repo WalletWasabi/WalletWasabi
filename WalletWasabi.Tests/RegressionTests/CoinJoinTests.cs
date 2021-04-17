@@ -1074,7 +1074,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			(string password, IRPCClient rpc, Network network, Coordinator coordinator, _, BitcoinStore bitcoinStore, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			var httpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, httpClientFactory);
+			var synchronizer = new WasabiSynchronizer(bitcoinStore, httpClientFactory);
 			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 10000); // Start wasabi synchronizer service.
 
 			Money denomination = Money.Coins(0.9m);
@@ -1180,7 +1180,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			(string password, IRPCClient rpc, Network network, Coordinator coordinator, _, BitcoinStore bitcoinStore, _) = await Common.InitializeTestEnvironmentAsync(RegTestFixture, 1);
 
 			var httpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, httpClientFactory);
+			var synchronizer = new WasabiSynchronizer(bitcoinStore, httpClientFactory);
 			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 10000); // Start wasabi synchronizer service.
 
 			Money denomination = Money.Coins(0.1m);
@@ -1378,11 +1378,11 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 3. Create wasabi synchronizer service.
 			var httpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-			var synchronizer = new WasabiSynchronizer(network, bitcoinStore, httpClientFactory);
+			var synchronizer = new WasabiSynchronizer(bitcoinStore, httpClientFactory);
 			using var feeProvider = new HybridFeeProvider(synchronizer, null);
 
 			var indexFilePath2 = Path.Combine(Helpers.Common.GetWorkDir(), $"Index{network}2.dat");
-			var synchronizer2 = new WasabiSynchronizer(network, bitcoinStore, httpClientFactory);
+			var synchronizer2 = new WasabiSynchronizer(bitcoinStore, httpClientFactory);
 			using var feeProvider2 = new HybridFeeProvider(synchronizer2, null);
 
 			// 4. Create key manager service.

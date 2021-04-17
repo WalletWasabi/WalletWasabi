@@ -54,7 +54,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 3. Create wasabi synchronizer service.
 			var httpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, httpClientFactory);
+			var synchronizer = new WasabiSynchronizer(bitcoinStore, httpClientFactory);
 			using var feeProvider = new HybridFeeProvider(synchronizer, null);
 
 			// 4. Create key manager service.
@@ -218,7 +218,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 3. Create wasabi synchronizer service.
 			var httpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, httpClientFactory);
+			var synchronizer = new WasabiSynchronizer(bitcoinStore, httpClientFactory);
 			using var feeProvider = new HybridFeeProvider(synchronizer, null);
 
 			// 4. Create key manager service.
