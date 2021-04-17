@@ -776,7 +776,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						break;
 
 					default:
-						throw new NotSupportedException("This is impossible.");
+						throw new NotSupportedException("This should never happen.");
 				}
 			}
 		}
