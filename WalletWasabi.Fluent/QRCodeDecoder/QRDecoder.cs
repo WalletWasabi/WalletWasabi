@@ -804,7 +804,7 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 		}
 
 		// test finder signature 1 1 3 1 1
-		internal bool TestFinderSig(int[] pos, int[] len, int index, out double module)
+		internal static bool TestFinderSig(int[] pos, int[] len, int index, out double module)
 		{
 			module = (pos[index + 5] - pos[index]) / 7.0;
 			double maxDev = SIGNATURE_MAX_DEVIATION * module;
@@ -837,7 +837,7 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 		}
 
 		// test alignment signature n 1 1 1 n
-		internal bool TestAlignSig(int[] pos, int[] len, int index, out double module)
+		internal static bool TestAlignSig(int[] pos, int[] len, int index, out double module)
 		{
 			module = (pos[index + 4] - pos[index + 1]) / 3.0;
 			double maxDev = SIGNATURE_MAX_DEVIATION * module;
@@ -1031,7 +1031,7 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 			Trans4Mode = false;
 		}
 
-		internal void SolveMatrixOne(double[,] matrix)
+		internal static void SolveMatrixOne(double[,] matrix)
 		{
 			for (int row = 0; row < 3; row++)
 			{
@@ -1285,7 +1285,7 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 		}
 
 		// Test version code bits
-		internal int TestVersionCode(int versionCode)
+		internal static int TestVersionCode(int versionCode)
 		{
 			// format info
 			int code = versionCode >> 12;
@@ -1363,7 +1363,7 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 		}
 
 		// Test format info bits
-		internal int TestFormatInfo(int formatInfo)
+		internal static int TestFormatInfo(int formatInfo)
 		{
 			// format info
 			int info = (formatInfo ^ 0x5412) >> 10;
@@ -1389,7 +1389,7 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 			return error <= 3 ? bestInfo : -1;
 		}
 
-		internal int CountBits(int value)
+		internal static int CountBits(int value)
 		{
 			int count = 0;
 			for (int mask = 0x4000; mask != 0; mask >>= 1)
@@ -1902,7 +1902,7 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 			ErrCorrCodewords = (MaxCodewords - MaxDataCodewords) / (BlocksGroup1 + BlocksGroup2);
 		}
 
-		internal ErrorCorrection FormatInfoToErrCode(int info)
+		internal static ErrorCorrection FormatInfoToErrCode(int info)
 		{
 			return (ErrorCorrection)(info ^ 1);
 		}
