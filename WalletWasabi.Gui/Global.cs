@@ -56,8 +56,6 @@ namespace WalletWasabi.Gui
 
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
-		public HybridFeeProvider FeeProvider { get; private set; }
-		public FilterProcessor FilterProcessor { get; private set; }
 		public WalletManager WalletManager { get; }
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
@@ -186,6 +184,8 @@ namespace WalletWasabi.Gui
 
 				#endregion BitcoinStoreInitialization
 
+				HostedServices.Register<FilterProcessor>(new FilterProcessor(Synchronizer, BitcoinStore), "Filter Processor");
+
 				cancel.ThrowIfCancellationRequested();
 
 				#region BitcoinCoreInitialization
@@ -225,17 +225,7 @@ namespace WalletWasabi.Gui
 
 				#endregion BitcoinCoreInitialization
 
-				#region FeeProviderInitialization
-
-				FeeProvider = new HybridFeeProvider(Synchronizer, HostedServices.GetOrDefault<RpcFeeProvider>());
-
-				#endregion FeeProviderInitialization
-
-				#region FilterProcessorInitialization
-
-				FilterProcessor = new FilterProcessor(Synchronizer, BitcoinStore);
-
-				#endregion FilterProcessorInitialization
+				HostedServices.Register<HybridFeeProvider>(new HybridFeeProvider(Synchronizer, HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
@@ -353,7 +343,7 @@ namespace WalletWasabi.Gui
 
 				cancel.ThrowIfCancellationRequested();
 
-				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, FeeProvider, blockProvider);
+				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
 			}
 			finally
 			{
@@ -640,22 +630,6 @@ namespace WalletWasabi.Gui
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await rpcServer.StopAsync(cts.Token).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
-				}
-
-				Logger.LogDebug($"Step: {nameof(FilterProcessor)}.", nameof(Global));
-
-				if (FilterProcessor is { } filterProcessor)
-				{
-					filterProcessor.Dispose();
-					Logger.LogInfo($"Disposed {nameof(FilterProcessor)}.");
-				}
-
-				Logger.LogDebug($"Step: {nameof(FeeProvider)}.", nameof(Global));
-
-				if (FeeProvider is { } feeProviders)
-				{
-					feeProviders.Dispose();
-					Logger.LogInfo($"Disposed {nameof(FeeProvider)}.");
 				}
 
 				Logger.LogDebug($"Step: {nameof(CoinJoinProcessor)}.", nameof(Global));

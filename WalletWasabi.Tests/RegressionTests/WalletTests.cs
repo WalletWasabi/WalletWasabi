@@ -55,10 +55,11 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
-			using FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
+			FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
 			try
 			{
 				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(1), 1000);
+				await filterProcessor.StartAsync(CancellationToken.None);
 
 				var blockCount = await rpc.GetBlockCountAsync() + 1; // Plus one because of the zeroth.
 																	 // Test initial synchronization.
@@ -112,10 +113,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			}
 			finally
 			{
-				if (synchronizer is { })
-				{
-					await synchronizer.StopAsync();
-				}
+				await synchronizer.StopAsync();
+				await filterProcessor.StopAsync(CancellationToken.None);
 			}
 		}
 
@@ -142,11 +141,12 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
-			using FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
+			FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
 
 			try
 			{
 				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 1000);
+				await filterProcessor.StartAsync(CancellationToken.None);
 
 				var reorgAwaiter = new EventsAwaiter<FilterModel>(
 					h => bitcoinStore.IndexStore.Reorged += h,
@@ -225,10 +225,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			}
 			finally
 			{
-				if (synchronizer is { })
-				{
-					await synchronizer.StopAsync();
-				}
+				await synchronizer.StopAsync();
+				await filterProcessor.StopAsync(CancellationToken.None);
 			}
 		}
 
@@ -248,8 +246,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			// 2. Create wasabi synchronizer service.
 			HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
-			using FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
-			using HybridFeeProvider feeProvider = new(synchronizer, null);
+			FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
+			HybridFeeProvider feeProvider = new(synchronizer, null);
 
 			// 3. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -275,6 +273,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
 				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 1000); // Start wasabi synchronizer service.
+				await filterProcessor.StartAsync(CancellationToken.None);
+				await feeProvider.StartAsync(CancellationToken.None);
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -406,16 +406,10 @@ namespace WalletWasabi.Tests.RegressionTests
 			{
 				wallet.NewFilterProcessed -= Common.Wallet_NewFilterProcessed;
 				await wallet.StopAsync(CancellationToken.None);
-				// Dispose wasabi synchronizer service.
-				if (synchronizer is { })
-				{
-					await synchronizer.StopAsync();
-				}
-
-				// Dispose connection service.
+				await synchronizer.StopAsync();
+				await filterProcessor.StopAsync(CancellationToken.None);
+				await feeProvider.StopAsync(CancellationToken.None);
 				nodes?.Dispose();
-
-				// Dispose mempool serving node.
 				node?.Disconnect();
 			}
 		}

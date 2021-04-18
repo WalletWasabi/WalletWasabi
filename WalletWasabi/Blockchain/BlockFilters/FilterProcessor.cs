@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Hosting;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
@@ -8,34 +9,49 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Logging;
+using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.BlockFilters
 {
-	public class FilterProcessor : IDisposable
+	public class FilterProcessor : IHostedService
 	{
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
 		public FilterProcessor(WasabiSynchronizer synchronizer, BitcoinStore bitcoinStore)
 		{
 			Synchronizer = synchronizer;
 			BitcoinStore = bitcoinStore;
-
-			Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
 		}
 
 		public WasabiSynchronizer Synchronizer { get; }
 		public BitcoinStore BitcoinStore { get; }
-		public AsyncLock AsyncLock { get; } = new AsyncLock();
+		public AsyncLock AsyncLock { get; } = new();
+		private AbandonedTasks ProcessingEvents { get; } = new();
+
+		public Task StartAsync(CancellationToken cancellationToken)
+		{
+			Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
+
+			return Task.CompletedTask;
+		}
+
+		public async Task StopAsync(CancellationToken cancellationToken)
+		{
+			Synchronizer.ResponseArrived -= Synchronizer_ResponseArrivedAsync;
+
+			await ProcessingEvents.WhenAllAsync().ConfigureAwait(false);
+		}
 
 		private async void Synchronizer_ResponseArrivedAsync(object? sender, SynchronizeResponse response)
 		{
-			uint serverBestHeight = (uint)response.BestHeight;
-			var filters = response.Filters;
-			FiltersResponseState filtersResponseState = response.FiltersResponseState;
+			using (RunningTasks.RememberWith(ProcessingEvents))
+			{
+				uint serverBestHeight = (uint)response.BestHeight;
+				var filters = response.Filters;
+				FiltersResponseState filtersResponseState = response.FiltersResponseState;
 
-			await ProcessAsync(serverBestHeight, filtersResponseState, filters).ConfigureAwait(false);
+				await ProcessAsync(serverBestHeight, filtersResponseState, filters).ConfigureAwait(false);
+			}
 		}
 
 		private async Task ProcessAsync(uint serverBestHeight, FiltersResponseState filtersResponseState, IEnumerable<FilterModel> filters)
@@ -103,29 +119,5 @@ namespace WalletWasabi.Blockchain.BlockFilters
 				Logger.LogError(ex);
 			}
 		}
-
-		#region IDisposable Support
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Synchronizer.ResponseArrived -= Synchronizer_ResponseArrivedAsync;
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

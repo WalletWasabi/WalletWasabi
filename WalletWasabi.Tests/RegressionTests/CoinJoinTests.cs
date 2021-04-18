@@ -1380,13 +1380,13 @@ namespace WalletWasabi.Tests.RegressionTests
 			// 3. Create wasabi synchronizer service.
 			HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
-			using FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
-			using HybridFeeProvider feeProvider = new(synchronizer, null);
+			FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
+			HybridFeeProvider feeProvider = new(synchronizer, null);
 
 			var indexFilePath2 = Path.Combine(Helpers.Common.GetWorkDir(), $"Index{network}2.dat");
 			WasabiSynchronizer synchronizer2 = new(bitcoinStore, httpClientFactory);
-			using FilterProcessor filterProcessor2 = new(synchronizer2, bitcoinStore);
-			using HybridFeeProvider feeProvider2 = new(synchronizer2, null);
+			FilterProcessor filterProcessor2 = new(synchronizer, bitcoinStore);
+			HybridFeeProvider feeProvider2 = new(synchronizer, null);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -1433,6 +1433,11 @@ namespace WalletWasabi.Tests.RegressionTests
 				nodes2.Connect(); // Start connection service.
 				node2.VersionHandshake(); // Start mempool service.
 				synchronizer2.Start(requestInterval: TimeSpan.FromSeconds(3), 10000); // Start wasabi synchronizer service.
+
+				await filterProcessor.StartAsync(CancellationToken.None);
+				await feeProvider.StartAsync(CancellationToken.None);
+				await filterProcessor2.StartAsync(CancellationToken.None);
+				await feeProvider2.StartAsync(CancellationToken.None);
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -1532,17 +1537,15 @@ namespace WalletWasabi.Tests.RegressionTests
 			{
 				wallet.NewFilterProcessed -= Common.Wallet_NewFilterProcessed;
 				await wallet.StopAsync(CancellationToken.None);
-				// Dispose connection service.
 				nodes?.Dispose();
-				// Dispose mempool serving node.
 				node?.Disconnect();
 				await wallet2.StopAsync(CancellationToken.None);
-				// Dispose wasabi synchronizer service.
-				if (synchronizer is { })
-				{
-					await synchronizer.StopAsync();
-				}
-				// Dispose connection service.
+				await synchronizer.StopAsync();
+				await synchronizer2.StopAsync();
+				await filterProcessor.StopAsync(CancellationToken.None);
+				await filterProcessor2.StopAsync(CancellationToken.None);
+				await feeProvider.StopAsync(CancellationToken.None);
+				await feeProvider2.StopAsync(CancellationToken.None);
 				nodes2?.Dispose();
 			}
 		}
