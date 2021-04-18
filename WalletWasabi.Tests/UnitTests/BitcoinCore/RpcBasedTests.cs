@@ -182,7 +182,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				var rpc = coreNode.RpcClient;
 				var network = rpc.Network;
 
-				var walletName = "wallet.dat";
+				var walletName = "wallet";
 				await rpc.CreateWalletAsync(walletName);
 
 				using var k1 = new Key();

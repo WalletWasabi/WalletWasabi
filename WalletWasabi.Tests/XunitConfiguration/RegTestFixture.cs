@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			RuntimeParams.LoadAsync().GetAwaiter().GetResult();
 			BackendRegTestNode = TestNodeBuilder.CreateAsync(callerFilePath: "RegTests", callerMemberName: "BitcoinCoreData").GetAwaiter().GetResult();
 
-			var walletName = "wallet.dat";
+			var walletName = "wallet";
 			BackendRegTestNode.RpcClient.CreateWalletAsync(walletName).GetAwaiter().GetResult();
 
 			var testnetBackendDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests", "RegTests", "Backend"));
