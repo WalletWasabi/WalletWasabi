@@ -34,7 +34,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			var walletName = "wallet";
 			BackendRegTestNode.RpcClient.CreateWalletAsync(walletName).GetAwaiter().GetResult();
 
-			var testnetBackendDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests", "RegTests", "Backend"));
+			var testnetBackendDir = EnvironmentHelpers.GetDataDir(Path.Combine(Common.DataDir, "RegTests", "Backend"));
 			IoHelpers.TryDeleteDirectoryAsync(testnetBackendDir).GetAwaiter().GetResult();
 			Thread.Sleep(100);
 			Directory.CreateDirectory(testnetBackendDir);
