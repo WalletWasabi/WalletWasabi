@@ -1383,11 +1383,6 @@ namespace WalletWasabi.Tests.RegressionTests
 			FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
 			HybridFeeProvider feeProvider = new(synchronizer, null);
 
-			var indexFilePath2 = Path.Combine(Helpers.Common.GetWorkDir(), $"Index{network}2.dat");
-			WasabiSynchronizer synchronizer2 = new(bitcoinStore, httpClientFactory);
-			FilterProcessor filterProcessor2 = new(synchronizer2, bitcoinStore);
-			HybridFeeProvider feeProvider2 = new(synchronizer2, null);
-
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
 
@@ -1408,7 +1403,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
 			var workDir2 = Path.Combine(Helpers.Common.GetWorkDir(), "2");
-			using var wallet2 = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager2, synchronizer2, workDir2, serviceConfiguration, feeProvider2, blockProvider2);
+			using var wallet2 = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager2, synchronizer, workDir2, serviceConfiguration, feeProvider, blockProvider2);
 
 			// Get some money, make it confirm.
 			var key = keyManager.GetNextReceiveKey("fundZeroLink", out _);
@@ -1430,14 +1425,11 @@ namespace WalletWasabi.Tests.RegressionTests
 				node.VersionHandshake(); // Start mempool service.
 				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 10000); // Start wasabi synchronizer service.
 
-				nodes2.Connect(); // Start connection service.
-				node2.VersionHandshake(); // Start mempool service.
-				synchronizer2.Start(requestInterval: TimeSpan.FromSeconds(3), 10000); // Start wasabi synchronizer service.
-
 				await filterProcessor.StartAsync(CancellationToken.None);
 				await feeProvider.StartAsync(CancellationToken.None);
-				await filterProcessor2.StartAsync(CancellationToken.None);
-				await feeProvider2.StartAsync(CancellationToken.None);
+
+				nodes2.Connect(); // Start connection service.
+				node2.VersionHandshake(); // Start mempool service.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -1541,11 +1533,8 @@ namespace WalletWasabi.Tests.RegressionTests
 				node?.Disconnect();
 				await wallet2.StopAsync(CancellationToken.None);
 				await synchronizer.StopAsync();
-				await synchronizer2.StopAsync();
 				await filterProcessor.StopAsync(CancellationToken.None);
-				await filterProcessor2.StopAsync(CancellationToken.None);
 				await feeProvider.StopAsync(CancellationToken.None);
-				await feeProvider2.StopAsync(CancellationToken.None);
 				nodes2?.Dispose();
 			}
 		}
