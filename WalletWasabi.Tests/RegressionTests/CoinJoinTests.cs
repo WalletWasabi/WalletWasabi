@@ -1385,8 +1385,8 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			var indexFilePath2 = Path.Combine(Helpers.Common.GetWorkDir(), $"Index{network}2.dat");
 			WasabiSynchronizer synchronizer2 = new(bitcoinStore, httpClientFactory);
-			FilterProcessor filterProcessor2 = new(synchronizer, bitcoinStore);
-			HybridFeeProvider feeProvider2 = new(synchronizer, null);
+			FilterProcessor filterProcessor2 = new(synchronizer2, bitcoinStore);
+			HybridFeeProvider feeProvider2 = new(synchronizer2, null);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
