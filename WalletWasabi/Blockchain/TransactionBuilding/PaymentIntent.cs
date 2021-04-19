@@ -69,7 +69,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 				}
 				else
 				{
-					throw new NotSupportedException("This is impossible.");
+					throw new NotSupportedException("This should never happen.");
 				}
 			}
 			else

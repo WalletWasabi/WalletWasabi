@@ -15,6 +15,7 @@ using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -55,7 +56,6 @@ namespace WalletWasabi.Gui
 
 		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
-		public FeeProviders FeeProviders { get; private set; }
 		public WalletManager WalletManager { get; }
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
@@ -101,7 +101,7 @@ namespace WalletWasabi.Gui
 					? new HttpClientFactory(Config.TorSocks5EndPoint, backendUriGetter: () => Config.GetCurrentBackendUri())
 					: new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
 
-				Synchronizer = new WasabiSynchronizer(Network, BitcoinStore, HttpClientFactory);
+				Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 				LegalChecker = new(DataDir);
 				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
 			}
@@ -157,9 +157,7 @@ namespace WalletWasabi.Gui
 					}
 
 					Tor.Http.TorHttpClient torHttpClient = HttpClientFactory.NewTorHttpClient(isolateStream: false);
-#pragma warning disable CA2000 // Dispose objects before losing scope
 					HostedServices.Register<TorMonitor>(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackBackendUri: Config.GetFallbackBackendUri(), torHttpClient, TorManager), nameof(TorMonitor));
-#pragma warning restore CA2000 // Dispose objects before losing scope
 				}
 
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
@@ -186,6 +184,8 @@ namespace WalletWasabi.Gui
 
 				#endregion BitcoinStoreInitialization
 
+				HostedServices.Register<FilterProcessor>(new FilterProcessor(Synchronizer, BitcoinStore), "Filter Processor");
+
 				cancel.ThrowIfCancellationRequested();
 
 				#region BitcoinCoreInitialization
@@ -199,7 +199,6 @@ namespace WalletWasabi.Gui
 								new CoreNodeParams(
 									Network,
 									BitcoinStore.MempoolService,
-									HostedServices,
 									Config.LocalBitcoinCoreDataDir,
 									tryRestart: false,
 									tryDeleteDataDir: false,
@@ -213,6 +212,10 @@ namespace WalletWasabi.Gui
 									Cache),
 								cancel)
 							.ConfigureAwait(false);
+
+						HostedServices.Register<BlockNotifier>(new BlockNotifier(TimeSpan.FromSeconds(7), BitcoinCoreNode.RpcClient, BitcoinCoreNode.P2pNode), "Block Notifier");
+						HostedServices.Register<RpcMonitor>(new RpcMonitor(TimeSpan.FromSeconds(7), BitcoinCoreNode.RpcClient), "RPC Monitor");
+						HostedServices.Register<RpcFeeProvider>(new RpcFeeProvider(TimeSpan.FromMinutes(1), BitcoinCoreNode.RpcClient, HostedServices.Get<RpcMonitor>()), "RPC Fee Provider");
 					}
 				}
 				catch (Exception ex)
@@ -220,11 +223,11 @@ namespace WalletWasabi.Gui
 					Logger.LogError(ex);
 				}
 
-				FeeProviders = new FeeProviders(Synchronizer, HostedServices.GetOrDefault<RpcFeeProvider>());
+				#endregion BitcoinCoreInitialization
+
+				HostedServices.Register<HybridFeeProvider>(new HybridFeeProvider(Synchronizer, HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
-
-				#endregion BitcoinCoreInitialization
 
 				cancel.ThrowIfCancellationRequested();
 
@@ -297,7 +300,7 @@ namespace WalletWasabi.Gui
 
 				int maxFiltSyncCount = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
 
-				Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), maxFiltSyncCount);
+				Synchronizer.Start(requestInterval, maxFiltSyncCount);
 				Logger.LogInfo("Start synchronizing filters...");
 
 				#endregion SynchronizerInitialization
@@ -305,7 +308,7 @@ namespace WalletWasabi.Gui
 				cancel.ThrowIfCancellationRequested();
 
 				TransactionBroadcaster.Initialize(Nodes, BitcoinCoreNode?.RpcClient);
-				CoinJoinProcessor = new CoinJoinProcessor(Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
+				CoinJoinProcessor = new CoinJoinProcessor(Network, Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
 
 				#region JsonRpcServerInitialization
 
@@ -340,7 +343,7 @@ namespace WalletWasabi.Gui
 
 				cancel.ThrowIfCancellationRequested();
 
-				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, FeeProviders, blockProvider);
+				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
 			}
 			finally
 			{
@@ -627,14 +630,6 @@ namespace WalletWasabi.Gui
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await rpcServer.StopAsync(cts.Token).ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
-				}
-
-				Logger.LogDebug($"Step: {nameof(FeeProviders)}.", nameof(Global));
-
-				if (FeeProviders is { } feeProviders)
-				{
-					feeProviders.Dispose();
-					Logger.LogInfo($"Disposed {nameof(FeeProviders)}.");
 				}
 
 				Logger.LogDebug($"Step: {nameof(CoinJoinProcessor)}.", nameof(Global));

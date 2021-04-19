@@ -34,8 +34,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		SizeLimitExceeded,
 		DustOutput,
 		UneconomicalInput,
-		TooMuchTotalWeight,
+		VsizeQuotaExceeded,
 		DeltaNotZero,
-		WrongNumberOfCreds
-	}
+		WrongNumberOfCreds	}
 }

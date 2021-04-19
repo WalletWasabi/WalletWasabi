@@ -553,7 +553,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);
 		}
 
-		public bool IsEstimateAvailable => Global.FeeProviders?.AllFeeEstimate is { };
+		public bool IsEstimateAvailable => Global.HostedServices.GetOrDefault<HybridFeeProvider>()?.AllFeeEstimate is { };
 
 		public string AmountWatermarkText
 		{
@@ -634,7 +634,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFees()
 		{
-			AllFeeEstimate allFeeEstimate = Global.FeeProviders?.AllFeeEstimate;
+			AllFeeEstimate? allFeeEstimate = Global.HostedServices.GetOrDefault<HybridFeeProvider>()?.AllFeeEstimate;
 
 			int feeTarget = -1; // 1 => 10 minutes
 			if (IsSliderFeeUsed && allFeeEstimate is { })
@@ -776,7 +776,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						break;
 
 					default:
-						throw new NotSupportedException("This is impossible.");
+						throw new NotSupportedException("This should never happen.");
 				}
 			}
 		}
@@ -795,7 +795,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeeTargetLimits()
 		{
-			var allFeeEstimate = Global.FeeProviders?.AllFeeEstimate;
+			var allFeeEstimate = Global.HostedServices.GetOrDefault<HybridFeeProvider>()?.AllFeeEstimate;
 
 			if (allFeeEstimate is { })
 			{
@@ -871,8 +871,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen(CompositeDisposable disposables)
 		{
+			var feeProvider = Global.HostedServices.Get<HybridFeeProvider>();
 			Observable
-				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
+				.FromEventPattern<AllFeeEstimate>(feeProvider, nameof(feeProvider.AllFeeEstimateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(IsEstimateAvailable)))
 				.DisposeWith(disposables);
@@ -880,7 +881,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.RaisePropertyChanged(nameof(IsEstimateAvailable));
 
 			Observable
-				.FromEventPattern<AllFeeEstimate>(Global.FeeProviders, nameof(Global.FeeProviders.AllFeeEstimateChanged))
+				.FromEventPattern<AllFeeEstimate>(feeProvider, nameof(feeProvider.AllFeeEstimateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{

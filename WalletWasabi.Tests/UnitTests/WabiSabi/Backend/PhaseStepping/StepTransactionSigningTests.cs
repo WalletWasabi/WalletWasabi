@@ -54,7 +54,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var alice2 = round.Alices.Single(x => x.Id == irres2.AliceId);
 
 			// Confirm connections.
-			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient weightClient, Guid aliceId)>();
+			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient vsizeClient, Guid aliceId)>();
 			var ccreq1 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres1);
 			var ccresp1 = await arena.ConfirmConnectionAsync(ccreq1.request);
 			ccresps.Add((ccresp1, ccreq1.amountClient, ccreq1.vsizeClient, irres2.AliceId));

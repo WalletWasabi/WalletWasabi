@@ -274,9 +274,9 @@ namespace WalletWasabi.Tests.Helpers
 			var (amCredentialRequest, amValid) = amClient.CreateRequest(
 				new[] { alice?.CalculateRemainingAmountCredentials(round!.FeeRate).Satoshi ?? ProtocolConstants.MaxVsizePerAlice },
 				zeroPresentables.amountCredentials);
-			long startingWeightCredentialAmount = alice?.CalculateRemainingVsizeCredentials(round!.PerAliceVsizeAllocation) ?? ProtocolConstants.MaxVsizePerAlice;
+			long startingVsizeCredentialAmount = alice?.CalculateRemainingVsizeCredentials(round!.PerAliceVsizeAllocation) ?? ProtocolConstants.MaxVsizePerAlice;
 			var (vsCredentialRequest, weValid) = vsClient.CreateRequest(
-				new[] { startingWeightCredentialAmount },
+				new[] { startingVsizeCredentialAmount },
 				zeroPresentables.vsizeCredentials);
 
 			var amResp = amIssuer.HandleRequest(amCredentialRequest);
@@ -299,7 +299,7 @@ namespace WalletWasabi.Tests.Helpers
 			}
 
 			var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
-				new[] { startingWeightCredentialAmount - (long)vsize },
+				new[] { startingVsizeCredentialAmount - (long)vsize },
 				vsClient.Credentials.Valuable);
 
 			return new OutputRegistrationRequest(

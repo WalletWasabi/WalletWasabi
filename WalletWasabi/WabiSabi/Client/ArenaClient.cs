@@ -29,10 +29,10 @@ namespace WalletWasabi.WabiSabi.Client
 			RequestHandler = requestHandler;
 		}
 
-		public ArenaClient(WabiSabiClient amountCredentialClient, WabiSabiClient weightCredentialClient, IArenaRequestHandler requestHandler)
+		public ArenaClient(WabiSabiClient amountCredentialClient, WabiSabiClient vsizeCredentialClient, IArenaRequestHandler requestHandler)
 		{
 			AmountCredentialClient = amountCredentialClient;
-			VsizeCredentialClient = weightCredentialClient;
+			VsizeCredentialClient = vsizeCredentialClient;
 			RequestHandler = requestHandler;
 		}
 

@@ -27,7 +27,6 @@ namespace WalletWasabi.Bases
 			else
 			{
 				LastException = new ExceptionInfo(currentException);
-				Logger.LogError(currentException);
 			}
 
 			return LastException!;

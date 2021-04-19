@@ -266,7 +266,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Guid roundId,
 			IDictionary<Coin, byte[]> coinRoundSignaturePairs,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
-			ZeroCredentialsRequest zeroWeightCredentialRequests)
+			ZeroCredentialsRequest zeroVsizeCredentialRequests)
 		{
 			using (await AsyncLock.LockAsync().ConfigureAwait(false))
 			{
@@ -275,7 +275,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					roundId,
 					coinRoundSignaturePairs,
 					zeroAmountCredentialRequests,
-					zeroWeightCredentialRequests,
+					zeroVsizeCredentialRequests,
 					Rounds,
 					Network);
 			}
@@ -317,7 +317,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				if (realVsizeCredentialRequests.Delta != alice.CalculateRemainingVsizeCredentials(round.PerAliceVsizeAllocation))
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, $"Round ({request.RoundId}): Incorrect requested weight credentials.");
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, $"Round ({request.RoundId}): Incorrect requested vsize credentials.");
 				}
 				if (realAmountCredentialRequests.Delta != alice.CalculateRemainingAmountCredentials(round.FeeRate))
 				{
@@ -389,7 +389,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var vsizeCredentialRequests = request.VsizeCredentialRequests;
 				if (-vsizeCredentialRequests.Delta != bob.OutputVsize)
 				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, $"Round ({request.RoundId}): Incorrect requested weight credentials.");
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.IncorrectRequestedVsizeCredentials, $"Round ({request.RoundId}): Incorrect requested vsize credentials.");
 				}
 
 				if (round.Phase != Phase.OutputRegistration)
