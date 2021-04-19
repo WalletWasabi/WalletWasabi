@@ -145,7 +145,7 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 		internal const double ALIGNMENT_SEARCH_AREA = 0.3;
 
 		// QRCode image decoder
-		public IEnumerable<string> SearchQrCodes(Avalonia.Media.Imaging.Bitmap inputImage)
+		public IEnumerable<string> SearchQrCodes(Avalonia.Media.Imaging.WriteableBitmap inputImage)
 		{
 			try
 			{
@@ -254,15 +254,15 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 		}
 
 		// Convert image to black and white boolean matrix
-		internal bool ConvertImageToBlackAndWhite(Avalonia.Media.Imaging.Bitmap inputImage)
+		internal bool ConvertImageToBlackAndWhite(Avalonia.Media.Imaging.WriteableBitmap inputImage)
 		{
-			var bitmapData = (inputImage.PlatformImpl as IWriteableBitmapImpl).Lock(); // TODO Dan to provide a non hacky API to do this.
+			var bitmapData = inputImage.Lock(); // TODO Dan to provide a non hacky API to do this.
 
 			// address of first line
 			IntPtr bitArrayPtr = bitmapData.Address;
 
 			// length in bytes of one scan line
-			int scanLineWidth = inputImage.PixelSize.Width * 4;
+			int scanLineWidth = bitmapData.RowBytes;
 			if (scanLineWidth < 0)
 			{
 				return false;
@@ -282,8 +282,10 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 			byte[,] grayImage = new byte[ImageHeight, ImageWidth];
 			int[] grayLevel = new int[256];
 
+			const int pixelSize = 4;
+
 			// convert to gray
-			int delta = scanLineWidth - 3 * ImageWidth;
+			int delta = scanLineWidth - pixelSize * ImageWidth;
 			int bitmapPtr = 0;
 			for (int row = 0; row < ImageHeight; row++)
 			{
@@ -292,7 +294,7 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 					int module = (30 * bitmapArray[bitmapPtr] + 59 * bitmapArray[bitmapPtr + 1] + 11 * bitmapArray[bitmapPtr + 2]) / 100;
 					grayLevel[module]++;
 					grayImage[row, col] = (byte)module;
-					bitmapPtr += 3;
+					bitmapPtr += pixelSize;
 				}
 				bitmapPtr += delta;
 			}
