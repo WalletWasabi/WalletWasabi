@@ -476,11 +476,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.DeltaNotZero, $"Round ({round.Id}): Amount credentials delta must be zero.");
 				}
 
-				//if (request.RealVsizeCredentialRequests.Delta != 0)
-				//{
-				//	throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.DeltaNotZero, $"Round ({request.RoundId}): Vsize credential delta must be zero.");
-				//}
-
 				if (request.RealAmountCredentialRequests.Requested.Count() != ProtocolConstants.CredentialNumber)
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongNumberOfCreds, $"Round ({round.Id}): Incorrect requested number of amount credentials.");
