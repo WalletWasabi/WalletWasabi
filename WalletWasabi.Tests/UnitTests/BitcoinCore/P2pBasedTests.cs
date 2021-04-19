@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				var network = coreNode.Network;
 				var rpc = coreNode.RpcClient;
 
-				var walletName = "wallet.dat";
+				var walletName = "wallet";
 				await rpc.CreateWalletAsync(walletName);
 
 				await using IndexStore indexStore = new(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
@@ -101,7 +101,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			try
 			{
 				var rpc = coreNode.RpcClient;
-				var walletName = "wallet.dat";
+				var walletName = "wallet";
 				await rpc.CreateWalletAsync(walletName);
 
 				await rpc.GenerateAsync(101);
@@ -153,7 +153,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			try
 			{
 				var rpc = coreNode.RpcClient;
-				var walletName = "wallet.dat";
+				var walletName = "wallet";
 				await rpc.CreateWalletAsync(walletName);
 
 				BlockNotifier notifier = services.Get<BlockNotifier>();

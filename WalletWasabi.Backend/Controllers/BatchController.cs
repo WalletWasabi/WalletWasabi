@@ -88,7 +88,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync();
 
-			response.UnconfirmedCoinJoins = await ChaumianCoinJoinController.GetUnconfirmedCoinJoinCollectionAsync();
+			response.UnconfirmedCoinJoins = ChaumianCoinJoinController.GetUnconfirmedCoinJoinCollection();
 
 			return Ok(response);
 		}

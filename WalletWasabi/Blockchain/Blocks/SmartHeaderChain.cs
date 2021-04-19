@@ -18,14 +18,8 @@ namespace WalletWasabi.Blockchain.Blocks
 		private int _hashesLeft;
 		private int _hashesCount;
 
-		public SmartHeaderChain()
-		{
-			Chain = new Dictionary<uint, SmartHeader>();
-			Lock = new object();
-		}
-
-		private Dictionary<uint, SmartHeader> Chain { get; }
-		private object Lock { get; }
+		private Dictionary<uint, SmartHeader> Chain { get; } = new Dictionary<uint, SmartHeader>();
+		private object Lock { get; } = new object();
 
 		public SmartHeader Tip
 		{
@@ -67,7 +61,7 @@ namespace WalletWasabi.Blockchain.Blocks
 		{
 			lock (Lock)
 			{
-				if (Chain.TryGetValue(TipHeight, out SmartHeader lastHeader))
+				if (Chain.TryGetValue(TipHeight, out var lastHeader))
 				{
 					if (lastHeader.BlockHash != header.PrevHash)
 					{

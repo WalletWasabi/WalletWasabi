@@ -718,17 +718,13 @@ namespace WalletWasabi.Backend.Controllers
 		/// <response code="200">An array of transaction Ids</response>
 		[HttpGet("unconfirmed-coinjoins")]
 		[ProducesResponseType(200)]
-		public async Task<IActionResult> GetUnconfirmedCoinjoinsAsync()
+		public IActionResult GetUnconfirmedCoinjoins()
 		{
-			IEnumerable<string> unconfirmedCoinJoinString = (await GetUnconfirmedCoinJoinCollectionAsync()).Select(x => x.ToString());
+			IEnumerable<string> unconfirmedCoinJoinString = GetUnconfirmedCoinJoinCollection().Select(x => x.ToString());
 			return Ok(unconfirmedCoinJoinString);
 		}
 
-		internal async Task<IEnumerable<uint256>> GetUnconfirmedCoinJoinCollectionAsync()
-		{
-			var unconfirmedCoinJoins = await Global.Coordinator.GetUnconfirmedCoinJoinsAsync();
-			return unconfirmedCoinJoins;
-		}
+		internal IEnumerable<uint256> GetUnconfirmedCoinJoinCollection() => Global.Coordinator.GetUnconfirmedCoinJoins();
 
 		private Guid GetGuidOrFailureResponse(string uniqueId, out IActionResult returnFailureResponse)
 		{

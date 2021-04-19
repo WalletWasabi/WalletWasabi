@@ -42,9 +42,8 @@ namespace WalletWasabi.Services
 		private long _blockRequests; // There are priority requests in queue.
 
 		/// <param name="httpClientFactory">The class takes ownership of the instance.</param>
-		public WasabiSynchronizer(Network network, BitcoinStore bitcoinStore, HttpClientFactory httpClientFactory)
+		public WasabiSynchronizer(BitcoinStore bitcoinStore, HttpClientFactory httpClientFactory)
 		{
-			Network = network;
 			LastResponse = null;
 			_running = StateNotStarted;
 			BitcoinStore = bitcoinStore;
@@ -66,8 +65,6 @@ namespace WalletWasabi.Services
 		public HttpClientFactory HttpClientFactory { get; }
 
 		public WasabiClient WasabiClient { get; }
-
-		public Network Network { get; private set; }
 
 		/// <summary>
 		/// Gets the Bitcoin price in USD.
@@ -92,7 +89,7 @@ namespace WalletWasabi.Services
 
 		public TimeSpan MaxRequestIntervalForMixing { get; set; }
 
-		public BitcoinStore BitcoinStore { get; private set; }
+		public BitcoinStore BitcoinStore { get; }
 
 		public bool IsRunning => Interlocked.Read(ref _running) == StateRunning;
 
@@ -132,7 +129,6 @@ namespace WalletWasabi.Services
 				try
 				{
 					bool ignoreRequestInterval = false;
-					var hashChain = BitcoinStore.SmartHeaderChain;
 					EnableRequests();
 					while (IsRunning)
 					{
@@ -154,7 +150,7 @@ namespace WalletWasabi.Services
 								}
 
 								response = await WasabiClient
-									.GetSynchronizeAsync(hashChain.TipHash, maxFiltersToSyncAtInitialization, EstimateSmartFeeMode.Conservative, StopCts.Token)
+									.GetSynchronizeAsync(BitcoinStore.SmartHeaderChain.TipHash, maxFiltersToSyncAtInitialization, EstimateSmartFeeMode.Conservative, StopCts.Token)
 									.WithAwaitCancellationAsync(StopCts.Token, 300)
 									.ConfigureAwait(false);
 
@@ -206,7 +202,8 @@ namespace WalletWasabi.Services
 								throw;
 							}
 
-							if (response.Filters.Count() == maxFiltersToSyncAtInitialization)
+							// If it's not fully synced or reorg happened.
+							if (response.Filters.Count() == maxFiltersToSyncAtInitialization || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
 							{
 								ignoreRequestInterval = true;
 							}
@@ -214,66 +211,10 @@ namespace WalletWasabi.Services
 							{
 								ignoreRequestInterval = false;
 							}
-
-							hashChain.UpdateServerTipHeight((uint)response.BestHeight);
 							ExchangeRate? exchangeRate = response.ExchangeRates.FirstOrDefault();
 							if (exchangeRate is { Rate: > 0 })
 							{
 								UsdExchangeRate = exchangeRate.Rate;
-							}
-
-							if (response.FiltersResponseState == FiltersResponseState.NewFilters)
-							{
-								var filters = response.Filters;
-
-								var firstFilter = filters.First();
-								if (hashChain.TipHeight + 1 != firstFilter.Header.Height)
-								{
-									// We have a problem.
-									// We have wrong filters, the heights are not in sync with the server's.
-									Logger.LogError($"Inconsistent index state detected.{Environment.NewLine}" +
-										$"{nameof(hashChain)}.{nameof(hashChain.TipHeight)}:{hashChain.TipHeight}{Environment.NewLine}" +
-										$"{nameof(hashChain)}.{nameof(hashChain.HashesLeft)}:{hashChain.HashesLeft}{Environment.NewLine}" +
-										$"{nameof(hashChain)}.{nameof(hashChain.TipHash)}:{hashChain.TipHash}{Environment.NewLine}" +
-										$"{nameof(hashChain)}.{nameof(hashChain.HashCount)}:{hashChain.HashCount}{Environment.NewLine}" +
-										$"{nameof(hashChain)}.{nameof(hashChain.ServerTipHeight)}:{hashChain.ServerTipHeight}{Environment.NewLine}" +
-										$"{nameof(firstFilter)}.{nameof(firstFilter.Header)}.{nameof(firstFilter.Header.BlockHash)}:{firstFilter.Header.BlockHash}{Environment.NewLine}" +
-										$"{nameof(firstFilter)}.{nameof(firstFilter.Header)}.{nameof(firstFilter.Header.Height)}:{firstFilter.Header.Height}");
-
-									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(StopCts.Token, deleteAndCrashIfMature: true).ConfigureAwait(false);
-								}
-								else
-								{
-									await BitcoinStore.IndexStore.AddNewFiltersAsync(filters, StopCts.Token).ConfigureAwait(false);
-
-									if (filters.Count() == 1)
-									{
-										Logger.LogInfo($"Downloaded filter for block {firstFilter.Header.Height}.");
-									}
-									else
-									{
-										Logger.LogInfo($"Downloaded filters for blocks from {firstFilter.Header.Height} to {filters.Last().Header.Height}.");
-									}
-								}
-							}
-							else if (response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
-							{
-								// Reorg happened
-								// 1. Rollback index
-								FilterModel reorgedFilter = await BitcoinStore.IndexStore.RemoveLastFilterAsync(StopCts.Token).ConfigureAwait(false);
-								Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}.");
-
-								ignoreRequestInterval = true;
-							}
-							else if (response.FiltersResponseState == FiltersResponseState.NoNewFilter)
-							{
-								// We are synced.
-								// Assert index state.
-								if (response.BestHeight > hashChain.TipHeight) // If the server's tip height is larger than ours, we're missing a filter, our index got corrupted.
-								{
-									// If still bad delete filters and crash the software?
-									await BitcoinStore.IndexStore.RemoveAllImmmatureFiltersAsync(StopCts.Token, deleteAndCrashIfMature: true).ConfigureAwait(false);
-								}
 							}
 
 							LastResponse = response;
