@@ -108,7 +108,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				amountCredentials.Valuable,
 				vsizeCredentials.Valuable);
 
-			Assert.Equal(8, amountCredentials.ZeroValue.Count());
+			Assert.Equal(6, amountCredentials.ZeroValue.Count());
+			Assert.Equal(6, vsizeCredentials.ZeroValue.Count());
 
 			Credential amountCred1 = amountCredentials.Valuable.First(ac => ac.Amount.ToMoney().Satoshi == reissuanceAmounts[0].Satoshi);
 			Credential amountCred2 = amountCredentials.Valuable.First(ac => ac.Amount.ToMoney().Satoshi == reissuanceAmounts[1].Satoshi);
