@@ -24,7 +24,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-
 			EnableBack = true;
 
 			NextCommand = ReactiveCommand.Create(() => OnNext(keyManager, walletManager));
