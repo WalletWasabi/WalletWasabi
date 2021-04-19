@@ -180,8 +180,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
 
 			var rnd = new InsecureRandom();
-			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, 2, rnd, 4300000000000ul);
-			var vsizeClient = new WabiSabiClient(round.VsizeCredentialIssuerParameters, 2, rnd, 2000ul);
+			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, rnd, 4300000000000ul);
+			var vsizeClient = new WabiSabiClient(round.VsizeCredentialIssuerParameters, rnd, 2000ul);
 			var apiClient = new ArenaClient(amountClient, vsizeClient, coordinator);
 
 			round.SetPhase(Phase.TransactionSigning);
