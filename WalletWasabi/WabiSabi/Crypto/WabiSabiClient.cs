@@ -77,7 +77,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 
 			var transcript = BuildTransnscript(isNullRequest: true);
 
-			return new (
+			return new(
 				new ZeroCredentialsRequest(
 					credentialsToRequest,
 					ProofSystem.Prove(transcript, knowledge, RandomNumberGenerator)),
@@ -172,7 +172,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			knowledgeToProve.Add(balanceKnowledge);
 
 			var transcript = BuildTransnscript(isNullRequest: false);
-			return new (
+			return new(
 				new RealCredentialsRequest(
 					amountsToRequest.Sum() - credentialsToPresent.Sum(x => (long)x.Amount.ToUlong()),
 					presentations,
@@ -194,7 +194,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// </remarks>
 		/// <param name="registrationResponse">The registration response message received from the coordinator.</param>
 		/// <param name="registrationValidationData">The state data required to validate the issued credentials and the proofs.</param>
-		public void HandleResponse(CredentialsResponse registrationResponse, CredentialsResponseValidation registrationValidationData)
+		public IEnumerable<Credential> HandleResponse(CredentialsResponse registrationResponse, CredentialsResponseValidation registrationValidationData)
 		{
 			Guard.NotNull(nameof(registrationResponse), registrationResponse);
 			Guard.NotNull(nameof(registrationValidationData), registrationValidationData);
@@ -225,6 +225,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 				new Credential(new Scalar((ulong)x.Requested.Amount), x.Requested.Randomness, x.Issued));
 
 			Credentials.UpdateCredentials(credentialReceived, registrationValidationData.Presented);
+			return credentialReceived;
 		}
 
 		private Transcript BuildTransnscript(bool isNullRequest)
