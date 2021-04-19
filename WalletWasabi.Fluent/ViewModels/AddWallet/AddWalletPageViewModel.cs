@@ -44,6 +44,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			var walletManager = walletManagerViewModel.WalletManager;
 			var network = walletManager.Network;
 
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 			var enableBack = default(IDisposable);
 
 			this.WhenAnyValue(x => x.CurrentTarget)
@@ -171,9 +172,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
-
-			var enableCancel = CurrentTarget != NavigationTarget.HomeScreen;
-			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 
 			this.RaisePropertyChanged(WalletName);
 
