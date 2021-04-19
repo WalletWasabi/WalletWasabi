@@ -99,7 +99,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using var destinationKey1 = new Key();
 			using var destinationKey2 = new Key();
 
-			await bobArenaClient.ReissueCredentialAsync(
+			var result = await bobArenaClient.ReissueCredentialAsync(
 				round.Id,
 				reissuanceAmounts[0],
 				destinationKey1.PubKey.WitHash.ScriptPubKey,
@@ -111,11 +111,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			Assert.Equal(6, amountCredentials.ZeroValue.Count());
 			Assert.Equal(6, vsizeCredentials.ZeroValue.Count());
 
-			Credential amountCred1 = amountCredentials.Valuable.First(ac => ac.Amount.ToMoney().Satoshi == reissuanceAmounts[0].Satoshi);
-			Credential amountCred2 = amountCredentials.Valuable.First(ac => ac.Amount.ToMoney().Satoshi == reissuanceAmounts[1].Satoshi);
+			Credential amountCred1 = result.RealAmountCredentials.ElementAt(0);
+			Credential amountCred2 = result.RealAmountCredentials.ElementAt(1);
 
-			Credential vsizeCred1 = vsizeCredentials.Valuable.First();
-			Credential vsizeCred2 = vsizeCredentials.Valuable.Last();
+			Credential vsizeCred1 = result.RealVsizeCredentials.ElementAt(0);
+			Credential vsizeCred2 = result.RealVsizeCredentials.ElementAt(1);
 
 			await bobArenaClient.RegisterOutputAsync(
 				round.Id,
