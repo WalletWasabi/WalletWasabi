@@ -7,7 +7,7 @@ namespace WalletWasabi.WabiSabi.Models
 		Guid RoundId,
 		RealCredentialsRequest RealAmountCredentialRequests,
 		RealCredentialsRequest RealVsizeCredentialRequests,
-		ZeroCredentialsRequest ZeroAmountCredentialRequests1,
-		ZeroCredentialsRequest ZeroAmountCredentialRequests2
+		ZeroCredentialsRequest ZeroAmountCredentialRequests,
+		ZeroCredentialsRequest ZeroVsizeCredentialsRequests
 	);
 }

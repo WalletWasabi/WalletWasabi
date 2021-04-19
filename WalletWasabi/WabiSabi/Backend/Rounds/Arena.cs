@@ -493,14 +493,14 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 				var commitRealAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(request.RealAmountCredentialRequests);
 				var commitRealVsizeCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(request.RealVsizeCredentialRequests);
-				var commitZeroAmountCredentialResponse1 = round.AmountCredentialIssuer.PrepareResponse(request.ZeroAmountCredentialRequests1);
-				var commitZeroAmountCredentialResponse2 = round.AmountCredentialIssuer.PrepareResponse(request.ZeroAmountCredentialRequests2);
+				var commitZeroAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(request.ZeroAmountCredentialRequests);
+				var commitZeroVsizeCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(request.ZeroVsizeCredentialsRequests);
 
 				return new(
 					commitRealAmountCredentialResponse.Commit(),
 					commitRealVsizeCredentialResponse.Commit(),
-					commitZeroAmountCredentialResponse1.Commit(),
-					commitZeroAmountCredentialResponse2.Commit()
+					commitZeroAmountCredentialResponse.Commit(),
+					commitZeroVsizeCredentialResponse.Commit()
 					);
 			}
 		}

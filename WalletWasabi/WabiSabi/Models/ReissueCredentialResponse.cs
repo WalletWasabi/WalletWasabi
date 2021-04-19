@@ -10,7 +10,7 @@ namespace WalletWasabi.WabiSabi.Models
 	public record ReissueCredentialResponse(
 		CredentialsResponse RealAmountCredentials,
 		CredentialsResponse RealVsizeCredentials,
-		CredentialsResponse ZeroAmountCredentials1,
-		CredentialsResponse ZeroAmountCredentials2
+		CredentialsResponse ZeroAmountCredentials,
+		CredentialsResponse ZeroVsizeCredentials
 	);
 }
