@@ -63,7 +63,11 @@ using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using Avalonia;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using WalletWasabi.Logging;
+using Bitmap = System.Drawing.Bitmap;
 
 namespace WalletWasabi.Fluent.QRCodeDecoder
 {
@@ -141,7 +145,7 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 		internal const double ALIGNMENT_SEARCH_AREA = 0.3;
 
 		// QRCode image decoder
-		public IEnumerable<string> SearchQrCodes(Bitmap inputImage)
+		public IEnumerable<string> SearchQrCodes(Avalonia.Media.Imaging.Bitmap inputImage)
 		{
 			try
 			{
@@ -149,8 +153,8 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 				DataArrayList = new List<string>();
 
 				// save image dimension
-				ImageWidth = inputImage.Width;
-				ImageHeight = inputImage.Height;
+				ImageWidth = inputImage.PixelSize.Width;
+				ImageHeight = inputImage.PixelSize.Height;
 
 				// convert input image to black and white boolean image
 				// horizontal search for finders
@@ -250,17 +254,15 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 		}
 
 		// Convert image to black and white boolean matrix
-		internal bool ConvertImageToBlackAndWhite(Bitmap inputImage)
+		internal bool ConvertImageToBlackAndWhite(Avalonia.Media.Imaging.Bitmap inputImage)
 		{
-			// lock image bits
-			BitmapData bitmapData = inputImage.LockBits(new Rectangle(0, 0, ImageWidth, ImageHeight),
-				ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+			var bitmapData = (inputImage.PlatformImpl as IWriteableBitmapImpl).Lock(); // TODO Dan to provide a non hacky API to do this.
 
 			// address of first line
-			IntPtr bitArrayPtr = bitmapData.Scan0;
+			IntPtr bitArrayPtr = bitmapData.Address;
 
 			// length in bytes of one scan line
-			int scanLineWidth = bitmapData.Stride;
+			int scanLineWidth = inputImage.PixelSize.Width * 4;
 			if (scanLineWidth < 0)
 			{
 				return false;
@@ -274,7 +276,7 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 			Marshal.Copy(bitArrayPtr, bitmapArray, 0, totalBytes);
 
 			// unlock image
-			inputImage.UnlockBits(bitmapData);
+			inputImage.Dispose();
 
 			// allocate gray image
 			byte[,] grayImage = new byte[ImageHeight, ImageWidth];

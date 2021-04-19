@@ -1,8 +1,8 @@
 using System.Linq;
 using Xunit;
 using WalletWasabi.Fluent.QRCodeDecoder;
-using System.Drawing;
 using System.IO;
+using Avalonia.Media.Imaging;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Tests.UnitTests.QrCode
