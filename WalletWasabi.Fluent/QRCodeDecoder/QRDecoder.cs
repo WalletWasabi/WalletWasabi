@@ -282,10 +282,10 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 			byte[,] grayImage = new byte[ImageHeight, ImageWidth];
 			int[] grayLevel = new int[256];
 
-			const int pixelSize = 4;
+			const int PixelSize = 4;
 
 			// convert to gray
-			int delta = scanLineWidth - pixelSize * ImageWidth;
+			int delta = scanLineWidth - PixelSize * ImageWidth;
 			int bitmapPtr = 0;
 			for (int row = 0; row < ImageHeight; row++)
 			{
@@ -294,7 +294,7 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 					int module = (30 * bitmapArray[bitmapPtr] + 59 * bitmapArray[bitmapPtr + 1] + 11 * bitmapArray[bitmapPtr + 2]) / 100;
 					grayLevel[module]++;
 					grayImage[row, col] = (byte)module;
-					bitmapPtr += pixelSize;
+					bitmapPtr += PixelSize;
 				}
 				bitmapPtr += delta;
 			}
