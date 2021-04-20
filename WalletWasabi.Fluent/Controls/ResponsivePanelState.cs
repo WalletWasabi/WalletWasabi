@@ -18,14 +18,6 @@ namespace WalletWasabi.Fluent.Controls
 		internal double Width;
 		internal double Height;
 
-		private struct Item
-		{
-			internal int Column;
-			internal int Row;
-			internal int ColumnSpan;
-			internal int RowSpan;
-		}
-
 		internal bool Validate()
 		{
 			if (WidthTriggers is null || ColumnHints is null)
@@ -137,6 +129,14 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			return new Size(columnWidth * totalColumns, rowHeight * totalRows);
+		}
+
+		private struct Item
+		{
+			internal int Column;
+			internal int Row;
+			internal int ColumnSpan;
+			internal int RowSpan;
 		}
 	}
 }
