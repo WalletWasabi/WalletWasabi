@@ -10,6 +10,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.Services;
+using WalletWasabi.WebClients.BlockstreamInfo;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {
@@ -19,16 +20,18 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 	/// </summary>
 	public class HybridFeeProvider : IHostedService
 	{
-		public HybridFeeProvider(WasabiSynchronizer synchronizer, RpcFeeProvider? rpcFeeProvider)
+		public HybridFeeProvider(WasabiSynchronizer synchronizer, RpcFeeProvider? rpcFeeProvider, BlockstreamInfoFreeProvider blockstreamProvider)
 		{
 			Synchronizer = synchronizer;
 			RpcFeeProvider = rpcFeeProvider;
+			BlockstreamProvider = blockstreamProvider;
 		}
 
 		public event EventHandler<AllFeeEstimate>? AllFeeEstimateChanged;
 
 		public WasabiSynchronizer Synchronizer { get; }
 		public RpcFeeProvider? RpcFeeProvider { get; }
+		public BlockstreamInfoFreeProvider BlockstreamProvider { get; }
 		private object Lock { get; } = new object();
 		public AllFeeEstimate? AllFeeEstimate { get; private set; }
 		private AbandonedTasks ProcessingEvents { get; } = new();
@@ -37,8 +40,10 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		{
 			SetAllFeeEstimateIfLooksBetter(RpcFeeProvider?.LastAllFeeEstimate);
 			SetAllFeeEstimateIfLooksBetter(Synchronizer.LastResponse?.AllFeeEstimate);
+			SetAllFeeEstimateIfLooksBetter(BlockstreamProvider.LastAllFeeEstimate);
 
 			Synchronizer.ResponseArrived += Synchronizer_ResponseArrived;
+			BlockstreamProvider.AllFeeEstimateArrived += OnAllFeeEstimateArrived;
 			if (RpcFeeProvider is not null)
 			{
 				RpcFeeProvider.AllFeeEstimateArrived += OnAllFeeEstimateArrived;
@@ -50,6 +55,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		public async Task StopAsync(CancellationToken cancellationToken)
 		{
 			Synchronizer.ResponseArrived -= Synchronizer_ResponseArrived;
+			BlockstreamProvider.AllFeeEstimateArrived -= OnAllFeeEstimateArrived;
 			if (RpcFeeProvider is not null)
 			{
 				RpcFeeProvider.AllFeeEstimateArrived -= OnAllFeeEstimateArrived;
@@ -106,6 +112,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 								else
 								{
 									// If neither user's full node, nor backend is ready, then let's try our best effort figuring out which data looks better:
+
 									notify = SetAllFeeEstimateIfLooksBetter(fees);
 								}
 							}
@@ -130,6 +137,26 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 								// If neither user's full node, nor backend is ready, then let's try our best effort figuring out which data looks better:
 								notify = SetAllFeeEstimateIfLooksBetter(fees);
 							}
+						}
+					}
+					else if (sender is BlockstreamInfoFreeProvider blockstreamProvider)
+					{
+						var rpcProvider = RpcFeeProvider;
+						if (rpcProvider is null)
+						{
+							// If user doesn't use full node, then set it, this is the best we got.
+							notify = SetAllFeeEstimate(fees);
+						}
+						if (rpcProvider.LastAllFeeEstimate?.IsAccurate is true && !rpcProvider.InError)
+						{
+							// If user's full node is properly serving data, then we don't care about the backend.
+							return;
+						}
+						if (fees.IsAccurate && !blockstreamProvider.InError)
+						{
+						}
+						else
+						{
 						}
 					}
 				}
