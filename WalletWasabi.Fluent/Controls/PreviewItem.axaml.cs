@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent.Controls
 				}
 			});
 
-			this.WhenAnyValue(x => x.CopyParameter, x => x.IsPointerOver, (cp, apo) => !string.IsNullOrEmpty(cp?.ToString()) && apo)
+			this.WhenAnyValue(x => x.CopyParameter, x => x.IsPointerOver, (copyParameter, isPointerOver) => !string.IsNullOrEmpty(copyParameter?.ToString()) && isPointerOver)
 				.Subscribe(async value =>
 				{
 					if (_copyButtonPressedStopwatch is { } sw)
