@@ -21,8 +21,8 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		InputBanned,
 		InputNotWhitelisted,
 		AliceNotFound,
-		IncorrectRequestedWeightCredentials,
-		TooMuchWeight,
+		IncorrectRequestedVsizeCredentials,
+		TooMuchVsize,
 		ScriptNotAllowed,
 		IncorrectRequestedAmountCredentials,
 		WrongCoinjoinSignature,
@@ -33,6 +33,9 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		InsufficientFees,
 		SizeLimitExceeded,
 		DustOutput,
-		UneconomicalInput
+		UneconomicalInput,
+		VsizeQuotaExceeded,
+		DeltaNotZero,
+		WrongNumberOfCreds
 	}
 }

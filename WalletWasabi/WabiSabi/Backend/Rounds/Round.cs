@@ -22,14 +22,14 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			RoundParameters = roundParameters;
 
-			AmountCredentialIssuer = new(new(Random), 2, Random, MaxRegistrableAmount);
-			WeightCredentialIssuer = new(new(Random), 2, Random, RegistrableWeightCredentials);
+			AmountCredentialIssuer = new(new(Random), Random, MaxRegistrableAmount);
+			VsizeCredentialIssuer = new(new(Random), Random, PerAliceVsizeAllocation);
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
-			WeightCredentialIssuerParameters = WeightCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
+			VsizeCredentialIssuerParameters = VsizeCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 
 			Coinjoin = Transaction.Create(Network);
 
-			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{RegistrableWeightCredentials}{AmountCredentialIssuerParameters}{WeightCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
+			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{PerAliceVsizeAllocation}{AmountCredentialIssuerParameters}{VsizeCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
 		}
 
 		public uint256 Hash { get; }
@@ -37,13 +37,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public uint MaxInputCountByAlice => RoundParameters.MaxInputCountByAlice;
 		public Money MinRegistrableAmount => RoundParameters.MinRegistrableAmount;
 		public Money MaxRegistrableAmount => RoundParameters.MaxRegistrableAmount;
-		public uint RegistrableWeightCredentials => RoundParameters.RegistrableWeightCredentials;
+		public uint PerAliceVsizeAllocation => RoundParameters.PerAliceVsizeAllocation;
 		public FeeRate FeeRate => RoundParameters.FeeRate;
 		public WasabiRandom Random => RoundParameters.Random;
 		public CredentialIssuer AmountCredentialIssuer { get; }
-		public CredentialIssuer WeightCredentialIssuer { get; }
+		public CredentialIssuer VsizeCredentialIssuer { get; }
 		public CredentialIssuerParameters AmountCredentialIssuerParameters { get; }
-		public CredentialIssuerParameters WeightCredentialIssuerParameters { get; }
+		public CredentialIssuerParameters VsizeCredentialIssuerParameters { get; }
 		public Guid Id { get; } = Guid.NewGuid();
 		public List<Alice> Alices { get; } = new();
 		public int InputCount => Alices.Sum(x => x.Coins.Count());
@@ -65,6 +65,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public DateTimeOffset OutputRegistrationStart { get; private set; }
 		public DateTimeOffset TransactionSigningStart { get; private set; }
 		public DateTimeOffset TransactionBroadcastingStart { get; private set; }
+		public int InitialInputVsizeAllocation { get; set; } = 99954; // TODO compute as CoinjoinState.Parameters.MaxWeight - CoinjoinState.Parameters.SharedOverhead, mutable for testing until then
+		public int RemainingInputVsizeAllocation => InitialInputVsizeAllocation - Alices.Count * (int)PerAliceVsizeAllocation;
 
 		public void SetPhase(Phase phase)
 		{

@@ -24,9 +24,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task MempoolNotifiesAsync()
 		{
-			using HostedServices services = new();
-			CoreNode coreNode = await TestNodeBuilder.CreateAsync(services);
-			await services.StartAllAsync();
+			CoreNode coreNode = await TestNodeBuilder.CreateAsync();
 
 			using var node = await coreNode.CreateNewP2pNodeAsync();
 			try
@@ -35,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				var network = coreNode.Network;
 				var rpc = coreNode.RpcClient;
 
-				var walletName = "wallet.dat";
+				var walletName = "wallet";
 				await rpc.CreateWalletAsync(walletName);
 
 				await using IndexStore indexStore = new(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
@@ -91,7 +89,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
-				await services.StopAllAsync();
 				node.Disconnect();
 				await coreNode.TryStopAsync();
 			}
@@ -100,13 +97,11 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task TrustedNotifierNotifiesTxAsync()
 		{
-			using HostedServices services = new();
-			var coreNode = await TestNodeBuilder.CreateAsync(services);
-			await services.StartAllAsync();
+			var coreNode = await TestNodeBuilder.CreateAsync();
 			try
 			{
 				var rpc = coreNode.RpcClient;
-				var walletName = "wallet.dat";
+				var walletName = "wallet";
 				await rpc.CreateWalletAsync(walletName);
 
 				await rpc.GenerateAsync(101);
@@ -143,7 +138,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
-				await services.StopAllAsync();
 				await coreNode.TryStopAsync();
 			}
 		}
@@ -151,16 +145,18 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task BlockNotifierTestsAsync()
 		{
+			var coreNode = await TestNodeBuilder.CreateAsync();
 			using HostedServices services = new();
-			var coreNode = await TestNodeBuilder.CreateAsync(services);
+			services.Register<BlockNotifier>(new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
+
 			await services.StartAllAsync();
 			try
 			{
 				var rpc = coreNode.RpcClient;
-				var walletName = "wallet.dat";
+				var walletName = "wallet";
 				await rpc.CreateWalletAsync(walletName);
 
-				BlockNotifier notifier = services.FirstOrDefault<BlockNotifier>();
+				BlockNotifier notifier = services.Get<BlockNotifier>();
 
 				// Make sure we get notification for one block.
 				EventAwaiter<Block> blockEventAwaiter = new(h => notifier.OnBlock += h, h => notifier.OnBlock -= h);

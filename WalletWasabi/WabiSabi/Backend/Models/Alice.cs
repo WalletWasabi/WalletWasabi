@@ -21,12 +21,11 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		public IEnumerable<Coin> Coins { get; }
 		public IDictionary<Coin, byte[]> CoinRoundSignaturePairs { get; }
 		public Money TotalInputAmount => Coins.Sum(x => x.Amount);
-		public long TotalInputWeight => Constants.WitnessScaleFactor * TotalInputVsize;
 		public int TotalInputVsize => Coins.Sum(x => x.ScriptPubKey.EstimateInputVsize());
 
-		public bool ConfirmedConnetion { get; set; } = false;
+		public bool ConfirmedConnection { get; set; } = false;
 
-		public long CalculateRemainingWeightCredentials(uint maxRegistrableWeight) => maxRegistrableWeight - TotalInputWeight;
+		public long CalculateRemainingVsizeCredentials(uint maxRegistrableSize) => maxRegistrableSize - TotalInputVsize;
 
 		public Money CalculateRemainingAmountCredentials(FeeRate feeRate) => TotalInputAmount - feeRate.GetFee(TotalInputVsize);
 

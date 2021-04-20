@@ -70,7 +70,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			Guid roundId,
 			IDictionary<Coin, byte[]> coinRoundSignaturePairs,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
-			ZeroCredentialsRequest zeroWeightCredentialRequests,
+			ZeroCredentialsRequest zeroVsizeCredentialRequests,
 			IDictionary<Guid, Round> rounds,
 			Network network)
 		{
@@ -79,9 +79,8 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 			}
 
-			var alice = new Alice(coinRoundSignaturePairs);
+			var coins = coinRoundSignaturePairs.Select(x => x.Key);
 
-			var coins = alice.Coins;
 			if (round.MaxInputCountByAlice < coins.Count())
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooManyInputs);
@@ -91,9 +90,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNotWhitelisted);
 			}
 
-			var inputValueSum = Money.Zero;
-			var inputWeightSum = 0;
-			foreach (var coinRoundSignaturePair in alice.CoinRoundSignaturePairs)
+			foreach (var coinRoundSignaturePair in coinRoundSignaturePairs)
 			{
 				var coin = coinRoundSignaturePair.Key;
 				var signature = coinRoundSignaturePair.Value;
@@ -103,24 +100,22 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				{
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongRoundSignature);
 				}
-				inputValueSum += coin.TxOut.Value;
-
-				// Convert conservative P2WPKH size in virtual bytes to weight units.
-				inputWeightSum += Constants.WitnessScaleFactor * coin.TxOut.ScriptPubKey.EstimateInputVsize();
 			}
 
-			if (inputValueSum < round.MinRegistrableAmount)
+			var alice = new Alice(coinRoundSignaturePairs);
+
+			if (alice.TotalInputAmount < round.MinRegistrableAmount)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NotEnoughFunds);
 			}
-			if (inputValueSum > round.MaxRegistrableAmount)
+			if (alice.TotalInputAmount > round.MaxRegistrableAmount)
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchFunds);
 			}
 
-			if (inputWeightSum > round.RegistrableWeightCredentials)
+			if (alice.TotalInputVsize > round.PerAliceVsizeAllocation)
 			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchWeight);
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooMuchVsize);
 			}
 
 			if (round.IsInputRegistrationEnded(config.MaxInputCountByRound, config.GetInputRegistrationTimeout(round)))
@@ -128,8 +123,12 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 			}
 
+			if (round.RemainingInputVsizeAllocation < round.PerAliceVsizeAllocation)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.VsizeQuotaExceeded);
+			}
 			var commitAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(zeroAmountCredentialRequests);
-			var commitWeightCredentialResponse = round.WeightCredentialIssuer.PrepareResponse(zeroWeightCredentialRequests);
+			var commitVsizeCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(zeroVsizeCredentialRequests);
 
 			RemoveDuplicateAlices(rounds, alice);
 
@@ -138,23 +137,23 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 
 			return new(alice.Id, 
 				commitAmountCredentialResponse.Commit(), 
-				commitWeightCredentialResponse.Commit());
+				commitVsizeCredentialResponse.Commit());
 		}
 
-		private static void RemoveDuplicateAlices(IDictionary<Guid, Round> rounds, Alice alice)
+		private static void RemoveDuplicateAlices(IDictionary<Guid, Round> roundsWithId, Alice alice)
 		{
-			foreach (var (otherRound, op) in rounds
-							.Values
-							.SelectMany(otherRound => alice
-								.Coins
-								.Select(x => x.Outpoint)
-								.Select(op => (otherRound, op))))
+			var rounds = roundsWithId.Values;
+			if (rounds.Any(x => x.Phase != Phase.InputRegistration))
 			{
-				if (otherRound.Phase != Phase.InputRegistration)
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
-				}
-				if (otherRound.Alices.RemoveAll(x => x.Coins.Select(x => x.Outpoint).Contains(op)) > 0)
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
+			}
+			
+			var aliceOutPoints = alice.Coins.Select(x => x.Outpoint).ToHashSet();
+			var flattenTable = rounds.SelectMany(x => x.Alices.SelectMany(y => y.Coins.Select(z => (Round: x, Alice: y, Output: z.Outpoint))));
+
+			foreach (var (round, aliceInRound, _) in flattenTable.Where(x => aliceOutPoints.Contains(x.Output)).ToArray())
+			{
+				if (round.Alices.Remove(aliceInRound))
 				{
 					Logger.LogInfo("Updated Alice registration.");
 				}
