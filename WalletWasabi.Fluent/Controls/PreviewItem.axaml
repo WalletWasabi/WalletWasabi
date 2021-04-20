@@ -5,7 +5,7 @@
     <Style Selector="c|PreviewItem">
         <Setter Property="Template">
             <ControlTemplate>
-                <DockPanel>
+                <DockPanel Background="Transparent">
                     <PathIcon Width="{TemplateBinding IconSize}" Height="{TemplateBinding IconSize}"
                               Data="{TemplateBinding Icon}" Opacity="0.6" Foreground="{DynamicResource SystemAccentColor}"
                               DockPanel.Dock="Left" />

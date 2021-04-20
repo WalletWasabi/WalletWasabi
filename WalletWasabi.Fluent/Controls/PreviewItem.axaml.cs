@@ -1,5 +1,4 @@
 using System;
-using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -38,9 +37,8 @@ namespace WalletWasabi.Fluent.Controls
 				}
 			});
 
-			this.WhenAnyValue(x => x.CopyParameter)
-				.Select(x => !string.IsNullOrEmpty(x?.ToString()))
-				.Subscribe(x => CopyButtonVisibility = x);
+			this.WhenAnyValue(x => x.CopyParameter, x => x.IsPointerOver, (cp, apo) => !string.IsNullOrEmpty(cp?.ToString()) && apo)
+				.Subscribe(value => CopyButtonVisibility = value);
 		}
 
 		public string Text
