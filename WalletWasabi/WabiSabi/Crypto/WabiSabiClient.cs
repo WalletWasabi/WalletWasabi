@@ -22,7 +22,6 @@ namespace WalletWasabi.WabiSabi.Crypto
 	{
 		public WabiSabiClient(
 			CredentialIssuerParameters credentialIssuerParameters,
-			int numberOfCredentials,
 			WasabiRandom randomNumberGenerator,
 			ulong maxAmount,
 			CredentialPool? credentialPool = null)
@@ -30,7 +29,6 @@ namespace WalletWasabi.WabiSabi.Crypto
 			MaxAmount = maxAmount;
 			RangeProofWidth = (int)Math.Ceiling(Math.Log2(MaxAmount));
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
-			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
 			CredentialIssuerParameters = Guard.NotNull(nameof(credentialIssuerParameters), credentialIssuerParameters);
 			Credentials = credentialPool ?? new CredentialPool();
 		}
@@ -39,7 +37,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 
 		public int RangeProofWidth { get; }
 
-		public int NumberOfCredentials { get; }
+		public int NumberOfCredentials => ProtocolConstants.CredentialNumber;
 
 		private CredentialIssuerParameters CredentialIssuerParameters { get; }
 
@@ -77,7 +75,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 
 			var transcript = BuildTransnscript(isNullRequest: true);
 
-			return new (
+			return new(
 				new ZeroCredentialsRequest(
 					credentialsToRequest,
 					ProofSystem.Prove(transcript, knowledge, RandomNumberGenerator)),
@@ -172,7 +170,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			knowledgeToProve.Add(balanceKnowledge);
 
 			var transcript = BuildTransnscript(isNullRequest: false);
-			return new (
+			return new(
 				new RealCredentialsRequest(
 					amountsToRequest.Sum() - credentialsToPresent.Sum(x => (long)x.Amount.ToUlong()),
 					presentations,
@@ -194,7 +192,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// </remarks>
 		/// <param name="registrationResponse">The registration response message received from the coordinator.</param>
 		/// <param name="registrationValidationData">The state data required to validate the issued credentials and the proofs.</param>
-		public void HandleResponse(CredentialsResponse registrationResponse, CredentialsResponseValidation registrationValidationData)
+		public IEnumerable<Credential> HandleResponse(CredentialsResponse registrationResponse, CredentialsResponseValidation registrationValidationData)
 		{
 			Guard.NotNull(nameof(registrationResponse), registrationResponse);
 			Guard.NotNull(nameof(registrationValidationData), registrationValidationData);
@@ -225,6 +223,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 				new Credential(new Scalar((ulong)x.Requested.Amount), x.Requested.Randomness, x.Issued));
 
 			Credentials.UpdateCredentials(credentialReceived, registrationValidationData.Presented);
+			return credentialReceived;
 		}
 
 		private Transcript BuildTransnscript(bool isNullRequest)

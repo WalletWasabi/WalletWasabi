@@ -45,7 +45,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					request.RoundId,
 					coinRoundSignaturePairs,
 					request.ZeroAmountCredentialRequests,
-					request.ZeroWeightCredentialRequests).ConfigureAwait(false);
+					request.ZeroVsizeCredentialRequests).ConfigureAwait(false);
 			}
 		}
 
@@ -93,6 +93,15 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				{
 					throw new ObjectDisposedException(nameof(ArenaRequestHandler));
 				}
+			}
+		}
+
+		public async Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request)
+		{
+			DisposeGuard();
+			using (RunningTasks.RememberWith(RunningRequests))
+			{
+				return await Arena.ReissuanceAsync(request).ConfigureAwait(false);
 			}
 		}
 

@@ -16,10 +16,14 @@ namespace WalletWasabi.Services
 
 		private object ServicesLock { get; } = new object();
 		private bool IsStartAllAsyncStarted { get; set; } = false;
-		private bool IsStartAllAsyncCompleted { get; set; } = false;
 
-		public void Register(IHostedService service, string friendlyName)
+		public void Register<T>(IHostedService service, string friendlyName) where T : class, IHostedService
 		{
+			if (typeof(T) != service.GetType())
+			{
+				throw new ArgumentException($"Type mismatch: {nameof(T)} is {typeof(T).Name}, but {nameof(service)} is {service.GetType()}.");
+			}
+
 			if (IsStartAllAsyncStarted)
 			{
 				throw new InvalidOperationException("Services are already started.");
@@ -27,6 +31,10 @@ namespace WalletWasabi.Services
 
 			lock (ServicesLock)
 			{
+				if (AnyNoLock<T>())
+				{
+					throw new InvalidOperationException($"{typeof(T).Name} is already registered.");
+				}
 				Services.Add(new HostedService(service, friendlyName));
 			}
 		}
@@ -65,8 +73,6 @@ namespace WalletWasabi.Services
 			{
 				throw new AggregateException(exceptions);
 			}
-
-			IsStartAllAsyncCompleted = true;
 		}
 
 		public async Task StopAllAsync(CancellationToken token = default)
@@ -95,22 +101,31 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public T FirstOrDefault<T>() where T : class
+		public T? GetOrDefault<T>() where T : class, IHostedService
 		{
-			if (!IsStartAllAsyncCompleted)
-			{
-				throw new InvalidOperationException("Services are not yet started.");
-			}
 			lock (ServicesLock)
 			{
-				var found = Services.FirstOrDefault(x => x.Service is T);
-				if (found?.Service is null)
-				{
-					return default;
-				}
-				return found.Service as T;
+				return Services.SingleOrDefault(x => x.Service is T)?.Service as T;
 			}
 		}
+
+		public T Get<T>() where T : class, IHostedService
+		{
+			lock (ServicesLock)
+			{
+				return (T)Services.Single(x => x.Service is T).Service;
+			}
+		}
+
+		public bool Any<T>() where T : class, IHostedService
+		{
+			lock (ServicesLock)
+			{
+				return AnyNoLock<T>();
+			}
+		}
+
+		private bool AnyNoLock<T>() where T : class, IHostedService => Services.Any(x => x.Service is T);
 
 		#region IDisposable Support
 

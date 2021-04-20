@@ -25,7 +25,7 @@ namespace WalletWasabi.WabiSabi.Client
 				amount.Satoshi,
 				scriptPubKey,
 				ArenaClient.AmountCredentialClient.Credentials.Valuable,
-				ArenaClient.WeightCredentialClient.Credentials.Valuable).ConfigureAwait(false);
+				ArenaClient.VsizeCredentialClient.Credentials.Valuable).ConfigureAwait(false);
 		}
 	}
 }

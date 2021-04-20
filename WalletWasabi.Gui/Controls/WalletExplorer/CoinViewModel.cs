@@ -160,7 +160,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SmartCoinStatus.MixingSigning => "This coin is currently in Signing phase.",
 			SmartCoinStatus.SpentAccordingToBackend => "According to the Backend, this coin is spent. Wallet state will be corrected after confirmation.",
 			SmartCoinStatus.MixingWaitingForConfirmation => "Coinjoining unconfirmed coins is not allowed, unless the coin is a coinjoin output itself.",
-			_ => "This is impossible."
+			_ => "This should never happen."
 		};
 
 		public Money Amount => Model.Amount;

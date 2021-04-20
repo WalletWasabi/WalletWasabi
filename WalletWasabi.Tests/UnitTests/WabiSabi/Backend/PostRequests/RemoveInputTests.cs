@@ -39,7 +39,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			req = new InputsRemovalRequest(round.Id, alice.Id);
 			await handler.RemoveInputAsync(req);
 
-			// Ensure that removing an alice freed up the input weight
+			// Ensure that removing an alice freed up the input vsize
 			// allocation from the round
 			Assert.Equal(initialRemaining, round.RemainingInputVsizeAllocation);
 

@@ -1,4 +1,5 @@
 using System;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Bases
 {

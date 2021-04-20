@@ -8,6 +8,6 @@ namespace WalletWasabi.WabiSabi.Models
 		Guid RoundId,
 		IEnumerable<InputRoundSignaturePair> InputRoundSignaturePairs,
 		ZeroCredentialsRequest ZeroAmountCredentialRequests,
-		ZeroCredentialsRequest ZeroWeightCredentialRequests
+		ZeroCredentialsRequest ZeroVsizeCredentialRequests
 	);
 }
