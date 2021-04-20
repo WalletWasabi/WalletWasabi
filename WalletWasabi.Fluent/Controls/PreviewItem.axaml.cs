@@ -1,4 +1,6 @@
 using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -27,18 +29,38 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> CopyButtonVisibilityProperty =
 			AvaloniaProperty.Register<PreviewItem, bool>(nameof(CopyButtonVisibility));
 
+		private Stopwatch? _copyButtonPressedStopwatch;
+
 		public PreviewItem()
 		{
 			CopyCommand = ReactiveCommand.CreateFromTask<object>(async obj =>
 			{
 				if (obj.ToString() is { } text)
 				{
+					_copyButtonPressedStopwatch = Stopwatch.StartNew();
 					await Application.Current.Clipboard.SetTextAsync(text);
 				}
 			});
 
 			this.WhenAnyValue(x => x.CopyParameter, x => x.IsPointerOver, (cp, apo) => !string.IsNullOrEmpty(cp?.ToString()) && apo)
-				.Subscribe(value => CopyButtonVisibility = value);
+				.Subscribe(async value =>
+				{
+					if (_copyButtonPressedStopwatch is { } sw)
+					{
+						var elapsedMilliseconds = sw.ElapsedMilliseconds;
+
+						var millisecondsToWait = 1400 - (int)elapsedMilliseconds;
+
+						if (millisecondsToWait > 0)
+						{
+							await Task.Delay(millisecondsToWait);
+						}
+
+						_copyButtonPressedStopwatch = null;
+					}
+
+					CopyButtonVisibility = value;
+				});
 		}
 
 		public string Text
