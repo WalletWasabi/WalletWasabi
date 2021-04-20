@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
 using Avalonia.Collections;
@@ -136,143 +135,10 @@ namespace WalletWasabi.Fluent.Controls
 				RowSpanProperty);
 		}
 
-		internal struct Item
-		{
-			internal int Column;
-			internal int Row;
-			internal int ColumnSpan;
-			internal int RowSpan;
-		}
-
-		internal class State
-		{
-			internal IReadOnlyList<ILayoutable> Children;
-			internal double ItemWidth;
-			internal double ItemHeight;
-			internal double AspectRatio;
-			internal AvaloniaList<int> ColumnHints;
-			internal AvaloniaList<double> WidthTriggers;
-			internal double Width;
-			internal double Height;
-		}
-
-		internal static bool Validate(ref State state)
-		{
-			if (state.WidthTriggers is null || state.ColumnHints is null)
-			{
-				return false;
-			}
-
-			if (state.WidthTriggers.Count <= 0)
-			{
-				// TODO: throw new Exception($"No width trigger specified in {nameof(WidthTriggers)} property.");
-				return false;
-			}
-
-			if (state.ColumnHints.Count <= 0)
-			{
-				// No column hints specified in ColumnHints property.
-				return false;
-			}
-
-			if (state.WidthTriggers.Count != state.ColumnHints.Count)
-			{
-				// Number of width triggers must be equal to the number of column triggers.
-				return false;
-			}
-
-			if (double.IsNaN(state.ItemWidth) && double.IsInfinity(state.Width))
-			{
-				// The ItemWidth can't be NaN and panel width can't be infinity at same time.
-				return false;
-			}
-
-			if (double.IsNaN(state.ItemHeight) && double.IsInfinity(state.Height))
-			{
-				// The ItemHeight can't be NaN and panel height can't be infinity at same time.
-				return false;
-			}
-
-			return true;
-		}
-
-		internal static Size MeasureArrange(ref State state, bool isMeasure)
-		{
-			var layoutIndex = 0;
-			var totalColumns = state.ColumnHints[layoutIndex];
-
-			if (!double.IsInfinity(state.Width))
-			{
-				for (var i = state.WidthTriggers.Count - 1; i >= 0; i--)
-				{
-					if (state.Width >= state.WidthTriggers[i])
-					{
-						totalColumns = state.ColumnHints[i];
-						layoutIndex = i;
-						break;
-					}
-				}
-			}
-
-			var currentColumn = 0;
-			var totalRows = 0;
-			var rowIncrement = 1;
-			var items = new Item[state.Children.Count];
-
-			for (var i = 0; i < state.Children.Count; i++)
-			{
-				var element = state.Children[i];
-				var columnSpan = GetColumnSpan((Control) element)[layoutIndex];
-				var rowSpan = GetRowSpan((Control) element)[layoutIndex];
-
-				items[i] = new Item()
-				{
-					Column = currentColumn,
-					Row = totalRows,
-					ColumnSpan = columnSpan,
-					RowSpan = rowSpan
-				};
-
-				rowIncrement = Math.Max(rowSpan, rowIncrement);
-				currentColumn += columnSpan;
-
-				if (currentColumn >= totalColumns || i == state.Children.Count - 1)
-				{
-					currentColumn = 0;
-					totalRows += rowIncrement;
-					rowIncrement = 1;
-				}
-			}
-
-			var columnWidth = double.IsNaN(state.ItemWidth) ? state.Width / totalColumns : state.ItemWidth;
-			var rowHeight = double.IsNaN(state.ItemHeight)
-				? double.IsNaN(state.AspectRatio) ? state.Height / totalRows : columnWidth * state.AspectRatio
-				: state.ItemHeight;
-
-			for (var i = 0; i < state.Children.Count; i++)
-			{
-				var element = state.Children[i];
-				var size = new Size(columnWidth * items[i].ColumnSpan, rowHeight * items[i].RowSpan);
-				var position = new Point(items[i].Column * columnWidth, items[i].Row * rowHeight);
-				var rect = new Rect(position, size);
-
-				if (isMeasure)
-				{
-					element.Measure(size);
-				}
-				else
-				{
-					element.Arrange(rect);
-				}
-			}
-
-			return new Size(columnWidth * totalColumns, rowHeight * totalRows);
-		}
-
 		private Size MeasureArrange(Size panelSize, bool isMeasure)
 		{
 			// TODO: Remove Linq usage when setting Children property.
-			var state = new State()
+			var state = new ResponsivePanelState()
 			{
 				Children = Children.Select(x => x as ILayoutable).ToList(),
 				ItemWidth = ItemWidth,
@@ -284,7 +150,7 @@ namespace WalletWasabi.Fluent.Controls
 				Height = panelSize.Height
 			};
 
-			return !Validate(ref state) ? Size.Empty : MeasureArrange(ref state, isMeasure);
+			return !state.Validate() ? Size.Empty : state.MeasureArrange(isMeasure);
 		}
 
 		protected override Size MeasureOverride(Size availableSize)

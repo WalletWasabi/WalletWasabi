@@ -94,7 +94,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private Size MeasureArrange(Size panelSize, NonVirtualizingLayoutContext context, bool isMeasure)
 		{
-			var state = new ResponsivePanel.State()
+			var state = new ResponsivePanelState()
 			{
 				Children = context.Children,
 				ItemWidth = ItemWidth,
@@ -106,7 +106,7 @@ namespace WalletWasabi.Fluent.Controls
 				Height = panelSize.Height
 			};
 
-			return !ResponsivePanel.Validate(ref state) ? Size.Empty : ResponsivePanel.MeasureArrange(ref state, isMeasure);
+			return !state.Validate() ? Size.Empty : state.MeasureArrange(isMeasure);
 		}
 
 	    protected override Size MeasureOverride(NonVirtualizingLayoutContext context, Size availableSize)
