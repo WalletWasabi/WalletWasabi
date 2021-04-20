@@ -49,7 +49,7 @@ namespace WalletWasabi.Fluent.Controls
 					{
 						var elapsedMilliseconds = sw.ElapsedMilliseconds;
 
-						var millisecondsToWait = 1400 - (int)elapsedMilliseconds;
+						var millisecondsToWait = 1050 - (int)elapsedMilliseconds;
 
 						if (millisecondsToWait > 0)
 						{
