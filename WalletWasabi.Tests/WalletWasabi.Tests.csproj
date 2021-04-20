@@ -71,9 +71,6 @@
 		<None Update="UnitTests\QrCode\QrTestResources\Random_address_starting_with_1.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="UnitTests\QrCode\QrTestResources\Special_signs.jpg">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
 		<None Update="UnitTests\QrCode\QrTestResources\Text_QR-code.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
