@@ -16,7 +16,8 @@
       <!-- Date -->
       <c:PreviewItem Icon="{StaticResource timer_regular}"
                      Text="Date / Time"
-                     Content="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}" />
+                     Content="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
+                     CopyParameter="{Binding Date}" />
 
       <Separator />
 
