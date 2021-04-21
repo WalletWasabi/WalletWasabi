@@ -17,11 +17,6 @@ namespace WalletWasabi.Tor
 	/// <seealso href="https://2019.www.torproject.org/docs/tor-manual.html.en"/>
 	public class TorProcessManager
 	{
-		/// <summary>
-		/// Creates a new instance of the object.
-		/// </summary>
-		/// <param name="settings">Tor settings.</param>
-		/// <param name="torSocks5EndPoint">Valid Tor end point.</param>
 		public TorProcessManager(TorSettings settings, EndPoint torSocks5EndPoint)
 		{
 			TorSocks5EndPoint = torSocks5EndPoint;
