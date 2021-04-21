@@ -23,8 +23,6 @@ namespace WalletWasabi.Tor
 			TorProcess = null;
 			Settings = settings;
 			TcpConnectionFactory = new(torSocks5EndPoint);
-
-			IoHelpers.EnsureContainingDirectoryExists(Settings.LogFilePath);
 		}
 
 		private EndPoint TorSocks5EndPoint { get; }
