@@ -18,31 +18,31 @@ namespace WalletWasabi.Fluent.ViewModels.ResponsivePanelDemo
 		{
 			_items = new ObservableCollection<TestTileItemViewModel>()
 			{
-				new TestTileItemViewModel()
+				new()
 				{
 					Background = Brushes.Red,
 					ColumnSpan = new() { 1, 1, 1, 2 },
 					RowSpan = new() { 1, 1, 1, 1 }
 				},
-				new TestTileItemViewModel()
+				new()
 				{
 					Background = Brushes.Green,
 					ColumnSpan = new() { 1, 1, 1, 1 },
 					RowSpan = new() { 1, 1, 1, 1 }
 				},
-				new TestTileItemViewModel()
+				new()
 				{
 					Background = Brushes.Blue,
 					ColumnSpan = new() { 1, 1, 1, 1 },
 					RowSpan = new() { 1, 1, 1, 1 }
 				},
-				new TestTileItemViewModel()
+				new()
 				{
 					Background = Brushes.Yellow,
 					ColumnSpan = new() { 1, 1, 1, 1 },
 					RowSpan = new() { 1, 1, 2, 2 }
 				},
-				new TestTileItemViewModel()
+				new()
 				{
 					Background = Brushes.Black,
 					ColumnSpan = new() { 1, 2, 2, 3 },
