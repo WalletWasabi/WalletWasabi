@@ -42,7 +42,7 @@
                            Background="LightGray">
                 <ItemsRepeater.Styles>
                     <!-- TODO: Set c:ResponsivePanel.ColumnSpan/RowSpan for generate items. -->
-                    <Style Selector="ItemsRepeater > Control">
+                    <Style Selector="ItemsRepeater > ContentPresenter">
                         <Setter Property="(c:ResponsivePanel.ColumnSpan)" Value="{Binding ColumnSpan}"/>
                         <Setter Property="(c:ResponsivePanel.RowSpan)" Value="{Binding RowSpan}"/>
                     </Style>
