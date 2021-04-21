@@ -20,6 +20,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 		internal ScalarVector RespondToChallenge(Scalar challenge, ScalarVector secretNonces) =>
 			Equation.Respond(Witness, secretNonces, challenge);
 
+		/// <summary>For testing purposes.</summary>
 		internal void AssertSoundness()
 		{
 			foreach (var equation in Statement.Equations)
