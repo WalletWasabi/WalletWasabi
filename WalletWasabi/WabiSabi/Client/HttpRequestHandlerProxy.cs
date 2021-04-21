@@ -20,28 +20,17 @@ namespace WalletWasabi.WabiSabi.Client
 			_client = client;
 		}
 
-		public async Task<InputsRegistrationResponse> RegisterInputAsync(InputsRegistrationRequest request)
-		{
-			using var content = Serialize(request);
-			using var response = await _client.SendAsync(HttpMethod.Post, "register-input", content).ConfigureAwait(false);
+		public Task<InputsRegistrationResponse> RegisterInputAsync(InputsRegistrationRequest request) =>
+			SendAndReceiveAsync<InputsRegistrationRequest, InputsRegistrationResponse>("register-input", request);
 
-			if (response.StatusCode != HttpStatusCode.OK)
-			{
-				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
-			}
+		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request) =>
+			SendAndReceiveAsync<ConnectionConfirmationRequest, ConnectionConfirmationResponse>("confirm-connection", request);
 
-			return await response.Content.ReadAsJsonAsync<InputsRegistrationResponse>().ConfigureAwait(false);
-		}
+		public Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request) =>
+			SendAndReceiveAsync<OutputRegistrationRequest, OutputRegistrationResponse>("register-output", request);
 
-		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request)
-		{
-			throw new NotImplementedException();
-		}
-
-		public Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request)
-		{
-			throw new NotImplementedException();
-		}
+		public Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request) =>
+			SendAndReceiveAsync<ReissueCredentialRequest, ReissueCredentialResponse>("reissue-credential", request);
 
 		public Task RemoveInputAsync(InputsRemovalRequest request)
 		{
@@ -59,12 +48,27 @@ namespace WalletWasabi.WabiSabi.Client
 			return new StringContent(jsonString, Encoding.UTF8, "application/json");
 		}
 
+		private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(string actionName, TRequest request) where TRequest : class
+		{
+			using var content = Serialize(request);
+			using var response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(actionName), content).ConfigureAwait(false);
+
+			if (response.StatusCode != HttpStatusCode.OK)
+			{
+				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
+			}
+
+			return await response.Content.ReadAsJsonAsync<TResponse>().ConfigureAwait(false);
+		}
+
 		private static string GetUriEndPoint(string action) =>
 			action switch
 			{
 				"register-input" => $"/api/v2/btc/wabisabicoinjoin/inputs/",
-				_ => $"/api/v2/btc/wabisabicoinjoin/who-knows/"
+				"register-output" => $"/api/v2/btc/wabisabicoinjoin/outputs/",
+				"reissue-credential" => $"/api/v2/btc/wabisabicoinjoin/credentials/",
+				"confirm-connection" => $"/api/v2/btc/wabisabicoinjoin/connections/",
+				_ => throw new NotSupportedException($"Action '{action}' is unknown and has no endpoint associated.")
 			};
-
 	}
 }

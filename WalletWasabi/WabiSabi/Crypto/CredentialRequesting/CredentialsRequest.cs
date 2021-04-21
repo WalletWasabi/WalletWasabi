@@ -59,6 +59,7 @@ namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 		/// <summary>
 		/// Is request for zero-value credentials only.
 		/// </summary>
+		[JsonIgnore]
 		internal bool IsNullRequest => Delta == 0 && !Presented.Any();
 
 		/// <summary>
