@@ -95,13 +95,13 @@ __Fact__: code review is one of the few scientifically proven code improvement t
    - `git upd` -> Update the forked repository  
    - `git del` -> Delete the current branch remotely and locally  
    - `git pr "Commit message"` -> Create a new branch, commit then push your work, open your browser with a new PR waiting for you to fill the title and the description.
-Make sure to have these lines -
+Make sure to have these lines in the .gitconfig file:
 ```
 [user]
 	name = your_github_username
 	email = your_github@email.com
 ```
-in the .gitconfig file
+
 
 # Productivity tips
 
