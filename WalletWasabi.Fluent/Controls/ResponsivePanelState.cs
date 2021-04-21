@@ -7,18 +7,27 @@ using Avalonia.Layout;
 
 namespace WalletWasabi.Fluent.Controls
 {
-	internal class ResponsivePanelState
+	internal abstract class ResponsiveStateBase
 	{
-		internal IReadOnlyList<ILayoutable> Children;
-		internal double ItemWidth;
-		internal double ItemHeight;
-		internal double AspectRatio;
-		internal AvaloniaList<int> ColumnHints;
-		internal AvaloniaList<double> WidthTriggers;
-		internal double Width;
-		internal double Height;
+		public double ItemWidth { get; set; }
 
-		internal bool Validate()
+		public double ItemHeight { get; set; }
+
+		public double AspectRatio { get; set; }
+
+		public AvaloniaList<int> ColumnHints { get; set; }
+
+		public AvaloniaList<double> WidthTriggers { get; set; }
+
+		public double Width { get; set; }
+
+		public double Height { get; set; }
+
+		public abstract int ItemCount { get; }
+
+		public abstract ILayoutable GetItemAt(int index);
+
+		public bool Validate()
 		{
 			if (WidthTriggers is null || ColumnHints is null)
 			{
@@ -58,7 +67,7 @@ namespace WalletWasabi.Fluent.Controls
 			return true;
 		}
 
-		internal Size MeasureArrange(bool isMeasure)
+		public Size MeasureArrange(bool isMeasure)
 		{
 			var layoutIndex = 0;
 			var totalColumns = ColumnHints[layoutIndex];
@@ -79,11 +88,11 @@ namespace WalletWasabi.Fluent.Controls
 			var currentColumn = 0;
 			var totalRows = 0;
 			var rowIncrement = 1;
-			var items = new Item[Children.Count];
+			var items = new Item[ItemCount];
 
-			for (var i = 0; i < Children.Count; i++)
+			for (var i = 0; i < ItemCount; i++)
 			{
-				var element = Children[i];
+				var element = GetItemAt(i);
 				var columnSpan = ResponsivePanel.GetColumnSpan((Control) element)[layoutIndex];
 				var rowSpan = ResponsivePanel.GetRowSpan((Control) element)[layoutIndex];
 
@@ -98,7 +107,7 @@ namespace WalletWasabi.Fluent.Controls
 				rowIncrement = Math.Max(rowSpan, rowIncrement);
 				currentColumn += columnSpan;
 
-				if (currentColumn >= totalColumns || i == Children.Count - 1)
+				if (currentColumn >= totalColumns || i == ItemCount - 1)
 				{
 					currentColumn = 0;
 					totalRows += rowIncrement;
@@ -111,9 +120,9 @@ namespace WalletWasabi.Fluent.Controls
 				? double.IsNaN(AspectRatio) ? Height / totalRows : columnWidth * AspectRatio
 				: ItemHeight;
 
-			for (var i = 0; i < Children.Count; i++)
+			for (var i = 0; i < ItemCount; i++)
 			{
-				var element = Children[i];
+				var element = GetItemAt(i);
 				var size = new Size(columnWidth * items[i].ColumnSpan, rowHeight * items[i].RowSpan);
 				var position = new Point(items[i].Column * columnWidth, items[i].Row * rowHeight);
 				var rect = new Rect(position, size);
@@ -137,6 +146,34 @@ namespace WalletWasabi.Fluent.Controls
 			internal int Row;
 			internal int ColumnSpan;
 			internal int RowSpan;
+		}
+	}
+
+	internal class ResponsivePanelState : ResponsiveStateBase
+	{
+		private readonly IReadOnlyList<ILayoutable> _children;
+
+		public override int ItemCount => _children.Count;
+
+		public override ILayoutable GetItemAt(int index) => _children[index];
+
+		public ResponsivePanelState(IReadOnlyList<ILayoutable> children)
+		{
+			_children = children;
+		}
+	}
+
+	internal class ResponsiveLayoutState : ResponsiveStateBase
+	{
+		private readonly Avalonia.Controls.Controls _children;
+
+		public override int ItemCount => _children.Count;
+
+		public override ILayoutable GetItemAt(int index) => _children[index];
+
+		public ResponsiveLayoutState(Avalonia.Controls.Controls children)
+		{
+			_children = children;
 		}
 	}
 }

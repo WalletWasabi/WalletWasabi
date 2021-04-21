@@ -94,9 +94,8 @@ namespace WalletWasabi.Fluent.Controls
 
 		private Size MeasureArrange(Size panelSize, NonVirtualizingLayoutContext context, bool isMeasure)
 		{
-			var state = new ResponsivePanelState()
+			var state = new ResponsivePanelState(context.Children)
 			{
-				Children = context.Children,
 				ItemWidth = ItemWidth,
 				ItemHeight = ItemHeight,
 				AspectRatio = double.IsNaN(AspectRatio) && (panelSize.Height == 0 || double.IsInfinity(panelSize.Height)) ? 1.0 : AspectRatio,

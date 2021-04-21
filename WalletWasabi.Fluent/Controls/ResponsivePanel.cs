@@ -137,10 +137,8 @@ namespace WalletWasabi.Fluent.Controls
 
 		private Size MeasureArrange(Size panelSize, bool isMeasure)
 		{
-			// TODO: Remove Linq usage when setting Children property.
-			var state = new ResponsivePanelState()
+			var state = new ResponsivePanelState(Children)
 			{
-				Children = Children.Select(x => x as ILayoutable).ToList(),
 				ItemWidth = ItemWidth,
 				ItemHeight = ItemHeight,
 				AspectRatio = double.IsNaN(AspectRatio) && (panelSize.Height == 0 || double.IsInfinity(panelSize.Height)) ? 1.0 : AspectRatio,
