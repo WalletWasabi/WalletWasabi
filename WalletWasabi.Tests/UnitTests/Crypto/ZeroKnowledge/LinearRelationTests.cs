@@ -170,7 +170,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			Assert.Contains("size does not match", ex.Message);
 
 			// Incorrect witness (multiplying by generators does not produce the public point)
-			ex = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(statement, new ScalarVector(Scalar.One)));
+			ex = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(statement, new ScalarVector(Scalar.One)).AssertSoundness());
 			Assert.Contains("witness is not solution of the equation", ex.Message);
 
 			// Incorrect statement generators (effectively incorrect witness)
@@ -179,7 +179,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 				{ a, Generators.Gh },
 				{ b, Generators.Gg },
 			});
-			ex = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(badStatement, new ScalarVector(Scalar.One)));
+			ex = Assert.ThrowsAny<ArgumentException>(() => new Knowledge(badStatement, new ScalarVector(Scalar.One)).AssertSoundness());
 			Assert.Contains("witness is not solution of the equation", ex.Message);
 		}
 	}
