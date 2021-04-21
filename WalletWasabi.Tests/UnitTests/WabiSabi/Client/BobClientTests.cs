@@ -1,9 +1,7 @@
 using Moq;
 using NBitcoin;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
@@ -53,7 +51,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			Assert.Equal(Phase.InputRegistration, round.Phase);
 
 			var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);
-			var aliceClient = await AliceClient.CreateNewAsync(aliceArenaClient, new[] { coin1.Coin }, bitcoinSecret, round.Id, round.Hash, round.FeeRate);
+			var aliceClient = await AliceClient.CreateNewAsync(aliceArenaClient, coin1.Coin, bitcoinSecret, round.Id, round.Hash, round.FeeRate);
 
 			Task confirmationTask = aliceClient.ConfirmConnectionAsync(TimeSpan.FromSeconds(3), CancellationToken.None);
 
