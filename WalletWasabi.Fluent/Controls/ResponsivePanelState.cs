@@ -102,8 +102,8 @@ namespace WalletWasabi.Fluent.Controls
 				var element = GetItemAt(i);
 				var columnSpanPropertyValue = ResponsivePanel.GetColumnSpan((Control) element);
 				var rowSpanPropertyValue = ResponsivePanel.GetRowSpan((Control) element);
-				var columnSpan = columnSpanPropertyValue[layoutIndex];
-				var rowSpan = rowSpanPropertyValue[layoutIndex];
+				var columnSpan =  columnSpanPropertyValue is not null && columnSpanPropertyValue.Count - 1 >= layoutIndex ? columnSpanPropertyValue[layoutIndex] : 1;
+				var rowSpan = rowSpanPropertyValue is not null && rowSpanPropertyValue.Count - 1 >= layoutIndex ? rowSpanPropertyValue[layoutIndex] : 1;
 
 				items[i] = new Item()
 				{
