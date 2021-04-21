@@ -141,13 +141,13 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 					}
 					else if (sender is BlockstreamInfoFreeProvider blockstreamProvider)
 					{
-						var rpcProvider = RpcFeeProvider;
-						if (rpcProvider is null)
+						var rpcFeeProvider = RpcFeeProvider;
+						if (rpcFeeProvider is null)
 						{
 							// If user doesn't use full node, then set it, this is the best we got.
 							notify = SetAllFeeEstimate(fees);
 						}
-						if (rpcProvider.LastAllFeeEstimate?.IsAccurate is true && !rpcProvider.InError)
+						if (rpcFeeProvider.LastAllFeeEstimate?.IsAccurate is true && !rpcFeeProvider.InError)
 						{
 							// If user's full node is properly serving data, then we don't care about the backend.
 							return;
