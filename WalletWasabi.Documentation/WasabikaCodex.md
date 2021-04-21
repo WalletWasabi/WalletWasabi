@@ -95,10 +95,10 @@ __Fact__: code review is one of the few scientifically proven code improvement t
    - `git upd` -> Update the forked repository  
    - `git del` -> Delete the current branch remotely and locally  
    - `git pr "Commit message"` -> Create a new branch, commit then push your work, open your browser with a new PR waiting for you to fill the title and the description. To make this work, make sure to have a [**user**] object with at least a '**username**' property in the .gitconfig file.
-```
-[user]
-	username = your_github_username
-```
+      ```
+      [user]
+         username = your_github_username
+      ```
 
 # Productivity tips
 
