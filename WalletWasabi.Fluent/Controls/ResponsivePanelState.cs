@@ -7,8 +7,10 @@ using Avalonia.Layout;
 
 namespace WalletWasabi.Fluent.Controls
 {
-	internal abstract class ResponsiveStateBase
+	internal class ResponsivePanelState
 	{
+		private readonly IReadOnlyList<ILayoutable> _children;
+
 		public double ItemWidth { get; set; }
 
 		public double ItemHeight { get; set; }
@@ -23,9 +25,14 @@ namespace WalletWasabi.Fluent.Controls
 
 		public double Height { get; set; }
 
-		public abstract int ItemCount { get; }
+		public int ItemCount => _children.Count;
 
-		public abstract ILayoutable GetItemAt(int index);
+		public ResponsivePanelState(IReadOnlyList<ILayoutable> children)
+		{
+			_children = children;
+		}
+
+		public ILayoutable GetItemAt(int index) => _children[index];
 
 		public bool Validate()
 		{
@@ -146,34 +153,6 @@ namespace WalletWasabi.Fluent.Controls
 			internal int Row;
 			internal int ColumnSpan;
 			internal int RowSpan;
-		}
-	}
-
-	internal class ResponsivePanelState : ResponsiveStateBase
-	{
-		private readonly IReadOnlyList<ILayoutable> _children;
-
-		public override int ItemCount => _children.Count;
-
-		public override ILayoutable GetItemAt(int index) => _children[index];
-
-		public ResponsivePanelState(IReadOnlyList<ILayoutable> children)
-		{
-			_children = children;
-		}
-	}
-
-	internal class ResponsiveLayoutState : ResponsiveStateBase
-	{
-		private readonly Avalonia.Controls.Controls _children;
-
-		public override int ItemCount => _children.Count;
-
-		public override ILayoutable GetItemAt(int index) => _children[index];
-
-		public ResponsiveLayoutState(Avalonia.Controls.Controls children)
-		{
-			_children = children;
 		}
 	}
 }
