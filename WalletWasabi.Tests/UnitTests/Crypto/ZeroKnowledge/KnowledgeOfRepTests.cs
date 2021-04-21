@@ -62,12 +62,12 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.ZeroKnowledge
 			var three = new Scalar(3);
 
 			// Public point must be sum(generator * secret).
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(three * Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G, Generators.G, Generators.Ga), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.Ga, Generators.G), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Gg), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(Generators.G + three * Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)));
-			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)));
+			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(three * Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)).AssertSoundness());
+			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G, Generators.G, Generators.Ga), new ScalarVector(two, three)).AssertSoundness());
+			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.Ga, Generators.G), new ScalarVector(two, three)).AssertSoundness());
+			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.G, Generators.Gg), new ScalarVector(two, three)).AssertSoundness());
+			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(Generators.G + three * Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)).AssertSoundness());
+			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + Generators.Ga, Generators.G, Generators.Ga), new ScalarVector(two, three)).AssertSoundness());
 
 			// Generators and secrets must be equal.
 			Assert.ThrowsAny<ArgumentException>(() => new Knowledge(new Statement(two * Generators.G + three * Generators.Ga, Generators.Gg, Generators.Ga), new ScalarVector(two)));
