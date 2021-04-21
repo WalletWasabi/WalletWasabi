@@ -96,6 +96,15 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			}
 		}
 
+		public async Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request)
+		{
+			DisposeGuard();
+			using (RunningTasks.RememberWith(RunningRequests))
+			{
+				return await Arena.ReissuanceAsync(request).ConfigureAwait(false);
+			}
+		}
+
 		public async ValueTask DisposeAsync()
 		{
 			lock (DisposeStartedLock)

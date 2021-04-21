@@ -457,6 +457,49 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
+		public async Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request)
+		{
+			using (await AsyncLock.LockAsync().ConfigureAwait(false))
+			{
+				if (!Rounds.TryGetValue(request.RoundId, out var round))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round ({request.RoundId}) not found.");
+				}
+
+				if (round.Phase is not (Phase.ConnectionConfirmation or Phase.OutputRegistration))
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({round.Id}): Wrong phase ({round.Phase}).");
+				}
+
+				if (request.RealAmountCredentialRequests.Delta != 0)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.DeltaNotZero, $"Round ({round.Id}): Amount credentials delta must be zero.");
+				}
+
+				if (request.RealAmountCredentialRequests.Requested.Count() != ProtocolConstants.CredentialNumber)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongNumberOfCreds, $"Round ({round.Id}): Incorrect requested number of amount credentials.");
+				}
+
+				if (request.RealVsizeCredentialRequests.Requested.Count() != ProtocolConstants.CredentialNumber)
+				{
+					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongNumberOfCreds, $"Round ({round.Id}): Incorrect requested number of weight credentials.");
+				}
+
+				var commitRealAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(request.RealAmountCredentialRequests);
+				var commitRealVsizeCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(request.RealVsizeCredentialRequests);
+				var commitZeroAmountCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(request.ZeroAmountCredentialRequests);
+				var commitZeroVsizeCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(request.ZeroVsizeCredentialsRequests);
+
+				return new(
+					commitRealAmountCredentialResponse.Commit(),
+					commitRealVsizeCredentialResponse.Commit(),
+					commitZeroAmountCredentialResponse.Commit(),
+					commitZeroVsizeCredentialResponse.Commit()
+					);
+			}
+		}
+
 		public override void Dispose()
 		{
 			Random.Dispose();
