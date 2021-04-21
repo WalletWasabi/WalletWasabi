@@ -51,7 +51,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
 
 			// Make sure an Alice have already been registered with the same input.
-			var preAlice = WabiSabiFactory.CreateAlice(new (req.Input, req.RoundSignature)); // FIXME fugly
+			var preAlice = WabiSabiFactory.CreateAlice(prevout: req.Input, roundSignature: req.RoundSignature);
 			round.Alices.Add(preAlice);
 
 			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
@@ -74,7 +74,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
 
 			// Make sure an Alice have already been registered with the same input.
-			var preAlice = WabiSabiFactory.CreateAlice(new InputRoundSignaturePair(req.Input, req.RoundSignature)); // FIXME fugly
+			var preAlice = WabiSabiFactory.CreateAlice(prevout: req.Input, roundSignature: req.RoundSignature);
 
 			var initialRemaining = anotherRound.RemainingInputVsizeAllocation;
 			anotherRound.Alices.Add(preAlice);
