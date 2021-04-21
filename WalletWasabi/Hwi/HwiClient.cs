@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -10,6 +11,7 @@ using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.Hwi.ProcessBridge;
+using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Hwi
 {
@@ -276,7 +278,13 @@ namespace WalletWasabi.Hwi
 				{
 					throw error;
 				}
-				throw new HwiException(HwiErrorCode.UnknownError, $"'hwi {arguments}' exited with incorrect exit code: {exitCode}. response: '{responseString}'");
+
+				string filePath = MicroserviceHelpers.GetBinaryPath("hwi");
+				using SHA256 sha256 = SHA256.Create();
+				using FileStream fileStream = File.OpenRead(filePath);
+				string hash = ByteHelpers.ToHex(sha256.ComputeHash(fileStream)).ToLowerInvariant();
+
+				throw new HwiException(HwiErrorCode.UnknownError, $"'hwi {arguments}' exited with incorrect exit code: {exitCode}. response: '{responseString}', hash='{hash}'");
 			}
 
 			if (HwiParser.TryParseErrors(responseString, options, out HwiException? error2))
