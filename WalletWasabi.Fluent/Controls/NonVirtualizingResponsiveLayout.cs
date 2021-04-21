@@ -26,31 +26,31 @@ namespace WalletWasabi.Fluent.Controls
 	    public static readonly StyledProperty<AvaloniaList<double>> WidthTriggersProperty =
 		    ResponsivePanel.WidthTriggersProperty.AddOwner<NonVirtualizingResponsiveLayout>();
 
-	    public static readonly AttachedProperty<AvaloniaList<int>> ColumnSpanProperty =
+	    public static readonly AttachedProperty<AvaloniaList<int>?> ColumnSpanProperty =
 		    ResponsivePanel.ColumnSpanProperty.AddOwner<NonVirtualizingResponsiveLayout>();
 
-	    public static readonly AttachedProperty<AvaloniaList<int>> RowSpanProperty =
+	    public static readonly AttachedProperty<AvaloniaList<int>?> RowSpanProperty =
 		    ResponsivePanel.RowSpanProperty.AddOwner<NonVirtualizingResponsiveLayout>();
 
-		public static AvaloniaList<int> GetColumnSpan(Control? element)
+		public static AvaloniaList<int>? GetColumnSpan(Control? element)
 		{
 			Contract.Requires<ArgumentNullException>(element != null);
 			return element!.GetValue(ColumnSpanProperty);
 		}
 
-		public static void SetColumnSpan(Control? element, AvaloniaList<int> value)
+		public static void SetColumnSpan(Control? element, AvaloniaList<int>? value)
 		{
 			Contract.Requires<ArgumentNullException>(element != null);
 			element!.SetValue(ColumnSpanProperty, value);
 		}
 
-		public static AvaloniaList<int> GetRowSpan(Control? element)
+		public static AvaloniaList<int>? GetRowSpan(Control? element)
 		{
 			Contract.Requires<ArgumentNullException>(element != null);
 			return element!.GetValue(RowSpanProperty);
 		}
 
-		public static void SetRowSpan(Control? element, AvaloniaList<int> value)
+		public static void SetRowSpan(Control? element, AvaloniaList<int>? value)
 		{
 			Contract.Requires<ArgumentNullException>(element != null);
 			element!.SetValue(RowSpanProperty, value);
