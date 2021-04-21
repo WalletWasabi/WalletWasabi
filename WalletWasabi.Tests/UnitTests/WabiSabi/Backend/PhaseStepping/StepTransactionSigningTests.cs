@@ -3,16 +3,14 @@ using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
@@ -77,7 +75,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-			var signedCoinJoin = round.Coinjoin.Clone();
+			var signedCoinJoin = round.CoinjoinState.AssertSigning().CreateTransaction();
 			var coin1 = alice1.Coins.First();
 			var coin2 = alice2.Coins.First();
 			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
@@ -157,7 +155,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-			var signedCoinJoin = round.Coinjoin.Clone();
+			var signedCoinJoin = round.CoinjoinState.AssertSigning().CreateTransaction();
 			var coin1 = alice1.Coins.First();
 			var coin2 = alice2.Coins.First();
 			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
@@ -239,7 +237,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-			var signedCoinJoin = round.Coinjoin.Clone();
+			var signedCoinJoin = round.CoinjoinState.AssertSigning().CreateTransaction();
 			var coin1 = alice1.Coins.First();
 			var coin2 = alice2.Coins.First();
 			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
@@ -325,7 +323,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-			var signedCoinJoin = round.Coinjoin.Clone();
+			var signedCoinJoin = round.CoinjoinState.AssertSigning().CreateTransaction();
 			var coin1 = alice1.Coins.First();
 			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
 			signedCoinJoin.Sign(key1.GetBitcoinSecret(Network.Main), coin1);
@@ -405,10 +403,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var alice3 = WabiSabiFactory.CreateAlice();
 			alice3.ConfirmedConnection = true;
 			round.Alices.Add(alice3);
+			round.CoinjoinState = round.CoinjoinState.AssertConstruction().AddInput(alice3.Coins.First());
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-			var signedCoinJoin = round.Coinjoin.Clone();
+			var signedCoinJoin = round.CoinjoinState.AssertSigning().CreateTransaction();
 			var coin1 = alice1.Coins.First();
 			var coin2 = alice2.Coins.First();
 			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
