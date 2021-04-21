@@ -22,9 +22,9 @@ namespace WalletWasabi.Fluent.Controls
 
 		public double AspectRatio { get; set; }
 
-		public AvaloniaList<int> ColumnHints { get; set; }
+		public AvaloniaList<int>? ColumnHints { get; set; }
 
-		public AvaloniaList<double> WidthTriggers { get; set; }
+		public AvaloniaList<double>? WidthTriggers { get; set; }
 
 		public double Width { get; set; }
 
