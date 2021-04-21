@@ -11,6 +11,11 @@ namespace WalletWasabi.Fluent.Controls
 	{
 		private readonly IReadOnlyList<ILayoutable> _children;
 
+		public ResponsivePanelState(IReadOnlyList<ILayoutable> children)
+		{
+			_children = children;
+		}
+
 		public double ItemWidth { get; set; }
 
 		public double ItemHeight { get; set; }
@@ -26,11 +31,6 @@ namespace WalletWasabi.Fluent.Controls
 		public double Height { get; set; }
 
 		public int ItemCount => _children.Count;
-
-		public ResponsivePanelState(IReadOnlyList<ILayoutable> children)
-		{
-			_children = children;
-		}
 
 		public ILayoutable GetItemAt(int index) => _children[index];
 
