@@ -44,9 +44,10 @@ namespace WalletWasabi.Hwi.ProcessBridge
 
 			if (standardInputWriter is { })
 			{
-				processAsync.StartInfo.RedirectStandardInput = true;
-				processAsync.StartInfo.RedirectStandardError = true;
+				processAsync.StartInfo.RedirectStandardInput = true;				
 			}
+
+			processAsync.StartInfo.RedirectStandardError = true;
 
 			processAsync.Start();
 
@@ -67,7 +68,7 @@ namespace WalletWasabi.Hwi.ProcessBridge
 			if (!processAsync.StartInfo.UseShellExecute)
 			{
 				output += ";; stdout: " + await processAsync.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-				output += ";; stderr: " + await processAsync.StandardError.ReadToEndAsync().ConfigureAwait(false);
+				output += "; stderr: " + await processAsync.StandardError.ReadToEndAsync().ConfigureAwait(false);
 			}
 
 			return (output, exitCode: processAsync.ExitCode);
