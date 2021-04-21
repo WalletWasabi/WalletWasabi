@@ -66,8 +66,8 @@ namespace WalletWasabi.Hwi.ProcessBridge
 
 			if (!processAsync.StartInfo.UseShellExecute)
 			{
-				output += "; stdout: " + await processAsync.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-				output += "; stderr: " + await processAsync.StandardError.ReadToEndAsync().ConfigureAwait(false);
+				output += ";; stdout: " + await processAsync.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+				output += ";; stderr: " + await processAsync.StandardError.ReadToEndAsync().ConfigureAwait(false);
 			}
 
 			return (output, exitCode: processAsync.ExitCode);

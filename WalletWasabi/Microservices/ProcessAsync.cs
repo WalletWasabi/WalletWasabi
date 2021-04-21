@@ -47,6 +47,9 @@ namespace WalletWasabi.Microservices
 		/// <inheritdoc cref="Process.StandardOutput"/>
 		public StreamReader StandardOutput => Process.StandardOutput;
 
+		/// <inheritdoc cref="Process.StandardOutput"/>
+		public StreamReader StandardError => Process.StandardError;
+
 		/// <inheritdoc cref="Process.Start()"/>
 		public void Start()
 		{
