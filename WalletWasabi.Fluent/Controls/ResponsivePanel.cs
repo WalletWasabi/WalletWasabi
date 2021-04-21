@@ -28,10 +28,10 @@ namespace WalletWasabi.Fluent.Controls
 				new AvaloniaList<double>() {0.0});
 
 		public static readonly AttachedProperty<AvaloniaList<int>> ColumnSpanProperty =
-			AvaloniaProperty.RegisterAttached<ResponsivePanel, Control, AvaloniaList<int>>("ColumnSpan", new AvaloniaList<int>() {1});
+			AvaloniaProperty.RegisterAttached<ResponsivePanel, Control, AvaloniaList<int>>("ColumnSpan");
 
 		public static readonly AttachedProperty<AvaloniaList<int>> RowSpanProperty =
-			AvaloniaProperty.RegisterAttached<ResponsivePanel, Control, AvaloniaList<int>>("RowSpan", new AvaloniaList<int>() {1});
+			AvaloniaProperty.RegisterAttached<ResponsivePanel, Control, AvaloniaList<int>>("RowSpan");
 
 		public static AvaloniaList<int> GetColumnSpan(Control? element)
 		{
