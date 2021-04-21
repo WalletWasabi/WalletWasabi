@@ -6,6 +6,8 @@
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.ResponsivePanelDemo"
              mc:Ignorable="d" d:DesignWidth="1250" d:DesignHeight="700"
+             x:CompileBindings="True"
+             x:DataType="vm:ResponsiveLayoutDemoViewModel"
              x:Class="WalletWasabi.Fluent.Views.ResponsivePanelDemo.ResponsiveLayoutDemoView">
     <UserControl.DataContext>
         <vm:ResponsiveLayoutDemoViewModel/>
@@ -42,17 +44,19 @@
                            Background="LightGray">
                 <ItemsRepeater.Styles>
                     <!-- TODO: Set c:ResponsivePanel.ColumnSpan/RowSpan for generate items. -->
-                    <Style Selector="ItemsRepeater > :is(Control)">
+                    <Style Selector="ItemsRepeater > :is(Control)" x:DataType="vm:TestTileItemViewModel">
                         <Setter Property="(c:ResponsivePanel.ColumnSpan)" Value="{Binding ColumnSpan}"/>
                         <Setter Property="(c:ResponsivePanel.RowSpan)" Value="{Binding RowSpan}"/>
                     </Style>
                 </ItemsRepeater.Styles>
                 <ItemsRepeater.ItemTemplate>
-                    <DataTemplate>
-                        <Border Name="Border" CornerRadius="4" Margin="4" Background="{Binding Background}"
-                                ToolTip.Tip="{Binding $self.Bounds.Size}"
-                                c:ResponsivePanel.ColumnSpan="{Binding ColumnSpan}"
-                                c:ResponsivePanel.RowSpan="{Binding RowSpan}">
+                    <DataTemplate DataType="vm:TestTileItemViewModel">
+                        <Border Name="Border"
+                                CornerRadius="4"
+                                Margin="4"
+                                x:CompileBindings="False"
+                                Background="{Binding Background}"
+                                ToolTip.Tip="{Binding $self.Bounds.Size}">
                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <TextBox Text="{Binding #Border.(c:ResponsivePanel.ColumnSpan), Converter={x:Static conv:ColumnHintsConverter.Instance}}"/>
                                 <TextBox Text="{Binding #Border.(c:ResponsivePanel.RowSpan), Converter={x:Static conv:ColumnHintsConverter.Instance}}"/>
