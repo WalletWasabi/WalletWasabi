@@ -202,8 +202,10 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 			var randomness = rnd.GetScalar();
 			var commitment = amountScalar * Generators.Gg + randomness * Generators.Gh;
 
-			var maskedScalar = new Scalar(amount & ((1ul << width) - 1));
-			var (knowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(maskedScalar, randomness, width, rnd);
+			// First, generate a proof for the given statement. This proof may
+			// be invalid (verification equation fails to hold) if the statement
+			// is in fact wrong, in which case the verifier should reject.
+			var (knowledge, bitCommitments) = ProofSystem.RangeProofKnowledge(amountScalar, randomness, width, rnd);
 
 			var rangeProof = ProofSystemHelpers.Prove(knowledge, rnd);
 
@@ -211,7 +213,24 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 			if (!pass)
 			{
-				Assert.Throws<ArgumentException>(() => ProofSystem.RangeProofKnowledge(amountScalar, randomness, width, rnd));
+				Assert.Throws<ArgumentException>(() => knowledge.AssertSoundness());
+
+				// When the statement is unprovable, modify the secret input by
+				// clearing the high bits to make sure that the proof is always
+				// formally valid, but when the original statement is false this
+				// will be a valid proof of a different statement. The verifier
+				// should still reject.
+				var maskedScalar = new Scalar(amount & ((1ul << width) - 1));
+
+				var (knowledgeOfSomethingElse, incompleteBitCommitments) = ProofSystem.RangeProofKnowledge(maskedScalar, randomness, width, rnd);
+
+				var incorrectRangeProof = ProofSystemHelpers.Prove(knowledgeOfSomethingElse, rnd);
+
+				Assert.False(ProofSystemHelpers.Verify(ProofSystem.RangeProofStatement(commitment, incompleteBitCommitments, width), incorrectRangeProof));
+
+				// For completeness, make sure other corrupted statements are also rejected
+				Assert.False(ProofSystemHelpers.Verify(ProofSystem.RangeProofStatement(commitment, bitCommitments, width), incorrectRangeProof));
+				Assert.False(ProofSystemHelpers.Verify(ProofSystem.RangeProofStatement(commitment, incompleteBitCommitments, width), rangeProof));
 			}
 		}
 

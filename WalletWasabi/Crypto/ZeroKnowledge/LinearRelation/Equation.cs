@@ -72,7 +72,6 @@ namespace WalletWasabi.Crypto.ZeroKnowledge.LinearRelation
 			return secretNonces + challenge * witness;
 		}
 
-		[Conditional("DEBUG")]
 		internal void CheckSolution(ScalarVector witness)
 		{
 			if (PublicPoint != witness * Generators)
