@@ -4,6 +4,7 @@ using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -53,7 +54,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(selectedItem =>
+				.Subscribe(async selectedItem =>
 				{
 					if (selectedItem is null)
 					{
@@ -61,14 +62,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 					}
 
 					Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(selectedItem.TransactionSummary, _bitcoinStore, wallet, updateTrigger));
-				});
 
-			this.WhenAnyValue(x => x.SelectedItem)
-				.Throttle(TimeSpan.FromMilliseconds(100))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					SelectedItem = null;
+					Dispatcher.UIThread.Post(() =>
+					{
+						SelectedItem = null;
+					});
 				});
 
 			updateTrigger.Subscribe(async _ => await UpdateAsync());
