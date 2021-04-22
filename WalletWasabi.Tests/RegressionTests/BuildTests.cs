@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Keys;
@@ -51,7 +52,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			// 2. Create mempool service.
 
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
-			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
+			var mempoolService = new MempoolService();
+			node.Behaviors.Add(new UntrustedP2pBehavior(mempoolService));
 
 			// 3. Create wasabi synchronizer service.
 			HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
@@ -68,7 +70,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
 
-			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
+			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, mempoolService, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
 			var scp = new Key().ScriptPubKey;
@@ -211,7 +213,8 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 2. Create mempool service.
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
-			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
+			var mempoolService = new MempoolService();
+			node.Behaviors.Add(new UntrustedP2pBehavior(mempoolService));
 
 			// 3. Create wasabi synchronizer service.
 			HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
@@ -228,7 +231,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
 			WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
-			walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
+			walletManager.RegisterServices(bitcoinStore, mempoolService, synchronizer, serviceConfiguration, feeProvider, blockProvider);
 
 			var baseTip = await rpc.GetBestBlockHashAsync();
 
@@ -256,7 +259,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				using var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
 				var coin = Assert.Single(wallet.Coins);
 				Assert.True(coin.Confirmed);
-				TransactionBroadcaster broadcaster = new(network, bitcoinStore, httpClientFactory, walletManager);
+				TransactionBroadcaster broadcaster = new(network, mempoolService, httpClientFactory, walletManager);
 				broadcaster.Initialize(nodes, rpc);
 
 				// Send money before reorg.

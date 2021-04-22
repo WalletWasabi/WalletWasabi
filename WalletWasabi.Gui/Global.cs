@@ -18,7 +18,6 @@ using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
@@ -96,7 +95,7 @@ namespace WalletWasabi.Gui
 
 				Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 				LegalChecker = new(DataDir);
-				TransactionBroadcaster = new TransactionBroadcaster(Network, HostedServices.Get<P2pNetwork>(), HttpClientFactory, WalletManager);
+				TransactionBroadcaster = new TransactionBroadcaster(Network, HostedServices.Get<P2pNetwork>().MempoolService, HttpClientFactory, WalletManager);
 
 				HostedServices.Register<P2pNetwork>(new P2pNetwork(Network, Config.GetBitcoinP2pEndPoint(), Config.UseTor ? Config.TorSocks5EndPoint : null, Path.Combine(DataDir, "BitcoinP2pNetwork")), "Bitcoin P2P Network");
 
@@ -272,7 +271,7 @@ namespace WalletWasabi.Gui
 
 				cancel.ThrowIfCancellationRequested();
 
-				WalletManager.RegisterServices(BitcoinStore, HostedServices.Get<P2pNetwork>(), Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
+				WalletManager.RegisterServices(BitcoinStore, HostedServices.Get<P2pNetwork>().MempoolService, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
 			}
 			finally
 			{

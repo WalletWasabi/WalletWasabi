@@ -6,8 +6,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 				await rpc.GenerateAsync(blockCount: 101);
 
-				node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
+				node.Behaviors.Add(new UntrustedP2pBehavior(coreNode.MempoolService));
 				node.VersionHandshake();
 
 				using Key k = new();
@@ -56,8 +56,8 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				const int TransactionsCount = 3;
 
 				EventsAwaiter<SmartTransaction> eventAwaiter = new(
-					subscribe: h => bitcoinStore.MempoolService.TransactionReceived += h,
-					unsubscribe: h => bitcoinStore.MempoolService.TransactionReceived -= h,
+					subscribe: h => coreNode.MempoolService.TransactionReceived += h,
+					unsubscribe: h => coreNode.MempoolService.TransactionReceived -= h,
 					count: TransactionsCount);
 
 				List<uint256> txHashesList = new();

@@ -2,7 +2,6 @@ using NBitcoin;
 using NBitcoin.Protocol;
 using System;
 using System.Net;
-using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.BitcoinP2p

@@ -11,7 +11,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.WebClients.Wasabi;
 
-namespace WalletWasabi.Blockchain.Mempool
+namespace WalletWasabi.BitcoinP2p
 {
 	public class MempoolService
 	{

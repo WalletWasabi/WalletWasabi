@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;

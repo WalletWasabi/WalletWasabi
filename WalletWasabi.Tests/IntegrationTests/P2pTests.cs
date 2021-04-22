@@ -11,7 +11,6 @@ using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
@@ -61,7 +60,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			await using BitcoinStore bitcoinStore = new(indexStore, transactionStore, blocks);
 			await bitcoinStore.InitializeAsync();
 
-			using var p2pNetwork = new P2pNetwork(network, new IPEndPoint(IPAddress.Loopback, 1234), null, Path.Combine(dataDir, "P2pNetwork"), bitcoinStore);
+			using var p2pNetwork = new P2pNetwork(network, new IPEndPoint(IPAddress.Loopback, 1234), null, Path.Combine(dataDir, "P2pNetwork"));
 
 			HttpClientFactory httpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: () => new Uri("http://localhost:12345"));
 			ServiceConfiguration serviceConfig = new(MixUntilAnonymitySet.PrivacyLevelStrong.ToString(), 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
@@ -73,8 +72,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			try
 			{
 				var mempoolTransactionAwaiter = new EventsAwaiter<SmartTransaction>(
-					h => bitcoinStore.MempoolService.TransactionReceived += h,
-					h => bitcoinStore.MempoolService.TransactionReceived -= h,
+					h => p2pNetwork.MempoolService.TransactionReceived += h,
+					h => p2pNetwork.MempoolService.TransactionReceived -= h,
 					3);
 
 				var nodeConnectionAwaiter = new EventsAwaiter<NodeEventArgs>(

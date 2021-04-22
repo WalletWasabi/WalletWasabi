@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using WalletWasabi.BitcoinCore.Endpointing;
-using WalletWasabi.Blockchain.Mempool;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 

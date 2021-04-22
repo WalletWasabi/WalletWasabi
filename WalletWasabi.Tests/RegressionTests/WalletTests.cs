@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
@@ -241,7 +242,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync());
 
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
-			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
+			var mempoolService = new MempoolService();
+			node.Behaviors.Add(new UntrustedP2pBehavior(mempoolService));
 
 			// 2. Create wasabi synchronizer service.
 			HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
@@ -259,7 +261,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
 
-			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
+			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, mempoolService, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
 			// Get some money, make it confirm.

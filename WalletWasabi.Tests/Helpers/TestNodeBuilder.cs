@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Endpointing;
-using WalletWasabi.Blockchain.Mempool;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 

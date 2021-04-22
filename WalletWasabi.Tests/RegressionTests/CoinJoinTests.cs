@@ -12,6 +12,7 @@ using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
@@ -1371,11 +1372,13 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// 2. Create mempool service.
 
+			var mempoolService = new MempoolService();
+
 			Node node = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
-			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
+			node.Behaviors.Add(new UntrustedP2pBehavior(mempoolService));
 
 			Node node2 = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
-			node2.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
+			node2.Behaviors.Add(new UntrustedP2pBehavior(mempoolService));
 
 			// 3. Create wasabi synchronizer service.
 			HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
@@ -1399,11 +1402,11 @@ namespace WalletWasabi.Tests.RegressionTests
 				new P2pBlockProvider(nodes2, null, httpClientFactory, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
 
-			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
+			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, mempoolService, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
 			var workDir2 = Path.Combine(Helpers.Common.GetWorkDir(), "2");
-			using var wallet2 = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager2, synchronizer, workDir2, serviceConfiguration, feeProvider, blockProvider2);
+			using var wallet2 = Wallet.CreateAndRegisterServices(network, bitcoinStore, mempoolService, keyManager2, synchronizer, workDir2, serviceConfiguration, feeProvider, blockProvider2);
 
 			// Get some money, make it confirm.
 			var key = keyManager.GetNextReceiveKey("fundZeroLink", out _);

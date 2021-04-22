@@ -19,15 +19,15 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 {
 	public class TransactionBroadcaster
 	{
-		public TransactionBroadcaster(Network network, P2pNetwork bitcoinNetwork, HttpClientFactory httpClientFactory, WalletManager walletManager)
+		public TransactionBroadcaster(Network network, MempoolService mempoolService, HttpClientFactory httpClientFactory, WalletManager walletManager)
 		{
-			Network = Guard.NotNull(nameof(network), network);
-			BitcoinNetwork = Guard.NotNull(nameof(bitcoinNetwork), bitcoinNetwork);
+			Network = network;
+			MempoolService = mempoolService;
 			HttpClientFactory = httpClientFactory;
-			WalletManager = Guard.NotNull(nameof(walletManager), walletManager);
+			WalletManager = walletManager;
 		}
 
-		public P2pNetwork BitcoinNetwork { get; }
+		public MempoolService MempoolService { get; }
 		public HttpClientFactory HttpClientFactory { get; }
 		public Network Network { get; }
 		public NodesGroup? Nodes { get; private set; }
@@ -43,7 +43,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 		private async Task BroadcastTransactionToNetworkNodeAsync(SmartTransaction transaction, Node node)
 		{
 			Logger.LogInfo($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{transaction.GetHash()}.");
-			if (!BitcoinNetwork.MempoolService.TryAddToBroadcastStore(transaction.Transaction, node.RemoteSocketEndpoint.ToString())) // So we'll reply to INV with this transaction.
+			if (!MempoolService.TryAddToBroadcastStore(transaction.Transaction, node.RemoteSocketEndpoint.ToString())) // So we'll reply to INV with this transaction.
 			{
 				Logger.LogWarning($"Transaction {transaction.GetHash()} was already present in the broadcast store.");
 			}
@@ -52,7 +52,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 			// Give 7 seconds to send the inv payload.
 			await node.SendMessageAsync(invPayload).WithAwaitCancellationAsync(TimeSpan.FromSeconds(7)).ConfigureAwait(false); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
 
-			if (BitcoinNetwork.MempoolService.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry? entry))
+			if (MempoolService.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry? entry))
 			{
 				// Give 7 seconds for serving.
 				var timeout = 0;
@@ -185,7 +185,7 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 			}
 			finally
 			{
-				BitcoinNetwork.MempoolService.TryRemoveFromBroadcastStore(transaction.GetHash()); // Remove it just to be sure. Probably has been removed previously.
+				MempoolService.TryRemoveFromBroadcastStore(transaction.GetHash()); // Remove it just to be sure. Probably has been removed previously.
 			}
 		}
 
