@@ -95,9 +95,9 @@ namespace WalletWasabi.Gui
 
 				Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 				LegalChecker = new(DataDir);
-				TransactionBroadcaster = new TransactionBroadcaster(Network, HostedServices.Get<P2pNetwork>().MempoolService, HttpClientFactory, WalletManager);
 
 				HostedServices.Register<P2pNetwork>(new P2pNetwork(Network, Config.GetBitcoinP2pEndPoint(), Config.UseTor ? Config.TorSocks5EndPoint : null, Path.Combine(DataDir, "BitcoinP2pNetwork")), "Bitcoin P2P Network");
+				TransactionBroadcaster = new TransactionBroadcaster(Network, HostedServices.Get<P2pNetwork>().MempoolService, HttpClientFactory, WalletManager);
 
 				HostedServices.Register<UpdateChecker>(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 			}
