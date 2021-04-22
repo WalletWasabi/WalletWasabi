@@ -36,6 +36,7 @@ using WalletWasabi.Stores;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Gui
@@ -213,7 +214,8 @@ namespace WalletWasabi.Gui
 
 				#endregion BitcoinCoreInitialization
 
-				HostedServices.Register<HybridFeeProvider>(new HybridFeeProvider(Synchronizer, HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
+				HostedServices.Register<ThirdPartyFeeProvider>(new ThirdPartyFeeProvider(TimeSpan.FromMinutes(3), Synchronizer, HostedServices.Get<BlockstreamInfoFreeProvider>()), "Third Party Fee Provider");
+				HostedServices.Register<HybridFeeProvider>(new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
