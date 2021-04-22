@@ -26,15 +26,6 @@
           "System.Reactive": "5.0.0"
         }
       },
-      "SkiaSharp": {
-        "type": "Direct",
-        "requested": "[2.88.0-preview.7, )",
-        "resolved": "2.88.0-preview.7",
-        "contentHash": "I3pOA2ak5jySzN+ECdULpYWE1CJQasZFV1hw8Ake1k0OX5z4kquMUHsMO4CJpXxFBaSz1CdbWKoJL/upsJUOQw==",
-        "dependencies": {
-          "System.Memory": "4.5.3"
-        }
-      },
       "Avalonia": {
         "type": "Transitive",
         "resolved": "0.10.2",
@@ -442,6 +433,14 @@
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.0.1",
           "Microsoft.NETCore.Targets": "1.0.1"
+        }
+      },
+      "SkiaSharp": {
+        "type": "Transitive",
+        "resolved": "2.80.2",
+        "contentHash": "D25rzdCwh+3L+XyXqpNa+H/yiLJbE3/R3K/XexwHyQjGdzZvSufFW3oqf3En7hhqSIsxsJ8f5NEZ0J5W5wlGBg==",
+        "dependencies": {
+          "System.Memory": "4.5.3"
         }
       },
       "SkiaSharp.NativeAssets.Linux": {
@@ -1019,15 +1018,6 @@
       }
     },
     ".NETCoreApp,Version=v5.0/linux-x64": {
-      "SkiaSharp": {
-        "type": "Direct",
-        "requested": "[2.88.0-preview.7, )",
-        "resolved": "2.88.0-preview.7",
-        "contentHash": "I3pOA2ak5jySzN+ECdULpYWE1CJQasZFV1hw8Ake1k0OX5z4kquMUHsMO4CJpXxFBaSz1CdbWKoJL/upsJUOQw==",
-        "dependencies": {
-          "System.Memory": "4.5.3"
-        }
-      },
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2020091801",
@@ -1268,6 +1258,14 @@
           "System.Private.Uri": "4.3.0",
           "runtime.native.System": "4.3.0",
           "runtime.native.System.Security.Cryptography.OpenSsl": "4.3.0"
+        }
+      },
+      "SkiaSharp": {
+        "type": "Transitive",
+        "resolved": "2.80.2",
+        "contentHash": "D25rzdCwh+3L+XyXqpNa+H/yiLJbE3/R3K/XexwHyQjGdzZvSufFW3oqf3En7hhqSIsxsJ8f5NEZ0J5W5wlGBg==",
+        "dependencies": {
+          "System.Memory": "4.5.3"
         }
       },
       "SkiaSharp.NativeAssets.Linux": {
@@ -1552,15 +1550,6 @@
       }
     },
     ".NETCoreApp,Version=v5.0/osx-x64": {
-      "SkiaSharp": {
-        "type": "Direct",
-        "requested": "[2.88.0-preview.7, )",
-        "resolved": "2.88.0-preview.7",
-        "contentHash": "I3pOA2ak5jySzN+ECdULpYWE1CJQasZFV1hw8Ake1k0OX5z4kquMUHsMO4CJpXxFBaSz1CdbWKoJL/upsJUOQw==",
-        "dependencies": {
-          "System.Memory": "4.5.3"
-        }
-      },
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2020091801",
@@ -1801,6 +1790,14 @@
           "System.Private.Uri": "4.3.0",
           "runtime.native.System": "4.3.0",
           "runtime.native.System.Security.Cryptography.OpenSsl": "4.3.0"
+        }
+      },
+      "SkiaSharp": {
+        "type": "Transitive",
+        "resolved": "2.80.2",
+        "contentHash": "D25rzdCwh+3L+XyXqpNa+H/yiLJbE3/R3K/XexwHyQjGdzZvSufFW3oqf3En7hhqSIsxsJ8f5NEZ0J5W5wlGBg==",
+        "dependencies": {
+          "System.Memory": "4.5.3"
         }
       },
       "SkiaSharp.NativeAssets.Linux": {
@@ -2085,15 +2082,6 @@
       }
     },
     ".NETCoreApp,Version=v5.0/win7-x64": {
-      "SkiaSharp": {
-        "type": "Direct",
-        "requested": "[2.88.0-preview.7, )",
-        "resolved": "2.88.0-preview.7",
-        "contentHash": "I3pOA2ak5jySzN+ECdULpYWE1CJQasZFV1hw8Ake1k0OX5z4kquMUHsMO4CJpXxFBaSz1CdbWKoJL/upsJUOQw==",
-        "dependencies": {
-          "System.Memory": "4.5.3"
-        }
-      },
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2020091801",
@@ -2251,6 +2239,14 @@
         "type": "Transitive",
         "resolved": "4.3.0",
         "contentHash": "Q+IBgaPYicSQs2tBlmXqbS25c/JLIthWrgrpMwxKSOobW/OqIMVFruUGfuaz4QABVzV8iKdCAbN7APY7Tclbnw=="
+      },
+      "SkiaSharp": {
+        "type": "Transitive",
+        "resolved": "2.80.2",
+        "contentHash": "D25rzdCwh+3L+XyXqpNa+H/yiLJbE3/R3K/XexwHyQjGdzZvSufFW3oqf3En7hhqSIsxsJ8f5NEZ0J5W5wlGBg==",
+        "dependencies": {
+          "System.Memory": "4.5.3"
+        }
       },
       "SkiaSharp.NativeAssets.Linux": {
         "type": "Transitive",
