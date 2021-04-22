@@ -35,9 +35,10 @@
 
       <DataGrid.Styles>
         <Style Selector="PathIcon">
-          <Setter Property="Width" Value="15"/>
-          <Setter Property="Height" Value="15"/>
+          <Setter Property="Width" Value="10"/>
+          <Setter Property="Height" Value="10"/>
           <Setter Property="VerticalAlignment" Value="Center"/>
+          <Setter Property="HorizontalAlignment" Value="Center" />
         </Style>
         <Style Selector="TextBlock">
           <Setter Property="VerticalAlignment" Value="Center"/>
@@ -72,14 +73,8 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <Panel x:DataType="history:HistoryItemViewModel">
-                <StackPanel IsVisible="{Binding !IsCoinJoin}">
-                  <PathIcon Data="{StaticResource normal_transaction}" Opacity="0.6" Width="20"/>
-                  <TextBlock Text="Transaction" />
-                </StackPanel>
-                <StackPanel IsVisible="{Binding IsCoinJoin}">
-                  <PathIcon Data="{StaticResource shield_regular}" Opacity="0.6" Width="20" Height="20" />
-                  <TextBlock Text="CoinJoin" />
-                </StackPanel>
+                <PathIcon ToolTip.Tip="Transaction" Data="{StaticResource normal_transaction}" Opacity="0.6" IsVisible="{Binding !IsCoinJoin}" />
+                <PathIcon ToolTip.Tip="CoinJoin" Data="{StaticResource shield_regular}" Opacity="0.6" Height="12" Width="12" IsVisible="{Binding IsCoinJoin}" />
               </Panel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
@@ -87,7 +82,7 @@
 
         <!-- Incoming -->
         <DataGridTemplateColumn Header="Incoming (BTC)"
-                                Width="*"
+                                Width="Auto"
                                 SortMemberPath="IncomingAmount">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
@@ -103,7 +98,7 @@
 
         <!-- Outgoing -->
         <DataGridTemplateColumn Header="Outgoing (BTC)"
-                                Width="*"
+                                Width="Auto"
                                 SortMemberPath="OutgoingAmount">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
@@ -143,12 +138,12 @@
                 <StackPanel IsVisible="{Binding IsConfirmed}">
                   <PathIcon Data="{StaticResource checkmark_filled}"
                             Foreground="{DynamicResource SystemControlBackgroundAccentBrush}" />
-                  <TextBlock Text="Confirmed" />
+                  <TextBlock Classes="monoSpaced" Text="Confirmed" />
                 </StackPanel>
                 <!-- Pending -->
                 <StackPanel IsVisible="{Binding !IsConfirmed}">
-                  <PathIcon Data="{StaticResource channel_regular}" Opacity="0.6"/>
-                  <TextBlock Text="Pending" />
+                  <PathIcon Data="{StaticResource channel_regular}" Opacity="0.6" />
+                  <TextBlock Classes="monoSpaced" Text="Pending" />
                 </StackPanel>
               </Panel>
             </DataTemplate>

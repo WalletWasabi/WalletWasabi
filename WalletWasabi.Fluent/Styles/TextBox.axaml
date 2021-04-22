@@ -159,6 +159,6 @@
 
   <Style Selector="TextBlock.monoSpaced">
     <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
-    <Setter Property="FontSize" Value="{StaticResource FontSizeH6}" />
+    <Setter Property="FontSize" Value="15" />
   </Style>
 </Styles>
