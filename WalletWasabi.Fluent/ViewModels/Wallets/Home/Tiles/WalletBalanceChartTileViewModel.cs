@@ -12,25 +12,41 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
 	public static class EnumerableExtensions
 	{
-		public static IEnumerable<(DateTimeOffset timestamp, TResult result)> TimeSampleDataSet<TSource, TResult>(this IEnumerable<TSource> source,
+		/// <summary>
+		/// Creates a time sampled dataset from a source dataset.
+		/// </summary>
+		/// <param name="sourceData">Enumerable of source data, in reverse chronological order. i.e. newest data point first.</param>
+		/// <param name="timeSampler">An expression that determines the timestamp of an entry in the source.</param>
+		/// <param name="sampler">An expression that samples or selects the data from an entry.</param>
+		/// <param name="interval">The timespan between each sample.</param>
+		/// <param name="endTime">The oldest time offset where the sampling will end.</param>
+		/// <param name="startFrom">The time to start from.</param>
+		/// <typeparam name="TSource">The type of the elements in the dataset.</typeparam>
+		/// <typeparam name="TResult">The type of the sampled data.</typeparam>
+		/// <returns></returns>
+		public static IEnumerable<(DateTimeOffset timestamp, TResult result)> SelectTimeSampleBackwards<TSource, TResult>(
+			this IEnumerable<TSource> sourceData,
 			Func<TSource, DateTimeOffset> timeSampler, Func<TSource, TResult> sampler,
-			TimeSpan interval, TimeSpan limit)
+			TimeSpan interval, DateTimeOffset endTime, DateTimeOffset? startFrom = default)
 		{
+			var source = sourceData.ToArray();
+
 			if (!source.Any())
 			{
 				yield break;
 			}
 
-			var currentTime = timeSampler(source.First());
-			var endTime = currentTime - limit;
+			var currentTime = startFrom ?? timeSampler(source.First());
 
-			var lastFound = (timestamp: currentTime, result: sampler(source.First()));
+			var lastFound = startFrom is { }
+				? (timestamp: currentTime, result: sampler(source.FirstOrDefault(x=>timeSampler(x) <= currentTime)!))
+				: (timestamp: currentTime, result: sampler(source.First()));
 
 			yield return lastFound;
 
 			currentTime -= interval;
 
-			while (currentTime >= endTime)
+			while (currentTime > endTime)
 			{
 				var current = source.FirstOrDefault(x => timeSampler(x) <= currentTime);
 
@@ -42,7 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				}
 				else
 				{
-					yield return (currentTime, lastFound.result);
+					yield break;
 				}
 
 				currentTime -= interval;
@@ -56,97 +72,107 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify] private ObservableCollection<double> _yValues;
 		[AutoNotify] private ObservableCollection<double> _xValues;
 		[AutoNotify] private double? _xMinimum;
-		[AutoNotify] private List<string> _yLabels;
-		[AutoNotify] private List<string> _xLabels;
+		[AutoNotify] private List<string>? _yLabels;
+		[AutoNotify] private List<string>? _xLabels;
 
-		private TimeSpan _sampleTime;
-		private TimeSpan _sampleLimit;
+		enum TimePeriodOption
+		{
+			All,
+			Day,
+			Week,
+			Month,
+			ThreeMonths,
+			SixMonths,
+			Year
+		}
+
+		private TimePeriodOption _currentTimePeriod = TimePeriodOption.ThreeMonths;
 
 
 		public WalletBalanceChartTileViewModel(ReadOnlyObservableCollection<HistoryItemViewModel> history)
 		{
-			_sampleTime = TimeSpan.FromDays(2);
-			_sampleLimit = TimeSpan.FromDays(90);
-
 			_history = history;
 			_yValues = new ObservableCollection<double>();
 			_xValues = new ObservableCollection<double>();
 
 			var filtered = _history.ToObservableChangeSet().Subscribe(_ => UpdateSample ());
 
-			DayCommand = ReactiveCommand.Create(() =>
-			{
-				_sampleTime = TimeSpan.FromHours(0.5);
-				_sampleLimit = TimeSpan.FromDays(1);
-				UpdateSample();
-			});
+			DayCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Day));
 
-			WeekCommand = ReactiveCommand.Create(() =>
-			{
-				_sampleTime = TimeSpan.FromHours(12);
-				_sampleLimit = TimeSpan.FromDays(7);
-				UpdateSample();
-			});
+			WeekCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Week));
 
-			MonthCommand = ReactiveCommand.Create(() =>
-			{
-				_sampleTime = TimeSpan.FromDays(1);
-				_sampleLimit = TimeSpan.FromDays(30);
-				UpdateSample();
-			});
+			MonthCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Month));
 
-			ThreeMonthCommand = ReactiveCommand.Create(() =>
-			{
-				_sampleTime = TimeSpan.FromDays(2);
-				_sampleLimit = TimeSpan.FromDays(90);
-				UpdateSample();
-			});
+			ThreeMonthCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.ThreeMonths));
 
-			SixMonthCommand = ReactiveCommand.Create(() =>
-			{
-				_sampleTime = TimeSpan.FromDays(3.5);
-				_sampleLimit = TimeSpan.FromDays(182.5);
-				UpdateSample();
-			});
+			SixMonthCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.SixMonths));
 
-			YearCommand = ReactiveCommand.Create(() =>
-			{
-				_sampleTime = TimeSpan.FromDays(7);
-				_sampleLimit = TimeSpan.FromDays(365);
-				UpdateSample();
-			});
+			YearCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Year));
 
 			AllCommand = ReactiveCommand.Create(() =>
 			{
-				if (_history.Any())
-				{
-					var newest = _history.First().Date;
-					var oldest = _history.Last().Date - TimeSpan.FromDays(1);
-
-					_sampleLimit = newest - oldest;
-					_sampleTime = _sampleLimit / 75;
-
-					UpdateSample();
-				}
+				UpdateSample(TimePeriodOption.All);
 			});
-		}
-
-		private double? GetMinimum(TimeSpan limit)
-		{
-			var latest = _history.FirstOrDefault();
-
-			if (latest is { })
-			{
-				return (double) (latest.Date - limit).ToUnixTimeMilliseconds();
-			}
-
-			return null;
 		}
 
 		private void UpdateSample()
 		{
-			XMinimum = GetMinimum(_sampleLimit);
-			var values = _history.TimeSampleDataSet(x => x.Date, x => x.Balance, _sampleTime, _sampleLimit);
+			UpdateSample(_currentTimePeriod);
+		}
+
+		private void UpdateSample(TimePeriodOption timePeriod)
+		{
+			switch (timePeriod)
+			{
+				case TimePeriodOption.All:
+					if (_history.Any())
+					{
+						var oldest = _history.Last().Date;
+
+						UpdateSample((DateTimeOffset.Now - oldest) / 125, DateTimeOffset.Now - oldest);
+					}
+					break;
+
+				case TimePeriodOption.Day:
+					UpdateSample(TimeSpan.FromHours(0.5), TimeSpan.FromHours(24));
+					break;
+
+				case TimePeriodOption.Week:
+					UpdateSample(TimeSpan.FromHours(12), TimeSpan.FromDays(7));
+					break;
+
+				case TimePeriodOption.Month:
+					UpdateSample(TimeSpan.FromDays(1), TimeSpan.FromDays(30));
+					break;
+
+				case TimePeriodOption.ThreeMonths:
+					UpdateSample(TimeSpan.FromDays(2), TimeSpan.FromDays(90));
+					break;
+
+				case TimePeriodOption.SixMonths:
+					UpdateSample(TimeSpan.FromDays(3.5), TimeSpan.FromDays(182.5));
+					break;
+
+				case TimePeriodOption.Year:
+					UpdateSample(TimeSpan.FromDays(7), TimeSpan.FromDays(365));
+					break;
+			}
+
+			_currentTimePeriod = timePeriod;
+		}
+
+		private void UpdateSample(TimeSpan sampleTime, TimeSpan sampleBackFor)
+		{
+			var sampleLimit = DateTimeOffset.Now - sampleBackFor;
+
+			XMinimum = sampleLimit.ToUnixTimeMilliseconds();
+
+			var values = _history.SelectTimeSampleBackwards(
+				x => x.Date,
+				x => x.Balance,
+				sampleTime,
+				sampleLimit,
+				DateTime.Now);
 
 			XValues.Clear();
 			YValues.Clear();
@@ -154,7 +180,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			foreach (var (timestamp, balance) in values.Reverse())
 			{
 				YValues.Add((double) balance.ToDecimal(MoneyUnit.BTC));
-				XValues.Add((double) timestamp.ToUnixTimeMilliseconds());
+				XValues.Add(timestamp.ToUnixTimeMilliseconds());
 			}
 
 			if (YValues.Any())
