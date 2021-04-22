@@ -2,7 +2,6 @@ using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using DynamicData;
@@ -52,7 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(selectedItem =>
+				.Subscribe(async selectedItem =>
 				{
 					if (selectedItem is null)
 					{
@@ -60,13 +59,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 					}
 
 					Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(selectedItem.TransactionSummary, _bitcoinStore, wallet, updateTrigger));
-				});
 
-			this.WhenAnyValue(x => x.SelectedItem)
-				.Throttle(TimeSpan.FromMilliseconds(100))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
+					await Task.Delay(100); // without this, the DataGrid won't detect the selection clearing
 					SelectedItem = null;
 				});
 
