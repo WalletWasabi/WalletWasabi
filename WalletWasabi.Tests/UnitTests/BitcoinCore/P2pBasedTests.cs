@@ -54,37 +54,28 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				BitcoinWitPubKeyAddress address = k.PubKey.GetSegwitAddress(network);
 
 				// Number of transactions to send.
-				const int TransactionsCount = 10;
+				const int TransactionsCount = 3;
 
 				EventsAwaiter<SmartTransaction> eventAwaiter = new(
 					subscribe: h => mempoolService.TransactionReceived += h,
 					unsubscribe: h => mempoolService.TransactionReceived -= h,
 					count: TransactionsCount);
 
-				List<Task<uint256>> txHashesList = new();
-				IRPCClient rpcBatch = rpc.PrepareBatch();
+				List<uint256> txHashesList = new();
 
 				// Add to the batch 10 RPC commands: Send 1 coin to the same address.
 				for (int i = 0; i < TransactionsCount; i++)
 				{
-					txHashesList.Add(rpcBatch.SendToAddressAsync(address, Money.Coins(1)));
+					txHashesList.Add(await rpc.SendToAddressAsync(address, Money.Coins(1)));
 				}
-
-				// Publish the RPC batch.
-				Task rpcBatchTask = rpcBatch.SendBatchAsync();
 
 				// Wait until the mempool service receives all the sent transactions.
 				IEnumerable<SmartTransaction> mempoolSmartTxs = await eventAwaiter.WaitAsync(TimeSpan.FromMinutes(2));
 
-				await rpcBatchTask;
-
-				// Collect all the transaction hashes of the sent transactions.
-				uint256[] hashes = await Task.WhenAll(txHashesList);
-
 				// Check that all the received transaction hashes are in the set of sent transaction hashes.
 				foreach (SmartTransaction tx in mempoolSmartTxs)
 				{
-					Assert.Contains(tx.GetHash(), hashes);
+					Assert.Contains(tx.GetHash(), txHashesList);
 				}
 			}
 			finally
@@ -125,11 +116,10 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				{
 					txTasks.Add(batch.SendToAddressAsync(addr, Money.Coins(1)));
 				}
-				var batchTask = batch.SendBatchAsync();
+				await batch.SendBatchAsync();
 
 				var arrivedTxs = await txEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
 
-				await batchTask;
 				var hashes = await Task.WhenAll(txTasks);
 				foreach (var hash in arrivedTxs.Select(x => x.GetHash()))
 				{

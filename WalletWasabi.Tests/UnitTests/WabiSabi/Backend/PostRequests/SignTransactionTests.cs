@@ -1,8 +1,6 @@
 using NBitcoin;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
@@ -12,6 +10,7 @@ using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
@@ -26,18 +25,17 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			using Key key = new();
 			Alice alice = WabiSabiFactory.CreateAlice(key: key);
 			round.Alices.Add(alice);
-			var coinjoin = round.Coinjoin;
-			coinjoin.Inputs.Add(alice.Coins.First().Outpoint);
+			round.CoinjoinState = round.AddInput(alice.Coins.First()).Finalize();
 			round.SetPhase(Phase.TransactionSigning);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
-			var signedCoinJoin = coinjoin.Clone();
-			signedCoinJoin.Sign(key.GetBitcoinSecret(Network.Main), alice.Coins.First());
+			var aliceSignedCoinJoin = round.CoinjoinState.AssertSigning().CreateUnsignedTransaction();
+			aliceSignedCoinJoin.Sign(key.GetBitcoinSecret(Network.Main), alice.Coins.First());
 
-			var req = new TransactionSignaturesRequest(round.Id, new[] { new InputWitnessPair(0, signedCoinJoin.Inputs[0].WitScript) });
+			var req = new TransactionSignaturesRequest(round.Id, new[] { new InputWitnessPair(0, aliceSignedCoinJoin.Inputs[0].WitScript) });
 			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			await handler.SignTransactionAsync(req);
-			Assert.True(round.Coinjoin.Inputs.First().HasWitScript());
+			Assert.True(round.CoinjoinState.AssertSigning().IsFullySigned);
 			await arena.StopAsync(CancellationToken.None);
 		}
 
@@ -85,17 +83,15 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			Alice alice2 = WabiSabiFactory.CreateAlice(key: key2);
 			round.Alices.Add(alice1);
 			round.Alices.Add(alice2);
-			var coinjoin = round.Coinjoin;
-			coinjoin.Inputs.Add(alice1.Coins.First().Outpoint);
-			coinjoin.Inputs.Add(alice2.Coins.First().Outpoint);
+			round.CoinjoinState = round.CoinjoinState.AssertConstruction().AddInput(alice1.Coins.First()).AddInput(alice2.Coins.First()).Finalize();
 			round.SetPhase(Phase.TransactionSigning);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
 			// Submit the signature for the second alice to the first alice's input.
-			var signedCoinJoin = coinjoin.Clone();
-			signedCoinJoin.Sign(key2.GetBitcoinSecret(Network.Main), alice2.Coins.First());
+			var alice2signedCoinJoin = round.CoinjoinState.AssertSigning().CreateUnsignedTransaction();
+			alice2signedCoinJoin.Sign(key2.GetBitcoinSecret(Network.Main), alice2.Coins.First());
 
-			var req = new TransactionSignaturesRequest(round.Id, new[] { new InputWitnessPair(0, signedCoinJoin.Inputs[0].WitScript) });
+			var req = new TransactionSignaturesRequest(round.Id, new[] { new InputWitnessPair(0, alice2signedCoinJoin.Inputs[0].WitScript) });
 			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.SignTransactionAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.WrongCoinjoinSignature, ex.ErrorCode);
