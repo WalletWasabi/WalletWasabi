@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.BitcoinCore.Monitoring;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
@@ -50,19 +51,12 @@ namespace WalletWasabi.Gui
 		public HttpClientFactory HttpClientFactory { get; }
 		public LegalChecker LegalChecker { get; private set; }
 		public Config Config { get; }
-
-		public string AddressManagerFilePath { get; private set; }
-		public AddressManager AddressManager { get; private set; }
-
-		public NodesGroup Nodes { get; private set; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
 		public WalletManager WalletManager { get; }
 		public TransactionBroadcaster TransactionBroadcaster { get; set; }
 		public CoinJoinProcessor CoinJoinProcessor { get; set; }
-		public Node RegTestMempoolServingNode { get; private set; }
 		private TorProcessManager? TorManager { get; set; }
 		public CoreNode BitcoinCoreNode { get; private set; }
-
 		public HostedServices HostedServices { get; }
 
 		public UiConfig UiConfig { get; }
@@ -131,13 +125,6 @@ namespace WalletWasabi.Gui
 
 				cancel.ThrowIfCancellationRequested();
 
-				var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
-				AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
-				var addrManTask = InitializeAddressManagerBehaviorAsync();
-
-				var userAgent = Constants.UserAgents.RandomElement();
-				var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
-
 				HostedServices.Register<UpdateChecker>(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
 				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
@@ -184,6 +171,7 @@ namespace WalletWasabi.Gui
 
 				#endregion BitcoinStoreInitialization
 
+				HostedServices.Register<P2pNetwork>(new P2pNetwork(Network, Config.GetBitcoinP2pEndPoint(), Config.UseTor ? Config.TorSocks5EndPoint : null, Path.Combine(DataDir, "BitcoinP2pNetwork"), BitcoinStore), "Bitcoin P2P Network");
 				HostedServices.Register<FilterProcessor>(new FilterProcessor(Synchronizer, BitcoinStore), "Filter Processor");
 
 				cancel.ThrowIfCancellationRequested();
@@ -231,65 +219,6 @@ namespace WalletWasabi.Gui
 
 				cancel.ThrowIfCancellationRequested();
 
-				#region MempoolInitialization
-
-				connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
-
-				#endregion MempoolInitialization
-
-				cancel.ThrowIfCancellationRequested();
-
-				#region AddressManagerInitialization
-
-				AddressManagerBehavior addressManagerBehavior = await addrManTask.ConfigureAwait(false);
-				connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
-
-				#endregion AddressManagerInitialization
-
-				cancel.ThrowIfCancellationRequested();
-
-				#region P2PInitialization
-
-				if (Network == Network.RegTest)
-				{
-					Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
-					try
-					{
-						EndPoint bitcoinCoreEndpoint = Config.GetBitcoinP2pEndPoint();
-
-						Node node = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint).ConfigureAwait(false);
-
-						Nodes.ConnectedNodes.Add(node);
-
-						RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint).ConfigureAwait(false);
-
-						RegTestMempoolServingNode.Behaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
-					}
-					catch (SocketException ex)
-					{
-						Logger.LogError(ex);
-					}
-				}
-				else
-				{
-					Nodes = CreateAndConfigureNodesGroup(connectionParameters);
-					RegTestMempoolServingNode = null;
-				}
-
-				Nodes.Connect();
-				Logger.LogInfo("Start connecting to nodes...");
-
-				var regTestMempoolServingNode = RegTestMempoolServingNode;
-				if (regTestMempoolServingNode is { })
-				{
-					regTestMempoolServingNode.VersionHandshake();
-					Logger.LogInfo("Start connecting to mempool serving regtest node...");
-				}
-
-				#endregion P2PInitialization
-
-				cancel.ThrowIfCancellationRequested();
-
 				#region SynchronizerInitialization
 
 				var requestInterval = TimeSpan.FromSeconds(30);
@@ -307,7 +236,7 @@ namespace WalletWasabi.Gui
 
 				cancel.ThrowIfCancellationRequested();
 
-				TransactionBroadcaster.Initialize(Nodes, BitcoinCoreNode?.RpcClient);
+				TransactionBroadcaster.Initialize(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode?.RpcClient);
 				CoinJoinProcessor = new CoinJoinProcessor(Network, Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
 
 				#region JsonRpcServerInitialization
@@ -335,7 +264,7 @@ namespace WalletWasabi.Gui
 
 				var blockProvider = new CachedBlockProvider(
 					new SmartBlockProvider(
-						new P2pBlockProvider(Nodes, BitcoinCoreNode, HttpClientFactory, Config.ServiceConfiguration, Network),
+						new P2pBlockProvider(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode, HttpClientFactory, Config.ServiceConfiguration, Network),
 						Cache),
 					BitcoinStore.BlockRepository);
 
@@ -348,97 +277,6 @@ namespace WalletWasabi.Gui
 			finally
 			{
 				InitializationCompleted.TrySetResult(true);
-			}
-		}
-
-		private NodesGroup CreateAndConfigureNodesGroup(NodeConnectionParameters connectionParameters)
-		{
-			var maximumNodeConnection = 12;
-			var bestEffortEndpointConnector = new BestEffortEndpointConnector(maximumNodeConnection / 2);
-			connectionParameters.EndpointConnector = bestEffortEndpointConnector;
-			if (Config.UseTor)
-			{
-				connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.TorSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
-			}
-			var nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
-			nodes.ConnectedNodes.Added += ConnectedNodes_OnAddedOrRemoved;
-			nodes.ConnectedNodes.Removed += ConnectedNodes_OnAddedOrRemoved;
-			nodes.MaximumNodeConnection = maximumNodeConnection;
-			return nodes;
-		}
-
-		private async Task<AddressManagerBehavior> InitializeAddressManagerBehaviorAsync()
-		{
-			var needsToDiscoverPeers = true;
-			if (Network == Network.RegTest)
-			{
-				AddressManager = new AddressManager();
-				Logger.LogInfo($"Fake {nameof(AddressManager)} is initialized on the {Network.RegTest}.");
-			}
-			else
-			{
-				try
-				{
-					AddressManager = await NBitcoinHelpers.LoadAddressManagerFromPeerFileAsync(AddressManagerFilePath).ConfigureAwait(false);
-
-					// Most of the times we do not need to discover new peers. Instead, we can connect to
-					// some of those that we already discovered in the past. In this case we assume that
-					// discovering new peers could be necessary if our address manager has less
-					// than 500 addresses. 500 addresses could be okay because previously we tried with
-					// 200 and only one user reported he/she was not able to connect (there could be many others,
-					// of course).
-					// On the other side, increasing this number forces users that do not need to discover more peers
-					// to spend resources (CPU/bandwidth) to discover new peers.
-					needsToDiscoverPeers = Config.UseTor || AddressManager.Count < 500;
-					Logger.LogInfo($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
-				}
-				catch (DirectoryNotFoundException ex)
-				{
-					Logger.LogInfo($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
-					Logger.LogTrace(ex);
-					AddressManager = new AddressManager();
-				}
-				catch (FileNotFoundException ex)
-				{
-					Logger.LogInfo($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
-					Logger.LogTrace(ex);
-					AddressManager = new AddressManager();
-				}
-				catch (OverflowException ex)
-				{
-					// https://github.com/zkSNACKs/WalletWasabi/issues/712
-					Logger.LogInfo($"{nameof(AddressManager)} has thrown `{nameof(OverflowException)}`. Attempting to autocorrect.");
-					File.Delete(AddressManagerFilePath);
-					Logger.LogTrace(ex);
-					AddressManager = new AddressManager();
-					Logger.LogInfo($"{nameof(AddressManager)} autocorrection is successful.");
-				}
-				catch (FormatException ex)
-				{
-					// https://github.com/zkSNACKs/WalletWasabi/issues/880
-					Logger.LogInfo($"{nameof(AddressManager)} has thrown `{nameof(FormatException)}`. Attempting to autocorrect.");
-					File.Delete(AddressManagerFilePath);
-					Logger.LogTrace(ex);
-					AddressManager = new AddressManager();
-					Logger.LogInfo($"{nameof(AddressManager)} autocorrection is successful.");
-				}
-			}
-
-			var addressManagerBehavior = new AddressManagerBehavior(AddressManager)
-			{
-				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
-			};
-			return addressManagerBehavior;
-		}
-
-		private void ConnectedNodes_OnAddedOrRemoved(object? sender, NodeEventArgs e)
-		{
-			if (Nodes.NodeConnectionParameters.EndpointConnector is BestEffortEndpointConnector bestEffortEndPointConnector)
-			{
-				if (sender is NodesCollection nodesCollection)
-				{
-					bestEffortEndPointConnector.UpdateConnectedNodesCounter(nodesCollection.Count);
-				}
 			}
 		}
 
@@ -664,42 +502,6 @@ namespace WalletWasabi.Gui
 				{
 					await synchronizer.StopAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
-				}
-
-				Logger.LogDebug($"Step: {nameof(AddressManagerFilePath)}.", nameof(Global));
-
-				if (AddressManagerFilePath is { } addressManagerFilePath)
-				{
-					IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
-					var addressManager = AddressManager;
-					if (addressManager is { })
-					{
-						addressManager.SavePeerFile(AddressManagerFilePath, Config.Network);
-						Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.");
-					}
-				}
-
-				Logger.LogDebug($"Step: {nameof(Nodes)}.", nameof(Global));
-
-				if (Nodes is { } nodes)
-				{
-					Nodes.ConnectedNodes.Added -= ConnectedNodes_OnAddedOrRemoved;
-					Nodes.ConnectedNodes.Removed -= ConnectedNodes_OnAddedOrRemoved;
-					nodes.Disconnect();
-					while (nodes.ConnectedNodes.Any(x => x.IsConnected))
-					{
-						await Task.Delay(50).ConfigureAwait(false);
-					}
-					nodes.Dispose();
-					Logger.LogInfo($"{nameof(Nodes)} are disposed.");
-				}
-
-				Logger.LogDebug($"Step: {nameof(RegTestMempoolServingNode)}.", nameof(Global));
-
-				if (RegTestMempoolServingNode is { } regTestMempoolServingNode)
-				{
-					regTestMempoolServingNode.Disconnect();
-					Logger.LogInfo($"{nameof(RegTestMempoolServingNode)} is disposed.");
 				}
 
 				Logger.LogDebug($"Step: {nameof(BitcoinCoreNode)}.", nameof(Global));
