@@ -26,7 +26,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 		public async Task InitializeAsync()
 		{
-			bool started = await TorManager.StartAsync(ensureRunning: true);
+			bool started = await TorManager.StartAsync();
 			Assert.True(started, "Tor failed to start.");
 		}
 
@@ -130,20 +130,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 			await (await client.SendAsync(HttpMethod.Get, "/transactions/38d4cfeb57d6685753b7a3b3534c3cb576c34ca7344cd4582f9613ebf0c2b02a?format=json&headeronly=true", null, ctsTimeout.Token)).Content.ReadAsStringAsync(ctsTimeout.Token);
 			await (await client.SendAsync(HttpMethod.Get, "/balances/15sYbVpRh6dyWycZMwPdxJWD4xbfxReeHe?unspentonly=true", null, ctsTimeout.Token)).Content.ReadAsStringAsync(ctsTimeout.Token);
 			await (await client.SendAsync(HttpMethod.Get, "balances/akEBcY5k1dn2yeEdFnTMwdhVbHxtgHb6GGi?from=tip&until=336000", null, ctsTimeout.Token)).Content.ReadAsStringAsync(ctsTimeout.Token);
-		}
-
-		[Fact]
-		public async Task CanRequestOnionV2Async()
-		{
-			using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
-
-			TorHttpClient client = MakeTorHttpClient(new("http://expyuzz4wqqyqhjn.onion/"));
-			HttpResponseMessage response = await client.SendAsync(HttpMethod.Get, relativeUri: "", null, ctsTimeout.Token);
-			var content = await response.Content.ReadAsStringAsync(ctsTimeout.Token);
-
-			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-			Assert.Contains("tor", content, StringComparison.OrdinalIgnoreCase);
 		}
 
 		[Fact]

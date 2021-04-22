@@ -16,32 +16,28 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class ArenaClient
 	{
-		public static readonly int ProtocolCredentialNumber = 2;
-		public static readonly ulong ProtocolMaxAmountPerAlice = 4_300_000_000_000ul;
-		public static readonly ulong ProtocolMaxWeightPerAlice = 1_000ul;
-
 		public ArenaClient(
 			CredentialIssuerParameters amountCredentialIssuerParameters,
-			CredentialIssuerParameters weightCredentialIssuerParameters,
+			CredentialIssuerParameters vsizeCredentialIssuerParameters,
 			CredentialPool amountCredentialPool,
-			CredentialPool weightCredentialPool,
+			CredentialPool vsizeCredentialPool,
 			IArenaRequestHandler requestHandler,
 			WasabiRandom random)
 		{
-			AmountCredentialClient = new WabiSabiClient(amountCredentialIssuerParameters, ProtocolCredentialNumber, random, ProtocolMaxAmountPerAlice, amountCredentialPool);
-			WeightCredentialClient = new WabiSabiClient(weightCredentialIssuerParameters, ProtocolCredentialNumber, random, ProtocolMaxWeightPerAlice, weightCredentialPool);
+			AmountCredentialClient = new WabiSabiClient(amountCredentialIssuerParameters, random, ProtocolConstants.MaxAmountPerAlice, amountCredentialPool);
+			VsizeCredentialClient = new WabiSabiClient(vsizeCredentialIssuerParameters, random, ProtocolConstants.MaxVsizePerAlice, vsizeCredentialPool);
 			RequestHandler = requestHandler;
 		}
 
-		public ArenaClient(WabiSabiClient amountCredentialClient, WabiSabiClient weightCredentialClient, IArenaRequestHandler requestHandler)
+		public ArenaClient(WabiSabiClient amountCredentialClient, WabiSabiClient vsizeCredentialClient, IArenaRequestHandler requestHandler)
 		{
 			AmountCredentialClient = amountCredentialClient;
-			WeightCredentialClient = weightCredentialClient;
+			VsizeCredentialClient = vsizeCredentialClient;
 			RequestHandler = requestHandler;
 		}
 
 		public WabiSabiClient AmountCredentialClient { get; }
-		public WabiSabiClient WeightCredentialClient { get; }
+		public WabiSabiClient VsizeCredentialClient { get; }
 		public IArenaRequestHandler RequestHandler { get; }
 
 		public ValueTask<Guid> RegisterInputAsync(Money amount, OutPoint outPoint, Key key, Guid roundId, uint256 roundHash) =>
@@ -68,17 +64,17 @@ namespace WalletWasabi.WabiSabi.Client
 				.Select(x => new InputRoundSignaturePair(x.outPoint, GenerateOwnershipProof(x.key, roundHash)));
 
 			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
-			var zeroWeightCredentialRequestData = WeightCredentialClient.CreateRequestForZeroAmount();
+			var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();
 
 			var inputRegistrationResponse = await RequestHandler.RegisterInputAsync(
 				new InputsRegistrationRequest(
 					roundId,
 					registrableInputs,
 					zeroAmountCredentialRequestData.CredentialsRequest,
-					zeroWeightCredentialRequestData.CredentialsRequest)).ConfigureAwait(false);
+					zeroVsizeCredentialRequestData.CredentialsRequest)).ConfigureAwait(false);
 
 			AmountCredentialClient.HandleResponse(inputRegistrationResponse.AmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
-			WeightCredentialClient.HandleResponse(inputRegistrationResponse.WeightCredentials, zeroWeightCredentialRequestData.CredentialsResponseValidation);
+			VsizeCredentialClient.HandleResponse(inputRegistrationResponse.VsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
 
 			return inputRegistrationResponse.AliceId;
 		}
@@ -88,48 +84,93 @@ namespace WalletWasabi.WabiSabi.Client
 			await RequestHandler.RemoveInputAsync(new InputsRemovalRequest(roundId, aliceId)).ConfigureAwait(false);
 		}
 
-		public async Task RegisterOutputAsync(Guid roundId, long value, Script scriptPubKey, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Credential> weightCredentialsToPresent)
+		public async Task RegisterOutputAsync(Guid roundId, long value, Script scriptPubKey, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Credential> vsizeCredentialsToPresent)
 		{
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
-			Guard.InRange(nameof(weightCredentialsToPresent), weightCredentialsToPresent, 0, WeightCredentialClient.NumberOfCredentials);
+			Guard.InRange(nameof(vsizeCredentialsToPresent), vsizeCredentialsToPresent, 0, VsizeCredentialClient.NumberOfCredentials);
 
 			var presentedAmount = amountCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
 			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
 				new[] { presentedAmount - value },
 				amountCredentialsToPresent);
 
-			var presentedWeight = weightCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
-			var (realWeightCredentialRequest, realWeightCredentialResponseValidation) = WeightCredentialClient.CreateRequest(
-				new[] { presentedWeight - Constants.WitnessScaleFactor * scriptPubKey.EstimateOutputVsize() },
-				weightCredentialsToPresent);
+			var presentedVsize = vsizeCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
+			var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
+				new[] { presentedVsize - scriptPubKey.EstimateOutputVsize() },
+				vsizeCredentialsToPresent);
 
 			var outputRegistrationResponse = await RequestHandler.RegisterOutputAsync(
 				new OutputRegistrationRequest(
 					roundId,
 					scriptPubKey,
 					realAmountCredentialRequest,
-					realWeightCredentialRequest)).ConfigureAwait(false);
+					realVsizeCredentialRequest)).ConfigureAwait(false);
 
 			AmountCredentialClient.HandleResponse(outputRegistrationResponse.AmountCredentials, realAmountCredentialResponseValidation);
-			WeightCredentialClient.HandleResponse(outputRegistrationResponse.WeightCredentials, realWeightCredentialResponseValidation);
+			VsizeCredentialClient.HandleResponse(outputRegistrationResponse.VsizeCredentials, realVsizeCredentialResponseValidation);
 		}
 
-		public async Task<bool> ConfirmConnectionAsync(Guid roundId, Guid aliceId, IEnumerable<long> inputsRegistrationWeight, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Money> newAmount)
+		public async Task<(IEnumerable<Credential> RealAmountCredentials, IEnumerable<Credential> RealVsizeCredentials)> ReissueCredentialAsync(
+			Guid roundId,
+			long value1,
+			Script scriptPubKey1,
+			long value2,
+			Script scriptPubKey2,
+			IEnumerable<Credential> amountCredentialsToPresent,
+			IEnumerable<Credential> vsizeCredentialsToPresent)
+		{
+			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
+
+			var presentedAmount = amountCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
+			if (value1 + value2 != presentedAmount)
+			{
+				throw new InvalidOperationException($"Reissuence amounts must equal with the sum of the presented ones.");
+			}
+
+			var presentedVsize = vsizeCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
+			var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
+				new[] { (long)scriptPubKey1.EstimateOutputVsize(), scriptPubKey2.EstimateOutputVsize() },
+				vsizeCredentialsToPresent);
+
+			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
+				new[] { value1, value2 },
+				amountCredentialsToPresent);
+
+			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
+			var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();
+
+			var reissuanceResponse = await RequestHandler.ReissueCredentialAsync(
+				new ReissueCredentialRequest(
+					roundId,
+					realAmountCredentialRequest,
+					realVsizeCredentialRequest,
+					zeroAmountCredentialRequestData.CredentialsRequest,
+					zeroVsizeCredentialRequestData.CredentialsRequest)).ConfigureAwait(false);
+
+			var realAmountCredentials = AmountCredentialClient.HandleResponse(reissuanceResponse.RealAmountCredentials, realAmountCredentialResponseValidation);
+			var realVsizeCredentials = VsizeCredentialClient.HandleResponse(reissuanceResponse.RealVsizeCredentials, realVsizeCredentialResponseValidation);
+			AmountCredentialClient.HandleResponse(reissuanceResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
+			VsizeCredentialClient.HandleResponse(reissuanceResponse.ZeroVsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
+
+			return (realAmountCredentials, realVsizeCredentials);
+		}
+
+		public async Task<bool> ConfirmConnectionAsync(Guid roundId, Guid aliceId, IEnumerable<long> inputsRegistrationVsize, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Money> newAmount)
 		{
 			Guard.InRange(nameof(newAmount), newAmount, 1, AmountCredentialClient.NumberOfCredentials);
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 1, AmountCredentialClient.NumberOfCredentials);
-			Guard.InRange(nameof(inputsRegistrationWeight), inputsRegistrationWeight, 1, WeightCredentialClient.NumberOfCredentials);
+			Guard.InRange(nameof(inputsRegistrationVsize), inputsRegistrationVsize, 1, VsizeCredentialClient.NumberOfCredentials);
 
 			var realAmountCredentialRequestData = AmountCredentialClient.CreateRequest(
 				newAmount.Select(x => x.Satoshi),
 				amountCredentialsToPresent);
 
-			var realWeightCredentialRequestData = WeightCredentialClient.CreateRequest(
-				inputsRegistrationWeight,
+			var realVsizeCredentialRequestData = VsizeCredentialClient.CreateRequest(
+				inputsRegistrationVsize,
 				Enumerable.Empty<Credential>());
 
 			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
-			var zeroWeightCredentialRequestData = WeightCredentialClient.CreateRequestForZeroAmount();
+			var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();
 
 			var confirmConnectionResponse = await RequestHandler.ConfirmConnectionAsync(
 				new ConnectionConfirmationRequest(
@@ -137,16 +178,16 @@ namespace WalletWasabi.WabiSabi.Client
 					aliceId,
 					zeroAmountCredentialRequestData.CredentialsRequest,
 					realAmountCredentialRequestData.CredentialsRequest,
-					zeroWeightCredentialRequestData.CredentialsRequest,
-					realWeightCredentialRequestData.CredentialsRequest)).ConfigureAwait(false);
+					zeroVsizeCredentialRequestData.CredentialsRequest,
+					realVsizeCredentialRequestData.CredentialsRequest)).ConfigureAwait(false);
 
 			AmountCredentialClient.HandleResponse(confirmConnectionResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
-			WeightCredentialClient.HandleResponse(confirmConnectionResponse.ZeroWeightCredentials, zeroWeightCredentialRequestData.CredentialsResponseValidation);
+			VsizeCredentialClient.HandleResponse(confirmConnectionResponse.ZeroVsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
 
-			if (confirmConnectionResponse is { RealAmountCredentials: { }, RealWeightCredentials: { } })
+			if (confirmConnectionResponse is { RealAmountCredentials: { }, RealVsizeCredentials: { } })
 			{
 				AmountCredentialClient.HandleResponse(confirmConnectionResponse.RealAmountCredentials, realAmountCredentialRequestData.CredentialsResponseValidation);
-				WeightCredentialClient.HandleResponse(confirmConnectionResponse.RealWeightCredentials, realWeightCredentialRequestData.CredentialsResponseValidation);
+				VsizeCredentialClient.HandleResponse(confirmConnectionResponse.RealVsizeCredentials, realVsizeCredentialRequestData.CredentialsResponseValidation);
 				return true;
 			}
 

@@ -388,7 +388,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 										break;
 
 									default:
-										throw new InvalidOperationException("This is impossible.");
+										throw new InvalidOperationException("This should never happen.");
 								}
 							}
 							catch (Exception ex)
@@ -432,7 +432,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					break;
 
 				default:
-					throw new InvalidOperationException("This is impossible.");
+					throw new InvalidOperationException("This should never happen.");
 			}
 
 			return timeout;
@@ -646,7 +646,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			if (collision is { })
 			{
 				newDenomination -= Money.Satoshis(1);
-				Logger.LogDebug($"This is impossibru. The new base denomination is exactly the same as the one of the mixing level. Adjusted the new denomination one satoshi less.");
+				Logger.LogDebug($"This should never happen. The new base denomination is exactly the same as the one of the mixing level. Adjusted the new denomination one satoshi less.");
 			}
 
 			return newDenomination;
@@ -823,7 +823,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 				if (optimalFeeRate is null || optimalFeeRate == FeeRate.Zero || currentFeeRate is null || currentFeeRate == FeeRate.Zero) // This would be really strange if it'd happen.
 				{
-					Logger.LogError($"Round ({RoundId}): This is impossible. {nameof(optimalFeeRate)}: {optimalFeeRate}, {nameof(currentFeeRate)}: {currentFeeRate}.");
+					Logger.LogError($"Round ({RoundId}): This should never happen. {nameof(optimalFeeRate)}: {optimalFeeRate}, {nameof(currentFeeRate)}: {currentFeeRate}.");
 				}
 				else if (optimalFeeRate < currentFeeRate)
 				{
