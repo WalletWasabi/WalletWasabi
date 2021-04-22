@@ -33,11 +33,6 @@ namespace WalletWasabi.Fluent.Controls
 			return Math.Min(Math.Max(val, min), max);
 		}
 
-		private static double ScaleVertical(double value, double max, double range)
-		{
-			return range - value / max * range;
-		}
-
 		private static Geometry CreateFillGeometry(IReadOnlyList<Point> points, double width, double height)
 		{
 			var geometry = new StreamGeometry();
@@ -262,8 +257,11 @@ namespace WalletWasabi.Fluent.Controls
 
 			var yAxisValuesLogScaledMax = yAxisValuesLogScaled.Max();
 
+			var yAxisScaler = new StraightLineFormula();
+			yAxisScaler.CalculateFrom(yAxisValuesLogScaledMax, 0, 0, state.AreaHeight);
+
 			var yAxisValuesScaled = yAxisValuesLogScaled
-				.Select(y => ScaleVertical(y, yAxisValuesLogScaledMax, state.AreaHeight))
+				.Select(y => yAxisScaler.GetYforX(y))
 				.ToList();
 
 			var xAxisValuesEnumerable = xAxisValues as IEnumerable<double>;
@@ -304,8 +302,8 @@ namespace WalletWasabi.Fluent.Controls
 				{
 					for (var i = 0; i < yAxisValuesScaled.Count; i++)
 					{
-						state.Points[i] = new Point(enumerator.Current, yAxisValuesScaled[i]);
 						enumerator.MoveNext();
+						state.Points[i] = new Point(enumerator.Current, yAxisValuesScaled[i]);
 					}
 				}
 			}
