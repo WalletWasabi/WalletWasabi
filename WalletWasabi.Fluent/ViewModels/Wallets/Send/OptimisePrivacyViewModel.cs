@@ -106,7 +106,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					// There are several scenarios, both the alternate suggestions are <, or >, or 1 < and 1 >.
 					// We sort them and add the suggestions accordingly.
-					var suggestions = new List<PrivacySuggestionControlViewModel> {_defaultSelection, largerSuggestion};
+					var suggestions = new List<PrivacySuggestionControlViewModel> { _defaultSelection, largerSuggestion };
 
 					if (smallerSuggestion is { })
 					{
