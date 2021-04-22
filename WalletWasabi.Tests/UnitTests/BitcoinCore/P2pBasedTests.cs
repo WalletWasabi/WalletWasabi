@@ -60,6 +60,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 					subscribe: h => mempoolService.TransactionReceived += h,
 					unsubscribe: h => mempoolService.TransactionReceived -= h,
 					count: TransactionsCount);
+				var waitTask = eventAwaiter.WaitAsync(TimeSpan.FromMinutes(2));
 
 				List<Task<uint256>> txHashesList = new();
 				IRPCClient rpcBatch = rpc.PrepareBatch();
@@ -71,12 +72,10 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				}
 
 				// Publish the RPC batch.
-				Task rpcBatchTask = rpcBatch.SendBatchAsync();
+				await rpcBatch.SendBatchAsync();
 
 				// Wait until the mempool service receives all the sent transactions.
-				IEnumerable<SmartTransaction> mempoolSmartTxs = await eventAwaiter.WaitAsync(TimeSpan.FromMinutes(2));
-
-				await rpcBatchTask;
+				IEnumerable<SmartTransaction> mempoolSmartTxs = await waitTask;
 
 				// Collect all the transaction hashes of the sent transactions.
 				uint256[] hashes = await Task.WhenAll(txHashesList);
