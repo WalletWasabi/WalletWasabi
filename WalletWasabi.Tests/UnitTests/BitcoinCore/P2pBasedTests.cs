@@ -71,12 +71,10 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				}
 
 				// Publish the RPC batch.
-				Task rpcBatchTask = rpcBatch.SendBatchAsync();
+				await rpcBatch.SendBatchAsync();
 
 				// Wait until the mempool service receives all the sent transactions.
 				IEnumerable<SmartTransaction> mempoolSmartTxs = await eventAwaiter.WaitAsync(TimeSpan.FromMinutes(2));
-
-				await rpcBatchTask;
 
 				// Collect all the transaction hashes of the sent transactions.
 				uint256[] hashes = await Task.WhenAll(txHashesList);
@@ -125,11 +123,10 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				{
 					txTasks.Add(batch.SendToAddressAsync(addr, Money.Coins(1)));
 				}
-				var batchTask = batch.SendBatchAsync();
+				await batch.SendBatchAsync();
 
 				var arrivedTxs = await txEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
 
-				await batchTask;
 				var hashes = await Task.WhenAll(txTasks);
 				foreach (var hash in arrivedTxs.Select(x => x.GetHash()))
 				{
