@@ -86,10 +86,9 @@ namespace WalletWasabi.Gui
 				var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
 				var transactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
 				var indexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, new SmartHeaderChain());
-				var mempoolService = new MempoolService();
 				var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
-				BitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
+				BitcoinStore = new BitcoinStore(indexStore, transactionStore, blocks);
 
 				HttpClientFactory = Config.UseTor
 					? new HttpClientFactory(Config.TorSocks5EndPoint, backendUriGetter: () => Config.GetCurrentBackendUri())
@@ -97,7 +96,11 @@ namespace WalletWasabi.Gui
 
 				Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
 				LegalChecker = new(DataDir);
-				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
+				TransactionBroadcaster = new TransactionBroadcaster(Network, HostedServices.Get<P2pNetwork>(), HttpClientFactory, WalletManager);
+
+				HostedServices.Register<P2pNetwork>(new P2pNetwork(Network, Config.GetBitcoinP2pEndPoint(), Config.UseTor ? Config.TorSocks5EndPoint : null, Path.Combine(DataDir, "BitcoinP2pNetwork")), "Bitcoin P2P Network");
+
+				HostedServices.Register<UpdateChecker>(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 			}
 		}
 
@@ -124,8 +127,6 @@ namespace WalletWasabi.Gui
 				var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
 				cancel.ThrowIfCancellationRequested();
-
-				HostedServices.Register<UpdateChecker>(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
 				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
 
@@ -171,7 +172,6 @@ namespace WalletWasabi.Gui
 
 				#endregion BitcoinStoreInitialization
 
-				HostedServices.Register<P2pNetwork>(new P2pNetwork(Network, Config.GetBitcoinP2pEndPoint(), Config.UseTor ? Config.TorSocks5EndPoint : null, Path.Combine(DataDir, "BitcoinP2pNetwork"), BitcoinStore), "Bitcoin P2P Network");
 				HostedServices.Register<FilterProcessor>(new FilterProcessor(Synchronizer, BitcoinStore), "Filter Processor");
 
 				cancel.ThrowIfCancellationRequested();
@@ -186,7 +186,7 @@ namespace WalletWasabi.Gui
 							.CreateAsync(
 								new CoreNodeParams(
 									Network,
-									BitcoinStore.MempoolService,
+									HostedServices.Get<P2pNetwork>().MempoolService,
 									Config.LocalBitcoinCoreDataDir,
 									tryRestart: false,
 									tryDeleteDataDir: false,
@@ -272,7 +272,7 @@ namespace WalletWasabi.Gui
 
 				cancel.ThrowIfCancellationRequested();
 
-				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
+				WalletManager.RegisterServices(BitcoinStore, HostedServices.Get<P2pNetwork>(), Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
 			}
 			finally
 			{

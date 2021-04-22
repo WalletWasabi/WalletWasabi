@@ -11,6 +11,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Stores;
@@ -19,18 +20,18 @@ namespace WalletWasabi.BitcoinP2p
 {
 	public class P2pNetwork : BackgroundService
 	{
-		public P2pNetwork(Network network, EndPoint fullnodeP2pEndPoint, EndPoint? torSocks5EndPoint, string workDir, BitcoinStore bitcoinStore)
+		public P2pNetwork(Network network, EndPoint fullnodeP2pEndPoint, EndPoint? torSocks5EndPoint, string workDir)
 		{
 			Network = network;
 			FullnodeP2PEndPoint = fullnodeP2pEndPoint;
 			TorSocks5EndPoint = torSocks5EndPoint;
 			WorkDir = workDir;
-			BitcoinStore = bitcoinStore;
+			MempoolService = new();
 
 			var userAgent = Constants.UserAgents.RandomElement();
 			var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
 
-			connectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
+			connectionParameters.TemplateBehaviors.Add(new UntrustedP2pBehavior(MempoolService));
 
 			AddressManagerFilePath = Path.Combine(WorkDir, $"AddressManager{Network}.dat");
 			var needsToDiscoverPeers = true;
@@ -121,7 +122,7 @@ namespace WalletWasabi.BitcoinP2p
 		public EndPoint FullnodeP2PEndPoint { get; }
 		public EndPoint? TorSocks5EndPoint { get; }
 		public string WorkDir { get; }
-		public BitcoinStore BitcoinStore { get; }
+		public MempoolService MempoolService { get; }
 		public NodesGroup Nodes { get; }
 		private Node? RegTestMempoolServingNode { get; set; }
 		private string? AddressManagerFilePath { get; set; }
@@ -142,7 +143,7 @@ namespace WalletWasabi.BitcoinP2p
 
 					RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, bitcoinCoreEndpoint).ConfigureAwait(false);
 
-					RegTestMempoolServingNode.Behaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
+					RegTestMempoolServingNode.Behaviors.Add(new UntrustedP2pBehavior(MempoolService));
 				}
 				catch (SocketException ex)
 				{

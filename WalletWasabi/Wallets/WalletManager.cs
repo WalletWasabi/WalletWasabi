@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -65,6 +66,7 @@ namespace WalletWasabi.Wallets
 		private AsyncLock StartStopWalletLock { get; } = new();
 
 		private BitcoinStore BitcoinStore { get; set; }
+		private P2pNetwork BitcoinP2pNetwork { get; set; }
 		private WasabiSynchronizer Synchronizer { get; set; }
 		private ServiceConfiguration ServiceConfiguration { get; set; }
 		private bool IsInitialized { get; set; }
@@ -155,7 +157,7 @@ namespace WalletWasabi.Wallets
 
 			if (wallet.State == WalletState.WaitingForInit)
 			{
-				wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
+				wallet.RegisterServices(BitcoinStore, BitcoinP2pNetwork, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
 			}
 
 			using (await StartStopWalletLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
@@ -396,9 +398,10 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
+		public void RegisterServices(BitcoinStore bitcoinStore, P2pNetwork bitcoinP2pNetwork, WasabiSynchronizer synchronizer, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
 		{
 			BitcoinStore = bitcoinStore;
+			BitcoinP2pNetwork = bitcoinP2pNetwork;
 			Synchronizer = synchronizer;
 			ServiceConfiguration = serviceConfiguration;
 			FeeProvider = feeProvider;
@@ -406,7 +409,7 @@ namespace WalletWasabi.Wallets
 
 			foreach (var wallet in GetWallets().Where(w => w.State == WalletState.WaitingForInit))
 			{
-				wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
+				wallet.RegisterServices(BitcoinStore, BitcoinP2pNetwork, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
 			}
 
 			IsInitialized = true;

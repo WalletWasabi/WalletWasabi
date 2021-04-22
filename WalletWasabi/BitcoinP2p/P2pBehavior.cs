@@ -10,7 +10,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Blockchain.P2p
+namespace WalletWasabi.BitcoinP2p
 {
 	public abstract class P2pBehavior : NodeBehavior
 	{

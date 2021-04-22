@@ -38,11 +38,10 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 
 				await using IndexStore indexStore = new(Path.Combine(dir, "indexStore"), network, new SmartHeaderChain());
 				await using AllTransactionStore transactionStore = new(Path.Combine(dir, "transactionStore"), network);
-				MempoolService mempoolService = new();
 				FileSystemBlockRepository blocks = new(Path.Combine(dir, "blocks"), network);
 
 				// Construct BitcoinStore.
-				await using BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, blocks);
+				await using BitcoinStore bitcoinStore = new(indexStore, transactionStore, blocks);
 				await bitcoinStore.InitializeAsync();
 
 				await rpc.GenerateAsync(blockCount: 101);
@@ -57,8 +56,8 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				const int TransactionsCount = 3;
 
 				EventsAwaiter<SmartTransaction> eventAwaiter = new(
-					subscribe: h => mempoolService.TransactionReceived += h,
-					unsubscribe: h => mempoolService.TransactionReceived -= h,
+					subscribe: h => bitcoinStore.MempoolService.TransactionReceived += h,
+					unsubscribe: h => bitcoinStore.MempoolService.TransactionReceived -= h,
 					count: TransactionsCount);
 
 				List<uint256> txHashesList = new();

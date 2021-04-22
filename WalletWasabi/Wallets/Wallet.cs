@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -37,8 +38,8 @@ namespace WalletWasabi.Wallets
 		public Wallet(string dataDir, Network network, KeyManager keyManager)
 		{
 			Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
-			Network = Guard.NotNull(nameof(network), network);
-			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
+			Network = network;
+			KeyManager = keyManager;
 
 			RuntimeParams.SetDataDir(dataDir);
 			HandleFiltersLock = new AsyncLock();
@@ -76,6 +77,7 @@ namespace WalletWasabi.Wallets
 		public BitcoinStore BitcoinStore { get; private set; }
 		public KeyManager KeyManager { get; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
+		public P2pNetwork BitcoinP2pNetwork { get; private set; }
 		public CoinJoinClient ChaumianClient { get; private set; }
 		public ServiceConfiguration ServiceConfiguration { get; private set; }
 		public string WalletName => KeyManager.WalletName;
@@ -123,6 +125,7 @@ namespace WalletWasabi.Wallets
 
 		public void RegisterServices(
 			BitcoinStore bitcoinStore,
+			P2pNetwork bitcoinP2pNetwork,
 			WasabiSynchronizer syncer,
 			ServiceConfiguration serviceConfiguration,
 			HybridFeeProvider feeProvider,
@@ -135,10 +138,11 @@ namespace WalletWasabi.Wallets
 
 			try
 			{
-				BitcoinStore = Guard.NotNull(nameof(bitcoinStore), bitcoinStore);
-				Synchronizer = Guard.NotNull(nameof(syncer), syncer);
-				ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
-				FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
+				BitcoinStore = bitcoinStore;
+				BitcoinP2pNetwork = bitcoinP2pNetwork;
+				Synchronizer = syncer;
+				ServiceConfiguration = serviceConfiguration;
+				FeeProvider = feeProvider;
 
 				ChaumianClient = new CoinJoinClient(Synchronizer, Network, KeyManager, Kitchen);
 
@@ -150,7 +154,7 @@ namespace WalletWasabi.Wallets
 
 				BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 				BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
-				BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
+				BitcoinP2pNetwork.MempoolService.TransactionReceived += Mempool_TransactionReceived;
 
 				BlockProvider = blockProvider;
 
@@ -268,7 +272,7 @@ namespace WalletWasabi.Wallets
 				{
 					BitcoinStore.IndexStore.NewFilter -= IndexDownloader_NewFilterAsync;
 					BitcoinStore.IndexStore.Reorged -= IndexDownloader_ReorgedAsync;
-					BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
+					BitcoinP2pNetwork.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
 					TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessedAsync;
 					ChaumianClient.OnDequeue -= ChaumianClient_OnDequeue;
 
@@ -396,7 +400,7 @@ namespace WalletWasabi.Wallets
 					}
 				} while (Synchronizer.AreRequestsBlocked()); // If requests are blocked, delay mempool cleanup, because coinjoin answers are always priority.
 
-				var task = BitcoinStore.MempoolService?.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory);
+				var task = BitcoinP2pNetwork.MempoolService.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory);
 
 				if (task is { })
 				{
@@ -504,10 +508,10 @@ namespace WalletWasabi.Wallets
 			State = WalletState.WaitingForInit;
 		}
 
-		public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
+		public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, P2pNetwork bitcoinP2PNetwork, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
 		{
 			var wallet = new Wallet(dataDir, network, keyManager);
-			wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
+			wallet.RegisterServices(bitcoinStore, bitcoinP2PNetwork, synchronizer, serviceConfiguration, feeProvider, blockProvider);
 			return wallet;
 		}
 	}
