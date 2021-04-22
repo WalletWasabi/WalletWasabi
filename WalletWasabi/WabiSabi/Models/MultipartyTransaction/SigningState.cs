@@ -23,6 +23,10 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 
 		public bool IsInputSigned(int index) => Witnesses.ContainsKey(index);
 
+		public bool IsInputSigned(OutPoint prevout) => IsInputSigned(GetInputIndex(prevout));
+
+		public int GetInputIndex(OutPoint prevout) => Inputs.ToList().FindIndex(coin => coin.Outpoint == prevout); // this is inefficient but is only used in tests, see also dotnet/runtime#45366
+
 		public SigningState AddWitness(int index, WitScript witness)
 		{
 			if (IsInputSigned(index))
