@@ -67,7 +67,7 @@ namespace WalletWasabi.Tor
 							Logger.LogInfo($"Tor did not work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Maybe it crashed. Attempting to start it...");
 
 							// Try starting Tor, if it does not work it'll be another issue.
-							bool started = await TorProcessManager.StartAsync(ensureRunning: true).ConfigureAwait(false);
+							bool started = await TorProcessManager.StartAsync().ConfigureAwait(false);
 
 							Logger.LogInfo($"Tor re-starting attempt {(started ? "succeeded." : "FAILED. Will try again later.")}");
 						}

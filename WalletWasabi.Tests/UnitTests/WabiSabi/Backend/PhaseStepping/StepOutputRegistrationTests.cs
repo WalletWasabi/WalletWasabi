@@ -2,16 +2,15 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
@@ -75,8 +74,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			}
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
-			Assert.Equal(2, round.Coinjoin.Inputs.Count);
-			Assert.Equal(2, round.Coinjoin.Outputs.Count);
+			var tx = round.CoinjoinState.AssertSigning().CreateTransaction();
+			Assert.Equal(2, tx.Inputs.Count);
+			Assert.Equal(2, tx.Outputs.Count);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -136,9 +136,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var orresp = await arena.RegisterOutputAsync(WabiSabiFactory.CreateOutputRegistrationRequests(round, ccresps).First());
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
-			Assert.Equal(2, round.Coinjoin.Inputs.Count);
-			Assert.Equal(2, round.Coinjoin.Outputs.Count);
-			Assert.Contains(cfg.BlameScript, round.Coinjoin.Outputs.Select(x => x.ScriptPubKey));
+			var tx = round.CoinjoinState.AssertSigning().CreateTransaction();
+			Assert.Equal(2, tx.Inputs.Count);
+			Assert.Equal(2, tx.Outputs.Count);
+			Assert.Contains(cfg.BlameScript, tx.Outputs.Select(x => x.ScriptPubKey));
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -199,12 +200,21 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			{
 				var orresp = await arena.RegisterOutputAsync(orreq);
 			}
-			round.Alices.Add(WabiSabiFactory.CreateAlice(value: round.MinRegistrableAmount - Money.Satoshis(1)));
+
+			// Add another input. The input must be able to pay for itself, but
+			// the remaining amount after deducting the fees needs to be less
+			// than the minimum.
+			var txParams = round.CoinjoinState.AssertConstruction().Parameters;
+			var extraAlice = WabiSabiFactory.CreateAlice(value: txParams.FeeRate.GetFee(Constants.P2wpkhInputVirtualSize) + txParams.AllowedOutputAmounts.Min - new Money(1));
+			round.Alices.Add(extraAlice);
+			round.CoinjoinState = round.CoinjoinState.AssertConstruction().AddInput(extraAlice.Coins.First());
+
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
-			Assert.Equal(3, round.Coinjoin.Inputs.Count);
-			Assert.Equal(2, round.Coinjoin.Outputs.Count);
-			Assert.DoesNotContain(cfg.BlameScript, round.Coinjoin.Outputs.Select(x => x.ScriptPubKey));
+			var tx = round.CoinjoinState.AssertSigning().CreateTransaction();
+			Assert.Equal(3, tx.Inputs.Count);
+			Assert.Equal(2, tx.Outputs.Count);
+			Assert.DoesNotContain(cfg.BlameScript, tx.Outputs.Select(x => x.ScriptPubKey));
 
 			await arena.StopAsync(CancellationToken.None);
 		}

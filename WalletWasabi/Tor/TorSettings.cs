@@ -23,6 +23,7 @@ namespace WalletWasabi.Tor
 
 			TorDataDir = Path.Combine(dataDir, "tordata");
 			LogFilePath = logFilePath;
+			IoHelpers.EnsureContainingDirectoryExists(LogFilePath);
 			DistributionFolder = distributionFolderPath;
 
 			GeoIpPath = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip");

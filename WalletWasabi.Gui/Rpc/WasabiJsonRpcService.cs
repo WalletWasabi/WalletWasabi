@@ -111,7 +111,7 @@ namespace WalletWasabi.Gui.Rpc
 				bestBlockchainHash = sync.BitcoinStore.SmartHeaderChain.TipHash.ToString(),
 				filtersCount = sync.BitcoinStore.SmartHeaderChain.HashCount,
 				filtersLeft = sync.BitcoinStore.SmartHeaderChain.HashesLeft,
-				network = sync.Network.Name,
+				network = Global.Network.Name,
 				exchangeRate = sync.UsdExchangeRate,
 				peers = Global.Nodes.ConnectedNodes.Select(x => new
 				{

@@ -1,18 +1,13 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
@@ -22,15 +17,19 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			RoundParameters = roundParameters;
 
-			AmountCredentialIssuer = new(new(Random), 2, Random, MaxRegistrableAmount);
-			VsizeCredentialIssuer = new(new(Random), 2, Random, PerAliceVsizeAllocation);
+			AmountCredentialIssuer = new(new(Random), Random, MaxRegistrableAmount);
+			VsizeCredentialIssuer = new(new(Random), Random, PerAliceVsizeAllocation);
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			VsizeCredentialIssuerParameters = VsizeCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 
-			Coinjoin = Transaction.Create(Network);
+			var allowedAmounts = new MoneyRange(roundParameters.MinRegistrableAmount, RoundParameters.MaxRegistrableAmount);
+			var txParams = new MultipartyTransactionParameters(roundParameters.FeeRate, allowedAmounts, allowedAmounts, roundParameters.Network);
+			CoinjoinState = new ConstructionState(txParams);
 
 			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{PerAliceVsizeAllocation}{AmountCredentialIssuerParameters}{VsizeCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
 		}
+
+		public IState CoinjoinState { get; set; }
 
 		public uint256 Hash { get; }
 		public Network Network => RoundParameters.Network;
@@ -57,7 +56,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public TimeSpan OutputRegistrationTimeout => RoundParameters.OutputRegistrationTimeout;
 		public TimeSpan TransactionSigningTimeout => RoundParameters.TransactionSigningTimeout;
 
-		public Transaction Coinjoin { get; }
 		private RoundParameters RoundParameters { get; }
 		public Phase Phase { get; private set; } = Phase.InputRegistration;
 		public DateTimeOffset InputRegistrationStart { get; } = DateTimeOffset.UtcNow;
@@ -122,5 +120,14 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 			return false;
 		}
+
+		public ConstructionState AddInput(Coin coin)
+			=> CoinjoinState.AssertConstruction().AddInput(coin);
+
+		public ConstructionState AddOutput(TxOut output)
+			=> CoinjoinState.AssertConstruction().AddOutput(output);
+
+		public SigningState AddWitness(int index, WitScript witness)
+			=> CoinjoinState.AssertSigning().AddWitness(index, witness);
 	}
 }
