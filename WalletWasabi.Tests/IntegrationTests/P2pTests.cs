@@ -27,30 +27,17 @@ namespace WalletWasabi.Tests.IntegrationTests
 {
 	public class P2pTests
 	{
-		[Theory]
-		//[InlineData("test")]
-		[InlineData("main")]
-		public async Task TestServicesAsync(string networkString)
+		[Fact]
+		public async Task TestServicesAsync()
 		{
 			await RuntimeParams.LoadAsync();
-			var network = Network.GetNetwork(networkString);
-			var blocksToDownload = new List<uint256>();
-			if (network == Network.Main)
+			var network = Network.Main;
+			var blocksToDownload = new List<uint256>
 			{
-				blocksToDownload.Add(new uint256("00000000000000000037c2de35bd85f3e57f14ddd741ce6cee5b28e51473d5d0"));
-				blocksToDownload.Add(new uint256("000000000000000000115315a43cb0cdfc4ea54a0e92bed127f4e395e718d8f9"));
-				blocksToDownload.Add(new uint256("00000000000000000011b5b042ad0522b69aae36f7de796f563c895714bbd629"));
-			}
-			else if (network == Network.TestNet)
-			{
-				blocksToDownload.Add(new uint256("0000000097a664c4084b49faa6fd4417055cb8e5aac480abc31ddc57a8208524"));
-				blocksToDownload.Add(new uint256("000000009ed5b82259ecd2aa4cd1f119db8da7a70e7ea78d9c9f603e01f93bcc"));
-				blocksToDownload.Add(new uint256("00000000e6da8c2da304e9f5ad99c079df2c3803b49efded3061ecaf206ddc66"));
-			}
-			else
-			{
-				throw new NotSupportedNetworkException(network);
-			}
+				new uint256("00000000000000000037c2de35bd85f3e57f14ddd741ce6cee5b28e51473d5d0"),
+				new uint256("000000000000000000115315a43cb0cdfc4ea54a0e92bed127f4e395e718d8f9"),
+				new uint256("00000000000000000011b5b042ad0522b69aae36f7de796f563c895714bbd629")
+			};
 
 			var dataDir = Common.GetWorkDir();
 
