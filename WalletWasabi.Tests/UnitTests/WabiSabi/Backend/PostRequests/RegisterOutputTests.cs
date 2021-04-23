@@ -108,7 +108,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		[Fact]
 		public async Task TooMuchFundsAsync()
 		{
-			WabiSabiConfig cfg = new() { MaxRegistrableAmount = Money.Coins(1.999m) };
+			WabiSabiConfig cfg = new() { MaxRegistrableAmount = Money.Coins(1.999m) }; // TODO migrate to MultipartyTransactionParameters
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.SetPhase(Phase.OutputRegistration);
 			round.Alices.Add(WabiSabiFactory.CreateAlice(value: Money.Coins(2)));

@@ -21,7 +21,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 			_wallet = wallet;
 			_password = "";
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+
 			EnableBack = false;
 		}
 

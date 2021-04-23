@@ -10,6 +10,8 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 		public PasswordNotFoundViewModel(Wallet wallet)
 		{
 			NextCommand = ReactiveCommand.Create(() => OnNext(wallet));
+
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		}
 
 		private void OnNext(Wallet wallet)

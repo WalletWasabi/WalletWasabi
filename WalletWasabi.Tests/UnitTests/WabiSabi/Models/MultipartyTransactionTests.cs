@@ -2,7 +2,6 @@ using NBitcoin;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -28,8 +27,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			var alice1 = WabiSabiFactory.CreateAlice(key: key1);
 			var alice2 = WabiSabiFactory.CreateAlice(key: key2);
 
-			var alice1Coin = alice1.Coins.First();
-			var alice2Coin = alice2.Coins.First();
+			var alice1Coin = alice1.Coin;
+			var alice2Coin = alice2.Coin;
 
 			var state = new ConstructionState(DefaultParameters);
 
@@ -104,17 +103,17 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		{
 			var alice = WabiSabiFactory.CreateAlice();
 
-			var state = new ConstructionState(DefaultParameters).AddInput(alice.Coins.First());
+			var state = new ConstructionState(DefaultParameters).AddInput(alice.Coin);
 
 			var script = BitcoinFactory.CreateScript();
-			var bob = new TxOut(alice.Coins.First().Amount/2, script);
+			var bob = new TxOut(alice.Coin.Amount/2, script);
 			var withOutput = state.AddOutput(bob);
 			var duplicateOutputNoFee = withOutput.AddOutput(bob).Finalize();
 
 			var tx2 = duplicateOutputNoFee.CreateUnsignedTransaction();
 			var output = Assert.Single(tx2.Outputs);
 			Assert.Equal(script, output.ScriptPubKey);
-			Assert.Equal(alice.Coins.First().Amount, output.Value);
+			Assert.Equal(alice.Coin.Amount, output.Value);
 		}
 
 		[Fact]
@@ -126,8 +125,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			var alice1 = WabiSabiFactory.CreateAlice(key: key1);
 			var alice2 = WabiSabiFactory.CreateAlice(key: key2);
 
-			var alice1Coin = alice1.Coins.First();
-			var alice2Coin = alice2.Coins.First();
+			var alice1Coin = alice1.Coin;
+			var alice2Coin = alice2.Coin;
 
 			var state = new ConstructionState(DefaultParameters).AddInput(alice1Coin).AddInput(alice2Coin);
 
@@ -172,8 +171,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			var alice1 = WabiSabiFactory.CreateAlice(key: key1);
 			var alice2 = WabiSabiFactory.CreateAlice(key: key2);
 
-			var alice1Coin = alice1.Coins.First();
-			var alice2Coin = alice2.Coins.First();
+			var alice1Coin = alice1.Coin;
+			var alice2Coin = alice2.Coin;
 
 			var state = new ConstructionState(DefaultParameters with { FeeRate = feeRate })
 				.AddInput(alice1Coin)
@@ -231,8 +230,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void NoDuplicateInputs()
 		{
 			var alice = WabiSabiFactory.CreateAlice();
-			var state = new ConstructionState(DefaultParameters).AddInput(alice.Coins.First());
-			ThrowsProtocolException(WabiSabiProtocolErrorCode.NonUniqueInputs, () => state.AddInput(alice.Coins.First()));
+			var state = new ConstructionState(DefaultParameters).AddInput(alice.Coin);
+			ThrowsProtocolException(WabiSabiProtocolErrorCode.NonUniqueInputs, () => state.AddInput(alice.Coin));
 			Assert.Single(state.Inputs);
 		}
 
@@ -243,14 +242,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		{
 			var legacyOnly = new ConstructionState(DefaultParameters with { AllowedInputTypes = ImmutableSortedSet.Create<ScriptType>(ScriptType.P2PKH) });
 			var alice = WabiSabiFactory.CreateAlice();
-			ThrowsProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed, () => legacyOnly.AddInput(alice.Coins.First()));
+			ThrowsProtocolException(WabiSabiProtocolErrorCode.ScriptNotAllowed, () => legacyOnly.AddInput(alice.Coin));
 		}
 
 		[Fact]
 		public void InputAmountRanges()
 		{
 			var alice = WabiSabiFactory.CreateAlice();
-			var coin = alice.Coins.First();
+			var coin = alice.Coin;
 
 			var exact = new ConstructionState(DefaultParameters with { AllowedInputAmounts = new MoneyRange(coin.Amount, coin.Amount) });
 			var above = new ConstructionState(DefaultParameters with { AllowedInputAmounts = new MoneyRange(2 * coin.Amount, 3 * coin.Amount) });
@@ -267,10 +266,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void UneconomicalInputs()
 		{
 			var alice1 = WabiSabiFactory.CreateAlice(value: new Money(1000L));
-			var alice1Coin = alice1.Coins.First();
+			var alice1Coin = alice1.Coin;
 
 			var alice2 = WabiSabiFactory.CreateAlice(value: new Money(1001L));
-			var alice2Coin = alice2.Coins.First();
+			var alice2Coin = alice2.Coin;
 
 			// requires 1k sats per input in sat/vKB
 			var inputVsize = alice1Coin.ScriptPubKey.EstimateInputVsize();

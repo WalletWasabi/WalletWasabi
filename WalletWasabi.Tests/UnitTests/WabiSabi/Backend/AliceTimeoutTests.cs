@@ -1,8 +1,5 @@
 using NBitcoin;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
@@ -34,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 				TxOut = new TxOut(Money.Coins(1), key.PubKey.GetSegwitAddress(Network.Main))
 			};
 
-			var req = WabiSabiFactory.CreateInputsRegistrationRequest(key, round);
+			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
 			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
 			await handler.RegisterInputAsync(req);

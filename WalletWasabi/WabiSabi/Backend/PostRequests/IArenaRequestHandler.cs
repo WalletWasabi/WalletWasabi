@@ -5,7 +5,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 {
 	public interface IArenaRequestHandler
 	{
-		Task<InputsRegistrationResponse> RegisterInputAsync(InputsRegistrationRequest request);
+		Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request);
 
 		Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request);
 

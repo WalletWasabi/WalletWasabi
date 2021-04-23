@@ -12,8 +12,8 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 	public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	{
 		[AutoNotify] private bool _isBusy;
-		[AutoNotify] private bool _enableCancelOnPressed = true;
-		[AutoNotify] private bool _enableCancelOnEscape = true;
+		[AutoNotify] private bool _enableCancelOnPressed;
+		[AutoNotify] private bool _enableCancelOnEscape;
 		[AutoNotify] private bool _enableBack;
 		[AutoNotify] private bool _enableCancel;
 
@@ -127,6 +127,13 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		{
 			var dialog = new ShowErrorDialogViewModel(message, title, caption);
 			await NavigateDialog(dialog, NavigationTarget.DialogScreen);
+		}
+
+		protected void SetupCancel(bool enableCancel, bool enableCancelOnEscape, bool enableCancelOnPressed)
+		{
+			EnableCancel = enableCancel;
+			EnableCancelOnEscape = enableCancelOnEscape;
+			EnableCancelOnPressed = enableCancelOnPressed;
 		}
 	}
 }

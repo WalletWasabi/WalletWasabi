@@ -44,6 +44,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			var walletManager = walletManagerViewModel.WalletManager;
 			var network = walletManager.Network;
 
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 			var enableBack = default(IDisposable);
 
 			this.WhenAnyValue(x => x.CurrentTarget)
@@ -125,7 +126,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			try
 			{
-				var filePath = await FileDialogHelper.ShowOpenFileDialogAsync("Import wallet file", new[] {"json"});
+				var filePath = await FileDialogHelper.ShowOpenFileDialogAsync("Import wallet file", new[] { "json" });
 
 				if (filePath is null)
 				{
@@ -171,8 +172,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
-
-			EnableCancel = CurrentTarget != NavigationTarget.HomeScreen;
 
 			this.RaisePropertyChanged(WalletName);
 

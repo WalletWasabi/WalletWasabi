@@ -17,53 +17,41 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 {
 	public static class InputRegistrationHandler
 	{
-		public static async Task<IDictionary<Coin, byte[]>> PreProcessAsync(
-			InputsRegistrationRequest request,
+		public static async Task<Coin> OutpointToCoinAsync(
+			InputRegistrationRequest request,
 			Prison prison,
 			IRPCClient rpc,
 			WabiSabiConfig config)
 		{
-			var inputRoundSignaturePairs = request.InputRoundSignaturePairs;
-			var inputs = inputRoundSignaturePairs.Select(x => x.Input);
+			OutPoint input = request.Input;
 
-			int inputCount = inputs.Count();
-			if (inputCount != inputs.Distinct().Count())
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.NonUniqueInputs);
-			}
-			if (inputs.Any(x => prison.TryGet(x, out var inmate) && (!config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted)))
+			if (prison.TryGet(input, out var inmate) && (!config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned);
 			}
 
-			Dictionary<Coin, byte[]> coinRoundSignaturePairs = new();
-			foreach (var inputRoundSignaturePair in inputRoundSignaturePairs)
+			var txOutResponse = await rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true).ConfigureAwait(false);
+			if (txOutResponse is null)
 			{
-				OutPoint input = inputRoundSignaturePair.Input;
-				var txOutResponse = await rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true).ConfigureAwait(false);
-				if (txOutResponse is null)
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);
-				}
-				if (txOutResponse.Confirmations == 0)
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputUnconfirmed);
-				}
-				if (txOutResponse.IsCoinBase && txOutResponse.Confirmations <= 100)
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputImmature);
-				}
-
-				coinRoundSignaturePairs.Add(new Coin(input, txOutResponse.TxOut), inputRoundSignaturePair.RoundSignature);
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);
+			}
+			if (txOutResponse.Confirmations == 0)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputUnconfirmed);
+			}
+			if (txOutResponse.IsCoinBase && txOutResponse.Confirmations <= 100)
+			{
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputImmature);
 			}
 
-			return coinRoundSignaturePairs;
+			return new Coin(input, txOutResponse.TxOut);
 		}
 
-		public static InputsRegistrationResponse RegisterInput(
+		public static InputRegistrationResponse RegisterInput(
 			WabiSabiConfig config,
 			Guid roundId,
-			IDictionary<Coin, byte[]> coinRoundSignaturePairs,
+			Coin coin,
+			byte[] signature,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
 			ZeroCredentialsRequest zeroVsizeCredentialRequests,
 			IDictionary<Guid, Round> rounds,
@@ -74,18 +62,12 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound);
 			}
 
-			var coins = coinRoundSignaturePairs.Select(x => x.Key);
-
 			if (round.IsInputRegistrationEnded(config.MaxInputCountByRound, config.GetInputRegistrationTimeout(round)))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase);
 			}
 
-			if (round.MaxInputCountByAlice < coins.Count())
-			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.TooManyInputs);
-			}
-			if (round.IsBlameRound && coins.Select(x => x.Outpoint).Any(x => !round.BlameWhitelist.Contains(x)))
+			if (round.IsBlameRound && !round.BlameWhitelist.Contains(coin.Outpoint))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputNotWhitelisted);
 			}
@@ -93,25 +75,15 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			// Compute but don't commit updated CoinJoin to round state, it will
 			// be re-calculated on input confirmation. This is computed it here
 			// for validation purposes.
-			var state = round.CoinjoinState.AssertConstruction();
-			foreach (var coin in coins)
+			round.CoinjoinState.AssertConstruction().AddInput(coin);
+
+			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", round.Hash);
+			if (!OwnershipProof.VerifyCoinJoinInputProof(signature, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
 			{
-				state = state.AddInput(coin);
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongRoundSignature);
 			}
 
-			foreach (var coinRoundSignaturePair in coinRoundSignaturePairs)
-			{
-				var coin = coinRoundSignaturePair.Key;
-				var signature = coinRoundSignaturePair.Value;
-
-				var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", round.Hash);
-				if (!OwnershipProof.VerifyCoinJoinInputProof(signature, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
-				{
-					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongRoundSignature);
-				}
-			}
-
-			var alice = new Alice(coinRoundSignaturePairs);
+			var alice = new Alice(coin, signature);
 
 			if (alice.TotalInputAmount < round.MinRegistrableAmount)
 			{
@@ -152,10 +124,10 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 			}
 
-			var aliceOutPoints = alice.Coins.Select(x => x.Outpoint).ToHashSet();
-			var flattenTable = rounds.SelectMany(x => x.Alices.SelectMany(y => y.Coins.Select(z => (Round: x, Alice: y, Output: z.Outpoint))));
+			var aliceOutPoint = alice.Coin.Outpoint;
+			var flattenTable = rounds.SelectMany(x => x.Alices.Select(y => (Round: x, Alice: y, Outpoint: y.Coin.Outpoint)));
 
-			foreach (var (round, aliceInRound, _) in flattenTable.Where(x => aliceOutPoints.Contains(x.Output)).ToArray())
+			foreach (var (round, aliceInRound, _) in flattenTable.Where(x => x.Outpoint == aliceOutPoint).ToArray())
 			{
 				if (round.Alices.Remove(aliceInRound))
 				{

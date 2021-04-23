@@ -9,7 +9,6 @@ using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client
@@ -40,36 +39,25 @@ namespace WalletWasabi.WabiSabi.Client
 		public WabiSabiClient VsizeCredentialClient { get; }
 		public IArenaRequestHandler RequestHandler { get; }
 
-		public ValueTask<Guid> RegisterInputAsync(Money amount, OutPoint outPoint, Key key, Guid roundId, uint256 roundHash) =>
-			RegisterInputAsync(
-				new[] { amount },
-				new[] { outPoint },
-				new[] { key },
-				roundId,
-				roundHash);
-
 		public async ValueTask<Guid> RegisterInputAsync(
-			IEnumerable<Money> amounts,
-			IEnumerable<OutPoint> outPoints,
-			IEnumerable<Key> keys,
+			Money amount,
+			OutPoint outPoint,
+			Key key,
 			Guid roundId,
 			uint256 roundHash)
 		{
-			static byte[] GenerateOwnershipProof(Key key, uint256 roundHash) => OwnershipProof.GenerateCoinJoinInputProof(
+			var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
 				key,
 				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundHash)).ToBytes();
-
-			var registrableInputs = outPoints
-				.Zip(keys, (outPoint, key) => (outPoint, key))
-				.Select(x => new InputRoundSignaturePair(x.outPoint, GenerateOwnershipProof(x.key, roundHash)));
 
 			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
 			var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();
 
 			var inputRegistrationResponse = await RequestHandler.RegisterInputAsync(
-				new InputsRegistrationRequest(
+				new InputRegistrationRequest(
 					roundId,
-					registrableInputs,
+					outPoint,
+					ownershipProof,
 					zeroAmountCredentialRequestData.CredentialsRequest,
 					zeroVsizeCredentialRequestData.CredentialsRequest)).ConfigureAwait(false);
 
@@ -194,41 +182,31 @@ namespace WalletWasabi.WabiSabi.Client
 			return false;
 		}
 
-		public async Task SignTransactionAsync(Guid roundId, IEnumerable<ICoin> coinsToSign, BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin)
+		public async Task SignTransactionAsync(Guid roundId, Coin coin, BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin)
 		{
 			if (unsignedCoinJoin.Inputs.Count == 0)
 			{
 				throw new ArgumentException("No inputs to sign.", nameof(unsignedCoinJoin));
 			}
 
-			if (!coinsToSign.Any())
-			{
-				throw new ArgumentException("No coins were provided.", nameof(coinsToSign));
-			}
-
-			var myInputs = coinsToSign.ToDictionary(c => c.Outpoint);
 			var signedCoinJoin = unsignedCoinJoin.Clone();
-			var myInputsFromCoinJoin = signedCoinJoin.Inputs.AsIndexedInputs().Where(input => myInputs.ContainsKey(input.PrevOut)).ToArray();
+			var txInput = signedCoinJoin.Inputs.AsIndexedInputs().FirstOrDefault(input => input.PrevOut == coin.Outpoint);
 
-			if (myInputs.Count != myInputsFromCoinJoin.Length)
+			if (txInput is null)
 			{
-				throw new InvalidOperationException($"Missing inputs. Number of inputs: {myInputs.Count} actual: {myInputsFromCoinJoin.Length}.");
+				throw new InvalidOperationException($"Missing input.");
 			}
 
 			List<InputWitnessPair> signatures = new();
-			foreach (var txInput in myInputsFromCoinJoin)
+
+			signedCoinJoin.Sign(bitcoinSecret, coin);
+
+			if (!txInput.VerifyScript(coin, out var error))
 			{
-				var coin = myInputs[txInput.PrevOut];
-
-				signedCoinJoin.Sign(bitcoinSecret, coin);
-
-				if (!txInput.VerifyScript(coin, out var error))
-				{
-					throw new InvalidOperationException($"Witness is missing. Reason {nameof(ScriptError)} code: {error}.");
-				}
-
-				signatures.Add(new InputWitnessPair(txInput.Index, txInput.WitScript));
+				throw new InvalidOperationException($"Witness is missing. Reason {nameof(ScriptError)} code: {error}.");
 			}
+
+			signatures.Add(new InputWitnessPair(txInput.Index, txInput.WitScript));
 
 			await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, signatures)).ConfigureAwait(false);
 		}

@@ -14,6 +14,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			Caption = caption;
 
 			NextCommand = ReactiveCommand.Create(() => Close());
+
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		}
 
 		public string Message { get; }
