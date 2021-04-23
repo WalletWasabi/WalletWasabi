@@ -34,16 +34,18 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			// Register Alices.
 			using Key key1 = new();
 			using Key key2 = new();
-			var irreq1 = WabiSabiFactory.CreateInputsRegistrationRequest(key1, round);
+			var irreq1 = WabiSabiFactory.CreateInputRegistrationRequest(key1, round);
 			var irres1 = await arena.RegisterInputAsync(
 				irreq1.RoundId,
-				irreq1.InputRoundSignaturePairs.ToDictionary(x => new Coin(x.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))), x => x.RoundSignature),
+				new Coin(irreq1.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))),
+irreq1.RoundSignature,
 				irreq1.ZeroAmountCredentialRequests,
 				irreq1.ZeroVsizeCredentialRequests);
-			var irreq2 = WabiSabiFactory.CreateInputsRegistrationRequest(key2, round);
+			var irreq2 = WabiSabiFactory.CreateInputRegistrationRequest(key2, round);
 			var irres2 = await arena.RegisterInputAsync(
 				irreq2.RoundId,
-				irreq2.InputRoundSignaturePairs.ToDictionary(x => new Coin(x.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))), x => x.RoundSignature),
+				new Coin(irreq2.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))),
+irreq2.RoundSignature,
 				irreq2.ZeroAmountCredentialRequests,
 				irreq2.ZeroVsizeCredentialRequests);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -76,8 +78,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
 			var signedCoinJoin = round.CoinjoinState.AssertSigning().CreateTransaction();
-			var coin1 = alice1.Coins.First();
-			var coin2 = alice2.Coins.First();
+			var coin1 = alice1.Coin;
+			var coin2 = alice2.Coin;
 			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
 			var idx2 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin2.Outpoint));
 			signedCoinJoin.Sign(key1.GetBitcoinSecret(Network.Main), coin1);
@@ -114,16 +116,18 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			// Register Alices.
 			using Key key1 = new();
 			using Key key2 = new();
-			var irreq1 = WabiSabiFactory.CreateInputsRegistrationRequest(key1, round);
+			var irreq1 = WabiSabiFactory.CreateInputRegistrationRequest(key1, round);
 			var irres1 = await arena.RegisterInputAsync(
 				irreq1.RoundId,
-				irreq1.InputRoundSignaturePairs.ToDictionary(x => new Coin(x.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))), x => x.RoundSignature),
+				new Coin(irreq1.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))),
+irreq1.RoundSignature,
 				irreq1.ZeroAmountCredentialRequests,
 				irreq1.ZeroVsizeCredentialRequests);
-			var irreq2 = WabiSabiFactory.CreateInputsRegistrationRequest(key2, round);
+			var irreq2 = WabiSabiFactory.CreateInputRegistrationRequest(key2, round);
 			var irres2 = await arena.RegisterInputAsync(
 				irreq2.RoundId,
-				irreq2.InputRoundSignaturePairs.ToDictionary(x => new Coin(x.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))), x => x.RoundSignature),
+				new Coin(irreq2.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))),
+irreq2.RoundSignature,
 				irreq2.ZeroAmountCredentialRequests,
 				irreq2.ZeroVsizeCredentialRequests);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -156,8 +160,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
 			var signedCoinJoin = round.CoinjoinState.AssertSigning().CreateTransaction();
-			var coin1 = alice1.Coins.First();
-			var coin2 = alice2.Coins.First();
+			var coin1 = alice1.Coin;
+			var coin2 = alice2.Coin;
 			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
 			var idx2 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin2.Outpoint));
 			signedCoinJoin.Sign(key1.GetBitcoinSecret(Network.Main), coin1);
@@ -196,16 +200,18 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			// Register Alices.
 			using Key key1 = new();
 			using Key key2 = new();
-			var irreq1 = WabiSabiFactory.CreateInputsRegistrationRequest(key1, round);
+			var irreq1 = WabiSabiFactory.CreateInputRegistrationRequest(key1, round);
 			var irres1 = await arena.RegisterInputAsync(
 				irreq1.RoundId,
-				irreq1.InputRoundSignaturePairs.ToDictionary(x => new Coin(x.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))), x => x.RoundSignature),
+				new Coin(irreq1.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))),
+irreq1.RoundSignature,
 				irreq1.ZeroAmountCredentialRequests,
 				irreq1.ZeroVsizeCredentialRequests);
-			var irreq2 = WabiSabiFactory.CreateInputsRegistrationRequest(key2, round);
+			var irreq2 = WabiSabiFactory.CreateInputRegistrationRequest(key2, round);
 			var irres2 = await arena.RegisterInputAsync(
 				irreq2.RoundId,
-				irreq2.InputRoundSignaturePairs.ToDictionary(x => new Coin(x.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))), x => x.RoundSignature),
+				new Coin(irreq2.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))),
+				irreq2.RoundSignature,
 				irreq2.ZeroAmountCredentialRequests,
 				irreq2.ZeroVsizeCredentialRequests);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -238,8 +244,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
 			var signedCoinJoin = round.CoinjoinState.AssertSigning().CreateTransaction();
-			var coin1 = alice1.Coins.First();
-			var coin2 = alice2.Coins.First();
+			var coin1 = alice1.Coin;
+			var coin2 = alice2.Coin;
 			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
 			var idx2 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin2.Outpoint));
 			signedCoinJoin.Sign(key1.GetBitcoinSecret(Network.Main), coin1);
@@ -282,16 +288,18 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			// Register Alices.
 			using Key key1 = new();
 			using Key key2 = new();
-			var irreq1 = WabiSabiFactory.CreateInputsRegistrationRequest(key1, round);
+			var irreq1 = WabiSabiFactory.CreateInputRegistrationRequest(key1, round);
 			var irres1 = await arena.RegisterInputAsync(
 				irreq1.RoundId,
-				irreq1.InputRoundSignaturePairs.ToDictionary(x => new Coin(x.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))), x => x.RoundSignature),
+				new Coin(irreq1.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))),
+				irreq1.RoundSignature,
 				irreq1.ZeroAmountCredentialRequests,
 				irreq1.ZeroVsizeCredentialRequests);
-			var irreq2 = WabiSabiFactory.CreateInputsRegistrationRequest(key2, round);
+			var irreq2 = WabiSabiFactory.CreateInputRegistrationRequest(key2, round);
 			var irres2 = await arena.RegisterInputAsync(
 				irreq2.RoundId,
-				irreq2.InputRoundSignaturePairs.ToDictionary(x => new Coin(x.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))), x => x.RoundSignature),
+				new Coin(irreq2.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))),
+				irreq2.RoundSignature,
 				irreq2.ZeroAmountCredentialRequests,
 				irreq2.ZeroVsizeCredentialRequests);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -324,7 +332,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
 			var signedCoinJoin = round.CoinjoinState.AssertSigning().CreateTransaction();
-			var coin1 = alice1.Coins.First();
+			var coin1 = alice1.Coin;
 			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
 			signedCoinJoin.Sign(key1.GetBitcoinSecret(Network.Main), coin1);
 			var txsigreq1 = new TransactionSignaturesRequest(round.Id, new[] { new InputWitnessPair((uint)idx1, signedCoinJoin.Inputs[idx1].WitScript) });
@@ -333,7 +341,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.DoesNotContain(round.Id, arena.Rounds.Keys);
 			Assert.Empty(arena.Rounds.Where(x => x.Value.IsBlameRound));
-			Assert.Contains(alice2.Coins.Select(x => x.Outpoint).First(), arena.Prison.GetInmates().Select(x => x.Utxo));
+			Assert.Contains(alice2.Coin.Outpoint, arena.Prison.GetInmates().Select(x => x.Utxo));
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -360,16 +368,18 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			// Register Alices.
 			using Key key1 = new();
 			using Key key2 = new();
-			var irreq1 = WabiSabiFactory.CreateInputsRegistrationRequest(key1, round);
+			var irreq1 = WabiSabiFactory.CreateInputRegistrationRequest(key1, round);
 			var irres1 = await arena.RegisterInputAsync(
 				irreq1.RoundId,
-				irreq1.InputRoundSignaturePairs.ToDictionary(x => new Coin(x.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))), x => x.RoundSignature),
+				new Coin(irreq1.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))),
+				irreq1.RoundSignature,
 				irreq1.ZeroAmountCredentialRequests,
 				irreq1.ZeroVsizeCredentialRequests);
-			var irreq2 = WabiSabiFactory.CreateInputsRegistrationRequest(key2, round);
+			var irreq2 = WabiSabiFactory.CreateInputRegistrationRequest(key2, round);
 			var irres2 = await arena.RegisterInputAsync(
 				irreq2.RoundId,
-				irreq2.InputRoundSignaturePairs.ToDictionary(x => new Coin(x.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))), x => x.RoundSignature),
+				new Coin(irreq2.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))),
+				irreq2.RoundSignature,
 				irreq2.ZeroAmountCredentialRequests,
 				irreq2.ZeroVsizeCredentialRequests);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -403,13 +413,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var alice3 = WabiSabiFactory.CreateAlice();
 			alice3.ConfirmedConnection = true;
 			round.Alices.Add(alice3);
-			round.CoinjoinState = round.CoinjoinState.AssertConstruction().AddInput(alice3.Coins.First());
+			round.CoinjoinState = round.CoinjoinState.AssertConstruction().AddInput(alice3.Coin);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
 			var signedCoinJoin = round.CoinjoinState.AssertSigning().CreateTransaction();
-			var coin1 = alice1.Coins.First();
-			var coin2 = alice2.Coins.First();
+			var coin1 = alice1.Coin;
+			var coin2 = alice2.Coin;
 			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
 			var idx2 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin2.Outpoint));
 			signedCoinJoin.Sign(key1.GetBitcoinSecret(Network.Main), coin1);
@@ -423,7 +433,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.DoesNotContain(round.Id, arena.Rounds.Keys);
 			Assert.Single(arena.Rounds.Where(x => x.Value.IsBlameRound));
-			var badOutpoint = alice3.Coins.Select(x => x.Outpoint).First();
+			var badOutpoint = alice3.Coin.Outpoint;
 			Assert.Contains(badOutpoint, arena.Prison.GetInmates().Select(x => x.Utxo));
 
 			var blameRound = arena.Rounds.Single(x => x.Value.IsBlameRound).Value;
@@ -432,8 +442,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			Assert.Equal(round.Id, blameRound.BlameOf?.Id);
 
 			var whitelist = blameRound.BlameWhitelist;
-			Assert.Contains(alice1.Coins.Select(x => x.Outpoint).First(), whitelist);
-			Assert.Contains(alice2.Coins.Select(x => x.Outpoint).First(), whitelist);
+			Assert.Contains(alice1.Coin.Outpoint, whitelist);
+			Assert.Contains(alice2.Coin.Outpoint, whitelist);
 			Assert.DoesNotContain(badOutpoint, whitelist);
 
 			await arena.StopAsync(CancellationToken.None);

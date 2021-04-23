@@ -153,7 +153,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 						// Logging.
 						round.LogInfo("Trying to broadcast coinjoin.");
-						Coin[]? spentCoins = round.Alices.SelectMany(x => x.Coins).ToArray();
+						Coin[]? spentCoins = round.Alices.Select(x => x.Coin).ToArray();
 						Money networkFee = coinjoin.GetFee(spentCoins);
 						Guid roundId = round.Id;
 						FeeRate feeRate = coinjoin.GetFeeRate(spentCoins);
@@ -194,7 +194,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			var unsignedPrevouts = state.UnsignedInputs.ToHashSet();
 
 			var alicesWhoDidntSign = round.Alices
-				.SelectMany(alice => alice.Coins, (alice, coin) => (Alice: alice, Coin: coin))
+				.Select(alice => (Alice: alice, Coin: alice.Coin))
 				.Where(x => unsignedPrevouts.Contains(x.Coin))
 				.Select(x => x.Alice)
 				.ToHashSet();
@@ -245,9 +245,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			}
 		}
 
-		public async Task<InputsRegistrationResponse> RegisterInputAsync(
+		public async Task<InputRegistrationResponse> RegisterInputAsync(
 			Guid roundId,
-			IDictionary<Coin, byte[]> coinRoundSignaturePairs,
+			Coin coin,
+			byte[] signature,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
 			ZeroCredentialsRequest zeroVsizeCredentialRequests)
 		{
@@ -256,7 +257,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				return InputRegistrationHandler.RegisterInput(
 					Config,
 					roundId,
-					coinRoundSignaturePairs,
+					coin,
+					signature,
 					zeroAmountCredentialRequests,
 					zeroVsizeCredentialRequests,
 					Rounds,
@@ -321,11 +323,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					var state = round.CoinjoinState.AssertConstruction();
 
-					foreach (var coin in alice.Coins)
-					{
-						// Ensure the input can be added to the CoinJoin
-						state = state.AddInput(coin);
-					}
+					// Ensure the input can be added to the CoinJoin
+					state = state.AddInput(alice.Coin);
 
 					var commitAmountRealCredentialResponse = round.AmountCredentialIssuer.PrepareResponse(realAmountCredentialRequests);
 					var commitVsizeRealCredentialResponse = round.VsizeCredentialIssuer.PrepareResponse(realVsizeCredentialRequests);

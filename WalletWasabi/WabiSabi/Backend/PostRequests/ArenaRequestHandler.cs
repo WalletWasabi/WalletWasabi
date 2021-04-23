@@ -1,14 +1,9 @@
 using NBitcoin;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Helpers;
 using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.WabiSabi.Backend.Banning;
-using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 
@@ -34,16 +29,17 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 		public IRPCClient Rpc { get; }
 		public Network Network { get; }
 
-		public async Task<InputsRegistrationResponse> RegisterInputAsync(InputsRegistrationRequest request)
+		public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				var coinRoundSignaturePairs = await InputRegistrationHandler.PreProcessAsync(request, Prison, Rpc, Config).ConfigureAwait(false);
+				var coin = await InputRegistrationHandler.OutpointToCoinAsync(request, Prison, Rpc, Config).ConfigureAwait(false);
 
 				return await Arena.RegisterInputAsync(
 					request.RoundId,
-					coinRoundSignaturePairs,
+					coin,
+					request.RoundSignature,
 					request.ZeroAmountCredentialRequests,
 					request.ZeroVsizeCredentialRequests).ConfigureAwait(false);
 			}

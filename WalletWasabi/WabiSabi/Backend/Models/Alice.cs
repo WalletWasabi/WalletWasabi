@@ -1,27 +1,23 @@
 using NBitcoin;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Backend.Models
 {
 	public class Alice
 	{
-		public Alice(IDictionary<Coin, byte[]> coinRoundSignaturePairs)
+		public Alice(Coin coin, byte[] signature)
 		{
-			Coins = coinRoundSignaturePairs.Keys;
-			CoinRoundSignaturePairs = coinRoundSignaturePairs;
+			// TODO init syntax?
+			Coin = coin;
+			Signature = signature;
 		}
 
 		public Guid Id { get; } = Guid.NewGuid();
 		public DateTimeOffset Deadline { get; set; } = DateTimeOffset.UtcNow;
-		public IEnumerable<Coin> Coins { get; }
-		public IDictionary<Coin, byte[]> CoinRoundSignaturePairs { get; }
-		public Money TotalInputAmount => Coins.Sum(x => x.Amount);
-		public int TotalInputVsize => Coins.Sum(x => x.ScriptPubKey.EstimateInputVsize());
+		public Coin Coin { get; }
+		public byte[] Signature { get; }
+		public Money TotalInputAmount => Coin.Amount;
+		public int TotalInputVsize => Coin.ScriptPubKey.EstimateInputVsize();
 
 		public bool ConfirmedConnection { get; set; } = false;
 
