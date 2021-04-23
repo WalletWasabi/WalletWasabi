@@ -1,9 +1,17 @@
+using System;
 using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Controls
 {
+	public enum AxisPlotMode
+	{
+		Normal,
+		EvenlySpaced,
+		Logarithmic
+	}
+
 	public partial class LineChart
 	{
 		// Area
@@ -38,10 +46,16 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<double> AreaMinViableWidthProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(AreaMinViableWidth), double.MinValue);
 
+		public static readonly StyledProperty<bool> SmoothCurveProperty =
+			AvaloniaProperty.Register<LineChart, bool>(nameof(SmoothCurve));
+
 		// XAxis
 
 		public static readonly StyledProperty<IList<double>?> XAxisValuesProperty =
 			AvaloniaProperty.Register<LineChart, IList<double>?>(nameof(XAxisValues));
+
+		public static readonly StyledProperty<double?> XAxisMinimumProperty =
+			AvaloniaProperty.Register<LineChart, double?>(nameof(XAxisMinimum));
 
 		public static readonly StyledProperty<bool> XAxisLogarithmicScaleProperty =
 			AvaloniaProperty.Register<LineChart, bool>(nameof(XAxisLogarithmicScale));
@@ -69,6 +83,9 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<double> XAxisMinViableWidthProperty =
 			AvaloniaProperty.Register<LineChart, double>(nameof(XAxisMinViableWidth), double.MinValue);
+
+		public static readonly StyledProperty<AxisPlotMode> XAxisPlotModeProperty =
+			AvaloniaProperty.Register<LineChart, AxisPlotMode>(nameof(XAxisPlotMode), AxisPlotMode.Normal);
 
 		// XAxis Label
 
@@ -437,12 +454,24 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(AreaMinViableWidthProperty, value);
 		}
 
+		public bool SmoothCurve
+		{
+			get => GetValue(SmoothCurveProperty);
+			set => SetValue(SmoothCurveProperty, value);
+		}
+
 		// XAxis
 
 		public IList<double>? XAxisValues
 		{
 			get => GetValue(XAxisValuesProperty);
 			set => SetValue(XAxisValuesProperty, value);
+		}
+
+		public double? XAxisMinimum
+		{
+			get => GetValue(XAxisMinimumProperty);
+			set => SetValue(XAxisMinimumProperty, value);
 		}
 
 		public bool XAxisLogarithmicScale
@@ -497,6 +526,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(XAxisMinViableWidthProperty);
 			set => SetValue(XAxisMinViableWidthProperty, value);
+		}
+
+		public AxisPlotMode XAxisPlotMode
+		{
+			get => GetValue(XAxisPlotModeProperty);
+			set => SetValue(XAxisPlotModeProperty, value);
 		}
 
 		// XAxis Label

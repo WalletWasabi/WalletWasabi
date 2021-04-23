@@ -17,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 		{
 			Title = "Password Finder";
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = true;
 

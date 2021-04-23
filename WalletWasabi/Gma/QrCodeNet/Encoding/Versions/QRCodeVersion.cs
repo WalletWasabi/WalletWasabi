@@ -4,14 +4,6 @@ namespace Gma.QrCodeNet.Encoding.Versions
 {
 	internal struct QRCodeVersion
 	{
-		internal int VersionNum { get; private set; }
-
-		internal int TotalCodewords { get; private set; }
-
-		internal int DimensionForVersion { get; private set; }
-
-		private ErrorCorrectionBlocks[] ECBlocks { get; }
-
 		internal QRCodeVersion(int versionNum, int totalCodewords, ErrorCorrectionBlocks ecblocksL, ErrorCorrectionBlocks ecblocksM, ErrorCorrectionBlocks ecblocksQ, ErrorCorrectionBlocks ecblocksH)
 			: this()
 		{
@@ -29,8 +21,16 @@ namespace Gma.QrCodeNet.Encoding.Versions
 				ErrorCorrectionLevel.M => ECBlocks[1],
 				ErrorCorrectionLevel.Q => ECBlocks[2],
 				ErrorCorrectionLevel.H => ECBlocks[3],
-				_ => throw new ArgumentOutOfRangeException($"Invalid {nameof(ErrorCorrectionLevel)}.")
+				_ => throw new ArgumentOutOfRangeException(nameof(eCLevel))
 			};
 		}
+
+		internal int VersionNum { get; private set; }
+
+		internal int TotalCodewords { get; private set; }
+
+		internal int DimensionForVersion { get; private set; }
+
+		private ErrorCorrectionBlocks[] ECBlocks { get; }
 	}
 }

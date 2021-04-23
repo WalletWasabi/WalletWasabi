@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			IsHardwareWallet = keyManager.IsHardwareWallet;
 			WalletName = keyManager.WalletName;
 
-			EnableCancel = false;
+			SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 
 			EnableBack = false;
 

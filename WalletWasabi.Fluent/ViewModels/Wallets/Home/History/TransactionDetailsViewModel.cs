@@ -40,6 +40,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			NextCommand = ReactiveCommand.Create(OnNext);
 			CopyTransactionIdCommand = ReactiveCommand.CreateFromTask(OnCopyTransactionId);
 
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
+
 			UpdateValues(transactionSummary);
 		}
 

@@ -41,6 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			_privacySuggestions = new ObservableCollection<PrivacySuggestionControlViewModel>();
 
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
 
 			NextCommand = ReactiveCommand.Create(

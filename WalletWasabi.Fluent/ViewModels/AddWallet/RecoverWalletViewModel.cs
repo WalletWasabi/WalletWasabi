@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = true;
 

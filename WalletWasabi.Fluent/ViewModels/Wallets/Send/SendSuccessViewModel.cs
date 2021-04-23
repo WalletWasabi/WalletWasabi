@@ -9,6 +9,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public SendSuccessViewModel()
 		{
 			NextCommand = ReactiveCommand.Create(OnNext);
+
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		}
 
 		private void OnNext()
