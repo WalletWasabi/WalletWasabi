@@ -24,13 +24,13 @@ namespace Nito.AsyncEx
 		/// Removes a single entry in the wait queue and completes it. This method may only be called if <see cref="IsEmpty"/> is <c>false</c>. The task continuations for the completed task must be executed asynchronously.
 		/// </summary>
 		/// <param name="result">The result used to complete the wait queue entry. If this is not needed, use <c>default(T)</c>.</param>
-		void Dequeue(T result = default);
+		void Dequeue(T? result = default);
 
 		/// <summary>
 		/// Removes all entries in the wait queue and completes them. The task continuations for the completed tasks must be executed asynchronously.
 		/// </summary>
 		/// <param name="result">The result used to complete the wait queue entries. If this is not needed, use <c>default(T)</c>.</param>
-		void DequeueAll(T result = default);
+		void DequeueAll(T? result = default);
 
 		/// <summary>
 		/// Attempts to remove an entry from the wait queue and cancels it. The task continuations for the completed task must be executed asynchronously.
