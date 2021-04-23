@@ -3,11 +3,9 @@ using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
-using WalletWasabi.Helpers;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Tests.UnitTests;
@@ -24,37 +22,14 @@ namespace WalletWasabi.Tests.Helpers
 {
 	public static class WabiSabiFactory
 	{
-		public static InputRoundSignaturePair CreateInputRoundSignaturePair(Key? key = null, uint256? roundHash = null)
+		public static Coin CreateCoin(OutPoint? prevout = null, Key? key = null, Money? value = null)
+			=> new Coin(prevout ?? BitcoinFactory.CreateOutPoint(), new TxOut(value ?? Money.Coins(1), BitcoinFactory.CreateScript(key)));
+
+		public static byte[] CreateOwnershipProof(Key? key = null, uint256? roundHash = null)
 		{
 			var rh = roundHash ?? BitcoinFactory.CreateUint256();
-			var outpoint = BitcoinFactory.CreateOutPoint();
 			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", rh);
-
-			var signingKey = key ?? new();
-			return new InputRoundSignaturePair(
-				outpoint,
-				OwnershipProof.GenerateCoinJoinInputProof(signingKey, coinJoinInputCommitmentData).ToBytes());
-		}
-
-		public static InputRoundSignaturePair[] CreateInputRoundSignaturePairs(int count, uint256? roundHash = null)
-		{
-			List<InputRoundSignaturePair> pairs = new();
-			for (int i = 0; i < count; i++)
-			{
-				pairs.Add(CreateInputRoundSignaturePair(null, roundHash));
-			}
-
-			return pairs.ToArray();
-		}
-
-		public static InputRoundSignaturePair[] CreateInputRoundSignaturePairs(IEnumerable<Key> keys, uint256? roundHash = null)
-		{
-			List<InputRoundSignaturePair> pairs = new();
-			foreach (var key in keys)
-			{
-				pairs.Add(CreateInputRoundSignaturePair(key, roundHash));
-			}
-			return pairs.ToArray();
+			return OwnershipProof.GenerateCoinJoinInputProof(key ?? new(), coinJoinInputCommitmentData).ToBytes();
 		}
 
 		public static Round CreateRound(WabiSabiConfig cfg)
@@ -93,47 +68,22 @@ namespace WalletWasabi.Tests.Helpers
 			return arena;
 		}
 
-		public static Alice CreateAlice(InputRoundSignaturePair inputSigPairs, Key? key = null, Money? value = null) => CreateAlice(new[] { inputSigPairs }, key, value);
-
-		public static Alice CreateAlice(IEnumerable<InputRoundSignaturePair>? inputSigPairs = null, Key? key = null, Money? value = null)
+		public static Alice CreateAlice(Key? key = null, OutPoint? prevout = null, Coin? coin = null, byte[]? roundSignature = null, Money? value = null)
 		{
-			var pairs = inputSigPairs ?? CreateInputRoundSignaturePairs(1);
-			var myDic = new Dictionary<Coin, byte[]>();
-
-			foreach (var pair in pairs)
-			{
-				var coin = new Coin(pair.Input, new TxOut(value ?? Money.Coins(1), BitcoinFactory.CreateScript(key)));
-				myDic.Add(coin, pair.RoundSignature);
-			}
-			var alice = new Alice(myDic);
+			key ??= new();
+			coin ??= CreateCoin(prevout, key, value);
+			roundSignature ??= CreateOwnershipProof(key);
+			var alice = new Alice(coin, roundSignature);
 			alice.Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1);
 			return alice;
 		}
 
-		public static InputsRegistrationRequest CreateInputsRegistrationRequest(Key key, Round? round)
-			=> CreateInputsRegistrationRequest(new[] { key }, round);
+		public static InputRegistrationRequest CreateInputRegistrationRequest(Key? key = null, Round? round = null, OutPoint? prevout = null)
+			=> CreateInputRegistrationRequest(prevout ?? BitcoinFactory.CreateOutPoint(), CreateOwnershipProof(key, round?.Hash), round);
 
-		public static InputsRegistrationRequest CreateInputsRegistrationRequest(IEnumerable<Key>? keys, Round? round)
-		{
-			var pairs = keys is null
-				? CreateInputRoundSignaturePairs(1, round?.Hash)
-				: CreateInputRoundSignaturePairs(keys, round?.Hash);
-			return CreateInputsRegistrationRequest(pairs, round);
-		}
-
-		public static InputsRegistrationRequest CreateInputsRegistrationRequest(InputRoundSignaturePair pair, Round? round)
-			=> CreateInputsRegistrationRequest(new[] { pair }, round);
-
-		public static InputsRegistrationRequest CreateInputsRegistrationRequest(Round? round)
-			=> CreateInputsRegistrationRequest(CreateInputRoundSignaturePairs(1, round?.Hash), round);
-
-		public static InputsRegistrationRequest CreateInputsRegistrationRequest()
-			=> CreateInputsRegistrationRequest(pairs: null, round: null);
-
-		public static InputsRegistrationRequest CreateInputsRegistrationRequest(IEnumerable<InputRoundSignaturePair>? pairs, Round? round)
+		public static InputRegistrationRequest CreateInputRegistrationRequest(OutPoint prevout, byte[] roundSignature, Round? round = null)
 		{
 			var roundId = round?.Id ?? Guid.NewGuid();
-			var inputRoundSignaturePairs = pairs ?? CreateInputRoundSignaturePairs(1, round?.Hash);
 
 			(var amClient, var vsClient, _, _) = CreateWabiSabiClientsAndIssuers(round);
 			var (zeroAmountCredentialRequest, _) = amClient.CreateRequestForZeroAmount();
@@ -141,7 +91,8 @@ namespace WalletWasabi.Tests.Helpers
 
 			return new(
 				roundId,
-				inputRoundSignaturePairs,
+				prevout,
+				roundSignature,
 				zeroAmountCredentialRequest,
 				zeroVsizeCredentialRequest);
 		}
@@ -222,7 +173,7 @@ namespace WalletWasabi.Tests.Helpers
 				realVsizeCredentialRequest);
 		}
 
-		public static IEnumerable<(ConnectionConfirmationRequest request, WabiSabiClient amountClient, WabiSabiClient vsizeClient, CredentialsResponseValidation amountValidation, CredentialsResponseValidation vsizeValidation)> CreateConnectionConfirmationRequests(Round round, params InputsRegistrationResponse[] responses)
+		public static IEnumerable<(ConnectionConfirmationRequest request, WabiSabiClient amountClient, WabiSabiClient vsizeClient, CredentialsResponseValidation amountValidation, CredentialsResponseValidation vsizeValidation)> CreateConnectionConfirmationRequests(Round round, params InputRegistrationResponse[] responses)
 		{
 			var requests = new List<(ConnectionConfirmationRequest request, WabiSabiClient amountClient, WabiSabiClient vsizeClient, CredentialsResponseValidation amountValidation, CredentialsResponseValidation vsizeValidation)>();
 			foreach (var resp in responses)
@@ -233,7 +184,7 @@ namespace WalletWasabi.Tests.Helpers
 			return requests.ToArray();
 		}
 
-		public static (ConnectionConfirmationRequest request, WabiSabiClient amountClient, WabiSabiClient vsizeClient, CredentialsResponseValidation amountValidation, CredentialsResponseValidation vsizeValidation) CreateConnectionConfirmationRequest(Round round, InputsRegistrationResponse response)
+		public static (ConnectionConfirmationRequest request, WabiSabiClient amountClient, WabiSabiClient vsizeClient, CredentialsResponseValidation amountValidation, CredentialsResponseValidation vsizeValidation) CreateConnectionConfirmationRequest(Round round, InputRegistrationResponse response)
 		{
 			(var amClient, var vsClient, _, _) = CreateWabiSabiClientsAndIssuers(round);
 

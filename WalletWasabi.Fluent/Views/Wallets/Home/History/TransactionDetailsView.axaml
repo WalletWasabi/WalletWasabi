@@ -16,24 +16,16 @@
       <!-- Date -->
       <c:PreviewItem Icon="{StaticResource timer_regular}"
                      Text="Date / Time"
-                     Content="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}" />
+                     Content="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
+                     CopyParameter="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}" />
 
       <Separator />
 
       <!-- Transaction ID -->
       <c:PreviewItem Icon="{StaticResource transaction_id}"
-                     Text="Transaction ID">
-        <DockPanel HorizontalAlignment="Left">
-          <c:AnimatedButton Margin="5 0 0 0"
-                            Command="{Binding CopyTransactionIdCommand}"
-                            ToolTip.Tip="Copy"
-                            NormalIcon="{StaticResource copy_regular}"
-                            ClickIcon="{StaticResource copy_confirmed}"
-                            InitialOpacity="0.6"
-                            DockPanel.Dock="Right"/>
-          <TextBlock Text="{Binding TransactionId}"/>
-        </DockPanel>
-      </c:PreviewItem>
+                     Text="Transaction ID"
+                     Content="{Binding TransactionId}"
+                     CopyParameter="{Binding TransactionId}"/>
 
       <Separator />
 
@@ -51,26 +43,30 @@
       <!-- Incoming amount  -->
       <c:PreviewItem Icon="{StaticResource btc_logo}"
                      Text="Amount"
-                     Content="{Binding Amount, StringFormat={}{0} BTC}"/>
+                     Content="{Binding Amount, StringFormat={}{0} BTC}"
+                     CopyParameter="{Binding Amount}" />
 
       <Separator />
 
       <!-- Block height -->
       <c:PreviewItem Icon="{StaticResource block_height}"
                      Text="Block height"
-                     Content="{Binding BlockHeight}" />
+                     Content="{Binding BlockHeight}"
+                     CopyParameter="{Binding BlockHeight}" />
       <Separator />
 
       <!-- Confirmations -->
       <c:PreviewItem Icon="{StaticResource copy_confirmed}"
                      Text="Confirmations"
-                     Content="{Binding Confirmations}" />
+                     Content="{Binding Confirmations}"
+                     CopyParameter="{Binding Confirmations}" />
 
       <Separator />
 
       <!-- Labels -->
       <c:PreviewItem Icon="{StaticResource entities_regular}"
-                     Text="Labels">
+                     Text="Labels"
+                     CopyParameter="{Binding Labels}">
         <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}" />
       </c:PreviewItem>
 
