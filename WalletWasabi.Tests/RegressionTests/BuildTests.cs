@@ -82,34 +82,30 @@ namespace WalletWasabi.Tests.RegressionTests
 				new DestinationRequest(scp, Money.Satoshis(5))));
 
 			Logger.TurnOff();
-			Assert.Throws<ArgumentNullException>(() => wallet.BuildTransaction(null, null, FeeStrategy.CreateFromConfirmationTarget(4)));
-
-			// toSend cannot have a null element
-			Assert.Throws<ArgumentNullException>(() => wallet.BuildTransaction(null, new PaymentIntent(new[] { (DestinationRequest)null }), FeeStrategy.CreateFromConfirmationTarget(0)));
 
 			// toSend cannot have a zero element
-			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, new PaymentIntent(Array.Empty<DestinationRequest>()), FeeStrategy.SevenDaysConfirmationTargetStrategy));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction("", new PaymentIntent(Array.Empty<DestinationRequest>()), FeeStrategy.SevenDaysConfirmationTargetStrategy));
 
 			// feeTarget has to be in the range 0 to 1008
-			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, validIntent, FeeStrategy.CreateFromConfirmationTarget(-10)));
-			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, validIntent, FeeStrategy.CreateFromConfirmationTarget(2000)));
+			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction("", validIntent, FeeStrategy.CreateFromConfirmationTarget(-10)));
+			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction("", validIntent, FeeStrategy.CreateFromConfirmationTarget(2000)));
 
 			// toSend amount sum has to be in range 0 to 2099999997690000
-			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, invalidIntent, FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
+			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction("", invalidIntent, FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
 
 			// toSend negative sum amount
-			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, new PaymentIntent(scp, Money.Satoshis(-10000)), FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
+			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction("", new PaymentIntent(scp, Money.Satoshis(-10000)), FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
 
 			// toSend negative operation amount
 			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(
-				null,
+				"",
 				new PaymentIntent(
 					new DestinationRequest(scp, Money.Satoshis(20000)),
 					new DestinationRequest(scp, Money.Satoshis(-10000))),
 				FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
 
 			// allowedInputs cannot be empty
-			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, validIntent, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowedInputs: Array.Empty<OutPoint>()));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction("", validIntent, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowedInputs: Array.Empty<OutPoint>()));
 
 			// "Only one element can contain the AllRemaining flag.
 			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(
@@ -150,17 +146,17 @@ namespace WalletWasabi.Tests.RegressionTests
 
 				// No enough money (only one confirmed coin, no unconfirmed allowed)
 				operations = new PaymentIntent(scp, Money.Coins(1.5m));
-				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
+				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction("", operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
 
 				// No enough money (only one confirmed coin, unconfirmed allowed)
-				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, true));
+				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction("", operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, true));
 
 				// Add new money with no confirmation
 				var txId2 = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("bar", out _).GetP2wpkhAddress(network), Money.Coins(2m));
 				await Task.Delay(1000); // Wait tx to arrive and get processed.
 
 				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are NOT allowed)
-				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, false));
+				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction("", operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, false));
 
 				// Enough money (one unconfirmed coin, unconfirmed are allowed)
 				var btx = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, true);
@@ -177,7 +173,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				// Only one operation with AllRemainingFlag
 
 				Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(
-					null,
+					"",
 					new PaymentIntent(
 						new DestinationRequest(scp, MoneyRequest.CreateAllRemaining()),
 						new DestinationRequest(scp, MoneyRequest.CreateAllRemaining())),
