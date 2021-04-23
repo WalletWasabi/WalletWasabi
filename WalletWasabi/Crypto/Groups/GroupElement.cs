@@ -91,7 +91,7 @@ namespace WalletWasabi.Crypto.Groups
 			{
 				return "Infinity";
 			}
-			else if (Generators.TryGetFriendlyGeneratorName(this, out string generatorName))
+			else if (Generators.TryGetFriendlyGeneratorName(this, out var generatorName))
 			{
 				return $"{generatorName}, {Ge.x.ToC("x")}{Ge.y.ToC("y")}";
 			}

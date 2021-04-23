@@ -23,10 +23,10 @@ namespace WalletWasabi.Blockchain.Transactions
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
 		public TransactionFactory(Network network, KeyManager keyManager, ICoinsView coins, AllTransactionStore transactionStore, string password = "", bool allowUnconfirmed = false)
 		{
-			Network = Guard.NotNull(nameof(network), network);
-			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
-			Coins = Guard.NotNull(nameof(coins), coins);
-			TransactionStore = Guard.NotNull(nameof(transactionStore), transactionStore);
+			Network = network;
+			KeyManager = keyManager;
+			Coins = coins;
+			TransactionStore = transactionStore;
 			Password = password;
 			AllowUnconfirmed = allowUnconfirmed;
 		}
@@ -58,7 +58,6 @@ namespace WalletWasabi.Blockchain.Transactions
 			Func<LockTime>? lockTimeSelector = null,
 			IPayjoinClient? payjoinClient = null)
 		{
-			payments = Guard.NotNull(nameof(payments), payments);
 			lockTimeSelector ??= () => LockTime.Zero;
 
 			long totalAmount = payments.TotalAmount.Satoshi;
@@ -72,7 +71,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			List<SmartCoin> allowedSmartCoinInputs = AllowUnconfirmed // Inputs that can be used to build the transaction.
 					? availableCoinsView.ToList()
 					: availableCoinsView.Confirmed().ToList();
-			if (allowedInputs is { }) // If allowedInputs are specified then select the coins from them.
+			if (allowedInputs is not null) // If allowedInputs are specified then select the coins from them.
 			{
 				if (!allowedInputs.Any())
 				{
@@ -122,7 +121,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 			}
 
-			HdPubKey changeHdPubKey = null;
+			HdPubKey changeHdPubKey;
 
 			if (payments.TryGetCustomRequest(out DestinationRequest? custChange))
 			{
@@ -147,7 +146,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			{
 				KeyManager.AssertCleanKeysIndexed(isInternal: true);
 				KeyManager.AssertLockedInternalKeysIndexed(14);
-				changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).FirstOrDefault();
+				changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).First();
 
 				builder.SetChange(changeHdPubKey.P2wpkhScript);
 			}
@@ -166,7 +165,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					(label: t.Label,
 					destination: t.Destination,
 					amount: psbt.Outputs.FirstOrDefault(o => o.ScriptPubKey == t.Destination.ScriptPubKey)?.Value))
-				.Where(i => i.amount is { });
+				.Where(i => i.amount is not null);
 
 			if (!psbt.TryGetFee(out var fee))
 			{
@@ -234,7 +233,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 				var isPayjoin = false;
 				// Try to pay using payjoin
-				if (payjoinClient is { })
+				if (payjoinClient is not null)
 				{
 					psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
 					isPayjoin = true;
@@ -246,7 +245,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				tx = psbt.ExtractTransaction();
 
 				var checkResults = builder.Check(tx).ToList();
-				if (!psbt.TryGetEstimatedFeeRate(out FeeRate actualFeeRate))
+				if (!psbt.TryGetEstimatedFeeRate(out var actualFeeRate))
 				{
 					throw new InvalidOperationException("Impossible to get the fee rate of the PSBT, this should never happen.");
 				}
@@ -279,7 +278,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			{
 				TxOut output = tx.Outputs[i];
 				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
-				if (foundKey is { })
+				if (foundKey is not null)
 				{
 					var smartCoin = new SmartCoin(smartTransaction, i, foundKey);
 					label = SmartLabel.Merge(label, smartCoin.HdPubKey.Label); // foundKey's label is already added to the coinlabel.
