@@ -1,14 +1,8 @@
-using NBitcoin;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using Xunit;
 
@@ -68,24 +62,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			blameRound.Alices.Add(alice3);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.ConnectionConfirmation, blameRound.Phase);
-
-			await arena.StopAsync(CancellationToken.None);
-		}
-
-		[Fact]
-		public async Task RoundFullAliceMultiInputAsync()
-		{
-			WabiSabiConfig cfg = new() { MaxInputCountByRound = 3 };
-			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-
-			round.Alices.Add(WabiSabiFactory.CreateAlice(WabiSabiFactory.CreateInputRoundSignaturePairs(2)));
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.InputRegistration, round.Phase);
-
-			round.Alices.Add(WabiSabiFactory.CreateAlice());
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 			await arena.StopAsync(CancellationToken.None);
 		}

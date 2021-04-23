@@ -2,8 +2,6 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds
@@ -35,8 +33,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			IsBlameRound = BlameOf is not null;
 			BlameWhitelist = BlameOf
 				?.Alices
-				.SelectMany(x => x.Coins)
-				.Select(x => x.Outpoint)
+				.Select(x => x.Coin.Outpoint)
 				.ToHashSet()
 			?? new HashSet<OutPoint>();
 		}

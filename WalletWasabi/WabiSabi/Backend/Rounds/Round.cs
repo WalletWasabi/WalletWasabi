@@ -1,7 +1,6 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -45,7 +44,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public CredentialIssuerParameters VsizeCredentialIssuerParameters { get; }
 		public Guid Id { get; } = Guid.NewGuid();
 		public List<Alice> Alices { get; } = new();
-		public int InputCount => Alices.Sum(x => x.Coins.Count());
+		public int InputCount => Alices.Count;
 		public List<Bob> Bobs { get; } = new();
 
 		public Round? BlameOf => RoundParameters.BlameOf;
