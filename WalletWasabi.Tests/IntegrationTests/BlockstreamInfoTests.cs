@@ -14,7 +14,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 	public class BlockstreamInfoTests : IAsyncLifetime
 	{
 		public BlockstreamInfoTests()
-		{			
+		{
 			ClearnetHttpClientFactory = new(torEndPoint: null, backendUriGetter: null);
 			TorHttpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: null);
 
@@ -27,7 +27,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 		public async Task InitializeAsync()
 		{
-			bool started = await TorManager.StartAsync(ensureRunning: true);
+			bool started = await TorManager.StartAsync();
 			Assert.True(started, "Tor failed to start.");
 		}
 
