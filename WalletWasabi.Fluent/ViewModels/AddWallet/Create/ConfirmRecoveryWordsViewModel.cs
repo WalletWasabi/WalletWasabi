@@ -31,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 				.WhenValueChanged(x => x.IsConfirmed)
 				.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
 
-			EnableCancel = false;
+			SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 
 			EnableBack = true;
 

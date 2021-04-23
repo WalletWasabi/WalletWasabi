@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			AbandonedTasks = new AbandonedTasks();
 			CancelCts = new CancellationTokenSource();
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = true;
 

@@ -150,7 +150,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		public async Task InputBannedAsync()
 		{
 			Prison prison = new();
-			var key = new Key();
+			using var key = new Key();
 			var outpoint = BitcoinFactory.CreateOutPoint();
 			prison.Punish(outpoint, Punishment.Banned, Guid.NewGuid());
 			WabiSabiConfig cfg = new();

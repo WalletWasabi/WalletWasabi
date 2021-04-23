@@ -135,7 +135,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 				var issuedCredential = Assert.Single(client.Credentials.Valuable);
 				Assert.Equal(new Scalar(100_000_000), issuedCredential.Amount);
 
-				Assert.Equal(1, client.Credentials.ZeroValue.Count());
+				Assert.Single(client.Credentials.ZeroValue);
 				Assert.Equal(2, client.Credentials.All.Count());
 			}
 
