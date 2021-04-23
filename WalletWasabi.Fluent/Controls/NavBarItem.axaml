@@ -9,7 +9,7 @@
   <Styles.Resources>
     <Thickness x:Key="ListBoxItemPadding">12</Thickness>
   </Styles.Resources>
-  <Style Selector="c|NavBarItem[IndicatorOrientation=Vertical]">
+  <Style Selector="c|NavBarItem:vertical">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Padding" Value="{StaticResource ListBoxItemPadding}" />
     <Setter Property="Template">
@@ -40,7 +40,7 @@
     </Setter>
   </Style>
 
-  <Style Selector="c|NavBarItem[IndicatorOrientation=Horizontal]">
+  <Style Selector="c|NavBarItem:horizontal">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Padding" Value="{StaticResource ListBoxItemPadding}" />
     <Setter Property="Template">
