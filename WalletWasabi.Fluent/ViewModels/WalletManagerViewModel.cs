@@ -161,8 +161,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (_currentSelection == closedWalletViewModel)
 			{
-				SelectedWallet = walletViewModelItem;
 				InsertActions(walletViewModelItem, actions);
+				SelectedWallet = walletViewModelItem;
 			}
 
 			IsLoadingWallet = false;
