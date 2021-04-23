@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -248,7 +249,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public async Task<InputRegistrationResponse> RegisterInputAsync(
 			Guid roundId,
 			Coin coin,
-			byte[] signature,
+			OwnershipProof ownershipProof,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
 			ZeroCredentialsRequest zeroVsizeCredentialRequests)
 		{
@@ -258,7 +259,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					Config,
 					roundId,
 					coin,
-					signature,
+					ownershipProof,
 					zeroAmountCredentialRequests,
 					zeroVsizeCredentialRequests,
 					Rounds,

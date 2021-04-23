@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Helpers;
@@ -148,7 +149,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			round.SetPhase(Phase.ConnectionConfirmation);
 			var fundingTx = BitcoinFactory.CreateSmartTransaction(ownOutputCount: 1);
 			var coin = fundingTx.WalletOutputs.First().Coin;
-			var alice = new Alice(coin, Array.Empty<byte>());
+			var alice = new Alice(coin, new OwnershipProof());
 			round.Alices.Add(alice);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
 

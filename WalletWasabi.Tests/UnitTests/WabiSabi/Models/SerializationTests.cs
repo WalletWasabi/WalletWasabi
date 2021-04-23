@@ -9,6 +9,7 @@ using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Crypto;
@@ -21,13 +22,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 {
 	public class SerializationTests
 	{
-
-		private static JsonConverter[] Converters = 
+		private static JsonConverter[] Converters =
 		{
 			new ScalarJsonConverter(),
 			new GroupElementJsonConverter(),
 			new OutPointJsonConverter(),
-			new WitScriptJsonConverter()
+			new WitScriptJsonConverter(),
+			new ScriptJsonConverter(),
+			new OwnershipProofJsonConverter(),
 		};
 
 		private static IEnumerable<GroupElement> Points = Enumerable.Range(0, int.MaxValue).Select(i => Generators.FromText($"T{i}"));
@@ -37,11 +39,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		[Fact]
 		public void InputRegistrationRequestMessageSerialization()
 		{
-			var message = new InputsRegistrationRequest(
+			var message = new InputRegistrationRequest(
 					Guid.NewGuid(),
-					new[] { new InputRoundSignaturePair(BitcoinFactory.CreateOutPoint(), new byte[] { 1, 2, 3, 4, 5 }) },
-						CreateZeroCredentialsRequest(),
-						CreateZeroCredentialsRequest());
+					BitcoinFactory.CreateOutPoint(),
+					new OwnershipProof(),
+					CreateZeroCredentialsRequest(),
+					CreateZeroCredentialsRequest());
 
 			AssertSerialization(message);
 		}
@@ -49,7 +52,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		[Fact]
 		public void InputRegistrationResponseMessageSerialization()
 		{
-			var message = new InputsRegistrationResponse(
+			var message = new InputRegistrationResponse(
 				Guid.NewGuid(),
 				CreateCredentialsResponse(),
 				CreateCredentialsResponse());
@@ -147,14 +150,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			using var key2 = new Key();
 			var message = new TransactionSignaturesRequest(
 				Guid.NewGuid(),
-				new [] { 
+				new[]
+				{
 					new InputWitnessPair(1, new WitScript(Op.GetPushOp(key1.PubKey.ToBytes())) ),
 					new InputWitnessPair(17, new WitScript(Op.GetPushOp(key2.PubKey.ToBytes())) )
-				} );
-				
+				});
+
 			AssertSerialization(message);
 		}
-
 
 		private static void AssertSerialization<T>(T message)
 		{
@@ -180,6 +183,5 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			new(
 				new[] { MAC.ComputeMAC(IssuerKey, Points.First(), Scalars.First()) },
 				new[] { new Proof(new GroupElementVector(Points.Take(2)), new ScalarVector(Scalars.Take(2))) });
-
 	}
 }

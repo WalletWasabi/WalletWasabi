@@ -20,8 +20,8 @@ namespace WalletWasabi.WabiSabi.Client
 			_client = client;
 		}
 
-		public Task<InputsRegistrationResponse> RegisterInputAsync(InputsRegistrationRequest request) =>
-			SendAndReceiveAsync<InputsRegistrationRequest, InputsRegistrationResponse>("register-input", request);
+		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request) =>
+			SendAndReceiveAsync<InputRegistrationRequest, InputRegistrationResponse>("register-input", request);
 
 		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request) =>
 			SendAndReceiveAsync<ConnectionConfirmationRequest, ConnectionConfirmationResponse>("confirm-connection", request);
