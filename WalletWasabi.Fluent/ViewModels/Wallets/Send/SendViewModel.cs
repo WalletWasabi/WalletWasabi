@@ -48,7 +48,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	public partial class SendViewModel : NavBarItemViewModel
 	{
 		private readonly WalletViewModel _owner;
-		private readonly UiConfig _uiConfig;
 		private readonly TransactionInfo _transactionInfo;
 
 		[AutoNotify] private string _to;

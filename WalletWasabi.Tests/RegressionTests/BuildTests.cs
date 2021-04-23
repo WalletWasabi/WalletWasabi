@@ -233,7 +233,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			var baseTip = await rpc.GetBestBlockHashAsync();
 
 			// Generate script
-			var scp = new Key().ScriptPubKey;
+			using var k = new Key();
+			var scp = k.ScriptPubKey;
 
 			// Get some money, make it confirm.
 			var key = keyManager.GetNextReceiveKey("foo label", out _);
@@ -319,7 +320,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				{
 					await rpc.AbandonTransactionAsync(fundingTxId);
 				}
-				catch (Exception ex)
+				catch
 				{
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 					{
@@ -328,7 +329,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					return; // Occassionally this fails on Linux or OSX, I have no idea why.
 				}
 				// Spend the inputs of the tx so we know
-				var success = bitcoinStore.TransactionStore.TryGetTransaction(fundingTxId, out SmartTransaction invalidSmartTransaction);
+				var success = bitcoinStore.TransactionStore.TryGetTransaction(fundingTxId, out var invalidSmartTransaction);
 				Assert.True(success);
 				var invalidCoin = Assert.Single(((CoinsRegistry)wallet.Coins).AsAllCoinsView().CreatedBy(invalidSmartTransaction.GetHash()));
 				Assert.NotNull(invalidCoin.SpenderTransaction);
