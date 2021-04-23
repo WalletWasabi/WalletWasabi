@@ -193,6 +193,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				totalOutgoingAmountNoFee = realToSend.Where(x => !changeHdPubKey.ContainsScript(x.destination.ScriptPubKey)).Sum(x => x.amount);
 			}
 			decimal totalOutgoingAmountNoFeeDecimal = totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
+
 			// Cannot divide by zero, so use the closest number we have to zero.
 			decimal totalOutgoingAmountNoFeeDecimalDivisor = totalOutgoingAmountNoFeeDecimal == 0 ? decimal.MinValue : totalOutgoingAmountNoFeeDecimal;
 			decimal feePc = 100 * fee.ToDecimal(MoneyUnit.BTC) / totalOutgoingAmountNoFeeDecimalDivisor;
@@ -215,8 +216,8 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			// Build the transaction
 			Logger.LogInfo("Signing transaction...");
-			// It must be watch only, too, because if we have the key and also hardware wallet, we do not care we can sign.
 
+			// It must be watch only, too, because if we have the key and also hardware wallet, we do not care we can sign.
 			psbt.AddKeyPaths(KeyManager);
 			psbt.AddPrevTxs(TransactionStore);
 
@@ -232,6 +233,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				builder.SignPSBT(psbt);
 
 				var isPayjoin = false;
+
 				// Try to pay using payjoin
 				if (payjoinClient is not null)
 				{
@@ -313,7 +315,8 @@ namespace WalletWasabi.Blockchain.Transactions
 			{
 				Logger.LogInfo($"Negotiating payjoin payment with `{payjoinClient.PaymentUrl}`.");
 
-				psbt = payjoinClient.RequestPayjoin(psbt,
+				psbt = payjoinClient.RequestPayjoin(
+					psbt,
 					KeyManager.ExtPubKey,
 					new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.DefaultAccountKeyPath),
 					changeHdPubKey,
@@ -328,7 +331,8 @@ namespace WalletWasabi.Blockchain.Transactions
 				{
 					Logger.LogWarning($"Payjoin server is not reachable. Ignoring...");
 				}
-				// ignore
+
+				// Ignore.
 			}
 			catch (HttpRequestException e)
 			{
