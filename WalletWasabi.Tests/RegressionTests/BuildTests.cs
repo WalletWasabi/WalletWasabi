@@ -23,6 +23,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -57,7 +58,9 @@ namespace WalletWasabi.Tests.RegressionTests
 			HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
 			FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
-			HybridFeeProvider feeProvider = new(synchronizer, null);
+			BlockstreamInfoFreeProvider blockstreamInfoFreeProvider = new(TimeSpan.FromMinutes(3), new BlockstreamInfoClient(network, httpClientFactory));
+			ThirdPartyFeeProvider thirdPartyFeeProvider = new(TimeSpan.FromMinutes(3), synchronizer, blockstreamInfoFreeProvider);
+			HybridFeeProvider feeProvider = new(thirdPartyFeeProvider, null);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -213,7 +216,9 @@ namespace WalletWasabi.Tests.RegressionTests
 			HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
 			FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
-			HybridFeeProvider feeProvider = new(synchronizer, null);
+			BlockstreamInfoFreeProvider blockstreamInfoFreeProvider = new(TimeSpan.FromMinutes(3), new BlockstreamInfoClient(network, httpClientFactory));
+			ThirdPartyFeeProvider thirdPartyFeeProvider = new(TimeSpan.FromMinutes(3), synchronizer, blockstreamInfoFreeProvider);
+			HybridFeeProvider feeProvider = new(thirdPartyFeeProvider, null);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
