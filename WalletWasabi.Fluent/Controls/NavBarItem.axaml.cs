@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Metadata;
 using Avalonia.Layout;
 
 namespace WalletWasabi.Fluent.Controls
@@ -7,6 +8,7 @@ namespace WalletWasabi.Fluent.Controls
 	/// <summary>
 	/// Container for NavBarItems.
 	/// </summary>
+	[PseudoClasses(":horizontal", ":vertical")]
 	public class NavBarItem : ListBoxItem
 	{
 		public static readonly StyledProperty<IconElement> IconProperty =
@@ -31,6 +33,22 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(IndicatorOrientationProperty);
 			set => SetValue(IndicatorOrientationProperty, value);
+		}
+
+		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+		{
+			base.OnPropertyChanged(change);
+
+			if (change.Property == IndicatorOrientationProperty)
+			{
+				UpdatePseudoClasses(change.NewValue.GetValueOrDefault<Orientation>());
+			}
+		}
+
+		private void UpdatePseudoClasses(Orientation orientation)
+		{
+			PseudoClasses.Set(":horizontal", orientation == Orientation.Horizontal);
+			PseudoClasses.Set(":vertical", orientation == Orientation.Vertical);
 		}
 	}
 }
