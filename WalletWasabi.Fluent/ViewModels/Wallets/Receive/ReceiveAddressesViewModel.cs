@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			Network = wallet.Network;
 			_addresses = new ObservableCollection<AddressViewModel>();
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = true;
 

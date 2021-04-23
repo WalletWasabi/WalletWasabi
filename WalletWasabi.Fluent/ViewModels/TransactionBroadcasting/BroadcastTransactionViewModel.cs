@@ -77,7 +77,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				? null
 				: TotalInputValue - TotalOutputValue;
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = false;
 
