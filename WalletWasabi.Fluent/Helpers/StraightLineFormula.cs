@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.Helpers
 			C = 0;
 			Y = 1;
 		}
-		
+
 		public StraightLineFormula(double m, double c, double y)
 		{
 			M = m;
