@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
@@ -72,7 +73,7 @@ namespace WalletWasabi.Backend.Controllers
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				cacheOptions,
-				() => RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true));
+				() => RpcClient.EstimateAllFeeAsync(new CancellationToken(), mode, simulateIfRegTest: true));
 		}
 
 		/// <summary>
