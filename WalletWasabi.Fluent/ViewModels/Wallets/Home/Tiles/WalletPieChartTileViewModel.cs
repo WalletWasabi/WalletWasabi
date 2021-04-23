@@ -58,8 +58,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			TestDataPointsLegend = new List<DataLegend>
 			{
-				new (privateCoins.TotalAmount(), "Private",  "#F9DE7D",  pcPrivate),
-				new (normalCoins.TotalAmount(), "Not Private",  "#72BD81",  pcNormal)
+				new (privateCoins.TotalAmount(), "Private",  "#72BD81",  pcPrivate),
+				new (normalCoins.TotalAmount(), "Not Private",  "#F9DE7D",  pcNormal)
 			};
 		}
 	}

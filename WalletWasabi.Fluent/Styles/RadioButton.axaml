@@ -1,0 +1,47 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <RadioButton Classes="text" Content="1D" />
+                <RadioButton Classes="text" Content="1W" />
+                <RadioButton Classes="text" Content="1M" />
+                <RadioButton Classes="text" Content="1Y" />
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <Style Selector="RadioButton.text">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Template">
+            <ControlTemplate TargetType="RadioButton">
+                <Border Name="RootBorder"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+
+
+                    <ContentPresenter Name="PART_ContentPresenter"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      TextBlock.Foreground="{TemplateBinding Foreground}"
+                                      Margin="{TemplateBinding Padding}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="RadioButton.text /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Opacity" Value="0.6" />
+    </Style>
+    <Style Selector="RadioButton.text:checked /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="(TextBlock.Foreground)" Value="{DynamicResource SystemAccentColor}" />
+    </Style>
+    <Style Selector="RadioButton.text:pointerover:not(:pressed) /template/ ContentPresenter#PART_ContentPresenter, RadioButton.text:checked /template/ ContentPresenter#PART_ContentPresenter, RadioButton.text:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Opacity" Value="1" />
+    </Style>
+</Styles>
