@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
 	public partial class WalletBalanceChartTileViewModel : TileViewModel
 	{
-		enum TimePeriodOption
+		private enum TimePeriodOption
 		{
 			All,
 			Day,
@@ -38,7 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			_yValues = new ObservableCollection<double>();
 			_xValues = new ObservableCollection<double>();
 
-			_history.ToObservableChangeSet().Subscribe(_ => UpdateSample ());
+			_history.ToObservableChangeSet().Subscribe(_ => UpdateSample());
 
 			DayCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Day));
 
@@ -52,11 +52,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			YearCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Year));
 
-			AllCommand = ReactiveCommand.Create(() =>
-			{
-				UpdateSample(TimePeriodOption.All);
-			});
+			AllCommand = ReactiveCommand.Create(() => { UpdateSample(TimePeriodOption.All); });
 		}
+
+		public ICommand DayCommand { get; }
+
+		public ICommand WeekCommand { get; }
+
+		public ICommand MonthCommand { get; }
+
+		public ICommand ThreeMonthCommand { get; }
+
+		public ICommand SixMonthCommand { get; }
+
+		public ICommand YearCommand { get; }
+
+		public ICommand AllCommand { get; }
 
 		private void UpdateSample()
 		{
@@ -74,6 +85,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 						UpdateSample((DateTimeOffset.Now - oldest) / 125, DateTimeOffset.Now - oldest);
 					}
+
 					break;
 
 				case TimePeriodOption.Day:
@@ -142,8 +154,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				var maxX = XValues.Max();
 				var halfX = minX + ((maxX - minX) / 2);
 
-				var range = DateTimeOffset.FromUnixTimeMilliseconds((long)maxX) -
-				            DateTimeOffset.FromUnixTimeMilliseconds((long)minX);
+				var range = DateTimeOffset.FromUnixTimeMilliseconds((long) maxX) -
+				            DateTimeOffset.FromUnixTimeMilliseconds((long) minX);
 
 				if (range <= TimeSpan.FromDays(1))
 				{
@@ -178,19 +190,5 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				XLabels = null;
 			}
 		}
-
-		public ICommand DayCommand { get; }
-
-		public ICommand WeekCommand { get; }
-
-		public ICommand MonthCommand { get; }
-
-		public ICommand ThreeMonthCommand { get; }
-
-		public ICommand SixMonthCommand { get; }
-
-		public ICommand YearCommand { get; }
-
-		public ICommand AllCommand { get; }
 	}
 }
