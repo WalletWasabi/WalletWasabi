@@ -21,11 +21,11 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<AvaloniaList<int>> ColumnHintsProperty =
 			AvaloniaProperty.Register<ResponsivePanel, AvaloniaList<int>>(nameof(ColumnHints),
-				new AvaloniaList<int>() {1});
+				new AvaloniaList<int>() { 1 });
 
 		public static readonly StyledProperty<AvaloniaList<double>> WidthTriggersProperty =
 			AvaloniaProperty.Register<ResponsivePanel, AvaloniaList<double>>(nameof(WidthTriggers),
-				new AvaloniaList<double>() {0.0});
+				new AvaloniaList<double>() { 0.0 });
 
 		public static readonly AttachedProperty<AvaloniaList<int>?> ColumnSpanProperty =
 			AvaloniaProperty.RegisterAttached<ResponsivePanel, Control, AvaloniaList<int>?>("ColumnSpan");

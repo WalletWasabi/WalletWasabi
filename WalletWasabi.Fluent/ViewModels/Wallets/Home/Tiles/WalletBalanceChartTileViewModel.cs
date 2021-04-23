@@ -23,7 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			_history
 				.ToObservableChangeSet()
-				.Select(x => (double) x.Balance.ToDecimal(MoneyUnit.BTC))
+				.Select(x => (double)x.Balance.ToDecimal(MoneyUnit.BTC))
 				.Reverse()
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _yValues)
@@ -32,7 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			_history
 				.ToObservableChangeSet()
-				.Select(x => (double) x.Date.ToUnixTimeSeconds())
+				.Select(x => (double)x.Date.ToUnixTimeSeconds())
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Bind(out _xValues)
 				.DisposeMany()

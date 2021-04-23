@@ -77,7 +77,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 			RemainingMin = remainingTime.Minutes;
 			RemainingSec = remainingTime.Seconds;
 
-			HourText = $" hour{TextHelpers.AddSIfPlural(RemainingHour)}{TextHelpers.CloseSentenceIfZero(RemainingMin,RemainingSec)}";
+			HourText = $" hour{TextHelpers.AddSIfPlural(RemainingHour)}{TextHelpers.CloseSentenceIfZero(RemainingMin, RemainingSec)}";
 			MinText = $" minute{TextHelpers.AddSIfPlural(RemainingMin)}{TextHelpers.CloseSentenceIfZero(RemainingSec)}";
 			SecText = $" second{TextHelpers.AddSIfPlural(RemainingSec)}.";
 		}

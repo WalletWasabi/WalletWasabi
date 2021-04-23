@@ -182,7 +182,7 @@ namespace WalletWasabi.Fluent.Controls
 			decimal fiatValue = 0;
 
 			e.Handled = !(ValidateEntryText(preComposedText) &&
-			            decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number, _customCultureInfo, out fiatValue));
+						decimal.TryParse(preComposedText.Replace($"{_groupSeparator}", ""), NumberStyles.Number, _customCultureInfo, out fiatValue));
 
 			if (IsConversionReversed & !e.Handled)
 			{
@@ -207,7 +207,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			// Check for consecutive spaces (2 or more) and leading spaces.
 			var rule1 = preComposedText.Length > 1 && (preComposedText[0] == _groupSeparator ||
-			                                           _regexConsecutiveSpaces.IsMatch(preComposedText));
+													   _regexConsecutiveSpaces.IsMatch(preComposedText));
 
 			// Check for trailing spaces in the whole number part and in the last part of the precomp string.
 			var rule2 = whole >= 8 && (preComposedText.Last() == _groupSeparator || wholeStr.Last() == _groupSeparator);
@@ -298,7 +298,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			if (ValidateEntryText(text))
 			{
-				OnTextInput(new TextInputEventArgs {Text = text});
+				OnTextInput(new TextInputEventArgs { Text = text });
 			}
 		}
 
@@ -315,8 +315,8 @@ namespace WalletWasabi.Fluent.Controls
 			var selectionEnd = SelectionEnd;
 
 			if (!string.IsNullOrEmpty(input) && (MaxLength == 0 ||
-			                                     input.Length + preComposedText.Length -
-			                                     Math.Abs(selectionStart - selectionEnd) <= MaxLength))
+												 input.Length + preComposedText.Length -
+												 Math.Abs(selectionStart - selectionEnd) <= MaxLength))
 			{
 				if (selectionStart != selectionEnd)
 				{
@@ -344,9 +344,9 @@ namespace WalletWasabi.Fluent.Controls
 			bool approximate)
 		{
 			return (approximate ? "≈ " : "") + $"{value.FormattedFiat()}" +
-			       (!string.IsNullOrWhiteSpace(currencyCode)
-				       ? $" {currencyCode}"
-				       : "");
+				   (!string.IsNullOrWhiteSpace(currencyCode)
+					   ? $" {currencyCode}"
+					   : "");
 		}
 
 		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
