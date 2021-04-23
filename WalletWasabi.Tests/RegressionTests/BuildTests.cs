@@ -232,7 +232,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			var baseTip = await rpc.GetBestBlockHashAsync();
 
-			// Generate script
+			// Generate script.
 			var scp = new Key().ScriptPubKey;
 
 			// Get some money, make it confirm.
