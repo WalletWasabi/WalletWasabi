@@ -13,17 +13,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
 	public partial class WalletBalanceChartTileViewModel : TileViewModel
 	{
-		private enum TimePeriodOption
-		{
-			All,
-			Day,
-			Week,
-			Month,
-			ThreeMonths,
-			SixMonths,
-			Year
-		}
-
 		private readonly ReadOnlyObservableCollection<HistoryItemViewModel> _history;
 		[AutoNotify] private ObservableCollection<double> _yValues;
 		[AutoNotify] private ObservableCollection<double> _xValues;
@@ -53,6 +42,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			YearCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Year));
 
 			AllCommand = ReactiveCommand.Create(() => { UpdateSample(TimePeriodOption.All); });
+		}
+
+		private enum TimePeriodOption
+		{
+			All,
+			Day,
+			Week,
+			Month,
+			ThreeMonths,
+			SixMonths,
+			Year
 		}
 
 		public ICommand DayCommand { get; }
@@ -141,7 +141,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			if (YValues.Any())
 			{
 				var maxY = YValues.Max();
-				YLabels = new List<string> {"0", (maxY / 2).ToString("F2"), maxY.ToString("F2")};
+				YLabels = new List<string> { "0", (maxY / 2).ToString("F2"), maxY.ToString("F2") };
 			}
 			else
 			{

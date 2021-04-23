@@ -4,19 +4,13 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public class StraightLineFormula
 	{
-		/// <summary>
-		/// Standard constructor, sets M & C to zero.
-		/// </summary>
 		public StraightLineFormula()
 		{
 			M = 1;
 			C = 0;
 			Y = 1;
 		}
-
-		/// <summary>
-		/// Standard constructor, sets M & C specified values.
-		/// </summary>
+		
 		public StraightLineFormula(double m, double c, double y)
 		{
 			M = m;
