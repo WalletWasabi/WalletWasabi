@@ -5,7 +5,7 @@ using System.Net;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 
-namespace WalletWasabi.Blockchain.P2p
+namespace WalletWasabi.BitcoinP2p
 {
 	public class TrustedP2pBehavior : P2pBehavior
 	{

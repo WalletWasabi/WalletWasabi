@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				.Subscribe(x => WalletState = x.EventArgs)
 				.DisposeWith(_disposables);
 
-			OpenCommand = ReactiveCommand.Create(() => Navigate().To(this,  NavigationMode.Clear));
+			OpenCommand = ReactiveCommand.Create(() => Navigate().To(this, NavigationMode.Clear));
 		}
 
 		public override string Title

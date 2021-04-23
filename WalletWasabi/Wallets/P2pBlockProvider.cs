@@ -20,9 +20,9 @@ namespace WalletWasabi.Wallets
 	/// </summary>
 	public class P2pBlockProvider : IBlockProvider
 	{
-		private Node _localBitcoinCoreNode = null;
+		private Node? _localBitcoinCoreNode = null;
 
-		public P2pBlockProvider(NodesGroup nodes, CoreNode coreNode, HttpClientFactory httpClientFactory, ServiceConfiguration serviceConfiguration, Network network)
+		public P2pBlockProvider(NodesGroup nodes, CoreNode? coreNode, HttpClientFactory httpClientFactory, ServiceConfiguration serviceConfiguration, Network network)
 		{
 			Nodes = nodes;
 			CoreNode = coreNode;
@@ -34,12 +34,12 @@ namespace WalletWasabi.Wallets
 		public static event EventHandler<bool>? DownloadingBlockChanged;
 
 		public NodesGroup Nodes { get; }
-		public CoreNode CoreNode { get; }
+		public CoreNode? CoreNode { get; }
 		public HttpClientFactory HttpClientFactory { get; }
 		public ServiceConfiguration ServiceConfiguration { get; }
 		public Network Network { get; }
 
-		public Node LocalBitcoinCoreNode
+		public Node? LocalBitcoinCoreNode
 		{
 			get
 			{
@@ -89,7 +89,7 @@ namespace WalletWasabi.Wallets
 						}
 
 						// Select a random node we are connected to.
-						Node node = Nodes.ConnectedNodes.RandomElement();
+						Node? node = Nodes.ConnectedNodes.RandomElement();
 						if (node is null || !node.IsConnected)
 						{
 							await Task.Delay(100, cancellationToken).ConfigureAwait(false);
@@ -199,7 +199,7 @@ namespace WalletWasabi.Wallets
 					}
 
 					// Get Block from local node
-					Block blockFromLocalNode = null;
+					Block blockFromLocalNode;
 					// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
 					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64)))
 					{

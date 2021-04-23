@@ -250,7 +250,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				}
 			}
 
-			if (item is WalletViewModel { IsLoggedIn: true} walletViewModelItem)
+			if (item is WalletViewModel { IsLoggedIn: true } walletViewModelItem)
 			{
 				if (!_walletActionsDictionary.TryGetValue(walletViewModelItem, out var actions))
 				{
