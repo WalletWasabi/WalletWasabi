@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			IsConfirmed = confirmations > 0;
 
 			var amount = transactionSummary.Amount;
-			if (amount < 0)
+			if (amount < Money.Zero)
 			{
 				OutgoingAmount = amount * -1;
 			}

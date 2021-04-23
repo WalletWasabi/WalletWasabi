@@ -42,7 +42,7 @@ namespace WalletWasabi.Tests.UnitTests.Crypto.GroupElements
 		[Fact]
 		public void FriendlyNameNullCheck()
 		{
-			Assert.False(Generators.TryGetFriendlyGeneratorName(null, out string name));
+			Assert.False(Generators.TryGetFriendlyGeneratorName(null, out var name));
 			Assert.Empty(name);
 		}
 	}
