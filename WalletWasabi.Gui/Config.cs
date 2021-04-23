@@ -279,18 +279,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		/// <inheritdoc />
-		public override void LoadFile()
-		{
-			base.LoadFile();
-
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet, PrivacyLevelSome, PrivacyLevelFine, PrivacyLevelStrong, GetBitcoinP2pEndPoint(), DustThreshold);
-
-			// Just debug convenience.
-			_backendUri = GetCurrentBackendUri();
-		}
-
-		public void SetP2PEndpoint(EndPoint endPoint)
+		public void SetBitcoinP2pEndpoint(EndPoint endPoint)
 		{
 			if (Network == Network.Main)
 			{
@@ -310,24 +299,15 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		public EndPoint GetP2PEndpoint()
+		/// <inheritdoc />
+		public override void LoadFile()
 		{
-			if (Network == Network.Main)
-			{
-				return MainNetBitcoinP2pEndPoint;
-			}
-			else if (Network == Network.TestNet)
-			{
-				return TestNetBitcoinP2pEndPoint;
-			}
-			else if (Network == Network.RegTest)
-			{
-				return RegTestBitcoinP2pEndPoint;
-			}
-			else
-			{
-				throw new NotSupportedNetworkException(Network);
-			}
+			base.LoadFile();
+
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet, PrivacyLevelSome, PrivacyLevelFine, PrivacyLevelStrong, GetBitcoinP2pEndPoint(), DustThreshold);
+
+			// Just debug convenience.
+			_backendUri = GetCurrentBackendUri();
 		}
 
 		private int CorrectMixUntilAnonymitySetValue()

@@ -16,6 +16,7 @@ using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Services;
 using WalletWasabi.Logging;
+using WalletWasabi.BitcoinP2p;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -47,7 +48,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
 
-			_compactDialogScreen = new DialogScreenViewModel( NavigationTarget.CompactDialogScreen);
+			_compactDialogScreen = new DialogScreenViewModel(NavigationTarget.CompactDialogScreen);
 
 			MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
 
@@ -131,7 +132,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public void Initialize()
 		{
-			StatusBar.Initialize(_global.Nodes.ConnectedNodes);
+			StatusBar.Initialize(_global.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes);
 
 			if (Network != Network.Main)
 			{

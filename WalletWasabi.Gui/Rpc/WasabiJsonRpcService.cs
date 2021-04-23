@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -113,7 +114,7 @@ namespace WalletWasabi.Gui.Rpc
 				filtersLeft = sync.BitcoinStore.SmartHeaderChain.HashesLeft,
 				network = Global.Network.Name,
 				exchangeRate = sync.UsdExchangeRate,
-				peers = Global.Nodes.ConnectedNodes.Select(x => new
+				peers = Global.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes.Select(x => new
 				{
 					isConnected = x.IsConnected,
 					lastSeen = x.LastSeen,
