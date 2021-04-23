@@ -2,6 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Helpers;
 using static WalletWasabi.Crypto.SchnorrBlinding;
@@ -58,7 +59,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.MixingLevels
 
 		public Money GetBaseDenomination() => Levels.First().Denomination;
 
-		public bool TryGetDenomination(int level, out Money denomination)
+		public bool TryGetDenomination(int level, [NotNullWhen(true)] out Money? denomination)
 		{
 			denomination = Money.Zero;
 			try

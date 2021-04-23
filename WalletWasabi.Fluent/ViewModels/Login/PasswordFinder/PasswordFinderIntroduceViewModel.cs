@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 	{
 		public PasswordFinderIntroduceViewModel(Wallet wallet)
 		{
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = false;
 

@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			History = new HistoryViewModel(wallet, uiConfig, balanceChanged);
 			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged);
-			BalanceChartTile = new WalletBalanceChartTileViewModel(History.Transactions);
+			BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions);
 			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged);
 		}
 

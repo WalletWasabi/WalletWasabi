@@ -2,6 +2,7 @@ using NBitcoin;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -172,7 +173,7 @@ namespace WalletWasabi.Blockchain.Transactions
 		{
 			var hash = tx.GetHash();
 
-			if (Transactions.TryGetValue(hash, out SmartTransaction found))
+			if (Transactions.TryGetValue(hash, out var found))
 			{
 				return found.TryUpdate(tx);
 			}
@@ -180,7 +181,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			return false;
 		}
 
-		public bool TryRemove(uint256 hash, out SmartTransaction stx)
+		public bool TryRemove(uint256 hash, [NotNullWhen(true)] out SmartTransaction? stx)
 		{
 			bool isRemoved;
 
@@ -201,7 +202,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		#region Accessors
 
-		public bool TryGetTransaction(uint256 hash, out SmartTransaction sameStx)
+		public bool TryGetTransaction(uint256 hash, [NotNullWhen(true)] out SmartTransaction? sameStx)
 		{
 			lock (TransactionsLock)
 			{

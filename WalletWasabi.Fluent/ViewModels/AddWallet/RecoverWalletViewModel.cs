@@ -19,7 +19,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
-	[NavigationMetaData (Title = "Enter recovery words")]
+	[NavigationMetaData(Title = "Enter recovery words")]
 	public partial class RecoverWalletViewModel : RoutableViewModel
 	{
 		[AutoNotify] private IEnumerable<string>? _suggestions;
@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = true;
 
@@ -120,7 +120,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				if (accountKeyPathIn is { } && minGapLimitIn is { })
 				{
 					AccountKeyPath = accountKeyPathIn;
-					MinGapLimit = (int) minGapLimitIn;
+					MinGapLimit = (int)minGapLimitIn;
 				}
 			}
 		}

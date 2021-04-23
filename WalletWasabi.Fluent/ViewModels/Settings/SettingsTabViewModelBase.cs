@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		public static Config? ConfigOnOpen { get; set; }
 
-		private static object ConfigLock { get; } = new ();
+		private static object ConfigLock { get; } = new();
 
 		protected void Save()
 		{

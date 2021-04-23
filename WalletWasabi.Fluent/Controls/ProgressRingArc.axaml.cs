@@ -133,8 +133,8 @@ namespace WalletWasabi.Fluent.Controls
 			base.OnPropertyChanged(e);
 
 			if (e.Property == SegmentColorProperty ||
-			    e.Property == StrokeThicknessProperty ||
-			    e.Property == PercentageProperty)
+				e.Property == StrokeThicknessProperty ||
+				e.Property == PercentageProperty)
 			{
 				RenderArc();
 			}
@@ -156,8 +156,8 @@ namespace WalletWasabi.Fluent.Controls
 			var endPoint = ComputeCartesianCoordinate(angle, _radius);
 			endPoint += new Point(_radius, _radius);
 
-			PathFigureWidth = (int) _radius * 2 + StrokeThickness;
-			PathFigureHeight = (int) _radius * 2 + StrokeThickness;
+			PathFigureWidth = (int)_radius * 2 + StrokeThickness;
+			PathFigureHeight = (int)_radius * 2 + StrokeThickness;
 			PathFigureMargin = new Thickness(StrokeThickness, StrokeThickness, 0, 0);
 
 			var largeArc = angle > 180.0;
@@ -167,7 +167,7 @@ namespace WalletWasabi.Fluent.Controls
 			PathFigureStartPoint = startPoint;
 
 			if (Math.Abs(startPoint.X - Math.Round(endPoint.X)) < 0.01 &&
-			    Math.Abs(startPoint.Y - Math.Round(endPoint.Y)) < 0.01)
+				Math.Abs(startPoint.Y - Math.Round(endPoint.Y)) < 0.01)
 			{
 				endPoint -= new Point(0.01, 0);
 			}

@@ -7,9 +7,9 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 {
 	public static class NavigationManager
 	{
-		private static readonly Dictionary<NavigationMetaData, InstanceGeneratorBase> NavigationEntries = new ();
+		private static readonly Dictionary<NavigationMetaData, InstanceGeneratorBase> NavigationEntries = new();
 
-		private static readonly Dictionary<Type, ViewModelBase> TypeRegistry = new ();
+		private static readonly Dictionary<Type, ViewModelBase> TypeRegistry = new();
 
 		public static IEnumerable<NavigationMetaData> MetaData => NavigationEntries.Keys.Select(x => x);
 

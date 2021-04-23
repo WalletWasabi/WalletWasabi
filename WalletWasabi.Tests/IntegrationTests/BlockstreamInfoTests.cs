@@ -12,6 +12,7 @@ using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.WebClients.BlockstreamInfo;
+using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests
@@ -19,17 +20,20 @@ namespace WalletWasabi.Tests.IntegrationTests
 	public class BlockstreamInfoTests : IAsyncLifetime
 	{
 		public BlockstreamInfoTests()
-		{
-			TorHttpPool = new(new TorTcpConnectionFactory(Common.TorSocks5Endpoint));
+		{			
+			ClearnetHttpClientFactory = new(torEndPoint: null, backendUriGetter: null);
+			TorHttpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: null);
+
 			TorManager = new(Common.TorSettings, Common.TorSocks5Endpoint);
 		}
 
-		private TorHttpPool TorHttpPool { get; }
+		private HttpClientFactory ClearnetHttpClientFactory { get; }
+		private HttpClientFactory TorHttpClientFactory { get; }
 		private TorProcessManager TorManager { get; }
 
 		public async Task InitializeAsync()
 		{
-			bool started = await TorManager.StartAsync();
+			bool started = await TorManager.StartAsync(ensureRunning: true);
 			Assert.True(started, "Tor failed to start.");
 		}
 
@@ -41,8 +45,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task GetFeeEstimatesClearnetMainnetAsync()
 		{
-			using var client = new BlockstreamInfoClient(Network.Main);
-			var estimates = await client.GetFeeEstimatesAsync(CancellationToken.None);
+			BlockstreamInfoClient client = new(Network.Main, ClearnetHttpClientFactory);
+			AllFeeEstimate estimates = await client.GetFeeEstimatesAsync(CancellationToken.None);
 			Assert.NotNull(estimates);
 			Assert.NotEmpty(estimates.Estimations);
 		}
@@ -50,8 +54,11 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task GetFeeEstimatesTorMainnetAsync()
 		{
-			using var client = new BlockstreamInfoClient(Network.Main, TorHttpPool);
-			var estimates = await client.GetFeeEstimatesAsync(CancellationToken.None);
+			Common.GetWorkDir();
+			Logging.Logger.SetMinimumLevel(Logging.LogLevel.Trace);
+
+			BlockstreamInfoClient client = new(Network.Main, TorHttpClientFactory);
+			AllFeeEstimate estimates = await client.GetFeeEstimatesAsync(CancellationToken.None);
 			Assert.NotNull(estimates);
 			Assert.NotEmpty(estimates.Estimations);
 		}
@@ -59,8 +66,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task GetFeeEstimatesClearnetTestnetAsync()
 		{
-			using var client = new BlockstreamInfoClient(Network.TestNet);
-			var estimates = await client.GetFeeEstimatesAsync(CancellationToken.None);
+			BlockstreamInfoClient client = new(Network.TestNet, ClearnetHttpClientFactory);
+			AllFeeEstimate estimates = await client.GetFeeEstimatesAsync(CancellationToken.None);
 			Assert.NotNull(estimates);
 			Assert.NotEmpty(estimates.Estimations);
 		}
@@ -68,8 +75,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task GetFeeEstimatesTorTestnetAsync()
 		{
-			using var client = new BlockstreamInfoClient(Network.TestNet, TorHttpPool);
-			var estimates = await client.GetFeeEstimatesAsync(CancellationToken.None);
+			BlockstreamInfoClient client = new(Network.TestNet, TorHttpClientFactory);
+			AllFeeEstimate estimates = await client.GetFeeEstimatesAsync(CancellationToken.None);
 			Assert.NotNull(estimates);
 			Assert.NotEmpty(estimates.Estimations);
 		}
@@ -77,8 +84,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task SimulatesFeeEstimatesClearnetRegtestAsync()
 		{
-			using var client = new BlockstreamInfoClient(Network.RegTest);
-			var estimates = await client.GetFeeEstimatesAsync(CancellationToken.None);
+			BlockstreamInfoClient client = new(Network.RegTest, ClearnetHttpClientFactory);
+			AllFeeEstimate estimates = await client.GetFeeEstimatesAsync(CancellationToken.None);
 			Assert.NotNull(estimates);
 			Assert.NotEmpty(estimates.Estimations);
 		}
@@ -86,8 +93,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task SimulatesFeeEstimatesTorRegtestAsync()
 		{
-			using var client = new BlockstreamInfoClient(Network.RegTest, TorHttpPool);
-			var estimates = await client.GetFeeEstimatesAsync(CancellationToken.None);
+			BlockstreamInfoClient client = new(Network.RegTest, TorHttpClientFactory);
+			AllFeeEstimate estimates = await client.GetFeeEstimatesAsync(CancellationToken.None);
 			Assert.NotNull(estimates);
 			Assert.NotEmpty(estimates.Estimations);
 		}

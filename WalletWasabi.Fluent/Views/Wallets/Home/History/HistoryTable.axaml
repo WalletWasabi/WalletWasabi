@@ -3,6 +3,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:history="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
@@ -21,12 +24,14 @@
 
     <DataGrid Items="{Binding Transactions}"
               SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+              CanUserResizeColumns="False"
               DockPanel.Dock="Bottom">
       <DataGrid.Styles>
         <Style Selector="PathIcon">
-          <Setter Property="Width" Value="15"/>
-          <Setter Property="Height" Value="15"/>
+          <Setter Property="Width" Value="10"/>
+          <Setter Property="Height" Value="10"/>
           <Setter Property="VerticalAlignment" Value="Center"/>
+          <Setter Property="HorizontalAlignment" Value="Center" />
         </Style>
         <Style Selector="TextBlock">
           <Setter Property="VerticalAlignment" Value="Center"/>
@@ -41,11 +46,18 @@
       <DataGrid.Columns>
 
         <!-- Date -->
-        <DataGridTextColumn Header="Date / Time"
-                            x:DataType="history:HistoryItemViewModel"
-                            Binding="{Binding Date, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
-                            SortMemberPath="OrderIndex"
-                            Width="Auto" />
+        <DataGridTemplateColumn Header="Date / Time"
+                                Width="Auto"
+                                SortMemberPath="OrderIndex">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:DataType="history:HistoryItemViewModel"
+                         Text="{Binding Date, Mode=OneWay, StringFormat='{}{0:MM/dd/yyyy HH:mm}'}"
+                         Classes="monoSpaced"
+                         Margin="10 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
 
         <!-- Type -->
         <DataGridTemplateColumn Header="Type"
@@ -54,68 +66,56 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <Panel x:DataType="history:HistoryItemViewModel">
-                <StackPanel IsVisible="{Binding !IsCoinJoin}">
-                  <PathIcon Data="{StaticResource normal_transaction}" Opacity="0.6" Width="20"/>
-                  <TextBlock Text="Normal" />
-                </StackPanel>
-                <StackPanel IsVisible="{Binding IsCoinJoin}">
-                  <PathIcon Data="{StaticResource shield_regular}" Opacity="0.6" Width="20" Height="20" />
-                  <TextBlock Text="CoinJoin" />
-                </StackPanel>
+                <PathIcon ToolTip.Tip="Transaction" Data="{StaticResource normal_transaction}" Opacity="0.6" IsVisible="{Binding !IsCoinJoin}" />
+                <PathIcon ToolTip.Tip="CoinJoin" Data="{StaticResource shield_regular}" Opacity="0.6" Height="12" Width="12" IsVisible="{Binding IsCoinJoin}" />
               </Panel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
         <!-- Incoming -->
-        <DataGridTemplateColumn Header="Incoming"
-                                Width="*"
+        <DataGridTemplateColumn Header="Incoming (BTC)"
+                                Width="Auto"
                                 SortMemberPath="IncomingAmount">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <StackPanel x:DataType="history:HistoryItemViewModel"
-                          IsVisible="{Binding !!IncomingAmount}">
+                          IsVisible="{Binding !!IncomingAmount}"
+                          HorizontalAlignment="Right">
                 <PathIcon Data="{StaticResource arrow_down_right_regular}" Opacity="0.6" />
-                <TextBlock Text="{Binding IncomingAmount, StringFormat={}{0} BTC}" />
+                <TextBlock Classes="monoSpaced" Text="{Binding IncomingAmount, Mode=OneWay, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
         <!-- Outgoing -->
-        <DataGridTemplateColumn Header="Outgoing"
-                                Width="*"
+        <DataGridTemplateColumn Header="Outgoing (BTC)"
+                                Width="Auto"
                                 SortMemberPath="OutgoingAmount">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <StackPanel x:DataType="history:HistoryItemViewModel"
-                          IsVisible="{Binding !!OutgoingAmount}">
+                          IsVisible="{Binding !!OutgoingAmount}"
+                          HorizontalAlignment="Right">
                 <PathIcon Data="{StaticResource arrow_up_right_regular}" Opacity="0.6" />
-                <TextBlock Text="{Binding OutgoingAmount, StringFormat={}{0} BTC}" />
+                <TextBlock Classes="monoSpaced" Text="{Binding OutgoingAmount, Mode=OneWay, Converter={x:Static converters:MoneyConverters.ToFormattedString}}" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
         <!-- Balance -->
-        <DataGridTemplateColumn Header="Balance"
+        <DataGridTemplateColumn Header="Balance (BTC)"
                                 Width="*"
                                 SortMemberPath="Balance">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <StackPanel>
-                <Viewbox Height="20" Width="20">
-                  <Panel>
-                    <Ellipse Stroke="{DynamicResource TextControlForeground}" StrokeThickness="4" Height="115"
-                             Width="115" />
-                    <Ellipse Stroke="{DynamicResource TextControlForeground}" StrokeThickness="4"
-                             StrokeDashArray="2, 1"
-                             Height="100" Width="100" />
-                    <PathIcon Data="{StaticResource btc_logo}" Height="50" Width="50" Opacity="0.6" />
-                  </Panel>
-                </Viewbox>
-              <TextBlock x:DataType="history:HistoryItemViewModel" Text="{Binding Balance, StringFormat={}{0} BTC}" />
-              </StackPanel>
+              <TextBlock Classes="monoSpaced"
+                         HorizontalAlignment="Right"
+                         x:DataType="history:HistoryItemViewModel"
+                         Text="{Binding Balance, Mode=OneWay, Converter={x:Static converters:MoneyConverters.ToFormattedString}}"
+                         Margin="10 0" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
@@ -131,12 +131,12 @@
                 <StackPanel IsVisible="{Binding IsConfirmed}">
                   <PathIcon Data="{StaticResource checkmark_filled}"
                             Foreground="{DynamicResource SystemControlBackgroundAccentBrush}" />
-                  <TextBlock Text="Confirmed" />
+                  <TextBlock Classes="monoSpaced" Text="Confirmed" />
                 </StackPanel>
                 <!-- Pending -->
                 <StackPanel IsVisible="{Binding !IsConfirmed}">
-                  <PathIcon Data="{StaticResource channel_regular}" Opacity="0.6"/>
-                  <TextBlock Text="Pending" />
+                  <PathIcon Data="{StaticResource channel_regular}" Opacity="0.6" />
+                  <TextBlock Classes="monoSpaced" Text="Pending" />
                 </StackPanel>
               </Panel>
             </DataTemplate>

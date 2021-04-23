@@ -7,7 +7,7 @@
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletPieChartTileView">
-    <Border ClipToBounds="False" CornerRadius="5" Background="#2b2b2b" Margin="6" Padding="16"
+    <Border ClipToBounds="False" CornerRadius="5" Background="{DynamicResource TileRegionColor}" Margin="6" Padding="16"
             BoxShadow="{DynamicResource InfoBoxShadow}">
         <DockPanel>
             <TextBlock Text="Wallet Privacy Status" DockPanel.Dock="Top" />

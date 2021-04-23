@@ -2,9 +2,9 @@ using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -24,6 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		private readonly Wallet _wallet;
 		private readonly BitcoinStore _bitcoinStore;
 		private readonly ReadOnlyObservableCollection<HistoryItemViewModel> _transactions;
+		private readonly ReadOnlyObservableCollection<HistoryItemViewModel> _unfilteredTransactions;
 		private readonly SourceList<HistoryItemViewModel> _transactionSourceList;
 
 		[AutoNotify] private bool _showCoinJoin;
@@ -40,9 +41,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 			_transactionSourceList
 				.Connect()
-				.Filter(coinJoinFilter)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Sort(SortExpressionComparer<HistoryItemViewModel>.Descending(x => x.OrderIndex))
+				.Bind(out _unfilteredTransactions)
+				.Filter(coinJoinFilter)
 				.Bind(out _transactions)
 				.Subscribe();
 
@@ -52,7 +54,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(selectedItem =>
+				.Subscribe(async selectedItem =>
 				{
 					if (selectedItem is null)
 					{
@@ -60,19 +62,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 					}
 
 					Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(selectedItem.TransactionSummary, _bitcoinStore, wallet, updateTrigger));
-				});
 
-			this.WhenAnyValue(x => x.SelectedItem)
-				.Throttle(TimeSpan.FromMilliseconds(100))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-					SelectedItem = null;
+					Dispatcher.UIThread.Post(() =>
+					{
+						SelectedItem = null;
+					});
 				});
 
 			updateTrigger.Subscribe(async _ => await UpdateAsync());
 			RxApp.MainThreadScheduler.Schedule(async () => await UpdateAsync());
 		}
+
+		public ReadOnlyObservableCollection<HistoryItemViewModel> UnfilteredTransactions => _unfilteredTransactions;
 
 		public ReadOnlyObservableCollection<HistoryItemViewModel> Transactions => _transactions;
 

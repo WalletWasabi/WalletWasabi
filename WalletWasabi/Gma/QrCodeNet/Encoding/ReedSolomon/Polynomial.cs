@@ -54,7 +54,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		internal bool IsMonomialZero => Coefficients[0] == 0;
 
 		/// <returns>
-		/// coefficient position. where (coefficient)x^degree
+		/// Coefficient position. where (coefficient)x^degree
 		/// </returns>
 		internal int GetCoefficient(int degree)
 		{
@@ -179,7 +179,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		}
 
 		/// <summary>
-		/// divide current polynomial by "other"
+		/// Divide current polynomial by "other"
 		/// </summary>
 		/// <returns>Result polynomial after divide</returns>
 		internal PolyDivideStruct Divide(Polynomial other)

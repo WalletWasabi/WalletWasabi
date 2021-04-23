@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		{
 			Network = network;
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = false;
 
@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		{
 			try
 			{
-				var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", new[] {"psbt", "*"});
+				var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", new[] { "psbt", "*" });
 				if (path is { })
 				{
 					FinalTransaction = await ParseTransactionAsync(path);

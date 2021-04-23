@@ -18,6 +18,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				OnNext,
 				this.WhenAnyValue(x => x.IsAgreed)
 					.ObserveOn(RxApp.MainThreadScheduler));
+
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		}
 
 		public ICommand ViewTermsCommand { get; }
