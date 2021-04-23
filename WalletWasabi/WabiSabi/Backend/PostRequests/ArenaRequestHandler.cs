@@ -39,7 +39,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				return await Arena.RegisterInputAsync(
 					request.RoundId,
 					coin,
-					request.RoundSignature,
+					request.OwnershipProof,
 					request.ZeroAmountCredentialRequests,
 					request.ZeroVsizeCredentialRequests).ConfigureAwait(false);
 			}
