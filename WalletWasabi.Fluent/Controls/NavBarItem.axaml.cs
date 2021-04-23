@@ -17,6 +17,11 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<Orientation> IndicatorOrientationProperty =
 			AvaloniaProperty.Register<NavBarItem, Orientation>(nameof(IndicatorOrientation), Orientation.Vertical);
 
+		public NavBarItem()
+		{
+			UpdatePseudoClasses(IndicatorOrientation);
+		}
+
 		/// <summary>
 		/// The icon to be shown beside the header text of the item.
 		/// </summary>
