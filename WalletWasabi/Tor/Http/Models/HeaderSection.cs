@@ -65,7 +65,7 @@ namespace WalletWasabi.Tor.Http.Models
 			// Since the Host field - value is critical information for handling a
 			// request, a user agent SHOULD generate Host as the first header field
 			// following the request - line.
-			HeaderField hostToCorrect = null;
+			HeaderField? hostToCorrect = null;
 			foreach (var f in hs.Fields)
 			{
 				// if we find host

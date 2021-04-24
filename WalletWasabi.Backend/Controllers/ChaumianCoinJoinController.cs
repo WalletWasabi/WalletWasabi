@@ -275,7 +275,7 @@ namespace WalletWasabi.Backend.Controllers
 					var moneySoFar = Money.Zero;
 					for (int i = 1; i < blindedOutputCount; i++)
 					{
-						if (!round.MixingLevels.TryGetDenomination(i, out Money denomination))
+						if (!round.MixingLevels.TryGetDenomination(i, out var denomination))
 						{
 							break;
 						}
@@ -434,7 +434,7 @@ namespace WalletWasabi.Backend.Controllers
 				return Ok("Round not found.");
 			}
 
-			Alice alice = round.TryGetAliceBy(uniqueIdGuid);
+			var alice = round.TryGetAliceBy(uniqueIdGuid);
 
 			if (alice is null)
 			{
@@ -529,10 +529,9 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				using (await OutputLock.LockAsync())
 				{
-					Bob bob = null;
 					try
 					{
-						bob = new Bob(request.OutputAddress, mixinglevel);
+						var bob = new Bob(request.OutputAddress, mixinglevel);
 						round.AddBob(bob);
 						round.AddRegisteredUnblindedSignature(request.UnblindedSignature);
 					}
@@ -656,7 +655,7 @@ namespace WalletWasabi.Backend.Controllers
 							foreach (var signaturePair in signatures)
 							{
 								int index = signaturePair.Key;
-								WitScript witness = null;
+								WitScript witness;
 								try
 								{
 									witness = new WitScript(signaturePair.Value);
@@ -774,7 +773,7 @@ namespace WalletWasabi.Backend.Controllers
 				return (null, null);
 			}
 
-			Alice alice = round.TryGetAliceBy(uniqueIdGuid);
+			var alice = round.TryGetAliceBy(uniqueIdGuid);
 			if (alice is null)
 			{
 				returnFailureResponse = NotFound("Alice not found.");

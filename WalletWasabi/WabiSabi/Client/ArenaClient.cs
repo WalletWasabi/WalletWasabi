@@ -48,7 +48,7 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
 				key,
-				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundHash)).ToBytes();
+				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundHash));
 
 			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
 			var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();

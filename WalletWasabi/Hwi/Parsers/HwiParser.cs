@@ -254,7 +254,7 @@ namespace WalletWasabi.Hwi.Parsers
 			}
 
 			HwiErrorCode? code = null;
-			string errorString = null;
+			string? errorString = null;
 			if (TryParseError(json, out HwiException? err))
 			{
 				code = err.ErrorCode;
@@ -307,7 +307,7 @@ namespace WalletWasabi.Hwi.Parsers
 			const string Prefix = "hwi";
 
 			// Order matters! https://github.com/zkSNACKs/WalletWasabi/pull/1905/commits/cecefcc50af140cc06cb93961cda86f9b21db11b
-			string prefixToTrim = hwiResponse.StartsWith(WinPrefix)
+			var prefixToTrim = hwiResponse.StartsWith(WinPrefix)
 				? WinPrefix
 				: hwiResponse.StartsWith(Prefix)
 					? Prefix

@@ -30,46 +30,11 @@ namespace Nito.Collections
 		private int _offset;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="Deque&lt;T&gt;"/> class with the specified capacity.
-		/// </summary>
-		/// <param name="capacity">The initial capacity. Must be greater than <c>0</c>.</param>
-		public Deque(int capacity)
-		{
-			if (capacity < 0)
-			{
-				throw new ArgumentOutOfRangeException(nameof(capacity), $"{nameof(Capacity)} may not be negative.");
-			}
-
-			_buffer = new T[capacity];
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="Deque&lt;T&gt;"/> class with the elements from the specified collection.
-		/// </summary>
-		/// <param name="collection">The collection. May not be <c>null</c>.</param>
-		public Deque(IEnumerable<T> collection)
-		{
-			Guard.NotNull(nameof(collection), collection);
-
-			var source = CollectionHelpers.ReifyCollection(collection);
-			var count = source.Count;
-			if (count > 0)
-			{
-				_buffer = new T[count];
-				DoInsertRange(0, source);
-			}
-			else
-			{
-				_buffer = new T[DefaultCapacity];
-			}
-		}
-
-		/// <summary>
 		/// Initializes a new instance of the <see cref="Deque&lt;T&gt;"/> class.
 		/// </summary>
 		public Deque()
-			: this(DefaultCapacity)
 		{
+			_buffer = new T[DefaultCapacity];
 		}
 
 		#region GenericListImplementations
@@ -160,7 +125,7 @@ namespace Nito.Collections
 			}
 		}
 
-		object IList.this[int index]
+		object? IList.this[int index]
 		{
 			get => this[index];
 
@@ -367,22 +332,9 @@ namespace Nito.Collections
 
 		#region ObjectListImplementations
 
-		private static bool IsT(object value)
-		{
-			if (value is T)
-			{
-				return true;
-			}
+		private static bool IsT(object? value) => value is T || (value is null && default(T) is null);
 
-			if (value is { })
-			{
-				return false;
-			}
-
-			return default(T) is null;
-		}
-
-		int IList.Add(object value)
+		int IList.Add(object? value)
 		{
 			if (value is null && default(T) != null)
 			{
@@ -398,17 +350,17 @@ namespace Nito.Collections
 			return Count - 1;
 		}
 
-		bool IList.Contains(object value)
+		bool IList.Contains(object? value)
 		{
 			return IsT(value) && ((ICollection<T>)this).Contains((T)value);
 		}
 
-		int IList.IndexOf(object value)
+		int IList.IndexOf(object? value)
 		{
 			return IsT(value) ? IndexOf((T)value) : -1;
 		}
 
-		void IList.Insert(int index, object value)
+		void IList.Insert(int index, object? value)
 		{
 			if (value is null && default(T) != null)
 			{
@@ -423,7 +375,7 @@ namespace Nito.Collections
 			Insert(index, (T)value);
 		}
 
-		void IList.Remove(object value)
+		void IList.Remove(object? value)
 		{
 			if (IsT(value))
 			{

@@ -282,7 +282,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		}
 
 		[Fact]
-		public async Task WrongRoundSignatureAsync()
+		public async Task WrongOwnershipProofAsync()
 		{
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
@@ -292,7 +292,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
 			var req = WabiSabiFactory.CreateInputRegistrationRequest(round: round);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req));
-			Assert.Equal(WabiSabiProtocolErrorCode.WrongRoundSignature, ex.ErrorCode);
+			Assert.Equal(WabiSabiProtocolErrorCode.WrongOwnershipProof, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
 		}
@@ -356,7 +356,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
 
 			// Make sure an Alice have already been registered with the same input.
-			var anotherAlice = WabiSabiFactory.CreateAlice(prevout: req.Input, roundSignature: req.RoundSignature);
+			var anotherAlice = WabiSabiFactory.CreateAlice(prevout: req.Input, ownershipProof: req.OwnershipProof);
 			round.Alices.Add(anotherAlice);
 			round.SetPhase(Phase.ConnectionConfirmation);
 
@@ -378,7 +378,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
 
 			// Make sure an Alice have already been registered with the same input.
-			var preAlice = WabiSabiFactory.CreateAlice(prevout: req.Input, roundSignature: req.RoundSignature);
+			var preAlice = WabiSabiFactory.CreateAlice(prevout: req.Input, ownershipProof: req.OwnershipProof);
 			anotherRound.Alices.Add(preAlice);
 			anotherRound.SetPhase(Phase.ConnectionConfirmation);
 

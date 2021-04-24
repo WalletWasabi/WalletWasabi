@@ -20,8 +20,6 @@ namespace WalletWasabi.Helpers
 			ES_CONTINUOUS = 0x80000000,
 			ES_DISPLAY_REQUIRED = 0x00000002,
 			ES_SYSTEM_REQUIRED = 0x00000001
-			// Legacy flag, should not be used.
-			// ES_USER_PRESENT = 0x00000004
 		}
 
 		// appName, dataDir
@@ -195,15 +193,12 @@ namespace WalletWasabi.Helpers
 
 			fileExtension = fileExtension.TrimStart('.'); // Remove . if added by the caller.
 
-			using (RegistryKey key = Registry.ClassesRoot.OpenSubKey($".{fileExtension}"))
+			using (var key = Registry.ClassesRoot.OpenSubKey($".{fileExtension}"))
 			{
-				if (key is { })
+				// Read the (Default) value.
+				if (key?.GetValue(null) is not null)
 				{
-					object val = key.GetValue(null); // Read the (Default) value.
-					if (val is { })
-					{
-						return true;
-					}
+					return true;
 				}
 			}
 			return false;

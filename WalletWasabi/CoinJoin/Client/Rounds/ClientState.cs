@@ -230,7 +230,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 
 					coinGroups = coinGroups.OrderBy(x => x.Count(y => y.Confirmed == false)).ToList(); // Where the lowest amount of unconfirmed coins there are.
 
-					IEnumerable<SmartCoin> best = coinGroups.FirstOrDefault();
+					var best = coinGroups.FirstOrDefault();
 
 					if (best is { })
 					{
