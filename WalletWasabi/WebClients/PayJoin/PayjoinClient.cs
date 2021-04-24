@@ -27,9 +27,8 @@ namespace WalletWasabi.WebClients.PayJoin
 		public Uri PaymentUrl { get; }
 		private IHttpClient HttpClient { get; }
 
-		public async Task<PSBT?> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey changeHdPubKey, CancellationToken cancellationToken)
+		public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey changeHdPubKey, CancellationToken cancellationToken)
 		{
-			Guard.NotNull(nameof(originalTx), originalTx);
 			if (originalTx.IsAllFinalized())
 			{
 				throw new InvalidOperationException("The original PSBT should not be finalized.");
@@ -61,7 +60,7 @@ namespace WalletWasabi.WebClients.PayJoin
 			var cloned = originalTx.Clone();
 			if (!cloned.TryFinalize(out var _))
 			{
-				return null;
+				throw new InvalidOperationException("The original PSBT could not be finalized.");
 			}
 
 			// We make sure we don't send unnecessary information to the receiver

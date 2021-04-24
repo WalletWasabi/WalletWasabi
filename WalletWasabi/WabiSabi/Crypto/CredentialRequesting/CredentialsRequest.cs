@@ -1,10 +1,9 @@
 using System.Linq;
 using System.Collections.Generic;
-using NBitcoin;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using Newtonsoft.Json;
-using NBitcoin.Secp256k1;
+using System.ComponentModel.DataAnnotations;
 
 namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 {
@@ -59,16 +58,19 @@ namespace WalletWasabi.WabiSabi.Crypto.CredentialRequesting
 		/// <summary>
 		/// Is request for zero-value credentials only.
 		/// </summary>
+		[JsonIgnore]
 		internal bool IsNullRequest => Delta == 0 && !Presented.Any();
 
 		/// <summary>
 		/// Serial numbers used in the credential presentations.
 		/// </summary>
+		[JsonIgnore]
 		internal IEnumerable<GroupElement> SerialNumbers => Presented.Select(x => x.S);
 
 		/// <summary>
 		/// Indicates whether the message contains duplicated serial numbers or not.
 		/// </summary>
+		[JsonIgnore]
 		internal bool AreThereDuplicatedSerialNumbers => SerialNumbers.Distinct().Count() < SerialNumbers.Count();
 	}
 }

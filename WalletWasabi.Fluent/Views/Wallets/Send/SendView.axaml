@@ -168,6 +168,7 @@
                         Value="{Binding XAxisCurrentValueIndex}">
                 </Slider>
                 <c:LineChart x:Name="GradientLineChart"
+                             XAxisPlotMode="EvenlySpaced"
                              Margin="18,0,18,0"
                              Classes="cursor border xAxisLabels yAxis yAxisTitle"
                              MinHeight="30"

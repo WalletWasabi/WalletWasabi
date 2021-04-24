@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Helpers;
@@ -25,7 +26,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 	public class ArenaClientTests
 	{
 		[Fact]
-		public async Task FullCoinjoinAsyncTest()
+		public async Task FullCoinjoinAsyncTestAsync()
 		{
 			var config = new WabiSabiConfig { MaxInputCountByRound = 1 };
 			var round = WabiSabiFactory.CreateRound(config);
@@ -136,19 +137,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
 			var tx = round.CoinjoinState.AssertSigning().CreateTransaction();
-			Assert.Equal(1, tx.Inputs.Count);
+			Assert.Single(tx.Inputs);
 			Assert.Equal(2, tx.Outputs.Count);
 		}
 
 		[Fact]
-		public async Task RemoveInputAsyncTest()
+		public async Task RemoveInputAsyncTestAsync()
 		{
 			var config = new WabiSabiConfig();
 			var round = WabiSabiFactory.CreateRound(config);
 			round.SetPhase(Phase.ConnectionConfirmation);
 			var fundingTx = BitcoinFactory.CreateSmartTransaction(ownOutputCount: 1);
 			var coin = fundingTx.WalletOutputs.First().Coin;
-			var alice = new Alice(coin, Array.Empty<byte>());
+			var alice = new Alice(coin, new OwnershipProof());
 			round.Alices.Add(alice);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
 

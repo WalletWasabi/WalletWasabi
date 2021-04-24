@@ -36,7 +36,7 @@
                             </DockPanel>
                             <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
                         </StackPanel>
-                        <Panel DockPanel.Dock="Bottom">
+                        <Panel DockPanel.Dock="Bottom" x:Name="PART_ButtonArea">
                             <Button Name="PART_CancelButton" IsCancel="{TemplateBinding EnableCancel}"
                                     Classes="invisible" IsVisible="{TemplateBinding EnableCancel}"
                                     Content="{TemplateBinding CancelContent}" Margin="0,10,10,10"
@@ -61,10 +61,9 @@
                                 </Button>
                             </StackPanel>
                         </Panel>
-                        <ScrollViewer
+                        <ScrollViewer x:Name="PART_ScrollViewer"
                             HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
-                            VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}"
-                            Margin="0 0 0 32" Padding="0 0 10 0">
+                            VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}" Padding="0 0 10 0">
                             <ContentControl Name="PART_ContentPresenter"
                                             Background="{TemplateBinding Background}"
                                             BorderBrush="{TemplateBinding BorderBrush}"
@@ -79,6 +78,10 @@
                 </Panel>
             </ControlTemplate>
         </Setter>
+    </Style>
+
+    <Style Selector="c|ContentArea /template/ ScrollViewer#PART_ScrollViewer">
+        <Setter Property="Margin" Value="0 0 0 32" />
     </Style>
 
     <Style Selector="c|ContentArea /template/ ContentPresenter#PART_TitlePresenter">

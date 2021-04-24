@@ -48,7 +48,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	public partial class SendViewModel : NavBarItemViewModel
 	{
 		private readonly WalletViewModel _owner;
-		private readonly UiConfig _uiConfig;
 		private readonly TransactionInfo _transactionInfo;
 
 		[AutoNotify] private string _to;
@@ -123,6 +122,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			Labels.ToObservableChangeSet().Subscribe(x => _transactionInfo.UserLabels = new SmartLabel(_labels.ToArray()));
 
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPaste());

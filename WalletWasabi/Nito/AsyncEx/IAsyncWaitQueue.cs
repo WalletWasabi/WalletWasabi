@@ -23,14 +23,8 @@ namespace Nito.AsyncEx
 		/// <summary>
 		/// Removes a single entry in the wait queue and completes it. This method may only be called if <see cref="IsEmpty"/> is <c>false</c>. The task continuations for the completed task must be executed asynchronously.
 		/// </summary>
-		/// <param name="result">The result used to complete the wait queue entry. If this is not needed, use <c>default(T)</c>.</param>
-		void Dequeue(T? result = default);
-
-		/// <summary>
-		/// Removes all entries in the wait queue and completes them. The task continuations for the completed tasks must be executed asynchronously.
-		/// </summary>
-		/// <param name="result">The result used to complete the wait queue entries. If this is not needed, use <c>default(T)</c>.</param>
-		void DequeueAll(T? result = default);
+		/// <param name="result">The result used to complete the wait queue entry.</param>
+		void Dequeue(T result);
 
 		/// <summary>
 		/// Attempts to remove an entry from the wait queue and cancels it. The task continuations for the completed task must be executed asynchronously.
@@ -38,11 +32,5 @@ namespace Nito.AsyncEx
 		/// <param name="task">The task to cancel.</param>
 		/// <param name="cancellationToken">The cancellation token to use to cancel the task.</param>
 		bool TryCancel(Task task, CancellationToken cancellationToken);
-
-		/// <summary>
-		/// Removes all entries from the wait queue and cancels them. The task continuations for the completed tasks must be executed asynchronously.
-		/// </summary>
-		/// <param name="cancellationToken">The cancellation token to use to cancel the tasks.</param>
-		void CancelAll(CancellationToken cancellationToken);
 	}
 }

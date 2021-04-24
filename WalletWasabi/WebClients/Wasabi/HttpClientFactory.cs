@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
 using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Pool;
 
 namespace WalletWasabi.WebClients.Wasabi
@@ -22,7 +21,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// Creates a new instance of the object.
 		/// </summary>
 		/// <param name="torEndPoint">If <c>null</c> then clearnet (not over Tor) is used, otherwise HTTP requests are routed through provided Tor endpoint.</param>
-		public HttpClientFactory(EndPoint? torEndPoint, Func<Uri> backendUriGetter)
+		public HttpClientFactory(EndPoint? torEndPoint, Func<Uri>? backendUriGetter)
 		{
 			SocketHandler = new()
 			{
@@ -37,7 +36,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			BackendUriGetter = backendUriGetter;
 
 			// Connecting to loopback's URIs cannot be done via Tor.
-			if (TorEndpoint is { } && !BackendUriGetter().IsLoopback)
+			if (TorEndpoint is { } && (BackendUriGetter is null || !BackendUriGetter().IsLoopback))
 			{
 				TorHttpPool = new(TorEndpoint);
 				BackendHttpClient = new TorHttpClient(BackendUriGetter, TorHttpPool, isolateStream: false);
@@ -55,7 +54,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		public EndPoint? TorEndpoint { get; }
 
 		/// <remarks>The property should be <c>private</c> when Tor refactoring is done.</remarks>
-		public Func<Uri> BackendUriGetter { get; }
+		public Func<Uri>? BackendUriGetter { get; }
 
 		/// <summary>Whether Tor is enabled or disabled.</summary>
 		[MemberNotNullWhen(returnValue: true, nameof(TorEndpoint))]
@@ -81,7 +80,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		public IHttpClient NewHttpClient(Func<Uri>? baseUriFn, bool isolateStream)
 		{
 			// Connecting to loopback's URIs cannot be done via Tor.
-			if (TorHttpPool is { } && !BackendUriGetter().IsLoopback)
+			if (TorHttpPool is { } && (BackendUriGetter is null || !BackendUriGetter().IsLoopback))
 			{
 				return new TorHttpClient(baseUriFn, TorHttpPool, isolateStream);
 			}

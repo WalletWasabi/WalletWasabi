@@ -1,5 +1,6 @@
 using System;
 using NBitcoin;
+using WalletWasabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 
 namespace WalletWasabi.WabiSabi.Models
@@ -7,7 +8,7 @@ namespace WalletWasabi.WabiSabi.Models
 	public record InputRegistrationRequest(
 		Guid RoundId,
 		OutPoint Input,
-		byte[] RoundSignature,
+		OwnershipProof OwnershipProof,
 		ZeroCredentialsRequest ZeroAmountCredentialRequests,
 		ZeroCredentialsRequest ZeroVsizeCredentialRequests
 	);

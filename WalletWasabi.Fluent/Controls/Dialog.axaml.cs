@@ -155,7 +155,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void CancelPointerPressed(object? sender, PointerPressedEventArgs e)
 		{
-			if (IsDialogOpen && EnableCancelOnPressed && !IsBusy && IsCancelEnabled && _dismissPanel is not null && _canCancelOnPointerPressed)
+			if (IsDialogOpen && EnableCancelOnPressed && !IsBusy && _dismissPanel is not null && _canCancelOnPointerPressed)
 			{
 				var point = e.GetPosition(_dismissPanel);
 				if (!_dismissPanel.Bounds.Contains(point))
@@ -167,7 +167,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void CancelKeyDown(object? sender, KeyEventArgs e)
 		{
-			if (e.Key == Key.Escape && EnableCancelOnEscape && !IsBusy && IsCancelEnabled)
+			if (e.Key == Key.Escape && EnableCancelOnEscape && !IsBusy)
 			{
 				Close();
 			}

@@ -8,9 +8,9 @@ namespace System.Reflection
 		{
 			Type attType = typeof(AsyncStateMachineAttribute);
 
-			var attrib = (AsyncStateMachineAttribute)mi.GetCustomAttribute(attType);
+			var attrib = mi.GetCustomAttribute(attType) as AsyncStateMachineAttribute;
 
-			return attrib is { };
+			return attrib is not null;
 		}
 	}
 }

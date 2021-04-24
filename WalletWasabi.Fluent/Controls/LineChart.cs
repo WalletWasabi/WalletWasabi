@@ -9,6 +9,8 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.MathNet;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -29,11 +31,6 @@ namespace WalletWasabi.Fluent.Controls
 		private static double Clamp(double val, double min, double max)
 		{
 			return Math.Min(Math.Max(val, min), max);
-		}
-
-		private static double ScaleVertical(double value, double max, double range)
-		{
-			return range - value / max * range;
 		}
 
 		private static Geometry CreateFillGeometry(IReadOnlyList<Point> points, double width, double height)
@@ -196,6 +193,49 @@ namespace WalletWasabi.Fluent.Controls
 			return state;
 		}
 
+		private static IEnumerable<(double x, double y)> SplineInterpolate(double[] xs, double[] ys)
+		{
+			const int Divisions = 256;
+
+			if (xs.Length > 2)
+			{
+				var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
+
+				for (var i = 0; i < xs.Length - 1; i++)
+				{
+					var a = xs[i];
+					var b = xs[i + 1];
+					var range = b - a;
+					var step = range / Divisions;
+
+					var t0 = xs[i];
+
+					var xt0 = spline.Interpolate(xs[i]);
+
+					yield return (t0, xt0);
+
+					for (var t = a + step; t < b; t += step)
+					{
+						var xt = spline.Interpolate(t);
+
+						yield return (t, xt);
+					}
+				}
+
+				var tn = xs[^1];
+				var xtn = spline.Interpolate(xs[^1]);
+
+				yield return (tn, xtn);
+			}
+			else
+			{
+				for (var i = 0; i < xs.Length; i++)
+				{
+					yield return (xs[i], ys[i]);
+				}
+			}
+		}
+
 		private void SetStateAreaPoints(LineChartState state)
 		{
 			var xAxisValues = XAxisValues;
@@ -217,17 +257,55 @@ namespace WalletWasabi.Fluent.Controls
 
 			var yAxisValuesLogScaledMax = yAxisValuesLogScaled.Max();
 
+			var yAxisScaler = new StraightLineFormula();
+			yAxisScaler.CalculateFrom(yAxisValuesLogScaledMax, 0, 0, state.AreaHeight);
+
 			var yAxisValuesScaled = yAxisValuesLogScaled
-				.Select(y => ScaleVertical(y, yAxisValuesLogScaledMax, state.AreaHeight))
+				.Select(y => yAxisScaler.GetYforX(y))
 				.ToList();
 
-			state.Points = new Point[yAxisValues.Count];
+			var xAxisValuesEnumerable = xAxisValues as IEnumerable<double>;
 
-			var pointStep = state.AreaWidth / (xAxisValues.Count - 1);
-
-			for (var i = 0; i < yAxisValuesScaled.Count; i++)
+			switch (XAxisPlotMode)
 			{
-				state.Points[i] = new Point(i * pointStep, yAxisValuesScaled[i]);
+				case AxisPlotMode.Normal:
+					var min =  XAxisMinimum ?? xAxisValues.Min();
+					var max = xAxisValues.Max();
+
+					var xAxisScaler = new StraightLineFormula();
+					xAxisScaler.CalculateFrom(min, max, 0, state.AreaWidth);
+
+					xAxisValuesEnumerable = xAxisValuesEnumerable.Select(x => xAxisScaler.GetYforX(x));
+					break;
+
+				case AxisPlotMode.EvenlySpaced:
+					var pointStep = state.AreaWidth / (xAxisValues.Count - 1);
+
+					xAxisValuesEnumerable = Enumerable.Range(0, xAxisValues.Count).Select(x => pointStep * x);
+					break;
+
+				case AxisPlotMode.Logarithmic:
+					break;
+			}
+
+			if (SmoothCurve)
+			{
+				var interpolated = SplineInterpolate(xAxisValuesEnumerable.ToArray(), yAxisValuesScaled.ToArray());
+
+				state.Points = interpolated.Select(pt => new Point(pt.x, pt.y)).ToArray();
+			}
+			else
+			{
+				state.Points = new Point[xAxisValues.Count];
+
+				using (var enumerator = xAxisValuesEnumerable.GetEnumerator())
+				{
+					for (var i = 0; i < yAxisValuesScaled.Count; i++)
+					{
+						enumerator.MoveNext();
+						state.Points[i] = new Point(enumerator.Current, yAxisValuesScaled[i]);
+					}
+				}
 			}
 		}
 

@@ -168,7 +168,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 				Initialize(AppendOption.ValueToName);
 			}
 
-			if (_valueToName.TryGetValue(eCIValue, out string eCIName))
+			if (_valueToName.TryGetValue(eCIValue, out var eCIName))
 			{
 				return eCIName;
 			}

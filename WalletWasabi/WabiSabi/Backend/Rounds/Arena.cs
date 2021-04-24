@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -120,8 +121,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				{
 					var coinjoin = round.CoinjoinState.AssertConstruction();
 
-					round.LogInfo($"{coinjoin.Inputs.Count()} inputs were added.");
-					round.LogInfo($"{coinjoin.Outputs.Count()} outputs were added.");
+					round.LogInfo($"{coinjoin.Inputs.Count} inputs were added.");
+					round.LogInfo($"{coinjoin.Outputs.Count} outputs were added.");
 
 					// If timeout we must fill up the outputs to build a reasonable transaction.
 					// This won't be signed by the alice who failed to provide output, so we know who to ban.
@@ -194,7 +195,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			var unsignedPrevouts = state.UnsignedInputs.ToHashSet();
 
 			var alicesWhoDidntSign = round.Alices
-				.Select(alice => (Alice: alice, Coin: alice.Coin))
+				.Select(alice => (Alice: alice, alice.Coin))
 				.Where(x => unsignedPrevouts.Contains(x.Coin))
 				.Select(x => x.Alice)
 				.ToHashSet();
@@ -248,7 +249,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public async Task<InputRegistrationResponse> RegisterInputAsync(
 			Guid roundId,
 			Coin coin,
-			byte[] signature,
+			OwnershipProof ownershipProof,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
 			ZeroCredentialsRequest zeroVsizeCredentialRequests)
 		{
@@ -258,7 +259,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					Config,
 					roundId,
 					coin,
-					signature,
+					ownershipProof,
 					zeroAmountCredentialRequests,
 					zeroVsizeCredentialRequests,
 					Rounds,

@@ -39,7 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Select(reference => !string.IsNullOrEmpty(reference));
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = false;
 

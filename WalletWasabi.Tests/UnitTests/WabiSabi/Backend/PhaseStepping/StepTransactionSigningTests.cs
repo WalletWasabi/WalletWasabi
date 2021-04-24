@@ -38,14 +38,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			var irres1 = await arena.RegisterInputAsync(
 				irreq1.RoundId,
 				new Coin(irreq1.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))),
-irreq1.RoundSignature,
+irreq1.OwnershipProof,
 				irreq1.ZeroAmountCredentialRequests,
 				irreq1.ZeroVsizeCredentialRequests);
 			var irreq2 = WabiSabiFactory.CreateInputRegistrationRequest(key2, round);
 			var irres2 = await arena.RegisterInputAsync(
 				irreq2.RoundId,
 				new Coin(irreq2.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))),
-irreq2.RoundSignature,
+irreq2.OwnershipProof,
 				irreq2.ZeroAmountCredentialRequests,
 				irreq2.ZeroVsizeCredentialRequests);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -120,14 +120,14 @@ irreq2.RoundSignature,
 			var irres1 = await arena.RegisterInputAsync(
 				irreq1.RoundId,
 				new Coin(irreq1.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))),
-irreq1.RoundSignature,
+irreq1.OwnershipProof,
 				irreq1.ZeroAmountCredentialRequests,
 				irreq1.ZeroVsizeCredentialRequests);
 			var irreq2 = WabiSabiFactory.CreateInputRegistrationRequest(key2, round);
 			var irres2 = await arena.RegisterInputAsync(
 				irreq2.RoundId,
 				new Coin(irreq2.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))),
-irreq2.RoundSignature,
+irreq2.OwnershipProof,
 				irreq2.ZeroAmountCredentialRequests,
 				irreq2.ZeroVsizeCredentialRequests);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -204,14 +204,14 @@ irreq2.RoundSignature,
 			var irres1 = await arena.RegisterInputAsync(
 				irreq1.RoundId,
 				new Coin(irreq1.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))),
-irreq1.RoundSignature,
+irreq1.OwnershipProof,
 				irreq1.ZeroAmountCredentialRequests,
 				irreq1.ZeroVsizeCredentialRequests);
 			var irreq2 = WabiSabiFactory.CreateInputRegistrationRequest(key2, round);
 			var irres2 = await arena.RegisterInputAsync(
 				irreq2.RoundId,
 				new Coin(irreq2.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))),
-				irreq2.RoundSignature,
+				irreq2.OwnershipProof,
 				irreq2.ZeroAmountCredentialRequests,
 				irreq2.ZeroVsizeCredentialRequests);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -292,14 +292,14 @@ irreq1.RoundSignature,
 			var irres1 = await arena.RegisterInputAsync(
 				irreq1.RoundId,
 				new Coin(irreq1.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))),
-				irreq1.RoundSignature,
+				irreq1.OwnershipProof,
 				irreq1.ZeroAmountCredentialRequests,
 				irreq1.ZeroVsizeCredentialRequests);
 			var irreq2 = WabiSabiFactory.CreateInputRegistrationRequest(key2, round);
 			var irres2 = await arena.RegisterInputAsync(
 				irreq2.RoundId,
 				new Coin(irreq2.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))),
-				irreq2.RoundSignature,
+				irreq2.OwnershipProof,
 				irreq2.ZeroAmountCredentialRequests,
 				irreq2.ZeroVsizeCredentialRequests);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
@@ -372,14 +372,14 @@ irreq1.RoundSignature,
 			var irres1 = await arena.RegisterInputAsync(
 				irreq1.RoundId,
 				new Coin(irreq1.Input, new TxOut(Money.Coins(1), key1.PubKey.GetSegwitAddress(Network.Main))),
-				irreq1.RoundSignature,
+				irreq1.OwnershipProof,
 				irreq1.ZeroAmountCredentialRequests,
 				irreq1.ZeroVsizeCredentialRequests);
 			var irreq2 = WabiSabiFactory.CreateInputRegistrationRequest(key2, round);
 			var irres2 = await arena.RegisterInputAsync(
 				irreq2.RoundId,
 				new Coin(irreq2.Input, new TxOut(Money.Coins(1), key2.PubKey.GetSegwitAddress(Network.Main))),
-				irreq2.RoundSignature,
+				irreq2.OwnershipProof,
 				irreq2.ZeroAmountCredentialRequests,
 				irreq2.ZeroVsizeCredentialRequests);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
