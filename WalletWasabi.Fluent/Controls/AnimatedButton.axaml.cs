@@ -74,31 +74,5 @@ namespace WalletWasabi.Fluent.Controls
 			get => GetValue(AnimateIconProperty);
 			set => SetValue(AnimateIconProperty, value);
 		}
-
-		protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
-		{
-			base.OnApplyTemplate(e);
-
-			_compositeDisposable?.Dispose();
-
-			_compositeDisposable = new CompositeDisposable();
-
-			var button = e.NameScope.Find<Button>("PART_Button");
-
-			button.Click += ButtonOnClick;
-
-			Disposable.Create(
-					() =>
-					{
-						button.Click -= ButtonOnClick;
-					})
-				.DisposeWith(_compositeDisposable);
-		}
-
-		private void ButtonOnClick(object? sender, RoutedEventArgs e)
-		{
-			AnimateIcon = false;
-			AnimateIcon = true;
-		}
 	}
 }
