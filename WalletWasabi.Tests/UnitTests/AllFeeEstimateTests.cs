@@ -13,7 +13,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 using Moq;
-using System.Threading;
 
 namespace WalletWasabi.Tests.UnitTests
 {
