@@ -68,7 +68,7 @@ namespace NBitcoin.RPC
 		/// <summary>
 		/// Estimates fees for 1w, 3d, 1d, 12h, 6h, 3h, 1h, 30m, 20m.
 		/// </summary>
-		public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this IRPCClient rpc, CancellationToken cancel, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
+		public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this IRPCClient rpc, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, CancellationToken cancel = default)
 		{
 			var smartEstimations = (simulateIfRegTest && rpc.Network == Network.RegTest)
 				? SimulateRegTestFeeEstimation(estimateMode)
