@@ -804,7 +804,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				Money fee = transaction.GetFee(spentCoins.ToArray());
 
 				// There is a currentFeeRate null check later.
-				FeeRate currentFeeRate = null;
+				FeeRate? currentFeeRate = null;
 				if (fee is null)
 				{
 					Logger.LogError($"Round ({RoundId}): Cannot calculate CoinJoin transaction fee. Some spent coins are missing.");
@@ -834,9 +834,9 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 					// 7.2.2. Get the outputs to divide the savings between.
 					var indistinguishableOutputs = transaction.GetIndistinguishableOutputs(includeSingle: true).ToArray();
-					int maxMixCount = indistinguishableOutputs.Max(x => x.count);
-					Money bestMixAmount = indistinguishableOutputs.Where(x => x.count == maxMixCount).Max(x => x.value);
-					int bestMixCount = indistinguishableOutputs.First(x => x.value == bestMixAmount).count;
+					var maxMixCount = indistinguishableOutputs.Max(x => x.count);
+					var bestMixAmount = indistinguishableOutputs.Where(x => x.count == maxMixCount).Max(x => x.value);
+					var bestMixCount = indistinguishableOutputs.First(x => x.value == bestMixAmount).count;
 
 					// 7.2.3. Get the savings per best mix outputs.
 					long toSavePerBestMixOutputs = toSave.Satoshi / bestMixCount;
@@ -886,8 +886,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			Guard.NotNull(nameof(rpc), rpc);
 			Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
 
-			Money feePerInputs = null;
-			Money feePerOutputs = null;
+			Money? feePerInputs = null;
+			Money? feePerOutputs = null;
 			var inputSizeInBytes = (int)Math.Ceiling(((3 * Constants.P2wpkhInputSizeInBytes) + Constants.P2pkhInputSizeInBytes) / 4m);
 			var outputSizeInBytes = Constants.OutputSizeInBytes;
 			try
@@ -1049,7 +1049,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 		}
 
-		public Alice TryGetAliceBy(Guid uniqueId)
+		public Alice? TryGetAliceBy(Guid uniqueId)
 		{
 			using (RoundSynchronizerLock.Lock())
 			{
@@ -1081,10 +1081,10 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					return; // Then no need to timeout alice.
 				}
 
-				Alice alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
-				foundAlice = alice is { };
-				if (foundAlice)
+				var alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
+				if (alice is not null)
 				{
+					foundAlice = true;
 					alice.LastSeen = started;
 				}
 			}
@@ -1101,8 +1101,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						// 3. If the round is still running and the phase is still InputRegistration
 						if (Status == CoordinatorRoundStatus.Running && Phase == RoundPhase.InputRegistration)
 						{
-							Alice alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
-							if (alice is { })
+							var alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
+							if (alice is not null)
 							{
 								// 4. If LastSeen is not changed by then, remove Alice.
 								// But only if Alice didn't get blind sig yet.
@@ -1133,7 +1133,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		public async Task BroadcastCoinJoinIfFullySignedAsync()
 		{
-			Transaction broadcasted = null;
+			Transaction? broadcasted = null;
 			using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
 			{
 				// Check if fully signed.

@@ -283,7 +283,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				// If success save the coinjoin.
 				if (status == CoordinatorRoundStatus.Succeded)
 				{
-					uint256[] mempoolHashes = null;
+					uint256[]? mempoolHashes = null;
 					try
 					{
 						mempoolHashes = await RpcClient.GetRawMempoolAsync().ConfigureAwait(false);

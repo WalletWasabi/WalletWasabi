@@ -36,7 +36,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Banning
 					{
 						var bannedRecord = BannedUtxo.FromString(line);
 
-						GetTxOutResponse getTxOutResponse = RpcClient.GetTxOutAsync(bannedRecord.Utxo.Hash, (int)bannedRecord.Utxo.N, includeMempool: true).GetAwaiter().GetResult();
+						var getTxOutResponse = RpcClient.GetTxOutAsync(bannedRecord.Utxo.Hash, (int)bannedRecord.Utxo.N, includeMempool: true).GetAwaiter().GetResult();
 
 						// Check if inputs are unspent.
 						if (getTxOutResponse is null)
@@ -91,8 +91,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Banning
 			var updated = false;
 			foreach (var utxo in toBan)
 			{
-				BannedUtxo foundElem = null;
-				if (BannedUtxos.TryGetValue(utxo, out BannedUtxo fe))
+				BannedUtxo? foundElem = null;
+				if (BannedUtxos.TryGetValue(utxo, out var fe))
 				{
 					foundElem = fe;
 					bool bannedForTheSameRound = foundElem.BannedForRound == bannedForRound;
@@ -121,8 +121,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Banning
 				var newElem = new BannedUtxo(utxo, severity, timeOfBan, isNoted, bannedForRound);
 				if (BannedUtxos.TryAdd(newElem.Utxo, newElem))
 				{
-					string line = newElem.ToString();
-					lines.Add(line);
+					lines.Add(newElem.ToString());
 				}
 				else
 				{
@@ -160,7 +159,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Banning
 
 		public async Task<BannedUtxo?> TryGetBannedAsync(OutPoint outpoint, bool notedToo)
 		{
-			if (BannedUtxos.TryGetValue(outpoint, out BannedUtxo bannedElem))
+			if (BannedUtxos.TryGetValue(outpoint, out var bannedElem))
 			{
 				int maxBan = (int)TimeSpan.FromHours(RoundConfig.DosDurationHours).TotalMinutes;
 				int banLeftMinutes = maxBan - (int)bannedElem.BannedRemaining.TotalMinutes;
