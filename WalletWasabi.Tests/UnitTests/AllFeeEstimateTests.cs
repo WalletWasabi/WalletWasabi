@@ -156,7 +156,7 @@ namespace WalletWasabi.Tests.UnitTests
 				.ThrowsAsync(new NoEstimationException(1));
 			mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
 
-			await Assert.ThrowsAsync<NoEstimationException>(async () => await mockRpc.Object.EstimateAllFeeAsync(new CancellationToken(), EstimateSmartFeeMode.Conservative));
+			await Assert.ThrowsAsync<NoEstimationException>(async () => await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative));
 		}
 
 		[Fact]
@@ -177,7 +177,7 @@ namespace WalletWasabi.Tests.UnitTests
 
 			mockRpc.Setup(rpc => rpc.PrepareBatch()).Returns(mockRpc.Object);
 
-			var ex = await Assert.ThrowsAsync<RPCException>(async () => await mockRpc.Object.EstimateAllFeeAsync(new CancellationToken(), EstimateSmartFeeMode.Conservative));
+			var ex = await Assert.ThrowsAsync<RPCException>(async () => await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative));
 			Assert.Equal(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, ex.RPCCode);
 			Assert.Equal("Error-EstimateSmartFee", ex.Message);
 		}
@@ -194,7 +194,7 @@ namespace WalletWasabi.Tests.UnitTests
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(8, any)).ReturnsAsync(FeeRateResponse(8, 70m));
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn<int>(2, 3, 5, 6, 8), any)).ThrowsAsync(new NoEstimationException(0));
 
-			var allFee = await mockRpc.Object.EstimateAllFeeAsync(new CancellationToken(), EstimateSmartFeeMode.Conservative);
+			var allFee = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 			Assert.Equal(2, allFee.Estimations.Count);
 			Assert.False(allFee.Estimations.ContainsKey(3));
 			Assert.False(allFee.Estimations.ContainsKey(5));
@@ -218,7 +218,7 @@ namespace WalletWasabi.Tests.UnitTests
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(1008, any)).ReturnsAsync(FeeRateResponse(1008, 31m));
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn<int>(2, 3, 5, 6, 8, 11, 13, 15, 1008), any)).ThrowsAsync(new NoEstimationException(0));
 
-			var allFee = await mockRpc.Object.EstimateAllFeeAsync(new CancellationToken(), EstimateSmartFeeMode.Conservative);
+			var allFee = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 			Assert.True(allFee.IsAccurate);
 			Assert.Equal(3, allFee.Estimations.Count);
 			Assert.Equal(99, allFee.Estimations[2]);
@@ -254,7 +254,7 @@ namespace WalletWasabi.Tests.UnitTests
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(1008, any)).ReturnsAsync(FeeRateResponse(1008, 1m));
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn<int>(2, 3, 5, 6, 8, 11, 13, 15, 1008), any)).ThrowsAsync(new NoEstimationException(0));
 
-			var allFee = await mockRpc.Object.EstimateAllFeeAsync(new CancellationToken(), EstimateSmartFeeMode.Conservative);
+			var allFee = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 			Assert.Equal(3_500, allFee.Estimations[2]);
 			Assert.True(allFee.Estimations[3] > 500);
 			Assert.True(allFee.Estimations[1008] > 1);
@@ -270,7 +270,7 @@ namespace WalletWasabi.Tests.UnitTests
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsNotIn<int>(2), any)).ThrowsAsync(new NoEstimationException(0));
 
 			// Do not throw exception
-			await mockRpc.Object.EstimateAllFeeAsync(new CancellationToken(), EstimateSmartFeeMode.Conservative);
+			await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 		}
 
 		[Fact]
@@ -282,7 +282,7 @@ namespace WalletWasabi.Tests.UnitTests
 				var mempoolInfo = MempoolInfoGenerator.GenerateMempoolInfo();
 				mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync()).ReturnsAsync(mempoolInfo);
 				mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), EstimateSmartFeeMode.Conservative)).ReturnsAsync(FeeRateResponse(2, 120m));
-				var feeRates = await mockRpc.Object.EstimateAllFeeAsync(new CancellationToken(), EstimateSmartFeeMode.Conservative);
+				var feeRates = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 				var estimations = feeRates.Estimations;
 
 				Assert.Subset(Constants.ConfirmationTargets.ToHashSet(), estimations.Keys.ToHashSet());

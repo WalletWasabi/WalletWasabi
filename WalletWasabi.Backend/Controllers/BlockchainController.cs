@@ -73,7 +73,7 @@ namespace WalletWasabi.Backend.Controllers
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				cacheOptions,
-				() => RpcClient.EstimateAllFeeAsync(new CancellationToken(), mode, simulateIfRegTest: true));
+				() => RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true));
 		}
 
 		/// <summary>
