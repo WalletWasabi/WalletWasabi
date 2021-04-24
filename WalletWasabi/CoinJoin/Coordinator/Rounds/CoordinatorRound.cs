@@ -804,7 +804,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				Money fee = transaction.GetFee(spentCoins.ToArray());
 
 				// There is a currentFeeRate null check later.
-				FeeRate currentFeeRate = null;
+				FeeRate? currentFeeRate = null;
 				if (fee is null)
 				{
 					Logger.LogError($"Round ({RoundId}): Cannot calculate CoinJoin transaction fee. Some spent coins are missing.");
@@ -886,8 +886,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			Guard.NotNull(nameof(rpc), rpc);
 			Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
 
-			Money feePerInputs = null;
-			Money feePerOutputs = null;
+			Money? feePerInputs = null;
+			Money? feePerOutputs = null;
 			var inputSizeInBytes = (int)Math.Ceiling(((3 * Constants.P2wpkhInputSizeInBytes) + Constants.P2pkhInputSizeInBytes) / 4m);
 			var outputSizeInBytes = Constants.OutputSizeInBytes;
 			try
@@ -1133,7 +1133,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		public async Task BroadcastCoinJoinIfFullySignedAsync()
 		{
-			Transaction broadcasted = null;
+			Transaction? broadcasted = null;
 			using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
 			{
 				// Check if fully signed.

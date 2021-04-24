@@ -254,7 +254,7 @@ namespace WalletWasabi.Hwi.Parsers
 			}
 
 			HwiErrorCode? code = null;
-			string errorString = null;
+			string? errorString = null;
 			if (TryParseError(json, out HwiException? err))
 			{
 				code = err.ErrorCode;

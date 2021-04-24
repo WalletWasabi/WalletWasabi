@@ -98,7 +98,7 @@ namespace WalletWasabi.Io
 				{
 					var lineTask = sr.ReadLineAsync();
 					Task wTask = Task.CompletedTask;
-					string line = null;
+					string? line = null;
 					while (lineTask is { })
 					{
 						line ??= await lineTask.ConfigureAwait(false);
