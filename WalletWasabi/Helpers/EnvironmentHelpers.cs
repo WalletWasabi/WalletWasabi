@@ -195,15 +195,12 @@ namespace WalletWasabi.Helpers
 
 			fileExtension = fileExtension.TrimStart('.'); // Remove . if added by the caller.
 
-			using (RegistryKey key = Registry.ClassesRoot.OpenSubKey($".{fileExtension}"))
+			using (var key = Registry.ClassesRoot.OpenSubKey($".{fileExtension}"))
 			{
-				if (key is { })
+				// Read the (Default) value.
+				if (key?.GetValue(null) is not null)
 				{
-					object val = key.GetValue(null); // Read the (Default) value.
-					if (val is { })
-					{
-						return true;
-					}
+					return true;
 				}
 			}
 			return false;
