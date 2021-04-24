@@ -169,10 +169,9 @@ namespace WalletWasabi.Io
 
 		private async Task<(bool same, byte[] hash)> WorkWithHashAsync(ByteArrayBuilder byteArrayBuilder, CancellationToken cancellationToken)
 		{
+			var hash = HashHelpers.GenerateSha256Hash(byteArrayBuilder.ToArray());
 			try
 			{
-				var bytes = byteArrayBuilder.ToArray();
-				var hash = HashHelpers.GenerateSha256Hash(bytes);
 				if (File.Exists(DigestFilePath))
 				{
 					var digest = await File.ReadAllBytesAsync(DigestFilePath, cancellationToken).ConfigureAwait(false);
@@ -192,7 +191,7 @@ namespace WalletWasabi.Io
 				Logger.LogInfo(ex);
 			}
 
-			return (false, Array.Empty<byte>());
+			return (false, hash);
 		}
 
 		private void ContinueBuildHash(ByteArrayBuilder byteArrayBuilder, string line)
