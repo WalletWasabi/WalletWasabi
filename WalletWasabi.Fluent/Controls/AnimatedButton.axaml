@@ -63,18 +63,13 @@
                         Command="{TemplateBinding Command}"
                         CommandParameter="{TemplateBinding CommandParameter}"
                         Classes="plain">
-                    <i:Interaction.Behaviors>
-                        <ia:EventTriggerBehavior EventName="Click">
-                            <behaviors:AddClassAction StyledElement="{Binding #PART_IconNormal}"
-                                                      ClassName="hideAndShow" RemoveIfExists="True" />
-                            <behaviors:AddClassAction StyledElement="{Binding #PART_IconClick}"
-                                                      ClassName="showAndHide"
-                                                      RemoveIfExists="True" />
-                        </ia:EventTriggerBehavior>
-                    </i:Interaction.Behaviors>
                     <Panel>
-                        <PathIcon Name="PART_IconNormal" Data="{TemplateBinding NormalIcon}" />
-                        <PathIcon Name="PART_IconClick" Data="{TemplateBinding ClickIcon}" Classes="hidden" />
+                        <PathIcon Name="PART_IconNormal"
+                                  Classes.hideAndShow="{TemplateBinding AnimateIcon}"
+                                  Data="{TemplateBinding NormalIcon}" />
+                        <PathIcon Name="PART_IconClick"
+                                  Classes.showAndHide="{TemplateBinding AnimateIcon}"
+                                  Data="{TemplateBinding ClickIcon}" Classes="hidden" />
                     </Panel>
                 </Button>
             </ControlTemplate>
