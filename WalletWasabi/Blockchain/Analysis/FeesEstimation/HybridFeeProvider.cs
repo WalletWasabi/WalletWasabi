@@ -89,19 +89,19 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 						{
 							if (rpcProvider.LastAllFeeEstimate?.IsAccurate is true && !rpcProvider.InError)
 							{
-								// If user's full node is properly serving data, then we don't care about the backend.
+								// If user's full node is properly serving data, then we don't care about the third party.
 								return;
 							}
 							else
 							{
 								if (fees.IsAccurate)
 								{
-									// If the backend is properly serving accurate data then, this is the best we got.
+									// If the third party is properly serving accurate data then, this is the best we got.
 									notify = SetAllFeeEstimate(fees);
 								}
 								else
 								{
-									// If neither user's full node, nor backend is ready, then let's try our best effort figuring out which data looks better:
+									// If neither user's full node, nor third party is ready, then let's try our best effort figuring out which data looks better:
 									notify = SetAllFeeEstimateIfLooksBetter(fees);
 								}
 							}
