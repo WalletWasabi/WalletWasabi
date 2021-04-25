@@ -21,7 +21,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 		// of the transaction also pays at the nominal feerate so this will have
 		// to do for now, but in the future EstimatedVsize should be used
 		// including the shared overhead
-		public FeeRate EffectiveFeeRate => new FeeRate(Balance, EstimatedInputsVsize + OutputsVsize);
+		public FeeRate EffectiveFeeRate => new(Balance, EstimatedInputsVsize + OutputsVsize);
 
 		// TODO ownership proofs and spend status also in scope
 		public ConstructionState AddInput(Coin coin)

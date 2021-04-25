@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.LineChartDemo
 			1,
 		};
 
-		public List<string> XAxisLabels => new List<string>()
+		public List<string> XAxisLabels => new()
 		{
 			"Jan",
 			"Feb",
