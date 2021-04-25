@@ -17,7 +17,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 		public int OutputsVsize => Outputs.Sum(x => x.ScriptPubKey.EstimateOutputVsize());
 
 		public int EstimatedVsize => MultipartyTransactionParameters.SharedOverhead + EstimatedInputsVsize + OutputsVsize;
-		public FeeRate EffectiveFeeRate => new FeeRate(Balance, EstimatedVsize);
+		public FeeRate EffectiveFeeRate => new(Balance, EstimatedVsize);
 
 		public IEnumerable<Coin> UnsignedInputs => Inputs.Where((_, i) => !IsInputSigned(i));
 
