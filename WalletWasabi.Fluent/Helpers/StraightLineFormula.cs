@@ -34,19 +34,13 @@ namespace WalletWasabi.Fluent.Helpers
 		public double C { get; set; }
 
 		public static StraightLineFormula operator *(StraightLineFormula f, double multiplier)
-		{
-			return new StraightLineFormula((multiplier * f.M), (multiplier * f.C), (multiplier * f.Y));
-		}
+			=> new StraightLineFormula((multiplier * f.M), (multiplier * f.C), (multiplier * f.Y));
 
 		public static StraightLineFormula operator -(StraightLineFormula f, StraightLineFormula g)
-		{
-			return new StraightLineFormula((f.M - g.M), (f.C - g.C), (f.Y - g.Y));
-		}
+			=> new StraightLineFormula((f.M - g.M), (f.C - g.C), (f.Y - g.Y));
 
 		public static StraightLineFormula operator /(StraightLineFormula f, double divisor)
-		{
-			return new StraightLineFormula((f.M / divisor), (f.C / divisor), (f.Y / divisor));
-		}
+			=> new StraightLineFormula((f.M / divisor), (f.C / divisor), (f.Y / divisor));
 
 		public static Point IntersectionBetween(StraightLineFormula f, StraightLineFormula g)
 		{
