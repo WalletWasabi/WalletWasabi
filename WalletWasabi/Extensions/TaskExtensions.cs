@@ -12,7 +12,7 @@ namespace System.Threading.Tasks
 			var tcs = new TaskCompletionSource<bool>();
 
 			// Register with the cancellation token.
-			using (cancel.Register(s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
+			using (cancel.Register(s => (s as TaskCompletionSource<bool>)?.TrySetResult(true), tcs))
 			{
 				// If the task waited on is the cancellation token...
 				if (me != await Task.WhenAny(me, tcs.Task).ConfigureAwait(false))
@@ -43,7 +43,7 @@ namespace System.Threading.Tasks
 			var tcs = new TaskCompletionSource<bool>();
 
 			// Register with the cancellation token.
-			using (cancel.Register(s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
+			using (cancel.Register(s => (s as TaskCompletionSource<bool>)?.TrySetResult(true), tcs))
 			{
 				// If the task waited on is the cancellation token...
 				if (me != await Task.WhenAny(me, tcs.Task).ConfigureAwait(false))

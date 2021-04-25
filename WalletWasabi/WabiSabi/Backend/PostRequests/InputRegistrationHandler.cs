@@ -51,7 +51,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			WabiSabiConfig config,
 			Guid roundId,
 			Coin coin,
-			byte[] signature,
+			OwnershipProof ownershipProof,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
 			ZeroCredentialsRequest zeroVsizeCredentialRequests,
 			IDictionary<Guid, Round> rounds,
@@ -78,12 +78,12 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			round.CoinjoinState.AssertConstruction().AddInput(coin);
 
 			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", round.Hash);
-			if (!OwnershipProof.VerifyCoinJoinInputProof(signature, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
+			if (!OwnershipProof.VerifyCoinJoinInputProof(ownershipProof, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
 			{
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongRoundSignature);
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
 			}
 
-			var alice = new Alice(coin, signature);
+			var alice = new Alice(coin, ownershipProof);
 
 			if (alice.TotalInputAmount < round.MinRegistrableAmount)
 			{

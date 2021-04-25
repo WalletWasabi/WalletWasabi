@@ -9,7 +9,7 @@ namespace Nito.Disposables.Internals
 	/// <typeparam name="T">The type of context for the action.</typeparam>
 	public sealed class BoundActionField<T>
 	{
-		private BoundAction _field;
+		private BoundAction? _field;
 
 		/// <summary>
 		/// Initializes the field with the specified action and context.
@@ -40,7 +40,7 @@ namespace Nito.Disposables.Internals
 		/// <summary>
 		/// Atomically retrieves the bound action from the field and sets the field to <c>null</c>. May return <c>null</c>.
 		/// </summary>
-		public IBoundAction TryGetAndUnset()
+		public IBoundAction? TryGetAndUnset()
 		{
 			return Interlocked.Exchange(ref _field, null);
 		}

@@ -32,16 +32,6 @@ namespace Nito.AsyncEx
 			_queue.RemoveFromFront().TrySetResult(result);
 		}
 
-		void IAsyncWaitQueue<T>.DequeueAll(T result)
-		{
-			foreach (var source in _queue)
-			{
-				source.TrySetResult(result);
-			}
-
-			_queue.Clear();
-		}
-
 		bool IAsyncWaitQueue<T>.TryCancel(Task task, CancellationToken cancellationToken)
 		{
 			for (int i = 0; i != _queue.Count; ++i)
@@ -54,16 +44,6 @@ namespace Nito.AsyncEx
 				}
 			}
 			return false;
-		}
-
-		void IAsyncWaitQueue<T>.CancelAll(CancellationToken cancellationToken)
-		{
-			foreach (var source in _queue)
-			{
-				source.TrySetCanceled(cancellationToken);
-			}
-
-			_queue.Clear();
 		}
 
 		[DebuggerNonUserCode]

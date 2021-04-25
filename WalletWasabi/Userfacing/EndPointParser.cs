@@ -38,7 +38,7 @@ namespace WalletWasabi.Userfacing
 		}
 
 		/// <param name="defaultPort">If invalid and it's needed to use, then this function returns false.</param>
-		public static bool TryParse(string endPointString, int defaultPort, [NotNullWhen(true)] out EndPoint? endPoint)
+		public static bool TryParse(string? endPointString, int defaultPort, [NotNullWhen(true)] out EndPoint? endPoint)
 		{
 			endPoint = null;
 
