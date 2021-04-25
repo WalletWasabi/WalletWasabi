@@ -63,10 +63,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 					Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(selectedItem.TransactionSummary, _bitcoinStore, wallet, updateTrigger));
 
-					Dispatcher.UIThread.Post(() =>
-					{
-						SelectedItem = null;
-					});
+					Dispatcher.UIThread.Post(() => SelectedItem = null);
 				});
 
 			updateTrigger.Subscribe(async _ => await UpdateAsync());

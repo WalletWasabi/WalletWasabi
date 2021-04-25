@@ -108,10 +108,7 @@ namespace WalletWasabi.Fluent.Controls
 				{
 					CancelPointerPressedDelay = new CancellationTokenSource();
 
-					Task.Delay(TimeSpan.FromSeconds(1), CancelPointerPressedDelay.Token).ContinueWith(_ =>
-					{
-						_canCancelOnPointerPressed = true;
-					});
+					Task.Delay(TimeSpan.FromSeconds(1), CancelPointerPressedDelay.Token).ContinueWith(_ => _canCancelOnPointerPressed = true);
 				}
 			}
 			catch (OperationCanceledException)

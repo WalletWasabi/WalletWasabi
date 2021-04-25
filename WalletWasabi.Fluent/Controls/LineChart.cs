@@ -747,10 +747,7 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				newValue.CollectionChanged += ItemsPropertyCollectionChanged;
 
-				_collectionChangedSubscriptions[newValue] = Disposable.Create(() =>
-				{
-					newValue.CollectionChanged -= ItemsPropertyCollectionChanged;
-				});
+				_collectionChangedSubscriptions[newValue] = Disposable.Create(() => newValue.CollectionChanged -= ItemsPropertyCollectionChanged);
 			}
 		}
 

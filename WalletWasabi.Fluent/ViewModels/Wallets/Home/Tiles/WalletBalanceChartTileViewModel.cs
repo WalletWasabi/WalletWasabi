@@ -41,7 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			YearCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Year));
 
-			AllCommand = ReactiveCommand.Create(() => { UpdateSample(TimePeriodOption.All); });
+			AllCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.All));
 		}
 
 		private enum TimePeriodOption
