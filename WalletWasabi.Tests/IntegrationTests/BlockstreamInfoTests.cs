@@ -1,16 +1,10 @@
 using NBitcoin;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor;
-using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Socks5;
-using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;

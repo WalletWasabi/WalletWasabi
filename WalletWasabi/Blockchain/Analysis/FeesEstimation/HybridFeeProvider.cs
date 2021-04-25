@@ -102,7 +102,6 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 								else
 								{
 									// If neither user's full node, nor backend is ready, then let's try our best effort figuring out which data looks better:
-
 									notify = SetAllFeeEstimateIfLooksBetter(fees);
 								}
 							}
