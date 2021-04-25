@@ -138,7 +138,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.Where(x => x)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => PushLockScreen(UiConfig.LockScreenPinHash.Length == 0
-						? (WasabiLockScreenViewModelBase)new SlideLockScreenViewModel()
+						? new SlideLockScreenViewModel()
 						: new PinLockScreenViewModel(UiConfig)));
 		}
 
