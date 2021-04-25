@@ -98,8 +98,8 @@ namespace WalletWasabi.Tests.IntegrationTests
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
 			HttpClientFactory httpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: () => new Uri("http://localhost:12345"));
 			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
-			BlockstreamInfoFeeProvider blockstreamInfoFreeProvider = new(TimeSpan.FromMinutes(3), new BlockstreamInfoClient(network, httpClientFactory));
-			ThirdPartyFeeProvider thirdPartyFeeProvider = new(TimeSpan.FromMinutes(3), synchronizer, blockstreamInfoFreeProvider);
+			BlockstreamInfoFeeProvider blockstreamInfoFeeProvider = new(TimeSpan.FromMinutes(3), new BlockstreamInfoClient(network, httpClientFactory));
+			ThirdPartyFeeProvider thirdPartyFeeProvider = new(TimeSpan.FromMinutes(3), synchronizer, blockstreamInfoFeeProvider);
 			var feeProvider = new HybridFeeProvider(thirdPartyFeeProvider, null);
 
 			ServiceConfiguration serviceConfig = new(MixUntilAnonymitySet.PrivacyLevelStrong.ToString(), 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
