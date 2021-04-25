@@ -58,7 +58,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
 			FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
-			BlockstreamInfoFreeProvider blockstreamInfoFreeProvider = new(TimeSpan.FromMinutes(3), new BlockstreamInfoClient(network, httpClientFactory));
+			BlockstreamInfoFeeProvider blockstreamInfoFreeProvider = new(TimeSpan.FromMinutes(3), new BlockstreamInfoClient(network, httpClientFactory));
 			ThirdPartyFeeProvider thirdPartyFeeProvider = new(TimeSpan.FromMinutes(3), synchronizer, blockstreamInfoFreeProvider);
 			HybridFeeProvider feeProvider = new(thirdPartyFeeProvider, null);
 
@@ -216,7 +216,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
 			FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
-			BlockstreamInfoFreeProvider blockstreamInfoFreeProvider = new(TimeSpan.FromMinutes(3), new BlockstreamInfoClient(network, httpClientFactory));
+			BlockstreamInfoFeeProvider blockstreamInfoFreeProvider = new(TimeSpan.FromMinutes(3), new BlockstreamInfoClient(network, httpClientFactory));
 			ThirdPartyFeeProvider thirdPartyFeeProvider = new(TimeSpan.FromMinutes(3), synchronizer, blockstreamInfoFreeProvider);
 			HybridFeeProvider feeProvider = new(thirdPartyFeeProvider, null);
 

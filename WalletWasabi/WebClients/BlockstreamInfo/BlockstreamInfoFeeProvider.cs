@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
@@ -9,9 +7,9 @@ using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 
 namespace WalletWasabi.WebClients.BlockstreamInfo
 {
-	public class BlockstreamInfoFreeProvider : PeriodicRunner
+	public class BlockstreamInfoFeeProvider : PeriodicRunner
 	{
-		public BlockstreamInfoFreeProvider(TimeSpan period, BlockstreamInfoClient blockstreamInfoClient) : base(period)
+		public BlockstreamInfoFeeProvider(TimeSpan period, BlockstreamInfoClient blockstreamInfoClient) : base(period)
 		{
 			BlockstreamInfoClient = blockstreamInfoClient;
 		}

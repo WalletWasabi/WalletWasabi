@@ -16,7 +16,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {
 	public class ThirdPartyFeeProvider : PeriodicRunner
 	{
-		public ThirdPartyFeeProvider(TimeSpan period, WasabiSynchronizer synchronizer, BlockstreamInfoFreeProvider blockstreamProvider)
+		public ThirdPartyFeeProvider(TimeSpan period, WasabiSynchronizer synchronizer, BlockstreamInfoFeeProvider blockstreamProvider)
 			: base(period)
 		{
 			Synchronizer = synchronizer;
@@ -26,7 +26,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
 
 		public WasabiSynchronizer Synchronizer { get; }
-		public BlockstreamInfoFreeProvider BlockstreamProvider { get; }
+		public BlockstreamInfoFeeProvider BlockstreamProvider { get; }
 		public AllFeeEstimate? LastAllFeeEstimate { get; private set; }
 		private object Lock { get; } = new object();
 		public bool InError { get; private set; }
