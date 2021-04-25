@@ -269,7 +269,7 @@ namespace WalletWasabi.Fluent.Controls
 			switch (XAxisPlotMode)
 			{
 				case AxisPlotMode.Normal:
-					var min =  XAxisMinimum ?? xAxisValues.Min();
+					var min = XAxisMinimum ?? xAxisValues.Min();
 					var max = xAxisValues.Max();
 
 					var xAxisScaler = new StraightLineFormula();
@@ -298,13 +298,11 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				state.Points = new Point[xAxisValues.Count];
 
-				using (var enumerator = xAxisValuesEnumerable.GetEnumerator())
+				using var enumerator = xAxisValuesEnumerable.GetEnumerator();
+				for (var i = 0; i < yAxisValuesScaled.Count; i++)
 				{
-					for (var i = 0; i < yAxisValuesScaled.Count; i++)
-					{
-						enumerator.MoveNext();
-						state.Points[i] = new Point(enumerator.Current, yAxisValuesScaled[i]);
-					}
+					enumerator.MoveNext();
+					state.Points[i] = new Point(enumerator.Current, yAxisValuesScaled[i]);
 				}
 			}
 		}
