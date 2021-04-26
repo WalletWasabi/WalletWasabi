@@ -143,7 +143,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			if (YValues.Any())
 			{
 				var maxY = YValues.Max();
-				YLabels = new List<string> {"0", (maxY / 2).ToString("F2"), maxY.ToString("F2")};
+				YLabels = new List<string> { "0", (maxY / 2).ToString("F2"), maxY.ToString("F2") };
 			}
 			else
 			{
