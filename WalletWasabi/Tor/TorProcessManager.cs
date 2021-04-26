@@ -7,6 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
+using WalletWasabi.Tor.Control;
+using WalletWasabi.Tor.Control.Exceptions;
+using WalletWasabi.Tor.Control.Messages;
 using WalletWasabi.Tor.Socks5;
 
 namespace WalletWasabi.Tor
@@ -21,8 +24,11 @@ namespace WalletWasabi.Tor
 		{
 			TorSocks5EndPoint = torSocks5EndPoint;
 			TorProcess = null;
+			TorControlClient = null;
 			Settings = settings;
 			TcpConnectionFactory = new(torSocks5EndPoint);
+
+			IoHelpers.EnsureContainingDirectoryExists(Settings.LogFilePath);
 		}
 
 		private EndPoint TorSocks5EndPoint { get; }
@@ -31,6 +37,8 @@ namespace WalletWasabi.Tor
 
 		private TorSettings Settings { get; }
 		private TorTcpConnectionFactory TcpConnectionFactory { get; }
+
+		private TorControlClient? TorControlClient { get; set; }
 
 		private bool _disposed = false;
 
@@ -53,10 +61,13 @@ namespace WalletWasabi.Tor
 						? $"Tor is already running on {endpoint.Address}:{endpoint.Port}."
 						: "Tor is already running.";
 					Logger.LogInfo(msg);
+
+					await InitTorControlOrThrowAsync(token).ConfigureAwait(false);
 					return true;
 				}
 
 				string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint);
+				Logger.LogInfo($"torArguments='{torArguments}'");
 
 				var startInfo = new ProcessStartInfo
 				{
@@ -116,6 +127,8 @@ namespace WalletWasabi.Tor
 				}
 
 				Logger.LogInfo("Tor is running.");
+				await InitTorControlOrThrowAsync(token).ConfigureAwait(false);
+
 				return true;
 			}
 			catch (OperationCanceledException ex)
@@ -131,30 +144,61 @@ namespace WalletWasabi.Tor
 			return false;
 		}
 
-		public async Task StopAsync()
+		/// <summary>
+		/// Connects to Tor control using a TCP client or throws <see cref="TorControlException"/>.
+		/// </summary>
+		private async Task InitTorControlOrThrowAsync(CancellationToken token = default)
 		{
-			if (TorProcess is { } && Settings.TerminateOnExit)
+			// Get cookie.
+			string cookieString = ByteHelpers.ToHex(File.ReadAllBytes(Settings.CookieAuthFilePath));
+
+			// Authenticate.
+			TorControlClientFactory factory = new();
+			TorControlClient = await factory.ConnectAndAuthenticateAsync(Settings.ControlEndpoint, cookieString, token).ConfigureAwait(false);
+
+			if (Settings.TerminateOnExit)
 			{
-				Logger.LogInfo($"Killing Tor process.");
+				TorControlReply reply = await TorControlClient.SendCommandAsync("TAKEOWNERSHIP\r\n", token).ConfigureAwait(false);
 
-				try
+				if (!reply)
 				{
-					TorProcess.Kill();
-					using CancellationTokenSource cts = new(TimeSpan.FromMinutes(1));
-					await TorProcess.WaitForExitAsync(cts.Token, killOnCancel: true).ConfigureAwait(false);
-
-					Logger.LogInfo($"Tor process killed successfully.");
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError($"Could not kill Tor process: {ex.Message}.");
+					Logger.LogError($"Failed to take ownership of the Tor instance. Reply: '{reply}'.");
 				}
 			}
+		}
+
+		/// <summary>
+		/// Checks whether Tor can access network (or at least Tor believes so).
+		/// </summary>
+		public async Task<bool> CheckStatusAsync()
+		{
+			bool result = false;
+
+			if (TorControlClient is { } client)
+			{
+				Logger.LogInfo("**Checking Tor status**");
+				TorControlReply reply = await client.SendCommandAsync("GETINFO network-liveness\r\n").ConfigureAwait(false);
+
+				if (reply && reply.ResponseLines.Count == 2 && reply.ResponseLines[0] == "network-liveness=up")
+				{
+					result = true;
+				}
+			}
+
+			Logger.LogTrace($"Checking Tor status: {(result ? "UP" : "DOWN")}");
+			return result;
+		}
+
+		public Task StopAsync()
+		{
+			_disposed = true;
+
+			TorControlClient?.Dispose();
 
 			// Dispose Tor process resources (does not stop/kill Tor process).
 			TorProcess?.Dispose();
 
-			_disposed = true;
+			return Task.CompletedTask;
 		}
 
 		private void ThrowIfDisposed()
