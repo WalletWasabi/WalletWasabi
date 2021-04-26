@@ -95,7 +95,7 @@ namespace WalletWasabi.Tor.Http.Models
 			// indicating that duplicate Content-Length header fields have been
 			// generated or combined by an upstream message processor, then the
 			// recipient MUST either reject the message as invalid or replace the
-			// duplicated field - values with a single valid Content - Length field
+			// duplicated field - values with a single valid Content-Length field
 			// containing that decimal value prior to determining the message body
 			// length or forwarding the message.
 
