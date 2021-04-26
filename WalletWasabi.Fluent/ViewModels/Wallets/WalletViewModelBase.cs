@@ -10,19 +10,18 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
-	public abstract partial class WalletViewModelBase : NavBarItemViewModel, IComparable<WalletViewModelBase>, IDisposable
+	public abstract partial class WalletViewModelBase : NavBarItemViewModel, IComparable<WalletViewModelBase>
 	{
 		[AutoNotify] private string _titleTip;
-		[AutoNotify(SetterModifier = AccessModifier.Private)] private WalletState _walletState;
-		private CompositeDisposable? _disposables;
-		private bool _disposedValue;
+
+		[AutoNotify(SetterModifier = AccessModifier.Private)]
+		private WalletState _walletState;
+
 		private string _title;
 
 		protected WalletViewModelBase(Wallet wallet)
 		{
 			Wallet = Guard.NotNull(nameof(wallet), wallet);
-
-			_disposables = new CompositeDisposable();
 
 			_title = WalletName;
 			var isHardware = Wallet.KeyManager.IsHardwareWallet;
@@ -31,12 +30,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			WalletState = wallet.State;
 
-			Observable.FromEventPattern<WalletState>(wallet, nameof(wallet.StateChanged))
+			OpenCommand = ReactiveCommand.Create(() => Navigate().To(this, NavigationMode.Clear));
+		}
+
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			base.OnNavigatedTo(isInHistory, disposables);
+
+			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => WalletState = x.EventArgs)
-				.DisposeWith(_disposables);
-
-			OpenCommand = ReactiveCommand.Create(() => Navigate().To(this, NavigationMode.Clear));
+				.DisposeWith(disposables);
 		}
 
 		public override string Title
@@ -65,30 +69,5 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		}
 
 		public override string ToString() => WalletName;
-
-		#region IDisposable Support
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					_disposables?.Dispose();
-					_disposables = null;
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

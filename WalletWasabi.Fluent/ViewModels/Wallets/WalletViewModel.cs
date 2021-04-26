@@ -13,7 +13,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
-	public partial class WalletViewModel : WalletViewModelBase
+	public class WalletViewModel : WalletViewModelBase
 	{
 		private readonly List<TileViewModel> _tiles;
 
@@ -24,20 +24,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			var balanceChanged =
-				Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default)
+				Observable.FromEventPattern(Wallet.TransactionProcessor,
+						nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
+					.Select(_ => Unit.Default)
 					.Throttle(TimeSpan.FromSeconds(0.1))
-					.Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed)).Select(_ => Unit.Default))
+					.Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed))
+						.Select(_ => Unit.Default))
 					.Merge(uiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
 					.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
 					.ObserveOn(RxApp.MainThreadScheduler);
 
-			History = new HistoryViewModel(wallet, uiConfig, balanceChanged);
+			History = new HistoryViewModel(Navigate(NavigationTarget.DialogScreen), wallet, uiConfig, balanceChanged);
 
 			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged);
 			BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions);
 			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged);
 			RoundStatusTile = new RoundStatusTileViewModel(wallet);
-			BtcPriceTile= new BtcPriceTileViewModel(wallet);
+			BtcPriceTile = new BtcPriceTileViewModel(wallet);
 
 			_tiles = new List<TileViewModel>
 			{
@@ -57,6 +60,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				tile.Activate(disposables);
 			}
+
+			History.Activate(disposables);
 		}
 
 		private CompositeDisposable Disposables { get; set; }

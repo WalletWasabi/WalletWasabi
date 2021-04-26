@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.Threading;
@@ -18,42 +19,32 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 {
-	[NavigationMetaData(Title = "Transaction History")]
-	public partial class HistoryViewModel : RoutableViewModel
+	public partial class HistoryViewModel : ActivatableViewModel
 	{
 		private readonly Wallet _wallet;
 		private readonly BitcoinStore _bitcoinStore;
-		private readonly ReadOnlyObservableCollection<HistoryItemViewModel> _transactions;
-		private readonly ReadOnlyObservableCollection<HistoryItemViewModel> _unfilteredTransactions;
+		private ObservableCollectionExtended<HistoryItemViewModel> _transactions;
+		private ObservableCollectionExtended<HistoryItemViewModel> _unfilteredTransactions;
 		private readonly SourceList<HistoryItemViewModel> _transactionSourceList;
+		private readonly IObservable<Unit> _updateTrigger;
 
 		[AutoNotify] private bool _showCoinJoin;
 		[AutoNotify] private HistoryItemViewModel? _selectedItem;
 
-		public HistoryViewModel(Wallet wallet, UiConfig uiConfig, IObservable<Unit> updateTrigger)
+		public HistoryViewModel(INavigationStack<RoutableViewModel> dialogNavigationStack, Wallet wallet, UiConfig uiConfig, IObservable<Unit> updateTrigger)
 		{
+			_updateTrigger = updateTrigger;
 			_wallet = wallet;
 			_bitcoinStore = wallet.BitcoinStore;
 			_showCoinJoin = uiConfig.ShowCoinJoinInHistory;
 			_transactionSourceList = new SourceList<HistoryItemViewModel>();
-
-			var coinJoinFilter = this.WhenAnyValue(x => x.ShowCoinJoin).Select(CoinJoinFilter);
-
-			_transactionSourceList
-				.Connect()
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Sort(SortExpressionComparer<HistoryItemViewModel>.Descending(x => x.OrderIndex))
-				.Bind(out _unfilteredTransactions)
-				.Filter(coinJoinFilter)
-				.Bind(out _transactions)
-				.Subscribe();
+			_transactions = new ObservableCollectionExtended<HistoryItemViewModel>();
+			_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModel>();
 
 			this.WhenAnyValue(x => x.ShowCoinJoin)
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(showCoinJoin => uiConfig.ShowCoinJoinInHistory = showCoinJoin);
 
 			this.WhenAnyValue(x => x.SelectedItem)
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async selectedItem =>
 				{
 					if (selectedItem is null)
@@ -61,7 +52,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 						return;
 					}
 
-					Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(selectedItem.TransactionSummary, _bitcoinStore, wallet, updateTrigger));
+					dialogNavigationStack.To(new TransactionDetailsViewModel(selectedItem.TransactionSummary, _bitcoinStore, wallet, updateTrigger));
 
 					Dispatcher.UIThread.Post(() =>
 					{
@@ -69,15 +60,36 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 					});
 				});
 
-			updateTrigger.Subscribe(async _ => await UpdateAsync());
 			RxApp.MainThreadScheduler.Schedule(async () => await UpdateAsync());
 		}
 
-		public ReadOnlyObservableCollection<HistoryItemViewModel> UnfilteredTransactions => _unfilteredTransactions;
+		protected override void OnActivated(CompositeDisposable disposables)
+		{
+			base.OnActivated(disposables);
 
-		public ReadOnlyObservableCollection<HistoryItemViewModel> Transactions => _transactions;
+			var coinJoinFilter = this.WhenAnyValue(x => x.ShowCoinJoin)
+				.Select(CoinJoinFilter);
 
-		private Func<HistoryItemViewModel, bool> CoinJoinFilter(bool showCoinJoin)
+			_transactionSourceList
+				.Connect()
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Sort(SortExpressionComparer<HistoryItemViewModel>.Descending(x => x.OrderIndex))
+				.Bind(_unfilteredTransactions)
+				.Filter(coinJoinFilter)
+				.Bind(_transactions)
+				.Subscribe()
+				.DisposeWith(disposables);
+
+			_updateTrigger
+				.Subscribe(async _ => await UpdateAsync())
+				.DisposeWith(disposables);
+		}
+
+		public ObservableCollection<HistoryItemViewModel> UnfilteredTransactions => _unfilteredTransactions;
+
+		public ObservableCollection<HistoryItemViewModel> Transactions => _transactions;
+
+		private static Func<HistoryItemViewModel, bool> CoinJoinFilter(bool showCoinJoin)
 		{
 			return item =>
 			{
@@ -90,7 +102,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			};
 		}
 
-		public async Task UpdateAsync()
+		private async Task UpdateAsync()
 		{
 			try
 			{

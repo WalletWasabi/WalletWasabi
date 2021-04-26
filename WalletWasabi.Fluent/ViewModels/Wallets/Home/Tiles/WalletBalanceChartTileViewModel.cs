@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
 	public partial class WalletBalanceChartTileViewModel : TileViewModel
 	{
-		private readonly ReadOnlyObservableCollection<HistoryItemViewModel> _history;
+		private readonly ObservableCollection<HistoryItemViewModel> _history;
 		[AutoNotify] private ObservableCollection<double> _yValues;
 		[AutoNotify] private ObservableCollection<double> _xValues;
 		[AutoNotify] private double? _xMinimum;
@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify] private List<string>? _xLabels;
 		private TimePeriodOption _currentTimePeriod = TimePeriodOption.ThreeMonths;
 
-		public WalletBalanceChartTileViewModel(ReadOnlyObservableCollection<HistoryItemViewModel> history)
+		public WalletBalanceChartTileViewModel(ObservableCollection<HistoryItemViewModel> history)
 		{
 			_history = history;
 			_yValues = new ObservableCollection<double>();
