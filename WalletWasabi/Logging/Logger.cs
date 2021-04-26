@@ -28,7 +28,7 @@ namespace WalletWasabi.Logging
 
 		private static int LoggingFailedCount = 0;
 
-		private static LogLevel MinimumLevel { get; set; } = LogLevel.Critical;
+		private static LogLevel MinimumLevel { get; set; } = LogLevel.Trace;
 
 		private static HashSet<LogMode> Modes { get; } = new HashSet<LogMode>();
 
@@ -73,7 +73,7 @@ namespace WalletWasabi.Logging
 			SetModes(LogMode.Console, LogMode.File);
 
 #else
-			SetMinimumLevel(logLevel ??= LogLevel.Debug);
+			SetMinimumLevel(logLevel ??= LogLevel.Trace);
 			SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
 #endif
 		}

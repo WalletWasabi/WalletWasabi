@@ -22,7 +22,7 @@ namespace WalletWasabi.Tests.Helpers
 		static Common()
 		{
 			Logger.SetFilePath(Path.Combine(DataDir, "Logs.txt"));
-			Logger.SetMinimumLevel(LogLevel.Info);
+			Logger.SetMinimumLevel(LogLevel.Debug);
 			Logger.SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
 		}
 
