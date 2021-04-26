@@ -1,5 +1,6 @@
 using ReactiveUI;
 using System;
+using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -14,6 +15,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class WalletViewModel : WalletViewModelBase
 	{
+		private readonly List<TileViewModel> _tiles;
+
 		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
 		{
 			Disposables = Disposables is null
@@ -29,11 +32,31 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					.ObserveOn(RxApp.MainThreadScheduler);
 
 			History = new HistoryViewModel(wallet, uiConfig, balanceChanged);
+
 			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged);
 			BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions);
 			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged);
 			RoundStatusTile = new RoundStatusTileViewModel(wallet);
 			BtcPriceTile= new BtcPriceTileViewModel(wallet);
+
+			_tiles = new List<TileViewModel>
+			{
+				BalanceTile,
+				BalanceChartTile,
+				WalletPieChart,
+				RoundStatusTile,
+				BtcPriceTile
+			};
+		}
+
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			base.OnNavigatedTo(isInHistory, disposables);
+
+			foreach (var tile in _tiles)
+			{
+				tile.Activate(disposables);
+			}
 		}
 
 		private CompositeDisposable Disposables { get; set; }

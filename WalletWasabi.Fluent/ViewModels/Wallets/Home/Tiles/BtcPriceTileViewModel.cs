@@ -16,11 +16,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		public BtcPriceTileViewModel(Wallet wallet)
 		{
 			_wallet = wallet;
+		}
+
+		protected override void OnActivated(CompositeDisposable disposables)
+		{
+			base.OnActivated(disposables);
 
 			_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(usd => BtcPrice = usd.FormattedFiat());
-				//.DisposeWith(Disposables);
+				.Subscribe(usd => BtcPrice = usd.FormattedFiat())
+				.DisposeWith(disposables);
 		}
 	}
 }

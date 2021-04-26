@@ -1,8 +1,7 @@
 using System;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.CoinJoin.Client.Rounds;
 using WalletWasabi.CoinJoin.Common.Models;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Wallets;
@@ -15,35 +14,40 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify] private long _roundId;
 		[AutoNotify] private RoundPhaseState _roundPhaseState;
 		[AutoNotify] private DateTimeOffset _roundTimesout;
-		[AutoNotify] private string _timeLeftTillRoundTimeout;
-		private Money _requiredBTC;
-		private string _coordinatorFeePercent;
+		[AutoNotify] private string? _timeLeftTillRoundTimeout;
 		[AutoNotify] private int _peersRegistered;
 		[AutoNotify] private int _peersNeeded;
-
 		[AutoNotify] private int _selectedIndex;
 
 		public RoundStatusTileViewModel(Wallet wallet)
 		{
 			_wallet = wallet;
+		}
+
+		protected override void OnActivated(CompositeDisposable disposables)
+		{
+			base.OnActivated(disposables);
 
 			Observable.FromEventPattern(_wallet.ChaumianClient, nameof(Wallet.ChaumianClient.CoinQueued))
 				.Merge(Observable.FromEventPattern(_wallet.ChaumianClient, nameof(Wallet.ChaumianClient.OnDequeue)))
 				.Merge(Observable.FromEventPattern(_wallet.ChaumianClient, nameof(Wallet.ChaumianClient.StateUpdated)))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => UpdateStates());
-				//.DisposeWith(disposables);
+				.Subscribe(_ => UpdateStates())
+				.DisposeWith(disposables);
 
-			ClientRound mostAdvancedRound = _wallet.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
+			var mostAdvancedRound = _wallet.ChaumianClient.State.GetMostAdvancedRoundOrDefault();
 
 			if (mostAdvancedRound is { })
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
+
 				RoundPhaseState = new RoundPhaseState(mostAdvancedRound.State.Phase,
-					_wallet.ChaumianClient?.State.IsInErrorState ?? false);
+					_wallet.ChaumianClient?.State?.IsInErrorState ?? false);
+
 				RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration
 					? mostAdvancedRound.State.InputRegistrationTimesout
 					: DateTimeOffset.UtcNow;
+
 				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
 				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
 			}
@@ -60,10 +64,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
-					TimeSpan left = RoundTimesout - DateTimeOffset.UtcNow;
+					var left = RoundTimesout - DateTimeOffset.UtcNow;
 					TimeLeftTillRoundTimeout =
 						(left > TimeSpan.Zero ? left : TimeSpan.Zero).ToString("hh\\:mm\\:ss"); // Make sure cannot be less than zero.
-				}); //.DisposeWith(disposables);
+				})
+				.DisposeWith(disposables);
 
 			Observable.Interval(TimeSpan.FromSeconds(8))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -79,47 +84,38 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 					}
 
 					SelectedIndex = index;
-				});
+				})
+				.DisposeWith(disposables);
 		}
 
 		private void UpdateStates()
 		{
 			var chaumianClient = _wallet?.ChaumianClient;
+
 			if (chaumianClient is null)
 			{
 				return;
 			}
 
-			//AmountQueued = chaumianClient.State.SumAllQueuedCoinAmounts();
-
-			var registrableRound = chaumianClient.State.GetRegistrableRoundOrDefault();
-			if (registrableRound is { })
-			{
-				//CoordinatorFeePercent = registrableRound.State.CoordinatorFeePercent.ToString();
-				//UpdateRequiredBtcLabel(registrableRound);
-			}
-
 			var mostAdvancedRound = chaumianClient.State.GetMostAdvancedRoundOrDefault();
-			if (mostAdvancedRound is { })
-			{
-				RoundId = mostAdvancedRound.State.RoundId;
-				if (!chaumianClient.State.IsInErrorState)
-				{
-					RoundPhaseState = new RoundPhaseState(mostAdvancedRound.State.Phase, false);
-					RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration
-						? mostAdvancedRound.State.InputRegistrationTimesout
-						: DateTimeOffset.UtcNow;
-				}
-				else
-				{
-					RoundPhaseState = new RoundPhaseState(RoundPhaseState.Phase, true);
-				}
 
-				this.RaisePropertyChanged(nameof(RoundPhaseState));
-				this.RaisePropertyChanged(nameof(RoundTimesout));
-				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
-				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
+			RoundId = mostAdvancedRound.State.RoundId;
+			if (!chaumianClient.State.IsInErrorState)
+			{
+				RoundPhaseState = new RoundPhaseState(mostAdvancedRound.State.Phase, false);
+				RoundTimesout = mostAdvancedRound.State.Phase == RoundPhase.InputRegistration
+					? mostAdvancedRound.State.InputRegistrationTimesout
+					: DateTimeOffset.UtcNow;
 			}
+			else
+			{
+				RoundPhaseState = new RoundPhaseState(RoundPhaseState.Phase, true);
+			}
+
+			this.RaisePropertyChanged(nameof(RoundPhaseState));
+			this.RaisePropertyChanged(nameof(RoundTimesout));
+			PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
+			PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
 		}
 	}
 }

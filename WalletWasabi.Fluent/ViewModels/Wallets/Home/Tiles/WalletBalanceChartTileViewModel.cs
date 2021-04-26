@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Windows.Input;
 using DynamicData.Binding;
 using NBitcoin;
@@ -27,21 +28,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			_yValues = new ObservableCollection<double>();
 			_xValues = new ObservableCollection<double>();
 
-			_history.ToObservableChangeSet().Subscribe(_ => UpdateSample());
-
 			DayCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Day));
-
 			WeekCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Week));
-
 			MonthCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Month));
-
 			ThreeMonthCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.ThreeMonths));
-
 			SixMonthCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.SixMonths));
-
 			YearCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Year));
-
 			AllCommand = ReactiveCommand.Create(() => { UpdateSample(TimePeriodOption.All); });
+		}
+
+		protected override void OnActivated(CompositeDisposable disposables)
+		{
+			base.OnActivated(disposables);
+
+			_history.ToObservableChangeSet()
+				.Subscribe(_ => UpdateSample())
+				.DisposeWith(disposables);
 		}
 
 		private enum TimePeriodOption
@@ -141,7 +143,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			if (YValues.Any())
 			{
 				var maxY = YValues.Max();
-				YLabels = new List<string> { "0", (maxY / 2).ToString("F2"), maxY.ToString("F2") };
+				YLabels = new List<string> {"0", (maxY / 2).ToString("F2"), maxY.ToString("F2")};
 			}
 			else
 			{
