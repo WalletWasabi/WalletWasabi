@@ -22,6 +22,7 @@ namespace WalletWasabi.Tor
 			TorBinaryDir = Path.Combine(MicroserviceHelpers.GetBinaryFolder(), "Tor");
 
 			TorDataDir = Path.Combine(dataDir, "tordata");
+			CookieAuthFilePath = Path.Combine(dataDir, "control_auth_cookie");
 			LogFilePath = logFilePath;
 			IoHelpers.EnsureContainingDirectoryExists(LogFilePath);
 			DistributionFolder = distributionFolderPath;
@@ -48,6 +49,13 @@ namespace WalletWasabi.Tor
 		/// <summary>Full path to executable file that is used to start Tor process.</summary>
 		public string TorBinaryFilePath { get; }
 
+		/// <summary>Full path to Tor cookie file.</summary>
+		public string CookieAuthFilePath { get; }
+
+		/// <summary>Tor control IP address.</summary>
+		/// <seealso href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Ports.md">TODO</seealso>
+		public IPEndPoint ControlEndpoint { get; } = new(IPAddress.Loopback, 29051);
+
 		private string GeoIpPath { get; }
 		private string GeoIp6Path { get; }
 
@@ -65,6 +73,9 @@ namespace WalletWasabi.Tor
 			return string.Join(
 				" ",
 				$"--SOCKSPort {torSocks5EndPoint}",
+				$"--ControlPort {ControlEndpoint.Port}",
+				$"--CookieAuthentication 1",
+				$"--CookieAuthFile \"{CookieAuthFilePath}\"",
 				$"--DataDirectory \"{TorDataDir}\"",
 				$"--GeoIPFile \"{GeoIpPath}\"",
 				$"--GeoIPv6File \"{GeoIp6Path}\"",
