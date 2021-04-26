@@ -32,6 +32,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged);
 			BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions);
 			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged);
+			RoundStatusTile = new RoundStatusTileViewModel(wallet);
+			BtcPriceTile= new BtcPriceTileViewModel(wallet);
 		}
 
 		private CompositeDisposable Disposables { get; set; }
@@ -45,6 +47,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		public WalletBalanceChartTileViewModel BalanceChartTile { get; }
 
 		public WalletPieChartTileViewModel WalletPieChart { get; }
+
+		public RoundStatusTileViewModel RoundStatusTile { get; }
+
+		public BtcPriceTileViewModel BtcPriceTile { get; }
 
 		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet)
 		{
