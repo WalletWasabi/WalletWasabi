@@ -187,14 +187,11 @@ namespace WalletWasabi.Tor.Http.Models
 			// If this section is not added the Content-Length header will not be set unless...
 			// - I put a break point at the start of the function
 			// - And I explicitly expand the "headers" variable
-			if (headers is HttpContentHeaders contentHeaders)
+			if (headers is HttpContentHeaders contentHeaders && contentHeaders.ContentLength is { } contentLength)
 			{
-				if (contentHeaders.ContentLength is { })
+				if (hs.Fields.All(x => x.Name != "Content-Length"))
 				{
-					if (hs.Fields.All(x => x.Name != "Content-Length"))
-					{
-						hs.Fields.Add(new HeaderField("Content-Length", contentHeaders.ContentLength.ToString()));
-					}
+					hs.Fields.Add(new HeaderField("Content-Length", contentLength.ToString()));
 				}
 			}
 			// -- End [SECTION] Crazy VS2017/.NET Core 1.1 bug ---
