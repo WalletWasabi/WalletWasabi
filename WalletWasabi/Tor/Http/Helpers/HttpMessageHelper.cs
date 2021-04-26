@@ -403,11 +403,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			// The chunk-size field is a string of hex digits indicating the size of
 			// the chunk-data in octets.
 			chunkSize = Convert.ToInt64(parts.First().Trim(), 16);
-			chunkExtensions = null;
-			if (parts.Length > 1)
-			{
-				chunkExtensions = parts.Skip(1);
-			}
+			chunkExtensions = parts.Skip(1);
 		}
 
 		private static async Task<byte[]> GetBytesTillEndAsync(Stream stream, CancellationToken ctsToken)
