@@ -52,18 +52,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			};
 		}
 
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-		{
-			base.OnNavigatedTo(isInHistory, disposables);
-
-			foreach (var tile in _tiles)
-			{
-				tile.Activate(disposables);
-			}
-
-			History.Activate(disposables);
-		}
-
 		private CompositeDisposable Disposables { get; set; }
 
 		public override string IconName => "web_asset_regular";
@@ -79,6 +67,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		public RoundStatusTileViewModel RoundStatusTile { get; }
 
 		public BtcPriceTileViewModel BtcPriceTile { get; }
+
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			base.OnNavigatedTo(isInHistory, disposables);
+
+			foreach (var tile in _tiles)
+			{
+				tile.Activate(disposables);
+			}
+
+			History.Activate(disposables);
+		}
 
 		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet)
 		{
