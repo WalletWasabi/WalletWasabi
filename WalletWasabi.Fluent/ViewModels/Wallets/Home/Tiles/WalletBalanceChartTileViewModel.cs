@@ -37,15 +37,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			AllCommand = ReactiveCommand.Create(() => { UpdateSample(TimePeriodOption.All); });
 		}
 
-		protected override void OnActivated(CompositeDisposable disposables)
-		{
-			base.OnActivated(disposables);
-
-			_history.ToObservableChangeSet()
-				.Subscribe(_ => UpdateSample())
-				.DisposeWith(disposables);
-		}
-
 		private enum TimePeriodOption
 		{
 			All,
@@ -70,6 +61,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		public ICommand YearCommand { get; }
 
 		public ICommand AllCommand { get; }
+
+		protected override void OnActivated(CompositeDisposable disposables)
+		{
+			base.OnActivated(disposables);
+
+			_history.ToObservableChangeSet()
+				.Subscribe(_ => UpdateSample())
+				.DisposeWith(disposables);
+		}
 
 		private void UpdateSample()
 		{

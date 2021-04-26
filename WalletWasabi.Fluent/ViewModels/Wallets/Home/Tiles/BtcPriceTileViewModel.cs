@@ -9,9 +9,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
 	public partial class BtcPriceTileViewModel : TileViewModel
 	{
-		[AutoNotify] private string _btcPrice;
-
 		private readonly Wallet _wallet;
+		[AutoNotify] private string _btcPrice;
 
 		public BtcPriceTileViewModel(Wallet wallet)
 		{

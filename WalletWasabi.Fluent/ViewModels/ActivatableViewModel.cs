@@ -6,7 +6,6 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		protected virtual void OnActivated(CompositeDisposable disposables)
 		{
-
 		}
 
 		public void Activate(CompositeDisposable disposables)

@@ -24,7 +24,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			var balanceChanged =
-				Observable.FromEventPattern(Wallet.TransactionProcessor,
+				Observable.FromEventPattern(
+						Wallet.TransactionProcessor,
 						nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
 					.Select(_ => Unit.Default)
 					.Throttle(TimeSpan.FromSeconds(0.1))

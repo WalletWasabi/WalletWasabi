@@ -23,10 +23,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 	{
 		private readonly Wallet _wallet;
 		private readonly BitcoinStore _bitcoinStore;
-		private ObservableCollectionExtended<HistoryItemViewModel> _transactions;
-		private ObservableCollectionExtended<HistoryItemViewModel> _unfilteredTransactions;
 		private readonly SourceList<HistoryItemViewModel> _transactionSourceList;
 		private readonly IObservable<Unit> _updateTrigger;
+		private readonly ObservableCollectionExtended<HistoryItemViewModel> _transactions;
+		private readonly ObservableCollectionExtended<HistoryItemViewModel> _unfilteredTransactions;
 
 		[AutoNotify] private bool _showCoinJoin;
 		[AutoNotify] private HistoryItemViewModel? _selectedItem;
@@ -63,6 +63,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			RxApp.MainThreadScheduler.Schedule(async () => await UpdateAsync());
 		}
 
+		public ObservableCollection<HistoryItemViewModel> UnfilteredTransactions => _unfilteredTransactions;
+
+		public ObservableCollection<HistoryItemViewModel> Transactions => _transactions;
+
 		protected override void OnActivated(CompositeDisposable disposables)
 		{
 			base.OnActivated(disposables);
@@ -84,10 +88,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				.Subscribe(async _ => await UpdateAsync())
 				.DisposeWith(disposables);
 		}
-
-		public ObservableCollection<HistoryItemViewModel> UnfilteredTransactions => _unfilteredTransactions;
-
-		public ObservableCollection<HistoryItemViewModel> Transactions => _transactions;
 
 		private static Func<HistoryItemViewModel, bool> CoinJoinFilter(bool showCoinJoin)
 		{

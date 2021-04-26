@@ -33,16 +33,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			OpenCommand = ReactiveCommand.Create(() => Navigate().To(this, NavigationMode.Clear));
 		}
 
-		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
-		{
-			base.OnNavigatedTo(isInHistory, disposables);
-
-			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => WalletState = x.EventArgs)
-				.DisposeWith(disposables);
-		}
-
 		public override string Title
 		{
 			get => _title;
@@ -54,6 +44,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		public string WalletName => Wallet.WalletName;
 
 		public bool IsLoggedIn => Wallet.IsLoggedIn;
+
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			base.OnNavigatedTo(isInHistory, disposables);
+
+			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x => WalletState = x.EventArgs)
+				.DisposeWith(disposables);
+		}
 
 		public int CompareTo([AllowNull] WalletViewModelBase other)
 		{
