@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Gma.QrCodeNet.Encoding
 {
@@ -41,18 +42,6 @@ namespace Gma.QrCodeNet.Encoding
 		public override int Height => Width;
 
 		public override int Width => base.Width;
-
-		public static bool CreateTriStateMatrix(bool[,] internalArray, out TriStateMatrix triStateMatrix)
-		{
-			triStateMatrix = null;
-			if (CanCreate(internalArray))
-			{
-				triStateMatrix = new TriStateMatrix(internalArray);
-				return true;
-			}
-
-			return false;
-		}
 
 		internal MatrixStatus MStatus(int i, int j) => StateMatrix[i, j];
 
