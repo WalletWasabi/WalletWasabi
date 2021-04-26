@@ -39,17 +39,4 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 			Assert.Equal(expectedReplyLines, reply.ResponseLines.Count);			
 		}
 	}
-
-	public static class PipeWriterExtensions
-	{
-		public static ValueTask<FlushResult> WriteAsync(this PipeWriter writer, string data, Encoding encoding, CancellationToken cancellationToken = default)
-		{
-			return writer.WriteAsync(new ReadOnlyMemory<byte>(encoding.GetBytes(data)), cancellationToken);
-		}
-
-		public static ValueTask<FlushResult> WriteAsciiAsync(this PipeWriter writer, string data, CancellationToken cancellationToken = default)
-		{
-			return writer.WriteAsync(new ReadOnlyMemory<byte>(Encoding.ASCII.GetBytes(data)), cancellationToken);
-		}
-	}
 }

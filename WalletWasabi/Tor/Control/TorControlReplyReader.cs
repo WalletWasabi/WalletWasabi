@@ -13,7 +13,7 @@ namespace WalletWasabi.Tor.Control
 	/// </summary>
 	public class TorControlReplyReader
 	{
-		/// <exception cref="OperationCanceledException"/>
+		/// <exception cref="OperationCanceledException">When operation is canceled.</exception>
 		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See section "4. Replies".</seealso>
 		/// <seealso href="https://github.com/lontivero/Torino/blob/d891616777ed596ef54dbf1d86c9b4771e45e8f3/src/Reply.cs#L72"/>
 		public static async Task<TorControlReply> ReadReplyAsync(PipeReader reader, CancellationToken cancellationToken = default)

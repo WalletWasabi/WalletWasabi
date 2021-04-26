@@ -21,14 +21,14 @@ namespace WalletWasabi.Tor.Control
 	/// <seealso href="https://tools.ietf.org/html/rfc5234"/>
 	public class TorControlClientFactory
 	{
+		private static readonly Regex AuthChallengeRegex = new($"^AUTHCHALLENGE SERVERHASH=([a-fA-F0-9]+) SERVERNONCE=([a-fA-F0-9]+)$", RegexOptions.Compiled);
+
 		/// <summary>Client HMAC-SHA256 key for AUTHCHALLENGE.</summary>
 		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">Section 3.24. AUTHCHALLENGE</seealso>
 		private static byte[] ClientHmacKey = Encoding.ASCII.GetBytes("Tor safe cookie authentication controller-to-server hash");
 
 		/// <summary></summary>
 		private static byte[] ServerHmacKey = Encoding.ASCII.GetBytes("Tor safe cookie authentication server-to-controller hash");
-
-		private static readonly Regex AuthChallengeRegex = new($"^AUTHCHALLENGE SERVERHASH=([a-fA-F0-9]+) SERVERNONCE=([a-fA-F0-9]+)$", RegexOptions.Compiled);
 
 		public TorControlClientFactory(IRandom? random = null)
 		{
@@ -40,7 +40,6 @@ namespace WalletWasabi.Tor.Control
 		/// <summary>
 		/// Sends <c>AUTHENTICATE</c> command.
 		/// </summary>
-		/// <returns>TODO.</returns>
 		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See section 3.5</seealso>
 		/// <exception cref="TorControlException">If TCP connection cannot be established OR if authentication fails for some reason.</exception>
 		public async Task<TorControlClient> ConnectAndAuthenticateAsync(IPEndPoint endPoint, string cookieString, CancellationToken cancellationToken = default)
@@ -119,7 +118,6 @@ namespace WalletWasabi.Tor.Control
 		/// <summary>
 		/// Connects to Tor control using a TCP client.
 		/// </summary>
-		/// <exception cref="TorControlException"/>
 		private TcpClient Connect(IPEndPoint endPoint)
 		{
 			try
