@@ -15,11 +15,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify] private long _roundId;
 		[AutoNotify] private RoundPhaseState _roundPhaseState;
 		[AutoNotify] private DateTimeOffset _roundTimesout;
-		[AutoNotify] private TimeSpan _timeLeftTillRoundTimeout;
+		[AutoNotify] private string _timeLeftTillRoundTimeout;
 		private Money _requiredBTC;
 		private string _coordinatorFeePercent;
 		[AutoNotify] private int _peersRegistered;
 		[AutoNotify] private int _peersNeeded;
+
+		[AutoNotify] private int _selectedIndex;
 
 		public RoundStatusTileViewModel(Wallet wallet)
 		{
@@ -60,8 +62,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				{
 					TimeSpan left = RoundTimesout - DateTimeOffset.UtcNow;
 					TimeLeftTillRoundTimeout =
-						left > TimeSpan.Zero ? left : TimeSpan.Zero; // Make sure cannot be less than zero.
+						(left > TimeSpan.Zero ? left : TimeSpan.Zero).ToString("hh\\:mm\\:ss"); // Make sure cannot be less than zero.
 				}); //.DisposeWith(disposables);
+
+			Observable.Interval(TimeSpan.FromSeconds(8))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					var index = SelectedIndex;
+
+					index++;
+
+					if (index > 3)
+					{
+						index = 0;
+					}
+
+					SelectedIndex = index;
+				});
 		}
 
 		private void UpdateStates()
