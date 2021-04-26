@@ -36,6 +36,9 @@ namespace WalletWasabi.Tor
 		/// <inheritdoc/>
 		protected override async Task ActionAsync(CancellationToken token)
 		{
+			// TODO: Return something.
+			await TorProcessManager.CheckStatusAsync().ConfigureAwait(false);
+
 			if (TorHttpPool.TorDoesntWorkSince is { }) // If Tor misbehaves.
 			{
 				TimeSpan torMisbehavedFor = DateTimeOffset.UtcNow - TorHttpPool.TorDoesntWorkSince ?? TimeSpan.Zero;
