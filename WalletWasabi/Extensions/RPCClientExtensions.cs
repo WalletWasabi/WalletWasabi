@@ -72,12 +72,12 @@ namespace NBitcoin.RPC
 		{
 			var smartEstimations = (simulateIfRegTest && rpc.Network == Network.RegTest)
 				? SimulateRegTestFeeEstimation(estimateMode)
-				: await GetFeeEstimationsAsync(rpc, estimateMode).ConfigureAwait(false);
+				: await GetFeeEstimationsAsync(rpc, estimateMode, cancel).ConfigureAwait(false);
 
-			var mempoolInfo = await rpc.GetMempoolInfoAsync().ConfigureAwait(false);
+			var mempoolInfo = await rpc.GetMempoolInfoAsync(cancel).ConfigureAwait(false);
 
 			var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
-			var rpcStatus = await rpc.GetRpcStatusAsync(CancellationToken.None).ConfigureAwait(false);
+			var rpcStatus = await rpc.GetRpcStatusAsync(cancel).ConfigureAwait(false);
 
 			var minEstimations = GetFeeEstimationsFromMempoolInfo(mempoolInfo);
 
@@ -100,7 +100,7 @@ namespace NBitcoin.RPC
 				rpcStatus.Synchronized);
 		}
 
-		private static async Task<Dictionary<int, int>> GetFeeEstimationsAsync(IRPCClient rpc, EstimateSmartFeeMode estimateMode)
+		private static async Task<Dictionary<int, int>> GetFeeEstimationsAsync(IRPCClient rpc, EstimateSmartFeeMode estimateMode, CancellationToken cancel)
 		{
 			var batchClient = rpc.PrepareBatch();
 
@@ -113,6 +113,7 @@ namespace NBitcoin.RPC
 			try
 			{
 				await Task.WhenAll(rpcFeeEstimationTasks).ConfigureAwait(false);
+				cancel.ThrowIfCancellationRequested();
 			}
 			catch
 			{
@@ -120,6 +121,11 @@ namespace NBitcoin.RPC
 				{
 					throw rpcFeeEstimationTasks[0].Exception?.InnerExceptions[0]
 						?? new Exception($"{nameof(GetFeeEstimationsAsync)} failed to fetch fee estimations.");
+				}
+				if (cancel.IsCancellationRequested)
+				{
+					Logger.LogInfo($"{nameof(GetFeeEstimationsAsync)} has been cancelled.");
+					throw new OperationCanceledException();
 				}
 			}
 

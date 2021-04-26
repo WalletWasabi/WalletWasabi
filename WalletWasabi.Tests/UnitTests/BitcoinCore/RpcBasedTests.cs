@@ -1,5 +1,6 @@
 using NBitcoin;
 using NBitcoin.RPC;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -166,6 +167,23 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 				Assert.True(estimations.Estimations.First().Key < estimations.Estimations.Last().Key);
 				Assert.True(estimations.Estimations.First().Value > estimations.Estimations.Last().Value);
 				Assert.Equal(EstimateSmartFeeMode.Economical, estimations.Type);
+			}
+			finally
+			{
+				await coreNode.TryStopAsync();
+			}
+		}
+
+		[Fact]
+		public async Task FeeEstimationCanCancelAsync()
+		{
+			var coreNode = await TestNodeBuilder.CreateAsync();
+			try
+			{
+				var rpc = coreNode.RpcClient;
+				using CancellationTokenSource cts = new();
+				cts.Cancel();
+				await Assert.ThrowsAsync<OperationCanceledException>(async () => await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true, cts.Token));
 			}
 			finally
 			{
