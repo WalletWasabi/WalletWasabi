@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Gma.QrCodeNet.Encoding
 {
 	public class QrEncoder
@@ -34,24 +36,6 @@ namespace Gma.QrCodeNet.Encoding
 			else
 			{
 				return new QrCode(QRCodeEncode.Encode(content, ErrorCorrectionLevel));
-			}
-		}
-
-		/// <summary>
-		/// Try to encode content
-		/// </summary>
-		/// <returns>False if input content is empty, null or too large.</returns>
-		public bool TryEncode(string content, out QrCode qrCode)
-		{
-			try
-			{
-				qrCode = Encode(content);
-				return true;
-			}
-			catch (InputOutOfBoundaryException)
-			{
-				qrCode = new QrCode();
-				return false;
 			}
 		}
 	}
