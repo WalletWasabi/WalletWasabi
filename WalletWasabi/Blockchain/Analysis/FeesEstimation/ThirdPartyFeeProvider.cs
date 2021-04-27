@@ -14,7 +14,7 @@ using WalletWasabi.WebClients.BlockstreamInfo;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {
-	public class ThirdPartyFeeProvider : PeriodicRunner
+	public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 	{
 		public ThirdPartyFeeProvider(TimeSpan period, WasabiSynchronizer synchronizer, BlockstreamInfoFeeProvider blockstreamProvider)
 			: base(period)
@@ -75,7 +75,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 				if (notify)
 				{
-					AllFeeEstimateArrived?.Invoke(this, fees);
+					AllFeeEstimateArrived?.Invoke(sender, fees);
 				}
 			}
 		}

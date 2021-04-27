@@ -18,7 +18,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class WasabiSynchronizer : NotifyPropertyChangedBase
+	public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvider
 	{
 		private const long StateNotStarted = 0;
 

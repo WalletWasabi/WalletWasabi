@@ -7,7 +7,7 @@ using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 
 namespace WalletWasabi.WebClients.BlockstreamInfo
 {
-	public class BlockstreamInfoFeeProvider : PeriodicRunner
+	public class BlockstreamInfoFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 	{
 		public BlockstreamInfoFeeProvider(TimeSpan period, BlockstreamInfoClient blockstreamInfoClient) : base(period)
 		{

@@ -77,7 +77,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 						// If it wasn't set before, then set it regardless everything.
 						notify = SetAllFeeEstimate(fees);
 					}
-					else if (sender is ThirdPartyFeeProvider)
+					else if (sender is IThirdPartyFeeProvider)
 					{
 						var rpcProvider = RpcFeeProvider;
 						if (rpcProvider is null)
