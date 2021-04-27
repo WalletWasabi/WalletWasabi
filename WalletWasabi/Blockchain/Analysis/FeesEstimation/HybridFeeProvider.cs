@@ -20,7 +20,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 	/// </summary>
 	public class HybridFeeProvider : IHostedService
 	{
-		public HybridFeeProvider(ThirdPartyFeeProvider thirdPartyFeeProvider, RpcFeeProvider? rpcFeeProvider)
+		public HybridFeeProvider(IThirdPartyFeeProvider thirdPartyFeeProvider, RpcFeeProvider? rpcFeeProvider)
 		{
 			ThirdPartyFeeProvider = thirdPartyFeeProvider;
 			RpcFeeProvider = rpcFeeProvider;
@@ -29,7 +29,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		public event EventHandler<AllFeeEstimate>? AllFeeEstimateChanged;
 
 		public RpcFeeProvider? RpcFeeProvider { get; }
-		public ThirdPartyFeeProvider ThirdPartyFeeProvider { get; }
+		public IThirdPartyFeeProvider ThirdPartyFeeProvider { get; }
 		private object Lock { get; } = new object();
 		public AllFeeEstimate? AllFeeEstimate { get; private set; }
 		private AbandonedTasks ProcessingEvents { get; } = new();

@@ -55,9 +55,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
 			FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
-			using BlockstreamInfoFeeProvider blockstreamInfoFeeProvider = new(TimeSpan.FromMinutes(3), new BlockstreamInfoClient(network, httpClientFactory));
-			using ThirdPartyFeeProvider thirdPartyFeeProvider = new(TimeSpan.FromMinutes(3), synchronizer, blockstreamInfoFeeProvider);
-			HybridFeeProvider feeProvider = new(thirdPartyFeeProvider, null);
+			HybridFeeProvider feeProvider = new(synchronizer, null);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -538,9 +536,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
 			FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
-			using BlockstreamInfoFeeProvider blockstreamInfoFeeProvider = new(TimeSpan.FromMinutes(3), new BlockstreamInfoClient(network, httpClientFactory));
-			using ThirdPartyFeeProvider thirdPartyFeeProvider = new(TimeSpan.FromMinutes(3), synchronizer, blockstreamInfoFeeProvider);
-			HybridFeeProvider feeProvider = new(thirdPartyFeeProvider, null);
+			HybridFeeProvider feeProvider = new(synchronizer, null);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -712,9 +708,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
 			FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
-			using BlockstreamInfoFeeProvider blockstreamInfoFeeProvider = new(TimeSpan.FromMinutes(3), new BlockstreamInfoClient(network, httpClientFactory));
-			using ThirdPartyFeeProvider thirdPartyFeeProvider = new(TimeSpan.FromMinutes(3), synchronizer, blockstreamInfoFeeProvider);
-			HybridFeeProvider feeProvider = new(thirdPartyFeeProvider, null);
+			HybridFeeProvider feeProvider = new(synchronizer, null);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);

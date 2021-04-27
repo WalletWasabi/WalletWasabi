@@ -59,6 +59,8 @@ namespace WalletWasabi.Services
 
 		public event EventHandler<SynchronizeResponse>? ResponseArrived;
 
+		public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
+
 		public SynchronizeResponse? LastResponse { get; private set; }
 
 		/// <summary><see cref="WasabiSynchronizer"/> is responsible for disposing of this object.</summary>
@@ -97,6 +99,10 @@ namespace WalletWasabi.Services
 		/// Cancellation token source for stopping <see cref="WasabiSynchronizer"/>.
 		/// </summary>
 		private CancellationTokenSource StopCts { get; }
+
+		public AllFeeEstimate? LastAllFeeEstimate => LastResponse?.AllFeeEstimate;
+
+		public bool InError => BackendStatus != BackendStatus.Connected;
 
 		public bool AreRequestsBlocked() => Interlocked.Read(ref _blockRequests) == 1;
 
@@ -219,6 +225,10 @@ namespace WalletWasabi.Services
 
 							LastResponse = response;
 							ResponseArrived?.Invoke(this, response);
+							if (response.AllFeeEstimate is { } allFeeEstimate)
+							{
+								AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
+							}
 						}
 						catch (OperationCanceledException)
 						{

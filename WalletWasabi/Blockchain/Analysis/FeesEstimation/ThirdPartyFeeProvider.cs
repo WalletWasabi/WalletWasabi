@@ -34,10 +34,10 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 		public override async Task StartAsync(CancellationToken cancellationToken)
 		{
-			SetAllFeeEstimateIfLooksBetter(Synchronizer.LastResponse?.AllFeeEstimate);
+			SetAllFeeEstimateIfLooksBetter(Synchronizer.LastAllFeeEstimate);
 			SetAllFeeEstimateIfLooksBetter(BlockstreamProvider.LastAllFeeEstimate);
 
-			Synchronizer.ResponseArrived += Synchronizer_ResponseArrived;
+			Synchronizer.AllFeeEstimateArrived += OnAllFeeEstimateArrived;
 			BlockstreamProvider.AllFeeEstimateArrived += OnAllFeeEstimateArrived;
 
 			await base.StartAsync(cancellationToken).ConfigureAwait(false);
@@ -45,16 +45,11 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 		public override async Task StopAsync(CancellationToken cancellationToken)
 		{
-			Synchronizer.ResponseArrived -= Synchronizer_ResponseArrived;
+			Synchronizer.AllFeeEstimateArrived -= OnAllFeeEstimateArrived;
 			BlockstreamProvider.AllFeeEstimateArrived -= OnAllFeeEstimateArrived;
 
 			await ProcessingEvents.WhenAllAsync().ConfigureAwait(false);
 			await base.StopAsync(cancellationToken).ConfigureAwait(false);
-		}
-
-		private void Synchronizer_ResponseArrived(object? sender, SynchronizeResponse e)
-		{
-			OnAllFeeEstimateArrived(sender, e.AllFeeEstimate);
 		}
 
 		private void OnAllFeeEstimateArrived(object? sender, AllFeeEstimate? fees)
@@ -105,15 +100,15 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 		protected override Task ActionAsync(CancellationToken cancel)
 		{
-			if (Synchronizer.BackendStatus == BackendStatus.Connected)
-			{
-				BlockstreamProvider.IsPaused = true;
-				InError = false;
-			}
-			else
+			if (Synchronizer.InError)
 			{
 				BlockstreamProvider.IsPaused = false;
 				InError = BlockstreamProvider.InError;
+			}
+			else
+			{
+				BlockstreamProvider.IsPaused = true;
+				InError = false;
 			}
 
 			return Task.CompletedTask;
