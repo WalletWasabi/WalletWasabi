@@ -181,8 +181,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			try
 			{
 				var rpc = coreNode.RpcClient;
-				using CancellationTokenSource cts = new();
-				cts.Cancel();
+				using CancellationTokenSource cts = new(TimeSpan.Zero);
 				await Assert.ThrowsAsync<OperationCanceledException>(async () => await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true, cts.Token));
 			}
 			finally
