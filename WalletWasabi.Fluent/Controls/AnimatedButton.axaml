@@ -1,60 +1,59 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
         xmlns:i="using:Avalonia.Xaml.Interactivity"
         xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
         xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls">
-  <Design.PreviewWith>
-    <c:AnimatedButton InitialOpacity="0.5" PointerOverOpacity="0.75" />
-  </Design.PreviewWith>
+    <Design.PreviewWith>
+        <c:AnimatedButton InitialOpacity="0.5" PointerOverOpacity="0.75" />
+    </Design.PreviewWith>
     <Style Selector="Button > Panel > PathIcon">
-      <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].InitialOpacity}" />
+        <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].InitialOpacity}" />
     </Style>
     <Style Selector="Button:pointerover > Panel > PathIcon">
-      <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
+        <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
     </Style>
     <Style Selector="PathIcon.hidden">
-      <Setter Property="IsVisible" Value="False" />
+        <Setter Property="IsVisible" Value="False" />
     </Style>
     <Style Selector="PathIcon.hideAndShow">
-      <Style.Animations>
-        <Animation Duration="0:0:1.4" Easing="{StaticResource FluentEasing}">
-          <KeyFrame KeyTime="0:0:0.0">
-            <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
-          </KeyFrame>
-          <KeyFrame KeyTime="0:0:0.2">
-            <Setter Property="Opacity" Value="0.0" />
-            <Setter Property="IsVisible" Value="False" />
-          </KeyFrame>
-          <KeyFrame KeyTime="0:0:1.2">
-            <Setter Property="Opacity" Value="0.0" />
-            <Setter Property="IsVisible" Value="True" />
-          </KeyFrame>
-          <KeyFrame KeyTime="0:0:1.4">
-            <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
-          </KeyFrame>
-        </Animation>
-      </Style.Animations>
+        <Style.Animations>
+            <Animation Duration="0:0:1.4" Easing="{StaticResource FluentEasing}">
+                <KeyFrame KeyTime="0:0:0.0">
+                    <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.2">
+                    <Setter Property="Opacity" Value="0.0" />
+                    <Setter Property="IsVisible" Value="False" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2">
+                    <Setter Property="Opacity" Value="0.0" />
+                    <Setter Property="IsVisible" Value="True" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.4">
+                    <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
     </Style>
     <Style Selector="PathIcon.showAndHide">
-      <Style.Animations>
-        <Animation Delay="0:0:0.2" Duration="0:0:1.0" Easing="{StaticResource FluentEasing}">
-          <KeyFrame KeyTime="0:0:0.0">
-            <Setter Property="Opacity" Value="0.0" />
-            <Setter Property="IsVisible" Value="True" />
-          </KeyFrame>
-          <KeyFrame KeyTime="0:0:0.2">
-            <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
-          </KeyFrame>
-          <KeyFrame KeyTime="0:0:0.8">
-            <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
-          </KeyFrame>
-          <KeyFrame KeyTime="0:0:1.0">
-            <Setter Property="Opacity" Value="0.0" />
-            <Setter Property="IsVisible" Value="False" />
-          </KeyFrame>
-        </Animation>
-      </Style.Animations>
+        <Style.Animations>
+            <Animation Delay="0:0:0.2" Duration="0:0:1.0" Easing="{StaticResource FluentEasing}">
+                <KeyFrame KeyTime="0:0:0.0">
+                    <Setter Property="Opacity" Value="0.0" />
+                    <Setter Property="IsVisible" Value="True" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.2">
+                    <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8">
+                    <Setter Property="Opacity" Value="{Binding $parent[c:AnimatedButton].PointerOverOpacity}" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.0">
+                    <Setter Property="Opacity" Value="0.0" />
+                    <Setter Property="IsVisible" Value="False" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
     </Style>
     <Style Selector="c|AnimatedButton">
         <Setter Property="Template">
@@ -65,13 +64,17 @@
                         Classes="plain">
                     <i:Interaction.Behaviors>
                         <ia:EventTriggerBehavior EventName="Click">
-                            <behaviors:AddClassAction StyledElement="{Binding #PART_IconNormal}" ClassName="hideAndShow" RemoveIfExists="True"/>
-                            <behaviors:AddClassAction StyledElement="{Binding #PART_IconClick}" ClassName="showAndHide" RemoveIfExists="True"/>
+                            <ia:ChangePropertyAction TargetObject="{Binding RelativeSource={RelativeSource TemplatedParent}}" PropertyName="AnimateIcon" Value="False"/>
+                            <ia:ChangePropertyAction TargetObject="{Binding RelativeSource={RelativeSource TemplatedParent}}" PropertyName="AnimateIcon" Value="True"/>
                         </ia:EventTriggerBehavior>
                     </i:Interaction.Behaviors>
                     <Panel>
-                        <PathIcon Name="PART_IconNormal" Data="{TemplateBinding NormalIcon}"/>
-                        <PathIcon Name="PART_IconClick" Data="{TemplateBinding ClickIcon}" Classes="hidden"/>
+                        <PathIcon Name="PART_IconNormal"
+                                  Classes.hideAndShow="{TemplateBinding AnimateIcon}"
+                                  Data="{TemplateBinding NormalIcon}" />
+                        <PathIcon Name="PART_IconClick"
+                                  Classes.showAndHide="{TemplateBinding AnimateIcon}"
+                                  Data="{TemplateBinding ClickIcon}" Classes="hidden" />
                     </Panel>
                 </Button>
             </ControlTemplate>
