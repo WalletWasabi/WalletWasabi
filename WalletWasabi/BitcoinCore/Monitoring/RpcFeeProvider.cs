@@ -29,7 +29,7 @@ namespace WalletWasabi.BitcoinCore.Monitoring
 		{
 			try
 			{
-				var allFeeEstimate = await RpcClient.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true).ConfigureAwait(false);
+				var allFeeEstimate = await RpcClient.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true, cancel).ConfigureAwait(false);
 
 				// If Core was running for a day already && it's synchronized, then we can be pretty sure that the estimate is accurate.
 				// It could also be accurate if Core was only shut down for a few minutes, but that's hard to figure out.

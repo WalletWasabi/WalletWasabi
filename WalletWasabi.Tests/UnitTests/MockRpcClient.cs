@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -64,7 +65,7 @@ namespace WalletWasabi.Tests.UnitTests
 			throw new NotImplementedException();
 		}
 
-		public Task<MemPoolInfo> GetMempoolInfoAsync()
+		public Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancel = default)
 		{
 			return OnGetMempoolInfoAsync();
 		}
