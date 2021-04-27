@@ -44,8 +44,8 @@
                            Background="LightGray">
                 <ItemsRepeater.Styles>
                     <Style Selector="ItemsRepeater > :is(Control)" x:DataType="vm:TestTileItemViewModel">
-                        <Setter Property="(c:ResponsivePanel.ColumnSpan)" Value="{Binding ColumnSpan}"/>
-                        <Setter Property="(c:ResponsivePanel.RowSpan)" Value="{Binding RowSpan}"/>
+                        <Setter Property="(c:NonVirtualizingResponsiveLayout.ColumnSpan)" Value="{Binding ColumnSpan}"/>
+                        <Setter Property="(c:NonVirtualizingResponsiveLayout.RowSpan)" Value="{Binding RowSpan}"/>
                     </Style>
                 </ItemsRepeater.Styles>
                 <ItemsRepeater.ItemTemplate>
@@ -57,8 +57,8 @@
                                 Background="{Binding Background}"
                                 ToolTip.Tip="{Binding $self.Bounds.Size}">
                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <TextBox Text="{Binding #Border.(c:ResponsivePanel.ColumnSpan), Converter={x:Static conv:ColumnHintsConverter.Instance}}"/>
-                                <TextBox Text="{Binding #Border.(c:ResponsivePanel.RowSpan), Converter={x:Static conv:ColumnHintsConverter.Instance}}"/>
+                                <TextBox Text="{Binding #Border.(c:NonVirtualizingResponsiveLayout.ColumnSpan), Converter={x:Static conv:ColumnHintsConverter.Instance}}"/>
+                                <TextBox Text="{Binding #Border.(c:NonVirtualizingResponsiveLayout.RowSpan), Converter={x:Static conv:ColumnHintsConverter.Instance}}"/>
                             </StackPanel>
                         </Border>
                     </DataTemplate>

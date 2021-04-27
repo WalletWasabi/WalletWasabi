@@ -22,9 +22,9 @@ namespace WalletWasabi.Fluent.Controls
 
 		public double AspectRatio { get; set; }
 
-		public AvaloniaList<int>? ColumnHints { get; set; }
+		public IList<int>? ColumnHints { get; set; }
 
-		public AvaloniaList<double>? WidthTriggers { get; set; }
+		public IList<double>? WidthTriggers { get; set; }
 
 		public double Width { get; set; }
 
@@ -100,8 +100,8 @@ namespace WalletWasabi.Fluent.Controls
 			for (var i = 0; i < ItemCount; i++)
 			{
 				var element = GetItemAt(i);
-				var columnSpanPropertyValue = ResponsivePanel.GetColumnSpan((Control) element);
-				var rowSpanPropertyValue = ResponsivePanel.GetRowSpan((Control) element);
+				var columnSpanPropertyValue = NonVirtualizingResponsiveLayout.GetColumnSpan((Control) element);
+				var rowSpanPropertyValue = NonVirtualizingResponsiveLayout.GetRowSpan((Control) element);
 				var columnSpan = columnSpanPropertyValue is not null && columnSpanPropertyValue.Count - 1 >= layoutIndex ? columnSpanPropertyValue[layoutIndex] : 1;
 				var rowSpan = rowSpanPropertyValue is not null && rowSpanPropertyValue.Count - 1 >= layoutIndex ? rowSpanPropertyValue[layoutIndex] : 1;
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
@@ -8,49 +9,51 @@ namespace WalletWasabi.Fluent.Controls
 {
     public class NonVirtualizingResponsiveLayout : NonVirtualizingLayout
     {
-	    public static readonly StyledProperty<double> ItemWidthProperty =
-		    ResponsivePanel.ItemWidthProperty.AddOwner<NonVirtualizingResponsiveLayout>();
+		public static readonly StyledProperty<double> ItemWidthProperty =
+			AvaloniaProperty.Register<NonVirtualizingLayout, double>(nameof(ItemWidth), double.NaN);
 
-	    public static readonly StyledProperty<double> ItemHeightProperty =
-		    ResponsivePanel.ItemHeightProperty.AddOwner<NonVirtualizingResponsiveLayout>();
+		public static readonly StyledProperty<double> ItemHeightProperty =
+			AvaloniaProperty.Register<NonVirtualizingLayout, double>(nameof(ItemHeight), double.NaN);
 
-	    public static readonly StyledProperty<double> WidthSourceProperty =
-		    ResponsivePanel.WidthSourceProperty.AddOwner<NonVirtualizingResponsiveLayout>();
+		public static readonly StyledProperty<double> WidthSourceProperty =
+			AvaloniaProperty.Register<NonVirtualizingLayout, double>(nameof(WidthSource), double.NaN);
 
-	    public static readonly StyledProperty<double> AspectRatioProperty =
-		    ResponsivePanel.AspectRatioProperty.AddOwner<NonVirtualizingResponsiveLayout>();
+		public static readonly StyledProperty<double> AspectRatioProperty =
+			AvaloniaProperty.Register<NonVirtualizingLayout, double>(nameof(AspectRatio), double.NaN);
 
-	    public static readonly StyledProperty<AvaloniaList<int>> ColumnHintsProperty =
-		    ResponsivePanel.ColumnHintsProperty.AddOwner<NonVirtualizingResponsiveLayout>();
+		public static readonly StyledProperty<IList<int>> ColumnHintsProperty =
+			AvaloniaProperty.Register<NonVirtualizingLayout, IList<int>>(nameof(ColumnHints),
+				new List<int>() { 1 });
 
-	    public static readonly StyledProperty<AvaloniaList<double>> WidthTriggersProperty =
-		    ResponsivePanel.WidthTriggersProperty.AddOwner<NonVirtualizingResponsiveLayout>();
+		public static readonly StyledProperty<IList<double>> WidthTriggersProperty =
+			AvaloniaProperty.Register<NonVirtualizingLayout, IList<double>>(nameof(WidthTriggers),
+				new List<double>() { 0.0 });
 
-	    public static readonly AttachedProperty<AvaloniaList<int>?> ColumnSpanProperty =
-		    ResponsivePanel.ColumnSpanProperty.AddOwner<NonVirtualizingResponsiveLayout>();
+		public static readonly AttachedProperty<IList<int>?> ColumnSpanProperty =
+			AvaloniaProperty.RegisterAttached<NonVirtualizingLayout, Control, IList<int>?>("ColumnSpan");
 
-	    public static readonly AttachedProperty<AvaloniaList<int>?> RowSpanProperty =
-		    ResponsivePanel.RowSpanProperty.AddOwner<NonVirtualizingResponsiveLayout>();
+		public static readonly AttachedProperty<IList<int>?> RowSpanProperty =
+			AvaloniaProperty.RegisterAttached<NonVirtualizingLayout, Control, IList<int>?>("RowSpan");
 
-		public static AvaloniaList<int>? GetColumnSpan(Control? element)
+		public static IList<int>? GetColumnSpan(Control? element)
 		{
 			Contract.Requires<ArgumentNullException>(element != null);
 			return element!.GetValue(ColumnSpanProperty);
 		}
 
-		public static void SetColumnSpan(Control? element, AvaloniaList<int>? value)
+		public static void SetColumnSpan(Control? element, IList<int>? value)
 		{
 			Contract.Requires<ArgumentNullException>(element != null);
 			element!.SetValue(ColumnSpanProperty, value);
 		}
 
-		public static AvaloniaList<int>? GetRowSpan(Control? element)
+		public static IList<int>? GetRowSpan(Control? element)
 		{
 			Contract.Requires<ArgumentNullException>(element != null);
 			return element!.GetValue(RowSpanProperty);
 		}
 
-		public static void SetRowSpan(Control? element, AvaloniaList<int>? value)
+		public static void SetRowSpan(Control? element, IList<int>? value)
 		{
 			Contract.Requires<ArgumentNullException>(element != null);
 			element!.SetValue(RowSpanProperty, value);
@@ -80,13 +83,13 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(AspectRatioProperty, value);
 		}
 
-		public AvaloniaList<int> ColumnHints
+		public IList<int> ColumnHints
 		{
 			get => GetValue(ColumnHintsProperty);
 			set => SetValue(ColumnHintsProperty, value);
 		}
 
-		public AvaloniaList<double> WidthTriggers
+		public IList<double> WidthTriggers
 		{
 			get => GetValue(WidthTriggersProperty);
 			set => SetValue(WidthTriggersProperty, value);

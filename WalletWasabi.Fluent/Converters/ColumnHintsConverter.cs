@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Avalonia.Collections;
@@ -18,7 +19,7 @@ namespace WalletWasabi.Fluent.Converters
 
 		object? IValueConverter.Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is AvaloniaList<int> columnHints)
+			if (value is IList<int> columnHints)
 			{
 				return string.Join(",", columnHints.Select(x => x.ToString(CultureInfo.InvariantCulture)));
 			}
@@ -30,7 +31,7 @@ namespace WalletWasabi.Fluent.Converters
 		{
 			if (value is string str)
 			{
-				var columnHints = new AvaloniaList<int>();
+				var columnHints = new List<int>();
 				var values = str.Split(',');
 
 				foreach (var s in values)

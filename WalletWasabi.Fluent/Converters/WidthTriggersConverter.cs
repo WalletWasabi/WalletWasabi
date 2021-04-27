@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Avalonia.Collections;
@@ -18,7 +19,7 @@ namespace WalletWasabi.Fluent.Converters
 
 		object? IValueConverter.Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is AvaloniaList<double> widthTriggers)
+			if (value is IList<double> widthTriggers)
 			{
 				return string.Join(",", widthTriggers.Select(x => x.ToString(CultureInfo.InvariantCulture)));
 			}
@@ -30,7 +31,7 @@ namespace WalletWasabi.Fluent.Converters
 		{
 			if (value is string str)
 			{
-				var widthTriggers = new AvaloniaList<double>();
+				var widthTriggers = new List<double>();
 				var values = str.Split(',');
 
 				foreach (var s in values)
