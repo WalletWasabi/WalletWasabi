@@ -37,7 +37,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private async Task<bool> ConfirmConnectionAsync()
 		{
 			var inputVsize = Constants.P2wpkhInputVirtualSize;
-			var inputRemainingVsizes = new[] { (long)ProtocolConstants.MaxVsizePerAlice - inputVsize };
+			var inputRemainingVsizes = new[] { ProtocolConstants.MaxVsizePerAlice - inputVsize };
 
 			var amountCredentials = ArenaClient.AmountCredentialClient.Credentials;
 

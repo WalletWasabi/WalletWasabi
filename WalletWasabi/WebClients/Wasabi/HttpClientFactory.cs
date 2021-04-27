@@ -10,7 +10,7 @@ namespace WalletWasabi.WebClients.Wasabi
 	/// <summary>
 	/// Factory class to get proper <see cref="IHttpClient"/> client which is set up based on user settings.
 	/// </summary>
-	public class HttpClientFactory
+	public class HttpClientFactory : IDisposable
 	{
 		/// <summary>
 		/// To detect redundant calls.

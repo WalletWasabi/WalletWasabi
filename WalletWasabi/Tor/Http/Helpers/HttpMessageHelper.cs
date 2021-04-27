@@ -57,12 +57,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			builder.Append(headers);
 			while (true)
 			{
-				string header = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken).ConfigureAwait(false);
-
-				if (header is null)
-				{
-					throw new FormatException("Malformed HTTP message: End of headers must be CRLF.");
-				}
+				var header = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken).ConfigureAwait(false);
 
 				if (header.Length == 0)
 				{
@@ -124,7 +119,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 
 			return bab.Length > 0
 				? bab.ToString(encoding)
-				: null;
+				: throw new FormatException("There's no CRLF.");
 		}
 
 		public static byte[]? HandleGzipCompression(HttpContentHeaders contentHeaders, byte[]? decodedBodyArray)
@@ -174,7 +169,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			// 2.Any 2xx(Successful) response to a CONNECT request implies that
 			// the connection will become a tunnel immediately after the empty
 			// line that concludes the header fields.A client MUST ignore any
-			// Content - Length or Transfer-Encoding header fields received in
+			// Content-Length or Transfer-Encoding header fields received in
 			// such a message.
 			if (requestMethod == new HttpMethod("CONNECT"))
 			{
@@ -189,7 +184,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			// transfer coding(Section 4.1) is the final encoding, the message
 			// body length is determined by reading and decoding the chunked
 			// data until the transfer coding indicates the data is complete.
-			if (headerStruct?.ResponseHeaders is { } && headerStruct.ResponseHeaders.Contains("Transfer-Encoding"))
+			if (headerStruct?.ResponseHeaders?.Contains("Transfer-Encoding") is true)
 			{
 				// https://tools.ietf.org/html/rfc7230#section-4
 				// All transfer-coding names are case-insensitive
@@ -198,10 +193,10 @@ namespace WalletWasabi.Tor.Http.Helpers
 					return await GetDecodedChunkedContentBytesAsync(stream, headerStruct, ctsToken).ConfigureAwait(false);
 				}
 				// https://tools.ietf.org/html/rfc7230#section-3.3.3
-				// If a Transfer - Encoding header field is present in a response and
+				// If a Transfer-Encoding header field is present in a response and
 				// the chunked transfer coding is not the final encoding, the
 				// message body length is determined by reading the connection until
-				// it is closed by the server. If a Transfer - Encoding header field
+				// it is closed by the server. If a Transfer-Encoding header field
 				// is present in a request and the chunked transfer coding is not
 				// the final encoding, the message body length cannot be determined
 				// reliably; the server MUST respond with the 400(Bad Request)
@@ -209,16 +204,14 @@ namespace WalletWasabi.Tor.Http.Helpers
 				return await GetBytesTillEndAsync(stream, ctsToken).ConfigureAwait(false);
 			}
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
-			// 5.If a valid Content - Length header field is present without
-			// Transfer - Encoding, its decimal value defines the expected message
+			// 5.If a valid Content-Length header field is present without
+			// Transfer-Encoding, its decimal value defines the expected message
 			// body length in octets.If the sender closes the connection or
 			// the recipient times out before the indicated number of octets are
 			// received, the recipient MUST consider the message to be
 			// incomplete and close the connection.
-			if (headerStruct.ContentHeaders.Contains("Content-Length"))
+			if (headerStruct?.ContentHeaders?.Contains("Content-Length") is true && headerStruct.ContentHeaders.ContentLength is { } contentLength)
 			{
-				long? contentLength = headerStruct.ContentHeaders?.ContentLength;
-
 				return await ReadBytesTillLengthAsync(stream, contentLength, ctsToken).ConfigureAwait(false);
 			}
 
@@ -237,7 +230,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			return await GetDecodedChunkedContentBytesAsync(stream, null, headerStruct, ctsToken).ConfigureAwait(false);
 		}
 
-		private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpRequestContentHeaders requestHeaders, HttpResponseContentHeaders responseHeaders, CancellationToken ctsToken = default)
+		private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpRequestContentHeaders? requestHeaders, HttpResponseContentHeaders responseHeaders, CancellationToken ctsToken = default)
 		{
 			if (responseHeaders is null && requestHeaders is null)
 			{
@@ -251,15 +244,15 @@ namespace WalletWasabi.Tor.Http.Helpers
 			// https://tools.ietf.org/html/rfc7230#section-4.1.3
 			// 4.1.3.Decoding Chunked
 			// A process for decoding the chunked transfer coding can be represented
-			// in pseudo - code as:
+			// in pseudo-code as:
 			// length := 0
-			// read chunk - size, chunk - ext(if any), and CRLF
-			// while (chunk - size > 0)
+			// read chunk-size, chunk-ext(if any), and CRLF
+			// while (chunk-size > 0)
 			// {
 			//   read chunk-data and CRLF
 			//   append chunk-data to decoded-body
-			//   length:= length + chunk - size
-			//   read chunk-size, chunk - ext(if any), and CRLF
+			//   length:= length + chunk-size
+			//   read chunk-size, chunk-ext(if any), and CRLF
 			// }
 			// read trailer field
 			// while (trailer field is not empty) {
@@ -268,7 +261,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			//   }
 			//   read trailer-field
 			// }
-			// Content - Length := length
+			// Content-Length := length
 			// Remove "chunked" from Transfer-Encoding
 			// Remove Trailer from existing header fields
 			long length = 0;
@@ -287,6 +280,8 @@ namespace WalletWasabi.Tor.Http.Helpers
 			{
 				var chunkData = await ReadBytesTillLengthAsync(stream, chunkSize, ctsToken).ConfigureAwait(false);
 				string crlfLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken).ConfigureAwait(false);
+
+				// If more than a CRLF was read, then it's not an empty estring.
 				if (crlfLine.Length != 0)
 				{
 					throw new FormatException("Chunk does not end with CRLF.");
@@ -344,7 +339,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 		{
 			// https://tools.ietf.org/html/rfc7230#section-4.1.2
 			// A sender MUST NOT generate a trailer that contains a field necessary
-			// for message framing (e.g., Transfer - Encoding and Content - Length),
+			// for message framing (e.g., Transfer-Encoding and Content-Length),
 			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Transfer-Encoding");
 			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Content-Length");
 			// routing (e.g., Host)
@@ -399,15 +394,13 @@ namespace WalletWasabi.Tor.Http.Helpers
 			// https://tools.ietf.org/html/rfc7230#section-4.1.1
 			// chunk-ext      = *( ";" chunk-ext-name [ "=" chunk-ext-val ] )
 			var parts = firstChunkLine.Split(";", StringSplitOptions.RemoveEmptyEntries);
+
 			// https://tools.ietf.org/html/rfc7230#section-4.1
 			// The chunk-size field is a string of hex digits indicating the size of
 			// the chunk-data in octets.
-			chunkSize = Convert.ToInt64(parts.First().Trim(), 16);
-			chunkExtensions = null;
-			if (parts.Length > 1)
-			{
-				chunkExtensions = parts.Skip(1);
-			}
+			var length = parts.Length;
+			chunkSize = length > 0 ? Convert.ToInt64(parts.First().Trim(), 16) : 0;
+			chunkExtensions = length > 1 ? parts.Skip(1) : Enumerable.Empty<string>();
 		}
 
 		private static async Task<byte[]> GetBytesTillEndAsync(Stream stream, CancellationToken ctsToken)
@@ -427,7 +420,7 @@ namespace WalletWasabi.Tor.Http.Helpers
 			}
 		}
 
-		private static async Task<byte[]> ReadBytesTillLengthAsync(Stream stream, long? length, CancellationToken ctsToken)
+		private static async Task<byte[]> ReadBytesTillLengthAsync(Stream stream, long length, CancellationToken ctsToken)
 		{
 			try
 			{
