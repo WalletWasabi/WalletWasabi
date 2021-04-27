@@ -1,13 +1,14 @@
-using Newtonsoft.Json;
 using System;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.WabiSabi.Client
 {
@@ -51,12 +52,6 @@ namespace WalletWasabi.WabiSabi.Client
 			throw new NotImplementedException();
 		}
 
-		private static StringContent Serialize(object obj)
-		{
-			string jsonString = JsonConvert.SerializeObject(obj, Formatting.None);
-			return new StringContent(jsonString, Encoding.UTF8, "application/json");
-		}
-
 		private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(RemoteAction action, TRequest request) where TRequest : class
 		{
 			using var content = Serialize(request);
@@ -67,12 +62,32 @@ namespace WalletWasabi.WabiSabi.Client
 				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
 
-			return await response.Content.ReadAsJsonAsync<TResponse>().ConfigureAwait(false);
+			var jsonString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+			return Deserialize<TResponse>(jsonString);
+		}
+
+		private static StringContent Serialize<T>(T obj)
+		{
+			string jsonString = JsonConvert.SerializeObject(obj, JsonSerializationOptions.Default.Settings);
+			return new StringContent(jsonString, Encoding.UTF8, "application/json");
+		}
+
+		private static TResponse Deserialize<TResponse>(string jsonString)
+		{
+			return JsonConvert.DeserializeObject<TResponse>(jsonString, JsonSerializationOptions.Default.Settings)
+				?? throw new InvalidOperationException("Deserealization error");
 		}
 
 		private static string GetUriEndPoint(RemoteAction action) =>
-			action switch
+			"arena/" + action switch
 			{
+				RemoteAction.RegisterInput => "registerinput",
+				RemoteAction.RegisterOutput => "registeroutput",
+				RemoteAction.ConfirmConnection => "confirmconnection",
+				RemoteAction.ReissueCredential => "reissuecredential",
+				RemoteAction.RemoveInput => "removeinput",
+				RemoteAction.SignTransaction => "signtransaction",
 				_ => throw new NotSupportedException($"Action '{action}' is unknown and has no endpoint associated.")
 			};
 	}
