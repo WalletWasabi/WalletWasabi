@@ -64,7 +64,9 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 					{
 						if (!_walletManager.IsLoadingWallet)
 						{
-							SelectedItem = Items.FirstOrDefault();
+							var lastSelectedItem = Items.FirstOrDefault(x => x is WalletViewModelBase wallet && wallet.WalletName == uiConfig.LastSelectedWallet);
+
+							SelectedItem = lastSelectedItem ?? Items.FirstOrDefault();
 						}
 					}
 				});
