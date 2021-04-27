@@ -26,233 +26,233 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 {
-	public class LoadWalletViewModel : CategoryViewModel, IDisposable
-	{
-		private ReadOnlyObservableCollection<WalletViewModelBase> _wallets;
-		private string _password;
-		private WalletViewModelBase _selectedWallet;
+    public class LoadWalletViewModel : CategoryViewModel, IDisposable
+    {
+        private ReadOnlyObservableCollection<WalletViewModelBase> _wallets;
+        private string _password;
+        private WalletViewModelBase _selectedWallet;
 
-		private bool _disposedValue = false; // To detect redundant calls
+        private bool _disposedValue = false; // To detect redundant calls
 
-		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType, Wallets.WalletManager walletManager)
-			: base(loadWalletType == LoadWalletType.Password ? "Test Password" : "Load Wallet")
-		{
-			WalletManager = walletManager;
+        public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType, Wallets.WalletManager walletManager)
+            : base(loadWalletType == LoadWalletType.Password ? "Test Password" : "Load Wallet")
+        {
+            WalletManager = walletManager;
 
-			Owner = owner;
-			_password = "";
-			LoadWalletType = loadWalletType;
+            Owner = owner;
+            _password = "";
+            LoadWalletType = loadWalletType;
 
-			this.ValidateProperty(x => x.Password, ValidatePassword);
+            this.ValidateProperty(x => x.Password, ValidatePassword);
 
-			RootList = new SourceList<WalletViewModelBase>();
-			RootList.Connect()
-				.Filter(x => (!IsPasswordRequired || !x.Wallet.KeyManager.IsWatchOnly))
-				.Sort(SortExpressionComparer<WalletViewModelBase>
-					.Descending(p => p.Wallet.KeyManager.GetLastAccessTime()),
-					resort: ResortTrigger.AsObservable())
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Bind(out _wallets)
-				.DisposeMany()
-				.Subscribe()
-				.DisposeWith(Disposables);
+            RootList = new SourceList<WalletViewModelBase>();
+            RootList.Connect()
+                .Filter(x => (!IsPasswordRequired || !x.Wallet.KeyManager.IsWatchOnly))
+                .Sort(SortExpressionComparer<WalletViewModelBase>
+                    .Descending(p => p.Wallet.KeyManager.GetLastAccessTime()),
+                    resort: ResortTrigger.AsObservable())
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Bind(out _wallets)
+                .DisposeMany()
+                .Subscribe()
+                .DisposeWith(Disposables);
 
-			Observable.FromEventPattern<Wallet>(walletManager, nameof(walletManager.WalletAdded))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Select(x => x.EventArgs)
-				.Subscribe(wallet => RootList.Add(new WalletViewModelBase(wallet)))
-				.DisposeWith(Disposables);
+            Observable.FromEventPattern<Wallet>(walletManager, nameof(walletManager.WalletAdded))
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Select(x => x.EventArgs)
+                .Subscribe(wallet => RootList.Add(new WalletViewModelBase(wallet)))
+                .DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.SelectedWallet)
-				.Where(x => x is null)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => SelectedWallet = Wallets.FirstOrDefault());
+            this.WhenAnyValue(x => x.SelectedWallet)
+                .Where(x => x is null)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(_ => SelectedWallet = Wallets.FirstOrDefault());
 
-			Wallets
-				.ToObservableChangeSet()
-				.ToCollection()
-				.Where(items => items.Any() && SelectedWallet is null)
-				.Select(items => items.First())
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => SelectedWallet = x);
+            Wallets
+                .ToObservableChangeSet()
+                .ToCollection()
+                .Where(items => items.Any() && SelectedWallet is null)
+                .Select(items => items.First())
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(x => SelectedWallet = x);
 
-			LoadCommand = ReactiveCommand.Create(() =>
-				RxApp.MainThreadScheduler
-					.Schedule(async () => await LoadWalletAsync())
-					.DisposeWith(Disposables),
-				this.WhenAnyValue(x => x.SelectedWallet, x => x?.WalletState)
-					.Select(x => x == WalletState.Uninitialized));
+            LoadCommand = ReactiveCommand.Create(() =>
+                RxApp.MainThreadScheduler
+                    .Schedule(async () => await LoadWalletAsync())
+                    .DisposeWith(Disposables),
+                this.WhenAnyValue(x => x.SelectedWallet, x => x?.WalletState)
+                    .Select(x => x == WalletState.Uninitialized));
 
-			TestPasswordCommand = ReactiveCommand.Create(LoadKeyManager, this.WhenAnyValue(x => x.SelectedWallet).Select(x => x is { }));
-			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
+            TestPasswordCommand = ReactiveCommand.Create(LoadKeyManager, this.WhenAnyValue(x => x.SelectedWallet).Select(x => x is { }));
+            OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
 
-			RootList.AddRange(walletManager
-				.GetWallets()
-				.Select(x => new WalletViewModelBase(x)));
+            RootList.AddRange(walletManager
+                .GetWallets()
+                .Select(x => new WalletViewModelBase(x)));
 
-			Observable
-				.Merge(LoadCommand.ThrownExceptions)
-				.Merge(TestPasswordCommand.ThrownExceptions)
-				.Merge(OpenFolderCommand.ThrownExceptions)
-				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(ex =>
-				{
-					Logger.LogError(ex);
-					NotificationHelpers.Error(ex.ToUserFriendlyString());
-				});
-		}
+            Observable
+                .Merge(LoadCommand.ThrownExceptions)
+                .Merge(TestPasswordCommand.ThrownExceptions)
+                .Merge(OpenFolderCommand.ThrownExceptions)
+                .ObserveOn(RxApp.TaskpoolScheduler)
+                .Subscribe(ex =>
+                {
+                    Logger.LogError(ex);
+                    NotificationHelpers.Error(ex.ToUserFriendlyString());
+                });
+        }
 
-		public LoadWalletType LoadWalletType { get; }
-		public bool IsPasswordRequired => LoadWalletType == LoadWalletType.Password;
-		public bool IsDesktopWallet => LoadWalletType == LoadWalletType.Desktop;
+        public LoadWalletType LoadWalletType { get; }
+        public bool IsPasswordRequired => LoadWalletType == LoadWalletType.Password;
+        public bool IsDesktopWallet => LoadWalletType == LoadWalletType.Desktop;
 
-		public ReadOnlyObservableCollection<WalletViewModelBase> Wallets => _wallets;
+        public ReadOnlyObservableCollection<WalletViewModelBase> Wallets => _wallets;
 
-		public string Password
-		{
-			get => _password;
-			set => this.RaiseAndSetIfChanged(ref _password, value);
-		}
+        public string Password
+        {
+            get => _password;
+            set => this.RaiseAndSetIfChanged(ref _password, value);
+        }
 
-		public WalletViewModelBase SelectedWallet
-		{
-			get => _selectedWallet;
-			set => this.RaiseAndSetIfChanged(ref _selectedWallet, value);
-		}
+        public WalletViewModelBase SelectedWallet
+        {
+            get => _selectedWallet;
+            set => this.RaiseAndSetIfChanged(ref _selectedWallet, value);
+        }
 
-		public SourceList<WalletViewModelBase> RootList { get; private set; }
-		public ReactiveCommand<Unit, IDisposable> LoadCommand { get; }
-		public ReactiveCommand<Unit, KeyManager?> TestPasswordCommand { get; }
-		public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
-		private WalletManagerViewModel Owner { get; }
+        public SourceList<WalletViewModelBase> RootList { get; private set; }
+        public ReactiveCommand<Unit, IDisposable> LoadCommand { get; }
+        public ReactiveCommand<Unit, KeyManager?> TestPasswordCommand { get; }
+        public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
+        private WalletManagerViewModel Owner { get; }
 
-		private Wallets.WalletManager WalletManager { get; }
+        private Wallets.WalletManager WalletManager { get; }
 
-		private ReplaySubject<Unit> ResortTrigger { get; } = new ReplaySubject<Unit>();
-		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
+        private ReplaySubject<Unit> ResortTrigger { get; } = new ReplaySubject<Unit>();
+        private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
-		private void ValidatePassword(IValidationErrors errors) => PasswordHelper.ValidatePassword(errors, Password);
+        private void ValidatePassword(IValidationErrors errors) => PasswordHelper.ValidatePassword(errors, Password);
 
-		public override void OnCategorySelected()
-		{
-			Password = "";
-		}
+        public override void OnCategorySelected()
+        {
+            Password = "";
+        }
 
-		public KeyManager? LoadKeyManager()
-		{
-			try
-			{
-				var password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
-				Password = ""; // Clear password field.
+        public KeyManager? LoadKeyManager()
+        {
+            try
+            {
+                var password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
+                Password = ""; // Clear password field.
 
-				var selectedWallet = SelectedWallet;
-				if (selectedWallet is null)
-				{
-					NotificationHelpers.Warning("No wallet selected.");
-					return null;
-				}
+                var selectedWallet = SelectedWallet;
+                if (selectedWallet is null)
+                {
+                    NotificationHelpers.Warning("No wallet selected.");
+                    return null;
+                }
 
-				var walletName = selectedWallet.WalletName;
+                var walletName = selectedWallet.WalletName;
 
-				KeyManager keyManager = WalletManager.GetWalletByName(walletName).KeyManager;
+                KeyManager keyManager = WalletManager.GetWalletByName(walletName).KeyManager;
 
-				// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
-				if (IsPasswordRequired)
-				{
-					if (PasswordHelper.TryPassword(keyManager, password, out string compatibilityPasswordUsed))
-					{
-						NotificationHelpers.Success("Correct password.");
-						if (compatibilityPasswordUsed is { })
-						{
-							NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
-						}
+                // Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
+                if (IsPasswordRequired)
+                {
+                    if (PasswordHelper.TryPassword(keyManager, password, out string compatibilityPasswordUsed))
+                    {
+                        NotificationHelpers.Success("Correct password.");
+                        if (compatibilityPasswordUsed is { })
+                        {
+                            NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
+                        }
 
-						keyManager.SetPasswordVerified();
-					}
-					else
-					{
-						NotificationHelpers.Error("Wrong password.");
-						return null;
-					}
-				}
-				else
-				{
-					if (keyManager.PasswordVerified == false)
-					{
-						Owner.SelectTestPassword(walletName);
-						return null;
-					}
-				}
+                        keyManager.SetPasswordVerified();
+                    }
+                    else
+                    {
+                        NotificationHelpers.Error("Wrong password.");
+                        return null;
+                    }
+                }
+                else
+                {
+                    if (keyManager.PasswordVerified == false)
+                    {
+                        Owner.SelectTestPassword(walletName);
+                        return null;
+                    }
+                }
 
-				return keyManager;
-			}
-			catch (Exception ex)
-			{
-				// Initialization failed.
-				NotificationHelpers.Error(ex.ToUserFriendlyString());
-				Logger.LogError(ex);
+                return keyManager;
+            }
+            catch (Exception ex)
+            {
+                // Initialization failed.
+                NotificationHelpers.Error(ex.ToUserFriendlyString());
+                Logger.LogError(ex);
 
-				return null;
-			}
-		}
+                return null;
+            }
+        }
 
-		public async Task LoadWalletAsync()
-		{
-			var keyManager = LoadKeyManager();
-			if (keyManager is null)
-			{
-				return;
-			}
+        public async Task LoadWalletAsync()
+        {
+            var keyManager = LoadKeyManager();
+            if (keyManager is null)
+            {
+                return;
+            }
 
-			try
-			{
-				await Task.Run(async () => await WalletManager.StartWalletAsync(keyManager));
-				ResortTrigger.OnNext(new Unit());
-			}
-			catch (OperationCanceledException ex)
-			{
-				Logger.LogTrace(ex);
-			}
-			catch (Exception ex)
-			{
-				NotificationHelpers.Error($"Couldn't load wallet: {Title}. Reason: {ex.ToUserFriendlyString()}");
-				Logger.LogError(ex);
-			}
-		}
+            try
+            {
+                await Task.Run(async () => await WalletManager.StartWalletAsync(keyManager));
+                ResortTrigger.OnNext(new Unit());
+            }
+            catch (OperationCanceledException ex)
+            {
+                Logger.LogTrace(ex);
+            }
+            catch (Exception ex)
+            {
+                NotificationHelpers.Error($"Couldn't load wallet: {Title}. Reason: {ex.ToUserFriendlyString()}");
+                Logger.LogError(ex);
+            }
+        }
 
-		public void OpenWalletsFolder() => IoHelpers.OpenFolderInFileExplorer(WalletManager.WalletDirectories.WalletsDir);
+        public void OpenWalletsFolder() => IoHelpers.OpenFolderInFileExplorer(WalletManager.WalletDirectories.WalletsDir);
 
-		public void SelectWallet(string walletName)
-		{
-			var keyManager = Wallets.FirstOrDefault(w => w.Wallet.WalletName == walletName)?.Wallet.KeyManager;
-			SelectWallet(keyManager);
-		}
+        public void SelectWallet(string walletName)
+        {
+            var keyManager = Wallets.FirstOrDefault(w => w.Wallet.WalletName == walletName)?.Wallet.KeyManager;
+            SelectWallet(keyManager);
+        }
 
-		public void SelectWallet(KeyManager keyManager)
-		{
-			var wallet = Wallets.FirstOrDefault(w => w.Wallet.KeyManager == keyManager);
-			SelectedWallet = wallet;
-		}
+        public void SelectWallet(KeyManager keyManager)
+        {
+            var wallet = Wallets.FirstOrDefault(w => w.Wallet.KeyManager == keyManager);
+            SelectedWallet = wallet;
+        }
 
-		#region IDisposable Support
+        #region IDisposable Support
 
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables.Dispose();
-				}
-				_disposedValue = true;
-			}
-		}
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    Disposables.Dispose();
+                }
+                _disposedValue = true;
+            }
+        }
 
-		public void Dispose()
-		{
-			Dispose(true);
-		}
+        public void Dispose()
+        {
+            Dispose(true);
+        }
 
-		#endregion IDisposable Support
-	}
+        #endregion IDisposable Support
+    }
 }

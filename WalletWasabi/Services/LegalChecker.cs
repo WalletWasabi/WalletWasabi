@@ -10,151 +10,151 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Services
 {
-	public class LegalChecker : IDisposable
-	{
-		public const string LegalFolderName = "Legal";
-		public const string ProvisionalLegalFolderName = "Provisional";
+    public class LegalChecker : IDisposable
+    {
+        public const string LegalFolderName = "Legal";
+        public const string ProvisionalLegalFolderName = "Provisional";
 
-		private bool _disposedValue;
+        private bool _disposedValue;
 
-		public LegalChecker(string dataDir)
-		{
-			LegalFolder = Path.Combine(dataDir, LegalFolderName);
-			ProvisionalLegalFolder = Path.Combine(LegalFolder, ProvisionalLegalFolderName);
-		}
+        public LegalChecker(string dataDir)
+        {
+            LegalFolder = Path.Combine(dataDir, LegalFolderName);
+            ProvisionalLegalFolder = Path.Combine(LegalFolder, ProvisionalLegalFolderName);
+        }
 
-		public event EventHandler<LegalDocuments>? AgreedChanged;
+        public event EventHandler<LegalDocuments>? AgreedChanged;
 
-		public event EventHandler<LegalDocuments>? ProvisionalChanged;
+        public event EventHandler<LegalDocuments>? ProvisionalChanged;
 
-		/// <remarks>Lock object to guard <see cref="CurrentLegalDocument"/> and <see cref="ProvisionalLegalDocument"/> property.</remarks>
-		private AsyncLock LegalDocumentLock { get; } = new();
+        /// <remarks>Lock object to guard <see cref="CurrentLegalDocument"/> and <see cref="ProvisionalLegalDocument"/> property.</remarks>
+        private AsyncLock LegalDocumentLock { get; } = new();
 
-		private UpdateChecker? UpdateChecker { get; set; }
-		public string LegalFolder { get; }
-		public string ProvisionalLegalFolder { get; }
-		public LegalDocuments? CurrentLegalDocument { get; private set; }
-		private LegalDocuments? ProvisionalLegalDocument { get; set; }
-		private TaskCompletionSource<LegalDocuments> LatestDocumentTaskCompletion { get; } = new();
+        private UpdateChecker? UpdateChecker { get; set; }
+        public string LegalFolder { get; }
+        public string ProvisionalLegalFolder { get; }
+        public LegalDocuments? CurrentLegalDocument { get; private set; }
+        private LegalDocuments? ProvisionalLegalDocument { get; set; }
+        private TaskCompletionSource<LegalDocuments> LatestDocumentTaskCompletion { get; } = new();
 
-		public async Task InitializeAsync(UpdateChecker updateChecker)
-		{
-			UpdateChecker = updateChecker;
-			UpdateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
-			CurrentLegalDocument = await LegalDocuments.LoadAgreedAsync(LegalFolder).ConfigureAwait(false);
-			ProvisionalLegalDocument = await LegalDocuments.LoadAgreedAsync(ProvisionalLegalFolder).ConfigureAwait(false);
+        public async Task InitializeAsync(UpdateChecker updateChecker)
+        {
+            UpdateChecker = updateChecker;
+            UpdateChecker.UpdateStatusChanged += UpdateChecker_UpdateStatusChangedAsync;
+            CurrentLegalDocument = await LegalDocuments.LoadAgreedAsync(LegalFolder).ConfigureAwait(false);
+            ProvisionalLegalDocument = await LegalDocuments.LoadAgreedAsync(ProvisionalLegalFolder).ConfigureAwait(false);
 
-			if (ProvisionalLegalDocument is { } provisional)
-			{
-				LatestDocumentTaskCompletion.TrySetResult(provisional);
-			}
-			else if (CurrentLegalDocument is { } current)
-			{
-				LatestDocumentTaskCompletion.TrySetResult(current);
-			}
-		}
+            if (ProvisionalLegalDocument is { } provisional)
+            {
+                LatestDocumentTaskCompletion.TrySetResult(provisional);
+            }
+            else if (CurrentLegalDocument is { } current)
+            {
+                LatestDocumentTaskCompletion.TrySetResult(current);
+            }
+        }
 
-		public async Task<LegalDocuments> WaitAndGetLatestDocumentAsync()
-		{
-			if (TryGetNewLegalDocs(out var provisionalLegal))
-			{
-				return provisionalLegal;
-			}
-			if (CurrentLegalDocument is { } currentLegal)
-			{
-				return currentLegal;
-			}
+        public async Task<LegalDocuments> WaitAndGetLatestDocumentAsync()
+        {
+            if (TryGetNewLegalDocs(out var provisionalLegal))
+            {
+                return provisionalLegal;
+            }
+            if (CurrentLegalDocument is { } currentLegal)
+            {
+                return currentLegal;
+            }
 
-			return await LatestDocumentTaskCompletion.Task.ConfigureAwait(false);
-		}
+            return await LatestDocumentTaskCompletion.Task.ConfigureAwait(false);
+        }
 
-		public bool TryGetNewLegalDocs([NotNullWhen(true)] out LegalDocuments? legalDocuments)
-		{
-			legalDocuments = null;
+        public bool TryGetNewLegalDocs([NotNullWhen(true)] out LegalDocuments? legalDocuments)
+        {
+            legalDocuments = null;
 
-			if (ProvisionalLegalDocument is { } legal)
-			{
-				legalDocuments = legal;
-				return true;
-			}
+            if (ProvisionalLegalDocument is { } legal)
+            {
+                legalDocuments = legal;
+                return true;
+            }
 
-			return false;
-		}
+            return false;
+        }
 
-		private async void UpdateChecker_UpdateStatusChangedAsync(object? _, UpdateStatus updateStatus)
-		{
-			try
-			{
-				LegalDocuments? provisionalLegalDocument = null;
+        private async void UpdateChecker_UpdateStatusChangedAsync(object? _, UpdateStatus updateStatus)
+        {
+            try
+            {
+                LegalDocuments? provisionalLegalDocument = null;
 
-				using (await LegalDocumentLock.LockAsync().ConfigureAwait(false))
-				{
-					// If we don't have it or there is a new one.
-					if (CurrentLegalDocument is null || CurrentLegalDocument.Version < updateStatus.LegalDocumentsVersion)
-					{
-						// UpdateChecker cannot be null as the event called by it.
-						var content = await UpdateChecker!.WasabiClient.GetLegalDocumentsAsync(CancellationToken.None).ConfigureAwait(false);
+                using (await LegalDocumentLock.LockAsync().ConfigureAwait(false))
+                {
+                    // If we don't have it or there is a new one.
+                    if (CurrentLegalDocument is null || CurrentLegalDocument.Version < updateStatus.LegalDocumentsVersion)
+                    {
+                        // UpdateChecker cannot be null as the event called by it.
+                        var content = await UpdateChecker!.WasabiClient.GetLegalDocumentsAsync(CancellationToken.None).ConfigureAwait(false);
 
-						// Save it as a provisional legal document.
-						provisionalLegalDocument = new(updateStatus.LegalDocumentsVersion, content);
-						await provisionalLegalDocument.ToFileAsync(ProvisionalLegalFolder).ConfigureAwait(false);
+                        // Save it as a provisional legal document.
+                        provisionalLegalDocument = new(updateStatus.LegalDocumentsVersion, content);
+                        await provisionalLegalDocument.ToFileAsync(ProvisionalLegalFolder).ConfigureAwait(false);
 
-						ProvisionalLegalDocument = provisionalLegalDocument;
-						LatestDocumentTaskCompletion.TrySetResult(ProvisionalLegalDocument);
-					}
-				}
+                        ProvisionalLegalDocument = provisionalLegalDocument;
+                        LatestDocumentTaskCompletion.TrySetResult(ProvisionalLegalDocument);
+                    }
+                }
 
-				if (provisionalLegalDocument is { })
-				{
-					ProvisionalChanged?.Invoke(this, provisionalLegalDocument);
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError("Could not get legal documents.", ex);
-			}
-		}
+                if (provisionalLegalDocument is { })
+                {
+                    ProvisionalChanged?.Invoke(this, provisionalLegalDocument);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("Could not get legal documents.", ex);
+            }
+        }
 
-		public async Task AgreeAsync()
-		{
-			using (await LegalDocumentLock.LockAsync().ConfigureAwait(false))
-			{
-				if (ProvisionalLegalDocument is not { } provisionalLegalDocument || string.IsNullOrEmpty(provisionalLegalDocument.Content))
-				{
-					throw new InvalidOperationException("Cannot agree the new legal document.");
-				}
+        public async Task AgreeAsync()
+        {
+            using (await LegalDocumentLock.LockAsync().ConfigureAwait(false))
+            {
+                if (ProvisionalLegalDocument is not { } provisionalLegalDocument || string.IsNullOrEmpty(provisionalLegalDocument.Content))
+                {
+                    throw new InvalidOperationException("Cannot agree the new legal document.");
+                }
 
-				await provisionalLegalDocument.ToFileAsync(LegalFolder).ConfigureAwait(false);
-				LegalDocuments.RemoveCandidates(ProvisionalLegalFolder);
+                await provisionalLegalDocument.ToFileAsync(LegalFolder).ConfigureAwait(false);
+                LegalDocuments.RemoveCandidates(ProvisionalLegalFolder);
 
-				CurrentLegalDocument = ProvisionalLegalDocument;
-				ProvisionalLegalDocument = null;
-			}
+                CurrentLegalDocument = ProvisionalLegalDocument;
+                ProvisionalLegalDocument = null;
+            }
 
-			AgreedChanged?.Invoke(this, CurrentLegalDocument);
-		}
+            AgreedChanged?.Invoke(this, CurrentLegalDocument);
+        }
 
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					if (UpdateChecker is { } updateChecker)
-					{
-						updateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
-					}
-					LatestDocumentTaskCompletion.TrySetCanceled();
-				}
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    if (UpdateChecker is { } updateChecker)
+                    {
+                        updateChecker.UpdateStatusChanged -= UpdateChecker_UpdateStatusChangedAsync;
+                    }
+                    LatestDocumentTaskCompletion.TrySetCanceled();
+                }
 
-				_disposedValue = true;
-			}
-		}
+                _disposedValue = true;
+            }
+        }
 
-		public void Dispose()
-		{
-			Dispose(disposing: true);
-			GC.SuppressFinalize(this);
-		}
-	}
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+    }
 }

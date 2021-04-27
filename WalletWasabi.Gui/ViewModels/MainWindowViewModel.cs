@@ -16,180 +16,180 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	public class MainWindowViewModel : ViewModelBase, IDisposable
-	{
-		private ModalDialogViewModelBase _modalDialog;
-		private string _title = "Wasabi Wallet";
-		private WindowState _windowState;
-		private StatusBarViewModel _statusBar;
-		private LockScreenViewModelBase _lockScreen;
-		private volatile bool _disposedValue = false; // To detect redundant calls
-		private Stack<LockScreenViewModelBase> _lockScreens;
-		private bool _menuVisible;
+    public class MainWindowViewModel : ViewModelBase, IDisposable
+    {
+        private ModalDialogViewModelBase _modalDialog;
+        private string _title = "Wasabi Wallet";
+        private WindowState _windowState;
+        private StatusBarViewModel _statusBar;
+        private LockScreenViewModelBase _lockScreen;
+        private volatile bool _disposedValue = false; // To detect redundant calls
+        private Stack<LockScreenViewModelBase> _lockScreens;
+        private bool _menuVisible;
 
-		public MainWindowViewModel(Network network, UiConfig uiConfig, WalletManager walletManager, StatusBarViewModel statusBarViewModel, IShell shell, bool initWalletManager = true)
-		{
-			Network = network;
-			UiConfig = uiConfig;
-			Shell = shell;
-			WalletManager = walletManager;
-			_lockScreens = new Stack<LockScreenViewModelBase>();
+        public MainWindowViewModel(Network network, UiConfig uiConfig, WalletManager walletManager, StatusBarViewModel statusBarViewModel, IShell shell, bool initWalletManager = true)
+        {
+            Network = network;
+            UiConfig = uiConfig;
+            Shell = shell;
+            WalletManager = walletManager;
+            _lockScreens = new Stack<LockScreenViewModelBase>();
 
-			_menuVisible = true;
+            _menuVisible = true;
 
-			WindowState = uiConfig.WindowState;
+            WindowState = uiConfig.WindowState;
 
-			InitializeLockScreen();
+            InitializeLockScreen();
 
-			_statusBar = statusBarViewModel;
+            _statusBar = statusBarViewModel;
 
-			if (initWalletManager)
-			{
-				DisplayWalletManager();
-			}
-		}
+            if (initWalletManager)
+            {
+                DisplayWalletManager();
+            }
+        }
 
-		public string Title
-		{
-			get => _title;
-			internal set => this.RaiseAndSetIfChanged(ref _title, value);
-		}
+        public string Title
+        {
+            get => _title;
+            internal set => this.RaiseAndSetIfChanged(ref _title, value);
+        }
 
-		public WindowState WindowState
-		{
-			get => _windowState;
-			set => this.RaiseAndSetIfChanged(ref _windowState, value);
-		}
+        public WindowState WindowState
+        {
+            get => _windowState;
+            set => this.RaiseAndSetIfChanged(ref _windowState, value);
+        }
 
-		public StatusBarViewModel StatusBar
-		{
-			get => _statusBar;
-			set => this.RaiseAndSetIfChanged(ref _statusBar, value);
-		}
+        public StatusBarViewModel StatusBar
+        {
+            get => _statusBar;
+            set => this.RaiseAndSetIfChanged(ref _statusBar, value);
+        }
 
-		public LockScreenViewModelBase LockScreen
-		{
-			get => _lockScreen;
-			private set => this.RaiseAndSetIfChanged(ref _lockScreen, value);
-		}
+        public LockScreenViewModelBase LockScreen
+        {
+            get => _lockScreen;
+            private set => this.RaiseAndSetIfChanged(ref _lockScreen, value);
+        }
 
-		public bool MenuVisible
-		{
-			get => _menuVisible;
-			set => this.RaiseAndSetIfChanged(ref _menuVisible, value);
-		}
+        public bool MenuVisible
+        {
+            get => _menuVisible;
+            set => this.RaiseAndSetIfChanged(ref _menuVisible, value);
+        }
 
-		public Network Network { get; }
-		public UiConfig UiConfig { get; }
-		public IShell Shell { get; }
-		public WalletManager WalletManager { get; }
-		public static MainWindowViewModel? Instance { get; internal set; }
+        public Network Network { get; }
+        public UiConfig UiConfig { get; }
+        public IShell Shell { get; }
+        public WalletManager WalletManager { get; }
+        public static MainWindowViewModel? Instance { get; internal set; }
 
-		public ModalDialogViewModelBase? ModalDialog
-		{
-			get => _modalDialog;
-			private set => this.RaiseAndSetIfChanged(ref _modalDialog, value);
-		}
+        public ModalDialogViewModelBase? ModalDialog
+        {
+            get => _modalDialog;
+            private set => this.RaiseAndSetIfChanged(ref _modalDialog, value);
+        }
 
-		public void PushLockScreen(LockScreenViewModelBase lockScreen)
-		{
-			if (LockScreen is { })
-			{
-				_lockScreens.Push(LockScreen);
-			}
+        public void PushLockScreen(LockScreenViewModelBase lockScreen)
+        {
+            if (LockScreen is { })
+            {
+                _lockScreens.Push(LockScreen);
+            }
 
-			MenuVisible = false;
-			lockScreen.Initialize();
-			LockScreen = lockScreen;
-		}
+            MenuVisible = false;
+            lockScreen.Initialize();
+            LockScreen = lockScreen;
+        }
 
-		public void CloseLockScreen(LockScreenViewModelBase lockScreen)
-		{
-			if (lockScreen == LockScreen)
-			{
-				LockScreen?.Dispose();
+        public void CloseLockScreen(LockScreenViewModelBase lockScreen)
+        {
+            if (lockScreen == LockScreen)
+            {
+                LockScreen?.Dispose();
 
-				if (_lockScreens.Count > 0)
-				{
-					LockScreen = _lockScreens.Pop();
-				}
-				else
-				{
-					LockScreen = null;
-					MenuVisible = true;
-				}
-			}
-		}
+                if (_lockScreens.Count > 0)
+                {
+                    LockScreen = _lockScreens.Pop();
+                }
+                else
+                {
+                    LockScreen = null;
+                    MenuVisible = true;
+                }
+            }
+        }
 
-		public void Initialize(NodesCollection connectedNodes)
-		{
-			StatusBar.Initialize(connectedNodes);
+        public void Initialize(NodesCollection connectedNodes)
+        {
+            StatusBar.Initialize(connectedNodes);
 
-			if (Network != Network.Main)
-			{
-				Title += $" - {Network}";
-			}
-		}
+            if (Network != Network.Main)
+            {
+                Title += $" - {Network}";
+            }
+        }
 
-		private void InitializeLockScreen()
-		{
-			UiConfig
-				.WhenAnyValue(x => x.LockScreenActive)
-				.Where(x => x)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => PushLockScreen(UiConfig.LockScreenPinHash.Length == 0
-						? (WasabiLockScreenViewModelBase)new SlideLockScreenViewModel()
-						: new PinLockScreenViewModel(UiConfig)));
-		}
+        private void InitializeLockScreen()
+        {
+            UiConfig
+                .WhenAnyValue(x => x.LockScreenActive)
+                .Where(x => x)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(_ => PushLockScreen(UiConfig.LockScreenPinHash.Length == 0
+                        ? (WasabiLockScreenViewModelBase)new SlideLockScreenViewModel()
+                        : new PinLockScreenViewModel(UiConfig)));
+        }
 
-		private void DisplayWalletManager()
-		{
-			var walletManagerViewModel = IoC.Get<WalletManagerViewModel>();
-			Shell.AddDocument(walletManagerViewModel);
+        private void DisplayWalletManager()
+        {
+            var walletManagerViewModel = IoC.Get<WalletManagerViewModel>();
+            Shell.AddDocument(walletManagerViewModel);
 
-			var isAnyDesktopWalletAvailable = WalletManager.WalletDirectories.EnumerateWalletFiles().Any();
+            var isAnyDesktopWalletAvailable = WalletManager.WalletDirectories.EnumerateWalletFiles().Any();
 
-			if (isAnyDesktopWalletAvailable)
-			{
-				walletManagerViewModel.SelectLoadWallet();
-			}
-			else
-			{
-				walletManagerViewModel.SelectGenerateWallet();
-			}
-		}
+            if (isAnyDesktopWalletAvailable)
+            {
+                walletManagerViewModel.SelectLoadWallet();
+            }
+            else
+            {
+                walletManagerViewModel.SelectGenerateWallet();
+            }
+        }
 
-		public async Task<bool> ShowDialogAsync(ModalDialogViewModelBase dialog)
-		{
-			ModalDialog = dialog;
+        public async Task<bool> ShowDialogAsync(ModalDialogViewModelBase dialog)
+        {
+            ModalDialog = dialog;
 
-			bool res = await ModalDialog.ShowDialogAsync();
+            bool res = await ModalDialog.ShowDialogAsync();
 
-			ModalDialog = null;
+            ModalDialog = null;
 
-			return res;
-		}
+            return res;
+        }
 
-		#region IDisposable Support
+        #region IDisposable Support
 
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					StatusBar?.Dispose();
-				}
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    StatusBar?.Dispose();
+                }
 
-				_disposedValue = true;
-			}
-		}
+                _disposedValue = true;
+            }
+        }
 
-		public void Dispose()
-		{
-			Dispose(true);
-		}
+        public void Dispose()
+        {
+            Dispose(true);
+        }
 
-		#endregion IDisposable Support
-	}
+        #endregion IDisposable Support
+    }
 }
