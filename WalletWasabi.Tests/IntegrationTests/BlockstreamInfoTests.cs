@@ -31,9 +31,11 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Assert.True(started, "Tor failed to start.");
 		}
 
-		public Task DisposeAsync()
+		public async Task DisposeAsync()
 		{
-			return Task.CompletedTask;
+			ClearnetHttpClientFactory.Dispose();
+			TorHttpClientFactory.Dispose();
+			await TorManager.StopAsync();
 		}
 
 		[Fact]
