@@ -14,9 +14,9 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
-	public class WalletViewModel : WalletViewModelBase
+	public partial class WalletViewModel : WalletViewModelBase
 	{
-		private readonly List<TileViewModel> _tiles;
+		[AutoNotify] IList<TileViewModel> _tiles;
 
 		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
 		{
