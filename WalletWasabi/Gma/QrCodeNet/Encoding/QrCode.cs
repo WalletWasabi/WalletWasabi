@@ -14,12 +14,6 @@ namespace Gma.QrCodeNet.Encoding
 			IsContainMatrix = true;
 		}
 
-		public QrCode()
-		{
-			IsContainMatrix = false;
-			Matrix = null;
-		}
-
 		public bool IsContainMatrix
 		{
 			get;

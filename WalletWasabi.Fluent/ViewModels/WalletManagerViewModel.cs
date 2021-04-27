@@ -195,8 +195,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			var isLoggedIn = walletViewModel.Wallet.IsLoggedIn;
 
-			walletViewModel.Dispose();
-
 			_wallets.Remove(walletViewModel);
 
 			if (isLoggedIn)

@@ -19,7 +19,7 @@
       </StackPanel>
 
       <!-- Title -->
-      <Label Content="{Binding Title}" DockPanel.Dock="Left" FontWeight="Bold" FontSize="16"/>
+      <Label Content="Transaction History" DockPanel.Dock="Left" FontWeight="Bold" FontSize="16"/>
     </DockPanel>
 
     <DataGrid Items="{Binding Transactions}"
