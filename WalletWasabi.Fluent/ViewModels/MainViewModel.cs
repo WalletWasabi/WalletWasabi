@@ -85,7 +85,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			_privacyMode = new PrivacyModeViewModel(global.UiConfig);
 			_searchPage = new SearchPageViewModel();
 
-			_navBar = new NavBarViewModel(MainScreen, _walletManagerViewModel);
+			_navBar = new NavBarViewModel(MainScreen, _walletManagerViewModel, _global.UiConfig);
 
 			NavigationManager.RegisterType(_navBar);
 
