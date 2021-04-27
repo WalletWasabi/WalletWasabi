@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class WalletViewModel : WalletViewModelBase
 	{
-		[AutoNotify] IList<TileViewModel> _tiles;
+		[AutoNotify] private IList<TileViewModel> _tiles;
 
 		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
 		{
