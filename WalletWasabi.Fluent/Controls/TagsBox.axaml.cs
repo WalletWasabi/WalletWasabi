@@ -20,6 +20,9 @@ namespace WalletWasabi.Fluent.Controls
 {
 	public class TagsBox : TemplatedControl
 	{
+		public static readonly StyledProperty<string> WatermarkProperty =
+			TextBox.WatermarkProperty.AddOwner<TagsBox>();
+
 		public static readonly StyledProperty<bool> RestrictInputToSuggestionsProperty =
 			AvaloniaProperty.Register<TagsBox, bool>(nameof(RestrictInputToSuggestions));
 
@@ -69,6 +72,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => _items;
 			set => SetAndRaise(ItemsProperty, ref _items, value);
+		}
+
+		public string Watermark
+		{
+			get => GetValue(WatermarkProperty);
+			set => SetValue(WatermarkProperty, value);
 		}
 
 		public bool RestrictInputToSuggestions
@@ -208,9 +217,9 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			if (RestrictInputToSuggestions &&
-				Suggestions is IList<string> suggestions &&
-				!suggestions.Any(x =>
-					x.StartsWith(autoCompleteBox.SearchText, _stringComparison)))
+			    Suggestions is IList<string> suggestions &&
+			    !suggestions.Any(x =>
+				    x.StartsWith(autoCompleteBox.SearchText, _stringComparison)))
 			{
 				e.Handled = true;
 			}
