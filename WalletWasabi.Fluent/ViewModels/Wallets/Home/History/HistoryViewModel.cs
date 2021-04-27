@@ -5,16 +5,13 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui;
 using WalletWasabi.Logging;
-using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
@@ -22,7 +19,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 	public partial class HistoryViewModel : ActivatableViewModel
 	{
 		private readonly Wallet _wallet;
-		private readonly BitcoinStore _bitcoinStore;
 		private readonly SourceList<HistoryItemViewModel> _transactionSourceList;
 		private readonly IObservable<Unit> _updateTrigger;
 		private readonly ObservableCollectionExtended<HistoryItemViewModel> _transactions;
@@ -31,11 +27,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		[AutoNotify] private bool _showCoinJoin;
 		[AutoNotify] private HistoryItemViewModel? _selectedItem;
 
-		public HistoryViewModel(INavigationStack<RoutableViewModel> dialogNavigationStack, Wallet wallet, UiConfig uiConfig, IObservable<Unit> updateTrigger)
+		public HistoryViewModel(Wallet wallet, UiConfig uiConfig, IObservable<Unit> updateTrigger)
 		{
 			_updateTrigger = updateTrigger;
 			_wallet = wallet;
-			_bitcoinStore = wallet.BitcoinStore;
 			_showCoinJoin = uiConfig.ShowCoinJoinInHistory;
 			_transactionSourceList = new SourceList<HistoryItemViewModel>();
 			_transactions = new ObservableCollectionExtended<HistoryItemViewModel>();
@@ -43,22 +38,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 			this.WhenAnyValue(x => x.ShowCoinJoin)
 				.Subscribe(showCoinJoin => uiConfig.ShowCoinJoinInHistory = showCoinJoin);
-
-			this.WhenAnyValue(x => x.SelectedItem)
-				.Subscribe(async selectedItem =>
-				{
-					if (selectedItem is null)
-					{
-						return;
-					}
-
-					dialogNavigationStack.To(new TransactionDetailsViewModel(selectedItem.TransactionSummary, _bitcoinStore, wallet, updateTrigger));
-
-					Dispatcher.UIThread.Post(() =>
-					{
-						SelectedItem = null;
-					});
-				});
 
 			RxApp.MainThreadScheduler.Schedule(async () => await UpdateAsync());
 		}
@@ -115,7 +94,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				{
 					var transactionSummary = txRecordList[i];
 					balance += transactionSummary.Amount;
-					_transactionSourceList.Add(new HistoryItemViewModel(i, transactionSummary, _bitcoinStore, balance));
+					_transactionSourceList.Add(new HistoryItemViewModel(i, transactionSummary, _wallet.BitcoinStore, balance));
 				}
 			}
 			catch (Exception ex)

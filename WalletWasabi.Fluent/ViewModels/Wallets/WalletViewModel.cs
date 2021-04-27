@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using Avalonia.Threading;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
@@ -35,7 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
 					.ObserveOn(RxApp.MainThreadScheduler);
 
-			History = new HistoryViewModel(Navigate(NavigationTarget.DialogScreen), wallet, uiConfig, balanceChanged);
+			History = new HistoryViewModel(wallet, uiConfig, balanceChanged);
 
 			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged);
 			BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions);
@@ -51,6 +52,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				RoundStatusTile,
 				BtcPriceTile
 			};
+
+			History.WhenAnyValue(x=>x.SelectedItem)
+				.Subscribe(async selectedItem =>
+				{
+					if (selectedItem is null)
+					{
+						return;
+					}
+
+					Navigate(NavigationTarget.DialogScreen)
+						.To(new TransactionDetailsViewModel(selectedItem.TransactionSummary, wallet, balanceChanged));
+
+					Dispatcher.UIThread.Post(() =>
+					{
+						History.SelectedItem = null;
+					});
+				});
 		}
 
 		private CompositeDisposable Disposables { get; set; }
