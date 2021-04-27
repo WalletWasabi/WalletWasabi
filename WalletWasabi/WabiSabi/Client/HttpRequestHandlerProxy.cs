@@ -57,7 +57,7 @@ namespace WalletWasabi.WabiSabi.Client
 			using var content = Serialize(request);
 			using var response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content).ConfigureAwait(false);
 
-			if (response.StatusCode != HttpStatusCode.OK)
+			if (!response.IsSuccessStatusCode)
 			{
 				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
 			}
