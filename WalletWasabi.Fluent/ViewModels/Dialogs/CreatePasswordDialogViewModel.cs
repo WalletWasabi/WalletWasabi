@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = true;
 
@@ -41,10 +41,10 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 						this.RaisePropertyChanged(nameof(ConfirmPassword));
 
 						return IsDialogOpen &&
-						       ((enableEmpty && string.IsNullOrEmpty(Password) &&
-						         string.IsNullOrEmpty(ConfirmPassword)) ||
-						        (!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) &&
-						         !Validations.Any));
+							   ((enableEmpty && string.IsNullOrEmpty(Password) &&
+								 string.IsNullOrEmpty(ConfirmPassword)) ||
+								(!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) &&
+								 !Validations.Any));
 					})
 				.ObserveOn(RxApp.MainThreadScheduler);
 

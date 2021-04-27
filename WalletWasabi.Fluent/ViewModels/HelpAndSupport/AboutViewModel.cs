@@ -40,6 +40,8 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 					await Application.Current.Clipboard.SetTextAsync(link));
 
 			NextCommand = CancelCommand;
+
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		}
 
 		public ICommand AboutAdvancedInfoDialogCommand { get; }

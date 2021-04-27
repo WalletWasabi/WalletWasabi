@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -179,7 +180,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			}
 		}
 
-		public bool TryGetSpenderSmartCoinsByOutPoint(OutPoint outPoint, out HashSet<SmartCoin> coins)
+		public bool TryGetSpenderSmartCoinsByOutPoint(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 		{
 			lock (Lock)
 			{
@@ -187,7 +188,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 			}
 		}
 
-		private bool TryGetSpenderSmartCoinsByOutPointNoLock(OutPoint outPoint, out HashSet<SmartCoin> coins)
+		private bool TryGetSpenderSmartCoinsByOutPointNoLock(OutPoint outPoint, [NotNullWhen(true)] out HashSet<SmartCoin>? coins)
 		{
 			return CoinsByOutPoint.TryGetValue(outPoint, out coins);
 		}

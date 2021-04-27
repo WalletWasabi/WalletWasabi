@@ -60,7 +60,7 @@ namespace WalletWasabi.Tests.RegressionTests
 		[Fact]
 		public async Task GetClientVersionAsync()
 		{
-			var client = new WasabiClient(BackendHttpClient);
+			WasabiClient client = new(BackendHttpClient);
 			var uptodate = await client.CheckUpdatesAsync(CancellationToken.None);
 			Assert.True(uptodate.BackendCompatible);
 			Assert.True(uptodate.ClientUpToDate);
@@ -111,7 +111,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var indexBuilderServiceDir = Helpers.Common.GetWorkDir();
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
 
-			var indexBuilderService = new IndexBuilderService(rpc, global.HostedServices.FirstOrDefault<BlockNotifier>(), indexFilePath);
+			IndexBuilderService indexBuilderService = new(rpc, global.HostedServices.Get<BlockNotifier>(), indexFilePath);
 			try
 			{
 				indexBuilderService.Synchronize();

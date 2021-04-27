@@ -9,8 +9,7 @@
              mc:Ignorable="d"
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView"
-             ClipToBounds="False">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
     <UserControl.Styles>
         <!-- Slider Fee -->
         <Style Selector="Slider.cursor">
@@ -103,7 +102,6 @@
                    EnableBack="{Binding EnableBack}"
                    EnableNext="True"
                    NextContent="Continue"
-                   ClipToBounds="False"
                    IsBusy="{Binding IsBusy}"
                    ScrollViewer.VerticalScrollBarVisibility="Auto">
 
@@ -170,6 +168,7 @@
                         Value="{Binding XAxisCurrentValueIndex}">
                 </Slider>
                 <c:LineChart x:Name="GradientLineChart"
+                             XAxisPlotMode="EvenlySpaced"
                              Margin="18,0,18,0"
                              Classes="cursor border xAxisLabels yAxis yAxisTitle"
                              MinHeight="30"

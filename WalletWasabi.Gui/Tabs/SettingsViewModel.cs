@@ -75,7 +75,7 @@ namespace WalletWasabi.Gui.Tabs
 
 			_dustThreshold = config.DustThreshold.ToString();
 
-			_bitcoinP2pEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
+			_bitcoinP2pEndPoint = config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 			_localBitcoinCoreDataDir = config.LocalBitcoinCoreDataDir;
 
 			IsModified = !Global.Config.AreDeepEqual(config);
@@ -363,7 +363,7 @@ namespace WalletWasabi.Gui.Tabs
 						}
 						if (EndPointParser.TryParse(BitcoinP2pEndPoint, network.DefaultPort, out EndPoint? p2pEp))
 						{
-							config.SetP2PEndpoint(p2pEp);
+							config.SetBitcoinP2pEndpoint(p2pEp);
 						}
 						config.UseTor = UseTor;
 						config.TerminateTorOnExit = TerminateTorOnExit;
@@ -378,7 +378,7 @@ namespace WalletWasabi.Gui.Tabs
 					else
 					{
 						config.Network = Network;
-						BitcoinP2pEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
+						BitcoinP2pEndPoint = config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 					}
 					config.ToFile();
 					IsModified = !Global.Config.AreDeepEqual(config);

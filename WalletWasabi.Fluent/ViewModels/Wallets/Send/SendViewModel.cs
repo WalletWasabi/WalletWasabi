@@ -15,6 +15,7 @@ using NBitcoin;
 using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Helpers;
@@ -47,7 +48,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	public partial class SendViewModel : NavBarItemViewModel
 	{
 		private readonly WalletViewModel _owner;
-		private readonly UiConfig _uiConfig;
 		private readonly TransactionInfo _transactionInfo;
 
 		[AutoNotify] private string _to;
@@ -60,8 +60,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private double[] _xAxisValues;
 		[AutoNotify] private double[] _yAxisValues;
 		[AutoNotify] private string[] _xAxisLabels;
-		[AutoNotify] private double  _xAxisCurrentValue = 36;
-		[AutoNotify] private int  _xAxisCurrentValueIndex;
+		[AutoNotify] private double _xAxisCurrentValue = 36;
+		[AutoNotify] private int _xAxisCurrentValueIndex;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _xAxisMinValue = 0;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private int _xAxisMaxValue = 9;
 		[AutoNotify] private string? _payJoinEndPoint;
@@ -122,6 +122,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			Labels.ToObservableChangeSet().Subscribe(x => _transactionInfo.UserLabels = new SmartLabel(_labels.ToArray()));
 
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPaste());
@@ -247,7 +248,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private IPayjoinClient? GetPayjoinClient(string endPoint, Config config, HttpClientFactory httpClientFactory)
 		{
 			if (!string.IsNullOrWhiteSpace(endPoint) &&
-			    Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
+				Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 			{
 				var payjoinEndPointUri = new Uri(endPoint);
 				if (!config.UseTor)
@@ -397,7 +398,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					IsFixedAmount = false;
 				}
-
 			}
 			else
 			{
@@ -447,22 +447,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			PriorLabels.AddRange(_owner.Wallet
 				.KeyManager
 				.GetLabels()
-				.Select(x=>x.ToString()
+				.Select(x => x.ToString()
 					.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
-					.SelectMany(x=>x));
+					.SelectMany(x => x));
 
 			PriorLabels = new ObservableCollection<string>(PriorLabels.Distinct());
 
-			_owner.Wallet.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate)
-				.Where(x => x is { })
-				.Select(x => x!.Estimations)
+			var feeProvider = _owner.Wallet.FeeProvider;
+			Observable
+				.FromEventPattern(feeProvider, nameof(feeProvider.AllFeeEstimateChanged))
+				.Select(x => (x.EventArgs as AllFeeEstimate)!.Estimations)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(UpdateFeeEstimates)
 				.DisposeWith(disposables);
 
-			if (_owner.Wallet.Synchronizer.AllFeeEstimate is { })
+			if (feeProvider.AllFeeEstimate is { })
 			{
-				UpdateFeeEstimates(_owner.Wallet.Synchronizer.AllFeeEstimate.Estimations);
+				UpdateFeeEstimates(feeProvider.AllFeeEstimate.Estimations);
 			}
 
 			base.OnNavigatedTo(inHistory, disposables);
@@ -657,11 +658,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				var y = _yAxisValues.Reverse().ToArray();
 				double t = xValue;
 				var spline = CubicSpline.InterpolatePchipSorted(x, y);
-				var interpolated = (decimal) spline.Interpolate(t);
+				var interpolated = (decimal)spline.Interpolate(t);
 				return Math.Clamp(interpolated, (decimal)y[^1], (decimal)y[0]);
 			}
 
-			return (decimal)XAxisMaxValue;
+			return XAxisMaxValue;
 		}
 	}
 }

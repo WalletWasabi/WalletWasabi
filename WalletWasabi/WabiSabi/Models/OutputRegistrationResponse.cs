@@ -4,6 +4,6 @@ namespace WalletWasabi.WabiSabi.Models
 {
 	public record OutputRegistrationResponse(
 		CredentialsResponse AmountCredentials,
-		CredentialsResponse WeightCredentials
+		CredentialsResponse VsizeCredentials
 	);
 }

@@ -1,32 +1,28 @@
 using NBitcoin;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WalletWasabi.Helpers;
+using WalletWasabi.Crypto;
 
 namespace WalletWasabi.WabiSabi.Backend.Models
 {
 	public class Alice
 	{
-		public Alice(IDictionary<Coin, byte[]> coinRoundSignaturePairs)
+		public Alice(Coin coin, OwnershipProof ownershipProof)
 		{
-			Coins = coinRoundSignaturePairs.Keys;
-			CoinRoundSignaturePairs = coinRoundSignaturePairs;
+			// TODO init syntax?
+			Coin = coin;
+			OwnershipProof = ownershipProof;
 		}
 
 		public Guid Id { get; } = Guid.NewGuid();
 		public DateTimeOffset Deadline { get; set; } = DateTimeOffset.UtcNow;
-		public IEnumerable<Coin> Coins { get; }
-		public IDictionary<Coin, byte[]> CoinRoundSignaturePairs { get; }
-		public Money TotalInputAmount => Coins.Sum(x => x.Amount);
-		public long TotalInputWeight => Constants.WitnessScaleFactor * TotalInputVsize;
-		public int TotalInputVsize => Coins.Sum(x => x.ScriptPubKey.EstimateInputVsize());
+		public Coin Coin { get; }
+		public OwnershipProof OwnershipProof { get; }
+		public Money TotalInputAmount => Coin.Amount;
+		public int TotalInputVsize => Coin.ScriptPubKey.EstimateInputVsize();
 
-		public bool ConfirmedConnetion { get; set; } = false;
+		public bool ConfirmedConnection { get; set; } = false;
 
-		public long CalculateRemainingWeightCredentials(uint maxRegistrableWeight) => maxRegistrableWeight - TotalInputWeight;
+		public long CalculateRemainingVsizeCredentials(uint maxRegistrableSize) => maxRegistrableSize - TotalInputVsize;
 
 		public Money CalculateRemainingAmountCredentials(FeeRate feeRate) => TotalInputAmount - feeRate.GetFee(TotalInputVsize);
 

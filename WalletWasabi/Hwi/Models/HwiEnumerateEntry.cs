@@ -13,7 +13,7 @@ namespace WalletWasabi.Hwi.Models
 			HDFingerprint? fingerprint,
 			bool? needsPinSent,
 			bool? needsPassphraseSent,
-			string error,
+			string? error,
 			HwiErrorCode? code)
 		{
 			Model = model;
@@ -38,7 +38,7 @@ namespace WalletWasabi.Hwi.Models
 		public HDFingerprint? Fingerprint { get; }
 		public bool? NeedsPinSent { get; }
 		public bool? NeedsPassphraseSent { get; }
-		public string Error { get; }
+		public string? Error { get; }
 		public HwiErrorCode? Code { get; }
 
 		public bool IsInitialized()

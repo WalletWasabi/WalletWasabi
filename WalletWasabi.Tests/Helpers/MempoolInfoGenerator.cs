@@ -7,7 +7,7 @@ namespace WalletWasabi.Tests.Helpers
 {
 	public class MempoolInfoGenerator
 	{
-		private static readonly Random Random = new Random();
+		private static readonly Random Random = new();
 
 		private static readonly int[] FeeLimits = new[]
 		{
@@ -19,7 +19,7 @@ namespace WalletWasabi.Tests.Helpers
 		public static (int from, int to)[] FeeRanges { get; } = FeeLimits.Zip(FeeLimits.Skip(1), (from, to) => (from, to)).ToArray();
 
 		public static FeeRate GenerateFeeRateForTarget(int target)
-			=> new FeeRate((decimal)(4_000 / (target * target) * Random.Gaussian(1.0, 0.2)));
+			=> new((decimal)(4_000 / (target * target) * Random.Gaussian(1.0, 0.2)));
 
 		public static MemPoolInfo GenerateMempoolInfo()
 		{

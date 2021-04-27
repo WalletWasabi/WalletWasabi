@@ -1,5 +1,6 @@
 using NBitcoin;
 using NBitcoin.RPC;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -152,9 +153,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task AllFeeEstimateAsync()
 		{
-			using var services = new HostedServices();
-			var coreNode = await TestNodeBuilder.CreateAsync(services);
-			await services.StartAllAsync(CancellationToken.None);
+			var coreNode = await TestNodeBuilder.CreateAsync();
 			try
 			{
 				var rpc = coreNode.RpcClient;
@@ -171,7 +170,22 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
-				await services.StopAllAsync(CancellationToken.None);
+				await coreNode.TryStopAsync();
+			}
+		}
+
+		[Fact]
+		public async Task FeeEstimationCanCancelAsync()
+		{
+			var coreNode = await TestNodeBuilder.CreateAsync();
+			try
+			{
+				var rpc = coreNode.RpcClient;
+				using CancellationTokenSource cts = new(TimeSpan.Zero);
+				await Assert.ThrowsAsync<OperationCanceledException>(async () => await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true, cts.Token));
+			}
+			finally
+			{
 				await coreNode.TryStopAsync();
 			}
 		}
@@ -179,15 +193,13 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task CantDoubleSpendAsync()
 		{
-			using var services = new HostedServices();
-			var coreNode = await TestNodeBuilder.CreateAsync(services);
-			await services.StartAllAsync(CancellationToken.None);
+			var coreNode = await TestNodeBuilder.CreateAsync();
 			try
 			{
 				var rpc = coreNode.RpcClient;
 				var network = rpc.Network;
 
-				var walletName = "wallet.dat";
+				var walletName = "wallet";
 				await rpc.CreateWalletAsync(walletName);
 
 				using var k1 = new Key();
@@ -216,7 +228,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
-				await services.StopAllAsync(CancellationToken.None);
 				await coreNode.TryStopAsync();
 			}
 		}
@@ -224,9 +235,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		[Fact]
 		public async Task VerboseBlockInfoAsync()
 		{
-			using var services = new HostedServices();
-			var coreNode = await TestNodeBuilder.CreateAsync(services);
-			await services.StartAllAsync(CancellationToken.None);
+			var coreNode = await TestNodeBuilder.CreateAsync();
 			try
 			{
 				var rpc = coreNode.RpcClient;
@@ -235,7 +244,6 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 			}
 			finally
 			{
-				await services.StopAllAsync(CancellationToken.None);
 				await coreNode.TryStopAsync();
 			}
 		}

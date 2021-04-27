@@ -147,8 +147,7 @@ namespace WalletWasabi.Fluent
 
             var format = new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints | SymbolDisplayGenericsOptions.IncludeVariance
-            );
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints | SymbolDisplayGenericsOptions.IncludeVariance            );
 
 			if (addNotifyInterface)
 			{
@@ -225,19 +224,13 @@ namespace {namespaceName}
 				{
 					var value = (int)overridenSetterModifierOpt.Value;
 					return value switch
-					{
-						// None
-						0 => null,
-						// Public
-						1 => "",
-						// Protected
-						2 => "protected ",
-						// Private
-						3 => "private ",
-						// Internal
-						4 => "internal ",
-						// Default
-						_ => ""
+					{						
+						0 => null,// None
+						1 => "",// Public
+						2 => "protected ",// Protected
+						3 => "private ",// Private
+						4 => "internal ",// Internal
+						_ => ""// Default
 					};
 				}
 				else

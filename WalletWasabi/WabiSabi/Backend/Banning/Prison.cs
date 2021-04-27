@@ -39,10 +39,7 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 
 		public void Note(Alice alice, Guid lastDisruptedRoundId)
 		{
-			foreach (var input in alice.Coins.Select(x => x.Outpoint))
-			{
-				Punish(input, Punishment.Noted, lastDisruptedRoundId);
-			}
+			Punish(alice.Coin.Outpoint, Punishment.Noted, lastDisruptedRoundId);
 		}
 
 		public void Punish(OutPoint utxo, Punishment punishment, Guid lastDisruptedRoundId)

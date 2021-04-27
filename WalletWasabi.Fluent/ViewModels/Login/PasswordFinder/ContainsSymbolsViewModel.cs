@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 			Options = options;
 			Icon = AssetHelpers.GetBitmapAsset($"avares://WalletWasabi.Fluent/Assets/PasswordFinder/{ThemeHelper.CurrentTheme}/symbols.png");
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = true;
 

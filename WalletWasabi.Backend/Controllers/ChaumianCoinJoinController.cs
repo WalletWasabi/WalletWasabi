@@ -275,7 +275,7 @@ namespace WalletWasabi.Backend.Controllers
 					var moneySoFar = Money.Zero;
 					for (int i = 1; i < blindedOutputCount; i++)
 					{
-						if (!round.MixingLevels.TryGetDenomination(i, out Money denomination))
+						if (!round.MixingLevels.TryGetDenomination(i, out var denomination))
 						{
 							break;
 						}
@@ -434,7 +434,7 @@ namespace WalletWasabi.Backend.Controllers
 				return Ok("Round not found.");
 			}
 
-			Alice alice = round.TryGetAliceBy(uniqueIdGuid);
+			var alice = round.TryGetAliceBy(uniqueIdGuid);
 
 			if (alice is null)
 			{
@@ -529,10 +529,9 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				using (await OutputLock.LockAsync())
 				{
-					Bob bob = null;
 					try
 					{
-						bob = new Bob(request.OutputAddress, mixinglevel);
+						var bob = new Bob(request.OutputAddress, mixinglevel);
 						round.AddBob(bob);
 						round.AddRegisteredUnblindedSignature(request.UnblindedSignature);
 					}
@@ -596,7 +595,7 @@ namespace WalletWasabi.Backend.Controllers
 						}
 						else
 						{
-							return NotFound("Hex not found. This is impossible.");
+							return NotFound("Hex not found. This should never happen.");
 						}
 					}
 				default:
@@ -656,7 +655,7 @@ namespace WalletWasabi.Backend.Controllers
 							foreach (var signaturePair in signatures)
 							{
 								int index = signaturePair.Key;
-								WitScript witness = null;
+								WitScript witness;
 								try
 								{
 									witness = new WitScript(signaturePair.Value);
@@ -718,17 +717,13 @@ namespace WalletWasabi.Backend.Controllers
 		/// <response code="200">An array of transaction Ids</response>
 		[HttpGet("unconfirmed-coinjoins")]
 		[ProducesResponseType(200)]
-		public async Task<IActionResult> GetUnconfirmedCoinjoinsAsync()
+		public IActionResult GetUnconfirmedCoinjoins()
 		{
-			IEnumerable<string> unconfirmedCoinJoinString = (await GetUnconfirmedCoinJoinCollectionAsync()).Select(x => x.ToString());
+			IEnumerable<string> unconfirmedCoinJoinString = GetUnconfirmedCoinJoinCollection().Select(x => x.ToString());
 			return Ok(unconfirmedCoinJoinString);
 		}
 
-		internal async Task<IEnumerable<uint256>> GetUnconfirmedCoinJoinCollectionAsync()
-		{
-			var unconfirmedCoinJoins = await Global.Coordinator.GetUnconfirmedCoinJoinsAsync();
-			return unconfirmedCoinJoins;
-		}
+		internal IEnumerable<uint256> GetUnconfirmedCoinJoinCollection() => Global.Coordinator.GetUnconfirmedCoinJoins();
 
 		private Guid GetGuidOrFailureResponse(string uniqueId, out IActionResult returnFailureResponse)
 		{
@@ -778,7 +773,7 @@ namespace WalletWasabi.Backend.Controllers
 				return (null, null);
 			}
 
-			Alice alice = round.TryGetAliceBy(uniqueIdGuid);
+			var alice = round.TryGetAliceBy(uniqueIdGuid);
 			if (alice is null)
 			{
 				returnFailureResponse = NotFound("Alice not found.");

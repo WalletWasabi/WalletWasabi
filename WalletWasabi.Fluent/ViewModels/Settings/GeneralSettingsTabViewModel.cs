@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Models;
 
@@ -27,14 +28,14 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private bool _customChangeAddress;
 		[AutoNotify] private FeeDisplayFormat _selectedFeeDisplayFormat;
 
-		public GeneralSettingsTabViewModel(Config config, UiConfig uiConfig) : base(config, uiConfig)
+		public GeneralSettingsTabViewModel(Config config, UiConfig uiConfig) : base(config)
 		{
 			_darkModeEnabled = uiConfig.DarkModeEnabled;
 			_autoCopy = uiConfig.Autocopy;
 			_customFee = uiConfig.IsCustomFee;
 			_customChangeAddress = uiConfig.IsCustomChangeAddress;
 			_selectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), uiConfig.FeeDisplayFormat)
-				? (FeeDisplayFormat) uiConfig.FeeDisplayFormat
+				? (FeeDisplayFormat)uiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
 
 			this.WhenAnyValue(x => x.DarkModeEnabled)
@@ -43,7 +44,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 					x =>
 					{
 						uiConfig.DarkModeEnabled = x;
-						IsRestartNeeded(x);
+						Navigate(NavigationTarget.CompactDialogScreen).To(new ThemeChangeViewModel(x ? Theme.Dark : Theme.Light));
 					});
 
 			this.WhenAnyValue(x => x.AutoCopy)
@@ -64,7 +65,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Skip(1)
-				.Subscribe(x => uiConfig.FeeDisplayFormat = (int) x);
+				.Subscribe(x => uiConfig.FeeDisplayFormat = (int)x);
 		}
 
 		public IEnumerable<FeeDisplayFormat> FeeDisplayFormats =>

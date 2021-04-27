@@ -9,6 +9,8 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		public SuccessBroadcastTransactionViewModel()
 		{
 			NextCommand = ReactiveCommand.Create(() => Navigate().Clear());
+
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		}
 	}
 }

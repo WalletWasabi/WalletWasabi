@@ -6,7 +6,7 @@
              mc:Ignorable="d" d:DesignWidth="310" d:DesignHeight="150"
              x:DataType="vm:WalletBalanceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceTileView">
-    <Border ClipToBounds="False" CornerRadius="5" Background="#2b2b2b" Margin="6" Padding="16" BoxShadow="{DynamicResource InfoBoxShadow}">
+    <Border ClipToBounds="False" CornerRadius="5" Background="{DynamicResource TileRegionColor}" Margin="6" Padding="16" BoxShadow="{DynamicResource InfoBoxShadow}">
         <DockPanel>
             <TextBlock Text="Balance" DockPanel.Dock="Top" />
             <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="16">

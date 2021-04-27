@@ -7,6 +7,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -43,7 +45,7 @@ namespace WalletWasabi.Tests.RegressionTests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(global.Config.Network, requirements: Constants.NodeRequirements);
+			NodesGroup nodes = new(global.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync());
 
 			// 2. Create mempool service.
@@ -52,8 +54,10 @@ namespace WalletWasabi.Tests.RegressionTests
 			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 3. Create wasabi synchronizer service.
-			var httpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, httpClientFactory);
+			using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
+			FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
+			HybridFeeProvider feeProvider = new(synchronizer, null);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -64,15 +68,13 @@ namespace WalletWasabi.Tests.RegressionTests
 				new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
 
-			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, synchronizer, blockProvider);
+			using var wallet = Wallet.CreateAndRegisterServices(network, bitcoinStore, keyManager, synchronizer, workDir, serviceConfiguration, feeProvider, blockProvider);
 			wallet.NewFilterProcessed += Common.Wallet_NewFilterProcessed;
 
 			var scp = new Key().ScriptPubKey;
 
-			var validIntent = new PaymentIntent(scp, Money.Coins(1));
-			var invalidIntent = new PaymentIntent(
-				new DestinationRequest(scp, Money.Coins(10 * 1000 * 1000)),
-				new DestinationRequest(scp, Money.Coins(12 * 1000 * 1000)));
+			PaymentIntent validIntent = new(scp, Money.Coins(1));
+			PaymentIntent invalidIntent = new(new DestinationRequest(scp, Money.Coins(10 * 1000 * 1000)), new DestinationRequest(scp, Money.Coins(12 * 1000 * 1000)));
 
 			Assert.Throws<OverflowException>(() => new PaymentIntent(
 				new DestinationRequest(scp, Money.Satoshis(long.MaxValue)),
@@ -80,34 +82,30 @@ namespace WalletWasabi.Tests.RegressionTests
 				new DestinationRequest(scp, Money.Satoshis(5))));
 
 			Logger.TurnOff();
-			Assert.Throws<ArgumentNullException>(() => wallet.BuildTransaction(null, null, FeeStrategy.CreateFromConfirmationTarget(4)));
-
-			// toSend cannot have a null element
-			Assert.Throws<ArgumentNullException>(() => wallet.BuildTransaction(null, new PaymentIntent(new[] { (DestinationRequest)null }), FeeStrategy.CreateFromConfirmationTarget(0)));
 
 			// toSend cannot have a zero element
-			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, new PaymentIntent(Array.Empty<DestinationRequest>()), FeeStrategy.SevenDaysConfirmationTargetStrategy));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction("", new PaymentIntent(Array.Empty<DestinationRequest>()), FeeStrategy.SevenDaysConfirmationTargetStrategy));
 
 			// feeTarget has to be in the range 0 to 1008
-			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, validIntent, FeeStrategy.CreateFromConfirmationTarget(-10)));
-			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, validIntent, FeeStrategy.CreateFromConfirmationTarget(2000)));
+			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction("", validIntent, FeeStrategy.CreateFromConfirmationTarget(-10)));
+			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction("", validIntent, FeeStrategy.CreateFromConfirmationTarget(2000)));
 
 			// toSend amount sum has to be in range 0 to 2099999997690000
-			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, invalidIntent, FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
+			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction("", invalidIntent, FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
 
 			// toSend negative sum amount
-			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, new PaymentIntent(scp, Money.Satoshis(-10000)), FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
+			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction("", new PaymentIntent(scp, Money.Satoshis(-10000)), FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
 
 			// toSend negative operation amount
 			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(
-				null,
+				"",
 				new PaymentIntent(
 					new DestinationRequest(scp, Money.Satoshis(20000)),
 					new DestinationRequest(scp, Money.Satoshis(-10000))),
 				FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
 
 			// allowedInputs cannot be empty
-			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, validIntent, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowedInputs: Array.Empty<OutPoint>()));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction("", validIntent, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, allowedInputs: Array.Empty<OutPoint>()));
 
 			// "Only one element can contain the AllRemaining flag.
 			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(
@@ -128,7 +126,10 @@ namespace WalletWasabi.Tests.RegressionTests
 			{
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
-				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
+				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 10000); // Start wasabi synchronizer service.
+
+				await filterProcessor.StartAsync(CancellationToken.None);
+				await feeProvider.StartAsync(CancellationToken.None);
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -140,24 +141,22 @@ namespace WalletWasabi.Tests.RegressionTests
 				}
 
 				// subtract Fee from amount index with no enough money
-				var operations = new PaymentIntent(
-					new DestinationRequest(scp, Money.Coins(1m), subtractFee: true),
-					new DestinationRequest(scp, Money.Coins(0.5m)));
+				PaymentIntent operations = new(new DestinationRequest(scp, Money.Coins(1m), subtractFee: true), new DestinationRequest(scp, Money.Coins(0.5m)));
 				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, false));
 
 				// No enough money (only one confirmed coin, no unconfirmed allowed)
 				operations = new PaymentIntent(scp, Money.Coins(1.5m));
-				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
+				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction("", operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
 
 				// No enough money (only one confirmed coin, unconfirmed allowed)
-				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, true));
+				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction("", operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, true));
 
 				// Add new money with no confirmation
 				var txId2 = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("bar", out _).GetP2wpkhAddress(network), Money.Coins(2m));
 				await Task.Delay(1000); // Wait tx to arrive and get processed.
 
 				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are NOT allowed)
-				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, false));
+				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction("", operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, false));
 
 				// Enough money (one unconfirmed coin, unconfirmed are allowed)
 				var btx = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy, true);
@@ -174,7 +173,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				// Only one operation with AllRemainingFlag
 
 				Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(
-					null,
+					"",
 					new PaymentIntent(
 						new DestinationRequest(scp, MoneyRequest.CreateAllRemaining()),
 						new DestinationRequest(scp, MoneyRequest.CreateAllRemaining())),
@@ -188,14 +187,10 @@ namespace WalletWasabi.Tests.RegressionTests
 			finally
 			{
 				await wallet.StopAsync(CancellationToken.None);
-				// Dispose wasabi synchronizer service.
-				if (synchronizer is { })
-				{
-					await synchronizer.StopAsync();
-				}
-				// Dispose connection service.
+				await synchronizer.StopAsync();
+				await filterProcessor.StopAsync(CancellationToken.None);
+				await feeProvider.StopAsync(CancellationToken.None);
 				nodes?.Dispose();
-				// Dispose mempool serving node.
 				node?.Disconnect();
 			}
 		}
@@ -207,7 +202,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			bitcoinStore.IndexStore.NewFilter += Common.Wallet_NewFilterProcessed;
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(global.Config.Network, requirements: Constants.NodeRequirements);
+			NodesGroup nodes = new(global.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync());
 
 			// 2. Create mempool service.
@@ -215,8 +210,10 @@ namespace WalletWasabi.Tests.RegressionTests
 			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 			// 3. Create wasabi synchronizer service.
-			var httpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
-			var synchronizer = new WasabiSynchronizer(rpc.Network, bitcoinStore, httpClientFactory);
+			using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
+			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
+			FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
+			HybridFeeProvider feeProvider = new(synchronizer, null);
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -226,13 +223,14 @@ namespace WalletWasabi.Tests.RegressionTests
 			CachedBlockProvider blockProvider = new(
 				new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfiguration, network),
 				bitcoinStore.BlockRepository);
-			var walletManager = new WalletManager(network, workDir, new WalletDirectories(network, workDir));
-			walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, synchronizer, blockProvider);
+			WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir));
+			walletManager.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);
 
 			var baseTip = await rpc.GetBestBlockHashAsync();
 
 			// Generate script
-			var scp = new Key().ScriptPubKey;
+			using var k = new Key();
+			var scp = k.ScriptPubKey;
 
 			// Get some money, make it confirm.
 			var key = keyManager.GetNextReceiveKey("foo label", out _);
@@ -245,7 +243,9 @@ namespace WalletWasabi.Tests.RegressionTests
 			{
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
-				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
+				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 10000); // Start wasabi synchronizer service.
+				await filterProcessor.StartAsync(CancellationToken.None);
+				await feeProvider.StartAsync(CancellationToken.None);
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -253,11 +253,11 @@ namespace WalletWasabi.Tests.RegressionTests
 				using var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
 				var coin = Assert.Single(wallet.Coins);
 				Assert.True(coin.Confirmed);
-				var broadcaster = new TransactionBroadcaster(network, bitcoinStore, httpClientFactory, walletManager);
+				TransactionBroadcaster broadcaster = new(network, bitcoinStore, httpClientFactory, walletManager);
 				broadcaster.Initialize(nodes, rpc);
 
 				// Send money before reorg.
-				var operations = new PaymentIntent(scp, Money.Coins(0.011m));
+				PaymentIntent operations = new(scp, Money.Coins(0.011m));
 				var btx1 = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy);
 				await broadcaster.SendTransactionAsync(btx1.Transaction);
 				var coin2 = Assert.Single(wallet.Coins);
@@ -316,7 +316,7 @@ namespace WalletWasabi.Tests.RegressionTests
 				{
 					await rpc.AbandonTransactionAsync(fundingTxId);
 				}
-				catch (Exception ex)
+				catch
 				{
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 					{
@@ -325,7 +325,7 @@ namespace WalletWasabi.Tests.RegressionTests
 					return; // Occassionally this fails on Linux or OSX, I have no idea why.
 				}
 				// Spend the inputs of the tx so we know
-				var success = bitcoinStore.TransactionStore.TryGetTransaction(fundingTxId, out SmartTransaction invalidSmartTransaction);
+				var success = bitcoinStore.TransactionStore.TryGetTransaction(fundingTxId, out var invalidSmartTransaction);
 				Assert.True(success);
 				var invalidCoin = Assert.Single(((CoinsRegistry)wallet.Coins).AsAllCoinsView().CreatedBy(invalidSmartTransaction.GetHash()));
 				Assert.NotNull(invalidCoin.SpenderTransaction);
@@ -406,14 +406,10 @@ namespace WalletWasabi.Tests.RegressionTests
 			{
 				bitcoinStore.IndexStore.NewFilter -= Common.Wallet_NewFilterProcessed;
 				await walletManager.RemoveAndStopAllAsync(CancellationToken.None);
-				// Dispose wasabi synchronizer service.
-				if (synchronizer is { })
-				{
-					await synchronizer.StopAsync();
-				}
-				// Dispose connection service.
+				await synchronizer.StopAsync();
+				await filterProcessor.StopAsync(CancellationToken.None);
+				await feeProvider.StopAsync(CancellationToken.None);
 				nodes?.Dispose();
-				// Dispose mempool serving node.
 				node?.Disconnect();
 			}
 		}

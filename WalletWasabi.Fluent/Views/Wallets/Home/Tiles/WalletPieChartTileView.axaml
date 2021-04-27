@@ -7,16 +7,11 @@
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletPieChartTileView">
-    <Border ClipToBounds="False" CornerRadius="5" Background="#2b2b2b" Margin="6" Padding="16"
+    <Border ClipToBounds="False" CornerRadius="5" Background="{DynamicResource TileRegionColor}" Margin="6" Padding="16"
             BoxShadow="{DynamicResource InfoBoxShadow}">
         <DockPanel>
             <TextBlock Text="Wallet Privacy Status" DockPanel.Dock="Top" />
             <DockPanel LastChildFill="True" TextBlock.FontSize="12">
-
-                <StackPanel DockPanel.Dock="Top">
-                    <TextBlock Opacity="0.5">in Percentage %</TextBlock>
-                </StackPanel>
-
                 <ItemsRepeater DockPanel.Dock="Bottom" Margin="0,0,0,-8" Items="{Binding TestDataPointsLegend}">
                     <ItemsRepeater.ItemTemplate>
                         <DataTemplate x:DataType="wallets:DataLegend">

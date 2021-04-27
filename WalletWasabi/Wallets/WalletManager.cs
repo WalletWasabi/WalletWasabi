@@ -69,7 +69,7 @@ namespace WalletWasabi.Wallets
 		private ServiceConfiguration ServiceConfiguration { get; set; }
 		private bool IsInitialized { get; set; }
 
-		private IFeeProvider FeeProvider { get; set; }
+		private HybridFeeProvider FeeProvider { get; set; }
 		public Network Network { get; }
 		public WalletDirectories WalletDirectories { get; }
 		private IBlockProvider BlockProvider { get; set; }
@@ -396,7 +396,7 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, IBlockProvider blockProvider)
+		public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
 		{
 			BitcoinStore = bitcoinStore;
 			Synchronizer = synchronizer;

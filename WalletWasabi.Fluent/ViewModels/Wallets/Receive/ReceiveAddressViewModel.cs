@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			GenerateQrCode();
 
-			EnableCancel = false;
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = true;
 
@@ -100,9 +100,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		{
 			try
 			{
-				var encoder = new QrEncoder();
-				encoder.TryEncode(Address, out var qrCode);
-				QrCode = qrCode.Matrix.InternalArray;
+				QrCode = new QrEncoder().Encode(Address).Matrix.InternalArray;
 			}
 			catch (Exception ex)
 			{

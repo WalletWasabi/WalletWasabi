@@ -13,22 +13,25 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<double> ItemHeightProperty =
 			AvaloniaProperty.Register<ResponsivePanel, double>(nameof(ItemHeight), double.NaN);
 
+		public static readonly StyledProperty<double> WidthSourceProperty =
+			AvaloniaProperty.Register<ResponsivePanel, double>(nameof(WidthSource), double.NaN);
+
 		public static readonly StyledProperty<double> AspectRatioProperty =
 			AvaloniaProperty.Register<ResponsivePanel, double>(nameof(AspectRatio), double.NaN);
 
 		public static readonly StyledProperty<AvaloniaList<int>> ColumnHintsProperty =
 			AvaloniaProperty.Register<ResponsivePanel, AvaloniaList<int>>(nameof(ColumnHints),
-				new AvaloniaList<int>() {1});
+				new AvaloniaList<int>() { 1 });
 
 		public static readonly StyledProperty<AvaloniaList<double>> WidthTriggersProperty =
 			AvaloniaProperty.Register<ResponsivePanel, AvaloniaList<double>>(nameof(WidthTriggers),
-				new AvaloniaList<double>() {0.0});
+				new AvaloniaList<double>() { 0.0 });
 
 		public static readonly AttachedProperty<AvaloniaList<int>> ColumnSpanProperty =
-			AvaloniaProperty.RegisterAttached<ResponsivePanel, Control, AvaloniaList<int>>("ColumnSpan", new AvaloniaList<int>() {1});
+			AvaloniaProperty.RegisterAttached<ResponsivePanel, Control, AvaloniaList<int>>("ColumnSpan", new AvaloniaList<int>() { 1 });
 
 		public static readonly AttachedProperty<AvaloniaList<int>> RowSpanProperty =
-			AvaloniaProperty.RegisterAttached<ResponsivePanel, Control, AvaloniaList<int>>("RowSpan", new AvaloniaList<int>() {1});
+			AvaloniaProperty.RegisterAttached<ResponsivePanel, Control, AvaloniaList<int>>("RowSpan", new AvaloniaList<int>() { 1 });
 
 		public static AvaloniaList<int> GetColumnSpan(Control? element)
 		{
@@ -66,6 +69,12 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(ItemHeightProperty, value);
 		}
 
+		public double WidthSource
+		{
+			get => GetValue(WidthSourceProperty);
+			set => SetValue(WidthSourceProperty, value);
+		}
+
 		public double AspectRatio
 		{
 			get => GetValue(AspectRatioProperty);
@@ -87,24 +96,36 @@ namespace WalletWasabi.Fluent.Controls
 		static ResponsivePanel()
 		{
 			AffectsParentMeasure<ResponsivePanel>(
+				ItemWidthProperty,
+				ItemHeightProperty,
+				WidthSourceProperty,
 				AspectRatioProperty,
 				ColumnHintsProperty,
 				WidthTriggersProperty,
 				ColumnSpanProperty,
 				RowSpanProperty);
 			AffectsParentArrange<ResponsivePanel>(
+				ItemWidthProperty,
+				ItemHeightProperty,
+				WidthSourceProperty,
 				AspectRatioProperty,
 				ColumnHintsProperty,
 				WidthTriggersProperty,
 				ColumnSpanProperty,
 				RowSpanProperty);
 			AffectsMeasure<ResponsivePanel>(
+				ItemWidthProperty,
+				ItemHeightProperty,
+				WidthSourceProperty,
 				AspectRatioProperty,
 				ColumnHintsProperty,
 				WidthTriggersProperty,
 				ColumnSpanProperty,
 				RowSpanProperty);
 			AffectsArrange<ResponsivePanel>(
+				ItemWidthProperty,
+				ItemHeightProperty,
+				WidthSourceProperty,
 				AspectRatioProperty,
 				ColumnHintsProperty,
 				WidthTriggersProperty,
@@ -114,10 +135,10 @@ namespace WalletWasabi.Fluent.Controls
 
 		private struct Item
 		{
-			public int Column;
-			public int Row;
-			public int ColumnSpan;
-			public int RowSpan;
+			internal int Column;
+			internal int Row;
+			internal int ColumnSpan;
+			internal int RowSpan;
 		}
 
 		private Size MeasureArrange(Size panelSize, bool isMeasure)
@@ -126,45 +147,62 @@ namespace WalletWasabi.Fluent.Controls
 			var widthTriggers = WidthTriggers;
 			var columnHints = ColumnHints;
 			var aspectRatio = AspectRatio;
-			var width = panelSize.Width;
+			var width = double.IsNaN(WidthSource) ? panelSize.Width : WidthSource;
 			var height = panelSize.Height;
+
+			if (widthTriggers is null || columnHints is null)
+			{
+				return Size.Empty;
+			}
 
 			if (widthTriggers.Count <= 0)
 			{
-				throw new Exception($"No width trigger specified in {nameof(WidthTriggers)} property.");
+				// TODO: throw new Exception($"No width trigger specified in {nameof(WidthTriggers)} property.");
+				return Size.Empty;
 			}
 
 			if (columnHints.Count <= 0)
 			{
-				throw new Exception($"No column hints specified in {nameof(ColumnHints)} property.");
+				// TODO: throw new Exception($"No column hints specified in {nameof(ColumnHints)} property.");
+				return Size.Empty;
 			}
 
 			if (widthTriggers.Count != columnHints.Count)
 			{
-				throw new Exception($"Number of width triggers must be equal to the number of column triggers.");
+				// TODO: throw new Exception($"Number of width triggers must be equal to the number of column triggers.");
+				return Size.Empty;
 			}
 
-			if (double.IsNaN(aspectRatio))
+			if (double.IsNaN(ItemWidth) && double.IsInfinity(width))
 			{
-				if (height == 0 || double.IsInfinity(height))
-				{
-					aspectRatio = 1.0;
-				}
-				// else
-				// {
-				//     aspectRatio = Math.Min(height, width) / Math.Max(height, width);
-				// }
+				// TODO: throw new Exception($"The {nameof(ItemWidth)} can't be NaN and panel {nameof(width)} can't be infinity at same time.");
+				return Size.Empty;
 			}
 
-			var totalColumns = 1;
+			if (double.IsNaN(ItemHeight) && double.IsInfinity(height))
+			{
+				// TODO: throw new Exception($"The {nameof(ItemHeight)} can't be NaN and panel {nameof(height)} can't be infinity at same time.");
+				return Size.Empty;
+			}
+
+			if (double.IsNaN(aspectRatio) && (height == 0 || double.IsInfinity(height)))
+			{
+				aspectRatio = 1.0;
+			}
+
 			var layoutIndex = 0;
+			var totalColumns = columnHints[layoutIndex];
 
-			for (var i = 0; i < widthTriggers.Count; i++)
+			if (!double.IsInfinity(width))
 			{
-				if (width > widthTriggers[i])
+				for (var i = widthTriggers.Count - 1; i >= 0; i--)
 				{
-					totalColumns = columnHints[i];
-					layoutIndex = i;
+					if (width >= widthTriggers[i])
+					{
+						totalColumns = columnHints[i];
+						layoutIndex = i;
+						break;
+					}
 				}
 			}
 
@@ -176,8 +214,8 @@ namespace WalletWasabi.Fluent.Controls
 			for (var i = 0; i < children.Count; i++)
 			{
 				var element = children[i];
-				var columnSpan = GetColumnSpan((Control) element)[layoutIndex];
-				var rowSpan = GetRowSpan((Control) element)[layoutIndex];
+				var columnSpan = GetColumnSpan((Control)element)[layoutIndex];
+				var rowSpan = GetRowSpan((Control)element)[layoutIndex];
 
 				items[i] = new Item()
 				{
@@ -190,7 +228,7 @@ namespace WalletWasabi.Fluent.Controls
 				rowIncrement = Math.Max(rowSpan, rowIncrement);
 				currentColumn += columnSpan;
 
-				if (currentColumn >= totalColumns)
+				if (currentColumn >= totalColumns || i == children.Count - 1)
 				{
 					currentColumn = 0;
 					totalRows += rowIncrement;
@@ -199,7 +237,7 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			var itemWidth = double.IsNaN(ItemWidth) ? width / totalColumns : ItemWidth;
-			var itemHeight = double.IsNaN(ItemWidth)
+			var itemHeight = double.IsNaN(ItemHeight)
 				? double.IsNaN(aspectRatio) ? height / totalRows : itemWidth * aspectRatio
 				: ItemHeight;
 
@@ -220,13 +258,13 @@ namespace WalletWasabi.Fluent.Controls
 				}
 			}
 
-			return new Size(width, itemHeight * totalRows);
+			// Console.WriteLine($"CxR: {totalColumns}x{totalRows} Item WxH: {itemWidth}x{itemHeight} Panel WxH: {itemWidth * totalColumns}x{itemHeight * totalRows}");
+			return new Size(itemWidth * totalColumns, itemHeight * totalRows);
 		}
 
 		protected override Size MeasureOverride(Size availableSize)
 		{
 			var measureSize = MeasureArrange(availableSize, true);
-			// return new Size(availableSize.Width, availableSize.Height);
 			// Console.WriteLine($"MeasureOverride: {measureSize}");
 			return measureSize;
 		}
@@ -234,7 +272,7 @@ namespace WalletWasabi.Fluent.Controls
 		protected override Size ArrangeOverride(Size finalSize)
 		{
 			var arrangeSize = MeasureArrange(finalSize, false);
-			// return finalSize;
+			// Console.WriteLine($"ArrangeOverride: {arrangeSize}");
 			return arrangeSize;
 		}
 	}

@@ -161,8 +161,8 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (_currentSelection == closedWalletViewModel)
 			{
-				SelectedWallet = walletViewModelItem;
 				InsertActions(walletViewModelItem, actions);
+				SelectedWallet = walletViewModelItem;
 			}
 
 			IsLoadingWallet = false;
@@ -194,8 +194,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		private void RemoveWallet(WalletViewModelBase walletViewModel)
 		{
 			var isLoggedIn = walletViewModel.Wallet.IsLoggedIn;
-
-			walletViewModel.Dispose();
 
 			_wallets.Remove(walletViewModel);
 
@@ -250,7 +248,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				}
 			}
 
-			if (item is WalletViewModel { IsLoggedIn: true} walletViewModelItem)
+			if (item is WalletViewModel { IsLoggedIn: true } walletViewModelItem)
 			{
 				if (!_walletActionsDictionary.TryGetValue(walletViewModelItem, out var actions))
 				{

@@ -2,6 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -119,7 +120,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 			if (tx.Confirmed)
 			{
-				if (MempoolStore.TryRemove(hash, out SmartTransaction found))
+				if (MempoolStore.TryRemove(hash, out var found))
 				{
 					found.TryUpdate(tx);
 					ConfirmedStore.TryAddOrUpdate(found);
@@ -156,7 +157,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				{
 					return true;
 				}
-				else if (tx.Confirmed && MempoolStore.TryRemove(hash, out SmartTransaction originalTx))
+				else if (tx.Confirmed && MempoolStore.TryRemove(hash, out var originalTx))
 				{
 					originalTx.TryUpdate(tx);
 					ConfirmedStore.TryAddOrUpdate(originalTx);
@@ -180,7 +181,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				{
 					// Contains is fast, so do this first.
 					if (ConfirmedStore.Contains(hash)
-						&& MempoolStore.TryRemove(hash, out SmartTransaction uTx))
+						&& MempoolStore.TryRemove(hash, out var uTx))
 					{
 						ConfirmedStore.TryAddOrUpdate(uTx);
 					}
@@ -192,7 +193,7 @@ namespace WalletWasabi.Blockchain.Transactions
 
 		#region Accessors
 
-		public virtual bool TryGetTransaction(uint256 hash, out SmartTransaction sameStx)
+		public virtual bool TryGetTransaction(uint256 hash, [NotNullWhen(true)] out SmartTransaction? sameStx)
 		{
 			lock (Lock)
 			{
@@ -247,7 +248,7 @@ namespace WalletWasabi.Blockchain.Transactions
 					.Where(tx => tx.BlockHash == blockHash)
 					.Select(tx => tx.GetHash()))
 				{
-					if (ConfirmedStore.TryRemove(txHash, out SmartTransaction removedTx))
+					if (ConfirmedStore.TryRemove(txHash, out var removedTx))
 					{
 						removedTx.SetUnconfirmed();
 						if (MempoolStore.TryAddOrUpdate(removedTx).isAdded)

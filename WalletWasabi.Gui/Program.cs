@@ -11,6 +11,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -85,7 +86,7 @@ namespace WalletWasabi.Gui
 
 				await Global.InitializeNoWalletAsync(TerminateService);
 
-				MainWindowViewModel.Instance.Initialize(Global.Nodes.ConnectedNodes);
+				MainWindowViewModel.Instance.Initialize(Global.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes);
 
 				Dispatcher.UIThread.Post(GC.Collect);
 			}
