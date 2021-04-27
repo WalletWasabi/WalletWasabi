@@ -319,7 +319,6 @@ namespace WalletWasabi.Services
 				await Task.Delay(50).ConfigureAwait(false);
 			}
 
-			HttpClientFactory.Dispose();
 			StopCts.Dispose();
 
 			EnableRequests(); // Enable requests (it's possible something is being blocked outside the class by AreRequestsBlocked.

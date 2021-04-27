@@ -34,10 +34,12 @@
                 UseLayoutRounding="False">
                 <tiles:WalletBalanceTileView DataContext="{Binding BalanceTile}"
                     c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1" />
-                <Border CornerRadius="4" Margin="4" Background="{DynamicResource TileRegionColor}" BoxShadow="{DynamicResource InfoBoxShadow}"
+
+                <tiles:RoundStatusTileView DataContext="{Binding RoundStatusTile}"
+                                           c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="0, 0, 1"  />
+
+                <tiles:BtcPriceTileView DataContext="{Binding BtcPriceTile}"
                         c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="0, 0, 1" />
-                <Border CornerRadius="4" Margin="4" Background="{DynamicResource TileRegionColor}" BoxShadow="{DynamicResource InfoBoxShadow}"
-                        c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="0, 0, 1"  />
 
                 <tiles:WalletPieChartTileView DataContext="{Binding WalletPieChart}" c:ResponsivePanel.ColumnSpan="0, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 2" />
 

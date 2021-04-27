@@ -2,82 +2,73 @@ using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui;
 using WalletWasabi.Logging;
-using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 {
-	[NavigationMetaData(Title = "Transaction History")]
-	public partial class HistoryViewModel : RoutableViewModel
+	public partial class HistoryViewModel : ActivatableViewModel
 	{
 		private readonly Wallet _wallet;
-		private readonly BitcoinStore _bitcoinStore;
-		private readonly ReadOnlyObservableCollection<HistoryItemViewModel> _transactions;
-		private readonly ReadOnlyObservableCollection<HistoryItemViewModel> _unfilteredTransactions;
 		private readonly SourceList<HistoryItemViewModel> _transactionSourceList;
+		private readonly IObservable<Unit> _updateTrigger;
+		private readonly ObservableCollectionExtended<HistoryItemViewModel> _transactions;
+		private readonly ObservableCollectionExtended<HistoryItemViewModel> _unfilteredTransactions;
 
 		[AutoNotify] private bool _showCoinJoin;
 		[AutoNotify] private HistoryItemViewModel? _selectedItem;
 
 		public HistoryViewModel(Wallet wallet, UiConfig uiConfig, IObservable<Unit> updateTrigger)
 		{
+			_updateTrigger = updateTrigger;
 			_wallet = wallet;
-			_bitcoinStore = wallet.BitcoinStore;
 			_showCoinJoin = uiConfig.ShowCoinJoinInHistory;
 			_transactionSourceList = new SourceList<HistoryItemViewModel>();
+			_transactions = new ObservableCollectionExtended<HistoryItemViewModel>();
+			_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModel>();
 
-			var coinJoinFilter = this.WhenAnyValue(x => x.ShowCoinJoin).Select(CoinJoinFilter);
+			this.WhenAnyValue(x => x.ShowCoinJoin)
+				.Subscribe(showCoinJoin => uiConfig.ShowCoinJoinInHistory = showCoinJoin);
+
+			RxApp.MainThreadScheduler.Schedule(async () => await UpdateAsync());
+		}
+
+		public ObservableCollection<HistoryItemViewModel> UnfilteredTransactions => _unfilteredTransactions;
+
+		public ObservableCollection<HistoryItemViewModel> Transactions => _transactions;
+
+		protected override void OnActivated(CompositeDisposable disposables)
+		{
+			base.OnActivated(disposables);
+
+			var coinJoinFilter = this.WhenAnyValue(x => x.ShowCoinJoin)
+				.Select(CoinJoinFilter);
 
 			_transactionSourceList
 				.Connect()
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Sort(SortExpressionComparer<HistoryItemViewModel>.Descending(x => x.OrderIndex))
-				.Bind(out _unfilteredTransactions)
+				.Bind(_unfilteredTransactions)
 				.Filter(coinJoinFilter)
-				.Bind(out _transactions)
-				.Subscribe();
+				.Bind(_transactions)
+				.Subscribe()
+				.DisposeWith(disposables);
 
-			this.WhenAnyValue(x => x.ShowCoinJoin)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(showCoinJoin => uiConfig.ShowCoinJoinInHistory = showCoinJoin);
-
-			this.WhenAnyValue(x => x.SelectedItem)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(async selectedItem =>
-				{
-					if (selectedItem is null)
-					{
-						return;
-					}
-
-					Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(selectedItem.TransactionSummary, _bitcoinStore, wallet, updateTrigger));
-
-					Dispatcher.UIThread.Post(() =>
-					{
-						SelectedItem = null;
-					});
-				});
-
-			updateTrigger.Subscribe(async _ => await UpdateAsync());
-			RxApp.MainThreadScheduler.Schedule(async () => await UpdateAsync());
+			_updateTrigger
+				.Subscribe(async _ => await UpdateAsync())
+				.DisposeWith(disposables);
 		}
 
-		public ReadOnlyObservableCollection<HistoryItemViewModel> UnfilteredTransactions => _unfilteredTransactions;
-
-		public ReadOnlyObservableCollection<HistoryItemViewModel> Transactions => _transactions;
-
-		private Func<HistoryItemViewModel, bool> CoinJoinFilter(bool showCoinJoin)
+		private static Func<HistoryItemViewModel, bool> CoinJoinFilter(bool showCoinJoin)
 		{
 			return item =>
 			{
@@ -90,7 +81,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			};
 		}
 
-		public async Task UpdateAsync()
+		private async Task UpdateAsync()
 		{
 			try
 			{
@@ -103,7 +94,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				{
 					var transactionSummary = txRecordList[i];
 					balance += transactionSummary.Amount;
-					_transactionSourceList.Add(new HistoryItemViewModel(i, transactionSummary, _bitcoinStore, balance));
+					_transactionSourceList.Add(new HistoryItemViewModel(i, transactionSummary, _wallet.BitcoinStore, balance));
 				}
 			}
 			catch (Exception ex)

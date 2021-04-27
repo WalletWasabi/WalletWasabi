@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Helpers;
@@ -59,12 +60,11 @@ namespace WalletWasabi.BitcoinCore.Rpc
 			return await Rpc.GetMempoolEntryAsync(txid, throwIfNotFound).ConfigureAwait(false);
 		}
 
-		public virtual async Task<MemPoolInfo> GetMempoolInfoAsync()
+		public virtual async Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancel = default)
 		{
 			try
 			{
 				var response = await Rpc.SendCommandAsync(RPCOperations.getmempoolinfo, true).ConfigureAwait(false);
-
 				static IEnumerable<FeeRateGroup> ExtractFeeRateGroups(JToken jt) =>
 					jt switch
 					{
@@ -95,6 +95,8 @@ namespace WalletWasabi.BitcoinCore.Rpc
 			}
 			catch (RPCException ex) when (ex.RPCCode == RPCErrorCode.RPC_MISC_ERROR)
 			{
+				cancel.ThrowIfCancellationRequested();
+
 				return await Rpc.GetMemPoolAsync().ConfigureAwait(false);
 			}
 		}

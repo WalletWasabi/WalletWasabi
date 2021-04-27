@@ -23,7 +23,7 @@ namespace WalletWasabi.Tests.Helpers
 	public static class WabiSabiFactory
 	{
 		public static Coin CreateCoin(OutPoint? prevout = null, Key? key = null, Money? value = null)
-			=> new Coin(prevout ?? BitcoinFactory.CreateOutPoint(), new TxOut(value ?? Money.Coins(1), BitcoinFactory.CreateScript(key)));
+			=> new(prevout ?? BitcoinFactory.CreateOutPoint(), new TxOut(value ?? Money.Coins(1), BitcoinFactory.CreateScript(key)));
 
 		public static OwnershipProof CreateOwnershipProof(Key? key = null, uint256? roundHash = null)
 		{
