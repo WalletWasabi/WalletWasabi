@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.Converters
 
 		object? IValueConverter.Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is IList<int> columnHints)
+			if (value is AvaloniaList<int> columnHints)
 			{
 				return string.Join(",", columnHints.Select(x => x.ToString(CultureInfo.InvariantCulture)));
 			}
@@ -31,7 +31,7 @@ namespace WalletWasabi.Fluent.Converters
 		{
 			if (value is string str)
 			{
-				var columnHints = new List<int>();
+				var columnHints = new AvaloniaList<int>();
 				var values = str.Split(',');
 
 				foreach (var s in values)
