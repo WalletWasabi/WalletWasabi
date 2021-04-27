@@ -65,7 +65,7 @@ namespace WalletWasabi.Tests.UnitTests
 			throw new NotImplementedException();
 		}
 
-		public Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancel = default)
+		public Task<MemPoolInfo> GetMempoolInfoAsync()
 		{
 			return OnGetMempoolInfoAsync();
 		}

@@ -145,7 +145,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 				() => base.GetMempoolEntryAsync(txid, throwIfNotFound)).ConfigureAwait(false);
 		}
 
-		public override async Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancel = default)
+		public override async Task<MemPoolInfo> GetMempoolInfoAsync()
 		{
 			string cacheKey = nameof(GetMempoolInfoAsync);
 			var cacheOptions = new MemoryCacheEntryOptions
@@ -157,7 +157,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 			return await Cache.AtomicGetOrCreateAsync(
 				cacheKey,
 				cacheOptions,
-				() => base.GetMempoolInfoAsync(cancel)).ConfigureAwait(false);
+				() => base.GetMempoolInfoAsync()).ConfigureAwait(false);
 		}
 
 		public override async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative)

@@ -60,7 +60,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 			return await Rpc.GetMempoolEntryAsync(txid, throwIfNotFound).ConfigureAwait(false);
 		}
 
-		public virtual async Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancel = default)
+		public virtual async Task<MemPoolInfo> GetMempoolInfoAsync()
 		{
 			try
 			{
@@ -95,8 +95,6 @@ namespace WalletWasabi.BitcoinCore.Rpc
 			}
 			catch (RPCException ex) when (ex.RPCCode == RPCErrorCode.RPC_MISC_ERROR)
 			{
-				cancel.ThrowIfCancellationRequested();
-
 				return await Rpc.GetMemPoolAsync().ConfigureAwait(false);
 			}
 		}

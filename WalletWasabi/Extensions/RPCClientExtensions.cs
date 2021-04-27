@@ -74,7 +74,7 @@ namespace NBitcoin.RPC
 				? SimulateRegTestFeeEstimation(estimateMode)
 				: await GetFeeEstimationsAsync(rpc, estimateMode, cancel).ConfigureAwait(false);
 
-			var mempoolInfo = await rpc.GetMempoolInfoAsync(cancel).ConfigureAwait(false);
+			var mempoolInfo = await rpc.GetMempoolInfoAsync().ConfigureAwait(false);
 
 			var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
 			var rpcStatus = await rpc.GetRpcStatusAsync(cancel).ConfigureAwait(false);
