@@ -2,6 +2,7 @@ using System;
 using Avalonia.Controls;
 using Newtonsoft.Json;
 using System.ComponentModel;
+using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Bases;
@@ -22,6 +23,7 @@ namespace WalletWasabi.Gui
 		private int _feeDisplayFormat;
 		private bool _darkModeEnabled;
 		private bool _showCoinJoinInHistory;
+		private string? _lastSelectedWallet;
 
 		public UiConfig() : base()
 		{
@@ -36,7 +38,9 @@ namespace WalletWasabi.Gui
 					x => x.IsCustomChangeAddress,
 					x => x.DarkModeEnabled,
 					x => x.FeeDisplayFormat,
-					x => x.ShowCoinJoinInHistory)
+					x => x.ShowCoinJoinInHistory,
+					x => x.LastSelectedWallet,
+					(_, _, _, _, _, _, _, _) => Unit.Default)
 				.Throttle(TimeSpan.FromMilliseconds(500))
 				.Skip(1) // Won't save on UiConfig creation.
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -125,6 +129,14 @@ namespace WalletWasabi.Gui
 		{
 			get => _showCoinJoinInHistory;
 			set => RaiseAndSetIfChanged(ref _showCoinJoinInHistory, value);
+		}
+
+		[DefaultValue(null)]
+		[JsonProperty(PropertyName = "LastSelectedWallet", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public string? LastSelectedWallet
+		{
+			get => _lastSelectedWallet;
+			set => RaiseAndSetIfChanged(ref _lastSelectedWallet, value);
 		}
 
 		[JsonProperty(PropertyName = "CoinListViewSortingPreference")]
