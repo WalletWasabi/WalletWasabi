@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Windows.Input;
 using DynamicData.Binding;
 using NBitcoin;
@@ -13,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
 	public partial class WalletBalanceChartTileViewModel : TileViewModel
 	{
-		private readonly ReadOnlyObservableCollection<HistoryItemViewModel> _history;
+		private readonly ObservableCollection<HistoryItemViewModel> _history;
 		[AutoNotify] private ObservableCollection<double> _yValues;
 		[AutoNotify] private ObservableCollection<double> _xValues;
 		[AutoNotify] private double? _xMinimum;
@@ -21,26 +22,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify] private List<string>? _xLabels;
 		private TimePeriodOption _currentTimePeriod = TimePeriodOption.ThreeMonths;
 
-		public WalletBalanceChartTileViewModel(ReadOnlyObservableCollection<HistoryItemViewModel> history)
+		public WalletBalanceChartTileViewModel(ObservableCollection<HistoryItemViewModel> history)
 		{
 			_history = history;
 			_yValues = new ObservableCollection<double>();
 			_xValues = new ObservableCollection<double>();
 
-			_history.ToObservableChangeSet().Subscribe(_ => UpdateSample());
-
 			DayCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Day));
-
 			WeekCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Week));
-
 			MonthCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Month));
-
 			ThreeMonthCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.ThreeMonths));
-
 			SixMonthCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.SixMonths));
-
 			YearCommand = ReactiveCommand.Create(() => UpdateSample(TimePeriodOption.Year));
-
 			AllCommand = ReactiveCommand.Create(() => { UpdateSample(TimePeriodOption.All); });
 		}
 
@@ -68,6 +61,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		public ICommand YearCommand { get; }
 
 		public ICommand AllCommand { get; }
+
+		protected override void OnActivated(CompositeDisposable disposables)
+		{
+			base.OnActivated(disposables);
+
+			_history.ToObservableChangeSet()
+				.Subscribe(_ => UpdateSample())
+				.DisposeWith(disposables);
+		}
 
 		private void UpdateSample()
 		{
