@@ -37,7 +37,7 @@
             <TextBlock Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
           </DockPanel>
         </DockPanel>
-        <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}" />
+        <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}" HorizontalAlignment="Center" />
       </StackPanel>
 
       <DockPanel MaxHeight="250" HorizontalAlignment="Center" Margin="0 0 -30 10">
