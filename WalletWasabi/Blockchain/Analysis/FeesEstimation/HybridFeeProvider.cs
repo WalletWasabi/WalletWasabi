@@ -118,13 +118,13 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 						{
 							if (ThirdPartyFeeProvider.InError)
 							{
-								// If the user's full node isn't ready, but the backend is, then let's leave it to the backend.
-								return;
+								// If neither user's full node, nor the third party is ready, then let's try our best effort figuring out which data looks better:
+								notify = SetAllFeeEstimateIfLooksBetter(fees);
 							}
 							else
 							{
-								// If neither user's full node, nor backend is ready, then let's try our best effort figuring out which data looks better:
-								notify = SetAllFeeEstimateIfLooksBetter(fees);
+								// If the user's full node isn't ready, but the third party is, then let's leave it to the third party.
+								return;
 							}
 						}
 					}
