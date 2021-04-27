@@ -248,8 +248,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
 			FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
-			BlockstreamInfoFeeProvider blockstreamInfoFeeProvider = new(TimeSpan.FromMinutes(3), new BlockstreamInfoClient(network, httpClientFactory));
-			ThirdPartyFeeProvider thirdPartyFeeProvider = new(TimeSpan.FromMinutes(3), synchronizer, blockstreamInfoFeeProvider);
+			using BlockstreamInfoFeeProvider blockstreamInfoFeeProvider = new(TimeSpan.FromMinutes(3), new BlockstreamInfoClient(network, httpClientFactory));
+			using ThirdPartyFeeProvider thirdPartyFeeProvider = new(TimeSpan.FromMinutes(3), synchronizer, blockstreamInfoFeeProvider);
 			HybridFeeProvider feeProvider = new(thirdPartyFeeProvider, null);
 
 			// 3. Create key manager service.
