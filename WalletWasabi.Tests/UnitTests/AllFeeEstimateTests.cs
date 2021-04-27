@@ -13,6 +13,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 using Moq;
+using System.Threading;
 
 namespace WalletWasabi.Tests.UnitTests
 {
@@ -146,7 +147,7 @@ namespace WalletWasabi.Tests.UnitTests
 				});
 			mockRpc.Setup(rpc => rpc.GetPeersInfoAsync())
 				.ReturnsAsync(Array.Empty<PeerInfo>());
-			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync())
+			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(new MemPoolInfo
 				{
 					MemPoolMinFee = 0.00001000 // 1 s/b (default value)
@@ -168,7 +169,7 @@ namespace WalletWasabi.Tests.UnitTests
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>()))
 				.ThrowsAsync(new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Error-EstimateSmartFee", null));
 
-			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync())
+			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(new MemPoolInfo
 				{
 					MemPoolMinFee = 0.00001000 // 1 s/b (default value)
@@ -231,7 +232,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
 			var any = EstimateSmartFeeMode.Conservative;
 
-			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync()).ReturnsAsync(
+			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(
 				new MemPoolInfo
 				{
 					MemPoolMinFee = 0.00001000, // 1 s/b (default value)
@@ -279,7 +280,7 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
 				var mempoolInfo = MempoolInfoGenerator.GenerateMempoolInfo();
-				mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync()).ReturnsAsync(mempoolInfo);
+				mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(mempoolInfo);
 				mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), EstimateSmartFeeMode.Conservative)).ReturnsAsync(FeeRateResponse(2, 120m));
 				var feeRates = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 				var estimations = feeRates.Estimations;
@@ -304,7 +305,7 @@ namespace WalletWasabi.Tests.UnitTests
 				hasPeersInfo
 					? new[] { new PeerInfo() }
 					: Array.Empty<PeerInfo>());
-			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync()).ReturnsAsync(
+			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(
 				new MemPoolInfo
 				{
 					MemPoolMinFee = memPoolMinFee, // 1 s/b (default value)
