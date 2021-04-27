@@ -4,13 +4,14 @@ using System.Windows.Input;
 using Avalonia;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 {
 	public partial class AddressViewModel : ViewModelBase
 	{
-		[AutoNotify] private string _label;
+		[AutoNotify] private SmartLabel _label;
 		[AutoNotify] private string _address;
 
 		public AddressViewModel(HdPubKey model, Network network, Func<HdPubKey, string, Task> hideCommand)

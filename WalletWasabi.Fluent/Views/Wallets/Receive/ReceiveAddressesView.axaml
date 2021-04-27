@@ -44,7 +44,7 @@
                 <Button Classes="plain addressActionButton" ToolTip.Tip="Edit">
                   <PathIcon Data="{StaticResource edit_regular}" Classes="addressActionIcon" />
                 </Button>
-                <TextBlock Text="{Binding Label}"/>
+                <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Label}" />
               </DockPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
