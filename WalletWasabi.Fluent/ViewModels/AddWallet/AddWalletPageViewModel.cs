@@ -49,13 +49,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			this.WhenAnyValue(x => x.CurrentTarget)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe((Action<NavigationTarget>)(x =>
+				.Subscribe(x =>
 				{
 					enableBack?.Dispose();
 					enableBack = Navigate()
-						.WhenAnyValue<Navigation.INavigationStack<Navigation.RoutableViewModel>, bool>(y => y.CanNavigateBack)
+						.WhenAnyValue(y => y.CanNavigateBack)
 						.Subscribe(y => EnableBack = y);
-				}));
+				});
 
 			this.WhenAnyValue(x => x.WalletName)
 				.ObserveOn(RxApp.MainThreadScheduler)
