@@ -1,6 +1,9 @@
-﻿using System.Windows.Input;
+﻿using System.Reactive.Disposables;
+using System.Windows.Input;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Controls
@@ -24,6 +27,11 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<double> PointerOverOpacityProperty =
 			AvaloniaProperty.Register<AnimatedButton, double>(nameof(PointerOverOpacity), 0.75);
+
+		public static readonly StyledProperty<bool> AnimateIconProperty =
+			AvaloniaProperty.Register<AnimatedButton, bool>(nameof(AnimateIcon));
+
+		private CompositeDisposable? _compositeDisposable;
 
 		public ICommand Command
 		{
@@ -59,6 +67,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(PointerOverOpacityProperty);
 			set => SetValue(PointerOverOpacityProperty, value);
+		}
+
+		public bool AnimateIcon
+		{
+			get => GetValue(AnimateIconProperty);
+			set => SetValue(AnimateIconProperty, value);
 		}
 	}
 }
