@@ -23,8 +23,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 				MnemonicWords.Add(new RecoveryWordViewModel(i + 1, mnemonic.Words[i]));
 			}
 
-
-
 			EnableBack = true;
 
 			NextCommand = ReactiveCommand.Create(() => OnNext(keyManager, walletManager));
