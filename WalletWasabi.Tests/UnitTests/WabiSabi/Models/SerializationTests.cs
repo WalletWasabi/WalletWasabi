@@ -40,7 +40,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void InputRegistrationRequestMessageSerialization()
 		{
 			var message = new InputRegistrationRequest(
-					Guid.NewGuid(),
+					new uint256(1234567),
 					BitcoinFactory.CreateOutPoint(),
 					new OwnershipProof(),
 					CreateZeroCredentialsRequest(),
@@ -53,7 +53,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void InputRegistrationResponseMessageSerialization()
 		{
 			var message = new InputRegistrationResponse(
-				Guid.NewGuid(),
+				new uint256(67432),
 				CreateCredentialsResponse(),
 				CreateCredentialsResponse());
 
@@ -64,8 +64,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void ConnectionConfirmationRequestMessageSerialization()
 		{
 			var message = new ConnectionConfirmationRequest(
-				Guid.NewGuid(),
-				Guid.NewGuid(),
+				new uint256(123456),
+				new uint256(456123),
 				CreateZeroCredentialsRequest(),
 				CreateRealCredentialsRequest(),
 				CreateZeroCredentialsRequest(),
@@ -90,7 +90,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void OutputRegistrationRequestMessageSerialization()
 		{
 			var message = new OutputRegistrationRequest(
-				Guid.NewGuid(),
+				new uint256(1234567),
 				BitcoinFactory.CreateScript(),
 				CreateRealCredentialsRequest(),
 				CreateRealCredentialsRequest());
@@ -112,7 +112,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void ReissueCredentialRequestMessageSerialization()
 		{
 			var message = new ReissueCredentialRequest(
-				Guid.NewGuid(),
+				new uint256(1234567),
 				CreateRealCredentialsRequest(),
 				CreateRealCredentialsRequest(),
 				CreateZeroCredentialsRequest(),
@@ -137,8 +137,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void InpuRemovalRequestMessageSerialization()
 		{
 			var message = new InputsRemovalRequest(
-				Guid.NewGuid(),
-				Guid.NewGuid());
+				new uint256(3456543),
+				new uint256(9998877));
 
 			AssertSerialization(message);
 		}
@@ -149,7 +149,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			using var key1 = new Key();
 			using var key2 = new Key();
 			var message = new TransactionSignaturesRequest(
-				Guid.NewGuid(),
+				new uint256(1234567),
 				new[]
 				{
 					new InputWitnessPair(1, new WitScript(Op.GetPushOp(key1.PubKey.ToBytes())) ),

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using Xunit;
@@ -30,22 +31,22 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			// Make sure we set them to the past so the release method that looks at the time evaluates to true.
 			var past = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(2);
 
-			var guid1 = Guid.NewGuid();
-			p.Punish(new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Banned, past, guid1));
+			var id1 = new uint256(1234);
+			p.Punish(new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Banned, past, id1));
 			Assert.NotEqual(currentChangeId, p.ChangeId);
 			currentChangeId = p.ChangeId;
 
-			p.Punish(new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Noted, past, guid1));
+			p.Punish(new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Noted, past, id1));
 			Assert.NotEqual(currentChangeId, p.ChangeId);
 			currentChangeId = p.ChangeId;
 
 			var op = BitcoinFactory.CreateOutPoint();
-			var guid2 = Guid.NewGuid();
-			p.Punish(new Inmate(op, Punishment.Noted, past, guid2));
+			var id2 = new uint256(5555);
+			p.Punish(new Inmate(op, Punishment.Noted, past, id2));
 			Assert.NotEqual(currentChangeId, p.ChangeId);
 			currentChangeId = p.ChangeId;
 
-			p.Punish(new Inmate(op, Punishment.Noted, past, guid1));
+			p.Punish(new Inmate(op, Punishment.Noted, past, id1));
 			Assert.NotEqual(currentChangeId, p.ChangeId);
 			currentChangeId = p.ChangeId;
 
@@ -62,17 +63,17 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			var p = new Prison();
 
-			var guid1 = Guid.NewGuid();
+			var id1 = new uint256(88888);
 
 			var utxo = BitcoinFactory.CreateOutPoint();
-			p.Punish(utxo, Punishment.Noted, guid1);
+			p.Punish(utxo, Punishment.Noted, id1);
 			Assert.Single(p.GetInmates());
 			Assert.Equal(1, p.CountInmates().noted);
 			Assert.Equal(0, p.CountInmates().banned);
 			Assert.True(p.TryGet(utxo, out _));
 
 			// Updates to banned.
-			p.Punish(utxo, Punishment.Banned, guid1);
+			p.Punish(utxo, Punishment.Banned, id1);
 			Assert.Single(p.GetInmates());
 			Assert.Equal(0, p.CountInmates().noted);
 			Assert.Equal(1, p.CountInmates().banned);
@@ -83,8 +84,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.Empty(p.GetInmates());
 
 			// Noting twice flips to banned.
-			p.Punish(utxo, Punishment.Noted, guid1);
-			p.Punish(utxo, Punishment.Noted, guid1);
+			p.Punish(utxo, Punishment.Noted, id1);
+			p.Punish(utxo, Punishment.Noted, id1);
 			Assert.Single(p.GetInmates());
 			Assert.Equal(0, p.CountInmates().noted);
 			Assert.Equal(1, p.CountInmates().banned);
@@ -92,12 +93,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.True(p.TryRelease(utxo, out _));
 
 			// Updates round.
-			var guid2 = Guid.NewGuid();
-			p.Punish(utxo, Punishment.Banned, guid1);
-			p.Punish(utxo, Punishment.Banned, guid2);
+			var id2 = new NBitcoin.uint256(1234);
+			p.Punish(utxo, Punishment.Banned, id1);
+			p.Punish(utxo, Punishment.Banned, id2);
 			Assert.Single(p.GetInmates());
 			Assert.True(p.TryGet(utxo, out var inmate));
-			Assert.Equal(guid2, inmate!.LastDisruptedRoundId);
+			Assert.Equal(id2, inmate!.LastDisruptedRoundId);
 			Assert.True(p.TryRelease(utxo, out _));
 		}
 	}
