@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
@@ -30,8 +31,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.WhenValueChanged(x => x.IsConfirmed)
 				.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
-
-			SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 
 			EnableBack = true;
 
@@ -66,6 +65,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 		private void OnCancel()
 		{
 			Navigate().Clear();
+		}
+
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			base.OnNavigatedTo(isInHistory, disposables);
+
+			var enableCancel = CurrentTarget != NavigationTarget.FullScreen;
+			SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 		}
 	}
 }

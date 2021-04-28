@@ -1,3 +1,4 @@
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.Validation;
@@ -23,8 +24,6 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.ConfirmPassword, ValidateConfirmPassword);
-
-			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = true;
 
@@ -82,6 +81,14 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 			{
 				errors.Add(ErrorSeverity.Error, PasswordHelper.PasswordTooLongMessage);
 			}
+		}
+
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			base.OnNavigatedTo(isInHistory, disposables);
+
+			var enableCancel = CurrentTarget != NavigationTarget.FullScreen;
+			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 		}
 	}
 }

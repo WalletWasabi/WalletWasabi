@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -41,8 +42,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(Mnemonics)));
 
 			this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
-
-			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = true;
 
@@ -146,6 +145,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private string GetTagsAsConcatString()
 		{
 			return string.Join(' ', Mnemonics);
+		}
+
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			base.OnNavigatedTo(isInHistory, disposables);
+
+			var enableCancel = CurrentTarget != NavigationTarget.FullScreen;
+			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 		}
 	}
 }
