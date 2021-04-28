@@ -8,6 +8,7 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.StrobeProtocol;
 using WalletWasabi.Crypto.ZeroKnowledge.LinearRelation;
 using WalletWasabi.Helpers;
+using WalletWasabi.WabiSabi;
 
 namespace WalletWasabi.Crypto.ZeroKnowledge
 {
@@ -36,7 +37,7 @@ namespace WalletWasabi.Crypto.ZeroKnowledge
 		/// the Merlin website for more details on why.
 		/// </remarks>
 		public Transcript(byte[] label)
-			: this(new Strobe128("WabiSabi_v1.0"))
+			: this(new Strobe128(ProtocolConstants.WabiSabiProtocolIdentifier))
 		{
 			AddMessage(DomainSeparatorTag, label);
 		}

@@ -35,11 +35,13 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		}
 
 		private uint256 CalculateHash()
-			=> StrobeHasher.Combine(new()
-			{
-				{ nameof(Coin.TxOut), Coin.TxOut.ToHex() },
-				{ nameof(Coin.Outpoint), Coin.Outpoint.ToHex() },
-				{ nameof(OwnershipProof), OwnershipProof.ToHex() },
-			});
+			=> StrobeHasher.Combine(
+				ProtocolConstants.AliceStrobeDomain,
+				new()
+				{
+					{ ProtocolConstants.AliceCoinTxOutStrobeLabel, Coin.TxOut },
+					{ ProtocolConstants.AliceCoinOutpointStrobeLabel, Coin.Outpoint },
+					{ ProtocolConstants.AliceOwnershipProofStrobeLabel, OwnershipProof },
+				});
 	}
 }

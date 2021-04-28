@@ -18,8 +18,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			RoundParameters = roundParameters;
 
-			AmountCredentialIssuer = new(new(Random), Random, MaxRegistrableAmount);
-			VsizeCredentialIssuer = new(new(Random), Random, PerAliceVsizeAllocation);
+			AmountCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, MaxRegistrableAmount);
+			VsizeCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, PerAliceVsizeAllocation);
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			VsizeCredentialIssuerParameters = VsizeCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 
@@ -64,7 +64,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public int RemainingInputVsizeAllocation => InitialInputVsizeAllocation - Alices.Count * (int)PerAliceVsizeAllocation;
 
 		private RoundParameters RoundParameters { get; }
-		private WasabiRandom Random => RoundParameters.Random;
 
 		public void SetPhase(Phase phase)
 		{
@@ -131,15 +130,17 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			=> CoinjoinState.AssertSigning().AddWitness(index, witness);
 
 		private uint256 CalculateHash()
-			=> StrobeHasher.Combine(new()
-			{
-				{ nameof(MaxInputCountByAlice), MaxInputCountByAlice },
-				{ nameof(MinRegistrableAmount), MinRegistrableAmount },
-				{ nameof(MaxRegistrableAmount), MaxRegistrableAmount },
-				{ nameof(PerAliceVsizeAllocation), PerAliceVsizeAllocation },
-				{ nameof(AmountCredentialIssuerParameters), AmountCredentialIssuerParameters },
-				{ nameof(VsizeCredentialIssuerParameters), VsizeCredentialIssuerParameters },
-				{ nameof(FeeRate), FeeRate.SatoshiPerByte }
-			});
+			=> StrobeHasher.Combine(
+				ProtocolConstants.RoundStrobeDomain,
+				new()
+				{
+					{ ProtocolConstants.RoundMaxInputCountByAliceStrobeLabel, MaxInputCountByAlice },
+					{ ProtocolConstants.RoundMinRegistrableAmountStrobeLabel, MinRegistrableAmount },
+					{ ProtocolConstants.RoundMaxRegistrableAmountStrobeLabel, MaxRegistrableAmount },
+					{ ProtocolConstants.RoundPerAliceVsizeAllocationStrobeLabel, PerAliceVsizeAllocation },
+					{ ProtocolConstants.RoundAmountCredentialIssuerParametersStrobeLabel, AmountCredentialIssuerParameters },
+					{ ProtocolConstants.RoundVsizeCredentialIssuerParametersStrobeLabel, VsizeCredentialIssuerParameters },
+					{ ProtocolConstants.RoundFeeRateStrobeLabel, FeeRate.SatoshiPerByte }
+				});
 	}
 }
