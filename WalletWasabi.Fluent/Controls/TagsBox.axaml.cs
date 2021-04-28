@@ -217,9 +217,9 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			if (RestrictInputToSuggestions &&
-			    Suggestions is IList<string> suggestions &&
-			    !suggestions.Any(x =>
-				    x.StartsWith(autoCompleteBox.SearchText, _stringComparison)))
+				Suggestions is IList<string> suggestions &&
+				!suggestions.Any(x =>
+					x.StartsWith(autoCompleteBox.SearchText, _stringComparison)))
 			{
 				e.Handled = true;
 			}
