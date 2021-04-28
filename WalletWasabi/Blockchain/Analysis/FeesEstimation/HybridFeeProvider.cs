@@ -10,7 +10,6 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.Services;
-using WalletWasabi.WebClients.BlockstreamInfo;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 {

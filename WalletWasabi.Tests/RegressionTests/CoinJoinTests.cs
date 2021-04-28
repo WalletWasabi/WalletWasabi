@@ -35,7 +35,6 @@ using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using static WalletWasabi.Crypto.SchnorrBlinding;
