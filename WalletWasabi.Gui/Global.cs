@@ -132,8 +132,6 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				cancel.ThrowIfCancellationRequested();
-
 				Cache = new MemoryCache(new MemoryCacheOptions
 				{
 					SizeLimit = 1_000,
@@ -141,17 +139,12 @@ namespace WalletWasabi.Gui
 				});
 				var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
-				cancel.ThrowIfCancellationRequested();
-
 				HostedServices.Register<UpdateChecker>(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
 				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
-
-				HostedServices.Register<SystemAwakeChecker>(new SystemAwakeChecker(WalletManager), "System Awake Checker");
-
 				cancel.ThrowIfCancellationRequested();
 
-				#region TorProcessInitialization
+				HostedServices.Register<SystemAwakeChecker>(new SystemAwakeChecker(WalletManager), "System Awake Checker");
 
 				if (Config.UseTor && Network != Network.RegTest)
 				{
@@ -159,6 +152,7 @@ namespace WalletWasabi.Gui
 					{
 						TorManager = new TorProcessManager(TorSettings, Config.TorSocks5EndPoint);
 						await TorManager.StartAsync().ConfigureAwait(false);
+						cancel.ThrowIfCancellationRequested();
 					}
 
 					Tor.Http.TorHttpClient torHttpClient = BackendHttpClientFactory.NewTorHttpClient(isolateStream: false);
@@ -166,12 +160,6 @@ namespace WalletWasabi.Gui
 				}
 
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
-
-				#endregion TorProcessInitialization
-
-				cancel.ThrowIfCancellationRequested();
-
-				#region BitcoinStoreInitialization
 
 				try
 				{
@@ -187,14 +175,8 @@ namespace WalletWasabi.Gui
 					throw;
 				}
 
-				#endregion BitcoinStoreInitialization
-
 				HostedServices.Register<P2pNetwork>(new P2pNetwork(Network, Config.GetBitcoinP2pEndPoint(), Config.UseTor ? Config.TorSocks5EndPoint : null, Path.Combine(DataDir, "BitcoinP2pNetwork"), BitcoinStore), "Bitcoin P2P Network");
 				HostedServices.Register<FilterProcessor>(new FilterProcessor(Synchronizer, BitcoinStore), "Filter Processor");
-
-				cancel.ThrowIfCancellationRequested();
-
-				#region BitcoinCoreInitialization
 
 				try
 				{
@@ -229,37 +211,20 @@ namespace WalletWasabi.Gui
 					Logger.LogError(ex);
 				}
 
-				#endregion BitcoinCoreInitialization
-
 				HostedServices.Register<BlockstreamInfoFeeProvider>(new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, ExternalHttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
 				HostedServices.Register<ThirdPartyFeeProvider>(new ThirdPartyFeeProvider(TimeSpan.FromSeconds(1), Synchronizer, HostedServices.Get<BlockstreamInfoFeeProvider>()), "Third Party Fee Provider");
 				HostedServices.Register<HybridFeeProvider>(new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
-				cancel.ThrowIfCancellationRequested();
-
-				#region SynchronizerInitialization
-
-				var requestInterval = TimeSpan.FromSeconds(30);
-				if (Network == Network.RegTest)
-				{
-					requestInterval = TimeSpan.FromSeconds(5);
-				}
-
+				var requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
 				int maxFiltSyncCount = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
 
 				Synchronizer.Start(requestInterval, maxFiltSyncCount);
 				Logger.LogInfo("Start synchronizing filters...");
 
-				#endregion SynchronizerInitialization
-
-				cancel.ThrowIfCancellationRequested();
-
 				TransactionBroadcaster.Initialize(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode?.RpcClient);
 				CoinJoinProcessor = new CoinJoinProcessor(Network, Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
-
-				#region JsonRpcServerInitialization
 
 				var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config);
 				if (jsonRpcServerConfig.IsEnabled)
@@ -276,21 +241,11 @@ namespace WalletWasabi.Gui
 					}
 				}
 
-				#endregion JsonRpcServerInitialization
-
-				cancel.ThrowIfCancellationRequested();
-
-				#region Blocks provider
-
 				var blockProvider = new CachedBlockProvider(
 					new SmartBlockProvider(
 						new P2pBlockProvider(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode, BackendHttpClientFactory, Config.ServiceConfiguration, Network),
 						Cache),
 					BitcoinStore.BlockRepository);
-
-				#endregion Blocks provider
-
-				cancel.ThrowIfCancellationRequested();
 
 				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
 			}
