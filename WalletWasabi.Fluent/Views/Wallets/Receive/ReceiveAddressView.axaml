@@ -25,30 +25,39 @@
       <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="30">
         <DockPanel HorizontalAlignment="Center">
           <DockPanel>
-            <c:AnimatedButton Margin="5 0 0 0" ToolTip.Tip="Show on the hardware wallet" DockPanel.Dock="Right"
-                              IsVisible="{Binding IsHardwareWallet}"
-                              Command="{Binding ShowOnHwWalletCommand}"
-                              NormalIcon="{StaticResource share_regular}"
-                              ClickIcon="{StaticResource copy_confirmed}"/>
-            <c:AnimatedButton Margin="10 0 0 0" ToolTip.Tip="Copy" DockPanel.Dock="Right"
-                              Command="{Binding CopyAddressCommand}"
-                              NormalIcon="{StaticResource copy_regular}"
-                              ClickIcon="{StaticResource copy_confirmed}"/>
-            <TextBlock Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
+            <c:AdorningContentControl>
+              <TextBlock Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
+              <c:AdorningContentControl.Adornment>
+                <StackPanel Orientation="Horizontal" Background="{DynamicResource RegionColor}" HorizontalAlignment="Right" Margin="0 0 -40 0">
+                  <c:AnimatedButton Margin="5 0 0 0" ToolTip.Tip="Show on the hardware wallet" DockPanel.Dock="Right"
+                                    IsVisible="{Binding IsHardwareWallet}"
+                                    Command="{Binding ShowOnHwWalletCommand}"
+                                    NormalIcon="{StaticResource share_regular}"
+                                    ClickIcon="{StaticResource copy_confirmed}"/>
+
+                  <c:AnimatedButton Margin="10 0 0 0" ToolTip.Tip="Copy"
+                                    Command="{Binding CopyAddressCommand}"
+                                    NormalIcon="{StaticResource copy_regular}"
+                                    ClickIcon="{StaticResource copy_confirmed}"/>
+                </StackPanel>
+              </c:AdorningContentControl.Adornment>
+            </c:AdorningContentControl>
           </DockPanel>
         </DockPanel>
         <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}" HorizontalAlignment="Center" />
       </StackPanel>
 
-      <DockPanel MaxHeight="250" HorizontalAlignment="Center" Margin="0 0 -30 10">
-        <Button Command="{Binding SaveQrCodeCommand}" ToolTip.Tip="Save" Classes="plain icon" DockPanel.Dock="Right" VerticalAlignment="Bottom" Margin="10 0 0 0">
-          <PathIcon Data="{StaticResource save_regular}"/>
-        </Button>
+      <c:AdorningContentControl MaxHeight="250" HorizontalAlignment="Center" Margin="0 0 0 10">
+        <c:AdorningContentControl.Adornment>
+          <Button Command="{Binding SaveQrCodeCommand}" ToolTip.Tip="Save" Classes="plain icon"
+                  HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 0 -40 0">
+            <PathIcon Data="{StaticResource save_regular}"/>
+          </Button>
+        </c:AdorningContentControl.Adornment>
         <Viewbox HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Left">
           <c:QrCode Height="250" Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" Margin="0 0 0 -18"/>
         </Viewbox>
-      </DockPanel>
-
+      </c:AdorningContentControl>
     </DockPanel>
   </c:ContentArea>
 </UserControl>
