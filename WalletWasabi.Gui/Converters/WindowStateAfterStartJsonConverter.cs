@@ -9,7 +9,7 @@ namespace WalletWasabi.Gui.Converters
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(WindowState);
+			return objectType == typeof(string);
 		}
 
 		/// <inheritdoc />
@@ -22,25 +22,25 @@ namespace WalletWasabi.Gui.Converters
 
 				if (string.IsNullOrWhiteSpace(value))
 				{
-					return WindowState.Maximized;
+					return WindowState.Maximized.ToString();
 				}
 
 				var windowStateString = value.Trim();
 
 				return windowStateString.StartsWith("norm", StringComparison.OrdinalIgnoreCase)
-					? WindowState.Normal
-					: WindowState.Maximized;
+					? WindowState.Normal.ToString()
+					: WindowState.Maximized.ToString();
 			}
 			catch
 			{
-				return WindowState.Maximized;
+				return WindowState.Maximized.ToString();
 			}
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			writer.WriteValue(((WindowState)value).ToString());
+			writer.WriteValue(value);
 		}
 	}
 }

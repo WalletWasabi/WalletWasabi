@@ -45,7 +45,7 @@ namespace WalletWasabi.Gui
 
 		[JsonProperty(PropertyName = "WindowState")]
 		[JsonConverter(typeof(WindowStateAfterStartJsonConverter))]
-		public WindowState WindowState { get; internal set; } = WindowState.Normal;
+		public string WindowState { get; internal set; } = Avalonia.Controls.WindowState.Normal.ToString();
 
 		[DefaultValue(2)]
 		[JsonProperty(PropertyName = "FeeTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
