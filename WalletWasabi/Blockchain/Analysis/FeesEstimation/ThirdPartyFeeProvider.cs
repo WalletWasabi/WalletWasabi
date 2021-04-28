@@ -100,7 +100,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 		protected override Task ActionAsync(CancellationToken cancel)
 		{
-			if (Synchronizer.InError)
+			if (Synchronizer.InError && Synchronizer.BackendStatusChangedSince > TimeSpan.FromMinutes(1))
 			{
 				BlockstreamProvider.IsPaused = false;
 				InError = BlockstreamProvider.InError;

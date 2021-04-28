@@ -86,8 +86,17 @@ namespace WalletWasabi.Services
 		public BackendStatus BackendStatus
 		{
 			get => _backendStatus;
-			private set => RaiseAndSetIfChanged(ref _backendStatus, value);
+			private set
+			{
+				if (RaiseAndSetIfChanged(ref _backendStatus, value))
+				{
+					BackendStatusChangedAt = DateTimeOffset.UtcNow;
+				}
+			}
 		}
+
+		private DateTimeOffset BackendStatusChangedAt { get; set; } = DateTimeOffset.UtcNow;
+		public TimeSpan BackendStatusChangedSince => DateTimeOffset.UtcNow - BackendStatusChangedAt;
 
 		public TimeSpan MaxRequestIntervalForMixing { get; set; }
 
