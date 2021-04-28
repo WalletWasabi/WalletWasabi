@@ -24,9 +24,8 @@ namespace WalletWasabi.WabiSabi.Client
 		public IArenaRequestHandler ArenaRequestHandler { get; }
 		private BitcoinSecret BitcoinSecret { get; }
 		private SecureRandom SecureRandom { get; }
-		private List<Task> AliceClients { get; } = new();
-		private object AliceClientsLock { get; } = new();
 		private CancellationTokenSource DisposeCts { get; } = new();
+		private Coin[] Coins { get; set; }
 
 		public CoinJoinClient(Round round, IArenaRequestHandler arenaRequestHandler, BitcoinSecret bitcoinSecret)
 		{
@@ -38,21 +37,26 @@ namespace WalletWasabi.WabiSabi.Client
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
-			do
+			try
 			{
-				lock (AliceClientsLock)
-				{
-					if (AliceClients.All(t => t.IsCompleted))
-					{
-						// All Alice confirmed
-						break;
-					}
-				}
+				// Register coins.
+				AliceClient[] aliceClients = await RegisterCoinsAsync().ConfigureAwait(false);
+
+				// Confirm coins.
+				await ConfirmConnectionsAsync(aliceClients, stoppingToken).ConfigureAwait(false);
 			}
-			while (true);
+			catch (Exception ex)
+			{
+			}
 		}
 
-		public async Task RegisterCoinAsync(Coin coin)
+		public async Task StartMixingCoinsAsync(IEnumerable<Coin> coins)
+		{
+			Coins = coins.ToArray();
+			await StartAsync(DisposeCts.Token).ConfigureAwait(false);
+		}
+
+		private async Task<AliceClient[]> RegisterCoinsAsync()
 		{
 			var aliceArenaClient = new ArenaClient(
 				Round.AmountCredentialIssuerParameters,
@@ -62,14 +66,46 @@ namespace WalletWasabi.WabiSabi.Client
 				ArenaRequestHandler,
 				SecureRandom);
 
-			var aliceClient = await AliceClient.CreateNewAsync(aliceArenaClient, coin, BitcoinSecret, Round.Id, Round.Hash, Round.FeeRate).ConfigureAwait(false);
-
-			lock (AliceClientsLock)
+			List<AliceClient> aliceClients = new();
+			try
 			{
-				AliceClients.Add(aliceClient.ConfirmConnectionAsync(TimeSpan.FromSeconds(5), DisposeCts.Token));
+				foreach (var coin in Coins)
+				{
+					// Parallelize or Random delay?
+					aliceClients.Add(await AliceClient.CreateNewAsync(aliceArenaClient, coin, BitcoinSecret, Round.Id, Round.Hash, Round.FeeRate).ConfigureAwait(false));
+				}
+			}
+			catch (Exception)
+			{
+				foreach (var alice in aliceClients)
+				{
+					// Remove already registered Inputs.
+					try
+					{
+						await alice.RemoveInputAsync().ConfigureAwait(false);
+					}
+					catch (Exception)
+					{
+						// Log?
+					}
+				}
+				throw;
 			}
 
-			await StartAsync(DisposeCts.Token).ConfigureAwait(false);
+			return aliceClients.ToArray();
+		}
+
+		private async Task ConfirmConnectionsAsync(AliceClient[] aliceClients, CancellationToken stoppingToken)
+		{
+			Task[] confirmTasks = aliceClients.Select(aliceClient => aliceClient.ConfirmConnectionAsync(TimeSpan.FromSeconds(5), stoppingToken)).ToArray();
+
+			await Task.WhenAll(confirmTasks).ConfigureAwait(false);
+
+			var exceptions = confirmTasks.Where(t => t.IsFaulted && t.Exception is { }).Select(t => t.Exception);
+			if (exceptions.Any())
+			{
+				// Error! Try to de-register inputs?
+			}
 		}
 
 		public async Task StopAsync()
