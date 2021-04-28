@@ -24,18 +24,24 @@ namespace WalletWasabi.WabiSabi.Client
 		private Round Round { get; }
 		public IArenaRequestHandler ArenaRequestHandler { get; }
 		private BitcoinSecret BitcoinSecret { get; }
+		public KeyManager Keymanager { get; }
 		private SecureRandom SecureRandom { get; }
 		private CancellationTokenSource DisposeCts { get; } = new();
-		private Coin[]? Coins { get; set; }
+		private Coin[] Coins { get; set; }
 
-		private (Money Amount, HdPubKey Pubkey)[]? Outputs { get; set; }
-
-		public CoinJoinClient(Round round, IArenaRequestHandler arenaRequestHandler, BitcoinSecret bitcoinSecret)
+		public CoinJoinClient(
+			Round round,
+			IArenaRequestHandler arenaRequestHandler,
+			BitcoinSecret bitcoinSecret,
+			IEnumerable<Coin> coins,
+			KeyManager keymanager)
 		{
 			Round = round;
 			ArenaRequestHandler = arenaRequestHandler;
 			BitcoinSecret = bitcoinSecret;
+			Keymanager = keymanager;
 			SecureRandom = new SecureRandom();
+			Coins = coins.ToArray();
 		}
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -48,26 +54,26 @@ namespace WalletWasabi.WabiSabi.Client
 				// Confirm coins.
 				await ConfirmConnectionsAsync(aliceClients, stoppingToken).ConfigureAwait(false);
 
-				// Output registration.
-				await RegisterOutputsAsync().ConfigureAwait(false);
+				Money[]? othersInputAmounts = null; // TODO: Get it from somewhere.
 
-				Transaction? unsignedCoinJoinTransaction = null;
+				// Planning
+				var outputs = await PlanAmountsAsync(othersInputAmounts, stoppingToken).ConfigureAwait(false);
+
+				// Output registration.
+				await RegisterOutputsAsync(outputs).ConfigureAwait(false);
+
+				Transaction? unsignedCoinJoinTransaction = null; // TODO: Get it from somewhere.
 
 				// Send signature.
-				foreach (var aliceClient in aliceClients)
-				{
-					await aliceClient.SignTransactionAsync(BitcoinSecret, unsignedCoinJoinTransaction).ConfigureAwait(false);
-				}
+				await SignTransactionAsync(aliceClients, unsignedCoinJoinTransaction).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
 			}
 		}
 
-		public async Task StartMixingCoinsAsync(IEnumerable<Coin> coins, (Money Amount, HdPubKey Pubkey)[] outputs)
+		public async Task StartMixingCoinsAsync()
 		{
-			Outputs = outputs;
-			Coins = coins.ToArray();
 			await StartAsync(DisposeCts.Token).ConfigureAwait(false);
 		}
 
@@ -123,7 +129,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		private async Task RegisterOutputsAsync()
+		private async Task RegisterOutputsAsync((Money Amount, HdPubKey Pubkey)[] outputs)
 		{
 			ArenaClient bobArenaClient = new(
 				Round.AmountCredentialIssuerParameters,
@@ -133,11 +139,28 @@ namespace WalletWasabi.WabiSabi.Client
 				ArenaRequestHandler,
 				SecureRandom);
 
-			foreach (var output in Outputs)
+			foreach (var output in outputs)
 			{
 				BobClient bobClient = new BobClient(Round.Id, bobArenaClient);
 				await bobClient.RegisterOutputAsync(output.Amount, output.Pubkey.PubKey.WitHash.ScriptPubKey).ConfigureAwait(false);
 				// Random delay?
+			}
+		}
+
+		private async Task<(Money Amount, HdPubKey Pubkey)[]> PlanAmountsAsync(Money[]? inputsOfOthers, CancellationToken stoppingToken)
+		{
+			// Simulate planner.
+			await Task.Delay(0, stoppingToken).ConfigureAwait(false);
+			var amounts = Enumerable.Repeat(Money.Zero, 4).ToArray();
+
+			return amounts.Select(amount => (amount, Keymanager.GenerateNewKey("", KeyState.Locked, true, true))).ToArray(); // Keymanager threadsafe => no!?
+		}
+
+		private async Task SignTransactionAsync(AliceClient[] aliceClients, Transaction unsignedCoinJoinTransaction)
+		{
+			foreach (var aliceClient in aliceClients)
+			{
+				await aliceClient.SignTransactionAsync(BitcoinSecret, unsignedCoinJoinTransaction).ConfigureAwait(false);
 			}
 		}
 
