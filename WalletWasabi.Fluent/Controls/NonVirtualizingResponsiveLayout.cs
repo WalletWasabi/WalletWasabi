@@ -7,8 +7,8 @@ using Avalonia.Layout;
 
 namespace WalletWasabi.Fluent.Controls
 {
-    public class NonVirtualizingResponsiveLayout : NonVirtualizingLayout
-    {
+	public class NonVirtualizingResponsiveLayout : NonVirtualizingLayout
+	{
 		public static readonly StyledProperty<double> ItemWidthProperty =
 			AvaloniaProperty.Register<NonVirtualizingLayout, double>(nameof(ItemWidth), double.NaN);
 
@@ -111,19 +111,19 @@ namespace WalletWasabi.Fluent.Controls
 			return !state.Validate() ? Size.Empty : state.MeasureArrange(isMeasure);
 		}
 
-	    protected override Size MeasureOverride(NonVirtualizingLayoutContext context, Size availableSize)
-        {
-	        return MeasureArrange(availableSize, context, true);
-        }
+		protected override Size MeasureOverride(NonVirtualizingLayoutContext context, Size availableSize)
+		{
+			return MeasureArrange(availableSize, context, true);
+		}
 
-        protected override Size ArrangeOverride(NonVirtualizingLayoutContext context, Size finalSize)
-        {
-	        return MeasureArrange(finalSize, context, false);
-        }
+		protected override Size ArrangeOverride(NonVirtualizingLayoutContext context, Size finalSize)
+		{
+			return MeasureArrange(finalSize, context, false);
+		}
 
-        protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
-        {
-	        InvalidateMeasure();
-        }
-    }
+		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+		{
+			InvalidateMeasure();
+		}
+	}
 }
