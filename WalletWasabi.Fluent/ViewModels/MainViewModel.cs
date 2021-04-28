@@ -113,7 +113,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (!_walletManagerViewModel.WalletManager.AnyWallet(_ => true))
 			{
-				_addWalletPage.Navigate().To(_addWalletPage, NavigationMode.Clear);
+				_fullScreen.To(_addWalletPage, NavigationMode.Clear);
 			}
 		}
 

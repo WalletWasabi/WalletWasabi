@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		Category = "General",
 		Keywords = new[] { "Wallet", "Add", "Create", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger" },
 		IconName = "add_circle_regular",
-		NavigationTarget = NavigationTarget.FullScreen,
+		NavigationTarget = NavigationTarget.DialogScreen,
 		NavBarPosition = NavBarPosition.Bottom)]
 	public partial class AddWalletPageViewModel : NavBarItemViewModel
 	{
@@ -39,7 +39,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			WalletManagerViewModel walletManagerViewModel,
 			BitcoinStore store)
 		{
-			Title = "Add Wallet";
 			SelectionMode = NavBarItemSelectionMode.Button;
 			var walletManager = walletManagerViewModel.WalletManager;
 			var network = walletManager.Network;
@@ -135,7 +134,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 				var keyManager = await ImportWalletHelper.ImportWalletAsync(walletManager, WalletName, filePath);
 
-				// TODO: get the type from the wallet file
 				Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager));
 			}
 			catch (Exception ex)
