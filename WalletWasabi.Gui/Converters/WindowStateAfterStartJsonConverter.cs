@@ -17,24 +17,20 @@ namespace WalletWasabi.Gui.Converters
 		{
 			try
 			{
-				// If minimized, then go with Maximized, because at start it shouldn't run with minimized.
 				var value = reader.Value as string;
 
-				if (string.IsNullOrWhiteSpace(value))
+				// If minimized, then go with Maximized, because at start it shouldn't run with minimized.
+				if (Enum.TryParse(value, out WindowState ws) && ws != WindowState.Minimized)
 				{
-					return WindowState.Maximized.ToString();
+					return ws.ToString();
 				}
-
-				var windowStateString = value.Trim();
-
-				return windowStateString.StartsWith("norm", StringComparison.OrdinalIgnoreCase)
-					? WindowState.Normal.ToString()
-					: WindowState.Maximized.ToString();
 			}
 			catch
 			{
-				return WindowState.Maximized.ToString();
+				// ignored
 			}
+
+			return WindowState.Maximized.ToString();
 		}
 
 		/// <inheritdoc />
