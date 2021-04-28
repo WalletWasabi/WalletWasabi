@@ -5,17 +5,14 @@ using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Backend.Controllers
 {
-	/// <summary>
-	/// To make batched requests.
-	/// </summary>
 	[Produces("application/json")]
 	[ApiController]
 	[Route("[controller]")]
-	public class ArenaController : ControllerBase
+	public class WabiSabiController : ControllerBase
 	{
 		private IArenaRequestHandler handler;
 
-		public ArenaController(IArenaRequestHandler handler)
+		public WabiSabiController(IArenaRequestHandler handler)
 		{
 			this.handler = handler;
 		}
@@ -25,32 +22,31 @@ namespace WalletWasabi.Backend.Controllers
 			return handler.ConfirmConnectionAsync(request);
 		}
 
-		[HttpPost("registerinput")]
-
+		[HttpPost("input-registration")]
 		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request)
 		{
 			return handler.RegisterInputAsync(request);
 		}
 
-		[HttpPost("registeroutput")]
+		[HttpPost("output-registration")]
 		public Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request)
 		{
 			return handler.RegisterOutputAsync(request);
 		}
 
-		[HttpPost("reissuecredential")]
+		[HttpPost("credential-issuance")]
 		public Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request)
 		{
 			return handler.ReissueCredentialAsync(request);
 		}
 
-		[HttpPost("removeimput")]
+		[HttpPost("input-unregistration")]
 		public Task RemoveInputAsync(InputsRemovalRequest request)
 		{
 			return handler.RemoveInputAsync(request);
 		}
 
-		[HttpPost("signtransaction")]
+		[HttpPost("transaction-signature")]
 		public Task SignTransactionAsync(TransactionSignaturesRequest request)
 		{
 			return handler.SignTransactionAsync(request);

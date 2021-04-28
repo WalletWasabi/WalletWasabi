@@ -12,11 +12,11 @@ using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.WabiSabi.Client
 {
-	public class HttpRequestHandlerProxy : IArenaRequestHandler
+	public class WabiSabiHttpApiClient : IArenaRequestHandler
 	{
 		private IHttpClient _client;
 
-		public HttpRequestHandlerProxy(IHttpClient client)
+		public WabiSabiHttpApiClient(IHttpClient client)
 		{
 			_client = client;
 		}
@@ -80,14 +80,14 @@ namespace WalletWasabi.WabiSabi.Client
 		}
 
 		private static string GetUriEndPoint(RemoteAction action) =>
-			"arena/" + action switch
+			"wabisabi/" + action switch
 			{
-				RemoteAction.RegisterInput => "registerinput",
-				RemoteAction.RegisterOutput => "registeroutput",
-				RemoteAction.ConfirmConnection => "confirmconnection",
-				RemoteAction.ReissueCredential => "reissuecredential",
-				RemoteAction.RemoveInput => "removeinput",
-				RemoteAction.SignTransaction => "signtransaction",
+				RemoteAction.RegisterInput => "input-registration",
+				RemoteAction.RegisterOutput => "output-registration",
+				RemoteAction.ConfirmConnection => "connection-confirmation",
+				RemoteAction.ReissueCredential => "credential-issuance",
+				RemoteAction.RemoveInput => "input-unregistration",
+				RemoteAction.SignTransaction => "transaction-signature",
 				_ => throw new NotSupportedException($"Action '{action}' is unknown and has no endpoint associated.")
 			};
 	}

@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore.Rpc;
@@ -23,9 +22,9 @@ using WalletWasabi.WabiSabi.Crypto;
 
 namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 {
-	public class ArenaApiApplicationFactory : WebApplicationFactory<WalletWasabi.Backend.Startup>
+	public class WabiSabiApiApplicationFactory : WebApplicationFactory<WalletWasabi.Backend.Startup>
 	{
-		public ArenaApiApplicationFactory()
+		public WabiSabiApiApplicationFactory()
 			: base()
 		{
 		}
@@ -55,7 +54,7 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 		public ArenaClient CreateArenaClient(HttpClient? httpClient = null)
 		{
 			httpClient ??= CreateClient();
-			var httpArenaRequestHandlerProxy = new HttpRequestHandlerProxy(new HttpClientWrapper(httpClient));
+			var httpArenaRequestHandlerProxy = new WabiSabiHttpApiClient(new HttpClientWrapper(httpClient));
 			var round = GetCurrentRound();
 			var arenaClient = new ArenaClient(
 				round.AmountCredentialIssuerParameters, 
