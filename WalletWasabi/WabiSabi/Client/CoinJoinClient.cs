@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
@@ -25,7 +26,9 @@ namespace WalletWasabi.WabiSabi.Client
 		private BitcoinSecret BitcoinSecret { get; }
 		private SecureRandom SecureRandom { get; }
 		private CancellationTokenSource DisposeCts { get; } = new();
-		private Coin[] Coins { get; set; }
+		private Coin[]? Coins { get; set; }
+
+		private (Money Amount, HdPubKey Pubkey)[]? Outputs { get; set; }
 
 		public CoinJoinClient(Round round, IArenaRequestHandler arenaRequestHandler, BitcoinSecret bitcoinSecret)
 		{
@@ -44,14 +47,26 @@ namespace WalletWasabi.WabiSabi.Client
 
 				// Confirm coins.
 				await ConfirmConnectionsAsync(aliceClients, stoppingToken).ConfigureAwait(false);
+
+				// Output registration.
+				await RegisterOutputsAsync().ConfigureAwait(false);
+
+				Transaction? unsignedCoinJoinTransaction = null;
+
+				// Send signature.
+				foreach (var aliceClient in aliceClients)
+				{
+					await aliceClient.SignTransactionAsync(BitcoinSecret, unsignedCoinJoinTransaction).ConfigureAwait(false);
+				}
 			}
 			catch (Exception ex)
 			{
 			}
 		}
 
-		public async Task StartMixingCoinsAsync(IEnumerable<Coin> coins)
+		public async Task StartMixingCoinsAsync(IEnumerable<Coin> coins, (Money Amount, HdPubKey Pubkey)[] outputs)
 		{
+			Outputs = outputs;
 			Coins = coins.ToArray();
 			await StartAsync(DisposeCts.Token).ConfigureAwait(false);
 		}
@@ -105,6 +120,24 @@ namespace WalletWasabi.WabiSabi.Client
 			if (exceptions.Any())
 			{
 				// Error! Try to de-register inputs?
+			}
+		}
+
+		private async Task RegisterOutputsAsync()
+		{
+			ArenaClient bobArenaClient = new(
+				Round.AmountCredentialIssuerParameters,
+				Round.VsizeCredentialIssuerParameters,
+				AmountCredentialPool,
+				VsizeCredentialPool,
+				ArenaRequestHandler,
+				SecureRandom);
+
+			foreach (var output in Outputs)
+			{
+				BobClient bobClient = new BobClient(Round.Id, bobArenaClient);
+				await bobClient.RegisterOutputAsync(output.Amount, output.Pubkey.PubKey.WitHash.ScriptPubKey).ConfigureAwait(false);
+				// Random delay?
 			}
 		}
 
