@@ -130,17 +130,14 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			=> CoinjoinState.AssertSigning().AddWitness(index, witness);
 
 		private uint256 CalculateHash()
-			=> StrobeHasher.Combine(
-				ProtocolConstants.RoundStrobeDomain,
-				new()
-				{
-					{ ProtocolConstants.RoundMaxInputCountByAliceStrobeLabel, MaxInputCountByAlice },
-					{ ProtocolConstants.RoundMinRegistrableAmountStrobeLabel, MinRegistrableAmount },
-					{ ProtocolConstants.RoundMaxRegistrableAmountStrobeLabel, MaxRegistrableAmount },
-					{ ProtocolConstants.RoundPerAliceVsizeAllocationStrobeLabel, PerAliceVsizeAllocation },
-					{ ProtocolConstants.RoundAmountCredentialIssuerParametersStrobeLabel, AmountCredentialIssuerParameters },
-					{ ProtocolConstants.RoundVsizeCredentialIssuerParametersStrobeLabel, VsizeCredentialIssuerParameters },
-					{ ProtocolConstants.RoundFeeRateStrobeLabel, FeeRate.SatoshiPerByte }
-				});
+			=> StrobeHasher.Create(ProtocolConstants.RoundStrobeDomain)
+				.Append(ProtocolConstants.RoundMaxInputCountByAliceStrobeLabel, MaxInputCountByAlice)
+				.Append(ProtocolConstants.RoundMinRegistrableAmountStrobeLabel, MinRegistrableAmount)
+				.Append(ProtocolConstants.RoundMaxRegistrableAmountStrobeLabel, MaxRegistrableAmount)
+				.Append(ProtocolConstants.RoundPerAliceVsizeAllocationStrobeLabel, PerAliceVsizeAllocation)
+				.Append(ProtocolConstants.RoundAmountCredentialIssuerParametersStrobeLabel, AmountCredentialIssuerParameters)
+				.Append(ProtocolConstants.RoundVsizeCredentialIssuerParametersStrobeLabel, VsizeCredentialIssuerParameters)
+				.Append(ProtocolConstants.RoundFeeRateStrobeLabel, FeeRate.FeePerK)
+				.GetHash();
 	}
 }
