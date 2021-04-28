@@ -100,6 +100,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 		protected override Task ActionAsync(CancellationToken cancel)
 		{
+			// If the backend doesn't work for a period of time, then and only then start using blockstream.
 			if (Synchronizer.InError && Synchronizer.BackendStatusChangedSince > TimeSpan.FromMinutes(1))
 			{
 				BlockstreamProvider.IsPaused = false;
