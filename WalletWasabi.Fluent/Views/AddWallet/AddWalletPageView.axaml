@@ -27,22 +27,25 @@
         <WrapPanel.Styles>
           <Style Selector="c|TileButton">
             <Setter Property="Margin" Value="4"/>
-            <Setter Property="IsEnabled" Value="{Binding OptionsEnabled}"/>
           </Style>
         </WrapPanel.Styles>
         <c:TileButton Text="Create a new wallet"
                       Classes="action"
                       Icon="{StaticResource add_regular}"
-                      Command="{Binding CreateWalletCommand}"/>
+                      Command="{Binding CreateWalletCommand}"
+                      IsEnabled="{Binding OptionsEnabled}" />
         <c:TileButton Text="Connect to hardware wallet"
                       Icon="{StaticResource calculator_regular}"
-                      Command="{Binding ConnectHardwareWalletCommand}"/>
+                      Command="{Binding ConnectHardwareWalletCommand}"
+                      IsEnabled="{Binding OptionsEnabled}" />
         <c:TileButton Text="Import a wallet"
                       Icon="{StaticResource import_regular}"
-                      Command="{Binding ImportWalletCommand}"/>
+                      Command="{Binding ImportWalletCommand}"
+                      IsEnabled="{Binding OptionsEnabled}" />
         <c:TileButton Text="Recover a wallet"
                       Icon="{StaticResource recover_arrow_right_regular}"
-                      Command="{Binding RecoverWalletCommand}"/>
+                      Command="{Binding RecoverWalletCommand}"
+                      IsEnabled="{Binding OptionsEnabled}" />
       </WrapPanel>
     </DockPanel>
   </c:ContentArea>
