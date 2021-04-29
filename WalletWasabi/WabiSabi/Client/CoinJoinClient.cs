@@ -23,7 +23,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private CredentialPool VsizeCredentialPool { get; } = new();
 		private Round Round { get; }
 		public IArenaRequestHandler ArenaRequestHandler { get; }
-		private BitcoinSecret BitcoinSecret { get; }
+		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
 		private SecureRandom SecureRandom { get; }
 		private CancellationTokenSource DisposeCts { get; } = new();
@@ -32,13 +32,13 @@ namespace WalletWasabi.WabiSabi.Client
 		public CoinJoinClient(
 			Round round,
 			IArenaRequestHandler arenaRequestHandler,
-			BitcoinSecret bitcoinSecret,
 			IEnumerable<Coin> coins,
+			Kitchen kitchen,
 			KeyManager keymanager)
 		{
 			Round = round;
 			ArenaRequestHandler = arenaRequestHandler;
-			BitcoinSecret = bitcoinSecret;
+			Kitchen = kitchen;
 			Keymanager = keymanager;
 			SecureRandom = new SecureRandom();
 			Coins = coins.ToArray();
@@ -91,7 +91,8 @@ namespace WalletWasabi.WabiSabi.Client
 				foreach (var coin in Coins)
 				{
 					// Parallelize or Random delay?
-					aliceClients.Add(await AliceClient.CreateNewAsync(aliceArenaClient, coin, BitcoinSecret, Round.Id, Round.Hash, Round.FeeRate).ConfigureAwait(false));
+					var secret = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey.WitHash.ScriptPubKey).First().PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
+					aliceClients.Add(await AliceClient.CreateNewAsync(aliceArenaClient, coin, secret, Round.Id, Round.Hash, Round.FeeRate).ConfigureAwait(false));
 				}
 			}
 			catch (Exception)
@@ -139,7 +140,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			foreach (var output in outputs)
 			{
-				BobClient bobClient = new BobClient(Round.Id, bobArenaClient);
+				BobClient bobClient = new(Round.Id, bobArenaClient);
 				await bobClient.RegisterOutputAsync(output.Amount, output.Pubkey.PubKey.WitHash.ScriptPubKey).ConfigureAwait(false);
 				// Random delay?
 			}
@@ -158,7 +159,7 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			foreach (var aliceClient in aliceClients)
 			{
-				await aliceClient.SignTransactionAsync(BitcoinSecret, unsignedCoinJoinTransaction).ConfigureAwait(false);
+				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction).ConfigureAwait(false);
 			}
 		}
 

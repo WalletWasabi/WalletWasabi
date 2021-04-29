@@ -11,13 +11,14 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class AliceClient
 	{
-		public AliceClient(Guid aliceId, Guid roundId, ArenaClient arenaClient, Coin coin, FeeRate feeRate)
+		public AliceClient(Guid aliceId, Guid roundId, ArenaClient arenaClient, Coin coin, FeeRate feeRate, BitcoinSecret bitcoinSecret)
 		{
 			AliceId = aliceId;
 			RoundId = roundId;
 			ArenaClient = arenaClient;
 			Coin = coin;
 			FeeRate = feeRate;
+			BitcoinSecret = bitcoinSecret;
 		}
 
 		public Guid AliceId { get; }
@@ -25,6 +26,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private ArenaClient ArenaClient { get; }
 		private Coin Coin { get; }
 		private FeeRate FeeRate { get; }
+		private BitcoinSecret BitcoinSecret { get; }
 
 		public async Task ConfirmConnectionAsync(TimeSpan confirmInterval, CancellationToken token)
 		{
@@ -68,9 +70,9 @@ namespace WalletWasabi.WabiSabi.Client
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Inputs removed.");
 		}
 
-		public async Task SignTransactionAsync(BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin)
+		public async Task SignTransactionAsync(Transaction unsignedCoinJoin)
 		{
-			await ArenaClient.SignTransactionAsync(RoundId, Coin, bitcoinSecret, unsignedCoinJoin).ConfigureAwait(false);
+			await ArenaClient.SignTransactionAsync(RoundId, Coin, BitcoinSecret, unsignedCoinJoin).ConfigureAwait(false);
 
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Posted a signature.");
 		}
@@ -85,7 +87,7 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			Guid aliceId = await arenaClient.RegisterInputAsync(coin.Amount, coin.Outpoint, bitcoinSecret.PrivateKey, roundId, roundHash).ConfigureAwait(false);
 
-			AliceClient client = new(aliceId, roundId, arenaClient, coin, feeRate);
+			AliceClient client = new(aliceId, roundId, arenaClient, coin, feeRate, bitcoinSecret);
 
 			Logger.LogInfo($"Round ({roundId}), Alice ({aliceId}): Registered an input.");
 
