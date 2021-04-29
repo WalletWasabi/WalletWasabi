@@ -100,7 +100,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		{
 			try
 			{
-				QrCode = new QrEncoder().Encode(Address).Matrix.InternalArray;
+				QrCode = new QrEncoder().Encode(Address.ToUpperInvariant()).Matrix.InternalArray;
 			}
 			catch (Exception ex)
 			{
