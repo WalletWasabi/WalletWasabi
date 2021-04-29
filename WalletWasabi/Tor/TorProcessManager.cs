@@ -183,6 +183,11 @@ namespace WalletWasabi.Tor
 				{
 					result = true;
 				}
+
+
+				Logger.LogInfo("**Circuit status**");
+				TorControlReply statusReply = await client.SendCommandAsync("GETINFO circuit-status\r\n").ConfigureAwait(false);
+				Logger.LogInfo($"Status reply: {statusReply}");
 			}
 
 			Logger.LogTrace($"Checking Tor status: {(result ? "UP" : "DOWN")}");
