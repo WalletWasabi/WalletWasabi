@@ -34,17 +34,17 @@
       </DataGrid.Styles>
 
       <DataGrid.Columns>
-        <DataGridTemplateColumn Header="Reference"
+        <DataGridTemplateColumn Header="Labels"
                                 Width="*"
                                 CanUserSort="True"
                                 SortMemberPath="Label">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
-                <Button Classes="plain addressActionButton" ToolTip.Tip="Edit">
+                <Button Classes="plain addressActionButton" ToolTip.Tip="Edit" DockPanel.Dock="Right">
                   <PathIcon Data="{StaticResource edit_regular}" Classes="addressActionIcon" />
                 </Button>
-                <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Label}" />
+                <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Label}" VerticalAlignment="Center" />
               </DockPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
@@ -57,21 +57,22 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
-                <Button Classes="plain addressActionButton" Command="{Binding HideAddressCommand}" ToolTip.Tip="Hide address">
+                <Button Classes="plain addressActionButton" Command="{Binding HideAddressCommand}"
+                        DockPanel.Dock="Right"
+                        ToolTip.Tip="Hide address">
                   <PathIcon Data="{StaticResource dismiss_light}" Classes=" addressActionIcon"/>
                 </Button>
-                <c:AnimatedButton Classes="addressActionButton"
+                <c:AnimatedButton Classes="addressActionButton" DockPanel.Dock="Right"
                                   ToolTip.Tip="Copy"
                                   Command="{Binding CopyAddressCommand}"
                                   NormalIcon="{StaticResource copy_regular}"
                                   ClickIcon="{StaticResource copy_confirmed}"
                                   InitialOpacity="1.0"/>
-                <TextBlock Text="{Binding Address}" />
+                <TextBlock Text="{Binding Address}" VerticalAlignment="Center" />
               </DockPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-
       </DataGrid.Columns>
     </DataGrid>
   </c:ContentArea>
