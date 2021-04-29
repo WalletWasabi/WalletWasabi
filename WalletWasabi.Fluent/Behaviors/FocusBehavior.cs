@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.Behaviors
 		{
 			base.OnAttached();
 
-			if (AssociatedObject != null)
+			if (AssociatedObject is not null)
 			{
 				AssociatedObject.AttachedToLogicalTree += (sender, e) =>
 					disposables.Add(this.GetObservable(IsFocusedProperty)
