@@ -68,7 +68,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 			catch (Exception ex)
 			{
-				// IF there was an exception
+				// The game is over for this round, no fallback mechanism. In the next round we will create another CoinJoinClient and try again.
 			}
 		}
 
