@@ -68,6 +68,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 			catch (Exception ex)
 			{
+				// IF there was an exception
 			}
 		}
 
@@ -104,10 +105,10 @@ namespace WalletWasabi.WabiSabi.Client
 
 			await Task.WhenAll(confirmTasks).ConfigureAwait(false);
 
-			var exceptions = confirmTasks.Where(t => t.IsFaulted && t.Exception is { }).Select(t => t.Exception);
+			IEnumerable<AggregateException> exceptions = confirmTasks.Where(t => t.IsFaulted && t.Exception is { }).Select(t => t.Exception!);
 			if (exceptions.Any())
 			{
-				// Error! Try to de-register inputs?
+				throw new AggregateException(exceptions);
 			}
 		}
 
