@@ -129,6 +129,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 				HttpClient.Dispose();
 				SocketHandler.Dispose();
+				TorHttpPool?.Dispose();
 			}
 
 			_disposed = true;
