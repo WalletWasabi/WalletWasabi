@@ -28,23 +28,13 @@
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="Padding" Value="0" />
     </Style>
-    <Style Selector="ListBox:vertical > c|NavBarItem">
+    <Style Selector="ListBox > c|NavBarItem">
       <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
       <Setter Property="IsHitTestVisible" Value="{Binding IsEnabled}" x:CompileBindings="False" />
       <Setter Property="Focusable" Value="{Binding IsEnabled}" x:CompileBindings="False" />
       <Setter Property="IsEnabled" Value="{Binding IsEnabled}" x:CompileBindings="False" />
     </Style>
-    <Style Selector="ListBox:vertical > c|NavBarItem:disabled PathIcon">
-      <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
-    </Style>
-    <Style Selector="ListBox:horizontal > c|NavBarItem">
-      <Setter Property="IndicatorOrientation" Value="Horizontal" />
-      <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
-      <Setter Property="IsHitTestVisible" Value="{Binding IsEnabled}" x:CompileBindings="False" />
-      <Setter Property="Focusable" Value="{Binding IsEnabled}" x:CompileBindings="False" />
-      <Setter Property="IsEnabled" Value="{Binding IsEnabled}" x:CompileBindings="False" />
-    </Style>
-    <Style Selector="ListBox:horizontal > c|NavBarItem:disabled PathIcon">
+    <Style Selector="ListBox > c|NavBarItem:disabled PathIcon">
       <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
     </Style>
     <Style Selector="c|NavBarTreeItem">
@@ -171,7 +161,6 @@
       <c:NavBarListBox Items="{Binding Actions}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="ActionsListBox"
-                       Classes="horizontal"
                        RenderTransformOrigin="0%,50%">
         <c:NavBarListBox.Styles>
           <Style Selector=":is(ListBox)">
@@ -182,6 +171,9 @@
                 </ItemsPanelTemplate>
               </Setter.Value>
             </Setter>
+          </Style>
+          <Style Selector="c|NavBarItem">
+            <Setter Property="IndicatorOrientation" Value="Horizontal" />
           </Style>
           <Style Selector=":is(ListBox):not(:empty)">
             <Style.Animations>
@@ -250,8 +242,7 @@
       <!-- BottomItems List -->
       <c:NavBarListBox Items="{Binding BottomItems}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                       Name="BottomListBox"
-                       Classes="horizontal">
+                       Name="BottomListBox">
         <c:NavBarListBox.Styles>
           <Style Selector=":is(ListBox)">
             <Setter Property="ItemsPanel">
@@ -261,6 +252,9 @@
                 </ItemsPanelTemplate>
               </Setter.Value>
             </Setter>
+          </Style>
+          <Style Selector="c|NavBarItem">
+            <Setter Property="IndicatorOrientation" Value="Horizontal" />
           </Style>
         </c:NavBarListBox.Styles>
         <c:NavBarListBox.ItemTemplate>
