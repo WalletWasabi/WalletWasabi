@@ -3,6 +3,7 @@ using System.Reactive.Concurrency;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
+using Avalonia.Controls;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -24,6 +25,11 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private readonly Global _global;
 		private readonly LegalChecker _legalChecker;
+		private readonly SettingsPageViewModel _settingsPage;
+		private readonly SearchPageViewModel _searchPage;
+		private readonly PrivacyModeViewModel _privacyMode;
+		private readonly AddWalletPageViewModel _addWalletPage;
+		private readonly WalletManagerViewModel _walletManagerViewModel;
 		[AutoNotify] private bool _isMainContentEnabled;
 		[AutoNotify] private bool _isDialogScreenEnabled;
 		[AutoNotify] private bool _isFullScreenEnabled;
@@ -33,17 +39,13 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private NavBarViewModel _navBar;
 		[AutoNotify] private StatusBarViewModel _statusBar;
 		[AutoNotify] private string _title = "Wasabi Wallet";
-		private readonly SettingsPageViewModel _settingsPage;
-		private readonly SearchPageViewModel _searchPage;
-		private readonly PrivacyModeViewModel _privacyMode;
-		private readonly AddWalletPageViewModel _addWalletPage;
-		private readonly WalletManagerViewModel _walletManagerViewModel;
+		[AutoNotify] private WindowState _windowState;
 
 		public MainViewModel(Global global)
 		{
 			_global = global;
 			_legalChecker = global.LegalChecker;
-
+			_windowState = (WindowState) Enum.Parse(typeof(WindowState), _global.UiConfig.WindowState);
 			_dialogScreen = new DialogScreenViewModel();
 
 			_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
@@ -75,7 +77,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				_global.BitcoinStore,
 				_global.LegalChecker,
 				_global.TransactionBroadcaster,
-				_global.HttpClientFactory);
+				_global.ExternalHttpClientFactory);
 
 			_addWalletPage = new AddWalletPageViewModel(
 				_walletManagerViewModel,
@@ -95,6 +97,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
 
 			_searchPage.Initialise();
+
+			this.WhenAnyValue(x => x.WindowState)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(windowState => global.UiConfig.WindowState = windowState.ToString());
 
 			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)

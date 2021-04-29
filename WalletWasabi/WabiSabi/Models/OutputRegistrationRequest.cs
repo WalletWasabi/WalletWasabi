@@ -5,7 +5,7 @@ using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 namespace WalletWasabi.WabiSabi.Models
 {
 	public record OutputRegistrationRequest(
-		Guid RoundId,
+		uint256 RoundId,
 		Script Script,
 		RealCredentialsRequest AmountCredentialRequests,
 		RealCredentialsRequest VsizeCredentialRequests

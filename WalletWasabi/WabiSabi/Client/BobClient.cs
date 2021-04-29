@@ -9,13 +9,13 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class BobClient
 	{
-		public BobClient(Guid roundId, ArenaClient arenaClient)
+		public BobClient(uint256 roundId, ArenaClient arenaClient)
 		{
 			RoundId = roundId;
 			ArenaClient = arenaClient;
 		}
 
-		private Guid RoundId { get; }
+		private uint256 RoundId { get; }
 		private ArenaClient ArenaClient { get; }
 
 		public async Task RegisterOutputAsync(Money amount, Script scriptPubKey)

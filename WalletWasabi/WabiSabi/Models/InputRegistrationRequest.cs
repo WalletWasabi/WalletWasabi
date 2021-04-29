@@ -6,7 +6,7 @@ using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 namespace WalletWasabi.WabiSabi.Models
 {
 	public record InputRegistrationRequest(
-		Guid RoundId,
+		uint256 RoundId,
 		OutPoint Input,
 		OwnershipProof OwnershipProof,
 		ZeroCredentialsRequest ZeroAmountCredentialRequests,

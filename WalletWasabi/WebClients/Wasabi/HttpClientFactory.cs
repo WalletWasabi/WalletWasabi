@@ -58,7 +58,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		/// <summary>Whether Tor is enabled or disabled.</summary>
 		[MemberNotNullWhen(returnValue: true, nameof(TorEndpoint))]
-		public bool IsTorEnabled => TorEndpoint is { };
+		public bool IsTorEnabled => TorEndpoint is not null;
 
 		private SocketsHttpHandler SocketHandler { get; }
 
@@ -129,6 +129,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 				HttpClient.Dispose();
 				SocketHandler.Dispose();
+				TorHttpPool?.Dispose();
 			}
 
 			_disposed = true;
