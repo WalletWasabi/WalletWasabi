@@ -69,7 +69,7 @@ namespace WalletWasabi.BitcoinCore
 				WhiteBind? whiteBind = configTranslator.TryGetWhiteBind();
 
 				string authString;
-				bool cookieAuth = rpcCookieFilePath is { };
+				bool cookieAuth = rpcCookieFilePath is not null;
 				if (cookieAuth)
 				{
 					authString = $"cookiefile={rpcCookieFilePath}";

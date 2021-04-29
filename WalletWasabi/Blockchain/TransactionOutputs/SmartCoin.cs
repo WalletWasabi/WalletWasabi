@@ -149,7 +149,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs
 		}
 
 		[MemberNotNullWhen(returnValue: true, nameof(SpenderTransaction))]
-		public bool IsSpent() => SpenderTransaction is { };
+		public bool IsSpent() => SpenderTransaction is not null;
 
 		/// <summary>
 		/// IsUnspent() AND !SpentAccordingToBackend AND !CoinJoinInProgress
