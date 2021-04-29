@@ -24,6 +24,8 @@
                         <Panel>
                             <TextBlock Name="PART_Watermark"
                                        Opacity="0.5"
+                                       Padding="{DynamicResource TextControlThemePadding}"
+                                       VerticalAlignment="Center"
                                        Text="{TemplateBinding Watermark}" />
                             <ItemsPresenter Name="PART_ItemsPresenter"
                                             Focusable="False"

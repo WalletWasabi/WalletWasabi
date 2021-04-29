@@ -206,6 +206,21 @@ namespace WalletWasabi.Fluent.Controls
 			}
 		}
 
+		private void InvalidateWatermark()
+		{
+			if (_watermark is { } && _autoCompleteBox is { })
+			{
+				if (Items != null && !Items.Any() && string.IsNullOrWhiteSpace(_autoCompleteBox?.Text))
+				{
+					_watermark.IsVisible = true;
+				}
+				else
+				{
+					_watermark.IsVisible = false;
+				}
+			}
+		}
+
 		private void OnTextInput(object? sender, TextInputEventArgs e)
 		{
 			if (sender is not AutoCompleteBox autoCompleteBox)
@@ -219,17 +234,7 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
-			if (_watermark is { })
-			{
-				if (Items != null && (string.IsNullOrWhiteSpace(autoCompleteBox.Text) || !Items.Any()))
-				{
-					_watermark.IsVisible = true;
-				}
-				else
-				{
-					_watermark.IsVisible = false;
-				}
-			}
+			InvalidateWatermark();
 
 			if (RestrictInputToSuggestions &&
 			    Suggestions is IList<string> suggestions &&
@@ -287,6 +292,8 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void OnAutoCompleteBoxTextChanged(object? sender, EventArgs e)
 		{
+			InvalidateWatermark();
+
 			if (sender is not AutoCompleteBox autoCompleteBox ||
 				string.IsNullOrEmpty(Guard.Correct(autoCompleteBox.Text)))
 			{
@@ -408,6 +415,7 @@ namespace WalletWasabi.Fluent.Controls
 				list.RemoveAt(list.Count - 1);
 			}
 
+			InvalidateWatermark();
 			CheckIsInputEnabled();
 		}
 
@@ -434,6 +442,7 @@ namespace WalletWasabi.Fluent.Controls
 				list.Remove(tag);
 			}
 
+			InvalidateWatermark();
 			CheckIsInputEnabled();
 		}
 
@@ -449,6 +458,7 @@ namespace WalletWasabi.Fluent.Controls
 				x.Add(tag);
 			}
 
+			InvalidateWatermark();
 			CheckIsInputEnabled();
 		}
 	}
