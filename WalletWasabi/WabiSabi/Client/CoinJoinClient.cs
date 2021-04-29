@@ -87,30 +87,12 @@ namespace WalletWasabi.WabiSabi.Client
 				SecureRandom);
 
 			List<AliceClient> aliceClients = new();
-			try
+
+			foreach (var coin in Coins)
 			{
-				foreach (var coin in Coins)
-				{
-					var secret = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey.WitHash.ScriptPubKey).First().PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
-					aliceClients.Add(await AliceClient.CreateNewAsync(aliceArenaClient, coin, secret, Round.Id, Round.Hash, Round.FeeRate).ConfigureAwait(false));
-					await Task.Delay(Random.Next(0, 1000)).ConfigureAwait(false);
-				}
-			}
-			catch (Exception)
-			{
-				// Remove already registered Inputs.
-				foreach (var alice in aliceClients)
-				{
-					try
-					{
-						await alice.RemoveInputAsync().ConfigureAwait(false);
-					}
-					catch (Exception)
-					{
-						// Log?
-					}
-				}
-				throw;
+				var secret = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey.WitHash.ScriptPubKey).First().PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
+				aliceClients.Add(await AliceClient.CreateNewAsync(aliceArenaClient, coin, secret, Round.Id, Round.Hash, Round.FeeRate).ConfigureAwait(false));
+				await Task.Delay(Random.Next(0, 1000)).ConfigureAwait(false);
 			}
 
 			return aliceClients.ToArray();
