@@ -46,7 +46,7 @@ namespace WalletWasabi
 			var useSocks = isTor || socksSettings?.OnlyForOnionHosts is false;
 			if (useSocks)
 			{
-				if (socksSettings?.SocksEndpoint == null)
+				if (socksSettings?.SocksEndpoint is null)
 				{
 					throw new InvalidOperationException("SocksSettingsBehavior.SocksEndpoint is not set but the connection is expecting using socks proxy");
 				}

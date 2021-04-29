@@ -31,7 +31,7 @@ namespace WalletWasabi.Fluent.Behaviors
 					{
 						_disposables?.Dispose();
 
-						if (x != null)
+						if (x is not null)
 						{
 							_disposables = new CompositeDisposable();
 
