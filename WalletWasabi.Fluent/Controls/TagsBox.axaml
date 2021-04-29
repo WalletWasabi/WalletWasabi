@@ -24,7 +24,7 @@
                         <Panel>
                             <TextBlock Name="PART_Watermark"
                                        Opacity="0.5"
-                                       Padding="{DynamicResource TextControlThemePadding}"
+                                       Padding="15 0"
                                        VerticalAlignment="Center"
                                        Text="{TemplateBinding Watermark}" />
                             <ItemsPresenter Name="PART_ItemsPresenter"
@@ -35,6 +35,8 @@
                                         <c:ConcatenatingWrapPanel Focusable="False">
                                             <c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                                 <AutoCompleteBox x:Name="PART_AutoCompleteBox"
+                                                                 Padding="15 10 15 8"
+                                                                 Margin="0"
                                                                  MaxDropDownHeight="90"
                                                                  MinimumPrefixLength="1"
                                                                  Focusable="False"
