@@ -103,12 +103,17 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			Task[] confirmTasks = aliceClients.Select(aliceClient => aliceClient.ConfirmConnectionAsync(TimeSpan.FromSeconds(5), stoppingToken)).ToArray();
 
-			await Task.WhenAll(confirmTasks).ConfigureAwait(false);
-
-			IEnumerable<AggregateException> exceptions = confirmTasks.Where(t => t.IsFaulted && t.Exception is { }).Select(t => t.Exception!);
-			if (exceptions.Any())
+			try
 			{
-				throw new AggregateException(exceptions);
+				await Task.WhenAll(confirmTasks).ConfigureAwait(false);
+			}
+			catch (Exception)
+			{
+				IEnumerable<AggregateException> exceptions = confirmTasks.Where(t => t.IsFaulted && t.Exception is { }).Select(t => t.Exception!);
+				if (exceptions.Any())
+				{
+					throw new AggregateException(exceptions);
+				}
 			}
 		}
 
