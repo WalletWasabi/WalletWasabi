@@ -28,6 +28,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private SecureRandom SecureRandom { get; }
 		private CancellationTokenSource DisposeCts { get; } = new();
 		private Coin[] Coins { get; set; }
+		private Random Random { get; } = new();
 
 		public CoinJoinClient(
 			Round round,
@@ -90,16 +91,16 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				foreach (var coin in Coins)
 				{
-					// Parallelize or Random delay?
 					var secret = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey.WitHash.ScriptPubKey).First().PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
 					aliceClients.Add(await AliceClient.CreateNewAsync(aliceArenaClient, coin, secret, Round.Id, Round.Hash, Round.FeeRate).ConfigureAwait(false));
+					await Task.Delay(Random.Next(0, 1000)).ConfigureAwait(false);
 				}
 			}
 			catch (Exception)
 			{
+				// Remove already registered Inputs.
 				foreach (var alice in aliceClients)
 				{
-					// Remove already registered Inputs.
 					try
 					{
 						await alice.RemoveInputAsync().ConfigureAwait(false);
