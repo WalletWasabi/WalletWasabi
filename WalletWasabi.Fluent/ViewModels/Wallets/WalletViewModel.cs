@@ -56,7 +56,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged)
 			{
 				ColumnSpan = new List<int> { 1, 1, 1 },
-				RowSpan = new List<int> { 1, 1, 2 }
+				RowSpan = new List<int> { 1, 2, 2 }
 			};
 			BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions)
 			{
