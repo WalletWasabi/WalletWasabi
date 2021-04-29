@@ -151,8 +151,7 @@ namespace WalletWasabi.Gui
 					using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
 					{
 						TorManager = new TorProcessManager(TorSettings, Config.TorSocks5EndPoint);
-						await TorManager.StartAsync().ConfigureAwait(false);
-						cancel.ThrowIfCancellationRequested();
+						await TorManager.StartAsync(cancel).ConfigureAwait(false);
 					}
 
 					Tor.Http.TorHttpClient torHttpClient = BackendHttpClientFactory.NewTorHttpClient(isolateStream: false);

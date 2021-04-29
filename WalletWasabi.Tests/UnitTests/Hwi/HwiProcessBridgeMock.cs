@@ -223,7 +223,7 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 				}
 			}
 
-			return extPubKey is { };
+			return extPubKey is not null;
 		}
 	}
 }

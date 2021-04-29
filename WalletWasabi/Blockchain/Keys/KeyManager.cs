@@ -113,7 +113,7 @@ namespace WalletWasabi.Blockchain.Keys
 		public bool IsWatchOnly => EncryptedSecret is null;
 
 		[MemberNotNullWhen(returnValue: true, nameof(MasterFingerprint))]
-		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint is { };
+		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint is not null;
 
 		[JsonProperty(Order = 8)]
 		private BlockchainState BlockchainState { get; }
