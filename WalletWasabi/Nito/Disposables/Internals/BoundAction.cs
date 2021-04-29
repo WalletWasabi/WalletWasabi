@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace Nito.Disposables.Internals
@@ -35,6 +36,7 @@ namespace Nito.Disposables.Internals
 		/// <summary>
 		/// Whether the field is empty.
 		/// </summary>
+		[MemberNotNullWhen(returnValue: false, nameof(_field))]
 		public bool IsEmpty => Interlocked.CompareExchange(ref _field, null, null) is null;
 
 		/// <summary>

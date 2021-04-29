@@ -71,7 +71,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private double _lastXAxisCurrentValue;
 		private FeeRate _feeRate;
 
-		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster, Config config, UiConfig uiConfig, HttpClientFactory httpClientFactory) : base(NavigationMode.Normal)
+		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster, Config config, UiConfig uiConfig, HttpClientFactory externalHttpClientFactory) : base(NavigationMode.Normal)
 		{
 			_to = "";
 			_owner = walletVm;
@@ -111,7 +111,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					if (endPoint is { })
 					{
-						_transactionInfo.PayJoinClient = GetPayjoinClient(endPoint, config, httpClientFactory);
+						_transactionInfo.PayJoinClient = GetPayjoinClient(endPoint, config, externalHttpClientFactory);
 						IsPayJoin = true;
 					}
 					else
@@ -245,7 +245,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private IPayjoinClient? GetPayjoinClient(string endPoint, Config config, HttpClientFactory httpClientFactory)
+		private IPayjoinClient? GetPayjoinClient(string endPoint, Config config, HttpClientFactory externalHttpClientFactory)
 		{
 			if (!string.IsNullOrWhiteSpace(endPoint) &&
 				Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
@@ -266,7 +266,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 				}
 
-				IHttpClient httpClient = httpClientFactory.NewHttpClient(() => payjoinEndPointUri, isolateStream: false);
+				IHttpClient httpClient = externalHttpClientFactory.NewHttpClient(() => payjoinEndPointUri, isolateStream: false);
 				return new PayjoinClient(payjoinEndPointUri, httpClient);
 			}
 

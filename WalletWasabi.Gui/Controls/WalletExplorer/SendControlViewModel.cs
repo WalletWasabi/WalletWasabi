@@ -553,7 +553,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);
 		}
 
-		public bool IsEstimateAvailable => Global.HostedServices.GetOrDefault<HybridFeeProvider>()?.AllFeeEstimate is { };
+		public bool IsEstimateAvailable => Global.HostedServices.GetOrDefault<HybridFeeProvider>()?.AllFeeEstimate is not null;
 
 		public string AmountWatermarkText
 		{

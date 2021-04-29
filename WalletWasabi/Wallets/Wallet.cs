@@ -248,7 +248,7 @@ namespace WalletWasabi.Wallets
 				allowedInputs,
 				lockTimeSelector: () =>
 				{
-					var currentTipHeight = Synchronizer.BitcoinStore.SmartHeaderChain.TipHeight;
+					var currentTipHeight = BitcoinStore.SmartHeaderChain.TipHeight;
 					return LockTimeSelector.Instance.GetLockTimeBasedOnDistribution(currentTipHeight);
 				},
 				payjoinClient);

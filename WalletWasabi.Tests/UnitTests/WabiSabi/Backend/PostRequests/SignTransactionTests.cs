@@ -44,7 +44,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		{
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
 			await using ArenaRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
-			var req = new TransactionSignaturesRequest(Guid.NewGuid(), null!);
+			var req = new TransactionSignaturesRequest(uint256.Zero, null!);
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.SignTransactionAsync(req));
 			Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
 			await arena.StopAsync(CancellationToken.None);

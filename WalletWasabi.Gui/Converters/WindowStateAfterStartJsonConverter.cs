@@ -9,7 +9,7 @@ namespace WalletWasabi.Gui.Converters
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(WindowState);
+			return objectType == typeof(string);
 		}
 
 		/// <inheritdoc />
@@ -17,30 +17,26 @@ namespace WalletWasabi.Gui.Converters
 		{
 			try
 			{
-				// If minimized, then go with Maximized, because at start it shouldn't run with minimized.
 				var value = reader.Value as string;
 
-				if (string.IsNullOrWhiteSpace(value))
+				// If minimized, then go with Maximized, because at start it shouldn't run with minimized.
+				if (Enum.TryParse(value, out WindowState ws) && ws != WindowState.Minimized)
 				{
-					return WindowState.Maximized;
+					return ws.ToString();
 				}
-
-				var windowStateString = value.Trim();
-
-				return windowStateString.StartsWith("norm", StringComparison.OrdinalIgnoreCase)
-					? WindowState.Normal
-					: WindowState.Maximized;
 			}
 			catch
 			{
-				return WindowState.Maximized;
+				// ignored
 			}
+
+			return WindowState.Maximized.ToString();
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			writer.WriteValue(((WindowState)value).ToString());
+			writer.WriteValue(value);
 		}
 	}
 }

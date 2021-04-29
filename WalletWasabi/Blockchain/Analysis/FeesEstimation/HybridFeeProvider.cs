@@ -19,16 +19,16 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 	/// </summary>
 	public class HybridFeeProvider : IHostedService
 	{
-		public HybridFeeProvider(WasabiSynchronizer synchronizer, RpcFeeProvider? rpcFeeProvider)
+		public HybridFeeProvider(IThirdPartyFeeProvider thirdPartyFeeProvider, RpcFeeProvider? rpcFeeProvider)
 		{
-			Synchronizer = synchronizer;
+			ThirdPartyFeeProvider = thirdPartyFeeProvider;
 			RpcFeeProvider = rpcFeeProvider;
 		}
 
 		public event EventHandler<AllFeeEstimate>? AllFeeEstimateChanged;
 
-		public WasabiSynchronizer Synchronizer { get; }
 		public RpcFeeProvider? RpcFeeProvider { get; }
+		public IThirdPartyFeeProvider ThirdPartyFeeProvider { get; }
 		private object Lock { get; } = new object();
 		public AllFeeEstimate? AllFeeEstimate { get; private set; }
 		private AbandonedTasks ProcessingEvents { get; } = new();
@@ -36,9 +36,9 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 		public Task StartAsync(CancellationToken cancellationToken)
 		{
 			SetAllFeeEstimateIfLooksBetter(RpcFeeProvider?.LastAllFeeEstimate);
-			SetAllFeeEstimateIfLooksBetter(Synchronizer.LastResponse?.AllFeeEstimate);
+			SetAllFeeEstimateIfLooksBetter(ThirdPartyFeeProvider.LastAllFeeEstimate);
 
-			Synchronizer.ResponseArrived += Synchronizer_ResponseArrived;
+			ThirdPartyFeeProvider.AllFeeEstimateArrived += OnAllFeeEstimateArrived;
 			if (RpcFeeProvider is not null)
 			{
 				RpcFeeProvider.AllFeeEstimateArrived += OnAllFeeEstimateArrived;
@@ -49,18 +49,13 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 
 		public async Task StopAsync(CancellationToken cancellationToken)
 		{
-			Synchronizer.ResponseArrived -= Synchronizer_ResponseArrived;
+			ThirdPartyFeeProvider.AllFeeEstimateArrived -= OnAllFeeEstimateArrived;
 			if (RpcFeeProvider is not null)
 			{
 				RpcFeeProvider.AllFeeEstimateArrived -= OnAllFeeEstimateArrived;
 			}
 
 			await ProcessingEvents.WhenAllAsync().ConfigureAwait(false);
-		}
-
-		private void Synchronizer_ResponseArrived(object? sender, SynchronizeResponse response)
-		{
-			OnAllFeeEstimateArrived(sender, response.AllFeeEstimate);
 		}
 
 		private void OnAllFeeEstimateArrived(object? sender, AllFeeEstimate? fees)
@@ -81,7 +76,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 						// If it wasn't set before, then set it regardless everything.
 						notify = SetAllFeeEstimate(fees);
 					}
-					else if (sender is WasabiSynchronizer syncer)
+					else if (sender is IThirdPartyFeeProvider)
 					{
 						var rpcProvider = RpcFeeProvider;
 						if (rpcProvider is null)
@@ -93,19 +88,19 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 						{
 							if (rpcProvider.LastAllFeeEstimate?.IsAccurate is true && !rpcProvider.InError)
 							{
-								// If user's full node is properly serving data, then we don't care about the backend.
+								// If user's full node is properly serving data, then we don't care about the third party.
 								return;
 							}
 							else
 							{
-								if (syncer.BackendStatus == BackendStatus.Connected && fees.IsAccurate)
+								if (fees.IsAccurate)
 								{
-									// If the backend is properly serving accurate data then, this is the best we got.
+									// If the third party is properly serving accurate data then, this is the best we got.
 									notify = SetAllFeeEstimate(fees);
 								}
 								else
 								{
-									// If neither user's full node, nor backend is ready, then let's try our best effort figuring out which data looks better:
+									// If neither user's full node, nor third party is ready, then let's try our best effort figuring out which data looks better:
 									notify = SetAllFeeEstimateIfLooksBetter(fees);
 								}
 							}
@@ -113,22 +108,22 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation
 					}
 					else if (sender is RpcFeeProvider rpcProvider)
 					{
-						if (fees.IsAccurate && !rpcProvider.InError)
+						if (fees.IsAccurate)
 						{
 							// If user's full node is properly serving data, we're done here.
 							notify = SetAllFeeEstimate(fees);
 						}
 						else
 						{
-							if (Synchronizer.BackendStatus == BackendStatus.Connected)
+							if (ThirdPartyFeeProvider.InError)
 							{
-								// If the user's full node isn't ready, but the backend is, then let's leave it to the backend.
-								return;
+								// If neither user's full node, nor the third party is ready, then let's try our best effort figuring out which data looks better:
+								notify = SetAllFeeEstimateIfLooksBetter(fees);
 							}
 							else
 							{
-								// If neither user's full node, nor backend is ready, then let's try our best effort figuring out which data looks better:
-								notify = SetAllFeeEstimateIfLooksBetter(fees);
+								// If the user's full node isn't ready, but the third party is, then let's leave it to the third party.
+								return;
 							}
 						}
 					}
