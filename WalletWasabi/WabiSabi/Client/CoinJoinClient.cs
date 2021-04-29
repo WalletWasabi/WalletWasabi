@@ -56,7 +56,7 @@ namespace WalletWasabi.WabiSabi.Client
 				await ConfirmConnectionsAsync(aliceClients, stoppingToken).ConfigureAwait(false);
 
 				// Planning
-				var outputs = await PlanAmountsAsync(stoppingToken).ConfigureAwait(false);
+				var outputs = await DecomposeAmountsAsync(stoppingToken).ConfigureAwait(false);
 
 				// Output registration.
 				await RegisterOutputsAsync(outputs).ConfigureAwait(false);
@@ -135,7 +135,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		private async Task<(Money Amount, HdPubKey Pubkey)[]> PlanAmountsAsync(CancellationToken stoppingToken)
+		private async Task<(Money Amount, HdPubKey Pubkey)[]> DecomposeAmountsAsync(CancellationToken stoppingToken)
 		{
 			// Simulate planner: https://github.com/zkSNACKs/WalletWasabi/pull/5694#discussion_r622468552.
 			await Task.Delay(0, stoppingToken).ConfigureAwait(false);
