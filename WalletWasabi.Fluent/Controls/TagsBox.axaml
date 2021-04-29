@@ -21,30 +21,34 @@
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             Padding="{TemplateBinding Padding}">
-                        <ItemsPresenter Name="PART_ItemsPresenter"
-                                        Focusable="False"
-                                        Items="{TemplateBinding Items}">
-                            <ItemsPresenter.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <c:ConcatenatingWrapPanel Focusable="False">
-                                        <c:ConcatenatingWrapPanel.ConcatenatedChildren>
-                                            <AutoCompleteBox x:Name="PART_AutoCompleteBox"
-                                                             MaxDropDownHeight="90"
-                                                             MinimumPrefixLength="1"
-                                                             Focusable="False"
-                                                             IsTextCompletionEnabled="True"
-                                                             Watermark="{Binding #PART_Border.TemplatedParent.Watermark}"
-                                                             Items="{Binding #PART_Border.TemplatedParent.Suggestions}" />
-                                        </c:ConcatenatingWrapPanel.ConcatenatedChildren>
-                                    </c:ConcatenatingWrapPanel>
-                                </ItemsPanelTemplate>
-                            </ItemsPresenter.ItemsPanel>
-                            <ItemsPresenter.ItemTemplate>
-                                <DataTemplate>
-                                    <c:TagControl Content="{Binding .}" />
-                                </DataTemplate>
-                            </ItemsPresenter.ItemTemplate>
-                        </ItemsPresenter>
+                        <Panel>
+                            <TextBlock Name="PART_Watermark"
+                                       Opacity="0.5"
+                                       Text="{TemplateBinding Watermark}" />
+                            <ItemsPresenter Name="PART_ItemsPresenter"
+                                            Focusable="False"
+                                            Items="{TemplateBinding Items}">
+                                <ItemsPresenter.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <c:ConcatenatingWrapPanel Focusable="False">
+                                            <c:ConcatenatingWrapPanel.ConcatenatedChildren>
+                                                <AutoCompleteBox x:Name="PART_AutoCompleteBox"
+                                                                 MaxDropDownHeight="90"
+                                                                 MinimumPrefixLength="1"
+                                                                 Focusable="False"
+                                                                 IsTextCompletionEnabled="True"
+                                                                 Items="{Binding #PART_Border.TemplatedParent.Suggestions}" />
+                                            </c:ConcatenatingWrapPanel.ConcatenatedChildren>
+                                        </c:ConcatenatingWrapPanel>
+                                    </ItemsPanelTemplate>
+                                </ItemsPresenter.ItemsPanel>
+                                <ItemsPresenter.ItemTemplate>
+                                    <DataTemplate>
+                                        <c:TagControl Content="{Binding .}" />
+                                    </DataTemplate>
+                                </ItemsPresenter.ItemTemplate>
+                            </ItemsPresenter>
+                        </Panel>
                     </Border>
                 </DataValidationErrors>
             </ControlTemplate>

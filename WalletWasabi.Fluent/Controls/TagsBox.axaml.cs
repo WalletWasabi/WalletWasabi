@@ -50,6 +50,7 @@ namespace WalletWasabi.Fluent.Controls
 		private CompositeDisposable? _compositeDisposable;
 		private AutoCompleteBox? _autoCompleteBox;
 		private TextBox? _internalTextBox;
+		private TextBlock? _watermark;
 		private StringComparison _stringComparison;
 		private bool _backspaceEmptyField1;
 		private bool _backspaceEmptyField2;
@@ -134,6 +135,8 @@ namespace WalletWasabi.Fluent.Controls
 
 			presenter.ApplyTemplate();
 
+			_watermark = e.NameScope.Find<TextBlock>("PART_Watermark");
+
 			_autoCompleteBox = (presenter.Panel as ConcatenatingWrapPanel)?.ConcatenatedChildren
 				.OfType<AutoCompleteBox>().FirstOrDefault();
 
@@ -216,10 +219,22 @@ namespace WalletWasabi.Fluent.Controls
 				return;
 			}
 
+			if (_watermark is { })
+			{
+				if (Items != null && (string.IsNullOrWhiteSpace(autoCompleteBox.Text) || !Items.Any()))
+				{
+					_watermark.IsVisible = true;
+				}
+				else
+				{
+					_watermark.IsVisible = false;
+				}
+			}
+
 			if (RestrictInputToSuggestions &&
-				Suggestions is IList<string> suggestions &&
-				!suggestions.Any(x =>
-					x.StartsWith(autoCompleteBox.SearchText, _stringComparison)))
+			    Suggestions is IList<string> suggestions &&
+			    !suggestions.Any(x =>
+				    x.StartsWith(autoCompleteBox.SearchText, _stringComparison)))
 			{
 				e.Handled = true;
 			}
