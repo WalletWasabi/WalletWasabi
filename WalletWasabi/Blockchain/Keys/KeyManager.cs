@@ -110,10 +110,11 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public string FilePath { get; private set; }
 
+		[MemberNotNullWhen(returnValue: false, nameof(EncryptedSecret))]
 		public bool IsWatchOnly => EncryptedSecret is null;
 
 		[MemberNotNullWhen(returnValue: true, nameof(MasterFingerprint))]
-		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint is { };
+		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint is not null;
 
 		[JsonProperty(Order = 8)]
 		private BlockchainState BlockchainState { get; }
@@ -333,7 +334,7 @@ namespace WalletWasabi.Blockchain.Keys
 			return newKey;
 		}
 
-		public IEnumerable<HdPubKey> GetKeys(Func<HdPubKey, bool> wherePredicate)
+		public IEnumerable<HdPubKey> GetKeys(Func<HdPubKey, bool>? wherePredicate)
 		{
 			// BIP44-ish derivation scheme
 			// m / purpose' / coin_type' / account' / change / address_index

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
@@ -35,25 +35,25 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static AvaloniaList<int>? GetColumnSpan(Control? element)
 		{
-			Contract.Requires<ArgumentNullException>(element != null);
+			Contract.Requires<ArgumentNullException>(element is not null);
 			return element!.GetValue(ColumnSpanProperty);
 		}
 
 		public static void SetColumnSpan(Control? element, AvaloniaList<int>? value)
 		{
-			Contract.Requires<ArgumentNullException>(element != null);
+			Contract.Requires<ArgumentNullException>(element is not null);
 			element!.SetValue(ColumnSpanProperty, value);
 		}
 
 		public static AvaloniaList<int>? GetRowSpan(Control? element)
 		{
-			Contract.Requires<ArgumentNullException>(element != null);
+			Contract.Requires<ArgumentNullException>(element is not null);
 			return element!.GetValue(RowSpanProperty);
 		}
 
 		public static void SetRowSpan(Control? element, AvaloniaList<int>? value)
 		{
-			Contract.Requires<ArgumentNullException>(element != null);
+			Contract.Requires<ArgumentNullException>(element is not null);
 			element!.SetValue(RowSpanProperty, value);
 		}
 

@@ -30,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base
 		{
 			base.OnNavigated(oldPage, oldInStack, newPage, newInStack);
 
-			IsDialogOpen = CurrentPage is { };
+			IsDialogOpen = CurrentPage is not null;
 		}
 
 		private static void CloseDialogs(IEnumerable<RoutableViewModel> navigationStack)

@@ -30,7 +30,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Random = new SecureRandom();
 		}
 
-		public Dictionary<Guid, Round> Rounds { get; } = new();
+		public Dictionary<uint256, Round> Rounds { get; } = new();
 		private AsyncLock AsyncLock { get; } = new();
 		public Network Network { get; }
 		public WabiSabiConfig Config { get; }
@@ -156,7 +156,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						round.LogInfo("Trying to broadcast coinjoin.");
 						Coin[]? spentCoins = round.Alices.Select(x => x.Coin).ToArray();
 						Money networkFee = coinjoin.GetFee(spentCoins);
-						Guid roundId = round.Id;
+						uint256 roundId = round.Id;
 						FeeRate feeRate = coinjoin.GetFeeRate(spentCoins);
 						round.LogInfo($"Network Fee: {networkFee.ToString(false, false)} BTC.");
 						round.LogInfo($"Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
@@ -247,7 +247,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		}
 
 		public async Task<InputRegistrationResponse> RegisterInputAsync(
-			Guid roundId,
+			uint256 roundId,
 			Coin coin,
 			OwnershipProof ownershipProof,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,

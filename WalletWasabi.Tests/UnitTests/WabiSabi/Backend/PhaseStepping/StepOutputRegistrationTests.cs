@@ -52,7 +52,7 @@ irreq2.OwnershipProof,
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 			// Confirm connections.
-			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient vsizeClient, Guid aliceId)>();
+			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient vsizeClient, uint256 aliceId)>();
 
 			var ccreq1 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres1);
 			var ccresp1 = await arena.ConfirmConnectionAsync(ccreq1.request);
@@ -119,7 +119,7 @@ irreq1.OwnershipProof,
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 			// Confirm connections.
-			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient vsizeClient, Guid aliceId)>();
+			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient vsizeClient, uint256 aliceId)>();
 
 			var ccreq1 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres1);
 			var ccresp1 = await arena.ConfirmConnectionAsync(ccreq1.request);
@@ -185,7 +185,7 @@ irreq1.OwnershipProof,
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 			// Confirm connections.
-			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient vsizeClient, Guid aliceId)>();
+			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient vsizeClient, uint256 aliceId)>();
 
 			var ccreq1 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres1);
 			var ccresp1 = await arena.ConfirmConnectionAsync(ccreq1.request);
@@ -261,7 +261,7 @@ irreq1.OwnershipProof,
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 			// Confirm connections.
-			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient vsizeClient, Guid aliceId)>();
+			var ccresps = new List<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient vsizeClient, uint256 aliceId)>();
 
 			var ccreq1 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres1);
 			var ccresp1 = await arena.ConfirmConnectionAsync(ccreq1.request);

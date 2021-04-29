@@ -78,7 +78,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			transactionInfo.Coins = selectedList.Items.SelectMany(x => x.Coins).ToArray();
 
-			if (_privatePocket != null)
+			if (_privatePocket is not null)
 			{
 				_privatePocket.IsSelected = false;
 			}

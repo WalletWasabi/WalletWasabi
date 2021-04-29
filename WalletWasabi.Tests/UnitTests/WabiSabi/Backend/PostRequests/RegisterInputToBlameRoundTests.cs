@@ -59,7 +59,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		{
 			Prison prison = new();
 			var outpoint = BitcoinFactory.CreateOutPoint();
-			prison.Punish(outpoint, Punishment.Banned, Guid.NewGuid());
+			prison.Punish(outpoint, Punishment.Banned, uint256.Zero);
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.Alices.Add(WabiSabiFactory.CreateAlice(prevout: outpoint));

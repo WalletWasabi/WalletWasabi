@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend.Banning;
@@ -35,8 +36,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			CoordinatorParameters coordinatorParameters = new(workDir);
 			using var w = new Warden(coordinatorParameters.UtxoWardenPeriod, coordinatorParameters.PrisonFilePath, coordinatorParameters.RuntimeCoordinatorConfig);
 			await w.StartAsync(CancellationToken.None);
-			var i1 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Noted, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), Guid.NewGuid());
-			var i2 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Banned, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), Guid.NewGuid());
+			var i1 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Noted, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), uint256.Zero);
+			var i2 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Banned, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), uint256.Zero);
 			w.Prison.Punish(i1);
 			w.Prison.Punish(i2);
 
@@ -72,8 +73,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			CoordinatorParameters coordinatorParameters = new(workDir);
 			using var w = new Warden(coordinatorParameters.UtxoWardenPeriod, coordinatorParameters.PrisonFilePath, coordinatorParameters.RuntimeCoordinatorConfig);
 			await w.StartAsync(CancellationToken.None);
-			var i1 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Noted, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), Guid.NewGuid());
-			var i2 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Banned, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), Guid.NewGuid());
+			var i1 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Noted, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), uint256.Zero);
+			var i2 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Banned, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), uint256.Zero);
 			w.Prison.Punish(i1);
 			w.Prison.Punish(i2);
 
@@ -99,8 +100,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 
 			using var w = new Warden(coordinatorParameters.UtxoWardenPeriod, coordinatorParameters.PrisonFilePath, coordinatorParameters.RuntimeCoordinatorConfig);
 			await w.StartAsync(CancellationToken.None);
-			var i1 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Noted, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), Guid.NewGuid());
-			var i2 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Banned, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), Guid.NewGuid());
+			var i1 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Noted, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), uint256.Zero);
+			var i2 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Banned, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), uint256.Zero);
 			var p = w.Prison;
 			p.Punish(i1);
 			p.Punish(i2);
