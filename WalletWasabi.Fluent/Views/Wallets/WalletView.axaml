@@ -42,7 +42,7 @@
                                                            ItemHeight="150"
                                                            WidthSource="{Binding #ScrollViewer.Bounds.Width}"
                                                            AspectRatio="NaN"
-                                                           ColumnHints="1, 3, 3"
+                                                           ColumnHints="3, 3, 3"
                                                            WidthTriggers="300, 660, 990" />
                     </ItemsRepeater.Layout>
                 </ItemsRepeater>
