@@ -1,4 +1,5 @@
 using NBitcoin;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WalletWasabi.BitcoinCore.Rpc.Models
 {
@@ -26,6 +27,8 @@ namespace WalletWasabi.BitcoinCore.Rpc.Models
 		public VerboseOutputInfo? PrevOutput { get; }
 
 		public string? Coinbase { get; }
+
+		[MemberNotNullWhen(returnValue: true, nameof(Coinbase))]
 		public bool IsCoinbase => Coinbase is not null;
 	}
 }
