@@ -333,7 +333,7 @@ namespace WalletWasabi.Blockchain.Keys
 			return newKey;
 		}
 
-		public IEnumerable<HdPubKey> GetKeys(Func<HdPubKey, bool> wherePredicate)
+		public IEnumerable<HdPubKey> GetKeys(Func<HdPubKey, bool>? wherePredicate)
 		{
 			// BIP44-ish derivation scheme
 			// m / purpose' / coin_type' / account' / change / address_index

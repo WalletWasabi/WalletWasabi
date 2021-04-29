@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.Rpc
 
 		private Global Global { get; }
 		public TerminateService TerminateService { get; }
-		private Wallet ActiveWallet { get; set; }
+		private Wallet? ActiveWallet { get; set; }
 
 		[JsonRpcMethod("listunspentcoins")]
 		public object[] GetUnspentCoinList()
@@ -109,7 +109,7 @@ namespace WalletWasabi.Gui.Rpc
 				},
 				backendStatus = sync.BackendStatus == BackendStatus.Connected ? "Connected" : "Disconnected",
 				bestBlockchainHeight = sync.BitcoinStore.SmartHeaderChain.TipHeight.ToString(),
-				bestBlockchainHash = sync.BitcoinStore.SmartHeaderChain.TipHash.ToString(),
+				bestBlockchainHash = sync.BitcoinStore.SmartHeaderChain.TipHash?.ToString() ?? "",
 				filtersCount = sync.BitcoinStore.SmartHeaderChain.HashCount,
 				filtersLeft = sync.BitcoinStore.SmartHeaderChain.HashesLeft,
 				network = Global.Network.Name,
@@ -125,7 +125,7 @@ namespace WalletWasabi.Gui.Rpc
 		}
 
 		[JsonRpcMethod("build")]
-		public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string password = null)
+		public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string? password = null)
 		{
 			Guard.NotNull(nameof(payments), payments);
 			Guard.NotNull(nameof(coins), coins);
@@ -149,8 +149,9 @@ namespace WalletWasabi.Gui.Rpc
 		}
 
 		[JsonRpcMethod("send")]
-		public async Task<object> SendTransactionAsync(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string password = null)
+		public async Task<object> SendTransactionAsync(PaymentInfo[] payments, OutPoint[] coins, int feeTarget, string? password = null)
 		{
+			password = Guard.Correct(password);
 			var txHex = BuildTransaction(payments, coins, feeTarget, password);
 			var smartTx = new SmartTransaction(Transaction.Parse(txHex, Global.Network), Height.Mempool);
 
@@ -205,7 +206,7 @@ namespace WalletWasabi.Gui.Rpc
 		public object[] GetAllKeys()
 		{
 			AssertWalletIsLoaded();
-			var keys = ActiveWallet.KeyManager.GetKeys(null);
+			var keys = ActiveWallet.KeyManager.GetKeys();
 			return keys.Select(x => new
 			{
 				fullKeyPath = x.FullKeyPath.ToString(),
@@ -220,9 +221,10 @@ namespace WalletWasabi.Gui.Rpc
 		}
 
 		[JsonRpcMethod("enqueue")]
-		public async Task EnqueueForCoinJoinAsync(OutPoint[] coins, string password = null)
+		public async Task EnqueueForCoinJoinAsync(OutPoint[] coins, string? password = null)
 		{
 			Guard.NotNull(nameof(coins), coins);
+			password = Guard.Correct(password);
 
 			AssertWalletIsLoaded();
 			var coinsToMix = ActiveWallet.Coins.Where(x => coins.Any(y => y == x.OutPoint));
