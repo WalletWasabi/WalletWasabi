@@ -54,10 +54,8 @@ namespace WalletWasabi.WabiSabi.Client
 				// Confirm coins.
 				await ConfirmConnectionsAsync(aliceClients, stoppingToken).ConfigureAwait(false);
 
-				Money[]? othersInputAmounts = null; // TODO: Get it from somewhere.
-
 				// Planning
-				var outputs = await PlanAmountsAsync(othersInputAmounts, stoppingToken).ConfigureAwait(false);
+				var outputs = await PlanAmountsAsync(stoppingToken).ConfigureAwait(false);
 
 				// Output registration.
 				await RegisterOutputsAsync(outputs).ConfigureAwait(false);
@@ -147,9 +145,9 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		private async Task<(Money Amount, HdPubKey Pubkey)[]> PlanAmountsAsync(Money[]? inputsOfOthers, CancellationToken stoppingToken)
+		private async Task<(Money Amount, HdPubKey Pubkey)[]> PlanAmountsAsync(CancellationToken stoppingToken)
 		{
-			// Simulate planner.
+			// Simulate planner: https://github.com/zkSNACKs/WalletWasabi/pull/5694#discussion_r622468552.
 			await Task.Delay(0, stoppingToken).ConfigureAwait(false);
 			var amounts = Enumerable.Repeat(Money.Zero, 4).ToArray();
 
