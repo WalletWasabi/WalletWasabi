@@ -12,7 +12,8 @@
         TransparencyLevelHint="AcrylicBlur"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="PreferSystemChrome"
-        Title="Wasabi Wallet">
+        Title="Wasabi Wallet"
+        WindowState="{Binding WindowState, Mode=TwoWay}">
 
   <Panel Margin="{Binding #MainWindow.OffScreenMargin}">
     <local:MainView />
