@@ -84,10 +84,15 @@
 
   <Style Selector="c|TagsBox:readonly">
     <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="Padding" Value="0" />
   </Style>
 
   <Style Selector="c|TagsBox c|TagControl">
     <Setter Property="Margin" Value="0,0,4,0" />
+  </Style>
+
+  <Style Selector="c|TagsBox c|ConcatenatingWrapPanel:wrapped c|TagControl">
+    <Setter Property="Margin" Value="0,0,4,4" />
   </Style>
 
   <Style Selector="c|TagsBox AutoCompleteBox">
