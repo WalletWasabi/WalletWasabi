@@ -110,6 +110,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 		public string FilePath { get; private set; }
 
+		[MemberNotNullWhen(returnValue: false, nameof(EncryptedSecret))]
 		public bool IsWatchOnly => EncryptedSecret is null;
 
 		[MemberNotNullWhen(returnValue: true, nameof(MasterFingerprint))]
