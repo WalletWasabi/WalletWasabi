@@ -31,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			// Make sure we set them to the past so the release method that looks at the time evaluates to true.
 			var past = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(2);
 
-			var id1 = new uint256(1234);
+			var id1 = BitcoinFactory.CreateUint256();
 			p.Punish(new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Banned, past, id1));
 			Assert.NotEqual(currentChangeId, p.ChangeId);
 			currentChangeId = p.ChangeId;
@@ -41,7 +41,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			currentChangeId = p.ChangeId;
 
 			var op = BitcoinFactory.CreateOutPoint();
-			var id2 = new uint256(5555);
+			var id2 = BitcoinFactory.CreateUint256();
 			p.Punish(new Inmate(op, Punishment.Noted, past, id2));
 			Assert.NotEqual(currentChangeId, p.ChangeId);
 			currentChangeId = p.ChangeId;
@@ -63,7 +63,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			var p = new Prison();
 
-			var id1 = new uint256(88888);
+			var id1 = BitcoinFactory.CreateUint256();
 
 			var utxo = BitcoinFactory.CreateOutPoint();
 			p.Punish(utxo, Punishment.Noted, id1);
@@ -93,7 +93,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.True(p.TryRelease(utxo, out _));
 
 			// Updates round.
-			var id2 = new NBitcoin.uint256(1234);
+			var id2 = BitcoinFactory.CreateUint256();
 			p.Punish(utxo, Punishment.Banned, id1);
 			p.Punish(utxo, Punishment.Banned, id2);
 			Assert.Single(p.GetInmates());

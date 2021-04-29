@@ -40,7 +40,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void InputRegistrationRequestMessageSerialization()
 		{
 			var message = new InputRegistrationRequest(
-					new uint256(1234567),
+					BitcoinFactory.CreateUint256(),
 					BitcoinFactory.CreateOutPoint(),
 					new OwnershipProof(),
 					CreateZeroCredentialsRequest(),
@@ -53,7 +53,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void InputRegistrationResponseMessageSerialization()
 		{
 			var message = new InputRegistrationResponse(
-				new uint256(67432),
+				BitcoinFactory.CreateUint256(),
 				CreateCredentialsResponse(),
 				CreateCredentialsResponse());
 
@@ -64,8 +64,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void ConnectionConfirmationRequestMessageSerialization()
 		{
 			var message = new ConnectionConfirmationRequest(
-				new uint256(123456),
-				new uint256(456123),
+				BitcoinFactory.CreateUint256(),
+				BitcoinFactory.CreateUint256(),
 				CreateZeroCredentialsRequest(),
 				CreateRealCredentialsRequest(),
 				CreateZeroCredentialsRequest(),
@@ -90,7 +90,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void OutputRegistrationRequestMessageSerialization()
 		{
 			var message = new OutputRegistrationRequest(
-				new uint256(1234567),
+				BitcoinFactory.CreateUint256(),
 				BitcoinFactory.CreateScript(),
 				CreateRealCredentialsRequest(),
 				CreateRealCredentialsRequest());
@@ -112,7 +112,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void ReissueCredentialRequestMessageSerialization()
 		{
 			var message = new ReissueCredentialRequest(
-				new uint256(1234567),
+				BitcoinFactory.CreateUint256(),
 				CreateRealCredentialsRequest(),
 				CreateRealCredentialsRequest(),
 				CreateZeroCredentialsRequest(),
@@ -137,8 +137,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void InpuRemovalRequestMessageSerialization()
 		{
 			var message = new InputsRemovalRequest(
-				new uint256(3456543),
-				new uint256(9998877));
+				BitcoinFactory.CreateUint256(),
+				BitcoinFactory.CreateUint256());
 
 			AssertSerialization(message);
 		}
@@ -149,7 +149,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			using var key1 = new Key();
 			using var key2 = new Key();
 			var message = new TransactionSignaturesRequest(
-				new uint256(1234567),
+				BitcoinFactory.CreateUint256(),
 				new[]
 				{
 					new InputWitnessPair(1, new WitScript(Op.GetPushOp(key1.PubKey.ToBytes())) ),

@@ -165,8 +165,8 @@ namespace WalletWasabi.Tests.Helpers
 			var (zeroVsizeCredentialRequest, _) = vsClient.CreateRequestForZeroAmount();
 
 			return new ConnectionConfirmationRequest(
-				round?.Id ?? new uint256(12345),
-				alice?.Id ?? new uint256(98765),
+				round?.Id ?? BitcoinFactory.CreateUint256(),
+				alice?.Id ?? BitcoinFactory.CreateUint256(),
 				zeroAmountCredentialRequest,
 				realAmountCredentialRequest,
 				zeroVsizeCredentialRequest,
