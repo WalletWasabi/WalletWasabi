@@ -81,8 +81,7 @@
       <!-- TopItems List -->
       <c:NavBarListBox Items="{Binding TopItems}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                       Name="TopListBox"
-                       Classes="vertical">
+                       Name="TopListBox">
         <c:NavBarListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:NavBarItemViewModel" x:CompileBindings="False">
             <Panel>
@@ -103,7 +102,6 @@
       <c:NavBarListBox Items="{Binding SelectedWallets}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="SelectedWalletListBox"
-                       Classes="vertical"
                        RenderTransformOrigin="0%,50%">
         <c:NavBarListBox.Styles>
           <Style Selector=":is(ListBox):not(:empty)">
@@ -275,7 +273,6 @@
                      SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                      IsVisible="{Binding !HideItems, Mode=OneWay}"
                      Name="ItemsListBox"
-                     Classes="vertical"
                      RenderTransformOrigin="0%,50%"
                      VerticalAlignment="{Binding Actions.Count, Mode=OneWay, Converter={x:Static conv:NavBarItemsListBoxAlignmentConverter.Instance}}">
       <c:NavBarListBox.Styles>
