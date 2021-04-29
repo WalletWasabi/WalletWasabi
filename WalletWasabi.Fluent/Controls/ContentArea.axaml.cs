@@ -142,7 +142,7 @@ namespace WalletWasabi.Fluent.Controls
 
 					_captionPresenter = presenter;
 					_captionPresenter.PropertyChanged += PresenterOnPropertyChanged;
-					_captionPresenter.IsVisible = Caption is { };
+					_captionPresenter.IsVisible = Caption is not null;
 					result = true;
 					break;
 			}
@@ -166,9 +166,9 @@ namespace WalletWasabi.Fluent.Controls
 					newValue.Classes.Add(className);
 				}
 			}
-			else if (e.Property == CaptionProperty && _captionPresenter is { })
+			else if (e.Property == CaptionProperty && _captionPresenter is not null)
 			{
-				_captionPresenter.IsVisible = e.NewValue is { };
+				_captionPresenter.IsVisible = e.NewValue is not null;
 			}
 		}
 	}
