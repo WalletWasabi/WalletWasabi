@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent.Controls
 			AvaloniaProperty.Register<NavBarItem, IconElement>(nameof(Icon));
 
 		public static readonly StyledProperty<Orientation> IndicatorOrientationProperty =
-			AvaloniaProperty.Register<NavBarItem, Orientation>(nameof(IndicatorOrientation), Orientation.Vertical);
+			AvaloniaProperty.Register<NavBarItem, Orientation>(nameof(IndicatorOrientation), Orientation.Horizontal);
 
 		public NavBarItem()
 		{
