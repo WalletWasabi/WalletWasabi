@@ -60,7 +60,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			};
 			BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions)
 			{
-				ColumnSpan = new List<int> { 1, 2, 2 },
+				ColumnSpan = new List<int> { 2, 2, 2 },
 				RowSpan = new List<int> { 1, 2, 2 }
 			};
 
