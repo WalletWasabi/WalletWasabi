@@ -13,10 +13,11 @@
     <Setter Property="MinHeight" Value="{DynamicResource TextControlThemeMinHeight}" />
     <Setter Property="MinWidth" Value="{DynamicResource TextControlThemeMinWidth}" />
     <Setter Property="Padding" Value="{DynamicResource TagsBoxBorderPadding}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
     <Setter Property="Cursor" Value="IBeam" />
     <Setter Property="Template">
       <ControlTemplate>
-        <DataValidationErrors>
+        <DataValidationErrors VerticalContentAlignment="{TemplateBinding VerticalAlignment}">
           <Border x:Name="PART_Border" Background="{TemplateBinding Background}"
                   BorderBrush="{TemplateBinding BorderBrush}"
                   BorderThickness="{TemplateBinding BorderThickness}"
@@ -26,7 +27,7 @@
                             Items="{TemplateBinding Items}">
               <ItemsPresenter.ItemsPanel>
                 <ItemsPanelTemplate>
-                  <c:ConcatenatingWrapPanel Focusable="False">
+                  <c:ConcatenatingWrapPanel Focusable="False" VerticalAlignment="{TemplateBinding VerticalAlignment}">
                     <c:ConcatenatingWrapPanel.ConcatenatedChildren>
                       <AutoCompleteBox x:Name="PART_AutoCompleteBox"
                                        MaxDropDownHeight="90"
@@ -74,6 +75,7 @@
   <Style Selector="c|TagsBox:readonly /template/ Border#PART_Border">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
   </Style>
 
   <Style Selector="c|TagsBox:readonly AutoCompleteBox">
@@ -85,7 +87,7 @@
   </Style>
 
   <Style Selector="c|TagsBox c|TagControl">
-    <Setter Property="Margin" Value="0,0,4,4" />
+    <Setter Property="Margin" Value="0,0,4,0" />
   </Style>
 
   <Style Selector="c|TagsBox AutoCompleteBox">
