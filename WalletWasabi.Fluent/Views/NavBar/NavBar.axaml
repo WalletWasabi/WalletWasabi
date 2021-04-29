@@ -82,6 +82,11 @@
       <c:NavBarListBox Items="{Binding TopItems}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="TopListBox">
+        <c:NavBarListBox.Styles>
+          <Style Selector="c|NavBarItem">
+            <Setter Property="IndicatorOrientation" Value="Vertical" />
+          </Style>
+        </c:NavBarListBox.Styles>
         <c:NavBarListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:NavBarItemViewModel" x:CompileBindings="False">
             <Panel>
@@ -125,6 +130,9 @@
                 </KeyFrame>
               </Animation>
             </Style.Animations>
+          </Style>
+          <Style Selector="c|NavBarItem">
+            <Setter Property="IndicatorOrientation" Value="Vertical" />
           </Style>
         </c:NavBarListBox.Styles>
         <c:NavBarListBox.DataTemplates>
@@ -276,6 +284,9 @@
                      RenderTransformOrigin="0%,50%"
                      VerticalAlignment="{Binding Actions.Count, Mode=OneWay, Converter={x:Static conv:NavBarItemsListBoxAlignmentConverter.Instance}}">
       <c:NavBarListBox.Styles>
+        <Style Selector="c|NavBarItem">
+          <Setter Property="IndicatorOrientation" Value="Vertical" />
+        </Style>
         <Style Selector=":is(ListBox)[VerticalAlignment=Bottom]">
           <Style.Animations>
             <Animation Delay="0:0:0.1" Duration="0:0:0.175">
