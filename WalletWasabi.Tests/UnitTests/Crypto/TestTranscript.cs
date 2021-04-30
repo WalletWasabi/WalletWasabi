@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.StrobeProtocol;
+using WalletWasabi.WabiSabi;
 
 namespace WalletWasabi.Tests.UnitTests.Crypto
 {
@@ -14,9 +15,11 @@ namespace WalletWasabi.Tests.UnitTests.Crypto
 
 		public TestTranscript(byte[] label)
 		{
-			_strobe = new Strobe128("WabiSabi_v1.0");
+			_strobe = new Strobe128(ProtocolConstants.WabiSabiProtocolIdentifier);
 
-			var metadata = Enumerable.Concat(Encoding.UTF8.GetBytes("domain-separator"), BitConverter.GetBytes(label.Length)).ToArray();
+			var metadata = Enumerable.Concat(
+				Encoding.UTF8.GetBytes(ProtocolConstants.DomainStrobeSeparator), 
+				BitConverter.GetBytes(label.Length)).ToArray();
 			_strobe.AddAssociatedMetaData(metadata, false);
 			_strobe.AddAssociatedData(label, false);
 		}

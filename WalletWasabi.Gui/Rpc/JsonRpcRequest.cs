@@ -34,6 +34,7 @@ namespace WalletWasabi.Gui.Rpc
 		/// Gets a value indicating whether the JsonRpcRequest is a notification request
 		/// which means the client is not interested in receiving a response.
 		/// </summary>
+		[MemberNotNullWhen(returnValue: false, nameof(Id))]
 		public bool IsNotification => Id is null;
 
 		/// <summary>

@@ -18,7 +18,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class WasabiSynchronizer : NotifyPropertyChangedBase
+	public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvider
 	{
 		private const long StateNotStarted = 0;
 
@@ -59,6 +59,8 @@ namespace WalletWasabi.Services
 
 		public event EventHandler<SynchronizeResponse>? ResponseArrived;
 
+		public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
+
 		public SynchronizeResponse? LastResponse { get; private set; }
 
 		/// <summary><see cref="WasabiSynchronizer"/> is responsible for disposing of this object.</summary>
@@ -84,8 +86,17 @@ namespace WalletWasabi.Services
 		public BackendStatus BackendStatus
 		{
 			get => _backendStatus;
-			private set => RaiseAndSetIfChanged(ref _backendStatus, value);
+			private set
+			{
+				if (RaiseAndSetIfChanged(ref _backendStatus, value))
+				{
+					BackendStatusChangedAt = DateTimeOffset.UtcNow;
+				}
+			}
 		}
+
+		private DateTimeOffset BackendStatusChangedAt { get; set; } = DateTimeOffset.UtcNow;
+		public TimeSpan BackendStatusChangedSince => DateTimeOffset.UtcNow - BackendStatusChangedAt;
 
 		public TimeSpan MaxRequestIntervalForMixing { get; set; }
 
@@ -97,6 +108,10 @@ namespace WalletWasabi.Services
 		/// Cancellation token source for stopping <see cref="WasabiSynchronizer"/>.
 		/// </summary>
 		private CancellationTokenSource StopCts { get; }
+
+		public AllFeeEstimate? LastAllFeeEstimate => LastResponse?.AllFeeEstimate;
+
+		public bool InError => BackendStatus != BackendStatus.Connected;
 
 		public bool AreRequestsBlocked() => Interlocked.Read(ref _blockRequests) == 1;
 
@@ -197,7 +212,7 @@ namespace WalletWasabi.Services
 							catch (Exception ex)
 							{
 								TorStatus = TorStatus.Running;
-								BackendStatus = BackendStatus.Connected;
+								BackendStatus = BackendStatus.NotConnected;
 								HandleIfGenSocksServFail(ex);
 								throw;
 							}
@@ -219,6 +234,10 @@ namespace WalletWasabi.Services
 
 							LastResponse = response;
 							ResponseArrived?.Invoke(this, response);
+							if (response.AllFeeEstimate is { } allFeeEstimate)
+							{
+								AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
+							}
 						}
 						catch (OperationCanceledException)
 						{

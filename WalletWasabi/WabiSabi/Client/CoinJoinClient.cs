@@ -92,7 +92,7 @@ namespace WalletWasabi.WabiSabi.Client
 			foreach (var coin in Coins)
 			{
 				var secret = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey.WitHash.ScriptPubKey).First().PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
-				aliceClients.Add(await AliceClient.CreateNewAsync(aliceArenaClient, coin, secret, Round.Id, Round.Hash, Round.FeeRate).ConfigureAwait(false));
+				aliceClients.Add(await AliceClient.CreateNewAsync(aliceArenaClient, coin, secret, Round.Id, Round.FeeRate).ConfigureAwait(false));
 				await Task.Delay(Random.Next(0, 1000)).ConfigureAwait(false);
 			}
 

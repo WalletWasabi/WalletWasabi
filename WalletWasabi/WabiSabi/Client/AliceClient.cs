@@ -11,7 +11,7 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class AliceClient
 	{
-		public AliceClient(Guid aliceId, Guid roundId, ArenaClient arenaClient, Coin coin, FeeRate feeRate, BitcoinSecret bitcoinSecret)
+		public AliceClient(uint256 aliceId, uint256 roundId, ArenaClient arenaClient, Coin coin, FeeRate feeRate, BitcoinSecret bitcoinSecret)
 		{
 			AliceId = aliceId;
 			RoundId = roundId;
@@ -21,8 +21,8 @@ namespace WalletWasabi.WabiSabi.Client
 			BitcoinSecret = bitcoinSecret;
 		}
 
-		public Guid AliceId { get; }
-		public Guid RoundId { get; }
+		public uint256 AliceId { get; }
+		public uint256 RoundId { get; }
 		private ArenaClient ArenaClient { get; }
 		private Coin Coin { get; }
 		private FeeRate FeeRate { get; }
@@ -81,11 +81,10 @@ namespace WalletWasabi.WabiSabi.Client
 			ArenaClient arenaClient,
 			Coin coin,
 			BitcoinSecret bitcoinSecret,
-			Guid roundId,
-			uint256 roundHash,
+			uint256 roundId,
 			FeeRate feeRate)
 		{
-			Guid aliceId = await arenaClient.RegisterInputAsync(coin.Amount, coin.Outpoint, bitcoinSecret.PrivateKey, roundId, roundHash).ConfigureAwait(false);
+			uint256 aliceId = await arenaClient.RegisterInputAsync(coin.Amount, coin.Outpoint, bitcoinSecret.PrivateKey, roundId).ConfigureAwait(false);
 
 			AliceClient client = new(aliceId, roundId, arenaClient, coin, feeRate, bitcoinSecret);
 

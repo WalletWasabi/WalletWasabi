@@ -49,7 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
 			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
-			IsPayJoin = PayJoinUrl is { };
+			IsPayJoin = PayJoinUrl is not null;
 
 			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNext(wallet, broadcaster, transaction));
 		}

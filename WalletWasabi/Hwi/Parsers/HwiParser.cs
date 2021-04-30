@@ -42,7 +42,7 @@ namespace WalletWasabi.Hwi.Parsers
 				error = null;
 			}
 
-			return error is { };
+			return error is not null;
 		}
 
 		public static bool TryParseError(JToken token, [NotNullWhen(true)] out HwiException? error)
@@ -88,7 +88,7 @@ namespace WalletWasabi.Hwi.Parsers
 				error = new HwiException(HwiErrorCode.UnknownError, "");
 			}
 
-			return error is { };
+			return error is not null;
 		}
 
 		public static bool TryParseErrorCode(JToken codeToken, out HwiErrorCode code)
