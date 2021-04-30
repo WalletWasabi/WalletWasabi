@@ -131,9 +131,9 @@ namespace WalletWasabi.Tor
 			return false;
 		}
 
-		public async Task StopAsync(bool killTor = false)
+		public async Task StopAsync()
 		{
-			if (TorProcess is { } && killTor)
+			if (TorProcess is { } && Settings.TerminateOnExit)
 			{
 				Logger.LogInfo($"Killing Tor process.");
 
