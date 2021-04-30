@@ -23,7 +23,7 @@ namespace WalletWasabi.Backend
 			var content = await File.ReadAllTextAsync(path);
 
 			content = content.Replace("http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion", "https://wasabiwallet.io", StringComparison.Ordinal);
-			content = content.Replace("images/icon-colored-onion.png", "images/icon-colored-clearnet.png", StringComparison.Ordinal);
+			content = content.Replace("icon-colored-onion", "icon-colored-clearnet", StringComparison.Ordinal);
 			content = content.Replace("https://blockstream.info", "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion", StringComparison.Ordinal);
 			content = content.Replace("https://wasabiwallet.io/swagger", "http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/swagger", StringComparison.Ordinal);
 
