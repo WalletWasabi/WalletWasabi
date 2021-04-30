@@ -56,7 +56,7 @@ namespace WalletWasabi.WabiSabi.Client
 				await ConfirmConnectionsAsync(aliceClients, stoppingToken).ConfigureAwait(false);
 
 				// Planning
-				var outputs = await DecomposeAmountsAsync(stoppingToken).ConfigureAwait(false);
+				var outputs = DecomposeAmounts(stoppingToken);
 
 				// Output registration.
 				await RegisterOutputsAsync(outputs, stoppingToken).ConfigureAwait(false);
@@ -126,11 +126,16 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		private async Task<(Money Amount, HdPubKey Pubkey)[]> DecomposeAmountsAsync(CancellationToken stoppingToken)
+		private (Money Amount, HdPubKey Pubkey)[] DecomposeAmounts(CancellationToken stoppingToken)
 		{
-			// Simulate planner: https://github.com/zkSNACKs/WalletWasabi/pull/5694#discussion_r622468552.
-			await Task.Delay(0, stoppingToken).ConfigureAwait(false);
-			var amounts = Enumerable.Repeat(Money.Zero, 4).ToArray();
+			const int Count = 4;
+
+			// Simple decomposer.
+			Money total = Coins.Sum(c => c.Amount);
+			Money amount = total / Count;
+
+			List<Money> amounts = Enumerable.Repeat(Money.Satoshis(amount), Count - 1).ToList();
+			amounts.Add(total - amounts.Sum());
 
 			return amounts.Select(amount => (amount, Keymanager.GenerateNewKey("", KeyState.Locked, true, true))).ToArray(); // Keymanager threadsafe => no!?
 		}
