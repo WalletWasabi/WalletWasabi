@@ -24,25 +24,21 @@
       </DockPanel.Styles>
       <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="30">
         <DockPanel HorizontalAlignment="Center">
-          <DockPanel>
-            <c:AdorningContentControl>
-              <TextBlock Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" Margin="20 2" />
-              <c:AdorningContentControl.Adornment>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 0 0 2">
-                  <c:AnimatedButton ToolTip.Tip="Show on the hardware wallet" DockPanel.Dock="Right"
-                                    IsVisible="{Binding IsHardwareWallet}"
-                                    Command="{Binding ShowOnHwWalletCommand}"
-                                    NormalIcon="{StaticResource share_regular}"
-                                    ClickIcon="{StaticResource copy_confirmed}"/>
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
+            <StackPanel Orientation="Horizontal" Spacing="2">
+              <c:AnimatedButton ToolTip.Tip="Show on the hardware wallet"
+                                IsVisible="{Binding IsHardwareWallet}"
+                                Command="{Binding ShowOnHwWalletCommand}"
+                                NormalIcon="{StaticResource share_regular}"
+                                ClickIcon="{StaticResource copy_confirmed}"/>
 
-                  <c:AnimatedButton ToolTip.Tip="Copy"
-                                    Command="{Binding CopyAddressCommand}"
-                                    NormalIcon="{StaticResource copy_regular}"
-                                    ClickIcon="{StaticResource copy_confirmed}"/>
-                </StackPanel>
-              </c:AdorningContentControl.Adornment>
-            </c:AdorningContentControl>
-          </DockPanel>
+              <c:AnimatedButton ToolTip.Tip="Copy"
+                                Command="{Binding CopyAddressCommand}"
+                                NormalIcon="{StaticResource copy_regular}"
+                                ClickIcon="{StaticResource copy_confirmed}"/>
+            </StackPanel>
+          </StackPanel>
         </DockPanel>
         <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}" HorizontalAlignment="Center" />
       </StackPanel>
