@@ -68,10 +68,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using var destinationKey4 = new Key();
 
 			var bobClient = new BobClient(round.Id, bobArenaClient);
-			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey1.PubKey.WitHash.ScriptPubKey);
-			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey2.PubKey.WitHash.ScriptPubKey);
-			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey3.PubKey.WitHash.ScriptPubKey);
-			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey4.PubKey.WitHash.ScriptPubKey);
+			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey1.PubKey.WitHash.ScriptPubKey, amountCredential.Valuable, vsizeCredential.Valuable);
+			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey2.PubKey.WitHash.ScriptPubKey, amountCredential.Valuable, vsizeCredential.Valuable);
+			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey3.PubKey.WitHash.ScriptPubKey, amountCredential.Valuable, vsizeCredential.Valuable);
+			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey4.PubKey.WitHash.ScriptPubKey, amountCredential.Valuable, vsizeCredential.Valuable);
 
 			Assert.Equal(4, round.Bobs.Count);
 		}
