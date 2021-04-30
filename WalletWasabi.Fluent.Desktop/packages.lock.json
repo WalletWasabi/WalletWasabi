@@ -124,38 +124,38 @@
       },
       "Avalonia.Xaml.Behaviors": {
         "type": "Transitive",
-        "resolved": "0.10.2",
-        "contentHash": "TN6JMovLB4JH/nDKrYnYWmTDaK8aUwsoU4bF36ihzUbjfs/6NnC/YD69hJcNbzB0Jq/XYyreVdCE5GAeEpyZEw==",
+        "resolved": "0.10.3",
+        "contentHash": "6+/x5/KFvcRkb11IPVNDDJT9scd4CAphFd8fFGKl7cQn2mSu4uLTcAoRbIVnBTkZIF5JCufTNLYX/NSrDazzrw==",
         "dependencies": {
-          "Avalonia": "0.10.2",
-          "Avalonia.Xaml.Interactions": "0.10.2",
-          "Avalonia.Xaml.Interactivity": "0.10.2"
+          "Avalonia": "0.10.3",
+          "Avalonia.Xaml.Interactions": "0.10.3",
+          "Avalonia.Xaml.Interactivity": "0.10.3"
         }
       },
       "Avalonia.Xaml.Interactions": {
         "type": "Transitive",
-        "resolved": "0.10.2",
-        "contentHash": "0vmuPlsF9i+6F8B4s4IaNaC3AXuZYKMCEgbpFtoCMLfmb6yLNYNJiZ+KZwg5/EYgUx3ggnhm/a3AymVJogk9lQ==",
+        "resolved": "0.10.3",
+        "contentHash": "czfL1msyVa75C2HxcaqhyZaAdfSG6/kcGqKMbBPHLxiqBap75ASkx4bXDsTrNeXgvCARh/wG8ssi8nDXLvasPg==",
         "dependencies": {
-          "Avalonia": "0.10.2",
-          "Avalonia.Xaml.Interactivity": "0.10.2"
+          "Avalonia": "0.10.3",
+          "Avalonia.Xaml.Interactivity": "0.10.3"
         }
       },
       "Avalonia.Xaml.Interactions.Custom": {
         "type": "Transitive",
-        "resolved": "0.10.2",
-        "contentHash": "IBzkAb4DHWcDHt7ZOlS/BoQeiYdfjbW71A/qAhFDbyDEyqAH5ddj7Z6gRyJmtGDY5+S+tNnSDkOkjHQjX7I9zQ==",
+        "resolved": "0.10.3",
+        "contentHash": "vygO1aKfp+YVO4oY+n01s3fCXRweYFRDXXfsO4KVfFQu2cowU7MGoT08IqwW/PKZvaZRjNAkM4ypTNCJ1jKwCQ==",
         "dependencies": {
-          "Avalonia": "0.10.2",
-          "Avalonia.Xaml.Interactivity": "0.10.2"
+          "Avalonia": "0.10.3",
+          "Avalonia.Xaml.Interactivity": "0.10.3"
         }
       },
       "Avalonia.Xaml.Interactivity": {
         "type": "Transitive",
-        "resolved": "0.10.2",
-        "contentHash": "et2OGiTWC4iFJncwRRQMQDGwN9ktmwaJjVxekp9bfsUfJKAcXjCHGvQCAk+9BlfJ1rCfgKJLrfJCHkGEAj3NPA==",
+        "resolved": "0.10.3",
+        "contentHash": "xbOxcH3rL/mFWGpbkibuPYYp5LL5wbdCpPDMee5NS69fR5abU1nt5drKfU7jP3YnXNMD9uoswqMEjyOasYfJjw==",
         "dependencies": {
-          "Avalonia": "0.10.2"
+          "Avalonia": "0.10.3"
         }
       },
       "AvalonStudio.Shell": {
@@ -998,9 +998,9 @@
           "Avalonia": "0.10.3",
           "Avalonia.Diagnostics": "0.10.3",
           "Avalonia.ReactiveUI": "0.10.3",
-          "Avalonia.Xaml.Behaviors": "0.10.2",
-          "Avalonia.Xaml.Interactions.Custom": "0.10.2",
-          "Avalonia.Xaml.Interactivity": "0.10.2",
+          "Avalonia.Xaml.Behaviors": "0.10.3",
+          "Avalonia.Xaml.Interactions.Custom": "0.10.3",
+          "Avalonia.Xaml.Interactivity": "0.10.3",
           "WalletWasabi": "1.0.0",
           "Wasabi Wallet": "1.0.0"
         }
