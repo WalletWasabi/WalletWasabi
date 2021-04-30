@@ -153,7 +153,7 @@ namespace WalletWasabi.Fluent.Controls
 			for (int i = 0, count = children.Count; i < count; i++)
 			{
 				var child = children[i];
-				if (child != null)
+				if (child is not null)
 				{
 					// Flow passes its own constraint to children
 					child.Measure(childConstraint);
@@ -212,7 +212,7 @@ namespace WalletWasabi.Fluent.Controls
 			for (int i = 0; i < children.Count; i++)
 			{
 				var child = children[i];
-				if (child != null)
+				if (child is not null)
 				{
 					var sz = new UVSize(
 						orientation,
@@ -263,7 +263,7 @@ namespace WalletWasabi.Fluent.Controls
 			for (int i = start; i < end; i++)
 			{
 				var child = children[i];
-				if (child != null)
+				if (child is not null)
 				{
 					if (i == children.Count - 1)
 					{

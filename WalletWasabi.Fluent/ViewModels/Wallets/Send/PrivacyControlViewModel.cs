@@ -66,7 +66,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			EnableBack = true;
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNext(wallet, transactionInfo, broadcaster, _selectedList),
+				async () => await OnNextAsync(wallet, transactionInfo, broadcaster, _selectedList),
 				this.WhenAnyValue(x => x.EnoughSelected));
 
 			EnableAutoBusyOn(NextCommand);
@@ -74,11 +74,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public ReadOnlyObservableCollection<PocketViewModel> Pockets => _pockets;
 
-		private async Task OnNext(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster, IObservableList<PocketViewModel> selectedList)
+		private async Task OnNextAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster, IObservableList<PocketViewModel> selectedList)
 		{
 			transactionInfo.Coins = selectedList.Items.SelectMany(x => x.Coins).ToArray();
 
-			if (_privatePocket != null)
+			if (_privatePocket is not null)
 			{
 				_privatePocket.IsSelected = false;
 			}
@@ -113,7 +113,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				var transactionResult = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, transactionInfo, subtractFee: true));
 				var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Pocket, transactionResult, wallet.Synchronizer.UsdExchangeRate);
-				var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
+				var result = await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
 
 				if (result.Result)
 				{

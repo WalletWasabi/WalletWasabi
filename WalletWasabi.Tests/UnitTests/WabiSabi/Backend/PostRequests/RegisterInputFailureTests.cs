@@ -152,7 +152,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			Prison prison = new();
 			using var key = new Key();
 			var outpoint = BitcoinFactory.CreateOutPoint();
-			prison.Punish(outpoint, Punishment.Banned, Guid.NewGuid());
+			prison.Punish(outpoint, Punishment.Banned, uint256.One);
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
@@ -169,7 +169,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		{
 			Prison prison = new();
 			var outpoint = BitcoinFactory.CreateOutPoint();
-			prison.Punish(outpoint, Punishment.Noted, Guid.NewGuid());
+			prison.Punish(outpoint, Punishment.Noted, uint256.One);
 			WabiSabiConfig cfg = new();
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
@@ -190,7 +190,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		{
 			Prison prison = new();
 			var outpoint = BitcoinFactory.CreateOutPoint();
-			prison.Punish(outpoint, Punishment.Noted, Guid.NewGuid());
+			prison.Punish(outpoint, Punishment.Noted, uint256.One);
 			WabiSabiConfig cfg = new() { AllowNotedInputRegistration = false };
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);

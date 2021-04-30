@@ -50,9 +50,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			CredentialPool vsizeCredentials = new();
 			var aliceArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, amountCredentials, vsizeCredentials, coordinator, new InsecureRandom());
 
-			var aliceId = await aliceArenaClient.RegisterInputAsync(Money.Coins(1m), outpoint, key, round.Id, round.Hash);
+			var aliceId = await aliceArenaClient.RegisterInputAsync(Money.Coins(1m), outpoint, key, round.Id);
 
-			Assert.NotEqual(Guid.Empty, aliceId);
+			Assert.NotEqual(uint256.Zero, aliceId);
 			Assert.Empty(amountCredentials.Valuable);
 
 			var reissuanceAmounts = new[]

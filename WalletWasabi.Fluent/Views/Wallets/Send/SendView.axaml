@@ -144,6 +144,7 @@
                 <DockPanel>
                     <Label DockPanel.Dock="Left" Content="_Labels:" Target="LabelTagBox" />
                     <c:TagsBox x:Name="LabelTagBox"
+                               Watermark="Alice, Bob, Coinbase, Binance"
                                TagSeparator=","
                                Items="{Binding Labels}"
                                Suggestions="{Binding PriorLabels}"

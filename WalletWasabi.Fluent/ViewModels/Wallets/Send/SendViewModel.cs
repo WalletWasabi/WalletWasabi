@@ -71,7 +71,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private double _lastXAxisCurrentValue;
 		private FeeRate _feeRate;
 
-		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster, Config config, UiConfig uiConfig, HttpClientFactory httpClientFactory) : base(NavigationMode.Normal)
+		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster, Config config, UiConfig uiConfig, HttpClientFactory externalHttpClientFactory) : base(NavigationMode.Normal)
 		{
 			_to = "";
 			_owner = walletVm;
@@ -111,7 +111,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					if (endPoint is { })
 					{
-						_transactionInfo.PayJoinClient = GetPayjoinClient(endPoint, config, httpClientFactory);
+						_transactionInfo.PayJoinClient = GetPayjoinClient(endPoint, config, externalHttpClientFactory);
 						IsPayJoin = true;
 					}
 					else
@@ -125,8 +125,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
 
-			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPaste());
-			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPaste(uiConfig));
+			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
+			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync(uiConfig));
 
 			var nextCommandCanExecute =
 				this.WhenAnyValue(x => x.Labels, x => x.AmountBtc, x => x.To, x => x.XAxisCurrentValue).Select(_ => Unit.Default)
@@ -139,7 +139,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						return allFilled && !hasError;
 					});
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNext(broadcaster), nextCommandCanExecute);
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(broadcaster), nextCommandCanExecute);
 
 			EnableAutoBusyOn(NextCommand);
 		}
@@ -148,17 +148,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public ICommand AutoPasteCommand { get; }
 
-		private async Task OnAutoPaste(UiConfig uiConfig)
+		private async Task OnAutoPasteAsync(UiConfig uiConfig)
 		{
 			var isAutoPasteEnabled = uiConfig.Autocopy;
 
 			if (string.IsNullOrEmpty(To) && isAutoPasteEnabled)
 			{
-				await OnPaste(pasteIfInvalid: false);
+				await OnPasteAsync(pasteIfInvalid: false);
 			}
 		}
 
-		private async Task OnPaste(bool pasteIfInvalid = true)
+		private async Task OnPasteAsync(bool pasteIfInvalid = true)
 		{
 			var text = await Application.Current.Clipboard.GetTextAsync();
 
@@ -172,7 +172,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_parsingUrl = false;
 		}
 
-		private async Task OnNext(TransactionBroadcaster broadcaster)
+		private async Task OnNextAsync(TransactionBroadcaster broadcaster)
 		{
 			var transactionInfo = _transactionInfo;
 			var wallet = _owner.Wallet;
@@ -217,7 +217,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo.Address, totalMixedCoinsAmount, transactionInfo.Labels, transactionInfo.FeeRate, transactionInfo.Coins, subtractFee: true));
 				var dialog = new InsufficientBalanceDialogViewModel(BalanceType.Private, txRes, wallet.Synchronizer.UsdExchangeRate);
-				var result = await NavigateDialog(dialog, NavigationTarget.DialogScreen);
+				var result = await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
 
 				if (result.Result)
 				{
@@ -245,7 +245,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private IPayjoinClient? GetPayjoinClient(string endPoint, Config config, HttpClientFactory httpClientFactory)
+		private IPayjoinClient? GetPayjoinClient(string endPoint, Config config, HttpClientFactory externalHttpClientFactory)
 		{
 			if (!string.IsNullOrWhiteSpace(endPoint) &&
 				Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
@@ -266,7 +266,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 				}
 
-				IHttpClient httpClient = httpClientFactory.NewHttpClient(() => payjoinEndPointUri, isolateStream: false);
+				IHttpClient httpClient = externalHttpClientFactory.NewHttpClient(() => payjoinEndPointUri, isolateStream: false);
 				return new PayjoinClient(payjoinEndPointUri, httpClient);
 			}
 

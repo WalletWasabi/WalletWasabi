@@ -1,5 +1,4 @@
 using System.Net;
-using System.Runtime.InteropServices;
 using WalletWasabi.Tor;
 using Xunit;
 using System.IO;
@@ -14,8 +13,12 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 		[Fact]
 		public void GetCmdArgumentsTest()
 		{
-			var settings = new TorSettings(Path.Combine("temp", "tempDataDir"), Path.Combine("temp", "Tor.log"), "tempDistributionDir");
-			var endpoint = new IPEndPoint(IPAddress.Loopback, WalletWasabi.Helpers.Constants.DefaultTorSocksPort);
+			string dataDir = Path.Combine("temp", "tempDataDir");
+			string logFilePath = Path.Combine("temp", "Tor.log");
+			string distributionFolder = "tempDistributionDir";
+
+			TorSettings settings = new(dataDir, logFilePath, distributionFolder, terminateOnExit: false);
+			IPEndPoint endpoint = new(IPAddress.Loopback, WalletWasabi.Helpers.Constants.DefaultTorSocksPort);
 
 			string arguments = settings.GetCmdArguments(endpoint);
 
