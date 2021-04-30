@@ -269,7 +269,7 @@ namespace WalletWasabi.Fluent.Controls
 			switch (XAxisPlotMode)
 			{
 				case AxisPlotMode.Normal:
-					var min =  XAxisMinimum ?? xAxisValues.Min();
+					var min = XAxisMinimum ?? xAxisValues.Min();
 					var max = xAxisValues.Max();
 
 					var xAxisScaler = new StraightLineFormula();

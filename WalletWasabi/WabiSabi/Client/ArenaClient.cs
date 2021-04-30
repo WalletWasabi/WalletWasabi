@@ -39,16 +39,15 @@ namespace WalletWasabi.WabiSabi.Client
 		public WabiSabiClient VsizeCredentialClient { get; }
 		public IArenaRequestHandler RequestHandler { get; }
 
-		public async ValueTask<Guid> RegisterInputAsync(
+		public async Task<uint256> RegisterInputAsync(
 			Money amount,
 			OutPoint outPoint,
 			Key key,
-			Guid roundId,
-			uint256 roundHash)
+			uint256 roundId)
 		{
 			var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
 				key,
-				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundHash));
+				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundId));
 
 			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
 			var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();
@@ -67,12 +66,12 @@ namespace WalletWasabi.WabiSabi.Client
 			return inputRegistrationResponse.AliceId;
 		}
 
-		public async Task RemoveInputAsync(Guid roundId, Guid aliceId)
+		public async Task RemoveInputAsync(uint256 roundId, uint256 aliceId)
 		{
 			await RequestHandler.RemoveInputAsync(new InputsRemovalRequest(roundId, aliceId)).ConfigureAwait(false);
 		}
 
-		public async Task RegisterOutputAsync(Guid roundId, long value, Script scriptPubKey, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Credential> vsizeCredentialsToPresent)
+		public async Task RegisterOutputAsync(uint256 roundId, long value, Script scriptPubKey, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Credential> vsizeCredentialsToPresent)
 		{
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
 			Guard.InRange(nameof(vsizeCredentialsToPresent), vsizeCredentialsToPresent, 0, VsizeCredentialClient.NumberOfCredentials);
@@ -99,7 +98,7 @@ namespace WalletWasabi.WabiSabi.Client
 		}
 
 		public async Task<(IEnumerable<Credential> RealAmountCredentials, IEnumerable<Credential> RealVsizeCredentials)> ReissueCredentialAsync(
-			Guid roundId,
+			uint256 roundId,
 			long value1,
 			Script scriptPubKey1,
 			long value2,
@@ -143,7 +142,7 @@ namespace WalletWasabi.WabiSabi.Client
 			return (realAmountCredentials, realVsizeCredentials);
 		}
 
-		public async Task<bool> ConfirmConnectionAsync(Guid roundId, Guid aliceId, IEnumerable<long> inputsRegistrationVsize, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Money> newAmount)
+		public async Task<bool> ConfirmConnectionAsync(uint256 roundId, uint256 aliceId, IEnumerable<long> inputsRegistrationVsize, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Money> newAmount)
 		{
 			Guard.InRange(nameof(newAmount), newAmount, 1, AmountCredentialClient.NumberOfCredentials);
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 1, AmountCredentialClient.NumberOfCredentials);
@@ -182,7 +181,7 @@ namespace WalletWasabi.WabiSabi.Client
 			return false;
 		}
 
-		public async Task SignTransactionAsync(Guid roundId, Coin coin, BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin)
+		public async Task SignTransactionAsync(uint256 roundId, Coin coin, BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin)
 		{
 			if (unsignedCoinJoin.Inputs.Count == 0)
 			{

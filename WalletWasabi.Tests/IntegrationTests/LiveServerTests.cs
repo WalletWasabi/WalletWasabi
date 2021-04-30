@@ -41,9 +41,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 			Assert.True(started, "Tor failed to start.");
 		}
 
-		public Task DisposeAsync()
+		public async Task DisposeAsync()
 		{
-			return Task.CompletedTask;
+			TorHttpPool.Dispose();
+			await TorManager.StopAsync();
 		}
 
 		#region Blockchain

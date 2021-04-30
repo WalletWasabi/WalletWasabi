@@ -1,6 +1,7 @@
 using NBitcoin;
 using System;
 using WalletWasabi.Crypto;
+using WalletWasabi.Crypto.StrobeProtocol;
 
 namespace WalletWasabi.WabiSabi.Backend.Models
 {
@@ -11,9 +12,10 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 			// TODO init syntax?
 			Coin = coin;
 			OwnershipProof = ownershipProof;
+			Id = CalculateHash();
 		}
 
-		public Guid Id { get; } = Guid.NewGuid();
+		public uint256 Id { get; }
 		public DateTimeOffset Deadline { get; set; } = DateTimeOffset.UtcNow;
 		public Coin Coin { get; }
 		public OwnershipProof OwnershipProof { get; }
@@ -31,5 +33,12 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 			// Have alice timeouts a bit sooner than the timeout of connection confirmation phase.
 			Deadline = DateTimeOffset.UtcNow + (connectionConfirmationTimeout * 0.9);
 		}
+
+		private uint256 CalculateHash()
+			=> StrobeHasher.Create(ProtocolConstants.AliceStrobeDomain)
+				.Append(ProtocolConstants.AliceCoinTxOutStrobeLabel, Coin.TxOut)
+				.Append(ProtocolConstants.AliceCoinOutpointStrobeLabel, Coin.Outpoint)
+				.Append(ProtocolConstants.AliceOwnershipProofStrobeLabel, OwnershipProof)
+				.GetHash();
 	}
 }

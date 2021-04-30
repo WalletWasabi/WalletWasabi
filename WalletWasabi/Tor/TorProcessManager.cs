@@ -37,7 +37,8 @@ namespace WalletWasabi.Tor
 		/// <summary>
 		/// Starts Tor process if it is not running already.
 		/// </summary>
-		public async Task<bool> StartAsync()
+		/// <exception cref="OperationCanceledException"/>
+		public async Task<bool> StartAsync(CancellationToken token = default)
 		{
 			ThrowIfDisposed();
 
@@ -111,11 +112,16 @@ namespace WalletWasabi.Tor
 					}
 
 					// Wait 250 milliseconds between attempts.
-					await Task.Delay(250).ConfigureAwait(false);
+					await Task.Delay(250, token).ConfigureAwait(false);
 				}
 
 				Logger.LogInfo("Tor is running.");
 				return true;
+			}
+			catch (OperationCanceledException ex)
+			{
+				Logger.LogDebug("User canceled operation.", ex);
+				throw;
 			}
 			catch (Exception ex)
 			{
@@ -125,9 +131,9 @@ namespace WalletWasabi.Tor
 			return false;
 		}
 
-		public async Task StopAsync(bool killTor = false)
+		public async Task StopAsync()
 		{
-			if (TorProcess is { } && killTor)
+			if (TorProcess is { } && Settings.TerminateOnExit)
 			{
 				Logger.LogInfo($"Killing Tor process.");
 

@@ -3,7 +3,6 @@ using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
-using NBitcoin.Protocol.Connectors;
 using System;
 using System.IO;
 using System.Linq;
@@ -34,8 +33,8 @@ using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor;
-using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Gui
@@ -48,7 +47,17 @@ namespace WalletWasabi.Gui
 		public string DataDir { get; }
 		public TorSettings TorSettings { get; }
 		public BitcoinStore BitcoinStore { get; }
-		public HttpClientFactory HttpClientFactory { get; }
+
+		/// <summary>
+		/// HTTP client factory for communicating with the Wasabi backend.
+		/// </summary>
+		public HttpClientFactory BackendHttpClientFactory { get; }
+
+		/// <summary>
+		/// HTTP client factory for communicating with external third parties.
+		/// </summary>
+		public HttpClientFactory ExternalHttpClientFactory { get; }
+
 		public LegalChecker LegalChecker { get; private set; }
 		public Config Config { get; }
 		public WasabiSynchronizer Synchronizer { get; private set; }
@@ -75,7 +84,7 @@ namespace WalletWasabi.Gui
 				DataDir = dataDir;
 				Config = config;
 				UiConfig = uiConfig;
-				TorSettings = new TorSettings(DataDir, torLogsFile, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory());
+				TorSettings = new TorSettings(DataDir, torLogsFile, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit);
 
 				HostedServices = new HostedServices();
 				WalletManager = walletManager;
@@ -91,13 +100,20 @@ namespace WalletWasabi.Gui
 
 				BitcoinStore = new BitcoinStore(indexStore, transactionStore, mempoolService, blocks);
 
-				HttpClientFactory = Config.UseTor
-					? new HttpClientFactory(Config.TorSocks5EndPoint, backendUriGetter: () => Config.GetCurrentBackendUri())
-					: new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
+				if (Config.UseTor)
+				{
+					BackendHttpClientFactory = new HttpClientFactory(Config.TorSocks5EndPoint, backendUriGetter: () => Config.GetCurrentBackendUri());
+					ExternalHttpClientFactory = new HttpClientFactory(Config.TorSocks5EndPoint, backendUriGetter: null);
+				}
+				else
+				{
+					BackendHttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
+					ExternalHttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: null);
+				}
 
-				Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
+				Synchronizer = new WasabiSynchronizer(BitcoinStore, BackendHttpClientFactory);
 				LegalChecker = new(DataDir);
-				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
+				TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, BackendHttpClientFactory, WalletManager);
 			}
 		}
 
@@ -114,8 +130,6 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				cancel.ThrowIfCancellationRequested();
-
 				Cache = new MemoryCache(new MemoryCacheOptions
 				{
 					SizeLimit = 1_000,
@@ -123,37 +137,26 @@ namespace WalletWasabi.Gui
 				});
 				var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
-				cancel.ThrowIfCancellationRequested();
-
 				HostedServices.Register<UpdateChecker>(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
 
 				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
-
-				HostedServices.Register<SystemAwakeChecker>(new SystemAwakeChecker(WalletManager), "System Awake Checker");
-
 				cancel.ThrowIfCancellationRequested();
 
-				#region TorProcessInitialization
+				HostedServices.Register<SystemAwakeChecker>(new SystemAwakeChecker(WalletManager), "System Awake Checker");
 
 				if (Config.UseTor && Network != Network.RegTest)
 				{
 					using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
 					{
 						TorManager = new TorProcessManager(TorSettings, Config.TorSocks5EndPoint);
-						await TorManager.StartAsync().ConfigureAwait(false);
+						await TorManager.StartAsync(cancel).ConfigureAwait(false);
 					}
 
-					Tor.Http.TorHttpClient torHttpClient = HttpClientFactory.NewTorHttpClient(isolateStream: false);
+					Tor.Http.TorHttpClient torHttpClient = BackendHttpClientFactory.NewTorHttpClient(isolateStream: false);
 					HostedServices.Register<TorMonitor>(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackBackendUri: Config.GetFallbackBackendUri(), torHttpClient, TorManager), nameof(TorMonitor));
 				}
 
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
-
-				#endregion TorProcessInitialization
-
-				cancel.ThrowIfCancellationRequested();
-
-				#region BitcoinStoreInitialization
 
 				try
 				{
@@ -169,14 +172,8 @@ namespace WalletWasabi.Gui
 					throw;
 				}
 
-				#endregion BitcoinStoreInitialization
-
 				HostedServices.Register<P2pNetwork>(new P2pNetwork(Network, Config.GetBitcoinP2pEndPoint(), Config.UseTor ? Config.TorSocks5EndPoint : null, Path.Combine(DataDir, "BitcoinP2pNetwork"), BitcoinStore), "Bitcoin P2P Network");
 				HostedServices.Register<FilterProcessor>(new FilterProcessor(Synchronizer, BitcoinStore), "Filter Processor");
-
-				cancel.ThrowIfCancellationRequested();
-
-				#region BitcoinCoreInitialization
 
 				try
 				{
@@ -211,35 +208,20 @@ namespace WalletWasabi.Gui
 					Logger.LogError(ex);
 				}
 
-				#endregion BitcoinCoreInitialization
-
-				HostedServices.Register<HybridFeeProvider>(new HybridFeeProvider(Synchronizer, HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
+				HostedServices.Register<BlockstreamInfoFeeProvider>(new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, ExternalHttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
+				HostedServices.Register<ThirdPartyFeeProvider>(new ThirdPartyFeeProvider(TimeSpan.FromSeconds(1), Synchronizer, HostedServices.Get<BlockstreamInfoFeeProvider>()), "Third Party Fee Provider");
+				HostedServices.Register<HybridFeeProvider>(new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
-				cancel.ThrowIfCancellationRequested();
-
-				#region SynchronizerInitialization
-
-				var requestInterval = TimeSpan.FromSeconds(30);
-				if (Network == Network.RegTest)
-				{
-					requestInterval = TimeSpan.FromSeconds(5);
-				}
-
+				var requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
 				int maxFiltSyncCount = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
 
 				Synchronizer.Start(requestInterval, maxFiltSyncCount);
 				Logger.LogInfo("Start synchronizing filters...");
 
-				#endregion SynchronizerInitialization
-
-				cancel.ThrowIfCancellationRequested();
-
 				TransactionBroadcaster.Initialize(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode?.RpcClient);
 				CoinJoinProcessor = new CoinJoinProcessor(Network, Synchronizer, WalletManager, BitcoinCoreNode?.RpcClient);
-
-				#region JsonRpcServerInitialization
 
 				var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config);
 				if (jsonRpcServerConfig.IsEnabled)
@@ -256,21 +238,11 @@ namespace WalletWasabi.Gui
 					}
 				}
 
-				#endregion JsonRpcServerInitialization
-
-				cancel.ThrowIfCancellationRequested();
-
-				#region Blocks provider
-
 				var blockProvider = new CachedBlockProvider(
 					new SmartBlockProvider(
-						new P2pBlockProvider(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode, HttpClientFactory, Config.ServiceConfiguration, Network),
+						new P2pBlockProvider(HostedServices.Get<P2pNetwork>().Nodes, BitcoinCoreNode, BackendHttpClientFactory, Config.ServiceConfiguration, Network),
 						Cache),
 					BitcoinStore.BlockRepository);
-
-				#endregion Blocks provider
-
-				cancel.ThrowIfCancellationRequested();
 
 				WalletManager.RegisterServices(BitcoinStore, Synchronizer, Config.ServiceConfiguration, HostedServices.Get<HybridFeeProvider>(), blockProvider);
 			}
@@ -434,7 +406,7 @@ namespace WalletWasabi.Gui
 					return;
 				}
 
-				Logger.LogDebug($"Step: Wait for initialization to complete.", nameof(Global));
+				Logger.LogDebug($"Waiting for initialization to complete.", nameof(Global));
 
 				try
 				{
@@ -446,12 +418,11 @@ namespace WalletWasabi.Gui
 					Logger.LogError($"Error during wait for initialization to be completed: {ex}");
 				}
 
-				Logger.LogDebug($"Step: {nameof(WalletManager)}.", nameof(Global));
-
 				try
 				{
 					using var dequeueCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
 					await WalletManager.RemoveAndStopAllAsync(dequeueCts.Token).ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(WalletManager)} is stopped.", nameof(Global));
 				}
 				catch (Exception ex)
 				{
@@ -461,8 +432,6 @@ namespace WalletWasabi.Gui
 				WalletManager.OnDequeue -= WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed -= WalletManager_WalletRelevantTransactionProcessed;
 
-				Logger.LogDebug($"Step: {nameof(RpcServer)}.", nameof(Global));
-
 				if (RpcServer is { } rpcServer)
 				{
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
@@ -470,23 +439,17 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
 				}
 
-				Logger.LogDebug($"Step: {nameof(CoinJoinProcessor)}.", nameof(Global));
-
 				if (CoinJoinProcessor is { } coinJoinProcessor)
 				{
 					coinJoinProcessor.Dispose();
 					Logger.LogInfo($"{nameof(CoinJoinProcessor)} is disposed.");
 				}
 
-				Logger.LogDebug($"Step: {nameof(LegalChecker)}.", nameof(Global));
-
 				if (LegalChecker is { } legalChecker)
 				{
 					legalChecker.Dispose();
 					Logger.LogInfo($"Disposed {nameof(LegalChecker)}.");
 				}
-
-				Logger.LogDebug($"Step: {nameof(HostedServices)}.", nameof(Global));
 
 				if (HostedServices is { } backgroundServices)
 				{
@@ -496,53 +459,51 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo("Stopped background services.");
 				}
 
-				Logger.LogDebug($"Step: {nameof(Synchronizer)}.", nameof(Global));
-
 				if (Synchronizer is { } synchronizer)
 				{
 					await synchronizer.StopAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.");
 				}
 
-				Logger.LogDebug($"Step: {nameof(BitcoinCoreNode)}.", nameof(Global));
+				if (BackendHttpClientFactory is { } httpClientFactory)
+				{
+					httpClientFactory.Dispose();
+					Logger.LogInfo($"{nameof(BackendHttpClientFactory)} is disposed.");
+				}
 
 				if (BitcoinCoreNode is { } bitcoinCoreNode)
 				{
 					await bitcoinCoreNode.DisposeAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(BitcoinCoreNode)} is disposed.");
 
 					if (Config.StopLocalBitcoinCoreOnShutdown)
 					{
 						await bitcoinCoreNode.TryStopAsync().ConfigureAwait(false);
+						Logger.LogInfo($"{nameof(BitcoinCoreNode)} is stopped.");
 					}
 				}
 
-				Logger.LogDebug($"Step: {nameof(TorManager)}.", nameof(Global));
-
 				if (TorManager is { } torManager)
 				{
-					await torManager.StopAsync(Config.TerminateTorOnExit).ConfigureAwait(false);
+					await torManager.StopAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(TorManager)} is stopped.");
 				}
-
-				Logger.LogDebug($"Step: {nameof(Cache)}.", nameof(Global));
 
 				if (Cache is { } cache)
 				{
 					cache.Dispose();
+					Logger.LogInfo($"{nameof(Cache)} is disposed.");
 				}
-
-				Logger.LogDebug($"Step: {nameof(BitcoinStore)}.", nameof(Global));
 
 				try
 				{
 					await BitcoinStore.DisposeAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(BitcoinStore)} is disposed.");
 				}
 				catch (Exception ex)
 				{
 					Logger.LogError($"Error during the disposal of {nameof(BitcoinStore)}: {ex}");
 				}
-
-				Logger.LogDebug($"Step: {nameof(SingleInstanceChecker)}.", nameof(Global));
 			}
 			catch (Exception ex)
 			{

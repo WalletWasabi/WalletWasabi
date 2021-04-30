@@ -49,12 +49,12 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 
 		public static InputRegistrationResponse RegisterInput(
 			WabiSabiConfig config,
-			Guid roundId,
+			uint256 roundId,
 			Coin coin,
 			OwnershipProof ownershipProof,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
 			ZeroCredentialsRequest zeroVsizeCredentialRequests,
-			IDictionary<Guid, Round> rounds,
+			IDictionary<uint256, Round> rounds,
 			Network network)
 		{
 			if (!rounds.TryGetValue(roundId, out var round))
@@ -77,7 +77,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			// for validation purposes.
 			round.CoinjoinState.AssertConstruction().AddInput(coin);
 
-			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", round.Hash);
+			var coinJoinInputCommitmentData = new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", round.Id);
 			if (!OwnershipProof.VerifyCoinJoinInputProof(ownershipProof, coin.TxOut.ScriptPubKey, coinJoinInputCommitmentData))
 			{
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongOwnershipProof);
@@ -116,7 +116,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				commitVsizeCredentialResponse.Commit());
 		}
 
-		private static void RemoveDuplicateAlices(IDictionary<Guid, Round> roundsWithId, Alice alice)
+		private static void RemoveDuplicateAlices(IDictionary<uint256, Round> roundsWithId, Alice alice)
 		{
 			var rounds = roundsWithId.Values;
 			if (rounds.Any(x => x.Phase != Phase.InputRegistration))
