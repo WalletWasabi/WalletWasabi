@@ -12,8 +12,8 @@ namespace WalletWasabi.Blockchain.Blocks
 	public class SmartHeaderChain : NotifyPropertyChangedBase
 	{
 		private uint _tipHeight;
-		private SmartHeader _tip;
-		private uint256 _tipHash;
+		private SmartHeader? _tip;
+		private uint256? _tipHash;
 		private uint _serverTipHeight;
 		private int _hashesLeft;
 		private int _hashesCount;
@@ -21,7 +21,7 @@ namespace WalletWasabi.Blockchain.Blocks
 		private Dictionary<uint, SmartHeader> Chain { get; } = new Dictionary<uint, SmartHeader>();
 		private object Lock { get; } = new object();
 
-		public SmartHeader Tip
+		public SmartHeader? Tip
 		{
 			get => _tip;
 			private set => RaiseAndSetIfChanged(ref _tip, value);
@@ -33,7 +33,7 @@ namespace WalletWasabi.Blockchain.Blocks
 			private set => RaiseAndSetIfChanged(ref _tipHeight, value);
 		}
 
-		public uint256 TipHash
+		public uint256? TipHash
 		{
 			get => _tipHash;
 			private set => RaiseAndSetIfChanged(ref _tipHash, value);
@@ -79,7 +79,7 @@ namespace WalletWasabi.Blockchain.Blocks
 			}
 		}
 
-		private void SetTip(SmartHeader header)
+		private void SetTip(SmartHeader? header)
 		{
 			Tip = header;
 			TipHeight = header?.Height ?? default;

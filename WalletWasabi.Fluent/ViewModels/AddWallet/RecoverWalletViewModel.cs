@@ -52,21 +52,21 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNext(_walletManager, network, walletName),
+				async () => await OnNextAsync(_walletManager, network, walletName),
 				NextCommandCanExecute);
 
 			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnAdvancedRecoveryOptionsDialog());
+				async () => await OnAdvancedRecoveryOptionsDialogAsync());
 
 			EnableAutoBusyOn(NextCommand);
 		}
 
-		private async Task OnNext(
+		private async Task OnNextAsync(
 			WalletManager walletManager,
 			Network network,
 			string? walletName)
 		{
-			var dialogResult = await NavigateDialog(
+			var dialogResult = await NavigateDialogAsync(
 				new CreatePasswordDialogViewModel(
 					"Type the password of the wallet to be able to recover and click Continue."));
 
@@ -109,9 +109,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
-		private async Task OnAdvancedRecoveryOptionsDialog()
+		private async Task OnAdvancedRecoveryOptionsDialogAsync()
 		{
-			var result = await NavigateDialog(new AdvancedRecoveryOptionsViewModel((AccountKeyPath, MinGapLimit)),
+			var result = await NavigateDialogAsync(new AdvancedRecoveryOptionsViewModel((AccountKeyPath, MinGapLimit)),
 				NavigationTarget.CompactDialogScreen);
 
 			if (result.Kind == DialogResultKind.Normal)

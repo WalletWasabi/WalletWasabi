@@ -51,7 +51,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			Assert.Equal(Phase.InputRegistration, round.Phase);
 
 			var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);
-			var aliceClient = await AliceClient.CreateNewAsync(aliceArenaClient, coin1.Coin, bitcoinSecret, round.Id, round.Hash, round.FeeRate);
+			var aliceClient = await AliceClient.CreateNewAsync(aliceArenaClient, coin1.Coin, bitcoinSecret, round.Id, round.FeeRate);
 
 			Task confirmationTask = aliceClient.ConfirmConnectionAsync(TimeSpan.FromSeconds(3), CancellationToken.None);
 

@@ -79,11 +79,11 @@ namespace WalletWasabi.Tests.Helpers
 		}
 
 		public static InputRegistrationRequest CreateInputRegistrationRequest(Key? key = null, Round? round = null, OutPoint? prevout = null)
-			=> CreateInputRegistrationRequest(prevout ?? BitcoinFactory.CreateOutPoint(), CreateOwnershipProof(key, round?.Hash), round);
+			=> CreateInputRegistrationRequest(prevout ?? BitcoinFactory.CreateOutPoint(), CreateOwnershipProof(key, round?.Id), round);
 
 		public static InputRegistrationRequest CreateInputRegistrationRequest(OutPoint prevout, OwnershipProof ownershipProof, Round? round = null)
 		{
-			var roundId = round?.Id ?? Guid.NewGuid();
+			var roundId = round?.Id ?? uint256.Zero;
 
 			(var amClient, var vsClient, _, _) = CreateWabiSabiClientsAndIssuers(round);
 			var (zeroAmountCredentialRequest, _) = amClient.CreateRequestForZeroAmount();
@@ -165,8 +165,8 @@ namespace WalletWasabi.Tests.Helpers
 			var (zeroVsizeCredentialRequest, _) = vsClient.CreateRequestForZeroAmount();
 
 			return new ConnectionConfirmationRequest(
-				round?.Id ?? Guid.NewGuid(),
-				alice?.Id ?? Guid.NewGuid(),
+				round?.Id ?? BitcoinFactory.CreateUint256(),
+				alice?.Id ?? BitcoinFactory.CreateUint256(),
 				zeroAmountCredentialRequest,
 				realAmountCredentialRequest,
 				zeroVsizeCredentialRequest,
@@ -252,13 +252,13 @@ namespace WalletWasabi.Tests.Helpers
 				vsClient.Credentials.Valuable);
 
 			return new OutputRegistrationRequest(
-				round?.Id ?? Guid.NewGuid(),
+				round?.Id ?? uint256.Zero,
 				script,
 				realAmountCredentialRequest,
 				realVsizeCredentialRequest);
 		}
 
-		public static IEnumerable<OutputRegistrationRequest> CreateOutputRegistrationRequests(Round round, IEnumerable<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient vsizeClient, Guid aliceId)> ccresps)
+		public static IEnumerable<OutputRegistrationRequest> CreateOutputRegistrationRequests(Round round, IEnumerable<(ConnectionConfirmationResponse resp, WabiSabiClient amountClient, WabiSabiClient vsizeClient, uint256 aliceId)> ccresps)
 		{
 			var ret = new List<OutputRegistrationRequest>();
 
@@ -280,7 +280,7 @@ namespace WalletWasabi.Tests.Helpers
 
 		public static Round CreateBlameRound(Round round, WabiSabiConfig cfg)
 		{
-			RoundParameters parameters = new(cfg, round.Network, round.Random, round.FeeRate, blameOf: round);
+			RoundParameters parameters = new(cfg, round.Network, new InsecureRandom(), round.FeeRate, blameOf: round);
 			return new(parameters);
 		}
 

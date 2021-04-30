@@ -63,11 +63,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			RecoverWalletCommand = ReactiveCommand.Create(() => OnRecoverWallet(walletManagerViewModel));
 
-			ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnImportWallet(_walletManager));
+			ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnImportWalletAsync(_walletManager));
 
 			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => OnConnectHardwareWallet(walletManagerViewModel));
 
-			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnCreateWallet(_walletManager, store, network));
+			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnCreateWalletAsync(_walletManager, store, network));
 
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, _walletManager, WalletName));
 
@@ -121,7 +121,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			Navigate().To(new ConnectHardwareWalletViewModel(WalletName, walletManagerViewModel));
 		}
 
-		private async Task OnImportWallet(WalletManager walletManager)
+		private async Task OnImportWalletAsync(WalletManager walletManager)
 		{
 			try
 			{
@@ -144,9 +144,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
-		private async Task OnCreateWallet(WalletManager walletManager, BitcoinStore store, Network network)
+		private async Task OnCreateWalletAsync(WalletManager walletManager, BitcoinStore store, Network network)
 		{
-			var dialogResult = await NavigateDialog(
+			var dialogResult = await NavigateDialogAsync(
 				new CreatePasswordDialogViewModel("Type the password of the wallet and click Continue.", enableEmpty: true, enableCancel: _walletManager.HasWallet()));
 
 			if (dialogResult.Result is { } password)

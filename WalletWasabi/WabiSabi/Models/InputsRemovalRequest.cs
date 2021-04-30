@@ -1,9 +1,10 @@
 using System;
+using NBitcoin;
 
 namespace WalletWasabi.WabiSabi.Models
 {
 	public record InputsRemovalRequest(
-		Guid RoundId,
-		Guid AliceId
+		uint256 RoundId,
+		uint256 AliceId
 	);
 }

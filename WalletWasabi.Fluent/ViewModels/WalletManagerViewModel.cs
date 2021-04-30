@@ -31,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		private readonly Config _config;
 		private readonly UiConfig _uiConfig;
 		private readonly TransactionBroadcaster _transactionBroadcaster;
-		private readonly HttpClientFactory _httpClientFactory;
+		private readonly HttpClientFactory _externalHttpClientFactory;
 		private NavBarItemViewModel? _currentSelection;
 		[AutoNotify] private WalletViewModelBase? _selectedWallet;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isLoadingWallet;
@@ -42,7 +42,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private bool _anyWalletStarted;
 
 		public WalletManagerViewModel(WalletManager walletManager, UiConfig uiConfig, Config config, BitcoinStore bitcoinStore,
-			LegalChecker legalChecker, TransactionBroadcaster broadcaster, HttpClientFactory httpClientFactory)
+			LegalChecker legalChecker, TransactionBroadcaster broadcaster, HttpClientFactory externalHttpClientFactory)
 		{
 			WalletManager = walletManager;
 			BitcoinStore = bitcoinStore;
@@ -56,7 +56,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			_config = config;
 			_uiConfig = uiConfig;
 			_transactionBroadcaster = broadcaster;
-			_httpClientFactory = httpClientFactory;
+			_externalHttpClientFactory = externalHttpClientFactory;
 
 			static Func<WalletViewModelBase, bool> SelectedWalletFilter(WalletViewModelBase? selected)
 			{
@@ -273,7 +273,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			if (wallet.KeyManager.IsHardwareWallet || !wallet.KeyManager.IsWatchOnly)
 			{
-				actions.Add(new SendViewModel(walletViewModel, _transactionBroadcaster, _config, _uiConfig, _httpClientFactory));
+				actions.Add(new SendViewModel(walletViewModel, _transactionBroadcaster, _config, _uiConfig, _externalHttpClientFactory));
 			}
 
 			actions.Add(new ReceiveViewModel(walletViewModel, WalletManager, BitcoinStore));

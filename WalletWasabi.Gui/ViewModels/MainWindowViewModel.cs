@@ -37,7 +37,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 			_menuVisible = true;
 
-			WindowState = uiConfig.WindowState;
+			var windowState = (WindowState) Enum.Parse(typeof(WindowState), uiConfig.WindowState);
+			WindowState = windowState;
 
 			InitializeLockScreen();
 

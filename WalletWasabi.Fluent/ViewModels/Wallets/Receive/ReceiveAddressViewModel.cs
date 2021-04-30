@@ -32,9 +32,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			CopyAddressCommand = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Address));
 
-			ShowOnHwWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnShowOnHwWallet(model, network, masterFingerprint));
+			ShowOnHwWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnShowOnHwWalletAsync(model, network, masterFingerprint));
 
-			SaveQrCodeCommand = ReactiveCommand.CreateFromTask(async () => await OnSaveQrCode());
+			SaveQrCodeCommand = ReactiveCommand.CreateFromTask(async () => await OnSaveQrCodeAsync());
 
 			SaveQrCodeCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -43,7 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			NextCommand = CancelCommand;
 		}
 
-		private async Task OnShowOnHwWallet(HdPubKey model, Network network, HDFingerprint? masterFingerprint)
+		private async Task OnShowOnHwWalletAsync(HdPubKey model, Network network, HDFingerprint? masterFingerprint)
 		{
 			if (masterFingerprint is null)
 			{
@@ -72,7 +72,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			});
 		}
 
-		private async Task OnSaveQrCode()
+		private async Task OnSaveQrCodeAsync()
 		{
 			if (QrCodeCommand is { } cmd)
 			{
