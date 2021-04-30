@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -22,6 +23,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	[NavigationMetaData(Title = "Enter recovery words")]
 	public partial class RecoverWalletViewModel : RoutableViewModel
 	{
+		private readonly WalletManager _walletManager;
+
 		[AutoNotify] private IEnumerable<string>? _suggestions;
 		[AutoNotify] private Mnemonic? _currentMnemonics;
 
@@ -30,8 +33,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			WalletManagerViewModel walletManagerViewModel)
 		{
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
-			var walletManager = walletManagerViewModel.WalletManager;
-			var network = walletManager.Network;
+			_walletManager = walletManagerViewModel.WalletManager;
+			var network = _walletManager.Network;
 
 			Mnemonics.ToObservableChangeSet().ToCollection()
 				.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
@@ -42,8 +45,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			this.ValidateProperty(x => x.Mnemonics, ValidateMnemonics);
 
-			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
-
 			EnableBack = true;
 
 			NextCommandCanExecute =
@@ -51,21 +52,21 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNext(walletManager, network, walletName),
+				async () => await OnNextAsync(_walletManager, network, walletName),
 				NextCommandCanExecute);
 
 			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnAdvancedRecoveryOptionsDialog());
+				async () => await OnAdvancedRecoveryOptionsDialogAsync());
 
 			EnableAutoBusyOn(NextCommand);
 		}
 
-		private async Task OnNext(
+		private async Task OnNextAsync(
 			WalletManager walletManager,
 			Network network,
 			string? walletName)
 		{
-			var dialogResult = await NavigateDialog(
+			var dialogResult = await NavigateDialogAsync(
 				new CreatePasswordDialogViewModel(
 					"Type the password of the wallet to be able to recover and click Continue."));
 
@@ -108,9 +109,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
-		private async Task OnAdvancedRecoveryOptionsDialog()
+		private async Task OnAdvancedRecoveryOptionsDialogAsync()
 		{
-			var result = await NavigateDialog(new AdvancedRecoveryOptionsViewModel((AccountKeyPath, MinGapLimit)),
+			var result = await NavigateDialogAsync(new AdvancedRecoveryOptionsViewModel((AccountKeyPath, MinGapLimit)),
 				NavigationTarget.CompactDialogScreen);
 
 			if (result.Kind == DialogResultKind.Normal)
@@ -146,6 +147,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private string GetTagsAsConcatString()
 		{
 			return string.Join(' ', Mnemonics);
+		}
+
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			base.OnNavigatedTo(isInHistory, disposables);
+
+			var enableCancel = _walletManager.HasWallet();
+			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 		}
 	}
 }

@@ -28,10 +28,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		Category = "General",
 		Keywords = new[] { "Wallet", "Add", "Create", "Recover", "Import", "Connect", "Hardware", "ColdCard", "Trezor", "Ledger" },
 		IconName = "add_circle_regular",
-		NavigationTarget = NavigationTarget.FullScreen,
+		NavigationTarget = NavigationTarget.DialogScreen,
 		NavBarPosition = NavBarPosition.Bottom)]
 	public partial class AddWalletPageViewModel : NavBarItemViewModel
 	{
+		private readonly WalletManager _walletManager;
+
 		[AutoNotify] private string _walletName = "";
 		[AutoNotify] private bool _optionsEnabled;
 
@@ -39,14 +41,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			WalletManagerViewModel walletManagerViewModel,
 			BitcoinStore store)
 		{
-			Title = "Add Wallet";
 			SelectionMode = NavBarItemSelectionMode.Button;
-			var walletManager = walletManagerViewModel.WalletManager;
-			var network = walletManager.Network;
+			_walletManager = walletManagerViewModel.WalletManager;
+			var network = _walletManager.Network;
 
-			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 			var enableBack = default(IDisposable);
-
 			this.WhenAnyValue(x => x.CurrentTarget)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
@@ -64,13 +63,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			RecoverWalletCommand = ReactiveCommand.Create(() => OnRecoverWallet(walletManagerViewModel));
 
-			ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnImportWallet(walletManager));
+			ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnImportWalletAsync(_walletManager));
 
 			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => OnConnectHardwareWallet(walletManagerViewModel));
 
-			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnCreateWallet(walletManager, store, network));
+			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnCreateWalletAsync(_walletManager, store, network));
 
-			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
+			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, _walletManager, WalletName));
 
 			EnableAutoBusyOn(CreateWalletCommand);
 		}
@@ -122,7 +121,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			Navigate().To(new ConnectHardwareWalletViewModel(WalletName, walletManagerViewModel));
 		}
 
-		private async Task OnImportWallet(WalletManager walletManager)
+		private async Task OnImportWalletAsync(WalletManager walletManager)
 		{
 			try
 			{
@@ -135,7 +134,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 				var keyManager = await ImportWalletHelper.ImportWalletAsync(walletManager, WalletName, filePath);
 
-				// TODO: get the type from the wallet file
 				Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager));
 			}
 			catch (Exception ex)
@@ -146,10 +144,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
-		private async Task OnCreateWallet(WalletManager walletManager, BitcoinStore store, Network network)
+		private async Task OnCreateWalletAsync(WalletManager walletManager, BitcoinStore store, Network network)
 		{
-			var dialogResult = await NavigateDialog(
-				new CreatePasswordDialogViewModel("Type the password of the wallet and click Continue."));
+			var dialogResult = await NavigateDialogAsync(
+				new CreatePasswordDialogViewModel("Type the password of the wallet and click Continue.", enableEmpty: true, enableCancel: _walletManager.HasWallet()));
 
 			if (dialogResult.Result is { } password)
 			{
@@ -172,6 +170,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
+
+			var enableCancel = _walletManager.HasWallet();
+			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 
 			this.RaisePropertyChanged(WalletName);
 
