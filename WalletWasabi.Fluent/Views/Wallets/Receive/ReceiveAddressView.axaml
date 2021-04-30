@@ -25,7 +25,7 @@
       <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="30">
         <DockPanel HorizontalAlignment="Center">
           <StackPanel Orientation="Horizontal" Spacing="10">
-            <TextBlock Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
+            <TextBox Classes="selectableTextBlock" Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
             <StackPanel Orientation="Horizontal" Spacing="2">
               <c:AnimatedButton ToolTip.Tip="Show on the hardware wallet"
                                 IsVisible="{Binding IsHardwareWallet}"
