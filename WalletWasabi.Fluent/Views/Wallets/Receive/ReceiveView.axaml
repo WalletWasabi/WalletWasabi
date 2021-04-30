@@ -17,9 +17,12 @@
                    EnableCancel="{Binding EnableCancel}"
                    EnableBack="{Binding EnableBack}">
       <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
-        <Label Content="_Labels" Target="LabelsTbx" HorizontalAlignment="Left" FontWeight="Normal" />
+        <Label Content="_Labels (Separate with ',' or pressing enter)" Target="LabelsTbx" HorizontalAlignment="Left" FontWeight="Normal" />
         <c:TagsBox x:Name="LabelsTbx" Items="{Binding Labels}"
-                   Watermark="i.e. Alice, Bob, Wasabi Inc, Exchange"
+                   TagSeparator=","
+                   SuggestionsAreCaseSensitive="True"
+                   RestrictInputToSuggestions="False"
+                   Watermark="{StaticResource LabelsWatermarkText}"
                    Suggestions="{Binding Suggestions}">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
