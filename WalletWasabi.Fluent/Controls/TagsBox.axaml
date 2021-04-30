@@ -32,7 +32,7 @@
                                             Items="{TemplateBinding Items}">
                                 <ItemsPresenter.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <c:ConcatenatingWrapPanel Focusable="False">
+                                        <c:ConcatenatingWrapPanel Focusable="False" VerticalAlignment="Center">
                                             <c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                                 <AutoCompleteBox x:Name="PART_AutoCompleteBox"
                                                                  Padding="15 10 15 8"
