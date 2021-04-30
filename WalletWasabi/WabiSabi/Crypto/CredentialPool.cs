@@ -1,49 +1,99 @@
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 using WalletWasabi.Crypto.ZeroKnowledge;
 
 namespace WalletWasabi.WabiSabi.Crypto
 {
+
 	/// <summary>
 	/// Keeps a registry of credentials available.
 	/// </summary>
 	public class CredentialPool
 	{
+		private readonly static object syncObj = new(); 
+		private readonly List<Credential> _availableCredentials = new();
+		private readonly List<(long RequestedValue, TaskCompletionSource<Credential[]> RequestSource)> _waitingCredentialList = new();
+
 		internal CredentialPool()
 		{
 		}
 
-		private HashSet<Credential> Credentials { get; } = new HashSet<Credential>();
-
 		/// <summary>
-		/// Enumerates all the zero-value credentials available.
+		/// Registers those credentials that were issued.
 		/// </summary>
-		public IEnumerable<Credential> ZeroValue => Credentials.Where(x => x.Amount.IsZero);
-
-		/// <summary>
-		/// Enumerates all the available credentials with non-zero value.
-		/// </summary>
-		public IEnumerable<Credential> Valuable => Credentials.Where(x => !x.Amount.IsZero);
-
-		/// <summary>
-		/// Enumerates all the available credentials.
-		/// </summary>
-		public IEnumerable<Credential> All => Credentials;
-
-		/// <summary>
-		/// Removes credentials that were used and registers those that were issued.
-		/// </summary>
-		/// <param name="newCredentials">Credentials received from the coordinator.</param>
-		/// <param name="oldCredentials">Credentials exchanged by the ones that were issued.</param>
-		internal void UpdateCredentials(IEnumerable<Credential> newCredentials, IEnumerable<Credential> oldCredentials)
+		/// <param name="credentials">Credentials received from the coordinator.</param>
+		internal void UpdateCredentials(IEnumerable<Credential> credentials)
 		{
-			var hs = oldCredentials.ToHashSet();
-			Credentials.RemoveWhere(x => hs.Contains(x));
-
-			foreach (var credential in newCredentials)
+			lock (syncObj)
 			{
-				Credentials.Add(credential);
+				foreach (var credential in credentials)
+				{
+					Send(credential);
+				}
 			}
+		}
+
+		internal Task<Credential[]> TakeAsync(long requestedValue,CancellationToken cancellationToken = default)
+		{
+			lock (syncObj)
+			{
+				if (TryGetMatch(requestedValue, out var credentials))
+				{
+					return Task.FromResult(credentials);
+				}
+
+				var tcs = new TaskCompletionSource<Credential[]>();
+				_waitingCredentialList.Add((requestedValue, tcs));
+
+				using (cancellationToken.Register(() => tcs.TrySetCanceled()))
+				return tcs.Task;
+			}
+		}
+
+		private void Send(Credential credential)
+		{
+			lock (syncObj)
+			{
+				_availableCredentials.Add(credential);
+
+				var matchingCombinations = CredentialCombinations
+					.Join(_waitingCredentialList, 
+						x => x.Total, 
+						x => x.RequestedValue, 
+						(o, i) => (o.Credentials, i.RequestSource));
+
+				if (matchingCombinations.FirstOrDefault() is { Credentials: not null } found)
+				{
+					foreach (var credentialToRemove in found.Credentials)
+					{
+						_availableCredentials.Remove(credentialToRemove);
+					}
+					found.RequestSource.TrySetResult(found.Credentials);
+				}
+			}
+		}
+
+		private IEnumerable<(Credential[] Credentials, long Total)> CredentialCombinations 
+			=> _availableCredentials
+				.CombinationsWithoutRepetition(ProtocolConstants.CredentialNumber)
+				.Select(x => (Credentails: x.ToArray(), Total: x.Sum(y => (long)y.Amount.ToUlong())));
+
+		private bool TryGetMatch(long requestedValue, out Credential[] credentials)
+		{
+			if (CredentialCombinations.FirstOrDefault(x => x.Total == requestedValue) is {Credentials: not null} found )
+			{
+				credentials = found.Credentials;
+				foreach (var credentialToRemove in credentials)
+				{
+					_availableCredentials.Remove(credentialToRemove);
+				}
+
+				return true;
+			}
+			credentials = null;
+			return false;
 		}
 	}
 }

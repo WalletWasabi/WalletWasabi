@@ -154,7 +154,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var realVsizeCredentialRequestData = VsizeCredentialClient.CreateRequest(
 				inputsRegistrationVsize,
-				Enumerable.Empty<Credential>());
+				await VsizeCredentialClient.Credentials.TakeAsync(0));
 
 			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
 			var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();

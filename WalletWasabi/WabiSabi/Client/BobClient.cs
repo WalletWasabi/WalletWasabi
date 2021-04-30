@@ -24,8 +24,8 @@ namespace WalletWasabi.WabiSabi.Client
 				RoundId,
 				amount.Satoshi,
 				scriptPubKey,
-				ArenaClient.AmountCredentialClient.Credentials.Valuable,
-				ArenaClient.VsizeCredentialClient.Credentials.Valuable).ConfigureAwait(false);
+				await ArenaClient.AmountCredentialClient.Credentials.TakeAsync(amount.Satoshi),
+				await ArenaClient.VsizeCredentialClient.Credentials.TakeAsync(scriptPubKey.EstimateOutputVsize())).ConfigureAwait(false);
 		}
 	}
 }

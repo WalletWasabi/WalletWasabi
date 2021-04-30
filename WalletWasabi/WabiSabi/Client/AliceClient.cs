@@ -57,7 +57,7 @@ namespace WalletWasabi.WabiSabi.Client
 					RoundId,
 					AliceId,
 					inputRemainingVsizes,
-					amountCredentials.ZeroValue.Take(ProtocolConstants.CredentialNumber),
+					await amountCredentials.TakeAsync(0),
 					amountsToRequest)
 				.ConfigureAwait(false);
 		}
