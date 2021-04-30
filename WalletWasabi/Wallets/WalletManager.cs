@@ -122,6 +122,8 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
+		public bool HasWallet() => AnyWallet(_ => true);
+
 		public bool AnyWallet()
 		{
 			return AnyWallet(x => x.State >= WalletState.Starting);

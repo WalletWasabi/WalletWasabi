@@ -23,6 +23,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	[NavigationMetaData(Title = "Enter recovery words")]
 	public partial class RecoverWalletViewModel : RoutableViewModel
 	{
+		private readonly WalletManager _walletManager;
+
 		[AutoNotify] private IEnumerable<string>? _suggestions;
 		[AutoNotify] private Mnemonic? _currentMnemonics;
 
@@ -31,8 +33,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			WalletManagerViewModel walletManagerViewModel)
 		{
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
-			var walletManager = walletManagerViewModel.WalletManager;
-			var network = walletManager.Network;
+			_walletManager = walletManagerViewModel.WalletManager;
+			var network = _walletManager.Network;
 
 			Mnemonics.ToObservableChangeSet().ToCollection()
 				.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
@@ -50,7 +52,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNext(walletManager, network, walletName),
+				async () => await OnNext(_walletManager, network, walletName),
 				NextCommandCanExecute);
 
 			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
@@ -151,7 +153,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			var enableCancel = CurrentTarget != NavigationTarget.FullScreen;
+			var enableCancel = _walletManager.HasWallet();
 			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 		}
 	}

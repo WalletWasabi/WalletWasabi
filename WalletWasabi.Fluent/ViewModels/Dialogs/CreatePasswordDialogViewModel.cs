@@ -11,11 +11,14 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 	[NavigationMetaData(Title = "Enter a password")]
 	public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?>
 	{
+		private readonly bool _enableCancel;
+
 		[AutoNotify] private string? _confirmPassword;
 		[AutoNotify] private string? _password;
 
-		public CreatePasswordDialogViewModel(string caption, bool enableEmpty = true)
+		public CreatePasswordDialogViewModel(string caption, bool enableEmpty = true, bool enableCancel = true)
 		{
+			_enableCancel = enableCancel;
 			Caption = caption;
 
 			// This means pressing continue will make the password empty string.
@@ -87,8 +90,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			var enableCancel = CurrentTarget != NavigationTarget.FullScreen;
-			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
+			SetupCancel(enableCancel: _enableCancel, enableCancelOnEscape: _enableCancel, enableCancelOnPressed: _enableCancel);
 		}
 	}
 }

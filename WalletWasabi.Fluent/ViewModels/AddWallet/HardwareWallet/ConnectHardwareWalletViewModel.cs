@@ -222,7 +222,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			var enableCancel = CurrentTarget != NavigationTarget.FullScreen;
+			var enableCancel = WalletManager.HasWallet();
 			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 
 			if (isInHistory)

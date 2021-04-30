@@ -17,11 +17,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 	[NavigationMetaData(Title = "Confirm recovery words")]
 	public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	{
+		private readonly WalletManager _walletManager;
 		private readonly ReadOnlyObservableCollection<RecoveryWordViewModel> _confirmationWords;
 		[AutoNotify] private bool _isSkipEnable;
 
 		public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
 		{
+			_walletManager = walletManager;
 			var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 			_isSkipEnable = walletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
 
@@ -71,7 +73,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			var enableCancel = CurrentTarget != NavigationTarget.FullScreen;
+			var enableCancel = _walletManager.HasWallet();
 			SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 		}
 	}

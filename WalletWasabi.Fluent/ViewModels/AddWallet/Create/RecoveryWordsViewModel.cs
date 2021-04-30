@@ -11,11 +11,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 	[NavigationMetaData(Title = "Recovery words")]
 	public partial class RecoveryWordsViewModel : RoutableViewModel
 	{
+		private readonly WalletManager _walletManager;
+
 		public RecoveryWordsViewModel(
 			KeyManager keyManager,
 			Mnemonic mnemonic,
 			WalletManager walletManager)
 		{
+			_walletManager = walletManager;
 			MnemonicWords = new List<RecoveryWordViewModel>();
 
 			for (int i = 0; i < mnemonic.Words.Length; i++)
@@ -43,7 +46,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
-			var enableCancel = CurrentTarget != NavigationTarget.FullScreen;
+			var enableCancel = _walletManager.HasWallet();
 			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 
 			base.OnNavigatedTo(isInHistory, disposables);

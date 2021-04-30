@@ -32,6 +32,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		NavBarPosition = NavBarPosition.Bottom)]
 	public partial class AddWalletPageViewModel : NavBarItemViewModel
 	{
+		private readonly WalletManager _walletManager;
+
 		[AutoNotify] private string _walletName = "";
 		[AutoNotify] private bool _optionsEnabled;
 
@@ -40,8 +42,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			BitcoinStore store)
 		{
 			SelectionMode = NavBarItemSelectionMode.Button;
-			var walletManager = walletManagerViewModel.WalletManager;
-			var network = walletManager.Network;
+			_walletManager = walletManagerViewModel.WalletManager;
+			var network = _walletManager.Network;
 
 			var enableBack = default(IDisposable);
 			this.WhenAnyValue(x => x.CurrentTarget)
@@ -61,13 +63,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			RecoverWalletCommand = ReactiveCommand.Create(() => OnRecoverWallet(walletManagerViewModel));
 
-			ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnImportWallet(walletManager));
+			ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnImportWallet(_walletManager));
 
 			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => OnConnectHardwareWallet(walletManagerViewModel));
 
-			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnCreateWallet(walletManager, store, network));
+			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnCreateWallet(_walletManager, store, network));
 
-			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, walletManager, WalletName));
+			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, _walletManager, WalletName));
 
 			EnableAutoBusyOn(CreateWalletCommand);
 		}
@@ -145,7 +147,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		private async Task OnCreateWallet(WalletManager walletManager, BitcoinStore store, Network network)
 		{
 			var dialogResult = await NavigateDialog(
-				new CreatePasswordDialogViewModel("Type the password of the wallet and click Continue."));
+				new CreatePasswordDialogViewModel("Type the password of the wallet and click Continue.", enableEmpty: true, enableCancel: _walletManager.HasWallet()));
 
 			if (dialogResult.Result is { } password)
 			{
@@ -169,7 +171,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			var enableCancel = CurrentTarget != NavigationTarget.FullScreen;
+			var enableCancel = _walletManager.HasWallet();
 			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 
 			this.RaisePropertyChanged(WalletName);
