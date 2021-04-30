@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Crypto.ZeroKnowledge;
 
 namespace WalletWasabi.WabiSabi.Client
 {
@@ -18,14 +19,14 @@ namespace WalletWasabi.WabiSabi.Client
 		private uint256 RoundId { get; }
 		private ArenaClient ArenaClient { get; }
 
-		public async Task RegisterOutputAsync(Money amount, Script scriptPubKey)
+		public async Task RegisterOutputAsync(Money amount, Script scriptPubKey, IEnumerable<Credential> amountCredential, IEnumerable<Credential> vsizeCredential)
 		{
 			await ArenaClient.RegisterOutputAsync(
 				RoundId,
 				amount.Satoshi,
 				scriptPubKey,
-				ArenaClient.AmountCredentialClient.Credentials.Valuable,
-				ArenaClient.VsizeCredentialClient.Credentials.Valuable).ConfigureAwait(false);
+				amountCredential,
+				vsizeCredential).ConfigureAwait(false);
 		}
 	}
 }

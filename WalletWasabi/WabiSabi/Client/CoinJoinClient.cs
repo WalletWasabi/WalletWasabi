@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -59,7 +60,7 @@ namespace WalletWasabi.WabiSabi.Client
 				var outputs = DecomposeAmounts(stoppingToken);
 
 				// Output registration.
-				await RegisterOutputsAsync(outputs, stoppingToken).ConfigureAwait(false);
+				await ReissueAndRegisterOutputsAsync(outputs, stoppingToken).ConfigureAwait(false);
 
 				Transaction? unsignedCoinJoinTransaction = null; // TODO: Get it from somewhere.
 
@@ -108,7 +109,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		private async Task RegisterOutputsAsync((Money Amount, HdPubKey Pubkey)[] outputs, CancellationToken stoppingToken)
+		private async Task ReissueAndRegisterOutputsAsync(IEnumerable<(Money Amount, HdPubKey Pubkey)> outputs, CancellationToken stoppingToken)
 		{
 			ArenaClient bobArenaClient = new(
 				Round.AmountCredentialIssuerParameters,
@@ -118,20 +119,46 @@ namespace WalletWasabi.WabiSabi.Client
 				ArenaRequestHandler,
 				SecureRandom);
 
+			BobClient bobClient = new(Round.Id, bobArenaClient);
+
+			Money remaining = outputs.Sum(o => o.Amount);
+
+			var remainingAmountCredentials = AmountCredentialPool.Valuable.Single();
+			var remainingVsizeCredentials = VsizeCredentialPool.Valuable.Single();
+
 			foreach (var output in outputs)
 			{
-				BobClient bobClient = new(Round.Id, bobArenaClient);
-				await bobClient.RegisterOutputAsync(output.Amount, output.Pubkey.PubKey.WitHash.ScriptPubKey).ConfigureAwait(false);
+				var justNeedtheSize = output.Pubkey.PubKey.WitHash.ScriptPubKey;
+				remaining -= output.Amount;
+
+				var result = await bobArenaClient.ReissueCredentialAsync(
+					Round.Id,
+					output.Amount,
+					output.Pubkey.PubKey.WitHash.ScriptPubKey,
+					remaining,
+					justNeedtheSize,
+					new[] { remainingAmountCredentials },
+					new[] { remainingVsizeCredentials }).ConfigureAwait(false);
+
+				remainingAmountCredentials = result.RealAmountCredentials.Last();
+				remainingVsizeCredentials = result.RealVsizeCredentials.Last();
+
+				await bobClient.RegisterOutputAsync(
+					output.Amount,
+					output.Pubkey.PubKey.WitHash.ScriptPubKey,
+					new[] { result.RealAmountCredentials.First() },
+					new[] { result.RealVsizeCredentials.First() }).ConfigureAwait(false);
+
 				await Task.Delay(Random.Next(0, 1000), stoppingToken).ConfigureAwait(false);
 			}
 		}
 
-		private (Money Amount, HdPubKey Pubkey)[] DecomposeAmounts(CancellationToken stoppingToken)
+		private IEnumerable<(Money Amount, HdPubKey Pubkey)> DecomposeAmounts(CancellationToken stoppingToken)
 		{
 			const int Count = 4;
 
 			// Simple decomposer.
-			Money total = Coins.Sum(c => c.Amount);
+			Money total = Coins.Sum(c => c.Amount) - Round.FeeRate.GetFee(Helpers.Constants.P2wpkhInputVirtualSize);
 			Money amount = total / Count;
 
 			List<Money> amounts = Enumerable.Repeat(Money.Satoshis(amount), Count - 1).ToList();
