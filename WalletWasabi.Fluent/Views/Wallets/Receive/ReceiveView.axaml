@@ -10,23 +10,27 @@
              x:DataType="receive:ReceiveViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveView">
-  <c:ContentArea Title="{Binding Title}"
-                 EnableNext="True" NextContent="Continue"
-                 EnableCancel="{Binding EnableCancel}"
-                 EnableBack="{Binding EnableBack}">
-    <DockPanel>
+  <c:AdorningContentControl RevealMode="Manual" IsAdornmentVisible="True">
+    <c:ContentArea Title="{Binding Title}"
+                   Caption="In order for Wasabi to best protect your privacy enter some labels to keep track of who knows about this receive address."
+                   EnableNext="True" NextContent="Continue"
+                   EnableCancel="{Binding EnableCancel}"
+                   EnableBack="{Binding EnableBack}">
       <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
         <Label Content="_Labels" Target="LabelsTbx" HorizontalAlignment="Left" FontWeight="Normal" />
         <c:TagsBox x:Name="LabelsTbx" Items="{Binding Labels}"
-                   Watermark="Who will know this address? Alice, Bob, Coinbase, Binance"
+                   Watermark="Alice, Bob, Coinbase, Binance"
                    Suggestions="{Binding Suggestions}">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>
         </c:TagsBox>
       </StackPanel>
-
-      <Button Content="Previous unused addresses" IsVisible="{Binding IsExistingAddressesButtonVisible}" Classes="h8 plain activeHyperLink" Command="{Binding ShowExistingAddressesCommand}" HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Bottom"/>
-    </DockPanel>
-  </c:ContentArea>
+    </c:ContentArea>
+    <c:AdorningContentControl.Adornment>
+      <Button Content="Previous unused addresses" IsVisible="{Binding IsExistingAddressesButtonVisible, FallbackValue=True}"
+              Classes="h8 plain activeHyperLink" Command="{Binding ShowExistingAddressesCommand}"
+              HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0 0 0 22" />
+    </c:AdorningContentControl.Adornment>
+  </c:AdorningContentControl>
 </UserControl>
