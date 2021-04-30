@@ -50,7 +50,7 @@ namespace WalletWasabi.WabiSabi.Client
 			try
 			{
 				// Register coins.
-				AliceClient[] aliceClients = await RegisterCoinsAsync().ConfigureAwait(false);
+				AliceClient[] aliceClients = await RegisterCoinsAsync(stoppingToken).ConfigureAwait(false);
 
 				// Confirm coins.
 				await ConfirmConnectionsAsync(aliceClients, stoppingToken).ConfigureAwait(false);
@@ -59,7 +59,7 @@ namespace WalletWasabi.WabiSabi.Client
 				var outputs = await DecomposeAmountsAsync(stoppingToken).ConfigureAwait(false);
 
 				// Output registration.
-				await RegisterOutputsAsync(outputs).ConfigureAwait(false);
+				await RegisterOutputsAsync(outputs, stoppingToken).ConfigureAwait(false);
 
 				Transaction? unsignedCoinJoinTransaction = null; // TODO: Get it from somewhere.
 
@@ -77,7 +77,7 @@ namespace WalletWasabi.WabiSabi.Client
 			await StartAsync(DisposeCts.Token).ConfigureAwait(false);
 		}
 
-		private async Task<AliceClient[]> RegisterCoinsAsync()
+		private async Task<AliceClient[]> RegisterCoinsAsync(CancellationToken stoppingToken)
 		{
 			var aliceArenaClient = new ArenaClient(
 				Round.AmountCredentialIssuerParameters,
@@ -93,7 +93,7 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				var secret = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey.WitHash.ScriptPubKey).First().PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
 				aliceClients.Add(await AliceClient.CreateNewAsync(aliceArenaClient, coin, secret, Round.Id, Round.FeeRate).ConfigureAwait(false));
-				await Task.Delay(Random.Next(0, 1000)).ConfigureAwait(false);
+				await Task.Delay(Random.Next(0, 1000), stoppingToken).ConfigureAwait(false);
 			}
 
 			return aliceClients.ToArray();
@@ -108,7 +108,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		private async Task RegisterOutputsAsync((Money Amount, HdPubKey Pubkey)[] outputs)
+		private async Task RegisterOutputsAsync((Money Amount, HdPubKey Pubkey)[] outputs, CancellationToken stoppingToken)
 		{
 			ArenaClient bobArenaClient = new(
 				Round.AmountCredentialIssuerParameters,
@@ -122,7 +122,7 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				BobClient bobClient = new(Round.Id, bobArenaClient);
 				await bobClient.RegisterOutputAsync(output.Amount, output.Pubkey.PubKey.WitHash.ScriptPubKey).ConfigureAwait(false);
-				// Random delay?
+				await Task.Delay(Random.Next(0, 1000), stoppingToken).ConfigureAwait(false);
 			}
 		}
 
