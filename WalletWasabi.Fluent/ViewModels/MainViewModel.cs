@@ -186,7 +186,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			BroadcastTransactionViewModel.RegisterAsyncLazy(
 				async () =>
 				{
-					var dialogResult = await DialogScreen.NavigateDialog(new LoadTransactionViewModel(_global.Network));
+					var dialogResult = await DialogScreen.NavigateDialogAsync(new LoadTransactionViewModel(_global.Network));
 
 					if (dialogResult.Result is { })
 					{
