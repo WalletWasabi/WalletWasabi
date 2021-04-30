@@ -1,8 +1,10 @@
+using Microsoft.VisualBasic.CompilerServices;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -188,6 +190,14 @@ namespace WalletWasabi.Tor
 				Logger.LogInfo("**Circuit status**");
 				TorControlReply statusReply = await client.SendCommandAsync("GETINFO circuit-status\r\n").ConfigureAwait(false);
 				Logger.LogInfo($"Status reply: {statusReply}");
+
+				Logger.LogInfo("**Circuit status**");
+
+				TorControlReply protocolInfoReply = await client.SendCommandAsync("PROTOCOLINFO\r\n").ConfigureAwait(false);
+				Logger.LogInfo($"Protocol info reply: {protocolInfoReply}");
+
+				ProtocolInfoReply protocolInfoReply2 = await client.GetProtocolInfoAsync().ConfigureAwait(false);
+				Logger.LogInfo($"Protocol info reply: {protocolInfoReply2}");
 			}
 
 			Logger.LogTrace($"Checking Tor status: {(result ? "UP" : "DOWN")}");

@@ -2,10 +2,10 @@ using System;
 using System.IO.Pipelines;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
-using WalletWasabi.Tor.Control.Messages;
+using System.Threading.Tasks;
 using WalletWasabi.Logging;
+using WalletWasabi.Tor.Control.Messages;
 
 namespace WalletWasabi.Tor.Control
 {
@@ -31,6 +31,19 @@ namespace WalletWasabi.Tor.Control
 		private TcpClient? TcpClient { get; }
 		private PipeReader PipeReader { get; }
 		private PipeWriter PipeWriter { get; }
+
+		/// <summary>
+		/// Gets protocol info (for version 1).
+		/// </summary>
+		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">3.21. PROTOCOLINFO</seealso>
+		public async Task<ProtocolInfoReply> GetProtocolInfoAsync(CancellationToken cancellationToken = default)
+		{
+			// Grammar: "PROTOCOLINFO" *(SP PIVERSION) CRLF
+			// Note: PIVERSION is there in case we drastically change the syntax one day. For now it should always be "1".
+			TorControlReply reply = await SendCommandAsync("PROTOCOLINFO 1\r\n", cancellationToken).ConfigureAwait(false);
+
+			return ProtocolInfoReply.FromReply(reply);
+		}
 
 		/// <summary>
 		/// Sends a control command to Tor.

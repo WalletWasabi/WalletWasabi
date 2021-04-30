@@ -36,7 +36,8 @@ namespace WalletWasabi.Tor.Control
 		/// </summary>
 		/// <seealso href="https://docs.microsoft.com/en-us/dotnet/standard/io/pipelines#read-a-single-message"/>
 		/// <remarks>The following code reads a single message from a PipeReader and returns it to the caller.</remarks>
-		public static async ValueTask<string?> ReadLineAsync(this PipeReader reader, CancellationToken cancellationToken = default)
+		/// <exception cref="InvalidDataException">The message is incomplete and there's no more data to process.</exception>
+		public static async ValueTask<string> ReadLineAsync(this PipeReader reader, CancellationToken cancellationToken = default)
 		{
 			while (true)
 			{
@@ -86,9 +87,11 @@ namespace WalletWasabi.Tor.Control
 				}
 			}
 
-			return null;
+			throw new InvalidDataException("This should never happen.");
 		}
 
+		/// <summary>Finds the first newline (<c>\r\n</c>) in the buffer.</summary>
+		/// <param name="line">Trims that line, excluding the <c>\r\n</c> from the input buffer.</param>
 		/// <seealso href="https://docs.microsoft.com/en-us/dotnet/standard/io/buffers#process-text-data"/>
 		private static bool TryParseLine(ref ReadOnlySequence<byte> buffer, out ReadOnlySequence<byte> line)
 		{
