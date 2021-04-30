@@ -19,7 +19,7 @@
       <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
         <Label Content="_Labels" Target="LabelsTbx" HorizontalAlignment="Left" FontWeight="Normal" />
         <c:TagsBox x:Name="LabelsTbx" Items="{Binding Labels}"
-                   Watermark="Alice, Bob, Coinbase, Binance"
+                   Watermark="i.e. Alice, Bob, Wasabi Inc, Exchange"
                    Suggestions="{Binding Suggestions}">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
@@ -28,9 +28,9 @@
       </StackPanel>
     </c:ContentArea>
     <c:AdorningContentControl.Adornment>
-      <Button Content="Previous unused addresses" IsVisible="{Binding IsExistingAddressesButtonVisible, FallbackValue=True}"
-              Classes="h8 plain activeHyperLink" Command="{Binding ShowExistingAddressesCommand}"
-              HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0 0 0 22" />
+      <Button Content="Unused Addresses" IsVisible="{Binding IsExistingAddressesButtonVisible, FallbackValue=True}"
+              Classes="h8 plain activeHyperLink" Command="{Binding ShowExistingAddressesCommand}" Cursor="Hand"
+              HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0 0 0 21" />
     </c:AdorningContentControl.Adornment>
   </c:AdorningContentControl>
 </UserControl>
