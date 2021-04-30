@@ -267,7 +267,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			if (Match(keymap.Paste))
 			{
-				ModifiedPaste();
+				ModifiedPasteAsync();
 			}
 			else
 			{
@@ -275,7 +275,7 @@ namespace WalletWasabi.Fluent.Controls
 			}
 		}
 
-		public async void ModifiedPaste()
+		public async void ModifiedPasteAsync()
 		{
 			var text = await AvaloniaLocator.Current.GetService<IClipboard>().GetTextAsync();
 

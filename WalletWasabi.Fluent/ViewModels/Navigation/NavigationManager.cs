@@ -31,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			return null;
 		}
 
-		public static async Task<RoutableViewModel?> MaterialiseViewModel(NavigationMetaData metaData)
+		public static async Task<RoutableViewModel?> MaterialiseViewModelAsync(NavigationMetaData metaData)
 		{
 			if (NavigationEntries.ContainsKey(metaData))
 			{

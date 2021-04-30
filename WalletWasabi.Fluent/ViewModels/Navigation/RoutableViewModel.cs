@@ -109,10 +109,10 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			}
 		}
 
-		public async Task<DialogResult<TResult>> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog)
-			=> await NavigateDialog(dialog, CurrentTarget);
+		public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog)
+			=> await NavigateDialogAsync(dialog, CurrentTarget);
 
-		public async Task<DialogResult<TResult>> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target)
+		public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target)
 		{
 			Navigate(target).To(dialog);
 
@@ -126,7 +126,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		protected async Task ShowErrorAsync(string title, string message, string caption)
 		{
 			var dialog = new ShowErrorDialogViewModel(message, title, caption);
-			await NavigateDialog(dialog, NavigationTarget.DialogScreen);
+			await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
 		}
 
 		protected void SetupCancel(bool enableCancel, bool enableCancelOnEscape, bool enableCancelOnPressed)

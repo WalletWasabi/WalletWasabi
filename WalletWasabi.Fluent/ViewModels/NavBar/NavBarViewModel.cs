@@ -110,7 +110,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 			foreach (var item in topItems)
 			{
-				var viewModel = await NavigationManager.MaterialiseViewModel(item);
+				var viewModel = await NavigationManager.MaterialiseViewModelAsync(item);
 
 				if (viewModel is NavBarItemViewModel navBarItem)
 				{
@@ -120,7 +120,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 			foreach (var item in bottomItems)
 			{
-				var viewModel = await NavigationManager.MaterialiseViewModel(item);
+				var viewModel = await NavigationManager.MaterialiseViewModelAsync(item);
 
 				if (viewModel is NavBarItemViewModel navBarItem)
 				{
