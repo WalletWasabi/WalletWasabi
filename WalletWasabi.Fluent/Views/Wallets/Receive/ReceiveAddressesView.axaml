@@ -12,7 +12,6 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
     <DataGrid Items="{Binding Addresses}"
-              SelectedItem="{Binding SelectedAddress, Mode=TwoWay}"
               CanUserSortColumns="True">
       <DataGrid.Styles>
         <Style Selector="c|AnimatedButton.addressActionButton">
@@ -68,6 +67,11 @@
                                   NormalIcon="{StaticResource copy_regular}"
                                   ClickIcon="{StaticResource copy_confirmed}"
                                   InitialOpacity="1.0"/>
+                <Button Classes="plain addressActionButton" Command="{Binding NavigateCommand}"
+                        DockPanel.Dock="Right"
+                        ToolTip.Tip="QR Code">
+                  <PathIcon Data="{StaticResource qr_code_regular}" Classes=" addressActionIcon"/>
+                </Button>
                 <TextBlock Text="{Binding Address}" VerticalAlignment="Center" />
               </DockPanel>
             </DataTemplate>
