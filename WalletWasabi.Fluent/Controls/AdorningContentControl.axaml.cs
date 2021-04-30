@@ -6,17 +6,41 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Controls
 {
+	public enum RevealMode
+	{
+		Manual,
+		PointerOver
+	}
+
 	public class AdorningContentControl : ContentControl
 	{
 		private IDisposable? _subscription;
 
 		public static readonly StyledProperty<Control> AdornmentProperty =
-			AvaloniaProperty.Register<ContentArea, Control>(nameof(Adornment));
+			AvaloniaProperty.Register<AdorningContentControl, Control>(nameof(Adornment));
+
+		public static readonly StyledProperty<RevealMode> RevealModeProperty =
+			AvaloniaProperty.Register<AdorningContentControl, RevealMode>(nameof(RevealMode), RevealMode.PointerOver);
+
+		public static readonly StyledProperty<bool> IsAdornmentVisibleProperty =
+			AvaloniaProperty.Register<AdorningContentControl, bool>(nameof(IsAdornmentVisible), true);
 
 		public Control Adornment
 		{
 			get => GetValue(AdornmentProperty);
 			set => SetValue(AdornmentProperty, value);
+		}
+
+		public RevealMode RevealMode
+		{
+			get => GetValue(RevealModeProperty);
+			set => SetValue(RevealModeProperty, value);
+		}
+
+		public bool IsAdornmentVisible
+		{
+			get => GetValue(IsAdornmentVisibleProperty);
+			set => SetValue(IsAdornmentVisibleProperty, value);
 		}
 
 		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
@@ -25,11 +49,22 @@ namespace WalletWasabi.Fluent.Controls
 
 			if (change.Property == IsPointerOverProperty)
 			{
-				Dispatcher.UIThread.Post(ShowHideRevealContent);
+				Dispatcher.UIThread.Post(OnPointerOverChanged);
 			}
 			else if (change.Property == AdornmentProperty)
 			{
-				RevealContentChanged(change.OldValue.GetValueOrDefault<Control?>(), change.NewValue.GetValueOrDefault<Control?>());
+				InvalidateAdornmentVisible(change.OldValue.GetValueOrDefault<Control?>(), change.NewValue.GetValueOrDefault<Control?>());
+			}
+			else if (change.Property == IsAdornmentVisibleProperty)
+			{
+				if (change.NewValue.GetValueOrDefault<bool>())
+				{
+					AdornerHelper.AddAdorner(this, Adornment);
+				}
+				else
+				{
+					AdornerHelper.RemoveAdorner(this, Adornment);
+				}
 			}
 		}
 
@@ -39,17 +74,19 @@ namespace WalletWasabi.Fluent.Controls
 
 			_subscription?.Dispose();
 
-			RevealContentChanged(null, null);
+			InvalidateAdornmentVisible(null, null);
 		}
 
 		protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 		{
 			base.OnAttachedToVisualTree(e);
 
-			RevealContentChanged(null, Adornment);
+			InvalidateAdornmentVisible(null, Adornment);
+
+			OnPointerOverChanged();
 		}
 
-		private void RevealContentChanged(Control? oldValue, Control? newValue)
+		private void InvalidateAdornmentVisible(Control? oldValue, Control? newValue)
 		{
 			_subscription?.Dispose();
 
@@ -61,19 +98,28 @@ namespace WalletWasabi.Fluent.Controls
 			if (newValue is { })
 			{
 				_subscription = newValue.GetObservable(IsPointerOverProperty)
-					.Subscribe(_ => Dispatcher.UIThread.Post(ShowHideRevealContent));
+					.Subscribe(_ => Dispatcher.UIThread.Post(OnPointerOverChanged));
+
+				if (IsAdornmentVisible)
+				{
+					AdornerHelper.AddAdorner(this, Adornment);
+				}
 			}
 		}
 
-		private void ShowHideRevealContent()
+		private void OnPointerOverChanged()
 		{
-			if (IsPointerOver)
+			if (RevealMode == RevealMode.PointerOver)
 			{
-				AdornerHelper.AddAdorner(this, Adornment);
-			}
-			else if(!Adornment.IsPointerOver)
-			{
-				AdornerHelper.RemoveAdorner(this, Adornment);
+				if (IsPointerOver)
+				{
+					IsAdornmentVisible = true;
+				}
+				else if (!Adornment.IsPointerOver)
+				{
+					IsAdornmentVisible = false;
+
+				}
 			}
 		}
 	}

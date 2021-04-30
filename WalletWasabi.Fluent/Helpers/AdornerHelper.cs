@@ -13,9 +13,7 @@ namespace WalletWasabi.Fluent.Helpers
 			if (layer is { } && !layer.Children.Contains(adorner))
 			{
 				AdornerLayer.SetAdornedElement(adorner, visual);
-
 				((ISetLogicalParent) adorner).SetParent(visual);
-
 				layer.Children.Add(adorner);
 			}
 		}
