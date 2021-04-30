@@ -17,7 +17,7 @@
                    EnableCancel="{Binding EnableCancel}"
                    EnableBack="{Binding EnableBack}">
       <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
-        <Label Content="_Labels (Separate with ',' or pressing enter)" Target="LabelsTbx" HorizontalAlignment="Left" FontWeight="Normal" />
+        <Label Content="_Labels (Separate with ',' or by pressing enter)" Target="LabelsTbx" HorizontalAlignment="Left" FontWeight="Normal" />
         <c:TagsBox x:Name="LabelsTbx" Items="{Binding Labels}"
                    TagSeparator=","
                    SuggestionsAreCaseSensitive="True"
