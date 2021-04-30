@@ -117,9 +117,9 @@ namespace WalletWasabi.Fluent.ViewModels
 			_walletManagerViewModel.WhenAnyValue(x => x.Items.Count, x => x.Actions.Count)
 				.Subscribe(x => _navBar.IsHidden = x.Item1 == 0 && x.Item2 == 0);
 
-			if (!_walletManagerViewModel.WalletManager.AnyWallet(_ => true))
+			if (!_walletManagerViewModel.WalletManager.HasWallet())
 			{
-				_addWalletPage.Navigate().To(_addWalletPage, NavigationMode.Clear);
+				_dialogScreen.To(_addWalletPage, NavigationMode.Clear);
 			}
 		}
 
