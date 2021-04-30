@@ -23,6 +23,7 @@ namespace WalletWasabi.Gui
 		private int _feeDisplayFormat;
 		private bool _darkModeEnabled;
 		private bool _showCoinJoinInHistory;
+		private string? _lastSelectedWallet;
 		private string _windowState = "Normal";
 
 		public UiConfig() : base()
@@ -39,8 +40,9 @@ namespace WalletWasabi.Gui
 					x => x.DarkModeEnabled,
 					x => x.FeeDisplayFormat,
 					x => x.ShowCoinJoinInHistory,
+					x => x.LastSelectedWallet,
 					x => x.WindowState,
-					(_, _, _, _, _, _, _, _) => Unit.Default)
+					(_, _, _, _, _, _, _, _, _) => Unit.Default)
 				.Throttle(TimeSpan.FromMilliseconds(500))
 				.Skip(1) // Won't save on UiConfig creation.
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -133,6 +135,14 @@ namespace WalletWasabi.Gui
 		{
 			get => _showCoinJoinInHistory;
 			set => RaiseAndSetIfChanged(ref _showCoinJoinInHistory, value);
+		}
+
+		[DefaultValue(null)]
+		[JsonProperty(PropertyName = "LastSelectedWallet", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public string? LastSelectedWallet
+		{
+			get => _lastSelectedWallet;
+			set => RaiseAndSetIfChanged(ref _lastSelectedWallet, value);
 		}
 
 		[JsonProperty(PropertyName = "CoinListViewSortingPreference")]

@@ -9,15 +9,16 @@ namespace WalletWasabi.Crypto.StrobeProtocol
 {
 	public sealed class StrobeHasher
 	{
-		private Strobe128 strobe;
+		private Strobe128 _strobe;
 
 		private StrobeHasher(string domain)
 		{
-			strobe = new Strobe128(ProtocolConstants.WabiSabiProtocolIdentifier);
+			_strobe = new Strobe128(ProtocolConstants.WabiSabiProtocolIdentifier);
 			Append(ProtocolConstants.DomainStrobeSeparator, domain);
 		}
+
 		public static StrobeHasher Create(string domain)
-			=> new (domain);
+			=> new(domain);
 
 		public StrobeHasher Append(string fieldName, IBitcoinSerializable serializable)
 			=> Append(fieldName, serializable.ToBytes());
@@ -43,15 +44,15 @@ namespace WalletWasabi.Crypto.StrobeProtocol
 
 		public StrobeHasher Append(string fieldName, byte[] serializedValue)
 		{
-			strobe.AddAssociatedMetaData(Encoding.UTF8.GetBytes(fieldName), false);
-			strobe.AddAssociatedMetaData(BitConverter.GetBytes(serializedValue.Length), true);
-			strobe.AddAssociatedData(serializedValue, false);
+			_strobe.AddAssociatedMetaData(Encoding.UTF8.GetBytes(fieldName), false);
+			_strobe.AddAssociatedMetaData(BitConverter.GetBytes(serializedValue.Length), true);
+			_strobe.AddAssociatedData(serializedValue, false);
 			return this;
 		}
 
 		public uint256 GetHash()
 		{
-			return new uint256(strobe.Prf(32, false));
+			return new uint256(_strobe.Prf(32, false));
 		}
 	}
 }
