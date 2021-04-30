@@ -22,7 +22,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private bool _disposedValue;
 		private CredentialPool AmountCredentialPool { get; } = new();
 		private CredentialPool VsizeCredentialPool { get; } = new();
-		private Round Round { get; }
+		private ClientRound Round { get; }
 		public IArenaRequestHandler ArenaRequestHandler { get; }
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
@@ -32,7 +32,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private Random Random { get; } = new();
 
 		public CoinJoinClient(
-			Round round,
+			ClientRound round,
 			IArenaRequestHandler arenaRequestHandler,
 			IEnumerable<Coin> coins,
 			Kitchen kitchen,
