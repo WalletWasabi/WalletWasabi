@@ -57,14 +57,14 @@ irreq2.OwnershipProof,
 			var ccreq1 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres1);
 			var ccresp1 = await arena.ConfirmConnectionAsync(ccreq1.request);
 			ccresps.Add((ccresp1, ccreq1.amountClient, ccreq1.vsizeClient, irres2.AliceId));
-			ccreq1.amountClient.HandleResponse(ccresp1.RealAmountCredentials!, ccreq1.amountValidation);
-			ccreq1.vsizeClient.HandleResponse(ccresp1.RealVsizeCredentials!, ccreq1.vsizeValidation);
+			ccreq1.amountClient.HandleResponse(irres1.AliceId, ccresp1.RealAmountCredentials!, ccreq1.amountValidation);
+			ccreq1.vsizeClient.HandleResponse(irres1.AliceId, ccresp1.RealVsizeCredentials!, ccreq1.vsizeValidation);
 
 			var ccreq2 = WabiSabiFactory.CreateConnectionConfirmationRequest(round, irres2);
 			var ccresp2 = await arena.ConfirmConnectionAsync(ccreq2.request);
 			ccresps.Add((ccresp2, ccreq2.amountClient, ccreq2.vsizeClient, irres1.AliceId));
-			ccreq2.amountClient.HandleResponse(ccresp2.RealAmountCredentials!, ccreq2.amountValidation);
-			ccreq2.vsizeClient.HandleResponse(ccresp2.RealVsizeCredentials!, ccreq2.vsizeValidation);
+			ccreq2.amountClient.HandleResponse(irres2.AliceId, ccresp2.RealAmountCredentials!, ccreq2.amountValidation);
+			ccreq2.vsizeClient.HandleResponse(irres2.AliceId, ccresp2.RealVsizeCredentials!, ccreq2.vsizeValidation);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);

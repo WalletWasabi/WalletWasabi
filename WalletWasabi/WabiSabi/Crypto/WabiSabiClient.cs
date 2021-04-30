@@ -110,7 +110,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			// Make sure we present always the same number of credentials (except for Null requests)
 			var missingCredentialPresent = NumberOfCredentials - credentialsToPresent.Count();
 
-			var alreadyPresentedZeroCredentials = credentialsToPresent.Where(x => x.Amount.IsZero);
+/*			var alreadyPresentedZeroCredentials = credentialsToPresent.Where(x => x.Amount.IsZero);
 			var availableZeroCredentials = Credentials.ZeroValue.Except(alreadyPresentedZeroCredentials);
 
 			// This should not be possible
@@ -121,8 +121,8 @@ namespace WalletWasabi.WabiSabi.Crypto
 					WabiSabiCryptoErrorCode.NotEnoughZeroCredentialToFillTheRequest,
 					$"{missingCredentialPresent} credentials are missing but there are only {availableZeroCredentialCount} zero-value credentials available.");
 			}
-
-			credentialsToPresent = credentialsToPresent.Concat(availableZeroCredentials.Take(missingCredentialPresent)).ToList();
+*/
+			credentialsToPresent = credentialsToPresent /*.Concat(availableZeroCredentials.Take(missingCredentialPresent))*/.ToList();
 			var macsToPresent = credentialsToPresent.Select(x => x.Mac);
 			if (macsToPresent.Distinct().Count() < macsToPresent.Count())
 			{
@@ -192,7 +192,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// </remarks>
 		/// <param name="registrationResponse">The registration response message received from the coordinator.</param>
 		/// <param name="registrationValidationData">The state data required to validate the issued credentials and the proofs.</param>
-		public IEnumerable<Credential> HandleResponse(CredentialsResponse registrationResponse, CredentialsResponseValidation registrationValidationData)
+		public IEnumerable<Credential> HandleResponse(uint256 requesterId, CredentialsResponse registrationResponse, CredentialsResponseValidation registrationValidationData)
 		{
 			Guard.NotNull(nameof(registrationResponse), registrationResponse);
 			Guard.NotNull(nameof(registrationValidationData), registrationValidationData);
@@ -222,7 +222,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var credentialReceived = credentials.Select(x =>
 				new Credential(new Scalar((ulong)x.Requested.Amount), x.Requested.Randomness, x.Issued));
 
-			Credentials.UpdateCredentials(credentialReceived, registrationValidationData.Presented);
+			Credentials.UpdateCredentials(requesterId, credentialReceived);
 			return credentialReceived;
 		}
 

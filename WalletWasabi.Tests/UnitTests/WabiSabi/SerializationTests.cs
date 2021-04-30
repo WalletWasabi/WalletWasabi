@@ -8,6 +8,7 @@ using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
@@ -161,8 +162,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
 			(CredentialsRequest credentialRequest, CredentialsResponseValidation validationData) = client.CreateRequestForZeroAmount();
 			var credentialResponse = issuer.HandleRequest(credentialRequest);
-			client.HandleResponse(credentialResponse, validationData);
-			var present = client.Credentials.ZeroValue.Take(ProtocolConstants.CredentialNumber);
+			client.HandleResponse(BitcoinFactory.CreateUint256(), credentialResponse, validationData);
+			var present = client.Credentials.GetCredentialsForRequester(0);
 			(credentialRequest, _) = client.CreateRequest(new[] { 1L }, present);
 
 			// Registration request message.

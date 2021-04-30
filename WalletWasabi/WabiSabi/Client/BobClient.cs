@@ -9,23 +9,26 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class BobClient
 	{
-		public BobClient(uint256 roundId, ArenaClient arenaClient)
+		public BobClient(uint256 id, uint256 roundId, ArenaClient arenaClient)
 		{
+			Id = id;
 			RoundId = roundId;
 			ArenaClient = arenaClient;
 		}
 
+		public uint256 Id { get; }
 		private uint256 RoundId { get; }
 		private ArenaClient ArenaClient { get; }
 
 		public async Task RegisterOutputAsync(Money amount, Script scriptPubKey)
 		{
 			await ArenaClient.RegisterOutputAsync(
+				Id,
 				RoundId,
 				amount.Satoshi,
 				scriptPubKey,
-				ArenaClient.AmountCredentialClient.Credentials.Valuable,
-				ArenaClient.VsizeCredentialClient.Credentials.Valuable).ConfigureAwait(false);
+				await ArenaClient.AmountCredentialClient.Credentials.GetCredentialsForRequesterAsync(Id),
+				await ArenaClient.VsizeCredentialClient.Credentials.GetCredentialsForRequesterAsync(Id)).ConfigureAwait(false);
 		}
 	}
 }

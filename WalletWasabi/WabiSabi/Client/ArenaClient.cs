@@ -60,8 +60,8 @@ namespace WalletWasabi.WabiSabi.Client
 					zeroAmountCredentialRequestData.CredentialsRequest,
 					zeroVsizeCredentialRequestData.CredentialsRequest)).ConfigureAwait(false);
 
-			AmountCredentialClient.HandleResponse(inputRegistrationResponse.AmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
-			VsizeCredentialClient.HandleResponse(inputRegistrationResponse.VsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
+			AmountCredentialClient.HandleResponse(inputRegistrationResponse.AliceId, inputRegistrationResponse.AmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
+			VsizeCredentialClient.HandleResponse(inputRegistrationResponse.AliceId, inputRegistrationResponse.VsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
 
 			return inputRegistrationResponse.AliceId;
 		}
@@ -71,7 +71,7 @@ namespace WalletWasabi.WabiSabi.Client
 			await RequestHandler.RemoveInputAsync(new InputsRemovalRequest(roundId, aliceId)).ConfigureAwait(false);
 		}
 
-		public async Task RegisterOutputAsync(uint256 roundId, long value, Script scriptPubKey, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Credential> vsizeCredentialsToPresent)
+		public async Task RegisterOutputAsync(uint256 bobId, uint256 roundId, long value, Script scriptPubKey, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Credential> vsizeCredentialsToPresent)
 		{
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
 			Guard.InRange(nameof(vsizeCredentialsToPresent), vsizeCredentialsToPresent, 0, VsizeCredentialClient.NumberOfCredentials);
@@ -93,8 +93,8 @@ namespace WalletWasabi.WabiSabi.Client
 					realAmountCredentialRequest,
 					realVsizeCredentialRequest)).ConfigureAwait(false);
 
-			AmountCredentialClient.HandleResponse(outputRegistrationResponse.AmountCredentials, realAmountCredentialResponseValidation);
-			VsizeCredentialClient.HandleResponse(outputRegistrationResponse.VsizeCredentials, realVsizeCredentialResponseValidation);
+			AmountCredentialClient.HandleResponse(bobId, outputRegistrationResponse.AmountCredentials, realAmountCredentialResponseValidation);
+			VsizeCredentialClient.HandleResponse(bobId, outputRegistrationResponse.VsizeCredentials, realVsizeCredentialResponseValidation);
 		}
 
 		public async Task<(IEnumerable<Credential> RealAmountCredentials, IEnumerable<Credential> RealVsizeCredentials)> ReissueCredentialAsync(
@@ -103,6 +103,8 @@ namespace WalletWasabi.WabiSabi.Client
 			Script scriptPubKey1,
 			long value2,
 			Script scriptPubKey2,
+			uint256 requester1Id,
+			uint256 requester2Id,
 			IEnumerable<Credential> amountCredentialsToPresent,
 			IEnumerable<Credential> vsizeCredentialsToPresent)
 		{
@@ -134,10 +136,10 @@ namespace WalletWasabi.WabiSabi.Client
 					zeroAmountCredentialRequestData.CredentialsRequest,
 					zeroVsizeCredentialRequestData.CredentialsRequest)).ConfigureAwait(false);
 
-			var realAmountCredentials = AmountCredentialClient.HandleResponse(reissuanceResponse.RealAmountCredentials, realAmountCredentialResponseValidation);
-			var realVsizeCredentials = VsizeCredentialClient.HandleResponse(reissuanceResponse.RealVsizeCredentials, realVsizeCredentialResponseValidation);
-			AmountCredentialClient.HandleResponse(reissuanceResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
-			VsizeCredentialClient.HandleResponse(reissuanceResponse.ZeroVsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
+			var realAmountCredentials = AmountCredentialClient.HandleResponse(requesterId, reissuanceResponse.RealAmountCredentials, realAmountCredentialResponseValidation);
+			var realVsizeCredentials = VsizeCredentialClient.HandleResponse(requesterId, reissuanceResponse.RealVsizeCredentials, realVsizeCredentialResponseValidation);
+			AmountCredentialClient.HandleResponse(requesterId, reissuanceResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
+			VsizeCredentialClient.HandleResponse(requesterId, reissuanceResponse.ZeroVsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
 
 			return (realAmountCredentials, realVsizeCredentials);
 		}
@@ -154,7 +156,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var realVsizeCredentialRequestData = VsizeCredentialClient.CreateRequest(
 				inputsRegistrationVsize,
-				Enumerable.Empty<Credential>());
+				await VsizeCredentialClient.Credentials.GetCredentialsForRequesterAsync(aliceId));
 
 			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
 			var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();
@@ -168,13 +170,13 @@ namespace WalletWasabi.WabiSabi.Client
 					zeroVsizeCredentialRequestData.CredentialsRequest,
 					realVsizeCredentialRequestData.CredentialsRequest)).ConfigureAwait(false);
 
-			AmountCredentialClient.HandleResponse(confirmConnectionResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
-			VsizeCredentialClient.HandleResponse(confirmConnectionResponse.ZeroVsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
+			AmountCredentialClient.HandleResponse(aliceId, confirmConnectionResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
+			VsizeCredentialClient.HandleResponse(aliceId, confirmConnectionResponse.ZeroVsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
 
 			if (confirmConnectionResponse is { RealAmountCredentials: { }, RealVsizeCredentials: { } })
 			{
-				AmountCredentialClient.HandleResponse(confirmConnectionResponse.RealAmountCredentials, realAmountCredentialRequestData.CredentialsResponseValidation);
-				VsizeCredentialClient.HandleResponse(confirmConnectionResponse.RealVsizeCredentials, realVsizeCredentialRequestData.CredentialsResponseValidation);
+				AmountCredentialClient.HandleResponse(aliceId, confirmConnectionResponse.RealAmountCredentials, realAmountCredentialRequestData.CredentialsResponseValidation);
+				VsizeCredentialClient.HandleResponse(aliceId, confirmConnectionResponse.RealVsizeCredentials, realVsizeCredentialRequestData.CredentialsResponseValidation);
 				return true;
 			}
 

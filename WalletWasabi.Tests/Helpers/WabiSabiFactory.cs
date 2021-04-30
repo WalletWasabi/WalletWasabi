@@ -127,9 +127,10 @@ namespace WalletWasabi.Tests.Helpers
 			var (zeroVsizeCredentialRequest, vsVal) = vsClient.CreateRequestForZeroAmount();
 			var amCredResp = amIssuer.HandleRequest(zeroAmountCredentialRequest);
 			var vsCredResp = vsIssuer.HandleRequest(zeroVsizeCredentialRequest);
-			amClient.HandleResponse(amCredResp, amVal);
-			vsClient.HandleResponse(vsCredResp, vsVal);
-			return (amClient.Credentials.ZeroValue.Take(amIssuer.NumberOfCredentials).ToArray(), vsClient.Credentials.ZeroValue.Take(vsIssuer.NumberOfCredentials));
+			var requesterId = BitcoinFactory.CreateUint256();
+			amClient.HandleResponse(requesterId, amCredResp, amVal);
+			vsClient.HandleResponse(requesterId, vsCredResp, vsVal);
+			return (amClient.Credentials.GetCredentialsForRequester(requesterId), vsClient.Credentials.GetCredentialsForRequester(requesterId));
 		}
 
 		public static (RealCredentialsRequest amountReq, RealCredentialsRequest vsizeReq) CreateRealCredentialRequests(Round? round = null, Money? amount = null, long? vsize = null)
@@ -230,13 +231,14 @@ namespace WalletWasabi.Tests.Helpers
 
 			var amResp = amIssuer.HandleRequest(amCredentialRequest);
 			var weResp = vsIssuer.HandleRequest(vsCredentialRequest);
-			amClient.HandleResponse(amResp, amValid);
-			vsClient.HandleResponse(weResp, weValid);
+			var requesterId = BitcoinFactory.CreateUint256();
+			amClient.HandleResponse(requesterId, amResp, amValid);
+			vsClient.HandleResponse(requesterId, weResp, weValid);
 
 			script ??= BitcoinFactory.CreateScript();
 			var (realAmountCredentialRequest, _) = amClient.CreateRequest(
 				Array.Empty<long>(),
-				amClient.Credentials.Valuable);
+				amClient.Credentials.GetCredentialsForRequester(requesterId));
 
 			try
 			{
@@ -249,7 +251,7 @@ namespace WalletWasabi.Tests.Helpers
 
 			var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
 				new[] { startingVsizeCredentialAmount - (long)vsize },
-				vsClient.Credentials.Valuable);
+				vsClient.Credentials.GetCredentialsForRequester(requesterId));
 
 			return new OutputRegistrationRequest(
 				round?.Id ?? uint256.Zero,
@@ -271,8 +273,8 @@ namespace WalletWasabi.Tests.Helpers
 				ret.Add(new OutputRegistrationRequest(
 					round.Id,
 					script,
-					ccresp.amountClient.CreateRequest(Array.Empty<long>(), ccresp.amountClient.Credentials.Valuable).CredentialsRequest,
-					ccresp.vsizeClient.CreateRequest(new[] { startingVsizeCredentialAmount - vsize }, ccresp.vsizeClient.Credentials.Valuable).CredentialsRequest));
+					ccresp.amountClient.CreateRequest(Array.Empty<long>(), ccresp.amountClient.Credentials.GetCredentialsForRequester(1)).CredentialsRequest,
+					ccresp.vsizeClient.CreateRequest(new[] { startingVsizeCredentialAmount - vsize }, ccresp.vsizeClient.Credentials.GetCredentialsForRequester(1)).CredentialsRequest));
 			}
 
 			return ret;

@@ -52,9 +52,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			var aliceId = await aliceArenaClient.RegisterInputAsync(Money.Coins(1m), outpoint, key, round.Id);
 
-			Assert.NotEqual(uint256.Zero, aliceId);
-			Assert.Empty(amountCredentials.Valuable);
-
 			var reissuanceAmounts = new[]
 			{
 				Money.Coins(.75m) - round.FeeRate.GetFee(Constants.P2wpkhInputVirtualSize),
@@ -71,10 +68,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				round.Id,
 				aliceId,
 				inputRemainingVsizes,
-				amountCredentials.ZeroValue.Take(ProtocolConstants.CredentialNumber),
+				amountCredentials.GetCredentialsForRequester(aliceId),
 				reissuanceAmounts);
-
-			Assert.Empty(amountCredentials.Valuable);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
@@ -84,22 +79,20 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				round.Id,
 				aliceId,
 				inputRemainingVsizes,
-				amountCredentials.ZeroValue.Take(ProtocolConstants.CredentialNumber),
+				amountCredentials.GetCredentialsForRequester(aliceId),
 				reissuanceAmounts);
 
-			Assert.Single(amountCredentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.First());
-			Assert.Single(amountCredentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.Last());
-
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
 
 			var bobArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, amountCredentials, vsizeCredentials, coordinator, new InsecureRandom());
 
-			Assert.Equal(4, amountCredentials.ZeroValue.Count());
-
 			// Phase: Output Registration
 			using var destinationKey1 = new Key();
 			using var destinationKey2 = new Key();
+
+			var bob1Id = BitcoinFactory.CreateUint256();
+			var bob2Id = BitcoinFactory.CreateUint256();
 
 			var result = await bobArenaClient.ReissueCredentialAsync(
 				round.Id,
@@ -107,11 +100,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				destinationKey1.PubKey.WitHash.ScriptPubKey,
 				reissuanceAmounts[1],
 				destinationKey2.PubKey.WitHash.ScriptPubKey,
-				amountCredentials.Valuable,
-				vsizeCredentials.Valuable);
-
-			Assert.Equal(6, amountCredentials.ZeroValue.Count());
-			Assert.Equal(6, vsizeCredentials.ZeroValue.Count());
+				reissuerId,
+				amountCredentials.GetCredentialsForRequester(aliceId),
+				vsizeCredentials.GetCredentialsForRequester(aliceId));
 
 			Credential amountCred1 = result.RealAmountCredentials.ElementAt(0);
 			Credential amountCred2 = result.RealAmountCredentials.ElementAt(1);
@@ -123,15 +114,15 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				round.Id,
 				reissuanceAmounts[0],
 				destinationKey1.PubKey.WitHash.ScriptPubKey,
-				new[] { amountCred1 },
-				new[] { vsizeCred1 });
+				amountCredentials.GetCredentialsForRequester(bob1Id),
+				vsizeCredentials.GetCredentialsForRequester(bob1Id));
 
 			await bobArenaClient.RegisterOutputAsync(
 				round.Id,
 				reissuanceAmounts[1],
 				destinationKey2.PubKey.WitHash.ScriptPubKey,
-				new[] { amountCred2 },
-				new[] { vsizeCred2 });
+				amountCredentials.GetCredentialsForRequester(bob2Id),
+				vsizeCredentials.GetCredentialsForRequester(bob2Id));
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);

@@ -67,7 +67,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using var destinationKey3 = new Key();
 			using var destinationKey4 = new Key();
 
-			var bobClient = new BobClient(round.Id, bobArenaClient);
+			var bobClient = new BobClient(BitcoinFactory.CreateUint256(), round.Id, bobArenaClient);
 			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey1.PubKey.WitHash.ScriptPubKey);
 			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey2.PubKey.WitHash.ScriptPubKey);
 			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey3.PubKey.WitHash.ScriptPubKey);

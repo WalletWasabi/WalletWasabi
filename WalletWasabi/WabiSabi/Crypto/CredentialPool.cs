@@ -1,6 +1,10 @@
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using System;
+using NBitcoin;
 
 namespace WalletWasabi.WabiSabi.Crypto
 {
@@ -9,40 +13,38 @@ namespace WalletWasabi.WabiSabi.Crypto
 	/// </summary>
 	public class CredentialPool
 	{
+		private readonly static object syncObj = new(); 
+		private readonly Dictionary<uint256, UnboundedChannel<Credential>> _channelsByRequester = new ();
+
 		internal CredentialPool()
 		{
 		}
 
-		private HashSet<Credential> Credentials { get; } = new HashSet<Credential>();
-
 		/// <summary>
-		/// Enumerates all the zero-value credentials available.
+		/// Registers those credentials that were issued.
 		/// </summary>
-		public IEnumerable<Credential> ZeroValue => Credentials.Where(x => x.Amount.IsZero);
-
-		/// <summary>
-		/// Enumerates all the available credentials with non-zero value.
-		/// </summary>
-		public IEnumerable<Credential> Valuable => Credentials.Where(x => !x.Amount.IsZero);
-
-		/// <summary>
-		/// Enumerates all the available credentials.
-		/// </summary>
-		public IEnumerable<Credential> All => Credentials;
-
-		/// <summary>
-		/// Removes credentials that were used and registers those that were issued.
-		/// </summary>
-		/// <param name="newCredentials">Credentials received from the coordinator.</param>
-		/// <param name="oldCredentials">Credentials exchanged by the ones that were issued.</param>
-		internal void UpdateCredentials(IEnumerable<Credential> newCredentials, IEnumerable<Credential> oldCredentials)
+		/// <param name="credentials">Credentials received from the coordinator.</param>
+		internal void UpdateCredentials(uint256 requesterId, IEnumerable<Credential> credentials)
 		{
-			var hs = oldCredentials.ToHashSet();
-			Credentials.RemoveWhere(x => hs.Contains(x));
-
-			foreach (var credential in newCredentials)
+			lock (syncObj)
 			{
-				Credentials.Add(credential);
+				var channel = _channelsByRequester[requesterId];
+				foreach (var credential in credentials)
+				{
+					channel.Send(credential);
+				}
+			}
+		}
+
+		internal Task<Credential[]> GetCredentialsForRequesterAsync(uint256 requesterId, CancellationToken cancellationToken = default)
+		{
+			lock (syncObj)
+			{
+				var channel = _channelsByRequester[requesterId];
+				var tasks = Enumerable.Range(0, ProtocolConstants.CredentialNumber)
+							.Select(_ => channel.TakeAsync(cancellationToken));
+
+				return Task.WhenAll(tasks);
 			}
 		}
 	}
