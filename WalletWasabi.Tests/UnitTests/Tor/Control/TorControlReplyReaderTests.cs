@@ -64,7 +64,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 			Assert.Equal(expectedExceptionMsg, ex.Message);
 		}
 
-		private async Task<TorControlReply> ParseAsync(string data)
+		public static async Task<TorControlReply> ParseAsync(string data)
 		{
 			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
 
