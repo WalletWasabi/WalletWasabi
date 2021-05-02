@@ -3,8 +3,14 @@ using WalletWasabi.Tor.Control.Exceptions;
 
 namespace WalletWasabi.Tor.Control.Utils
 {
-	public class Tokenizer
+	/// <summary>
+	/// Helper functions for parsing Tor control protocol replies.
+	/// </summary>
+	public static class Tokenizer
 	{
+		/// <summary>
+		/// Splits input string using space separator into at most two parts - token and remainder.
+		/// </summary>
 		public static (string token, string remainder) ReadUntilSeparator(string input)
 		{
 			if (input == "")
@@ -25,10 +31,8 @@ namespace WalletWasabi.Tor.Control.Utils
 		}
 
 		/// <summary>
-		/// Reads "&lt;KEY&gt;=QuotedString".
+		/// Reads "&lt;KEY&gt;=QuotedString" string.
 		/// </summary>
-		/// <param name="key"></param>
-		/// <param name="input"></param>
 		/// <returns>Quoted string content.</returns>
 		public static (string value, string remainder) ReadKeyValueAssignment(string key, string input)
 		{
@@ -75,6 +79,9 @@ namespace WalletWasabi.Tor.Control.Utils
 			return (value, remainder);
 		}
 
+		/// <summary>
+		/// Makes sure that <paramref name="input"/> starts with <paramref name="expectedStart"/>.
+		/// </summary>
 		public static string ReadExactString(string expectedStart, string input)
 		{
 			if (!input.StartsWith(expectedStart, StringComparison.Ordinal))

@@ -1,5 +1,3 @@
-using System.Net;
-using System;
 using System.Threading.Tasks;
 using WalletWasabi.Tor.Control.Messages;
 using Xunit;
