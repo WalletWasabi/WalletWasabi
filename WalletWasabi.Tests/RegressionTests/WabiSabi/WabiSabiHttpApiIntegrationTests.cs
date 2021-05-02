@@ -1,3 +1,4 @@
+using System.Threading;
 using NBitcoin;
 using WalletWasabi.WabiSabi.Backend.Models;
 using Xunit;
@@ -26,7 +27,7 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 			var arenaClient = _apiApplicationFactory.CreateArenaClient();
 
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>( async () =>
-				await arenaClient.RegisterInputAsync(Money.Coins(1), nonExistingOutPoint, signingKey, round.Id, round.Hash));
+				await arenaClient.RegisterInputAsync(Money.Coins(1), nonExistingOutPoint, signingKey, round.Id, CancellationToken.None));
 
 			Assert.Equal(WabiSabiProtocolErrorCode.InputSpent, ex.ErrorCode);
 		}

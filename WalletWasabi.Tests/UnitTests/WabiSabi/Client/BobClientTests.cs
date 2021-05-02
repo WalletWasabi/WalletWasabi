@@ -51,7 +51,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			Assert.Equal(Phase.InputRegistration, round.Phase);
 
 			var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);
-			var aliceClient = await AliceClient.CreateNewAsync(aliceArenaClient, coin1.Coin, bitcoinSecret, round.Id, round.FeeRate);
+			var aliceClient = await AliceClient.CreateNewAsync(aliceArenaClient, coin1.Coin, bitcoinSecret, round.Id, round.FeeRate, CancellationToken.None);
 
 			Task confirmationTask = aliceClient.ConfirmConnectionAsync(TimeSpan.FromSeconds(3), CancellationToken.None);
 
@@ -68,10 +68,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using var destinationKey4 = new Key();
 
 			var bobClient = new BobClient(round.Id, bobArenaClient);
-			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey1.PubKey.WitHash.ScriptPubKey);
-			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey2.PubKey.WitHash.ScriptPubKey);
-			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey3.PubKey.WitHash.ScriptPubKey);
-			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey4.PubKey.WitHash.ScriptPubKey);
+			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey1.PubKey.WitHash.ScriptPubKey, CancellationToken.None);
+			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey2.PubKey.WitHash.ScriptPubKey, CancellationToken.None);
+			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey3.PubKey.WitHash.ScriptPubKey, CancellationToken.None);
+			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey4.PubKey.WitHash.ScriptPubKey, CancellationToken.None);
 
 			Assert.Equal(4, round.Bobs.Count);
 		}

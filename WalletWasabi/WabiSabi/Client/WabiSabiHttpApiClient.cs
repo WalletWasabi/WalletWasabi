@@ -1,7 +1,7 @@
 using System;
-using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using WalletWasabi.Tor.Http;
@@ -30,40 +30,45 @@ namespace WalletWasabi.WabiSabi.Client
 			ReissueCredential,
 			SignTransaction
 		}
-		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request) =>
-			SendAndReceiveAsync<InputRegistrationRequest, InputRegistrationResponse>(RemoteAction.RegisterInput, request);
 
-		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request) =>
-			SendAndReceiveAsync<ConnectionConfirmationRequest, ConnectionConfirmationResponse>(RemoteAction.ConfirmConnection, request);
+		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken) =>
+			SendAndReceiveAsync<InputRegistrationRequest, InputRegistrationResponse>(RemoteAction.RegisterInput, request, cancellationToken);
 
-		public Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request) =>
-			SendAndReceiveAsync<OutputRegistrationRequest, OutputRegistrationResponse>(RemoteAction.RegisterOutput, request);
+		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken) =>
+			SendAndReceiveAsync<ConnectionConfirmationRequest, ConnectionConfirmationResponse>(RemoteAction.ConfirmConnection, request, cancellationToken);
 
-		public Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request) =>
-			SendAndReceiveAsync<ReissueCredentialRequest, ReissueCredentialResponse>(RemoteAction.ReissueCredential, request);
+		public Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken) =>
+			SendAndReceiveAsync<OutputRegistrationRequest, OutputRegistrationResponse>(RemoteAction.RegisterOutput, request, cancellationToken);
 
-		public Task RemoveInputAsync(InputsRemovalRequest request)
-		{
-			throw new NotImplementedException();
-		}
+		public Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request, CancellationToken cancellationToken) =>
+			SendAndReceiveAsync<ReissueCredentialRequest, ReissueCredentialResponse>(RemoteAction.ReissueCredential, request, cancellationToken);
 
-		public Task SignTransactionAsync(TransactionSignaturesRequest request)
-		{
-			throw new NotImplementedException();
-		}
+		public Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken) =>
+			SendAndReceiveAsync<InputsRemovalRequest>(RemoteAction.RemoveInput, request, cancellationToken);
 
-		private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(RemoteAction action, TRequest request) where TRequest : class
+		public Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken) =>
+			SendAndReceiveAsync<TransactionSignaturesRequest>(RemoteAction.SignTransaction, request, cancellationToken);
+
+		private async Task<string> SendAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
 		{
 			using var content = Serialize(request);
-			using var response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content).ConfigureAwait(false);
+			using var response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, cancellationToken).ConfigureAwait(false);
 
 			if (!response.IsSuccessStatusCode)
 			{
-				await response.ThrowRequestExceptionFromContentAsync().ConfigureAwait(false);
+				await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
 			}
+			return await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+		}
 
-			var jsonString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+		private async Task SendAndReceiveAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
+		{
+			await SendAsync(action, request, cancellationToken).ConfigureAwait(false);
+		}
 
+		private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
+		{
+			var jsonString = await SendAsync(action, request, cancellationToken).ConfigureAwait(false);
 			return Deserialize<TResponse>(jsonString);
 		}
 
