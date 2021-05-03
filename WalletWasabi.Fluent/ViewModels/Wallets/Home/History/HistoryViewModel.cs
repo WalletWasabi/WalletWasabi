@@ -94,7 +94,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				{
 					var transactionSummary = txRecordList[i];
 					balance += transactionSummary.Amount;
-					_transactionSourceList.Add(new HistoryItemViewModel(i, transactionSummary, _wallet.BitcoinStore, balance));
+					_transactionSourceList.Add(new HistoryItemViewModel(i, transactionSummary, _wallet, balance, _updateTrigger));
 				}
 			}
 			catch (Exception ex)

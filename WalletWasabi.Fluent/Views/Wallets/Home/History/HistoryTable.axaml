@@ -142,6 +142,20 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
+
+        <!-- Status -->
+        <DataGridTemplateColumn Width="Auto"
+                                CanUserSort="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Button x:DataType="history:HistoryItemViewModel" Classes="plain" ToolTip.Tip="Details"
+                      Command="{Binding ShowDetailsCommand}">
+                <PathIcon Data="{StaticResource details_regular}" Opacity="0.6" />
+              </Button>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
       </DataGrid.Columns>
     </DataGrid>
   </DockPanel>
