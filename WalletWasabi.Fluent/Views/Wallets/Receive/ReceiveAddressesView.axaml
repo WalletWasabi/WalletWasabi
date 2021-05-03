@@ -10,7 +10,8 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressesView">
   <c:ContentArea Title="{Binding Title}"
                  EnableCancel="{Binding EnableCancel}"
-                 EnableBack="{Binding EnableBack}">
+                 EnableBack="{Binding EnableBack}"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DataGrid Items="{Binding Addresses}"
               CanUserSortColumns="True">
       <DataGrid.Styles>

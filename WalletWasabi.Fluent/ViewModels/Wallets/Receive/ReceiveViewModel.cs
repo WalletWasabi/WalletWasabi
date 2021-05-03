@@ -76,7 +76,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			base.OnNavigatedTo(isInHistory, disposable);
 
 			IsExistingAddressesButtonVisible = WasabiWallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
-			Labels.Clear();
+
+			if (!isInHistory)
+			{
+				Labels.Clear();
+			}
 		}
 
 		private HashSet<string> GetLabels(WalletManager walletManager, BitcoinStore store)
