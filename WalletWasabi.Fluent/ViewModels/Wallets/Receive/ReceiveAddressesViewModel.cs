@@ -60,7 +60,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 				foreach (HdPubKey key in keys)
 				{
-					Addresses.Add(new AddressViewModel(this, key, Network, HideAddressAsync));
+					Addresses.Add(new AddressViewModel(this, key, Network));
 				}
 			}
 			catch (Exception ex)
@@ -69,7 +69,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			}
 		}
 
-		private async Task HideAddressAsync(HdPubKey model, string address)
+		public async Task HideAddressAsync(HdPubKey model, string address)
 		{
 			var result = await NavigateDialogAsync(new ConfirmHideAddressViewModel(model.Label));
 

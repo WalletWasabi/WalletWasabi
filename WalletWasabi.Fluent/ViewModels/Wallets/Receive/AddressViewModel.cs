@@ -1,6 +1,4 @@
-﻿using System;
-using System.Reactive;
-using System.Threading.Tasks;
+﻿using System.Reactive;
 using System.Windows.Input;
 using Avalonia;
 using NBitcoin;
@@ -15,14 +13,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		[AutoNotify] private SmartLabel _label;
 		[AutoNotify] private string _address;
 
-		public AddressViewModel(ReceiveAddressesViewModel parent, HdPubKey model, Network network, Func<HdPubKey, string, Task> hideCommand)
+		public AddressViewModel(ReceiveAddressesViewModel parent, HdPubKey model, Network network)
 		{
-			Model = model;
 			_address = model.GetP2wpkhAddress(network).ToString();
 			_label = model.Label;
 
-			CopyAddressCommand = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Address));
-			HideAddressCommand = ReactiveCommand.CreateFromTask(async () => await hideCommand.Invoke(model, Address));
+			CopyAddressCommand =
+				ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Address));
+			HideAddressCommand =
+				ReactiveCommand.CreateFromTask(async () => await parent.HideAddressAsync(model, Address));
 
 			NavigateCommand = ReactiveCommand.Create(() =>
 			{
@@ -30,8 +29,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 					parent.Wallet.KeyManager.MasterFingerprint, parent.Wallet.KeyManager.IsHardwareWallet));
 			});
 		}
-
-		public HdPubKey Model { get; }
 
 		public ICommand CopyAddressCommand { get; }
 
