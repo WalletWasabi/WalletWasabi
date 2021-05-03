@@ -266,3 +266,6 @@ dotnet_diagnostic.CA2200.severity = warning
 
 # CA1827: Do not use Count() or LongCount() when Any() can be used
 dotnet_diagnostic.CA1827.severity = warning
+
+# CA1822: This complains to make functions static. Static is evil. Don't let it complain.
+dotnet_diagnostic.CA1822.severity = none

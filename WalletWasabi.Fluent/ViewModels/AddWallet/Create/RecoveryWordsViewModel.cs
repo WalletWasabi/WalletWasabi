@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reactive.Disposables;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
@@ -10,19 +11,20 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 	[NavigationMetaData(Title = "Recovery words")]
 	public partial class RecoveryWordsViewModel : RoutableViewModel
 	{
+		private readonly WalletManager _walletManager;
+
 		public RecoveryWordsViewModel(
 			KeyManager keyManager,
 			Mnemonic mnemonic,
 			WalletManager walletManager)
 		{
+			_walletManager = walletManager;
 			MnemonicWords = new List<RecoveryWordViewModel>();
 
 			for (int i = 0; i < mnemonic.Words.Length; i++)
 			{
 				MnemonicWords.Add(new RecoveryWordViewModel(i + 1, mnemonic.Words[i]));
 			}
-
-			EnableCancel = true;
 
 			EnableBack = true;
 
@@ -40,6 +42,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 		private void OnCancel()
 		{
 			Navigate().Clear();
+		}
+
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			var enableCancel = _walletManager.HasWallet();
+			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
+
+			base.OnNavigatedTo(isInHistory, disposables);
 		}
 	}
 }

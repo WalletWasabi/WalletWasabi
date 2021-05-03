@@ -1,5 +1,6 @@
 using NBitcoin.Secp256k1;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
@@ -68,7 +69,7 @@ namespace WalletWasabi.Crypto.Groups
 		/// </summary>
 		public static GroupElement[] NegatedGhPowersOfTwo { get; } = ScalarPowersOfTwo.Select(b => b.Negate() * Gh).ToArray();
 
-		public static bool TryGetFriendlyGeneratorName(GroupElement? ge, out string name)
+		public static bool TryGetFriendlyGeneratorName(GroupElement? ge, [NotNullWhen(true)] out string? name)
 		{
 			static string FormatName(string generatorName) => $"{generatorName} Generator";
 			name = ge switch

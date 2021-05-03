@@ -77,7 +77,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				? null
 				: TotalInputValue - TotalOutputValue;
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = false;
 
@@ -88,13 +88,13 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				.Select(x => !x);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNext(broadcaster, transaction),
+				async () => await OnNextAsync(broadcaster, transaction),
 				nextCommandCanExecute);
 
 			EnableAutoBusyOn(NextCommand);
 		}
 
-		private async Task OnNext(TransactionBroadcaster broadcaster, SmartTransaction transaction)
+		private async Task OnNextAsync(TransactionBroadcaster broadcaster, SmartTransaction transaction)
 		{
 			try
 			{

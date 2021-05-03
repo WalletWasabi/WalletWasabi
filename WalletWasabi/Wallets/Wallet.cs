@@ -234,7 +234,7 @@ namespace WalletWasabi.Wallets
 				{
 					if (feeStrategy.Type == FeeStrategyType.Target)
 					{
-						return FeeProvider.AllFeeEstimate?.GetFeeRate(feeStrategy.Target) ?? throw new InvalidOperationException("Cannot get fee estimations.");
+						return FeeProvider.AllFeeEstimate?.GetFeeRate(feeStrategy.Target.Value) ?? throw new InvalidOperationException("Cannot get fee estimations.");
 					}
 					else if (feeStrategy.Type == FeeStrategyType.Rate)
 					{
@@ -248,7 +248,7 @@ namespace WalletWasabi.Wallets
 				allowedInputs,
 				lockTimeSelector: () =>
 				{
-					var currentTipHeight = Synchronizer.BitcoinStore.SmartHeaderChain.TipHeight;
+					var currentTipHeight = BitcoinStore.SmartHeaderChain.TipHeight;
 					return LockTimeSelector.Instance.GetLockTimeBasedOnDistribution(currentTipHeight);
 				},
 				payjoinClient);

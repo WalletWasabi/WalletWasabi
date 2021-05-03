@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;
@@ -16,11 +17,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 	[NavigationMetaData(Title = "Confirm recovery words")]
 	public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	{
+		private readonly WalletManager _walletManager;
 		private readonly ReadOnlyObservableCollection<RecoveryWordViewModel> _confirmationWords;
 		[AutoNotify] private bool _isSkipEnable;
 
 		public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
 		{
+			_walletManager = walletManager;
 			var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 			_isSkipEnable = walletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
 
@@ -30,8 +33,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.WhenValueChanged(x => x.IsConfirmed)
 				.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
-
-			EnableCancel = false;
 
 			EnableBack = true;
 
@@ -66,6 +67,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 		private void OnCancel()
 		{
 			Navigate().Clear();
+		}
+
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			base.OnNavigatedTo(isInHistory, disposables);
+
+			var enableCancel = _walletManager.HasWallet();
+			SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 		}
 	}
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -28,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			Network = wallet.Network;
 			_addresses = new ObservableCollection<AddressViewModel>();
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = true;
 
@@ -73,7 +73,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 				foreach (HdPubKey key in keys)
 				{
-					Addresses.Add(new AddressViewModel(key, Network, HideAddress));
+					Addresses.Add(new AddressViewModel(key, Network, HideAddressAsync));
 				}
 			}
 			catch (Exception ex)
@@ -82,9 +82,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			}
 		}
 
-		private async Task HideAddress(HdPubKey model, string address)
+		private async Task HideAddressAsync(HdPubKey model, string address)
 		{
-			var result = await NavigateDialog(new ConfirmHideAddressViewModel(model.Label));
+			var result = await NavigateDialogAsync(new ConfirmHideAddressViewModel(model.Label));
 
 			if (result.Result == false)
 			{

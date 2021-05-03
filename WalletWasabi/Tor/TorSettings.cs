@@ -16,15 +16,16 @@ namespace WalletWasabi.Tor
 		/// <param name="dataDir">Application data directory.</param>
 		/// <param name="logFilePath">Full Tor log file path.</param>
 		/// <param name="distributionFolderPath">Full path to folder containing Tor installation files.</param>
-		public TorSettings(string dataDir, string logFilePath, string distributionFolderPath)
+		public TorSettings(string dataDir, string logFilePath, string distributionFolderPath, bool terminateOnExit)
 		{
 			TorBinaryFilePath = GetTorBinaryFilePath();
 			TorBinaryDir = Path.Combine(MicroserviceHelpers.GetBinaryFolder(), "Tor");
 
 			TorDataDir = Path.Combine(dataDir, "tordata");
 			LogFilePath = logFilePath;
+			IoHelpers.EnsureContainingDirectoryExists(LogFilePath);
 			DistributionFolder = distributionFolderPath;
-
+			TerminateOnExit = terminateOnExit;
 			GeoIpPath = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip");
 			GeoIp6Path = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip6");
 		}
@@ -40,6 +41,9 @@ namespace WalletWasabi.Tor
 
 		/// <summary>Full Tor distribution folder where Tor installation files are located.</summary>
 		public string DistributionFolder { get; }
+
+		/// <summary>Whether Tor should be terminated when Wasabi Wallet terminates.</summary>
+		public bool TerminateOnExit { get; }
 
 		/// <summary>Full path to executable file that is used to start Tor process.</summary>
 		public string TorBinaryFilePath { get; }

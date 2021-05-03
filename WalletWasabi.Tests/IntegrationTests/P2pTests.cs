@@ -95,9 +95,10 @@ namespace WalletWasabi.Tests.IntegrationTests
 			using var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
-			HttpClientFactory httpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: () => new Uri("http://localhost:12345"));
-			WasabiSynchronizer syncer = new(network, bitcoinStore, httpClientFactory);
-			using var feeProvider = new HybridFeeProvider(syncer, null);
+			using HttpClientFactory httpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: () => new Uri("http://localhost:12345"));
+			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
+			var feeProvider = new HybridFeeProvider(synchronizer, null);
+
 			ServiceConfiguration serviceConfig = new(MixUntilAnonymitySet.PrivacyLevelStrong.ToString(), 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
 			CachedBlockProvider blockProvider = new(
 				new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfig, network),
@@ -107,7 +108,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 				network,
 				bitcoinStore,
 				keyManager,
-				syncer,
+				synchronizer,
 				dataDir,
 				new ServiceConfiguration(MixUntilAnonymitySet.PrivacyLevelStrong.ToString(), 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
 				feeProvider,
@@ -167,8 +168,6 @@ namespace WalletWasabi.Tests.IntegrationTests
 				IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
 				addressManager?.SavePeerFile(addressManagerFilePath, network);
 				Logger.LogInfo($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
-
-				await syncer?.StopAsync();
 
 				await bitcoinStore.DisposeAsync();
 			}

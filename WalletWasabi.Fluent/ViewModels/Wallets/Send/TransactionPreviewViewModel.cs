@@ -32,7 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			_wallet = wallet;
 			_info = info;
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
 			_confirmationTimeText = "";
 
@@ -49,9 +49,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
 			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
-			IsPayJoin = PayJoinUrl is { };
+			IsPayJoin = PayJoinUrl is not null;
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNext(wallet, broadcaster, transaction));
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(wallet, broadcaster, transaction));
 		}
 
 		public string AmountText { get; }
@@ -72,7 +72,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			Labels = _info.Labels;
 		}
 
-		private async Task OnNext(Wallet wallet, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)
+		private async Task OnNextAsync(Wallet wallet, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)
 		{
 			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 
@@ -85,7 +85,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				try
 				{
 					var finalTransaction = await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
-					await SendTransaction(wallet, broadcaster, finalTransaction);
+					await SendTransactionAsync(wallet, broadcaster, finalTransaction);
 					Navigate().To(new SendSuccessViewModel());
 				}
 				catch (Exception ex)
@@ -105,7 +105,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 
 			var authDialog = AuthorizationHelpers.GetAuthorizationDialog(wallet, transactionAuthorizationInfo);
-			var authDialogResult = await NavigateDialog(authDialog, authDialog.DefaultTarget);
+			var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget);
 
 			if (!authDialogResult.Result && authDialogResult.Kind == DialogResultKind.Normal)
 			{
@@ -115,7 +115,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return authDialogResult.Result;
 		}
 
-		private async Task SendTransaction(Wallet wallet, TransactionBroadcaster broadcaster, SmartTransaction transaction)
+		private async Task SendTransactionAsync(Wallet wallet, TransactionBroadcaster broadcaster, SmartTransaction transaction)
 		{
 			// Dequeue any coin-joining coins.
 			await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);

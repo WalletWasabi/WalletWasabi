@@ -1,18 +1,14 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
+using WalletWasabi.Crypto.StrobeProtocol;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds
 {
@@ -22,31 +18,32 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			RoundParameters = roundParameters;
 
-			AmountCredentialIssuer = new(new(Random), 2, Random, MaxRegistrableAmount);
-			VsizeCredentialIssuer = new(new(Random), 2, Random, PerAliceVsizeAllocation);
+			AmountCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, MaxRegistrableAmount);
+			VsizeCredentialIssuer = new(new(RoundParameters.Random), RoundParameters.Random, PerAliceVsizeAllocation);
 			AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			VsizeCredentialIssuerParameters = VsizeCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 
-			Coinjoin = Transaction.Create(Network);
+			var allowedAmounts = new MoneyRange(roundParameters.MinRegistrableAmount, RoundParameters.MaxRegistrableAmount);
+			var txParams = new MultipartyTransactionParameters(roundParameters.FeeRate, allowedAmounts, allowedAmounts, roundParameters.Network);
+			CoinjoinState = new ConstructionState(txParams);
 
-			Hash = new(HashHelpers.GenerateSha256Hash($"{Id}{MaxInputCountByAlice}{MinRegistrableAmount}{MaxRegistrableAmount}{PerAliceVsizeAllocation}{AmountCredentialIssuerParameters}{VsizeCredentialIssuerParameters}{FeeRate.SatoshiPerByte}"));
+			Id = CalculateHash();
 		}
 
-		public uint256 Hash { get; }
+		public IState CoinjoinState { get; set; }
+		public uint256 Id { get; }
 		public Network Network => RoundParameters.Network;
 		public uint MaxInputCountByAlice => RoundParameters.MaxInputCountByAlice;
 		public Money MinRegistrableAmount => RoundParameters.MinRegistrableAmount;
 		public Money MaxRegistrableAmount => RoundParameters.MaxRegistrableAmount;
 		public uint PerAliceVsizeAllocation => RoundParameters.PerAliceVsizeAllocation;
 		public FeeRate FeeRate => RoundParameters.FeeRate;
-		public WasabiRandom Random => RoundParameters.Random;
 		public CredentialIssuer AmountCredentialIssuer { get; }
 		public CredentialIssuer VsizeCredentialIssuer { get; }
 		public CredentialIssuerParameters AmountCredentialIssuerParameters { get; }
 		public CredentialIssuerParameters VsizeCredentialIssuerParameters { get; }
-		public Guid Id { get; } = Guid.NewGuid();
 		public List<Alice> Alices { get; } = new();
-		public int InputCount => Alices.Sum(x => x.Coins.Count());
+		public int InputCount => Alices.Count;
 		public List<Bob> Bobs { get; } = new();
 
 		public Round? BlameOf => RoundParameters.BlameOf;
@@ -57,8 +54,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public TimeSpan OutputRegistrationTimeout => RoundParameters.OutputRegistrationTimeout;
 		public TimeSpan TransactionSigningTimeout => RoundParameters.TransactionSigningTimeout;
 
-		public Transaction Coinjoin { get; }
-		private RoundParameters RoundParameters { get; }
 		public Phase Phase { get; private set; } = Phase.InputRegistration;
 		public DateTimeOffset InputRegistrationStart { get; } = DateTimeOffset.UtcNow;
 		public DateTimeOffset ConnectionConfirmationStart { get; private set; }
@@ -67,6 +62,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public DateTimeOffset TransactionBroadcastingStart { get; private set; }
 		public int InitialInputVsizeAllocation { get; set; } = 99954; // TODO compute as CoinjoinState.Parameters.MaxWeight - CoinjoinState.Parameters.SharedOverhead, mutable for testing until then
 		public int RemainingInputVsizeAllocation => InitialInputVsizeAllocation - Alices.Count * (int)PerAliceVsizeAllocation;
+
+		private RoundParameters RoundParameters { get; }
 
 		public void SetPhase(Phase phase)
 		{
@@ -122,5 +119,25 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 			return false;
 		}
+
+		public ConstructionState AddInput(Coin coin)
+			=> CoinjoinState.AssertConstruction().AddInput(coin);
+
+		public ConstructionState AddOutput(TxOut output)
+			=> CoinjoinState.AssertConstruction().AddOutput(output);
+
+		public SigningState AddWitness(int index, WitScript witness)
+			=> CoinjoinState.AssertSigning().AddWitness(index, witness);
+
+		private uint256 CalculateHash()
+			=> StrobeHasher.Create(ProtocolConstants.RoundStrobeDomain)
+				.Append(ProtocolConstants.RoundMaxInputCountByAliceStrobeLabel, MaxInputCountByAlice)
+				.Append(ProtocolConstants.RoundMinRegistrableAmountStrobeLabel, MinRegistrableAmount)
+				.Append(ProtocolConstants.RoundMaxRegistrableAmountStrobeLabel, MaxRegistrableAmount)
+				.Append(ProtocolConstants.RoundPerAliceVsizeAllocationStrobeLabel, PerAliceVsizeAllocation)
+				.Append(ProtocolConstants.RoundAmountCredentialIssuerParametersStrobeLabel, AmountCredentialIssuerParameters)
+				.Append(ProtocolConstants.RoundVsizeCredentialIssuerParametersStrobeLabel, VsizeCredentialIssuerParameters)
+				.Append(ProtocolConstants.RoundFeeRateStrobeLabel, FeeRate.FeePerK)
+				.GetHash();
 	}
 }

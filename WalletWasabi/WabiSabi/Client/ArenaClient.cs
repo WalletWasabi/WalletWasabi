@@ -9,7 +9,6 @@ using WalletWasabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client
@@ -24,8 +23,8 @@ namespace WalletWasabi.WabiSabi.Client
 			IArenaRequestHandler requestHandler,
 			WasabiRandom random)
 		{
-			AmountCredentialClient = new WabiSabiClient(amountCredentialIssuerParameters, ProtocolConstants.CredentialNumber, random, ProtocolConstants.MaxAmountPerAlice, amountCredentialPool);
-			VsizeCredentialClient = new WabiSabiClient(vsizeCredentialIssuerParameters, ProtocolConstants.CredentialNumber, random, ProtocolConstants.MaxVsizePerAlice, vsizeCredentialPool);
+			AmountCredentialClient = new WabiSabiClient(amountCredentialIssuerParameters, random, ProtocolConstants.MaxAmountPerAlice, amountCredentialPool);
+			VsizeCredentialClient = new WabiSabiClient(vsizeCredentialIssuerParameters, random, ProtocolConstants.MaxVsizePerAlice, vsizeCredentialPool);
 			RequestHandler = requestHandler;
 		}
 
@@ -40,36 +39,24 @@ namespace WalletWasabi.WabiSabi.Client
 		public WabiSabiClient VsizeCredentialClient { get; }
 		public IArenaRequestHandler RequestHandler { get; }
 
-		public ValueTask<Guid> RegisterInputAsync(Money amount, OutPoint outPoint, Key key, Guid roundId, uint256 roundHash) =>
-			RegisterInputAsync(
-				new[] { amount },
-				new[] { outPoint },
-				new[] { key },
-				roundId,
-				roundHash);
-
-		public async ValueTask<Guid> RegisterInputAsync(
-			IEnumerable<Money> amounts,
-			IEnumerable<OutPoint> outPoints,
-			IEnumerable<Key> keys,
-			Guid roundId,
-			uint256 roundHash)
+		public async Task<uint256> RegisterInputAsync(
+			Money amount,
+			OutPoint outPoint,
+			Key key,
+			uint256 roundId)
 		{
-			static byte[] GenerateOwnershipProof(Key key, uint256 roundHash) => OwnershipProof.GenerateCoinJoinInputProof(
+			var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
 				key,
-				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundHash)).ToBytes();
-
-			var registrableInputs = outPoints
-				.Zip(keys, (outPoint, key) => (outPoint, key))
-				.Select(x => new InputRoundSignaturePair(x.outPoint, GenerateOwnershipProof(x.key, roundHash)));
+				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundId));
 
 			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
 			var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();
 
 			var inputRegistrationResponse = await RequestHandler.RegisterInputAsync(
-				new InputsRegistrationRequest(
+				new InputRegistrationRequest(
 					roundId,
-					registrableInputs,
+					outPoint,
+					ownershipProof,
 					zeroAmountCredentialRequestData.CredentialsRequest,
 					zeroVsizeCredentialRequestData.CredentialsRequest)).ConfigureAwait(false);
 
@@ -79,12 +66,12 @@ namespace WalletWasabi.WabiSabi.Client
 			return inputRegistrationResponse.AliceId;
 		}
 
-		public async Task RemoveInputAsync(Guid roundId, Guid aliceId)
+		public async Task RemoveInputAsync(uint256 roundId, uint256 aliceId)
 		{
 			await RequestHandler.RemoveInputAsync(new InputsRemovalRequest(roundId, aliceId)).ConfigureAwait(false);
 		}
 
-		public async Task RegisterOutputAsync(Guid roundId, long value, Script scriptPubKey, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Credential> vsizeCredentialsToPresent)
+		public async Task RegisterOutputAsync(uint256 roundId, long value, Script scriptPubKey, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Credential> vsizeCredentialsToPresent)
 		{
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
 			Guard.InRange(nameof(vsizeCredentialsToPresent), vsizeCredentialsToPresent, 0, VsizeCredentialClient.NumberOfCredentials);
@@ -110,7 +97,52 @@ namespace WalletWasabi.WabiSabi.Client
 			VsizeCredentialClient.HandleResponse(outputRegistrationResponse.VsizeCredentials, realVsizeCredentialResponseValidation);
 		}
 
-		public async Task<bool> ConfirmConnectionAsync(Guid roundId, Guid aliceId, IEnumerable<long> inputsRegistrationVsize, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Money> newAmount)
+		public async Task<(IEnumerable<Credential> RealAmountCredentials, IEnumerable<Credential> RealVsizeCredentials)> ReissueCredentialAsync(
+			uint256 roundId,
+			long value1,
+			Script scriptPubKey1,
+			long value2,
+			Script scriptPubKey2,
+			IEnumerable<Credential> amountCredentialsToPresent,
+			IEnumerable<Credential> vsizeCredentialsToPresent)
+		{
+			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 0, AmountCredentialClient.NumberOfCredentials);
+
+			var presentedAmount = amountCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
+			if (value1 + value2 != presentedAmount)
+			{
+				throw new InvalidOperationException($"Reissuence amounts must equal with the sum of the presented ones.");
+			}
+
+			var presentedVsize = vsizeCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
+			var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
+				new[] { (long)scriptPubKey1.EstimateOutputVsize(), scriptPubKey2.EstimateOutputVsize() },
+				vsizeCredentialsToPresent);
+
+			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
+				new[] { value1, value2 },
+				amountCredentialsToPresent);
+
+			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
+			var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();
+
+			var reissuanceResponse = await RequestHandler.ReissueCredentialAsync(
+				new ReissueCredentialRequest(
+					roundId,
+					realAmountCredentialRequest,
+					realVsizeCredentialRequest,
+					zeroAmountCredentialRequestData.CredentialsRequest,
+					zeroVsizeCredentialRequestData.CredentialsRequest)).ConfigureAwait(false);
+
+			var realAmountCredentials = AmountCredentialClient.HandleResponse(reissuanceResponse.RealAmountCredentials, realAmountCredentialResponseValidation);
+			var realVsizeCredentials = VsizeCredentialClient.HandleResponse(reissuanceResponse.RealVsizeCredentials, realVsizeCredentialResponseValidation);
+			AmountCredentialClient.HandleResponse(reissuanceResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
+			VsizeCredentialClient.HandleResponse(reissuanceResponse.ZeroVsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
+
+			return (realAmountCredentials, realVsizeCredentials);
+		}
+
+		public async Task<bool> ConfirmConnectionAsync(uint256 roundId, uint256 aliceId, IEnumerable<long> inputsRegistrationVsize, IEnumerable<Credential> amountCredentialsToPresent, IEnumerable<Money> newAmount)
 		{
 			Guard.InRange(nameof(newAmount), newAmount, 1, AmountCredentialClient.NumberOfCredentials);
 			Guard.InRange(nameof(amountCredentialsToPresent), amountCredentialsToPresent, 1, AmountCredentialClient.NumberOfCredentials);
@@ -149,41 +181,31 @@ namespace WalletWasabi.WabiSabi.Client
 			return false;
 		}
 
-		public async Task SignTransactionAsync(Guid roundId, IEnumerable<ICoin> coinsToSign, BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin)
+		public async Task SignTransactionAsync(uint256 roundId, Coin coin, BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin)
 		{
 			if (unsignedCoinJoin.Inputs.Count == 0)
 			{
 				throw new ArgumentException("No inputs to sign.", nameof(unsignedCoinJoin));
 			}
 
-			if (!coinsToSign.Any())
-			{
-				throw new ArgumentException("No coins were provided.", nameof(coinsToSign));
-			}
-
-			var myInputs = coinsToSign.ToDictionary(c => c.Outpoint);
 			var signedCoinJoin = unsignedCoinJoin.Clone();
-			var myInputsFromCoinJoin = signedCoinJoin.Inputs.AsIndexedInputs().Where(input => myInputs.ContainsKey(input.PrevOut)).ToArray();
+			var txInput = signedCoinJoin.Inputs.AsIndexedInputs().FirstOrDefault(input => input.PrevOut == coin.Outpoint);
 
-			if (myInputs.Count != myInputsFromCoinJoin.Length)
+			if (txInput is null)
 			{
-				throw new InvalidOperationException($"Missing inputs. Number of inputs: {myInputs.Count} actual: {myInputsFromCoinJoin.Length}.");
+				throw new InvalidOperationException($"Missing input.");
 			}
 
 			List<InputWitnessPair> signatures = new();
-			foreach (var txInput in myInputsFromCoinJoin)
+
+			signedCoinJoin.Sign(bitcoinSecret, coin);
+
+			if (!txInput.VerifyScript(coin, out var error))
 			{
-				var coin = myInputs[txInput.PrevOut];
-
-				signedCoinJoin.Sign(bitcoinSecret, coin);
-
-				if (!txInput.VerifyScript(coin, out var error))
-				{
-					throw new InvalidOperationException($"Witness is missing. Reason {nameof(ScriptError)} code: {error}.");
-				}
-
-				signatures.Add(new InputWitnessPair(txInput.Index, txInput.WitScript));
+				throw new InvalidOperationException($"Witness is missing. Reason {nameof(ScriptError)} code: {error}.");
 			}
+
+			signatures.Add(new InputWitnessPair(txInput.Index, txInput.WitScript));
 
 			await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, signatures)).ConfigureAwait(false);
 		}

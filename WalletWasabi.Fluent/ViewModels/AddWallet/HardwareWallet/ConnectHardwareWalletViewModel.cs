@@ -36,8 +36,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			AbandonedTasks = new AbandonedTasks();
 			CancelCts = new CancellationTokenSource();
 
-			EnableCancel = true;
-
 			EnableBack = true;
 
 			NextCommand = ReactiveCommand.Create(OnNext);
@@ -223,6 +221,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
+
+			var enableCancel = WalletManager.HasWallet();
+			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 
 			if (isInHistory)
 			{

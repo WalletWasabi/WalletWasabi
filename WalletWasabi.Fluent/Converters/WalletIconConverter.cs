@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.Converters
 		private static WalletType GetWalletType(string? icon)
 		{
 			return Enum.TryParse(typeof(WalletType), icon, true, out var typ) && typ is { }
-				? (WalletType) typ
+				? (WalletType)typ
 				: WalletType.Normal;
 		}
 

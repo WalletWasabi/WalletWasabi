@@ -40,7 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			_startLocalBitcoinCoreOnStartup = config.StartLocalBitcoinCoreOnStartup;
 			_localBitcoinCoreDataDir = config.LocalBitcoinCoreDataDir;
 			_stopLocalBitcoinCoreOnShutdown = config.StopLocalBitcoinCoreOnShutdown;
-			_bitcoinP2PEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
+			_bitcoinP2PEndPoint = config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 			_dustThreshold = config.DustThreshold.ToString();
 
 			this.WhenAnyValue(
@@ -101,7 +101,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			{
 				if (EndPointParser.TryParse(BitcoinP2PEndPoint, Network.DefaultPort, out EndPoint? p2PEp))
 				{
-					config.SetP2PEndpoint(p2PEp);
+					config.SetBitcoinP2pEndpoint(p2PEp);
 				}
 
 				config.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
@@ -114,7 +114,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 			else
 			{
 				config.Network = Network;
-				BitcoinP2PEndPoint = config.GetP2PEndpoint().ToString(defaultPort: -1);
+				BitcoinP2PEndPoint = config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 			}
 		}
 	}

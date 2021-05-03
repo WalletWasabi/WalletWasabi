@@ -668,7 +668,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					}
 					foreach (HdPubKeyBlindedPair link in outLinks)
 					{
-						HdPubKeyBlindedPair found = newOutLinks.FirstOrDefault(x => x == link);
+						var found = newOutLinks.FirstOrDefault(x => x == link);
 
 						if (found is null)
 						{
@@ -902,7 +902,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 				foreach (var round in State.GetAllMixingRounds().Where(x => x.CoinsRegistered.Contains(coinToDequeue)))
 				{
-					Exception exception = null;
+					Exception? exception = null;
 					if (round.State.Phase == RoundPhase.InputRegistration)
 					{
 						try

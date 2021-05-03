@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			Content = content;
 
-			EnableCancel = false;
+			SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 
 			EnableBack = true;
 

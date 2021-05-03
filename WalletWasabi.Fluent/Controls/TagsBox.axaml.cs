@@ -20,6 +20,9 @@ namespace WalletWasabi.Fluent.Controls
 {
 	public class TagsBox : TemplatedControl
 	{
+		public static readonly StyledProperty<string> WatermarkProperty =
+			TextBox.WatermarkProperty.AddOwner<TagsBox>();
+
 		public static readonly StyledProperty<bool> RestrictInputToSuggestionsProperty =
 			AvaloniaProperty.Register<TagsBox, bool>(nameof(RestrictInputToSuggestions));
 
@@ -47,6 +50,7 @@ namespace WalletWasabi.Fluent.Controls
 		private CompositeDisposable? _compositeDisposable;
 		private AutoCompleteBox? _autoCompleteBox;
 		private TextBox? _internalTextBox;
+		private TextBlock? _watermark;
 		private StringComparison _stringComparison;
 		private bool _backspaceEmptyField1;
 		private bool _backspaceEmptyField2;
@@ -69,6 +73,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => _items;
 			set => SetAndRaise(ItemsProperty, ref _items, value);
+		}
+
+		public string Watermark
+		{
+			get => GetValue(WatermarkProperty);
+			set => SetValue(WatermarkProperty, value);
 		}
 
 		public bool RestrictInputToSuggestions
@@ -125,6 +135,8 @@ namespace WalletWasabi.Fluent.Controls
 
 			presenter.ApplyTemplate();
 
+			_watermark = e.NameScope.Find<TextBlock>("PART_Watermark");
+
 			_autoCompleteBox = (presenter.Panel as ConcatenatingWrapPanel)?.ConcatenatedChildren
 				.OfType<AutoCompleteBox>().FirstOrDefault();
 
@@ -171,9 +183,9 @@ namespace WalletWasabi.Fluent.Controls
 					var currentText = (_autoCompleteBox?.Text ?? "").Trim();
 
 					if (RestrictInputToSuggestions &&
-					    Suggestions is IList<string> suggestions &&
-					    !suggestions.Any(x =>
-						    x.StartsWith(currentText, _stringComparison)))
+						Suggestions is IList<string> suggestions &&
+						!suggestions.Any(x =>
+							x.StartsWith(currentText, _stringComparison)))
 					{
 						return;
 					}
@@ -194,6 +206,21 @@ namespace WalletWasabi.Fluent.Controls
 			}
 		}
 
+		private void InvalidateWatermark()
+		{
+			if (_watermark is { } && _autoCompleteBox is { })
+			{
+				if (Items != null && !Items.Any() && string.IsNullOrWhiteSpace(_autoCompleteBox?.Text))
+				{
+					_watermark.IsVisible = true;
+				}
+				else
+				{
+					_watermark.IsVisible = false;
+				}
+			}
+		}
+
 		private void OnTextInput(object? sender, TextInputEventArgs e)
 		{
 			if (sender is not AutoCompleteBox autoCompleteBox)
@@ -206,6 +233,8 @@ namespace WalletWasabi.Fluent.Controls
 				e.Handled = true;
 				return;
 			}
+
+			InvalidateWatermark();
 
 			if (RestrictInputToSuggestions &&
 			    Suggestions is IList<string> suggestions &&
@@ -233,7 +262,7 @@ namespace WalletWasabi.Fluent.Controls
 
 			// Deal with a nasty corner case...
 			var disableDropDownCommit = _internalTextBox!.CaretIndex == _internalTextBox.Text.Length &&
-			                            _internalTextBox.SelectionEnd == _internalTextBox.SelectionStart;
+										_internalTextBox.SelectionEnd == _internalTextBox.SelectionStart;
 
 			if (_internalTextBox is null || disableDropDownCommit)
 			{
@@ -243,9 +272,9 @@ namespace WalletWasabi.Fluent.Controls
 			var currentText = (autoCompleteBox.Text ?? "").Trim();
 
 			if (currentText.Length == 0 ||
-			    autoCompleteBox.SelectedItem is not string selItem ||
-			    selItem.Length == 0 ||
-			    currentText != selItem)
+				autoCompleteBox.SelectedItem is not string selItem ||
+				selItem.Length == 0 ||
+				currentText != selItem)
 			{
 				return;
 			}
@@ -263,8 +292,10 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void OnAutoCompleteBoxTextChanged(object? sender, EventArgs e)
 		{
+			InvalidateWatermark();
+
 			if (sender is not AutoCompleteBox autoCompleteBox ||
-			    string.IsNullOrEmpty(Guard.Correct(autoCompleteBox.Text)))
+				string.IsNullOrEmpty(Guard.Correct(autoCompleteBox.Text)))
 			{
 				return;
 			}
@@ -280,14 +311,14 @@ namespace WalletWasabi.Fluent.Controls
 				var tag = splitTags[0];
 
 				if (!_isInputEnabled ||
-				    !endsWithSeparator)
+					!endsWithSeparator)
 				{
 					return;
 				}
 
 				if (RestrictInputToSuggestions && Suggestions is { } &&
-				    !Suggestions.Cast<string>().Any(
-					    x => x.Equals(tag, _stringComparison)))
+					!Suggestions.Cast<string>().Any(
+						x => x.Equals(tag, _stringComparison)))
 				{
 					return;
 				}
@@ -306,8 +337,8 @@ namespace WalletWasabi.Fluent.Controls
 					}
 
 					if (RestrictInputToSuggestions && Suggestions is { } &&
-					    !Suggestions.Cast<string>().Any(
-						    x => x.Equals(tag, _stringComparison)))
+						!Suggestions.Cast<string>().Any(
+							x => x.Equals(tag, _stringComparison)))
 					{
 						continue;
 					}
@@ -345,8 +376,8 @@ namespace WalletWasabi.Fluent.Controls
 					// Reject entry of the tag when user pressed enter and
 					// the input tag is not on the suggestions list.
 					if (RestrictInputToSuggestions && Suggestions is { } &&
-					    !Suggestions.Cast<string>().Any(
-						    x => x.Equals(currentText, _stringComparison)))
+						!Suggestions.Cast<string>().Any(
+							x => x.Equals(currentText, _stringComparison)))
 					{
 						break;
 					}
@@ -379,11 +410,12 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void RemoveLastTag()
 		{
-			if (Items is IList {Count: > 0} list)
+			if (Items is IList { Count: > 0 } list)
 			{
 				list.RemoveAt(list.Count - 1);
 			}
 
+			InvalidateWatermark();
 			CheckIsInputEnabled();
 		}
 
@@ -410,6 +442,7 @@ namespace WalletWasabi.Fluent.Controls
 				list.Remove(tag);
 			}
 
+			InvalidateWatermark();
 			CheckIsInputEnabled();
 		}
 
@@ -425,6 +458,7 @@ namespace WalletWasabi.Fluent.Controls
 				x.Add(tag);
 			}
 
+			InvalidateWatermark();
 			CheckIsInputEnabled();
 		}
 	}

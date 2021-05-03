@@ -3,6 +3,7 @@ using System.Reactive.Concurrency;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
+using Avalonia.Controls;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -16,6 +17,7 @@ using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Services;
 using WalletWasabi.Logging;
+using WalletWasabi.BitcoinP2p;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -23,6 +25,11 @@ namespace WalletWasabi.Fluent.ViewModels
 	{
 		private readonly Global _global;
 		private readonly LegalChecker _legalChecker;
+		private readonly SettingsPageViewModel _settingsPage;
+		private readonly SearchPageViewModel _searchPage;
+		private readonly PrivacyModeViewModel _privacyMode;
+		private readonly AddWalletPageViewModel _addWalletPage;
+		private readonly WalletManagerViewModel _walletManagerViewModel;
 		[AutoNotify] private bool _isMainContentEnabled;
 		[AutoNotify] private bool _isDialogScreenEnabled;
 		[AutoNotify] private bool _isFullScreenEnabled;
@@ -32,22 +39,18 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private NavBarViewModel _navBar;
 		[AutoNotify] private StatusBarViewModel _statusBar;
 		[AutoNotify] private string _title = "Wasabi Wallet";
-		private readonly SettingsPageViewModel _settingsPage;
-		private readonly SearchPageViewModel _searchPage;
-		private readonly PrivacyModeViewModel _privacyMode;
-		private readonly AddWalletPageViewModel _addWalletPage;
-		private readonly WalletManagerViewModel _walletManagerViewModel;
+		[AutoNotify] private WindowState _windowState;
 
 		public MainViewModel(Global global)
 		{
 			_global = global;
 			_legalChecker = global.LegalChecker;
-
+			_windowState = (WindowState) Enum.Parse(typeof(WindowState), _global.UiConfig.WindowState);
 			_dialogScreen = new DialogScreenViewModel();
 
 			_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
 
-			_compactDialogScreen = new DialogScreenViewModel( NavigationTarget.CompactDialogScreen);
+			_compactDialogScreen = new DialogScreenViewModel(NavigationTarget.CompactDialogScreen);
 
 			MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
 
@@ -74,7 +77,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				_global.BitcoinStore,
 				_global.LegalChecker,
 				_global.TransactionBroadcaster,
-				_global.HttpClientFactory);
+				_global.ExternalHttpClientFactory);
 
 			_addWalletPage = new AddWalletPageViewModel(
 				_walletManagerViewModel,
@@ -84,7 +87,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			_privacyMode = new PrivacyModeViewModel(global.UiConfig);
 			_searchPage = new SearchPageViewModel();
 
-			_navBar = new NavBarViewModel(MainScreen, _walletManagerViewModel);
+			_navBar = new NavBarViewModel(MainScreen, _walletManagerViewModel, _global.UiConfig);
 
 			NavigationManager.RegisterType(_navBar);
 
@@ -94,6 +97,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
 
 			_searchPage.Initialise();
+
+			this.WhenAnyValue(x => x.WindowState)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(windowState => global.UiConfig.WindowState = windowState.ToString());
 
 			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -110,9 +117,9 @@ namespace WalletWasabi.Fluent.ViewModels
 			_walletManagerViewModel.WhenAnyValue(x => x.Items.Count, x => x.Actions.Count)
 				.Subscribe(x => _navBar.IsHidden = x.Item1 == 0 && x.Item2 == 0);
 
-			if (!_walletManagerViewModel.WalletManager.AnyWallet(_ => true))
+			if (!_walletManagerViewModel.WalletManager.HasWallet())
 			{
-				_addWalletPage.Navigate().To(_addWalletPage, NavigationMode.Clear);
+				_dialogScreen.To(_addWalletPage, NavigationMode.Clear);
 			}
 		}
 
@@ -131,7 +138,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public void Initialize()
 		{
-			StatusBar.Initialize(_global.Nodes.ConnectedNodes);
+			StatusBar.Initialize(_global.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes);
 
 			if (Network != Network.Main)
 			{
@@ -179,7 +186,7 @@ namespace WalletWasabi.Fluent.ViewModels
 			BroadcastTransactionViewModel.RegisterAsyncLazy(
 				async () =>
 				{
-					var dialogResult = await DialogScreen.NavigateDialog(new LoadTransactionViewModel(_global.Network));
+					var dialogResult = await DialogScreen.NavigateDialogAsync(new LoadTransactionViewModel(_global.Network));
 
 					if (dialogResult.Result is { })
 					{

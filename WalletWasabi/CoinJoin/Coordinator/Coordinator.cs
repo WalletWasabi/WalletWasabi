@@ -33,9 +33,6 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			Rounds = new List<CoordinatorRound>();
 			RoundsListLock = new AsyncLock();
 
-			CoinJoins = new List<uint256>();
-			UnconfirmedCoinJoins = new List<uint256>();
-			CoinJoinsLock = new AsyncLock();
 			LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
 
 			Directory.CreateDirectory(FolderPath);
@@ -137,11 +134,12 @@ namespace WalletWasabi.CoinJoin.Coordinator
 		private List<CoordinatorRound> Rounds { get; }
 		private AsyncLock RoundsListLock { get; }
 
-		private List<uint256> CoinJoins { get; }
+		private List<uint256> CoinJoins { get; } = new List<uint256>();
 		public string CoinJoinsFilePath => Path.Combine(FolderPath, $"CoinJoins{Network}.txt");
-		private AsyncLock CoinJoinsLock { get; }
+		private AsyncLock CoinJoinsLock { get; } = new AsyncLock();
 
-		private List<uint256> UnconfirmedCoinJoins { get; }
+		private List<uint256> UnconfirmedCoinJoins { get; } = new List<uint256>();
+		private object UnconfirmedCoinJoinsLock { get; } = new object();
 
 		public IRPCClient RpcClient { get; }
 
@@ -183,7 +181,10 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			// ban all the outputs of the transaction
 			tx.PrecomputeHash(false, true);
 
-			UnconfirmedCoinJoins.Remove(tx.GetHash()); // Locked outside.
+			lock (UnconfirmedCoinJoinsLock)
+			{
+				UnconfirmedCoinJoins.Remove(tx.GetHash());
+			}
 
 			if (RoundConfig.DosSeverity <= 1)
 			{
@@ -282,7 +283,7 @@ namespace WalletWasabi.CoinJoin.Coordinator
 				// If success save the coinjoin.
 				if (status == CoordinatorRoundStatus.Succeded)
 				{
-					uint256[] mempoolHashes = null;
+					uint256[]? mempoolHashes = null;
 					try
 					{
 						mempoolHashes = await RpcClient.GetRawMempoolAsync().ConfigureAwait(false);
@@ -294,16 +295,19 @@ namespace WalletWasabi.CoinJoin.Coordinator
 
 					using (await CoinJoinsLock.LockAsync().ConfigureAwait(false))
 					{
-						if (mempoolHashes is { })
-						{
-							var fallOuts = UnconfirmedCoinJoins.Where(x => !mempoolHashes.Contains(x));
-							CoinJoins.RemoveAll(x => fallOuts.Contains(x));
-							UnconfirmedCoinJoins.RemoveAll(x => fallOuts.Contains(x));
-						}
-
 						uint256 coinJoinHash = round.CoinJoin.GetHash();
-						CoinJoins.Add(coinJoinHash);
-						UnconfirmedCoinJoins.Add(coinJoinHash);
+						lock (UnconfirmedCoinJoinsLock)
+						{
+							if (mempoolHashes is { })
+							{
+								var fallOuts = UnconfirmedCoinJoins.Where(x => !mempoolHashes.Contains(x)).ToHashSet();
+								CoinJoins.RemoveAll(x => fallOuts.Contains(x));
+								UnconfirmedCoinJoins.RemoveAll(x => fallOuts.Contains(x));
+							}
+
+							CoinJoins.Add(coinJoinHash);
+							UnconfirmedCoinJoins.Add(coinJoinHash);
+						}
 						LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
 						await File.AppendAllLinesAsync(CoinJoinsFilePath, new[] { coinJoinHash.ToString() }).ConfigureAwait(false);
 
@@ -446,22 +450,14 @@ namespace WalletWasabi.CoinJoin.Coordinator
 			}
 		}
 
-		public async Task<bool> ContainsUnconfirmedCoinJoinAsync(uint256 hash)
-		{
-			using (await CoinJoinsLock.LockAsync().ConfigureAwait(false))
-			{
-				return UnconfirmedCoinJoins.Contains(hash);
-			}
-		}
-
 		public int GetCoinJoinCount()
 		{
 			return CoinJoins.Count;
 		}
 
-		public async Task<IEnumerable<uint256>> GetUnconfirmedCoinJoinsAsync()
+		public IEnumerable<uint256> GetUnconfirmedCoinJoins()
 		{
-			using (await CoinJoinsLock.LockAsync())
+			lock (UnconfirmedCoinJoinsLock)
 			{
 				return UnconfirmedCoinJoins.ToArray();
 			}

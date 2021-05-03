@@ -29,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			WalletIcon = wallet.KeyManager.Icon;
 			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNext(walletManagerViewModel, closedWalletViewModel, wallet));
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(walletManagerViewModel, closedWalletViewModel, wallet));
 
 			OkCommand = ReactiveCommand.Create(OnOk);
 
@@ -38,7 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			EnableAutoBusyOn(NextCommand);
 		}
 
-		private async Task OnNext(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel, Wallet wallet)
+		private async Task OnNextAsync(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel, Wallet wallet)
 		{
 			string? compatibilityPasswordUsed = null;
 
@@ -105,7 +105,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 
 			var legalDocs = new TermsAndConditionsViewModel(document.Content);
 
-			var dialogResult = await NavigateDialog(legalDocs, NavigationTarget.DialogScreen);
+			var dialogResult = await NavigateDialogAsync(legalDocs, NavigationTarget.DialogScreen);
 
 			if (dialogResult.Result)
 			{

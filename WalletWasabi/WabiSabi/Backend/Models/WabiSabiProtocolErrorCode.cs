@@ -13,7 +13,7 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		InputSpent,
 		InputUnconfirmed,
 		InputImmature,
-		WrongRoundSignature,
+		WrongOwnershipProof,
 		TooManyInputs,
 		NotEnoughFunds,
 		TooMuchFunds,
@@ -34,6 +34,8 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 		SizeLimitExceeded,
 		DustOutput,
 		UneconomicalInput,
-		VsizeQuotaExceeded
+		VsizeQuotaExceeded,
+		DeltaNotZero,
+		WrongNumberOfCreds
 	}
 }

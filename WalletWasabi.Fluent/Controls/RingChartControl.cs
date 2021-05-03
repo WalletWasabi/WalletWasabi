@@ -42,12 +42,12 @@ namespace WalletWasabi.Fluent.Controls
 			return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
 		}
 
- 		protected override Size MeasureOverride(Size availableSize)
-        {
-	        Radius = (Math.Min(availableSize.Height, availableSize.Width) / 2) - Thickness;
-	        var s = new Size((Radius * 2) + Thickness, (Radius * 2) + Thickness);
-	        return s;
-        }
+		protected override Size MeasureOverride(Size availableSize)
+		{
+			Radius = (Math.Min(availableSize.Height, availableSize.Width) / 2) - Thickness;
+			var s = new Size((Radius * 2) + Thickness, (Radius * 2) + Thickness);
+			return s;
+		}
 
 		private Geometry GetArcGeometry(double startAngle, double endAngle, bool isPathClosed = false)
 		{
