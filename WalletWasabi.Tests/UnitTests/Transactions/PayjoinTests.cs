@@ -53,7 +53,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			return message;
 		}
 
-		private static async Task<HttpResponseMessage> PayjoinServerErrorAsync(HttpRequestMessage request, HttpStatusCode statusCode, string errorCode, string description = "") =>
+		private static async Task<HttpResponseMessage> PayjoinServerErrorAsync(HttpStatusCode statusCode, string errorCode, string description = "") =>
 			new HttpResponseMessage(statusCode)
 			{
 				ReasonPhrase = "",
@@ -384,7 +384,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// This tests the scenario where the payjoin server wants to make us sign one of our own inputs!!!!!.
 			var mockHttpClient = new Mock<IHttpClient>();
 			mockHttpClient.Setup(http => http.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-				.Returns((HttpRequestMessage req, CancellationToken _) => PayjoinServerErrorAsync(req, HttpStatusCode.InternalServerError, "-2345", "Internal Server Error"));
+				.Returns((HttpRequestMessage _, CancellationToken _) => PayjoinServerErrorAsync(HttpStatusCode.InternalServerError, "-2345", "Internal Server Error"));
 
 			var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
 			var tx = transactionFactory.BuildTransaction(payment, new FeeRate(2m), transactionFactory.Coins.Select(x => x.OutPoint), NewPayjoinClient(mockHttpClient.Object));
