@@ -300,7 +300,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						try
 						{
-							PasswordHelper.GetMasterExtKey(Wallet.KeyManager, Password, out string compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
+							PasswordHelper.GetMasterExtKey(Wallet.KeyManager, Password, out var compatiblityPasswordUsed); // We could use TryPassword but we need the exception.
 							if (compatiblityPasswordUsed is { })
 							{
 								Password = compatiblityPasswordUsed; // Overwrite the password for BuildTransaction function.
