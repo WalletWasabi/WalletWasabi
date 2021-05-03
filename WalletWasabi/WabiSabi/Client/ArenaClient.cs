@@ -60,7 +60,8 @@ namespace WalletWasabi.WabiSabi.Client
 					outPoint,
 					ownershipProof,
 					zeroAmountCredentialRequestData.CredentialsRequest,
-					zeroVsizeCredentialRequestData.CredentialsRequest), cancellationToken).ConfigureAwait(false);
+					zeroVsizeCredentialRequestData.CredentialsRequest),
+				cancellationToken).ConfigureAwait(false);
 
 			AmountCredentialClient.HandleResponse(inputRegistrationResponse.AmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
 			VsizeCredentialClient.HandleResponse(inputRegistrationResponse.VsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
@@ -99,7 +100,8 @@ namespace WalletWasabi.WabiSabi.Client
 					roundId,
 					scriptPubKey,
 					realAmountCredentialRequest,
-					realVsizeCredentialRequest), cancellationToken).ConfigureAwait(false);
+					realVsizeCredentialRequest),
+				cancellationToken).ConfigureAwait(false);
 
 			AmountCredentialClient.HandleResponse(outputRegistrationResponse.AmountCredentials, realAmountCredentialResponseValidation);
 			VsizeCredentialClient.HandleResponse(outputRegistrationResponse.VsizeCredentials, realVsizeCredentialResponseValidation);
@@ -141,7 +143,8 @@ namespace WalletWasabi.WabiSabi.Client
 					realAmountCredentialRequest,
 					realVsizeCredentialRequest,
 					zeroAmountCredentialRequestData.CredentialsRequest,
-					zeroVsizeCredentialRequestData.CredentialsRequest), cancellationToken).ConfigureAwait(false);
+					zeroVsizeCredentialRequestData.CredentialsRequest),
+				cancellationToken).ConfigureAwait(false);
 
 			var realAmountCredentials = AmountCredentialClient.HandleResponse(reissuanceResponse.RealAmountCredentials, realAmountCredentialResponseValidation);
 			var realVsizeCredentials = VsizeCredentialClient.HandleResponse(reissuanceResponse.RealVsizeCredentials, realVsizeCredentialResponseValidation);
@@ -181,7 +184,8 @@ namespace WalletWasabi.WabiSabi.Client
 					zeroAmountCredentialRequestData.CredentialsRequest,
 					realAmountCredentialRequestData.CredentialsRequest,
 					zeroVsizeCredentialRequestData.CredentialsRequest,
-					realVsizeCredentialRequestData.CredentialsRequest), cancellationToken).ConfigureAwait(false);
+					realVsizeCredentialRequestData.CredentialsRequest),
+				cancellationToken).ConfigureAwait(false);
 
 			AmountCredentialClient.HandleResponse(confirmConnectionResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
 			VsizeCredentialClient.HandleResponse(confirmConnectionResponse.ZeroVsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
