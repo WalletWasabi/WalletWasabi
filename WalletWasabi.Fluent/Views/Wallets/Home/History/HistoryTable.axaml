@@ -27,8 +27,8 @@
               DockPanel.Dock="Bottom">
       <DataGrid.Styles>
         <Style Selector="PathIcon">
-          <Setter Property="Width" Value="10"/>
-          <Setter Property="Height" Value="10"/>
+          <!-- <Setter Property="Width" Value="10"/> -->
+          <Setter Property="Height" Value="13"/>
           <Setter Property="VerticalAlignment" Value="Center"/>
           <Setter Property="HorizontalAlignment" Value="Center" />
         </Style>
@@ -121,7 +121,7 @@
 
         <!-- Status -->
         <DataGridTemplateColumn Header="Status"
-                                Width="140"
+                                Width="Auto"
                                 SortMemberPath="IsConfirmed">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
@@ -129,7 +129,8 @@
                 <!-- Confirmed -->
                 <StackPanel IsVisible="{Binding IsConfirmed}">
                   <PathIcon Data="{StaticResource checkmark_filled}"
-                            Foreground="{DynamicResource SystemControlBackgroundAccentBrush}" />
+                            Foreground="{DynamicResource SystemControlBackgroundAccentBrush}"
+                            Height="11"/>
                   <TextBlock Classes="monoSpaced" Text="Confirmed" />
                 </StackPanel>
                 <!-- Pending -->
