@@ -9,7 +9,7 @@ namespace WalletWasabi.Hwi.Models
 		public HwiEnumerateEntry(
 			HardwareWalletModels model,
 			string path,
-			string serialNumber,
+			string? serialNumber,
 			HDFingerprint? fingerprint,
 			bool? needsPinSent,
 			bool? needsPassphraseSent,
@@ -34,7 +34,7 @@ namespace WalletWasabi.Hwi.Models
 
 		public HardwareWalletModels Model { get; }
 		public string Path { get; }
-		public string SerialNumber { get; }
+		public string? SerialNumber { get; }
 		public HDFingerprint? Fingerprint { get; }
 		public bool? NeedsPinSent { get; }
 		public bool? NeedsPassphraseSent { get; }

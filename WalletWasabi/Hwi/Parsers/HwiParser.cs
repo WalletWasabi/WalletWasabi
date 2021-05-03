@@ -162,7 +162,7 @@ namespace WalletWasabi.Hwi.Parsers
 			if (JsonHelpers.TryParseJToken(json, out JToken? token))
 			{
 				var extPubKeyString = token["xpub"]?.ToString().Trim();
-				var extPubKey = string.IsNullOrEmpty(extPubKeyString) ? null : NBitcoinHelpers.BetterParseExtPubKey(extPubKeyString);
+				var extPubKey = string.IsNullOrEmpty(extPubKeyString) ? throw new Exception("ExtPubKey is null.") : NBitcoinHelpers.BetterParseExtPubKey(extPubKeyString);
 				return extPubKey;
 			}
 			else
@@ -181,7 +181,7 @@ namespace WalletWasabi.Hwi.Parsers
 
 			if (JsonHelpers.TryParseJToken(json, out JToken? token))
 			{
-				var addressString = token["address"]?.ToString()?.Trim() ?? null;
+				var addressString = token["address"]?.ToString()?.Trim() ?? string.Empty;
 				try
 				{
 					var address = BitcoinAddress.Create(addressString, network);
@@ -209,7 +209,7 @@ namespace WalletWasabi.Hwi.Parsers
 
 			if (JsonHelpers.TryParseJToken(json, out JToken? token))
 			{
-				var psbtString = token["psbt"]?.ToString()?.Trim() ?? null;
+				var psbtString = token["psbt"]?.ToString()?.Trim() ?? string.Empty;
 				var psbt = PSBT.Parse(psbtString, network);
 				return psbt;
 			}
@@ -222,7 +222,7 @@ namespace WalletWasabi.Hwi.Parsers
 		public static HwiEnumerateEntry ParseHwiEnumerateEntry(JObject json)
 		{
 			JToken modelToken = json["model"];
-			var pathString = json["path"]?.ToString()?.Trim();
+			var pathString = json["path"]?.ToString()?.Trim() ?? string.Empty;
 			var serialNumberString = json["serial_number"]?.ToString()?.Trim();
 			var fingerprintString = json["fingerprint"]?.ToString()?.Trim();
 			var needsPinSentString = json["needs_pin_sent"]?.ToString()?.Trim();
@@ -367,7 +367,7 @@ namespace WalletWasabi.Hwi.Parsers
 				{
 					argumentBuilder.Append(' ');
 				}
-				argumentBuilder.Append(command.ToString().ToLowerInvariant());
+				argumentBuilder.Append(command?.ToString().ToLowerInvariant());
 			}
 
 			commandArguments = Guard.Correct(commandArguments);
