@@ -4,6 +4,7 @@ using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -17,19 +18,22 @@ namespace WalletWasabi.BitcoinCore.Mempool
 	public class MempoolMirror : PeriodicRunner
 	{
 		/// <param name="period">How often to mirror the mempool.</param>
-		public MempoolMirror(TimeSpan period, IRPCClient rpc, Node node) : base(period)
+		public MempoolMirror(TimeSpan period, IRPCClient rpc, P2pNode node) : base(period)
 		{
 			Rpc = rpc;
 			Node = node;
 		}
 
 		public IRPCClient Rpc { get; }
-		public Node Node { get; }
+		public P2pNode Node { get; }
 		private Dictionary<uint256, Transaction> Mempool { get; } = new();
 		private object MempoolLock { get; } = new();
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
+			var firstTime = !Mempool.Any();
+			var sw = Stopwatch.StartNew();
+
 			var mempoolHashes = await Rpc.GetRawMempoolAsync().ConfigureAwait(false);
 
 			uint256[] missing;
@@ -44,15 +48,7 @@ namespace WalletWasabi.BitcoinCore.Mempool
 				}
 			}
 
-			HashSet<Transaction> toAdd = new();
-			foreach (var chunk in missing.Distinct().ChunkBy(100))
-			{
-				foreach (var tx in Node.GetMempoolTransactions(chunk.ToArray(), cancel))
-				{
-					tx.PrecomputeHash(invalidateExisting: false, lazily: true);
-					toAdd.Add(tx);
-				}
-			}
+			var toAdd = Node.GetMempoolTransactions(missing, cancel).ToHashSet();
 
 			lock (MempoolLock)
 			{
@@ -60,6 +56,12 @@ namespace WalletWasabi.BitcoinCore.Mempool
 				{
 					Mempool.Add(tx.GetHash(), tx);
 				}
+			}
+
+			sw.Stop();
+			if (firstTime)
+			{
+				Logger.LogInfo($"{toAdd.Count} transactions were copied from the full node to the in-memory mempool within {sw.Elapsed.TotalSeconds} seconds.");
 			}
 		}
 	}
