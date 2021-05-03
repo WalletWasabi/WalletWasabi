@@ -25,8 +25,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			NavigateCommand = ReactiveCommand.Create(() =>
 			{
-				parent.Navigate().To(new ReceiveAddressViewModel(model, network,
-					parent.Wallet.KeyManager.MasterFingerprint, parent.Wallet.KeyManager.IsHardwareWallet));
+				parent.Navigate().To(
+					new ReceiveAddressViewModel(
+						model,
+						network,
+						parent.Wallet.KeyManager.MasterFingerprint,
+						parent.Wallet.KeyManager.IsHardwareWallet));
 			});
 		}
 
