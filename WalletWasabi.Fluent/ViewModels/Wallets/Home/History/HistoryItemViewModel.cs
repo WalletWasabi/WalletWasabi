@@ -1,9 +1,11 @@
 using System;
 using System.Reactive;
 using System.Windows.Input;
+using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
@@ -34,7 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 			ShowDetailsCommand = ReactiveCommand.Create(() =>
 			{
-				if (MainViewModel.Instance?.DialogScreen is { } navStack)
+				if (NavigationState.Instance.DialogScreenNavigation is { } navStack)
 				{
 					navStack.To(new TransactionDetailsViewModel(transactionSummary, wallet, updateTrigger));
 				}

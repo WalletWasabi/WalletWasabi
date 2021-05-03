@@ -27,7 +27,6 @@
               DockPanel.Dock="Bottom">
       <DataGrid.Styles>
         <Style Selector="PathIcon">
-          <!-- <Setter Property="Width" Value="10"/> -->
           <Setter Property="Height" Value="13"/>
           <Setter Property="VerticalAlignment" Value="Center"/>
           <Setter Property="HorizontalAlignment" Value="Center" />
