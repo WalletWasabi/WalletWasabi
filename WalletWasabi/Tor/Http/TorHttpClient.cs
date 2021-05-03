@@ -8,13 +8,7 @@ using WalletWasabi.Tor.Socks5.Pool;
 namespace WalletWasabi.Tor.Http
 {
 	public class TorHttpClient : IHttpClient
-	{
-		/// <summary>Use this constructor when you want to issue absolute HTTP requests.</summary>
-		public TorHttpClient(TorHttpPool torHttpPool, bool isolateStream = false) :
-			this(baseUriGetter: null, torHttpPool, isolateStream)
-		{
-		}
-
+	{	
 		/// <summary>Use this constructor when you want to issue relative or absolute HTTP requests.</summary>
 		public TorHttpClient(Uri baseUri, TorHttpPool torHttpPool, bool isolateStream = false) :
 			this(() => baseUri, torHttpPool, isolateStream)
