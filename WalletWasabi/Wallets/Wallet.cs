@@ -139,7 +139,7 @@ namespace WalletWasabi.Wallets
 				Synchronizer = Guard.NotNull(nameof(syncer), syncer);
 				ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 				FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
-				BlockProvider = Guard.NotNull(nameof(blockProvider), blockProvider); ;
+				BlockProvider = Guard.NotNull(nameof(blockProvider), blockProvider);
 
 				ChaumianClient = new CoinJoinClient(Synchronizer, Network, KeyManager, Kitchen);
 
