@@ -37,7 +37,7 @@
         <c:TileButton Text="Connect to hardware wallet"
                       Icon="{StaticResource calculator_regular}"
                       Command="{Binding ConnectHardwareWalletCommand}"/>
-        <c:TileButton Text="Import a wallet"
+        <c:TileButton Text="Import a wallet file"
                       Icon="{StaticResource import_regular}"
                       Command="{Binding ImportWalletCommand}"/>
         <c:TileButton Text="Type in recovery words"
