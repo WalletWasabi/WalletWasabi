@@ -78,21 +78,15 @@ For more information, please check out the [Wasabi Documentation](https://docs.w
 
 1. Get Git: https://git-scm.com/downloads
 2. Get .NET 5.0 SDK: https://dotnet.microsoft.com/download
-3. Optionally disable .NET's telemetry by typing `export DOTNET_CLI_TELEMETRY_OPTOUT=1` on Linux and macOS or `setx DOTNET_CLI_TELEMETRY_OPTOUT 1` on Windows.
+3. Optionally disable .NET's telemetry by executing in the terminal `export DOTNET_CLI_TELEMETRY_OPTOUT=1` on Linux and macOS or `setx DOTNET_CLI_TELEMETRY_OPTOUT 1` on Windows.
 
 ### Get Wasabi
-
-Clone & Restore & Build
 
 ```sh
 git clone https://github.com/zkSNACKs/WalletWasabi.git
 cd WalletWasabi/WalletWasabi.Gui
-dotnet build
+dotnet run
 ```
-
-### Run Wasabi
-
-Run Wasabi with `dotnet run` from the `WalletWasabi.Gui` folder.
 
 ### Update Wasabi
 
