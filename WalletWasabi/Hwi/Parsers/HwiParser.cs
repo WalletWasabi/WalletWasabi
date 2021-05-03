@@ -181,7 +181,7 @@ namespace WalletWasabi.Hwi.Parsers
 
 			if (JsonHelpers.TryParseJToken(json, out JToken? token))
 			{
-				var addressString = token["address"]?.ToString()?.Trim() ?? string.Empty;
+				var addressString = token["address"].ToString().Trim() ?? string.Empty;
 				try
 				{
 					var address = BitcoinAddress.Create(addressString, network);
@@ -209,7 +209,7 @@ namespace WalletWasabi.Hwi.Parsers
 
 			if (JsonHelpers.TryParseJToken(json, out JToken? token))
 			{
-				var psbtString = token["psbt"]?.ToString()?.Trim() ?? string.Empty;
+				var psbtString = token["psbt"].ToString().Trim() ?? string.Empty;
 				var psbt = PSBT.Parse(psbtString, network);
 				return psbt;
 			}
@@ -222,7 +222,7 @@ namespace WalletWasabi.Hwi.Parsers
 		public static HwiEnumerateEntry ParseHwiEnumerateEntry(JObject json)
 		{
 			JToken modelToken = json["model"];
-			var pathString = json["path"]?.ToString()?.Trim() ?? string.Empty;
+			var pathString = json["path"].ToString().Trim() ?? string.Empty;
 			var serialNumberString = json["serial_number"]?.ToString()?.Trim();
 			var fingerprintString = json["fingerprint"]?.ToString()?.Trim();
 			var needsPinSentString = json["needs_pin_sent"]?.ToString()?.Trim();
