@@ -31,7 +31,7 @@
       </StackPanel>
     </c:ContentArea>
     <c:AdorningContentControl.Adornment>
-      <Button Content="Unused Addresses" IsVisible="{Binding IsExistingAddressesButtonVisible, FallbackValue=True}"
+      <Button Focusable="False" Content="Unused Addresses" IsVisible="{Binding IsExistingAddressesButtonVisible, FallbackValue=True}"
               Classes="h8 plain activeHyperLink" Command="{Binding ShowExistingAddressesCommand}" Cursor="Hand"
               HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0 0 0 21" />
     </c:AdorningContentControl.Adornment>
