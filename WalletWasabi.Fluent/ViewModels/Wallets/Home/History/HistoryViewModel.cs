@@ -25,7 +25,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		private readonly ObservableCollectionExtended<HistoryItemViewModel> _unfilteredTransactions;
 
 		[AutoNotify] private bool _showCoinJoin;
-		[AutoNotify] private HistoryItemViewModel? _selectedItem;
 
 		public HistoryViewModel(Wallet wallet, UiConfig uiConfig, IObservable<Unit> updateTrigger)
 		{

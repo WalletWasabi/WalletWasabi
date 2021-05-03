@@ -52,23 +52,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				RoundStatusTile,
 				BtcPriceTile
 			};
-
-			History.WhenAnyValue(x=>x.SelectedItem)
-				.Subscribe(async selectedItem =>
-				{
-					if (selectedItem is null)
-					{
-						return;
-					}
-
-					Navigate(NavigationTarget.DialogScreen)
-						.To(new TransactionDetailsViewModel(selectedItem.TransactionSummary, wallet, balanceChanged));
-
-					Dispatcher.UIThread.Post(() =>
-					{
-						History.SelectedItem = null;
-					});
-				});
 		}
 
 		private CompositeDisposable Disposables { get; set; }
