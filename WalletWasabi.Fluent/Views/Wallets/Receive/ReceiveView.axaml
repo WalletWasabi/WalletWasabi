@@ -10,14 +10,18 @@
              x:DataType="receive:ReceiveViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveView">
-  <c:AdorningContentControl RevealMode="Manual" IsAdornmentVisible="True">
-    <c:ContentArea Title="{Binding Title}"
-                   Caption="In order for Wasabi to best protect your privacy enter some labels to keep track of who knows about this receive address."
-                   EnableNext="True" NextContent="Continue"
-                   EnableCancel="{Binding EnableCancel}"
-                   EnableBack="{Binding EnableBack}">
-      <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
-        <Label Content="_Labels (Separate with ',' or by pressing enter)" Target="LabelsTbx" HorizontalAlignment="Left" FontWeight="Normal" />
+  <c:ContentArea Title="{Binding Title}"
+                 EnableNext="True" NextContent="Continue"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}">
+    <DockPanel>
+      <Button DockPanel.Dock="Bottom" Focusable="False" Content="Unused Addresses"
+              IsVisible="{Binding IsExistingAddressesButtonVisible, FallbackValue=True}"
+              Classes="h8 plain activeHyperLink" Command="{Binding ShowExistingAddressesCommand}" Cursor="Hand"
+              HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0 0 0 0" />
+      <StackPanel HorizontalAlignment="Stretch">
+        <Label Content="_Who will know this receive address belongs to you?" Target="LabelsTbx" HorizontalAlignment="Left"
+               FontWeight="Normal" />
         <c:TagsBox x:Name="LabelsTbx" Items="{Binding Labels}"
                    TagSeparator=","
                    SuggestionsAreCaseSensitive="True"
@@ -29,11 +33,6 @@
           </i:Interaction.Behaviors>
         </c:TagsBox>
       </StackPanel>
-    </c:ContentArea>
-    <c:AdorningContentControl.Adornment>
-      <Button Focusable="False" Content="Unused Addresses" IsVisible="{Binding IsExistingAddressesButtonVisible, FallbackValue=True}"
-              Classes="h8 plain activeHyperLink" Command="{Binding ShowExistingAddressesCommand}" Cursor="Hand"
-              HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0 0 0 21" />
-    </c:AdorningContentControl.Adornment>
-  </c:AdorningContentControl>
+    </DockPanel>
+  </c:ContentArea>
 </UserControl>
