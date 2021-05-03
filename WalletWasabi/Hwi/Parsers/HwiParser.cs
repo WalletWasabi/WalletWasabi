@@ -361,13 +361,13 @@ namespace WalletWasabi.Hwi.Parsers
 			}));
 			optionsString = string.IsNullOrWhiteSpace(optionsString) ? "" : $"--{optionsString}";
 			var argumentBuilder = new StringBuilder(optionsString);
-			if (command is { })
+			if (command is { } nonNullCommand)
 			{
 				if (argumentBuilder.Length != 0)
 				{
 					argumentBuilder.Append(' ');
 				}
-				argumentBuilder.Append(command?.ToString().ToLowerInvariant());
+				argumentBuilder.Append(nonNullCommand.ToString().ToLowerInvariant());
 			}
 
 			commandArguments = Guard.Correct(commandArguments);
