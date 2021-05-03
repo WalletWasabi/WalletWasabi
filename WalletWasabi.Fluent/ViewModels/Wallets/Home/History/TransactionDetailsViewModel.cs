@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			_updateTrigger = updateTrigger;
 
 			NextCommand = ReactiveCommand.Create(OnNext);
-			CopyTransactionIdCommand = ReactiveCommand.CreateFromTask(OnCopyTransactionId);
+			CopyTransactionIdCommand = ReactiveCommand.CreateFromTask(OnCopyTransactionIdAsync);
 
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -45,7 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 		public ICommand CopyTransactionIdCommand { get; set; }
 
-		private async Task OnCopyTransactionId()
+		private async Task OnCopyTransactionIdAsync()
 		{
 			if (TransactionId is null)
 			{
