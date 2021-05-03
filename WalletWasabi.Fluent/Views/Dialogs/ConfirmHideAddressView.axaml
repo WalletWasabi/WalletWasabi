@@ -14,11 +14,9 @@
                        NoCommand="{Binding CancelCommand}"
                        HighlightButton="YesButton">
       <c:QuestionControl.QuestionContent>
-        <StackPanel>
-          <StackPanel Orientation="Horizontal" Spacing="10">
-            <TextBlock Text="Are you sure you wish to hide the BTC address labelled" />
-            <c:TagsBox IsReadOnly="True" Items="{Binding Label}" />
-          </StackPanel>
+        <StackPanel Spacing="10">
+          <TextBlock Text="Do you wish to hide the address with the following labels?" />
+          <c:TagsBox IsReadOnly="True" Items="{Binding Label}" />
           <TextBlock Text="This can not be undone." />
         </StackPanel>
       </c:QuestionControl.QuestionContent>
