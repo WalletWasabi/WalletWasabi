@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.BitcoinCore.Mempool
 {
@@ -25,24 +26,38 @@ namespace WalletWasabi.BitcoinCore.Mempool
 		public IRPCClient Rpc { get; }
 		public Node Node { get; }
 		private Dictionary<uint256, Transaction> Mempool { get; } = new();
+		private object MempoolLock { get; } = new();
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
 			var mempoolHashes = await Rpc.GetRawMempoolAsync().ConfigureAwait(false);
 
-			var missing = mempoolHashes.Except(Mempool.Keys);
-			var toEvict = Mempool.Keys.Except(mempoolHashes);
-
-			foreach (var txid in toEvict.ToHashSet())
+			uint256[] missing;
+			lock (MempoolLock)
 			{
-				Mempool.Remove(txid);
+				var toEvict = Mempool.Keys.Except(mempoolHashes);
+				missing = mempoolHashes.Except(Mempool.Keys).ToArray();
+
+				foreach (var txid in toEvict.ToHashSet())
+				{
+					Mempool.Remove(txid);
+				}
 			}
 
+			HashSet<Transaction> toAdd = new();
 			foreach (var chunk in missing.Distinct().ChunkBy(100))
 			{
 				foreach (var tx in Node.GetMempoolTransactions(chunk.ToArray(), cancel))
 				{
 					tx.PrecomputeHash(invalidateExisting: false, lazily: true);
+					toAdd.Add(tx);
+				}
+			}
+
+			lock (MempoolLock)
+			{
+				foreach (var tx in toAdd)
+				{
 					Mempool.Add(tx.GetHash(), tx);
 				}
 			}
