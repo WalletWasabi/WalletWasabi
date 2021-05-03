@@ -20,8 +20,11 @@
               Classes="h8 plain activeHyperLink" Command="{Binding ShowExistingAddressesCommand}" Cursor="Hand"
               HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0 0 0 0" />
       <StackPanel HorizontalAlignment="Stretch">
-        <Label Content="_Who will know this receive address belongs to you?" Target="LabelsTbx" HorizontalAlignment="Left"
-               FontWeight="Normal" />
+        <StackPanel Orientation="Horizontal" Spacing="5">
+          <Label Content="_Who will know this receive address belongs to you?" Target="LabelsTbx" HorizontalAlignment="Left"
+                 FontWeight="Normal" />
+          <c:InfoMessage VerticalAlignment="Center" ToolTip.Tip="Separate with , or by pressing Enter" />
+        </StackPanel>
         <c:TagsBox x:Name="LabelsTbx" Items="{Binding Labels}"
                    TagSeparator=","
                    SuggestionsAreCaseSensitive="True"
