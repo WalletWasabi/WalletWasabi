@@ -64,15 +64,15 @@ namespace WalletWasabi.Wallets
 		private object Lock { get; } = new();
 		private AsyncLock StartStopWalletLock { get; } = new();
 
-		private BitcoinStore BitcoinStore { get; set; }
-		private WasabiSynchronizer Synchronizer { get; set; }
-		private ServiceConfiguration ServiceConfiguration { get; set; }
+		private BitcoinStore? BitcoinStore { get; set; }
+		private WasabiSynchronizer? Synchronizer { get; set; }
+		private ServiceConfiguration? ServiceConfiguration { get; set; }
 		private bool IsInitialized { get; set; }
 
-		private HybridFeeProvider FeeProvider { get; set; }
+		private HybridFeeProvider? FeeProvider { get; set; }
 		public Network Network { get; }
 		public WalletDirectories WalletDirectories { get; }
-		private IBlockProvider BlockProvider { get; set; }
+		private IBlockProvider? BlockProvider { get; set; }
 		public string WorkDir { get; }
 
 		private void RefreshWalletList()
@@ -144,7 +144,7 @@ namespace WalletWasabi.Wallets
 			lock (Lock)
 			{
 				// Throw an exception if the wallet was not added to the WalletManager.
-				Wallets.Single(x => x == wallet);
+				_ = Wallets.Single(x => x == wallet);
 			}
 
 			wallet.SetWaitingForInitState();
@@ -241,6 +241,7 @@ namespace WalletWasabi.Wallets
 			}
 
 			AddWallet(wallet);
+			wallet.Dispose();
 		}
 
 		private void AddWallet(Wallet wallet)

@@ -122,11 +122,11 @@ namespace WalletWasabi.Wallets
 		}
 
 		public void RegisterServices(
-			BitcoinStore bitcoinStore,
-			WasabiSynchronizer syncer,
-			ServiceConfiguration serviceConfiguration,
-			HybridFeeProvider feeProvider,
-			IBlockProvider blockProvider)
+			BitcoinStore? bitcoinStore,
+			WasabiSynchronizer? syncer,
+			ServiceConfiguration? serviceConfiguration,
+			HybridFeeProvider? feeProvider,
+			IBlockProvider? blockProvider)
 		{
 			if (State > WalletState.WaitingForInit)
 			{
@@ -139,6 +139,7 @@ namespace WalletWasabi.Wallets
 				Synchronizer = Guard.NotNull(nameof(syncer), syncer);
 				ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 				FeeProvider = Guard.NotNull(nameof(feeProvider), feeProvider);
+				BlockProvider = Guard.NotNull(nameof(blockProvider), blockProvider); ;
 
 				ChaumianClient = new CoinJoinClient(Synchronizer, Network, KeyManager, Kitchen);
 
@@ -151,8 +152,6 @@ namespace WalletWasabi.Wallets
 				BitcoinStore.IndexStore.NewFilter += IndexDownloader_NewFilterAsync;
 				BitcoinStore.IndexStore.Reorged += IndexDownloader_ReorgedAsync;
 				BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
-
-				BlockProvider = blockProvider;
 
 				State = WalletState.Initialized;
 			}
