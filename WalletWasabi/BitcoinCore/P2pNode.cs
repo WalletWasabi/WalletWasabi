@@ -92,15 +92,24 @@ namespace WalletWasabi.BitcoinCore
 		{
 			var node = Guard.NotNull(nameof(Node), Node);
 
-			// Chunk it because it doesn't work properly for more.
-			foreach (var chunk in txids.Distinct().ChunkBy(100))
+			try
 			{
-				var txs = node.GetMempoolTransactions(chunk.ToArray(), cancel);
-				foreach (var tx in txs)
+				TrustedP2pBehavior.DisableProcess(txids);
+
+				// Chunk it because it doesn't work properly for more.
+				foreach (var chunk in txids.Distinct().ChunkBy(100))
 				{
-					tx.PrecomputeHash(invalidateExisting: false, lazily: true);
-					yield return tx;
+					var txs = node.GetMempoolTransactions(chunk.ToArray(), cancel);
+					foreach (var tx in txs)
+					{
+						tx.PrecomputeHash(invalidateExisting: false, lazily: true);
+						yield return tx;
+					}
 				}
+			}
+			finally
+			{
+				TrustedP2pBehavior.EnableProcess(txids);
 			}
 		}
 
