@@ -121,6 +121,8 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		private void AddEdge(CredentialDependency edge)
 		{
+			Debug.Assert(edge.Value > 0, "edge value positive");
+
 			var successors = Successors[(int)edge.CredentialType][edge.From.Id];
 			var predecessors = Predecessors[(int)edge.CredentialType][edge.To.Id];
 
@@ -128,6 +130,21 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			if (successors.Count == K || predecessors.Count == K)
 			{
 				throw new InvalidOperationException("Can't add more than k edges");
+			}
+
+			if (predecessors.Count == K-1)
+			{
+				// This is the final in edge edge for the node edge.To
+				if ( Balance(edge.To, edge.CredentialType) + (long)edge.Value < 0 )
+				{
+					throw new InvalidOperationException("Can't add final edge without discharging negative value");
+				}
+
+				// If it's the final edge overall, the final balance must be 0
+				if ( OutDegree(edge.To, edge.CredentialType) == K && Balance(edge.To, edge.CredentialType) + (long)edge.Value != 0 )
+				{
+					throw new InvalidOperationException("Can't add final edge without discharging negative value");
+				}
 			}
 
 			// The edge sum invariant are only checked after the graph is
@@ -153,6 +170,22 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			// x as a source or a sink.
 			var xIsSink = x.InitialBalance(type).CompareTo(ys.First().InitialBalance(type)) == -1;
 
+			Debug.Assert(ys.All(y => Balance(y, type) != 0), "y balances");
+			Debug.Assert(ys.Select(y => Balance(y, type).CompareTo(0)).Distinct().Single() != Balance(x, type).CompareTo(0), "overall balances");
+
+			if (xIsSink)
+			{
+				Debug.Assert(InDegree(x, type) <= K-1, "x fan in degree");
+				Debug.Assert(InDegree(x, type) + ys.Count() <= K, "x + ys fan in degree");
+				Debug.Assert(ys.All(y => OutDegree(y, type) <= K-1), "ys fan in degree");
+			}
+			else
+			{
+				Debug.Assert(OutDegree(x, type) <= K-1, "x fan out degree");
+				Debug.Assert(OutDegree(x, type) + ys.Count() <= K, "x + ys fan out degree");
+				Debug.Assert(ys.All(y => InDegree(y, type) <= K-1), "ys fan out degree");
+			}
+
 			foreach (var y in ys)
 			{
 				// The amount for the edge is always determined by the `y`
@@ -160,14 +193,32 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				// number of values required.
 				long amount = Balance(y, type);
 
-				// TODO opportunistically drain larger credential types, this
-				// will minimize dependencies between requests, weight
-				// credentials should often be easily satisfiable with
-				// parallel edges to the amount credential edges.
+				// TODO split into helper methods for either case?
 				if (xIsSink)
 				{
 					Debug.Assert(amount > 0, nameof(amount));
 					AddEdge(new(y, x, type, (ulong)amount));
+
+					// Also drain all of the other credential types, to minimize
+					// dependencies between requests, weight credentials should
+					// often be easily satisfiable with parallel edges to the
+					// amount credential edges.
+					for (CredentialType extraType = type + 1; extraType < CredentialType.NumTypes; extraType++)
+					{
+						var extraBalance = Balance(y, extraType);
+
+						Debug.Assert(extraBalance >= 0, nameof(extraBalance));
+						if (extraBalance > 0 )
+						{
+							// assert balance of other credential type?
+							// Don't over-fund a negative balance sink with its last edge
+							// can give Math.Min(extraBalance, -Balance(x, type))
+							if (x.InitialBalance(type) == 0 || extraBalance == -Balance(x, extraType))
+							{
+								AddEdge(new(y, x, extraType, (ulong)extraBalance));
+							}
+						}
+					}
 				}
 				else
 				{
@@ -180,6 +231,17 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 						// multiple ys, and should consolidate their entire
 						// negative balance.
 						AddEdge(new(x, y, type, (ulong)(-1 * amount)));
+
+						// Same as reissuance node in the opposite direction branch.
+						for (CredentialType extraType = type + 1; extraType < CredentialType.NumTypes; extraType++)
+						{
+							var extraBalance = Balance(y, extraType);
+							Debug.Assert(extraBalance <= 0, nameof(extraBalance));
+							if (extraBalance < 0)
+							{
+								AddEdge(new(x, y, extraType, (ulong)(-1 * extraBalance)));
+							}
+						}
 					}
 					else
 					{
@@ -187,6 +249,15 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 						// balance. The effective balance of the last y term term
 						// might still have a negative magnitude after this.
 						AddEdge(new(x, y, type, (ulong)Math.Min(Balance(x, type), -1 * amount)));
+
+						// here we avoid adding opportunistic edges as this
+						// provides no benefit for K=2, the regular loop should
+						// handle it (we could consider adding up to 1
+						// edge opportunistically? it could help avoiding
+						// crossings, but we already have that through the
+						// ordered vertices, since Linq does stable sorts, and
+						// because all reissuance nodes will take the
+						// opportunistic path.
 					}
 				}
 			}
@@ -202,14 +273,17 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				for (;;)
 				{
 					// Order the nodes of the graph based on their balances
-					var ordered = VerticesByBalance(credentialType).ToImmutableArray();
-					List<RequestNode> positive = ordered.Where(v => Balance(v, credentialType) > 0).ToList();
-					List<RequestNode> negative = Enumerable.Reverse(ordered).Where(v => Balance(v, credentialType) < 0).ToList();
+					var ordered = VerticesByBalance(credentialType);
+					List<RequestNode> positive = ordered.ThenBy(x => OutDegree(x, credentialType)).Where(v => Balance(v, credentialType) > 0).ToList();
+					List<RequestNode> negative = Enumerable.Reverse(ordered.ThenByDescending(x => InDegree(x, credentialType)).Where(v => Balance(v, credentialType) < 0)).ToList();
 
 					if (negative.Count == 0)
 					{
 						break;
 					}
+
+					Debug.Assert(negative.All(x => InDegree(x, credentialType) < K), "negative in degree < K");
+					Debug.Assert(positive.All(x => OutDegree(x, credentialType) < K), "positive out degree < K");
 
 					var nPositive = 1;
 					var nNegative = 1;
@@ -235,8 +309,8 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 						// take more nodes until the comparison sign changes or
 						// we run out.
 						while (initialComparison == compare()
-								 && (fanIn ? positive.Count >= 1 + nPositive
-										   : negative.Count >= 1 + nNegative))
+								 && (fanIn ? positive.Count - nPositive > 0
+										   : negative.Count - nNegative > 0))
 						{
 							takeOneMore();
 						}
@@ -245,7 +319,22 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 					var largestMagnitudeNode = (fanIn ? negative.Take(nNegative).Single() : positive.Take(nPositive).Single()); // assert n == 1?
 					var smallMagnitudeQueue = (fanIn ? positive.Take(nPositive).Reverse() : negative.Take(nNegative)).ToList(); // reverse positive values so we always proceed in order of increasing magnitude
 					var largestIsSink = largestMagnitudeNode.InitialBalance(credentialType).CompareTo(smallMagnitudeQueue.First().InitialBalance(credentialType)) == -1;
-					var maxCount = (compare() == 0 ? K : K - 1) - (largestIsSink ? InDegree(largestMagnitudeNode, credentialType) : OutDegree(largestMagnitudeNode, credentialType));
+					var maxCount = K - (largestIsSink ? InDegree(largestMagnitudeNode, credentialType) : OutDegree(largestMagnitudeNode, credentialType));
+
+					if (!fanIn && compare() == 1)
+					{
+						// When we are draining a positive valued node into
+						// multiple negative nodes and we can't drain it
+						// completely, we need to leave an edge unused for the
+						// remaining amount.
+						// The corresponding check isn't needed for fan in
+						// because the negative balance of the last loop
+						// iteration can't exceed the the remaining positive
+						// elements, their total sum must be positive as checked
+						// in the constructor.
+						maxCount--;
+					}
+
 					Debug.Assert(smallMagnitudeQueue.All(x => Balance(x, credentialType) != 0), "small values all != 0");
 					negative.RemoveRange(0, nNegative);
 					positive.RemoveRange(0, nPositive);
@@ -281,6 +370,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 						smallMagnitudeQueue.Add(reissuance);
 						Debug.Assert(smallMagnitudeQueue.All(x => Balance(x, credentialType) != 0), "everything left in the queue has a non-zero balance");
 					}
+					Debug.Assert(smallMagnitudeQueue.Count <= maxCount, "small magnitude length");
 					Debug.Assert(smallMagnitudeQueue.All(x => Balance(x, credentialType) != 0), "x");
 
 					// When the queue has been reduced to this point, we can
