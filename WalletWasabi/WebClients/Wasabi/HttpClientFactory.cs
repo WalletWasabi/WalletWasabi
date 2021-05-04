@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Pool;
+using WalletWasabi.Tor.Socks5.Pool.Identities;
 
 namespace WalletWasabi.WebClients.Wasabi
 {
@@ -39,7 +40,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			if (TorEndpoint is { } && (BackendUriGetter is null || !BackendUriGetter().IsLoopback))
 			{
 				TorHttpPool = new(TorEndpoint);
-				BackendHttpClient = new TorHttpClient(BackendUriGetter, TorHttpPool, isolateStream: false);
+				BackendHttpClient = new TorHttpClient(BackendUriGetter, TorHttpPool, Mode.DefaultIdentity);
 			}
 			else
 			{
@@ -77,12 +78,12 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <summary>
 		/// Creates new <see cref="TorHttpClient"/> or <see cref="ClearnetHttpClient"/> based on user settings.
 		/// </summary>
-		public IHttpClient NewHttpClient(Func<Uri>? baseUriFn, bool isolateStream)
+		public IHttpClient NewHttpClient(Func<Uri>? baseUriFn, Mode mode)
 		{
 			// Connecting to loopback's URIs cannot be done via Tor.
 			if (TorHttpPool is { } && (BackendUriGetter is null || !BackendUriGetter().IsLoopback))
 			{
-				return new TorHttpClient(baseUriFn, TorHttpPool, isolateStream);
+				return new TorHttpClient(baseUriFn, TorHttpPool, mode);
 			}
 			else
 			{
@@ -91,24 +92,24 @@ namespace WalletWasabi.WebClients.Wasabi
 		}
 
 		/// <summary>Creates new <see cref="TorHttpClient"/>.</summary>
-		/// <remarks>Do not use this function unless <see cref="NewHttpClient(Func{Uri}, bool)"/> is not sufficient for your use case.</remarks>
+		/// <remarks>Do not use this function unless <see cref="NewHttpClient(Func{Uri}, Mode)"/> is not sufficient for your use case.</remarks>
 		/// <exception cref="InvalidOperationException"/>
-		public TorHttpClient NewTorHttpClient(bool isolateStream, Func<Uri>? baseUriFn = null)
+		public TorHttpClient NewTorHttpClient(Mode mode, Func<Uri>? baseUriFn = null)
 		{
 			if (TorEndpoint is null)
 			{
 				throw new InvalidOperationException("Tor is not enabled in the user settings.");
 			}
 
-			return (TorHttpClient)NewHttpClient(baseUriFn, isolateStream);
+			return (TorHttpClient)NewHttpClient(baseUriFn, mode);
 		}
 
 		/// <summary>
 		/// Creates a new <see cref="IHttpClient"/> with the base URI is set to Wasabi Backend.
 		/// </summary>
-		public IHttpClient NewBackendHttpClient(bool isolateStream)
+		public IHttpClient NewBackendHttpClient(Mode mode)
 		{
-			return NewHttpClient(BackendUriGetter, isolateStream);
+			return NewHttpClient(BackendUriGetter, mode);
 		}
 
 		// Protected implementation of Dispose pattern.

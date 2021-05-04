@@ -9,6 +9,7 @@ using WalletWasabi.Tor;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Pool;
+using WalletWasabi.Tor.Socks5.Pool.Identities;
 using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests
@@ -174,9 +175,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 		{
 			using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
 
-			TorHttpClient c1 = MakeTorHttpClient(new("http://api.ipify.org"), isolateStream: true);
-			TorHttpClient c2 = MakeTorHttpClient(new("http://api.ipify.org"), isolateStream: true);
-			TorHttpClient c3 = MakeTorHttpClient(new("http://api.ipify.org"), isolateStream: true);
+			TorHttpClient c1 = MakeTorHttpClient(new("http://api.ipify.org"), Mode.NewIdentityPerRequest);
+			TorHttpClient c2 = MakeTorHttpClient(new("http://api.ipify.org"), Mode.NewIdentityPerRequest);
+			TorHttpClient c3 = MakeTorHttpClient(new("http://api.ipify.org"), Mode.NewIdentityPerRequest);
 			Task<HttpResponseMessage> t1 = c1.SendAsync(HttpMethod.Get, "", null, ctsTimeout.Token);
 			Task<HttpResponseMessage> t2 = c2.SendAsync(HttpMethod.Get, "", null, ctsTimeout.Token);
 			Task<HttpResponseMessage> t3 = c3.SendAsync(HttpMethod.Get, "", null, ctsTimeout.Token);
@@ -231,9 +232,9 @@ namespace WalletWasabi.Tests.IntegrationTests
 			return contents;
 		}
 
-		private TorHttpClient MakeTorHttpClient(Uri uri, bool isolateStream = false)
+		private TorHttpClient MakeTorHttpClient(Uri uri, Mode mode = Mode.DefaultIdentity)
 		{
-			return new(uri, TorHttpPool, isolateStream);
+			return new(uri, TorHttpPool, mode);
 		}
 	}
 }

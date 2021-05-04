@@ -4,29 +4,41 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Pool;
+using WalletWasabi.Tor.Socks5.Pool.Identities;
 
 namespace WalletWasabi.Tor.Http
 {
 	public class TorHttpClient : IHttpClient
-	{	
+	{
 		/// <summary>Use this constructor when you want to issue relative or absolute HTTP requests.</summary>
-		public TorHttpClient(Uri baseUri, TorHttpPool torHttpPool, bool isolateStream = false) :
-			this(() => baseUri, torHttpPool, isolateStream)
+		public TorHttpClient(Uri baseUri, TorHttpPool torHttpPool, Mode mode = Mode.DefaultIdentity) :
+			this(() => baseUri, torHttpPool, mode)
 		{
 		}
 
 		/// <summary>Use this constructor when you want to issue relative or absolute HTTP requests.</summary>
-		public TorHttpClient(Func<Uri>? baseUriGetter, TorHttpPool torHttpPool, bool isolateStream = false)
+		public TorHttpClient(Func<Uri>? baseUriGetter, TorHttpPool torHttpPool, Mode mode = Mode.DefaultIdentity)
 		{
 			BaseUriGetter = baseUriGetter;
 			TorHttpPool = torHttpPool;
-			IsolateStream = isolateStream;
+			Mode = mode;
+
+			PredefinedIdentity = mode switch
+			{
+				Mode.DefaultIdentity => DefaultIdentity.Instance,
+				Mode.SingleIdentityPerLifetime => new RandomIdentity(canTorCircuitBeReused: true),
+				Mode.NewIdentityPerRequest => null,
+				_ => throw new NotSupportedException(),
+			};
 		}
 
 		public Func<Uri>? BaseUriGetter { get; }
 
 		/// <summary>Whether each HTTP(s) request should use a separate Tor circuit or not to increase privacy.</summary>
-		public bool IsolateStream { get; }
+		public Mode Mode { get; }
+
+		/// <summary>Non-null for <see cref="Mode.DefaultIdentity"/> and <see cref="Mode.SingleIdentityPerLifetime"/>.</summary>
+		private IIdentity? PredefinedIdentity { get; }
 
 		private TorHttpPool TorHttpPool { get; }
 
@@ -53,7 +65,15 @@ namespace WalletWasabi.Tor.Http
 		/// <exception cref="OperationCanceledException">If <paramref name="token"/> is set.</exception>
 		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
 		{
-			return TorHttpPool.SendAsync(request, IsolateStream, token);
+			IIdentity identity = Mode switch
+			{
+				Mode.DefaultIdentity => PredefinedIdentity!,
+				Mode.SingleIdentityPerLifetime => PredefinedIdentity!,
+				Mode.NewIdentityPerRequest => new RandomIdentity(canTorCircuitBeReused: false),
+				_ => throw new NotSupportedException()
+			};
+
+			return TorHttpPool.SendAsync(request, identity, token);
 		}
 
 		public Task<bool> IsTorRunningAsync()

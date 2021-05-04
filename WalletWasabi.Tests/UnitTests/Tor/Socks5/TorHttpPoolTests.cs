@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Pool;
+using WalletWasabi.Tor.Socks5.Pool.Identities;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
@@ -26,6 +27,8 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 		{
 			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
 
+			IIdentity identity = DefaultIdentity.Instance;
+
 			// Set up FAKE transport stream, so Tor is not in play.
 			await using TransportStream transportStream = new(nameof(SendAsync));
 			await transportStream.ConnectAsync(timeoutCts.Token);
@@ -33,10 +36,10 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			using StreamReader serverReader = new(transportStream.Server);
 			using StreamWriter serverWriter = new(transportStream.Server);
 
-			using TorTcpConnection connection = new(tcpClient: null!, transportStream.Client, allowRecycling: true);
+			using TorTcpConnection connection = new(tcpClient: null!, transportStream.Client, identity, allowRecycling: true);
 
 			Mock<TorTcpConnectionFactory> mockFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
-			mockFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())).ReturnsAsync(connection);
+			mockFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), It.IsAny<IIdentity>(), It.IsAny<CancellationToken>())).ReturnsAsync(connection);
 
 			using TorHttpPool pool = new(mockFactory.Object);
 			using HttpRequestMessage request = new(HttpMethod.Get, "http://somesite.com");
@@ -44,7 +47,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			Task sendTask = Task.Run(async () =>
 			{
 				Debug.WriteLine("[client] About send HTTP request.");
-				using HttpResponseMessage httpResponseMessage = await pool.SendAsync(request, isolateStream: false).ConfigureAwait(false);
+				using HttpResponseMessage httpResponseMessage = await pool.SendAsync(request, identity).ConfigureAwait(false);
 				Assert.Equal(HttpStatusCode.OK, httpResponseMessage.StatusCode);
 				Debug.WriteLine("[client] Done sending HTTP request.");
 			});

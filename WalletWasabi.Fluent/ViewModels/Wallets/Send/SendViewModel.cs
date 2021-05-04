@@ -30,6 +30,7 @@ using WalletWasabi.Gui.Converters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Socks5.Pool.Identities;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
@@ -266,7 +267,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 					}
 				}
 
-				IHttpClient httpClient = externalHttpClientFactory.NewHttpClient(() => payjoinEndPointUri, isolateStream: false);
+				IHttpClient httpClient = externalHttpClientFactory.NewHttpClient(() => payjoinEndPointUri, Mode.DefaultIdentity);
 				return new PayjoinClient(payjoinEndPointUri, httpClient);
 			}
 
