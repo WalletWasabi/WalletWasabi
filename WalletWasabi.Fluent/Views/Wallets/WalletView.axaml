@@ -3,7 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
-             xmlns:tiles="using:WalletWasabi.Fluent.Views.Wallets.Home.Tiles"
+             xmlns:locator="using:WalletWasabi.Fluent"
+             xmlns:tiles="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:history="using:WalletWasabi.Fluent.Views.Wallets.Home.History"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="850"
@@ -20,32 +21,32 @@
                           VerticalAlignment="Top"
                           ScrollViewer.HorizontalScrollBarVisibility="Auto"
                           ScrollViewer.VerticalScrollBarVisibility="Disabled">
-            <c:ResponsivePanel
-                DockPanel.Dock="Top"
-                Margin="0 0"
-                AspectRatio="NaN"
-                ItemWidth="330"
-                ItemHeight="150"
-                WidthSource="{Binding #ScrollViewer.Bounds.Width}"
-                ColumnHints="1, 2, 3"
-                WidthTriggers="300, 660, 990"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                UseLayoutRounding="False">
-                <tiles:WalletBalanceTileView DataContext="{Binding BalanceTile}"
-                    c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1" />
+                <ItemsRepeater Items="{Binding Tiles}"
+                               DockPanel.Dock="Top"
+                               Margin="0 0"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Top"
+                               UseLayoutRounding="False">
+                    <ItemsRepeater.Styles>
+                        <Style Selector="ItemsRepeater > :is(Control)" x:DataType="tiles:TileViewModel">
+                            <Setter Property="(c:NonVirtualizingResponsiveLayout.ColumnSpan)"
+                                    Value="{Binding ColumnSpan}" />
+                            <Setter Property="(c:NonVirtualizingResponsiveLayout.RowSpan)" Value="{Binding RowSpan}" />
+                        </Style>
+                    </ItemsRepeater.Styles>
+                    <ItemsRepeater.ItemTemplate>
+                        <locator:ViewLocator />
+                    </ItemsRepeater.ItemTemplate>
+                    <ItemsRepeater.Layout>
+                        <c:NonVirtualizingResponsiveLayout ItemWidth="330"
+                                                           ItemHeight="150"
+                                                           WidthSource="{Binding #ScrollViewer.Bounds.Width}"
+                                                           AspectRatio="NaN"
+                                                           ColumnHints="3, 3, 3"
+                                                           WidthTriggers="300, 660, 990" />
+                    </ItemsRepeater.Layout>
+                </ItemsRepeater>
 
-                <tiles:RoundStatusTileView DataContext="{Binding RoundStatusTile}"
-                                           c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1"  />
-
-                <tiles:BtcPriceTileView DataContext="{Binding BtcPriceTile}"
-                        c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 1" />
-
-                <tiles:WalletPieChartTileView DataContext="{Binding WalletPieChart}" c:ResponsivePanel.ColumnSpan="1, 1, 1" c:ResponsivePanel.RowSpan="1, 1, 2" />
-
-                <tiles:WalletBalanceChartTileView DataContext="{Binding BalanceChartTile}"
-                    c:ResponsivePanel.ColumnSpan="1, 2, 2" c:ResponsivePanel.RowSpan="1, 2, 2" />
-            </c:ResponsivePanel>
             </ScrollViewer>
             <history:HistoryTable Name="HistoryTable" DataContext="{Binding History}" MaxWidth="1000"
                                   HorizontalAlignment="Left" VerticalAlignment="Top" />
