@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -24,8 +25,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		private readonly IObservable<Unit> _updateTrigger;
 		private readonly ObservableCollectionExtended<HistoryItemViewModel> _transactions;
 		private readonly ObservableCollectionExtended<HistoryItemViewModel> _unfilteredTransactions;
+		private readonly object _updateLock = new();
 
 		[AutoNotify] private bool _showCoinJoin;
+		[AutoNotify] private HistoryItemViewModel? _selectedItem;
+
 
 		public HistoryViewModel(WalletViewModel walletViewModel, UiConfig uiConfig, IObservable<Unit> updateTrigger)
 		{
@@ -43,7 +47,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			CollectionView = new DataGridCollectionView(Transactions);
 			CollectionView.SortDescriptions.Add(sortDescription);
 
-			RxApp.MainThreadScheduler.Schedule(async () => await UpdateAsync());
+			var coinJoinFilter = this.WhenAnyValue(x => x.ShowCoinJoin)
+				.Select(CoinJoinFilter);
+
+			_transactionSourceList
+				.Connect()
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Sort(SortExpressionComparer<HistoryItemViewModel>.Descending(x => x.OrderIndex))
+				.Bind(_unfilteredTransactions)
+				.Filter(coinJoinFilter)
+				.Bind(_transactions)
+				.Subscribe();
 		}
 
 		public DataGridCollectionView CollectionView { get; }
@@ -56,22 +70,29 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		{
 			base.OnActivated(disposables);
 
-			var coinJoinFilter = this.WhenAnyValue(x => x.ShowCoinJoin)
-				.Select(CoinJoinFilter);
+			RxApp.MainThreadScheduler.Schedule(async () =>
+			{
+				await UpdateAsync();
 
-			_transactionSourceList
-				.Connect()
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Sort(SortExpressionComparer<HistoryItemViewModel>.Descending(x => x.OrderIndex))
-				.Bind(_unfilteredTransactions)
-				.Filter(coinJoinFilter)
-				.Bind(_transactions)
-				.Subscribe()
-				.DisposeWith(disposables);
+				_transactionSourceList
+					.Connect()
+					.Throttle(TimeSpan.FromMilliseconds(100))
+					.Skip(1)
+					.OnItemAdded(_ =>
+					{
+						Console.WriteLine("Item added");
+						var newPendingItem = Transactions.OrderByDescending(x => x.OrderIndex).FirstOrDefault(x => !x.IsConfirmed);
+						SelectedItem = newPendingItem;
+					})
+					.Subscribe()
+					.DisposeWith(disposables);
+			});
 
 			_updateTrigger
 				.Subscribe(async _ => await UpdateAsync())
 				.DisposeWith(disposables);
+
+			disposables.Add(Disposable.Create(() => _transactionSourceList.Clear()));
 		}
 
 		private static Func<HistoryItemViewModel, bool> CoinJoinFilter(bool showCoinJoin)
@@ -93,14 +114,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			{
 				var historyBuilder = new TransactionHistoryBuilder(_walletViewModel.Wallet);
 				var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
-				_transactionSourceList.Clear();
 
-				Money balance = Money.Zero;
-				for (var i = 0; i < txRecordList.Count; i++)
+				lock (_updateLock)
 				{
-					var transactionSummary = txRecordList[i];
-					balance += transactionSummary.Amount;
-					_transactionSourceList.Add(new HistoryItemViewModel(i, transactionSummary, _walletViewModel, balance, _updateTrigger));
+					_transactionSourceList.Clear();
+
+					Money balance = Money.Zero;
+					for (var i = 0; i < txRecordList.Count; i++)
+					{
+						var transactionSummary = txRecordList[i];
+						balance += transactionSummary.Amount;
+						_transactionSourceList.Add(new HistoryItemViewModel(i, transactionSummary, _walletViewModel, balance, _updateTrigger));
+					}
 				}
 			}
 			catch (Exception ex)

@@ -28,11 +28,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 						Wallet.TransactionProcessor,
 						nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
 					.Select(_ => Unit.Default)
-					.Throttle(TimeSpan.FromSeconds(0.1))
 					.Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed))
 						.Select(_ => Unit.Default))
 					.Merge(uiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
 					.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
+					.Throttle(TimeSpan.FromSeconds(0.1))
 					.ObserveOn(RxApp.MainThreadScheduler);
 
 			History = new HistoryViewModel(this, uiConfig, balanceChanged);

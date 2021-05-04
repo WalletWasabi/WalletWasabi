@@ -23,6 +23,7 @@
     </DockPanel>
 
     <DataGrid Items="{Binding CollectionView}"
+              SelectedItem="{Binding SelectedItem}"
               CanUserResizeColumns="False"
               DockPanel.Dock="Bottom">
       <DataGrid.Styles>
