@@ -50,8 +50,10 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			try
 			{
+				var aliceClients = CreateAliceClients();
+
 				// Register coins.
-				AliceClient[] aliceClients = await RegisterCoinsAsync(stoppingToken).ConfigureAwait(false);
+				await RegisterCoinsAsync(aliceClients, stoppingToken).ConfigureAwait(false);
 
 				// Confirm coins.
 				await ConfirmConnectionsAsync(aliceClients, stoppingToken).ConfigureAwait(false);
@@ -78,30 +80,32 @@ namespace WalletWasabi.WabiSabi.Client
 			await StartAsync(DisposeCts.Token).ConfigureAwait(false);
 		}
 
-		private async Task<AliceClient[]> RegisterCoinsAsync(CancellationToken stoppingToken)
+		private IEnumerable<AliceClient> CreateAliceClients()
 		{
-			var aliceArenaClient = new ArenaClient(
-				Round.AmountCredentialIssuerParameters,
-				Round.VsizeCredentialIssuerParameters,
-				AmountCredentialPool,
-				VsizeCredentialPool,
-				ArenaRequestHandler,
-				SecureRandom);
-
 			List<AliceClient> aliceClients = new();
-
 			foreach (var coin in Coins)
 			{
+				var aliceArenaClient = new ArenaClient(
+					Round.AmountCredentialIssuerParameters,
+					Round.VsizeCredentialIssuerParameters,
+					AmountCredentialPool,
+					VsizeCredentialPool,
+					ArenaRequestHandler,
+					SecureRandom);
+
 				var hdKey = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey.WitHash.ScriptPubKey).Single();
 				var secret = hdKey.PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
-
-				AliceClient aliceClient = new(Round.Id, aliceArenaClient, coin, Round.FeeRate, secret);
-				await aliceClient.RegisterInputAsync(stoppingToken).ConfigureAwait(false);
-				aliceClients.Add(aliceClient);
-				await Task.Delay(Random.Next(0, 1000), stoppingToken).ConfigureAwait(false);
+				aliceClients.Add(new AliceClient(Round.Id, aliceArenaClient, coin, Round.FeeRate, secret));
 			}
+			return aliceClients;
+		}
 
-			return aliceClients.ToArray();
+		private async Task RegisterCoinsAsync(IEnumerable<AliceClient> aliceClients, CancellationToken stoppingToken)
+		{
+			foreach (var aliceClient in aliceClients)
+			{
+				await aliceClient.RegisterInputAsync(stoppingToken).ConfigureAwait(false);
+			}
 		}
 
 		private async Task ConfirmConnectionsAsync(IEnumerable<AliceClient> aliceClients, CancellationToken stoppingToken)
@@ -173,7 +177,7 @@ namespace WalletWasabi.WabiSabi.Client
 			return amounts.Select(amount => (amount, Keymanager.GenerateNewKey("", KeyState.Locked, true, true))).ToArray(); // Keymanager threadsafe => no!?
 		}
 
-		private async Task SignTransactionAsync(AliceClient[] aliceClients, Transaction unsignedCoinJoinTransaction, CancellationToken stoppingToken)
+		private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, CancellationToken stoppingToken)
 		{
 			foreach (var aliceClient in aliceClients)
 			{
