@@ -4,16 +4,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Models;
 
 namespace WalletWasabi.WabiSabi.Client
 {
 	public class AliceClient
 	{
-		public AliceClient(uint256 aliceId, uint256 roundId, ArenaClient arenaClient, Coin coin, FeeRate feeRate, BitcoinSecret bitcoinSecret)
+		public AliceClient(uint256 roundId, ArenaClient arenaClient, Coin coin, FeeRate feeRate, BitcoinSecret bitcoinSecret)
 		{
-			AliceId = aliceId;
+			AliceId = CalculateHash(coin, bitcoinSecret, roundId);
 			RoundId = roundId;
 			ArenaClient = arenaClient;
 			Coin = coin;
@@ -28,15 +30,21 @@ namespace WalletWasabi.WabiSabi.Client
 		private FeeRate FeeRate { get; }
 		private BitcoinSecret BitcoinSecret { get; }
 
-		public async Task ConfirmConnectionAsync(TimeSpan confirmInterval, CancellationToken token)
+		public async Task RegisterInputAsync(CancellationToken cancellationToken)
 		{
-			while (!await ConfirmConnectionAsync().ConfigureAwait(false))
+			uint256 aliceId = await ArenaClient.RegisterInputAsync(Coin.Amount, Coin.Outpoint, BitcoinSecret.PrivateKey, RoundId, cancellationToken).ConfigureAwait(false);
+			Logger.LogInfo($"Round ({RoundId}), Alice ({aliceId}): Registered an input.");
+		}
+
+		public async Task ConfirmConnectionAsync(TimeSpan confirmInterval, CancellationToken cancellationToken)
+		{
+			while (!await ConfirmConnectionAsync(cancellationToken).ConfigureAwait(false))
 			{
-				await Task.Delay(confirmInterval, token).ConfigureAwait(false);
+				await Task.Delay(confirmInterval, cancellationToken).ConfigureAwait(false);
 			}
 		}
 
-		private async Task<bool> ConfirmConnectionAsync()
+		private async Task<bool> ConfirmConnectionAsync(CancellationToken cancellationToken)
 		{
 			var inputVsize = Constants.P2wpkhInputVirtualSize;
 			var inputRemainingVsizes = new[] { ProtocolConstants.MaxVsizePerAlice - inputVsize };
@@ -60,37 +68,30 @@ namespace WalletWasabi.WabiSabi.Client
 					AliceId,
 					inputRemainingVsizes,
 					amountCredentials.ZeroValue.Take(ProtocolConstants.CredentialNumber),
-					amountsToRequest)
+					amountsToRequest,
+					cancellationToken)
 				.ConfigureAwait(false);
 		}
 
-		public async Task RemoveInputAsync()
+		public async Task RemoveInputAsync(CancellationToken cancellationToken)
 		{
-			await ArenaClient.RemoveInputAsync(RoundId, AliceId).ConfigureAwait(false);
+			await ArenaClient.RemoveInputAsync(RoundId, AliceId, cancellationToken).ConfigureAwait(false);
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Inputs removed.");
 		}
 
-		public async Task SignTransactionAsync(Transaction unsignedCoinJoin)
+		public async Task SignTransactionAsync(Transaction unsignedCoinJoin, CancellationToken cancellationToken)
 		{
-			await ArenaClient.SignTransactionAsync(RoundId, Coin, BitcoinSecret, unsignedCoinJoin).ConfigureAwait(false);
+			await ArenaClient.SignTransactionAsync(RoundId, Coin, BitcoinSecret, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
 
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Posted a signature.");
 		}
 
-		public static async Task<AliceClient> CreateNewAsync(
-			ArenaClient arenaClient,
-			Coin coin,
-			BitcoinSecret bitcoinSecret,
-			uint256 roundId,
-			FeeRate feeRate)
+		private static uint256 CalculateHash(Coin coin, BitcoinSecret bitcoinSecret, uint256 roundId)
 		{
-			uint256 aliceId = await arenaClient.RegisterInputAsync(coin.Amount, coin.Outpoint, bitcoinSecret.PrivateKey, roundId).ConfigureAwait(false);
-
-			AliceClient client = new(aliceId, roundId, arenaClient, coin, feeRate, bitcoinSecret);
-
-			Logger.LogInfo($"Round ({roundId}), Alice ({aliceId}): Registered an input.");
-
-			return client;
+			var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
+				bitcoinSecret.PrivateKey,
+				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundId));
+			return new Alice(coin, ownershipProof).Id;
 		}
 	}
 }

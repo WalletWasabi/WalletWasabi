@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tor.Http.Helpers;
 using WalletWasabi.Tor.Http.Models;
@@ -53,13 +54,13 @@ namespace WalletWasabi.Tor.Http.Extensions
 			return response;
 		}
 
-		public static async Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me)
+		public static async Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me, CancellationToken cancellationToken = default)
 		{
 			var errorMessage = "";
 
 			if (me.Content is { })
 			{
-				var contentString = await me.Content.ReadAsStringAsync().ConfigureAwait(false);
+				var contentString = await me.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
 				// Remove " from beginning and end to ensure backwards compatibility and it's kindof trash, too.
 				if (contentString.Count(f => f == '"') <= 2)
