@@ -9,7 +9,7 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 
 namespace WalletWasabi.WabiSabi.Client
 {
-	public class ClientRound
+	public record ClientRound
 	{
 		public ClientRound(Round round)
 		{
