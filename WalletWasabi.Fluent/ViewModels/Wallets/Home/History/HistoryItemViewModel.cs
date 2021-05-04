@@ -1,7 +1,6 @@
 using System;
 using System.Reactive;
 using System.Windows.Input;
-using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;

@@ -65,7 +65,7 @@
             <DataTemplate>
               <Panel x:DataType="history:HistoryItemViewModel">
                 <PathIcon ToolTip.Tip="Transaction" Data="{StaticResource normal_transaction}" Opacity="0.6" IsVisible="{Binding !IsCoinJoin}" />
-                <PathIcon ToolTip.Tip="CoinJoin" Data="{StaticResource shield_regular}" Opacity="0.6" Height="12" Width="12" IsVisible="{Binding IsCoinJoin}" />
+                <PathIcon ToolTip.Tip="CoinJoin" Data="{StaticResource shield_regular}" Height="15" Opacity="0.6" IsVisible="{Binding IsCoinJoin}" />
               </Panel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
@@ -149,7 +149,7 @@
             <DataTemplate>
               <Button x:DataType="history:HistoryItemViewModel" Classes="plain" ToolTip.Tip="Details"
                       Command="{Binding ShowDetailsCommand}">
-                <PathIcon Data="{StaticResource details_regular}" Opacity="0.6" />
+                <PathIcon Data="{StaticResource details_regular}" Height="15" Opacity="0.6" />
               </Button>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
