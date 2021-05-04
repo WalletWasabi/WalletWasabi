@@ -95,7 +95,8 @@ namespace WalletWasabi.BitcoinCore
 			// Chunk it because it doesn't work properly for more.
 			foreach (var chunk in txids.Distinct().ChunkBy(100))
 			{
-				foreach (var tx in node.GetMempoolTransactions(chunk.ToArray(), cancel))
+				var txs = node.GetMempoolTransactions(chunk.ToArray(), cancel);
+				foreach (var tx in txs)
 				{
 					tx.PrecomputeHash(invalidateExisting: false, lazily: true);
 					yield return tx;
