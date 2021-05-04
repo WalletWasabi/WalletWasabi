@@ -56,7 +56,9 @@ namespace WalletWasabi.BitcoinCore.Mempool
 			AddTransactions(stx.Transaction);
 		}
 
-		private int AddTransactions(params Transaction[] txs)
+		private int AddTransactions(params Transaction[] txs) => AddTransactions(txs as IEnumerable<Transaction>);
+
+		private int AddTransactions(IEnumerable<Transaction> txs)
 		{
 			var added = 0;
 			lock (MempoolLock)
@@ -102,21 +104,18 @@ namespace WalletWasabi.BitcoinCore.Mempool
 		{
 			var mempoolHashes = await Rpc.GetRawMempoolAsync().ConfigureAwait(false);
 
-			uint256[] missing;
+			IEnumerable<uint256> missing;
 			lock (MempoolLock)
 			{
-				var toEvict = Mempool.Keys.Except(mempoolHashes);
-				missing = mempoolHashes.Except(Mempool.Keys).ToArray();
+				missing = mempoolHashes.Except(Mempool.Keys);
 
-				foreach (var txid in toEvict.ToHashSet())
+				foreach (var txid in Mempool.Keys.Except(mempoolHashes).ToHashSet())
 				{
 					Mempool.Remove(txid);
 				}
 			}
 
-			var toAdd = Node.GetMempoolTransactions(missing, cancel).ToHashSet();
-
-			var added = AddTransactions(toAdd.ToArray());
+			var added = AddTransactions(Node.GetMempoolTransactions(missing, cancel));
 			return added;
 		}
 	}
