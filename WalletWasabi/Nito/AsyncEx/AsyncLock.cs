@@ -163,7 +163,8 @@ namespace Nito.AsyncEx
 				}
 				else
 				{
-					_queue.Dequeue(new Key(this));
+					using Key key = new(this);
+					_queue.Dequeue(key);
 				}
 			}
 		}
