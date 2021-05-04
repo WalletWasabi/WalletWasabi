@@ -34,7 +34,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
 			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, rpc);
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
-			await handler.RegisterInputAsync(req);
+			await handler.RegisterInputAsync(req, CancellationToken.None);
 
 			var alice = Assert.Single(round.Alices);
 			alice.Deadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
@@ -135,7 +135,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.Single(round.Alices);
 			DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
 			alice.Deadline = preDeadline;
-			await handler.ConfirmConnectionAsync(req);
+			await handler.ConfirmConnectionAsync(req, CancellationToken.None);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Single(round.Alices);
 			Assert.NotEqual(preDeadline, alice.Deadline);

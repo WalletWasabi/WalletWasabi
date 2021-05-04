@@ -52,7 +52,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);
 
 			var aliceClient = new AliceClient(round.Id, arenaClient, coin1.Coin, round.FeeRate, bitcoinSecret);
-			await aliceClient.RegisterInputAsync();
+			await aliceClient.RegisterInputAsync(CancellationToken.None);
 
 			Task confirmationTask = aliceClient.ConfirmConnectionAsync(TimeSpan.FromSeconds(3), CancellationToken.None);
 
