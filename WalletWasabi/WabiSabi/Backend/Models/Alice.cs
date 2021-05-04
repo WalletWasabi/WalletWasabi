@@ -40,13 +40,5 @@ namespace WalletWasabi.WabiSabi.Backend.Models
 				.Append(ProtocolConstants.AliceCoinOutpointStrobeLabel, Coin.Outpoint)
 				.Append(ProtocolConstants.AliceOwnershipProofStrobeLabel, OwnershipProof)
 				.GetHash();
-
-		public static uint256 CalculateHash(Coin coin, BitcoinSecret bitcoinSecret, uint256 roundId)
-		{
-			var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
-				bitcoinSecret.PrivateKey,
-				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundId));
-			return new Alice(coin, ownershipProof).CalculateHash();
-		}
 	}
 }
