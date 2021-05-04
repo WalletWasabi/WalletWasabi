@@ -196,7 +196,6 @@ namespace WalletWasabi.Tests.UnitTests.Hwi
 
 			var deviceType = entry.Model;
 			var devicePath = entry.Path;
-			HDFingerprint fingerprint = entry.Fingerprint.Value;
 
 			var wipe = await Assert.ThrowsAsync<HwiException>(async () => await client.WipeAsync(deviceType, devicePath, cts.Token));
 			Assert.Equal("The Coldcard does not support wiping via software", wipe.Message);
