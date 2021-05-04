@@ -3,6 +3,7 @@ using NBitcoin;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto;
@@ -50,7 +51,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			CredentialPool vsizeCredentials = new();
 			var aliceArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, amountCredentials, vsizeCredentials, coordinator, new InsecureRandom());
 
-			var aliceId = await aliceArenaClient.RegisterInputAsync(Money.Coins(1m), outpoint, key, round.Id);
+			var aliceId = await aliceArenaClient.RegisterInputAsync(Money.Coins(1m), outpoint, key, round.Id, CancellationToken.None);
 
 			Assert.NotEqual(uint256.Zero, aliceId);
 			Assert.Empty(amountCredentials.Valuable);
@@ -72,7 +73,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				aliceId,
 				inputRemainingVsizes,
 				amountCredentials.ZeroValue.Take(ProtocolConstants.CredentialNumber),
-				reissuanceAmounts);
+				reissuanceAmounts,
+				CancellationToken.None);
 
 			Assert.Empty(amountCredentials.Valuable);
 
@@ -85,7 +87,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				aliceId,
 				inputRemainingVsizes,
 				amountCredentials.ZeroValue.Take(ProtocolConstants.CredentialNumber),
-				reissuanceAmounts);
+				reissuanceAmounts,
+				CancellationToken.None);
 
 			Assert.Single(amountCredentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.First());
 			Assert.Single(amountCredentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.Last());
@@ -108,7 +111,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				reissuanceAmounts[1],
 				destinationKey2.PubKey.WitHash.ScriptPubKey,
 				amountCredentials.Valuable,
-				vsizeCredentials.Valuable);
+				vsizeCredentials.Valuable,
+				CancellationToken.None);
 
 			Assert.Equal(6, amountCredentials.ZeroValue.Count());
 			Assert.Equal(6, vsizeCredentials.ZeroValue.Count());
@@ -124,14 +128,16 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				reissuanceAmounts[0],
 				destinationKey1.PubKey.WitHash.ScriptPubKey,
 				new[] { amountCred1 },
-				new[] { vsizeCred1 });
+				new[] { vsizeCred1 },
+				CancellationToken.None);
 
 			await bobArenaClient.RegisterOutputAsync(
 				round.Id,
 				reissuanceAmounts[1],
 				destinationKey2.PubKey.WitHash.ScriptPubKey,
 				new[] { amountCred2 },
-				new[] { vsizeCred2 });
+				new[] { vsizeCred2 },
+				CancellationToken.None);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
@@ -158,7 +164,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			round.SetPhase(Phase.InputRegistration);
 
-			await apiClient.RemoveInputAsync(round.Id, alice.Id);
+			await apiClient.RemoveInputAsync(round.Id, alice.Id, CancellationToken.None);
 			Assert.Empty(round.Alices);
 		}
 
@@ -194,31 +200,34 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var finalizedEmptyState = new SigningState(emptyState.Parameters, emptyState.Inputs.ToImmutableArray(), emptyState.Outputs.ToImmutableArray());
 
 			// No inputs in the CoinJoin.
-			await Assert.ThrowsAsync<ArgumentException>(async () => await apiClient.SignTransactionAsync(round.Id, alice1.Coin, new BitcoinSecret(key1, Network.Main), finalizedEmptyState.CreateUnsignedTransaction()));
+			await Assert.ThrowsAsync<ArgumentException>(async () =>
+				await apiClient.SignTransactionAsync(round.Id, alice1.Coin, new BitcoinSecret(key1, Network.Main), finalizedEmptyState.CreateUnsignedTransaction(), CancellationToken.None));
 
 			var oneInput = emptyState.AddInput(alice1.Coin).Finalize();
 			round.CoinjoinState = oneInput;
 
 			// Trying to sign coins those are not in the CoinJoin.
-			await Assert.ThrowsAsync<InvalidOperationException>(async () => await apiClient.SignTransactionAsync(round.Id, alice2.Coin, new BitcoinSecret(key2, Network.Main), oneInput.CreateUnsignedTransaction()));
+			await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+				await apiClient.SignTransactionAsync(round.Id, alice2.Coin, new BitcoinSecret(key2, Network.Main), oneInput.CreateUnsignedTransaction(), CancellationToken.None));
 
 			var twoInputs = emptyState.AddInput(alice1.Coin).AddInput(alice2.Coin).Finalize();
 			round.CoinjoinState = twoInputs;
 
 			// Trying to sign coins with the wrong secret.
-			await Assert.ThrowsAsync<InvalidOperationException>(async () => await apiClient.SignTransactionAsync(round.Id, alice1.Coin, new BitcoinSecret(key2, Network.Main), twoInputs.CreateUnsignedTransaction()));
+			await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+				await apiClient.SignTransactionAsync(round.Id, alice1.Coin, new BitcoinSecret(key2, Network.Main), twoInputs.CreateUnsignedTransaction(), CancellationToken.None));
 
 			Assert.False(round.CoinjoinState.AssertSigning().IsFullySigned);
 
 			var unsigned = round.CoinjoinState.AssertSigning().CreateUnsignedTransaction();
 
-			await apiClient.SignTransactionAsync(round.Id, alice1.Coin, new BitcoinSecret(key1, Network.Main), unsigned);
+			await apiClient.SignTransactionAsync(round.Id, alice1.Coin, new BitcoinSecret(key1, Network.Main), unsigned, CancellationToken.None);
 			Assert.True(round.CoinjoinState.AssertSigning().IsInputSigned(alice1.Coin.Outpoint));
 			Assert.False(round.CoinjoinState.AssertSigning().IsInputSigned(alice2.Coin.Outpoint));
 
 			Assert.False(round.CoinjoinState.AssertSigning().IsFullySigned);
 
-			await apiClient.SignTransactionAsync(round.Id, alice2.Coin, new BitcoinSecret(key2, Network.Main), unsigned);
+			await apiClient.SignTransactionAsync(round.Id, alice2.Coin, new BitcoinSecret(key2, Network.Main), unsigned, CancellationToken.None);
 			Assert.True(round.CoinjoinState.AssertSigning().IsInputSigned(alice2.Coin.Outpoint));
 
 			Assert.True(round.CoinjoinState.AssertSigning().IsFullySigned);
