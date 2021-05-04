@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.BitcoinCore.Mempool
@@ -29,11 +30,76 @@ namespace WalletWasabi.BitcoinCore.Mempool
 		private Dictionary<uint256, Transaction> Mempool { get; } = new();
 		private object MempoolLock { get; } = new();
 
+		public override Task StartAsync(CancellationToken cancellationToken)
+		{
+			Node.MempoolService.TransactionReceived += MempoolService_TransactionReceived;
+			return base.StartAsync(cancellationToken);
+		}
+
+		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+		{
+			var sw = Stopwatch.StartNew();
+			int added = await MirrorMempoolAsync(stoppingToken).ConfigureAwait(false);
+			Logger.LogInfo($"{added} transactions were copied from the full node to the in-memory mempool within {sw.Elapsed.TotalSeconds} seconds.");
+
+			await base.ExecuteAsync(stoppingToken).ConfigureAwait(false);
+		}
+
+		public override Task StopAsync(CancellationToken cancellationToken)
+		{
+			Node.MempoolService.TransactionReceived -= MempoolService_TransactionReceived;
+			return base.StopAsync(cancellationToken);
+		}
+
+		private void MempoolService_TransactionReceived(object? sender, SmartTransaction stx)
+		{
+			AddTransactions(stx.Transaction);
+		}
+
+		private int AddTransactions(params Transaction[] txs)
+		{
+			var added = 0;
+			lock (MempoolLock)
+			{
+				foreach (var tx in txs.Where(x => !Mempool.ContainsKey(x.GetHash())))
+				{
+					// Evict double spents.
+					EvictSpendersNoLock(tx.Inputs.Select(x => x.PrevOut));
+
+					Mempool.Add(tx.GetHash(), tx);
+					added++;
+				}
+			}
+			return added;
+		}
+
+		private void EvictSpendersNoLock(IEnumerable<OutPoint> txOuts)
+		{
+			HashSet<uint256> doubleSpents = new();
+			foreach (var input in txOuts)
+			{
+				foreach (var mempoolTx in Mempool)
+				{
+					if (mempoolTx.Value.Inputs.Select(x => x.PrevOut).Contains(input))
+					{
+						doubleSpents.Add(mempoolTx.Key);
+					}
+				}
+			}
+
+			foreach (var txid in doubleSpents)
+			{
+				Mempool.Remove(txid);
+			}
+		}
+
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
-			var firstTime = !Mempool.Any();
-			var sw = Stopwatch.StartNew();
+			await MirrorMempoolAsync(cancel).ConfigureAwait(false);
+		}
 
+		private async Task<int> MirrorMempoolAsync(CancellationToken cancel)
+		{
 			var mempoolHashes = await Rpc.GetRawMempoolAsync().ConfigureAwait(false);
 
 			uint256[] missing;
@@ -50,19 +116,8 @@ namespace WalletWasabi.BitcoinCore.Mempool
 
 			var toAdd = Node.GetMempoolTransactions(missing, cancel).ToHashSet();
 
-			lock (MempoolLock)
-			{
-				foreach (var tx in toAdd)
-				{
-					Mempool.Add(tx.GetHash(), tx);
-				}
-			}
-
-			sw.Stop();
-			if (firstTime)
-			{
-				Logger.LogInfo($"{toAdd.Count} transactions were copied from the full node to the in-memory mempool within {sw.Elapsed.TotalSeconds} seconds.");
-			}
+			var added = AddTransactions(toAdd.ToArray());
+			return added;
 		}
 	}
 }
