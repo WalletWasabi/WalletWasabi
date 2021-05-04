@@ -58,6 +58,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 				// TODO: notification
 			}
 
+			Labels.Clear();
+
 			Navigate().To(new ReceiveAddressViewModel(newKey, WasabiWallet.Network, WasabiWallet.KeyManager.MasterFingerprint,
 				WasabiWallet.KeyManager.IsHardwareWallet));
 		}
@@ -76,11 +78,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			base.OnNavigatedTo(isInHistory, disposable);
 
 			IsExistingAddressesButtonVisible = WasabiWallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
-
-			if (!isInHistory)
-			{
-				Labels.Clear();
-			}
 		}
 
 		private HashSet<string> GetLabels(WalletManager walletManager, BitcoinStore store)
