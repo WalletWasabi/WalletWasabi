@@ -65,7 +65,7 @@ namespace WalletWasabi.WabiSabi.Client
 				Transaction? unsignedCoinJoinTransaction = null; // TODO: Get it from somewhere.
 
 				// Send signature.
-				await SignTransactionAsync(aliceClients, unsignedCoinJoinTransaction).ConfigureAwait(false);
+				await SignTransactionAsync(aliceClients, unsignedCoinJoinTransaction, stoppingToken).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -95,7 +95,9 @@ namespace WalletWasabi.WabiSabi.Client
 				var hdKey = Keymanager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey.WitHash.ScriptPubKey).Single();
 				var secret = hdKey.PrivateKey.GetBitcoinSecret(Keymanager.GetNetwork());
 
-				aliceClients.Add(await AliceClient.CreateNewAsync(aliceArenaClient, coin, secret, Round.Id, Round.FeeRate).ConfigureAwait(false));
+				AliceClient aliceClient = new(Round.Id, aliceArenaClient, coin, Round.FeeRate, secret);
+				await aliceClient.RegisterInputAsync(stoppingToken).ConfigureAwait(false);
+				aliceClients.Add(aliceClient);
 				await Task.Delay(Random.Next(0, 1000), stoppingToken).ConfigureAwait(false);
 			}
 
@@ -140,7 +142,8 @@ namespace WalletWasabi.WabiSabi.Client
 					remaining,
 					justNeedtheSize,
 					new[] { remainingAmountCredentials },
-					new[] { remainingVsizeCredentials }).ConfigureAwait(false);
+					new[] { remainingVsizeCredentials },
+					stoppingToken).ConfigureAwait(false);
 
 				remainingAmountCredentials = result.RealAmountCredentials.Last();
 				remainingVsizeCredentials = result.RealVsizeCredentials.Last();
@@ -149,7 +152,8 @@ namespace WalletWasabi.WabiSabi.Client
 					output.Amount,
 					output.Pubkey.PubKey.WitHash.ScriptPubKey,
 					new[] { result.RealAmountCredentials.First() },
-					new[] { result.RealVsizeCredentials.First() }).ConfigureAwait(false);
+					new[] { result.RealVsizeCredentials.First() },
+					stoppingToken).ConfigureAwait(false);
 
 				await Task.Delay(Random.Next(0, 1000), stoppingToken).ConfigureAwait(false);
 			}
@@ -169,11 +173,11 @@ namespace WalletWasabi.WabiSabi.Client
 			return amounts.Select(amount => (amount, Keymanager.GenerateNewKey("", KeyState.Locked, true, true))).ToArray(); // Keymanager threadsafe => no!?
 		}
 
-		private async Task SignTransactionAsync(AliceClient[] aliceClients, Transaction unsignedCoinJoinTransaction)
+		private async Task SignTransactionAsync(AliceClient[] aliceClients, Transaction unsignedCoinJoinTransaction, CancellationToken stoppingToken)
 		{
 			foreach (var aliceClient in aliceClients)
 			{
-				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction).ConfigureAwait(false);
+				await aliceClient.SignTransactionAsync(unsignedCoinJoinTransaction, stoppingToken).ConfigureAwait(false);
 			}
 		}
 
