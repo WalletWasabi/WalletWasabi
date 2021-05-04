@@ -14,24 +14,23 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Gui;
 using WalletWasabi.Logging;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 {
 	public partial class HistoryViewModel : ActivatableViewModel
 	{
-		private readonly Wallet _wallet;
 		private readonly SourceList<HistoryItemViewModel> _transactionSourceList;
+		private readonly WalletViewModel _walletViewModel;
 		private readonly IObservable<Unit> _updateTrigger;
 		private readonly ObservableCollectionExtended<HistoryItemViewModel> _transactions;
 		private readonly ObservableCollectionExtended<HistoryItemViewModel> _unfilteredTransactions;
 
 		[AutoNotify] private bool _showCoinJoin;
 
-		public HistoryViewModel(Wallet wallet, UiConfig uiConfig, IObservable<Unit> updateTrigger)
+		public HistoryViewModel(WalletViewModel walletViewModel, UiConfig uiConfig, IObservable<Unit> updateTrigger)
 		{
+			_walletViewModel = walletViewModel;
 			_updateTrigger = updateTrigger;
-			_wallet = wallet;
 			_showCoinJoin = uiConfig.ShowCoinJoinInHistory;
 			_transactionSourceList = new SourceList<HistoryItemViewModel>();
 			_transactions = new ObservableCollectionExtended<HistoryItemViewModel>();
@@ -92,7 +91,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		{
 			try
 			{
-				var historyBuilder = new TransactionHistoryBuilder(_wallet);
+				var historyBuilder = new TransactionHistoryBuilder(_walletViewModel.Wallet);
 				var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
 				_transactionSourceList.Clear();
 
@@ -101,7 +100,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				{
 					var transactionSummary = txRecordList[i];
 					balance += transactionSummary.Amount;
-					_transactionSourceList.Add(new HistoryItemViewModel(i, transactionSummary, _wallet, balance, _updateTrigger));
+					_transactionSourceList.Add(new HistoryItemViewModel(i, transactionSummary, _walletViewModel, balance, _updateTrigger));
 				}
 			}
 			catch (Exception ex)

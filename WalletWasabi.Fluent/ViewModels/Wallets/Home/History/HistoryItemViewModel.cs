@@ -4,21 +4,20 @@ using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 {
 	public class HistoryItemViewModel
 	{
-		public HistoryItemViewModel(int orderIndex, TransactionSummary transactionSummary, Wallet wallet, Money balance, IObservable<Unit> updateTrigger)
+		public HistoryItemViewModel(int orderIndex, TransactionSummary transactionSummary, WalletViewModel walletViewModel, Money balance, IObservable<Unit> updateTrigger)
 		{
 			TransactionSummary = transactionSummary;
 			Date = transactionSummary.DateTime.ToLocalTime();
 			IsCoinJoin = transactionSummary.IsLikelyCoinJoinOutput;
 			OrderIndex = orderIndex;
 			Balance = balance;
+			var wallet = walletViewModel.Wallet;
 
 			var confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int) wallet.BitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
 			IsConfirmed = confirmations > 0;
@@ -33,13 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				IncomingAmount = amount;
 			}
 
-			ShowDetailsCommand = ReactiveCommand.Create(() =>
-			{
-				if (NavigationState.Instance.DialogScreenNavigation is { } navStack)
-				{
-					navStack.To(new TransactionDetailsViewModel(transactionSummary, wallet, updateTrigger));
-				}
-			});
+			ShowDetailsCommand = ReactiveCommand.Create(() => walletViewModel.Navigate().To(new TransactionDetailsViewModel(transactionSummary, wallet, updateTrigger)));
 		}
 
 		public ICommand ShowDetailsCommand { get; }
