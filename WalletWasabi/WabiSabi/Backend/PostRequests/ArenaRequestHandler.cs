@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Nito.AsyncEx;
@@ -29,7 +30,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 		public IRPCClient Rpc { get; }
 		public Network Network { get; }
 
-		public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request)
+		public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
@@ -45,7 +46,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			}
 		}
 
-		public async Task RemoveInputAsync(InputsRemovalRequest request)
+		public async Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
@@ -54,7 +55,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			}
 		}
 
-		public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request)
+		public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
@@ -63,7 +64,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			}
 		}
 
-		public async Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request)
+		public async Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
@@ -72,7 +73,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			}
 		}
 
-		public async Task SignTransactionAsync(TransactionSignaturesRequest request)
+		public async Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
@@ -81,18 +82,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			}
 		}
 
-		private void DisposeGuard()
-		{
-			lock (DisposeStartedLock)
-			{
-				if (DisposeStarted)
-				{
-					throw new ObjectDisposedException(nameof(ArenaRequestHandler));
-				}
-			}
-		}
-
-		public async Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request)
+		public async Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request, CancellationToken cancellationToken)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
@@ -108,6 +98,17 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 				DisposeStarted = true;
 			}
 			await RunningRequests.WhenAllAsync().ConfigureAwait(false);
+		}
+
+		private void DisposeGuard()
+		{
+			lock (DisposeStartedLock)
+			{
+				if (DisposeStarted)
+				{
+					throw new ObjectDisposedException(nameof(ArenaRequestHandler));
+				}
+			}
 		}
 	}
 }

@@ -17,6 +17,7 @@ using WalletWasabi.Backend.Middlewares;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients;
 
 [assembly: ApiController]
@@ -43,8 +44,10 @@ namespace WalletWasabi.Backend
 			services.AddMvc()
 				.AddNewtonsoftJson();
 
-			services.AddControllers()
-				.AddNewtonsoftJson();
+			services.AddControllers().AddNewtonsoftJson(x => 
+			{
+				x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters;
+			});
 
 			// Register the Swagger generator, defining one or more Swagger documents
 			services.AddSwaggerGen(c =>
