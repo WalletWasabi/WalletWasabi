@@ -28,7 +28,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public KeyManager Keymanager { get; }
 		private SecureRandom SecureRandom { get; }
 		private CancellationTokenSource DisposeCts { get; } = new();
-		private Coin[] Coins { get; set; }
+		private IEnumerable<Coin> Coins { get; set; }
 		private Random Random { get; } = new();
 
 		public CoinJoinClient(
@@ -43,7 +43,7 @@ namespace WalletWasabi.WabiSabi.Client
 			Kitchen = kitchen;
 			Keymanager = keymanager;
 			SecureRandom = new SecureRandom();
-			Coins = coins.ToArray();
+			Coins = coins;
 		}
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
