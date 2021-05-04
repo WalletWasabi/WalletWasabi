@@ -147,7 +147,7 @@
                                 CanUserSort="False">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
-              <Button x:DataType="history:HistoryItemViewModel" Classes="plain" ToolTip.Tip="Details"
+              <Button x:DataType="history:HistoryItemViewModel" Classes="plain" ToolTip.Tip="Show Details"
                       Command="{Binding ShowDetailsCommand}">
                 <PathIcon Data="{StaticResource details_regular}" Height="15" Opacity="0.6" />
               </Button>
