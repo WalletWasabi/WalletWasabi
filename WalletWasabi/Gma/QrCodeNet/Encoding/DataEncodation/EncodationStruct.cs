@@ -4,7 +4,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 {
 	internal struct EncodationStruct
 	{
-		internal EncodationStruct(VersionControlStruct vcStruct, BitList dataCodewords) : this()
+		internal EncodationStruct(VersionControlStruct vcStruct, BitList dataCodewords)
 		{
 			VersionDetail = vcStruct.VersionDetail;
 			DataCodewords = dataCodewords;
