@@ -22,7 +22,7 @@
       <Label Content="Transaction History" DockPanel.Dock="Left" FontWeight="Bold" FontSize="16"/>
     </DockPanel>
 
-    <DataGrid Items="{Binding Transactions}"
+    <DataGrid Items="{Binding CollectionView}"
               CanUserResizeColumns="False"
               DockPanel.Dock="Bottom">
       <DataGrid.Styles>

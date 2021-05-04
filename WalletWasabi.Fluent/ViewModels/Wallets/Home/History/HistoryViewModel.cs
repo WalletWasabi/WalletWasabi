@@ -1,10 +1,12 @@
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Avalonia.Collections;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
@@ -38,8 +40,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			this.WhenAnyValue(x => x.ShowCoinJoin)
 				.Subscribe(showCoinJoin => uiConfig.ShowCoinJoinInHistory = showCoinJoin);
 
+			var sortDescription = DataGridSortDescription.FromPath(nameof(HistoryItemViewModel.OrderIndex), ListSortDirection.Descending);
+			CollectionView = new DataGridCollectionView(Transactions);
+			CollectionView.SortDescriptions.Add(sortDescription);
+
 			RxApp.MainThreadScheduler.Schedule(async () => await UpdateAsync());
 		}
+
+		public DataGridCollectionView CollectionView { get; }
 
 		public ObservableCollection<HistoryItemViewModel> UnfilteredTransactions => _unfilteredTransactions;
 
