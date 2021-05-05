@@ -61,12 +61,36 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			)
 			{
 				var g = DependencyGraph.ResolveCredentialDependencies(amounts);
+				AssertResolvedGraphInvariants(g);
 				Assert.Equal(finalVertexCount, g.Vertices.Count);
-
-				// TODO assertions for proper edge values
-				// TODO opportunistic draining of weight credentials - add tests for max depth?
-				// TODO assert max depth
 			}
+		}
+
+		private void AssertResolvedGraphInvariants(DependencyGraph graph)
+		{
+			foreach (var node in graph.Vertices)
+			{
+				for (CredentialType credentialType = 0; credentialType < CredentialType.NumTypes; credentialType++)
+				{
+					var balance = graph.Balance(node, credentialType);
+
+					Assert.True(balance >= 0);
+
+					var inDegree = graph.InDegree(node, credentialType);
+					Assert.InRange(inDegree, 0, DependencyGraph.K);
+
+					var outDegree = graph.OutDegree(node, credentialType);
+					Assert.InRange(outDegree, 0, DependencyGraph.K);
+
+					if (outDegree == DependencyGraph.K)
+					{
+						Assert.Equal(0, balance);
+					}
+				}
+			}
+
+			// TODO opportunistic draining of weight credentials - add tests for max depth?
+			// TODO assert max depth < ceil(log count)?
 		}
 
 		[Fact]
@@ -90,8 +114,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			{
 				Assert.Throws<ArgumentException>(() => DependencyGraph.ResolveCredentialDependencies(test));
 			}
-
-			// TODO manually construct bad graphs and ensure assert rejects them?
 		}
 	}
 }

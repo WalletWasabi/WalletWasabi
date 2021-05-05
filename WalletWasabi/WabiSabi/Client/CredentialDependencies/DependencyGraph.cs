@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
@@ -103,26 +102,17 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			Vertices = Vertices.Add(node);
 		}
 
-		private RequestNode NewReissuanceNode()
-		{
-			var node = new RequestNode(Vertices.Count, Enumerable.Repeat(0L, (int)K).ToImmutableArray());
-			AddNode(node);
-			return node;
-		}
-
-		private long Balance(RequestNode node, CredentialType type) =>
+		public long Balance(RequestNode node, CredentialType type) =>
 			node.InitialBalance(type) + EdgeBalances[(int)type][node.Id];
 
-		private int InDegree(RequestNode node, CredentialType credentialType) =>
+		public int InDegree(RequestNode node, CredentialType credentialType) =>
 			Predecessors[(int)credentialType][node.Id].Count;
 
-		private int OutDegree(RequestNode node, CredentialType credentialType) =>
+		public int OutDegree(RequestNode node, CredentialType credentialType) =>
 			Successors[(int)credentialType][node.Id].Count;
 
 		private void AddEdge(CredentialDependency edge)
 		{
-			Debug.Assert(edge.Value > 0, "edge value positive");
-
 			var successors = Successors[(int)edge.CredentialType][edge.From.Id];
 			var predecessors = Predecessors[(int)edge.CredentialType][edge.To.Id];
 
@@ -157,112 +147,6 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			predecessors.Add(edge);
 		}
 
-		// Drain values towards the center of the graph, propagating values
-		// forwards or backwards corresponding to fan-in and fan out credenetial
-		// dependencies.
-		private void Drain(RequestNode x, IEnumerable<RequestNode> ys, CredentialType type)
-		{
-			// The nodes' initial balance determines edge direction. The given
-			// nodes all have non-zero value and reissuance nodes always start
-			// at 0. When x is a sink, we build a fan-in structure, and and when
-			// x is a source it's an out.
-			// We only check the first of the y nodes to see if we need to treat
-			// x as a source or a sink.
-			var xIsSink = x.InitialBalance(type).CompareTo(ys.First().InitialBalance(type)) == -1;
-
-			Debug.Assert(ys.All(y => Balance(y, type) != 0), "y balances");
-			Debug.Assert(ys.Select(y => Balance(y, type).CompareTo(0)).Distinct().Single() != Balance(x, type).CompareTo(0), "overall balances");
-
-			if (xIsSink)
-			{
-				Debug.Assert(InDegree(x, type) <= K-1, "x fan in degree");
-				Debug.Assert(InDegree(x, type) + ys.Count() <= K, "x + ys fan in degree");
-				Debug.Assert(ys.All(y => OutDegree(y, type) <= K-1), "ys fan in degree");
-			}
-			else
-			{
-				Debug.Assert(OutDegree(x, type) <= K-1, "x fan out degree");
-				Debug.Assert(OutDegree(x, type) + ys.Count() <= K, "x + ys fan out degree");
-				Debug.Assert(ys.All(y => InDegree(y, type) <= K-1), "ys fan out degree");
-			}
-
-			foreach (var y in ys)
-			{
-				// The amount for the edge is always determined by the `y`
-				// values, since we only add reissuance nodes to reduce the
-				// number of values required.
-				long amount = Balance(y, type);
-
-				// TODO split into helper methods for either case?
-				if (xIsSink)
-				{
-					Debug.Assert(amount > 0, nameof(amount));
-					AddEdge(new(y, x, type, (ulong)amount));
-
-					// Also drain all of the other credential types, to minimize
-					// dependencies between requests, weight credentials should
-					// often be easily satisfiable with parallel edges to the
-					// amount credential edges.
-					for (CredentialType extraType = type + 1; extraType < CredentialType.NumTypes; extraType++)
-					{
-						var extraBalance = Balance(y, extraType);
-
-						Debug.Assert(extraBalance >= 0, nameof(extraBalance));
-						if (extraBalance > 0 )
-						{
-							// assert balance of other credential type?
-							// Don't over-fund a negative balance sink with its last edge
-							// can give Math.Min(extraBalance, -Balance(x, type))
-							if (x.InitialBalance(type) == 0 || extraBalance == -Balance(x, extraType))
-							{
-								AddEdge(new(y, x, extraType, (ulong)extraBalance));
-							}
-						}
-					}
-				}
-				else
-				{
-					Debug.Assert(amount != 0, nameof(amount));
-					Debug.Assert(amount < 0, nameof(amount));
-
-					if (x.InitialBalance(type) == 0)
-					{
-						// When x is a reissuance node, it will fan out to
-						// multiple ys, and should consolidate their entire
-						// negative balance.
-						AddEdge(new(x, y, type, (ulong)(-1 * amount)));
-
-						// Same as reissuance node in the opposite direction branch.
-						for (CredentialType extraType = type + 1; extraType < CredentialType.NumTypes; extraType++)
-						{
-							var extraBalance = Balance(y, extraType);
-							Debug.Assert(extraBalance <= 0, nameof(extraBalance));
-							if (extraBalance < 0)
-							{
-								AddEdge(new(x, y, extraType, (ulong)(-1 * extraBalance)));
-							}
-						}
-					}
-					else
-					{
-						// When x is the source, we can only utilize its remaining
-						// balance. The effective balance of the last y term term
-						// might still have a negative magnitude after this.
-						AddEdge(new(x, y, type, (ulong)Math.Min(Balance(x, type), -1 * amount)));
-
-						// here we avoid adding opportunistic edges as this
-						// provides no benefit for K=2, the regular loop should
-						// handle it (we could consider adding up to 1
-						// edge opportunistically? it could help avoiding
-						// crossings, but we already have that through the
-						// ordered vertices, since Linq does stable sorts, and
-						// because all reissuance nodes will take the
-						// opportunistic path.
-					}
-				}
-			}
-		}
-
 		private void ResolveCredentials()
 		{
 			for (CredentialType credentialType = 0; credentialType < CredentialType.NumTypes; credentialType++)
@@ -270,64 +154,18 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				// Stop when no negative valued nodes remain. The total sum is
 				// positive, so by discharging elements of opposite values this
 				// list is guaranteed to be reducible until empty.
-				for (;;)
+				while (SelectNodesToDischarge(credentialType, out RequestNode? largestMagnitudeNode, out IEnumerable<RequestNode>? smallMagnitudeNodes))
 				{
-					// Order the nodes of the graph based on their balances
-					var ordered = VerticesByBalance(credentialType);
-					List<RequestNode> positive = ordered.ThenBy(x => OutDegree(x, credentialType)).Where(v => Balance(v, credentialType) > 0).ToList();
-					List<RequestNode> negative = Enumerable.Reverse(ordered.ThenByDescending(x => InDegree(x, credentialType)).Where(v => Balance(v, credentialType) < 0)).ToList();
-
-					if (negative.Count == 0)
-					{
-						break;
-					}
-
-					Debug.Assert(negative.All(x => InDegree(x, credentialType) < K), "negative in degree < K");
-					Debug.Assert(positive.All(x => OutDegree(x, credentialType) < K), "positive out degree < K");
-
-					var nPositive = 1;
-					var nNegative = 1;
-
-					IEnumerable<RequestNode> posCandidates() => positive.Take(nPositive);
-					IEnumerable<RequestNode> negCandidates() => negative.Take(nNegative);
-					long posSum() => posCandidates().Sum(x => Balance(x, credentialType));
-					long negSum() => negCandidates().Sum(x => Balance(x, credentialType));
-					long compare() => posSum().CompareTo(-1 * negSum());
-
-					// Compare the first of each. we want to fully discharge the
-					// larger (in absolute magnitude) of the two nodes, so we
-					// will add more nodes to the smaller one until we can fully
-					// cover. At each step of the iteration we fully discharge
-					// at least 2 nodes from the queue.
-					var initialComparison = compare();
-					var fanIn = initialComparison == -1;
-
-					if (initialComparison != 0)
-					{
-						Action takeOneMore = fanIn ? () => nPositive++ : () => nNegative++;
-
-						// take more nodes until the comparison sign changes or
-						// we run out.
-						while (initialComparison == compare()
-								 && (fanIn ? positive.Count - nPositive > 0
-										   : negative.Count - nNegative > 0))
-						{
-							takeOneMore();
-						}
-					}
-
-					var largestMagnitudeNode = (fanIn ? negative.Take(nNegative).Single() : positive.Take(nPositive).Single()); // assert n == 1?
-					var smallMagnitudeQueue = (fanIn ? positive.Take(nPositive).Reverse() : negative.Take(nNegative)).ToList(); // reverse positive values so we always proceed in order of increasing magnitude
-					var largestIsSink = largestMagnitudeNode.InitialBalance(credentialType).CompareTo(smallMagnitudeQueue.First().InitialBalance(credentialType)) == -1;
+					var largestIsSink = largestMagnitudeNode!.InitialBalance(credentialType).CompareTo(smallMagnitudeNodes!.First().InitialBalance(credentialType)) == -1;
 					var maxCount = K - (largestIsSink ? InDegree(largestMagnitudeNode, credentialType) : OutDegree(largestMagnitudeNode, credentialType));
 
-					if (!fanIn && compare() == 1)
+					if (Math.Abs(Balance(largestMagnitudeNode, credentialType)) > Math.Abs(smallMagnitudeNodes!.Sum(x => Balance(x, credentialType))))
 					{
 						// When we are draining a positive valued node into
 						// multiple negative nodes and we can't drain it
 						// completely, we need to leave an edge unused for the
 						// remaining amount.
-						// The corresponding check isn't needed for fan in
+						// The corresponding condition can't actually happen for fan-in
 						// because the negative balance of the last loop
 						// iteration can't exceed the the remaining positive
 						// elements, their total sum must be positive as checked
@@ -335,63 +173,14 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 						maxCount--;
 					}
 
-					Debug.Assert(smallMagnitudeQueue.All(x => Balance(x, credentialType) != 0), "small values all != 0");
-					negative.RemoveRange(0, nNegative);
-					positive.RemoveRange(0, nPositive);
+					// Reduce the number of small magnitude nodes to the number
+					// of edges available for use in the largest magnitude node
+					smallMagnitudeNodes = LimitCount(smallMagnitudeNodes!, maxCount, credentialType);
 
-					// build a k-ary tree bottom up>
-					// when the accumulated balance is even we can create k
-					// edges, but if it's not exactly the same we'll need
-					// one less for the remaining non-zero amount.
-					while (smallMagnitudeQueue.Count > maxCount)
-					{
-						// add a new intermediate node
-						var reissuance = NewReissuanceNode();
-
-						Debug.Assert(reissuance.InitialBalance(credentialType) == 0L, "reissuance node initial balance");
-
-						// dequeue up to k nodes, possibly the entire queue. the
-						// total number of items might be less than K but still
-						// larger than maxCount (number of remaining slots in
-						// the drained node)
-						var take = Math.Min(K, smallMagnitudeQueue.Count);
-						var nodesToCombine = smallMagnitudeQueue.Take(take).ToImmutableArray();
-						smallMagnitudeQueue.RemoveRange(0, take);
-
-						Debug.Assert(nodesToCombine.All(x => Balance(x, credentialType) != 0), "nodes to combine should all have non-zero value");
-
-						// enqueue in their stead a reissuance node accounting
-						// for their combined values, positive or negative.
-						Drain(reissuance, nodesToCombine, credentialType);
-
-						Debug.Assert(string.Join(" ", Enumerable.Repeat(0L, nodesToCombine.Length)) == string.Join(" ", nodesToCombine.Select(x => Balance(x, credentialType))), "combined nodes should be drained completely");
-						Debug.Assert(Balance(reissuance, credentialType) != 0, "the reissuance node has a non-zero balance");
-						Debug.Assert(smallMagnitudeQueue.All(x => Balance(x, credentialType) != 0), "everything left in the queue has a non-zero balance");
-						smallMagnitudeQueue.Add(reissuance);
-						Debug.Assert(smallMagnitudeQueue.All(x => Balance(x, credentialType) != 0), "everything left in the queue has a non-zero balance");
-					}
-					Debug.Assert(smallMagnitudeQueue.Count <= maxCount, "small magnitude length");
-					Debug.Assert(smallMagnitudeQueue.All(x => Balance(x, credentialType) != 0), "x");
-
-					// When the queue has been reduced to this point, we can
-					// actually cancel out negative and positive values. If this
-					// is a fan in then the reissuance node will act as a sink
-					// for the complete values of the prior nodes. If it's a fan
-					// out, the sum of the smaller nodes' negative values can
-					// exceed the value of the larger node, so the last one may
-					// still have a negative value after draining the value from
-					// the larger node.
-					Drain(largestMagnitudeNode, smallMagnitudeQueue, credentialType);
-
-					// Return the last smaller magnitude node if it's got a non 0 balance.
-					// largestMagnitudeNode should be fully utilized so it never
-					// needs to be returned when it has a non-zero balance,
-					// because the stopping condition is determined only by
-					// negative nodes having been eliminated.
-					if (Balance(smallMagnitudeQueue.Last(), credentialType) != 0)
-					{
-						(fanIn ? negative : positive).Add(smallMagnitudeQueue.Last());
-					}
+					// After draining either the last small magnitude node or
+					// the largest magnitude node could still have a non-zero
+					// value.
+					DrainTerminal(largestMagnitudeNode!, smallMagnitudeNodes!, credentialType);
 				}
 
 				// at this point the sub-graph of credentialType edges should be
@@ -402,52 +191,159 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			// at this point the entire graoh should be a DAG with labeled
 			// edges that can be partitioned into NumTypes different planar
 			// DAGs, and the invariants should hold for all of these.
-			AssertResolvedGraphInvariants();
 		}
 
-		public void AssertResolvedGraphInvariants()
+		// Find the largest negative or positive balance node for the given
+		// credential type, and one or more smaller nodes with a combined total
+		// magnitude exceeding that of the largest magnitude node when possible.
+		public bool SelectNodesToDischarge(CredentialType credentialType, out RequestNode? largestMagnitudeNode, out IEnumerable<RequestNode>? smallMagnitudeNodes)
 		{
-			// TODO doc comment. summary? description?
-			// Ensure resolved graph invariants hold:
-			// - no degree > k
-			// - degree k nodes fully discharged (no implicit leftover
-			//   amount without room for zero credential)
-			// - no negative balances (relax?)
-			foreach (var node in Vertices)
+			// Order the nodes of the graph based on their balances
+			var ordered = VerticesByBalance(credentialType);
+			ImmutableArray<RequestNode> positive = ordered.ThenBy(x => OutDegree(x, credentialType)).Where(v => Balance(v, credentialType) > 0).ToImmutableArray();
+			ImmutableArray<RequestNode> negative = Enumerable.Reverse(ordered.ThenByDescending(x => InDegree(x, credentialType)).Where(v => Balance(v, credentialType) < 0)).ToImmutableArray();
+
+			if (negative.Length == 0)
 			{
-				for (CredentialType credentialType = 0; credentialType < CredentialType.NumTypes; credentialType++)
+				largestMagnitudeNode = null;
+				smallMagnitudeNodes = null;
+				return false;
+			}
+
+			var nPositive = 1;
+			var nNegative = 1;
+
+			IEnumerable<RequestNode> posCandidates() => positive.Take(nPositive);
+			IEnumerable<RequestNode> negCandidates() => negative.Take(nNegative);
+			long posSum() => posCandidates().Sum(x => Balance(x, credentialType));
+			long negSum() => negCandidates().Sum(x => Balance(x, credentialType));
+			long compare() => posSum().CompareTo(-1 * negSum());
+
+			// We want to fully discharge the larger (in absolute magnitude) of
+			// the two nodes, so we will add more nodes to the smaller one until
+			// we can fully cover. At each step of the iteration we fully
+			// discharge at least 2 nodes from the queue.
+			var initialComparison = compare();
+			var fanIn = initialComparison == -1;
+
+			if (initialComparison != 0)
+			{
+				Action takeOneMore = fanIn ? () => nPositive++ : () => nNegative++;
+
+				// Take more nodes until the comparison sign changes or
+				// we run out.
+				while (initialComparison == compare()
+				       && (fanIn ? positive.Length - nPositive > 0
+				                 : negative.Length - nNegative > 0))
 				{
-					var balance = Balance(node, credentialType);
+					takeOneMore();
+				}
+			}
 
-					if (balance < 0)
-					{
-						throw new InvalidOperationException("Node must not have negative balance.");
-					}
+			largestMagnitudeNode = (fanIn ? negative.First() : positive.First() );
+			smallMagnitudeNodes = (fanIn ? positive.Take(nPositive).Reverse() : negative.Take(nNegative)); // reverse positive values so we always proceed in order of increasing magnitude
 
-					var inDegree = InDegree(node, credentialType);
-					if (inDegree > K)
-					{
-						// this is dead code, invariant enforced in AddEdge
-						throw new InvalidOperationException("Node must not exceed degree K");
-					}
+			return true;
+		}
 
-					if (inDegree == K && Balance(node, credentialType) < 0)
-					{
-						throw new InvalidOperationException("Node with maximum in-degree must not have a negative balance.");
-					}
+		// Build a k-ary tree bottom up to reduce a list of nodes.
+		private ImmutableList<RequestNode> LimitCount(IEnumerable<RequestNode> nodes, int maxCount, CredentialType credentialType)
+		{
+			var nodeQueue = nodes.ToImmutableList();
 
-					var outDegree = OutDegree(node, credentialType);
-					if (outDegree > K)
-					{
-						// this is dead code, invariant enforced in AddEdge
-						throw new InvalidOperationException("Node must not exceed degree K");
-					}
+			while (nodeQueue.Count > maxCount)
+			{
+				// Replace up to k nodes, possibly the entire queue, with a
+				// single reissuance node which combines their values. The total
+				// number of items might be less than K but still larger than
+				// maxCount.
+				var take = Math.Min(K, nodeQueue.Count);
+				var reissuance = NewReissuanceNode();
+				DrainReissuance(reissuance, nodeQueue.Take(take), credentialType);
+				nodeQueue = nodeQueue.RemoveRange(0, take).Add(reissuance);
+			}
 
-					if (outDegree == K && Balance(node, credentialType) != 0)
+			return nodeQueue;
+		}
+
+		private RequestNode NewReissuanceNode()
+		{
+			var node = new RequestNode(Vertices.Count, Enumerable.Repeat(0L, (int)K).ToImmutableArray());
+			AddNode(node);
+			return node;
+		}
+
+		// Drain values into a reissuance request (towards the center of the graph).
+		private void DrainReissuance(RequestNode x, IEnumerable<RequestNode> ys, CredentialType type)
+		{
+			// The nodes' initial balance determines edge direction. Reissuance
+			// nodes always have a 0 initial value.
+			var xIsSink = x.InitialBalance(type).CompareTo(ys.First().InitialBalance(type)) == -1;
+
+			foreach (var y in ys)
+			{
+				// The amount for the edge is always determined by the `y`
+				// values, since we only add reissuance nodes to reduce the
+				// number of values required.
+				long amount = Balance(y, type);
+
+				if (xIsSink)
+				{
+					AddEdge(new(y, x, type, (ulong)amount));
+				}
+				else
+				{
+					AddEdge(new(x, y, type, (ulong)(-1 * amount)));
+				}
+
+				// Also drain all of the other credential types, to minimize
+				// dependencies between different requests, weight
+				// credentials should often be easily satisfiable with
+				// parallel edges to the amount credential edges.
+				for (CredentialType extraType = type + 1; extraType < CredentialType.NumTypes; extraType++)
+				{
+					var extraBalance = Balance(y, extraType);
+					if (extraBalance != 0 )
 					{
-						throw new InvalidOperationException("Node with maximum out-degree must have 0 balance");
+						if (xIsSink)
+						{
+							AddEdge(new(y, x, extraType, (ulong)extraBalance));
+						}
+						else
+						{
+							AddEdge(new(x, y, extraType, (ulong)(-1 * extraBalance)));
+						}
 					}
 				}
+			}
+		}
+
+		// Drain credential values between terminal nodes, cancelling out
+		// opposite values by propagating forwards or backwards corresponding to
+		// fan-in and fan-out dependency structure.
+		private void DrainTerminal(RequestNode x, IEnumerable<RequestNode> ys, CredentialType type)
+		{
+			// The nodes' initial balance determines edge direction.
+			var xIsSink = x.InitialBalance(type).CompareTo(ys.First().InitialBalance(type)) == -1;
+
+			foreach (var y in ys)
+			{
+				long amount = Balance(y, type);
+
+				if (xIsSink)
+				{
+					AddEdge(new(y, x, type, (ulong)amount));
+				}
+				else
+				{
+					// When x is the source, we can only utilize its remaining
+					// balance. The effective balance of the last y term term
+					// might still have a negative magnitude after this.
+					AddEdge(new(x, y, type, (ulong)Math.Min(Balance(x, type), -1 * amount)));
+				}
+
+				// Here we avoid opportunistically adding edges as it provides no
+				// benefit with K=2. Stable sorting prevents edge crossing.
 			}
 		}
 	}
