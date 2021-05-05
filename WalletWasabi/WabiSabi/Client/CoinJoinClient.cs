@@ -101,12 +101,27 @@ namespace WalletWasabi.WabiSabi.Client
 			return aliceClients;
 		}
 
-		private async Task RegisterCoinsAsync(IEnumerable<AliceClient> aliceClients, CancellationToken stoppingToken)
+		private async Task<IEnumerable<AliceClient>> RegisterCoinsAsync(IEnumerable<AliceClient> aliceClients, CancellationToken stoppingToken)
 		{
-			foreach (var aliceClient in aliceClients)
+			List<AliceClient> successfulAliceClients = new();
+			try
 			{
-				await aliceClient.RegisterInputAsync(stoppingToken).ConfigureAwait(false);
+				foreach (var aliceClient in aliceClients)
+				{
+					await aliceClient.RegisterInputAsync(stoppingToken).ConfigureAwait(false);
+					successfulAliceClients.Add(aliceClient);
+				}
 			}
+			catch (Exception) // Try to register other inputs after an error?
+			{
+				// We got a partially successful registration. Sanity check.
+				if (successfulAliceClients.Count == 0 || successfulAliceClients.Sum(a => a.Coin.Amount) < Money.Coins(0.001m)) //TODO: what is the minimum here?
+				{
+					throw;
+				}
+			}
+
+			return successfulAliceClients;
 		}
 
 		private async Task ConfirmConnectionsAsync(IEnumerable<AliceClient> aliceClients, CancellationToken stoppingToken)

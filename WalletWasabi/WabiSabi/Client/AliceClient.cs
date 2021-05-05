@@ -26,7 +26,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public uint256 AliceId { get; }
 		public uint256 RoundId { get; }
 		private ArenaClient ArenaClient { get; }
-		private Coin Coin { get; }
+		public Coin Coin { get; }
 		private FeeRate FeeRate { get; }
 		private BitcoinSecret BitcoinSecret { get; }
 
