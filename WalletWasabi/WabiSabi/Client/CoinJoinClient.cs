@@ -13,6 +13,7 @@ using WalletWasabi.Tor.Http;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client
@@ -59,15 +60,15 @@ namespace WalletWasabi.WabiSabi.Client
 				await ConfirmConnectionsAsync(aliceClients, stoppingToken).ConfigureAwait(false);
 
 				// Planning
-				var outputs = DecomposeAmounts(stoppingToken);
+				ConstructionState constructionState = Round.CoinjoinState.AssertConstruction();
+				var outputs = DecomposeAmounts(constructionState, stoppingToken);
 
 				// Output registration.
 				await ReissueAndRegisterOutputsAsync(outputs, stoppingToken).ConfigureAwait(false);
 
-				Transaction? unsignedCoinJoinTransaction = null; // TODO: Get it from somewhere.
-
+				SigningState signingState = Round.CoinjoinState.AssertSigning();
 				// Send signature.
-				await SignTransactionAsync(aliceClients, unsignedCoinJoinTransaction, stoppingToken).ConfigureAwait(false);
+				await SignTransactionAsync(aliceClients, signingState.CreateUnsignedTransaction(), stoppingToken).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -163,7 +164,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		private IEnumerable<(Money Amount, HdPubKey Pubkey)> DecomposeAmounts(CancellationToken stoppingToken)
+		private IEnumerable<(Money Amount, HdPubKey Pubkey)> DecomposeAmounts(ConstructionState construction, CancellationToken stoppingToken)
 		{
 			const int Count = 4;
 
