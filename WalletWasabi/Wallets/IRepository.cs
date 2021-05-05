@@ -8,7 +8,7 @@ namespace WalletWasabi.Wallets
 	/// </summary>
 	public interface IRepository<TID, TElement>
 	{
-		Task<TElement?> GetAsync(TID id, CancellationToken cancel);
+		Task<TElement?> TryGetAsync(TID id, CancellationToken cancel);
 
 		Task SaveAsync(TElement element, CancellationToken cancel);
 
