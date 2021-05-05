@@ -34,7 +34,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 
 			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
-			var resp = await handler.RegisterInputAsync(req);
+			var resp = await handler.RegisterInputAsync(req, CancellationToken.None);
 			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -56,7 +56,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 
 			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
-			var resp = await handler.RegisterInputAsync(req);
+			var resp = await handler.RegisterInputAsync(req, CancellationToken.None);
 			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -81,7 +81,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 
 			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
 			var minAliceDeadline = DateTimeOffset.UtcNow + cfg.ConnectionConfirmationTimeout * 0.9;
-			var resp = await handler.RegisterInputAsync(req);
+			var resp = await handler.RegisterInputAsync(req, CancellationToken.None);
 			AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
 			Assert.Empty(anotherRound.Alices);
 			Assert.Equal(initialRemaining, anotherRound.RemainingInputVsizeAllocation);
