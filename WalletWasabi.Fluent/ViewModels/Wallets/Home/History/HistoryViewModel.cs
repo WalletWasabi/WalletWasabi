@@ -25,7 +25,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		private readonly IObservable<Unit> _updateTrigger;
 		private readonly ObservableCollectionExtended<HistoryItemViewModel> _transactions;
 		private readonly ObservableCollectionExtended<HistoryItemViewModel> _unfilteredTransactions;
-		private readonly object _updateLock = new();
+		private readonly object _transactionListLock = new();
 
 		[AutoNotify] private bool _showCoinJoin;
 		[AutoNotify] private HistoryItemViewModel? _selectedItem;
@@ -70,23 +70,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		{
 			base.OnActivated(disposables);
 
-			RxApp.MainThreadScheduler.Schedule(async () =>
-			{
-				await UpdateAsync();
+			RxApp.MainThreadScheduler.Schedule(async () => await UpdateAsync());
 
-				_transactionSourceList
-					.Connect()
-					.Throttle(TimeSpan.FromMilliseconds(100))
-					.Skip(2)
-					.OnItemAdded(_ =>
+			_transactionSourceList
+				.Connect()
+				.Throttle(TimeSpan.FromMilliseconds(100))
+				.Skip(2)
+				.OnItemAdded(_ =>
+				{
+					lock (_transactionListLock)
 					{
-						Console.WriteLine("Item added");
 						var newPendingItem = Transactions.OrderByDescending(x => x.OrderIndex).FirstOrDefault(x => !x.IsConfirmed);
 						SelectedItem = newPendingItem;
-					})
-					.Subscribe()
-					.DisposeWith(disposables);
-			});
+					}
+				})
+				.Subscribe()
+				.DisposeWith(disposables);
 
 			_updateTrigger
 				.Subscribe(async _ => await UpdateAsync())
@@ -115,7 +114,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				var historyBuilder = new TransactionHistoryBuilder(_walletViewModel.Wallet);
 				var txRecordList = await Task.Run(historyBuilder.BuildHistorySummary);
 
-				lock (_updateLock)
+				lock (_transactionListLock)
 				{
 					_transactionSourceList.Clear();
 
