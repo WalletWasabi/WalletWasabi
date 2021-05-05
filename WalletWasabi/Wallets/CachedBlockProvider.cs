@@ -28,7 +28,7 @@ namespace WalletWasabi.Wallets
 		/// <returns>The requested bitcoin block.</returns>
 		public async Task<Block> GetBlockAsync(uint256 hash, CancellationToken cancellationToken)
 		{
-			Block block = await BlockRepository.GetAsync(hash, cancellationToken).ConfigureAwait(false);
+			Block? block = await BlockRepository.GetAsync(hash, cancellationToken).ConfigureAwait(false);
 			if (block is null)
 			{
 				block = await BlockSourceProvider.GetBlockAsync(hash, cancellationToken).ConfigureAwait(false);

@@ -206,7 +206,7 @@ namespace WalletWasabi.Wallets
 		/// <param name="hash">The block's hash that identifies the requested block.</param>
 		/// <param name="cancellationToken">The cancellation token.</param>
 		/// <returns>The requested bitcoin block.</returns>
-		public async Task<Block> GetAsync(uint256 hash, CancellationToken cancellationToken)
+		public async Task<Block?> GetAsync(uint256 hash, CancellationToken cancellationToken)
 		{
 			// Try get the block.
 			Block? block = null;
@@ -221,7 +221,7 @@ namespace WalletWasabi.Wallets
 						byte[] blockBytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
 						block = Block.Load(blockBytes, Network);
 
-						new FileInfo(filePath)
+						_ = new FileInfo(filePath)
 						{
 							LastAccessTimeUtc = DateTime.UtcNow
 						};
