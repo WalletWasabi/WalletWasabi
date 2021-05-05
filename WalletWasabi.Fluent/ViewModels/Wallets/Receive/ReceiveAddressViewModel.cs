@@ -8,6 +8,7 @@ using Avalonia;
 using Gma.QrCodeNet.Encoding;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Hwi;
@@ -21,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		public ReceiveAddressViewModel(HdPubKey model, Network network, HDFingerprint? masterFingerprint, bool isHardwareWallet)
 		{
 			Address = model.GetP2wpkhAddress(network).ToString();
-			Reference = model.Label;
+			Labels = model.Label;
 			IsHardwareWallet = isHardwareWallet;
 
 			GenerateQrCode();
@@ -90,7 +91,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 		public string Address { get; }
 
-		public string Reference { get; }
+		public SmartLabel Labels { get; }
 
 		public bool[,]? QrCode { get; set; }
 

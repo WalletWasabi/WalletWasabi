@@ -208,6 +208,7 @@ namespace WalletWasabi.Fluent.Controls
 			bool itemWidthSet = !double.IsNaN(itemWidth);
 			bool itemHeightSet = !double.IsNaN(itemHeight);
 			bool useItemU = orientation == Orientation.Horizontal ? itemWidthSet : itemHeightSet;
+			bool hasWrapped = false;
 
 			for (int i = 0; i < children.Count; i++)
 			{
@@ -221,6 +222,7 @@ namespace WalletWasabi.Fluent.Controls
 
 					if (MathUtilities.GreaterThan(curLineSize.U + sz.U, uvFinalSize.U)) // Need to switch to another line
 					{
+						hasWrapped = true;
 						ArrangeLine(accumulatedV, curLineSize.V, firstInLine, i, useItemU, itemU, uvFinalSize);
 
 						accumulatedV += curLineSize.V;
@@ -249,6 +251,8 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				ArrangeLine(accumulatedV, curLineSize.V, firstInLine, children.Count, useItemU, itemU, uvFinalSize);
 			}
+
+			PseudoClasses.Set(":wrapped", hasWrapped);
 
 			return finalSize;
 		}

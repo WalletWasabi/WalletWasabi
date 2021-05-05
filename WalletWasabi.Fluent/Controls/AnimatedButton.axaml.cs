@@ -31,8 +31,6 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> AnimateIconProperty =
 			AvaloniaProperty.Register<AnimatedButton, bool>(nameof(AnimateIcon));
 
-		private CompositeDisposable? _compositeDisposable;
-
 		public ICommand Command
 		{
 			get => GetValue(CommandProperty);
@@ -73,6 +71,13 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(AnimateIconProperty);
 			set => SetValue(AnimateIconProperty, value);
+		}
+
+		protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+		{
+			base.OnAttachedToVisualTree(e);
+
+			AnimateIcon = false;
 		}
 	}
 }
