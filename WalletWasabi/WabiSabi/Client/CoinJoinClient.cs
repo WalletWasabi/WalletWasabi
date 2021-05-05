@@ -62,10 +62,10 @@ namespace WalletWasabi.WabiSabi.Client
 
 				// Planning
 				ConstructionState constructionState = Round.CoinjoinState.AssertConstruction();
-				var outputs = DecomposeAmounts(constructionState, stoppingToken);
+				var decompositionPlan = DecomposeAmounts(constructionState, stoppingToken);
 
 				// Output registration.
-				await ReissueAndRegisterOutputsAsync(outputs, stoppingToken).ConfigureAwait(false);
+				await ReissueAndRegisterOutputsAsync(decompositionPlan, stoppingToken).ConfigureAwait(false);
 
 				SigningState signingState = Round.CoinjoinState.AssertSigning();
 				// Send signature.
