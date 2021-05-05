@@ -118,5 +118,25 @@ namespace WalletWasabi.BitcoinCore.Mempool
 			var added = AddTransactions(Node.GetMempoolTransactions(missing, cancel));
 			return added;
 		}
+
+		public IEnumerable<Transaction> GetSpenderTransactions(IEnumerable<OutPoint> txOuts)
+		{
+			Dictionary<uint256, Transaction> spenders = new();
+			lock (MempoolLock)
+			{
+				foreach (var input in txOuts)
+				{
+					foreach (var mempoolTx in Mempool)
+					{
+						if (mempoolTx.Value.Inputs.Select(x => x.PrevOut).Contains(input))
+						{
+							spenders.Add(mempoolTx.Key, mempoolTx.Value);
+						}
+					}
+				}
+			}
+
+			return spenders.Values.ToArray();
+		}
 	}
 }
