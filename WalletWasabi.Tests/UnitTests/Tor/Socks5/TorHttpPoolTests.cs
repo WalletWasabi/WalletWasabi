@@ -7,6 +7,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.Tor.Socks5.Pool.Identities;
@@ -19,27 +21,90 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 	public class TorHttpPoolTests
 	{
 		/// <summary>
-		/// Tests <see cref="TorHttpPool.SendAsync(HttpRequestMessage, bool, CancellationToken)"/> method.
+		/// Tests that <see cref="TorHttpPool.SendAsync(HttpRequestMessage, IIdentity, CancellationToken)"/> method respects provided identity.
 		/// </summary>
-		/// <seealso href="https://stackoverflow.com/questions/9114053/sample-on-namedpipeserverstream-vs-namedpipeserverclient-having-pipedirection-in"/>
 		[Fact]
-		public async Task SendAsync()
+		public async Task UseCorrectIdentitiesAsync()
+		{
+			Common.GetWorkDir();
+			Logger.SetMinimumLevel(LogLevel.Trace);
+
+			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
+
+			IIdentity defaultIdentity = DefaultIdentity.Instance;
+			IIdentity aliceIdentity = new RandomIdentity(canTorCircuitBeReused: true); // Random but a non-changing identity.
+			IIdentity bobIdentity = new RandomIdentity(canTorCircuitBeReused: true); // Random but a non-changing identity.			
+
+			using TorTcpConnection aliceConnection = new(null!, new MemoryStream(), aliceIdentity, true);
+			using TorTcpConnection bobConnection = new(null!, new MemoryStream(), bobIdentity, true);
+			using TorTcpConnection defaultConnection = new(null!, new MemoryStream(), defaultIdentity, true);
+
+			Mock<TorTcpConnectionFactory> mockTcpConnectionFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
+			_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), aliceIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(aliceConnection);
+			_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), bobIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(bobConnection);
+			_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), defaultIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(defaultConnection);
+
+			TorTcpConnectionFactory tcpConnectionFactory = mockTcpConnectionFactory.Object;
+			using TorHttpPool pool = new(tcpConnectionFactory, (TorTcpConnection tcpConnection, HttpRequestMessage request, CancellationToken cancellationToken) =>
+			{
+				HttpResponseMessage httpResponse = new(HttpStatusCode.OK);
+
+				if (tcpConnection == aliceConnection)
+				{
+					httpResponse.Content = new StringContent("Alice circuit!");
+				}
+				else if (tcpConnection == bobConnection)
+				{
+					httpResponse.Content = new StringContent("Bob circuit!");
+				}
+				else if (tcpConnection == defaultConnection)
+				{
+					httpResponse.Content = new StringContent("Default circuit!");
+				}
+				else
+				{
+					throw new NotSupportedException();
+				}
+
+				return Task.FromResult(httpResponse);
+			});
+
+			using HttpRequestMessage request = new(HttpMethod.Get, "http://wasabi.backend");
+
+			using HttpResponseMessage aliceResponse = await pool.SendAsync(request, aliceIdentity);
+			Assert.Equal("Alice circuit!", await aliceResponse.Content.ReadAsStringAsync(timeoutCts.Token));
+
+			using HttpResponseMessage bobResponse = await pool.SendAsync(request, bobIdentity);
+			Assert.Equal("Bob circuit!", await bobResponse.Content.ReadAsStringAsync(timeoutCts.Token));
+
+			using HttpResponseMessage defaultResponse = await pool.SendAsync(request, defaultIdentity);
+			Assert.Equal("Default circuit!", await defaultResponse.Content.ReadAsStringAsync(timeoutCts.Token));
+
+			mockTcpConnectionFactory.VerifyAll();
+		}
+
+		/// <summary>
+		/// Tests that <see cref="TorHttpPool.SendAsync(HttpRequestMessage, IIdentity, CancellationToken)"/> method sends data as expected and
+		/// when sends an HTTP reply, it is correctly processed by <see cref="TorHttpPool"/>.
+		/// </summary>
+		[Fact]
+		public async Task RequestAndReplyAsync()
 		{
 			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
 
 			IIdentity identity = DefaultIdentity.Instance;
 
 			// Set up FAKE transport stream, so Tor is not in play.
-			await using TransportStream transportStream = new(nameof(SendAsync));
+			await using TransportStream transportStream = new(nameof(RequestAndReplyAsync));
 			await transportStream.ConnectAsync(timeoutCts.Token);
-
-			using StreamReader serverReader = new(transportStream.Server);
-			using StreamWriter serverWriter = new(transportStream.Server);
 
 			using TorTcpConnection connection = new(tcpClient: null!, transportStream.Client, identity, allowRecycling: true);
 
 			Mock<TorTcpConnectionFactory> mockFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
 			mockFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), It.IsAny<IIdentity>(), It.IsAny<CancellationToken>())).ReturnsAsync(connection);
+
+			using StreamReader serverReader = new(transportStream.Server);
+			using StreamWriter serverWriter = new(transportStream.Server);
 
 			using TorHttpPool pool = new(mockFactory.Object);
 			using HttpRequestMessage request = new(HttpMethod.Get, "http://somesite.com");

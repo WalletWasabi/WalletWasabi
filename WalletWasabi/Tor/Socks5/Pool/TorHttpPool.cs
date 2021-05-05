@@ -30,15 +30,21 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		/// <remarks>This parameter affects maximum parallelization for given URI host.</remarks>
 		public const int MaxConnectionsPerHost = 10;
 
+		public delegate Task<HttpResponseMessage> SendCoreDelegateAsync(TorTcpConnection connection, HttpRequestMessage request, CancellationToken token = default);
+
+		/// <seealso cref="SendCoreAsync(TorTcpConnection, HttpRequestMessage, CancellationToken)"/>
+		private readonly SendCoreDelegateAsync _sendCoreDelegateAsync;
+
 		public TorHttpPool(EndPoint endpoint)
+			: this(new TorTcpConnectionFactory(endpoint))
 		{
-			TcpConnectionFactory = new(endpoint);
 		}
 
-		/// <summary>Use in tests.</summary>
-		internal TorHttpPool(TorTcpConnectionFactory tcpConnectionFactory)
+		/// <summary>Constructor that helps in tests.</summary>
+		internal TorHttpPool(TorTcpConnectionFactory tcpConnectionFactory, SendCoreDelegateAsync? sendCoreDelegate = null)
 		{
 			TcpConnectionFactory = tcpConnectionFactory;
+			_sendCoreDelegateAsync = sendCoreDelegate ?? SendCoreAsync;
 		}
 
 		private bool _disposedValue;
@@ -106,7 +112,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 					try
 					{
 						Logger.LogTrace($"['{connection}'][Attempt #{i}] About to send request.");
-						HttpResponseMessage response = await SendCoreAsync(connection, request, cancellationToken).ConfigureAwait(false);
+						HttpResponseMessage response = await _sendCoreDelegateAsync(connection, request, cancellationToken).ConfigureAwait(false);
 
 						// Client works OK, no need to dispose.
 						connectionToDispose = null;
