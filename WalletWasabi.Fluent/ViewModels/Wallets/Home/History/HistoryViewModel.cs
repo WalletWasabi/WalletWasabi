@@ -30,7 +30,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		[AutoNotify] private bool _showCoinJoin;
 		[AutoNotify] private HistoryItemViewModel? _selectedItem;
 
-
 		public HistoryViewModel(WalletViewModel walletViewModel, UiConfig uiConfig, IObservable<Unit> updateTrigger)
 		{
 			_walletViewModel = walletViewModel;
