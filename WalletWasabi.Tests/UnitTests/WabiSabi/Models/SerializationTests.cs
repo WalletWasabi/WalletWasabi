@@ -8,30 +8,17 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
-using WalletWasabi.JsonConverters;
-using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
-using WalletWasabi.WabiSabi.Crypto.Serialization;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.Serialization;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 {
 	public class SerializationTests
 	{
-		private static JsonConverter[] Converters =
-		{
-			new ScalarJsonConverter(),
-			new GroupElementJsonConverter(),
-			new OutPointJsonConverter(),
-			new WitScriptJsonConverter(),
-			new ScriptJsonConverter(),
-			new OwnershipProofJsonConverter(),
-		};
-
 		private static IEnumerable<GroupElement> Points = Enumerable.Range(0, int.MaxValue).Select(i => Generators.FromText($"T{i}"));
 		private static IEnumerable<Scalar> Scalars = Enumerable.Range(1, int.MaxValue).Select(i => new Scalar((uint)i));
 		private static CredentialIssuerSecretKey IssuerKey = new (new InsecureRandom());
@@ -161,9 +148,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 
 		private static void AssertSerialization<T>(T message)
 		{
-			var serializedMessage = JsonConvert.SerializeObject(message, Converters);
-			var deserializedMessage = JsonConvert.DeserializeObject<T>(serializedMessage, Converters);
-			var reserializedMessage = JsonConvert.SerializeObject(deserializedMessage, Converters);
+			var serializedMessage = JsonConvert.SerializeObject(message, JsonSerializationOptions.Default.Settings);
+			var deserializedMessage = JsonConvert.DeserializeObject<T>(serializedMessage, JsonSerializationOptions.Default.Settings);
+			var reserializedMessage = JsonConvert.SerializeObject(deserializedMessage, JsonSerializationOptions.Default.Settings);
 			Assert.Equal(reserializedMessage, serializedMessage);
 		}
 

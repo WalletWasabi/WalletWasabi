@@ -36,5 +36,7 @@
     <x:Double x:Key="DataGridRowSelectedBackgroundOpacity">1.0</x:Double>
     <x:Double x:Key="DataGridRowSelectedUnfocusedBackgroundOpacity">1.0</x:Double>
 
+    <x:String x:Key="LabelsWatermarkText">i.e. Alice, Bob, Wasabi Inc, Exchange</x:String>
+
   </Styles.Resources>
 </Styles>
