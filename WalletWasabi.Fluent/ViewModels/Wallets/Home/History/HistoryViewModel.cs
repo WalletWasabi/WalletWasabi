@@ -77,7 +77,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				_transactionSourceList
 					.Connect()
 					.Throttle(TimeSpan.FromMilliseconds(100))
-					.Skip(1)
+					.Skip(2)
 					.OnItemAdded(_ =>
 					{
 						Console.WriteLine("Item added");
