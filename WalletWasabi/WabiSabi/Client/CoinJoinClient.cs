@@ -68,8 +68,13 @@ namespace WalletWasabi.WabiSabi.Client
 				await ReissueAndRegisterOutputsAsync(decompositionPlan, stoppingToken).ConfigureAwait(false);
 
 				SigningState signingState = Round.CoinjoinState.AssertSigning();
+				var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
+
+				// Sanity check.
+				SanityCheck(decompositionPlan, unsignedCoinJoin, stoppingToken);
+
 				// Send signature.
-				await SignTransactionAsync(aliceClients, signingState.CreateUnsignedTransaction(), stoppingToken).ConfigureAwait(false);
+				await SignTransactionAsync(aliceClients, unsignedCoinJoin, stoppingToken).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -210,6 +215,14 @@ namespace WalletWasabi.WabiSabi.Client
 			amounts.Add(total - amounts.Sum());
 
 			return amounts.Select(amount => (amount, Keymanager.GenerateNewKey("", KeyState.Locked, true, true))).ToArray(); // Keymanager threadsafe => no!?
+		}
+
+		private void SanityCheck(IEnumerable<(Money Amount, HdPubKey Pubkey)> outputs, Transaction unsignedCoinJoinTransaction, CancellationToken stoppingToken)
+		{
+			if (outputs.All(output => unsignedCoinJoinTransaction.Outputs.Select(o => o.ScriptPubKey.WitHash.ScriptPubKey).Contains(output.Pubkey.PubKey.ScriptPubKey)))
+			{
+				throw new InvalidOperationException($"Round ({Round.Id}): My output is missing.");
+			}
 		}
 
 		private async Task SignTransactionAsync(IEnumerable<AliceClient> aliceClients, Transaction unsignedCoinJoinTransaction, CancellationToken stoppingToken)
