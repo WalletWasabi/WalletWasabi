@@ -70,6 +70,38 @@
           "Avalonia": "0.10.3"
         }
       },
+      "Emgu.CV": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "HkjpYLxh9IVK311p/MXd54hRd2mF62LEO6vswYgiFdHdSQvNmnnZR3umQYP3lcuInqK2qp75w69m5Rz9lgA2bg==",
+        "dependencies": {
+          "System.Drawing.Primitives": "4.3.0",
+          "System.Runtime": "4.3.1",
+          "System.Runtime.InteropServices.RuntimeInformation": "4.3.0"
+        }
+      },
+      "Emgu.CV.Bitmap": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "Dq9vno6Gb0FESrd8WexIOILgQyXLG56xWKJJsx/kCErGsMZxHAN5NysDerHg1G+39aphUiHDMPykkTLiYt4ANQ==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)",
+          "System.Drawing.Common": "5.0.0"
+        }
+      },
+      "Emgu.CV.runtime.windows": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "IOhubaLFZUv9WZgdlCw9jmXODWhr8UWnoJqUkPmKp0q7fK+NmRdiAtR9yKyo4jtOrb5bytmpGQcTJ2weFP3DUg==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)",
+          "Emgu.runtime.windows.msvc.rt.x64": "[19.28.29336]",
+          "Emgu.runtime.windows.msvc.rt.x86": "[19.28.29336]"
+        }
+      },
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2019013001",
@@ -258,6 +290,16 @@
         "dependencies": {
           "System.Reactive": "5.0.0"
         }
+      },
+      "Emgu.runtime.windows.msvc.rt.x64": {
+        "type": "Transitive",
+        "resolved": "19.28.29336",
+        "contentHash": "GCDS8BtMW+xTE7p6eTbZmJQAdrjMMC+ThGk7b1c+2J/OKwqwjsCkAr6IGVcyx0C3cpQkJX79XyEj8L48SZCGzA=="
+      },
+      "Emgu.runtime.windows.msvc.rt.x86": {
+        "type": "Transitive",
+        "resolved": "19.28.29336",
+        "contentHash": "GkZCA+RyK4S6PSWE8pVisud6v//p35T+bR49BIU+AMOrnAzCTGt6AxWx9nZd7mjaseWFuBg0svHf6BxDj6Uneg=="
       },
       "JetBrains.Annotations": {
         "type": "Transitive",
@@ -1078,11 +1120,19 @@
       },
       "System.Drawing.Common": {
         "type": "Transitive",
-        "resolved": "4.5.0",
-        "contentHash": "AiJFxxVPdeITstiRS5aAu8+8Dpf5NawTMoapZ53Gfirml24p7HIfhjmCRxdXnmmf3IUA3AX3CcW7G73CjWxW/Q==",
+        "resolved": "5.0.0",
+        "contentHash": "SztFwAnpfKC8+sEKXAFxCBWhKQaEd97EiOL7oZJZP56zbqnLpmxACWA8aGseaUExciuEAUuR9dY8f7HkTRAdnw==",
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "2.0.0",
-          "Microsoft.Win32.SystemEvents": "4.5.0"
+          "Microsoft.Win32.SystemEvents": "5.0.0"
+        }
+      },
+      "System.Drawing.Primitives": {
+        "type": "Transitive",
+        "resolved": "4.3.0",
+        "contentHash": "1QU/c35gwdhvj77fkScXQQbjiVAqIL3fEYn/19NE0CV/ic5TN5PyWAft8HsrbRd4SBLEoErNCkWSzMDc0MmbRw==",
+        "dependencies": {
+          "System.Runtime": "4.3.0",
+          "System.Runtime.Extensions": "4.3.0"
         }
       },
       "System.Dynamic.Runtime": {
@@ -2113,6 +2163,17 @@
       }
     },
     ".NETCoreApp,Version=v5.0/linux-x64": {
+      "Emgu.CV.runtime.windows": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "IOhubaLFZUv9WZgdlCw9jmXODWhr8UWnoJqUkPmKp0q7fK+NmRdiAtR9yKyo4jtOrb5bytmpGQcTJ2weFP3DUg==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)",
+          "Emgu.runtime.windows.msvc.rt.x64": "[19.28.29336]",
+          "Emgu.runtime.windows.msvc.rt.x86": "[19.28.29336]"
+        }
+      },
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2019013001",
@@ -2136,6 +2197,16 @@
           "Microsoft.NETCore.Platforms": "1.0.1",
           "SkiaSharp": "[1.68.0]"
         }
+      },
+      "Emgu.runtime.windows.msvc.rt.x64": {
+        "type": "Transitive",
+        "resolved": "19.28.29336",
+        "contentHash": "GCDS8BtMW+xTE7p6eTbZmJQAdrjMMC+ThGk7b1c+2J/OKwqwjsCkAr6IGVcyx0C3cpQkJX79XyEj8L48SZCGzA=="
+      },
+      "Emgu.runtime.windows.msvc.rt.x86": {
+        "type": "Transitive",
+        "resolved": "19.28.29336",
+        "contentHash": "GkZCA+RyK4S6PSWE8pVisud6v//p35T+bR49BIU+AMOrnAzCTGt6AxWx9nZd7mjaseWFuBg0svHf6BxDj6Uneg=="
       },
       "Libuv": {
         "type": "Transitive",
@@ -2537,11 +2608,10 @@
       },
       "System.Drawing.Common": {
         "type": "Transitive",
-        "resolved": "4.5.0",
-        "contentHash": "AiJFxxVPdeITstiRS5aAu8+8Dpf5NawTMoapZ53Gfirml24p7HIfhjmCRxdXnmmf3IUA3AX3CcW7G73CjWxW/Q==",
+        "resolved": "5.0.0",
+        "contentHash": "SztFwAnpfKC8+sEKXAFxCBWhKQaEd97EiOL7oZJZP56zbqnLpmxACWA8aGseaUExciuEAUuR9dY8f7HkTRAdnw==",
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "2.0.0",
-          "Microsoft.Win32.SystemEvents": "4.5.0"
+          "Microsoft.Win32.SystemEvents": "5.0.0"
         }
       },
       "System.Globalization": {
@@ -3142,6 +3212,17 @@
       }
     },
     ".NETCoreApp,Version=v5.0/osx-x64": {
+      "Emgu.CV.runtime.windows": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "IOhubaLFZUv9WZgdlCw9jmXODWhr8UWnoJqUkPmKp0q7fK+NmRdiAtR9yKyo4jtOrb5bytmpGQcTJ2weFP3DUg==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)",
+          "Emgu.runtime.windows.msvc.rt.x64": "[19.28.29336]",
+          "Emgu.runtime.windows.msvc.rt.x86": "[19.28.29336]"
+        }
+      },
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2019013001",
@@ -3165,6 +3246,16 @@
           "Microsoft.NETCore.Platforms": "1.0.1",
           "SkiaSharp": "[1.68.0]"
         }
+      },
+      "Emgu.runtime.windows.msvc.rt.x64": {
+        "type": "Transitive",
+        "resolved": "19.28.29336",
+        "contentHash": "GCDS8BtMW+xTE7p6eTbZmJQAdrjMMC+ThGk7b1c+2J/OKwqwjsCkAr6IGVcyx0C3cpQkJX79XyEj8L48SZCGzA=="
+      },
+      "Emgu.runtime.windows.msvc.rt.x86": {
+        "type": "Transitive",
+        "resolved": "19.28.29336",
+        "contentHash": "GkZCA+RyK4S6PSWE8pVisud6v//p35T+bR49BIU+AMOrnAzCTGt6AxWx9nZd7mjaseWFuBg0svHf6BxDj6Uneg=="
       },
       "Libuv": {
         "type": "Transitive",
@@ -3566,11 +3657,10 @@
       },
       "System.Drawing.Common": {
         "type": "Transitive",
-        "resolved": "4.5.0",
-        "contentHash": "AiJFxxVPdeITstiRS5aAu8+8Dpf5NawTMoapZ53Gfirml24p7HIfhjmCRxdXnmmf3IUA3AX3CcW7G73CjWxW/Q==",
+        "resolved": "5.0.0",
+        "contentHash": "SztFwAnpfKC8+sEKXAFxCBWhKQaEd97EiOL7oZJZP56zbqnLpmxACWA8aGseaUExciuEAUuR9dY8f7HkTRAdnw==",
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "2.0.0",
-          "Microsoft.Win32.SystemEvents": "4.5.0"
+          "Microsoft.Win32.SystemEvents": "5.0.0"
         }
       },
       "System.Globalization": {
@@ -4171,6 +4261,17 @@
       }
     },
     ".NETCoreApp,Version=v5.0/win7-x64": {
+      "Emgu.CV.runtime.windows": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "IOhubaLFZUv9WZgdlCw9jmXODWhr8UWnoJqUkPmKp0q7fK+NmRdiAtR9yKyo4jtOrb5bytmpGQcTJ2weFP3DUg==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)",
+          "Emgu.runtime.windows.msvc.rt.x64": "[19.28.29336]",
+          "Emgu.runtime.windows.msvc.rt.x86": "[19.28.29336]"
+        }
+      },
       "Avalonia.Angle.Windows.Natives": {
         "type": "Transitive",
         "resolved": "2.1.0.2019013001",
@@ -4194,6 +4295,16 @@
           "Microsoft.NETCore.Platforms": "1.0.1",
           "SkiaSharp": "[1.68.0]"
         }
+      },
+      "Emgu.runtime.windows.msvc.rt.x64": {
+        "type": "Transitive",
+        "resolved": "19.28.29336",
+        "contentHash": "GCDS8BtMW+xTE7p6eTbZmJQAdrjMMC+ThGk7b1c+2J/OKwqwjsCkAr6IGVcyx0C3cpQkJX79XyEj8L48SZCGzA=="
+      },
+      "Emgu.runtime.windows.msvc.rt.x86": {
+        "type": "Transitive",
+        "resolved": "19.28.29336",
+        "contentHash": "GkZCA+RyK4S6PSWE8pVisud6v//p35T+bR49BIU+AMOrnAzCTGt6AxWx9nZd7mjaseWFuBg0svHf6BxDj6Uneg=="
       },
       "Libuv": {
         "type": "Transitive",
@@ -4685,11 +4796,10 @@
       },
       "System.Drawing.Common": {
         "type": "Transitive",
-        "resolved": "4.5.0",
-        "contentHash": "AiJFxxVPdeITstiRS5aAu8+8Dpf5NawTMoapZ53Gfirml24p7HIfhjmCRxdXnmmf3IUA3AX3CcW7G73CjWxW/Q==",
+        "resolved": "5.0.0",
+        "contentHash": "SztFwAnpfKC8+sEKXAFxCBWhKQaEd97EiOL7oZJZP56zbqnLpmxACWA8aGseaUExciuEAUuR9dY8f7HkTRAdnw==",
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "2.0.0",
-          "Microsoft.Win32.SystemEvents": "4.5.0"
+          "Microsoft.Win32.SystemEvents": "5.0.0"
         }
       },
       "System.Globalization": {
