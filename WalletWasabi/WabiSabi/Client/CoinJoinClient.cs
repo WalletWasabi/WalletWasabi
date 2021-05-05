@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -54,10 +55,10 @@ namespace WalletWasabi.WabiSabi.Client
 				var aliceClients = CreateAliceClients();
 
 				// Register coins.
-				await RegisterCoinsAsync(aliceClients, stoppingToken).ConfigureAwait(false);
+				aliceClients = await RegisterCoinsAsync(aliceClients, stoppingToken).ConfigureAwait(false);
 
 				// Confirm coins.
-				await ConfirmConnectionsAsync(aliceClients, stoppingToken).ConfigureAwait(false);
+				aliceClients = await ConfirmConnectionsAsync(aliceClients, stoppingToken).ConfigureAwait(false);
 
 				// Planning
 				ConstructionState constructionState = Round.CoinjoinState.AssertConstruction();
@@ -103,34 +104,45 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task<IEnumerable<AliceClient>> RegisterCoinsAsync(IEnumerable<AliceClient> aliceClients, CancellationToken stoppingToken)
 		{
-			List<AliceClient> successfulAliceClients = new();
+			List<AliceClient> registeredAliceClients = new();
 			try
 			{
 				foreach (var aliceClient in aliceClients)
 				{
 					await aliceClient.RegisterInputAsync(stoppingToken).ConfigureAwait(false);
-					successfulAliceClients.Add(aliceClient);
+					registeredAliceClients.Add(aliceClient);
 				}
 			}
 			catch (Exception) // Try to register other inputs after an error?
 			{
 				// We got a partially successful registration. Sanity check.
-				if (successfulAliceClients.Count == 0 || successfulAliceClients.Sum(a => a.Coin.Amount) < Money.Coins(0.001m)) //TODO: what is the minimum here?
+				if (registeredAliceClients.Count == 0 || registeredAliceClients.Sum(a => a.Coin.Amount) < Money.Coins(0.001m)) //TODO: what is the minimum here?
 				{
 					throw;
 				}
 			}
 
-			return successfulAliceClients;
+			return registeredAliceClients;
 		}
 
-		private async Task ConfirmConnectionsAsync(IEnumerable<AliceClient> aliceClients, CancellationToken stoppingToken)
+		private async Task<IEnumerable<AliceClient>> ConfirmConnectionsAsync(IEnumerable<AliceClient> aliceClients, CancellationToken stoppingToken)
 		{
-			foreach (var alice in aliceClients)
+			List<AliceClient> confirmedAliceClients = new();
+			foreach (var aliceClient in aliceClients)
 			{
-				await alice.ConfirmConnectionAsync(TimeSpan.FromMilliseconds(Random.Next(1000, 5000)), stoppingToken).ConfigureAwait(false);
-				await Task.Delay(Random.Next(0, 1000), stoppingToken).ConfigureAwait(false);
+				try
+				{
+					await aliceClient.ConfirmConnectionAsync(TimeSpan.FromMilliseconds(Random.Next(1000, 5000)), stoppingToken).ConfigureAwait(false);
+					confirmedAliceClients.Add(aliceClient);
+					await Task.Delay(Random.Next(0, 1000), stoppingToken).ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogWarning($"Round ({Round.Id}), Alice ({aliceClient.AliceId}): ConfirmConnections failed, reason:'{ex}'.");
+				}
 			}
+
+			return confirmedAliceClients;
 		}
 
 		private async Task ReissueAndRegisterOutputsAsync(IEnumerable<(Money Amount, HdPubKey Pubkey)> outputs, CancellationToken stoppingToken)
