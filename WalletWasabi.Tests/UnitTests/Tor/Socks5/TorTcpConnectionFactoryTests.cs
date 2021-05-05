@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
@@ -32,6 +33,9 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 		[Fact]
 		public async Task AuthenticationErrorScenarioAsync()
 		{
+			Common.GetWorkDir();
+			Logger.SetMinimumLevel(LogLevel.Trace);
+
 			using CancellationTokenSource timeoutCts = new(TimeoutLimit);
 			CancellationToken timeoutToken = timeoutCts.Token;
 
@@ -79,7 +83,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 
 				// Read SOCKS version.
 				int methodByte = stream.ReadByte();
-				Assert.Equal(MethodField.NoAuthenticationRequired.ToByte(), methodByte);
+				Assert.Equal(MethodField.UsernamePassword.ToByte(), methodByte);
 
 				// Write response: version + method selected.
 				stream.WriteByte(VerField.Socks5.Value);
@@ -142,6 +146,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				using NetworkStream stream = client.GetStream();
 				stream.ReadTimeout = (int)TimeoutLimit.TotalMilliseconds;
 
+				// <Version method request>
 				// Read SOCKS protocol version.
 				int versionByte = stream.ReadByte();
 				Assert.Equal(VerField.Socks5.Value, versionByte);
@@ -150,14 +155,46 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 				int nmethodsByte = stream.ReadByte();
 				Assert.Equal(1, nmethodsByte);
 
-				// Read SOCKS version.
+				// Read method byte.
 				int methodByte = stream.ReadByte();
-				Assert.Equal(MethodField.NoAuthenticationRequired.ToByte(), methodByte);
+				Assert.Equal(MethodField.UsernamePassword.ToByte(), methodByte);
 
 				// Write response: version + method selected.
 				stream.WriteByte(VerField.Socks5.Value);
-				stream.WriteByte(MethodField.NoAuthenticationRequired.ToByte());
+				stream.WriteByte(MethodField.UsernamePassword.ToByte());
 				stream.Flush();
+
+				// </Version method request>
+
+				// <UsernamePasswordRequest>
+				// Read "AuthVerField" byte.
+				int authVerByte = stream.ReadByte();
+				Assert.Equal(AuthVerField.Version1.Value, authVerByte);
+
+				int ulenByte = stream.ReadByte();
+				Assert.Equal(21, ulenByte);
+
+				// Read "UName".
+				for (int j = 0; j < 21; j++)
+				{
+					_ = stream.ReadByte();
+				}
+
+				int plenByte = stream.ReadByte();
+				Assert.Equal(21, plenByte);
+
+				// Read "Passwd".
+				for (int j = 0; j < 21; j++)
+				{
+					_ = stream.ReadByte();
+				}
+
+				// Write response (UsernamePasswordResponse): version + method selected.
+				stream.WriteByte((byte)AuthVerField.Version1.Value);
+				stream.WriteByte(AuthStatusField.Success.ToByte());
+				stream.Flush();
+
+				// </UsernamePasswordRequest>
 
 				TorSocks5Request expectedConnectionRequest = new(cmd: CmdField.Connect, new(httpRequestHost), new(httpRequestPort));
 
