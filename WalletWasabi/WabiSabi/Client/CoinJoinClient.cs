@@ -105,21 +105,28 @@ namespace WalletWasabi.WabiSabi.Client
 		private async Task<IEnumerable<AliceClient>> RegisterCoinsAsync(IEnumerable<AliceClient> aliceClients, CancellationToken stoppingToken)
 		{
 			List<AliceClient> registeredAliceClients = new();
-			try
+
+			foreach (var aliceClient in aliceClients)
 			{
-				foreach (var aliceClient in aliceClients)
+				try
 				{
 					await aliceClient.RegisterInputAsync(stoppingToken).ConfigureAwait(false);
 					registeredAliceClients.Add(aliceClient);
 				}
-			}
-			catch (Exception) // Try to register other inputs after an error?
-			{
-				// We got a partially successful registration. Sanity check.
-				if (registeredAliceClients.Count == 0 || registeredAliceClients.Sum(a => a.Coin.Amount) < Money.Coins(0.001m)) //TODO: what is the minimum here?
+				catch (Exception ex)
 				{
-					throw;
+					Logger.LogWarning($"Round ({Round.Id}), Alice ({aliceClient.AliceId}): {nameof(AliceClient.RegisterInputAsync)} failed, reason:'{ex}'.");
 				}
+			}
+
+			if (registeredAliceClients.Count == 0)
+			{
+				throw new InvalidOperationException($"Round ({Round.Id}): No inputs were registered.");
+			}
+
+			if (registeredAliceClients.Sum(a => a.Coin.Amount) < Money.Coins(0.001m)) //TODO: what is the minimum here?
+			{
+				throw new InvalidOperationException($"Round ({Round.Id}): Could not register enough amount.");
 			}
 
 			return registeredAliceClients;
@@ -138,7 +145,7 @@ namespace WalletWasabi.WabiSabi.Client
 				}
 				catch (Exception ex)
 				{
-					Logger.LogWarning($"Round ({Round.Id}), Alice ({aliceClient.AliceId}): ConfirmConnections failed, reason:'{ex}'.");
+					Logger.LogWarning($"Round ({Round.Id}), Alice ({aliceClient.AliceId}): {nameof(AliceClient.ConfirmConnectionAsync)} failed, reason:'{ex}'.");
 				}
 			}
 
