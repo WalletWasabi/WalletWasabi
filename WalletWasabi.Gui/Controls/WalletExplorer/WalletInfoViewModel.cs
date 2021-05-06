@@ -45,7 +45,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					else
 					{
-						var secret = PasswordHelper.GetMasterExtKey(Wallet.KeyManager, Password, out string isCompatibilityPasswordUsed);
+						var secret = PasswordHelper.GetMasterExtKey(Wallet.KeyManager, Password, out var isCompatibilityPasswordUsed);
 						Password = "";
 
 						if (isCompatibilityPasswordUsed is { })

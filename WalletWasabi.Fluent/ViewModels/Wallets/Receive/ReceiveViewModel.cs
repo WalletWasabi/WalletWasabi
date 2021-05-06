@@ -1,13 +1,16 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Gui;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
@@ -22,35 +25,34 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		NavigationTarget = NavigationTarget.DialogScreen)]
 	public partial class ReceiveViewModel : NavBarItemViewModel
 	{
-		[AutoNotify] private string _reference;
+		private readonly UiConfig _uiConfig;
+
+		[AutoNotify] private ObservableCollection<string> _labels;
 		[AutoNotify] private HashSet<string> _suggestions;
 		[AutoNotify] private bool _isExistingAddressesButtonVisible;
 
-		public ReceiveViewModel(WalletViewModelBase wallet, WalletManager walletManager, BitcoinStore bitcoinStore) : base(NavigationMode.Normal)
+		public ReceiveViewModel(WalletViewModelBase wallet, WalletManager walletManager, BitcoinStore bitcoinStore, UiConfig uiConfig) : base(NavigationMode.Normal)
 		{
+			_uiConfig = uiConfig;
 			WasabiWallet = wallet.Wallet;
-			_reference = "";
+			_labels = new ObservableCollection<string>();
 			_suggestions = GetLabels(walletManager, bitcoinStore);
 
 			SelectionMode = NavBarItemSelectionMode.Button;
-
-			var nextCommandCanExecute =
-				this.WhenAnyValue(x => x.Reference)
-					.ObserveOn(RxApp.MainThreadScheduler)
-					.Select(reference => !string.IsNullOrEmpty(reference));
 
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = false;
 
-			NextCommand = ReactiveCommand.Create(OnNext, nextCommandCanExecute);
+			NextCommand = ReactiveCommand.Create(OnNext, _labels.ToObservableChangeSet()
+				.Select(_ => _labels.Count > 0));
 
 			ShowExistingAddressesCommand = ReactiveCommand.Create(OnShowExistingAddresses);
 		}
 
 		private void OnNext()
 		{
-			var newKey = WasabiWallet.KeyManager.GetNextReceiveKey(Reference, out bool minGapLimitIncreased);
+			var newKey = WasabiWallet.KeyManager.GetNextReceiveKey(new SmartLabel(Labels), out bool minGapLimitIncreased);
 
 			if (minGapLimitIncreased)
 			{
@@ -60,13 +62,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 				// TODO: notification
 			}
 
+			Labels.Clear();
+
 			Navigate().To(new ReceiveAddressViewModel(newKey, WasabiWallet.Network, WasabiWallet.KeyManager.MasterFingerprint,
-				WasabiWallet.KeyManager.IsHardwareWallet));
+				WasabiWallet.KeyManager.IsHardwareWallet, _uiConfig));
 		}
 
 		private void OnShowExistingAddresses()
 		{
-			Navigate().To(new ReceiveAddressesViewModel(WasabiWallet));
+			Navigate().To(new ReceiveAddressesViewModel(WasabiWallet, _uiConfig));
 		}
 
 		public Wallet WasabiWallet { get; }
@@ -78,7 +82,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			base.OnNavigatedTo(isInHistory, disposable);
 
 			IsExistingAddressesButtonVisible = WasabiWallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
-			Reference = "";
 		}
 
 		private HashSet<string> GetLabels(WalletManager walletManager, BitcoinStore store)
