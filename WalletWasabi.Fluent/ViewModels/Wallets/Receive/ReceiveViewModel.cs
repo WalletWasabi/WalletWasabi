@@ -39,7 +39,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			_suggestions = GetLabels(walletManager, bitcoinStore).ToHashSet();
 
 			var allLabels = GetLabels(walletManager, bitcoinStore);
-			var mostUsedSuggestions = allLabels.GroupBy(x => x)
+			var mostUsedLabels = allLabels.GroupBy(x => x)
 				.Select(x => new
 				{
 					Label = x.Key,
