@@ -11,19 +11,18 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		private DependencyGraph(IEnumerable<IEnumerable<long>> initialValues)
 		{
-			var initialValuesImmutable = initialValues.Select(x => x.ToImmutableArray()).ToImmutableArray();
-			if (initialValuesImmutable.Any(x => x.Length != (int)CredentialType.NumTypes))
+			if (initialValues.Any(x => x.Count() != (int)CredentialType.NumTypes))
 			{
 				throw new ArgumentException($"Number of credential values must be {CredentialType.NumTypes}");
 			}
-			if (initialValuesImmutable.Any(x => x.Where(y => y != 0).Select(y => y.CompareTo(0)).Distinct().Count() != 1))
+			if (initialValues.Any(x => x.Where(y => y != 0).Select(y => y.CompareTo(0)).Distinct().Count() != 1))
 			{
 				throw new ArgumentException($"Credential values of a node must all have the same sign.");
 			}
 
 			for (CredentialType i = 0; i < CredentialType.NumTypes; i++)
 			{
-				if (initialValuesImmutable.Sum(x => x[(int)i]) < 0)
+				if (initialValues.Sum(x => x.Skip((int)i).First()) < 0)
 				{
 					throw new ArgumentException("Overall balance must not be negative");
 				}
@@ -38,7 +37,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 			Vertices = ImmutableList<RequestNode>.Empty;
 
-			foreach (var node in initialValuesImmutable.Select((values, i) => new RequestNode(i, values)))
+			foreach (var node in initialValues.Select((values, i) => new RequestNode(i, values.ToImmutableArray())))
 			{
 				// enforce at least one value != 0? all values? it doesn't actually matter for the algorithm
 				AddNode(node);
