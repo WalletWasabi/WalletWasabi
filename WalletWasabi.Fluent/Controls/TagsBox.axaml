@@ -164,6 +164,10 @@
         <Setter Property="IsVisible" Value="False" />
     </Style>
 
+    <Style Selector="c|TagsBox AutoCompleteBox /template/ ListBox#PART_SelectingItemsControl">
+        <Setter Property="MinWidth" Value="286" />
+    </Style>
+
     <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
         <Setter Property="IsReadOnly" Value="{Binding !IsInputEnabled}" />
         <Setter Property="ContextMenu">
