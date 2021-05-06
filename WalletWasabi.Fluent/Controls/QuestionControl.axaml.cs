@@ -24,8 +24,8 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<IImage> IconProperty =
 			AvaloniaProperty.Register<QuestionControl, IImage>(nameof(Icon));
 
-		public static readonly StyledProperty<string> TextProperty =
-			AvaloniaProperty.Register<QuestionControl, string>(nameof(Text));
+		public static readonly StyledProperty<object?> QuestionContentProperty =
+			AvaloniaProperty.Register<QuestionControl, object?>(nameof(QuestionContent));
 
 		public static readonly StyledProperty<HighlightedButton> HighlightButtonProperty =
 			AvaloniaProperty.Register<QuestionControl, HighlightedButton>(nameof(HighlightButton));
@@ -48,10 +48,10 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(IconProperty, value);
 		}
 
-		public string Text
+		public object? QuestionContent
 		{
-			get => GetValue(TextProperty);
-			set => SetValue(TextProperty, value);
+			get => GetValue(QuestionContentProperty);
+			set => SetValue(QuestionContentProperty, value);
 		}
 
 		public HighlightedButton HighlightButton
