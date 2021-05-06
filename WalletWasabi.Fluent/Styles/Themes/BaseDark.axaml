@@ -28,6 +28,8 @@
 
     <SolidColorBrush x:Key="PrivacySuggestionControlSelectedBackground">#353535</SolidColorBrush>
 
+    <SolidColorBrush x:Key="NotificationCardBackgroundBrush">#3D3D3D</SolidColorBrush>
+
     <SolidColorBrush x:Key="TileRegionColor">#FF2B2B2B</SolidColorBrush>
     <Color x:Key="RegionColor">#FF212121</Color>
     <BoxShadows x:Key="BoxShadow">0 1 4 #121212</BoxShadows>

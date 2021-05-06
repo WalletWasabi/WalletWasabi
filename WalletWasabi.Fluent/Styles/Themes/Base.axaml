@@ -38,5 +38,6 @@
 
     <x:String x:Key="LabelsWatermarkText">i.e. Alice, Bob, Wasabi Inc, Exchange</x:String>
 
+    <StaticResource x:Key="NotificationCardInformationBackgroundBrush" ResourceKey="SystemAccentColor" />
   </Styles.Resources>
 </Styles>

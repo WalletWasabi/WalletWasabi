@@ -1,13 +1,14 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
+using Avalonia.Xaml.Interactivity;
 using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
-	public class RegisterNotificationHostBehavior : AttachedToVisualTreeBehavior<Window>
+	public class RegisterNotificationHostBehavior : Behavior<Window>
 	{
-		protected override void OnAttachedToVisualTree()
+		protected override void OnAttached()
 		{
 			var notificationManager = new WindowNotificationManager(AssociatedObject)
 			{

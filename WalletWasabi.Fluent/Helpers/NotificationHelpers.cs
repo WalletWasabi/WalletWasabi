@@ -5,6 +5,7 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class NotificationHelpers
 	{
+		private const int DefaultNotificationTimeout = 7;
 		private static WindowNotificationManager? NotificationManager;
 
 		public static void SetNotificationManager(WindowNotificationManager windowNotificationManager)
@@ -21,7 +22,7 @@ namespace WalletWasabi.Fluent.Helpers
 		{
 			if (NotificationManager is { } nm)
 			{
-				nm.Show(new Notification(title, message));
+				nm.Show(new Notification(title, message, NotificationType.Information, TimeSpan.FromSeconds(DefaultNotificationTimeout)));
 			}
 		}
 	}
