@@ -67,8 +67,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 		public void SelectTransaction(uint256 txid)
 		{
-			SelectedItem =
-				Transactions.FirstOrDefault(x => x.TransactionSummary.TransactionId == txid);
+			var txnItem = Transactions.FirstOrDefault(x => x.TransactionSummary.TransactionId == txid);
+
+			if (txnItem is { })
+			{
+				SelectedItem = txnItem;
+			}
 		}
 
 		protected override void OnActivated(CompositeDisposable disposables)
