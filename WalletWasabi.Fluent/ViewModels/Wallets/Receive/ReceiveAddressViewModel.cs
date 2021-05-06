@@ -11,6 +11,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Gui;
 using WalletWasabi.Hwi;
 using WalletWasabi.Logging;
 
@@ -19,11 +20,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 	[NavigationMetaData(Title = "Receive Address")]
 	public partial class ReceiveAddressViewModel : RoutableViewModel
 	{
-		public ReceiveAddressViewModel(HdPubKey model, Network network, HDFingerprint? masterFingerprint, bool isHardwareWallet)
+		public ReceiveAddressViewModel(HdPubKey model, Network network, HDFingerprint? masterFingerprint, bool isHardwareWallet, UiConfig uiConfig)
 		{
 			Address = model.GetP2wpkhAddress(network).ToString();
 			Labels = model.Label;
 			IsHardwareWallet = isHardwareWallet;
+			IsAutoCopyEnabled = uiConfig.Autocopy;
 
 			GenerateQrCode();
 
@@ -96,6 +98,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		public bool[,]? QrCode { get; set; }
 
 		public bool IsHardwareWallet { get; }
+
+		public bool IsAutoCopyEnabled { get; }
 
 		private void GenerateQrCode()
 		{

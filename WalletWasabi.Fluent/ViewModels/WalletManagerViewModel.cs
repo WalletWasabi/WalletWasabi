@@ -276,7 +276,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				actions.Add(new SendViewModel(walletViewModel, _transactionBroadcaster, _config, _uiConfig, _externalHttpClientFactory));
 			}
 
-			actions.Add(new ReceiveViewModel(walletViewModel, WalletManager, BitcoinStore));
+			actions.Add(new ReceiveViewModel(walletViewModel, WalletManager, BitcoinStore, _uiConfig));
 
 			if (!wallet.KeyManager.IsWatchOnly)
 			{
