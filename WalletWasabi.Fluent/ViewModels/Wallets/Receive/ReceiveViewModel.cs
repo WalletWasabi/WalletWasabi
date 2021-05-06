@@ -84,6 +84,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			IsExistingAddressesButtonVisible = WasabiWallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
 		}
 
+		private IEnumerable<string> GetAllLabels(WalletManager walletManager, BitcoinStore store)
+		{
+			// Don't refresh wallet list as it may be slow.
+			IEnumerable<SmartLabel> labels = walletManager.GetWallets(refreshWalletList: false)
+				.Select(x => x.KeyManager)
+				.SelectMany(x => x.GetLabels());
+
+			var txStore = store.TransactionStore;
+			if (txStore is { })
+			{
+				labels = labels.Concat(txStore.GetLabels());
+			}
+
+			return labels.SelectMany(x => x.Labels);
+		}
+
 		private HashSet<string> GetLabels(WalletManager walletManager, BitcoinStore store)
 		{
 			// Don't refresh wallet list as it may be slow.
