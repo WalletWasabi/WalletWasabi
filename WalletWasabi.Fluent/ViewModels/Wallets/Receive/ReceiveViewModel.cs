@@ -36,9 +36,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			_uiConfig = uiConfig;
 			WasabiWallet = wallet.Wallet;
 			_labels = new ObservableCollection<string>();
-			_suggestions = GetLabels(walletManager, bitcoinStore);
+			_suggestions = GetLabels(walletManager, bitcoinStore).ToHashSet();
 
-			var allLabels = GetAllLabels(walletManager, bitcoinStore);
+			var allLabels = GetLabels(walletManager, bitcoinStore);
 			var mostUsedSuggestions = allLabels.GroupBy(x => x)
 				.Select(x => new
 				{
@@ -93,7 +93,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			IsExistingAddressesButtonVisible = WasabiWallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
 		}
 
-		private IEnumerable<string> GetAllLabels(WalletManager walletManager, BitcoinStore store)
+		private IEnumerable<string> GetLabels(WalletManager walletManager, BitcoinStore store)
 		{
 			// Don't refresh wallet list as it may be slow.
 			IEnumerable<SmartLabel> labels = walletManager.GetWallets(refreshWalletList: false)
@@ -107,22 +107,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			}
 
 			return labels.SelectMany(x => x.Labels);
-		}
-
-		private HashSet<string> GetLabels(WalletManager walletManager, BitcoinStore store)
-		{
-			// Don't refresh wallet list as it may be slow.
-			IEnumerable<SmartLabel> labels = walletManager.GetWallets(refreshWalletList: false)
-				.Select(x => x.KeyManager)
-				.SelectMany(x => x.GetLabels());
-
-			var txStore = store.TransactionStore;
-			if (txStore is { })
-			{
-				labels = labels.Concat(txStore.GetLabels());
-			}
-
-			return labels.SelectMany(x => x.Labels).ToHashSet();
 		}
 	}
 }
