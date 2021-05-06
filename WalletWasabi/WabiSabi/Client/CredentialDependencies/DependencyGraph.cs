@@ -56,9 +56,10 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		// credential dependencies. Should only produce valid graphs.
 		// IDs are positive ints assigned in the order of the enumerable, but
 		// Vertices will contain more elements if there are reissuance nodes.
-		public static DependencyGraph ResolveCredentialDependencies(IEnumerable<IEnumerable<long>> amounts)
+		public static DependencyGraph ResolveCredentialDependencies(IEnumerable<IEnumerable<ulong>> inputValues, IEnumerable<IEnumerable<ulong>> outputValues)
 		{
-			var graph = new DependencyGraph(amounts);
+			var combinedValues = inputValues.Select(x => x.Select(y => (long)y)).Concat(outputValues.Select(x => x.Select(y => -1 * (long)y)));
+			var graph = new DependencyGraph(combinedValues);
 			graph.ResolveCredentials();
 			return graph;
 		}

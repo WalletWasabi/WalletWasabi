@@ -11,56 +11,56 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		{
 			// TODO can this be done with InputData more elegantly? new() not possible in attr
 			foreach (
-				(var amounts, var finalVertexCount) in new (long[][], int)[]
+				(var inputValues, var outputValues, var finalVertexCount) in new (ulong[][], ulong[][], int)[]
 				{
-					( new[] { new[] { 1L, 1L }, new[] { -1L, -1L } }, 2 ),
-					( new[] { new[] { 1L, 0L }, new[] { -1L, 0L } }, 2 ),
-					( new[] { new[] { 2L, 0L }, new[] { -1L, 0L } }, 2 ),
-					( new[] { new[] { 2L, 2L }, new[] { -1L, -1L } }, 2 ),
-					( new[] { new[] { 2L, 2L }, new[] { -1L, -2L } }, 2 ),
-					( new[] { new[] { 2L, 2L }, new[] { -2L, -2L } }, 2 ),
-					( new[] { new[] { 2L, 2L }, new[] { -1L, -1L }, new[] { -1L, -1L } }, 3 ),
-					( new[] { new[] { 1L, 1L }, new[] { 1L, 1L }, new[] { -2L, -2L } }, 3 ),
-					( new[] { new[] { 1L, 1L }, new[] { 1L, 1L }, new[] { 1L, 1L }, new[] { -3L, -3L } }, 5 ),
-					( new[] { new[] { 3L, 3L }, new[] { -1L, -1L }, new[] { -1L, -1L }, new[] { -1L, -1L } }, 5 ),
-					( new[] { new[] { 1L, 0L }, new[] { 1L, 0L }, new[] { 1L, 0L }, new[] { -3L, 0L } }, 5 ),
-					( new[] { new[] { 3L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L } }, 5 ),
-					( new[] { new[] { 1L, 5L }, new[] { 1L, 5L }, new[] { 1L, 5L }, new[] { -3L, -1L } }, 5 ),
-					( new[] { new[] { 3L, 5L }, new[] { -1L, -1L }, new[] { -1L, -1L }, new[] { -1L, -1L } }, 6 ), // TODO 5?
-					( new[] { new[] { 3L, 5L }, new[] { -1L, -1L }, new[] { -1L, -1L } }, 4 ),
-					( new[] { new[] { 4L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L } }, 7 ),
-					( new[] { new[] { 10L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L } }, 4 ),
-					( new[] { new[] { 10L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L } }, 6 ),
-					( new[] { new[] { 10L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L } }, 8 ),
-					( new[] { new[] { 10L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L } }, 10 ),
-					( new[] { new[] { 10L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L } }, 12 ),
-					( new[] { new[] { 10L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L }, new[] { -1L, 0L } }, 19 ),
-					( new[] { new[] { 3L, 0L }, new[] { 3L, 0L }, new[] { -2L, 0L }, new[] { -2L, 0L }, new[] { -2L, 0L } }, 5 ),
-					( new[] { new[] { 5L, 0L }, new[] { 1L, 0L }, new[] { -2L, 0L }, new[] { -2L, 0L }, new[] { -2L, 0L } }, 6 ),
-					( new[] { new[] { 2L, 0L }, new[] { 2L, 0L }, new[] { -3L, 0L } }, 3 ),
-					( new[] { new[] { 3L, 0L }, new[] { 3L, 0L }, new[] { -2L, 0L }, new[] { -2L, 0L }, new[] { -1L, 0L } }, 6 ),
-					( new[] { new[] { 8L, 0L }, new[] { 1L, 0L }, new[] { -3L, 0L }, new[] { -3L, 0L }, new[] { -3L, 0L } }, 6 ),
-					( new[] { new[] { 8L, 0L }, new[] { 2L, 0L }, new[] { -3L, 0L }, new[] { -3L, 0L }, new[] { -3L, 0L } }, 6 ),
-					( new[] { new[] { 3L, 0L }, new[] { 1L, 0L }, new[] { 1L, 0L }, new[] { 1L, 0L }, new[] { -2L, 0L }, new[] { -2L, 0L }, new[] { -2L, 0L }, }, 7 ),
-					( new[] { new[] { 3L, 1L }, new[] { 1L, 1L }, new[] { 1L, 1L }, new[] { 1L, 1L }, new[] { -2L, -1L }, new[] { -2L, -1L }, new[] { -2L, -1L }, }, 7 ),
-					( new[] { new[] { 3L, 3L }, new[] { 1L, 1L }, new[] { 1L, 1L }, new[] { 1L, 1L }, new[] { -2L, -1L }, new[] { -2L, -1L }, new[] { -2L, -1L }, }, 8 ), // TODO 7?
-					( new[] { new[] { 3L, 2L }, new[] { 1L, 0L }, new[] { -2L, -1L }, new[] { -2L, -1L }, }, 4 ),
-					( new[] { new[] { 3L, 6L }, new[] { 1L, 0L }, new[] { -2L, -1L }, new[] { -2L, -1L }, }, 5 ),
-					( new[] { new[] { 3L, 6L }, new[] { 1L, 6L }, new[] { -2L, -1L }, new[] { -2L, -1L }, }, 5 ), // TODO 4
-					( new[] { new[] { 3L, 3L }, new[] { 1L, 0L }, new[] { 1L, 0L }, new[] { 1L, 0L }, new[] { -2L, -1L }, new[] { -2L, -1L }, new[] { -2L, -1L }, }, 8 ),
-					( new[] { new[] { 3L, 6L }, new[] { 1L, 0L }, new[] { 1L, 0L }, new[] { 1L, 0L }, new[] { -2L, -1L }, new[] { -2L, -1L }, new[] { -2L, -1L }, }, 9 ),
-					( new[] { new[] { 2L, 6L }, new[] { 2L, 6L }, new[] { -1L, -3L }, new[] { -1L, -3L }, new[] { -1L, -3L }, new[] { -1L, -3L }, }, 6 ),
-					( new[] { new[] { 2L, 6L }, new[] { 2L, 6L }, new[] { -1L, -1L }, new[] { -1L, -1L }, new[] { -1L, -1L }, new[] { -1L, -1L }, }, 9 ), // TODO 8
-					( new[] { new[] { 3L, 6L }, new[] { 1L, 6L }, new[] { -4L, -1L }, }, 3 ),
-					( new[] { new[] { 3L, 6L }, new[] { 1L, 6L }, new[] { -2L, -1L }, new[] { -1L, -1L }, new[] { -1L, -1L } }, 7 ), // TODO 5
-					( new[] { new[] { 3L, 6L }, new[] { 1L, 6L }, new[] { 1L, 6L }, new[] { 1L, 6L }, new[] { -2L, -1L }, new[] { -2L, -1L }, new[] { -1L, -1L }, }, 9 ),
-					( new[] { new[] { 3L, 6L }, new[] { 1L, 6L }, new[] { 1L, 6L }, new[] { 1L, 6L }, new[] { -2L, -1L }, new[] { -2L, -1L }, new[] { -1L, -1L }, new[] { -1L, -1L }, }, 11 ), // TODO 8
-					( new[] { new[] { 3L, 6L }, new[] { 1L, 6L }, new[] { 1L, 6L }, new[] { 1L, 6L }, new[] { -2L, -1L }, new[] { -2L, -1L }, new[] { -2L, -1L }, }, 9 ),
-					( new[] { new[] { 5L, 6L }, new[] { 1L, 6L }, new[] { 1L, 6L }, new[] { 1L, 6L }, new[] { 1L, 6L }, new[] { 1L, 6L }, new[] { -2L, -1L }, new[] { -2L, -1L }, new[] { -2L, -1L }, new[] { -2L, -1L }, new[] { -2L, -1L }, }, 15 ),
+					( new[] { new[] { 1UL, 1UL } }, new[] { new[] { 1UL, 1UL } }, 2 ),
+					( new[] { new[] { 1UL, 0UL } }, new[] { new[] { 1UL, 0UL } }, 2 ),
+					( new[] { new[] { 2UL, 0UL } }, new[] { new[] { 1UL, 0UL } }, 2 ),
+					( new[] { new[] { 2UL, 2UL } }, new[] { new[] { 1UL, 1UL } }, 2 ),
+					( new[] { new[] { 2UL, 2UL } }, new[] { new[] { 1UL, 2UL } }, 2 ),
+					( new[] { new[] { 2UL, 2UL } }, new[] { new[] { 2UL, 2UL } }, 2 ),
+					( new[] { new[] { 2UL, 2UL } }, new[] { new[] { 1UL, 1UL }, new[] { 1UL, 1UL } }, 3 ),
+					( new[] { new[] { 1UL, 1UL }, new[] { 1UL, 1UL } }, new[] { new[] { 2UL, 2UL } }, 3 ),
+					( new[] { new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL } }, new[] { new[] { 3UL, 3UL } }, 5 ),
+					( new[] { new[] { 3UL, 3UL } }, new[] { new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL } }, 5 ),
+					( new[] { new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, new[] { new[] { 3UL, 0UL } }, 5 ),
+					( new[] { new[] { 3UL, 0UL } }, new[] { new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, 5 ),
+					( new[] { new[] { 1UL, 5UL }, new[] { 1UL, 5UL }, new[] { 1UL, 5UL } }, new[] { new[] { 3UL, 1UL } }, 5 ),
+					( new[] { new[] { 3UL, 5UL } }, new[] { new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL } }, 6 ), // TODO 5?
+					( new[] { new[] { 3UL, 5UL } }, new[] { new[] { 1UL, 1UL }, new[] { 1UL, 1UL } }, 4 ),
+					( new[] { new[] { 4UL, 0UL } }, new[] { new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, 7 ),
+					( new[] { new[] { 10UL, 0UL } }, new[] { new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, 4 ),
+					( new[] { new[] { 10UL, 0UL } }, new[] { new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, 6 ),
+					( new[] { new[] { 10UL, 0UL } }, new[] { new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, 8 ),
+					( new[] { new[] { 10UL, 0UL } }, new[] { new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, 10 ),
+					( new[] { new[] { 10UL, 0UL } }, new[] { new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, 12 ),
+					( new[] { new[] { 10UL, 0UL } }, new[] { new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, 19 ),
+					( new[] { new[] { 3UL, 0UL }, new[] { 3UL, 0UL } }, new[] { new[] { 2UL, 0UL }, new[] { 2UL, 0UL }, new[] { 2UL, 0UL } }, 5 ),
+					( new[] { new[] { 5UL, 0UL }, new[] { 1UL, 0UL } }, new[] { new[] { 2UL, 0UL }, new[] { 2UL, 0UL }, new[] { 2UL, 0UL } }, 6 ),
+					( new[] { new[] { 2UL, 0UL }, new[] { 2UL, 0UL } }, new[] { new[] { 3UL, 0UL } }, 3 ),
+					( new[] { new[] { 3UL, 0UL }, new[] { 3UL, 0UL } }, new[] { new[] { 2UL, 0UL }, new[] { 2UL, 0UL }, new[] { 1UL, 0UL } }, 6 ),
+					( new[] { new[] { 8UL, 0UL }, new[] { 1UL, 0UL } }, new[] { new[] { 3UL, 0UL }, new[] { 3UL, 0UL }, new[] { 3UL, 0UL } }, 6 ),
+					( new[] { new[] { 8UL, 0UL }, new[] { 2UL, 0UL } }, new[] { new[] { 3UL, 0UL }, new[] { 3UL, 0UL }, new[] { 3UL, 0UL } }, 6 ),
+					( new[] { new[] { 3UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, new[] { new[] { 2UL, 0UL }, new[] { 2UL, 0UL }, new[] { 2UL, 0UL }, }, 7 ),
+					( new[] { new[] { 3UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, }, 7 ),
+					( new[] { new[] { 3UL, 3UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, }, 8 ), // TODO 7?
+					( new[] { new[] { 3UL, 2UL }, new[] { 1UL, 0UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, }, 4 ),
+					( new[] { new[] { 3UL, 6UL }, new[] { 1UL, 0UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, }, 5 ),
+					( new[] { new[] { 3UL, 6UL }, new[] { 1UL, 6UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, }, 5 ), // TODO 4
+					( new[] { new[] { 3UL, 3UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, }, 8 ),
+					( new[] { new[] { 3UL, 6UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, }, 9 ),
+					( new[] { new[] { 2UL, 6UL }, new[] { 2UL, 6UL } }, new[] { new[] { 1UL, 3UL }, new[] { 1UL, 3UL }, new[] { 1UL, 3UL }, new[] { 1UL, 3UL }, }, 6 ),
+					( new[] { new[] { 2UL, 6UL }, new[] { 2UL, 6UL } }, new[] { new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, }, 9 ), // TODO 8
+					( new[] { new[] { 3UL, 6UL }, new[] { 1UL, 6UL } }, new[] { new[] { 4UL, 1UL }, }, 3 ),
+					( new[] { new[] { 3UL, 6UL }, new[] { 1UL, 6UL } }, new[] { new[] { 2UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL } }, 7 ), // TODO 5
+					( new[] { new[] { 3UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 1UL, 1UL }, }, 9 ),
+					( new[] { new[] { 3UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, }, 11 ), // TODO 8
+					( new[] { new[] { 3UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, }, 9 ),
+					( new[] { new[] { 5UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, }, 15 ),
 				}
 			)
 			{
-				var g = DependencyGraph.ResolveCredentialDependencies(amounts);
+				var g = DependencyGraph.ResolveCredentialDependencies(inputValues, outputValues);
 				AssertResolvedGraphInvariants(g);
 				Assert.Equal(finalVertexCount, g.Vertices.Count);
 			}
@@ -96,23 +96,17 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[Fact]
 		public void ResolveCredentialDependenciesThrows()
 		{
-			foreach (var test in new long[][][]
+			foreach ((var inputValues, var outputAmounts) in new (ulong[][], ulong[][])[]
 			{
-				new[] { new[] { -1L, 0L } },
-				new[] { new[] { 1L, 0L }, new[] { -2L, 0L } },
-				new[] { new[] { 1L, 0L }, new[] { -1L, -1L } },
-				new[] { new[] { 1L, 1L }, new[] { 1L, -1L } },
-				new[] { new[] { 1L, -1L }, new[] { 1L, 1L } },
-				new[] { new[] { 1L, -1L }, new[] { 1L, -1L } },
-				new[] { Array.Empty<long>(), new[] { -1L, 0L } },
-				new[] { new[] { 1L }, new[] { -1L, 0L } },
-				new[] { new[] { 1L, 1L, 1L, }, new[] { -1L, 0L } },
-				new[] { new[] { 1L, 0L }, new[] { -1L } },
-				new[] { new[] { 1L, 0L }, new[] { -1L, 0L, 0L } },
-				new[] { new[] { 1L, 0L, 0L }, new[] { -1L, 0L, 0L } },
+				(new[] { new[] { 1UL, 0UL } }, new[] { new[] { 2UL, 0UL } }),
+				(new[] { Array.Empty<ulong>() }, new[] { new[] { 1UL, 0UL } }),
+				(new[] { new[] { 1UL } }, new[] { new[] { 1UL, 0UL } }),
+				(new[] { new[] { 1UL, 1UL, 1UL, } }, new[] { new[] { 1UL, 0UL } }),
+				(new[] { new[] { 1UL, 0UL } }, new[] { new[] { 1UL } }),
+				(new[] { new[] { 1UL, 0UL } }, new[] { new[] { 1UL, 0UL, 0UL } }),
 			})
 			{
-				Assert.Throws<ArgumentException>(() => DependencyGraph.ResolveCredentialDependencies(test));
+				Assert.Throws<ArgumentException>(() => DependencyGraph.ResolveCredentialDependencies(inputValues, outputAmounts));
 			}
 		}
 	}
