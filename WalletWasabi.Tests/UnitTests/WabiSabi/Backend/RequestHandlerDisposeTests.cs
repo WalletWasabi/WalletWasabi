@@ -22,7 +22,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
 			ArenaRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
 			await handler.DisposeAsync();
-			await Assert.ThrowsAsync<ObjectDisposedException>(async () => await handler.RegisterInputAsync(null!));
+			await Assert.ThrowsAsync<ObjectDisposedException>(async () => await handler.RegisterInputAsync(null!, CancellationToken.None));
 
 			await arena.StopAsync(CancellationToken.None);
 		}

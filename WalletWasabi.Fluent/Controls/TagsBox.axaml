@@ -32,7 +32,7 @@
                                             Items="{TemplateBinding Items}">
                                 <ItemsPresenter.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <c:ConcatenatingWrapPanel Focusable="False">
+                                        <c:ConcatenatingWrapPanel Focusable="False" VerticalAlignment="Center">
                                             <c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                                 <AutoCompleteBox x:Name="PART_AutoCompleteBox"
                                                                  Padding="15 10 15 8"
@@ -82,6 +82,7 @@
     <Style Selector="c|TagsBox:readonly /template/ Border#PART_Border">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
     </Style>
 
     <Style Selector="c|TagsBox:readonly AutoCompleteBox">
@@ -90,9 +91,14 @@
 
     <Style Selector="c|TagsBox:readonly">
         <Setter Property="Cursor" Value="Arrow" />
+        <Setter Property="Padding" Value="0" />
     </Style>
 
     <Style Selector="c|TagsBox c|TagControl">
+        <Setter Property="Margin" Value="0,0,4,0" />
+    </Style>
+
+    <Style Selector="c|TagsBox c|ConcatenatingWrapPanel:wrapped c|TagControl">
         <Setter Property="Margin" Value="0,0,4,4" />
     </Style>
 

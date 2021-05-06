@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
              x:DataType="receive:ReceiveViewModel"
              x:CompileBindings="True"
@@ -15,27 +15,27 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
     <DockPanel>
-      <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch">
-        <Label Content="_Reference" Target="ReferenceTbx" HorizontalAlignment="Left" FontWeight="Normal" />
-        <AutoCompleteBox Text="{Binding Reference}"
-                         x:Name="ReferenceTbx"
-                         Watermark='Who knows this address is yours? E.g.: "Max, BitPay"'
-                         HorizontalAlignment="Stretch"
-                         MinimumPrefixLength="1"
-                         IsTextCompletionEnabled="True"
-                         Items="{Binding Suggestions}">
-          <AutoCompleteBox.Styles>
-            <Style Selector="AutoCompleteBox /template/ Popup#PART_Popup">
-              <Setter Property="MaxWidth" Value="{Binding #ReferenceTbx.Bounds.Width}"/>
-            </Style>
-          </AutoCompleteBox.Styles>
+      <Button DockPanel.Dock="Bottom" Focusable="False" Content="Unused Receive Addresses"
+              IsVisible="{Binding IsExistingAddressesButtonVisible, FallbackValue=True}"
+              Classes="h8 plain activeHyperLink" Command="{Binding ShowExistingAddressesCommand}" Cursor="Hand"
+              HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0 0 0 0" />
+      <StackPanel HorizontalAlignment="Stretch" Spacing="10">
+        <DockPanel HorizontalAlignment="Left">
+          <c:InfoMessage DockPanel.Dock="Right" VerticalAlignment="Center" ToolTip.Tip="Separate with , or by pressing Enter" />
+          <TextBlock TextWrapping="Wrap" Margin="0 0 10 0"  Text="Who will know this receive address belongs to you?" HorizontalAlignment="Left"
+                 FontWeight="Normal" />
+        </DockPanel>
+        <c:TagsBox x:Name="LabelsTbx" Items="{Binding Labels}"
+                   TagSeparator=","
+                   SuggestionsAreCaseSensitive="True"
+                   RestrictInputToSuggestions="False"
+                   Watermark="{StaticResource LabelsWatermarkText}"
+                   Suggestions="{Binding Suggestions}">
           <i:Interaction.Behaviors>
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>
-        </AutoCompleteBox>
+        </c:TagsBox>
       </StackPanel>
-
-      <Button Content="Previous unused addresses" IsVisible="{Binding IsExistingAddressesButtonVisible}" Classes="h8 plain activeHyperLink" Command="{Binding ShowExistingAddressesCommand}" HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Bottom"/>
     </DockPanel>
   </c:ContentArea>
 </UserControl>

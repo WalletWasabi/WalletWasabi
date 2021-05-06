@@ -13,9 +13,9 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
-	public class WalletViewModel : WalletViewModelBase
+	public partial class WalletViewModel : WalletViewModelBase
 	{
-		private readonly List<TileViewModel> _tiles;
+		[AutoNotify] private IList<TileViewModel> _tiles;
 
 		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
 		{
@@ -37,19 +37,39 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			History = new HistoryViewModel(this, uiConfig, balanceChanged);
 
-			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged);
-			BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions);
-			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged);
-			RoundStatusTile = new RoundStatusTileViewModel(wallet);
-			BtcPriceTile = new BtcPriceTileViewModel(wallet);
+			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged)
+			{
+				ColumnSpan = new List<int> { 1, 1, 1 },
+				RowSpan = new List<int> { 1, 1, 1 }
+			};
+			RoundStatusTile = new RoundStatusTileViewModel(wallet)
+			{
+				ColumnSpan = new List<int> { 1, 1, 1 },
+				RowSpan = new List<int> { 1, 1, 1 }
+			};
+			BtcPriceTile = new BtcPriceTileViewModel(wallet)
+			{
+				ColumnSpan = new List<int> { 1, 1, 1 },
+				RowSpan = new List<int> { 1, 1, 1 }
+			};
+			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged)
+			{
+				ColumnSpan = new List<int> { 1, 1, 1 },
+				RowSpan = new List<int> { 1, 2, 2 }
+			};
+			BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions)
+			{
+				ColumnSpan = new List<int> { 2, 2, 2 },
+				RowSpan = new List<int> { 1, 2, 2 }
+			};
 
 			_tiles = new List<TileViewModel>
 			{
 				BalanceTile,
-				BalanceChartTile,
-				WalletPieChart,
 				RoundStatusTile,
-				BtcPriceTile
+				BtcPriceTile,
+				WalletPieChart,
+				BalanceChartTile
 			};
 		}
 
@@ -61,13 +81,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		public WalletBalanceTileViewModel BalanceTile { get; }
 
-		public WalletBalanceChartTileViewModel BalanceChartTile { get; }
-
-		public WalletPieChartTileViewModel WalletPieChart { get; }
-
 		public RoundStatusTileViewModel RoundStatusTile { get; }
 
 		public BtcPriceTileViewModel BtcPriceTile { get; }
+
+		public WalletPieChartTileViewModel WalletPieChart { get; }
+
+		public WalletBalanceChartTileViewModel BalanceChartTile { get; }
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{

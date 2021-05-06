@@ -4,6 +4,7 @@ using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
@@ -32,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				IncomingAmount = amount;
 			}
 
-			ShowDetailsCommand = ReactiveCommand.Create(() => walletViewModel.Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(transactionSummary, wallet, updateTrigger)));
+			ShowDetailsCommand = ReactiveCommand.Create(() => RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(transactionSummary, wallet, updateTrigger)));
 		}
 
 		public ICommand ShowDetailsCommand { get; }
