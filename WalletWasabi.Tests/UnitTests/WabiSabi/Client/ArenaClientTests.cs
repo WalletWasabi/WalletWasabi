@@ -107,9 +107,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				connectionConfirmationResponse2.RealVsizeCredentials,
 				CancellationToken.None);
 
-//			Assert.Equal(6, amountCredentials.ZeroValue.Count());
-//			Assert.Equal(6, vsizeCredentials.ZeroValue.Count());
-
 			Credential amountCred1 = reissuanceResponse.RealAmountCredentials.ElementAt(0);
 			Credential amountCred2 = reissuanceResponse.RealAmountCredentials.ElementAt(1);
 

@@ -103,9 +103,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 				var issuer = new CredentialIssuer(sk, rnd, 4300000000000);
 
 				var credentialResponse = issuer.HandleRequest(credentialRequest);
-				client.HandleResponse(credentialResponse, validationData);
-//				Assert.Equal(numberOfCredentials, client.Credentials.ZeroValue.Count());
-//				Assert.Empty(client.Credentials.Valuable);
+				var valuableCredentials = client.HandleResponse(credentialResponse, validationData);
+				Assert.Empty(valuableCredentials);
 				var issuedCredential = client.Credentials.TakeZeroValue().First();
 				Assert.True(issuedCredential.Amount.IsZero);
 			}

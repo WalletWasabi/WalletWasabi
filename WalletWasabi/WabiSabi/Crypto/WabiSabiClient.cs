@@ -106,7 +106,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 				credentialAmountsToRequest.Add(0);
 			}
 
-			credentialsToPresent = ZeroCredentialPool.CompleteWithZeroCredentials(credentialsToPresent);
+			credentialsToPresent = ZeroCredentialPool.FillOutWithZeroCredentials(credentialsToPresent);
 
 			var macsToPresent = credentialsToPresent.Select(x => x.Mac);
 			if (macsToPresent.Distinct().Count() < macsToPresent.Count())
@@ -209,7 +209,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var credentialReceived = credentials.Select(x =>
 				new Credential(new Scalar((ulong)x.Requested.Amount), x.Requested.Randomness, x.Issued));
 
-			return ZeroCredentialPool.RegisterZeroValueCredentials(credentialReceived).ToArray();
+			return ZeroCredentialPool.ProcessAndGetValuableCredentials(credentialReceived).ToArray();
 		}
 
 		private Transcript BuildTransnscript(bool isNullRequest)
