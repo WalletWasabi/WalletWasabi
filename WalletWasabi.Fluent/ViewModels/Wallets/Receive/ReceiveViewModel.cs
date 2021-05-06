@@ -36,7 +36,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			_uiConfig = uiConfig;
 			WasabiWallet = wallet.Wallet;
 			_labels = new ObservableCollection<string>();
-			_suggestions = GetLabels(walletManager, bitcoinStore).ToHashSet();
+			// _suggestions = GetLabels(walletManager, bitcoinStore).ToHashSet();
 
 			var allLabels = GetLabels(walletManager, bitcoinStore);
 			var mostUsedLabels = allLabels.GroupBy(x => x)
@@ -46,6 +46,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 					Count = x.Count()
 				})
 				.OrderByDescending(x => x.Count);
+
+			_suggestions = mostUsedLabels.Select(x => x.Label).ToHashSet();
 
 			SelectionMode = NavBarItemSelectionMode.Button;
 
