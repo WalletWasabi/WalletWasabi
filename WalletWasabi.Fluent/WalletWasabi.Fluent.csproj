@@ -22,6 +22,9 @@
 		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.3" />
 		<PackageReference Include="Avalonia.Xaml.Interactions.Custom" Version="0.10.3" />
 		<PackageReference Include="Avalonia.Xaml.Interactivity" Version="0.10.3" />
+		<PackageReference Include="Emgu.CV" Version="4.5.1.4349" />
+		<PackageReference Include="Emgu.CV.Bitmap" Version="4.5.1.4349" />
+		<PackageReference Include="Emgu.CV.runtime.windows" Version="4.5.1.4349" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj" />
