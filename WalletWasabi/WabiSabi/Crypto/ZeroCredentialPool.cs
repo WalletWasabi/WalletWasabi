@@ -46,9 +46,9 @@ namespace WalletWasabi.WabiSabi.Crypto
 				credentialsToReturn[n] = credential;
 			}
 
-			const int maxRetries = 100;
+			const int MaxRetries = 100;
 			var retries = 0;
-			while (n > 0 && retries < maxRetries)
+			while (n > 0 && retries < MaxRetries)
 			{
 				if (_zeroValueCredentials.TryDequeue(out var credential))
 				{
@@ -57,7 +57,8 @@ namespace WalletWasabi.WabiSabi.Crypto
 				}
 				retries++;
 			}
-			// It shouldn't run out of null credentials and
+
+			// It shouldn't run out of null credentials
 			if (n != 0)
 			{
 				throw new InvalidOperationException("It wasn't possible to get enough null credentials.");

@@ -117,16 +117,16 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				round.Id,
 				reissuanceAmounts[0],
 				destinationKey1.PubKey.WitHash.ScriptPubKey,
-				new [] { amountCred1 },
-				new [] { vsizeCred1 },
+				new[] { amountCred1 },
+				new[] { vsizeCred1 },
 				CancellationToken.None);
 
 			await bobArenaClient.RegisterOutputAsync(
 				round.Id,
 				reissuanceAmounts[1],
 				destinationKey2.PubKey.WitHash.ScriptPubKey,
-				new [] { amountCred2 },
-				new [] { vsizeCred2 },
+				new[] { amountCred2 },
+				new[] { vsizeCred2 },
 				CancellationToken.None);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
