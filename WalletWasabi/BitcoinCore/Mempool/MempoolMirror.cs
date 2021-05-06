@@ -45,6 +45,11 @@ namespace WalletWasabi.BitcoinCore.Mempool
 			await base.ExecuteAsync(stoppingToken).ConfigureAwait(false);
 		}
 
+		protected override async Task ActionAsync(CancellationToken cancel)
+		{
+			await MirrorMempoolAsync(cancel).ConfigureAwait(false);
+		}
+
 		public override Task StopAsync(CancellationToken cancellationToken)
 		{
 			Node.MempoolService.TransactionReceived -= MempoolService_TransactionReceived;
@@ -93,11 +98,6 @@ namespace WalletWasabi.BitcoinCore.Mempool
 			{
 				Mempool.Remove(txid);
 			}
-		}
-
-		protected override async Task ActionAsync(CancellationToken cancel)
-		{
-			await MirrorMempoolAsync(cancel).ConfigureAwait(false);
 		}
 
 		private async Task<int> MirrorMempoolAsync(CancellationToken cancel)
