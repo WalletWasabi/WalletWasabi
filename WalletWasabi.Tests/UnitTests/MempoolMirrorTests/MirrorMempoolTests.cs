@@ -1,18 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using NBitcoin;
-using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Mempool;
-using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.Tests.RegressionTests;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
