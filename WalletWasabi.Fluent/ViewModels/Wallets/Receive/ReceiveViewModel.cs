@@ -45,7 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 					Label = x.Key,
 					Count = x.Count()
 				})
-				.OrderBy(x => x.Count);
+				.OrderByDescending(x => x.Count);
 
 			SelectionMode = NavBarItemSelectionMode.Button;
 
