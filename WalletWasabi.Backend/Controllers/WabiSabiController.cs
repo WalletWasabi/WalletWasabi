@@ -20,28 +20,28 @@ namespace WalletWasabi.Backend.Controllers
 		}
 
 		[HttpPost("connection-confirmation")]
-		[IdempotentActionFilterAttribute]
+		[Idempotent]
 		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellableToken)
 		{
 			return handler.ConfirmConnectionAsync(request, cancellableToken);
 		}
 
 		[HttpPost("input-registration")]
-		[IdempotentActionFilterAttribute]
+		[Idempotent]
 		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellableToken)
 		{
 			return handler.RegisterInputAsync(request, cancellableToken);
 		}
 
 		[HttpPost("output-registration")]
-		[IdempotentActionFilterAttribute]
+		[Idempotent]
 		public Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellableToken)
 		{
 			return handler.RegisterOutputAsync(request, cancellableToken);
 		}
 
 		[HttpPost("credential-issuance")]
-		[IdempotentActionFilterAttribute]
+		[Idempotent]
 		public Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request, CancellationToken cancellableToken)
 		{
 			return handler.ReissueCredentialAsync(request, cancellableToken);
