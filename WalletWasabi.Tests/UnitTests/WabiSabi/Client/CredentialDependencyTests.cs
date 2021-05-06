@@ -104,7 +104,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				new[] { new[] { 1L, 1L }, new[] { 1L, -1L } },
 				new[] { new[] { 1L, -1L }, new[] { 1L, 1L } },
 				new[] { new[] { 1L, -1L }, new[] { 1L, -1L } },
-				new[] { new long[0], new[] { -1L, 0L } },
+				new[] { Array.Empty<long>(), new[] { -1L, 0L } },
 				new[] { new[] { 1L }, new[] { -1L, 0L } },
 				new[] { new[] { 1L, 1L, 1L, }, new[] { -1L, 0L } },
 				new[] { new[] { 1L, 0L }, new[] { -1L } },

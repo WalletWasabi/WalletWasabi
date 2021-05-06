@@ -268,7 +268,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		private RequestNode NewReissuanceNode()
 		{
-			var node = new RequestNode(Vertices.Count, Enumerable.Repeat(0L, (int)K).ToImmutableArray());
+			var node = new RequestNode(Vertices.Count, Enumerable.Repeat(0L, K).ToImmutableArray());
 			AddNode(node);
 			return node;
 		}
