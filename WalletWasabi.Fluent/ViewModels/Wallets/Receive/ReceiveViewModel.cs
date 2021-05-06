@@ -39,6 +39,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			_suggestions = GetLabels(walletManager, bitcoinStore);
 
 			var allLabels = GetAllLabels(walletManager, bitcoinStore);
+			var mostUsedSuggestions = allLabels.GroupBy(x => x)
+				.Select(x => new
+				{
+					Label = x.Key,
+					Count = x.Count()
+				})
+				.OrderBy(x => x.Count);
+
 			SelectionMode = NavBarItemSelectionMode.Button;
 
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
