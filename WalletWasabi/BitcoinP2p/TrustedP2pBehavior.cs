@@ -53,13 +53,13 @@ namespace WalletWasabi.BitcoinP2p
 		protected override void ProcessTx(TxPayload payload)
 		{
 			var txid = payload.Object.GetHash();
-			bool toProcess;
 
+			// Skip processing if txid is disabled.
+			bool toProcess;
 			lock (DisabledFromProcessingLock)
 			{
 				toProcess = !DisabledFromProcessing.Contains(txid);
 			}
-
 			if (toProcess)
 			{
 				base.ProcessTx(payload);
