@@ -47,7 +47,8 @@ namespace WalletWasabi.BitcoinCore.Mempool
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
-			await MirrorMempoolAsync(cancel).ConfigureAwait(false);
+			int added = await MirrorMempoolAsync(cancel).ConfigureAwait(false);
+			Logger.LogInfo($"{added} transactions were copied from the full node from ActionAsyc");
 		}
 
 		public override Task StopAsync(CancellationToken cancellationToken)
