@@ -35,12 +35,6 @@
                                         <c:ConcatenatingWrapPanel Focusable="False" VerticalAlignment="Center">
                                             <c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                                 <AutoCompleteBox x:Name="PART_AutoCompleteBox"
-                                                                 Padding="15 10 15 8"
-                                                                 Margin="0"
-                                                                 MaxDropDownHeight="90"
-                                                                 MinimumPrefixLength="1"
-                                                                 Focusable="False"
-                                                                 IsTextCompletionEnabled="True"
                                                                  Items="{Binding #PART_Border.TemplatedParent.Suggestions}" />
                                             </c:ConcatenatingWrapPanel.ConcatenatedChildren>
                                         </c:ConcatenatingWrapPanel>
@@ -103,6 +97,13 @@
     </Style>
 
     <Style Selector="c|TagsBox AutoCompleteBox">
+        <Setter Property="Background" Value="{x:Null}" />
+        <Setter Property="Padding" Value="15 10 15 8" />
+        <Setter Property="Margin" Value="0,0,0,0" />
+        <Setter Property="MaxDropDownHeight" Value="90" />
+        <Setter Property="MinimumPrefixLength" Value="1" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsTextCompletionEnabled" Value="True" />
         <Setter Property="Template">
             <ControlTemplate>
                 <Grid Name="PART_LayoutRoot">
@@ -148,12 +149,6 @@
         <Setter Property="Margin" Value="0" />
         <Setter Property="Focusable" Value="True" />
         <Setter Property="KeyboardNavigation.IsTabStop" Value="True" />
-    </Style>
-
-    <Style Selector="c|TagsBox AutoCompleteBox">
-        <Setter Property="Background" Value="{x:Null}" />
-        <Setter Property="Padding" Value="4,5,0,0 " />
-        <Setter Property="Margin" Value="0,0,0,0" />
     </Style>
 
     <Style Selector="c|TagsBox AutoCompleteBox /template/ TextBox">
