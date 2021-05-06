@@ -273,26 +273,26 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		}
 
 		// Drain values into a reissuance request (towards the center of the graph).
-		private void DrainReissuance(RequestNode x, IEnumerable<RequestNode> ys, CredentialType type)
+		private void DrainReissuance(RequestNode reissuanceNode, IEnumerable<RequestNode> nodes, CredentialType type)
 		{
 			// The nodes' initial balance determines edge direction. Reissuance
 			// nodes always have a 0 initial value.
-			var xIsSink = x.InitialBalance(type).CompareTo(ys.First().InitialBalance(type)) == -1;
+			var reissuanceIsSink = reissuanceNode.InitialBalance(type).CompareTo(nodes.First().InitialBalance(type)) == -1;
 
-			foreach (var y in ys)
+			foreach (var node in nodes)
 			{
 				// The amount for the edge is always determined by the `y`
 				// values, since we only add reissuance nodes to reduce the
 				// number of values required.
-				long amount = Balance(y, type);
+				long amount = Balance(node, type);
 
-				if (xIsSink)
+				if (reissuanceIsSink)
 				{
-					AddEdge(new(y, x, type, (ulong)amount));
+					AddEdge(new(node, reissuanceNode, type, (ulong)amount));
 				}
 				else
 				{
-					AddEdge(new(x, y, type, (ulong)(-1 * amount)));
+					AddEdge(new(reissuanceNode, node, type, (ulong)(-1 * amount)));
 				}
 
 				// Also drain all of the other credential types, to minimize
@@ -301,16 +301,16 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				// parallel edges to the amount credential edges.
 				for (CredentialType extraType = type + 1; extraType < CredentialType.NumTypes; extraType++)
 				{
-					var extraBalance = Balance(y, extraType);
+					var extraBalance = Balance(node, extraType);
 					if (extraBalance != 0 )
 					{
-						if (xIsSink)
+						if (reissuanceIsSink)
 						{
-							AddEdge(new(y, x, extraType, (ulong)extraBalance));
+							AddEdge(new(node, reissuanceNode, extraType, (ulong)extraBalance));
 						}
 						else
 						{
-							AddEdge(new(x, y, extraType, (ulong)(-1 * extraBalance)));
+							AddEdge(new(reissuanceNode, node, extraType, (ulong)(-1 * extraBalance)));
 						}
 					}
 				}
@@ -320,25 +320,25 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		// Drain credential values between terminal nodes, cancelling out
 		// opposite values by propagating forwards or backwards corresponding to
 		// fan-in and fan-out dependency structure.
-		private void DrainTerminal(RequestNode x, IEnumerable<RequestNode> ys, CredentialType type)
+		private void DrainTerminal(RequestNode node, IEnumerable<RequestNode> otherNodes, CredentialType type)
 		{
 			// The nodes' initial balance determines edge direction.
-			var xIsSink = x.InitialBalance(type).CompareTo(ys.First().InitialBalance(type)) == -1;
+			var nodeIsSink = node.InitialBalance(type).CompareTo(otherNodes.First().InitialBalance(type)) == -1;
 
-			foreach (var y in ys)
+			foreach (var otherNode in otherNodes)
 			{
-				long amount = Balance(y, type);
+				long amount = Balance(otherNode, type);
 
-				if (xIsSink)
+				if (nodeIsSink)
 				{
-					AddEdge(new(y, x, type, (ulong)amount));
+					AddEdge(new(otherNode, node, type, (ulong)amount));
 				}
 				else
 				{
 					// When x is the source, we can only utilize its remaining
 					// balance. The effective balance of the last y term term
 					// might still have a negative magnitude after this.
-					AddEdge(new(x, y, type, (ulong)Math.Min(Balance(x, type), -1 * amount)));
+					AddEdge(new(node, otherNode, type, (ulong)Math.Min(Balance(node, type), -1 * amount)));
 				}
 
 				// Here we avoid opportunistically adding edges as it provides no
