@@ -91,10 +91,14 @@ namespace WalletWasabi.BitcoinCore
 		public IEnumerable<Transaction> GetMempoolTransactions(IEnumerable<uint256> txids, CancellationToken cancel)
 		{
 			var node = Guard.NotNull(nameof(Node), Node);
+			var p2pBehavior = Guard.NotNull(nameof(TrustedP2pBehavior), TrustedP2pBehavior);
 
 			try
 			{
-				TrustedP2pBehavior.DisableProcess(txids);
+				// Skip processing if txid is disabled.
+				// This feature is necessary because NBitcoin's Node.GetMempoolTransactions doesn't return anything
+				// if we're processing the arriving txs.
+				p2pBehavior.DisableProcess(txids);
 
 				// Chunk it because it doesn't work properly for more.
 				foreach (var chunk in txids.Distinct().ChunkBy(100))
@@ -109,7 +113,7 @@ namespace WalletWasabi.BitcoinCore
 			}
 			finally
 			{
-				TrustedP2pBehavior.EnableProcess(txids);
+				p2pBehavior.EnableProcess(txids);
 			}
 		}
 

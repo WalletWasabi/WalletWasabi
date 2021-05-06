@@ -14,7 +14,7 @@
                  EnableBack="{Binding EnableBack}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-    <c:QuestionControl Text="Does your password contains numbers?"
+    <c:QuestionControl QuestionContent="Does your password contains numbers?"
                        YesCommand="{Binding YesCommand}"
                        NoCommand="{Binding NoCommand}"
                        Icon="{Binding Icon}"
