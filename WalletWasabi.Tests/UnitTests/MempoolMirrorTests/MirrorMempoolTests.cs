@@ -17,7 +17,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 {
-	public class MirrorMempoolTest
+	public class MirrorMempoolTests
 	{
 		[Fact]
 		public async Task CanCopyMempoolFromRpcAsync()
@@ -86,6 +86,56 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 
 				Assert.Single(localMempool);
 				Assert.Contains(txid, localMempool.Keys);
+			}
+			finally
+			{
+				await services.StopAllAsync();
+				await coreNode.TryStopAsync();
+			}
+		}
+
+		[Fact]
+		public async Task CanHandleTheSameTxSentManyTimesAsync()
+		{
+			var coreNode = await TestNodeBuilder.CreateAsync();
+			using HostedServices services = new();
+			using MempoolMirror mempoolMirror = new(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode);
+			services.Register<MempoolMirror>(mempoolMirror, "Mempool Mirror");
+			try
+			{
+				var rpc = coreNode.RpcClient;
+				var network = rpc.Network;
+				await services.StartAllAsync();
+				var mempoolInstance = services.Get<MempoolMirror>();
+
+				var walletName = "RandomWalletName";
+				await rpc.CreateWalletAsync(walletName);
+
+				using var k1 = new Key();
+				var blockId = await rpc.GenerateToAddressAsync(1, k1.PubKey.WitHash.GetAddress(network));
+				var block = await rpc.GetBlockAsync(blockId[0]);
+				var coinBaseTx = block.Transactions[0];
+
+				var tx = Transaction.Create(network);
+				using var k2 = new Key();
+				tx.Inputs.Add(coinBaseTx, 0);
+				tx.Outputs.Add(Money.Coins(49.9999m), k2.PubKey.WitHash.GetAddress(network));
+				tx.Sign(k1.GetBitcoinSecret(network), coinBaseTx.Outputs.AsCoins().First());
+				var valid = tx.Check();
+
+				await rpc.GenerateAsync(101);
+
+				for (int i = 0; i < 5; i++)
+				{
+					await rpc.SendRawTransactionAsync(tx);
+
+					await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(2));
+				}
+
+				var localMempool = mempoolInstance.GetMempool();
+
+				Assert.Single(localMempool);
+				Assert.Contains(tx.GetHash(), localMempool.Keys);
 			}
 			finally
 			{
