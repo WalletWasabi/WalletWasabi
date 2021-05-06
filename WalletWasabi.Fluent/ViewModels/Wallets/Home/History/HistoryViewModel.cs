@@ -65,26 +65,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 		public ObservableCollection<HistoryItemViewModel> Transactions => _transactions;
 
+		public void SelectTransaction(uint256 txid)
+		{
+			SelectedItem =
+				Transactions.FirstOrDefault(x => x.TransactionSummary.TransactionId == txid);
+		}
+
 		protected override void OnActivated(CompositeDisposable disposables)
 		{
 			base.OnActivated(disposables);
 
 			RxApp.MainThreadScheduler.Schedule(async () => await UpdateAsync());
-
-			_transactionSourceList
-				.Connect()
-				.Throttle(TimeSpan.FromMilliseconds(100))
-				.Skip(2)
-				.OnItemAdded(_ =>
-				{
-					lock (_transactionListLock)
-					{
-						var newPendingItem = Transactions.OrderByDescending(x => x.OrderIndex).FirstOrDefault(x => !x.IsConfirmed);
-						SelectedItem = newPendingItem;
-					}
-				})
-				.Subscribe()
-				.DisposeWith(disposables);
 
 			_updateTrigger
 				.Subscribe(async _ => await UpdateAsync())
