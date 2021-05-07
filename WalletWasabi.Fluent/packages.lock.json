@@ -42,30 +42,20 @@
       },
       "Avalonia.Xaml.Behaviors": {
         "type": "Direct",
-        "requested": "[0.10.3, )",
-        "resolved": "0.10.3",
-        "contentHash": "6+/x5/KFvcRkb11IPVNDDJT9scd4CAphFd8fFGKl7cQn2mSu4uLTcAoRbIVnBTkZIF5JCufTNLYX/NSrDazzrw==",
+        "requested": "[0.10.3.2, )",
+        "resolved": "0.10.3.2",
+        "contentHash": "w/2J/4ryoX8o9CSRhqt4MaYhRbA3AEMaE+S2P1fYIuTGdoqGYh0qRPq/xeCA62JGAY+cMdwd74H3CzFuyWrdzA==",
         "dependencies": {
           "Avalonia": "0.10.3",
-          "Avalonia.Xaml.Interactions": "0.10.3",
-          "Avalonia.Xaml.Interactivity": "0.10.3"
-        }
-      },
-      "Avalonia.Xaml.Interactions.Custom": {
-        "type": "Direct",
-        "requested": "[0.10.3, )",
-        "resolved": "0.10.3",
-        "contentHash": "vygO1aKfp+YVO4oY+n01s3fCXRweYFRDXXfsO4KVfFQu2cowU7MGoT08IqwW/PKZvaZRjNAkM4ypTNCJ1jKwCQ==",
-        "dependencies": {
-          "Avalonia": "0.10.3",
-          "Avalonia.Xaml.Interactivity": "0.10.3"
+          "Avalonia.Xaml.Interactions": "0.10.3.2",
+          "Avalonia.Xaml.Interactivity": "0.10.3.2"
         }
       },
       "Avalonia.Xaml.Interactivity": {
         "type": "Direct",
-        "requested": "[0.10.3, )",
-        "resolved": "0.10.3",
-        "contentHash": "xbOxcH3rL/mFWGpbkibuPYYp5LL5wbdCpPDMee5NS69fR5abU1nt5drKfU7jP3YnXNMD9uoswqMEjyOasYfJjw==",
+        "requested": "[0.10.3.2, )",
+        "resolved": "0.10.3.2",
+        "contentHash": "D2kjJaUsgaoCOTqHwcEz3F6aegMelEVwX+l8thv2wzrytOOs3d23ZMgZanpfjP4obIkhXgVtFZiYPr3eUz6LLw==",
         "dependencies": {
           "Avalonia": "0.10.3"
         }
@@ -177,11 +167,20 @@
       },
       "Avalonia.Xaml.Interactions": {
         "type": "Transitive",
-        "resolved": "0.10.3",
-        "contentHash": "czfL1msyVa75C2HxcaqhyZaAdfSG6/kcGqKMbBPHLxiqBap75ASkx4bXDsTrNeXgvCARh/wG8ssi8nDXLvasPg==",
+        "resolved": "0.10.3.2",
+        "contentHash": "cxFI6sDlYzWRWVzRRYFXM4+RFJLnPYsLPYgODbVAdlK5c5XQ/AevXezoG16t4Bofw5Qj/UggJbe1xxdizYLxSg==",
         "dependencies": {
           "Avalonia": "0.10.3",
-          "Avalonia.Xaml.Interactivity": "0.10.3"
+          "Avalonia.Xaml.Interactivity": "0.10.3.2"
+        }
+      },
+      "Avalonia.Xaml.Interactions.Custom": {
+        "type": "Transitive",
+        "resolved": "0.9.9",
+        "contentHash": "j1F+UPlhcITTfRKWXvoqrRZKodyj33uwl6S6oIfomex9y5Kha2G1Y9ykc1ewGBK5OWemJ2i7Kh77aiwp7rFedA==",
+        "dependencies": {
+          "Avalonia": "0.9.9",
+          "Avalonia.Xaml.Interactivity": "0.9.9"
         }
       },
       "AvalonStudio.Shell": {
