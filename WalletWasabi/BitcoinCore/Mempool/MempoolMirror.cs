@@ -147,11 +147,11 @@ namespace WalletWasabi.BitcoinCore.Mempool
 			return spenders.Values.ToArray();
 		}
 
-		public Dictionary<uint256, Transaction> GetMempool()
+		public ISet<uint256> GetMempoolHashes()
 		{
 			lock (MempoolLock)
 			{
-				return Mempool;
+				return Mempool.Keys.ToHashSet();
 			}
 		}
 	}
