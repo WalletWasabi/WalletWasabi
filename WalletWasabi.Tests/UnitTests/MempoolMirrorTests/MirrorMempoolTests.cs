@@ -23,17 +23,15 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 				var rpc = coreNode.RpcClient;
 				var network = rpc.Network;
 				var mempoolInstance = services.Get<MempoolMirror>();
-
 				var walletName = "RandomWalletName";
 				await rpc.CreateWalletAsync(walletName);
 
-				using var k1 = new Key();
 				var spendAmount = new Money(0.0004m, MoneyUnit.BTC);
 				var spendAmount2 = new Money(0.0004m, MoneyUnit.BTC);
-				await coreNode.RpcClient.GenerateAsync(101);
+				await rpc.GenerateAsync(101);
 
-				var txid = await coreNode.RpcClient.SendToAddressAsync(k1.GetBitcoinSecret(network).GetAddress(ScriptPubKeyType.Segwit), spendAmount);
-				var txid2 = await coreNode.RpcClient.SendToAddressAsync(k1.GetBitcoinSecret(network).GetAddress(ScriptPubKeyType.Segwit), spendAmount2);
+				var txid = await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(network), spendAmount);
+				var txid2 = await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(network), spendAmount2);
 
 				await services.StartAllAsync();
 				await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
@@ -60,19 +58,18 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 			{
 				var rpc = coreNode.RpcClient;
 				var network = rpc.Network;
-				await services.StartAllAsync();
-				var mempoolInstance = services.Get<MempoolMirror>();
-
 				var walletName = "RandomWalletName";
 				await rpc.CreateWalletAsync(walletName);
 
-				using var key = new Key();
+				await services.StartAllAsync();
+
 				var spendAmount = new Money(0.0004m, MoneyUnit.BTC);
-				await coreNode.RpcClient.GenerateAsync(101);
+				await rpc.GenerateAsync(101);
 
-				var txid = await coreNode.RpcClient.SendToAddressAsync(key.GetBitcoinSecret(network).GetAddress(ScriptPubKeyType.Segwit), spendAmount);
+				var txid = await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(network), spendAmount);
 
-				await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
+				var mempoolInstance = services.Get<MempoolMirror>();
+				await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 				var localMempoolHashes = mempoolInstance.GetMempoolHashes();
 
 				Assert.Single(localMempoolHashes);
@@ -150,17 +147,7 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 				var walletName = "RandomWalletName";
 				await rpc.CreateWalletAsync(walletName);
 
-				using var k1 = new Key();
-				var blockId = await rpc.GenerateToAddressAsync(1, k1.PubKey.WitHash.GetAddress(network));
-				var block = await rpc.GetBlockAsync(blockId[0]);
-				var coinBaseTx = block.Transactions[0];
-
-				var tx = Transaction.Create(network);
-				using var k2 = new Key();
-				tx.Inputs.Add(coinBaseTx, 0);
-				tx.Outputs.Add(Money.Coins(49.9999m), k2.PubKey.WitHash.GetAddress(network));
-				tx.Sign(k1.GetBitcoinSecret(network), coinBaseTx.Outputs.AsCoins().First());
-				var valid = tx.Check();
+				var spendAmount = new Money(0.0004m, MoneyUnit.BTC);
 
 				await rpc.GenerateAsync(101);
 
@@ -168,7 +155,7 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 				var localMempoolBeforeSend = mempoolInstance.GetMempoolHashes();
 				Assert.Equal(rpcMempoolBeforeSend.Length, localMempoolBeforeSend.Count);
 
-				await rpc.SendRawTransactionAsync(tx);
+				await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(network), spendAmount);
 				await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 				Thread.Sleep(5000);
 
