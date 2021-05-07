@@ -38,11 +38,11 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 
 				await services.StartAllAsync();
 				await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(2));
-				var localMempool = services.Get<MempoolMirror>().GetMempool();
+				var localMempoolHashes = mempoolInstance.GetMempoolHashes();
 
-				Assert.Equal(2, localMempool.Count);
-				Assert.Contains(txid, localMempool.Keys);
-				Assert.Contains(txid2, localMempool.Keys);
+				Assert.Equal(2, localMempoolHashes.Count);
+				Assert.Contains(txid, localMempoolHashes);
+				Assert.Contains(txid2, localMempoolHashes);
 			}
 			finally
 			{
@@ -75,10 +75,10 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 				var txid = await coreNode.RpcClient.SendToAddressAsync(key.GetBitcoinSecret(network).GetAddress(ScriptPubKeyType.Segwit), spendAmount);
 
 				await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(2));
-				var localMempool = mempoolInstance.GetMempool();
+				var localMempoolHashes = mempoolInstance.GetMempoolHashes();
 
-				Assert.Single(localMempool);
-				Assert.Contains(txid, localMempool.Keys);
+				Assert.Single(localMempoolHashes);
+				Assert.Contains(txid, localMempoolHashes);
 			}
 			finally
 			{
@@ -125,10 +125,10 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 					await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(2));
 				}
 
-				var localMempool = mempoolInstance.GetMempool();
+				var localMempoolHashes = mempoolInstance.GetMempoolHashes();
 
-				Assert.Single(localMempool);
-				Assert.Contains(tx.GetHash(), localMempool.Keys);
+				Assert.Single(localMempoolHashes);
+				Assert.Contains(tx.GetHash(), localMempoolHashes);
 			}
 			finally
 			{
@@ -169,7 +169,7 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 				await rpc.GenerateAsync(101);
 
 				var rpcMempoolBeforeSend = await rpc.GetRawMempoolAsync();
-				var localMempoolBeforeSend = mempoolInstance.GetMempool();
+				var localMempoolBeforeSend = mempoolInstance.GetMempoolHashes();
 				Assert.Equal(rpcMempoolBeforeSend.Length, localMempoolBeforeSend.Count);
 
 				await rpc.SendRawTransactionAsync(tx);
@@ -177,7 +177,7 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 				Thread.Sleep(5000);
 
 				var rpcMempoolAfterSend = await rpc.GetRawMempoolAsync();
-				var localMempoolAfterSend = mempoolInstance.GetMempool();
+				var localMempoolAfterSend = mempoolInstance.GetMempoolHashes();
 				Assert.Equal(rpcMempoolAfterSend.Length, localMempoolAfterSend.Count);
 				Assert.Single(localMempoolAfterSend);
 				Assert.Single(rpcMempoolAfterSend);
@@ -186,7 +186,7 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 				await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(2));
 
 				var rpcMempoolAfterBlockMined = await rpc.GetRawMempoolAsync();
-				var localMempoolAfterBlockMined = mempoolInstance.GetMempool();
+				var localMempoolAfterBlockMined = mempoolInstance.GetMempoolHashes();
 				Assert.Equal(rpcMempoolAfterBlockMined.Length, localMempoolAfterBlockMined.Count);
 				Assert.Empty(rpcMempoolAfterBlockMined);
 				Assert.Empty(localMempoolAfterBlockMined);
