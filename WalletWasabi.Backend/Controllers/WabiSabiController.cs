@@ -1,5 +1,7 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
@@ -11,9 +13,9 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("[controller]")]
 	public class WabiSabiController : ControllerBase
 	{
-		private IArenaRequestHandler handler;
+		private ArenaRequestHandler handler;
 
-		public WabiSabiController(IArenaRequestHandler handler)
+		public WabiSabiController(ArenaRequestHandler handler)
 		{
 			this.handler = handler;
 		}
@@ -51,6 +53,11 @@ namespace WalletWasabi.Backend.Controllers
 		public Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellableToken)
 		{
 			return handler.SignTransactionAsync(request, cancellableToken);
+		}
+
+		public IEnumerable<RoundState> GetStatusAsync(CancellationToken cancellableToken)
+		{
+			return handler.Arena.Rounds.Values.Select(x => RoundState.FromRound(x));
 		}
 	}
 }
