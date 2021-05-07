@@ -12,12 +12,12 @@
 
   <Style Selector="c|NavBarItem">
     <Setter Property="Background" Value="Transparent" />
-    <Setter Property="RenderTransform" Value="none" />
-    <Setter Property="Transitions">
-      <Transitions>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.075" />
-      </Transitions>
-    </Setter>
+    <!-- <Setter Property="RenderTransform" Value="none" /> -->
+    <!-- <Setter Property="Transitions"> -->
+    <!--   <Transitions> -->
+    <!--     <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.075" /> -->
+    <!--   </Transitions> -->
+    <!-- </Setter> -->
   </Style>
 
   <Style Selector="c|NavBarItem:vertical">
