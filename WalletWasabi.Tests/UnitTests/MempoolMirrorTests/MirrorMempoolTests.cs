@@ -17,8 +17,7 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 		{
 			var coreNode = await TestNodeBuilder.CreateAsync();
 			using HostedServices services = new();
-			using MempoolMirror mempoolMirror = new(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode);
-			services.Register<MempoolMirror>(mempoolMirror, "Mempool Mirror");
+			services.Register<MempoolMirror>(new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
 			try
 			{
 				var rpc = coreNode.RpcClient;
@@ -56,8 +55,7 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 		{
 			var coreNode = await TestNodeBuilder.CreateAsync();
 			using HostedServices services = new();
-			using MempoolMirror mempoolMirror = new(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode);
-			services.Register<MempoolMirror>(mempoolMirror, "Mempool Mirror");
+			services.Register<MempoolMirror>(new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
 			try
 			{
 				var rpc = coreNode.RpcClient;
@@ -92,8 +90,7 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 		{
 			var coreNode = await TestNodeBuilder.CreateAsync();
 			using HostedServices services = new();
-			using MempoolMirror mempoolMirror = new(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode);
-			services.Register<MempoolMirror>(mempoolMirror, "Mempool Mirror");
+			services.Register<MempoolMirror>(new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
 			try
 			{
 				var rpc = coreNode.RpcClient;
@@ -142,8 +139,7 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 		{
 			var coreNode = await TestNodeBuilder.CreateAsync();
 			using HostedServices services = new();
-			using MempoolMirror mempoolMirror = new(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode);
-			services.Register<MempoolMirror>(mempoolMirror, "Mempool Mirror");
+			services.Register<MempoolMirror>(new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
 			try
 			{
 				var rpc = coreNode.RpcClient;
