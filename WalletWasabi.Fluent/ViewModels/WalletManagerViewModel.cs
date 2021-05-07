@@ -292,13 +292,13 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			// _actions.AddRange(actions.ToList().Prepend(walletViewModel));
 			_actions.AddRange(actions.ToList());
-			_selectedWallets.Add(walletViewModel);
+			// TODO: _selectedWallets.Add(walletViewModel);
 		}
 
 		private void RemoveActions(WalletViewModelBase walletViewModel, IEnumerable<NavBarItemViewModel> actions, bool dispose = false)
 		{
 			_actions.Clear();
-			_selectedWallets.Clear();
+			// TODO: _selectedWallets.Clear();
 
 			if (dispose)
 			{
