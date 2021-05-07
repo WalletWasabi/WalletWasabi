@@ -307,7 +307,7 @@
             </Animation>
           </Style.Animations>
         </Style>
-        <Style Selector=":is(ListBox)[VerticalAlignment=Top]">
+        <Style Selector=":is(ListBox)[VerticalAlignment=Stretch]">
           <Style.Animations>
             <Animation Delay="0:0:0.0" Duration="0:0:0.175">
               <KeyFrame Cue="0%">
