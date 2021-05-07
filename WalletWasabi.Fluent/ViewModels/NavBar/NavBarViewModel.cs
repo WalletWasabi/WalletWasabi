@@ -108,6 +108,8 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _walletManager.Items;
 
+		public ObservableCollection<WalletViewModelBase> Wallets => _walletManager.Wallets;
+
 		public NavBarItemViewModel? SelectedItem
 		{
 			get => _selectedItem;
