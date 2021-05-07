@@ -9,7 +9,6 @@ using Moq;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.Backend.Filters;
 using Xunit;
 
@@ -18,9 +17,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 	public class IdempotencyActionFilterTests
 	{
 		[Fact]
-		public async Task ShouldCacheResponse()
+		public void ShouldCacheResponse()
 		{
-			var actionContext = CreateActionExecutingContext();
+			var body = Encoding.UTF8.GetBytes("Hello world");
+			using var stream1 = new MemoryStream(body);
+			var actionContext = CreateActionExecutingContext(stream1);
 			var cache = new MemoryCache(new MemoryCacheOptions());
 			var filter = new IdempotentActionFilterAttributeImpl(cache);
 
@@ -29,7 +30,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var resultContext = CreateResulExecutedContext(actionContext);
 			filter.OnResultExecuted(resultContext);
 
-			actionContext = CreateActionExecutingContext();
+			using var stream2 = new MemoryStream(body);
+			actionContext = CreateActionExecutingContext(stream2);
 			filter.OnActionExecuting(actionContext);
 
 			Assert.Equal(1, cache.Count);
@@ -40,12 +42,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			Assert.Equal("Hello world", objValue.Value);
 		}
 
-		private static ActionExecutingContext CreateActionExecutingContext()
+		private static ActionExecutingContext CreateActionExecutingContext(Stream bodyStream)
 		{
 			var modelState = new ModelStateDictionary();
 			var httpContext = new DefaultHttpContext();
 			httpContext.Request.Path = "/api";
-			httpContext.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes("Hello world"));
+			httpContext.Request.Body = bodyStream;
 			var actionContext = new ActionExecutingContext(
 				new ActionContext(
 					httpContext: httpContext,
