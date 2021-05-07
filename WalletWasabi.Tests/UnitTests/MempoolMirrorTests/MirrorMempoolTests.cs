@@ -68,6 +68,8 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 
 				var txid = await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(network), spendAmount);
 
+				Thread.Sleep(3000);
+
 				var mempoolInstance = services.Get<MempoolMirror>();
 				await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 				var localMempoolHashes = mempoolInstance.GetMempoolHashes();
