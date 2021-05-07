@@ -114,5 +114,10 @@ namespace WalletWasabi.Tests.Helpers
 				return key.PubKey.WitHash.ScriptPubKey;
 			}
 		}
+
+		public static BitcoinAddress CreateBitcoinAddress(Network network, Key? key = null)
+		{
+			return CreateScript(key).GetDestinationAddress(network);
+		}
 	}
 }
