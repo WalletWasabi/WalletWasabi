@@ -5,6 +5,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Gui;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 {
@@ -13,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		[AutoNotify] private SmartLabel _label;
 		[AutoNotify] private string _address;
 
-		public AddressViewModel(ReceiveAddressesViewModel parent, HdPubKey model, Network network)
+		public AddressViewModel(ReceiveAddressesViewModel parent, HdPubKey model, Network network, UiConfig uiConfig)
 		{
 			_address = model.GetP2wpkhAddress(network).ToString();
 			_label = model.Label;
@@ -30,7 +31,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 						model,
 						network,
 						parent.Wallet.KeyManager.MasterFingerprint,
-						parent.Wallet.KeyManager.IsHardwareWallet));
+						parent.Wallet.KeyManager.IsHardwareWallet,
+						uiConfig));
 			});
 		}
 
