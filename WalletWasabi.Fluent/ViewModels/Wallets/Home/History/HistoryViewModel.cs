@@ -57,6 +57,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				.Filter(coinJoinFilter)
 				.Bind(_transactions)
 				.Subscribe();
+
+			this.WhenAnyValue(x => x.SelectedItem)
+				.Buffer(2, 1)
+				.Select(buf => buf[0])
+				.WhereNotNull()
+				.Subscribe(x => x.IsSelected = false);
 		}
 
 		public DataGridCollectionView CollectionView { get; }
@@ -72,6 +78,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			if (txnItem is { })
 			{
 				SelectedItem = txnItem;
+				SelectedItem.IsSelected = true;
 			}
 		}
 
