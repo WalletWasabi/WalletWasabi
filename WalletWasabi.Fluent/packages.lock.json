@@ -42,20 +42,20 @@
       },
       "Avalonia.Xaml.Behaviors": {
         "type": "Direct",
-        "requested": "[0.10.3.2, )",
-        "resolved": "0.10.3.2",
-        "contentHash": "w/2J/4ryoX8o9CSRhqt4MaYhRbA3AEMaE+S2P1fYIuTGdoqGYh0qRPq/xeCA62JGAY+cMdwd74H3CzFuyWrdzA==",
+        "requested": "[0.10.3.3, )",
+        "resolved": "0.10.3.3",
+        "contentHash": "3Gt9GU58RGIFCZ3SvNUgzozOkon88J1OEztPMu10V04GvC9s5Y+JfyuD4OcoKNPyxNqJyxFcozMIBqt/xdiUWA==",
         "dependencies": {
           "Avalonia": "0.10.3",
-          "Avalonia.Xaml.Interactions": "0.10.3.2",
-          "Avalonia.Xaml.Interactivity": "0.10.3.2"
+          "Avalonia.Xaml.Interactions": "0.10.3.3",
+          "Avalonia.Xaml.Interactivity": "0.10.3.3"
         }
       },
       "Avalonia.Xaml.Interactivity": {
         "type": "Direct",
-        "requested": "[0.10.3.2, )",
-        "resolved": "0.10.3.2",
-        "contentHash": "D2kjJaUsgaoCOTqHwcEz3F6aegMelEVwX+l8thv2wzrytOOs3d23ZMgZanpfjP4obIkhXgVtFZiYPr3eUz6LLw==",
+        "requested": "[0.10.3.3, )",
+        "resolved": "0.10.3.3",
+        "contentHash": "65Wq0Q5km3ghmR/2r09nl1UUCnPE0czUwhLFikWXB/+Lccoxb99kh0Y+FfS/Ty0KVfDuy8czfgJHiTd17PIDEg==",
         "dependencies": {
           "Avalonia": "0.10.3"
         }
@@ -167,11 +167,11 @@
       },
       "Avalonia.Xaml.Interactions": {
         "type": "Transitive",
-        "resolved": "0.10.3.2",
-        "contentHash": "cxFI6sDlYzWRWVzRRYFXM4+RFJLnPYsLPYgODbVAdlK5c5XQ/AevXezoG16t4Bofw5Qj/UggJbe1xxdizYLxSg==",
+        "resolved": "0.10.3.3",
+        "contentHash": "ftPIHqlML+xG3GL9/2LwAyvHNElfWUiE6zlyOA1Q7m9gZAu8Jre1Vm7PKHK6LSMSbW+NAN81AH6OGF1k+39FpQ==",
         "dependencies": {
           "Avalonia": "0.10.3",
-          "Avalonia.Xaml.Interactivity": "0.10.3.2"
+          "Avalonia.Xaml.Interactivity": "0.10.3.3"
         }
       },
       "Avalonia.Xaml.Interactions.Custom": {
