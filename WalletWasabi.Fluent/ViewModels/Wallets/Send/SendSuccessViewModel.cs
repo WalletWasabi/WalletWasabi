@@ -7,8 +7,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	[NavigationMetaData(Title = "Payment successful")]
 	public partial class SendSuccessViewModel : RoutableViewModel
 	{
-		public SendSuccessViewModel(SmartTransaction finalTransaction)
+		private readonly WalletViewModel _owner;
+		private readonly SmartTransaction _finalTransaction;
+
+		public SendSuccessViewModel(WalletViewModel owner, SmartTransaction finalTransaction)
 		{
+			_owner = owner;
+			_finalTransaction = finalTransaction;
+
 			NextCommand = ReactiveCommand.Create(OnNext);
 
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -17,6 +23,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private void OnNext()
 		{
 			Navigate().Clear();
+
+			_owner.History.SelectTransaction(_finalTransaction.GetHash());
 		}
 	}
 }
