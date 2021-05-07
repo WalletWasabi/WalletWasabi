@@ -277,7 +277,7 @@
       </c:NavBarListBox>
     </StackPanel>
     <!-- Items List -->
-    <c:NavBarListBox Items="{Binding Items}"
+    <c:NavBarListBox Items="{Binding Wallets}"
                      SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                      IsVisible="{Binding !HideItems, Mode=OneWay}"
                      Name="ItemsListBox"
