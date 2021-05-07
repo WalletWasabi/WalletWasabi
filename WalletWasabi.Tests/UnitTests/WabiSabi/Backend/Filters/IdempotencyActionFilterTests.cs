@@ -53,8 +53,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 					httpContext: httpContext,
 					routeData: new RouteData(),
 					actionDescriptor: new ActionDescriptor(),
-					modelState: modelState
-				),
+					modelState: modelState),
 				new List<IFilterMetadata>(),
 				new Dictionary<string, object>(),
 				new Mock<Controller>().Object);
