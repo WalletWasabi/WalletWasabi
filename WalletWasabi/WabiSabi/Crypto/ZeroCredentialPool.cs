@@ -1,8 +1,7 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using WalletWasabi.Crypto.ZeroKnowledge;
-using System.Collections.Concurrent;
-using System;
 
 namespace WalletWasabi.WabiSabi.Crypto
 {
@@ -11,7 +10,8 @@ namespace WalletWasabi.WabiSabi.Crypto
 	/// </summary>
 	public class ZeroCredentialPool
 	{
-		private readonly ConcurrentQueue<Credential> _zeroValueCredentials = new ();
+		private readonly object syncObject = new();
+		private readonly Queue<Credential> _zeroValueCredentials = new ();
 
 		internal ZeroCredentialPool()
 		{
@@ -27,7 +27,10 @@ namespace WalletWasabi.WabiSabi.Crypto
 			{
 				if (credential.Amount.IsZero)
 				{
-					_zeroValueCredentials.Enqueue(credential);
+					lock (syncObject)
+					{
+						_zeroValueCredentials.Enqueue(credential);
+					}
 				}
 				else
 				{
@@ -46,22 +49,17 @@ namespace WalletWasabi.WabiSabi.Crypto
 				credentialsToReturn[n] = credential;
 			}
 
-			const int MaxRetries = 100;
-			var retries = 0;
-			while (n > 0 && retries < MaxRetries)
+			lock (syncObject)
 			{
-				if (_zeroValueCredentials.TryDequeue(out var credential))
+				while (n > 0)
 				{
+					if (!_zeroValueCredentials.TryDequeue(out var credential))
+					{
+						throw new InvalidOperationException("There are not enough null credentials.");
+					}
 					n--;
 					credentialsToReturn[n] = credential;
 				}
-				retries++;
-			}
-
-			// It shouldn't run out of null credentials
-			if (n != 0)
-			{
-				throw new InvalidOperationException("It wasn't possible to get enough null credentials.");
 			}
 			return credentialsToReturn;
 		}
