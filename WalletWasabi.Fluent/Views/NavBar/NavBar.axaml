@@ -281,7 +281,7 @@
                      SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                      IsVisible="{Binding !HideItems, Mode=OneWay}"
                      Name="ItemsListBox"
-                     Classes="vertical"
+                     Classes="vertical draggable"
                      RenderTransformOrigin="0%,50%"
                      VerticalAlignment="{Binding Actions.Count, Mode=OneWay, Converter={x:Static conv:NavBarItemsListBoxAlignmentConverter.Instance}}">
       <c:NavBarListBox.Styles>
