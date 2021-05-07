@@ -283,7 +283,8 @@
                      Name="ItemsListBox"
                      Classes="vertical draggable"
                      RenderTransformOrigin="0%,50%"
-                     VerticalAlignment="{Binding Actions.Count, Mode=OneWay, Converter={x:Static conv:NavBarItemsListBoxAlignmentConverter.Instance}}">
+                     VerticalAlignment="Stretch">
+      <!-- TODO: VerticalAlignment="{Binding Actions.Count, Mode=OneWay, Converter={x:Static conv:NavBarItemsListBoxAlignmentConverter.Instance}}" -->
       <c:NavBarListBox.Styles>
         <Style Selector=":is(ListBox)[VerticalAlignment=Bottom]">
           <Style.Animations>
