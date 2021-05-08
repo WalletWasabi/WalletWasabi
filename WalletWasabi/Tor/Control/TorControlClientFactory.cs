@@ -107,7 +107,7 @@ namespace WalletWasabi.Tor.Control
 				Logger.LogError($"Invalid reply: '{authenticationReply}'");
 				throw new TorControlException("Invalid status in AUTHENTICATE reply.");
 			}
-			
+
 			return controlClient;
 		}
 
