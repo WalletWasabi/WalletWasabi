@@ -1,7 +1,6 @@
 using NBitcoin;
 using NBitcoin.Protocol;
 using System;
-using System.Collections.Generic;
 using System.Net;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
@@ -15,9 +14,6 @@ namespace WalletWasabi.BitcoinP2p
 		}
 
 		public event EventHandler<uint256>? BlockInv;
-
-		private HashSet<uint256> DisabledFromProcessing { get; } = new();
-		private object DisabledFromProcessingLock { get; } = new();
 
 		protected override bool ProcessInventoryVector(InventoryVector inv, EndPoint remoteSocketEndpoint)
 		{
@@ -50,44 +46,6 @@ namespace WalletWasabi.BitcoinP2p
 			return false;
 		}
 
-		protected override void ProcessTx(TxPayload payload)
-		{
-			var txid = payload.Object.GetHash();
-
-			// Skip processing if txid is disabled.
-			bool toProcess;
-			lock (DisabledFromProcessingLock)
-			{
-				toProcess = !DisabledFromProcessing.Contains(txid);
-			}
-			if (toProcess)
-			{
-				base.ProcessTx(payload);
-			}
-		}
-
 		public override object Clone() => new TrustedP2pBehavior(MempoolService);
-
-		public void DisableProcess(IEnumerable<uint256> txids)
-		{
-			lock (DisabledFromProcessingLock)
-			{
-				foreach (var txid in txids)
-				{
-					DisabledFromProcessing.Add(txid);
-				}
-			}
-		}
-
-		public void EnableProcess(IEnumerable<uint256> txids)
-		{
-			lock (DisabledFromProcessingLock)
-			{
-				foreach (var txid in txids)
-				{
-					DisabledFromProcessing.Remove(txid);
-				}
-			}
-		}
 	}
 }

@@ -6,7 +6,6 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore;
-using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
@@ -55,8 +54,6 @@ namespace WalletWasabi.Backend
 
 			// Make sure P2P works.
 			await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint(), cancel);
-
-			HostedServices.Register<MempoolMirror>(new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, P2pNode), "Full Node Mempool Mirror");
 
 			CoordinatorParameters coordinatorParameters = new(DataDir);
 			HostedServices.Register<WabiSabiCoordinator>(new WabiSabiCoordinator(coordinatorParameters, RpcClient), "WabiSabi Coordinator");
