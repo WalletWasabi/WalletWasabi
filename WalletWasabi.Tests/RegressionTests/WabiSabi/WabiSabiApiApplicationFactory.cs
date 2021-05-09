@@ -3,10 +3,13 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore.Rpc;
@@ -19,14 +22,19 @@ using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 {
-	public class WabiSabiApiApplicationFactory : WebApplicationFactory<WalletWasabi.Backend.Startup>
+	public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
 	{
-		public WabiSabiApiApplicationFactory()
-			: base()
+		protected override IHostBuilder CreateHostBuilder()
 		{
+			var builder = Host.CreateDefaultBuilder().ConfigureWebHostDefaults(x =>
+			{
+				x.UseStartup<TStartup>().UseTestServer();
+			});
+			return builder;
 		}
 
 		protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -34,11 +42,17 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 			// will be called after the `ConfigureServices` from the Startup
 			builder.ConfigureTestServices(services =>
 			{
-				services.AddSingleton<IRPCClient>(GetMockRpc());
-				services.AddTransient<IArenaRequestHandler, ArenaRequestHandler>();
-				services.AddTransient<Prison>();
-				services.AddTransient<WabiSabiConfig>();
-				services.AddSingleton<Arena>(serviceProvider => 
+				services.AddHostedService<BackgroundServiceStarter<Arena>>();
+				services.AddSingleton<Arena>();
+				services.AddSingleton<ArenaRequestHandler>();
+				services.AddScoped<Network>(_ => Network.Main);
+				services.AddScoped<IRPCClient>(_ => GetMockRpc());
+				services.AddScoped<Prison>();
+				services.AddScoped<WabiSabiConfig>();
+				services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
+
+				/*
+				serviceProvider =>
 				{
 					var rpc = serviceProvider.GetRequiredService<IRPCClient>();
 					var prison = serviceProvider.GetRequiredService<Prison>();
@@ -47,33 +61,34 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 					arena.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
 					arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1)).GetAwaiter().GetResult();
 					return arena;
-				});
+				});*/
+			});
+			builder.ConfigureServices(services =>
+			{
 			});
 		}
 
-		public ArenaClient CreateArenaClient(HttpClient? httpClient = null)
+		public async Task<ArenaClient> CreateArenaClientAsync(HttpClient? httpClient = null)
 		{
-			httpClient ??= CreateClient();
-			var httpArenaRequestHandlerProxy = new WabiSabiHttpApiClient(new HttpClientWrapper(httpClient));
-			var round = GetCurrentRound();
+			var wabiSabiHttpApiClient = CreateWabiSabiHttpApiClient(httpClient);
+			var rounds = await wabiSabiHttpApiClient.GetStatusAsync(CancellationToken.None);
+			var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 			var arenaClient = new ArenaClient(
-				round.AmountCredentialIssuerParameters, 
+				round.AmountCredentialIssuerParameters,
 				round.VsizeCredentialIssuerParameters,
 				new CredentialPool(),
 				new CredentialPool(),
-				httpArenaRequestHandlerProxy, 
+				wabiSabiHttpApiClient,
 				new InsecureRandom());
 			return arenaClient;
 		}
 
-		public Round GetCurrentRound()
-		{
-			var arena = Services.GetRequiredService<Arena>();
-			var round = arena.Rounds.First().Value;
-			return round;
-		}
+		public WabiSabiHttpApiClient CreateWabiSabiHttpApiClient(HttpClient? httpClient = null) =>
+			new(new HttpClientWrapper(httpClient ?? CreateClient()));
 
-		private MockRpcClient GetMockRpc()
+		// Creates and configure an fake RPC client used to simulate the
+		// interaction with our bitcoin full node RPC server.
+		private static MockRpcClient GetMockRpc()
 		{
 			var mockRpc = new MockRpcClient();
 			mockRpc.OnGetMempoolInfoAsync = () => Task.FromResult(
@@ -90,9 +105,29 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 					FeeRate = new FeeRate(Money.Satoshis(5000))
 				});
 
-			mockRpc.OnGetTxOutAsync = (_, _, _) => null; 
+			mockRpc.OnGetTxOutAsync = (_, _, _) => null;
 
 			return mockRpc;
+		}
+	}
+
+	public class BackgroundServiceStarter<T> : IHostedService where T : IHostedService
+	{
+		readonly T backgroundService;
+
+		public BackgroundServiceStarter(T backgroundService)
+		{
+			this.backgroundService = backgroundService;
+		}
+
+		public Task StartAsync(CancellationToken cancellationToken)
+		{
+			return backgroundService.StartAsync(cancellationToken);
+		}
+
+		public Task StopAsync(CancellationToken cancellationToken)
+		{
+			return backgroundService.StopAsync(cancellationToken);
 		}
 	}
 }
