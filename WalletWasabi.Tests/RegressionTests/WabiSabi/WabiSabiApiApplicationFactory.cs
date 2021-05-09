@@ -50,21 +50,6 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 				services.AddScoped<Prison>();
 				services.AddScoped<WabiSabiConfig>();
 				services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
-
-				/*
-				serviceProvider =>
-				{
-					var rpc = serviceProvider.GetRequiredService<IRPCClient>();
-					var prison = serviceProvider.GetRequiredService<Prison>();
-					var config = serviceProvider.GetRequiredService<WabiSabiConfig>();
-					var arena = new Arena(TimeSpan.FromSeconds(4), Network.Main, config, rpc, prison);
-					arena.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
-					arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1)).GetAwaiter().GetResult();
-					return arena;
-				});*/
-			});
-			builder.ConfigureServices(services =>
-			{
 			});
 		}
 
@@ -108,26 +93,6 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 			mockRpc.OnGetTxOutAsync = (_, _, _) => null;
 
 			return mockRpc;
-		}
-	}
-
-	public class BackgroundServiceStarter<T> : IHostedService where T : IHostedService
-	{
-		readonly T backgroundService;
-
-		public BackgroundServiceStarter(T backgroundService)
-		{
-			this.backgroundService = backgroundService;
-		}
-
-		public Task StartAsync(CancellationToken cancellationToken)
-		{
-			return backgroundService.StartAsync(cancellationToken);
-		}
-
-		public Task StopAsync(CancellationToken cancellationToken)
-		{
-			return backgroundService.StopAsync(cancellationToken);
 		}
 	}
 }
