@@ -3,19 +3,15 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
-using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.Tests.UnitTests;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
@@ -46,7 +42,7 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 				services.AddSingleton<Arena>();
 				services.AddSingleton<ArenaRequestHandler>();
 				services.AddScoped<Network>(_ => Network.Main);
-				services.AddScoped<IRPCClient>(_ => GetMockRpc());
+				services.AddScoped<IRPCClient>(_ => BitcoinFactory.GetMockMinimalRpc());
 				services.AddScoped<Prison>();
 				services.AddScoped<WabiSabiConfig>();
 				services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
@@ -70,29 +66,5 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 
 		public WabiSabiHttpApiClient CreateWabiSabiHttpApiClient(HttpClient? httpClient = null) =>
 			new(new HttpClientWrapper(httpClient ?? CreateClient()));
-
-		// Creates and configure an fake RPC client used to simulate the
-		// interaction with our bitcoin full node RPC server.
-		private static MockRpcClient GetMockRpc()
-		{
-			var mockRpc = new MockRpcClient();
-			mockRpc.OnGetMempoolInfoAsync = () => Task.FromResult(
-				new MemPoolInfo
-				{
-					MemPoolMinFee = 0.00001000, // 1 s/b (default value)
-					Histogram = Array.Empty<FeeRateGroup>()
-				});
-
-			mockRpc.OnEstimateSmartFeeAsync = (target, mode) => Task.FromResult(
-				new EstimateSmartFeeResponse()
-				{
-					Blocks = target,
-					FeeRate = new FeeRate(Money.Satoshis(5000))
-				});
-
-			mockRpc.OnGetTxOutAsync = (_, _, _) => null;
-
-			return mockRpc;
-		}
 	}
 }

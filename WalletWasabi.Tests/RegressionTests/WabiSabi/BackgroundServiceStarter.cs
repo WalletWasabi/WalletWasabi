@@ -12,7 +12,7 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 	// see: https://stackoverflow.com/a/51314147/627071
 	public class BackgroundServiceStarter<T> : IHostedService where T : IHostedService
 	{
-		readonly T backgroundService;
+		private readonly T backgroundService;
 
 		public BackgroundServiceStarter(T backgroundService)
 		{

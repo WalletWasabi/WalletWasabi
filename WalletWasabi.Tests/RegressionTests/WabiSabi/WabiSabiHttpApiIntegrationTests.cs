@@ -1,14 +1,11 @@
-using System;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
-using NBitcoin.RPC;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.Tests.UnitTests;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
@@ -32,6 +29,7 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 			var apiClient = await _apiApplicationFactory.CreateArenaClientAsync();
 			var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
 			var round = rounds.First(x => x.CoinjoinState is ConstructionState);
+
 			// If an output is not in the utxo dataset then it is not unspent, this
 			// means that the output is spent or simply doesn't even exist.
 			var nonExistingOutPoint = new OutPoint();
@@ -56,7 +54,7 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 			{
 				builder.ConfigureServices(services =>
 				{
-					var rpc = GetMockRpc();
+					var rpc = BitcoinFactory.GetMockMinimalRpc();
 					rpc.OnGetTxOutAsync = (_, _, _) => new ()
 					{
 						Confirmations = 101,
@@ -75,30 +73,6 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 			uint256 aliceId = await apiClient.RegisterInputAsync(Money.Coins(1), coinToRegister.Outpoint, signingKey, round.Id, CancellationToken.None);
 
 			Assert.NotEqual(uint256.Zero, aliceId);
-		}
-
-		// Creates and configure an fake RPC client used to simulate the
-		// interaction with our bitcoin full node RPC server.
-		private static MockRpcClient GetMockRpc()
-		{
-			var mockRpc = new MockRpcClient();
-			mockRpc.OnGetMempoolInfoAsync = () => Task.FromResult(
-				new MemPoolInfo
-				{
-					MemPoolMinFee = 0.00001000, // 1 s/b (default value)
-					Histogram = Array.Empty<FeeRateGroup>()
-				});
-
-			mockRpc.OnEstimateSmartFeeAsync = (target, mode) => Task.FromResult(
-				new EstimateSmartFeeResponse()
-				{
-					Blocks = target,
-					FeeRate = new FeeRate(Money.Satoshis(5000))
-				});
-
-			mockRpc.OnGetTxOutAsync = (_, _, _) => null;
-
-			return mockRpc;
 		}
 	}
 }
