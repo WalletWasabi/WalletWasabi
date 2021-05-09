@@ -12,15 +12,15 @@ using System.Text;
 using WalletWasabi.Backend.Filters;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
+namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.Filters
 {
 	public class IdempotencyActionFilterTests
 	{
 		[Fact]
 		public void ShouldCacheResponse()
 		{
-			var body = Encoding.UTF8.GetBytes("Hello world");
-			using var stream1 = new MemoryStream(body);
+			var helloBody = Encoding.UTF8.GetBytes("Hello world");
+			using var stream1 = new MemoryStream(helloBody);
 			var actionContext = CreateActionExecutingContext(stream1);
 			var cache = new MemoryCache(new MemoryCacheOptions());
 			var filter = new IdempotentActionFilterAttributeImpl(cache);
@@ -30,7 +30,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 			var resultContext = CreateResulExecutedContext(actionContext);
 			filter.OnResultExecuted(resultContext);
 
-			using var stream2 = new MemoryStream(body);
+			var byeBody = Encoding.UTF8.GetBytes("Bye world");
+			using var stream2 = new MemoryStream(byeBody);
 			actionContext = CreateActionExecutingContext(stream2);
 			filter.OnActionExecuting(actionContext);
 
