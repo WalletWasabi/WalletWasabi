@@ -12,7 +12,7 @@ namespace WalletWasabi.Backend.Controllers
 	[ExceptionTranslate]
 	[Route("[controller]")]
 	[Produces("application/json")]
-	public class WabiSabiController : ControllerBase, IArenaRequestHandler
+	public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	{
 		private ArenaRequestHandler handler;
 

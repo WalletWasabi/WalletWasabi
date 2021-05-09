@@ -21,7 +21,7 @@ namespace WalletWasabi.WabiSabi.Client
 			CredentialIssuerParameters vsizeCredentialIssuerParameters,
 			CredentialPool amountCredentialPool,
 			CredentialPool vsizeCredentialPool,
-			IArenaRequestHandler requestHandler,
+			IWabiSabiApiRequestHandler requestHandler,
 			WasabiRandom random)
 		{
 			AmountCredentialClient = new WabiSabiClient(amountCredentialIssuerParameters, random, ProtocolConstants.MaxAmountPerAlice, amountCredentialPool);
@@ -29,7 +29,7 @@ namespace WalletWasabi.WabiSabi.Client
 			RequestHandler = requestHandler;
 		}
 
-		public ArenaClient(WabiSabiClient amountCredentialClient, WabiSabiClient vsizeCredentialClient, IArenaRequestHandler requestHandler)
+		public ArenaClient(WabiSabiClient amountCredentialClient, WabiSabiClient vsizeCredentialClient, IWabiSabiApiRequestHandler requestHandler)
 		{
 			AmountCredentialClient = amountCredentialClient;
 			VsizeCredentialClient = vsizeCredentialClient;
@@ -38,7 +38,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public WabiSabiClient AmountCredentialClient { get; }
 		public WabiSabiClient VsizeCredentialClient { get; }
-		public IArenaRequestHandler RequestHandler { get; }
+		public IWabiSabiApiRequestHandler RequestHandler { get; }
 
 		public async Task<uint256> RegisterInputAsync(
 			Money amount,

@@ -13,7 +13,7 @@ using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.WabiSabi.Client
 {
-	public class WabiSabiHttpApiClient : IArenaRequestHandler
+	public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 	{
 		private IHttpClient _client;
 
