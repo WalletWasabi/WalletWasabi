@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -28,7 +29,8 @@ namespace WalletWasabi.WabiSabi.Client
 			ConfirmConnection,
 			RegisterOutput,
 			ReissueCredential,
-			SignTransaction
+			SignTransaction,
+			GetStatus
 		}
 
 		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken) =>
@@ -48,6 +50,18 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken) =>
 			SendAndReceiveAsync<TransactionSignaturesRequest>(RemoteAction.SignTransaction, request, cancellationToken);
+
+		public async Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
+		{
+			using var response = await _client.SendAsync(HttpMethod.Get, GetUriEndPoint(RemoteAction.GetStatus), cancel: cancellationToken).ConfigureAwait(false);
+
+			if (!response.IsSuccessStatusCode)
+			{
+				await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
+			}
+			var jsonString = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+			return Deserialize<RoundState[]>(jsonString);
+		}
 
 		private async Task<string> SendAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken) where TRequest : class
 		{
@@ -93,6 +107,7 @@ namespace WalletWasabi.WabiSabi.Client
 				RemoteAction.ReissueCredential => "credential-issuance",
 				RemoteAction.RemoveInput => "input-unregistration",
 				RemoteAction.SignTransaction => "transaction-signature",
+				RemoteAction.GetStatus => "status",
 				_ => throw new NotSupportedException($"Action '{action}' is unknown and has no endpoint associated.")
 			};
 	}

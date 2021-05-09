@@ -228,5 +228,10 @@ namespace WalletWasabi.WabiSabi.Client
 
 			await RequestHandler.SignTransactionAsync(new TransactionSignaturesRequest(roundId, signatures), cancellationToken).ConfigureAwait(false);
 		}
+
+		public async Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
+		{
+			return await RequestHandler.GetStatusAsync(cancellationToken);
+		}
 	}
 }

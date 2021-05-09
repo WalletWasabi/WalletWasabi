@@ -91,6 +91,11 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			}
 		}
 
+		public Task<RoundState[]> GetStatusAsync(CancellationToken cancellationToken)
+		{
+			throw new NotImplementedException();
+		}
+
 		public async ValueTask DisposeAsync()
 		{
 			lock (DisposeStartedLock)
