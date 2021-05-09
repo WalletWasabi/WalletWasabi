@@ -65,7 +65,10 @@ namespace WalletWasabi.Tor.Http.Extensions
 			if (me.Content is { })
 			{
 				var contentString = await me.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-				var error = JsonConvert.DeserializeObject<Error>(contentString);
+				var error = JsonConvert.DeserializeObject<Error>(contentString, new JsonSerializerSettings()
+				{
+					Error = (_, e) => e.ErrorContext.Handled = true // Try to deserialize an Error object
+				});
 				var innerException = error switch
 				{
 					{ Type: "wabisabi-protocol-violation"} => Enum.TryParse<WabiSabiProtocolErrorCode>(error.ErrorCode, out var code)
