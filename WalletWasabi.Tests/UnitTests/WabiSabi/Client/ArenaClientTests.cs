@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Controllers;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
@@ -46,10 +47,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 					TxOut = new TxOut(Money.Coins(1m), key.PubKey.WitHash.GetAddress(Network.Main)),
 				});
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
-
+			var wabiSabiApi = new WabiSabiController(coordinator);
 			CredentialPool amountCredentials = new();
 			CredentialPool vsizeCredentials = new();
-			var aliceArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, amountCredentials, vsizeCredentials, coordinator, new InsecureRandom());
+			var aliceArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, amountCredentials, vsizeCredentials, wabiSabiApi, new InsecureRandom());
 
 			var aliceId = await aliceArenaClient.RegisterInputAsync(Money.Coins(1m), outpoint, key, round.Id, CancellationToken.None);
 
@@ -96,7 +97,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
 
-			var bobArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, amountCredentials, vsizeCredentials, coordinator, new InsecureRandom());
+			var bobArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, amountCredentials, vsizeCredentials, wabiSabiApi, new InsecureRandom());
 
 			Assert.Equal(4, amountCredentials.ZeroValue.Count());
 
@@ -160,7 +161,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
 
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, arena.Rpc);
-			var apiClient = new ArenaClient(null!, null!, coordinator);
+			var wabiSabiApi = new WabiSabiController(coordinator);
+			var apiClient = new ArenaClient(null!, null!, wabiSabiApi);
 
 			round.SetPhase(Phase.InputRegistration);
 
@@ -186,11 +188,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			var mockRpc = new Mock<IRPCClient>();
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
+			var wabiSabiApi = new WabiSabiController(coordinator);
 
 			var rnd = new InsecureRandom();
 			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, rnd, 4300000000000ul);
 			var vsizeClient = new WabiSabiClient(round.VsizeCredentialIssuerParameters, rnd, 2000ul);
-			var apiClient = new ArenaClient(amountClient, vsizeClient, coordinator);
+			var apiClient = new ArenaClient(amountClient, vsizeClient, wabiSabiApi);
 
 			round.SetPhase(Phase.TransactionSigning);
 

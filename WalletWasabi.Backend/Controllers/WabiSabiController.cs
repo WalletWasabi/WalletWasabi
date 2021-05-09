@@ -12,7 +12,7 @@ namespace WalletWasabi.Backend.Controllers
 	[ExceptionTranslate]
 	[Route("[controller]")]
 	[Produces("application/json")]
-	public class WabiSabiController : ControllerBase
+	public class WabiSabiController : ControllerBase, IArenaRequestHandler
 	{
 		private ArenaRequestHandler handler;
 
@@ -57,9 +57,9 @@ namespace WalletWasabi.Backend.Controllers
 		}
 
 		[HttpGet("status")]
-		public RoundState[] GetStatus()
+		public Task<RoundState[]> GetStatusAsync(CancellationToken cancellableToken)
 		{
-			return handler.Arena.Rounds.Values.Select(x => RoundState.FromRound(x)).ToArray();
+			return Task.FromResult(handler.Arena.Rounds.Values.Select(x => RoundState.FromRound(x)).ToArray());
 		}
 	}
 }
