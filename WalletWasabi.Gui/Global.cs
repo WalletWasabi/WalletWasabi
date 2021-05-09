@@ -143,7 +143,8 @@ namespace WalletWasabi.Gui
 				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
 				cancel.ThrowIfCancellationRequested();
 
-				HostedServices.Register<SystemAwakeChecker>(new SystemAwakeChecker(WalletManager), "System Awake Checker");
+				using var systemAwakeChecker = new SystemAwakeChecker(WalletManager);
+				HostedServices.Register<SystemAwakeChecker>(systemAwakeChecker, "System Awake Checker");
 
 				if (Config.UseTor && Network != Network.RegTest)
 				{
@@ -154,7 +155,8 @@ namespace WalletWasabi.Gui
 					}
 
 					Tor.Http.TorHttpClient torHttpClient = BackendHttpClientFactory.NewTorHttpClient(isolateStream: false);
-					HostedServices.Register<TorMonitor>(new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackBackendUri: Config.GetFallbackBackendUri(), torHttpClient, TorManager), nameof(TorMonitor));
+					using var torMonitor = new TorMonitor(period: TimeSpan.FromSeconds(3), fallbackBackendUri: Config.GetFallbackBackendUri(), torHttpClient, TorManager);
+					HostedServices.Register<TorMonitor>(torMonitor, nameof(TorMonitor));
 				}
 
 				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
