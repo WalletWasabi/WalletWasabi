@@ -64,7 +64,8 @@ namespace WalletWasabi.Fluent.Desktop
 					SetupLogger(dataDir, args);
 					var (uiConfig, config) = LoadOrCreateConfigs(dataDir);
 
-					singleInstanceChecker = new SingleInstanceChecker(config.Network);
+					using var sic = new SingleInstanceChecker(config.Network);
+					singleInstanceChecker = sic;
 					singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 
 					Global = CreateGlobal(dataDir, uiConfig, config);

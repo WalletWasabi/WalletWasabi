@@ -137,7 +137,8 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore
 		{
 			var coreNode = await TestNodeBuilder.CreateAsync();
 			using HostedServices services = new();
-			services.Register<BlockNotifier>(new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
+			using var blockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode);
+			services.Register<BlockNotifier>(blockNotifier, "Block Notifier");
 
 			await services.StartAllAsync();
 			try

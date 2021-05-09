@@ -137,7 +137,8 @@ namespace WalletWasabi.Gui
 				});
 				var bstoreInitTask = BitcoinStore.InitializeAsync(cancel);
 
-				HostedServices.Register<UpdateChecker>(new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer), "Software Update Checker");
+				using var updateChecker = new UpdateChecker(TimeSpan.FromMinutes(7), Synchronizer);
+				HostedServices.Register<UpdateChecker>(updateChecker, "Software Update Checker");
 
 				await LegalChecker.InitializeAsync(HostedServices.Get<UpdateChecker>()).ConfigureAwait(false);
 				cancel.ThrowIfCancellationRequested();
@@ -172,7 +173,8 @@ namespace WalletWasabi.Gui
 					throw;
 				}
 
-				HostedServices.Register<P2pNetwork>(new P2pNetwork(Network, Config.GetBitcoinP2pEndPoint(), Config.UseTor ? Config.TorSocks5EndPoint : null, Path.Combine(DataDir, "BitcoinP2pNetwork"), BitcoinStore), "Bitcoin P2P Network");
+				using var p2pNetwork = new P2pNetwork(Network, Config.GetBitcoinP2pEndPoint(), Config.UseTor ? Config.TorSocks5EndPoint : null, Path.Combine(DataDir, "BitcoinP2pNetwork"), BitcoinStore);
+				HostedServices.Register<P2pNetwork>(p2pNetwork, "Bitcoin P2P Network");
 				HostedServices.Register<FilterProcessor>(new FilterProcessor(Synchronizer, BitcoinStore), "Filter Processor");
 
 				try
@@ -198,9 +200,12 @@ namespace WalletWasabi.Gui
 								cancel)
 							.ConfigureAwait(false);
 
-						HostedServices.Register<BlockNotifier>(new BlockNotifier(TimeSpan.FromSeconds(7), BitcoinCoreNode.RpcClient, BitcoinCoreNode.P2pNode), "Block Notifier");
-						HostedServices.Register<RpcMonitor>(new RpcMonitor(TimeSpan.FromSeconds(7), BitcoinCoreNode.RpcClient), "RPC Monitor");
-						HostedServices.Register<RpcFeeProvider>(new RpcFeeProvider(TimeSpan.FromMinutes(1), BitcoinCoreNode.RpcClient, HostedServices.Get<RpcMonitor>()), "RPC Fee Provider");
+						using var blockNotifier = new BlockNotifier(TimeSpan.FromSeconds(7), BitcoinCoreNode.RpcClient, BitcoinCoreNode.P2pNode);
+						HostedServices.Register<BlockNotifier>(blockNotifier, "Block Notifier");
+						using var rpcMonitor = new RpcMonitor(TimeSpan.FromSeconds(7), BitcoinCoreNode.RpcClient);
+						HostedServices.Register<RpcMonitor>(rpcMonitor, "RPC Monitor");
+						using var rpcFeeProvider = new RpcFeeProvider(TimeSpan.FromMinutes(1), BitcoinCoreNode.RpcClient, HostedServices.Get<RpcMonitor>());
+						HostedServices.Register<RpcFeeProvider>(rpcFeeProvider, "RPC Fee Provider");
 					}
 				}
 				catch (Exception ex)
@@ -208,8 +213,10 @@ namespace WalletWasabi.Gui
 					Logger.LogError(ex);
 				}
 
-				HostedServices.Register<BlockstreamInfoFeeProvider>(new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, ExternalHttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
-				HostedServices.Register<ThirdPartyFeeProvider>(new ThirdPartyFeeProvider(TimeSpan.FromSeconds(1), Synchronizer, HostedServices.Get<BlockstreamInfoFeeProvider>()), "Third Party Fee Provider");
+				using var blockstreamInfoFeeProvider = new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, ExternalHttpClientFactory)) { IsPaused = true };
+				HostedServices.Register<BlockstreamInfoFeeProvider>(blockstreamInfoFeeProvider, "Blockstream.info Fee Provider");
+				using var thirdPartyFeeProvider = new ThirdPartyFeeProvider(TimeSpan.FromSeconds(1), Synchronizer, HostedServices.Get<BlockstreamInfoFeeProvider>());
+				HostedServices.Register<ThirdPartyFeeProvider>(thirdPartyFeeProvider, "Third Party Fee Provider");
 				HostedServices.Register<HybridFeeProvider>(new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);

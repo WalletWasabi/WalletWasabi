@@ -54,7 +54,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 
 			var dataDir = Common.GetWorkDir();
 
-			var indexStore = new IndexStore(Path.Combine(dataDir, "indexStore"), network, new SmartHeaderChain());
+			await using var indexStore = new IndexStore(Path.Combine(dataDir, "indexStore"), network, new SmartHeaderChain());
 			await using var transactionStore = new AllTransactionStore(Path.Combine(dataDir, "transactionStore"), network);
 			var mempoolService = new MempoolService();
 			var blocks = new FileSystemBlockRepository(Path.Combine(dataDir, "blocks"), network);

@@ -38,7 +38,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			var cancelToken = new CancellationTokenSource();
+			using var cancelToken = new CancellationTokenSource();
 
 			var t = Task.Run(() => FindPassword(Options, cancelToken.Token));
 
