@@ -12,12 +12,12 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("[controller]")]
 	public class WabiSabiController : ControllerBase
 	{
-		private IArenaRequestHandler RequestHandler { get; }
-
 		public WabiSabiController(IArenaRequestHandler handler)
 		{
 			RequestHandler = handler;
 		}
+
+		private IArenaRequestHandler RequestHandler { get; }
 
 		[HttpPost("connection-confirmation")]
 		[Idempotent]
