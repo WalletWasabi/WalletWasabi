@@ -1,5 +1,7 @@
 using System;
+using System.Reactive.Concurrency;
 using Avalonia.Controls.Notifications;
+using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Helpers
 {
@@ -22,7 +24,7 @@ namespace WalletWasabi.Fluent.Helpers
 		{
 			if (NotificationManager is { } nm)
 			{
-				nm.Show(new Notification(title, message, NotificationType.Information, TimeSpan.FromSeconds(DefaultNotificationTimeout)));
+				RxApp.MainThreadScheduler.Schedule(() => nm.Show(new Notification(title, message, NotificationType.Information, TimeSpan.FromSeconds(DefaultNotificationTimeout))));
 			}
 		}
 	}
