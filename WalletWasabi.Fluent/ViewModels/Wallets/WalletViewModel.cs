@@ -75,19 +75,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			};
 
 			Observable.FromEventPattern<ProcessedResult>(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
-				.Subscribe(arg =>
+				.Select(x => x.EventArgs)
+				.Subscribe(e =>
 				{
-					var (sender, e) = arg;
-
 					if (uiConfig.PrivacyMode || !e.IsNews)
 					{
 						return;
 					}
 
-					if (TransactionHelpers.TryGetNotificationInputs(e, out var title, out var message))
-					{
-						NotificationHelpers.Show(title, message);
-					}
+					NotificationHelpers.Show(e);
 				});
 		}
 
