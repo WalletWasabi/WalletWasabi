@@ -66,11 +66,6 @@ namespace WalletWasabi.Fluent.Helpers
 
 			try
 			{
-				// ToDo
-				// Double spent.
-				// Anonymity set gained?
-				// Received dust
-
 				bool isSpent = result.NewlySpentCoins.Any();
 				bool isReceived = result.NewlyReceivedCoins.Any();
 				bool isConfirmedReceive = result.NewlyConfirmedReceivedCoins.Any();
@@ -83,7 +78,7 @@ namespace WalletWasabi.Fluent.Helpers
 					Money spentSum = result.NewlySpentCoins.Sum(x => x.Amount);
 					Money incoming = receivedSum - spentSum;
 					Money receiveSpentDiff = incoming.Abs();
-					string amountString = receiveSpentDiff.ToString(false, true);
+					string amountString = receiveSpentDiff.ToFormattedString();
 					message = $"{amountString} BTC";
 
 					if (result.Transaction.Transaction.IsCoinBase)
@@ -97,26 +92,11 @@ namespace WalletWasabi.Fluent.Helpers
 					}
 					else if (incoming > Money.Zero)
 					{
-						if (result.Transaction.IsRBF && result.Transaction.IsReplacement)
-						{
-							title = "Received Replaceable Replacement Transaction";
-						}
-						else if (result.Transaction.IsRBF)
-						{
-							title = "Received Replaceable Transaction";
-						}
-						else if (result.Transaction.IsReplacement)
-						{
-							title = "Received Replacement Transaction";
-						}
-						else
-						{
-							title = "Received";
-						}
+						title = "Transaction Received";
 					}
 					else if (incoming < Money.Zero)
 					{
-						title = "Sent";
+						title = "Transaction Sent";
 					}
 				}
 				else if (isConfirmedReceive || isConfirmedSpent)
@@ -125,7 +105,7 @@ namespace WalletWasabi.Fluent.Helpers
 					Money spentSum = result.SpentCoins.Sum(x => x.Amount);
 					Money incoming = receivedSum - spentSum;
 					Money receiveSpentDiff = incoming.Abs();
-					string amountString = receiveSpentDiff.ToString(false, true);
+					string amountString = receiveSpentDiff.ToFormattedString();
 					message = $"{amountString} BTC";
 
 					if (isConfirmedSpent && receiveSpentDiff == miningFee)
