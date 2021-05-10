@@ -108,11 +108,6 @@ namespace WalletWasabi.Blockchain.TransactionBroadcasting
 					}
 				}
 
-				foreach (var tx in ex2.Message.Split(":::", StringSplitOptions.RemoveEmptyEntries).Skip(1).Select(x => new SmartTransaction(Transaction.Parse(x, Network), Height.Mempool)))
-				{
-					WalletManager.Process(tx);
-				}
-
 				throw;
 			}
 

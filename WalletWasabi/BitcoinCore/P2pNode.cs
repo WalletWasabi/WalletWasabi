@@ -2,9 +2,7 @@ using NBitcoin;
 using NBitcoin.Protocol;
 using Nito.AsyncEx;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -85,35 +83,6 @@ namespace WalletWasabi.BitcoinCore
 				TrustedP2pBehavior.BlockInv += TrustedP2pBehavior_BlockInv;
 				NodeEventsSubscribed = true;
 				MempoolService.TrustedNodeMode = Node.IsConnected;
-			}
-		}
-
-		public IEnumerable<Transaction> GetMempoolTransactions(IEnumerable<uint256> txids, CancellationToken cancel)
-		{
-			var node = Guard.NotNull(nameof(Node), Node);
-			var p2pBehavior = Guard.NotNull(nameof(TrustedP2pBehavior), TrustedP2pBehavior);
-
-			try
-			{
-				// Skip processing if txid is disabled.
-				// This feature is necessary because NBitcoin's Node.GetMempoolTransactions doesn't return anything
-				// if we're processing the arriving txs.
-				p2pBehavior.DisableProcess(txids);
-
-				// Chunk it because it doesn't work properly for more.
-				foreach (var chunk in txids.Distinct().ChunkBy(100))
-				{
-					var txs = node.GetMempoolTransactions(chunk.ToArray(), cancel);
-					foreach (var tx in txs)
-					{
-						tx.PrecomputeHash(invalidateExisting: false, lazily: true);
-						yield return tx;
-					}
-				}
-			}
-			finally
-			{
-				p2pBehavior.EnableProcess(txids);
 			}
 		}
 
