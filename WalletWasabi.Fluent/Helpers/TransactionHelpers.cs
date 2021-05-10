@@ -53,6 +53,7 @@ namespace WalletWasabi.Fluent.Helpers
 				transactionInfo.Coins,
 				subtractFee,
 				isPayJoin ? transactionInfo.PayJoinClient : null);
+
 		}
 	}
 }
