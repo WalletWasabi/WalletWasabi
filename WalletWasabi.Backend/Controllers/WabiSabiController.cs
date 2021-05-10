@@ -14,7 +14,7 @@ namespace WalletWasabi.Backend.Controllers
 	{
 		private IArenaRequestHandler RequestHandler { get; }
 
-		public WabiSabiController(Global global)
+		public WabiSabiController(IArenaRequestHandler handler)
 		{
 			RequestHandler = handler;
 		}
