@@ -17,6 +17,8 @@ using WalletWasabi.Backend.Middlewares;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi;
+using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients;
 
@@ -44,7 +46,7 @@ namespace WalletWasabi.Backend
 			services.AddMvc()
 				.AddNewtonsoftJson();
 
-			services.AddControllers().AddNewtonsoftJson(x => 
+			services.AddControllers().AddNewtonsoftJson(x =>
 			{
 				x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters;
 			});
@@ -71,6 +73,14 @@ namespace WalletWasabi.Backend
 			services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
 			services.AddSingleton(new Global(Configuration["datadir"]));
 			services.AddStartupTask<InitConfigStartupTask>();
+
+			services.AddSingleton<IArenaRequestHandler>(serviceProvider =>
+			{
+				var global = serviceProvider.GetRequiredService<Global>();
+				var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
+				return coordinator.Postman;
+			});
+
 			services.AddResponseCompression();
 		}
 
