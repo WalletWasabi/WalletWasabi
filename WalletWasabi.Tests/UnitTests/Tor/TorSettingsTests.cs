@@ -1,7 +1,7 @@
+using System.IO;
 using System.Net;
 using WalletWasabi.Tor;
 using Xunit;
-using System.IO;
 
 namespace WalletWasabi.Tests.UnitTests.Tor
 {
@@ -25,6 +25,9 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 			string expected = string.Join(
 				" ",
 				$"--SOCKSPort 127.0.0.1:9050",
+				$"--CookieAuthentication 1",
+				$"--ControlPort 37151",
+				$"--CookieAuthFile \"{Path.Combine("temp", "tempDataDir", "control_auth_cookie")}\"",
 				$"--DataDirectory \"{Path.Combine("temp", "tempDataDir", "tordata")}\"",
 				$"--GeoIPFile \"{Path.Combine("tempDistributionDir", "Tor", "Geoip", "geoip")}\"",
 				$"--GeoIPv6File \"{Path.Combine("tempDistributionDir", "Tor", "Geoip", "geoip6")}\"",
