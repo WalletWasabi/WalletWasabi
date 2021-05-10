@@ -14,21 +14,16 @@ namespace WalletWasabi.Backend.Filters
 			var exception = context.Exception.InnerException ?? context.Exception;
 			var exceptionMessage = exception.Message;
 
-			var error = exception switch
+			context.Result = exception switch
 			{
-				WabiSabiProtocolException e => new Error(
+				WabiSabiProtocolException e => new JsonResult(new Error(
 					Type: "wabisabi-protocol-violation",
 					ErrorCode: e.ErrorCode.ToString(),
-					Description: e.Message),
-				Exception e => new Error(
-					Type: "unknown",
-					ErrorCode: "0",
-					Description: e.Message)
-			};
-
-			context.Result = new JsonResult(error)
-			{
-				StatusCode = (int)HttpStatusCode.InternalServerError
+					Description: e.Message))
+					{
+						StatusCode = (int)HttpStatusCode.InternalServerError
+					},
+				_ => new StatusCodeResult((int)HttpStatusCode.InternalServerError)
 			};
 		}
 	}
