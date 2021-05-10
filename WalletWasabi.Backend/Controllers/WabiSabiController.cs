@@ -19,6 +19,7 @@ namespace WalletWasabi.Backend.Controllers
 			Handler = global.HostedServices.Get<WabiSabiCoordinator>().Postman;
 		}
 
+		[HttpPost("connection-confirmation")]
 		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellableToken)
 		{
 			return Handler.ConfirmConnectionAsync(request, cancellableToken);
