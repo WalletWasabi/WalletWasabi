@@ -58,7 +58,7 @@ namespace WalletWasabi.Fluent.Helpers
 
 		}
 
-		public static (string, string) GetNotificationInputs(ProcessedResult e)
+		public static (string?, string?) GetNotificationInputs(ProcessedResult e)
 		{
 			try
 			{
@@ -72,6 +72,7 @@ namespace WalletWasabi.Fluent.Helpers
 				bool isConfirmedReceive = e.NewlyConfirmedReceivedCoins.Any();
 				bool isConfirmedSpent = e.NewlyConfirmedReceivedCoins.Any();
 				Money miningFee = e.Transaction.Transaction.GetFee(e.SpentCoins.Select(x => x.Coin).ToArray());
+
 				if (isReceived || isSpent)
 				{
 					Money receivedSum = e.NewlyReceivedCoins.Sum(x => x.Amount);
@@ -87,10 +88,6 @@ namespace WalletWasabi.Fluent.Helpers
 					else if (isSpent && receiveSpentDiff == miningFee)
 					{
 						return ("Self Spend", $"Mining Fee: {amountString} BTC");
-					}
-					else if (isSpent && receiveSpentDiff.Almost(Money.Zero, Money.Coins(0.01m)) && e.IsLikelyOwnCoinJoin)
-					{
-						return ("", $"CoinJoin Completed!");
 					}
 					else if (incoming > Money.Zero)
 					{
@@ -128,10 +125,6 @@ namespace WalletWasabi.Fluent.Helpers
 					{
 						return ("Self Spend Confirmed", $"Mining Fee: {amountString} BTC");
 					}
-					else if (isConfirmedSpent && receiveSpentDiff.Almost(Money.Zero, Money.Coins(0.01m)) && e.IsLikelyOwnCoinJoin)
-					{
-						return ("", $"CoinJoin Confirmed!");
-					}
 					else if (incoming > Money.Zero)
 					{
 						return ("Receive Confirmed", $"{amountString} BTC");
@@ -147,7 +140,7 @@ namespace WalletWasabi.Fluent.Helpers
 				Logger.LogWarning(ex);
 			}
 
-			return ("", "");
+			return (null, null);
 		}
 	}
 }

@@ -86,7 +86,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 					var (title, message) = TransactionHelpers.GetNotificationInputs(e);
 
-					NotificationHelpers.Show(title, message);
+					if (!string.IsNullOrEmpty(title) && !string.IsNullOrEmpty(message))
+					{
+						NotificationHelpers.Show(title, message);
+					}
 				});
 		}
 
