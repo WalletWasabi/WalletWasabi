@@ -72,14 +72,13 @@ namespace WalletWasabi.Backend
 
 			services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
 			services.AddSingleton(new Global(Configuration["datadir"]));
-			services.AddStartupTask<InitConfigStartupTask>();
-
 			services.AddSingleton<IArenaRequestHandler>(serviceProvider =>
 			{
 				var global = serviceProvider.GetRequiredService<Global>();
 				var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
 				return coordinator.Postman;
 			});
+			services.AddStartupTask<InitConfigStartupTask>();
 
 			services.AddResponseCompression();
 		}

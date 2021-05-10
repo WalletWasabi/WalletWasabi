@@ -18,6 +18,7 @@ namespace WalletWasabi.Backend.Controllers
 			this.handler = handler;
 		}
 
+		[HttpPost("connection-confirmation")]
 		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellableToken)
 		{
 			return handler.ConfirmConnectionAsync(request, cancellableToken);
