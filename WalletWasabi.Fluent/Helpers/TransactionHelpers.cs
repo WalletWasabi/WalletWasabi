@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -58,8 +59,11 @@ namespace WalletWasabi.Fluent.Helpers
 
 		}
 
-		public static (string?, string?) GetNotificationInputs(ProcessedResult e)
+		public static bool TryGetNotificationInputs(ProcessedResult result, [NotNullWhen(true)] out string? title, [NotNullWhen(true)] out string? message)
 		{
+			title = null;
+			message = null;
+
 			try
 			{
 				// ToDo
@@ -67,71 +71,75 @@ namespace WalletWasabi.Fluent.Helpers
 				// Anonymity set gained?
 				// Received dust
 
-				bool isSpent = e.NewlySpentCoins.Any();
-				bool isReceived = e.NewlyReceivedCoins.Any();
-				bool isConfirmedReceive = e.NewlyConfirmedReceivedCoins.Any();
-				bool isConfirmedSpent = e.NewlyConfirmedReceivedCoins.Any();
-				Money miningFee = e.Transaction.Transaction.GetFee(e.SpentCoins.Select(x => x.Coin).ToArray());
+				bool isSpent = result.NewlySpentCoins.Any();
+				bool isReceived = result.NewlyReceivedCoins.Any();
+				bool isConfirmedReceive = result.NewlyConfirmedReceivedCoins.Any();
+				bool isConfirmedSpent = result.NewlyConfirmedReceivedCoins.Any();
+				Money miningFee = result.Transaction.Transaction.GetFee(result.SpentCoins.Select(x => x.Coin).ToArray());
 
 				if (isReceived || isSpent)
 				{
-					Money receivedSum = e.NewlyReceivedCoins.Sum(x => x.Amount);
-					Money spentSum = e.NewlySpentCoins.Sum(x => x.Amount);
+					Money receivedSum = result.NewlyReceivedCoins.Sum(x => x.Amount);
+					Money spentSum = result.NewlySpentCoins.Sum(x => x.Amount);
 					Money incoming = receivedSum - spentSum;
 					Money receiveSpentDiff = incoming.Abs();
 					string amountString = receiveSpentDiff.ToString(false, true);
+					message = $"{amountString} BTC";
 
-					if (e.Transaction.Transaction.IsCoinBase)
+					if (result.Transaction.Transaction.IsCoinBase)
 					{
-						return ("Mined", $"{amountString} BTC");
+						title = "Mined";
 					}
 					else if (isSpent && receiveSpentDiff == miningFee)
 					{
-						return ("Self Spend", $"Mining Fee: {amountString} BTC");
+						title = "Self Spend";
+						message = $"Mining Fee: {amountString} BTC";
 					}
 					else if (incoming > Money.Zero)
 					{
-						if (e.Transaction.IsRBF && e.Transaction.IsReplacement)
+						if (result.Transaction.IsRBF && result.Transaction.IsReplacement)
 						{
-							return ("Received Replaceable Replacement Transaction", $"{amountString} BTC");
+							title = "Received Replaceable Replacement Transaction";
 						}
-						else if (e.Transaction.IsRBF)
+						else if (result.Transaction.IsRBF)
 						{
-							return ("Received Replaceable Transaction", $"{amountString} BTC");
+							title = "Received Replaceable Transaction";
 						}
-						else if (e.Transaction.IsReplacement)
+						else if (result.Transaction.IsReplacement)
 						{
-							return ("Received Replacement Transaction", $"{amountString} BTC");
+							title = "Received Replacement Transaction";
 						}
 						else
 						{
-							return ("Received", $"{amountString} BTC");
+							title = "Received";
 						}
 					}
 					else if (incoming < Money.Zero)
 					{
-						return ("Sent", $"{amountString} BTC");
+						title = "Sent";
 					}
 				}
 				else if (isConfirmedReceive || isConfirmedSpent)
 				{
-					Money receivedSum = e.ReceivedCoins.Sum(x => x.Amount);
-					Money spentSum = e.SpentCoins.Sum(x => x.Amount);
+					Money receivedSum = result.ReceivedCoins.Sum(x => x.Amount);
+					Money spentSum = result.SpentCoins.Sum(x => x.Amount);
 					Money incoming = receivedSum - spentSum;
 					Money receiveSpentDiff = incoming.Abs();
 					string amountString = receiveSpentDiff.ToString(false, true);
+					message = $"{amountString} BTC";
 
 					if (isConfirmedSpent && receiveSpentDiff == miningFee)
 					{
-						return ("Self Spend Confirmed", $"Mining Fee: {amountString} BTC");
+						title = "Self Spend Confirmed";
+						message = $"Mining Fee: {amountString} BTC";
 					}
 					else if (incoming > Money.Zero)
 					{
-						return ("Receive Confirmed", $"{amountString} BTC");
+						title = "Receive Confirmed";
 					}
 					else if (incoming < Money.Zero)
 					{
-						return ("Send Confirmed", $"{amountString} BTC");
+						title = "Send Confirmed";
 					}
 				}
 			}
@@ -140,7 +148,7 @@ namespace WalletWasabi.Fluent.Helpers
 				Logger.LogWarning(ex);
 			}
 
-			return (null, null);
+			return title is { } && message is { };
 		}
 	}
 }
