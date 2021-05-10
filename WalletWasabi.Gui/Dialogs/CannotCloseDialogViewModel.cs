@@ -96,8 +96,7 @@ namespace WalletWasabi.Gui.Dialogs
 		{
 			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
-			using var cancellationTokenSource = new CancellationTokenSource();
-			CancelTokenSource = cancellationTokenSource.DisposeWith(Disposables);
+			CancelTokenSource = new CancellationTokenSource().DisposeWith(Disposables);
 
 			Initialization = StartDequeueAsync();
 
