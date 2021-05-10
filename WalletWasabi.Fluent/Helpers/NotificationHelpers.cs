@@ -2,6 +2,8 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Concurrency;
+using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using NBitcoin;
 using ReactiveUI;
@@ -15,14 +17,16 @@ namespace WalletWasabi.Fluent.Helpers
 		private const int DefaultNotificationTimeout = 7;
 		private static WindowNotificationManager? NotificationManager;
 
-		public static void SetNotificationManager(WindowNotificationManager windowNotificationManager)
+		public static void SetNotificationManager(Window host)
 		{
-			if (NotificationManager is { })
+			var notificationManager = new WindowNotificationManager(host)
 			{
-				throw new InvalidOperationException("Already set!");
-			}
+				Position = NotificationPosition.BottomRight,
+				MaxItems = 4,
+				Margin = new Thickness(0, 0, 15, 40)
+			};
 
-			NotificationManager = windowNotificationManager;
+			NotificationManager = notificationManager;
 		}
 
 		public static void Show(string title, string message)

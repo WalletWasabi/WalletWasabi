@@ -1,23 +1,28 @@
-using Avalonia;
+using System;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using Avalonia.Controls;
-using Avalonia.Controls.Notifications;
-using Avalonia.Xaml.Interactivity;
 using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
-	public class RegisterNotificationHostBehavior : Behavior<Window>
+	public class RegisterNotificationHostBehavior : DisposingBehavior<Window>
 	{
-		protected override void OnAttached()
+		protected override void OnAttached(CompositeDisposable disposables)
 		{
-			var notificationManager = new WindowNotificationManager(AssociatedObject)
+			if (AssociatedObject is null)
 			{
-				Position = NotificationPosition.BottomRight,
-				MaxItems = 4,
-				Margin = new Thickness(0, 0, 15, 40)
-			};
+				return;
+			}
 
-			NotificationHelpers.SetNotificationManager(notificationManager);
+			NotificationHelpers.SetNotificationManager(AssociatedObject);
+
+			// Must set notification host again after theme changing.
+			// TODO: improve, execute only once a time
+			Observable
+				.FromEventPattern(AssociatedObject, nameof(AssociatedObject.ResourcesChanged))
+				.Subscribe(_ => NotificationHelpers.SetNotificationManager(AssociatedObject))
+				.DisposeWith(disposables);
 		}
 	}
 }
