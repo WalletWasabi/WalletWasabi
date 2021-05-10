@@ -28,8 +28,6 @@
 
     <SolidColorBrush x:Key="PrivacySuggestionControlSelectedBackground">#353535</SolidColorBrush>
 
-    <SolidColorBrush x:Key="NotificationCardBackgroundBrush">#3D3D3D</SolidColorBrush>
-
     <SolidColorBrush x:Key="TileRegionColor">#FF2B2B2B</SolidColorBrush>
     <Color x:Key="RegionColor">#FF212121</Color>
     <BoxShadows x:Key="BoxShadow">0 1 4 #121212</BoxShadows>
@@ -44,6 +42,8 @@
 
     <SolidColorBrush x:Key="DataGridRowSelectedBackgroundColor" Color="#1C1C1C" />
     <StaticResource x:Key="DataGridRowSelectedUnfocusedBackgroundColor" ResourceKey="DataGridRowSelectedBackgroundColor" />
+
+    <StaticResource x:Key="NotificationCardBackgroundBrush" ResourceKey="TileRegionColor" />
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentDark.xaml"/>
   <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" /> <!-- Needs to be here because of dependency reason -->
