@@ -238,7 +238,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			}
 		}
 
-		public IEnumerable<SmartTransaction> ReleaseToMempoolFromBlock(uint256 blockHash)
+		public IEnumerable<SmartTransaction> ReleaseToMempoolFromBlock(uint256? blockHash)
 		{
 			lock (Lock)
 			{
