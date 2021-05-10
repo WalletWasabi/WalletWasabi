@@ -8,7 +8,7 @@
              x:DataType="receive:ReceiveAddressViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveAddressView">
-  <c:ContentArea Title="{Binding Title}"
+  <c:ContentArea Title="Unused Receive Address"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="OK"
@@ -25,30 +25,37 @@
       <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Spacing="30">
         <DockPanel HorizontalAlignment="Center">
           <DockPanel>
-            <c:AnimatedButton Margin="5 0 0 0" ToolTip.Tip="Show on the hardware wallet" DockPanel.Dock="Right"
-                              IsVisible="{Binding IsHardwareWallet}"
-                              Command="{Binding ShowOnHwWalletCommand}"
-                              NormalIcon="{StaticResource share_regular}"
-                              ClickIcon="{StaticResource copy_confirmed}"/>
-            <c:AnimatedButton Margin="10 0 0 0" ToolTip.Tip="Copy" DockPanel.Dock="Right"
-                              Command="{Binding CopyAddressCommand}"
-                              NormalIcon="{StaticResource copy_regular}"
-                              ClickIcon="{StaticResource copy_confirmed}"/>
-            <TextBlock Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2" Margin="10 0 0 0">
+              <c:AnimatedButton ToolTip.Tip="Show on the hardware wallet"
+                                IsVisible="{Binding IsHardwareWallet}"
+                                Command="{Binding ShowOnHwWalletCommand}"
+                                NormalIcon="{StaticResource share_regular}"
+                                ClickIcon="{StaticResource copy_confirmed}"/>
+
+              <c:AnimatedButton ToolTip.Tip="Copy"
+                                Command="{Binding CopyAddressCommand}"
+                                NormalIcon="{StaticResource copy_regular}"
+                                ClickIcon="{StaticResource copy_confirmed}"
+                                ExecuteOnOpen="{Binding IsAutoCopyEnabled}"/>
+            </StackPanel>
+            <TextBox Classes="selectableTextBlock" TextWrapping="Wrap" Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
           </DockPanel>
         </DockPanel>
-        <TextBlock Text="{Binding Reference}" FontSize="{StaticResource FontSizeH2}" Opacity="0.6" />
+        <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Labels}" HorizontalAlignment="Center" />
       </StackPanel>
 
-      <DockPanel MaxHeight="250" HorizontalAlignment="Center" Margin="0 0 -30 10">
-        <Button Command="{Binding SaveQrCodeCommand}" ToolTip.Tip="Save" Classes="plain icon" DockPanel.Dock="Right" VerticalAlignment="Bottom" Margin="10 0 0 0">
-          <PathIcon Data="{StaticResource save_regular}"/>
-        </Button>
-        <Viewbox HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Left">
+      <c:AdorningContentControl MaxHeight="270" HorizontalAlignment="Center">
+        <c:AdorningContentControl.Adornment>
+          <Panel HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="5 0 0 20">
+            <Button Command="{Binding SaveQrCodeCommand}" ToolTip.Tip="Save" Classes="plain icon">
+              <PathIcon Data="{StaticResource save_regular}"/>
+            </Button>
+          </Panel>
+        </c:AdorningContentControl.Adornment>
+        <Viewbox HorizontalAlignment="Center" VerticalAlignment="Bottom" DockPanel.Dock="Left" Margin="20">
           <c:QrCode Height="250" Matrix="{Binding QrCode}" SaveCommand="{Binding QrCodeCommand, Mode=OneWayToSource}" Margin="0 0 0 -18"/>
         </Viewbox>
-      </DockPanel>
-
+      </c:AdorningContentControl>
     </DockPanel>
   </c:ContentArea>
 </UserControl>
