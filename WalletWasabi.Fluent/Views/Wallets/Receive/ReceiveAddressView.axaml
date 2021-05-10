@@ -35,7 +35,8 @@
               <c:AnimatedButton ToolTip.Tip="Copy"
                                 Command="{Binding CopyAddressCommand}"
                                 NormalIcon="{StaticResource copy_regular}"
-                                ClickIcon="{StaticResource copy_confirmed}"/>
+                                ClickIcon="{StaticResource copy_confirmed}"
+                                ExecuteOnOpen="{Binding IsAutoCopyEnabled}"/>
             </StackPanel>
             <TextBox Classes="selectableTextBlock" TextWrapping="Wrap" Text="{Binding Address}" FontWeight="Normal" FontSize="{StaticResource FontSizeH5}" />
           </DockPanel>

@@ -10,6 +10,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Gui;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
@@ -24,12 +25,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		NavigationTarget = NavigationTarget.DialogScreen)]
 	public partial class ReceiveViewModel : NavBarItemViewModel
 	{
+		private readonly UiConfig _uiConfig;
+
 		[AutoNotify] private ObservableCollection<string> _labels;
 		[AutoNotify] private HashSet<string> _suggestions;
 		[AutoNotify] private bool _isExistingAddressesButtonVisible;
 
-		public ReceiveViewModel(WalletViewModelBase wallet, WalletManager walletManager, BitcoinStore bitcoinStore) : base(NavigationMode.Normal)
+		public ReceiveViewModel(WalletViewModelBase wallet, WalletManager walletManager, BitcoinStore bitcoinStore, UiConfig uiConfig) : base(NavigationMode.Normal)
 		{
+			_uiConfig = uiConfig;
 			WasabiWallet = wallet.Wallet;
 			_labels = new ObservableCollection<string>();
 			_suggestions = GetLabels(walletManager, bitcoinStore);
@@ -61,12 +65,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			Labels.Clear();
 
 			Navigate().To(new ReceiveAddressViewModel(newKey, WasabiWallet.Network, WasabiWallet.KeyManager.MasterFingerprint,
-				WasabiWallet.KeyManager.IsHardwareWallet));
+				WasabiWallet.KeyManager.IsHardwareWallet, _uiConfig));
 		}
 
 		private void OnShowExistingAddresses()
 		{
-			Navigate().To(new ReceiveAddressesViewModel(WasabiWallet));
+			Navigate().To(new ReceiveAddressesViewModel(WasabiWallet, _uiConfig));
 		}
 
 		public Wallet WasabiWallet { get; }
