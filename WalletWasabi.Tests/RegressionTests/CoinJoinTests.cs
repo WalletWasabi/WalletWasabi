@@ -66,7 +66,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			var bestBlock = await rpc.GetBlockAsync(bestBlockHash);
 			var coinbaseTxId = bestBlock.Transactions[0].GetHash();
 			var offchainTxId = network.Consensus.ConsensusFactory.CreateTransaction().GetHash();
-			var mempoolTxId = await rpc.SendToAddressAsync(new Key().PubKey.GetSegwitAddress(network), Money.Coins(1));
+			using var key = new Key();
+			var mempoolTxId = await rpc.SendToAddressAsync(key.PubKey.GetSegwitAddress(network), Money.Coins(1));
 
 			var folder = Helpers.Common.GetWorkDir();
 			await IoHelpers.TryDeleteDirectoryAsync(folder);
