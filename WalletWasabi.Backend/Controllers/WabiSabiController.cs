@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
 
@@ -13,7 +14,7 @@ namespace WalletWasabi.Backend.Controllers
 	{
 		private IArenaRequestHandler RequestHandler { get; }
 
-		public WabiSabiController(IArenaRequestHandler handler)
+		public WabiSabiController(Global global)
 		{
 			RequestHandler = handler;
 		}
