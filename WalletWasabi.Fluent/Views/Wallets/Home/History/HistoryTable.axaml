@@ -86,19 +86,19 @@
           <Style.Animations>
             <Animation Duration="1.25">
               <KeyFrame KeyTime="0:0:0.0">
-                <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
+                <Setter Property="Fill" Value="#FF72BD81" />
               </KeyFrame>
               <KeyFrame KeyTime="0:0:0.25">
                 <Setter Property="Fill" Value="Transparent" />
               </KeyFrame>
               <KeyFrame KeyTime="0:0:0.50">
-                <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
+                <Setter Property="Fill" Value="#FF72BD81" />
               </KeyFrame>
               <KeyFrame KeyTime="0:0:0.75">
                 <Setter Property="Fill" Value="Transparent" />
               </KeyFrame>
               <KeyFrame KeyTime="0:0:1">
-                <Setter Property="Fill" Value="{DynamicResource SystemAccentColor}" />
+                <Setter Property="Fill" Value="#FF72BD81" />
               </KeyFrame>
               <KeyFrame KeyTime="0:0:1.25">
                 <Setter Property="Fill" Value="Transparent" />
