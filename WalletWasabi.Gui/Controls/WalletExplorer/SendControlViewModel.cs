@@ -940,7 +940,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			base.OnOpen(disposables);
 		}
 
-		protected abstract Task BuildTransaction(string password, PaymentIntent payments, FeeStrategy feeStrategy, bool allowUnconfirmed = false, IEnumerable<OutPoint> allowedInputs = null);
+		protected abstract Task BuildTransaction(string password, PaymentIntent payments, FeeStrategy feeStrategy, bool allowUnconfirmed = false, IEnumerable<OutPoint>? allowedInputs = null);
 
 		protected virtual void OnAddressPaste(BitcoinUrlBuilder url)
 		{
