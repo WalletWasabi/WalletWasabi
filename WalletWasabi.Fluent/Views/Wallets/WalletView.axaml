@@ -32,7 +32,7 @@
             </Button>
           </StackPanel>
         </DockPanel>
-        <Separator DockPanel.Dock="Bottom" Margin="-200 19 -200 0" HorizontalAlignment="Stretch" Foreground="Red" />
+        <Separator DockPanel.Dock="Bottom" Margin="-200 13 -200 0" HorizontalAlignment="Stretch" Foreground="Red" />
       </StackPanel>
 
     </c:ContentArea.Title>
