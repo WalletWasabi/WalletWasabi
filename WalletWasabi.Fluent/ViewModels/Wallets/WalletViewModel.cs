@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using WalletWasabi.Blockchain.TransactionProcessing;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
@@ -73,18 +71,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				WalletPieChart,
 				BalanceChartTile
 			};
-
-			Observable.FromEventPattern<ProcessedResult>(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
-				.Select(x => x.EventArgs)
-				.Subscribe(e =>
-				{
-					if (uiConfig.PrivacyMode || !e.IsNews)
-					{
-						return;
-					}
-
-					NotificationHelpers.Show(e);
-				});
 		}
 
 		private CompositeDisposable Disposables { get; set; }
