@@ -12,6 +12,7 @@ using NBitcoin;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
@@ -49,9 +50,15 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 			});
 		}
 
-		public async Task<ArenaClient> CreateArenaClientAsync(HttpClient? httpClient = null)
+
+		public Task<ArenaClient> CreateArenaClientAsync(HttpClient httpClient) =>
+			CreateArenaClientAsync(CreateWabiSabiHttpApiClient(httpClient));
+
+		public Task<ArenaClient> CreateArenaClientAsync(IHttpClient httpClient) =>
+			CreateArenaClientAsync(new WabiSabiHttpApiClient(httpClient));
+
+		public async Task<ArenaClient> CreateArenaClientAsync(WabiSabiHttpApiClient wabiSabiHttpApiClient)
 		{
-			var wabiSabiHttpApiClient = CreateWabiSabiHttpApiClient(httpClient);
 			var rounds = await wabiSabiHttpApiClient.GetStatusAsync(CancellationToken.None);
 			var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 			var arenaClient = new ArenaClient(
@@ -64,7 +71,7 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 			return arenaClient;
 		}
 
-		public WabiSabiHttpApiClient CreateWabiSabiHttpApiClient(HttpClient? httpClient = null) =>
-			new(new HttpClientWrapper(httpClient ?? CreateClient()));
+		public WabiSabiHttpApiClient CreateWabiSabiHttpApiClient(HttpClient httpClient) =>
+			new(new HttpClientWrapper(httpClient));
 	}
 }

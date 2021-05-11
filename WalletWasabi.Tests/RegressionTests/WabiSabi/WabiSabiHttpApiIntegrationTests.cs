@@ -26,7 +26,7 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 		{
 			var httpClient = _apiApplicationFactory.CreateClient();
 
-			var apiClient = await _apiApplicationFactory.CreateArenaClientAsync();
+			var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
 			var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
 			var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
@@ -35,8 +35,8 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 			var nonExistingOutPoint = new OutPoint();
 			using var signingKey = new Key();
 
-			var ex = await Assert.ThrowsAsync<HttpRequestException>( async () =>
-				await apiClient.RegisterInputAsync(Money.Coins(1), nonExistingOutPoint, signingKey, round.Id, CancellationToken.None));
+			var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
+			   await apiClient.RegisterInputAsync(Money.Coins(1), nonExistingOutPoint, signingKey, round.Id, CancellationToken.None));
 
 			var wex = Assert.IsType<WabiSabiProtocolException>(ex.InnerException);
 			Assert.Equal(WabiSabiProtocolErrorCode.InputSpent, wex.ErrorCode);
@@ -55,7 +55,7 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 				builder.ConfigureServices(services =>
 				{
 					var rpc = BitcoinFactory.GetMockMinimalRpc();
-					rpc.OnGetTxOutAsync = (_, _, _) => new ()
+					rpc.OnGetTxOutAsync = (_, _, _) => new()
 					{
 						Confirmations = 101,
 						IsCoinBase = false,
@@ -73,6 +73,74 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 			var response = await apiClient.RegisterInputAsync(Money.Coins(1), coinToRegister.Outpoint, signingKey, round.Id, CancellationToken.None);
 
 			Assert.NotEqual(uint256.Zero, response.Value);
+		}
+
+		[Fact]
+		public async Task RegisterCoinIdempotencyAsync()
+		{
+			using var signingKey = new Key();
+			var coinToRegister = new Coin(
+				BitcoinFactory.CreateOutPoint(),
+				new TxOut(Money.Coins(1), signingKey.PubKey.WitHash.ScriptPubKey));
+
+			var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
+			{
+				builder.ConfigureServices(services =>
+				{
+					var rpc = BitcoinFactory.GetMockMinimalRpc();
+					rpc.OnGetTxOutAsync = (_, _, _) => new()
+					{
+						Confirmations = 101,
+						IsCoinBase = false,
+						ScriptPubKeyType = "witness_v0_keyhash",
+						TxOut = coinToRegister.TxOut
+					};
+					services.AddScoped<IRPCClient>(s => rpc);
+				});
+			}).CreateClient();
+
+			var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(new StuttererHttpClient(httpClient));
+			var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
+			var round = rounds.First(x => x.CoinjoinState is ConstructionState);
+
+			var response = await apiClient.RegisterInputAsync(Money.Coins(1), coinToRegister.Outpoint, signingKey, round.Id, CancellationToken.None);
+
+			Assert.NotEqual(uint256.Zero, response.Value);
+		}
+
+	}
+
+	class StuttererHttpClient : HttpClientWrapper
+	{
+		public StuttererHttpClient(HttpClient httpClient) : base(httpClient)
+		{
+		}
+		public override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
+		{
+			var result1 = await base.SendAsync(request.Clone(), token);
+			var result2 = await base.SendAsync(request.Clone(), token);
+			var content1 = await result1.Content.ReadAsStringAsync();
+			var content2 = await result2.Content.ReadAsStringAsync();
+			Assert.Equal(content1, content2);
+			return result2;
+		}
+	}
+
+	public static class HttpRequestMessageExtensions
+	{
+		public static HttpRequestMessage Clone(this HttpRequestMessage request)
+		{
+			var clone = new HttpRequestMessage(request.Method, request.RequestUri)
+			{
+				Content = request.Content,
+				Version = request.Version
+			};
+			foreach (var header in request.Headers)
+			{
+				clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
+			}
+
+			return clone;
 		}
 	}
 }
