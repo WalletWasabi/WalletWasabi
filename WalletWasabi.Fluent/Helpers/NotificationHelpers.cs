@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.Helpers
 {
 	public static class NotificationHelpers
 	{
-		private const int DefaultNotificationTimeout = 7;
+		private const int DefaultNotificationTimeout = 10;
 		private static WindowNotificationManager? NotificationManager;
 
 		public static void SetNotificationManager(Window host)
@@ -29,19 +29,19 @@ namespace WalletWasabi.Fluent.Helpers
 			NotificationManager = notificationManager;
 		}
 
-		public static void Show(string title, string message)
+		public static void Show(string title, string message, Action? onClick = null)
 		{
 			if (NotificationManager is { } nm)
 			{
-				RxApp.MainThreadScheduler.Schedule(() => nm.Show(new Notification(title, message, NotificationType.Information, TimeSpan.FromSeconds(DefaultNotificationTimeout))));
+				RxApp.MainThreadScheduler.Schedule(() => nm.Show(new Notification(title, message, NotificationType.Information, TimeSpan.FromSeconds(DefaultNotificationTimeout), onClick)));
 			}
 		}
 
-		public static void Show(ProcessedResult result)
+		public static void Show(ProcessedResult result, Action onClick)
 		{
 			if (TryGetNotificationInputs(result, out var title, out var message))
 			{
-				Show(title, message);
+				Show(title, message, onClick);
 			}
 		}
 

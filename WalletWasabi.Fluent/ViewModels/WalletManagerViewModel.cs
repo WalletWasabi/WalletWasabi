@@ -120,12 +120,15 @@ namespace WalletWasabi.Fluent.ViewModels
 				{
 					var (sender, e) = arg;
 
-					if (uiConfig.PrivacyMode || !e.IsNews || sender is not Wallet {IsLoggedIn: true, State: WalletState.Started})
+					if (uiConfig.PrivacyMode || !e.IsNews || sender is not Wallet {IsLoggedIn: true, State: WalletState.Started} wallet)
 					{
 						return;
 					}
 
-					NotificationHelpers.Show(e);
+					if (_walletDictionary.TryGetValue(wallet, out var walletViewModel) && walletViewModel is WalletViewModel wvm)
+					{
+						NotificationHelpers.Show(e, () => wvm.NavigateAndHighlight(e.Transaction.GetHash()));
+					}
 				});
 
 			RxApp.MainThreadScheduler.Schedule(() => EnumerateWallets(walletManager));
