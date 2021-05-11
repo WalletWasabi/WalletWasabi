@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using NBitcoin;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto;
@@ -90,13 +91,15 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// </summary>
 		/// <param name="amountsToRequest">List of amounts requested in credentials.</param>
 		/// <param name="credentialsToPresent">List of credentials to be presented to the coordinator.</param>
+		/// <param name="cancellationToken">The cancellation token to be used in case shut down is in progress..</param>
 		/// <returns>
 		/// A tuple containing the registration request message instance and the registration validation data
 		/// to be used to validate the coordinator response message (the issued credentials).
 		/// </returns>
 		public RealCredentialsRequestData CreateRequest(
 			IEnumerable<long> amountsToRequest,
-			IEnumerable<Credential> credentialsToPresent)
+			IEnumerable<Credential> credentialsToPresent,
+			CancellationToken cancellationToken)
 		{
 			// Make sure we request always the same number of credentials
 			var credentialAmountsToRequest = amountsToRequest.ToList();
@@ -106,7 +109,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 				credentialAmountsToRequest.Add(0);
 			}
 
-			credentialsToPresent = ZeroCredentialPool.FillOutWithZeroCredentials(credentialsToPresent);
+			credentialsToPresent = ZeroCredentialPool.FillOutWithZeroCredentials(credentialsToPresent, cancellationToken);
 
 			var macsToPresent = credentialsToPresent.Select(x => x.Mac);
 			if (macsToPresent.Distinct().Count() < macsToPresent.Count())

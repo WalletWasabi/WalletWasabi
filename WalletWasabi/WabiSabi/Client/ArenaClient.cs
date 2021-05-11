@@ -88,12 +88,14 @@ namespace WalletWasabi.WabiSabi.Client
 			var presentedAmount = amountCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
 			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
 				new[] { presentedAmount - value },
-				amountCredentialsToPresent);
+				amountCredentialsToPresent,
+				cancellationToken);
 
 			var presentedVsize = vsizeCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
 			var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
 				new[] { presentedVsize - scriptPubKey.EstimateOutputVsize() },
-				vsizeCredentialsToPresent);
+				vsizeCredentialsToPresent,
+				cancellationToken);
 
 			var outputRegistrationResponse = await RequestHandler.RegisterOutputAsync(
 				new OutputRegistrationRequest(
@@ -130,11 +132,13 @@ namespace WalletWasabi.WabiSabi.Client
 			var presentedVsize = vsizeCredentialsToPresent.Sum(x => (long)x.Amount.ToUlong());
 			var (realVsizeCredentialRequest, realVsizeCredentialResponseValidation) = VsizeCredentialClient.CreateRequest(
 				new[] { (long)scriptPubKey1.EstimateOutputVsize(), scriptPubKey2.EstimateOutputVsize() },
-				vsizeCredentialsToPresent);
+				vsizeCredentialsToPresent,
+				cancellationToken);
 
 			var (realAmountCredentialRequest, realAmountCredentialResponseValidation) = AmountCredentialClient.CreateRequest(
 				new[] { value1, value2 },
-				amountCredentialsToPresent);
+				amountCredentialsToPresent,
+				cancellationToken);
 
 			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
 			var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();
@@ -172,11 +176,13 @@ namespace WalletWasabi.WabiSabi.Client
 
 			var realAmountCredentialRequestData = AmountCredentialClient.CreateRequest(
 				newAmount.Select(x => x.Satoshi),
-				amountCredentialsToPresent);
+				amountCredentialsToPresent,
+				cancellationToken);
 
 			var realVsizeCredentialRequestData = VsizeCredentialClient.CreateRequest(
 				inputsRegistrationVsize,
-				vsizeCredentialsToPresent);
+				vsizeCredentialsToPresent,
+				cancellationToken);
 
 			var zeroAmountCredentialRequestData = AmountCredentialClient.CreateRequestForZeroAmount();
 			var zeroVsizeCredentialRequestData = VsizeCredentialClient.CreateRequestForZeroAmount();

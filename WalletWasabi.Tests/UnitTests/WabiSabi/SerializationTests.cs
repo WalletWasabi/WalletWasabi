@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
 using WalletWasabi.Crypto;
@@ -159,7 +160,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			(CredentialsRequest credentialRequest, CredentialsResponseValidation validationData) = client.CreateRequestForZeroAmount();
 			var credentialResponse = issuer.HandleRequest(credentialRequest);
 			var present = client.HandleResponse(credentialResponse, validationData);
-			(credentialRequest, _) = client.CreateRequest(new[] { 1L }, present);
+			(credentialRequest, _) = client.CreateRequest(new[] { 1L }, present, CancellationToken.None);
 
 			// Registration request message.
 			var serializedRequestMessage = JsonConvert.SerializeObject(credentialRequest, converters);
