@@ -411,9 +411,9 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 
 			// Two transactions are in the mempool store and unconfirmed.
 			Assert.True(txStore.MempoolStore.TryGetTransaction(uTx1.GetHash(), out var myUnconfirmedTx1));
-			Assert.False(myUnconfirmedTx1.Confirmed);
+			Assert.False(myUnconfirmedTx1?.Confirmed);
 			Assert.True(txStore.MempoolStore.TryGetTransaction(uTx2.GetHash(), out var myUnconfirmedTx2));
-			Assert.False(myUnconfirmedTx2.Confirmed);
+			Assert.False(myUnconfirmedTx2?.Confirmed);
 
 			// Create the same transaction but now with a Height to make it confirmed.
 			const int ReorgedBlockHeight = 34532;
@@ -427,10 +427,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// Two transactions are in the ConfirmedStore store and confirmed.
 			Assert.True(txStore.ConfirmedStore.TryGetTransaction(uTx1.GetHash(), out var mytx1));
 			Assert.False(txStore.MempoolStore.TryGetTransaction(uTx1.GetHash(), out _));
-			Assert.True(mytx1.Confirmed);
+			Assert.True(mytx1?.Confirmed);
 			Assert.True(txStore.ConfirmedStore.TryGetTransaction(uTx2.GetHash(), out var mytx2));
 			Assert.False(txStore.MempoolStore.TryGetTransaction(uTx2.GetHash(), out _));
-			Assert.True(mytx2.Confirmed);
+			Assert.True(mytx2?.Confirmed);
 
 			// Now reorg.
 			txStore.ReleaseToMempoolFromBlock(reorgedBlockHash);
@@ -438,10 +438,10 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// Two transactions are in the mempool store and unconfirmed.
 			Assert.True(txStore.MempoolStore.TryGetTransaction(uTx1.GetHash(), out var myReorgedTx1));
 			Assert.False(txStore.ConfirmedStore.TryGetTransaction(uTx1.GetHash(), out _));
-			Assert.False(myReorgedTx1.Confirmed);
+			Assert.False(myReorgedTx1?.Confirmed);
 			Assert.True(txStore.MempoolStore.TryGetTransaction(uTx2.GetHash(), out var myReorgedTx2));
 			Assert.False(txStore.ConfirmedStore.TryGetTransaction(uTx2.GetHash(), out _));
-			Assert.False(myReorgedTx2.Confirmed);
+			Assert.False(myReorgedTx2?.Confirmed);
 		}
 
 		[Fact]
@@ -477,7 +477,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			// reorgs most recent block
 			reorgedTxs = txStore.ReleaseToMempoolFromBlock(newestConfirmedTx.BlockHash);
 			Assert.Equal(3, reorgedTxs.Count());
-			Assert.All(reorgedTxs, tx => Assert.False(tx.Confirmed));
+			Assert.All(reorgedTxs, tx => Assert.False(tx?.Confirmed));
 			Assert.All(reorgedTxs, tx => Assert.True(txStore.TryGetTransaction(tx.GetHash(), out _)));
 
 			Assert.False(txStore.TryGetTransaction(tipHash, out _));
