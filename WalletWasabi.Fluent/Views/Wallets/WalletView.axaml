@@ -10,46 +10,70 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="850"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
+             ClipToBounds="False"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
-    <c:ContentArea Title="{Binding WalletName}"
-                   ScrollViewer.VerticalScrollBarVisibility="Disabled">
-        <DockPanel VerticalAlignment="Top">
-            <ScrollViewer Name="ScrollViewer"
-                          DockPanel.Dock="Top"
-                          Width="{Binding #HistoryTable.Bounds.Width}"
-                          HorizontalAlignment="Left"
-                          VerticalAlignment="Top"
-                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                          ScrollViewer.VerticalScrollBarVisibility="Disabled">
-                <ItemsRepeater Items="{Binding Tiles}"
-                               DockPanel.Dock="Top"
-                               Margin="0 0"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Top"
-                               UseLayoutRounding="False">
-                    <ItemsRepeater.Styles>
-                        <Style Selector="ItemsRepeater > :is(Control)" x:DataType="tiles:TileViewModel">
-                            <Setter Property="(c:NonVirtualizingResponsiveLayout.ColumnSpan)"
-                                    Value="{Binding ColumnSpan}" />
-                            <Setter Property="(c:NonVirtualizingResponsiveLayout.RowSpan)" Value="{Binding RowSpan}" />
-                        </Style>
-                    </ItemsRepeater.Styles>
-                    <ItemsRepeater.ItemTemplate>
-                        <locator:ViewLocator />
-                    </ItemsRepeater.ItemTemplate>
-                    <ItemsRepeater.Layout>
-                        <c:NonVirtualizingResponsiveLayout ItemWidth="330"
-                                                           ItemHeight="150"
-                                                           WidthSource="{Binding #ScrollViewer.Bounds.Width}"
-                                                           AspectRatio="NaN"
-                                                           ColumnHints="3, 3, 3"
-                                                           WidthTriggers="300, 660, 990" />
-                    </ItemsRepeater.Layout>
-                </ItemsRepeater>
-
-            </ScrollViewer>
-            <history:HistoryTable Name="HistoryTable" DataContext="{Binding History}" MaxWidth="1000"
-                                  HorizontalAlignment="Left" VerticalAlignment="Top" />
+  <c:ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False">
+    <c:ContentArea.Title>
+      <StackPanel Background="#242424">
+        <DockPanel>
+          <TextBlock Text="{Binding WalletName, FallbackValue=My Wallet}" />
+          <StackPanel HorizontalAlignment="Right" Margin="0 -15 0 0" DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10">
+            <Button Classes="function" Command="{Binding SendCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="15">
+                <PathIcon Data="{StaticResource wallet_action_send}" />
+                <TextBlock Text="Send" />
+              </StackPanel>
+            </Button>
+            <Button Classes="function" Command="{Binding ReceiveCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="15">
+                <PathIcon Data="{StaticResource wallet_action_receive}" />
+                <TextBlock Text="Receive" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
         </DockPanel>
-    </c:ContentArea>
+        <Separator DockPanel.Dock="Bottom" Margin="-200 19 -200 0" HorizontalAlignment="Stretch" Foreground="Red" />
+      </StackPanel>
+
+    </c:ContentArea.Title>
+    <DockPanel VerticalAlignment="Top">
+
+      <ScrollViewer Name="ScrollViewer"
+                    DockPanel.Dock="Top"
+                    Width="{Binding #HistoryTable.Bounds.Width}"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
+        <ItemsRepeater Items="{Binding Tiles}"
+                       DockPanel.Dock="Top"
+                       Margin="0 0"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Top"
+                       UseLayoutRounding="False">
+          <ItemsRepeater.Styles>
+            <Style Selector="ItemsRepeater > :is(Control)" x:DataType="tiles:TileViewModel">
+              <Setter Property="(c:NonVirtualizingResponsiveLayout.ColumnSpan)"
+                      Value="{Binding ColumnSpan}" />
+              <Setter Property="(c:NonVirtualizingResponsiveLayout.RowSpan)" Value="{Binding RowSpan}" />
+            </Style>
+          </ItemsRepeater.Styles>
+          <ItemsRepeater.ItemTemplate>
+            <locator:ViewLocator />
+          </ItemsRepeater.ItemTemplate>
+          <ItemsRepeater.Layout>
+            <c:NonVirtualizingResponsiveLayout ItemWidth="330"
+                                               ItemHeight="150"
+                                               WidthSource="{Binding #ScrollViewer.Bounds.Width}"
+                                               AspectRatio="NaN"
+                                               ColumnHints="3, 3, 3"
+                                               WidthTriggers="300, 660, 990" />
+          </ItemsRepeater.Layout>
+        </ItemsRepeater>
+
+      </ScrollViewer>
+      <history:HistoryTable Name="HistoryTable" DataContext="{Binding History}" MaxWidth="1000"
+                            HorizontalAlignment="Left" VerticalAlignment="Top" />
+    </DockPanel>
+  </c:ContentArea>
 </UserControl>

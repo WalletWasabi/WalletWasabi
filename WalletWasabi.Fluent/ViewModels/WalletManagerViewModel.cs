@@ -106,7 +106,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				{
 					WalletViewModelBase vm = (wallet.State <= WalletState.Starting)
 						? ClosedWalletViewModel.Create(this, wallet)
-						: WalletViewModel.Create(uiConfig, wallet);
+						: WalletViewModel.Create(walletManager, _transactionBroadcaster, config, uiConfig, externalHttpClientFactory, wallet);
 
 					InsertWallet(vm);
 				});
@@ -175,7 +175,8 @@ namespace WalletWasabi.Fluent.ViewModels
 				throw new Exception("Wallet already opened.");
 			}
 
-			var walletViewModel = WalletViewModel.Create(uiConfig, wallet);
+			var walletViewModel = WalletViewModel.Create(WalletManager, _transactionBroadcaster, _config, uiConfig,
+				_externalHttpClientFactory, wallet);
 
 			InsertWallet(walletViewModel);
 
