@@ -125,21 +125,21 @@
       },
       "Avalonia.Xaml.Behaviors": {
         "type": "Transitive",
-        "resolved": "0.10.3.3",
-        "contentHash": "3Gt9GU58RGIFCZ3SvNUgzozOkon88J1OEztPMu10V04GvC9s5Y+JfyuD4OcoKNPyxNqJyxFcozMIBqt/xdiUWA==",
+        "resolved": "0.10.4",
+        "contentHash": "CewRj95p0nTnDe9JiHnAU6aN8QEXz0yK6Y2t7+nY8jXtq8VCFmztmlKuDIzJzWoXSdzHQ5jz+lp2kkXkoi8QDQ==",
         "dependencies": {
-          "Avalonia": "0.10.3",
-          "Avalonia.Xaml.Interactions": "0.10.3.3",
-          "Avalonia.Xaml.Interactivity": "0.10.3.3"
+          "Avalonia": "0.10.4",
+          "Avalonia.Xaml.Interactions": "0.10.4",
+          "Avalonia.Xaml.Interactivity": "0.10.4"
         }
       },
       "Avalonia.Xaml.Interactions": {
         "type": "Transitive",
-        "resolved": "0.10.3.3",
-        "contentHash": "ftPIHqlML+xG3GL9/2LwAyvHNElfWUiE6zlyOA1Q7m9gZAu8Jre1Vm7PKHK6LSMSbW+NAN81AH6OGF1k+39FpQ==",
+        "resolved": "0.10.4",
+        "contentHash": "o1nhquo+1nWLVl3ESqZnZGiMl3B7+FgXboYxIpbXFy1NHJ3sx63cweHOoHp5Er5x05tpe14fgGCzy+8x1SakHQ==",
         "dependencies": {
-          "Avalonia": "0.10.3",
-          "Avalonia.Xaml.Interactivity": "0.10.3.3"
+          "Avalonia": "0.10.4",
+          "Avalonia.Xaml.Interactivity": "0.10.4"
         }
       },
       "Avalonia.Xaml.Interactions.Custom": {
@@ -153,10 +153,10 @@
       },
       "Avalonia.Xaml.Interactivity": {
         "type": "Transitive",
-        "resolved": "0.10.3.3",
-        "contentHash": "65Wq0Q5km3ghmR/2r09nl1UUCnPE0czUwhLFikWXB/+Lccoxb99kh0Y+FfS/Ty0KVfDuy8czfgJHiTd17PIDEg==",
+        "resolved": "0.10.4",
+        "contentHash": "cpWcTc+Zll78GzF+4ExTSJMtnu32+HxTtZS6GEBfyyFrEcnKtqQXmBqAKAl4tCrYxfHKrWOmdD05oMNra/HKiQ==",
         "dependencies": {
-          "Avalonia": "0.10.3"
+          "Avalonia": "0.10.4"
         }
       },
       "AvalonStudio.Shell": {
@@ -999,9 +999,7 @@
           "Avalonia": "0.10.4",
           "Avalonia.Diagnostics": "0.10.4",
           "Avalonia.ReactiveUI": "0.10.4",
-          "Avalonia.Xaml.Behaviors": "0.10.3",
-          "Avalonia.Xaml.Interactions.Custom": "0.10.3",
-          "Avalonia.Xaml.Interactivity": "0.10.3",
+          "Avalonia.Xaml.Behaviors": "0.10.4",
           "WalletWasabi": "1.0.0",
           "Wasabi Wallet": "1.0.0"
         }
