@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -16,7 +17,7 @@ namespace WalletWasabi.Tor
 		/// <param name="dataDir">Application data directory.</param>
 		/// <param name="logFilePath">Full Tor log file path.</param>
 		/// <param name="distributionFolderPath">Full path to folder containing Tor installation files.</param>
-		public TorSettings(string dataDir, string logFilePath, string distributionFolderPath, bool terminateOnExit)
+		public TorSettings(string dataDir, string logFilePath, string distributionFolderPath, bool terminateOnExit, int? owningProcessId = null)
 		{
 			TorBinaryFilePath = GetTorBinaryFilePath();
 			TorBinaryDir = Path.Combine(MicroserviceHelpers.GetBinaryFolder(), "Tor");
@@ -27,6 +28,7 @@ namespace WalletWasabi.Tor
 			IoHelpers.EnsureContainingDirectoryExists(LogFilePath);
 			DistributionFolder = distributionFolderPath;
 			TerminateOnExit = terminateOnExit;
+			OwningProcessId = owningProcessId;
 			GeoIpPath = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip");
 			GeoIp6Path = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip6");
 		}
@@ -45,6 +47,9 @@ namespace WalletWasabi.Tor
 
 		/// <summary>Whether Tor should be terminated when Wasabi Wallet terminates.</summary>
 		public bool TerminateOnExit { get; }
+
+		/// <summary>Owning process ID for Tor program.</summary>
+		public int? OwningProcessId { get; }
 
 		/// <summary>Full path to executable file that is used to start Tor process.</summary>
 		public string TorBinaryFilePath { get; }
@@ -69,8 +74,8 @@ namespace WalletWasabi.Tor
 
 		public string GetCmdArguments(EndPoint torSocks5EndPoint)
 		{
-			return string.Join(
-				" ",
+			List<string> arguments = new()
+			{
 				$"--SOCKSPort {torSocks5EndPoint}",
 				$"--CookieAuthentication 1",
 				$"--ControlPort {ControlEndpoint.Port}",
@@ -78,7 +83,15 @@ namespace WalletWasabi.Tor
 				$"--DataDirectory \"{TorDataDir}\"",
 				$"--GeoIPFile \"{GeoIpPath}\"",
 				$"--GeoIPv6File \"{GeoIp6Path}\"",
-				$"--Log \"notice file {LogFilePath}\"");
+				$"--Log \"notice file {LogFilePath}\""
+			};
+
+			if (OwningProcessId is not null)
+			{
+				arguments.Add($"__OwningControllerProcess {OwningProcessId}");
+			}
+
+			return string.Join(" ", arguments);
 		}
 	}
 }
