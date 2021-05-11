@@ -184,7 +184,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (transactionInfo.Amount > totalMixedCoinsAmount)
 			{
-				Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
+				Navigate().To(new PrivacyControlViewModel(_owner, transactionInfo, broadcaster));
 				return;
 			}
 
@@ -211,7 +211,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			try
 			{
 				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo));
-				Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
+				Navigate().To(new OptimisePrivacyViewModel(_owner, transactionInfo, broadcaster, txRes));
 			}
 			catch (InsufficientBalanceException)
 			{
@@ -221,11 +221,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (result.Result)
 				{
-					Navigate().To(new OptimisePrivacyViewModel(wallet, transactionInfo, broadcaster, txRes));
+					Navigate().To(new OptimisePrivacyViewModel(_owner, transactionInfo, broadcaster, txRes));
 				}
 				else
 				{
-					Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
+					Navigate().To(new PrivacyControlViewModel(_owner, transactionInfo, broadcaster));
 				}
 			}
 		}
@@ -236,12 +236,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				// Do not add the PayJoin client yet, it will be added before broadcasting.
 				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo));
-				Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster, txRes));
+				Navigate().To(new TransactionPreviewViewModel(_owner, transactionInfo, broadcaster, txRes));
 			}
 			catch (InsufficientBalanceException)
 			{
 				await ShowErrorAsync("Transaction Building", "There are not enough private funds to cover the transaction fee", "Wasabi was unable to create your transaction.");
-				Navigate().To(new PrivacyControlViewModel(wallet, transactionInfo, broadcaster));
+				Navigate().To(new PrivacyControlViewModel(_owner, transactionInfo, broadcaster));
 			}
 		}
 
