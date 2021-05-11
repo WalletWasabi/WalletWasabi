@@ -18,11 +18,11 @@ namespace WalletWasabi.Gui.ViewModels
 {
 	public class MainWindowViewModel : ViewModelBase, IDisposable
 	{
-		private ModalDialogViewModelBase _modalDialog;
+		private ModalDialogViewModelBase? _modalDialog;
 		private string _title = "Wasabi Wallet";
 		private WindowState _windowState;
 		private StatusBarViewModel _statusBar;
-		private LockScreenViewModelBase _lockScreen;
+		private LockScreenViewModelBase? _lockScreen;
 		private volatile bool _disposedValue = false; // To detect redundant calls
 		private Stack<LockScreenViewModelBase> _lockScreens;
 		private bool _menuVisible;
@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			_menuVisible = true;
 
-			var windowState = (WindowState) Enum.Parse(typeof(WindowState), uiConfig.WindowState);
+			var windowState = (WindowState)Enum.Parse(typeof(WindowState), uiConfig.WindowState);
 			WindowState = windowState;
 
 			InitializeLockScreen();
@@ -68,7 +68,7 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _statusBar, value);
 		}
 
-		public LockScreenViewModelBase LockScreen
+		public LockScreenViewModelBase? LockScreen
 		{
 			get => _lockScreen;
 			private set => this.RaiseAndSetIfChanged(ref _lockScreen, value);
