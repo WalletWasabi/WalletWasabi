@@ -70,9 +70,9 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 			var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
 			var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
-			uint256 aliceId = await apiClient.RegisterInputAsync(Money.Coins(1), coinToRegister.Outpoint, signingKey, round.Id, CancellationToken.None);
+			var response = await apiClient.RegisterInputAsync(Money.Coins(1), coinToRegister.Outpoint, signingKey, round.Id, CancellationToken.None);
 
-			Assert.NotEqual(uint256.Zero, aliceId);
+			Assert.NotEqual(uint256.Zero, response.Value);
 		}
 	}
 }
