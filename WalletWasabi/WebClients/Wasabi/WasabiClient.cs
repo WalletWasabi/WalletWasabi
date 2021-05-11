@@ -36,7 +36,7 @@ namespace WalletWasabi.WebClients.Wasabi
 		/// <remarks>
 		/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
 		/// </remarks>
-		public async Task<SynchronizeResponse> GetSynchronizeAsync(uint256 bestKnownBlockHash, int count, EstimateSmartFeeMode? estimateMode = null, CancellationToken cancel = default)
+		public async Task<SynchronizeResponse> GetSynchronizeAsync(uint256? bestKnownBlockHash, int count, EstimateSmartFeeMode? estimateMode = null, CancellationToken cancel = default)
 		{
 			string relativeUri = $"/api/v{ApiVersion}/btc/batch/synchronize?bestKnownBlockHash={bestKnownBlockHash}&maxNumberOfFilters={count}";
 			if (estimateMode is { })
