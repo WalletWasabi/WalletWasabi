@@ -11,12 +11,11 @@ namespace WalletWasabi.Backend.Controllers
 	[Route("api/[controller]")]
 	public class SoftwareController : ControllerBase
 	{
-		private readonly VersionsResponse _versionsResponse = new()
-		{
-			ClientVersion = Constants.ClientVersion.ToString(3),
-			BackendMajorVersion = Constants.BackendMajorVersion,
-			LegalDocumentsVersion = Constants.LegalDocumentsVersion.ToString()
-		};
+		private readonly VersionsResponse _versionsResponse = new(
+			Constants.ClientVersion.ToString(3),
+			Constants.BackendMajorVersion,
+			Constants.LegalDocumentsVersion.ToString()
+			);
 
 		/// <summary>
 		/// Gets the latest versions of the client and backend.
