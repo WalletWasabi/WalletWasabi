@@ -14,10 +14,10 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
   <c:ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False">
     <c:ContentArea.Title>
-      <StackPanel Background="#242424">
+      <StackPanel>
         <DockPanel>
           <TextBlock Text="{Binding WalletName, FallbackValue=My Wallet}" />
-          <StackPanel HorizontalAlignment="Right" Margin="0 -15 0 0" DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10">
+          <StackPanel HorizontalAlignment="Right" Margin="0 -5 0 0" DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10">
             <Button Classes="function" Command="{Binding SendCommand}">
               <StackPanel Orientation="Horizontal" Spacing="15">
                 <PathIcon Data="{StaticResource wallet_action_send}" />
