@@ -57,8 +57,8 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 			var arenaClient = new ArenaClient(
 				round.AmountCredentialIssuerParameters,
 				round.VsizeCredentialIssuerParameters,
-				new CredentialPool(),
-				new CredentialPool(),
+				new ZeroCredentialPool(),
+				new ZeroCredentialPool(),
 				wabiSabiHttpApiClient,
 				new InsecureRandom());
 			return arenaClient;

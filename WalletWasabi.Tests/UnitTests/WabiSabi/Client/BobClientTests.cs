@@ -43,13 +43,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 					TxOut = coin1.TxOut,
 				});
 
-			CredentialPool amountCredential = new();
-			CredentialPool vsizeCredential = new();
+			ZeroCredentialPool zeroAmountCredential = new();
+			ZeroCredentialPool zeroVsizeCredential = new();
 
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
 			var wabiSabiApi = new WabiSabiController(coordinator);
-			var aliceArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, amountCredential, vsizeCredential, wabiSabiApi, new InsecureRandom());
-			var bobArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, amountCredential, vsizeCredential, wabiSabiApi, new InsecureRandom());
+			var aliceArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, zeroAmountCredential, zeroVsizeCredential, wabiSabiApi, new InsecureRandom());
+			var bobArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, zeroAmountCredential, zeroVsizeCredential, wabiSabiApi, new InsecureRandom());
 			Assert.Equal(Phase.InputRegistration, round.Phase);
 
 			var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);
@@ -71,7 +71,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using var destinationKey3 = new Key();
 			using var destinationKey4 = new Key();
 
-			var bobClient = new BobClient(round.Id, bobArenaClient);
+			var bobClient = new BobClient(round.Id, bobArenaClient, aliceClient.RealAmountCredentials, aliceClient.RealVsizeCredentials);
 			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey1.PubKey.WitHash.ScriptPubKey, CancellationToken.None);
 			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey2.PubKey.WitHash.ScriptPubKey, CancellationToken.None);
 			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey3.PubKey.WitHash.ScriptPubKey, CancellationToken.None);
