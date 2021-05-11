@@ -20,6 +20,8 @@ namespace WalletWasabi.Tor
 	/// <seealso href="https://2019.www.torproject.org/docs/tor-manual.html.en"/>
 	public class TorProcessManager
 	{
+		private bool _disposed = false;
+
 		public TorProcessManager(TorSettings settings, EndPoint torSocks5EndPoint)
 		{
 			TorSocks5EndPoint = torSocks5EndPoint;
@@ -34,10 +36,7 @@ namespace WalletWasabi.Tor
 		private TorSettings Settings { get; }
 		private TorTcpConnectionFactory TcpConnectionFactory { get; }
 
-
-		private TorControlClient? TorControlClient { get; set; }
-
-		private bool _disposed = false;
+		private TorControlClient? TorControlClient { get; set; }		
 
 		/// <summary>
 		/// Starts Tor process if it is not running already.
