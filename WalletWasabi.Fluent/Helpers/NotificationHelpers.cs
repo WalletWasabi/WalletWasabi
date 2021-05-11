@@ -69,7 +69,7 @@ namespace WalletWasabi.Fluent.Helpers
 
 					if (result.Transaction.Transaction.IsCoinBase)
 					{
-						title = "Mined";
+						title = "Coinbase reward";
 					}
 					else if (isSpent && receiveSpentDiff == miningFee)
 					{
