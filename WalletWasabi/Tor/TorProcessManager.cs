@@ -7,6 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
+using WalletWasabi.Tor.Control;
+using WalletWasabi.Tor.Control.Exceptions;
+using WalletWasabi.Tor.Control.Messages;
 using WalletWasabi.Tor.Socks5;
 
 namespace WalletWasabi.Tor
@@ -21,16 +24,18 @@ namespace WalletWasabi.Tor
 		{
 			TorSocks5EndPoint = torSocks5EndPoint;
 			TorProcess = null;
+			TorControlClient = null;
 			Settings = settings;
 			TcpConnectionFactory = new(torSocks5EndPoint);
 		}
 
 		private EndPoint TorSocks5EndPoint { get; }
-
 		private ProcessAsync? TorProcess { get; set; }
-
 		private TorSettings Settings { get; }
 		private TorTcpConnectionFactory TcpConnectionFactory { get; }
+
+
+		private TorControlClient? TorControlClient { get; set; }
 
 		private bool _disposed = false;
 
@@ -53,12 +58,14 @@ namespace WalletWasabi.Tor
 						? $"Tor is already running on {endpoint.Address}:{endpoint.Port}."
 						: "Tor is already running.";
 					Logger.LogInfo(msg);
+
+					TorControlClient = await InitTorControlOrThrowAsync(token).ConfigureAwait(false);
 					return true;
 				}
 
 				string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint);
 
-				var startInfo = new ProcessStartInfo
+				ProcessStartInfo startInfo = new()
 				{
 					FileName = Settings.TorBinaryFilePath,
 					Arguments = torArguments,
@@ -116,6 +123,8 @@ namespace WalletWasabi.Tor
 				}
 
 				Logger.LogInfo("Tor is running.");
+				TorControlClient = await InitTorControlOrThrowAsync(token).ConfigureAwait(false);
+
 				return true;
 			}
 			catch (OperationCanceledException ex)
@@ -131,30 +140,64 @@ namespace WalletWasabi.Tor
 			return false;
 		}
 
+		/// <summary>
+		/// Connects to Tor control using a TCP client or throws <see cref="TorControlException"/>.
+		/// </summary>
+		/// <exception cref="TorControlException">When authentication fails for some reason.</exception>
+		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
+		private async Task<TorControlClient> InitTorControlOrThrowAsync(CancellationToken token = default)
+		{
+			// Get cookie.
+			string cookieString = ByteHelpers.ToHex(File.ReadAllBytes(Settings.CookieAuthFilePath));
+
+			// Authenticate.
+			TorControlClientFactory factory = new();
+			TorControlClient client = await factory.ConnectAndAuthenticateAsync(Settings.ControlEndpoint, cookieString, token).ConfigureAwait(false);
+
+			if (Settings.TerminateOnExit)
+			{
+				// This is necessary for the scenario when Tor was started by a previous WW instance with TerminateTorOnExit=false configuration option.
+				TorControlReply takeReply = await client.TakeOwnershipAsync(token).ConfigureAwait(false);
+
+				if (!takeReply)
+				{					
+					throw new TorControlException($"Failed to take ownership of the Tor instance. Reply: '{takeReply}'.");
+				}
+
+				TorControlReply resetReply = await client.ResetOwningControllerProcessConfAsync(token).ConfigureAwait(false);
+
+				if (!resetReply)
+				{
+					throw new TorControlException($"Failed to reset __OwningControllerProcess. Reply: '{resetReply}'.");
+				}
+			}
+
+			return client;
+		}
+
 		public async Task StopAsync()
 		{
-			if (TorProcess is { } && Settings.TerminateOnExit)
+			_disposed = true;
+
+			if (TorControlClient is TorControlClient torControlClient)
 			{
-				Logger.LogInfo($"Killing Tor process.");
-
-				try
+				// Even though terminating the TCP connection with Tor would shut down Tor,
+				// the spec is quite clear:
+				// > As of Tor 0.2.5.2-alpha, Tor does not wait a while for circuits to
+				// > close when shutting down because of an exiting controller. If you
+				// > want to ensure a clean shutdown--and you should!--then send "SIGNAL
+				// > SHUTDOWN" and wait for the Tor process to close.)
+				if (Settings.TerminateOnExit)
 				{
-					TorProcess.Kill();
-					using CancellationTokenSource cts = new(TimeSpan.FromMinutes(1));
-					await TorProcess.WaitForExitAsync(cts.Token, killOnCancel: true).ConfigureAwait(false);
+					await torControlClient.SignalShutdownAsync().ConfigureAwait(false);
+				}
 
-					Logger.LogInfo($"Tor process killed successfully.");
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError($"Could not kill Tor process: {ex.Message}.");
-				}
+				// Leads to Tor termination because we sent TAKEOWNERSHIP command.
+				torControlClient.Dispose();
 			}
 
 			// Dispose Tor process resources (does not stop/kill Tor process).
 			TorProcess?.Dispose();
-
-			_disposed = true;
 		}
 
 		private void ThrowIfDisposed()
