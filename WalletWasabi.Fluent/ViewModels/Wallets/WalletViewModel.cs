@@ -22,8 +22,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	{
 		[AutoNotify] private IList<TileViewModel> _tiles;
 
-		protected WalletViewModel(WalletManager walletManager, TransactionBroadcaster transactionBroadcaster,
-			Config config, UiConfig uiConfig, HttpClientFactory clientFactory, Wallet wallet) : base(wallet)
+		protected WalletViewModel(
+			WalletManager walletManager,
+			TransactionBroadcaster transactionBroadcaster,
+			Config config,
+			UiConfig uiConfig,
+			HttpClientFactory clientFactory,
+			Wallet wallet)
+			: base(wallet)
 		{
 			Disposables = Disposables is null
 				? new CompositeDisposable()
@@ -45,28 +51,28 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged)
 			{
-				ColumnSpan = new List<int> {1, 1, 1},
-				RowSpan = new List<int> {1, 1, 1}
+				ColumnSpan = new List<int> { 1, 1, 1 },
+				RowSpan = new List<int> { 1, 1, 1 }
 			};
 			RoundStatusTile = new RoundStatusTileViewModel(wallet)
 			{
-				ColumnSpan = new List<int> {1, 1, 1},
-				RowSpan = new List<int> {1, 1, 1}
+				ColumnSpan = new List<int> { 1, 1, 1 },
+				RowSpan = new List<int> { 1, 1, 1 }
 			};
 			BtcPriceTile = new BtcPriceTileViewModel(wallet)
 			{
-				ColumnSpan = new List<int> {1, 1, 1},
-				RowSpan = new List<int> {1, 1, 1}
+				ColumnSpan = new List<int> { 1, 1, 1 },
+				RowSpan = new List<int> { 1, 1, 1 }
 			};
 			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged)
 			{
-				ColumnSpan = new List<int> {1, 1, 1},
-				RowSpan = new List<int> {1, 2, 2}
+				ColumnSpan = new List<int> { 1, 1, 1 },
+				RowSpan = new List<int> { 1, 2, 2 }
 			};
 			BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions)
 			{
-				ColumnSpan = new List<int> {2, 2, 2},
-				RowSpan = new List<int> {1, 2, 2}
+				ColumnSpan = new List<int> { 2, 2, 2 },
+				RowSpan = new List<int> { 1, 2, 2 }
 			};
 
 			_tiles = new List<TileViewModel>
@@ -123,15 +129,37 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			History.Activate(disposables);
 		}
 
-		public static WalletViewModel Create(WalletManager walletManager, TransactionBroadcaster broadcaster,
-			Config config, UiConfig uiConfig, HttpClientFactory httpClientFactory, Wallet wallet)
+		public static WalletViewModel Create(
+			WalletManager walletManager,
+			TransactionBroadcaster broadcaster,
+			Config config,
+			UiConfig uiConfig,
+			HttpClientFactory httpClientFactory,
+			Wallet wallet)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new HardwareWalletViewModel(walletManager, broadcaster, config, uiConfig, httpClientFactory, wallet)
+				? new HardwareWalletViewModel(
+					walletManager,
+					broadcaster,
+					config,
+					uiConfig,
+					httpClientFactory,
+					wallet)
 				: wallet.KeyManager.IsWatchOnly
-					? new WatchOnlyWalletViewModel(walletManager, broadcaster, config, uiConfig, httpClientFactory,
+					? new WatchOnlyWalletViewModel(
+						walletManager,
+						broadcaster,
+						config,
+						uiConfig,
+						httpClientFactory,
 						wallet)
-					: new WalletViewModel(walletManager, broadcaster, config, uiConfig, httpClientFactory, wallet);
+					: new WalletViewModel(
+						walletManager,
+						broadcaster,
+						config,
+						uiConfig,
+						httpClientFactory,
+						wallet);
 		}
 	}
 }
