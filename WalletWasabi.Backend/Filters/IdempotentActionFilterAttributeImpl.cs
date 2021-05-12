@@ -23,7 +23,7 @@ namespace WalletWasabi.Backend.Filters
 		{
 			var request = context.HttpContext.Request;
 
-			var (cacheKey, body) = await GetCacheEntryKeyAsync(request);
+			var (cacheKey, body) = await GetCacheEntryKeyAsync(request).ConfigureAwait(false);
 
 			if (_cache.TryGetValue<ObjectResult>(cacheKey, out var cachedResponse))
 			{
@@ -34,7 +34,7 @@ namespace WalletWasabi.Backend.Filters
 
 			context.HttpContext.Items["cached-key"] = cacheKey;
 
- 			await next();
+ 			await next().ConfigureAwait(false);
 		}
 
 		public override void OnResultExecuted(ResultExecutedContext context)
@@ -48,7 +48,7 @@ namespace WalletWasabi.Backend.Filters
 		private async Task<(string, string)> GetCacheEntryKeyAsync(HttpRequest request)
 		{
 			using var reader = new System.IO.StreamReader(request.Body);
-			var body = await reader.ReadToEndAsync();
+			var body = await reader.ReadToEndAsync().ConfigureAwait(false);
 
 			var rawKey = string.Join(":", request.Path, body);
 			using var sha256Hash = SHA256.Create();
