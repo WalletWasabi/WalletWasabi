@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Avalonia;
 using NBitcoin;
 using ReactiveUI;
@@ -89,6 +90,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			{
 				await Application.Current.Clipboard.ClearAsync();
 			}
+		}
+
+		public async Task NavigateToAddressEdit(AddressViewModel address)
+		{
+			Navigate().To(new AddressLabelEditViewModel(address));
 		}
 	}
 }

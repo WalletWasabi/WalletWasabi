@@ -41,7 +41,7 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <DockPanel LastChildFill="True" Margin="10 0" x:DataType="receive:AddressViewModel">
-                <Button Classes="plain addressActionButton" ToolTip.Tip="Edit" DockPanel.Dock="Right">
+                <Button Classes="plain addressActionButton" ToolTip.Tip="Edit" DockPanel.Dock="Right" Command="{Binding EditLabelCommand}">
                   <PathIcon Data="{StaticResource edit_regular}" Classes="addressActionIcon" />
                 </Button>
                 <c:TagsBox Padding="0" IsReadOnly="True" Items="{Binding Label}" VerticalAlignment="Center" />
