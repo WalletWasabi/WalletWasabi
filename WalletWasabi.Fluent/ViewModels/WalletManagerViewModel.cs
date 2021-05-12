@@ -127,7 +127,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 					if (_walletDictionary.TryGetValue(wallet, out var walletViewModel) && walletViewModel is WalletViewModel wvm)
 					{
-						NotificationHelpers.Show(e, () => wvm.NavigateAndHighlight(e.Transaction.GetHash()));
+						NotificationHelpers.Show(e, onClick: () => wvm.NavigateAndHighlight(e.Transaction.GetHash()));
 					}
 				});
 
