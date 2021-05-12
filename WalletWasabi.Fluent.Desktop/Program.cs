@@ -148,9 +148,7 @@ namespace WalletWasabi.Fluent.Desktop
 		private static void InitializeServices(string dataDir, UiConfig uiConfig, Config config)
 		{
 			string torLogsFile = Path.Combine(dataDir, "TorLogs.txt");
-			var walletManager = new WalletManager(config.Network, dataDir, new WalletDirectories(config.Network, dataDir));
-
-			Gui.Services.Initialize(dataDir, torLogsFile, config, uiConfig, walletManager);
+			Gui.Services.Initialize(dataDir, torLogsFile, config, uiConfig);
 		}
 
 		/// <summary>

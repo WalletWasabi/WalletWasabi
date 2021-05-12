@@ -64,11 +64,10 @@ namespace WalletWasabi.Gui
 			var config = new Config(Path.Combine(dataDir, "Config.json"));
 			config.LoadOrCreateDefaultFile();
 			config.CorrectMixUntilAnonymitySet();
-			var walletManager = new WalletManager(config.Network, dataDir, new WalletDirectories(config.Network, dataDir));
 
 			Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"));
 
-			Services.Initialize(dataDir, torLogsFile, config, uiConfig, walletManager);
+			Services.Initialize(dataDir, torLogsFile, config, uiConfig);
 		}
 
 		private static void SetTheme() => AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);

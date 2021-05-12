@@ -76,7 +76,7 @@ namespace WalletWasabi.Gui
 
 		public static JsonRpcServer? RpcServer { get; private set; }
 
-		public static void Initialize(string dataDir, string torLogsFile, Config config, UiConfig uiConfig, WalletManager walletManager)
+		public static void Initialize(string dataDir, string torLogsFile, Config config, UiConfig uiConfig)
 		{
 			using (BenchmarkLogger.Measure())
 			{
@@ -87,7 +87,7 @@ namespace WalletWasabi.Gui
 				TorSettings = new TorSettings(DataDir, torLogsFile, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit);
 
 				HostedServices = new HostedServices();
-				WalletManager = walletManager;
+				WalletManager = new WalletManager(config.Network, dataDir, new WalletDirectories(config.Network, dataDir));
 
 				WalletManager.OnDequeue += WalletManager_OnDequeue;
 				WalletManager.WalletRelevantTransactionProcessed += WalletManager_WalletRelevantTransactionProcessed;
