@@ -14,7 +14,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet
 			UiConfig uiConfig,
 			HttpClientFactory clientFactory,
 			Wallet wallet)
-			: base(walletManager,
+			: base(
+				walletManager,
 				transactionBroadcaster,
 				config,
 				uiConfig,
