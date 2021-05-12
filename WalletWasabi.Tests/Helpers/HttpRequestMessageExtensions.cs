@@ -1,6 +1,6 @@
 using System.Net.Http;
 
-namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
+namespace WalletWasabi.Tests.Helpers
 {
 	public static class HttpRequestMessageExtensions
 	{

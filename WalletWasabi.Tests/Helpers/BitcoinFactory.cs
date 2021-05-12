@@ -118,7 +118,7 @@ namespace WalletWasabi.Tests.Helpers
 			}
 		}
 
-		// Creates and configure an fake RPC client used to simulate the
+		// Creates and configures an fake RPC client used to simulate the
 		// interaction with our bitcoin full node RPC server.
 		public static MockRpcClient GetMockMinimalRpc()
 		{
