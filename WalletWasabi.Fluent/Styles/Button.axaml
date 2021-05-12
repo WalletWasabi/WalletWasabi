@@ -8,6 +8,7 @@
 
   <Styles.Resources>
     <Thickness x:Key="ActionButtonPadding">20,10</Thickness>
+    <Thickness x:Key="InvisibleButtonPadding">20,10</Thickness>
   </Styles.Resources>
 
   <Style Selector="Button.action /template/ ContentPresenter">
@@ -47,5 +48,19 @@
 
   <Style Selector="Button.function PathIcon">
     <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+  </Style>
+
+  <Style Selector="Button.invisible">
+    <Setter Property="Padding" Value="{StaticResource InvisibleButtonPadding}" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.invisible /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource InvisibleButtonBackgroundColor}" />
+  </Style>
+  <Style Selector="Button.invisible:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource InvisibleButtonPointerOverBackgroundColor}" />
+  </Style>
+  <Style Selector="Button.invisible:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource InvisibleButtonPressedBackgroundColor}" />
   </Style>
 </Styles>
