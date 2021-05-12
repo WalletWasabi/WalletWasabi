@@ -22,7 +22,7 @@ namespace WalletWasabi.Gui.Controls
 	public class ExtendedTextBox : TextBox, IStyleable
 	{
 		private TextPresenter _presenter;
-		private MenuItem _pasteItem = null;
+		private MenuItem? _pasteItem = null;
 
 		private Subject<string> _textPasted;
 
