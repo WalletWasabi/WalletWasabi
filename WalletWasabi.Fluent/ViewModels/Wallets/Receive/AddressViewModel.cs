@@ -21,14 +21,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		{
 			_address = model.GetP2wpkhAddress(network).ToString();
 			_label = model.Label;
-			_parent = parent;
 
 			CopyAddressCommand =
 				ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Address));
 			HideAddressCommand =
 				ReactiveCommand.CreateFromTask(async () => await parent.HideAddressAsync(model, Address));
 			EditLabelCommand =
-				ReactiveCommand.CreateFromTask(async () => { await _parent.NavigateToAddressEdit(this); });
+				ReactiveCommand.Create(() => parent.NavigateToAddressEdit(model, parent.Wallet.KeyManager));
 
 			NavigateCommand = ReactiveCommand.Create(() =>
 			{

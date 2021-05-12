@@ -92,9 +92,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			}
 		}
 
-		public async Task NavigateToAddressEdit(AddressViewModel address)
+		public void NavigateToAddressEdit(HdPubKey hdPubKey, KeyManager keyManager)
 		{
-			Navigate().To(new AddressLabelEditViewModel(address));
+			Navigate(NavigationTarget.CompactDialogScreen).To(new AddressLabelEditViewModel(hdPubKey, keyManager));
 		}
 	}
 }

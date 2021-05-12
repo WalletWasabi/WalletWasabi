@@ -1,10 +1,9 @@
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 {
@@ -12,22 +11,21 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 	public partial class AddressLabelEditViewModel : RoutableViewModel
 	{
 		[AutoNotify] private string _label;
-		[AutoNotify] private AddressViewModel _targetAddress;
 		[AutoNotify] private ObservableCollection<string> _labels;
 
-		public AddressLabelEditViewModel(AddressViewModel addressViewModel)
+		public AddressLabelEditViewModel(HdPubKey hdPubKey, KeyManager keyManager)
 		{
-			_targetAddress = addressViewModel;
-			_labels = new();
+			_labels = new(hdPubKey.Label);
+			_label = "";
 
-			foreach (var labelString in _targetAddress.Labels)
+			NextCommand = ReactiveCommand.Create(() =>
 			{
-				_labels.Add(labelString);
-			}
+				hdPubKey = keyManager.GetKeys(x => x == hdPubKey).FirstOrDefault();
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () =>
-			{
-				_targetAddress.Labels = Labels;
+				hdPubKey?.SetLabel(new SmartLabel(Label), kmToFile: keyManager);
+
+				// hdPubKey.SetLabel(new SmartLabel(Label), kmToFile: keyManager);
+
 				Navigate().Back();
 			});
 		}
