@@ -267,7 +267,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			var aliceClient = await CreateNewAliceClientAsync(roundId, registeredAddresses, signerPubKeys, requesters, inputsRequest);
 			{
 				// Test DelayedClientRoundRegistration logic.
-				ClientRoundRegistration first = null;
+				ClientRoundRegistration first;
 				var randomKey = KeyManager.CreateNew(out _, "").GenerateNewKey(SmartLabel.Empty, KeyState.Clean, false);
 				var second = new ClientRoundRegistration(aliceClient,
 					new[] { BitcoinFactory.CreateSmartCoin(randomKey, 0m, anonymitySet: 2) },
@@ -815,7 +815,7 @@ namespace WalletWasabi.Tests.RegressionTests
 			roundState = await satoshiClient.GetRoundStateAsync(roundId);
 			Assert.Equal(RoundPhase.Signing, roundState.Phase);
 
-			uint256 transactionId = null;
+			uint256? transactionId = null;
 			foreach (var (aliceClient, outputs, inputs) in participants)
 			{
 				var unsignedTransaction = await aliceClient.GetUnsignedCoinJoinAsync();
