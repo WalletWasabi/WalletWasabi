@@ -2,8 +2,12 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
+using NBitcoin;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using System.Windows.Input;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
@@ -116,6 +120,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		public WalletPieChartTileViewModel WalletPieChart { get; }
 
 		public WalletBalanceChartTileViewModel BalanceChartTile { get; }
+
+		public void NavigateAndHighlight(uint256 txid)
+		{
+			Navigate().To(this, NavigationMode.Clear);
+
+			RxApp.MainThreadScheduler.Schedule(async () =>
+			{
+				await Task.Delay(500);
+				History.SelectTransaction(txid);
+			});
+		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
