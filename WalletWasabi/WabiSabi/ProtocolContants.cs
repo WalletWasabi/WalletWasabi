@@ -24,5 +24,6 @@ namespace WalletWasabi.WabiSabi
 		public const string AliceCoinTxOutStrobeLabel = "coin-txout";
 		public const string AliceCoinOutpointStrobeLabel = "coin-outpoint";
 		public const string AliceOwnershipProofStrobeLabel = "ownership-proof";
+		public const string ProtocolViolationType = "wabisabi-protocol-violation";
 	}
 }

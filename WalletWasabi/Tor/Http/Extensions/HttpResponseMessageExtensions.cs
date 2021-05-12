@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using WalletWasabi.Tor.Http.Helpers;
 using WalletWasabi.Tor.Http.Models;
+using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models;
 
@@ -71,7 +72,7 @@ namespace WalletWasabi.Tor.Http.Extensions
 				});
 				var innerException = error switch
 				{
-					{ Type: "wabisabi-protocol-violation"} => Enum.TryParse<WabiSabiProtocolErrorCode>(error.ErrorCode, out var code)
+					{ Type: ProtocolConstants.ProtocolViolationType } => Enum.TryParse<WabiSabiProtocolErrorCode>(error.ErrorCode, out var code)
 						? new WabiSabiProtocolException(code, error.Description)
 						: new NotSupportedException($"Received wabisabi protocol exception with unknown '{error.ErrorCode}' error code.\n\tDescription: '{error.Description}'."),
 					{ Type: "unknown"} => new Exception(error.Description),

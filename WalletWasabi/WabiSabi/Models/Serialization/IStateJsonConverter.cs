@@ -14,20 +14,20 @@ namespace WalletWasabi.WabiSabi.Models.Serialization
 		// CanWrite to false immediately after entering.
 		// see: https://github.com/JamesNK/Newtonsoft.Json/issues/386
 		[ThreadStatic]
-		private static bool _isReading;
+		private static bool IsReading;
 
 		[ThreadStatic]
-		private static bool _isWriting;
+		private static bool IsWriting;
 
 		public override bool CanWrite
 		{
 			get
 			{
-				if (!_isWriting)
+				if (!IsWriting)
 				{
 					return true;
 				}
-				_isWriting = false;
+				IsWriting = false;
 
 				return false;
 			}
@@ -37,11 +37,11 @@ namespace WalletWasabi.WabiSabi.Models.Serialization
 		{
 			get
 			{
-				if (!_isReading)
+				if (!IsReading)
 				{
 					return true;
 				}
-				_isReading = false;
+				IsReading = false;
 
 				return false;
 			}
@@ -56,7 +56,7 @@ namespace WalletWasabi.WabiSabi.Models.Serialization
 		{
 			try
 			{
-				_isWriting = true;
+				IsWriting = true;
 
 				var stateTypeName = value switch
 				{
@@ -70,7 +70,7 @@ namespace WalletWasabi.WabiSabi.Models.Serialization
 			}
 			finally
 			{
-				_isWriting = false;
+				IsWriting = false;
 			}
 		}
 
@@ -78,7 +78,7 @@ namespace WalletWasabi.WabiSabi.Models.Serialization
 		{
 			try
 			{
-				_isReading = true;
+				IsReading = true;
 
 				var jsonObject = JObject.Load(reader);
 				var stateType = jsonObject.Value<string>("State") switch
@@ -91,7 +91,7 @@ namespace WalletWasabi.WabiSabi.Models.Serialization
 			}
 			finally
 			{
-				_isReading = false;
+				IsReading = false;
 			}
 		}
 	}
