@@ -19,7 +19,6 @@ namespace WalletWasabi.Backend.Filters
 			_cache = cache;
 		}
 
-
 		public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
 		{
 			var request = context.HttpContext.Request;

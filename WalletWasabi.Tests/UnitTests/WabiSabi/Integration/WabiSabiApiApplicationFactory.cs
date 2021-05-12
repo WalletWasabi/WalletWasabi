@@ -50,7 +50,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			});
 		}
 
-
 		public Task<ArenaClient> CreateArenaClientAsync(HttpClient httpClient) =>
 			CreateArenaClientAsync(CreateWabiSabiHttpApiClient(httpClient));
 

@@ -108,39 +108,20 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			Assert.NotEqual(uint256.Zero, response.Value);
 		}
 
-	}
-
-	class StuttererHttpClient : HttpClientWrapper
-	{
-		public StuttererHttpClient(HttpClient httpClient) : base(httpClient)
+		private class StuttererHttpClient : HttpClientWrapper
 		{
-		}
-		public override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
-		{
-			var result1 = await base.SendAsync(request.Clone(), token);
-			var result2 = await base.SendAsync(request.Clone(), token);
-			var content1 = await result1.Content.ReadAsStringAsync();
-			var content2 = await result2.Content.ReadAsStringAsync();
-			Assert.Equal(content1, content2);
-			return result2;
-		}
-	}
-
-	public static class HttpRequestMessageExtensions
-	{
-		public static HttpRequestMessage Clone(this HttpRequestMessage request)
-		{
-			var clone = new HttpRequestMessage(request.Method, request.RequestUri)
+			public StuttererHttpClient(HttpClient httpClient) : base(httpClient)
 			{
-				Content = request.Content,
-				Version = request.Version
-			};
-			foreach (var header in request.Headers)
-			{
-				clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
 			}
-
-			return clone;
+			public override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
+			{
+				var result1 = await base.SendAsync(request.Clone(), token);
+				var result2 = await base.SendAsync(request.Clone(), token);
+				var content1 = await result1.Content.ReadAsStringAsync();
+				var content2 = await result2.Content.ReadAsStringAsync();
+				Assert.Equal(content1, content2);
+				return result2;
+			}
 		}
 	}
 }
