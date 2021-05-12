@@ -94,7 +94,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
-
 		public ReactiveCommand<Unit, Unit> ExportBinaryPsbt { get; set; }
 		public ReactiveCommand<Unit, Unit> CopyTransactionHex { get; set; }
 		public ReactiveCommand<Unit, Unit> CopyBase64Psbt { get; set; }
