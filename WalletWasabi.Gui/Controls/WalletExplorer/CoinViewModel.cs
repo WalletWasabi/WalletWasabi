@@ -34,8 +34,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinViewModel(Wallet wallet, CoinListViewModel owner, SmartCoin model)
 		{
-			Global = Locator.Current.GetService<Global>();
-
 			Model = model;
 			Wallet = wallet;
 			Owner = owner;
@@ -76,7 +74,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ => RefreshSmartCoinStatus())
 				.DisposeWith(Disposables);
 
-			Global.BitcoinStore.SmartHeaderChain
+			Services.BitcoinStore.SmartHeaderChain
 				.WhenAnyValue(x => x.TipHeight).Select(_ => Unit.Default)
 				.Merge(Model.WhenAnyValue(x => x.Height).Select(_ => Unit.Default))
 				.Throttle(TimeSpan.FromSeconds(0.1)) // DO NOT TAKE THIS THROTTLE OUT, OTHERWISE SYNCING WITH COINS IN THE WALLET WILL STACKOVERFLOW!
@@ -84,7 +82,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(Confirmations)))
 				.DisposeWith(Disposables);
 
-			Global.UiConfig
+			Services.UiConfig
 				.WhenAnyValue(x => x.PrivacyMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
@@ -124,7 +122,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private Wallet Wallet { get; }
 		public CoinListViewModel Owner { get; }
-		private Global Global { get; }
 		public bool CanBeDequeued => Owner.CanDequeueCoins;
 		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
 		public ReactiveCommand<Unit, Unit> OpenCoinInfo { get; }
@@ -136,10 +133,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public bool CoinJoinInProgress => _coinJoinInProgress?.Value ?? false;
 
-		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
+		public string Address => Model.ScriptPubKey.GetDestinationAddress(Services.Network).ToString();
 
 		public int Confirmations => Model.Height.Type == HeightType.Chain
-			? (int)Global.BitcoinStore.SmartHeaderChain.TipHeight - Model.Height.Value + 1
+			? (int)Services.BitcoinStore.SmartHeaderChain.TipHeight - Model.Height.Value + 1
 			: 0;
 
 		public bool IsSelected

@@ -17,14 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.OpenDirectory
 		IconName = "document_regular")]
 	public partial class OpenConfigFileViewModel : TriggerCommandViewModel
 	{
-		private readonly Global _global;
-
-		public OpenConfigFileViewModel(Global global)
-		{
-			_global = global;
-		}
-
 		public override ICommand TargetCommand =>
-			ReactiveCommand.Create(() => FileHelpers.OpenFileInTextEditorAsync(_global.Config.FilePath));
+			ReactiveCommand.Create(() => FileHelpers.OpenFileInTextEditorAsync(Gui.Services.Config.FilePath));
 	}
 }

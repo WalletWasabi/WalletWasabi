@@ -13,7 +13,7 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is bool expanded)
 			{
-				return expanded ? Application.Current.Resources[Global.ThemeBackgroundBrushResourceKey] as IBrush : Brushes.Transparent;
+				return expanded ? Application.Current.Resources[Services.ThemeBackgroundBrushResourceKey] as IBrush : Brushes.Transparent;
 			}
 			else
 			{

@@ -12,7 +12,7 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			var uiConfig = Locator.Current.GetService<Global>().UiConfig;
+			var uiConfig = Services.UiConfig;
 			if (uiConfig.PrivacyMode)
 			{
 				int len = 10;

@@ -22,8 +22,6 @@ namespace WalletWasabi.Fluent.Desktop
 {
 	public class Program
 	{
-		private static Global? Global;
-
 		private static readonly TerminateService TerminateService = new(TerminateApplicationAsync);
 
 		// Initialization code. Don't use any Avalonia, third-party APIs or any
@@ -67,14 +65,11 @@ namespace WalletWasabi.Fluent.Desktop
 					singleInstanceChecker = new SingleInstanceChecker(config.Network);
 					singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
 
-					Global = CreateGlobal(dataDir, uiConfig, config);
-
-					// TODO only required due to statusbar vm... to be removed.
-					Locator.CurrentMutable.RegisterConstant(Global);
+					InitializeServices(dataDir, uiConfig, config);
 
 					Logger.LogSoftwareStarted("Wasabi GUI");
 					BuildAvaloniaApp()
-						.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light))
+						.AfterSetup(_ => ThemeHelper.ApplyTheme(Gui.Services.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light))
 						.StartWithClassicDesktopLifetime(args);
 				}
 				catch (OperationCanceledException ex)
@@ -150,12 +145,12 @@ namespace WalletWasabi.Fluent.Desktop
 			return (uiConfig, config);
 		}
 
-		private static Global CreateGlobal(string dataDir, UiConfig uiConfig, Config config)
+		private static void InitializeServices(string dataDir, UiConfig uiConfig, Config config)
 		{
 			string torLogsFile = Path.Combine(dataDir, "TorLogs.txt");
 			var walletManager = new WalletManager(config.Network, dataDir, new WalletDirectories(config.Network, dataDir));
 
-			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
+			Gui.Services.Initialize(dataDir, torLogsFile, config, uiConfig, walletManager);
 		}
 
 		/// <summary>
@@ -169,9 +164,9 @@ namespace WalletWasabi.Fluent.Desktop
 				Logger.LogSoftwareStopped("Wasabi GUI");
 			}
 
-			if (Global is { } global)
+			// TODO: if (Gui.Services is { } global)
 			{
-				await global.DisposeAsync().ConfigureAwait(false);
+				await Gui.Services.DisposeAsync().ConfigureAwait(false);
 			}
 		}
 
@@ -196,7 +191,7 @@ namespace WalletWasabi.Fluent.Desktop
 		{
 			bool useGpuLinux = true;
 
-			var result = AppBuilder.Configure(() => new App(Program.Global, async () => await Program.Global.InitializeNoWalletAsync(TerminateService)))
+			var result = AppBuilder.Configure(() => new App(async () => await Gui.Services.InitializeNoWalletAsync(TerminateService)))
 				.UseReactiveUI();
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

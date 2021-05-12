@@ -52,7 +52,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					IsHardwareBusy = true;
 					MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.AcquiringSignatureFromHardwareWallet);
-					var client = new HwiClient(Global.Network);
+					var client = new HwiClient(Services.Network);
 
 					using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 					PSBT signedPsbt = null;
@@ -75,7 +75,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			MainWindowViewModel.Instance.StatusBar.TryAddStatus(StatusType.BroadcastingTransaction);
-			await Task.Run(async () => await Global.TransactionBroadcaster.SendTransactionAsync(signedTransaction));
+			await Task.Run(async () => await Services.TransactionBroadcaster.SendTransactionAsync(signedTransaction));
 
 			ResetUi();
 		}
@@ -86,7 +86,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Uri.IsWellFormedUriString(PayjoinEndPoint, UriKind.Absolute))
 			{
 				var payjoinEndPointUri = new Uri(PayjoinEndPoint);
-				if (!Global.Config.UseTor)
+				if (!Services.Config.UseTor)
 				{
 					if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 					{
@@ -94,14 +94,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return null;
 					}
 
-					if (Global.Config.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
+					if (Services.Config.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
 					{
 						Logger.LogWarning("PayJoin server is not exposed as an onion service nor https. Ignoring...");
 						return null;
 					}
 				}
 
-				IHttpClient httpClient = Global.ExternalHttpClientFactory.NewHttpClient(() => payjoinEndPointUri, isolateStream: false);
+				IHttpClient httpClient = Services.ExternalHttpClientFactory.NewHttpClient(() => payjoinEndPointUri, isolateStream: false);
 				return new PayjoinClient(payjoinEndPointUri, httpClient);
 			}
 

@@ -30,7 +30,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public HistoryTabViewModel(Wallet wallet)
 			: base("History")
 		{
-			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
 
 			_transactions = new ObservableCollection<TransactionViewModel>();
@@ -39,7 +38,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SortCommand = ReactiveCommand.Create(RefreshOrdering);
 
-			var savedSort = Global.UiConfig.HistoryTabViewSortingPreference;
+			var savedSort = Services.UiConfig.HistoryTabViewSortingPreference;
 			SortColumn(savedSort.SortOrder, savedSort.ColumnTarget, false);
 			RefreshOrdering();
 
@@ -72,7 +71,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
-		private Global Global { get; }
 
 		private Wallet Wallet { get; }
 
@@ -127,7 +125,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(async _ => await TryRewriteTableAsync())
 				.DisposeWith(disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.PrivacyMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 				{
 					foreach (var transaction in Transactions)
 					{
@@ -152,12 +150,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					WalletName = Wallet.WalletName,
 					DateTime = txr.DateTime.ToLocalTime(),
-					Confirmations = txr.Height.Type == HeightType.Chain ? (int)Global.BitcoinStore.SmartHeaderChain.TipHeight - txr.Height.Value + 1 : 0,
+					Confirmations = txr.Height.Type == HeightType.Chain ? (int)Services.BitcoinStore.SmartHeaderChain.TipHeight - txr.Height.Value + 1 : 0,
 					AmountBtc = $"{txr.Amount.ToString(fplus: true, trimExcessZero: true)}",
 					Label = txr.Label,
 					BlockHeight = txr.Height.Type == HeightType.Chain ? txr.Height.Value : 0,
 					TransactionId = txr.TransactionId.ToString()
-				}).Select(ti => new TransactionViewModel(ti, Global.UiConfig));
+				}).Select(ti => new TransactionViewModel(ti, Services.UiConfig));
 
 				Transactions = new ObservableCollection<TransactionViewModel>(trs);
 
@@ -179,14 +177,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void ValidateSavedColumnConfig()
 		{
-			var savedCol = Global.UiConfig.HistoryTabViewSortingPreference.ColumnTarget;
+			var savedCol = Services.UiConfig.HistoryTabViewSortingPreference.ColumnTarget;
 
 			if (savedCol != nameof(DateSortDirection)
 				& savedCol != nameof(AmountSortDirection)
 				& savedCol != nameof(TransactionSortDirection)
 				& savedCol != nameof(LabelSortDirection))
 			{
-				Global.UiConfig.HistoryTabViewSortingPreference = new SortingPreference(SortOrder.Decreasing, nameof(DateSortDirection));
+				Services.UiConfig.HistoryTabViewSortingPreference = new SortingPreference(SortOrder.Decreasing, nameof(DateSortDirection));
 			}
 		}
 
@@ -196,7 +194,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (saveToUiConfig)
 			{
-				Global.UiConfig.HistoryTabViewSortingPreference = sortPref;
+				Services.UiConfig.HistoryTabViewSortingPreference = sortPref;
 			}
 
 			DateSortDirection = sortPref.Match(sortOrder, nameof(DateSortDirection));

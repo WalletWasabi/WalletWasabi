@@ -24,8 +24,6 @@ namespace WalletWasabi.Gui
 	{
 		public MainWindow()
 		{
-			Global = Locator.Current.GetService<Global>();
-
 			InitializeComponent();
 #if DEBUG
 			this.AttachDevTools();
@@ -42,8 +40,6 @@ namespace WalletWasabi.Gui
 
 			Closing += MainWindow_ClosingAsync;
 		}
-
-		private Global Global { get; }
 
 		private void InitializeComponent()
 		{
@@ -84,9 +80,9 @@ namespace WalletWasabi.Gui
 			try
 			{
 				// Indicate -> do not add any more alices to the coinjoin.
-				Global.WalletManager.SignalQuitPending(true);
+				Services.WalletManager.SignalQuitPending(true);
 
-				if (Global.WalletManager.AnyCoinJoinInProgress())
+				if (Services.WalletManager.AnyCoinJoinInProgress())
 				{
 					var dialog = new CannotCloseDialogViewModel();
 
@@ -101,17 +97,17 @@ namespace WalletWasabi.Gui
 				{
 					try
 					{
-						if (Global.UiConfig is { }) // UiConfig not yet loaded.
+						if (Services.UiConfig is { }) // UiConfig not yet loaded.
 						{
-							Global.UiConfig.WindowState = WindowState.ToString();
+							Services.UiConfig.WindowState = WindowState.ToString();
 
 							IDocumentTabViewModel? selectedDocument = IoC.Get<IShell>().SelectedDocument;
-							Global.UiConfig.LastActiveTab = selectedDocument is null
+							Services.UiConfig.LastActiveTab = selectedDocument is null
 								? nameof(HistoryTabViewModel)
 								: selectedDocument.GetType().Name;
 
-							Global.UiConfig.ToFile();
-							Logger.LogInfo($"{nameof(Global.UiConfig)} is saved.");
+							Services.UiConfig.ToFile();
+							Logger.LogInfo($"{nameof(Services.UiConfig)} is saved.");
 						}
 
 						Hide();
@@ -143,7 +139,7 @@ namespace WalletWasabi.Gui
 				{
 					Interlocked.Exchange(ref _closingState, 0);
 					// Re-enable enqueuing coins.
-					Global.WalletManager.SignalQuitPending(false);
+					Services.WalletManager.SignalQuitPending(false);
 				}
 			}
 		}

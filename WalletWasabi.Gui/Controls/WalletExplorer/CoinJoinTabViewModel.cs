@@ -51,7 +51,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public CoinJoinTabViewModel(Wallet wallet)
 			: base("CoinJoin")
 		{
-			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
 
 			this.ValidateProperty(x => x.Password, ValidatePassword);
@@ -59,7 +58,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_password = "";
 			TimeLeftTillRoundTimeout = TimeSpan.Zero;
 
-			CoinsList = new CoinListViewModel(Wallet, Global.Config, Global.UiConfig, canDequeueCoins: true);
+			CoinsList = new CoinListViewModel(Wallet, Services.Config, Services.UiConfig, canDequeueCoins: true);
 
 			Observable
 				.FromEventPattern<SmartCoin>(CoinsList, nameof(CoinsList.DequeueCoinsPressed))
@@ -94,10 +93,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						   break;
 				   }
 
-				   Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonymitySet;
+				   Services.Config.MixUntilAnonymitySet = CoinJoinUntilAnonymitySet;
 
 				   // Config.json can be different than Global.Config. Only change the MixUntilAnonymitySet in the file.
-				   var config = new Config(Global.Config.FilePath);
+				   var config = new Config(Services.Config.FilePath);
 				   config.LoadOrCreateDefaultFile();
 				   config.MixUntilAnonymitySet = CoinJoinUntilAnonymitySet;
 				   config.ToFile();
@@ -130,7 +129,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		private Global Global { get; }
 
 		private Wallet Wallet { get; }
 
@@ -231,7 +229,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public bool IsWatchOnly => Wallet.KeyManager.IsWatchOnly;
 		public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
 
-		public bool IsPrivacyMode => Global.UiConfig.PrivacyMode;
+		public bool IsPrivacyMode => Services.UiConfig.PrivacyMode;
 
 		public ReactiveCommand<Unit, Unit> EnqueueCommand { get; }
 
@@ -246,7 +244,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen(disposables);
 
-			CoinJoinUntilAnonymitySet = Global.Config.MixUntilAnonymitySet;
+			CoinJoinUntilAnonymitySet = Services.Config.MixUntilAnonymitySet;
 
 			var registrableRound = Wallet.ChaumianClient.State.GetRegistrableRoundOrDefault();
 
@@ -280,7 +278,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				PeersNeeded = 100;
 			}
 
-			Global.UiConfig.WhenAnyValue(x => x.PrivacyMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(AmountQueued));
 				this.RaisePropertyChanged(nameof(IsPrivacyMode));
@@ -441,7 +439,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					var available = coins.Confirmed().Available();
 					RequiredBTC = available.Any()
-						? registrableRound.State.CalculateRequiredAmount(available.Where(x => x.HdPubKey.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray())
+						? registrableRound.State.CalculateRequiredAmount(available.Where(x => x.HdPubKey.AnonymitySet < Services.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray())
 						: registrableRound.State.CalculateRequiredAmount();
 				}
 			}

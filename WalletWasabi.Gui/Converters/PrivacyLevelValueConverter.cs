@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui.Converters
 
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			var config = Locator.Current.GetService<Global>().Config;
+			var config = Services.Config;
 			string shield;
 			string toolTip = null;
 

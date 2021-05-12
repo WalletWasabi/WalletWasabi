@@ -25,14 +25,14 @@ namespace WalletWasabi.Gui.Controls
 		{
 			if (!Design.IsDesignMode)
 			{
-				Background = Application.Current.Resources[Global.ThemeBackgroundBrushResourceKey] as IBrush;
+				Background = Application.Current.Resources[Services.ThemeBackgroundBrushResourceKey] as IBrush;
 			}
 
 			HorizontalContentAlignment = HorizontalAlignment.Stretch;
 			IconPath = new Path
 			{
 				Stretch = Stretch.Fill,
-				Stroke = Design.IsDesignMode ? Brushes.White : Application.Current.Resources[Global.ApplicationAccentForegroundBrushResourceKey] as IBrush,
+				Stroke = Design.IsDesignMode ? Brushes.White : Application.Current.Resources[Services.ApplicationAccentForegroundBrushResourceKey] as IBrush,
 				StrokeThickness = 0.8,
 				Width = 10,
 				Height = 10,

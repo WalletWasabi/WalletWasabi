@@ -17,11 +17,6 @@ namespace WalletWasabi.Gui.Behaviors
 	{
 		private TextBoxState _textBoxState = TextBoxState.None;
 
-		public PasteAddressOnClickBehavior()
-		{
-			Global = Locator.Current.GetService<Global>();
-		}
-
 		protected internal enum TextBoxState
 		{
 			None,
@@ -31,7 +26,6 @@ namespace WalletWasabi.Gui.Behaviors
 		}
 
 		private CompositeDisposable Disposables { get; set; }
-		private Global Global { get; }
 
 		private TextBoxState MyTextBoxState
 		{
@@ -64,7 +58,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 		private bool ProcessText(string text)
 		{
-			if (AddressStringParser.TryParse(text, Global.Network, out BitcoinUrlBuilder? result))
+			if (AddressStringParser.TryParse(text, Services.Network, out BitcoinUrlBuilder? result))
 			{
 				AssociatedObject.Text = result.Address?.ToString();
 				CommandParameter = result;
@@ -113,7 +107,7 @@ namespace WalletWasabi.Gui.Behaviors
 			Disposables.Add(
 				AssociatedObject.GetObservable(InputElement.PointerReleasedEvent).Subscribe(async pointer =>
 					{
-						if (!Global.UiConfig.Autocopy)
+						if (!Services.UiConfig.Autocopy)
 						{
 							return;
 						}
@@ -141,7 +135,7 @@ namespace WalletWasabi.Gui.Behaviors
 			Disposables.Add(
 				AssociatedObject.GetObservable(InputElement.PointerEnterEvent).Subscribe(async pointerEnter =>
 					{
-						if (!Global.UiConfig.Autocopy)
+						if (!Services.UiConfig.Autocopy)
 						{
 							return;
 						}
@@ -159,7 +153,7 @@ namespace WalletWasabi.Gui.Behaviors
 						if (string.IsNullOrEmpty(AssociatedObject.Text))
 						{
 							string text = await Application.Current.Clipboard.GetTextAsync();
-							MyTextBoxState = AddressStringParser.TryParse(text, Global.Network, out _)
+							MyTextBoxState = AddressStringParser.TryParse(text, Services.Network, out _)
 								? TextBoxState.AddressInsert
 								: TextBoxState.NormalTextBoxOperation;
 						}

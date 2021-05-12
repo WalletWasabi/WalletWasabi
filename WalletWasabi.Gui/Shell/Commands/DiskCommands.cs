@@ -74,16 +74,12 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnOpenDataFolder()
 		{
-			var global = Locator.Current.GetService<Global>();
-
-			IoHelpers.OpenFolderInFileExplorer(global.DataDir);
+			IoHelpers.OpenFolderInFileExplorer(Services.DataDir);
 		}
 
 		private void OnOpenWalletsFolder()
 		{
-			var global = Locator.Current.GetService<Global>();
-
-			IoHelpers.OpenFolderInFileExplorer(global.WalletManager.WalletDirectories.WalletsDir);
+			IoHelpers.OpenFolderInFileExplorer(Services.WalletManager.WalletDirectories.WalletsDir);
 		}
 
 		private async Task OnOpenLogFileAsync()
@@ -93,14 +89,12 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private async Task OnOpenTorLogFileAsync()
 		{
-			var global = Locator.Current.GetService<Global>();
-			await FileHelpers.OpenFileInTextEditorAsync(global.TorSettings.LogFilePath);
+			await FileHelpers.OpenFileInTextEditorAsync(Services.TorSettings.LogFilePath);
 		}
 
 		private async Task OnOpenConfigFileAsync()
 		{
-			var global = Locator.Current.GetService<Global>();
-			await FileHelpers.OpenFileInTextEditorAsync(global.Config.FilePath);
+			await FileHelpers.OpenFileInTextEditorAsync(Services.Config.FilePath);
 		}
 	}
 }

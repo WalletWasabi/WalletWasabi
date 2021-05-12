@@ -27,7 +27,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReceiveTabViewModel(Wallet wallet)
 			: base("Receive")
 		{
-			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
 
 			LabelSuggestion = new SuggestLabelViewModel();
@@ -59,7 +58,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 
 						var newAddress = new AddressViewModel(newKey, Wallet.KeyManager, this);
-						if (Addresses.Count == 0 && !Global.UiConfig.PrivacyMode)
+						if (Addresses.Count == 0 && !Services.UiConfig.PrivacyMode)
 						{
 							newAddress.IsExpanded = true;
 						}
@@ -72,7 +71,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			this.WhenAnyValue(x => x.SelectedAddress)
 				.Subscribe(async address =>
 				{
-					if (!Global.UiConfig.Autocopy || address is null)
+					if (!Services.UiConfig.Autocopy || address is null)
 					{
 						return;
 					}
@@ -90,7 +89,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
-		private Global Global { get; }
 
 		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 

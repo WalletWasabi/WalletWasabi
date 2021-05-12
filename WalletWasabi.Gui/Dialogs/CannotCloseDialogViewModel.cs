@@ -21,7 +21,6 @@ namespace WalletWasabi.Gui.Dialogs
 
 		public CannotCloseDialogViewModel() : base("", false, false)
 		{
-			Global = Locator.Current.GetService<Global>();
 			OperationMessage = "Dequeuing coins...Please wait";
 			var canCancel = this.WhenAnyValue(x => x.IsBusy);
 			var canOk = this.WhenAnyValue(x => x.IsBusy, (isbusy) => !isbusy);
@@ -78,8 +77,6 @@ namespace WalletWasabi.Gui.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
 		}
 
-		private Global Global { get; }
-
 		public string OperationMessage
 		{
 			get => _operationMessage;
@@ -129,7 +126,7 @@ namespace WalletWasabi.Gui.Dialogs
 
 				using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
 				using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, CancelTokenSource.Token);
-				await Global.WalletManager.DequeueAllCoinsGracefullyAsync(DequeueReason.ApplicationExit, linkedCts.Token);
+				await Services.WalletManager.DequeueAllCoinsGracefullyAsync(DequeueReason.ApplicationExit, linkedCts.Token);
 
 				if (!CancelTokenSource.IsCancellationRequested)
 				{

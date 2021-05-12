@@ -9,15 +9,11 @@ namespace WalletWasabi.Gui.Controls.LockScreen
 		{
 			base.OnInitialize(disposables);
 
-			var global = Locator.Current.GetService<Global>();
-
-			global.UiConfig.LockScreenActive = true;
+			Services.UiConfig.LockScreenActive = true;
 
 			Disposable.Create(() =>
 			{
-				var global = Locator.Current.GetService<Global>();
-
-				global.UiConfig.LockScreenActive = false;
+				Services.UiConfig.LockScreenActive = false;
 			})
 			.DisposeWith(disposables);
 		}

@@ -26,12 +26,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 				_mnemonicWords.Add($"{i + 1}. {mnemonic.Words[i]}");
 			}
 
-			var global = Locator.Current.GetService<Global>();
-
 			ConfirmCommand = ReactiveCommand.Create(
 				() =>
 				{
-					var wallet = global.WalletManager.AddWallet(keyManager);
+					var wallet = Services.WalletManager.AddWallet(keyManager);
 					NotificationHelpers.Success("Wallet was generated.");
 					owner.SelectTestPassword(wallet.WalletName);
 				},

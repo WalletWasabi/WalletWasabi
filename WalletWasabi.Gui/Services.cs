@@ -39,44 +39,44 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Gui
 {
-	public class Global
+	public static class Services
 	{
 		public const string ThemeBackgroundBrushResourceKey = "ThemeBackgroundBrush";
 		public const string ApplicationAccentForegroundBrushResourceKey = "ApplicationAccentForegroundBrush";
 
-		public string DataDir { get; }
-		public TorSettings TorSettings { get; }
-		public BitcoinStore BitcoinStore { get; }
+		public static string DataDir { get; private set; }
+		public static TorSettings TorSettings { get; private set; }
+		public static BitcoinStore BitcoinStore { get; private set; }
 
 		/// <summary>
 		/// HTTP client factory for communicating with the Wasabi backend.
 		/// </summary>
-		public HttpClientFactory BackendHttpClientFactory { get; }
+		public static HttpClientFactory BackendHttpClientFactory { get; private set; }
 
 		/// <summary>
 		/// HTTP client factory for communicating with external third parties.
 		/// </summary>
-		public HttpClientFactory ExternalHttpClientFactory { get; }
+		public static HttpClientFactory ExternalHttpClientFactory { get; private set; }
 
-		public LegalChecker LegalChecker { get; private set; }
-		public Config Config { get; }
-		public WasabiSynchronizer Synchronizer { get; private set; }
-		public WalletManager WalletManager { get; }
-		public TransactionBroadcaster TransactionBroadcaster { get; set; }
-		public CoinJoinProcessor CoinJoinProcessor { get; set; }
-		private TorProcessManager? TorManager { get; set; }
-		public CoreNode BitcoinCoreNode { get; private set; }
-		public HostedServices HostedServices { get; }
+		public static LegalChecker LegalChecker { get; private set; }
+		public static Config Config { get; private set; }
+		public static WasabiSynchronizer Synchronizer { get; private set; }
+		public static WalletManager WalletManager { get; private set; }
+		public static TransactionBroadcaster TransactionBroadcaster { get; set; }
+		public static CoinJoinProcessor CoinJoinProcessor { get; set; }
+		private static TorProcessManager? TorManager { get; set; }
+		public static CoreNode BitcoinCoreNode { get; private set; }
+		public static HostedServices HostedServices { get; private set; }
 
-		public UiConfig UiConfig { get; }
+		public static UiConfig UiConfig { get; private set; }
 
-		public Network Network => Config.Network;
+		public static Network Network => Config.Network;
 
-		public MemoryCache Cache { get; private set; }
+		public static MemoryCache Cache { get; private set; }
 
-		public JsonRpcServer? RpcServer { get; private set; }
+		public static JsonRpcServer? RpcServer { get; private set; }
 
-		public Global(string dataDir, string torLogsFile, Config config, UiConfig uiConfig, WalletManager walletManager)
+		public static void Initialize(string dataDir, string torLogsFile, Config config, UiConfig uiConfig, WalletManager walletManager)
 		{
 			using (BenchmarkLogger.Measure())
 			{
@@ -117,13 +117,13 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private TaskCompletionSource<bool> InitializationCompleted { get; } = new();
+		private static TaskCompletionSource<bool> InitializationCompleted { get; } = new();
 
-		private bool InitializationStarted { get; set; } = false;
+		private static bool InitializationStarted { get; set; } = false;
 
-		private CancellationTokenSource StoppingCts { get; }
+		private static  CancellationTokenSource StoppingCts { get; set; }
 
-		public async Task InitializeNoWalletAsync(TerminateService terminateService)
+		public static async Task InitializeNoWalletAsync(TerminateService terminateService)
 		{
 			InitializationStarted = true;
 			var cancel = StoppingCts.Token;
@@ -225,7 +225,7 @@ namespace WalletWasabi.Gui
 				var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config);
 				if (jsonRpcServerConfig.IsEnabled)
 				{
-					RpcServer = new JsonRpcServer(this, jsonRpcServerConfig, terminateService);
+					RpcServer = new JsonRpcServer(jsonRpcServerConfig, terminateService);
 					try
 					{
 						await RpcServer.StartAsync(cancel).ConfigureAwait(false);
@@ -251,7 +251,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private void WalletManager_OnDequeue(object? sender, DequeueResult e)
+		private static void WalletManager_OnDequeue(object? sender, DequeueResult e)
 		{
 			try
 			{
@@ -287,7 +287,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private void WalletManager_WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)
+		private static void WalletManager_WalletRelevantTransactionProcessed(object? sender, ProcessedResult e)
 		{
 			try
 			{
@@ -384,7 +384,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private void NotifyAndLog(string message, string title, NotificationType notificationType, ProcessedResult e, object? sender)
+		private static void NotifyAndLog(string message, string title, NotificationType notificationType, ProcessedResult e, object? sender)
 		{
 			message = Guard.Correct(message);
 			title = Guard.Correct(title);
@@ -392,9 +392,9 @@ namespace WalletWasabi.Gui
 			Logger.LogInfo($"Transaction Notification ({notificationType}): {title} - {message} - {e.Transaction.GetHash()}");
 		}
 
-		public async Task DisposeAsync()
+		public static async Task DisposeAsync()
 		{
-			Logger.LogWarning("Process is exiting.", nameof(Global));
+			Logger.LogWarning("Process is exiting.", nameof(Services));
 
 			try
 			{
@@ -405,7 +405,7 @@ namespace WalletWasabi.Gui
 					return;
 				}
 
-				Logger.LogDebug($"Waiting for initialization to complete.", nameof(Global));
+				Logger.LogDebug($"Waiting for initialization to complete.", nameof(Services));
 
 				try
 				{
@@ -421,7 +421,7 @@ namespace WalletWasabi.Gui
 				{
 					using var dequeueCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
 					await WalletManager.RemoveAndStopAllAsync(dequeueCts.Token).ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(WalletManager)} is stopped.", nameof(Global));
+					Logger.LogInfo($"{nameof(WalletManager)} is stopped.", nameof(Services));
 				}
 				catch (Exception ex)
 				{
@@ -435,7 +435,7 @@ namespace WalletWasabi.Gui
 				{
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await rpcServer.StopAsync(cts.Token).ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
+					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Services));
 				}
 
 				if (CoinJoinProcessor is { } coinJoinProcessor)

@@ -21,7 +21,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 
 		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate Wallet")
 		{
-			Global = Locator.Current.GetService<Global>();
 			Owner = owner;
 
 			this.ValidateProperty(x => x.Password, ValidatePassword);
@@ -34,8 +33,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 		}
 
 		public WalletManagerViewModel Owner { get; }
-
-		private Global Global { get; }
 
 		public string Password
 		{
@@ -55,8 +52,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 		{
 			try
 			{
-				var walletGenerator = new WalletGenerator(Global.WalletManager.WalletDirectories.WalletsDir, Global.Network);
-				walletGenerator.TipHeight = Global.BitcoinStore.SmartHeaderChain.TipHeight;
+				var walletGenerator = new WalletGenerator(Services.WalletManager.WalletDirectories.WalletsDir, Services.Network);
+				walletGenerator.TipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight;
 				var (km, mnemonic) = walletGenerator.GenerateWallet(WalletName, Password);
 				Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, km, mnemonic);
 			}
@@ -87,7 +84,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.GenerateWallets
 			base.OnCategorySelected();
 
 			Password = "";
-			WalletName = Global.WalletManager.WalletDirectories.GetNextWalletName();
+			WalletName = Services.WalletManager.WalletDirectories.GetNextWalletName();
 		}
 	}
 }

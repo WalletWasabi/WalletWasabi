@@ -35,10 +35,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 
-			var global = Locator.Current.GetService<Global>();
-
-			WalletManager = global.WalletManager;
-			UiConfig = global.UiConfig;
+			WalletManager = Services.WalletManager;
+			UiConfig = Services.UiConfig;
 
 			Observable
 				.FromEventPattern<WalletState>(WalletManager, nameof(WalletManager.WalletStateChanged))

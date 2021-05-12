@@ -32,8 +32,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 
 		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
 		{
-			Global = Locator.Current.GetService<Global>();
-			WalletManager = Global.WalletManager;
+			WalletManager = Services.WalletManager;
 
 			this.ValidateProperty(x => x.Password, ValidatePassword);
 			this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
@@ -58,7 +57,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 				.Subscribe(ex => Logger.LogError(ex));
 		}
 
-		private Global Global { get; }
 		private Wallets.WalletManager WalletManager { get; }
 
 		public string Password
@@ -136,7 +134,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.RecoverWallets
 				{
 					var mnemonic = new Mnemonic(MnemonicWords);
 					var km = KeyManager.Recover(mnemonic, Password, filePath: null, keyPath, minGapLimit);
-					km.SetNetwork(Global.Network);
+					km.SetNetwork(Services.Network);
 					km.SetFilePath(walletFilePath);
 					WalletManager.AddWallet(km);
 

@@ -23,11 +23,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					try
 					{
-						var global = Locator.Current.GetService<Global>();
-
 						if (wallet.KeyManager.PasswordVerified is true)
 						{
-							await Task.Run(async () => await global.WalletManager.StartWalletAsync(Wallet));
+							await Task.Run(async () => await Services.WalletManager.StartWalletAsync(Wallet));
 						}
 						else
 						{

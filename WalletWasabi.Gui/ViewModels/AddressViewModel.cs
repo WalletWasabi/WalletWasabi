@@ -33,7 +33,6 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public AddressViewModel(HdPubKey model, KeyManager km, ReceiveTabViewModel owner)
 		{
-			Global = Locator.Current.GetService<Global>();
 			KeyManager = km;
 			Owner = owner;
 			IsHardwareWallet = km.IsHardwareWallet;
@@ -50,7 +49,7 @@ namespace WalletWasabi.Gui.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(qr => QrCode = qr, onError: ex => Logger.LogError(ex)); // Catch the exceptions everywhere (e.g.: Select) except in Subscribe.
 
-			Global.UiConfig
+			Services.UiConfig
 				.WhenAnyValue(x => x.PrivacyMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
@@ -95,7 +94,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			DisplayAddressOnHw = ReactiveCommand.CreateFromTask(async () =>
 			{
-				var client = new HwiClient(Global.Network);
+				var client = new HwiClient(Services.Network);
 				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 				try
 				{
@@ -146,12 +145,11 @@ namespace WalletWasabi.Gui.ViewModels
 		public ReactiveCommand<Unit, Unit> LockAddress { get; }
 
 		public HdPubKey Model { get; }
-		private Global Global { get; }
 		public KeyManager KeyManager { get; }
 		public ReceiveTabViewModel Owner { get; }
 		public bool IsHardwareWallet { get; }
 
-		public bool IsPrivacyMode => Global.UiConfig.PrivacyMode;
+		public bool IsPrivacyMode => Services.UiConfig.PrivacyMode;
 
 		public bool ClipboardNotificationVisible
 		{
@@ -189,7 +187,7 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _inEditMode, value);
 		}
 
-		public string Address => Model.GetP2wpkhAddress(Global.Network).ToString();
+		public string Address => Model.GetP2wpkhAddress(Services.Network).ToString();
 
 		public string PubKey => Model.PubKey.ToString();
 

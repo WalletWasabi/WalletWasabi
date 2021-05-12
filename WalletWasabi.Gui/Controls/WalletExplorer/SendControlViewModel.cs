@@ -68,7 +68,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		protected SendControlViewModel(Wallet wallet, string title)
 			: base(title)
 		{
-			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
 
 			LabelSuggestion = new SuggestLabelViewModel();
@@ -81,7 +80,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			ResetUi();
 
-			CoinList = new CoinListViewModel(Wallet, Global.Config, Global.UiConfig, displayCommonOwnershipWarning: true);
+			CoinList = new CoinListViewModel(Wallet, Services.Config, Services.UiConfig, displayCommonOwnershipWarning: true);
 
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -91,8 +90,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ToProperty(this, x => x.MinMaxFeeTargetsEqual, scheduler: RxApp.MainThreadScheduler);
 
 			SetFeeTargetLimits();
-			FeeTarget = Global.UiConfig.FeeTarget;
-			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
+			FeeTarget = Services.UiConfig.FeeTarget;
+			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Services.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
 
 			this.WhenAnyValue(x => x.AmountText)
@@ -213,7 +212,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					BitcoinAddress address;
 					try
 					{
-						address = BitcoinAddress.Create(Address, Global.Network);
+						address = BitcoinAddress.Create(Address, Services.Network);
 					}
 					catch (FormatException)
 					{
@@ -227,7 +226,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						try
 						{
-							var customChangeAddress = BitcoinAddress.Create(CustomChangeAddress, Global.Network);
+							var customChangeAddress = BitcoinAddress.Create(CustomChangeAddress, Services.Network);
 
 							if (customChangeAddress == address)
 							{
@@ -382,7 +381,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
-		protected Global Global { get; }
 
 		protected Wallet Wallet { get; }
 
@@ -394,7 +392,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				_feeDisplayFormat = value;
-				Global.UiConfig.FeeDisplayFormat = (int)value;
+				Services.UiConfig.FeeDisplayFormat = (int)value;
 			}
 		}
 
@@ -447,7 +445,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				this.RaiseAndSetIfChanged(ref _feeTarget, value);
-				Global.UiConfig.FeeTarget = value;
+				Services.UiConfig.FeeTarget = value;
 			}
 		}
 
@@ -553,7 +551,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			private set => this.RaiseAndSetIfChanged(ref _isCustomFee, value);
 		}
 
-		public bool IsEstimateAvailable => Global.HostedServices.GetOrDefault<HybridFeeProvider>()?.AllFeeEstimate is not null;
+		public bool IsEstimateAvailable => Services.HostedServices.GetOrDefault<HybridFeeProvider>()?.AllFeeEstimate is not null;
 
 		public string AmountWatermarkText
 		{
@@ -561,7 +559,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _amountWaterMarkText, value);
 		}
 
-		public bool IsCustomChangeAddressVisible => Global.UiConfig.IsCustomChangeAddress && !IsMax;
+		public bool IsCustomChangeAddressVisible => Services.UiConfig.IsCustomChangeAddress && !IsMax;
 
 		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
 
@@ -634,7 +632,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFees()
 		{
-			AllFeeEstimate? allFeeEstimate = Global.HostedServices.GetOrDefault<HybridFeeProvider>()?.AllFeeEstimate;
+			AllFeeEstimate? allFeeEstimate = Services.HostedServices.GetOrDefault<HybridFeeProvider>()?.AllFeeEstimate;
 
 			int feeTarget = -1; // 1 => 10 minutes
 			if (IsSliderFeeUsed && allFeeEstimate is { })
@@ -795,7 +793,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetFeeTargetLimits()
 		{
-			var allFeeEstimate = Global.HostedServices.GetOrDefault<HybridFeeProvider>()?.AllFeeEstimate;
+			var allFeeEstimate = Services.HostedServices.GetOrDefault<HybridFeeProvider>()?.AllFeeEstimate;
 
 			if (allFeeEstimate is { })
 			{
@@ -831,12 +829,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				errors.Add(ErrorSeverity.Error, "The active address and the change address cannot be the same.");
 			}
 
-			if (AddressStringParser.TryParseBitcoinAddress(Address, Global.Network, out _))
+			if (AddressStringParser.TryParseBitcoinAddress(Address, Services.Network, out _))
 			{
 				return;
 			}
 
-			if (AddressStringParser.TryParseBitcoinUrl(Address, Global.Network, out _))
+			if (AddressStringParser.TryParseBitcoinUrl(Address, Services.Network, out _))
 			{
 				return;
 			}
@@ -861,7 +859,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				errors.Add(ErrorSeverity.Error, "The active address and the change address cannot be the same.");
 			}
 
-			if (AddressStringParser.TryParseBitcoinAddress(CustomChangeAddress, Global.Network, out _))
+			if (AddressStringParser.TryParseBitcoinAddress(CustomChangeAddress, Services.Network, out _))
 			{
 				return;
 			}
@@ -871,7 +869,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen(CompositeDisposable disposables)
 		{
-			var feeProvider = Global.HostedServices.Get<HybridFeeProvider>();
+			var feeProvider = Services.HostedServices.Get<HybridFeeProvider>();
 			Observable
 				.FromEventPattern<AllFeeEstimate>(feeProvider, nameof(feeProvider.AllFeeEstimateChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -900,7 +898,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				})
 				.DisposeWith(disposables);
 
-			_usdExchangeRate = Global.Synchronizer
+			_usdExchangeRate = Services.Synchronizer
 				.WhenAnyValue(x => x.UsdExchangeRate)
 				.ToProperty(this, x => x.UsdExchangeRate, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(disposables);
@@ -910,13 +908,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ => SetFeesAndTexts());
 
 			Observable
-				.Merge(Global.UiConfig.WhenAnyValue(x => x.IsCustomFee))
+				.Merge(Services.UiConfig.WhenAnyValue(x => x.IsCustomFee))
 				.Merge(this.WhenAnyValue(x => x.IsEstimateAvailable))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => IsCustomFee = !IsEstimateAvailable || Global.UiConfig.IsCustomFee)
+				.Subscribe(_ => IsCustomFee = !IsEstimateAvailable || Services.UiConfig.IsCustomFee)
 				.DisposeWith(disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.FeeDisplayFormat)
+			Services.UiConfig.WhenAnyValue(x => x.FeeDisplayFormat)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x =>
 				{
@@ -931,7 +929,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(_ => IsSliderFeeUsed = true);
 
 			Observable
-				.Merge(Global.UiConfig.WhenAnyValue(x => x.IsCustomChangeAddress))
+				.Merge(Services.UiConfig.WhenAnyValue(x => x.IsCustomChangeAddress))
 				.Merge(this.WhenAnyValue(x => x.IsMax))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => this.RaisePropertyChanged(nameof(IsCustomChangeAddressVisible)))

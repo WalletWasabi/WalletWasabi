@@ -20,9 +20,8 @@ namespace WalletWasabi.Gui.Suggestions
 
 		public SuggestLabelViewModel()
 		{
-			var global = Locator.Current.GetService<Global>();
-			WalletManager = global.WalletManager;
-			BitcoinStore = global.BitcoinStore;
+			WalletManager = Services.WalletManager;
+			BitcoinStore = Services.BitcoinStore;
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 

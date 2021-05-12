@@ -25,9 +25,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			_actions = new ObservableCollection<ViewModelBase>();
 
-			UiConfig = Locator.Current.GetService<Global>().UiConfig;
+			UiConfig = Services.UiConfig;
 
-			WalletManager = Locator.Current.GetService<Global>().WalletManager;
+			WalletManager = Services.WalletManager;
 
 			Observable.Merge(
 				Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default))

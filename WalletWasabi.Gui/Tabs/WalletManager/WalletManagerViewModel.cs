@@ -75,8 +75,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			base.OnOpen(disposables);
 
-			var global = Locator.Current.GetService<Global>();
-			var walletManager = global.WalletManager;
+			var walletManager = Services.WalletManager;
 
 			LoadWalletDesktop = new LoadWalletViewModel(this, LoadWalletType.Desktop, walletManager);
 			LoadWalletPassword = new LoadWalletViewModel(this, LoadWalletType.Password, walletManager);

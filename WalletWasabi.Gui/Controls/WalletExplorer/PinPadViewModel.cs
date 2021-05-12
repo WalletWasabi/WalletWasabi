@@ -61,10 +61,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public static async Task UnlockAsync()
 		{
-			var global = Locator.Current.GetService<Global>();
-
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-			var client = new HwiClient(global.Network);
+			var client = new HwiClient(Services.Network);
 			IEnumerable<HwiEnumerateEntry> hwiEntries = await client.EnumerateAsync(cts.Token);
 
 			foreach (var hwiEntry in hwiEntries.Where(x => x.NeedsPinSent is true))
@@ -77,12 +75,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			// Make sure to select back the document that was selected.
 			var selectedDocument = IoC.Get<IShell>().SelectedDocument;
-			var global = Locator.Current.GetService<Global>();
 
 			try
 			{
 				using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-				var client = new HwiClient(global.Network);
+				var client = new HwiClient(Services.Network);
 
 				await client.PromptPinAsync(hwiEntry.Model, hwiEntry.Path, cts.Token);
 

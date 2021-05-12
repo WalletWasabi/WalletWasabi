@@ -46,8 +46,6 @@ namespace WalletWasabi.Gui.Tabs
 
 		public SettingsViewModel() : base("Settings")
 		{
-			Global = Locator.Current.GetService<Global>();
-
 			this.ValidateProperty(x => x.SomePrivacyLevel, ValidateSomePrivacyLevel);
 			this.ValidateProperty(x => x.FinePrivacyLevel, ValidateFinePrivacyLevel);
 			this.ValidateProperty(x => x.StrongPrivacyLevel, ValidateStrongPrivacyLevel);
@@ -55,11 +53,11 @@ namespace WalletWasabi.Gui.Tabs
 			this.ValidateProperty(x => x.TorSocks5EndPoint, ValidateTorSocks5EndPoint);
 			this.ValidateProperty(x => x.BitcoinP2pEndPoint, ValidateBitcoinP2pEndPoint);
 
-			Autocopy = Global.UiConfig.Autocopy;
-			CustomFee = Global.UiConfig.IsCustomFee;
-			CustomChangeAddress = Global.UiConfig.IsCustomChangeAddress;
+			Autocopy = Services.UiConfig.Autocopy;
+			CustomFee = Services.UiConfig.IsCustomFee;
+			CustomChangeAddress = Services.UiConfig.IsCustomChangeAddress;
 
-			var config = new Config(Global.Config.FilePath);
+			var config = new Config(Services.Config.FilePath);
 			config.LoadOrCreateDefaultFile();
 
 			_network = config.Network;
@@ -78,7 +76,7 @@ namespace WalletWasabi.Gui.Tabs
 			_bitcoinP2pEndPoint = config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 			_localBitcoinCoreDataDir = config.LocalBitcoinCoreDataDir;
 
-			IsModified = !Global.Config.AreDeepEqual(config);
+			IsModified = !Services.Config.AreDeepEqual(config);
 
 			this.WhenAnyValue(
 				x => x.Network,
@@ -91,15 +89,15 @@ namespace WalletWasabi.Gui.Tabs
 
 			this.WhenAnyValue(x => x.Autocopy)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(x => Global.UiConfig.Autocopy = x);
+				.Subscribe(x => Services.UiConfig.Autocopy = x);
 
 			this.WhenAnyValue(x => x.CustomFee)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(x => Global.UiConfig.IsCustomFee = x);
+				.Subscribe(x => Services.UiConfig.IsCustomFee = x);
 
 			this.WhenAnyValue(x => x.CustomChangeAddress)
 				.ObserveOn(RxApp.TaskpoolScheduler)
-				.Subscribe(x => Global.UiConfig.IsCustomChangeAddress = x);
+				.Subscribe(x => Services.UiConfig.IsCustomChangeAddress = x);
 
 			OpenConfigFileCommand = ReactiveCommand.CreateFromTask(OpenConfigFileAsync);
 
@@ -126,7 +124,7 @@ namespace WalletWasabi.Gui.Tabs
 					return;
 				}
 
-				var uiConfigPinHash = Global.UiConfig.LockScreenPinHash;
+				var uiConfigPinHash = Services.UiConfig.LockScreenPinHash;
 				var enteredPinHash = HashHelpers.GenerateSha256Hash(trimmedPinBoxText);
 
 				if (IsPinSet)
@@ -138,12 +136,12 @@ namespace WalletWasabi.Gui.Tabs
 						return;
 					}
 
-					Global.UiConfig.LockScreenPinHash = "";
+					Services.UiConfig.LockScreenPinHash = "";
 					NotificationHelpers.Success("PIN was cleared.");
 				}
 				else
 				{
-					Global.UiConfig.LockScreenPinHash = enteredPinHash;
+					Services.UiConfig.LockScreenPinHash = enteredPinHash;
 					NotificationHelpers.Success("PIN was changed.");
 				}
 
@@ -159,20 +157,19 @@ namespace WalletWasabi.Gui.Tabs
 				.ObserveOn(RxApp.TaskpoolScheduler)
 				.Subscribe(ex => Logger.LogError(ex));
 
-			SelectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat)
-				? (FeeDisplayFormat)Global.UiConfig.FeeDisplayFormat
+			SelectedFeeDisplayFormat = Enum.IsDefined(typeof(FeeDisplayFormat), Services.UiConfig.FeeDisplayFormat)
+				? (FeeDisplayFormat)Services.UiConfig.FeeDisplayFormat
 				: FeeDisplayFormat.SatoshiPerByte;
 
 			this.WhenAnyValue(x => x.SelectedFeeDisplayFormat)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x => Global.UiConfig.FeeDisplayFormat = (int)x);
+				.Subscribe(x => Services.UiConfig.FeeDisplayFormat = (int)x);
 		}
 
 		private bool TabOpened { get; set; }
 
 		public bool IsPinSet => _isPinSet?.Value ?? false;
 
-		private Global Global { get; }
 		private object ConfigLock { get; } = new object();
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
@@ -302,13 +299,13 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			try
 			{
-				_isPinSet = Global.UiConfig
+				_isPinSet = Services.UiConfig
 					.WhenAnyValue(x => x.LockScreenPinHash, x => !string.IsNullOrWhiteSpace(x))
 					.ToProperty(this, x => x.IsPinSet, scheduler: RxApp.MainThreadScheduler)
 					.DisposeWith(disposables);
 				this.RaisePropertyChanged(nameof(IsPinSet)); // Fire now otherwise the button won't update for restart.
 
-				Global.UiConfig.WhenAnyValue(x => x.FeeDisplayFormat)
+				Services.UiConfig.WhenAnyValue(x => x.FeeDisplayFormat)
 					.ObserveOn(RxApp.MainThreadScheduler)
 					.Subscribe(x => SelectedFeeDisplayFormat = (FeeDisplayFormat)x)
 					.DisposeWith(disposables);
@@ -348,7 +345,7 @@ namespace WalletWasabi.Gui.Tabs
 				return;
 			}
 
-			var config = new Config(Global.Config.FilePath);
+			var config = new Config(Services.Config.FilePath);
 
 			Dispatcher.UIThread.PostLogException(() =>
 			{
@@ -381,14 +378,14 @@ namespace WalletWasabi.Gui.Tabs
 						BitcoinP2pEndPoint = config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 					}
 					config.ToFile();
-					IsModified = !Global.Config.AreDeepEqual(config);
+					IsModified = !Services.Config.AreDeepEqual(config);
 				}
 			});
 		}
 
 		private async Task OpenConfigFileAsync()
 		{
-			await FileHelpers.OpenFileInTextEditorAsync(Global.Config.FilePath);
+			await FileHelpers.OpenFileInTextEditorAsync(Services.Config.FilePath);
 		}
 
 		#region Validation

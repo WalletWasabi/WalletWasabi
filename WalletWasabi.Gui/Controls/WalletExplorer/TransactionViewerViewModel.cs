@@ -28,8 +28,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public TransactionViewerViewModel() : base("Transaction")
 		{
-			Global = Locator.Current.GetService<Global>();
-
 			OpenTransactionBroadcaster = ReactiveCommand.Create(() => IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel()));
 
 			CopyBase64Psbt = ReactiveCommand.CreateFromTask(async () =>
@@ -96,14 +94,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
-		private Global Global { get; }
 
 		public ReactiveCommand<Unit, Unit> ExportBinaryPsbt { get; set; }
 		public ReactiveCommand<Unit, Unit> CopyTransactionHex { get; set; }
 		public ReactiveCommand<Unit, Unit> CopyBase64Psbt { get; set; }
 		public ReactiveCommand<Unit, Unit> OpenTransactionBroadcaster { get; set; }
 
-		public bool? IsPrivacyMode => Global.UiConfig.PrivacyMode;
+		public bool? IsPrivacyMode => Services.UiConfig.PrivacyMode;
 
 		public string TransactionHexText
 		{
@@ -133,7 +130,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen(disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.PrivacyMode)
+			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
@@ -146,7 +143,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			try
 			{
-				TransactionDetails = TransactionDetailsViewModel.FromBuildTxnResult(Global.BitcoinStore, result.Psbt);
+				TransactionDetails = TransactionDetailsViewModel.FromBuildTxnResult(Services.BitcoinStore, result.Psbt);
 				TransactionHexText = result.Transaction.Transaction.ToHex();
 				PsbtBase64Text = result.Psbt.ToBase64();
 				PsbtBytes = result.Psbt.ToBytes();

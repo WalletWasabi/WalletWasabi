@@ -26,8 +26,6 @@ namespace WalletWasabi.Gui
 {
 	public static class Program
 	{
-		private static Global Global;
-
 		private static TerminateService TerminateService = new(TerminateApplicationAsync);
 
 		/// Warning! In Avalonia applications Main must not be async. Otherwise application may not run on OSX.
@@ -38,10 +36,9 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				Global = CreateGlobal();
-				Locator.CurrentMutable.RegisterConstant(Global);
+				InitializeGlobal();
 
-				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
+				Platform.BaseDirectory = Path.Combine(Services.DataDir, "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
@@ -56,7 +53,7 @@ namespace WalletWasabi.Gui
 			TerminateAppAndHandleException(appException);
 		}
 
-		private static Global CreateGlobal()
+		private static void InitializeGlobal()
 		{
 			string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 			Directory.CreateDirectory(dataDir);
@@ -71,7 +68,7 @@ namespace WalletWasabi.Gui
 
 			Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"));
 
-			return new Global(dataDir, torLogsFile, config, uiConfig, walletManager);
+			Services.Initialize(dataDir, torLogsFile, config, uiConfig, walletManager);
 		}
 
 		private static void SetTheme() => AvalonStudio.Extensibility.Theme.ColorTheme.LoadTheme(AvalonStudio.Extensibility.Theme.ColorTheme.VisualStudioDark);
@@ -81,12 +78,12 @@ namespace WalletWasabi.Gui
 			try
 			{
 				SetTheme();
-				var statusBarViewModel = new StatusBarViewModel(Global.DataDir, Global.Network, Global.Config, Global.HostedServices, Global.BitcoinStore.SmartHeaderChain, Global.Synchronizer);
-				MainWindowViewModel.Instance = new MainWindowViewModel(Global.Network, Global.UiConfig, Global.WalletManager, statusBarViewModel, IoC.Get<IShell>());
+				var statusBarViewModel = new StatusBarViewModel(Services.DataDir, Services.Network, Services.Config, Services.HostedServices, Services.BitcoinStore.SmartHeaderChain, Services.Synchronizer);
+				MainWindowViewModel.Instance = new MainWindowViewModel(Services.Network, Services.UiConfig, Services.WalletManager, statusBarViewModel, IoC.Get<IShell>());
 
-				await Global.InitializeNoWalletAsync(TerminateService);
+				await Services.InitializeNoWalletAsync(TerminateService);
 
-				MainWindowViewModel.Instance.Initialize(Global.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes);
+				MainWindowViewModel.Instance.Initialize(Services.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes);
 
 				Dispatcher.UIThread.Post(GC.Collect);
 			}
@@ -126,9 +123,9 @@ namespace WalletWasabi.Gui
 				mainViewModel.Dispose();
 			}
 
-			if (Global is { } global)
+			// TODO: if (Services is { } global)
 			{
-				await global.DisposeAsync().ConfigureAwait(false);
+				await Services.DisposeAsync().ConfigureAwait(false);
 			}
 
 			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;

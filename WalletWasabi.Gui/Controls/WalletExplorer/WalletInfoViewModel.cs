@@ -30,7 +30,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public WalletInfoViewModel(Wallet wallet) : base(wallet.WalletName)
 		{
-			Global = Locator.Current.GetService<Global>();
 			Wallet = wallet;
 
 			this.ValidateProperty(x => x.Password, ValidatePassword);
@@ -53,10 +52,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							NotificationHelpers.Warning(PasswordHelper.CompatibilityPasswordWarnMessage);
 						}
 
-						string master = secret.GetWif(Global.Network).ToWif();
-						string account = secret.Derive(Wallet.KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
-						string masterZ = secret.ToZPrv(Global.Network);
-						string accountZ = secret.Derive(Wallet.KeyManager.AccountKeyPath).ToZPrv(Global.Network);
+						string master = secret.GetWif(Services.Network).ToWif();
+						string account = secret.Derive(Wallet.KeyManager.AccountKeyPath).GetWif(Services.Network).ToWif();
+						string masterZ = secret.ToZPrv(Services.Network);
+						string accountZ = secret.Derive(Wallet.KeyManager.AccountKeyPath).ToZPrv(Services.Network);
 						SetSensitiveData(master, account, masterZ, accountZ);
 					}
 				});
@@ -70,7 +69,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				});
 		}
 
-		private Global Global { get; }
 
 		private Wallet Wallet { get; }
 
@@ -78,8 +76,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CancellationTokenSource Closing { get; private set; }
 
-		public string ExtendedAccountPublicKey => Wallet.KeyManager.ExtPubKey.ToString(Global.Network);
-		public string ExtendedAccountZpub => Wallet.KeyManager.ExtPubKey.ToZpub(Global.Network);
+		public string ExtendedAccountPublicKey => Wallet.KeyManager.ExtPubKey.ToString(Services.Network);
+		public string ExtendedAccountZpub => Wallet.KeyManager.ExtPubKey.ToZpub(Services.Network);
 		public string AccountKeyPath => $"m/{Wallet.KeyManager.AccountKeyPath}";
 		public string MasterKeyFingerprint => Wallet.KeyManager.MasterFingerprint.ToString();
 		public ReactiveCommand<Unit, Unit> ToggleSensitiveKeysCommand { get; }
@@ -166,7 +164,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Closing = new CancellationTokenSource();
 
-			Global.UiConfig.WhenAnyValue(x => x.PrivacyMode).Subscribe(_ =>
+			Services.UiConfig.WhenAnyValue(x => x.PrivacyMode).Subscribe(_ =>
 				{
 					this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));
 					this.RaisePropertyChanged(nameof(ExtendedAccountZpub));

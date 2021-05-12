@@ -40,8 +40,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 
 		public ConnectHardwareWalletViewModel(WalletManagerViewModel owner) : base("Hardware Wallet")
 		{
-			Global = Locator.Current.GetService<Global>();
-			WalletManager = Global.WalletManager;
+			WalletManager = Services.WalletManager;
 			Owner = owner;
 			_wallets = new ObservableCollection<HardwareWalletViewModel>();
 			IsHwWalletSearchTextVisible = false;
@@ -185,7 +184,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
 		public string UDevRulesLink => "https://github.com/bitcoin-core/HWI/tree/master/hwilib/udev";
 		public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
-		private Global Global { get; }
 		private Wallets.WalletManager WalletManager { get; }
 		private WalletManagerViewModel Owner { get; }
 
@@ -235,7 +233,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 
 				var walletName = selectedWallet.WalletName;
 
-				var client = new HwiClient(Global.Network);
+				var client = new HwiClient(Services.Network);
 
 				if (selectedWallet.HardwareWalletInfo is null)
 				{
@@ -408,7 +406,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.HardwareWallets
 			IsHwWalletSearchTextVisible = true;
 			try
 			{
-				var client = new HwiClient(Global.Network);
+				var client = new HwiClient(Services.Network);
 				var devices = await client.EnumerateAsync(cts.Token);
 
 				Wallets.Clear();
