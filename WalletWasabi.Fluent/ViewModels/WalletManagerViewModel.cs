@@ -9,6 +9,8 @@ using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
+using WalletWasabi.Blockchain.TransactionProcessing;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
@@ -99,9 +101,27 @@ namespace WalletWasabi.Fluent.ViewModels
 				{
 					WalletViewModelBase vm = (wallet.State <= WalletState.Starting)
 						? ClosedWalletViewModel.Create(this, wallet)
-						: WalletViewModel.Create(uiConfig, wallet);
+						: WalletViewModel.Create(walletManager, _transactionBroadcaster, config, uiConfig, externalHttpClientFactory, wallet);
 
 					InsertWallet(vm);
+				});
+
+			Observable
+				.FromEventPattern<ProcessedResult>(walletManager, nameof(walletManager.WalletRelevantTransactionProcessed))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(arg =>
+				{
+					var (sender, e) = arg;
+
+					if (uiConfig.PrivacyMode || !e.IsNews || sender is not Wallet {IsLoggedIn: true, State: WalletState.Started} wallet)
+					{
+						return;
+					}
+
+					if (_walletDictionary.TryGetValue(wallet, out var walletViewModel) && walletViewModel is WalletViewModel wvm)
+					{
+						NotificationHelpers.Show(e, onClick: () => wvm.NavigateAndHighlight(e.Transaction.GetHash()));
+					}
 				});
 
 			RxApp.MainThreadScheduler.Schedule(() => EnumerateWallets(walletManager));
@@ -161,7 +181,8 @@ namespace WalletWasabi.Fluent.ViewModels
 				throw new Exception("Wallet already opened.");
 			}
 
-			var walletViewModel = WalletViewModel.Create(uiConfig, wallet);
+			var walletViewModel = WalletViewModel.Create(WalletManager, _transactionBroadcaster, _config, uiConfig,
+				_externalHttpClientFactory, wallet);
 
 			InsertWallet(walletViewModel);
 

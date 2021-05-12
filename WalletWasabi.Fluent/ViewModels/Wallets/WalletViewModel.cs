@@ -2,14 +2,23 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
+using NBitcoin;
+using WalletWasabi.Fluent.ViewModels.Navigation;
+using System.Windows.Input;
+using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
+using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Gui;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
@@ -17,7 +26,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	{
 		[AutoNotify] private IList<TileViewModel> _tiles;
 
-		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
+		protected WalletViewModel(
+			WalletManager walletManager,
+			TransactionBroadcaster transactionBroadcaster,
+			Config config,
+			UiConfig uiConfig,
+			HttpClientFactory clientFactory,
+			Wallet wallet)
+			: base(wallet)
 		{
 			Disposables = Disposables is null
 				? new CompositeDisposable()
@@ -71,7 +87,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				WalletPieChart,
 				BalanceChartTile
 			};
+
+			SendCommand = ReactiveCommand.Create(() =>
+			{
+				Navigate(NavigationTarget.DialogScreen)
+					.To(new SendViewModel(this, transactionBroadcaster, config, uiConfig, clientFactory));
+			});
+
+			ReceiveCommand = ReactiveCommand.Create(() =>
+			{
+				Navigate(NavigationTarget.DialogScreen)
+					.To(new ReceiveViewModel(this, walletManager, wallet.BitcoinStore, uiConfig));
+			});
 		}
+
+		public ICommand SendCommand { get; }
+
+		public ICommand ReceiveCommand { get; }
 
 		private CompositeDisposable Disposables { get; set; }
 
@@ -89,6 +121,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		public WalletBalanceChartTileViewModel BalanceChartTile { get; }
 
+		public void NavigateAndHighlight(uint256 txid)
+		{
+			Navigate().To(this, NavigationMode.Clear);
+
+			RxApp.MainThreadScheduler.Schedule(async () =>
+			{
+				await Task.Delay(500);
+				History.SelectTransaction(txid);
+			});
+		}
+
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
@@ -101,13 +144,37 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			History.Activate(disposables);
 		}
 
-		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet)
+		public static WalletViewModel Create(
+			WalletManager walletManager,
+			TransactionBroadcaster broadcaster,
+			Config config,
+			UiConfig uiConfig,
+			HttpClientFactory httpClientFactory,
+			Wallet wallet)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new HardwareWalletViewModel(uiConfig, wallet)
+				? new HardwareWalletViewModel(
+					walletManager,
+					broadcaster,
+					config,
+					uiConfig,
+					httpClientFactory,
+					wallet)
 				: wallet.KeyManager.IsWatchOnly
-					? new WatchOnlyWalletViewModel(uiConfig, wallet)
-					: new WalletViewModel(uiConfig, wallet);
+					? new WatchOnlyWalletViewModel(
+						walletManager,
+						broadcaster,
+						config,
+						uiConfig,
+						httpClientFactory,
+						wallet)
+					: new WalletViewModel(
+						walletManager,
+						broadcaster,
+						config,
+						uiConfig,
+						httpClientFactory,
+						wallet);
 		}
 	}
 }

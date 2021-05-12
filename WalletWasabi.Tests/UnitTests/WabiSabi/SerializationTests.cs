@@ -1,14 +1,12 @@
 using System;
 using System.Linq;
-using NBitcoin;
+using System.Threading;
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
-using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Crypto.Serialization;
@@ -158,12 +156,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi
 			var sk = new CredentialIssuerSecretKey(rnd);
 
 			var issuer = new CredentialIssuer(sk, rnd, 4300000000000);
-			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
+			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000, new ZeroCredentialPool());
 			(CredentialsRequest credentialRequest, CredentialsResponseValidation validationData) = client.CreateRequestForZeroAmount();
 			var credentialResponse = issuer.HandleRequest(credentialRequest);
-			client.HandleResponse(credentialResponse, validationData);
-			var present = client.Credentials.ZeroValue.Take(ProtocolConstants.CredentialNumber);
-			(credentialRequest, _) = client.CreateRequest(new[] { 1L }, present);
+			var present = client.HandleResponse(credentialResponse, validationData);
+			(credentialRequest, _) = client.CreateRequest(new[] { 1L }, present, CancellationToken.None);
 
 			// Registration request message.
 			var serializedRequestMessage = JsonConvert.SerializeObject(credentialRequest, converters);
