@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 
-namespace WalletWasabi.Tests.RegressionTests.WabiSabi
+namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 {
 	// BackgroundServiceStarter is a IHostedService whose only responsibility is to start/stop other service.
 	// It provides the most ellegant way to be able to register a singleton hosted service. ASPNET provides

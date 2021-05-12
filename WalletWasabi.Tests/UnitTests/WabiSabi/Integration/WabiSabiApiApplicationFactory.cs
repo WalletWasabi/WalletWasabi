@@ -21,7 +21,7 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
-namespace WalletWasabi.Tests.RegressionTests.WabiSabi
+namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 {
 	public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
 	{

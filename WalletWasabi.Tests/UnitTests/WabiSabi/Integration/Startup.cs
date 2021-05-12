@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WalletWasabi.WabiSabi.Models.Serialization;
 
-namespace WalletWasabi.Tests.RegressionTests.WabiSabi
+namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 {
 	public class Startup
 	{
