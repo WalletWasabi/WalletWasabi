@@ -42,6 +42,8 @@
 
     <SolidColorBrush x:Key="DataGridRowSelectedBackgroundColor" Color="#EBEBEB" />
     <StaticResource x:Key="DataGridRowSelectedUnfocusedBackgroundColor" ResourceKey="DataGridRowSelectedBackgroundColor" />
+
+    <StaticResource x:Key="NotificationCardBackgroundBrush" ResourceKey="TileRegionColor" />
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentLight.xaml"/>
   <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" /> <!-- Needs to be here because of dependency reason -->
