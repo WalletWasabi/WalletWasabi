@@ -45,9 +45,13 @@
               <Style Selector="ContentControl c|ContentArea /template/ Panel#PART_ButtonArea">
                 <Setter Property="IsVisible" Value="False" />
               </Style>
+
+              <Style Selector="c|ContentArea /template/ StackPanel#PART_Header">
+                  <Setter Property="Margin" Value="31 36 31 0" />
+              </Style>
             </Panel.Styles>
             <Border Background="{DynamicResource RegionColor}" BoxShadow="{DynamicResource BoxShadow}" IsHitTestVisible="False" />
-            <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" Margin="20 36 20 20" />
+            <ContentControl ClipToBounds="False" Content="{Binding MainScreen.CurrentPage}" />
           </Panel>
         </DockPanel>
       </Panel>

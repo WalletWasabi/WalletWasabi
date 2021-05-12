@@ -12,7 +12,7 @@
              x:CompileBindings="True"
              ClipToBounds="False"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
-  <c:ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False">
+  <c:ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False" HeaderBackground="{DynamicResource HeaderRegionColor}">
     <c:ContentArea.Title>
       <StackPanel>
         <DockPanel>
