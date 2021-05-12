@@ -15,46 +15,17 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.BlockFilters
 {
-	public class FilterProcessor : IHostedService
+	public class FilterProcessor
 	{
-		public FilterProcessor(WasabiSynchronizer synchronizer, BitcoinStore bitcoinStore)
+		public FilterProcessor(BitcoinStore bitcoinStore)
 		{
-			Synchronizer = synchronizer;
 			BitcoinStore = bitcoinStore;
 		}
 
-		public WasabiSynchronizer Synchronizer { get; }
 		public BitcoinStore BitcoinStore { get; }
 		public AsyncLock AsyncLock { get; } = new();
-		private AbandonedTasks ProcessingEvents { get; } = new();
 
-		public Task StartAsync(CancellationToken cancellationToken)
-		{
-			Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
-
-			return Task.CompletedTask;
-		}
-
-		public async Task StopAsync(CancellationToken cancellationToken)
-		{
-			Synchronizer.ResponseArrived -= Synchronizer_ResponseArrivedAsync;
-
-			await ProcessingEvents.WhenAllAsync().ConfigureAwait(false);
-		}
-
-		private async void Synchronizer_ResponseArrivedAsync(object? sender, SynchronizeResponse response)
-		{
-			using (RunningTasks.RememberWith(ProcessingEvents))
-			{
-				uint serverBestHeight = (uint)response.BestHeight;
-				var filters = response.Filters;
-				FiltersResponseState filtersResponseState = response.FiltersResponseState;
-
-				await ProcessAsync(serverBestHeight, filtersResponseState, filters).ConfigureAwait(false);
-			}
-		}
-
-		private async Task ProcessAsync(uint serverBestHeight, FiltersResponseState filtersResponseState, IEnumerable<FilterModel> filters)
+		public async Task ProcessAsync(uint serverBestHeight, FiltersResponseState filtersResponseState, IEnumerable<FilterModel> filters)
 		{
 			try
 			{

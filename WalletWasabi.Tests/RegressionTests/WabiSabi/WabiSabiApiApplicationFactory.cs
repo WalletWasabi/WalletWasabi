@@ -38,7 +38,7 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 				services.AddTransient<IArenaRequestHandler, ArenaRequestHandler>();
 				services.AddTransient<Prison>();
 				services.AddTransient<WabiSabiConfig>();
-				services.AddSingleton<Arena>(serviceProvider => 
+				services.AddSingleton<Arena>(serviceProvider =>
 				{
 					var rpc = serviceProvider.GetRequiredService<IRPCClient>();
 					var prison = serviceProvider.GetRequiredService<Prison>();
@@ -57,11 +57,11 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 			var httpArenaRequestHandlerProxy = new WabiSabiHttpApiClient(new HttpClientWrapper(httpClient));
 			var round = GetCurrentRound();
 			var arenaClient = new ArenaClient(
-				round.AmountCredentialIssuerParameters, 
+				round.AmountCredentialIssuerParameters,
 				round.VsizeCredentialIssuerParameters,
-				new CredentialPool(),
-				new CredentialPool(),
-				httpArenaRequestHandlerProxy, 
+				new ZeroCredentialPool(),
+				new ZeroCredentialPool(),
+				httpArenaRequestHandlerProxy,
 				new InsecureRandom());
 			return arenaClient;
 		}
@@ -90,7 +90,7 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 					FeeRate = new FeeRate(Money.Satoshis(5000))
 				});
 
-			mockRpc.OnGetTxOutAsync = (_, _, _) => null; 
+			mockRpc.OnGetTxOutAsync = (_, _, _) => null;
 
 			return mockRpc;
 		}
