@@ -25,7 +25,6 @@ namespace WalletWasabi.Fluent.ViewModels
 		private readonly SearchPageViewModel _searchPage;
 		private readonly PrivacyModeViewModel _privacyMode;
 		private readonly AddWalletPageViewModel _addWalletPage;
-		private readonly WalletManagerViewModel _walletManagerViewModel;
 		[AutoNotify] private bool _isMainContentEnabled;
 		[AutoNotify] private bool _isDialogScreenEnabled;
 		[AutoNotify] private bool _isFullScreenEnabled;
@@ -62,12 +61,13 @@ namespace WalletWasabi.Fluent.ViewModels
 				Services.BitcoinStore.SmartHeaderChain,
 				Services.Synchronizer);
 
-			_walletManagerViewModel = new WalletManagerViewModel();
-			_addWalletPage = new AddWalletPageViewModel(_walletManagerViewModel);
+			UiServices.Initialize();
+
+			_addWalletPage = new AddWalletPageViewModel();
 			_settingsPage = new SettingsPageViewModel();
 			_privacyMode = new PrivacyModeViewModel();
 			_searchPage = new SearchPageViewModel();
-			_navBar = new NavBarViewModel(MainScreen, _walletManagerViewModel);
+			_navBar = new NavBarViewModel(MainScreen);
 
 			NavigationManager.RegisterType(_navBar);
 

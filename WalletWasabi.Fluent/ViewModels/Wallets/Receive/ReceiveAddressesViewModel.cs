@@ -63,7 +63,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 				foreach (HdPubKey key in keys)
 				{
-					Addresses.Add(new AddressViewModel(this, key, Network));
+					Addresses.Add(new AddressViewModel(this, Wallet, key, Network));
 				}
 			}
 			catch (Exception ex)

@@ -23,13 +23,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		NavigationTarget = NavigationTarget.DialogScreen)]
 	public partial class ReceiveViewModel : NavBarItemViewModel
 	{
+		private readonly Wallet _wallet;
 		[AutoNotify] private ObservableCollection<string> _labels;
 		[AutoNotify] private HashSet<string> _suggestions;
 		[AutoNotify] private bool _isExistingAddressesButtonVisible;
 
-		public ReceiveViewModel(WalletViewModelBase wallet) : base(NavigationMode.Normal)
+		public ReceiveViewModel(Wallet wallet) : base(NavigationMode.Normal)
 		{
-			WasabiWallet = wallet.Wallet;
+			_wallet = wallet;
 			_labels = new ObservableCollection<string>();
 			_suggestions = GetLabels();
 
@@ -47,11 +48,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 		private void OnNext()
 		{
-			var newKey = WasabiWallet.KeyManager.GetNextReceiveKey(new SmartLabel(Labels), out bool minGapLimitIncreased);
+			var newKey = _wallet.KeyManager.GetNextReceiveKey(new SmartLabel(Labels), out bool minGapLimitIncreased);
 
 			if (minGapLimitIncreased)
 			{
-				int minGapLimit = WasabiWallet.KeyManager.MinGapLimit.Value;
+				int minGapLimit = _wallet.KeyManager.MinGapLimit.Value;
 				int prevMinGapLimit = minGapLimit - 1;
 				var minGapLimitMessage = $"Minimum gap limit increased from {prevMinGapLimit} to {minGapLimit}.";
 				// TODO: notification
@@ -59,16 +60,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			Labels.Clear();
 
-			Navigate().To(new ReceiveAddressViewModel(newKey, WasabiWallet.Network, WasabiWallet.KeyManager.MasterFingerprint,
-				WasabiWallet.KeyManager.IsHardwareWallet));
+			Navigate().To(new ReceiveAddressViewModel(_wallet, newKey));
 		}
 
 		private void OnShowExistingAddresses()
 		{
-			Navigate().To(new ReceiveAddressesViewModel(WasabiWallet, Suggestions));
+			Navigate().To(new ReceiveAddressesViewModel(_wallet, Suggestions));
 		}
-
-		public Wallet WasabiWallet { get; }
 
 		public ICommand ShowExistingAddressesCommand { get; }
 
@@ -76,7 +74,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		{
 			base.OnNavigatedTo(isInHistory, disposable);
 
-			IsExistingAddressesButtonVisible = WasabiWallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
+			IsExistingAddressesButtonVisible = _wallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
 		}
 
 		private HashSet<string> GetLabels()
