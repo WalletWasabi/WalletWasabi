@@ -391,8 +391,8 @@
       },
       "NBitcoin": {
         "type": "Transitive",
-        "resolved": "5.0.78",
-        "contentHash": "KkL0mNbMFb8enSUcPPzwFatNZUnGLMw6oGFmBZ6cIL5GqmXNujnFzp+D69TX5PuLKglH7zDBgug1A93LAH2jdw==",
+        "resolved": "5.0.79",
+        "contentHash": "yGkdPeXu5vzXC4/7X8rkGdY+6A5xZ2GpoCSsT2wrEW9HMfOOHdtFd4V9ArS+AFGTf1dKj3PRQPQB+sgmbzPLqQ==",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
           "Newtonsoft.Json": "11.0.2"
@@ -989,7 +989,7 @@
         "dependencies": {
           "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "5.0.5",
           "Microsoft.Win32.SystemEvents": "5.0.0",
-          "NBitcoin": "5.0.78",
+          "NBitcoin": "5.0.79",
           "NBitcoin.Secp256k1": "1.0.10"
         }
       },
