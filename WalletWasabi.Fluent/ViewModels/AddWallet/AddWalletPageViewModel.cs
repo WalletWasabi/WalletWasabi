@@ -7,7 +7,6 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 using WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
@@ -36,7 +35,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		public AddWalletPageViewModel(WalletManagerViewModel walletManagerViewModel)
 		{
 			SelectionMode = NavBarItemSelectionMode.Button;
-			var network = Services.WalletManager.Network;
 
 			var enableBack = default(IDisposable);
 			this.WhenAnyValue(x => x.CurrentTarget)
@@ -60,7 +58,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => OnConnectHardwareWallet(walletManagerViewModel));
 
-			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnCreateWalletAsync(network));
+			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnCreateWalletAsync());
 
 			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, WalletName));
 
@@ -137,7 +135,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
-		private async Task OnCreateWalletAsync(Network network)
+		private async Task OnCreateWalletAsync()
 		{
 			var dialogResult = await NavigateDialogAsync(
 				new CreatePasswordDialogViewModel("Type the password of the wallet and click Continue.", enableEmpty: true, enableCancel: Services.WalletManager.HasWallet()));
@@ -149,7 +147,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					{
 						var walletGenerator = new WalletGenerator(
 							Services.WalletManager.WalletDirectories.WalletsDir,
-							network)
+							Services.WalletManager.Network)
 						{
 							TipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight
 						};

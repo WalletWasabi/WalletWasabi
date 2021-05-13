@@ -28,7 +28,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		public RecoverWalletViewModel(string walletName)
 		{
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
-			var network = Services.WalletManager.Network;
 
 			Mnemonics.ToObservableChangeSet().ToCollection()
 				.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : default)
@@ -46,7 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					.Select(currentMnemonics => currentMnemonics is { } && !Validations.Any);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNextAsync(network, walletName),
+				async () => await OnNextAsync(walletName),
 				NextCommandCanExecute);
 
 			AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(
@@ -55,7 +54,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			EnableAutoBusyOn(NextCommand);
 		}
 
-		private async Task OnNextAsync(Network network, string? walletName)
+		private async Task OnNextAsync(string? walletName)
 		{
 			var dialogResult = await NavigateDialogAsync(
 				new CreatePasswordDialogViewModel(
@@ -78,7 +77,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 								AccountKeyPath,
 								MinGapLimit);
 
-							result.SetNetwork(network);
+							result.SetNetwork(Services.WalletManager.Network);
 
 							return result;
 						});
