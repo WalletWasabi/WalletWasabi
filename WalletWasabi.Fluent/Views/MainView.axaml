@@ -105,9 +105,9 @@
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
-    <Panel IsHitTestVisible="False" Background="#272931">
+    <Panel IsHitTestVisible="False">
       <Panel.Styles>
-        <Style Selector="Panel">
+        <Style Selector="Lottie:animation-ended">
           <Style.Animations>
             <Animation Delay="0:0:4" Duration="0:0:5" Easing="QuadraticEaseOut" FillMode="Forward">
               <KeyFrame KeyTime="0">
@@ -123,7 +123,7 @@
           </Style.Animations>
         </Style>
       </Panel.Styles>
-      <Lottie Speed="0.5" Stretch="Uniform" RepeatCount="1" Source="avares://WalletWasabi.Fluent/Assets/loadscreen.json" />
+      <Lottie Speed="0.2" Stretch="UniformToFill" StretchDirection="Both" RepeatCount="0" Source="avares://WalletWasabi.Fluent/Assets/loadscreen.json" />
     </Panel>
   </Panel>
 </UserControl>

@@ -79,8 +79,8 @@
       },
       "Avalonia.Lottie": {
         "type": "Transitive",
-        "resolved": "0.10.3-cibuild14073",
-        "contentHash": "5UuiodWCz3sljje7IEATkoA4GkSBPgk23POpK1QnMaXG1/M/7rFYlmCBhSlzl1XdqSNP5vGTZGOpHXXcZARmNQ==",
+        "resolved": "0.10.3-cibuild14080",
+        "contentHash": "gS9RlBKMqJSuKOogmaWR+1f/5bGaUznpTo83IQvLydr+292GQh418pQ5TIseNueL79ujuOI3tpFmQBxm4BH/GA==",
         "dependencies": {
           "Avalonia": "0.10.4",
           "DotNetZip": "1.15.0",
@@ -1041,7 +1041,7 @@
         "dependencies": {
           "Avalonia": "0.10.4",
           "Avalonia.Diagnostics": "0.10.4",
-          "Avalonia.Lottie": "0.10.3-cibuild14073",
+          "Avalonia.Lottie": "0.10.3-cibuild14080",
           "Avalonia.ReactiveUI": "0.10.4",
           "Avalonia.Xaml.Behaviors": "0.10.4",
           "WalletWasabi": "1.0.0",
