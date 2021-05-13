@@ -6,7 +6,6 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Gui;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar
 {
@@ -31,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		[AutoNotify] private double _currentCompactPaneLength;
 		[AutoNotify] private bool _isHidden;
 
-		public NavBarViewModel(TargettedNavigationStack mainScreen, WalletManagerViewModel walletManager, UiConfig uiConfig)
+		public NavBarViewModel(TargettedNavigationStack mainScreen, WalletManagerViewModel walletManager)
 		{
 			_walletManager = walletManager;
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
@@ -52,7 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 					if (selectedItem is WalletViewModelBase wallet)
 					{
-						uiConfig.LastSelectedWallet = wallet.WalletName;
+						Services.UiConfig.LastSelectedWallet = wallet.WalletName;
 					}
 				});
 
@@ -63,7 +62,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 					{
 						if (!_walletManager.IsLoadingWallet)
 						{
-							var lastSelectedItem = Items.FirstOrDefault(x => x is WalletViewModelBase wallet && wallet.WalletName == uiConfig.LastSelectedWallet);
+							var lastSelectedItem = Items.FirstOrDefault(x => x is WalletViewModelBase wallet && wallet.WalletName == Services.UiConfig.LastSelectedWallet);
 
 							SelectedItem = lastSelectedItem ?? Items.FirstOrDefault();
 						}

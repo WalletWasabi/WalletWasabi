@@ -17,14 +17,14 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private bool _isModified;
 		[AutoNotify] private int _selectedTab;
 
-		public SettingsPageViewModel(Config config, UiConfig uiConfig)
+		public SettingsPageViewModel()
 		{
 			_selectedTab = 0;
 
-			GeneralSettingsTab = new GeneralSettingsTabViewModel(config, uiConfig);
-			PrivacySettingsTab = new PrivacySettingsTabViewModel(config);
-			NetworkSettingsTab = new NetworkSettingsTabViewModel(config);
-			BitcoinTabSettings = new BitcoinTabSettingsViewModel(config);
+			GeneralSettingsTab = new GeneralSettingsTabViewModel();
+			PrivacySettingsTab = new PrivacySettingsTabViewModel();
+			NetworkSettingsTab = new NetworkSettingsTabViewModel();
+			BitcoinTabSettings = new BitcoinTabSettingsViewModel();
 		}
 
 		public GeneralSettingsTabViewModel GeneralSettingsTab { get; }

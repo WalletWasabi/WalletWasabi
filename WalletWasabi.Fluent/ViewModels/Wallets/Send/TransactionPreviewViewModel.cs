@@ -28,8 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private string _confirmationTimeText;
 		[AutoNotify] private SmartLabel _labels;
 
-		public TransactionPreviewViewModel(WalletViewModel owner, TransactionInfo info, TransactionBroadcaster broadcaster,
-			BuildTransactionResult transaction)
+		public TransactionPreviewViewModel(WalletViewModel owner, TransactionInfo info, BuildTransactionResult transaction)
 		{
 			_owner = owner;
 			_wallet = owner.Wallet;
@@ -53,7 +52,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 			IsPayJoin = PayJoinUrl is not null;
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(_wallet, broadcaster, transaction));
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(_wallet, transaction));
 		}
 
 		public string AmountText { get; }
@@ -74,7 +73,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			Labels = _info.Labels;
 		}
 
-		private async Task OnNextAsync(Wallet wallet, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)
+		private async Task OnNextAsync(Wallet wallet, BuildTransactionResult transaction)
 		{
 			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 
@@ -87,7 +86,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				try
 				{
 					var finalTransaction = await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
-					await SendTransactionAsync(wallet, broadcaster, finalTransaction);
+					await SendTransactionAsync(wallet, finalTransaction);
 					Navigate().To(new SendSuccessViewModel(_owner, finalTransaction));
 				}
 				catch (Exception ex)
@@ -117,12 +116,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return authDialogResult.Result;
 		}
 
-		private async Task SendTransactionAsync(Wallet wallet, TransactionBroadcaster broadcaster, SmartTransaction transaction)
+		private async Task SendTransactionAsync(Wallet wallet, SmartTransaction transaction)
 		{
 			// Dequeue any coin-joining coins.
 			await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
 
-			await broadcaster.SendTransactionAsync(transaction);
+			await Services.TransactionBroadcaster.SendTransactionAsync(transaction);
 		}
 
 		private async Task<SmartTransaction> GetFinalTransactionAsync(SmartTransaction transaction, TransactionInfo transactionInfo)

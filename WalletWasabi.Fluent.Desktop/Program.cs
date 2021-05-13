@@ -72,6 +72,8 @@ namespace WalletWasabi.Fluent.Desktop
 					// TODO only required due to statusbar vm... to be removed.
 					Locator.CurrentMutable.RegisterConstant(Global);
 
+					Services.Initialize(Global);
+
 					Logger.LogSoftwareStarted("Wasabi GUI");
 					BuildAvaloniaApp()
 						.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light))
@@ -196,7 +198,13 @@ namespace WalletWasabi.Fluent.Desktop
 		{
 			bool useGpuLinux = true;
 
-			var result = AppBuilder.Configure(() => new App(Program.Global, async () => await Program.Global.InitializeNoWalletAsync(TerminateService)))
+			var result = AppBuilder.Configure(() => new App(async () =>
+				{
+					if (Global is { } global)
+					{
+						await global.InitializeNoWalletAsync(TerminateService);
+					}
+				}))
 				.UseReactiveUI();
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
