@@ -70,7 +70,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 		private void OnShowExistingAddresses()
 		{
-			Navigate().To(new ReceiveAddressesViewModel(WasabiWallet, _uiConfig));
+			Navigate().To(new ReceiveAddressesViewModel(WasabiWallet, _uiConfig, Suggestions));
 		}
 
 		public Wallet WasabiWallet { get; }
