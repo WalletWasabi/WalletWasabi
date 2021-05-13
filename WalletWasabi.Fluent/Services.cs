@@ -10,17 +10,17 @@ namespace WalletWasabi.Fluent
 {
 	public static class Services
 	{
-		public static string DataDir { get; private set; }
-		public static TorSettings TorSettings { get; private set; }
-		public static BitcoinStore BitcoinStore { get; set; }
-		public static HttpClientFactory ExternalHttpClientFactory { get; private set; }
-		public static LegalChecker LegalChecker { get; private set; }
-		public static Config Config { get; private set; }
-		public static WasabiSynchronizer Synchronizer { get; private set; }
-		public static WalletManager WalletManager { get; private set; }
-		public static TransactionBroadcaster TransactionBroadcaster { get; private set; }
-		public static HostedServices HostedServices { get; private set; }
-		public static UiConfig UiConfig { get; private set; }
+		public static string DataDir { get; private set; } = null!;
+		public static TorSettings TorSettings { get; private set; } = null!;
+		public static BitcoinStore BitcoinStore { get; private set; } = null!;
+		public static HttpClientFactory ExternalHttpClientFactory { get; private set; } = null!;
+		public static LegalChecker LegalChecker { get; private set; } = null!;
+		public static Config Config { get; private set; } = null!;
+		public static WasabiSynchronizer Synchronizer { get; private set; } = null!;
+		public static WalletManager WalletManager { get; private set; } = null!;
+		public static TransactionBroadcaster TransactionBroadcaster { get; private set; } = null!;
+		public static HostedServices HostedServices { get; private set; } = null!;
+		public static UiConfig UiConfig { get; private set; } = null!;
 		public static bool IsInitialized { get; private set; }
 
 		/// <summary>
