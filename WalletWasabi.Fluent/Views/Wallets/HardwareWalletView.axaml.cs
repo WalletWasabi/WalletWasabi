@@ -1,11 +1,12 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets.HardwareWallet
+namespace WalletWasabi.Fluent.Views.Wallets
 {
-	public class ClosedHardwareWalletView : UserControl
+	public class HardwareWalletView : UserControl
 	{
-		public ClosedHardwareWalletView()
+		public HardwareWalletView()
 		{
 			InitializeComponent();
 		}

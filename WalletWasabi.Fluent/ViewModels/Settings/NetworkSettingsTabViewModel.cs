@@ -26,13 +26,13 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private bool _terminateTorOnExit;
 		[AutoNotify] private string _torSocks5EndPoint;
 
-		public NetworkSettingsTabViewModel(Config config) : base(config)
+		public NetworkSettingsTabViewModel()
 		{
 			this.ValidateProperty(x => x.TorSocks5EndPoint, ValidateTorSocks5EndPoint);
 
-			_useTor = config.UseTor;
-			_terminateTorOnExit = config.TerminateTorOnExit;
-			_torSocks5EndPoint = config.TorSocks5EndPoint.ToString(-1);
+			_useTor = Services.Config.UseTor;
+			_terminateTorOnExit = Services.Config.TerminateTorOnExit;
+			_torSocks5EndPoint = Services.Config.TorSocks5EndPoint.ToString(-1);
 
 			this.WhenAnyValue(
 					x => x.UseTor,
