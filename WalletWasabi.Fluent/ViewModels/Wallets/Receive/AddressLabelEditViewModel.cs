@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using ReactiveUI;
@@ -14,8 +15,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		[AutoNotify] private ObservableCollection<string> _labels;
 		[AutoNotify] private SmartLabel? _finalLabel;
 
-		public AddressLabelEditViewModel(ReceiveAddressesViewModel owner, HdPubKey hdPubKey, KeyManager keyManager)
+		public AddressLabelEditViewModel(ReceiveAddressesViewModel owner, HdPubKey hdPubKey, KeyManager keyManager, HashSet<string> suggestions)
 		{
+			Suggestions = suggestions;
 			_labels = new(hdPubKey.Label);
 
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -41,5 +43,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 				},
 				canExecute);
 		}
+
+		public HashSet<string> Suggestions { get; }
 	}
 }
