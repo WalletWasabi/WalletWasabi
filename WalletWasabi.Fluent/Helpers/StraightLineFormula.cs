@@ -50,7 +50,7 @@ namespace WalletWasabi.Fluent.Helpers
 
 		public static Point IntersectionBetween(StraightLineFormula f, StraightLineFormula g)
 		{
-			return new Point((int) XIntersectionBetween(f, g), (int) YIntersectionBetween(f, g));
+			return new Point((int)XIntersectionBetween(f, g), (int)YIntersectionBetween(f, g));
 		}
 
 		public static double YIntersectionBetween(StraightLineFormula f, StraightLineFormula g)

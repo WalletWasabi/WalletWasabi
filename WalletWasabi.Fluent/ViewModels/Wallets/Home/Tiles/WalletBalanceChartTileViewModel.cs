@@ -136,7 +136,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			foreach (var (timestamp, balance) in values.Reverse())
 			{
-				YValues.Add((double) balance.ToDecimal(MoneyUnit.BTC));
+				YValues.Add((double)balance.ToDecimal(MoneyUnit.BTC));
 				XValues.Add(timestamp.ToUnixTimeMilliseconds());
 			}
 
@@ -156,8 +156,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 				var maxX = XValues.Max();
 				var halfX = minX + ((maxX - minX) / 2);
 
-				var range = DateTimeOffset.FromUnixTimeMilliseconds((long) maxX) -
-				            DateTimeOffset.FromUnixTimeMilliseconds((long) minX);
+				var range = DateTimeOffset.FromUnixTimeMilliseconds((long)maxX) -
+							DateTimeOffset.FromUnixTimeMilliseconds((long)minX);
 
 				if (range <= TimeSpan.FromDays(1))
 				{

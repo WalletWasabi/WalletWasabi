@@ -210,7 +210,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			if (_watermark is { } && _autoCompleteBox is { })
 			{
-				if ((Items is null || (Items is {} && !Items.Any())) && string.IsNullOrWhiteSpace(_autoCompleteBox?.Text))
+				if ((Items is null || (Items is { } && !Items.Any())) && string.IsNullOrWhiteSpace(_autoCompleteBox?.Text))
 				{
 					_watermark.IsVisible = true;
 				}
@@ -237,9 +237,9 @@ namespace WalletWasabi.Fluent.Controls
 			InvalidateWatermark();
 
 			if (RestrictInputToSuggestions &&
-			    Suggestions is IList<string> suggestions &&
-			    !suggestions.Any(x =>
-				    x.StartsWith(autoCompleteBox.SearchText, _stringComparison)))
+				Suggestions is IList<string> suggestions &&
+				!suggestions.Any(x =>
+					x.StartsWith(autoCompleteBox.SearchText, _stringComparison)))
 			{
 				e.Handled = true;
 			}
