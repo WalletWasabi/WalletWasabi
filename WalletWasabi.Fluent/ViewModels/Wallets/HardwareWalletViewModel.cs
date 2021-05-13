@@ -1,6 +1,6 @@
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet
+namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public class HardwareWalletViewModel : WalletViewModel
 	{
