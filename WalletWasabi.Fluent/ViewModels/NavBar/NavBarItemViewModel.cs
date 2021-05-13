@@ -25,8 +25,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				() => OnOpen(defaultNavigationMode));
 		}
 
-		public virtual string IconName { get; set; } = "navigation_regular";
-
 		public NavBarItemSelectionMode SelectionMode { get; protected set; }
 
 		public bool IsSelected
