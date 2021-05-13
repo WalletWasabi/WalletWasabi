@@ -14,7 +14,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public async Task CanInitializeAsync()
 		{
-			var txStore = await CreateTransactionStoreAsync();
+			await using var txStore = await CreateTransactionStoreAsync();
 
 			Assert.Equal(Network.Main, txStore.Network);
 			Assert.Empty(txStore.GetTransactionHashes());
@@ -24,14 +24,12 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.False(txStore.TryRemove(uint256.One, out _));
 			Assert.NotEmpty(txStore.WorkFolderPath);
 			Assert.True(File.Exists(Path.Combine(txStore.WorkFolderPath, "Transactions.dat")));
-
-			await txStore.DisposeAsync();
 		}
 
 		[Fact]
 		public async Task CanDoOperationsAsync()
 		{
-			var txStore = await CreateTransactionStoreAsync();
+			await using var txStore = await CreateTransactionStoreAsync();
 
 			Assert.True(txStore.IsEmpty());
 
@@ -78,8 +76,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			txStore.TryAddOrUpdate(stx);
 			Assert.Single(txStore.GetTransactions());
 			Assert.Single(txStore.GetTransactionHashes());
-
-			await txStore.DisposeAsync();
 		}
 
 		private static async Task<TransactionStore> CreateTransactionStoreAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
