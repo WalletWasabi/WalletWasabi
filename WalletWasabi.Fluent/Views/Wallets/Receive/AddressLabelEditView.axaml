@@ -4,6 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="receive:AddressLabelEditViewModel"
              x:CompileBindings="True"
@@ -14,13 +16,17 @@
                  EnableCancel="{Binding EnableCancel}"
                  EnableNext="True" NextContent="Save"
                  Height="280">
-        <c:TagsBox x:Name="LabelTagBox"
-                   TagSeparator=","
-                   Items="{Binding Labels}"
-                   Suggestions="{Binding Suggestions}"
-                   SuggestionsAreCaseSensitive="True"
-                   RestrictInputToSuggestions="False"
-                   VerticalAlignment="Top"
-                   MaxWidth="320"/>
+    <c:TagsBox x:Name="LabelTagBox"
+               TagSeparator=","
+               Items="{Binding Labels}"
+               Suggestions="{Binding Suggestions}"
+               SuggestionsAreCaseSensitive="True"
+               RestrictInputToSuggestions="False"
+               VerticalAlignment="Top"
+               MaxWidth="320">
+      <i:Interaction.Behaviors>
+        <behaviors:FocusOnAttachedBehavior />
+      </i:Interaction.Behaviors>
+    </c:TagsBox>
   </c:ContentArea>
 </UserControl>
