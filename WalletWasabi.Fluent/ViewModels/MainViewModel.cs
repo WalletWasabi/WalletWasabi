@@ -14,7 +14,6 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
-using WalletWasabi.Services;
 using WalletWasabi.Logging;
 using WalletWasabi.BitcoinP2p;
 
@@ -22,7 +21,6 @@ namespace WalletWasabi.Fluent.ViewModels
 {
 	public partial class MainViewModel : ViewModelBase
 	{
-		private readonly LegalChecker _legalChecker;
 		private readonly SettingsPageViewModel _settingsPage;
 		private readonly SearchPageViewModel _searchPage;
 		private readonly PrivacyModeViewModel _privacyMode;
@@ -41,7 +39,6 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public MainViewModel()
 		{
-			_legalChecker = Services.LegalChecker;
 			_windowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
 			_dialogScreen = new DialogScreenViewModel();
 
@@ -179,11 +176,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				try
 				{
-					await _legalChecker.WaitAndGetLatestDocumentAsync();
+					await Services.LegalChecker.WaitAndGetLatestDocumentAsync();
 
 					LegalDocumentsViewModel.RegisterAsyncLazy(async () =>
 					{
-						var document = await _legalChecker.WaitAndGetLatestDocumentAsync();
+						var document = await Services.LegalChecker.WaitAndGetLatestDocumentAsync();
 						return new LegalDocumentsViewModel(document.Content);
 					});
 					_searchPage.RegisterSearchEntry(LegalDocumentsViewModel.MetaData);
