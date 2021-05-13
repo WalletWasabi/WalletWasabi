@@ -72,7 +72,7 @@ namespace WalletWasabi.Fluent.Desktop
 					// TODO only required due to statusbar vm... to be removed.
 					Locator.CurrentMutable.RegisterConstant(Global);
 
-					InitializeServices(Global);
+					Services.Initialize(Global);
 
 					Logger.LogSoftwareStarted("Wasabi GUI");
 					BuildAvaloniaApp()
@@ -111,26 +111,6 @@ namespace WalletWasabi.Fluent.Desktop
 			Logger.LogSoftwareStopped("Wasabi");
 
 			return exceptionToReport is { } ? 1 : 0;
-		}
-
-		/// <summary>
-		/// Initializes global services used by fluent project.
-		/// </summary>
-		/// <param name="global">The global instance.</param>
-		private static void InitializeServices(Global global)
-		{
-			Services.DataDir = global.DataDir;
-			Services.TorSettings = global.TorSettings;
-			Services.BitcoinStore = global.BitcoinStore;
-			Services.ExternalHttpClientFactory = global.ExternalHttpClientFactory;
-			Services.LegalChecker = global.LegalChecker;
-			Services.Config = global.Config;
-			Services.Synchronizer = global.Synchronizer;
-			Services.WalletManager = global.WalletManager;
-			Services.TransactionBroadcaster = global.TransactionBroadcaster;
-			Services.HostedServices = global.HostedServices;
-			Services.UiConfig = global.UiConfig;
-			Services.IsInitialized = true;
 		}
 
 		/// <summary>
