@@ -1,18 +1,19 @@
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
 	[NavigationMetaData(Title = "Payment successful")]
 	public partial class SendSuccessViewModel : RoutableViewModel
 	{
-		private readonly WalletViewModel _owner;
+		private readonly Wallet _wallet;
 		private readonly SmartTransaction _finalTransaction;
 
-		public SendSuccessViewModel(WalletViewModel owner, SmartTransaction finalTransaction)
+		public SendSuccessViewModel(Wallet wallet, SmartTransaction finalTransaction)
 		{
-			_owner = owner;
+			_wallet = wallet;
 			_finalTransaction = finalTransaction;
 
 			NextCommand = ReactiveCommand.Create(OnNext);
@@ -24,7 +25,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		{
 			Navigate().Clear();
 
-			_owner.History.SelectTransaction(_finalTransaction.GetHash());
+			var walletViewModel = UiServices.WalletManager.GetWalletViewModel(_wallet);
+
+			walletViewModel.History.SelectTransaction(_finalTransaction.GetHash());
 		}
 	}
 }

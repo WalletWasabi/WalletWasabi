@@ -79,13 +79,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			SendCommand = ReactiveCommand.Create(() =>
 			{
 				Navigate(NavigationTarget.DialogScreen)
-					.To(new SendViewModel(this));
+					.To(new SendViewModel(wallet));
 			});
 
 			ReceiveCommand = ReactiveCommand.Create(() =>
 			{
 				Navigate(NavigationTarget.DialogScreen)
-					.To(new ReceiveViewModel(this));
+					.To(new ReceiveViewModel(wallet));
 			});
 		}
 

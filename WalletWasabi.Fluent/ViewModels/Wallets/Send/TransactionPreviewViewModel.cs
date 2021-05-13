@@ -1,11 +1,9 @@
 using System;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
@@ -21,17 +19,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	[NavigationMetaData(Title = "Transaction Preview")]
 	public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
-		private readonly WalletViewModel _owner;
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _info;
 
 		[AutoNotify] private string _confirmationTimeText;
 		[AutoNotify] private SmartLabel _labels;
 
-		public TransactionPreviewViewModel(WalletViewModel owner, TransactionInfo info, BuildTransactionResult transaction)
+		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, BuildTransactionResult transaction)
 		{
-			_owner = owner;
-			_wallet = owner.Wallet;
+			_wallet = wallet;
+			_labels = SmartLabel.Empty;
 			_info = info;
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
@@ -52,7 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 			IsPayJoin = PayJoinUrl is not null;
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(_wallet, transaction));
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(transaction));
 		}
 
 		public string AmountText { get; }
@@ -73,11 +70,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			Labels = _info.Labels;
 		}
 
-		private async Task OnNextAsync(Wallet wallet, BuildTransactionResult transaction)
+		private async Task OnNextAsync(BuildTransactionResult transaction)
 		{
 			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 
-			var authResult = await AuthorizeAsync(wallet, transactionAuthorizationInfo);
+			var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
 
 			if (authResult)
 			{
@@ -86,8 +83,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				try
 				{
 					var finalTransaction = await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
-					await SendTransactionAsync(wallet, finalTransaction);
-					Navigate().To(new SendSuccessViewModel(_owner, finalTransaction));
+					await SendTransactionAsync(finalTransaction);
+					Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
 				}
 				catch (Exception ex)
 				{
@@ -98,14 +95,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private async Task<bool> AuthorizeAsync(Wallet wallet, TransactionAuthorizationInfo transactionAuthorizationInfo)
+		private async Task<bool> AuthorizeAsync(TransactionAuthorizationInfo transactionAuthorizationInfo)
 		{
-			if (!wallet.KeyManager.IsHardwareWallet && string.IsNullOrEmpty(wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
+			if (!_wallet.KeyManager.IsHardwareWallet && string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
 			{
 				return true;
 			}
 
-			var authDialog = AuthorizationHelpers.GetAuthorizationDialog(wallet, transactionAuthorizationInfo);
+			var authDialog = AuthorizationHelpers.GetAuthorizationDialog(_wallet, transactionAuthorizationInfo);
 			var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget);
 
 			if (!authDialogResult.Result && authDialogResult.Kind == DialogResultKind.Normal)
@@ -116,10 +113,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return authDialogResult.Result;
 		}
 
-		private async Task SendTransactionAsync(Wallet wallet, SmartTransaction transaction)
+		private async Task SendTransactionAsync( SmartTransaction transaction)
 		{
 			// Dequeue any coin-joining coins.
-			await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
+			await _wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
 
 			await Services.TransactionBroadcaster.SendTransactionAsync(transaction);
 		}
