@@ -19,7 +19,6 @@ namespace WalletWasabi.Fluent
 		public static WasabiSynchronizer Synchronizer { get; set; }
 		public static WalletManager WalletManager { get; set; }
 		public static TransactionBroadcaster TransactionBroadcaster { get; set; }
-
 		public static HostedServices HostedServices { get; set; }
 		public static UiConfig UiConfig { get; set; }
 		public static bool IsInitialized { get; set; }
