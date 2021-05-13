@@ -200,8 +200,8 @@ namespace WalletWasabi.Fluent.ViewModels
 			UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
 			BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
 			DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
-			OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel(Services.DataDir));
-			OpenWalletsFolderViewModel.RegisterLazy(() => new OpenWalletsFolderViewModel(Services.WalletManager.WalletDirectories.WalletsDir));
+			OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel());
+			OpenWalletsFolderViewModel.RegisterLazy(() => new OpenWalletsFolderViewModel());
 			OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
 			OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel());
 			OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel());
