@@ -142,7 +142,7 @@
     </StackPanel>
     <!-- Items List -->
     <DockPanel>
-      <TextBlock DockPanel.Dock="Top" Text="Wallets" FontSize="14" IsVisible="{Binding IsOpen}" Margin="15 15 0 12" Opacity="0.8" FontWeight="Light" />
+      <TextBlock DockPanel.Dock="Top" Text="Wallets" FontSize="14" IsVisible="{Binding IsOpen}" Margin="25 15 0 12" Opacity="0.8" FontWeight="Light" />
       <c:NavBarListBox Items="{Binding Wallets}"
                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                        Name="ItemsListBox"
