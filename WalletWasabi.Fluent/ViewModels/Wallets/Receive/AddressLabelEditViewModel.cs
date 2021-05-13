@@ -23,14 +23,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			Labels
 				.WhenAnyValue(x => x.Count)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => { FinalLabel = new SmartLabel(Labels); });
+				.Subscribe(_ => FinalLabel = new SmartLabel(Labels));
 
 			var canExecute = this.WhenAnyValue(x => x.FinalLabel).Select(x => x is { IsEmpty: false });
 
 			NextCommand = ReactiveCommand.Create(
 				() =>
 				{
-					hdPubKey.SetLabel(new SmartLabel(Labels), kmToFile: keyManager);
+					if (FinalLabel is null)
+					{
+						return;
+					}
+
+					hdPubKey.SetLabel(FinalLabel, kmToFile: keyManager);
 					owner.InitializeAddresses();
 					Navigate().Back();
 				},
