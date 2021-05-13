@@ -107,11 +107,11 @@ namespace WalletWasabi.WabiSabi.Client
 			return aliceClients;
 		}
 
-		private async Task<IEnumerable<AliceClient>> RegisterCoinsAsync(IEnumerable<AliceClient> aliceClients, CancellationToken stoppingToken)
+		private async Task<IEnumerable<AliceClient>> RegisterCoinsAsync(IEnumerable<AliceClient> aliceClientsToRegister, CancellationToken stoppingToken)
 		{
 			List<AliceClient> registeredAliceClients = new();
 
-			foreach (var aliceClient in aliceClients)
+			foreach (var aliceClient in aliceClientsToRegister)
 			{
 				try
 				{
