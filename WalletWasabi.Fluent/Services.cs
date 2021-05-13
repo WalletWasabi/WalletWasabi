@@ -32,7 +32,7 @@ namespace WalletWasabi.Fluent
 		public static HostedServices HostedServices { get; private set; } = null!;
 
 		public static UiConfig UiConfig { get; private set; } = null!;
-		
+
 		public static bool IsInitialized { get; private set; }
 
 		/// <summary>
@@ -41,17 +41,16 @@ namespace WalletWasabi.Fluent
 		/// <param name="global">The global instance.</param>
 		public static void Initialize(Global global)
 		{
-			Guard.NotNull("global.DataDir", global.DataDir);
-			Guard.NotNull("global.TorSettings", global.TorSettings);
-			Guard.NotNull("global.BitcoinStore", global.BitcoinStore);
-			Guard.NotNull("global.ExternalHttpClientFactory", global.ExternalHttpClientFactory);
-			Guard.NotNull("global.LegalChecker", global.LegalChecker);
-			Guard.NotNull("global.Config", global.Config);
-			Guard.NotNull("global.Synchronizer", global.Synchronizer);
-			Guard.NotNull("global.WalletManager", global.WalletManager);
-			Guard.NotNull("global.TransactionBroadcaster", global.TransactionBroadcaster);
-			Guard.NotNull("global.HostedServices", global.HostedServices);
-			Guard.NotNull("global.UiConfig", global.UiConfig);
+			Guard.NotNull(nameof(global.DataDir), global.DataDir);
+			Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
+			Guard.NotNull(nameof(global.BitcoinStore), global.BitcoinStore);
+			Guard.NotNull(nameof(global.ExternalHttpClientFactory), global.ExternalHttpClientFactory);
+			Guard.NotNull(nameof(global.LegalChecker), global.LegalChecker);
+			Guard.NotNull(nameof(global.Config), global.Config);
+			Guard.NotNull(nameof(global.WalletManager), global.WalletManager);
+			Guard.NotNull(nameof(global.TransactionBroadcaster), global.TransactionBroadcaster);
+			Guard.NotNull(nameof(global.HostedServices), global.HostedServices);
+			Guard.NotNull(nameof(global.UiConfig), global.UiConfig);
 
 			DataDir = global.DataDir;
 			TorSettings = global.TorSettings;
