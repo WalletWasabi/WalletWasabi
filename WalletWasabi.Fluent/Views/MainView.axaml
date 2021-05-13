@@ -123,7 +123,7 @@
           </Style.Animations>
         </Style>
       </Panel.Styles>
-      <Lottie Stretch="Uniform" RepeatCount="3" Source="avares://WalletWasabi.Fluent/Assets/loadscreen.json" />
+      <Lottie Speed="0.5" Stretch="Uniform" RepeatCount="1" Source="avares://WalletWasabi.Fluent/Assets/loadscreen.json" />
     </Panel>
   </Panel>
 </UserControl>
