@@ -146,7 +146,6 @@ namespace WalletWasabi.WabiSabi.Client
 				{
 					await aliceClient.ConfirmConnectionAsync(TimeSpan.FromMilliseconds(Random.Next(1000, 5000)), stoppingToken).ConfigureAwait(false);
 					confirmedAliceClients.Add(aliceClient);
-					await Task.Delay(Random.Next(0, 1000), stoppingToken).ConfigureAwait(false);
 				}
 				catch (Exception ex)
 				{
