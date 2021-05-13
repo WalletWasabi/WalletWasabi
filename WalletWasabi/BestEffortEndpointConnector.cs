@@ -112,7 +112,7 @@ namespace WalletWasabi
 
 			public override string ToString()
 			{
-				return $"Connections: {ConnectedNodesCount}, Currently allow only onions: {!_allowAnyConnetionType}.";
+				return $"Connections: {ConnectedNodesCount}, Allow only Tor endpoints: {!_allowAnyConnetionType}.";
 			}
 		}
 	}
