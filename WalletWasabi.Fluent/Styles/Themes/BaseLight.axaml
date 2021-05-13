@@ -30,6 +30,7 @@
 
     <SolidColorBrush x:Key="TileRegionColor">#FFFFFF</SolidColorBrush>
     <Color x:Key="RegionColor">#FAFAFA</Color>
+    <Color x:Key="HeaderRegionColor">#FFFBFBFB</Color>
     <BoxShadows x:Key="BoxShadow">0 1 4 #D1D1D1</BoxShadows>
     <BoxShadows x:Key="OptionButtonShadow">0 2 2 #D1D1D1</BoxShadows>
 
@@ -47,5 +48,6 @@
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentLight.xaml"/>
   <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" /> <!-- Needs to be here because of dependency reason -->
+  <StyleInclude Source="avares://Avalonia.Xaml.Interactions/Draggable/Styles.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />
 </Styles>

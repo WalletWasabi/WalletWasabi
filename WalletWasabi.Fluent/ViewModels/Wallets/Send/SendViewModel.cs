@@ -16,7 +16,6 @@ using NBitcoin.Payment;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.MathNet;
@@ -25,7 +24,6 @@ using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Gui;
 using WalletWasabi.Gui.Converters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -33,7 +31,6 @@ using WalletWasabi.Tor.Http;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
-using WalletWasabi.WebClients.Wasabi;
 using Constants = WalletWasabi.Helpers.Constants;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
@@ -71,7 +68,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private double _lastXAxisCurrentValue;
 		private FeeRate _feeRate;
 
-		public SendViewModel(WalletViewModel walletVm, TransactionBroadcaster broadcaster, Config config, UiConfig uiConfig, HttpClientFactory externalHttpClientFactory) : base(NavigationMode.Normal)
+		public SendViewModel(WalletViewModel walletVm) : base(NavigationMode.Normal)
 		{
 			_to = "";
 			_owner = walletVm;
@@ -111,7 +108,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					if (endPoint is { })
 					{
-						_transactionInfo.PayJoinClient = GetPayjoinClient(endPoint, config, externalHttpClientFactory);
+						_transactionInfo.PayJoinClient = GetPayjoinClient(endPoint);
 						IsPayJoin = true;
 					}
 					else
@@ -126,7 +123,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			EnableBack = true;
 
 			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
-			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync(uiConfig));
+			AutoPasteCommand = ReactiveCommand.CreateFromTask(async () => await OnAutoPasteAsync());
 
 			var nextCommandCanExecute =
 				this.WhenAnyValue(x => x.Labels, x => x.AmountBtc, x => x.To, x => x.XAxisCurrentValue).Select(_ => Unit.Default)
@@ -139,7 +136,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						return allFilled && !hasError;
 					});
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(broadcaster), nextCommandCanExecute);
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(), nextCommandCanExecute);
 
 			EnableAutoBusyOn(NextCommand);
 		}
@@ -148,9 +145,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public ICommand AutoPasteCommand { get; }
 
-		private async Task OnAutoPasteAsync(UiConfig uiConfig)
+		private async Task OnAutoPasteAsync()
 		{
-			var isAutoPasteEnabled = uiConfig.Autocopy;
+			var isAutoPasteEnabled = Services.UiConfig.Autocopy;
 
 			if (string.IsNullOrEmpty(To) && isAutoPasteEnabled)
 			{
@@ -172,7 +169,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			_parsingUrl = false;
 		}
 
-		private async Task OnNextAsync(TransactionBroadcaster broadcaster)
+		private async Task OnNextAsync()
 		{
 			var transactionInfo = _transactionInfo;
 			var wallet = _owner.Wallet;
@@ -184,7 +181,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			if (transactionInfo.Amount > totalMixedCoinsAmount)
 			{
-				Navigate().To(new PrivacyControlViewModel(_owner, transactionInfo, broadcaster));
+				Navigate().To(new PrivacyControlViewModel(_owner, transactionInfo));
 				return;
 			}
 
@@ -192,11 +189,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			{
 				if (IsPayJoin)
 				{
-					await BuildTransactionAsPayJoinAsync(wallet, transactionInfo, broadcaster);
+					await BuildTransactionAsPayJoinAsync(wallet, transactionInfo);
 				}
 				else
 				{
-					await BuildTransactionAsNormalAsync(wallet, transactionInfo, broadcaster, totalMixedCoinsAmount);
+					await BuildTransactionAsNormalAsync(wallet, transactionInfo, totalMixedCoinsAmount);
 				}
 			}
 			catch (Exception ex)
@@ -206,12 +203,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private async Task BuildTransactionAsNormalAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster, Money totalMixedCoinsAmount)
+		private async Task BuildTransactionAsNormalAsync(Wallet wallet, TransactionInfo transactionInfo, Money totalMixedCoinsAmount)
 		{
 			try
 			{
 				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo));
-				Navigate().To(new OptimisePrivacyViewModel(_owner, transactionInfo, broadcaster, txRes));
+				Navigate().To(new OptimisePrivacyViewModel(_owner, transactionInfo, txRes));
 			}
 			catch (InsufficientBalanceException)
 			{
@@ -221,37 +218,37 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 				if (result.Result)
 				{
-					Navigate().To(new OptimisePrivacyViewModel(_owner, transactionInfo, broadcaster, txRes));
+					Navigate().To(new OptimisePrivacyViewModel(_owner, transactionInfo, txRes));
 				}
 				else
 				{
-					Navigate().To(new PrivacyControlViewModel(_owner, transactionInfo, broadcaster));
+					Navigate().To(new PrivacyControlViewModel(_owner, transactionInfo));
 				}
 			}
 		}
 
-		private async Task BuildTransactionAsPayJoinAsync(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
+		private async Task BuildTransactionAsPayJoinAsync(Wallet wallet, TransactionInfo transactionInfo)
 		{
 			try
 			{
 				// Do not add the PayJoin client yet, it will be added before broadcasting.
 				var txRes = await Task.Run(() => TransactionHelpers.BuildTransaction(wallet, transactionInfo));
-				Navigate().To(new TransactionPreviewViewModel(_owner, transactionInfo, broadcaster, txRes));
+				Navigate().To(new TransactionPreviewViewModel(_owner, transactionInfo, txRes));
 			}
 			catch (InsufficientBalanceException)
 			{
 				await ShowErrorAsync("Transaction Building", "There are not enough private funds to cover the transaction fee", "Wasabi was unable to create your transaction.");
-				Navigate().To(new PrivacyControlViewModel(_owner, transactionInfo, broadcaster));
+				Navigate().To(new PrivacyControlViewModel(_owner, transactionInfo));
 			}
 		}
 
-		private IPayjoinClient? GetPayjoinClient(string endPoint, Config config, HttpClientFactory externalHttpClientFactory)
+		private IPayjoinClient? GetPayjoinClient(string endPoint)
 		{
 			if (!string.IsNullOrWhiteSpace(endPoint) &&
 				Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 			{
 				var payjoinEndPointUri = new Uri(endPoint);
-				if (!config.UseTor)
+				if (!Services.Config.UseTor)
 				{
 					if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 					{
@@ -259,14 +256,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						return null;
 					}
 
-					if (config.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
+					if (Services.Config.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
 					{
 						Logger.LogWarning("PayJoin server is not exposed as an onion service nor https. Ignoring...");
 						return null;
 					}
 				}
 
-				IHttpClient httpClient = externalHttpClientFactory.NewHttpClient(() => payjoinEndPointUri, isolateStream: false);
+				IHttpClient httpClient = Services.ExternalHttpClientFactory.NewHttpClient(() => payjoinEndPointUri, isolateStream: false);
 				return new PayjoinClient(payjoinEndPointUri, httpClient);
 			}
 

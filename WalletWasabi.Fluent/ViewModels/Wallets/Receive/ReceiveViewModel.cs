@@ -10,8 +10,6 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Gui;
-using WalletWasabi.Stores;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
@@ -25,19 +23,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		NavigationTarget = NavigationTarget.DialogScreen)]
 	public partial class ReceiveViewModel : NavBarItemViewModel
 	{
-		private readonly UiConfig _uiConfig;
-
 		[AutoNotify] private ObservableCollection<string> _labels;
 		[AutoNotify] private HashSet<string> _suggestions;
 		[AutoNotify] private bool _isExistingAddressesButtonVisible;
 
-		public ReceiveViewModel(WalletViewModelBase wallet, WalletManager walletManager, BitcoinStore bitcoinStore, UiConfig uiConfig) : base(NavigationMode.Normal)
+		public ReceiveViewModel(WalletViewModelBase wallet) : base(NavigationMode.Normal)
 		{
-			_uiConfig = uiConfig;
 			WasabiWallet = wallet.Wallet;
-			_labels = new ObservableCollection<string>();
 
-			var allLabels = GetLabels(walletManager, bitcoinStore);
+			_labels = new ObservableCollection<string>();
+			var allLabels = GetLabels();
 			var mostUsedLabels = allLabels.GroupBy(x => x)
 				.Select(x => new
 				{
@@ -75,12 +70,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			Labels.Clear();
 
 			Navigate().To(new ReceiveAddressViewModel(newKey, WasabiWallet.Network, WasabiWallet.KeyManager.MasterFingerprint,
-				WasabiWallet.KeyManager.IsHardwareWallet, _uiConfig));
+				WasabiWallet.KeyManager.IsHardwareWallet));
 		}
 
 		private void OnShowExistingAddresses()
 		{
-			Navigate().To(new ReceiveAddressesViewModel(WasabiWallet, _uiConfig));
+			Navigate().To(new ReceiveAddressesViewModel(WasabiWallet, Suggestions));
 		}
 
 		public Wallet WasabiWallet { get; }
@@ -94,14 +89,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			IsExistingAddressesButtonVisible = WasabiWallet.KeyManager.GetKeys(x => !x.Label.IsEmpty && !x.IsInternal && x.KeyState == KeyState.Clean).Any();
 		}
 
-		private IEnumerable<string> GetLabels(WalletManager walletManager, BitcoinStore store)
+		private IEnumerable<string> GetLabels()
 		{
 			// Don't refresh wallet list as it may be slow.
-			IEnumerable<SmartLabel> labels = walletManager.GetWallets(refreshWalletList: false)
+			IEnumerable<SmartLabel> labels = Services.WalletManager.GetWallets(refreshWalletList: false)
 				.Select(x => x.KeyManager)
 				.SelectMany(x => x.GetLabels());
 
-			var txStore = store.TransactionStore;
+			var txStore = Services.BitcoinStore.TransactionStore;
 			if (txStore is { })
 			{
 				labels = labels.Concat(txStore.GetLabels());

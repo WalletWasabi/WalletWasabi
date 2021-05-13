@@ -8,11 +8,11 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
+using System.Windows.Input;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
-using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
-using WalletWasabi.Gui;
+using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 	{
 		[AutoNotify] private IList<TileViewModel> _tiles;
 
-		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
+		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
 			Disposables = Disposables is null
 				? new CompositeDisposable()
@@ -34,12 +34,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					.Select(_ => Unit.Default)
 					.Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed))
 						.Select(_ => Unit.Default))
-					.Merge(uiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
+					.Merge(Services.UiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
 					.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
 					.Throttle(TimeSpan.FromSeconds(0.1))
 					.ObserveOn(RxApp.MainThreadScheduler);
 
-			History = new HistoryViewModel(this, uiConfig, balanceChanged);
+			History = new HistoryViewModel(this, balanceChanged);
 
 			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged)
 			{
@@ -75,7 +75,23 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				WalletPieChart,
 				BalanceChartTile
 			};
+
+			SendCommand = ReactiveCommand.Create(() =>
+			{
+				Navigate(NavigationTarget.DialogScreen)
+					.To(new SendViewModel(this));
+			});
+
+			ReceiveCommand = ReactiveCommand.Create(() =>
+			{
+				Navigate(NavigationTarget.DialogScreen)
+					.To(new ReceiveViewModel(this));
+			});
 		}
+
+		public ICommand SendCommand { get; }
+
+		public ICommand ReceiveCommand { get; }
 
 		private CompositeDisposable Disposables { get; set; }
 
@@ -116,13 +132,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			History.Activate(disposables);
 		}
 
-		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet)
+		public static WalletViewModel Create(Wallet wallet)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new HardwareWalletViewModel(uiConfig, wallet)
+				? new HardwareWalletViewModel(wallet)
 				: wallet.KeyManager.IsWatchOnly
-					? new WatchOnlyWalletViewModel(uiConfig, wallet)
-					: new WalletViewModel(uiConfig, wallet);
+					? new WatchOnlyWalletViewModel(wallet)
+					: new WalletViewModel(wallet);
 		}
 	}
 }

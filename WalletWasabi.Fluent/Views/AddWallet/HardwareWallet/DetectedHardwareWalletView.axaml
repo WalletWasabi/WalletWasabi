@@ -16,10 +16,10 @@
                  EnableNext="False"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-    <c:QuestionControl QuestionContent="{Binding TypeName, StringFormat={}{0}  was detected. Is this correct?}"
+    <c:QuestionControl Content="{Binding TypeName, StringFormat={}{0}  was detected. Is this correct?}"
                        YesCommand="{Binding NextCommand}"
                        NoCommand="{Binding NoCommand}"
-                       Icon="{Binding Type, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}"
+                       ImageIcon="{Binding Type, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}"
                        HighlightButton="YesButton"/>
   </c:ContentArea>
 </UserControl>

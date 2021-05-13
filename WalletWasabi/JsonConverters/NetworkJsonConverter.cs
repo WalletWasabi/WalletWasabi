@@ -17,7 +17,7 @@ namespace WalletWasabi.JsonConverters
 		}
 
 		/// <inheritdoc />
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
 			// check additional strings that are not checked by GetNetwork
 			string networkString = ((string)reader.Value).Trim();
