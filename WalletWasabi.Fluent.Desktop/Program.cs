@@ -194,7 +194,6 @@ namespace WalletWasabi.Fluent.Desktop
 			if (Global is { } global)
 			{
 				await global.DisposeAsync().ConfigureAwait(false);
-
 			}
 		}
 
