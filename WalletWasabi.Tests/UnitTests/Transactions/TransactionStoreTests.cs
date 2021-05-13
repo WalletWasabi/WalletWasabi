@@ -24,6 +24,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.False(txStore.TryRemove(uint256.One, out _));
 			Assert.NotEmpty(txStore.WorkFolderPath);
 			Assert.True(File.Exists(Path.Combine(txStore.WorkFolderPath, "Transactions.dat")));
+
+			await txStore.DisposeAsync();
 		}
 
 		[Fact]
@@ -76,6 +78,8 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			txStore.TryAddOrUpdate(stx);
 			Assert.Single(txStore.GetTransactions());
 			Assert.Single(txStore.GetTransactionHashes());
+
+			await txStore.DisposeAsync();
 		}
 
 		private static async Task<TransactionStore> CreateTransactionStoreAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
