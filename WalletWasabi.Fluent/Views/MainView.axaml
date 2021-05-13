@@ -105,5 +105,25 @@
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
+    <Panel IsHitTestVisible="False" Background="#272931">
+      <Panel.Styles>
+        <Style Selector="Panel">
+          <Style.Animations>
+            <Animation Delay="0:0:4" Duration="0:0:5" Easing="QuadraticEaseOut" FillMode="Forward">
+              <KeyFrame KeyTime="0">
+                <Setter Property="Opacity" Value="1" />
+              </KeyFrame>
+              <KeyFrame KeyTime="0:0:3">
+                <Setter Property="Opacity" Value="1" />
+              </KeyFrame>
+              <KeyFrame KeyTime="0:0:5">
+                <Setter Property="Opacity" Value="0" />
+              </KeyFrame>
+            </Animation>
+          </Style.Animations>
+        </Style>
+      </Panel.Styles>
+      <Lottie Stretch="Uniform" RepeatCount="3" Source="avares://WalletWasabi.Fluent/Assets/loadscreen.json" />
+    </Panel>
   </Panel>
 </UserControl>
