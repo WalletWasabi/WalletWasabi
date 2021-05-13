@@ -206,15 +206,13 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 		private void CurrentPageChanged(NavBarItemViewModel x)
 		{
-			var walletManager = UiServices.WalletManager;
-
-			if (walletManager.Items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
+			if (UiServices.WalletManager.Items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
 			{
 				if (!_isNavigating)
 				{
 					_isNavigating = true;
 
-					var result = walletManager.SelectionChanged(x);
+					var result = UiServices.WalletManager.SelectionChanged(x);
 					if (result is not null)
 					{
 						SelectedItem = x;
