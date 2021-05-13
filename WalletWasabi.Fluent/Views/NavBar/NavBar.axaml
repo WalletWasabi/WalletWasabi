@@ -82,9 +82,9 @@
       <Border Padding="12" Margin="0 -10 0 0">
         <Panel>
           <Panel Width="45" HorizontalAlignment="Left">
-            <PathIcon Data="{StaticResource wasabi_logo}" HorizontalAlignment="Left" Height="20" Width="20" />
+            <PathIcon Data="{StaticResource wasabi_logo}" HorizontalAlignment="Left" Height="20" Width="20" Opacity="0.8" />
           </Panel>
-          <TextBlock Text="Wasabi Wallet" Classes="h6" VerticalAlignment="Center" FontWeight="SemiBold" Margin="55 0 0 0" />
+          <TextBlock Text="Wasabi Wallet" Classes="h6" VerticalAlignment="Center" FontWeight="Normal" Margin="55 0 0 0" />
         </Panel>
       </Border>
       <!-- TopItems List -->
@@ -141,27 +141,30 @@
       </c:NavBarListBox>
     </StackPanel>
     <!-- Items List -->
-    <c:NavBarListBox Items="{Binding Wallets}"
-                     SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                     Name="ItemsListBox"
-                     Classes="vertical draggable"
-                     RenderTransformOrigin="0%,50%"
-                     VerticalAlignment="Stretch">
-      <c:NavBarListBox.DataTemplates>
-        <DataTemplate DataType="vmw:WalletViewModelBase">
-          <Panel>
-            <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
-              <PathIcon HorizontalAlignment="Left">
-                <PathIcon.Data>
-                  <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
-                </PathIcon.Data>
-              </PathIcon>
-              <Ellipse IsVisible="{Binding IsLoggedIn, Mode=OneWay}" Width="9" Height="9" Margin="15,0,0,-13" Fill="#F2994A"/>
+    <DockPanel>
+      <TextBlock DockPanel.Dock="Top" Text="Wallets" FontSize="14" IsVisible="{Binding IsOpen}" Margin="15 15 0 12" Opacity="0.8" FontWeight="Light" />
+      <c:NavBarListBox Items="{Binding Wallets}"
+                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                       Name="ItemsListBox"
+                       Classes="vertical draggable"
+                       RenderTransformOrigin="0%,50%"
+                       VerticalAlignment="Stretch">
+        <c:NavBarListBox.DataTemplates>
+          <DataTemplate DataType="vmw:WalletViewModelBase">
+            <Panel>
+              <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
+                <PathIcon HorizontalAlignment="Left">
+                  <PathIcon.Data>
+                    <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                  </PathIcon.Data>
+                </PathIcon>
+                <Ellipse IsVisible="{Binding IsLoggedIn, Mode=OneWay}" Width="9" Height="9" Margin="15,0,0,-13" Fill="#F2994A"/>
+              </Panel>
+              <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" Margin="55 0 15 0" />
             </Panel>
-            <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
-          </Panel>
-        </DataTemplate>
-      </c:NavBarListBox.DataTemplates>
-    </c:NavBarListBox>
+          </DataTemplate>
+        </c:NavBarListBox.DataTemplates>
+      </c:NavBarListBox>
+    </DockPanel>
   </DockPanel>
 </UserControl>
