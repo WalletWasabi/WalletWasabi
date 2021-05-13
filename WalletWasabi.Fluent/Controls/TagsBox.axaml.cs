@@ -198,6 +198,13 @@ namespace WalletWasabi.Fluent.Controls
 				.DisposeWith(_compositeDisposable!);
 		}
 
+		protected override void OnGotFocus(GotFocusEventArgs e)
+		{
+			base.OnGotFocus(e);
+
+			_internalTextBox?.Focus();
+		}
+
 		private void CheckIsInputEnabled()
 		{
 			if (Items is IList x && ItemCountLimit > 0)

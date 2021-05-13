@@ -22,6 +22,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 				ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Address));
 			HideAddressCommand =
 				ReactiveCommand.CreateFromTask(async () => await parent.HideAddressAsync(model, Address));
+			EditLabelCommand =
+				ReactiveCommand.Create(() => parent.NavigateToAddressEdit(model, parent.Wallet.KeyManager));
 
 			NavigateCommand = ReactiveCommand.Create(() =>
 			{
@@ -37,6 +39,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		public ICommand CopyAddressCommand { get; }
 
 		public ICommand HideAddressCommand { get; }
+
+		public ICommand EditLabelCommand { get; }
 
 		public ReactiveCommand<Unit, Unit> NavigateCommand { get; }
 	}

@@ -97,9 +97,6 @@ namespace WalletWasabi.Fluent.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsMainContentEnabled = !x);
 
-			_walletManagerViewModel.WhenAnyValue(x => x.Items.Count, x => x.Actions.Count)
-				.Subscribe(x => _navBar.IsHidden = x.Item1 == 0 && x.Item2 == 0);
-
 			if (!Services.WalletManager.HasWallet())
 			{
 				_dialogScreen.To(_addWalletPage, NavigationMode.Clear);

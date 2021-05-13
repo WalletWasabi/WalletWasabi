@@ -65,7 +65,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 		private void OnShowExistingAddresses()
 		{
-			Navigate().To(new ReceiveAddressesViewModel(WasabiWallet));
+			Navigate().To(new ReceiveAddressesViewModel(WasabiWallet, Suggestions));
 		}
 
 		public Wallet WasabiWallet { get; }
