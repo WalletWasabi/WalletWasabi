@@ -17,10 +17,12 @@
                           FontSize="{TemplateBinding FontSize}"
                           DockPanel.Dock="Bottom"
                           Margin="0 10 0 50" />
-          <Viewbox MaxHeight="150" DockPanel.Dock="Top">
-            <Image Height="100" Source="{TemplateBinding Icon}" />
-          </Viewbox>
-          <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" DockPanel.Dock="Top"/>
+            <Panel DockPanel.Dock="Top">
+              <Viewbox MaxHeight="150">
+                <Image Height="100" Source="{TemplateBinding Icon}" />
+              </Viewbox>
+              <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" DockPanel.Dock="Top"/>
+            </Panel>
         </DockPanel>
       </ControlTemplate>
     </Setter>
