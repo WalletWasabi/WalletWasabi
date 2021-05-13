@@ -31,6 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			WalletState = wallet.State;
 
 			OpenCommand = ReactiveCommand.Create(() => Navigate().To(this, NavigationMode.Clear));
+
 		}
 
 		public override string Title

@@ -107,8 +107,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		private CompositeDisposable Disposables { get; set; }
 
-		public override string IconName => "web_asset_regular";
-
 		public HistoryViewModel History { get; }
 
 		public WalletBalanceTileViewModel BalanceTile { get; }
