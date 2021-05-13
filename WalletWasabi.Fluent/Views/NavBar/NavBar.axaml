@@ -6,7 +6,6 @@
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.NavBar"
              xmlns:vmw="using:WalletWasabi.Fluent.ViewModels.Wallets"
-             xmlns:vmwa="using:WalletWasabi.Fluent.ViewModels.Wallets.Actions"
              x:DataType="vm:NavBarViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
@@ -109,141 +108,6 @@
         </c:NavBarListBox.ItemTemplate>
       </c:NavBarListBox>
       <Separator />
-      <!-- Selected Wallet List -->
-      <c:NavBarListBox Items="{Binding SelectedWallets}"
-                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                       Name="SelectedWalletListBox"
-                       Classes="vertical"
-                       RenderTransformOrigin="0%,50%">
-        <c:NavBarListBox.Styles>
-          <Style Selector=":is(ListBox):not(:empty)">
-            <Style.Animations>
-              <Animation Delay="0:0:0.0" Duration="0:0:0.175">
-                <KeyFrame Cue="0%">
-                  <Setter Property="Opacity" Value="0.0"/>
-                </KeyFrame>
-                <KeyFrame Cue="0.1%" KeySpline="{StaticResource FluentKeySpline}">
-                  <Setter Property="TranslateTransform.X" Value="-40"/>
-                  <Setter Property="ScaleTransform.ScaleX" Value="0.98"/>
-                  <Setter Property="ScaleTransform.ScaleY" Value="0.98"/>
-                </KeyFrame>
-                <KeyFrame Cue="99%">
-                  <Setter Property="Opacity" Value="1.0"/>
-                </KeyFrame>
-                <KeyFrame Cue="100%" KeySpline="{StaticResource FluentKeySpline}">
-                  <Setter Property="TranslateTransform.X" Value="0"/>
-                  <Setter Property="ScaleTransform.ScaleX" Value="1"/>
-                  <Setter Property="ScaleTransform.ScaleY" Value="1"/>
-                </KeyFrame>
-              </Animation>
-            </Style.Animations>
-          </Style>
-        </c:NavBarListBox.Styles>
-        <c:NavBarListBox.DataTemplates>
-          <DataTemplate DataType="vmw:WalletViewModelBase">
-            <Panel>
-              <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
-                <PathIcon HorizontalAlignment="Left">
-                  <PathIcon.Data>
-                    <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
-                  </PathIcon.Data>
-                </PathIcon>
-                <Ellipse IsVisible="{Binding IsLoggedIn, Mode=OneWay}" Width="9" Height="9" Margin="15,0,0,-13" Fill="#F2994A"/>
-              </Panel>
-              <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
-            </Panel>
-          </DataTemplate>
-          <DataTemplate DataType="vm:NavBarItemViewModel">
-            <Panel>
-              <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
-                <PathIcon HorizontalAlignment="Left">
-                  <PathIcon.Data>
-                    <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
-                  </PathIcon.Data>
-                </PathIcon>
-              </Panel>
-              <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
-            </Panel>
-          </DataTemplate>
-        </c:NavBarListBox.DataTemplates>
-      </c:NavBarListBox>
-      <!-- Actions List -->
-      <c:NavBarListBox Items="{Binding Actions}"
-                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                       Name="ActionsListBox"
-                       Classes="horizontal"
-                       RenderTransformOrigin="0%,50%">
-        <c:NavBarListBox.Styles>
-          <Style Selector=":is(ListBox)">
-            <Setter Property="ItemsPanel">
-              <Setter.Value>
-                <ItemsPanelTemplate>
-                  <StackPanel Orientation="{Binding HideItems, Mode=OneWay, Converter={x:Static conv:NavBarActionsOrientationConverter.Instance}}" HorizontalAlignment="Left" />
-                </ItemsPanelTemplate>
-              </Setter.Value>
-            </Setter>
-          </Style>
-          <Style Selector=":is(ListBox):not(:empty)">
-            <Style.Animations>
-              <Animation Delay="0:0:0.0" Duration="0:0:0.175">
-                <KeyFrame Cue="0%">
-                  <Setter Property="Opacity" Value="0.0"/>
-                </KeyFrame>
-                <KeyFrame Cue="0.1%" KeySpline="{StaticResource FluentKeySpline}">
-                  <Setter Property="TranslateTransform.X" Value="-40"/>
-                  <Setter Property="ScaleTransform.ScaleX" Value="0.98"/>
-                  <Setter Property="ScaleTransform.ScaleY" Value="0.98"/>
-                </KeyFrame>
-                <KeyFrame Cue="99%">
-                  <Setter Property="Opacity" Value="1.0"/>
-                </KeyFrame>
-                <KeyFrame Cue="100%" KeySpline="{StaticResource FluentKeySpline}">
-                  <Setter Property="TranslateTransform.X" Value="0"/>
-                  <Setter Property="ScaleTransform.ScaleX" Value="1"/>
-                  <Setter Property="ScaleTransform.ScaleY" Value="1"/>
-                </KeyFrame>
-              </Animation>
-            </Style.Animations>
-          </Style>
-        </c:NavBarListBox.Styles>
-        <c:NavBarListBox.DataTemplates>
-          <DataTemplate DataType="vm:NavBarItemViewModel">
-            <Panel>
-              <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
-                <PathIcon HorizontalAlignment="Left">
-                  <PathIcon.Data>
-                    <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
-                  </PathIcon.Data>
-                </PathIcon>
-              </Panel>
-            </Panel>
-          </DataTemplate>
-        </c:NavBarListBox.DataTemplates>
-      </c:NavBarListBox>
-      <!-- Actions Separator -->
-      <Separator>
-        <Separator.IsVisible>
-          <MultiBinding Converter="{x:Static BoolConverters.And}">
-            <Binding Path="!!Actions.Count" />
-            <Binding Path="!!Items.Count" />
-            <Binding Path="!HideItems" />
-          </MultiBinding>
-        </Separator.IsVisible>
-        <Separator.Styles>
-          <Style Selector="Separator[IsVisible=True]">
-            <Style.Animations>
-              <Animation Delay="0:0:0.0" Duration="0:0:0.175">
-                <KeyFrame Cue="0%">
-                  <Setter Property="Opacity" Value="0.0"/>
-                </KeyFrame>
-                <KeyFrame Cue="100%">
-                  <Setter Property="Opacity" Value="1.0"/>
-                </KeyFrame>
-              </Animation>
-            </Style.Animations>
-          </Style>
-        </Separator.Styles>
-      </Separator>
     </StackPanel>
     <StackPanel DockPanel.Dock="Bottom">
       <Separator />
@@ -277,59 +141,12 @@
       </c:NavBarListBox>
     </StackPanel>
     <!-- Items List -->
-    <c:NavBarListBox Items="{Binding Items}"
+    <c:NavBarListBox Items="{Binding Wallets}"
                      SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                     IsVisible="{Binding !HideItems, Mode=OneWay}"
                      Name="ItemsListBox"
-                     Classes="vertical"
+                     Classes="vertical draggable"
                      RenderTransformOrigin="0%,50%"
-                     VerticalAlignment="{Binding Actions.Count, Mode=OneWay, Converter={x:Static conv:NavBarItemsListBoxAlignmentConverter.Instance}}">
-      <c:NavBarListBox.Styles>
-        <Style Selector=":is(ListBox)[VerticalAlignment=Bottom]">
-          <Style.Animations>
-            <Animation Delay="0:0:0.1" Duration="0:0:0.175">
-              <KeyFrame Cue="0%">
-                <Setter Property="Opacity" Value="0.0"/>
-              </KeyFrame>
-              <KeyFrame Cue="0.1%" KeySpline="{StaticResource FluentKeySpline}">
-                <Setter Property="TranslateTransform.X" Value="-40"/>
-                <Setter Property="ScaleTransform.ScaleX" Value="0.98"/>
-                <Setter Property="ScaleTransform.ScaleY" Value="0.98"/>
-              </KeyFrame>
-              <KeyFrame Cue="99%">
-                <Setter Property="Opacity" Value="1.0"/>
-              </KeyFrame>
-              <KeyFrame Cue="100%" KeySpline="{StaticResource FluentKeySpline}">
-                <Setter Property="TranslateTransform.X" Value="0"/>
-                <Setter Property="ScaleTransform.ScaleX" Value="1"/>
-                <Setter Property="ScaleTransform.ScaleY" Value="1"/>
-              </KeyFrame>
-            </Animation>
-          </Style.Animations>
-        </Style>
-        <Style Selector=":is(ListBox)[VerticalAlignment=Top]">
-          <Style.Animations>
-            <Animation Delay="0:0:0.0" Duration="0:0:0.175">
-              <KeyFrame Cue="0%">
-                <Setter Property="Opacity" Value="0.0"/>
-              </KeyFrame>
-              <KeyFrame Cue="0.1%" KeySpline="{StaticResource FluentKeySpline}">
-                <Setter Property="TranslateTransform.X" Value="-40"/>
-                <Setter Property="ScaleTransform.ScaleX" Value="0.98"/>
-                <Setter Property="ScaleTransform.ScaleY" Value="0.98"/>
-              </KeyFrame>
-              <KeyFrame Cue="99%">
-                <Setter Property="Opacity" Value="1.0"/>
-              </KeyFrame>
-              <KeyFrame Cue="100%" KeySpline="{StaticResource FluentKeySpline}">
-                <Setter Property="TranslateTransform.X" Value="0"/>
-                <Setter Property="ScaleTransform.ScaleX" Value="1"/>
-                <Setter Property="ScaleTransform.ScaleY" Value="1"/>
-              </KeyFrame>
-            </Animation>
-          </Style.Animations>
-        </Style>
-      </c:NavBarListBox.Styles>
+                     VerticalAlignment="Stretch">
       <c:NavBarListBox.DataTemplates>
         <DataTemplate DataType="vmw:WalletViewModelBase">
           <Panel>
