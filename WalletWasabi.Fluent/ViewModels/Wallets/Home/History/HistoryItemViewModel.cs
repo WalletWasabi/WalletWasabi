@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			Balance = balance;
 			var wallet = walletViewModel.Wallet;
 
-			var confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int) wallet.BitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
+			var confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int)wallet.BitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
 			IsConfirmed = confirmations > 0;
 
 			var amount = transactionSummary.Amount;

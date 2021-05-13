@@ -120,7 +120,7 @@ namespace WalletWasabi.Fluent.ViewModels
 				{
 					var (sender, e) = arg;
 
-					if (uiConfig.PrivacyMode || !e.IsNews || sender is not Wallet {IsLoggedIn: true, State: WalletState.Started} wallet)
+					if (uiConfig.PrivacyMode || !e.IsNews || sender is not Wallet { IsLoggedIn: true, State: WalletState.Started } wallet)
 					{
 						return;
 					}

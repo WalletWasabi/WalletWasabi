@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
@@ -62,21 +62,21 @@ namespace WalletWasabi.Fluent.Helpers
 		{
 			const int WholeGroupSize = 3;
 
-            var moneyString = money.ToString();
+			var moneyString = money.ToString();
 
-            moneyString = moneyString.Insert(moneyString.Length - 4, " ");
+			moneyString = moneyString.Insert(moneyString.Length - 4, " ");
 
-            var startIndex = moneyString.IndexOf(".", StringComparison.Ordinal) - WholeGroupSize;
+			var startIndex = moneyString.IndexOf(".", StringComparison.Ordinal) - WholeGroupSize;
 
-            if (startIndex > 0)
-            {
-            	for (var i = startIndex; i > 0; i -= WholeGroupSize)
-            	{
-            		moneyString = moneyString.Insert(i, " ");
-            	}
-            }
+			if (startIndex > 0)
+			{
+				for (var i = startIndex; i > 0; i -= WholeGroupSize)
+				{
+					moneyString = moneyString.Insert(i, " ");
+				}
+			}
 
-            return moneyString;
+			return moneyString;
 		}
 	}
 }
