@@ -110,6 +110,23 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _items;
 
+		public WalletViewModel GetWalletViewModel(Wallet wallet)
+		{
+			WalletViewModel? result = null;
+
+			if (_walletDictionary.ContainsKey(wallet))
+			{
+				result = _walletDictionary[wallet] as WalletViewModel;
+			}
+
+			if (result is { })
+			{
+				return result;
+			}
+
+			throw new Exception("Wallet not found, invalid api usage");
+		}
+
 		public async Task LoadWalletAsync(ClosedWalletViewModel closedWalletViewModel)
 		{
 			var wallet = closedWalletViewModel.Wallet;

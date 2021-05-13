@@ -32,7 +32,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		[AutoNotify] private string _walletName = "";
 		[AutoNotify] private bool _optionsEnabled;
 
-		public AddWalletPageViewModel(WalletManagerViewModel walletManagerViewModel)
+		public AddWalletPageViewModel()
 		{
 			SelectionMode = NavBarItemSelectionMode.Button;
 
@@ -52,11 +52,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 				.Select(x => !string.IsNullOrWhiteSpace(x))
 				.Subscribe(x => OptionsEnabled = x && !Validations.Any);
 
-			RecoverWalletCommand = ReactiveCommand.Create(() => OnRecoverWallet(walletManagerViewModel));
+			RecoverWalletCommand = ReactiveCommand.Create(() => OnRecoverWallet());
 
 			ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnImportWalletAsync());
 
-			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => OnConnectHardwareWallet(walletManagerViewModel));
+			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => OnConnectHardwareWallet());
 
 			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnCreateWalletAsync());
 
@@ -102,14 +102,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public ICommand ConnectHardwareWalletCommand { get; }
 
-		private void OnRecoverWallet(WalletManagerViewModel walletManagerViewModel)
+		private void OnRecoverWallet()
 		{
 			Navigate().To(new RecoverWalletViewModel(WalletName));
 		}
 
-		private void OnConnectHardwareWallet(WalletManagerViewModel walletManagerViewModel)
+		private void OnConnectHardwareWallet()
 		{
-			Navigate().To(new ConnectHardwareWalletViewModel(WalletName, walletManagerViewModel));
+			Navigate().To(new ConnectHardwareWalletViewModel(WalletName));
 		}
 
 		private async Task OnImportWalletAsync()

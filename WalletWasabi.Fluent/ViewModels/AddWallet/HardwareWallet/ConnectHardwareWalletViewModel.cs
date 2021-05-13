@@ -27,11 +27,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		[AutoNotify] private bool _existingWalletFound;
 		[AutoNotify] private bool _confirmationRequired;
 
-		public ConnectHardwareWalletViewModel(string walletName, WalletManagerViewModel walletManagerViewModel)
+		public ConnectHardwareWalletViewModel(string walletName)
 		{
 			_message = "";
 			WalletName = walletName;
-			Wallets = walletManagerViewModel.Wallets;
+			Wallets = UiServices.WalletManager.Wallets;
 			AbandonedTasks = new AbandonedTasks();
 			CancelCts = new CancellationTokenSource();
 
