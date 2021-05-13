@@ -33,7 +33,7 @@ namespace WalletWasabi.Fluent.Helpers
 			var currentTime = startFrom ?? timeSampler(source.First());
 
 			var lastFound = startFrom is { }
-				? (timestamp: currentTime, result: sampler(source.FirstOrDefault(x=>timeSampler(x) <= currentTime)!))
+				? (timestamp: currentTime, result: sampler(source.FirstOrDefault(x => timeSampler(x) <= currentTime)!))
 				: (timestamp: currentTime, result: sampler(source.First()));
 
 			yield return lastFound;

@@ -20,7 +20,8 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task RegisterOutputAsync(Money amount, Script scriptPubKey, IEnumerable<Credential> amountCredential, IEnumerable<Credential> vsizeCredential, CancellationToken cancellationToken)
 		{
-			await ArenaClient.RegisterOutputAsync(
+			// TODO: what to do with the credentials returned?
+			var response = await ArenaClient.RegisterOutputAsync(
 				RoundId,
 				amount.Satoshi,
 				scriptPubKey,

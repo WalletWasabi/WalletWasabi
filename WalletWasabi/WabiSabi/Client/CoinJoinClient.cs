@@ -22,8 +22,8 @@ namespace WalletWasabi.WabiSabi.Client
 	public class CoinJoinClient : BackgroundService, IDisposable
 	{
 		private bool _disposedValue;
-		private CredentialPool AmountCredentialPool { get; } = new();
-		private CredentialPool VsizeCredentialPool { get; } = new();
+		private ZeroCredentialPool ZeroAmountCredentialPool { get; } = new();
+		private ZeroCredentialPool ZeroVsizeCredentialPool { get; } = new();
 		private ClientRound Round { get; }
 		public IArenaRequestHandler ArenaRequestHandler { get; }
 		public Kitchen Kitchen { get; }
@@ -65,7 +65,7 @@ namespace WalletWasabi.WabiSabi.Client
 				var decompositionPlan = DecomposeAmounts(constructionState, stoppingToken);
 
 				// Output registration.
-				await ReissueAndRegisterOutputsAsync(decompositionPlan, stoppingToken).ConfigureAwait(false);
+				await RegisterOutputsAsync(null, stoppingToken).ConfigureAwait(false);
 
 				SigningState signingState = Round.CoinjoinState.AssertSigning();
 				var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
@@ -95,8 +95,8 @@ namespace WalletWasabi.WabiSabi.Client
 				var aliceArenaClient = new ArenaClient(
 					Round.AmountCredentialIssuerParameters,
 					Round.VsizeCredentialIssuerParameters,
-					AmountCredentialPool,
-					VsizeCredentialPool,
+					ZeroAmountCredentialPool,
+					ZeroVsizeCredentialPool,
 					ArenaRequestHandler,
 					SecureRandom);
 
@@ -157,46 +157,25 @@ namespace WalletWasabi.WabiSabi.Client
 			return confirmedAliceClients;
 		}
 
-		private async Task ReissueAndRegisterOutputsAsync(IEnumerable<(Money Amount, HdPubKey Pubkey)> outputs, CancellationToken stoppingToken)
+		private async Task RegisterOutputsAsync(IEnumerable<(Money Amount, HdPubKey Pubkey, Credential amountCredential, Credential vsizeCredential)> outputs, CancellationToken stoppingToken)
 		{
 			ArenaClient bobArenaClient = new(
 				Round.AmountCredentialIssuerParameters,
 				Round.VsizeCredentialIssuerParameters,
-				AmountCredentialPool,
-				VsizeCredentialPool,
+				ZeroAmountCredentialPool,
+				ZeroVsizeCredentialPool,
 				ArenaRequestHandler,
 				SecureRandom);
 
 			BobClient bobClient = new(Round.Id, bobArenaClient);
 
-			Money remaining = outputs.Sum(o => o.Amount);
-
-			var remainingAmountCredentials = AmountCredentialPool.Valuable.Single();
-			var remainingVsizeCredentials = VsizeCredentialPool.Valuable.Single();
-
 			foreach (var output in outputs)
 			{
-				var justNeedtheSize = output.Pubkey.PubKey.WitHash.ScriptPubKey;
-				remaining -= output.Amount;
-
-				var result = await bobArenaClient.ReissueCredentialAsync(
-					Round.Id,
-					output.Amount,
-					output.Pubkey.PubKey.WitHash.ScriptPubKey,
-					remaining,
-					justNeedtheSize,
-					new[] { remainingAmountCredentials },
-					new[] { remainingVsizeCredentials },
-					stoppingToken).ConfigureAwait(false);
-
-				remainingAmountCredentials = result.RealAmountCredentials.Last();
-				remainingVsizeCredentials = result.RealVsizeCredentials.Last();
-
 				await bobClient.RegisterOutputAsync(
 					output.Amount,
 					output.Pubkey.PubKey.WitHash.ScriptPubKey,
-					new[] { result.RealAmountCredentials.First() },
-					new[] { result.RealVsizeCredentials.First() },
+					new[] { output.amountCredential },
+					new[] { output.vsizeCredential },
 					stoppingToken).ConfigureAwait(false);
 
 				await Task.Delay(Random.Next(0, 1000), stoppingToken).ConfigureAwait(false);

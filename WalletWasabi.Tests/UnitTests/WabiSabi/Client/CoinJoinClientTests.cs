@@ -43,8 +43,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				});
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
 
-			CredentialPool amountCredentials = new();
-			CredentialPool vsizeCredentials = new();
+			ZeroCredentialPool amountCredentials = new();
+			ZeroCredentialPool vsizeCredentials = new();
 
 			string password = "whiterabbit";
 			var km = ServiceFactory.CreateKeyManager(password);

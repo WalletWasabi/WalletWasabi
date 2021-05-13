@@ -45,7 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			_global = global;
 			_legalChecker = global.LegalChecker;
-			_windowState = (WindowState) Enum.Parse(typeof(WindowState), _global.UiConfig.WindowState);
+			_windowState = (WindowState)Enum.Parse(typeof(WindowState), _global.UiConfig.WindowState);
 			_dialogScreen = new DialogScreenViewModel();
 
 			_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
@@ -113,9 +113,6 @@ namespace WalletWasabi.Fluent.ViewModels
 			this.WhenAnyValue(x => x.CompactDialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsMainContentEnabled = !x);
-
-			_walletManagerViewModel.WhenAnyValue(x => x.Items.Count, x => x.Actions.Count)
-				.Subscribe(x => _navBar.IsHidden = x.Item1 == 0 && x.Item2 == 0);
 
 			if (!_walletManagerViewModel.WalletManager.HasWallet())
 			{
