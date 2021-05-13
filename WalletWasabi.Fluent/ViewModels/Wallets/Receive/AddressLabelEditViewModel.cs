@@ -11,13 +11,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 	{
 		[AutoNotify] private ObservableCollection<string> _labels;
 
-		public AddressLabelEditViewModel(HdPubKey hdPubKey, KeyManager keyManager)
+		public AddressLabelEditViewModel(ReceiveAddressesViewModel owner, HdPubKey hdPubKey, KeyManager keyManager)
 		{
 			_labels = new(hdPubKey.Label);
 
 			NextCommand = ReactiveCommand.Create(() =>
 			{
 				hdPubKey.SetLabel(new SmartLabel(Labels), kmToFile: keyManager);
+				owner.InitializeAddresses();
 				Navigate().Back();
 			});
 		}
