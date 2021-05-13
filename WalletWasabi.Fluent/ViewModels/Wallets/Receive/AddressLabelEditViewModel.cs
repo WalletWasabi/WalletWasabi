@@ -15,6 +15,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		{
 			_labels = new(hdPubKey.Label);
 
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+
 			NextCommand = ReactiveCommand.Create(() =>
 			{
 				hdPubKey.SetLabel(new SmartLabel(Labels), kmToFile: keyManager);
