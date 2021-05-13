@@ -64,7 +64,7 @@ namespace WalletWasabi.Fluent.ViewModels
 
 			_walletManagerViewModel = new WalletManagerViewModel();
 			_addWalletPage = new AddWalletPageViewModel(_walletManagerViewModel);
-			_settingsPage = new SettingsPageViewModel(Services.Config, Services.UiConfig);
+			_settingsPage = new SettingsPageViewModel();
 			_privacyMode = new PrivacyModeViewModel();
 			_searchPage = new SearchPageViewModel();
 			_navBar = new NavBarViewModel(MainScreen, _walletManagerViewModel);
