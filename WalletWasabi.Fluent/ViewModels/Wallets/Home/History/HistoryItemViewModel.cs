@@ -9,8 +9,10 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 {
-	public class HistoryItemViewModel
+	public class HistoryItemViewModel : ViewModelBase
 	{
+		private bool _isSelected;
+
 		public HistoryItemViewModel(int orderIndex, TransactionSummary transactionSummary, WalletViewModel walletViewModel, Money balance, IObservable<Unit> updateTrigger)
 		{
 			TransactionSummary = transactionSummary;
@@ -20,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			Balance = balance;
 			var wallet = walletViewModel.Wallet;
 
-			var confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int) wallet.BitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
+			var confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int)wallet.BitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
 			IsConfirmed = confirmations > 0;
 
 			var amount = transactionSummary.Amount;
@@ -53,5 +55,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		public Money? OutgoingAmount { get; }
 
 		public bool IsCoinJoin { get; }
+
+		public bool IsSelected
+		{
+			get => _isSelected;
+			set => this.RaiseAndSetIfChanged(ref _isSelected, value);
+		}
 	}
 }

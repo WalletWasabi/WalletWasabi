@@ -21,16 +21,18 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	[NavigationMetaData(Title = "Transaction Preview")]
 	public partial class TransactionPreviewViewModel : RoutableViewModel
 	{
+		private readonly WalletViewModel _owner;
 		private readonly Wallet _wallet;
 		private readonly TransactionInfo _info;
 
 		[AutoNotify] private string _confirmationTimeText;
 		[AutoNotify] private SmartLabel _labels;
 
-		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, TransactionBroadcaster broadcaster,
+		public TransactionPreviewViewModel(WalletViewModel owner, TransactionInfo info, TransactionBroadcaster broadcaster,
 			BuildTransactionResult transaction)
 		{
-			_wallet = wallet;
+			_owner = owner;
+			_wallet = owner.Wallet;
 			_info = info;
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
@@ -38,20 +40,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			var destinationAmount = transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 			var btcAmountText = $"{destinationAmount} bitcoins ";
-			var fiatAmountText = destinationAmount.GenerateFiatText(wallet.Synchronizer.UsdExchangeRate, "USD");
+			var fiatAmountText = destinationAmount.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 			AmountText = $"{btcAmountText}{fiatAmountText}";
 
 			AddressText = info.Address.ToString();
 
 			var fee = transaction.Fee;
 			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
-			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(wallet.Synchronizer.UsdExchangeRate, "USD");
+			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
 			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 			IsPayJoin = PayJoinUrl is not null;
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(wallet, broadcaster, transaction));
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(_wallet, broadcaster, transaction));
 		}
 
 		public string AmountText { get; }
@@ -86,7 +88,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				{
 					var finalTransaction = await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
 					await SendTransactionAsync(wallet, broadcaster, finalTransaction);
-					Navigate().To(new SendSuccessViewModel());
+					Navigate().To(new SendSuccessViewModel(_owner, finalTransaction));
 				}
 				catch (Exception ex)
 				{

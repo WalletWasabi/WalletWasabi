@@ -35,7 +35,8 @@ namespace WalletWasabi.Tests.UnitTests
 			tx.LockTime = LockTime.Zero;
 			tx.Inputs.Add(GetRandomOutPoint(), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
 			tx.Inputs.Add(GetRandomOutPoint(), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
-			tx.Outputs.Add(Money.Coins(1.9995m), new Key().ScriptPubKey);
+			using var key = new Key();
+			tx.Outputs.Add(Money.Coins(1.9995m), key.ScriptPubKey);
 
 			// Under normal circunstances
 			{

@@ -45,7 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		{
 			_global = global;
 			_legalChecker = global.LegalChecker;
-			_windowState = (WindowState) Enum.Parse(typeof(WindowState), _global.UiConfig.WindowState);
+			_windowState = (WindowState)Enum.Parse(typeof(WindowState), _global.UiConfig.WindowState);
 			_dialogScreen = new DialogScreenViewModel();
 
 			_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);

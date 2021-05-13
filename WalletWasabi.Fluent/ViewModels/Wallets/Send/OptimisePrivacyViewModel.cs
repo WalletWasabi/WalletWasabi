@@ -28,10 +28,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private bool _exactAmountWarningVisible;
 		private PrivacySuggestionControlViewModel? _defaultSelection;
 
-		public OptimisePrivacyViewModel(Wallet wallet,
+		public OptimisePrivacyViewModel(WalletViewModel owner,
 			TransactionInfo transactionInfo, TransactionBroadcaster broadcaster, BuildTransactionResult requestedTransaction)
 		{
-			_wallet = wallet;
+			_wallet = owner.Wallet;
 			_requestedTransaction = requestedTransaction;
 			_transactionInfo = transactionInfo;
 
@@ -45,13 +45,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			EnableBack = true;
 
 			NextCommand = ReactiveCommand.Create(
-				() => OnNext(wallet, transactionInfo, broadcaster),
+				() => OnNext(owner, transactionInfo, broadcaster),
 				this.WhenAnyValue(x => x.SelectedPrivacySuggestion).Select(x => x is { }));
 		}
 
-		private void OnNext(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
+		private void OnNext(WalletViewModel owner, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
 		{
-			Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster,
+			Navigate().To(new TransactionPreviewViewModel(owner, transactionInfo, broadcaster,
 				SelectedPrivacySuggestion!.TransactionResult));
 		}
 

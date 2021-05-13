@@ -66,7 +66,8 @@ namespace WalletWasabi.Tests.RegressionTests
 			var bestBlock = await rpc.GetBlockAsync(bestBlockHash);
 			var coinbaseTxId = bestBlock.Transactions[0].GetHash();
 			var offchainTxId = network.Consensus.ConsensusFactory.CreateTransaction().GetHash();
-			var mempoolTxId = await rpc.SendToAddressAsync(new Key().PubKey.GetSegwitAddress(network), Money.Coins(1));
+			using var key = new Key();
+			var mempoolTxId = await rpc.SendToAddressAsync(key.PubKey.GetSegwitAddress(network), Money.Coins(1));
 
 			var folder = Helpers.Common.GetWorkDir();
 			await IoHelpers.TryDeleteDirectoryAsync(folder);
@@ -1380,7 +1381,6 @@ namespace WalletWasabi.Tests.RegressionTests
 			// 3. Create wasabi synchronizer service.
 			using HttpClientFactory httpClientFactory = new(torEndPoint: null, backendUriGetter: () => new Uri(RegTestFixture.BackendEndPoint));
 			WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
-			FilterProcessor filterProcessor = new(synchronizer, bitcoinStore);
 			HybridFeeProvider feeProvider = new(synchronizer, null);
 
 			// 4. Create key manager service.
@@ -1425,7 +1425,6 @@ namespace WalletWasabi.Tests.RegressionTests
 				node.VersionHandshake(); // Start mempool service.
 				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), 10000); // Start wasabi synchronizer service.
 
-				await filterProcessor.StartAsync(CancellationToken.None);
 				await feeProvider.StartAsync(CancellationToken.None);
 
 				nodes2.Connect(); // Start connection service.
@@ -1533,7 +1532,6 @@ namespace WalletWasabi.Tests.RegressionTests
 				node?.Disconnect();
 				await wallet2.StopAsync(CancellationToken.None);
 				await synchronizer.StopAsync();
-				await filterProcessor.StopAsync(CancellationToken.None);
 				await feeProvider.StopAsync(CancellationToken.None);
 				nodes2?.Dispose();
 			}
