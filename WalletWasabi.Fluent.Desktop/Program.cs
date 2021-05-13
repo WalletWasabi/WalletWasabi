@@ -72,6 +72,8 @@ namespace WalletWasabi.Fluent.Desktop
 					// TODO only required due to statusbar vm... to be removed.
 					Locator.CurrentMutable.RegisterConstant(Global);
 
+					InitializeServices(Global);
+
 					Logger.LogSoftwareStarted("Wasabi GUI");
 					BuildAvaloniaApp()
 						.AfterSetup(_ => ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light))
@@ -109,6 +111,26 @@ namespace WalletWasabi.Fluent.Desktop
 			Logger.LogSoftwareStopped("Wasabi");
 
 			return exceptionToReport is { } ? 1 : 0;
+		}
+
+		/// <summary>
+		/// Initializes global services used by fluent project.
+		/// </summary>
+		/// <param name="global">The global instance.</param>
+		private static void InitializeServices(Global global)
+		{
+			Services.DataDir = global.DataDir;
+			Services.TorSettings = global.TorSettings;
+			Services.BitcoinStore = global.BitcoinStore;
+			Services.ExternalHttpClientFactory = global.ExternalHttpClientFactory;
+			Services.LegalChecker = global.LegalChecker;
+			Services.Config = global.Config;
+			Services.Synchronizer = global.Synchronizer;
+			Services.WalletManager = global.WalletManager;
+			Services.TransactionBroadcaster = global.TransactionBroadcaster;
+			Services.HostedServices = global.HostedServices;
+			Services.UiConfig = global.UiConfig;
+			Services.IsInitialized = true;
 		}
 
 		/// <summary>
@@ -172,6 +194,7 @@ namespace WalletWasabi.Fluent.Desktop
 			if (Global is { } global)
 			{
 				await global.DisposeAsync().ConfigureAwait(false);
+
 			}
 		}
 
@@ -196,7 +219,7 @@ namespace WalletWasabi.Fluent.Desktop
 		{
 			bool useGpuLinux = true;
 
-			var result = AppBuilder.Configure(() => new App(Program.Global, async () => await Program.Global.InitializeNoWalletAsync(TerminateService)))
+			var result = AppBuilder.Configure(() => new App(async () => await Program.Global.InitializeNoWalletAsync(TerminateService)))
 				.UseReactiveUI();
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

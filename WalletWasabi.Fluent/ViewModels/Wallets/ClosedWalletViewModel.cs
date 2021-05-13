@@ -23,7 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		protected ClosedWalletViewModel(WalletManagerViewModel walletManagerViewModel, Wallet wallet)
 			: base(wallet)
 		{
-			_smartHeaderChain = walletManagerViewModel.BitcoinStore.SmartHeaderChain;
+			_smartHeaderChain = Services.BitcoinStore.SmartHeaderChain;
 
 			OpenCommand = ReactiveCommand.Create(() => OnOpen(walletManagerViewModel));
 		}

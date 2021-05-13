@@ -29,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private PrivacySuggestionControlViewModel? _defaultSelection;
 
 		public OptimisePrivacyViewModel(WalletViewModel owner,
-			TransactionInfo transactionInfo, TransactionBroadcaster broadcaster, BuildTransactionResult requestedTransaction)
+			TransactionInfo transactionInfo, BuildTransactionResult requestedTransaction)
 		{
 			_wallet = owner.Wallet;
 			_requestedTransaction = requestedTransaction;
@@ -45,13 +45,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			EnableBack = true;
 
 			NextCommand = ReactiveCommand.Create(
-				() => OnNext(owner, transactionInfo, broadcaster),
+				() => OnNext(owner, transactionInfo),
 				this.WhenAnyValue(x => x.SelectedPrivacySuggestion).Select(x => x is { }));
 		}
 
-		private void OnNext(WalletViewModel owner, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
+		private void OnNext(WalletViewModel owner, TransactionInfo transactionInfo)
 		{
-			Navigate().To(new TransactionPreviewViewModel(owner, transactionInfo, broadcaster,
+			Navigate().To(new TransactionPreviewViewModel(owner, transactionInfo,
 				SelectedPrivacySuggestion!.TransactionResult));
 		}
 

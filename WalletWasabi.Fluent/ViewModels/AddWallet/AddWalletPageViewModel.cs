@@ -5,8 +5,6 @@ using System.Reactive.Disposables;
 using System.Windows.Input;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Wallets;
-using WalletWasabi.Stores;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -32,18 +30,13 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		NavBarPosition = NavBarPosition.Bottom)]
 	public partial class AddWalletPageViewModel : NavBarItemViewModel
 	{
-		private readonly WalletManager _walletManager;
-
 		[AutoNotify] private string _walletName = "";
 		[AutoNotify] private bool _optionsEnabled;
 
-		public AddWalletPageViewModel(
-			WalletManagerViewModel walletManagerViewModel,
-			BitcoinStore store)
+		public AddWalletPageViewModel(WalletManagerViewModel walletManagerViewModel)
 		{
 			SelectionMode = NavBarItemSelectionMode.Button;
-			_walletManager = walletManagerViewModel.WalletManager;
-			var network = _walletManager.Network;
+			var network = Services.WalletManager.Network;
 
 			var enableBack = default(IDisposable);
 			this.WhenAnyValue(x => x.CurrentTarget)
@@ -63,20 +56,20 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 			RecoverWalletCommand = ReactiveCommand.Create(() => OnRecoverWallet(walletManagerViewModel));
 
-			ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnImportWalletAsync(_walletManager));
+			ImportWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnImportWalletAsync());
 
 			ConnectHardwareWalletCommand = ReactiveCommand.Create(() => OnConnectHardwareWallet(walletManagerViewModel));
 
-			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnCreateWalletAsync(_walletManager, store, network));
+			CreateWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnCreateWalletAsync(network));
 
-			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, _walletManager, WalletName));
+			this.ValidateProperty(x => x.WalletName, errors => ValidateWalletName(errors, WalletName));
 
 			EnableAutoBusyOn(CreateWalletCommand);
 		}
 
-		private static void ValidateWalletName(IValidationErrors errors, WalletManager walletManager, string walletName)
+		private static void ValidateWalletName(IValidationErrors errors, string walletName)
 		{
-			string walletFilePath = Path.Combine(walletManager.WalletDirectories.WalletsDir, $"{walletName}.json");
+			string walletFilePath = Path.Combine(Services.WalletManager.WalletDirectories.WalletsDir, $"{walletName}.json");
 
 			if (string.IsNullOrEmpty(walletName))
 			{
@@ -113,7 +106,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		private void OnRecoverWallet(WalletManagerViewModel walletManagerViewModel)
 		{
-			Navigate().To(new RecoverWalletViewModel(WalletName, walletManagerViewModel));
+			Navigate().To(new RecoverWalletViewModel(WalletName));
 		}
 
 		private void OnConnectHardwareWallet(WalletManagerViewModel walletManagerViewModel)
@@ -121,7 +114,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			Navigate().To(new ConnectHardwareWalletViewModel(WalletName, walletManagerViewModel));
 		}
 
-		private async Task OnImportWalletAsync(WalletManager walletManager)
+		private async Task OnImportWalletAsync()
 		{
 			try
 			{
@@ -132,9 +125,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					return;
 				}
 
-				var keyManager = await ImportWalletHelper.ImportWalletAsync(walletManager, WalletName, filePath);
+				var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, WalletName, filePath);
 
-				Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager));
+				Navigate().To(new AddedWalletPageViewModel(keyManager));
 			}
 			catch (Exception ex)
 			{
@@ -144,10 +137,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			}
 		}
 
-		private async Task OnCreateWalletAsync(WalletManager walletManager, BitcoinStore store, Network network)
+		private async Task OnCreateWalletAsync(Network network)
 		{
 			var dialogResult = await NavigateDialogAsync(
-				new CreatePasswordDialogViewModel("Type the password of the wallet and click Continue.", enableEmpty: true, enableCancel: _walletManager.HasWallet()));
+				new CreatePasswordDialogViewModel("Type the password of the wallet and click Continue.", enableEmpty: true, enableCancel: Services.WalletManager.HasWallet()));
 
 			if (dialogResult.Result is { } password)
 			{
@@ -155,15 +148,15 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 					() =>
 					{
 						var walletGenerator = new WalletGenerator(
-							walletManager.WalletDirectories.WalletsDir,
+							Services.WalletManager.WalletDirectories.WalletsDir,
 							network)
 						{
-							TipHeight = store.SmartHeaderChain.TipHeight
+							TipHeight = Services.BitcoinStore.SmartHeaderChain.TipHeight
 						};
 						return walletGenerator.GenerateWallet(WalletName, password);
 					});
 
-				Navigate().To(new RecoveryWordsViewModel(km, mnemonic, walletManager));
+				Navigate().To(new RecoveryWordsViewModel(km, mnemonic));
 			}
 		}
 
@@ -171,7 +164,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			var enableCancel = _walletManager.HasWallet();
+			var enableCancel = Services.WalletManager.HasWallet();
 			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 
 			this.RaisePropertyChanged(WalletName);

@@ -31,7 +31,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		{
 			_message = "";
 			WalletName = walletName;
-			WalletManager = walletManagerViewModel.WalletManager;
 			Wallets = walletManagerViewModel.Wallets;
 			AbandonedTasks = new AbandonedTasks();
 			CancelCts = new CancellationTokenSource();
@@ -57,8 +56,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		private AbandonedTasks AbandonedTasks { get; }
 
 		public string WalletName { get; }
-
-		public WalletManager WalletManager { get; }
 
 		public ObservableCollection<WalletViewModelBase> Wallets { get; }
 
@@ -121,7 +118,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 			{
 				using CancellationTokenSource cts = new();
 				AbandonedTasks.AddAndClearCompleted(CheckForPassphraseAsync(cts.Token));
-				var result = await HardwareWalletOperationHelpers.DetectAsync(WalletManager.Network, cancel);
+				var result = await HardwareWalletOperationHelpers.DetectAsync(Services.WalletManager.Network, cancel);
 				cts.Cancel();
 				EvaluateDetectionResult(result, cancel);
 			}
@@ -164,7 +161,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			var device = devices[0];
 
-			if (WalletManager.WalletExists(device.Fingerprint))
+			if (Services.WalletManager.WalletExists(device.Fingerprint))
 			{
 				ExistingWallet = Wallets.FirstOrDefault(x => x.Wallet.KeyManager.MasterFingerprint == device.Fingerprint);
 				Message = "The connected hardware wallet is already added to the software, click below to open it or click Continue to search again.";
@@ -181,7 +178,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 				else
 				{
 					Message = "Check your device and finish the initialization.";
-					AbandonedTasks.AddAndClearCompleted(HardwareWalletOperationHelpers.InitHardwareWalletAsync(device, WalletManager.Network, cancel));
+					AbandonedTasks.AddAndClearCompleted(HardwareWalletOperationHelpers.InitHardwareWalletAsync(device, Services.WalletManager.Network, cancel));
 				}
 
 				return;
@@ -215,14 +212,14 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		private void NavigateToNext(HwiEnumerateEntry device)
 		{
-			Navigate().To(new DetectedHardwareWalletViewModel(WalletManager, WalletName, device));
+			Navigate().To(new DetectedHardwareWalletViewModel(WalletName, device));
 		}
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			var enableCancel = WalletManager.HasWallet();
+			var enableCancel = Services.WalletManager.HasWallet();
 			SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 
 			if (isInHistory)
