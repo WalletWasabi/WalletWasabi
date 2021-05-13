@@ -55,11 +55,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			}
 			else if (Wallet.KeyManager.IsHardwareWallet)
 			{
-				IconName = "";
+				IconName = "general";
 			}
 			else
 			{
-				IconName = "";
+				IconName = "web_asset_regular";
 			}
 		}
 
