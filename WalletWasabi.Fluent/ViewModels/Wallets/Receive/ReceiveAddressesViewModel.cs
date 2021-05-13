@@ -26,7 +26,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		[AutoNotify] private ObservableCollection<AddressViewModel> _addresses;
 		[AutoNotify] private AddressViewModel? _selectedAddress;
 
-
 		public ReceiveAddressesViewModel(Wallet wallet, UiConfig uiConfig, HashSet<string> suggestions)
 		{
 			_uiConfig = uiConfig;
