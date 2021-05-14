@@ -1,28 +1,11 @@
 using NBitcoin;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Controllers;
-using WalletWasabi.Backend.Models;
-using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Blockchain.BlockFilters;
-using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Logging;
-using WalletWasabi.Services;
-using WalletWasabi.Tests.Helpers;
-using WalletWasabi.Tests.RegressionTests;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Http.Extensions;
-using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
@@ -79,9 +62,7 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 
 			var fixedSpenderHex = spenderHex.Remove(spenderHex.Length - 1);
 
-			Transaction spenderTx2 = Transaction.Parse(fixedSpenderHex, network);
-
-			Transaction.TryParse(fixedSpenderHex, network, out Transaction spenderTx);
+			Transaction spenderTx = Transaction.Parse(fixedSpenderHex, network);
 
 			Assert.Equal(tx.GetHash(), spenderTx.GetHash());
 		}

@@ -1,13 +1,11 @@
 using System;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.Tor.Http;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
