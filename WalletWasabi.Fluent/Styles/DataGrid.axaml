@@ -60,7 +60,7 @@
   </Style>
 
   <Style Selector="DataGridCell">
-    <Setter Property="Padding" Value="0 10"/>
+    <Setter Property="Padding" Value="0"/>
   </Style>
 
   <Style Selector="DataGridColumnHeader">

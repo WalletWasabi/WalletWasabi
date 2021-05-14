@@ -198,6 +198,13 @@ namespace WalletWasabi.Fluent.Controls
 				.DisposeWith(_compositeDisposable!);
 		}
 
+		protected override void OnGotFocus(GotFocusEventArgs e)
+		{
+			base.OnGotFocus(e);
+
+			_internalTextBox?.Focus();
+		}
+
 		private void CheckIsInputEnabled()
 		{
 			if (Items is IList x && ItemCountLimit > 0)
@@ -210,7 +217,7 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			if (_watermark is { } && _autoCompleteBox is { })
 			{
-				if (Items != null && !Items.Any() && string.IsNullOrWhiteSpace(_autoCompleteBox?.Text))
+				if ((Items is null || (Items is { } && !Items.Any())) && string.IsNullOrWhiteSpace(_autoCompleteBox?.Text))
 				{
 					_watermark.IsVisible = true;
 				}
@@ -237,9 +244,9 @@ namespace WalletWasabi.Fluent.Controls
 			InvalidateWatermark();
 
 			if (RestrictInputToSuggestions &&
-			    Suggestions is IList<string> suggestions &&
-			    !suggestions.Any(x =>
-				    x.StartsWith(autoCompleteBox.SearchText, _stringComparison)))
+				Suggestions is IList<string> suggestions &&
+				!suggestions.Any(x =>
+					x.StartsWith(autoCompleteBox.SearchText, _stringComparison)))
 			{
 				e.Handled = true;
 			}

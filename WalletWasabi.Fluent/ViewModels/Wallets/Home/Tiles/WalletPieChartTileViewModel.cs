@@ -55,7 +55,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			var privateCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet >= privateThreshold);
 			var normalCoins = _wallet.Coins.FilterBy(x => x.HdPubKey.AnonymitySet < privateThreshold);
-			var totalCount = (double) _wallet.Coins.Count();
+			var totalCount = (double)_wallet.Coins.Count();
 
 			var pcPrivate = (privateCoins.Count() / totalCount);
 			var pcNormal = (normalCoins.Count() / totalCount);

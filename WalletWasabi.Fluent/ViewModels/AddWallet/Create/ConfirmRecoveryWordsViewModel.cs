@@ -10,22 +10,19 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 {
 	[NavigationMetaData(Title = "Confirm recovery words")]
 	public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	{
-		private readonly WalletManager _walletManager;
 		private readonly ReadOnlyObservableCollection<RecoveryWordViewModel> _confirmationWords;
 		[AutoNotify] private bool _isSkipEnable;
 
-		public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager, WalletManager walletManager)
+		public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager)
 		{
-			_walletManager = walletManager;
 			var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
-			_isSkipEnable = walletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
+			_isSkipEnable = Services.WalletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
 
 			var nextCommandCanExecute =
 				confirmationWordsSourceList
@@ -36,7 +33,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 
 			EnableBack = true;
 
-			NextCommand = ReactiveCommand.Create(() => OnNext(keyManager, walletManager), nextCommandCanExecute);
+			NextCommand = ReactiveCommand.Create(() => OnNext(keyManager), nextCommandCanExecute);
 
 			if (_isSkipEnable)
 			{
@@ -59,9 +56,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 
 		public ReadOnlyObservableCollection<RecoveryWordViewModel> ConfirmationWords => _confirmationWords;
 
-		private void OnNext(KeyManager keyManager, WalletManager walletManager)
+		private void OnNext(KeyManager keyManager)
 		{
-			Navigate().To(new AddedWalletPageViewModel(walletManager, keyManager));
+			Navigate().To(new AddedWalletPageViewModel(keyManager));
 		}
 
 		private void OnCancel()
@@ -73,7 +70,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
 
-			var enableCancel = _walletManager.HasWallet();
+			var enableCancel = Services.WalletManager.HasWallet();
 			SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: enableCancel);
 		}
 	}
