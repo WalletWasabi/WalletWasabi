@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.OpenDirectory
 {
@@ -18,6 +19,8 @@ namespace WalletWasabi.Fluent.ViewModels.OpenDirectory
 	{
 		public OpenWalletsFolderViewModel()
 		{
+			Guard.NotNull(nameof(Services.WalletManager), Services.WalletManager);
+
 			TargetCommand = ReactiveCommand.Create(
 				() => IoHelpers.OpenFolderInFileExplorer(Services.WalletManager.WalletDirectories.WalletsDir));
 		}

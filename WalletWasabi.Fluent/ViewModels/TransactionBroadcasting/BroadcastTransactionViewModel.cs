@@ -7,6 +7,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
@@ -33,6 +34,9 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 
 		public BroadcastTransactionViewModel(Network network, SmartTransaction transaction)
 		{
+			Guard.NotNull(nameof(Services.BitcoinStore), Services.BitcoinStore);
+			Guard.NotNull(nameof(Services.TransactionBroadcaster), Services.TransactionBroadcaster);
+
 			Title = "Broadcast Transaction";
 
 			var nullMoney = new Money(-1L);

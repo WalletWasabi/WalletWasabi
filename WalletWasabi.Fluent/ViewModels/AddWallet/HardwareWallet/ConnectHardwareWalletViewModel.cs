@@ -29,6 +29,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public ConnectHardwareWalletViewModel(string walletName)
 		{
+			Guard.NotNull(nameof(Services.WalletManager), Services.WalletManager);
+
 			_message = "";
 			WalletName = walletName;
 			Wallets = UiServices.WalletManager.Wallets;

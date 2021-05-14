@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -21,6 +22,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		protected ClosedWalletViewModel(WalletManagerViewModel walletManagerViewModel, Wallet wallet)
 			: base(wallet)
 		{
+			Guard.NotNull(nameof(Services.BitcoinStore), Services.BitcoinStore);
+
 			_smartHeaderChain = Services.BitcoinStore.SmartHeaderChain;
 
 			OpenCommand = ReactiveCommand.Create(() => OnOpen(walletManagerViewModel));

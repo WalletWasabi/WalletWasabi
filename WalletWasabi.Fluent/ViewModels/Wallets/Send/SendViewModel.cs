@@ -25,6 +25,7 @@ using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui.Converters;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Http;
@@ -70,6 +71,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public SendViewModel(Wallet wallet) : base(NavigationMode.Normal)
 		{
+			Guard.NotNull(nameof(Services.ExternalHttpClientFactory), Services.ExternalHttpClientFactory);
+			Guard.NotNull(nameof(Services.Config), Services.Config);
+			Guard.NotNull(nameof(Services.UiConfig), Services.UiConfig);
+
 			_to = "";
 			_wallet = wallet;
 			_transactionInfo = new TransactionInfo();

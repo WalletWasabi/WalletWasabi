@@ -10,6 +10,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 {
@@ -21,6 +22,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 
 		public ConfirmRecoveryWordsViewModel(List<RecoveryWordViewModel> mnemonicWords, KeyManager keyManager)
 		{
+			Guard.NotNull(nameof(Services.WalletManager), Services.WalletManager);
+
 			var confirmationWordsSourceList = new SourceList<RecoveryWordViewModel>();
 			_isSkipEnable = Services.WalletManager.Network != Network.Main || System.Diagnostics.Debugger.IsAttached;
 

@@ -14,6 +14,7 @@ using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
@@ -27,6 +28,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public RecoverWalletViewModel(string walletName)
 		{
+			Guard.NotNull(nameof(Services.WalletManager), Services.WalletManager);
+
 			Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 
 			Mnemonics.ToObservableChangeSet().ToCollection()

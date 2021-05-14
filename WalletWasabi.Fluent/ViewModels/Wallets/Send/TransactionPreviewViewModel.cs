@@ -11,6 +11,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Model;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -27,6 +28,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, BuildTransactionResult transaction)
 		{
+			Guard.NotNull(nameof(Services.TransactionBroadcaster), Services.TransactionBroadcaster);
+
 			_wallet = wallet;
 			_labels = SmartLabel.Empty;
 			_info = info;

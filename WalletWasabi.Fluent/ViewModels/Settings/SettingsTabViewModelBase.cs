@@ -4,6 +4,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Model;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Gui;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
@@ -14,6 +15,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		protected SettingsTabViewModelBase()
 		{
+			Guard.NotNull(nameof(Services.Config), Services.Config);
+
 			ConfigOnOpen = new Config(Services.Config.FilePath);
 			ConfigOnOpen.LoadFile();
 		}

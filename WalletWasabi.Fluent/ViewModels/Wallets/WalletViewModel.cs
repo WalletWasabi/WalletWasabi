@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -23,6 +24,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
+			Guard.NotNull(nameof(Services.UiConfig), Services.UiConfig);
+
 			Disposables = Disposables is null
 				? new CompositeDisposable()
 				: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");

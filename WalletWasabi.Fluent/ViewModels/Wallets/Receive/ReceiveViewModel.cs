@@ -10,6 +10,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
@@ -30,6 +31,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 		public ReceiveViewModel(Wallet wallet) : base(NavigationMode.Normal)
 		{
+			Guard.NotNull(nameof(Services.BitcoinStore), Services.BitcoinStore);
+			Guard.NotNull(nameof(Services.WalletManager), Services.WalletManager);
+
 			_wallet = wallet;
 			_labels = new ObservableCollection<string>();
 			_suggestions = GetLabels();

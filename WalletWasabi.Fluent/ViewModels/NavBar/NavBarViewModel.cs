@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar
 {
@@ -31,6 +32,8 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 		public NavBarViewModel(TargettedNavigationStack mainScreen)
 		{
+			Guard.NotNull(nameof(Services.UiConfig), Services.UiConfig);
+
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 

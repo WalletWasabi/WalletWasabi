@@ -18,6 +18,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 	{
 		public DetectedHardwareWalletViewModel(string walletName, HwiEnumerateEntry device)
 		{
+			Guard.NotNull(nameof(Services.WalletManager), Services.WalletManager);
+
 			WalletName = walletName;
 			CancelCts = new CancellationTokenSource();
 

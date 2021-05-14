@@ -33,6 +33,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		public BitcoinTabSettingsViewModel()
 		{
+			Guard.NotNull(nameof(Services.Config), Services.Config);
+
 			this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 			this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 

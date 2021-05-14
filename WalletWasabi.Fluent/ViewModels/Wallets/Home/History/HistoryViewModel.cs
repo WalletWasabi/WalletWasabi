@@ -13,6 +13,7 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
@@ -31,6 +32,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 		public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
 		{
+			Guard.NotNull(nameof(Services.UiConfig), Services.UiConfig);
+
 			_walletViewModel = walletViewModel;
 			_updateTrigger = updateTrigger;
 			_showCoinJoin = Services.UiConfig.ShowCoinJoinInHistory;

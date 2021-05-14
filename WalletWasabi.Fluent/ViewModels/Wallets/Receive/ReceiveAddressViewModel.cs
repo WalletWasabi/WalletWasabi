@@ -11,6 +11,7 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -22,6 +23,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 	{
 		public ReceiveAddressViewModel(Wallet wallet, HdPubKey model)
 		{
+			Guard.NotNull(nameof(Services.UiConfig), Services.UiConfig);
+
 			Address = model.GetP2wpkhAddress(wallet.Network).ToString();
 			Labels = model.Label;
 			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;

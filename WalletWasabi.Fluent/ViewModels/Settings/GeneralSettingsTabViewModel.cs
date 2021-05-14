@@ -6,6 +6,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Gui;
 using WalletWasabi.Gui.Models;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
@@ -30,6 +31,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		public GeneralSettingsTabViewModel()
 		{
+			Guard.NotNull(nameof(Services.UiConfig), Services.UiConfig);
+
 			_darkModeEnabled = Services.UiConfig.DarkModeEnabled;
 			_autoCopy = Services.UiConfig.Autocopy;
 			_customFee = Services.UiConfig.IsCustomFee;

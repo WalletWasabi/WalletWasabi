@@ -28,6 +28,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		public NetworkSettingsTabViewModel()
 		{
+			Guard.NotNull(nameof(Services.Config), Services.Config);
+
 			this.ValidateProperty(x => x.TorSocks5EndPoint, ValidateTorSocks5EndPoint);
 
 			_useTor = Services.Config.UseTor;

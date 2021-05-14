@@ -12,6 +12,7 @@ using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -30,6 +31,9 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public WalletManagerViewModel()
 		{
+			Guard.NotNull(nameof(Services.WalletManager), Services.WalletManager);
+			Guard.NotNull(nameof(Services.UiConfig), Services.UiConfig);
+
 			_walletDictionary = new Dictionary<Wallet, WalletViewModelBase>();
 			_wallets = new ObservableCollection<WalletViewModelBase>();
 			_loggedInAndSelectedAlwaysFirst = true;

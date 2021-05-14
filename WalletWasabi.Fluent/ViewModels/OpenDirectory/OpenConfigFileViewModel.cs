@@ -1,6 +1,7 @@
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Gui.Helpers;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.OpenDirectory
 {
@@ -16,6 +17,11 @@ namespace WalletWasabi.Fluent.ViewModels.OpenDirectory
 		IconName = "document_regular")]
 	public partial class OpenConfigFileViewModel : TriggerCommandViewModel
 	{
+		public OpenConfigFileViewModel()
+		{
+			Guard.NotNull(nameof(Services.Config), Services.Config);
+		}
+
 		public override ICommand TargetCommand =>
 			ReactiveCommand.Create(() => FileHelpers.OpenFileInTextEditorAsync(Services.Config.FilePath));
 	}

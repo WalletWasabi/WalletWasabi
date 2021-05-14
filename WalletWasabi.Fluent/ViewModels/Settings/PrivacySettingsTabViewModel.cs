@@ -2,6 +2,7 @@ using System;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Gui;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
@@ -20,6 +21,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		public PrivacySettingsTabViewModel()
 		{
+			Guard.NotNull(nameof(Services.Config), Services.Config);
+
 			_minimalPrivacyLevel = Services.Config.PrivacyLevelSome;
 			_mediumPrivacyLevel = Services.Config.PrivacyLevelFine;
 			_strongPrivacyLevel = Services.Config.PrivacyLevelStrong;

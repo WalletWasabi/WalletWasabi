@@ -4,6 +4,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
@@ -12,6 +13,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		public AddedWalletPageViewModel(KeyManager keyManager)
 		{
+			Guard.NotNull(nameof(Services.WalletManager), Services.WalletManager);
+
 			WalletIcon = keyManager.Icon;
 			IsHardwareWallet = keyManager.IsHardwareWallet;
 			WalletName = keyManager.WalletName;

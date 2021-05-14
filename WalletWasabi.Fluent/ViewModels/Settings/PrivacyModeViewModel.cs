@@ -2,6 +2,7 @@ using System;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
@@ -12,6 +13,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		public PrivacyModeViewModel()
 		{
+			Guard.NotNull(nameof(Services.UiConfig), Services.UiConfig);
+
 			_privacyMode = Services.UiConfig.PrivacyMode;
 
 			SelectionMode = NavBarItemSelectionMode.Toggle;

@@ -34,6 +34,9 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 
 		public AddWalletPageViewModel()
 		{
+			Guard.NotNull(nameof(Services.BitcoinStore), Services.BitcoinStore);
+			Guard.NotNull(nameof(Services.WalletManager), Services.WalletManager);
+
 			SelectionMode = NavBarItemSelectionMode.Button;
 
 			var enableBack = default(IDisposable);

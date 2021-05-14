@@ -4,6 +4,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 {
@@ -12,6 +13,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create
 	{
 		public RecoveryWordsViewModel(KeyManager keyManager, Mnemonic mnemonic)
 		{
+			Guard.NotNull(nameof(Services.WalletManager), Services.WalletManager);
+
 			MnemonicWords = new List<RecoveryWordViewModel>();
 
 			for (int i = 0; i < mnemonic.Words.Length; i++)

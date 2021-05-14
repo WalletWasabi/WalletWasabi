@@ -16,6 +16,7 @@ using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
 using WalletWasabi.Logging;
 using WalletWasabi.BitcoinP2p;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
@@ -38,6 +39,15 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public MainViewModel()
 		{
+			Guard.NotNull(nameof(Services.DataDir), Services.DataDir);
+			Guard.NotNull(nameof(Services.BitcoinStore), Services.BitcoinStore);
+			Guard.NotNull(nameof(Services.LegalChecker), Services.LegalChecker);
+			Guard.NotNull(nameof(Services.Config), Services.Config);
+			Guard.NotNull(nameof(Services.Synchronizer), Services.Synchronizer);
+			Guard.NotNull(nameof(Services.WalletManager), Services.WalletManager);
+			Guard.NotNull(nameof(Services.HostedServices), Services.HostedServices);
+			Guard.NotNull(nameof(Services.UiConfig), Services.UiConfig);
+
 			_windowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
 			_dialogScreen = new DialogScreenViewModel();
 
