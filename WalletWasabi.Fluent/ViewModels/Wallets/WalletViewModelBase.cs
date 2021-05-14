@@ -59,7 +59,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			}
 			else
 			{
-				IconName = "web_asset_regular";
+				IconName = "default_wallet_icon";
 			}
 		}
 
