@@ -26,7 +26,7 @@ namespace WalletWasabi.Tor.Http
 			PredefinedIdentity = mode switch
 			{
 				Mode.DefaultIdentity => DefaultIdentity.Instance,
-				Mode.SingleIdentityPerLifetime => new RandomIdentity(canTorCircuitBeReused: true),
+				Mode.SingleIdentityPerLifetime => new PersonIdentity(),
 				Mode.NewIdentityPerRequest => null,
 				_ => throw new NotSupportedException(),
 			};
@@ -69,7 +69,7 @@ namespace WalletWasabi.Tor.Http
 			{
 				Mode.DefaultIdentity => PredefinedIdentity!,
 				Mode.SingleIdentityPerLifetime => PredefinedIdentity!,
-				Mode.NewIdentityPerRequest => new RandomIdentity(canTorCircuitBeReused: false),
+				Mode.NewIdentityPerRequest => new OneOffIdentity(),
 				_ => throw new NotSupportedException()
 			};
 

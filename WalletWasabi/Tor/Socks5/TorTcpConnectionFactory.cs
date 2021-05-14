@@ -82,7 +82,8 @@ namespace WalletWasabi.Tor.Socks5
 					transportStream = await UpgradeToSslAsync(tcpClient, host).ConfigureAwait(false);
 				}
 
-				TorTcpConnection result = new(tcpClient, transportStream, identity, allowRecycling: !useSsl && identity.CanTorCircuitBeReused);
+				bool allowRecycling = !useSsl && (identity is DefaultIdentity or PersonIdentity);
+				TorTcpConnection result = new(tcpClient, transportStream, identity, allowRecycling);
 
 				transportStream = null;
 				tcpClient = null;

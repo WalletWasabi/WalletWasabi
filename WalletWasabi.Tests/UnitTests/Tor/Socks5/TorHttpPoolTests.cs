@@ -32,8 +32,8 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
 
 			IIdentity defaultIdentity = DefaultIdentity.Instance;
-			IIdentity aliceIdentity = new RandomIdentity(canTorCircuitBeReused: true); // Random but a non-changing identity.
-			IIdentity bobIdentity = new RandomIdentity(canTorCircuitBeReused: true); // Random but a non-changing identity.			
+			IIdentity aliceIdentity = new PersonIdentity(); // Random but a non-changing identity.
+			IIdentity bobIdentity = new PersonIdentity(); // Random but a non-changing identity.			
 
 			using TorTcpConnection aliceConnection = new(null!, new MemoryStream(), aliceIdentity, true);
 			using TorTcpConnection bobConnection = new(null!, new MemoryStream(), bobIdentity, true);
