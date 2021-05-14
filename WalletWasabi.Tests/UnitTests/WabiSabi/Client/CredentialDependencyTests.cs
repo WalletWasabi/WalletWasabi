@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 using Xunit;
 
@@ -6,71 +7,88 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 {
 	public class CredentialDependencyTests
 	{
-		[Fact]
-		public void ResolveCredentialDependencies()
+		public void ResolveCredentialDependenciesBasic()
 		{
-			// TODO can this be done with InputData more elegantly? new() not possible in attr
-			foreach (
-				(var inputValues, var outputValues, var finalVertexCount) in new (ulong[][], ulong[][], int)[]
-				{
-					( new[] { new[] { 1UL, 1UL } }, new[] { new[] { 1UL, 1UL } }, 2 ),
-					( new[] { new[] { 1UL, 0UL } }, new[] { new[] { 1UL, 0UL } }, 2 ),
-					( new[] { new[] { 2UL, 0UL } }, new[] { new[] { 1UL, 0UL } }, 2 ),
-					( new[] { new[] { 2UL, 2UL } }, new[] { new[] { 1UL, 1UL } }, 2 ),
-					( new[] { new[] { 2UL, 2UL } }, new[] { new[] { 1UL, 2UL } }, 2 ),
-					( new[] { new[] { 2UL, 2UL } }, new[] { new[] { 2UL, 2UL } }, 2 ),
-					( new[] { new[] { 2UL, 2UL } }, new[] { new[] { 1UL, 1UL }, new[] { 1UL, 1UL } }, 3 ),
-					( new[] { new[] { 1UL, 1UL }, new[] { 1UL, 1UL } }, new[] { new[] { 2UL, 2UL } }, 3 ),
-					( new[] { new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL } }, new[] { new[] { 3UL, 3UL } }, 5 ),
-					( new[] { new[] { 3UL, 3UL } }, new[] { new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL } }, 5 ),
-					( new[] { new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, new[] { new[] { 3UL, 0UL } }, 5 ),
-					( new[] { new[] { 3UL, 0UL } }, new[] { new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, 5 ),
-					( new[] { new[] { 1UL, 5UL }, new[] { 1UL, 5UL }, new[] { 1UL, 5UL } }, new[] { new[] { 3UL, 1UL } }, 5 ),
-					( new[] { new[] { 3UL, 5UL } }, new[] { new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL } }, 6 ), // TODO 5?
-					( new[] { new[] { 3UL, 5UL } }, new[] { new[] { 1UL, 1UL }, new[] { 1UL, 1UL } }, 4 ),
-					( new[] { new[] { 4UL, 0UL } }, new[] { new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, 7 ),
-					( new[] { new[] { 10UL, 0UL } }, new[] { new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, 4 ),
-					( new[] { new[] { 10UL, 0UL } }, new[] { new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, 6 ),
-					( new[] { new[] { 10UL, 0UL } }, new[] { new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, 8 ),
-					( new[] { new[] { 10UL, 0UL } }, new[] { new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, 10 ),
-					( new[] { new[] { 10UL, 0UL } }, new[] { new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, 12 ),
-					( new[] { new[] { 10UL, 0UL } }, new[] { new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, 19 ),
-					( new[] { new[] { 3UL, 0UL }, new[] { 3UL, 0UL } }, new[] { new[] { 2UL, 0UL }, new[] { 2UL, 0UL }, new[] { 2UL, 0UL } }, 5 ),
-					( new[] { new[] { 5UL, 0UL }, new[] { 1UL, 0UL } }, new[] { new[] { 2UL, 0UL }, new[] { 2UL, 0UL }, new[] { 2UL, 0UL } }, 6 ),
-					( new[] { new[] { 2UL, 0UL }, new[] { 2UL, 0UL } }, new[] { new[] { 3UL, 0UL } }, 3 ),
-					( new[] { new[] { 3UL, 0UL }, new[] { 3UL, 0UL } }, new[] { new[] { 2UL, 0UL }, new[] { 2UL, 0UL }, new[] { 1UL, 0UL } }, 6 ),
-					( new[] { new[] { 8UL, 0UL }, new[] { 1UL, 0UL } }, new[] { new[] { 3UL, 0UL }, new[] { 3UL, 0UL }, new[] { 3UL, 0UL } }, 6 ),
-					( new[] { new[] { 8UL, 0UL }, new[] { 2UL, 0UL } }, new[] { new[] { 3UL, 0UL }, new[] { 3UL, 0UL }, new[] { 3UL, 0UL } }, 6 ),
-					( new[] { new[] { 3UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, new[] { new[] { 2UL, 0UL }, new[] { 2UL, 0UL }, new[] { 2UL, 0UL }, }, 7 ),
-					( new[] { new[] { 3UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, }, 7 ),
-					( new[] { new[] { 3UL, 3UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, }, 8 ), // TODO 7?
-					( new[] { new[] { 3UL, 2UL }, new[] { 1UL, 0UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, }, 4 ),
-					( new[] { new[] { 3UL, 6UL }, new[] { 1UL, 0UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, }, 5 ),
-					( new[] { new[] { 3UL, 6UL }, new[] { 1UL, 6UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, }, 5 ), // TODO 4
-					( new[] { new[] { 3UL, 3UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, }, 8 ),
-					( new[] { new[] { 3UL, 6UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL }, new[] { 1UL, 0UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, }, 9 ),
-					( new[] { new[] { 2UL, 6UL }, new[] { 2UL, 6UL } }, new[] { new[] { 1UL, 3UL }, new[] { 1UL, 3UL }, new[] { 1UL, 3UL }, new[] { 1UL, 3UL }, }, 6 ),
-					( new[] { new[] { 2UL, 6UL }, new[] { 2UL, 6UL } }, new[] { new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, }, 9 ), // TODO 8
-					( new[] { new[] { 3UL, 6UL }, new[] { 1UL, 6UL } }, new[] { new[] { 4UL, 1UL }, }, 3 ),
-					( new[] { new[] { 3UL, 6UL }, new[] { 1UL, 6UL } }, new[] { new[] { 2UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL } }, 7 ), // TODO 5
-					( new[] { new[] { 3UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 1UL, 1UL }, }, 9 ),
-					( new[] { new[] { 3UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 1UL, 1UL }, new[] { 1UL, 1UL }, }, 11 ), // TODO 8
-					( new[] { new[] { 3UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, }, 9 ),
-					( new[] { new[] { 5UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL }, new[] { 1UL, 6UL } }, new[] { new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, new[] { 2UL, 1UL }, }, 15 ),
-				}
-			)
-			{
-				var g = DependencyGraph.ResolveCredentialDependencies(inputValues, outputValues);
-				AssertResolvedGraphInvariants(g);
-				Assert.Equal(finalVertexCount, g.Vertices.Count);
-			}
+			var g = DependencyGraph.ResolveCredentialDependencies(new ulong[][] { new[] { 1UL, 0UL } }, new ulong[][] { new[] { 1UL, 0UL } });
+		}
+
+		[Theory]
+		[InlineData("1,1", "1,1", 2)]
+		[InlineData("1,0", "1,0", 2)]
+		[InlineData("2,0", "1,0", 2)]
+		[InlineData("2,2", "1,1", 2)]
+		[InlineData("2,2", "1,2", 2)]
+		[InlineData("2,2", "2,2", 2)]
+		[InlineData("2,2", "1,1 1,1", 3)]
+		[InlineData("1,1 1,1", "2,2", 3)]
+		[InlineData("1,1 1,1 1,1", "3,3", 5)]
+		[InlineData("3,3", "1,1 1,1 1,1", 5)]
+		[InlineData("1,0 1,0 1,0", "3,0", 5)]
+		[InlineData("3,0", "1,0 1,0 1,0", 5)]
+		[InlineData("1,5 1,5 1,5", "3,1", 5)]
+		[InlineData("3,5", "1,1 1,1 1,1", 6)] // TODO 5?
+		[InlineData("3,5", "1,1 1,1", 4)]
+		[InlineData("4,0", "1,0 1,0 1,0 1,0", 7)]
+		[InlineData("10,0", "1,0 1,0", 4)]
+		[InlineData("10,0", "1,0 1,0 1,0", 6)]
+		[InlineData("10,0", "1,0 1,0 1,0 1,0", 8)]
+		[InlineData("10,0", "1,0 1,0 1,0 1,0 1,0", 10)]
+		[InlineData("10,0", "1,0 1,0 1,0 1,0 1,0 1,0", 12)]
+		[InlineData("10,0", "1,0 1,0 1,0 1,0 1,0 1,0 1,0 1,0 1,0 1,0", 19)]
+		[InlineData("3,0 3,0", "2,0 2,0 2,0", 5)]
+		[InlineData("5,0 1,0", "2,0 2,0 2,0", 6)]
+		[InlineData("2,0 2,0", "3,0", 3)]
+		[InlineData("3,0 3,0", "2,0 2,0 1,0", 6)]
+		[InlineData("8,0 1,0", "3,0 3,0 3,0", 6)]
+		[InlineData("8,0 2,0", "3,0 3,0 3,0", 6)]
+		[InlineData("8,3 1,0", "3,1 3,1 3,1", 6)]
+		[InlineData("8,3 2,0", "3,1 3,1 3,1", 6)]
+		[InlineData("8,2 2,2", "3,1 3,1 3,1", 6)]
+		[InlineData("3,0 1,0 1,0 1,0", "2,0 2,0 2,0", 7)]
+		[InlineData("3,1 1,1 1,1 1,1", "2,1 2,1 2,1", 7)]
+		[InlineData("3,3 1,1 1,1 1,1", "2,1 2,1 2,1", 8)] // TODO 7?
+		[InlineData("3,2 1,0", "2,1 2,1", 4)]
+		[InlineData("3,6 1,0", "2,1 2,1", 5)]
+		[InlineData("3,6 1,6", "2,1 2,1", 5)] // TODO 4
+		[InlineData("3,3 1,0 1,0 1,0", "2,1 2,1 2,1", 8)]
+		[InlineData("3,6 1,0 1,0 1,0", "2,1 2,1 2,1", 9)]
+		[InlineData("2,6 2,6", "1,3 1,3 1,3 1,3", 6)]
+		[InlineData("2,6 2,6", "1,1 1,1 1,1 1,1", 9)] // TODO 8
+		[InlineData("3,6 1,6", "4,1", 3)]
+		[InlineData("3,6 1,6", "2,1 1,1 1,1", 7)] // TODO 5
+		[InlineData("3,6 1,6 1,6 1,6", "2,1 2,1 1,1", 9)]
+		[InlineData("3,6 1,6 1,6 1,6", "2,1 2,1 1,1 1,1", 11)] // TODO 8
+		[InlineData("3,6 1,6 1,6 1,6", "2,1 2,1 2,1", 9)]
+		[InlineData("5,6 1,6 1,6 1,6 1,6 1,6", "2,1 2,1 2,1 2,1 2,1", 15)]
+		[InlineData("1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "21,21", 41)]
+		[InlineData("21,21", "1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", 41)]
+		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "10,1 10,1 10,1 10,1", 43)]
+		[InlineData("21,10 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "10,5 10,5 10,5 10,5", 41)]
+		[InlineData("21,6 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "10,5 10,5 10,5 10,5", 42)]
+		[InlineData("21,5 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "10,5 10,5 10,5 10,5", 41)]
+		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "10,5 10,5 10,5 10,5", 41)]
+		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "10,5 10,5 10,5 11,6", 42)]
+		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "10,5 10,5 10,5 11,5", 41)]
+		[InlineData("20,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "10,5 10,5 10,5 10,6", 42)]
+		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "11,5 10,5 10,5 10,6", 42)]
+		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "10,5 10,5 10,5 10,6", 43)]
+		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "10,5 10,5 10,5 10,5", 42)]
+		public void ResolveCredentialDependencies(string inputs, string outputs, int finalVertexCount)
+		{
+			// Parse values out of strings because InputData can't contain arrays
+			var inputValues = inputs.Split(" ").Select(x => x.Split(",").Select(y => ulong.Parse(y)));
+			var outputValues = outputs.Split(" ").Select(x => x.Split(",").Select(y => ulong.Parse(y)));
+
+			var g = DependencyGraph.ResolveCredentialDependencies(inputValues, outputValues);
+			AssertResolvedGraphInvariants(g);
+			Assert.Equal(finalVertexCount, g.Vertices.Count);
 		}
 
 		private void AssertResolvedGraphInvariants(DependencyGraph graph)
 		{
-			foreach (var node in graph.Vertices)
+			for (CredentialType credentialType = 0; credentialType < CredentialType.NumTypes; credentialType++)
 			{
-				for (CredentialType credentialType = 0; credentialType < CredentialType.NumTypes; credentialType++)
+				foreach (var node in graph.Vertices)
 				{
 					var balance = graph.Balance(node, credentialType);
 
