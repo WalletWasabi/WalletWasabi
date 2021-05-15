@@ -32,10 +32,29 @@ namespace WalletWasabi.Tor.Control.Utils
 		}
 
 		/// <summary>
+		/// Reads <c>&lt;KEY&gt;=&lt;VALUE&gt;</c>.
+		/// </summary>
+		public static (string key, string value, string remainder) ReadKeyValueAssignment(string input)
+		{
+			int valueStartAt = input.IndexOf('=');
+
+			if (valueStartAt == -1)
+			{
+				throw new TorControlReplyParseException("Missing equal sign ('=').");
+			}
+
+			string key = input[0..valueStartAt];
+
+			(string value, string remainder) = ReadUntilSeparator(input[(valueStartAt+1)..]);
+
+			return (key, value, remainder);
+		}
+
+		/// <summary>
 		/// Reads <c>&lt;KEY&gt;=QuotedString</c> string from <paramref name="input"/>.
 		/// </summary>
 		/// <returns>Quoted string content.</returns>
-		public static (string value, string remainder) ReadKeyValueAssignment(string key, string input)
+		public static (string value, string remainder) ReadKeyQuotedValueAssignment(string key, string input)
 		{
 			input = ReadExactString(key, input);
 

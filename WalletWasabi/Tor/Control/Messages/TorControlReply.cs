@@ -24,10 +24,12 @@ namespace WalletWasabi.Tor.Control.Messages
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">Section 2.3</seealso>
 	public class TorControlReply
 	{
+		private readonly static ReadOnlyCollection<string> NoLines = new List<string>().AsReadOnly();
+
 		public TorControlReply(StatusCode statusCode)
 		{
-			StatusCode = statusCode;
-			ResponseLines = new List<string>().AsReadOnly();
+			StatusCode = statusCode;			
+			ResponseLines = NoLines;
 		}
 
 		public TorControlReply(StatusCode statusCode, IList<string> responseLines)
