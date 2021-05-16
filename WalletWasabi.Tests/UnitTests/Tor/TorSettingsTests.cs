@@ -17,7 +17,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 			string logFilePath = Path.Combine("temp", "Tor.log");
 			string distributionFolder = "tempDistributionDir";
 
-			TorSettings settings = new(dataDir, logFilePath, distributionFolder, terminateOnExit: false, owningProcessId: 7);
+			TorSettings settings = new(dataDir, logFilePath, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 			IPEndPoint endpoint = new(IPAddress.Loopback, WalletWasabi.Helpers.Constants.DefaultTorSocksPort);
 
 			string arguments = settings.GetCmdArguments(endpoint);

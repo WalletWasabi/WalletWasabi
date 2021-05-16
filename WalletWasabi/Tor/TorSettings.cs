@@ -86,7 +86,7 @@ namespace WalletWasabi.Tor
 				$"--Log \"notice file {LogFilePath}\""
 			};
 
-			if (OwningProcessId is not null)
+			if (TerminateOnExit && OwningProcessId is not null)
 			{
 				arguments.Add($"__OwningControllerProcess {OwningProcessId}");
 			}
