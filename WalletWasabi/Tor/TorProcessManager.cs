@@ -36,7 +36,7 @@ namespace WalletWasabi.Tor
 		private TorSettings Settings { get; }
 		private TorTcpConnectionFactory TcpConnectionFactory { get; }
 
-		private TorControlClient? TorControlClient { get; set; }		
+		private TorControlClient? TorControlClient { get; set; }
 
 		/// <summary>
 		/// Starts Tor process if it is not running already.
