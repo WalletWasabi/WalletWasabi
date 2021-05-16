@@ -11,7 +11,6 @@ namespace WalletWasabi.WabiSabi
 
 		// Round hashing labels
 		public const string RoundStrobeDomain = "round-parameters";
-		public const string RoundMaxInputCountByAliceStrobeLabel = "maximum-input-count-by-alice";
 		public const string RoundMinRegistrableAmountStrobeLabel = "minimum-registrable-amount";
 		public const string RoundMaxRegistrableAmountStrobeLabel = "maximum-registrable-amount";
 		public const string RoundPerAliceVsizeAllocationStrobeLabel = "per-alice-vsize-allocation";
@@ -24,5 +23,6 @@ namespace WalletWasabi.WabiSabi
 		public const string AliceCoinTxOutStrobeLabel = "coin-txout";
 		public const string AliceCoinOutpointStrobeLabel = "coin-outpoint";
 		public const string AliceOwnershipProofStrobeLabel = "ownership-proof";
+		public const string ProtocolViolationType = "wabisabi-protocol-violation";
 	}
 }

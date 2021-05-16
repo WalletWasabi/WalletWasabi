@@ -9,13 +9,11 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Behaviors;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.Views;
-using Global = WalletWasabi.Gui.Global;
 
 namespace WalletWasabi.Fluent
 {
 	public class App : Application
 	{
-		private readonly Global? _global;
 		private Func<Task> _backendInitialiseAsync;
 
 		public App()
@@ -23,9 +21,8 @@ namespace WalletWasabi.Fluent
 			Name = "Wasabi Wallet";
 		}
 
-		public App(Global global, Func<Task> backendInitialiseAsync) : this()
+		public App(Func<Task> backendInitialiseAsync) : this()
 		{
-			_global = global;
 			_backendInitialiseAsync = backendInitialiseAsync;
 		}
 
@@ -40,7 +37,7 @@ namespace WalletWasabi.Fluent
 
 			if (!Design.IsDesignMode)
 			{
-				MainViewModel.Instance = new MainViewModel(_global!);
+				MainViewModel.Instance = new MainViewModel();
 
 				if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 				{

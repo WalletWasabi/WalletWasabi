@@ -16,9 +16,9 @@ namespace WalletWasabi.Fluent.ViewModels.OpenDirectory
 		IconName = "folder_regular")]
 	public partial class OpenDataFolderViewModel : TriggerCommandViewModel
 	{
-		public OpenDataFolderViewModel(string dataDir)
+		public OpenDataFolderViewModel()
 		{
-			TargetCommand = ReactiveCommand.Create(() => IoHelpers.OpenFolderInFileExplorer(dataDir));
+			TargetCommand = ReactiveCommand.Create(() => IoHelpers.OpenFolderInFileExplorer(Services.DataDir));
 		}
 
 		public override ICommand TargetCommand { get; }

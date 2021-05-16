@@ -1,6 +1,7 @@
 using System;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -18,32 +19,36 @@ namespace WalletWasabi.Backend.Filters
 			_cache = cache;
 		}
 
-		public override void OnActionExecuting(ActionExecutingContext context)
+		public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
 		{
 			var request = context.HttpContext.Request;
 
-			var (cacheKey, body) = GetCacheEntryKey(request);
+			var (cacheKey, _) = await GetCacheEntryKeyAsync(request).ConfigureAwait(false);
 
-			if (_cache.TryGetValue<OkObjectResult>(cacheKey, out var cachedResponse))
+			if (_cache.TryGetValue<ObjectResult>(cacheKey, out var cachedResponse))
 			{
 				context.Result = cachedResponse;
+				context.HttpContext.Items.Remove("cached-key");
 				return;
 			}
 
 			context.HttpContext.Items["cached-key"] = cacheKey;
+
+			await next().ConfigureAwait(false);
 		}
 
 		public override void OnResultExecuted(ResultExecutedContext context)
 		{
-			var cacheKey = context.HttpContext.Items["cached-key"];
-
-			_cache.Set(cacheKey, context.Result, DateTimeOffset.UtcNow.AddMinutes(5));
+			if (context.HttpContext.Items.TryGetValue("cached-key", out var cacheKey) && cacheKey is not null)
+			{
+				_cache.Set(cacheKey, context.Result, DateTimeOffset.UtcNow.AddMinutes(5));
+			}
 		}
 
-		private (string, string) GetCacheEntryKey(HttpRequest request)
+		private async Task<(string, string)> GetCacheEntryKeyAsync(HttpRequest request)
 		{
 			using var reader = new System.IO.StreamReader(request.Body);
-			var body = reader.ReadToEnd();
+			var body = await reader.ReadToEndAsync().ConfigureAwait(false);
 
 			var rawKey = string.Join(":", request.Path, body);
 			using var sha256Hash = SHA256.Create();

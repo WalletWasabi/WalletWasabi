@@ -77,7 +77,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			}
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
-			var tx = round.CoinjoinState.AssertSigning().CreateTransaction();
+			var tx = round.Assert<SigningState>().CreateTransaction();
 			Assert.Equal(2, tx.Inputs.Count);
 			Assert.Equal(2, tx.Outputs.Count);
 
@@ -141,7 +141,7 @@ irreq1.OwnershipProof,
 			var orresp = await arena.RegisterOutputAsync(WabiSabiFactory.CreateOutputRegistrationRequests(round, ccresps).First());
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
-			var tx = round.CoinjoinState.AssertSigning().CreateTransaction();
+			var tx = round.Assert<SigningState>().CreateTransaction();
 			Assert.Equal(2, tx.Inputs.Count);
 			Assert.Equal(2, tx.Outputs.Count);
 			Assert.Contains(cfg.BlameScript, tx.Outputs.Select(x => x.ScriptPubKey));
@@ -212,14 +212,14 @@ irreq1.OwnershipProof,
 			// Add another input. The input must be able to pay for itself, but
 			// the remaining amount after deducting the fees needs to be less
 			// than the minimum.
-			var txParams = round.CoinjoinState.AssertConstruction().Parameters;
+			var txParams = round.Assert<ConstructionState>().Parameters;
 			var extraAlice = WabiSabiFactory.CreateAlice(value: txParams.FeeRate.GetFee(Constants.P2wpkhInputVirtualSize) + txParams.AllowedOutputAmounts.Min - new Money(1L));
 			round.Alices.Add(extraAlice);
-			round.CoinjoinState = round.CoinjoinState.AssertConstruction().AddInput(extraAlice.Coin);
+			round.CoinjoinState = round.Assert<ConstructionState>().AddInput(extraAlice.Coin);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
-			var tx = round.CoinjoinState.AssertSigning().CreateTransaction();
+			var tx = round.Assert<SigningState>().CreateTransaction();
 			Assert.Equal(3, tx.Inputs.Count);
 			Assert.Equal(2, tx.Outputs.Count);
 			Assert.DoesNotContain(cfg.BlameScript, tx.Outputs.Select(x => x.ScriptPubKey));

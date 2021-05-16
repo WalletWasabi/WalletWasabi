@@ -13,7 +13,6 @@ using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Gui;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
@@ -30,17 +29,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		[AutoNotify] private bool _showCoinJoin;
 		[AutoNotify] private HistoryItemViewModel? _selectedItem;
 
-		public HistoryViewModel(WalletViewModel walletViewModel, UiConfig uiConfig, IObservable<Unit> updateTrigger)
+		public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
 		{
 			_walletViewModel = walletViewModel;
 			_updateTrigger = updateTrigger;
-			_showCoinJoin = uiConfig.ShowCoinJoinInHistory;
+			_showCoinJoin = Services.UiConfig.ShowCoinJoinInHistory;
 			_transactionSourceList = new SourceList<HistoryItemViewModel>();
 			_transactions = new ObservableCollectionExtended<HistoryItemViewModel>();
 			_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModel>();
 
 			this.WhenAnyValue(x => x.ShowCoinJoin)
-				.Subscribe(showCoinJoin => uiConfig.ShowCoinJoinInHistory = showCoinJoin);
+				.Subscribe(showCoinJoin => Services.UiConfig.ShowCoinJoinInHistory = showCoinJoin);
 
 			var sortDescription = DataGridSortDescription.FromPath(nameof(HistoryItemViewModel.OrderIndex), ListSortDirection.Descending);
 			CollectionView = new DataGridCollectionView(Transactions);
