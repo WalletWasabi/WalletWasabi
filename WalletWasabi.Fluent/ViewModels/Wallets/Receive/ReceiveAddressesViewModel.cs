@@ -11,7 +11,6 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Gui;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -20,13 +19,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 	[NavigationMetaData(Title = "Receive Addresses")]
 	public partial class ReceiveAddressesViewModel : RoutableViewModel
 	{
-		private readonly UiConfig _uiConfig;
+		private readonly HashSet<string> _suggestions;
+
 		[AutoNotify] private ObservableCollection<AddressViewModel> _addresses;
 		[AutoNotify] private AddressViewModel? _selectedAddress;
 
-		public ReceiveAddressesViewModel(Wallet wallet, UiConfig uiConfig)
+		public ReceiveAddressesViewModel(Wallet wallet, HashSet<string> suggestions)
 		{
-			_uiConfig = uiConfig;
+			_suggestions = suggestions;
 			Wallet = wallet;
 			Network = wallet.Network;
 			_addresses = new ObservableCollection<AddressViewModel>();
@@ -63,7 +63,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 				foreach (HdPubKey key in keys)
 				{
-					Addresses.Add(new AddressViewModel(this, key, Network, _uiConfig));
+					Addresses.Add(new AddressViewModel(this, Wallet, key, Network));
 				}
 			}
 			catch (Exception ex)
@@ -89,6 +89,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			{
 				await Application.Current.Clipboard.ClearAsync();
 			}
+		}
+
+		public void NavigateToAddressEdit(HdPubKey hdPubKey, KeyManager keyManager)
+		{
+			Navigate(NavigationTarget.CompactDialogScreen).To(new AddressLabelEditViewModel(this, hdPubKey, keyManager, _suggestions));
 		}
 	}
 }
