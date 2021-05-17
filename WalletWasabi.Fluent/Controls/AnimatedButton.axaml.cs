@@ -31,6 +31,9 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> AnimateIconProperty =
 			AvaloniaProperty.Register<AnimatedButton, bool>(nameof(AnimateIcon));
 
+		public static readonly StyledProperty<bool> ExecuteOnOpenProperty =
+			AvaloniaProperty.Register<AnimatedButton, bool>(nameof(ExecuteOnOpen));
+
 		public ICommand Command
 		{
 			get => GetValue(CommandProperty);
@@ -73,11 +76,22 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(AnimateIconProperty, value);
 		}
 
+		public bool ExecuteOnOpen
+		{
+			get => GetValue(ExecuteOnOpenProperty);
+			set => SetValue(ExecuteOnOpenProperty, value);
+		}
+
 		protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 		{
 			base.OnAttachedToVisualTree(e);
 
-			AnimateIcon = false;
+			AnimateIcon = ExecuteOnOpen;
+
+			if (ExecuteOnOpen)
+			{
+				Command.Execute(default);
+			}
 		}
 	}
 }

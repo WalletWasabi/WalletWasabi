@@ -47,7 +47,7 @@ namespace WalletWasabi.BitcoinCore.Mempool
 
 		protected override async Task ActionAsync(CancellationToken cancel)
 		{
-			int added = await MirrorMempoolAsync(cancel).ConfigureAwait(false);
+			await MirrorMempoolAsync(cancel).ConfigureAwait(false);
 		}
 
 		public override Task StopAsync(CancellationToken cancellationToken)
@@ -112,6 +112,7 @@ namespace WalletWasabi.BitcoinCore.Mempool
 
 		private IEnumerable<uint256> RemoveTxFromMirrorMempool(uint256[] mempoolHashes)
 		{
+
 			IEnumerable<uint256> missing;
 			lock (MempoolLock)
 			{
@@ -145,7 +146,7 @@ namespace WalletWasabi.BitcoinCore.Mempool
 
 			return spenders.Values.ToArray();
 		}
-
+    
 		public ISet<uint256> GetMempoolHashes()
 		{
 			lock (MempoolLock)
