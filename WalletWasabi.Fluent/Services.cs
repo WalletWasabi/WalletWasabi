@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Blockchain.TransactionBroadcasting;
+using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Gui;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
