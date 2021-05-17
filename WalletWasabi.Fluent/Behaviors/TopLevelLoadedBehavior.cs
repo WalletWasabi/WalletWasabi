@@ -1,13 +1,18 @@
 using System;
 using System.Reactive.Disposables;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
+using Avalonia.Rendering;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Behaviors
 {
-	public class TopLevelLoadedBehavior : AttachedToVisualTreeBehavior<Visual>
+
+
+	public class TopLevelLoadedBehavior : AttachedToVisualTreeBehavior<Visual>, IRenderLoopTask
 	{
 		private IDisposable? _disposable;
 		public static readonly StyledProperty<bool> IsLoadedProperty =
@@ -19,18 +24,15 @@ namespace WalletWasabi.Fluent.Behaviors
 			set => SetValue(IsLoadedProperty, value);
 		}
 
-		private void TopLevelOnOpened(object? sender, EventArgs e)
-		{
-			IsLoaded = true;
-		}
-
 		protected override void OnAttachedToVisualTree()
 		{
 			if (AssociatedObject.GetVisualRoot() is TopLevel topLevel)
 			{
-				topLevel.Opened += TopLevelOnOpened;
+				var loop = AvaloniaLocator.Current.GetService<IRenderLoop>();
 
-				_disposable = Disposable.Create(() => { topLevel.Opened -= TopLevelOnOpened; });
+				_disposable = Disposable.Create(() => { loop.Remove(this); });
+
+				loop.Add(this);
 			}
 		}
 
@@ -39,5 +41,31 @@ namespace WalletWasabi.Fluent.Behaviors
 			base.OnDetaching();
 			_disposable?.Dispose();
 		}
+
+		public void Update(TimeSpan time)
+		{
+			//throw new NotImplementedException();
+		}
+
+		private bool _triggered;
+
+
+		public void Render()
+		{
+			if (!_triggered)
+			{
+				_triggered = true;
+
+				Dispatcher.UIThread.Post(async () =>
+				{
+					_disposable?.Dispose();
+
+					await Task.Delay(750);
+					IsLoaded = true;
+				});
+			}
+		}
+
+		public bool NeedsUpdate { get; }
 	}
 }

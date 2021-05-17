@@ -16,7 +16,28 @@
     <behaviors:TopLevelLoadedBehavior IsLoaded="{Binding IsLoaded}" />
   </i:Interaction.Behaviors>
   <Panel>
-    <SplitView
+    <Panel.Styles>
+      <Style Selector="SplitView.presenting">
+        <Style.Animations>
+          <Animation Delay="0:0:0" Duration="0:0:4" Easing="{StaticResource FluentEasing}" FillMode="Forward">
+            <KeyFrame KeyTime="0">
+              <Setter Property="(ScaleTransform.ScaleX)" Value="1.1" />
+              <Setter Property="(ScaleTransform.ScaleY)" Value="1.1" />
+            </KeyFrame>
+            <KeyFrame KeyTime="0:0:2.5">
+              <Setter Property="(ScaleTransform.ScaleX)" Value="1.1" />
+              <Setter Property="(ScaleTransform.ScaleY)" Value="1.1" />
+            </KeyFrame>
+            <KeyFrame KeyTime="0:0:4">
+              <Setter Property="(ScaleTransform.ScaleX)" Value="1" />
+              <Setter Property="(ScaleTransform.ScaleY)" Value="1" />
+            </KeyFrame>
+          </Animation>
+        </Style.Animations>
+      </Style>
+    </Panel.Styles>
+
+    <SplitView Classes.presenting="{Binding IsLoaded}"
       IsEnabled="{Binding IsMainContentEnabled}"
       CompactPaneLength="{Binding NavBar.CurrentCompactPaneLength}"
       OpenPaneLength="{Binding NavBar.CurrentOpenPaneLength}"
@@ -26,6 +47,7 @@
                                         CollapseOnClickAction="{Binding NavBar.CollapseOnClickAction, Mode=OneWayToSource}"
                                         CollapseThreshold="{StaticResource SplitViewCollapseThreshold}" />
       </i:Interaction.Behaviors>
+
       <SplitView.Pane>
         <Panel>
           <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="False">
@@ -109,27 +131,9 @@
       <ContentControl Content="{Binding CurrentPage}" />
     </c:Dialog>
     <Panel IsHitTestVisible="False">
-      <Panel.Styles>
-        <Style Selector="Lottie:animation-ended">
-          <Style.Animations>
-            <Animation Delay="0:0:4" Duration="0:0:5" Easing="QuadraticEaseOut" FillMode="Forward">
-              <KeyFrame KeyTime="0">
-                <Setter Property="Opacity" Value="1" />
-              </KeyFrame>
-              <KeyFrame KeyTime="0:0:3">
-                <Setter Property="Opacity" Value="1" />
-              </KeyFrame>
-              <KeyFrame KeyTime="0:0:5">
-                <Setter Property="Opacity" Value="0" />
-              </KeyFrame>
-            </Animation>
-          </Style.Animations>
-        </Style>
-      </Panel.Styles>
       <Lottie IsEnabled="{Binding IsLoaded}"
-              Speed="0.35"
+              Speed="0.6"
               Stretch="UniformToFill"
-              StretchDirection="Both"
               RepeatCount="0"
               Source="avares://WalletWasabi.Fluent/Assets/loadscreen1.json" />
     </Panel>

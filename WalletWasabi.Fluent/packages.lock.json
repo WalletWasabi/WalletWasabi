@@ -31,9 +31,9 @@
       },
       "Avalonia.Lottie": {
         "type": "Direct",
-        "requested": "[0.10.3-cibuild14080, )",
-        "resolved": "0.10.3-cibuild14080",
-        "contentHash": "gS9RlBKMqJSuKOogmaWR+1f/5bGaUznpTo83IQvLydr+292GQh418pQ5TIseNueL79ujuOI3tpFmQBxm4BH/GA==",
+        "requested": "[0.10.3-cibuild14172, )",
+        "resolved": "0.10.3-cibuild14172",
+        "contentHash": "TY2f9sJ7OXYbZ1kAEQb0hNO6UkJecf1hAlZaT8o70i+maQiLw4IWjUVokDtC1JvclMdSRBRLrS+Xpkw81OJ56g==",
         "dependencies": {
           "Avalonia": "0.10.4",
           "DotNetZip": "1.15.0",
