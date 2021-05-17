@@ -106,9 +106,8 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 				var coinBaseTx = block.Transactions[0];
 
 				var tx = Transaction.Create(network);
-				using var k2 = new Key();
 				tx.Inputs.Add(coinBaseTx, 0);
-				tx.Outputs.Add(Money.Coins(49.9999m), k2.PubKey.WitHash.GetAddress(network));
+				tx.Outputs.Add(Money.Coins(49.9999m), BitcoinFactory.CreateBitcoinAddress(network));
 				tx.Sign(k1.GetBitcoinSecret(network), coinBaseTx.Outputs.AsCoins().First());
 				var valid = tx.Check();
 
