@@ -418,7 +418,7 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 		}
 
-		public HdPubKey GetKeyForScriptPubKey(Script scriptPubKey)
+		public HdPubKey? GetKeyForScriptPubKey(Script scriptPubKey)
 		{
 			lock (ScriptHdPubKeyMapLock)
 			{

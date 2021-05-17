@@ -80,7 +80,6 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 		public IEnumerable<ProcessedResult> Process(params SmartTransaction[] txs)
 			=> Process(txs as IEnumerable<SmartTransaction>);
 
-
 		/// <summary>
 		/// Was the transaction already processed by the transaction processor?
 		/// </summary>
@@ -205,7 +204,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			{
 				// If transaction received to any of the wallet keys:
 				var output = tx.Transaction.Outputs[i];
-				HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
+				HdPubKey? foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 				if (foundKey is { })
 				{
 					if (!foundKey.IsInternal)

@@ -121,7 +121,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				}
 			}
 
-			HdPubKey changeHdPubKey;
+			HdPubKey? changeHdPubKey;
 
 			if (payments.TryGetCustomRequest(out DestinationRequest? custChange))
 			{
