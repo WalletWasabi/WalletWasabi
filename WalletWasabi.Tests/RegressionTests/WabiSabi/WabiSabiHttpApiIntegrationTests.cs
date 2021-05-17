@@ -16,7 +16,7 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 		}
 
 		[Fact]
-		public async void RegisterSpentOrInNonExistentCoin()
+		public async void RegisterSpentOrInNonExistentCoinAsync()
 		{
 			var round = _apiApplicationFactory.GetCurrentRound();
 
@@ -26,7 +26,7 @@ namespace WalletWasabi.Tests.RegressionTests.WabiSabi
 			using var signingKey = new Key();
 			var arenaClient = _apiApplicationFactory.CreateArenaClient();
 
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>( async () =>
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () =>
 				await arenaClient.RegisterInputAsync(Money.Coins(1), nonExistingOutPoint, signingKey, round.Id, CancellationToken.None));
 
 			Assert.Equal(WabiSabiProtocolErrorCode.InputSpent, ex.ErrorCode);
