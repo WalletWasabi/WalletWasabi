@@ -35,6 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private StatusBarViewModel _statusBar;
 		[AutoNotify] private string _title = "Wasabi Wallet";
 		[AutoNotify] private WindowState _windowState;
+		[AutoNotify] private bool _isLoaded;
 
 		public MainViewModel()
 		{
