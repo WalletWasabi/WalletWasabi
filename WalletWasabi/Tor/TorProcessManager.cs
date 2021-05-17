@@ -58,7 +58,7 @@ namespace WalletWasabi.Tor
 						: "Tor is already running.";
 					Logger.LogInfo(msg);
 
-					TorControlClient = await InitTorControlOrThrowAsync(token).ConfigureAwait(false);
+					TorControlClient = await InitTorControlAsync(token).ConfigureAwait(false);
 					return true;
 				}
 
@@ -122,7 +122,7 @@ namespace WalletWasabi.Tor
 				}
 
 				Logger.LogInfo("Tor is running.");
-				TorControlClient = await InitTorControlOrThrowAsync(token).ConfigureAwait(false);
+				TorControlClient = await InitTorControlAsync(token).ConfigureAwait(false);
 
 				return true;
 			}
@@ -144,7 +144,7 @@ namespace WalletWasabi.Tor
 		/// </summary>
 		/// <exception cref="TorControlException">When authentication fails for some reason.</exception>
 		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
-		private async Task<TorControlClient> InitTorControlOrThrowAsync(CancellationToken token = default)
+		private async Task<TorControlClient> InitTorControlAsync(CancellationToken token = default)
 		{
 			// Get cookie.
 			string cookieString = ByteHelpers.ToHex(File.ReadAllBytes(Settings.CookieAuthFilePath));
