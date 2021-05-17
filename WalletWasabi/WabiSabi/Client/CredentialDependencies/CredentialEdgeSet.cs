@@ -42,14 +42,14 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			// Maintain degree invariant (subset of K-regular graph, sort of)
 			if (RemainingInDegree(edge.To) == 0)
 			{
-				throw new InvalidOperationException("Can't add more than k in edges per node");
+				throw new InvalidOperationException("Can't add more than k in edges per node.");
 			}
 
 			if (value > 0)
 			{
 				if (RemainingOutDegree(edge.From) == 0)
 				{
-					throw new InvalidOperationException("Can't add more than k non-zero out edges per node");
+					throw new InvalidOperationException("Can't add more than k non-zero out edges per node.");
 				}
 			}
 			else
@@ -59,7 +59,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				// remaining amount
 				if (AvailableZeroOutDegree(edge.From) == 0)
 				{
-					throw new InvalidOperationException("Can't add more than 2k zero/non-zero out edge per node");
+					throw new InvalidOperationException("Can't add more than 2k zero/non-zero out edge per node.");
 				}
 			}
 
@@ -69,13 +69,13 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				// This is the final in edge for the node edge.To
 				if (Balance(edge.To) + (long)edge.Value < 0)
 				{
-					throw new InvalidOperationException("Can't add final in edge without discharging negative value");
+					throw new InvalidOperationException("Can't add final in edge without discharging negative value.");
 				}
 
 				// If it's the final edge overall for that node, the final balance must be 0
 				if (RemainingOutDegree(edge.To) == 0 && Balance(edge.To) + (long)edge.Value != 0)
 				{
-					throw new InvalidOperationException("Can't add final in edge without discharging negative value completely");
+					throw new InvalidOperationException("Can't add final in edge without discharging negative value completely.");
 				}
 			}
 
@@ -83,7 +83,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			{
 				if (Balance(edge.To) + (long)edge.Value > 0)
 				{
-					throw new InvalidOperationException("Can't add edge with excess value to node with no remaining out degree");
+					throw new InvalidOperationException("Can't add edge with excess value to node with no remaining out degree.");
 				}
 			}
 
@@ -94,13 +94,13 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 					// This is the final out edge for the node edge.From
 					if (Balance(edge.From) - (long)edge.Value > 0)
 					{
-						throw new InvalidOperationException($"Can't add final out edge without discharging positive value (edge value {edge.Value} but node balance is {Balance(edge.From)})");
+						throw new InvalidOperationException($"Can't add final out edge without discharging positive value (edge value {edge.Value} but node balance is {Balance(edge.From)}).");
 					}
 
 					// If it's the final edge overall for that node, the final balance must be 0
 					if (RemainingInDegree(edge.From) == 0 && Balance(edge.From) - (long)edge.Value != 0)
 					{
-						throw new InvalidOperationException("Can't add final in edge without discharging negative value completely");
+						throw new InvalidOperationException("Can't add final in edge without discharging negative value completely.");
 					}
 				}
 			}
