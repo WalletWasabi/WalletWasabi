@@ -176,46 +176,27 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			=> nodes.Aggregate(this, (edgeSet, node) => edgeSet.DrainReissuance(reissuance, node));
 
 		private CredentialEdgeSet DrainReissuance(RequestNode reissuance, RequestNode node)
-		{
-			// Due to opportunistic draining of lower priority credential
-			// types when defining a reissuance node for higher priority
-			// ones, the amount is not guaranteed to be zero, avoid adding
-			// such edges.
-			long value = Balance(node);
+			=> Balance(node) switch
+			{
+				> 0 and long value => AddEdge(node, reissuance, (ulong)value),
+				< 0 and long value => AddEdge(reissuance, node, (ulong)(-1 * value)).AddZeroEdges(reissuance, node),
 
-			if (value > 0)
-			{
-				return AddEdge(node, reissuance, (ulong)value);
-			}
-			else if (value < 0)
-			{
-				return AddEdge(reissuance, node, (ulong)(-1 * value))
-					.AddZeroEdges(reissuance, node);
-			}
-			else if (InDegree(reissuance) == 0) // true for new fan-out reissuance nodes
-			{
-				// Always satisfiy zero credential from this reissuance node
+				// Due to opportunistic draining of lower priority credential
+				// types when defining a reissuance node for higher priority
+				// ones, the amount is not guaranteed to be zero, avoid adding
+				// such edges.
+				// Always satisfiy zero credential from new reissuance nodes
 				// (it's guaranteed to be possible) to avoid crossing edges,
 				// even if there's no balance to discharge.
-				return AddZeroEdges(reissuance, node);
-			}
-			else
-			{
-				return this;
-			}
-		}
+				_ => ( InDegree(reissuance) == 0 ? AddZeroEdges(reissuance, node) : this ),
+			};
 
 		public CredentialEdgeSet AddZeroEdges(RequestNode src, RequestNode dst)
-		{
-			if (RemainingInDegree(dst) == 0)
+		   => RemainingInDegree(dst) switch
 			{
-				return this;
-			}
-			else
-			{
-				return AddZeroEdge(src, dst).AddZeroEdges(src, dst);
-			}
-		}
+				0 => this,
+				_ => AddZeroEdge(src, dst).AddZeroEdges(src, dst),
+			};
 
 		public CredentialEdgeSet AddZeroEdge(RequestNode src, RequestNode dst) => AddEdge(src, dst, 0);
 
