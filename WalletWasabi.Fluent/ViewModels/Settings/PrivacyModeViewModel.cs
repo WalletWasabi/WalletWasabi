@@ -2,7 +2,6 @@ using System;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.NavBar;
-using WalletWasabi.Gui;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings
 {
@@ -11,9 +10,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 	{
 		[AutoNotify] private bool _privacyMode;
 
-		public PrivacyModeViewModel(UiConfig uiConfig)
+		public PrivacyModeViewModel()
 		{
-			_privacyMode = uiConfig.PrivacyMode;
+			_privacyMode = Services.UiConfig.PrivacyMode;
 
 			SelectionMode = NavBarItemSelectionMode.Toggle;
 
@@ -27,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 				{
 					ToggleTitle();
 					this.RaisePropertyChanged(nameof(IconName));
-					uiConfig.PrivacyMode = x;
+					Services.UiConfig.PrivacyMode = x;
 				});
 		}
 

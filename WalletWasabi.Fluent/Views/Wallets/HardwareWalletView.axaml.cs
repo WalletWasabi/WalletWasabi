@@ -2,11 +2,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.ResponsivePanelDemo
+namespace WalletWasabi.Fluent.Views.Wallets
 {
-	public class ResponsiveLayoutDemoView : UserControl
+	public class HardwareWalletView : UserControl
 	{
-		public ResponsiveLayoutDemoView()
+		public HardwareWalletView()
 		{
 			InitializeComponent();
 		}

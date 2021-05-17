@@ -6,7 +6,6 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Gui;
 
 namespace WalletWasabi.Fluent.ViewModels.NavBar
 {
@@ -19,7 +18,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		private const double NormalOpenPaneLength = 280;
 
 		private NavBarItemViewModel? _selectedItem;
-		private readonly WalletManagerViewModel _walletManager;
 		private bool _isNavigating;
 		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _topItems;
 		[AutoNotify] private ObservableCollection<NavBarItemViewModel> _bottomItems;
@@ -31,16 +29,15 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 		[AutoNotify] private double _currentCompactPaneLength;
 		[AutoNotify] private bool _isHidden;
 
-		public NavBarViewModel(TargettedNavigationStack mainScreen, WalletManagerViewModel walletManager, UiConfig uiConfig)
+		public NavBarViewModel(TargettedNavigationStack mainScreen)
 		{
-			_walletManager = walletManager;
 			_topItems = new ObservableCollection<NavBarItemViewModel>();
 			_bottomItems = new ObservableCollection<NavBarItemViewModel>();
 
 			mainScreen.WhenAnyValue(x => x.CurrentPage)
 				.OfType<NavBarItemViewModel>()
 				.DistinctUntilChanged()
-				.Subscribe(x => CurrentPageChanged(x, walletManager));
+				.Subscribe(x => CurrentPageChanged(x));
 
 			this.WhenAnyValue(x => x.SelectedItem)
 				.Subscribe(selectedItem =>
@@ -52,7 +49,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 
 					if (selectedItem is WalletViewModelBase wallet)
 					{
-						uiConfig.LastSelectedWallet = wallet.WalletName;
+						Services.UiConfig.LastSelectedWallet = wallet.WalletName;
 					}
 				});
 
@@ -61,9 +58,9 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				{
 					if (x > 0 && SelectedItem is null)
 					{
-						if (!_walletManager.IsLoadingWallet)
+						if (!UiServices.WalletManager.IsLoadingWallet)
 						{
-							var lastSelectedItem = Items.FirstOrDefault(x => x is WalletViewModelBase wallet && wallet.WalletName == uiConfig.LastSelectedWallet);
+							var lastSelectedItem = Items.FirstOrDefault(x => x is WalletViewModelBase wallet && wallet.WalletName == Services.UiConfig.LastSelectedWallet);
 
 							SelectedItem = lastSelectedItem ?? Items.FirstOrDefault();
 						}
@@ -87,7 +84,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 					CurrentOpenPaneLength = x ? 0 : NormalOpenPaneLength;
 				});
 
-			_walletManager.WhenAnyValue(x => x.SelectedWallet)
+			UiServices.WalletManager.WhenAnyValue(x => x.SelectedWallet)
 				.OfType<NavBarItemViewModel>()
 				.Subscribe(x =>
 				{
@@ -98,9 +95,9 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 				});
 		}
 
-		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => _walletManager.Items;
+		public ReadOnlyObservableCollection<NavBarItemViewModel> Items => UiServices.WalletManager.Items;
 
-		public ObservableCollection<WalletViewModelBase> Wallets => _walletManager.Wallets;
+		public ObservableCollection<WalletViewModelBase> Wallets => UiServices.WalletManager.Wallets;
 
 		public NavBarItemViewModel? SelectedItem
 		{
@@ -207,15 +204,15 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			}
 		}
 
-		private void CurrentPageChanged(NavBarItemViewModel x, WalletManagerViewModel walletManager)
+		private void CurrentPageChanged(NavBarItemViewModel x)
 		{
-			if (walletManager.Items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
+			if (UiServices.WalletManager.Items.Contains(x) || _topItems.Contains(x) || _bottomItems.Contains(x))
 			{
 				if (!_isNavigating)
 				{
 					_isNavigating = true;
 
-					var result = walletManager.SelectionChanged(x);
+					var result = UiServices.WalletManager.SelectionChanged(x);
 					if (result is not null)
 					{
 						SelectedItem = x;
@@ -237,7 +234,7 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar
 			{
 				_isNavigating = true;
 
-				var result = _walletManager.SelectionChanged(x);
+				var result = UiServices.WalletManager.SelectionChanged(x);
 				if (result is not null)
 				{
 					SelectedItem = result;

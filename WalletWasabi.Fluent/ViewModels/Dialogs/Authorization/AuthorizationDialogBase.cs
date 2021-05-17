@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
