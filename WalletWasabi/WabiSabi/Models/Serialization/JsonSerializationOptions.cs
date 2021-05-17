@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using WalletWasabi.JsonConverters;
@@ -19,6 +18,11 @@ namespace WalletWasabi.WabiSabi.Models.Serialization
 				new WitScriptJsonConverter(),
 				new ScriptJsonConverter(),
 				new OwnershipProofJsonConverter(),
+				new NetworkJsonConverter(),
+				new FeeRateJsonConverter(),
+				new MoneySatoshiJsonConverter(),
+				new Uint256JsonConverter(),
+				new IStateJsonConverter()
 			}
 		};
 		public static readonly JsonSerializationOptions Default = new();
