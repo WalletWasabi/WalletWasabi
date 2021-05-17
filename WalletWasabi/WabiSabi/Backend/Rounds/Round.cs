@@ -30,7 +30,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Id = CalculateHash();
 		}
 
-		public IState CoinjoinState { get; set; }
+		public MultipartyTransactionState CoinjoinState { get; set; }
 		public uint256 Id { get; }
 		public Network Network => RoundParameters.Network;
 		public uint MaxInputCountByAlice => RoundParameters.MaxInputCountByAlice;
