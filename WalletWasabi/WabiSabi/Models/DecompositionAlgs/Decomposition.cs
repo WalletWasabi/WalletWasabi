@@ -12,8 +12,11 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 
 		public void Extend(Coin coin)
 		{
-			Coins.Add(coin);
-			Coins.Sort();
+			int index = Coins.BinarySearch(coin);
+			if (index < 0)
+			{
+				Coins.Insert(~index, coin);
+			}
 		}
 
 		public Money FaceValue()

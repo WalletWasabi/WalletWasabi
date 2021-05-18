@@ -3,7 +3,7 @@ using System;
 
 namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 {
-	public record Coin
+	public record Coin : IComparable
 	{
 		public Money Amount { get; init; } = Money.Zero;
 		public const int OutputVbytes = 31;
@@ -26,6 +26,15 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 		public override int GetHashCode()
 		{
 			return HashCode;
+		}
+
+		public int CompareTo(object? obj)
+		{
+			if (obj is Money money)
+			{
+				return CompareTo(money);
+			}
+			throw new NullReferenceException();
 		}
 	}
 }
