@@ -6,8 +6,13 @@ using WalletWasabi.WabiSabi.Backend.Models;
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 {
 	// This class represents actions of the BIP 370 creator and constructor roles
-	public record ConstructionState(MultipartyTransactionParameters Parameters) : MultipartyTransactionState
+	public record ConstructionState : MultipartyTransactionState
 	{
+		public ConstructionState(MultipartyTransactionParameters Parameters)
+			: base(Parameters)
+		{
+		}
+
 		// TODO ownership proofs and spend status also in scope
 		public ConstructionState AddInput(Coin coin)
 		{

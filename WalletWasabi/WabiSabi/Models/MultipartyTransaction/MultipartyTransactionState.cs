@@ -1,12 +1,18 @@
 using NBitcoin;
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 {
-	public record MultipartyTransactionState
+	public abstract record MultipartyTransactionState
 	{
+		protected MultipartyTransactionState(MultipartyTransactionParameters parameters)
+		{
+			Parameters = parameters;
+		}
+
+		public MultipartyTransactionParameters Parameters { get; }
+
 		public ImmutableList<Coin> Inputs { get; init; } = ImmutableList<Coin>.Empty;
 		public ImmutableList<TxOut> Outputs { get; init; } = ImmutableList<TxOut>.Empty;
 

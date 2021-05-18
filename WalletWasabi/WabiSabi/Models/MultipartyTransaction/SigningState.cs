@@ -9,13 +9,11 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 	public record SigningState : MultipartyTransactionState
 	{
 		public SigningState(ConstructionState state)
+			: base(state.Parameters)
 		{
-			Parameters = state.Parameters;
 			Inputs = state.Inputs;
 			Outputs = state.Outputs;
 		}
-
-		public MultipartyTransactionParameters Parameters { get; }
 
 		public ImmutableDictionary<int, WitScript> Witnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
 
