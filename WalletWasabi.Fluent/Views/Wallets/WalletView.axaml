@@ -77,7 +77,7 @@
         </ItemsControl>
       </ScrollViewer>
       <history:HistoryTable Name="HistoryTable" DataContext="{Binding History}" MaxWidth="1000"
-                            HorizontalAlignment="Left" VerticalAlignment="Top"
+                            HorizontalAlignment="Left" VerticalAlignment="Stretch"
                             DockPanel.Dock="Bottom"/>
     </DockPanel>
   </c:ContentArea>
