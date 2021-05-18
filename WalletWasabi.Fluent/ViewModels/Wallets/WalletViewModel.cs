@@ -109,7 +109,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					}
 				}
 
-				Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel());
+				Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(wallet));
 			});
 		}
 

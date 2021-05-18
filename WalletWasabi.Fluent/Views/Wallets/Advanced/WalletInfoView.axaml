@@ -14,6 +14,38 @@
                  EnableNext="True" NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
-
+    <StackPanel Spacing="10">
+      <c:PreviewItem Icon="{StaticResource wasabi_logo}"
+                     Text="Extended Master Private Key"
+                     Content="{Binding ExtendedMasterPrivateKey}" />
+      <Separator />
+      <c:PreviewItem Icon="{StaticResource wasabi_logo}"
+                     Text="Extended Master zprv"
+                     Content="{Binding ExtendedMasterZprv}" />
+      <Separator />
+      <c:PreviewItem Icon="{StaticResource wasabi_logo}"
+                     Text="Extended Master Fingerprint"
+                     Content="{Binding MasterKeyFingerprint}" />
+      <Separator />
+      <c:PreviewItem Icon="{StaticResource wasabi_logo}"
+                     Text="Account Key Path"
+                     Content="{Binding AccountKeyPath}" />
+      <Separator />
+      <c:PreviewItem Icon="{StaticResource wasabi_logo}"
+                     Text="Extended Account Private Key"
+                     Content="{Binding ExtendedAccountPrivateKey}" />
+      <Separator />
+      <c:PreviewItem Icon="{StaticResource wasabi_logo}"
+                     Text="Extended Account zprv"
+                     Content="{Binding ExtendedAccountZprv}" />
+      <Separator />
+      <c:PreviewItem Icon="{StaticResource wasabi_logo}"
+                     Text="Extended Account Public Key"
+                     Content="{Binding ExtendedAccountPublicKey}" />
+      <Separator />
+      <c:PreviewItem Icon="{StaticResource wasabi_logo}"
+                     Text="Extended Account zpub"
+                     Content="{Binding ExtendedAccountZpub}" />
+    </StackPanel>
   </c:ContentArea>
 </UserControl>
