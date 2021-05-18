@@ -14,42 +14,50 @@
                  EnableNext="True" NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}">
-    <StackPanel Spacing="10">
+    <StackPanel Spacing="10" Margin="0 0 20 0">
       <c:PreviewItem Icon="{StaticResource wasabi_logo}"
                      Text="Extended Master Private Key"
                      Content="{Binding ExtendedMasterPrivateKey}"
+                     CopyParameter="{Binding ExtendedMasterPrivateKey}"
                      PrivacyModeEnabled="True" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource wasabi_logo}"
                      Text="Extended Master zprv"
                      Content="{Binding ExtendedMasterZprv}"
+                     CopyParameter="{Binding ExtendedMasterZprv}"
                      PrivacyModeEnabled="True" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource wasabi_logo}"
                      Text="Extended Master Fingerprint"
-                     Content="{Binding MasterKeyFingerprint}" />
+                     Content="{Binding MasterKeyFingerprint}"
+                     CopyParameter="{Binding MasterKeyFingerprint}" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource wasabi_logo}"
                      Text="Account Key Path"
-                     Content="{Binding AccountKeyPath}" />
+                     Content="{Binding AccountKeyPath}"
+                     CopyParameter="{Binding AccountKeyPath}" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource wasabi_logo}"
                      Text="Extended Account Private Key"
                      Content="{Binding ExtendedAccountPrivateKey}"
+                     CopyParameter="{Binding ExtendedAccountPrivateKey}"
                      PrivacyModeEnabled="True" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource wasabi_logo}"
                      Text="Extended Account zprv"
                      Content="{Binding ExtendedAccountZprv}"
+                     CopyParameter="{Binding ExtendedAccountZprv}"
                      PrivacyModeEnabled="True" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource wasabi_logo}"
                      Text="Extended Account Public Key"
-                     Content="{Binding ExtendedAccountPublicKey}" />
+                     Content="{Binding ExtendedAccountPublicKey}"
+                     CopyParameter="{Binding ExtendedAccountPublicKey}" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource wasabi_logo}"
                      Text="Extended Account zpub"
-                     Content="{Binding ExtendedAccountZpub}" />
+                     Content="{Binding ExtendedAccountZpub}"
+                     CopyParameter="{Binding ExtendedAccountZpub}" />
     </StackPanel>
   </c:ContentArea>
 </UserControl>
