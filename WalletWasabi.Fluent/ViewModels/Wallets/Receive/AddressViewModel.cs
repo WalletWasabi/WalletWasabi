@@ -1,4 +1,4 @@
-﻿using System.Reactive;
+using System.Reactive;
 using System.Windows.Input;
 using Avalonia;
 using NBitcoin;
