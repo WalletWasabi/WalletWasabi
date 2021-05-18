@@ -29,7 +29,7 @@
                 <TextBlock Text="Receive" />
               </StackPanel>
             </Button>
-            <Button Classes="function">
+            <Button Classes="function" Command="{Binding WalletInfoCommand}">
               <PathIcon Data="{StaticResource more_regular}" Foreground="{DynamicResource TextForegroundColor}"/>
             </Button>
           </StackPanel>
