@@ -51,7 +51,7 @@ namespace WalletWasabi.Fluent.Controls
 			this.WhenAnyValue(x => x.CopyParameter, x => x.IsPointerOver, (copyParameter, isPointerOver) => !string.IsNullOrEmpty(copyParameter?.ToString()) && isPointerOver)
 				.Subscribe(async value =>
 				{
-					if (_copyButtonPressedStopwatch is { } sw)
+					if (_copyButtonPressedStopwatch is { } sw && !PrivacyModeEnabled)
 					{
 						var elapsedMilliseconds = sw.ElapsedMilliseconds;
 
