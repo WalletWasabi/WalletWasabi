@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:locator="using:WalletWasabi.Fluent"
@@ -38,7 +39,7 @@
       </StackPanel>
 
     </c:ContentArea.Title>
-    <DockPanel Name="Panel" VerticalAlignment="Top">
+    <DockPanel Name="Panel" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
       <i:Interaction.Behaviors>
         <behaviors:BoundsObserverBehavior Bounds="{Binding #Panel.Bounds, Mode=OneWay}"
                                           Width="{Binding WidthSource, Mode=TwoWay}"
@@ -51,8 +52,18 @@
                     VerticalAlignment="Top"
                     HorizontalScrollBarVisibility="Auto"
                     VerticalScrollBarVisibility="Auto">
+        <i:Interaction.Behaviors>
+          <ia:DataTriggerBehavior Binding="{Binding LayoutIndex}" ComparisonCondition="Equal" Value="0">
+            <ia:ChangePropertyAction TargetObject="{Binding #ScrollViewer}" PropertyName="DockPanel.Dock" Value="Top" x:CompileBindings="False"/>
+          </ia:DataTriggerBehavior>
+          <ia:DataTriggerBehavior Binding="{Binding LayoutIndex}" ComparisonCondition="Equal" Value="1">
+            <ia:ChangePropertyAction TargetObject="{Binding #ScrollViewer}" PropertyName="DockPanel.Dock" Value="Top" x:CompileBindings="False"/>
+          </ia:DataTriggerBehavior>
+          <ia:DataTriggerBehavior Binding="{Binding LayoutIndex}" ComparisonCondition="Equal" Value="2">
+            <ia:ChangePropertyAction TargetObject="{Binding #ScrollViewer}" PropertyName="DockPanel.Dock" Value="Left" x:CompileBindings="False"/>
+          </ia:DataTriggerBehavior>
+        </i:Interaction.Behaviors>
         <ItemsControl Items="{Binding Tiles}"
-                      DockPanel.Dock="Top"
                       Margin="0 0"
                       HorizontalAlignment="Left"
                       VerticalAlignment="Top">
