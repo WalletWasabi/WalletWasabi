@@ -12,21 +12,21 @@ namespace WalletWasabi.Fluent.Controls
         public static readonly StyledProperty<string?> RowDefinitionsSourceProperty =
             AvaloniaProperty.Register<BindableGrid, string?>(nameof(RowDefinitionsSource));
 
+        public BindableGrid()
+        {
+            InvalidateDefinitions();
+        }
+
         public string? ColumnDefinitionsSource
         {
-            get => GetValue(ColumnDefinitionsSourceProperty);
-            set => SetValue(ColumnDefinitionsSourceProperty, value);
+	        get => GetValue(ColumnDefinitionsSourceProperty);
+	        set => SetValue(ColumnDefinitionsSourceProperty, value);
         }
 
         public string? RowDefinitionsSource
         {
-            get => GetValue(RowDefinitionsSourceProperty);
-            set => SetValue(RowDefinitionsSourceProperty, value);
-        }
-
-        public BindableGrid()
-        {
-            InvalidateDefinitions();
+	        get => GetValue(RowDefinitionsSourceProperty);
+	        set => SetValue(RowDefinitionsSourceProperty, value);
         }
 
         protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
