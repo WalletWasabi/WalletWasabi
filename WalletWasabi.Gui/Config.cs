@@ -22,7 +22,6 @@ namespace WalletWasabi.Gui
 		public const int DefaultPrivacyLevelSome = 2;
 		public const int DefaultPrivacyLevelFine = 21;
 		public const int DefaultPrivacyLevelStrong = 50;
-		public const int DefaultTorSock5Port = 9050;
 		public const int DefaultJsonRpcServerPort = 37128;
 		public static readonly Money DefaultDustThreshold = Money.Coins(Constants.DefaultDustThreshold);
 

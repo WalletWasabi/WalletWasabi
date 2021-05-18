@@ -23,7 +23,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 
 			string expected = string.Join(
 				" ",
-				$"--SOCKSPort 127.0.0.1:9050",
+				$"--SOCKSPort 127.0.0.1:37150",
 				$"--CookieAuthentication 1",
 				$"--ControlPort 37151",
 				$"--CookieAuthFile \"{Path.Combine("temp", "tempDataDir", "control_auth_cookie")}\"",
