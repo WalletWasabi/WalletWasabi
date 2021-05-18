@@ -126,7 +126,8 @@ namespace WalletWasabi.Blockchain.Transactions
 			if (payments.TryGetCustomRequest(out DestinationRequest? custChange))
 			{
 				var changeScript = custChange.Destination.ScriptPubKey;
-				changeHdPubKey = KeyManager.GetKeyForScriptPubKey(changeScript);
+				KeyManager.TryGetKeyForScriptPubKey(changeScript, out HdPubKey? hdPubKey);
+				changeHdPubKey = hdPubKey;
 
 				var changeStrategy = payments.ChangeStrategy;
 				if (changeStrategy == ChangeStrategy.Custom)
@@ -279,7 +280,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			for (var i = 0U; i < tx.Outputs.Count; i++)
 			{
 				TxOut output = tx.Outputs[i];
-				var foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
+				KeyManager.TryGetKeyForScriptPubKey(output.ScriptPubKey, out HdPubKey? foundKey);
 				if (foundKey is not null)
 				{
 					var smartCoin = new SmartCoin(smartTransaction, i, foundKey);

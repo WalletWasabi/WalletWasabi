@@ -445,7 +445,9 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 						else
 						{
 							// Should never happen, but oh well we can autocorrect it so why not.
-							ExposedLinks[input] = ExposedLinks[input].Append(new HdPubKeyBlindedPair(DestinationKeyManager.GetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey) ?? KeyManager.GetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey), false));
+							DestinationKeyManager.TryGetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey, out HdPubKey? hdPubKey);
+							KeyManager.TryGetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey, out HdPubKey? hdPubK);
+							ExposedLinks[input] = ExposedLinks[input].Append(new HdPubKeyBlindedPair(hdPubKey ?? hdPubK, false));
 						}
 					}
 				}
