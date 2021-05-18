@@ -65,6 +65,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private RoundParameters RoundParameters { get; }
 
+		public TState Assert<TState>() where TState : MultipartyTransactionState =>
+			CoinjoinState switch
+			{
+				TState s => s,
+				_ => throw new InvalidOperationException($"{typeof(TState).Name} state was expected but {CoinjoinState.GetType().Name} state was received.")
+			};
+
 		public void SetPhase(Phase phase)
 		{
 			if (!Enum.IsDefined<Phase>(phase))
@@ -121,13 +128,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		}
 
 		public ConstructionState AddInput(Coin coin)
-			=> CoinjoinState.AssertConstruction().AddInput(coin);
+			=> Assert<ConstructionState>().AddInput(coin);
 
 		public ConstructionState AddOutput(TxOut output)
-			=> CoinjoinState.AssertConstruction().AddOutput(output);
+			=> Assert<ConstructionState>().AddOutput(output);
 
 		public SigningState AddWitness(int index, WitScript witness)
-			=> CoinjoinState.AssertSigning().AddWitness(index, witness);
+			=> Assert<SigningState>().AddWitness(index, witness);
 
 		private uint256 CalculateHash()
 			=> StrobeHasher.Create(ProtocolConstants.RoundStrobeDomain)
