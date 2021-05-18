@@ -33,7 +33,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public MultipartyTransactionState CoinjoinState { get; set; }
 		public uint256 Id { get; }
 		public Network Network => RoundParameters.Network;
-		public uint MaxInputCountByAlice => RoundParameters.MaxInputCountByAlice;
 		public Money MinRegistrableAmount => RoundParameters.MinRegistrableAmount;
 		public Money MaxRegistrableAmount => RoundParameters.MaxRegistrableAmount;
 		public uint PerAliceVsizeAllocation => RoundParameters.PerAliceVsizeAllocation;
@@ -138,7 +137,6 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private uint256 CalculateHash()
 			=> StrobeHasher.Create(ProtocolConstants.RoundStrobeDomain)
-				.Append(ProtocolConstants.RoundMaxInputCountByAliceStrobeLabel, MaxInputCountByAlice)
 				.Append(ProtocolConstants.RoundMinRegistrableAmountStrobeLabel, MinRegistrableAmount)
 				.Append(ProtocolConstants.RoundMaxRegistrableAmountStrobeLabel, MaxRegistrableAmount)
 				.Append(ProtocolConstants.RoundPerAliceVsizeAllocationStrobeLabel, PerAliceVsizeAllocation)

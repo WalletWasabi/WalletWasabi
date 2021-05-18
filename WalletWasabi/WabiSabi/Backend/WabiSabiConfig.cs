@@ -29,10 +29,6 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonConverter(typeof(TimeSpanJsonConverter))]
 		public TimeSpan ReleaseUtxoFromPrisonAfter { get; set; } = TimeSpan.FromHours(3);
 
-		[DefaultValue(2)]
-		[JsonProperty(PropertyName = "MaxInputCountByAlice", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public uint MaxInputCountByAlice { get; set; } = 2;
-
 		[DefaultValueMoneyBtc("0.00005")]
 		[JsonProperty(PropertyName = "MinRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
