@@ -5,7 +5,7 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Models.Serialization
 {
-	public class IStateJsonConverter : JsonConverter
+	public class MultipartyTransactionStateJsonConverter : JsonConverter
 	{
 		// This converter is a bit unusual because we need to add a new property to the
 		// serialized json string but the converter is called recursively and fails with
@@ -49,7 +49,7 @@ namespace WalletWasabi.WabiSabi.Models.Serialization
 
 		public override bool CanConvert(Type objectType)
 		{
-			return typeof(IState).IsAssignableFrom(objectType);
+			return typeof(MultipartyTransactionState).IsAssignableFrom(objectType);
 		}
 
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)

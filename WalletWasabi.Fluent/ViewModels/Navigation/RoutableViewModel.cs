@@ -31,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 		}
 
-		public virtual string IconName => "navigation_regular";
+		public virtual string IconName { get; set; } = "navigation_regular";
 
 		public ICommand? NextCommand { get; protected set; }
 
