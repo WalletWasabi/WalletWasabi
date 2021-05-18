@@ -28,8 +28,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		public LoadingControlViewModel Loading { get; } = new();
 
-		public override string IconName => "web_asset_regular";
-
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
 			base.OnNavigatedTo(isInHistory, disposables);
