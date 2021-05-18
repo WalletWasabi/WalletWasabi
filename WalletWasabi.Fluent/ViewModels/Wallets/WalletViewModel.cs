@@ -23,6 +23,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify] private IList<TileViewModel>? _tiles;
 		[AutoNotify] private IList<TileLayoutViewModel>? _layouts;
 		[AutoNotify] private int _layoutIndex;
+		[AutoNotify] private double _widthSource;
+		[AutoNotify] private double _heightSource;
 
 		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
