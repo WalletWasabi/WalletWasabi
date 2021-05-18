@@ -159,7 +159,7 @@ namespace WalletWasabi.Tor
 				TorControlReply takeReply = await client.TakeOwnershipAsync(token).ConfigureAwait(false);
 
 				if (!takeReply)
-				{					
+				{
 					throw new TorControlException($"Failed to take ownership of the Tor instance. Reply: '{takeReply}'.");
 				}
 
