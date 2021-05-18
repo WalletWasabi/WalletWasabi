@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 {
-	record CredentialEdgeSet
+	public record CredentialEdgeSet
 	{
 		public CredentialType CredentialType { get; init; }
 		public ImmutableDictionary<RequestNode, ImmutableHashSet<CredentialDependency>> Predecessors { get; init; } = ImmutableDictionary.Create<RequestNode, ImmutableHashSet<CredentialDependency>>();
@@ -18,49 +18,52 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		public ImmutableHashSet<CredentialDependency> OutEdges(RequestNode node) => Successors[node];
 
-		public int InDegree(RequestNode node) => InEdges(node).Count();
+		public int InDegree(RequestNode node) => InEdges(node).Count;
 
-		public int OutDegree(RequestNode node) => OutEdges(node).Count();
+		public int OutDegree(RequestNode node) => OutEdges(node).Where(x => x.Value != 0).Count();
 
-		public int RemainingInDegree(RequestNode node) => node.InitialBalance(CredentialType) <= 0 ? DependencyGraph.K - InDegree(node) : 0;
+		public int ZeroOnlyOutDegree(RequestNode node) => OutEdges(node).Where(x => x.Value == 0).Count();
 
-		public int RemainingOutDegree(RequestNode node) => node.InitialBalance(CredentialType) >= 0 ? DependencyGraph.K - OutDegree(node) : 0;
+		public int RemainingInDegree(RequestNode node) => node.MaxInDegree - InDegree(node);
 
-		public IOrderedEnumerable<RequestNode> OrderByBalance(IEnumerable<RequestNode> nodes) => nodes.OrderByDescending(v => Balance(v));
+		public int RemainingOutDegree(RequestNode node) => node.MaxOutDegree - OutDegree(node);
+
+		public int RemainingZeroOnlyOutDegree(RequestNode node) => node.MaxZeroOnlyOutDegree - ZeroOnlyOutDegree(node);
+
+		public int AvailableZeroOutDegree(RequestNode node) => RemainingZeroOnlyOutDegree(node) + (RemainingOutDegree(node) - (Balance(node) > 0 ? 1 : 0));
 
 		public CredentialEdgeSet AddEdge(RequestNode from, RequestNode to, ulong value)
 		{
-			if (value == 0)
-			{
-				throw new ArgumentException("can't create edge with 0 value");
-			}
-
 			var edge = new CredentialDependency(from, to, CredentialType, value);
 
 			var predecessors = InEdges(edge.To);
 			var successors = OutEdges(edge.From);
 
-			// Maintain subset of K-regular graph invariant
-			if (RemainingOutDegree(edge.From) == 0 || RemainingInDegree(edge.To) == 0)
+			// Maintain degree invariant (subset of K-regular graph, sort of)
+			if (RemainingInDegree(edge.To) == 0)
 			{
-				throw new InvalidOperationException("Can't add more than k edges");
+				throw new InvalidOperationException("Can't add more than k in edges per node");
 			}
 
-			if (RemainingOutDegree(edge.From) == 1)
+			if (value > 0)
 			{
-				// This is the final out edge for the node edge.From
-				if (Balance(edge.From) - (long)edge.Value > 0)
+				if (RemainingOutDegree(edge.From) == 0)
 				{
-					throw new InvalidOperationException("Can't add final out edge without discharging positive value");
+					throw new InvalidOperationException("Can't add more than k non-zero out edges per node");
 				}
-
-				// If it's the final edge overall for that node, the final balance must be 0
-				if (RemainingInDegree(edge.From) == 0 && Balance(edge.From) - (long)edge.Value != 0)
+			}
+			else
+			{
+				// For reissuance we can utilize all out edges.
+				// For input nodes we may need one slot unutilized for the
+				// remaining amount
+				if (AvailableZeroOutDegree(edge.From) == 0)
 				{
-					throw new InvalidOperationException("Can't add final edge without discharging negative value completely");
+					throw new InvalidOperationException("Can't add more than 2k zero/non-zero out edge per node");
 				}
 			}
 
+			// Maintain balance sum invariant (initial balance and edge values cancel out)
 			if (RemainingInDegree(edge.To) == 1)
 			{
 				// This is the final in edge for the node edge.To
@@ -72,7 +75,25 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				// If it's the final edge overall for that node, the final balance must be 0
 				if (RemainingOutDegree(edge.To) == 0 && Balance(edge.To) + (long)edge.Value != 0)
 				{
-					throw new InvalidOperationException("Can't add final edge without discharging negative value completely");
+					throw new InvalidOperationException("Can't add final in edge without discharging negative value completely");
+				}
+			}
+
+			if (value > 0)
+			{
+				if (RemainingOutDegree(edge.From) == 1)
+				{
+					// This is the final out edge for the node edge.From
+					if (Balance(edge.From) - (long)edge.Value > 0)
+					{
+						throw new InvalidOperationException($"Can't add final out edge without discharging positive value (edge value {edge.Value} but node balance is {Balance(edge.From)})");
+					}
+
+					// If it's the final edge overall for that node, the final balance must be 0
+					if (RemainingInDegree(edge.From) == 0 && Balance(edge.From) - (long)edge.Value != 0)
+					{
+						throw new InvalidOperationException("Can't add final in edge without discharging negative value completely");
+					}
 				}
 			}
 
@@ -92,55 +113,51 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		// Find the largest negative or positive balance node for the given
 		// credential type, and one or more smaller nodes with a combined total
 		// magnitude exceeding that of the largest magnitude node when possible.
-		public bool SelectNodesToDischarge(IEnumerable<RequestNode> nodes, out RequestNode? largestMagnitudeNode, out IEnumerable<RequestNode> smallMagnitudeNodes, out bool fanIn)
+		public (RequestNode largestMagnitudeNode, IEnumerable<RequestNode> smallMagnitudeNodes, bool fanIn) MatchNodesToDischarge(IEnumerable<RequestNode> nodesWithRemainingOutDegree, IEnumerable<RequestNode> nodesWithRemainingInDegree)
 		{
-			// Order the given of the graph based on their balances
-			var ordered = OrderByBalance(nodes);
-			ImmutableArray<RequestNode> positive = ordered.ThenBy(x => OutDegree(x)).Where(v => Balance(v) > 0).ToImmutableArray();
-			ImmutableArray<RequestNode> negative = Enumerable.Reverse(ordered.ThenByDescending(x => InDegree(x)).Where(v => Balance(v) < 0)).ToImmutableArray();
+			ImmutableArray<RequestNode> sources = nodesWithRemainingOutDegree
+				.OrderByDescending(v => Balance(v))
+				.ThenByDescending(v => RemainingOutDegree(v))
+				.ThenByDescending(v => AvailableZeroOutDegree(v))
+				.ToImmutableArray();
 
-			if (negative.Length == 0)
-			{
-				largestMagnitudeNode = null;
-				smallMagnitudeNodes = new RequestNode[0];
-				fanIn = false;
-				return false;
-			}
+			ImmutableArray<RequestNode> sinks = nodesWithRemainingInDegree
+				.OrderBy(v => Balance(v))
+				.ThenByDescending(v => RemainingInDegree(v))
+				.ToImmutableArray();
 
-			var nPositive = 1;
-			var nNegative = 1;
+			var nSources = 1;
+			var nSinks = 1;
 
-			IEnumerable<RequestNode> PositiveCandidates() => positive.Take(nPositive);
-			IEnumerable<RequestNode> NegativeCandidates() => negative.Take(nNegative);
-			long PositiveSum() => PositiveCandidates().Sum(x => Balance(x));
-			long NegativeSum() => NegativeCandidates().Sum(x => Balance(x));
-			long CompareSums() => PositiveSum().CompareTo(-1 * NegativeSum());
+			long SourcesSum() => sources.Take(nSources).Sum(v => Balance(v));
+			long SinksSum() => sinks.Take(nSinks).Sum(v => Balance(v));
+			long CompareSums() => SourcesSum().CompareTo(-1 * SinksSum());
 
 			// We want to fully discharge the larger (in absolute magnitude) of
 			// the two nodes, so we will add more nodes to the smaller one until
 			// we can fully cover. At each step of the iteration we fully
 			// discharge at least 2 nodes from the queue.
 			var initialComparison = CompareSums();
-			fanIn = initialComparison == -1;
+			var fanIn = initialComparison == -1;
 
-			if (initialComparison != 0)
+			if (initialComparison != 0 && SinksSum() != 0)
 			{
-				Action takeOneMore = fanIn ? () => nPositive++ : () => nNegative++;
+				Action takeOneMore = fanIn ? () => nSources++ : () => nSinks++;
 
 				// Take more nodes until the comparison sign changes or
 				// we run out.
 				while (initialComparison == CompareSums()
-					   && (fanIn ? positive.Length - nPositive > 0
-								 : negative.Length - nNegative > 0))
+					   && (fanIn ? sources.Length - nSources > 0
+								 : sinks.Length - nSinks > 0))
 				{
 					takeOneMore();
 				}
 			}
 
-			largestMagnitudeNode = (fanIn ? negative.First() : positive.First());
-			smallMagnitudeNodes = (fanIn ? positive.Take(nPositive).Reverse() : negative.Take(nNegative)); // reverse positive values so we always proceed in order of increasing magnitude
+			var largestMagnitudeNode = (fanIn ? sinks.First() : sources.First());
+			var smallMagnitudeNodes = (fanIn ? sources.Take(nSources).Reverse() : sinks.Take(nSinks)); // reverse positive values so we always proceed in order of increasing magnitude
 
-			return true;
+			return (largestMagnitudeNode, smallMagnitudeNodes, fanIn);
 		}
 
 		// Drain values into a reissuance request (towards the center of the graph).
@@ -164,13 +181,35 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			}
 			else if (value < 0)
 			{
-				return AddEdge(reissuance, node, (ulong)(-1 * value));
+				return AddEdge(reissuance, node, (ulong)(-1 * value))
+					.AddZeroEdges(reissuance, node);
+			}
+			else if (InDegree(reissuance) == 0) // true for new fan-out reissuance nodes
+			{
+				// Always satisfiy zero credential from this reissuance node
+				// (it's guaranteed to be possible) to avoid crossing edges,
+				// even if there's no balance to discharge.
+				return AddZeroEdges(reissuance, node);
 			}
 			else
 			{
 				return this;
 			}
 		}
+
+		public CredentialEdgeSet AddZeroEdges(RequestNode src, RequestNode dst)
+		{
+			if (RemainingInDegree(dst) == 0)
+			{
+				return this;
+			}
+			else
+			{
+				return AddZeroEdge(src, dst).AddZeroEdges(src, dst);
+			}
+		}
+
+		public CredentialEdgeSet AddZeroEdge(RequestNode src, RequestNode dst) => AddEdge(src, dst, 0);
 
 		// Drain credential values between terminal nodes, cancelling out
 		// opposite values by propagating forwards or backwards corresponding to
@@ -182,17 +221,54 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		{
 			long value = Balance(dischargeNode);
 
-			if (value > 0)
+			if (value < 0)
 			{
-				return AddEdge(dischargeNode, node, (ulong)Math.Min(-1 * Balance(node), value));
-			}
-			else if (value < 0)
-			{
+				// Fan out, discharge the entire balance, adding zero edges if
+				// needed (might not be if the discharged node has already
+				// received an input edge in a previous pass).
 				return AddEdge(node, dischargeNode, (ulong)Math.Min(Balance(node), -1 * value));
+			}
+			else if (value > 0)
+			{
+				// Fan in, draining zero credentials is never necessary, either
+				// one or both available in-edges of `node` will be used
+				var edgeAmount = (ulong)Math.Min(-1 * Balance(node), value);
+				if (edgeAmount == (ulong)value || RemainingOutDegree(dischargeNode) > 1)
+				{
+					return AddEdge(dischargeNode, node, edgeAmount);
+				}
+				else
+				{
+					// Sometimes the last dischargeNode can't be handled in this
+					// iteration because the amount requires a change value but
+					// its remaining out degree is already 1, requiring the
+					// exact value to be used.
+					// Just skip it here and it will eventually become the
+					// largest magnitude node if it's required, and get handled
+					// by the negative node discharging loop.
+					return this;
+				}
+			}
+			else if (value == 0 && (dischargeNode.InitialBalance(CredentialType) == 0))
+			{
+				// eagerly discharge zero credentials when the child node is a reissuance node
+				return DrainZeroCredentials(node, dischargeNode);
 			}
 			else
 			{
-				throw new InvalidOperationException("Can't drain terminal nodes with 0 balance");
+				return this;
+			}
+		}
+
+		public CredentialEdgeSet DrainZeroCredentials(RequestNode src, RequestNode dst)
+		{
+			if (Balance(dst) != 0 || AvailableZeroOutDegree(src) == 0 || RemainingInDegree(dst) == 0)
+			{
+				return this;
+			}
+			else
+			{
+				return AddZeroEdge(src, dst).DrainZeroCredentials(src, dst);
 			}
 		}
 	}
