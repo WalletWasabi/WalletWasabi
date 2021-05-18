@@ -22,7 +22,7 @@ namespace WalletWasabi.WabiSabi.Models.Serialization
 				new FeeRateJsonConverter(),
 				new MoneySatoshiJsonConverter(),
 				new Uint256JsonConverter(),
-				new IStateJsonConverter()
+				new MultipartyTransactionStateJsonConverter()
 			}
 		};
 		public static readonly JsonSerializationOptions Default = new();
