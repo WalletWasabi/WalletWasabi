@@ -1,12 +1,11 @@
 using System.IO;
-using System.Net;
 using WalletWasabi.Tor;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Tor
 {
 	/// <summary>
-	/// Tests for <see cref="Tor.TorSettings"/> class.
+	/// Tests for <see cref="TorSettings"/> class.
 	/// </summary>
 	public class TorSettingsTests
 	{
@@ -25,7 +24,8 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 				" ",
 				$"--SOCKSPort 127.0.0.1:37150",
 				$"--CookieAuthentication 1",
-				$"--ControlPort 37151",
+				$"--ControlPort auto",
+				$"--ControlPortWriteToFile \"{settings.ControlPortRandomFilePath}\"",
 				$"--CookieAuthFile \"{Path.Combine("temp", "tempDataDir", "control_auth_cookie")}\"",
 				$"--DataDirectory \"{Path.Combine("temp", "tempDataDir", "tordata")}\"",
 				$"--GeoIPFile \"{Path.Combine("tempDistributionDir", "Tor", "Geoip", "geoip")}\"",
