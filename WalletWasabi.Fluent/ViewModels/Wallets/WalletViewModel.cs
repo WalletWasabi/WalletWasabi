@@ -162,7 +162,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		private void LayoutSelector(double width, double height)
 		{
-			if (height < 450)
+			if (height < 600)
 			{
 				LayoutIndex = 0;
 			}
