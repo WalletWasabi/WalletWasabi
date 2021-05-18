@@ -1,6 +1,7 @@
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -19,7 +20,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class WalletViewModel : WalletViewModelBase
 	{
-		[AutoNotify] private IList<TileViewModel> _tiles;
+		[AutoNotify] private IList<TileViewModel>? _tiles;
+		[AutoNotify] private IList<TileLayoutViewModel>? _layouts;
+		[AutoNotify] private int _layoutIndex;
 
 		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
@@ -41,30 +44,64 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			History = new HistoryViewModel(this, balanceChanged);
 
+			Layouts = new ObservableCollection<TileLayoutViewModel>()
+			{
+				new("Small", "330,330,330,330,330", "150"),
+				new("Normal", "330,330,330", "150,300"),
+				new("Wide", "330,330", "150,300,300")
+			};
+
+			LayoutIndex = 1;
+
 			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged)
 			{
-				ColumnSpan = new List<int> { 1, 1, 1 },
-				RowSpan = new List<int> { 1, 1, 1 }
+				TilePresets = new ObservableCollection<TilePresetViewModel>()
+				{
+					new(0, 0, 1, 1),
+					new(0, 0, 1, 1),
+					new(0, 0, 1, 1)
+				},
+				TilePresetIndex = LayoutIndex
 			};
 			RoundStatusTile = new RoundStatusTileViewModel(wallet)
 			{
-				ColumnSpan = new List<int> { 1, 1, 1 },
-				RowSpan = new List<int> { 1, 1, 1 }
+				TilePresets = new ObservableCollection<TilePresetViewModel>()
+				{
+					new(1, 0, 1, 1),
+					new(1, 0, 1, 1),
+					new(1, 0, 1, 1)
+				},
+				TilePresetIndex = LayoutIndex
 			};
 			BtcPriceTile = new BtcPriceTileViewModel(wallet)
 			{
-				ColumnSpan = new List<int> { 1, 1, 1 },
-				RowSpan = new List<int> { 1, 1, 1 }
+				TilePresets = new ObservableCollection<TilePresetViewModel>()
+				{
+					new(2, 0, 1, 1),
+					new(2, 0, 1, 1),
+					new(0, 1, 1, 1)
+				},
+				TilePresetIndex = LayoutIndex
 			};
 			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged)
 			{
-				ColumnSpan = new List<int> { 1, 1, 1 },
-				RowSpan = new List<int> { 1, 2, 2 }
+				TilePresets = new ObservableCollection<TilePresetViewModel>()
+				{
+					new(3, 0, 1, 1),
+					new(0, 1, 1, 1),
+					new(1, 1, 1, 1)
+				},
+				TilePresetIndex = LayoutIndex
 			};
 			BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions)
 			{
-				ColumnSpan = new List<int> { 2, 2, 2 },
-				RowSpan = new List<int> { 1, 2, 2 }
+				TilePresets = new ObservableCollection<TilePresetViewModel>()
+				{
+					new(4, 0, 1, 1),
+					new(1, 1, 2, 1),
+					new(0, 2, 2, 1)
+				},
+				TilePresetIndex = LayoutIndex
 			};
 
 			_tiles = new List<TileViewModel>
@@ -75,6 +112,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				WalletPieChart,
 				BalanceChartTile
 			};
+
+			this.WhenAnyValue(x => x.LayoutIndex)
+				.Subscribe(_ => NotifyLayoutChanged());
+
+			this.WhenAnyValue(x => x.LayoutIndex)
+				.Subscribe(_ => UpdateTiles());
 
 			SendCommand = ReactiveCommand.Create(() =>
 			{
@@ -106,6 +149,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		public WalletPieChartTileViewModel WalletPieChart { get; }
 
 		public WalletBalanceChartTileViewModel BalanceChartTile { get; }
+
+		public TileLayoutViewModel? CurrentLayout => Layouts?[LayoutIndex];
+
+		private void NotifyLayoutChanged()
+		{
+			this.RaisePropertyChanged(nameof(CurrentLayout));
+		}
+
+		private void UpdateTiles()
+		{
+			if (Tiles != null)
+			{
+				foreach (var tile in Tiles)
+				{
+					tile.TilePresetIndex = LayoutIndex;
+				}
+			}
+		}
 
 		public void NavigateAndHighlight(uint256 txid)
 		{
