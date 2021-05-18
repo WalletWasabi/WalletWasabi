@@ -121,6 +121,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			this.WhenAnyValue(x => x.LayoutIndex)
 				.Subscribe(_ => UpdateTiles());
 
+			this.WhenAnyValue(x => x.WidthSource)
+				.Subscribe(x => LayoutSelector(x, _heightSource));
+
+			this.WhenAnyValue(x => x.HeightSource)
+				.Subscribe(x => LayoutSelector(_widthSource, x));
+
 			SendCommand = ReactiveCommand.Create(() =>
 			{
 				Navigate(NavigationTarget.DialogScreen)
@@ -153,6 +159,25 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		public WalletBalanceChartTileViewModel BalanceChartTile { get; }
 
 		public TileLayoutViewModel? CurrentLayout => Layouts?[LayoutIndex];
+
+		private void LayoutSelector(double width, double height)
+		{
+			if (height < 450)
+			{
+				LayoutIndex = 0;
+			}
+			else
+			{
+				if (width < 1400)
+				{
+					LayoutIndex = 1;
+				}
+				else
+				{
+					LayoutIndex = 2;
+				}
+			}
+		}
 
 		private void NotifyLayoutChanged()
 		{
