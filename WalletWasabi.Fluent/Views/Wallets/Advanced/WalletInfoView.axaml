@@ -17,11 +17,13 @@
     <StackPanel Spacing="10">
       <c:PreviewItem Icon="{StaticResource wasabi_logo}"
                      Text="Extended Master Private Key"
-                     Content="{Binding ExtendedMasterPrivateKey}" />
+                     Content="{Binding ExtendedMasterPrivateKey}"
+                     PrivacyModeEnabled="True" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource wasabi_logo}"
                      Text="Extended Master zprv"
-                     Content="{Binding ExtendedMasterZprv}" />
+                     Content="{Binding ExtendedMasterZprv}"
+                     PrivacyModeEnabled="True" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource wasabi_logo}"
                      Text="Extended Master Fingerprint"
@@ -33,11 +35,13 @@
       <Separator />
       <c:PreviewItem Icon="{StaticResource wasabi_logo}"
                      Text="Extended Account Private Key"
-                     Content="{Binding ExtendedAccountPrivateKey}" />
+                     Content="{Binding ExtendedAccountPrivateKey}"
+                     PrivacyModeEnabled="True" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource wasabi_logo}"
                      Text="Extended Account zprv"
-                     Content="{Binding ExtendedAccountZprv}" />
+                     Content="{Binding ExtendedAccountZprv}"
+                     PrivacyModeEnabled="True" />
       <Separator />
       <c:PreviewItem Icon="{StaticResource wasabi_logo}"
                      Text="Extended Account Public Key"

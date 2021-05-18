@@ -29,6 +29,12 @@ namespace WalletWasabi.Fluent.Controls
 		public static readonly StyledProperty<bool> CopyButtonVisibilityProperty =
 			AvaloniaProperty.Register<PreviewItem, bool>(nameof(CopyButtonVisibility));
 
+		public static readonly StyledProperty<bool> ContentVisibilityProperty =
+			AvaloniaProperty.Register<PreviewItem, bool>(nameof(ContentVisibility), true);
+
+		public static readonly StyledProperty<bool> PrivacyModeEnabledProperty =
+			AvaloniaProperty.Register<PreviewItem, bool>(nameof(PrivacyModeEnabled));
+
 		private Stopwatch? _copyButtonPressedStopwatch;
 
 		public PreviewItem()
@@ -60,6 +66,17 @@ namespace WalletWasabi.Fluent.Controls
 					}
 
 					CopyButtonVisibility = value;
+				});
+
+			this.WhenAnyValue(x => x.IsPointerOver, x => x.PrivacyModeEnabled)
+				.Subscribe(_ =>
+				{
+					if (!PrivacyModeEnabled)
+					{
+						return;
+					}
+
+					ContentVisibility = IsPointerOver;
 				});
 		}
 
@@ -97,6 +114,18 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(CopyButtonVisibilityProperty);
 			set => SetValue(CopyButtonVisibilityProperty, value);
+		}
+
+		public bool ContentVisibility
+		{
+			get => GetValue(ContentVisibilityProperty);
+			set => SetValue(ContentVisibilityProperty, value);
+		}
+
+		public bool PrivacyModeEnabled
+		{
+			get => GetValue(PrivacyModeEnabledProperty);
+			set => SetValue(PrivacyModeEnabledProperty, value);
 		}
 	}
 }
