@@ -58,6 +58,9 @@ namespace WalletWasabi.Tor
 		public string CookieAuthFilePath { get; }
 
 		/// <summary>Tor control endpoint.</summary>
+		public IPEndPoint SocksEndpoint { get; } = new(IPAddress.Loopback, 37150);
+
+		/// <summary>Tor control endpoint.</summary>
 		public IPEndPoint ControlEndpoint { get; } = new(IPAddress.Loopback, 37151);
 
 		private string GeoIpPath { get; }
@@ -72,11 +75,11 @@ namespace WalletWasabi.Tor
 			return platform == OSPlatform.OSX ? $"{binaryPath}.real" : binaryPath;
 		}
 
-		public string GetCmdArguments(EndPoint torSocks5EndPoint)
+		public string GetCmdArguments()
 		{
 			List<string> arguments = new()
 			{
-				$"--SOCKSPort {torSocks5EndPoint}",
+				$"--SOCKSPort {SocksEndpoint}",
 				$"--CookieAuthentication 1",
 				$"--ControlPort {ControlEndpoint.Port}",
 				$"--CookieAuthFile \"{CookieAuthFilePath}\"",

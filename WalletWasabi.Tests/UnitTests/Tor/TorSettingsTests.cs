@@ -18,9 +18,8 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 			string distributionFolder = "tempDistributionDir";
 
 			TorSettings settings = new(dataDir, logFilePath, distributionFolder, terminateOnExit: true, owningProcessId: 7);
-			IPEndPoint endpoint = new(IPAddress.Loopback, WalletWasabi.Helpers.Constants.DefaultTorSocksPort);
 
-			string arguments = settings.GetCmdArguments(endpoint);
+			string arguments = settings.GetCmdArguments();
 
 			string expected = string.Join(
 				" ",

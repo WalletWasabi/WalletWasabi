@@ -22,16 +22,14 @@ namespace WalletWasabi.Tor
 	{
 		private bool _disposed = false;
 
-		public TorProcessManager(TorSettings settings, EndPoint torSocks5EndPoint)
+		public TorProcessManager(TorSettings settings)
 		{
-			TorSocks5EndPoint = torSocks5EndPoint;
 			TorProcess = null;
 			TorControlClient = null;
 			Settings = settings;
-			TcpConnectionFactory = new(torSocks5EndPoint);
+			TcpConnectionFactory = new(settings.SocksEndpoint);
 		}
 
-		private EndPoint TorSocks5EndPoint { get; }
 		private ProcessAsync? TorProcess { get; set; }
 		private TorSettings Settings { get; }
 		private TorTcpConnectionFactory TcpConnectionFactory { get; }
@@ -53,16 +51,12 @@ namespace WalletWasabi.Tor
 
 				if (isAlreadyRunning)
 				{
-					string msg = TorSocks5EndPoint is IPEndPoint endpoint
-						? $"Tor is already running on {endpoint.Address}:{endpoint.Port}."
-						: "Tor is already running.";
-					Logger.LogInfo(msg);
-
+					Logger.LogInfo($"Tor is already running on {Settings.SocksEndpoint.Address}:{Settings.SocksEndpoint.Port}.");
 					TorControlClient = await InitTorControlAsync(token).ConfigureAwait(false);
 					return true;
 				}
 
-				string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint);
+				string torArguments = Settings.GetCmdArguments();
 
 				ProcessStartInfo startInfo = new()
 				{
