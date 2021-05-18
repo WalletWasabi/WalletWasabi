@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.Http;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Pool;
-using WalletWasabi.Tor.Socks5.Pool.Identities;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 
 namespace WalletWasabi.WebClients.Wasabi
 {
@@ -40,7 +40,7 @@ namespace WalletWasabi.WebClients.Wasabi
 			if (TorEndpoint is { } && (BackendUriGetter is null || !BackendUriGetter().IsLoopback))
 			{
 				TorHttpPool = new(TorEndpoint);
-				BackendHttpClient = new TorHttpClient(BackendUriGetter, TorHttpPool, Mode.DefaultIdentity);
+				BackendHttpClient = new TorHttpClient(BackendUriGetter, TorHttpPool, Mode.DefaultCircuit);
 			}
 			else
 			{

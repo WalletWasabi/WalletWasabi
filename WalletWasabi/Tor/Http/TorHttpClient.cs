@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Pool;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.Tor.Socks5.Pool.Identities;
 
 namespace WalletWasabi.Tor.Http
@@ -11,23 +12,23 @@ namespace WalletWasabi.Tor.Http
 	public class TorHttpClient : IHttpClient
 	{
 		/// <summary>Use this constructor when you want to issue relative or absolute HTTP requests.</summary>
-		public TorHttpClient(Uri baseUri, TorHttpPool torHttpPool, Mode mode = Mode.DefaultIdentity) :
+		public TorHttpClient(Uri baseUri, TorHttpPool torHttpPool, Mode mode = Mode.DefaultCircuit) :
 			this(() => baseUri, torHttpPool, mode)
 		{
 		}
 
 		/// <summary>Use this constructor when you want to issue relative or absolute HTTP requests.</summary>
-		public TorHttpClient(Func<Uri>? baseUriGetter, TorHttpPool torHttpPool, Mode mode = Mode.DefaultIdentity)
+		public TorHttpClient(Func<Uri>? baseUriGetter, TorHttpPool torHttpPool, Mode mode = Mode.DefaultCircuit)
 		{
 			BaseUriGetter = baseUriGetter;
 			TorHttpPool = torHttpPool;
 			Mode = mode;
 
-			PredefinedIdentity = mode switch
+			PredefinedCircuit = mode switch
 			{
-				Mode.DefaultIdentity => DefaultIdentity.Instance,
-				Mode.SingleIdentityPerLifetime => new PersonIdentity(),
-				Mode.NewIdentityPerRequest => null,
+				Mode.DefaultCircuit => DefaultCircuit.Instance,
+				Mode.SingleCircuitPerLifetime => new PersonCircuit(),
+				Mode.NewCircuitPerRequest => null,
 				_ => throw new NotSupportedException(),
 			};
 		}
@@ -37,8 +38,8 @@ namespace WalletWasabi.Tor.Http
 		/// <summary>Whether each HTTP(s) request should use a separate Tor circuit or not to increase privacy.</summary>
 		public Mode Mode { get; }
 
-		/// <summary>Non-null for <see cref="Mode.DefaultIdentity"/> and <see cref="Mode.SingleIdentityPerLifetime"/>.</summary>
-		private IIdentity? PredefinedIdentity { get; }
+		/// <summary>Non-null for <see cref="Mode.DefaultCircuit"/> and <see cref="Mode.SingleCircuitPerLifetime"/>.</summary>
+		private ICircuit? PredefinedCircuit { get; }
 
 		private TorHttpPool TorHttpPool { get; }
 
@@ -65,15 +66,15 @@ namespace WalletWasabi.Tor.Http
 		/// <exception cref="OperationCanceledException">If <paramref name="token"/> is set.</exception>
 		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
 		{
-			IIdentity identity = Mode switch
+			ICircuit circuit = Mode switch
 			{
-				Mode.DefaultIdentity => PredefinedIdentity!,
-				Mode.SingleIdentityPerLifetime => PredefinedIdentity!,
-				Mode.NewIdentityPerRequest => new OneOffIdentity(),
+				Mode.DefaultCircuit => PredefinedCircuit!,
+				Mode.SingleCircuitPerLifetime => PredefinedCircuit!,
+				Mode.NewCircuitPerRequest => new OneOffCircuit(),
 				_ => throw new NotSupportedException()
 			};
 
-			return TorHttpPool.SendAsync(request, identity, token);
+			return TorHttpPool.SendAsync(request, circuit, token);
 		}
 
 		public Task<bool> IsTorRunningAsync()

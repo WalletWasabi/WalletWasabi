@@ -9,7 +9,7 @@ using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
 using WalletWasabi.Tor.Socks5.Models.Messages;
-using WalletWasabi.Tor.Socks5.Pool.Identities;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
@@ -62,7 +62,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 						TorTcpConnectionFactory factory = new(new IPEndPoint(IPAddress.Loopback, serverPort));
 
 						Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][client] About to make connection.");
-						using TorTcpConnection torConnection = await factory.ConnectAsync(httpRequestHost, httpRequestPort, useSsl: false, DefaultIdentity.Instance, timeoutToken).ConfigureAwait(false);
+						using TorTcpConnection torConnection = await factory.ConnectAsync(httpRequestHost, httpRequestPort, useSsl: false, DefaultCircuit.Instance, timeoutToken).ConfigureAwait(false);
 						Logger.LogTrace($"[{nameof(AuthenticationErrorScenarioAsync)}][client] Connection established.");
 					},
 					timeoutToken);
@@ -135,7 +135,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 						TorTcpConnectionFactory factory = new(new IPEndPoint(IPAddress.Loopback, serverPort));
 
 						Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][client] About to make connection.");
-						using TorTcpConnection torConnection = await factory.ConnectAsync(httpRequestHost, httpRequestPort, useSsl: false, DefaultIdentity.Instance, timeoutToken);
+						using TorTcpConnection torConnection = await factory.ConnectAsync(httpRequestHost, httpRequestPort, useSsl: false, DefaultCircuit.Instance, timeoutToken);
 						Logger.LogTrace($"[{nameof(TtlExpiredScenarioAsync)}][client] Connection established.");
 					},
 					timeoutToken);

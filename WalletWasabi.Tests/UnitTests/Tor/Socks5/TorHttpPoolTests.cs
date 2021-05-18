@@ -7,11 +7,9 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Logging;
-using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Socks5;
 using WalletWasabi.Tor.Socks5.Pool;
-using WalletWasabi.Tor.Socks5.Pool.Identities;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
@@ -21,19 +19,16 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 	public class TorHttpPoolTests
 	{
 		/// <summary>
-		/// Tests that <see cref="TorHttpPool.SendAsync(HttpRequestMessage, IIdentity, CancellationToken)"/> method respects provided identity.
+		/// Tests that <see cref="TorHttpPool.SendAsync(HttpRequestMessage, ICircuit, CancellationToken)"/> method respects provided Tor circuit.
 		/// </summary>
 		[Fact]
 		public async Task UseCorrectIdentitiesAsync()
 		{
-			Common.GetWorkDir();
-			Logger.SetMinimumLevel(LogLevel.Trace);
-
 			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
 
-			IIdentity defaultIdentity = DefaultIdentity.Instance;
-			IIdentity aliceIdentity = new PersonIdentity(); // Random but a non-changing identity.
-			IIdentity bobIdentity = new PersonIdentity(); // Random but a non-changing identity.			
+			ICircuit defaultIdentity = DefaultCircuit.Instance;
+			ICircuit aliceIdentity = new PersonCircuit();
+			ICircuit bobIdentity = new PersonCircuit();
 
 			using TorTcpConnection aliceConnection = new(null!, new MemoryStream(), aliceIdentity, true);
 			using TorTcpConnection bobConnection = new(null!, new MemoryStream(), bobIdentity, true);
@@ -84,7 +79,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 		}
 
 		/// <summary>
-		/// Tests that <see cref="TorHttpPool.SendAsync(HttpRequestMessage, IIdentity, CancellationToken)"/> method sends data as expected and
+		/// Tests that <see cref="TorHttpPool.SendAsync(HttpRequestMessage, ICircuit, CancellationToken)"/> method sends data as expected and
 		/// when sends an HTTP reply, it is correctly processed by <see cref="TorHttpPool"/>.
 		/// </summary>
 		[Fact]
@@ -92,16 +87,16 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 		{
 			using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(1));
 
-			IIdentity identity = DefaultIdentity.Instance;
+			ICircuit circuit = DefaultCircuit.Instance;
 
 			// Set up FAKE transport stream, so Tor is not in play.
 			await using TransportStream transportStream = new(nameof(RequestAndReplyAsync));
 			await transportStream.ConnectAsync(timeoutCts.Token);
 
-			using TorTcpConnection connection = new(tcpClient: null!, transportStream.Client, identity, allowRecycling: true);
+			using TorTcpConnection connection = new(tcpClient: null!, transportStream.Client, circuit, allowRecycling: true);
 
 			Mock<TorTcpConnectionFactory> mockFactory = new(MockBehavior.Strict, new IPEndPoint(IPAddress.Loopback, 7777));
-			mockFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), It.IsAny<IIdentity>(), It.IsAny<CancellationToken>())).ReturnsAsync(connection);
+			mockFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), It.IsAny<ICircuit>(), It.IsAny<CancellationToken>())).ReturnsAsync(connection);
 
 			using StreamReader serverReader = new(transportStream.Server);
 			using StreamWriter serverWriter = new(transportStream.Server);
@@ -112,7 +107,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			Task sendTask = Task.Run(async () =>
 			{
 				Debug.WriteLine("[client] About send HTTP request.");
-				using HttpResponseMessage httpResponseMessage = await pool.SendAsync(request, identity).ConfigureAwait(false);
+				using HttpResponseMessage httpResponseMessage = await pool.SendAsync(request, circuit).ConfigureAwait(false);
 				Assert.Equal(HttpStatusCode.OK, httpResponseMessage.StatusCode);
 				Debug.WriteLine("[client] Done sending HTTP request.");
 			});

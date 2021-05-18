@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Http.Extensions;
-using WalletWasabi.Tor.Socks5.Pool.Identities;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WebClients.BlockstreamInfo
@@ -33,7 +33,7 @@ namespace WalletWasabi.WebClients.BlockstreamInfo
 					: "https://blockstream.info";
 			}
 
-			HttpClient = httpClientFactory.NewHttpClient(() => new Uri(uriString), Mode.DefaultIdentity);
+			HttpClient = httpClientFactory.NewHttpClient(() => new Uri(uriString), Mode.DefaultCircuit);
 		}
 
 		private IHttpClient HttpClient { get; }

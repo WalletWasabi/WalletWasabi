@@ -18,7 +18,7 @@ using WalletWasabi.WebClients.PayJoin;
 using WalletWasabi.Gui.Validation;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Socks5.Pool.Identities;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -102,7 +102,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 
-				IHttpClient httpClient = Global.ExternalHttpClientFactory.NewHttpClient(() => payjoinEndPointUri, Mode.DefaultIdentity);
+				IHttpClient httpClient = Global.ExternalHttpClientFactory.NewHttpClient(() => payjoinEndPointUri, Mode.DefaultCircuit);
 				return new PayjoinClient(payjoinEndPointUri, httpClient);
 			}
 
