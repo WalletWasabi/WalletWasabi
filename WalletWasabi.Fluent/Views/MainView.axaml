@@ -132,10 +132,10 @@
     </c:Dialog>
     <Panel IsHitTestVisible="False">
       <Lottie IsEnabled="{Binding IsLoaded}"
-              Speed="0.6"
+              Speed="1.25"
               Stretch="UniformToFill"
               RepeatCount="0"
-              Source="avares://WalletWasabi.Fluent/Assets/loadscreen1.json" />
+              Source="avares://WalletWasabi.Fluent/Assets/loadingscreen2.json" />
     </Panel>
   </Panel>
 </UserControl>
