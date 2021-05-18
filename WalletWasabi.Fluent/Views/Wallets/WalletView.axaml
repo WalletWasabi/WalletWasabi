@@ -2,6 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:locator="using:WalletWasabi.Fluent"
              xmlns:tiles="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
@@ -36,7 +38,13 @@
       </StackPanel>
 
     </c:ContentArea.Title>
-    <DockPanel VerticalAlignment="Top">
+    <DockPanel Name="Panel" VerticalAlignment="Top">
+      <i:Interaction.Behaviors>
+        <behaviors:BoundsObserverBehavior Bounds="{Binding #Panel.Bounds, Mode=OneWay}"
+                                          Width="{Binding WidthSource, Mode=TwoWay}"
+                                          Height="{Binding HeightSource, Mode=TwoWay}"
+                                          x:CompileBindings="False"/>
+      </i:Interaction.Behaviors>
       <ScrollViewer Name="ScrollViewer"
                     DockPanel.Dock="Top"
                     HorizontalAlignment="Left"
