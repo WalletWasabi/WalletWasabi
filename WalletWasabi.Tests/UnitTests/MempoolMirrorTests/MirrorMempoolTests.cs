@@ -101,8 +101,8 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 				await rpc.CreateWalletAsync(walletName);
 
 				using var k1 = new Key();
-				var blockId = await rpc.GenerateToAddressAsync(1, k1.PubKey.WitHash.GetAddress(network));
-				var block = await rpc.GetBlockAsync(blockId[0]);
+				var blockIds = await rpc.GenerateToAddressAsync(1, k1.PubKey.WitHash.GetAddress(network));
+				var block = await rpc.GetBlockAsync(blockIds[0]);
 				var coinBaseTx = block.Transactions[0];
 
 				var tx = Transaction.Create(network);

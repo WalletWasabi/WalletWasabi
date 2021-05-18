@@ -32,8 +32,8 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 			var network = rpc.Network;
 
 			using var k1 = new Key();
-			var blockId = await rpc.GenerateToAddressAsync(1, k1.PubKey.WitHash.GetAddress(network));
-			var block = await rpc.GetBlockAsync(blockId[0]);
+			var blockIds = await rpc.GenerateToAddressAsync(1, k1.PubKey.WitHash.GetAddress(network));
+			var block = await rpc.GetBlockAsync(blockIds[0]);
 			var coinBaseTx = block.Transactions[0];
 
 			var tx = Transaction.Create(network);
@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 			await rpc.GenerateAsync(101);
 
 			using StringContent content = new($"'{tx.ToHex()}'", Encoding.UTF8, "application/json");
-			using var response = await BackendApiHttpClient.SendAsync(HttpMethod.Post, "btc/blockchain/broadcast", content);
+			await BackendApiHttpClient.SendAsync(HttpMethod.Post, "btc/blockchain/broadcast", content);
 
 			var tx2 = Transaction.Create(network);
 			using var k3 = new Key();
@@ -55,9 +55,9 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 			tx2.Sign(k1.GetBitcoinSecret(network), coinBaseTx.Outputs.AsCoins().First());
 
 			using StringContent content2 = new($"'{tx2.ToHex()}'", Encoding.UTF8, "application/json");
-			using var response2 = await BackendApiHttpClient.SendAsync(HttpMethod.Post, "btc/blockchain/broadcast", content2);
+			using var response = await BackendApiHttpClient.SendAsync(HttpMethod.Post, "btc/blockchain/broadcast", content2);
 
-			var responseContent = await response2.Content.ReadAsStringAsync();
+			var responseContent = await response.Content.ReadAsStringAsync();
 			var spenderHex = responseContent.Split(":::").ToArray()[1];
 
 			var fixedSpenderHex = spenderHex.Remove(spenderHex.Length - 1);
