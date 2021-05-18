@@ -2,8 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:locator="using:WalletWasabi.Fluent"
@@ -47,22 +47,11 @@
                                           x:CompileBindings="False"/>
       </i:Interaction.Behaviors>
       <ScrollViewer Name="ScrollViewer"
-                    DockPanel.Dock="Top"
+                    DockPanel.Dock="{Binding LayoutIndex, Converter={x:Static converters:TilesPositionConverter.Instance}}"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Top"
                     HorizontalScrollBarVisibility="Auto"
                     VerticalScrollBarVisibility="Auto">
-        <i:Interaction.Behaviors>
-          <ia:DataTriggerBehavior Binding="{Binding LayoutIndex}" ComparisonCondition="Equal" Value="0">
-            <ia:ChangePropertyAction TargetObject="{Binding #ScrollViewer}" PropertyName="DockPanel.Dock" Value="Top" x:CompileBindings="False"/>
-          </ia:DataTriggerBehavior>
-          <ia:DataTriggerBehavior Binding="{Binding LayoutIndex}" ComparisonCondition="Equal" Value="1">
-            <ia:ChangePropertyAction TargetObject="{Binding #ScrollViewer}" PropertyName="DockPanel.Dock" Value="Top" x:CompileBindings="False"/>
-          </ia:DataTriggerBehavior>
-          <ia:DataTriggerBehavior Binding="{Binding LayoutIndex}" ComparisonCondition="Equal" Value="2">
-            <ia:ChangePropertyAction TargetObject="{Binding #ScrollViewer}" PropertyName="DockPanel.Dock" Value="Left" x:CompileBindings="False"/>
-          </ia:DataTriggerBehavior>
-        </i:Interaction.Behaviors>
         <ItemsControl Items="{Binding Tiles}"
                       Margin="0 0"
                       HorizontalAlignment="Left"
@@ -88,7 +77,8 @@
         </ItemsControl>
       </ScrollViewer>
       <history:HistoryTable Name="HistoryTable" DataContext="{Binding History}" MaxWidth="1000"
-                            HorizontalAlignment="Left" VerticalAlignment="Top" />
+                            HorizontalAlignment="Left" VerticalAlignment="Top"
+                            DockPanel.Dock="Bottom"/>
     </DockPanel>
   </c:ContentArea>
 </UserControl>
