@@ -11,8 +11,14 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		public ImmutableList<RequestNode> Vertices { get; private set; } = ImmutableList<RequestNode>.Empty;
 
+		public ImmutableList<RequestNode> Inputs { get; private set; } = ImmutableList<RequestNode>.Empty;
+
+		public ImmutableList<RequestNode> Outputs { get; private set; } = ImmutableList<RequestNode>.Empty;
+
+		public ImmutableList<RequestNode> Reissuances { get; private set; } = ImmutableList<RequestNode>.Empty; // TODO sort
+
 		// Internal properties used to keep track of effective values and edges
-		private ImmutableSortedDictionary<CredentialType, CredentialEdgeSet> edgeSets { get; init; } = ImmutableSortedDictionary<CredentialType, CredentialEdgeSet>.Empty
+		public ImmutableSortedDictionary<CredentialType, CredentialEdgeSet> edgeSets { get; init; } = ImmutableSortedDictionary<CredentialType, CredentialEdgeSet>.Empty
 			.Add(CredentialType.Amount, new() { CredentialType = CredentialType.Amount })
 			.Add(CredentialType.VirtualBytes, new() { CredentialType = CredentialType.VirtualBytes });
 
@@ -26,7 +32,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		public int OutDegree(RequestNode node, CredentialType credentialType) => edgeSets[credentialType].OutDegree(node);
 
-		/// <Summary>Construct a graph from amounts, and resolve the
+		/// <summary>Construct a graph from amounts, and resolve the
 		/// credential dependencies.</summary>
 		///
 		/// <remarks>Should only produce valid graphs. The elements of the
@@ -38,7 +44,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			return FromValues(inputValues, outputValues).ResolveCredentials();
 		}
 
-		private static DependencyGraph FromValues(IEnumerable<IEnumerable<ulong>> inputValues, IEnumerable<IEnumerable<ulong>> outputValues)
+		public static DependencyGraph FromValues(IEnumerable<IEnumerable<ulong>> inputValues, IEnumerable<IEnumerable<ulong>> outputValues)
 		{
 			if (Enumerable.Concat(inputValues, outputValues).Any(x => x.Count() != (int)CredentialType.NumTypes))
 			{
@@ -56,23 +62,10 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				}
 			}
 
-			// Input nodes actually have indegree K, not 0, which can be used to
-			// consolidate inputs early but using it implies connection
-			// confirmations may have dependencies, so may pose a privacy leak,
-			// but it can reduce the total number of requests. If late
-			// regisrations are supported, existing credentials can be modeled
-			// as nodes with in degree 0, out degree 1, zero out degree 0.
-			var inputNodes = inputValues.Select(x => new RequestNode(x.Select(y => (long)y), inDegree: 0, outDegree: K, zeroOnlyOutDegree: K * (K - 1)));
-			var outputNodes = outputValues.Select(x => new RequestNode(x.Select(y => -1 * (long)y), inDegree: K, outDegree: 0, zeroOnlyOutDegree: 0));
-
-			// per node entries created in AddNode, querying nodes not in the
-			// graph should result in key errors.
-			return new DependencyGraph().AddNodes(Enumerable.Concat(inputNodes, outputNodes));
+			return new DependencyGraph().AddInputs(inputValues).AddOutputs(outputValues);
 		}
 
-		private DependencyGraph AddNodes(IEnumerable<RequestNode> nodes) => nodes.Aggregate(this, (g, v) => g.AddNode(v));
-
-		private DependencyGraph AddNode(RequestNode node)
+		public DependencyGraph AddNode(RequestNode node)
 			=> this with
 			{
 				Vertices = Vertices.Add(node),
@@ -86,6 +79,34 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 					}
 				),
 			};
+
+		// Input nodes represent a combination of an input registration and
+		// connection confirmation. Connection confirmation requests actually
+		// have indegree K, not 0, which could be used to consolidate inputs
+		// early but using it implies connection confirmations may have
+		// dependencies, posing some complexity for a privacy preserving
+		// approach.
+		private DependencyGraph AddInput(IEnumerable<ulong> values)
+		{
+			var node = new RequestNode(values.Select(y => (long)y), inDegree: 0, outDegree: K, zeroOnlyOutDegree: K * (K - 1));
+			return (this with { Inputs = Inputs.Add(node) }).AddNode(node);
+		}
+
+		private DependencyGraph AddOutput(IEnumerable<ulong> values)
+		{
+			var node = new RequestNode(values.Select(y => -1 * (long)y), inDegree: K, outDegree: 0, zeroOnlyOutDegree: 0);
+			return (this with { Outputs = Outputs.Add(node) }).AddNode(node);
+		}
+		private DependencyGraph AddInputs(IEnumerable<IEnumerable<ulong>> values) => values.Aggregate(this, (g, v) => g.AddInput(v));
+
+		private DependencyGraph AddOutputs(IEnumerable<IEnumerable<ulong>> values) => values.Aggregate(this, (g, v) => g.AddOutput(v));
+
+		private (DependencyGraph, RequestNode) AddReissuance()
+		{
+			// TODO insert into reissuance requests property
+			var node = new RequestNode(Enumerable.Repeat(0L, K), inDegree: K, outDegree: K, zeroOnlyOutDegree: K * (K - 1));
+			return ((this with { Reissuances = Reissuances.Add(node) }).AddNode(node), node); // TODO keep sorted by topological order?
+		}
 
 		/// <summary>Resolve edges for all credential types</summary>
 		///
@@ -308,8 +329,9 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		private (DependencyGraph, RequestNode) AggregateIntoReissuanceNode(IEnumerable<RequestNode> nodes, CredentialType credentialType)
 		{
-			var reissuance = new RequestNode(Enumerable.Repeat(0L, K).ToImmutableArray(), inDegree: K, outDegree: K, zeroOnlyOutDegree: K * (K - 1));
-			var g = AddNode(reissuance).DrainReissuance(reissuance, nodes, credentialType);
+			(var g, var reissuance) = AddReissuance();
+
+			g = g.DrainReissuance(reissuance, nodes, credentialType);
 
 			// This is kind of a hack, also discharge 0 credentials for *previous*
 			// credential type from this reissuance node, which will eliminate

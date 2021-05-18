@@ -17,6 +17,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		public ImmutableArray<long> Values { get; }
 
+		// TODO ImmutableArray<int> (uint?)
 		public int MaxInDegree { get; }
 
 		public int MaxOutDegree { get; }

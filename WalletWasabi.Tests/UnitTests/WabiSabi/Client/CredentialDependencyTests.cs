@@ -228,5 +228,58 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				Assert.Throws<ArgumentException>(() => DependencyGraph.ResolveCredentialDependencies(inputValues, outputAmounts));
 			}
 		}
+
+		[Fact]
+		public void EdgeConstraints()
+		{
+			var g = DependencyGraph.FromValues(new []{ new ulong[] { 11, 0 }, new ulong[] { 8, 0 } }, new[] { new ulong[] { 7, 0 }, new ulong[] { 11, 0 } });
+
+			var i = g.Inputs[0];
+			var o = g.Outputs[0];
+
+			var edgeSet = g.edgeSets[0];
+
+			Assert.Equal(2, DependencyGraph.K);
+
+			// insufficient out degree or in degree
+			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(o, i, 1));
+			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(o, i, 0));
+
+			// insufficient out degree
+			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(o, o, 1));
+			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(o, o, 0));
+
+			// insufficient in degree
+			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, i, 1));
+			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, i, 0));
+
+			// excessive inwards/outwards value
+			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, o, 12));
+
+			// excessive inwards value
+			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, o, 11));
+
+			// excessive inwards value
+			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, o, 7).AddEdge(i, o, 5));
+
+			// max indegree exceeded
+			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, o, 7).AddEdge(i, o,0).AddEdge(i, o, 0));
+
+			var o2 = g.Outputs[1];
+			Assert.Equal(0, edgeSet.AddEdge(i, o2, 7).AddEdge(i, o2, 4).Balance(i));
+			Assert.Equal(0, edgeSet.AddEdge(i, o2, 7).AddEdge(i, o2, 4).Balance(o2));
+			Assert.Equal(0, edgeSet.AddEdge(i, o, 7).AddEdge(i, o, 0).AddEdge(i, o2, 4).Balance(i));
+			Assert.Equal(1, edgeSet.AddEdge(i, o, 7).AddEdge(i, o, 0).AddEdge(i, o2, 0).RemainingOutDegree(i));
+			Assert.Equal(1, edgeSet.AddEdge(i, o2, 11).AddEdge(i, o2, 0).AddEdge(i, o, 0).RemainingOutDegree(i));
+
+			// insufficient outwards balance
+			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, o, 1).AddEdge(i, o2, 11));
+
+			// final in edge must discharge remaining negative balance
+			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, o, 7).AddEdge(i, o,0).AddEdge(i, o2, 4).AddEdge(i, o2, 0));
+
+			// final out edge must discharge remaining balance
+			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, o, 7).AddEdge(i, o2, 3));
+		}
 	}
 }

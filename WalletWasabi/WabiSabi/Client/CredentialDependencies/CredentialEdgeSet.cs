@@ -79,6 +79,14 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 				}
 			}
 
+			if (RemainingOutDegree(edge.To) == 0)
+			{
+				if (Balance(edge.To) + (long)edge.Value > 0)
+				{
+					throw new InvalidOperationException("Can't add edge with excess value to node with no remaining out degree");
+				}
+			}
+
 			if (value > 0)
 			{
 				if (RemainingOutDegree(edge.From) == 1)
