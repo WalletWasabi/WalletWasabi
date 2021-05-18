@@ -78,7 +78,7 @@ irreq2.OwnershipProof,
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-			var signedCoinJoin = round.CoinjoinState.AssertSigning().CreateTransaction();
+			var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
 			var coin1 = alice1.Coin;
 			var coin2 = alice2.Coin;
 			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
@@ -161,7 +161,7 @@ irreq2.OwnershipProof,
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-			var signedCoinJoin = round.CoinjoinState.AssertSigning().CreateTransaction();
+			var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
 			var coin1 = alice1.Coin;
 			var coin2 = alice2.Coin;
 			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
@@ -245,7 +245,7 @@ irreq2.OwnershipProof,
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-			var signedCoinJoin = round.CoinjoinState.AssertSigning().CreateTransaction();
+			var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
 			var coin1 = alice1.Coin;
 			var coin2 = alice2.Coin;
 			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
@@ -333,7 +333,7 @@ irreq2.OwnershipProof,
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-			var signedCoinJoin = round.CoinjoinState.AssertSigning().CreateTransaction();
+			var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
 			var coin1 = alice1.Coin;
 			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
 			signedCoinJoin.Sign(key1.GetBitcoinSecret(Network.Main), coin1);
@@ -415,11 +415,11 @@ irreq2.OwnershipProof,
 			var alice3 = WabiSabiFactory.CreateAlice();
 			alice3.ConfirmedConnection = true;
 			round.Alices.Add(alice3);
-			round.CoinjoinState = round.CoinjoinState.AssertConstruction().AddInput(alice3.Coin);
+			round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice3.Coin);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-			var signedCoinJoin = round.CoinjoinState.AssertSigning().CreateTransaction();
+			var signedCoinJoin = round.Assert<SigningState>().CreateTransaction();
 			var coin1 = alice1.Coin;
 			var coin2 = alice2.Coin;
 			var idx1 = signedCoinJoin.Inputs.IndexOf(signedCoinJoin.Inputs.Single(x => x.PrevOut == coin1.Outpoint));
