@@ -20,6 +20,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class WalletViewModel : WalletViewModelBase
 	{
+		private double _smallLayoutHeightBreakpoint;
+		private double _wideLayoutWidthBreakpoint;
+		private int _smallLayoutIndex;
+		private int _normalLayoutIndex;
+		private int _wideLayoutIndex;
 		[AutoNotify] private IList<TileViewModel>? _tiles;
 		[AutoNotify] private IList<TileLayoutViewModel>? _layouts;
 		[AutoNotify] private int _layoutIndex;
@@ -46,6 +51,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			History = new HistoryViewModel(this, balanceChanged);
 
+			_smallLayoutHeightBreakpoint = 650;
+			_wideLayoutWidthBreakpoint = 1400;
+
+			_smallLayoutIndex = 0;
+			_normalLayoutIndex = 1;
+			_wideLayoutIndex = 2;
+
 			Layouts = new ObservableCollection<TileLayoutViewModel>()
 			{
 				new("Small", "330,330,330,330,330", "150"),
@@ -53,7 +65,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				new("Wide", "330,330", "150,300,300")
 			};
 
-			LayoutIndex = 1;
+			LayoutIndex = _normalLayoutIndex;
 
 			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged)
 			{
@@ -163,19 +175,22 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		private void LayoutSelector(double width, double height)
 		{
-			if (height < 650)
+			if (height < _smallLayoutHeightBreakpoint)
 			{
-				LayoutIndex = 0;
+				// Small Layout
+				LayoutIndex = _smallLayoutIndex;
 			}
 			else
 			{
-				if (width < 1400)
+				if (width < _wideLayoutWidthBreakpoint)
 				{
-					LayoutIndex = 1;
+					// Normal Layout
+					LayoutIndex = _normalLayoutIndex;
 				}
 				else
 				{
-					LayoutIndex = 2;
+					// Wide Layout
+					LayoutIndex = _wideLayoutIndex;
 				}
 			}
 		}
