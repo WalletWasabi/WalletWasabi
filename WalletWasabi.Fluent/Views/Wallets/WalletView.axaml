@@ -29,6 +29,14 @@
                 <TextBlock Text="Receive" />
               </StackPanel>
             </Button>
+            <Button Classes="function">
+              <Button.Flyout>
+                <MenuFlyout Placement="Bottom">
+                  <MenuItem Header="Wallet Info" Command="{Binding WalletInfoCommand}" />
+                </MenuFlyout>
+              </Button.Flyout>
+              <PathIcon Data="{StaticResource more_regular}" Foreground="{DynamicResource TextForegroundColor}" />
+            </Button>
           </StackPanel>
           <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Text="{Binding WalletName, FallbackValue=My Wallet with a very long name}" />
         </DockPanel>
