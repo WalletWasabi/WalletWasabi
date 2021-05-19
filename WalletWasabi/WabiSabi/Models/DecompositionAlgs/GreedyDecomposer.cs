@@ -1,6 +1,7 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
@@ -41,26 +42,10 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 			}
 		}
 
-		private bool TryGetLargestDenomBelowIncl(Money amount, out Money result)
+		private bool TryGetLargestDenomBelowIncl(Money amount, [NotNullWhen(true)] out Money? result)
 		{
-			result = Decomposition.First();
-			if (result > amount)
-			{
-				return false;
-			}
-
-			foreach (var coin in Decomposition)
-			{
-				if (coin <= amount)
-				{
-					result = coin;
-				}
-				else
-				{
-					break;
-				}
-			}
-			return true;
+			result = Decomposition.Where(denoms => denoms <= amount).LastOrDefault();
+			return result is not null;
 		}
 	}
 }
