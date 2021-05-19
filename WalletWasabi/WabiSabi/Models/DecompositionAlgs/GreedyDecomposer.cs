@@ -1,53 +1,64 @@
 using NBitcoin;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 {
 	public class GreedyDecomposer
 	{
-		private Decomposition Decomposition { get; } = new();
+		private Decomposition Decomposition { get; }
+		private Money DustThreshold { get; }
+		private FeeRate FeeRate { get; }
 
-		public GreedyDecomposer()
+		public GreedyDecomposer(IEnumerable<Money> preferredDenominations, Money dustThreshold, FeeRate feeRate)
 		{
-			Decomposition.Extend(new Coin() { Amount = Money.Zero });
+			Decomposition = new(preferredDenominations);
+			DustThreshold = dustThreshold;
+			FeeRate = feeRate;
 		}
 
-		public virtual Money? PickNextAmount(Money remaining, Money dustThreshold)
+		public void Decompose(Coin coin)
 		{
-			return LargestDenomBelowIncl(remaining)?.Amount;
-		}
+			Money remaining = coin.Amount - FeeRate.GetFee(coin.ScriptPubKey.EstimateOutputVsize());
 
-		public void Decompose(Money amount, Money dustThreshold, FeeRate feeRate)
-		{
-			Money remaining = amount - feeRate.GetFee(Coin.OutputVbytes);
-
-			while (remaining > dustThreshold)
+			while (remaining > DustThreshold)
 			{
-				Money? denom = PickNextAmount(remaining, dustThreshold);
+				Money? denom = LargestDenomBelowIncl(remaining);
 				if (denom is null || denom == Money.Zero)
 				{
 					break;
 				}
-				Coin coin = new() { Amount = denom };
-				Decomposition.Extend(coin);
-				remaining -= coin.EffectiveCost(feeRate);
+				Decomposition.Extend(denom);
+
+				var effectiveCost = coin.Amount + FeeRate.GetFee(coin.ScriptPubKey.EstimateOutputVsize());
+
+				remaining -= effectiveCost;
 			}
 
-			if (remaining > dustThreshold)
+			if (remaining > DustThreshold)
 			{
-				Coin coin = new() { Amount = remaining };
-				Decomposition.Extend(coin);
+				Decomposition.Extend(remaining);
 			}
 		}
 
-		private Coin? LargestDenomBelowIncl(Money amount)
+		private Money? LargestDenomBelowIncl(Money amount)
 		{
-			Coin result = Decomposition.First();
+			Money result = Decomposition.First();
+			if (result > amount)
+			{
+				return null;
+			}
+
 			foreach (var coin in Decomposition)
 			{
-				if (coin.Amount <= amount)
+				if (coin <= amount)
 				{
-					result = new Coin() { Amount = amount };
+					result = amount;
+				}
+				else
+				{
+					break;
 				}
 			}
 			return result;

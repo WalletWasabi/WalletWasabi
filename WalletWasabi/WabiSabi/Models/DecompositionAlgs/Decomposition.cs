@@ -6,54 +6,32 @@ using System.Linq;
 
 namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 {
-	public class Decomposition : IEnumerable<Coin>
+	public class Decomposition : IEnumerable<Money>
 	{
-		private List<Coin> Coins { get; } = new();
+		private List<Money> Amounts { get; }
 
-		public void Extend(Coin coin)
+		public Decomposition(IEnumerable<Money> amounts)
 		{
-			int index = Coins.BinarySearch(coin);
+			Amounts = amounts.OrderBy(c => c).ToList();
+		}
+
+		public void Extend(Money coin)
+		{
+			int index = Amounts.BinarySearch(coin);
 			if (index < 0)
 			{
-				Coins.Insert(~index, coin);
+				Amounts.Insert(~index, coin);
 			}
 		}
 
-		public Money FaceValue()
+		public IEnumerator<Money> GetEnumerator()
 		{
-			return Coins.Sum(c => c.Amount);
-		}
-
-		public int OutputsVbytes()
-		{
-			return Coins.Sum(_ => Coin.OutputVbytes);
-		}
-
-		public decimal InputsVbytes()
-		{
-			return Coins.Sum(_ => Coin.InputVbytes);
-		}
-
-		public Money EffectiveValue(FeeRate feeRate)
-		{
-			var sats = (long)Math.Floor(feeRate.SatoshiPerByte * Coin.InputVbytes * Coins.Count);
-			return FaceValue() - Money.Satoshis(sats);
-		}
-
-		public Money EffectiveCost(FeeRate feeRate)
-		{
-			var sats = (long)Math.Floor(feeRate.SatoshiPerByte * Coin.OutputVbytes * Coins.Count);
-			return FaceValue() + Money.Satoshis(sats);
-		}
-
-		public IEnumerator<Coin> GetEnumerator()
-		{
-			return Coins.GetEnumerator();
+			return Amounts.GetEnumerator();
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
 		{
-			return Coins.GetEnumerator();
+			return Amounts.GetEnumerator();
 		}
 	}
 }
