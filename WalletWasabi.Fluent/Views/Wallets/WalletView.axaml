@@ -52,6 +52,9 @@
                     VerticalAlignment="Top"
                     HorizontalScrollBarVisibility="Auto"
                     VerticalScrollBarVisibility="Auto">
+        <i:Interaction.Behaviors>
+          <behaviors:HorizontalScrollViewerBehavior RequireShiftKey="False" ScrollChangeSize="Page"/>
+        </i:Interaction.Behaviors>
         <ItemsControl Items="{Binding Tiles}"
                       Margin="0 0"
                       HorizontalAlignment="Left"
