@@ -29,7 +29,7 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 				{
 					break;
 				}
-				Decomposition.Extend(denom);
+				Decomposition.AddSorted(denom);
 
 				var effectiveCost = coin.Amount + FeeRate.GetFee(coin.ScriptPubKey.EstimateOutputVsize());
 
@@ -38,7 +38,7 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 
 			if (remaining > DustThreshold)
 			{
-				Decomposition.Extend(remaining);
+				Decomposition.AddSorted(remaining);
 			}
 		}
 
