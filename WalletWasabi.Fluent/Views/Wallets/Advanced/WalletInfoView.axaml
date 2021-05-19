@@ -30,7 +30,7 @@
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}" />
       <Separator IsVisible="{Binding !!ExtendedMasterPrivateKey}" />
 
-      <c:PreviewItem Icon="{StaticResource wasabi_logo}"
+      <c:PreviewItem Icon="{StaticResource key_regular}"
                      Text="Extended Master zprv"
                      Content="{Binding ExtendedMasterZprv}"
                      CopyParameter="{Binding ExtendedMasterZprv}"
@@ -58,7 +58,7 @@
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}" />
       <Separator IsVisible="{Binding !!ExtendedAccountPrivateKey}" />
 
-      <c:PreviewItem Icon="{StaticResource wasabi_logo}"
+      <c:PreviewItem Icon="{StaticResource key_regular}"
                      Text="Extended Account zprv"
                      Content="{Binding ExtendedAccountZprv}"
                      CopyParameter="{Binding ExtendedAccountZprv}"
@@ -72,7 +72,7 @@
                      CopyParameter="{Binding ExtendedAccountPublicKey}" />
       <Separator />
 
-      <c:PreviewItem Icon="{StaticResource wasabi_logo}"
+      <c:PreviewItem Icon="{StaticResource key_regular}"
                      Text="Extended Account zpub"
                      Content="{Binding ExtendedAccountZpub}"
                      CopyParameter="{Binding ExtendedAccountZpub}" />
