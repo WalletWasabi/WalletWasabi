@@ -4,8 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
-             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:advanced="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Advanced"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              x:DataType="advanced:WalletInfoViewModel"
@@ -51,7 +49,7 @@
       <Separator />
 
       <c:PreviewItem Icon="{StaticResource key_regular}"
-                     Text="Extended Account Private Key"
+                     Text="Extended Account Private Key xpriv"
                      Content="{Binding ExtendedAccountPrivateKey}"
                      CopyParameter="{Binding ExtendedAccountPrivateKey}"
                      IsVisible="{Binding !!ExtendedAccountPrivateKey}"
@@ -59,7 +57,7 @@
       <Separator IsVisible="{Binding !!ExtendedAccountPrivateKey}" />
 
       <c:PreviewItem Icon="{StaticResource key_regular}"
-                     Text="Extended Account zprv"
+                     Text="Extended Account Private Key zprv"
                      Content="{Binding ExtendedAccountZprv}"
                      CopyParameter="{Binding ExtendedAccountZprv}"
                      IsVisible="{Binding !!ExtendedAccountZprv}"
