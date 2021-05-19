@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Controllers;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
@@ -52,7 +53,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			Kitchen kitchen = new();
 			kitchen.Cook(password);
 
-			using CoinJoinClient coinJoinClient = new(clientRound, coordinator, new[] { smartCoin.Coin }, kitchen, km);
+			var wabiSabiApi = new WabiSabiController(coordinator);
+
+			using CoinJoinClient coinJoinClient = new(clientRound, wabiSabiApi, new[] { smartCoin.Coin }, kitchen, km);
 			await coinJoinClient.StartMixingCoinsAsync();
 		}
 	}
