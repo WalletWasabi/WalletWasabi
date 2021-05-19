@@ -7,12 +7,12 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 {
 	public class Decomposition : IEnumerable<Money>
 	{
-		private List<Money> Amounts { get; }
-
 		public Decomposition(IEnumerable<Money> amounts)
 		{
 			Amounts = amounts.OrderBy(c => c).ToList();
 		}
+
+		private List<Money> Amounts { get; }
 
 		public void AddSorted(Money coin)
 		{
