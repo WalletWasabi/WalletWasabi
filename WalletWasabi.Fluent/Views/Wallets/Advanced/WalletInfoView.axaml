@@ -19,14 +19,16 @@
                      Text="Extended Master Private Key"
                      Content="{Binding ExtendedMasterPrivateKey}"
                      CopyParameter="{Binding ExtendedMasterPrivateKey}"
+                     IsVisible="{Binding !!ExtendedMasterPrivateKey}"
                      PrivacyModeEnabled="True" />
-      <Separator />
+      <Separator IsVisible="{Binding !!ExtendedMasterPrivateKey}" />
       <c:PreviewItem Icon="{StaticResource wasabi_logo}"
                      Text="Extended Master zprv"
                      Content="{Binding ExtendedMasterZprv}"
                      CopyParameter="{Binding ExtendedMasterZprv}"
+                     IsVisible="{Binding !!ExtendedMasterZprv}"
                      PrivacyModeEnabled="True" />
-      <Separator />
+      <Separator IsVisible="{Binding !!ExtendedMasterZprv}" />
       <c:PreviewItem Icon="{StaticResource wasabi_logo}"
                      Text="Extended Master Fingerprint"
                      Content="{Binding MasterKeyFingerprint}"
@@ -41,14 +43,16 @@
                      Text="Extended Account Private Key"
                      Content="{Binding ExtendedAccountPrivateKey}"
                      CopyParameter="{Binding ExtendedAccountPrivateKey}"
+                     IsVisible="{Binding !!ExtendedAccountPrivateKey}"
                      PrivacyModeEnabled="True" />
-      <Separator />
+      <Separator IsVisible="{Binding !!ExtendedAccountPrivateKey}" />
       <c:PreviewItem Icon="{StaticResource wasabi_logo}"
                      Text="Extended Account zprv"
                      Content="{Binding ExtendedAccountZprv}"
                      CopyParameter="{Binding ExtendedAccountZprv}"
+                     IsVisible="{Binding !!ExtendedAccountZprv}"
                      PrivacyModeEnabled="True" />
-      <Separator />
+      <Separator IsVisible="{Binding !!ExtendedAccountZprv}" />
       <c:PreviewItem Icon="{StaticResource wasabi_logo}"
                      Text="Extended Account Public Key"
                      Content="{Binding ExtendedAccountPublicKey}"
