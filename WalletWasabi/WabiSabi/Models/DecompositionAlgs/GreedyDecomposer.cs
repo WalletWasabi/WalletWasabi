@@ -3,11 +3,11 @@ using System.Linq;
 
 namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 {
-	public class RestrictedSetDecomposer
+	public class GreedyDecomposer
 	{
 		private Decomposition Decomposition { get; } = new();
 
-		public RestrictedSetDecomposer()
+		public GreedyDecomposer()
 		{
 			Decomposition.Extend(new Coin() { Amount = Money.Zero });
 		}
