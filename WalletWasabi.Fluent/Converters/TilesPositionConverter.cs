@@ -1,12 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using Avalonia.Collections;
-using Avalonia.Controls;
 using Avalonia.Data.Converters;
-using Avalonia.Layout;
-using Avalonia.Utilities;
 
 namespace WalletWasabi.Fluent.Converters
 {
