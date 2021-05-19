@@ -199,18 +199,6 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 					}
 				}
 			}
-
-			// Null and empty arguments.
-			string? input = $"{txHash}:{txHex}:{height}:{blockHash}:{blockIndex}:{label}:{unixSeconds}:{isReplacement}";
-			Network? network = null;
-			Assert.Throws<ArgumentNullException>(() => SmartTransaction.FromLine(input, network));
-			network = Network.Main;
-			input = "";
-			Assert.Throws<ArgumentException>(() => SmartTransaction.FromLine(input, network));
-			input = " ";
-			Assert.Throws<ArgumentException>(() => SmartTransaction.FromLine(input, network));
-			input = null;
-			Assert.Throws<ArgumentNullException>(() => SmartTransaction.FromLine(input, network));
 		}
 
 		public static IEnumerable<object[]> GetSmartTransactionCombinations()
