@@ -31,17 +31,17 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 		[AutoNotify] private string _bitcoinP2PEndPoint;
 		[AutoNotify] private string _dustThreshold;
 
-		public BitcoinTabSettingsViewModel(Config config) : base(config)
+		public BitcoinTabSettingsViewModel()
 		{
 			this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 			this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
-			_network = config.Network;
-			_startLocalBitcoinCoreOnStartup = config.StartLocalBitcoinCoreOnStartup;
-			_localBitcoinCoreDataDir = config.LocalBitcoinCoreDataDir;
-			_stopLocalBitcoinCoreOnShutdown = config.StopLocalBitcoinCoreOnShutdown;
-			_bitcoinP2PEndPoint = config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
-			_dustThreshold = config.DustThreshold.ToString();
+			_network = Services.Config.Network;
+			_startLocalBitcoinCoreOnStartup = Services.Config.StartLocalBitcoinCoreOnStartup;
+			_localBitcoinCoreDataDir = Services.Config.LocalBitcoinCoreDataDir;
+			_stopLocalBitcoinCoreOnShutdown = Services.Config.StopLocalBitcoinCoreOnShutdown;
+			_bitcoinP2PEndPoint = Services.Config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+			_dustThreshold = Services.Config.DustThreshold.ToString();
 
 			this.WhenAnyValue(
 					x => x.Network,

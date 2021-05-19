@@ -25,7 +25,7 @@
     Support
   </a>
   <span> | </span>
-  <a href="https://www.youtube.com/channel/UCobsrSexTuVkL39mbrQ35VQ">
+  <a href="https://www.youtube.com/c/WasabiWallet">
     YouTube
   </a>
   <span> | </span>

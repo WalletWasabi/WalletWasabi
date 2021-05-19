@@ -1,11 +1,11 @@
-﻿using System.Reactive;
+using System.Reactive;
 using System.Windows.Input;
 using Avalonia;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Gui;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 {
@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		[AutoNotify] private SmartLabel _label;
 		[AutoNotify] private string _address;
 
-		public AddressViewModel(ReceiveAddressesViewModel parent, HdPubKey model, Network network, UiConfig uiConfig)
+		public AddressViewModel(ReceiveAddressesViewModel parent, Wallet wallet, HdPubKey model, Network network)
 		{
 			_address = model.GetP2wpkhAddress(network).ToString();
 			_label = model.Label;
@@ -23,22 +23,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 				ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Address));
 			HideAddressCommand =
 				ReactiveCommand.CreateFromTask(async () => await parent.HideAddressAsync(model, Address));
+			EditLabelCommand =
+				ReactiveCommand.Create(() => parent.NavigateToAddressEdit(model, parent.Wallet.KeyManager));
 
 			NavigateCommand = ReactiveCommand.Create(() =>
 			{
-				parent.Navigate().To(
-					new ReceiveAddressViewModel(
-						model,
-						network,
-						parent.Wallet.KeyManager.MasterFingerprint,
-						parent.Wallet.KeyManager.IsHardwareWallet,
-						uiConfig));
+				parent.Navigate().To(new ReceiveAddressViewModel(wallet, model));
 			});
 		}
 
 		public ICommand CopyAddressCommand { get; }
 
 		public ICommand HideAddressCommand { get; }
+
+		public ICommand EditLabelCommand { get; }
 
 		public ReactiveCommand<Unit, Unit> NavigateCommand { get; }
 	}

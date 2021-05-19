@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Controllers;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
@@ -46,8 +47,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			ZeroCredentialPool zeroVsizeCredential = new();
 
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
-			var aliceArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, zeroAmountCredential, zeroVsizeCredential, coordinator, new InsecureRandom());
-			var bobArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, zeroAmountCredential, zeroVsizeCredential, coordinator, new InsecureRandom());
+			var wabiSabiApi = new WabiSabiController(coordinator);
+			var aliceArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, zeroAmountCredential, zeroVsizeCredential, wabiSabiApi, new InsecureRandom());
+			var bobArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, zeroAmountCredential, zeroVsizeCredential, wabiSabiApi, new InsecureRandom());
 			Assert.Equal(Phase.InputRegistration, round.Phase);
 
 			var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);

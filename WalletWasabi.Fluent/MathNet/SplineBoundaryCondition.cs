@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2009-2010 Math.NET Taken from http://github.com/mathnet/mathnet-numerics and modified for Wasabi Wallet
+// Copyright (c) 2009-2010 Math.NET Taken from http://github.com/mathnet/mathnet-numerics and modified for Wasabi Wallet
 
 namespace WalletWasabi.Fluent.MathNet
 {
