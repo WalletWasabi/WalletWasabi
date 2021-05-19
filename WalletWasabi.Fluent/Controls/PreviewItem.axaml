@@ -12,15 +12,16 @@
                     <DockPanel DockPanel.Dock="Right" Margin="30 0 0 0">
                         <TextBlock Name="PART_Text" Text="{TemplateBinding Text}" DockPanel.Dock="Top" Margin="0 0 0 5" Opacity="0.6" />
                         <DockPanel HorizontalAlignment="Left" DockPanel.Dock="Bottom">
-                            <c:AnimatedButton Margin="5 0 0 0"
-                                              Command="{TemplateBinding CopyCommand}"
-                                              CommandParameter="{TemplateBinding CopyParameter}"
-                                              ToolTip.Tip="Copy"
-                                              NormalIcon="{StaticResource copy_regular}"
-                                              ClickIcon="{StaticResource copy_confirmed}"
-                                              InitialOpacity="0.6"
-                                              DockPanel.Dock="Right"
-                                              IsVisible="{TemplateBinding CopyButtonVisibility}"/>
+                            <Panel DockPanel.Dock="Right"
+                                   Width="30">
+                                <c:AnimatedButton Command="{TemplateBinding CopyCommand}"
+                                                  CommandParameter="{TemplateBinding CopyParameter}"
+                                                  ToolTip.Tip="Copy"
+                                                  NormalIcon="{StaticResource copy_regular}"
+                                                  ClickIcon="{StaticResource copy_confirmed}"
+                                                  InitialOpacity="0.6"
+                                                  IsVisible="{TemplateBinding CopyButtonVisibility}" />
+                            </Panel>
                             <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
                                               ContentTemplate="{TemplateBinding ContentTemplate}" />
                         </DockPanel>
