@@ -100,7 +100,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 					if (!res.Result && res.Kind == DialogResultKind.Normal)
 					{
-						await ShowErrorAsync("Error", "Invalid PW", "Invalid PW");
+						await ShowErrorAsync("Wallet Info", "The password is incorrect! Try Again.", "");
 						return;
 					}
 					else if (res.Kind is DialogResultKind.Back or DialogResultKind.Cancel)
