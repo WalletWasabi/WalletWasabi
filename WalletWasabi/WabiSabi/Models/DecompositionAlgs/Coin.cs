@@ -3,13 +3,14 @@ using System;
 
 namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 {
-	public record Coin : IComparable
+	public record Coin : IComparable<Coin>
 	{
 		public Money Amount { get; init; } = Money.Zero;
+
 		public const int OutputVbytes = 31;
 		public const decimal InputVbytes = 68.5m;
 
-		private int HashCode { get; } = new Guid().GetHashCode();
+		private int HashCode { get; } = Guid.NewGuid().GetHashCode();
 
 		public Money EffectiveValue(FeeRate feeRate)
 		{
@@ -28,11 +29,11 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 			return HashCode;
 		}
 
-		public int CompareTo(object? obj)
+		public int CompareTo(Coin? other)
 		{
-			if (obj is Money money)
+			if (other is Coin coin)
 			{
-				return CompareTo(money);
+				return Amount.CompareTo(coin.Amount);
 			}
 			throw new NullReferenceException();
 		}
