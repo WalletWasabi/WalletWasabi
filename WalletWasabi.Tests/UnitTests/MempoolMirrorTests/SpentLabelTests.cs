@@ -16,12 +16,10 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 		public SpentLabelTests(RegTestFixture regTestFixture)
 		{
 			RegTestFixture = regTestFixture;
-			BackendHttpClient = regTestFixture.BackendHttpClient;
 			BackendApiHttpClient = new ClearnetHttpClient(regTestFixture.HttpClient, () => RegTestFixture.BackendEndPointApiUri);
 		}
 
 		public RegTestFixture RegTestFixture { get; }
-		public IHttpClient BackendHttpClient { get; }
 		private IHttpClient BackendApiHttpClient { get; }
 
 		[Fact]
@@ -58,13 +56,15 @@ namespace WalletWasabi.Tests.UnitTests.MempoolMirrorTests
 			using var response = await BackendApiHttpClient.SendAsync(HttpMethod.Post, "btc/blockchain/broadcast", content2);
 
 			var responseContent = await response.Content.ReadAsStringAsync();
-			var spenderHex = responseContent.Split(":::").ToArray()[1];
+			var spenderTxHex = responseContent.Split(":::").ToArray()[1];
 
-			var fixedSpenderHex = spenderHex.Remove(spenderHex.Length - 1);
+			var fixedSpenderTxHex = spenderTxHex.Remove(spenderTxHex.Length - 1);
 
-			Transaction spenderTx = Transaction.Parse(fixedSpenderHex, network);
+			Transaction spenderTx = Transaction.Parse(fixedSpenderTxHex, network);
 
 			Assert.Equal(tx.GetHash(), spenderTx.GetHash());
+
+			RegTestFixture.Dispose();
 		}
 	}
 }
