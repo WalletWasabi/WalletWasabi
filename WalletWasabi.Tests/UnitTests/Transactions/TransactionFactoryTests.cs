@@ -333,10 +333,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Equal(Money.Coins(0.3m), destination2Output.Value + result.Fee);
 
 			var changeOutput = Assert.Single(tx.Outputs, x =>
-				{
-					transactionFactory.KeyManager.TryGetKeyForScriptPubKey(x.ScriptPubKey, out HdPubKey? hdPubKey);
-					return hdPubKey is { };
-				});
+				transactionFactory.KeyManager.TryGetKeyForScriptPubKey(x.ScriptPubKey, out HdPubKey? _));
 			Assert.Equal(Money.Coins(0.1m), changeOutput.Value);
 		}
 
