@@ -22,7 +22,7 @@ namespace WalletWasabi.Tor
 			TorBinaryFilePath = GetTorBinaryFilePath();
 			TorBinaryDir = Path.Combine(MicroserviceHelpers.GetBinaryFolder(), "Tor");
 
-			TorDataDir = Path.Combine(dataDir, "tordata");
+			TorDataDir = Path.Combine(dataDir, "tordata2");
 			CookieAuthFilePath = Path.Combine(dataDir, "control_auth_cookie");
 			LogFilePath = logFilePath;
 			IoHelpers.EnsureContainingDirectoryExists(LogFilePath);
