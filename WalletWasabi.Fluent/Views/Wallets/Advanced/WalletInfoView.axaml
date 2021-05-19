@@ -22,7 +22,7 @@
       </StackPanel>
     </c:ContentArea.CancelContent>
     <StackPanel Spacing="10" Margin="0 0 20 0">
-      <c:PreviewItem Icon="{StaticResource wasabi_logo}"
+      <c:PreviewItem Icon="{StaticResource key_regular}"
                      Text="Extended Master Private Key"
                      Content="{Binding ExtendedMasterPrivateKey}"
                      CopyParameter="{Binding ExtendedMasterPrivateKey}"
@@ -38,19 +38,19 @@
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}" />
       <Separator IsVisible="{Binding !!ExtendedMasterZprv}" />
 
-      <c:PreviewItem Icon="{StaticResource wasabi_logo}"
+      <c:PreviewItem Icon="{StaticResource fingerprint_regular}"
                      Text="Extended Master Fingerprint"
                      Content="{Binding MasterKeyFingerprint}"
                      CopyParameter="{Binding MasterKeyFingerprint}" />
       <Separator />
 
-      <c:PreviewItem Icon="{StaticResource wasabi_logo}"
+      <c:PreviewItem Icon="{StaticResource organization_regular}"
                      Text="Account Key Path"
                      Content="{Binding AccountKeyPath}"
                      CopyParameter="{Binding AccountKeyPath}" />
       <Separator />
 
-      <c:PreviewItem Icon="{StaticResource wasabi_logo}"
+      <c:PreviewItem Icon="{StaticResource key_regular}"
                      Text="Extended Account Private Key"
                      Content="{Binding ExtendedAccountPrivateKey}"
                      CopyParameter="{Binding ExtendedAccountPrivateKey}"
@@ -66,7 +66,7 @@
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}" />
       <Separator IsVisible="{Binding !!ExtendedAccountZprv}" />
 
-      <c:PreviewItem Icon="{StaticResource wasabi_logo}"
+      <c:PreviewItem Icon="{StaticResource key_regular}"
                      Text="Extended Account Public Key"
                      Content="{Binding ExtendedAccountPublicKey}"
                      CopyParameter="{Binding ExtendedAccountPublicKey}" />
