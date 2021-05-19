@@ -24,6 +24,12 @@ namespace WalletWasabi.WabiSabi.Client
 		public FeeRate FeeRate { get; }
 		public CredentialIssuerParameters AmountCredentialIssuerParameters { get; }
 		public CredentialIssuerParameters VsizeCredentialIssuerParameters { get; }
-		public IState CoinjoinState { get; set; }
+		public MultipartyTransactionState CoinjoinState { get; set; }
+		public TState Assert<TState>() where TState : MultipartyTransactionState =>
+			CoinjoinState switch
+			{
+				TState s => s,
+				_ => throw new InvalidOperationException($"{typeof(TState).Name} state was expected but {CoinjoinState.GetType().Name} state was received.")
+			};
 	}
 }

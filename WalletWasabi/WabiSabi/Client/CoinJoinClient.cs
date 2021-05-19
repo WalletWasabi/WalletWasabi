@@ -25,7 +25,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private ZeroCredentialPool ZeroAmountCredentialPool { get; } = new();
 		private ZeroCredentialPool ZeroVsizeCredentialPool { get; } = new();
 		private ClientRound Round { get; }
-		public IArenaRequestHandler ArenaRequestHandler { get; }
+		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
 		private SecureRandom SecureRandom { get; }
@@ -35,7 +35,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public CoinJoinClient(
 			ClientRound round,
-			IArenaRequestHandler arenaRequestHandler,
+			IWabiSabiApiRequestHandler arenaRequestHandler,
 			IEnumerable<Coin> coins,
 			Kitchen kitchen,
 			KeyManager keymanager)
@@ -61,13 +61,13 @@ namespace WalletWasabi.WabiSabi.Client
 				aliceClients = await ConfirmConnectionsAsync(aliceClients, stoppingToken).ConfigureAwait(false);
 
 				// Planning
-				ConstructionState constructionState = Round.CoinjoinState.AssertConstruction();
+				ConstructionState constructionState = Round.Assert<ConstructionState>();
 				var decompositionPlan = DecomposeAmounts(constructionState, stoppingToken);
 
 				// Output registration.
 				await RegisterOutputsAsync(null, stoppingToken).ConfigureAwait(false);
 
-				SigningState signingState = Round.CoinjoinState.AssertSigning();
+				SigningState signingState = Round.Assert<SigningState>();
 				var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
 
 				// Sanity check.
