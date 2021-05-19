@@ -7,16 +7,16 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 {
 	public class GreedyDecomposer
 	{
-		public Decomposition Decomposition { get; }
-		private Money DustThreshold { get; }
-		private FeeRate FeeRate { get; }
-
 		public GreedyDecomposer(IEnumerable<Money> preferredDenominations, Money dustThreshold, FeeRate feeRate)
 		{
 			Decomposition = new(preferredDenominations);
 			DustThreshold = dustThreshold;
 			FeeRate = feeRate;
 		}
+
+		public Decomposition Decomposition { get; }
+		private Money DustThreshold { get; }
+		private FeeRate FeeRate { get; }
 
 		public void Decompose(Coin coin)
 		{

@@ -48,8 +48,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 					Money.Coins(3.00000000m),
 					Money.Coins(4.00000000m),
 				},
-				greedyDecomposer.Decomposition
-				);
+				greedyDecomposer.Decomposition);
 		}
 	}
 }
