@@ -13,7 +13,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 	public class AmountDecompositionTests
 	{
 		[Fact]
-		public void InputRegistrationRequestMessageSerialization()
+		public void GreedyDecompositionTest()
 		{
 			var feeRate = new FeeRate(100m);
 			var dustThreshold = Money.Coins(0.00001m);
@@ -44,12 +44,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 				new Money[]
 				{
 					Money.Coins(0.99996900m),
-					Money.Coins(1.99996900m),
 					Money.Coins(2.00000000m),
-					Money.Coins(2.99996900m),
 					Money.Coins(3.00000000m),
 					Money.Coins(4.00000000m),
-					Money.Coins(4.99996900m)
 				},
 				greedyDecomposer.Decomposition
 				);

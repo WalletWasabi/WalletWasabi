@@ -54,7 +54,7 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 			{
 				if (coin <= amount)
 				{
-					result = amount;
+					result = coin;
 				}
 				else
 				{
