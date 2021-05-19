@@ -24,8 +24,7 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 
 			while (remaining > DustThreshold)
 			{
-				Money? denom = LargestDenomBelowIncl(remaining);
-				if (denom is null || denom == Money.Zero)
+				if (!TryGetLargestDenomBelowIncl(remaining, out var denom))
 				{
 					break;
 				}
@@ -42,12 +41,12 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 			}
 		}
 
-		private Money? LargestDenomBelowIncl(Money amount)
+		private bool TryGetLargestDenomBelowIncl(Money amount, out Money result)
 		{
-			Money result = Decomposition.First();
+			result = Decomposition.First();
 			if (result > amount)
 			{
-				return null;
+				return false;
 			}
 
 			foreach (var coin in Decomposition)
@@ -61,7 +60,7 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 					break;
 				}
 			}
-			return result;
+			return true;
 		}
 	}
 }
