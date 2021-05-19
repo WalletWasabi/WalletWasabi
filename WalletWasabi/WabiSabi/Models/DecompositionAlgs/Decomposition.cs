@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +30,7 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 
 		IEnumerator IEnumerable.GetEnumerator()
 		{
-			return Amounts.GetEnumerator();
+			return GetEnumerator();
 		}
 	}
 }
