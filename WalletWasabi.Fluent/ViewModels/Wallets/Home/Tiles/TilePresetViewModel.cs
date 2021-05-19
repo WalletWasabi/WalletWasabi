@@ -6,17 +6,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		[AutoNotify] private int _row;
 		[AutoNotify] private int _columnSpan;
 		[AutoNotify] private int _rowSpan;
+		[AutoNotify] private bool _isVisible;
 
 		public TilePresetViewModel()
 		{
 		}
 
-		public TilePresetViewModel(int column, int row, int columnSpan, int rowSpan)
+		public TilePresetViewModel(int column, int row, int columnSpan, int rowSpan, bool isVisible = true)
 		{
 			Column = column;
 			Row = row;
 			ColumnSpan = columnSpan;
 			RowSpan = rowSpan;
+			IsVisible = isVisible;
 		}
 	}
 }

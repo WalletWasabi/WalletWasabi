@@ -23,6 +23,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		public int RowSpan => CurrentTilePreset?.RowSpan ?? 1;
 
+		public bool IsVisible => CurrentTilePreset?.IsVisible ?? true;
+
 		public TilePresetViewModel? CurrentTilePreset => TilePresets?[TilePresetIndex];
 
 		private void NotifyPresetChanged()
@@ -32,6 +34,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			this.RaisePropertyChanged(nameof(Row));
 			this.RaisePropertyChanged(nameof(ColumnSpan));
 			this.RaisePropertyChanged(nameof(RowSpan));
+			this.RaisePropertyChanged(nameof(IsVisible));
 		}
 	}
 }

@@ -65,6 +65,7 @@
               <Setter Property="Grid.Row" Value="{Binding Row}" />
               <Setter Property="Grid.ColumnSpan" Value="{Binding ColumnSpan}" />
               <Setter Property="Grid.RowSpan" Value="{Binding RowSpan}" />
+              <Setter Property="IsVisible" Value="{Binding IsVisible}" />
             </Style>
           </ItemsControl.Styles>
           <ItemsControl.ItemsPanel>
