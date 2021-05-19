@@ -7,7 +7,7 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 {
 	public class GreedyDecomposer
 	{
-		private Decomposition Decomposition { get; }
+		public Decomposition Decomposition { get; }
 		private Money DustThreshold { get; }
 		private FeeRate FeeRate { get; }
 

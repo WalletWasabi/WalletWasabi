@@ -8,7 +8,7 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 {
 	public class Decomposition : IEnumerable<Money>
 	{
-		private List<Money> Amounts { get; }
+		public List<Money> Amounts { get; }
 
 		public Decomposition(IEnumerable<Money> amounts)
 		{
