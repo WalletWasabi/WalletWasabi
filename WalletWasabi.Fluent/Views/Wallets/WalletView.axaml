@@ -32,7 +32,11 @@
             <Button Classes="function">
               <Button.Flyout>
                 <MenuFlyout Placement="Bottom">
-                  <MenuItem Header="Wallet Info" Command="{Binding WalletInfoCommand}" />
+                  <MenuItem Header="Wallet Info" Command="{Binding WalletInfoCommand}">
+                    <MenuItem.Icon>
+                      <PathIcon Data="{StaticResource info_regular}" />
+                    </MenuItem.Icon>
+                  </MenuItem>
                 </MenuFlyout>
               </Button.Flyout>
               <PathIcon Data="{StaticResource more_regular}" Foreground="{DynamicResource TextForegroundColor}" />
