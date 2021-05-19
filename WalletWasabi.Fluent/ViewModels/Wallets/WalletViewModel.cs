@@ -116,10 +116,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			};
 
 			this.WhenAnyValue(x => x.LayoutIndex)
-				.Subscribe(_ => NotifyLayoutChanged());
-
-			this.WhenAnyValue(x => x.LayoutIndex)
-				.Subscribe(_ => UpdateTiles());
+				.Subscribe(_ =>
+				{
+					NotifyLayoutChanged();
+					UpdateTiles();
+				});
 
 			this.WhenAnyValue(x => x.WidthSource)
 				.Subscribe(x => LayoutSelector(x, _heightSource));
