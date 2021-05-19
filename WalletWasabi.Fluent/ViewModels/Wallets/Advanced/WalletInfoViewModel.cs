@@ -1,4 +1,5 @@
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
@@ -8,11 +9,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced
 	[NavigationMetaData(Title = "Wallet Info")]
 	public partial class WalletInfoViewModel : RoutableViewModel
 	{
+		[AutoNotify] private bool _showSensitiveData;
+		[AutoNotify] private string _showButtonText = "Show sensitive data";
+		[AutoNotify] private string _lockIconString = "lock_regular";
+
 		public WalletInfoViewModel(Wallet wallet)
 		{
 			var network = wallet.Network;
 
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+
+			NextCommand = ReactiveCommand.Create(() => Navigate().Clear());
+
+			CancelCommand = ReactiveCommand.Create(() =>
+			{
+				ShowSensitiveData = !ShowSensitiveData;
+				ShowButtonText = ShowSensitiveData ? "Hide sensitive data" : "Show sensitive data";
+				LockIconString = ShowSensitiveData ? "unlock_regular" : "lock_regular";
+			});
 
 			if (!wallet.KeyManager.IsWatchOnly)
 			{
