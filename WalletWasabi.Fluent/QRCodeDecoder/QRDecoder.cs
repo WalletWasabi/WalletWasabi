@@ -58,16 +58,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Avalonia;
 using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using WalletWasabi.Logging;
-using Bitmap = System.Drawing.Bitmap;
 
 namespace WalletWasabi.Fluent.QRCodeDecoder
 {
@@ -145,7 +140,7 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 		internal const double ALIGNMENT_SEARCH_AREA = 0.3;
 
 		// QRCode image decoder
-		public IEnumerable<string> SearchQrCodes(Avalonia.Media.Imaging.WriteableBitmap inputImage)
+		public IEnumerable<string> SearchQrCodes(WriteableBitmap inputImage)
 		{
 			try
 			{
@@ -254,7 +249,7 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 		}
 
 		// Convert image to black and white boolean matrix
-		internal bool ConvertImageToBlackAndWhite(Avalonia.Media.Imaging.WriteableBitmap inputImage)
+		internal bool ConvertImageToBlackAndWhite(WriteableBitmap inputImage)
 		{
 			var bitmapData = inputImage.Lock(); // TODO Dan to provide a non hacky API to do this.
 
