@@ -1,11 +1,6 @@
 using NBitcoin;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Models.DecompositionAlgs;
+using WalletWasabi.WabiSabi.Models.Decomposition;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models

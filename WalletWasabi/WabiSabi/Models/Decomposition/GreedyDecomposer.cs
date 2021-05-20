@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
+namespace WalletWasabi.WabiSabi.Models.Decomposition
 {
 	public class GreedyDecomposer
 	{
