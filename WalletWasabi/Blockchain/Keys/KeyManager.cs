@@ -418,7 +418,7 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 		}
 
-		public bool TryGetKeyForScriptPubKey(Script scriptPubKey, out HdPubKey? hdPubKey)
+		public bool TryGetKeyForScriptPubKey(Script scriptPubKey, [NotNullWhen(true)] out HdPubKey? hdPubKey)
 		{
 			hdPubKey = default;
 

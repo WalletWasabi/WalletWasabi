@@ -204,8 +204,7 @@ namespace WalletWasabi.Blockchain.TransactionProcessing
 			{
 				// If transaction received to any of the wallet keys:
 				var output = tx.Transaction.Outputs[i];
-				KeyManager.TryGetKeyForScriptPubKey(output.ScriptPubKey, out HdPubKey? foundKey);
-				if (foundKey is { })
+				if (KeyManager.TryGetKeyForScriptPubKey(output.ScriptPubKey, out HdPubKey? foundKey))
 				{
 					if (!foundKey.IsInternal)
 					{

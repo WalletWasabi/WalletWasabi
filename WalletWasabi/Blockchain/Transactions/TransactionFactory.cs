@@ -280,8 +280,7 @@ namespace WalletWasabi.Blockchain.Transactions
 			for (var i = 0U; i < tx.Outputs.Count; i++)
 			{
 				TxOut output = tx.Outputs[i];
-				KeyManager.TryGetKeyForScriptPubKey(output.ScriptPubKey, out HdPubKey? foundKey);
-				if (foundKey is not null)
+				if (KeyManager.TryGetKeyForScriptPubKey(output.ScriptPubKey, out HdPubKey? foundKey))
 				{
 					var smartCoin = new SmartCoin(smartTransaction, i, foundKey);
 					label = SmartLabel.Merge(label, smartCoin.HdPubKey.Label); // foundKey's label is already added to the coinlabel.

@@ -400,8 +400,7 @@ namespace NBitcoin
 				{
 					if (script is { })
 					{
-						keyManager.TryGetKeyForScriptPubKey(script, out HdPubKey? hdPubKey);
-						if (hdPubKey is { })
+						if (keyManager.TryGetKeyForScriptPubKey(script, out HdPubKey? hdPubKey))
 						{
 							psbt.AddKeyPath(fp, hdPubKey, script);
 						}
@@ -411,8 +410,7 @@ namespace NBitcoin
 				// Add output keypaths.
 				foreach (var script in psbt.Outputs.Select(x => x.ScriptPubKey).ToArray())
 				{
-					keyManager.TryGetKeyForScriptPubKey(script, out HdPubKey? hdPubKey);
-					if (hdPubKey is { })
+					if (keyManager.TryGetKeyForScriptPubKey(script, out HdPubKey? hdPubKey))
 					{
 						psbt.AddKeyPath(fp, hdPubKey, script);
 					}
