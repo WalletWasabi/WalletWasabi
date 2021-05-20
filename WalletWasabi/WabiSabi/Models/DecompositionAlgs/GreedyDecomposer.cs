@@ -31,6 +31,7 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 			{
 				if (!TryGetLargestDenomBelowIncl(remaining, out var denom))
 				{
+					Decomposition.InsertSorted(remaining);
 					break;
 				}
 
@@ -39,11 +40,6 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 				var effectiveCost = coin.Amount + FeeRate.GetFee(coin.ScriptPubKey.EstimateOutputVsize());
 
 				remaining -= effectiveCost;
-			}
-
-			if (remaining > DustThreshold)
-			{
-				Decomposition.InsertSorted(remaining);
 			}
 		}
 
