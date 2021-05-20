@@ -29,6 +29,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		[AutoNotify] private bool _showCoinJoin;
 		[AutoNotify] private HistoryItemViewModel? _selectedItem;
 
+		private uint256? _txidToSelectWhenAppears;
+
 		public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
 		{
 			_walletViewModel = walletViewModel;
@@ -77,6 +79,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			if (txnItem is { })
 			{
 				SelectedItem = txnItem;
+				_txidToSelectWhenAppears = null;
 				SelectedItem.IsSelected = true;
 
 				RxApp.MainThreadScheduler.Schedule(async () =>
@@ -84,6 +87,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 					await Task.Delay(1260);
 					SelectedItem.IsSelected = false;
 				});
+			}
+			else
+			{
+				_txidToSelectWhenAppears = txid;
 			}
 		}
 
@@ -130,6 +137,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 						var transactionSummary = txRecordList[i];
 						balance += transactionSummary.Amount;
 						_transactionSourceList.Add(new HistoryItemViewModel(i, transactionSummary, _walletViewModel, balance, _updateTrigger));
+					}
+
+					if (_txidToSelectWhenAppears is { } txid)
+					{
+						SelectTransaction(txid);
 					}
 				}
 			}

@@ -101,6 +101,11 @@ namespace WalletWasabi.Fluent.ViewModels
 
 					if (_walletDictionary.TryGetValue(wallet, out var walletViewModel) && walletViewModel is WalletViewModel wvm)
 					{
+						if (wvm.IsSelected && (e.NewlyReceivedCoins.Any() || e.NewlyConfirmedReceivedCoins.Any()))
+						{
+							wvm.History.SelectTransaction(e.Transaction.GetHash());
+						}
+
 						NotificationHelpers.Show(e, onClick: () => wvm.NavigateAndHighlight(e.Transaction.GetHash()));
 					}
 				});
