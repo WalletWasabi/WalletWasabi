@@ -49,7 +49,6 @@
           "Avalonia": "0.10.5",
           "Avalonia.Xaml.Interactions": "0.10.5",
           "Avalonia.Xaml.Interactivity": "0.10.5"
-
         }
       },
       "Avalonia.Xaml.Interactions.Custom": {
@@ -69,20 +68,6 @@
         "contentHash": "VHkX2MpM/m9sAJTJfNwXCxxN8cpGtQmLZGoU7mc+axkF6alQsDIe23PBqUDBM5nKk9aBhyZj65wzbi/lxjQPjQ==",
         "dependencies": {
           "Avalonia": "0.10.5"
-        }
-      },
-      "Avalonia": {
-        "type": "Transitive",
-        "resolved": "0.10.5",
-        "contentHash": "TLwRR1s+lAZclErsN3K3eqxHEmnyV7kjis5K/nJKnmh4IyqFQaJFF/3RxMjHuypHseEU/9bjPcAUvPrEfdAJFw==",
-        "dependencies": {
-          "Avalonia.Remote.Protocol": "0.10.5",
-          "JetBrains.Annotations": "10.3.0",
-          "System.ComponentModel.Annotations": "4.5.0",
-          "System.Memory": "4.5.3",
-          "System.Reactive": "5.0.0",
-          "System.Runtime.CompilerServices.Unsafe": "4.6.0",
-          "System.ValueTuple": "4.5.0"
         }
       },
       "Avalonia.Angle.Windows.Natives": {
@@ -194,32 +179,9 @@
         "type": "Transitive",
         "resolved": "0.10.5",
         "contentHash": "RihAl3fou4iAc4AG8GvaxRWQa3EhplBCE5JECuApjyHiv2GxvqlzGWpqmdR6FrNTdrYhVGTQMR8WQBnBPphqig==",
-
         "dependencies": {
           "Avalonia": "0.10.5",
           "Avalonia.Xaml.Interactivity": "0.10.5"
-
-        "dependencies": {
-          "Avalonia": "0.10.5",
-          "Avalonia.Xaml.Interactivity": "0.10.5"
-        }
-      },
-      "Avalonia.Xaml.Interactions.Custom": {
-        "type": "Transitive",
-        "resolved": "0.9.9",
-        "contentHash": "j1F+UPlhcITTfRKWXvoqrRZKodyj33uwl6S6oIfomex9y5Kha2G1Y9ykc1ewGBK5OWemJ2i7Kh77aiwp7rFedA==",
-        "dependencies": {
-          "Avalonia": "0.9.9",
-          "Avalonia.Xaml.Interactivity": "0.9.9"
-        }
-      },
-      "Avalonia.Xaml.Interactivity": {
-        "type": "Transitive",
-        "resolved": "0.10.5",
-        "contentHash": "VHkX2MpM/m9sAJTJfNwXCxxN8cpGtQmLZGoU7mc+axkF6alQsDIe23PBqUDBM5nKk9aBhyZj65wzbi/lxjQPjQ==",
-        "dependencies": {
-          "Avalonia": "0.10.5"
-
         }
       },
       "AvalonStudio.Shell": {
