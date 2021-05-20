@@ -445,9 +445,12 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 						else
 						{
 							// Should never happen, but oh well we can autocorrect it so why not.
-							DestinationKeyManager.TryGetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey, out HdPubKey? hdPubKey);
-							KeyManager.TryGetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey, out HdPubKey? hdPubK);
-							ExposedLinks[input] = ExposedLinks[input].Append(new HdPubKeyBlindedPair(hdPubKey ?? hdPubK, false));
+							if (!DestinationKeyManager.TryGetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey, out HdPubKey? hdPubKey)
+								&& !KeyManager.TryGetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey, out hdPubKey))
+							{
+								throw new NotSupportedException("Couldn't get the key for the script.");
+							}
+							ExposedLinks[input] = ExposedLinks[input].Append(new HdPubKeyBlindedPair(hdPubKey, false));
 						}
 					}
 				}
