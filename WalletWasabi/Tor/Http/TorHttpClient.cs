@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
-using WalletWasabi.Tor.Socks5.Pool.Identities;
 
 namespace WalletWasabi.Tor.Http
 {
