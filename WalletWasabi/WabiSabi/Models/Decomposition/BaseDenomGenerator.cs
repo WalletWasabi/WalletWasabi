@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace WalletWasabi.WabiSabi.Models.Decomposition
 {
-	public static class BaseDenomGenerator
+	public static class BaseDenominationGenerator
 	{
 		private const long MaxSats = 2099999997690000;
 
@@ -25,7 +25,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 			}
 		}
 
-		public static IEnumerable<Money> GetBaseDenominations()
+		public static IEnumerable<Money> Generate()
 		{
 			var powersOfTwo = Enumerable.Range(0, 50).Select(x => (long)1 << x);
 			var powersOfThree = Enumerable.Range(0, 32).Select(x => (long)Math.Pow(3, x));
