@@ -44,11 +44,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 				new Money[]
 				{
 					Money.Coins(0.99996900m),
+					Money.Coins(1.99996900m),
 					Money.Coins(2.00000000m),
-					Money.Coins(3.00000000m),
 					Money.Coins(4.00000000m),
 				},
-				greedyDecomposer.Decomposition);
+				greedyDecomposer.GetDecomposition());
 		}
 	}
 }

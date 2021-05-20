@@ -1,6 +1,7 @@
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
@@ -8,15 +9,18 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 {
 	public class GreedyDecomposer
 	{
-		public GreedyDecomposer(IEnumerable<Money> preferredDenominations, Money dustThreshold, FeeRate feeRate)
+		public GreedyDecomposer(IEnumerable<Money> baseDenominations, Money dustThreshold, FeeRate feeRate)
 		{
-			Decomposition = new(preferredDenominations);
+			BaseDenominations = baseDenominations.OrderBy(d => d).ToArray();
 			DustThreshold = dustThreshold;
 			FeeRate = feeRate;
 		}
 
-		public Decomposition Decomposition { get; }
+		private Money[] BaseDenominations { get; }
+
+		private List<Money> Decomposition { get; set; } = new List<Money>();
 		private Money DustThreshold { get; }
+
 		private FeeRate FeeRate { get; }
 
 		public void Decompose(Coin coin)
@@ -29,7 +33,8 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 				{
 					break;
 				}
-				Decomposition.AddSorted(denom);
+
+				Decomposition.InsertSorted(denom);
 
 				var effectiveCost = coin.Amount + FeeRate.GetFee(coin.ScriptPubKey.EstimateOutputVsize());
 
@@ -38,14 +43,19 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 
 			if (remaining > DustThreshold)
 			{
-				Decomposition.AddSorted(remaining);
+				Decomposition.InsertSorted(remaining);
 			}
 		}
 
 		private bool TryGetLargestDenomBelowIncl(Money amount, [NotNullWhen(true)] out Money? result)
 		{
-			result = Decomposition.Where(denoms => denoms <= amount).LastOrDefault();
+			result = BaseDenominations.Where(denoms => denoms <= amount).LastOrDefault();
 			return result is not null;
+		}
+
+		public ImmutableArray<Money> GetDecomposition()
+		{
+			return Decomposition.ToImmutableArray();
 		}
 	}
 }
