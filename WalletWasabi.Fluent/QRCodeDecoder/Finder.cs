@@ -64,7 +64,7 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 		internal int Row2;
 		internal double VModule;
 
-		internal double Distance;
+		internal double Distance = double.MaxValue;
 		internal double ModuleSize;
 
 		/// <summary>
@@ -76,8 +76,6 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 			Col1 = col1;
 			Col2 = col2;
 			HModule = hModule;
-			Distance = double.MaxValue;
-			return;
 		}
 
 		/// <summary>

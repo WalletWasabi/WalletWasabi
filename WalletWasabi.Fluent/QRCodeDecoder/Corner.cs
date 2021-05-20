@@ -86,7 +86,6 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 
 			// left line length
 			LeftLineLength = Math.Sqrt(LeftLineDeltaX * LeftLineDeltaX + LeftLineDeltaY * LeftLineDeltaY);
-			return;
 		}
 
 		/////////////////////////////////////////////////////////////////////

@@ -295,7 +295,6 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 
 				receivedData[dataLength - 1 - StaticTables.IntToExp[ps]] ^= (byte)MultiplyDivide(ps, omegaTotal, sigmaTotal);
 			}
-			return;
 		}
 
 		internal static void PolynominalDivision(byte[] polynomial, int polyLength, byte[] generator, int errCorrCodewords)
@@ -320,7 +319,6 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 					polynomial[index + 1 + generatorIndex] = (byte)(polynomial[index + 1 + generatorIndex] ^ StaticTables.ExpToInt[generator[generatorIndex] + multiplier]);
 				}
 			}
-			return;
 		}
 
 		internal static int Multiply(int int1, int int2)
@@ -366,7 +364,6 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 					}
 				}
 			}
-			return;
 		}
 	}
 }
