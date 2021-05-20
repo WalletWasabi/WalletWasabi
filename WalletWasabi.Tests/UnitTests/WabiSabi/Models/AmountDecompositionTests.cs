@@ -1,6 +1,4 @@
-using NBitcoin;
 using System.Linq;
-using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Models.Decomposition;
 using Xunit;
 
