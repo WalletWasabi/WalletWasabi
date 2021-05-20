@@ -74,7 +74,7 @@ namespace WalletWasabi.Tests.UnitTests.QrCode
 			QRDecoder decoder = new();
 			string expectedOutput = "Top right corner";
 
-			string path = Path.Combine(_commonPartialPath, "QrBrick.jpg");
+			string path = Path.Combine(_commonPartialPath, "QRBrick.jpg");
 			using var bmp = LoadBitmap(path);
 			var dataCollection = decoder.SearchQrCodes(bmp);
 
