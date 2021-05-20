@@ -8,7 +8,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
-using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -29,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private PrivacySuggestionControlViewModel? _defaultSelection;
 
 		public OptimisePrivacyViewModel(Wallet wallet,
-			TransactionInfo transactionInfo, TransactionBroadcaster broadcaster, BuildTransactionResult requestedTransaction)
+			TransactionInfo transactionInfo, BuildTransactionResult requestedTransaction)
 		{
 			_wallet = wallet;
 			_requestedTransaction = requestedTransaction;
@@ -41,16 +40,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			_privacySuggestions = new ObservableCollection<PrivacySuggestionControlViewModel>();
 
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
 
 			NextCommand = ReactiveCommand.Create(
-				() => OnNext(wallet, transactionInfo, broadcaster),
+				() => OnNext(transactionInfo),
 				this.WhenAnyValue(x => x.SelectedPrivacySuggestion).Select(x => x is { }));
 		}
 
-		private void OnNext(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
+		private void OnNext(TransactionInfo transactionInfo)
 		{
-			Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster,
+			Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo,
 				SelectedPrivacySuggestion!.TransactionResult));
 		}
 
@@ -106,7 +106,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 					// There are several scenarios, both the alternate suggestions are <, or >, or 1 < and 1 >.
 					// We sort them and add the suggestions accordingly.
-					var suggestions = new List<PrivacySuggestionControlViewModel> {_defaultSelection, largerSuggestion};
+					var suggestions = new List<PrivacySuggestionControlViewModel> { _defaultSelection, largerSuggestion };
 
 					if (smallerSuggestion is { })
 					{

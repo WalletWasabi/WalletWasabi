@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		{
 			Network = network;
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = false;
 
@@ -32,17 +32,17 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				.Subscribe(finalTransaction => Close(result: finalTransaction));
 
 			ImportTransactionCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnImportTransaction(),
+				async () => await OnImportTransactionAsync(),
 				outputScheduler: RxApp.MainThreadScheduler);
 
-			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPaste());
+			PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 		}
 
-		private async Task OnImportTransaction()
+		private async Task OnImportTransactionAsync()
 		{
 			try
 			{
-				var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", new[] {"psbt", "*"});
+				var path = await FileDialogHelper.ShowOpenFileDialogAsync("Import Transaction", new[] { "psbt", "*" });
 				if (path is { })
 				{
 					FinalTransaction = await ParseTransactionAsync(path);
@@ -55,7 +55,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 			}
 		}
 
-		private async Task OnPaste()
+		private async Task OnPasteAsync()
 		{
 			try
 			{

@@ -161,7 +161,7 @@ namespace NBitcoin
 		{
 			Guard.NotNull(nameof(me), me);
 
-			bool notNull = me.WitScript is { };
+			bool notNull = me.WitScript is not null;
 			bool notEmpty = me.WitScript != WitScript.Empty;
 			return notNull && notEmpty;
 		}
@@ -187,7 +187,7 @@ namespace NBitcoin
 		/// </summary>
 		public static void AddWithOptimize(this TxOutList me, Money money, Script scriptPubKey)
 		{
-			TxOut found = me.FirstOrDefault(x => x.ScriptPubKey == scriptPubKey);
+			var found = me.FirstOrDefault(x => x.ScriptPubKey == scriptPubKey);
 			if (found is { })
 			{
 				found.Value += money;
@@ -456,29 +456,15 @@ namespace NBitcoin
 			return sanityFee;
 		}
 
-		public static int EstimateOutputVsize(this Script script)
-		{
-			if (script.IsScriptType(ScriptType.P2WPKH))
-			{
-				return Constants.OutputSizeInBytes;
-			}
-			else
-			{
-				throw new NotImplementedException($"Weight estimation isn't implemented for provided script type.");
-			}
-		}
+		public static int EstimateOutputVsize(this Script scriptPubKey) =>
+			new TxOut(Money.Zero, scriptPubKey).GetSerializedSize();
 
-		public static int EstimateInputVsize(this Script script)
-		{
-			if (script.IsScriptType(ScriptType.P2WPKH))
+		public static int EstimateInputVsize(this Script scriptPubKey) =>
+			scriptPubKey.IsScriptType(ScriptType.P2WPKH) switch
 			{
-				return Constants.P2wpkhInputVirtualSize;
-			}
-			else
-			{
-				throw new NotImplementedException($"Weight estimation isn't implemented for provided script type.");
-			}
-		}
+				true => Constants.P2wpkhInputVirtualSize,
+				false => throw new NotImplementedException($"Size estimation isn't implemented for provided script type.")
+			};
 
 		public static T FromBytes<T>(byte[] input) where T : IBitcoinSerializable, new()
 		{

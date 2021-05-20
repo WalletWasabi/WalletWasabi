@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -26,7 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 			_transactionAuthorizationInfo = transactionAuthorizationInfo;
 			WalletIcon = _wallet.KeyManager.Icon;
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = true;
 		}

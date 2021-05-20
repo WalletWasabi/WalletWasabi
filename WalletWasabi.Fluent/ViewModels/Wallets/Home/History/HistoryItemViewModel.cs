@@ -1,34 +1,44 @@
 using System;
+using System.Reactive;
+using System.Windows.Input;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
-using WalletWasabi.Stores;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 {
-	public class HistoryItemViewModel
+	public class HistoryItemViewModel : ViewModelBase
 	{
-		public HistoryItemViewModel(int orderIndex, TransactionSummary transactionSummary, BitcoinStore bitcoinStore, Money balance)
+		private bool _isSelected;
+
+		public HistoryItemViewModel(int orderIndex, TransactionSummary transactionSummary, WalletViewModel walletViewModel, Money balance, IObservable<Unit> updateTrigger)
 		{
 			TransactionSummary = transactionSummary;
 			Date = transactionSummary.DateTime.ToLocalTime();
 			IsCoinJoin = transactionSummary.IsLikelyCoinJoinOutput;
 			OrderIndex = orderIndex;
 			Balance = balance;
+			var wallet = walletViewModel.Wallet;
 
-			var confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int) bitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
+			var confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int)wallet.BitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
 			IsConfirmed = confirmations > 0;
 
 			var amount = transactionSummary.Amount;
-			if (amount < 0)
+			if (amount < Money.Zero)
 			{
-				OutgoingAmount = (amount * -1).ToString(fplus: false);
+				OutgoingAmount = amount * -1;
 			}
 			else
 			{
-				IncomingAmount = amount.ToString(fplus: false);
+				IncomingAmount = amount;
 			}
+
+			ShowDetailsCommand = ReactiveCommand.Create(() => RoutableViewModel.Navigate(NavigationTarget.DialogScreen).To(new TransactionDetailsViewModel(transactionSummary, wallet, updateTrigger)));
 		}
+
+		public ICommand ShowDetailsCommand { get; }
 
 		public TransactionSummary TransactionSummary { get; }
 
@@ -40,10 +50,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 		public bool IsConfirmed { get; }
 
-		public string? IncomingAmount { get; }
+		public Money? IncomingAmount { get; }
 
-		public string? OutgoingAmount { get; }
+		public Money? OutgoingAmount { get; }
 
 		public bool IsCoinJoin { get; }
+
+		public bool IsSelected
+		{
+			get => _isSelected;
+			set => this.RaiseAndSetIfChanged(ref _isSelected, value);
+		}
 	}
 }

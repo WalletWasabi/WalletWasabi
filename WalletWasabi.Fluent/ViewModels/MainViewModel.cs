@@ -3,10 +3,10 @@ using System.Reactive.Concurrency;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
+using Avalonia.Controls;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using Global = WalletWasabi.Gui.Global;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Search;
@@ -14,15 +14,17 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Fluent.ViewModels.OpenDirectory;
-using WalletWasabi.Services;
 using WalletWasabi.Logging;
+using WalletWasabi.BitcoinP2p;
 
 namespace WalletWasabi.Fluent.ViewModels
 {
 	public partial class MainViewModel : ViewModelBase
 	{
-		private readonly Global _global;
-		private readonly LegalChecker _legalChecker;
+		private readonly SettingsPageViewModel _settingsPage;
+		private readonly SearchPageViewModel _searchPage;
+		private readonly PrivacyModeViewModel _privacyMode;
+		private readonly AddWalletPageViewModel _addWalletPage;
 		[AutoNotify] private bool _isMainContentEnabled;
 		[AutoNotify] private bool _isDialogScreenEnabled;
 		[AutoNotify] private bool _isFullScreenEnabled;
@@ -32,59 +34,40 @@ namespace WalletWasabi.Fluent.ViewModels
 		[AutoNotify] private NavBarViewModel _navBar;
 		[AutoNotify] private StatusBarViewModel _statusBar;
 		[AutoNotify] private string _title = "Wasabi Wallet";
-		private readonly SettingsPageViewModel _settingsPage;
-		private readonly SearchPageViewModel _searchPage;
-		private readonly PrivacyModeViewModel _privacyMode;
-		private readonly AddWalletPageViewModel _addWalletPage;
-		private readonly WalletManagerViewModel _walletManagerViewModel;
+		[AutoNotify] private WindowState _windowState;
 
-		public MainViewModel(Global global)
+		public MainViewModel()
 		{
-			_global = global;
-			_legalChecker = global.LegalChecker;
-
+			_windowState = (WindowState)Enum.Parse(typeof(WindowState), Services.UiConfig.WindowState);
 			_dialogScreen = new DialogScreenViewModel();
 
 			_fullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
 
-			_compactDialogScreen = new DialogScreenViewModel( NavigationTarget.CompactDialogScreen);
+			_compactDialogScreen = new DialogScreenViewModel(NavigationTarget.CompactDialogScreen);
 
 			MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
 
 			NavigationState.Register(MainScreen, DialogScreen, FullScreen, CompactDialogScreen);
-
-			Network = global.Network;
 
 			_isMainContentEnabled = true;
 			_isDialogScreenEnabled = true;
 			_isFullScreenEnabled = true;
 
 			_statusBar = new StatusBarViewModel(
-				global.DataDir,
-				global.Network,
-				global.Config,
-				global.HostedServices,
-				global.BitcoinStore.SmartHeaderChain,
-				global.Synchronizer);
+				Services.DataDir,
+				Services.Config.Network,
+				Services.Config,
+				Services.HostedServices,
+				Services.BitcoinStore.SmartHeaderChain,
+				Services.Synchronizer);
 
-			_walletManagerViewModel = new WalletManagerViewModel(
-				_global.WalletManager,
-				_global.UiConfig,
-				_global.Config,
-				_global.BitcoinStore,
-				_global.LegalChecker,
-				_global.TransactionBroadcaster,
-				_global.HttpClientFactory);
+			UiServices.Initialize();
 
-			_addWalletPage = new AddWalletPageViewModel(
-				_walletManagerViewModel,
-				global.BitcoinStore);
-
-			_settingsPage = new SettingsPageViewModel(global.Config, global.UiConfig);
-			_privacyMode = new PrivacyModeViewModel(global.UiConfig);
+			_addWalletPage = new AddWalletPageViewModel();
+			_settingsPage = new SettingsPageViewModel();
+			_privacyMode = new PrivacyModeViewModel();
 			_searchPage = new SearchPageViewModel();
-
-			_navBar = new NavBarViewModel(MainScreen, _walletManagerViewModel);
+			_navBar = new NavBarViewModel(MainScreen);
 
 			NavigationManager.RegisterType(_navBar);
 
@@ -94,6 +77,10 @@ namespace WalletWasabi.Fluent.ViewModels
 			RxApp.MainThreadScheduler.Schedule(async () => await _navBar.InitialiseAsync());
 
 			_searchPage.Initialise();
+
+			this.WhenAnyValue(x => x.WindowState)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(windowState => Services.UiConfig.WindowState = windowState.ToString());
 
 			this.WhenAnyValue(x => x.DialogScreen!.IsDialogOpen)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -107,20 +94,15 @@ namespace WalletWasabi.Fluent.ViewModels
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(x => IsMainContentEnabled = !x);
 
-			_walletManagerViewModel.WhenAnyValue(x => x.Items.Count, x => x.Actions.Count)
-				.Subscribe(x => _navBar.IsHidden = x.Item1 == 0 && x.Item2 == 0);
-
-			if (!_walletManagerViewModel.WalletManager.AnyWallet(_ => true))
+			if (!Services.WalletManager.HasWallet())
 			{
-				_addWalletPage.Navigate().To(_addWalletPage, NavigationMode.Clear);
+				_dialogScreen.To(_addWalletPage, NavigationMode.Clear);
 			}
 		}
 
 		public TargettedNavigationStack MainScreen { get; }
 
 		public static MainViewModel? Instance { get; internal set; }
-
-		private Network Network { get; }
 
 		public void ClearStacks()
 		{
@@ -131,11 +113,11 @@ namespace WalletWasabi.Fluent.ViewModels
 
 		public void Initialize()
 		{
-			StatusBar.Initialize(_global.Nodes.ConnectedNodes);
+			StatusBar.Initialize(Services.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes);
 
-			if (Network != Network.Main)
+			if (Services.Config.Network != Network.Main)
 			{
-				Title += $" - {Network}";
+				Title += $" - {Services.Config.Network}";
 			}
 		}
 
@@ -179,14 +161,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			BroadcastTransactionViewModel.RegisterAsyncLazy(
 				async () =>
 				{
-					var dialogResult = await DialogScreen.NavigateDialog(new LoadTransactionViewModel(_global.Network));
+					var dialogResult = await DialogScreen.NavigateDialogAsync(new LoadTransactionViewModel(Services.Config.Network));
 
 					if (dialogResult.Result is { })
 					{
-						return new BroadcastTransactionViewModel(
-							_global.BitcoinStore,
-							_global.Network,
-							_global.TransactionBroadcaster,
+						return new BroadcastTransactionViewModel(Services.Config.Network,
 							dialogResult.Result);
 					}
 
@@ -197,11 +176,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			{
 				try
 				{
-					await _legalChecker.WaitAndGetLatestDocumentAsync();
+					await Services.LegalChecker.WaitAndGetLatestDocumentAsync();
 
 					LegalDocumentsViewModel.RegisterAsyncLazy(async () =>
 					{
-						var document = await _legalChecker.WaitAndGetLatestDocumentAsync();
+						var document = await Services.LegalChecker.WaitAndGetLatestDocumentAsync();
 						return new LegalDocumentsViewModel(document.Content);
 					});
 					_searchPage.RegisterSearchEntry(LegalDocumentsViewModel.MetaData);
@@ -218,11 +197,11 @@ namespace WalletWasabi.Fluent.ViewModels
 			UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
 			BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
 			DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());
-			OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel(_global.DataDir));
-			OpenWalletsFolderViewModel.RegisterLazy(() => new OpenWalletsFolderViewModel(_walletManagerViewModel.WalletManager.WalletDirectories.WalletsDir));
+			OpenDataFolderViewModel.RegisterLazy(() => new OpenDataFolderViewModel());
+			OpenWalletsFolderViewModel.RegisterLazy(() => new OpenWalletsFolderViewModel());
 			OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel());
-			OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel(_global));
-			OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel(_global));
+			OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel());
+			OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel());
 		}
 
 		private static void RegisterCategories(SearchPageViewModel searchPage)

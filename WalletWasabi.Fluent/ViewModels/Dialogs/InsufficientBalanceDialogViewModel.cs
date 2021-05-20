@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
@@ -37,6 +37,8 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			NextCommand = ReactiveCommand.Create(() => Close(result: true));
 			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));
+
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		}
 
 		public string AmountText { get; set; }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
@@ -32,14 +33,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
 
 			// There's no such alice yet, so success.
-			var req = new InputsRemovalRequest(round.Id, Guid.NewGuid());
-			await handler.RemoveInputAsync(req);
+			var req = new InputsRemovalRequest(round.Id, BitcoinFactory.CreateUint256());
+			await handler.RemoveInputAsync(req, CancellationToken.None);
 
 			// There was the alice we want to remove so success.
 			req = new InputsRemovalRequest(round.Id, alice.Id);
-			await handler.RemoveInputAsync(req);
+			await handler.RemoveInputAsync(req, CancellationToken.None);
 
-			// Ensure that removing an alice freed up the input weight
+			// Ensure that removing an alice freed up the input vsize
 			// allocation from the round
 			Assert.Equal(initialRemaining, round.RemainingInputVsizeAllocation);
 
@@ -52,8 +53,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync();
 
 			await using ArenaRequestHandler handler = new(new WabiSabiConfig(), new Prison(), arena, new MockRpcClient());
-			var req = new InputsRemovalRequest(Guid.NewGuid(), Guid.NewGuid());
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RemoveInputAsync(req));
+			var req = new InputsRemovalRequest(uint256.Zero, BitcoinFactory.CreateUint256());
+			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RemoveInputAsync(req, CancellationToken.None));
 			Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
@@ -67,14 +68,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21)).ConfigureAwait(false);
 			var round = arena.Rounds.First().Value;
 
-			var req = new InputsRemovalRequest(round.Id, Guid.NewGuid());
+			var req = new InputsRemovalRequest(round.Id, BitcoinFactory.CreateUint256());
 			foreach (Phase phase in Enum.GetValues(typeof(Phase)))
 			{
 				if (phase != Phase.InputRegistration)
 				{
 					round.SetPhase(phase);
 					await using ArenaRequestHandler handler = new(cfg, new Prison(), arena, new MockRpcClient());
-					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RemoveInputAsync(req));
+					var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RemoveInputAsync(req, CancellationToken.None));
 					Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
 				}
 			}

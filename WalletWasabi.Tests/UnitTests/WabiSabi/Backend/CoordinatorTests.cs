@@ -72,9 +72,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		private static IRPCClient NewMockRpcClient()
 		{
 			var mockRpcClient = new Mock<IRPCClient>();
-			mockRpcClient.Setup(c => c.Network).Returns(Network.Main);
-			mockRpcClient.Setup(c => c.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>()))
+			mockRpcClient.Setup(rpc => rpc.Network).Returns(Network.Main);
+			mockRpcClient.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>()))
 				.ReturnsAsync(new EstimateSmartFeeResponse { Blocks = 5, FeeRate = new FeeRate(100m) });
+			mockRpcClient.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(new MemPoolInfo { MemPoolMinFee = 0.00001000 });
 			return mockRpcClient.Object;
 		}
 	}

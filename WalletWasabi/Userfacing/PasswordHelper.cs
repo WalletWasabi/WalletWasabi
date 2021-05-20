@@ -6,6 +6,7 @@ using System.Security;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Blockchain.Keys;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WalletWasabi.Userfacing
 {
@@ -68,7 +69,7 @@ namespace WalletWasabi.Userfacing
 			return length > MaxPasswordLength;
 		}
 
-		public static bool IsTrimmable(string? password, out string? trimmedPassword)
+		public static bool IsTrimmable(string? password, [NotNullWhen(true)] out string? trimmedPassword)
 		{
 			if (password is { } && password.IsTrimmable())
 			{

@@ -12,8 +12,8 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 	public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	{
 		[AutoNotify] private bool _isBusy;
-		[AutoNotify] private bool _enableCancelOnPressed = true;
-		[AutoNotify] private bool _enableCancelOnEscape = true;
+		[AutoNotify] private bool _enableCancelOnPressed;
+		[AutoNotify] private bool _enableCancelOnEscape;
 		[AutoNotify] private bool _enableBack;
 		[AutoNotify] private bool _enableCancel;
 
@@ -31,7 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 		}
 
-		public virtual string IconName => "navigation_regular";
+		public virtual string IconName { get; protected set; } = "navigation_regular";
 
 		public ICommand? NextCommand { get; protected set; }
 
@@ -109,10 +109,10 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 			}
 		}
 
-		public async Task<DialogResult<TResult>> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog)
-			=> await NavigateDialog(dialog, CurrentTarget);
+		public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog)
+			=> await NavigateDialogAsync(dialog, CurrentTarget);
 
-		public async Task<DialogResult<TResult>> NavigateDialog<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target)
+		public async Task<DialogResult<TResult>> NavigateDialogAsync<TResult>(DialogViewModelBase<TResult> dialog, NavigationTarget target)
 		{
 			Navigate(target).To(dialog);
 
@@ -126,7 +126,14 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation
 		protected async Task ShowErrorAsync(string title, string message, string caption)
 		{
 			var dialog = new ShowErrorDialogViewModel(message, title, caption);
-			await NavigateDialog(dialog, NavigationTarget.DialogScreen);
+			await NavigateDialogAsync(dialog, NavigationTarget.DialogScreen);
+		}
+
+		protected void SetupCancel(bool enableCancel, bool enableCancelOnEscape, bool enableCancelOnPressed)
+		{
+			EnableCancel = enableCancel;
+			EnableCancelOnEscape = enableCancelOnEscape;
+			EnableCancelOnPressed = enableCancelOnPressed;
 		}
 	}
 }

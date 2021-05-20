@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 

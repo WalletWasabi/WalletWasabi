@@ -229,7 +229,7 @@ namespace WalletWasabi.Blockchain.Transactions
 				{
 					height = Height.Unknown;
 				}
-				if (!uint256.TryParse(blockHashString, out uint256 blockHash))
+				if (!uint256.TryParse(blockHashString, out var blockHash))
 				{
 					blockHash = null;
 				}

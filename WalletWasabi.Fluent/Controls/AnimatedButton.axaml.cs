@@ -1,6 +1,9 @@
-﻿using System.Windows.Input;
+using System.Reactive.Disposables;
+using System.Windows.Input;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Controls
@@ -24,6 +27,12 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<double> PointerOverOpacityProperty =
 			AvaloniaProperty.Register<AnimatedButton, double>(nameof(PointerOverOpacity), 0.75);
+
+		public static readonly StyledProperty<bool> AnimateIconProperty =
+			AvaloniaProperty.Register<AnimatedButton, bool>(nameof(AnimateIcon));
+
+		public static readonly StyledProperty<bool> ExecuteOnOpenProperty =
+			AvaloniaProperty.Register<AnimatedButton, bool>(nameof(ExecuteOnOpen));
 
 		public ICommand Command
 		{
@@ -59,6 +68,30 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => GetValue(PointerOverOpacityProperty);
 			set => SetValue(PointerOverOpacityProperty, value);
+		}
+
+		public bool AnimateIcon
+		{
+			get => GetValue(AnimateIconProperty);
+			set => SetValue(AnimateIconProperty, value);
+		}
+
+		public bool ExecuteOnOpen
+		{
+			get => GetValue(ExecuteOnOpenProperty);
+			set => SetValue(ExecuteOnOpenProperty, value);
+		}
+
+		protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+		{
+			base.OnAttachedToVisualTree(e);
+
+			AnimateIcon = ExecuteOnOpen;
+
+			if (ExecuteOnOpen)
+			{
+				Command.Execute(default);
+			}
 		}
 	}
 }

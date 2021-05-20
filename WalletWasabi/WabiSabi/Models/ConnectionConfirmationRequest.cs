@@ -1,19 +1,15 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WalletWasabi.Crypto.ZeroKnowledge;
+using NBitcoin;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 
 namespace WalletWasabi.WabiSabi.Models
 {
 	public record ConnectionConfirmationRequest(
-		Guid RoundId,
-		Guid AliceId, 
+		uint256 RoundId,
+		uint256 AliceId, 
 		ZeroCredentialsRequest ZeroAmountCredentialRequests, 
 		RealCredentialsRequest RealAmountCredentialRequests, 
-		ZeroCredentialsRequest ZeroWeightCredentialRequests, 
-		RealCredentialsRequest RealWeightCredentialRequests
+		ZeroCredentialsRequest ZeroVsizeCredentialRequests, 
+		RealCredentialsRequest RealVsizeCredentialRequests
 	);
 }

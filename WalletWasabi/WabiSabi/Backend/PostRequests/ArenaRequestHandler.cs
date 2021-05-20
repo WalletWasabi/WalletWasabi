@@ -1,20 +1,16 @@
 using NBitcoin;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Helpers;
 using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.WabiSabi.Backend.Banning;
-using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Backend.PostRequests
 {
-	public class ArenaRequestHandler : IAsyncDisposable, IArenaRequestHandler
+	public class ArenaRequestHandler : IAsyncDisposable
 	{
 		public ArenaRequestHandler(WabiSabiConfig config, Prison prison, Arena arena, IRPCClient rpc)
 		{
@@ -34,22 +30,23 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 		public IRPCClient Rpc { get; }
 		public Network Network { get; }
 
-		public async Task<InputsRegistrationResponse> RegisterInputAsync(InputsRegistrationRequest request)
+		public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
-				var coinRoundSignaturePairs = await InputRegistrationHandler.PreProcessAsync(request, Prison, Rpc, Config).ConfigureAwait(false);
+				var coin = await InputRegistrationHandler.OutpointToCoinAsync(request, Prison, Rpc, Config).ConfigureAwait(false);
 
 				return await Arena.RegisterInputAsync(
 					request.RoundId,
-					coinRoundSignaturePairs,
+					coin,
+					request.OwnershipProof,
 					request.ZeroAmountCredentialRequests,
-					request.ZeroWeightCredentialRequests).ConfigureAwait(false);
+					request.ZeroVsizeCredentialRequests).ConfigureAwait(false);
 			}
 		}
 
-		public async Task RemoveInputAsync(InputsRemovalRequest request)
+		public async Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
@@ -58,7 +55,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			}
 		}
 
-		public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request)
+		public async Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
@@ -67,7 +64,7 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			}
 		}
 
-		public async Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request)
+		public async Task<OutputRegistrationResponse> RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
@@ -76,13 +73,31 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 			}
 		}
 
-		public async Task SignTransactionAsync(TransactionSignaturesRequest request)
+		public async Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken)
 		{
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
 				await Arena.SignTransactionAsync(request).ConfigureAwait(false);
 			}
+		}
+
+		public async Task<ReissueCredentialResponse> ReissueCredentialAsync(ReissueCredentialRequest request, CancellationToken cancellationToken)
+		{
+			DisposeGuard();
+			using (RunningTasks.RememberWith(RunningRequests))
+			{
+				return await Arena.ReissuanceAsync(request).ConfigureAwait(false);
+			}
+		}
+
+		public async ValueTask DisposeAsync()
+		{
+			lock (DisposeStartedLock)
+			{
+				DisposeStarted = true;
+			}
+			await RunningRequests.WhenAllAsync().ConfigureAwait(false);
 		}
 
 		private void DisposeGuard()
@@ -94,15 +109,6 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 					throw new ObjectDisposedException(nameof(ArenaRequestHandler));
 				}
 			}
-		}
-
-		public async ValueTask DisposeAsync()
-		{
-			lock (DisposeStartedLock)
-			{
-				DisposeStarted = true;
-			}
-			await RunningRequests.WhenAllAsync().ConfigureAwait(false);
 		}
 	}
 }

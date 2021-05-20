@@ -21,25 +21,31 @@
     <Style Selector="c|ContentArea">
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+        <Setter Property="Background" Value="{DynamicResource RegionColor}" />
         <Setter Property="Template">
             <ControlTemplate>
                 <Panel>
+                    <Panel IsHitTestVisible="False" Background="{TemplateBinding Background}" />
                     <c:ProgressRing Name="LoadingRing" IsIndeterminate="True" IsVisible="{TemplateBinding IsBusy}" />
-                    <DockPanel Name="MainDockPanel" Margin="31,0,21,0" IsVisible="{Binding !#LoadingRing.IsVisible}">
-                        <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0 0 0 20">
-                            <DockPanel>
-                                <Button Margin="-31,0,0,0" Classes="plain" Command="{Binding BackCommand}"
-                                        IsVisible="{TemplateBinding EnableBack}">
-                                    <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
-                                </Button>
-                                <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
-                            </DockPanel>
-                            <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
-                        </StackPanel>
-                        <Panel DockPanel.Dock="Bottom">
+                    <DockPanel Name="MainDockPanel" IsVisible="{Binding !#LoadingRing.IsVisible}">
+                        <Panel DockPanel.Dock="Top">
+                            <Panel IsHitTestVisible="False" Background="{TemplateBinding HeaderBackground}" />
+                            <StackPanel Name="PART_Header" Spacing="10">
+                                <DockPanel>
+                                    <Button Margin="-31,0,0,0" Classes="plain" Command="{Binding BackCommand}"
+                                            IsVisible="{TemplateBinding EnableBack}">
+                                        <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
+                                    </Button>
+                                    <ContentPresenter Name="PART_TitlePresenter" Content="{TemplateBinding Title}" />
+                                </DockPanel>
+                                <ContentPresenter Name="PART_CaptionPresenter" Content="{TemplateBinding Caption}" />
+                            </StackPanel>
+                        </Panel>
+
+                        <Panel DockPanel.Dock="Bottom" x:Name="PART_ButtonArea">
                             <Button Name="PART_CancelButton" IsCancel="{TemplateBinding EnableCancel}"
                                     Classes="invisible" IsVisible="{TemplateBinding EnableCancel}"
-                                    Content="{TemplateBinding CancelContent}" Margin="0,10,10,10"
+                                    Content="{TemplateBinding CancelContent}"
                                     HorizontalAlignment="Left" Command="{Binding CancelCommand}">
                                 <i:Interaction.Behaviors>
                                     <behaviors:FocusOnAttachedBehavior
@@ -61,12 +67,10 @@
                                 </Button>
                             </StackPanel>
                         </Panel>
-                        <ScrollViewer
+                        <ScrollViewer x:Name="PART_ScrollViewer"
                             HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
-                            VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}"
-                            Margin="0 0 0 32" Padding="0 0 10 0">
+                            VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
                             <ContentControl Name="PART_ContentPresenter"
-                                            Background="{TemplateBinding Background}"
                                             BorderBrush="{TemplateBinding BorderBrush}"
                                             BorderThickness="{TemplateBinding BorderThickness}"
                                             ContentTemplate="{TemplateBinding ContentTemplate}"
@@ -79,6 +83,18 @@
                 </Panel>
             </ControlTemplate>
         </Setter>
+    </Style>
+
+    <Style Selector="c|ContentArea /template/ StackPanel#PART_Header">
+        <Setter Property="Margin" Value="31 0 31 0" />
+    </Style>
+
+    <Style Selector="c|ContentArea /template/ ScrollViewer#PART_ScrollViewer">
+        <Setter Property="Margin" Value="31 31 31 21" />
+    </Style>
+
+    <Style Selector="c|ContentArea /template/ Panel#PART_ButtonArea">
+        <Setter Property="Margin" Value="31,10" />
     </Style>
 
     <Style Selector="c|ContentArea /template/ ContentPresenter#PART_TitlePresenter">

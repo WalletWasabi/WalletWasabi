@@ -21,29 +21,38 @@
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             Padding="{TemplateBinding Padding}">
-                        <ItemsPresenter Name="PART_ItemsPresenter"
-                                        Focusable="False"
-                                        Items="{TemplateBinding Items}">
-                            <ItemsPresenter.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <c:ConcatenatingWrapPanel Focusable="False">
-                                        <c:ConcatenatingWrapPanel.ConcatenatedChildren>
-                                            <AutoCompleteBox x:Name="PART_AutoCompleteBox"
-                                                             MaxDropDownHeight="90"
-                                                             MinimumPrefixLength="1"
-                                                             Focusable="False"
-                                                             IsTextCompletionEnabled="True"
-                                                             Items="{Binding #PART_Border.TemplatedParent.Suggestions}" />
-                                        </c:ConcatenatingWrapPanel.ConcatenatedChildren>
-                                    </c:ConcatenatingWrapPanel>
-                                </ItemsPanelTemplate>
-                            </ItemsPresenter.ItemsPanel>
-                            <ItemsPresenter.ItemTemplate>
-                                <DataTemplate>
-                                    <c:TagControl Content="{Binding .}"/>
-                                </DataTemplate>
-                            </ItemsPresenter.ItemTemplate>
-                        </ItemsPresenter>
+                        <Panel>
+                            <TextBlock Name="PART_Watermark"
+                                       Opacity="0.5"
+                                       Padding="15 0"
+                                       VerticalAlignment="Center"
+                                       Text="{TemplateBinding Watermark}" />
+                            <ItemsPresenter Name="PART_ItemsPresenter"
+                                            Focusable="False"
+                                            Items="{TemplateBinding Items}">
+                                <ItemsPresenter.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <c:ConcatenatingWrapPanel Focusable="False" VerticalAlignment="Center">
+                                            <c:ConcatenatingWrapPanel.ConcatenatedChildren>
+                                                <AutoCompleteBox x:Name="PART_AutoCompleteBox"
+                                                                 Padding="15 10 15 8"
+                                                                 Margin="0"
+                                                                 MaxDropDownHeight="90"
+                                                                 MinimumPrefixLength="1"
+                                                                 Focusable="False"
+                                                                 IsTextCompletionEnabled="True"
+                                                                 Items="{Binding #PART_Border.TemplatedParent.Suggestions}" />
+                                            </c:ConcatenatingWrapPanel.ConcatenatedChildren>
+                                        </c:ConcatenatingWrapPanel>
+                                    </ItemsPanelTemplate>
+                                </ItemsPresenter.ItemsPanel>
+                                <ItemsPresenter.ItemTemplate>
+                                    <DataTemplate>
+                                        <c:TagControl Content="{Binding .}" />
+                                    </DataTemplate>
+                                </ItemsPresenter.ItemTemplate>
+                            </ItemsPresenter>
+                        </Panel>
                     </Border>
                 </DataValidationErrors>
             </ControlTemplate>
@@ -73,6 +82,7 @@
     <Style Selector="c|TagsBox:readonly /template/ Border#PART_Border">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
     </Style>
 
     <Style Selector="c|TagsBox:readonly AutoCompleteBox">
@@ -81,50 +91,55 @@
 
     <Style Selector="c|TagsBox:readonly">
         <Setter Property="Cursor" Value="Arrow" />
+        <Setter Property="Padding" Value="0" />
     </Style>
 
     <Style Selector="c|TagsBox c|TagControl">
+        <Setter Property="Margin" Value="0,0,4,0" />
+    </Style>
+
+    <Style Selector="c|TagsBox c|ConcatenatingWrapPanel:wrapped c|TagControl">
         <Setter Property="Margin" Value="0,0,4,4" />
     </Style>
 
     <Style Selector="c|TagsBox AutoCompleteBox">
         <Setter Property="Template">
-          <ControlTemplate>
-            <Grid Name="PART_LayoutRoot">
-              <TextBox Name="PART_TextBox"
-                       Watermark="{TemplateBinding Watermark}"
-                       Width="{TemplateBinding Width}"
-                       Foreground="{TemplateBinding Foreground}"
-                       Background="{TemplateBinding Background}"
-                       BorderBrush="{TemplateBinding BorderBrush}"
-                       BorderThickness="{TemplateBinding BorderThickness}"
-                       FontSize="{TemplateBinding FontSize}"
-                       FontFamily="{TemplateBinding FontFamily}"
-                       FontWeight="{TemplateBinding FontWeight}"
-                       Padding="{TemplateBinding Padding}"
-                       Margin="0"
-                       DataValidationErrors.Errors="{TemplateBinding (DataValidationErrors.Errors)}" />
+            <ControlTemplate>
+                <Grid Name="PART_LayoutRoot">
+                    <TextBox Name="PART_TextBox"
+                             Watermark="{TemplateBinding Watermark}"
+                             Width="{TemplateBinding Width}"
+                             Foreground="{TemplateBinding Foreground}"
+                             Background="{TemplateBinding Background}"
+                             BorderBrush="{TemplateBinding BorderBrush}"
+                             BorderThickness="{TemplateBinding BorderThickness}"
+                             FontSize="{TemplateBinding FontSize}"
+                             FontFamily="{TemplateBinding FontFamily}"
+                             FontWeight="{TemplateBinding FontWeight}"
+                             Padding="{TemplateBinding Padding}"
+                             Margin="0"
+                             DataValidationErrors.Errors="{TemplateBinding (DataValidationErrors.Errors)}" />
 
-              <Popup Name="PART_Popup"
-                     WindowManagerAddShadowHint="False"
-                     MaxHeight="120"
-                     IsLightDismissEnabled="True"
-                     PlacementTarget="{TemplateBinding}">
-                <Border Name="PART_SuggestionsContainer"
-                        Padding="{DynamicResource AutoCompleteListMargin}"
-                        BorderThickness="{DynamicResource AutoCompleteListBorderThemeThickness}"
-                        BorderBrush="{DynamicResource AutoCompleteBoxSuggestionsListBorderBrush}"
-                        Background="{DynamicResource AutoCompleteBoxSuggestionsListBackground}"
-                        CornerRadius="{DynamicResource OverlayCornerRadius}">
-                  <ListBox Name="PART_SelectingItemsControl"
-                           BorderThickness="0"
-                           Background="Transparent"
-                           ItemTemplate="{TemplateBinding ItemTemplate}"
-                           Margin="{DynamicResource AutoCompleteListPadding}" />
-                </Border>
-              </Popup>
-            </Grid>
-          </ControlTemplate>
+                    <Popup Name="PART_Popup"
+                           WindowManagerAddShadowHint="False"
+                           MaxHeight="120"
+                           IsLightDismissEnabled="True"
+                           PlacementTarget="{TemplateBinding}">
+                        <Border Name="PART_SuggestionsContainer"
+                                Padding="{DynamicResource AutoCompleteListMargin}"
+                                BorderThickness="{DynamicResource AutoCompleteListBorderThemeThickness}"
+                                BorderBrush="{DynamicResource AutoCompleteBoxSuggestionsListBorderBrush}"
+                                Background="{DynamicResource AutoCompleteBoxSuggestionsListBackground}"
+                                CornerRadius="{DynamicResource OverlayCornerRadius}">
+                            <ListBox Name="PART_SelectingItemsControl"
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     ItemTemplate="{TemplateBinding ItemTemplate}"
+                                     Margin="{DynamicResource AutoCompleteListPadding}" />
+                        </Border>
+                    </Popup>
+                </Grid>
+            </ControlTemplate>
         </Setter>
     </Style>
 
@@ -164,7 +179,6 @@
             </ContextMenu>
         </Setter>
     </Style>
-
 
 
 </Styles>

@@ -14,7 +14,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public async Task CanInitializeAsync()
 		{
-			var txStore = await CreateTransactionStoreAsync();
+			await using var txStore = await CreateTransactionStoreAsync();
 
 			Assert.Equal(Network.Main, txStore.Network);
 			Assert.Empty(txStore.GetTransactionHashes());
@@ -29,7 +29,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		[Fact]
 		public async Task CanDoOperationsAsync()
 		{
-			var txStore = await CreateTransactionStoreAsync();
+			await using var txStore = await CreateTransactionStoreAsync();
 
 			Assert.True(txStore.IsEmpty());
 
@@ -37,7 +37,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			var operation = txStore.TryAddOrUpdate(stx);
 			Assert.True(operation.isAdded);
 			Assert.False(operation.isUpdated);
-			var isRemoved = txStore.TryRemove(stx.GetHash(), out SmartTransaction removed);
+			var isRemoved = txStore.TryRemove(stx.GetHash(), out var removed);
 			Assert.True(isRemoved);
 			Assert.Equal(stx, removed);
 			operation = txStore.TryAddOrUpdate(stx);
@@ -64,7 +64,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.False(operation.isUpdated);
 
 			Assert.False(txStore.IsEmpty());
-			Assert.True(txStore.TryGetTransaction(stx.GetHash(), out SmartTransaction sameStx));
+			Assert.True(txStore.TryGetTransaction(stx.GetHash(), out var sameStx));
 			Assert.True(txStore.Contains(stx.GetHash()));
 			Assert.Equal(stx, sameStx);
 
@@ -77,7 +77,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 			Assert.Single(txStore.GetTransactions());
 			Assert.Single(txStore.GetTransactionHashes());
 		}
-		
+
 		private static async Task<TransactionStore> CreateTransactionStoreAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
 		{
 			// Make sure starts with clear state.

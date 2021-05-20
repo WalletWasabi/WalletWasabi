@@ -20,7 +20,7 @@
 
     <SolidColorBrush x:Key="DialogOverlayColor">#7F7A7A7A</SolidColorBrush>
     <BoxShadows x:Key="DialogBoxShadow">4 11 30 1 #3F000000</BoxShadows>
-    <BoxShadows x:Key="InfoBoxShadow">2 2 5 #3F000000</BoxShadows>
+    <BoxShadows x:Key="InfoBoxShadow">0 1 1.5 #3F000000</BoxShadows>
     <SolidColorBrush x:Key="PopupBackground">#FFFFFF</SolidColorBrush>
     <SolidColorBrush x:Key="SeparatorBackgroundBrush">#7F000000</SolidColorBrush>
 
@@ -28,7 +28,9 @@
 
     <SolidColorBrush x:Key="PrivacySuggestionControlSelectedBackground">#E1E1E1</SolidColorBrush>
 
-    <Color x:Key="RegionColor">#FFFAFAFA</Color>
+    <SolidColorBrush x:Key="TileRegionColor">#FFFFFF</SolidColorBrush>
+    <Color x:Key="RegionColor">#FAFAFA</Color>
+    <Color x:Key="HeaderRegionColor">#FFFBFBFB</Color>
     <BoxShadows x:Key="BoxShadow">0 1 4 #D1D1D1</BoxShadows>
     <BoxShadows x:Key="OptionButtonShadow">0 2 2 #D1D1D1</BoxShadows>
 
@@ -41,8 +43,11 @@
 
     <SolidColorBrush x:Key="DataGridRowSelectedBackgroundColor" Color="#EBEBEB" />
     <StaticResource x:Key="DataGridRowSelectedUnfocusedBackgroundColor" ResourceKey="DataGridRowSelectedBackgroundColor" />
+
+    <StaticResource x:Key="NotificationCardBackgroundBrush" ResourceKey="TileRegionColor" />
   </Styles.Resources>
   <StyleInclude Source="avares://Avalonia.Themes.Fluent/FluentLight.xaml"/>
   <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" /> <!-- Needs to be here because of dependency reason -->
+  <StyleInclude Source="avares://Avalonia.Xaml.Interactions/Draggable/Styles.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />
 </Styles>

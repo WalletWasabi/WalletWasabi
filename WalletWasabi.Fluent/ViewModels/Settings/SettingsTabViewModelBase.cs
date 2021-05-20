@@ -12,9 +12,9 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 	{
 		protected const int ThrottleTime = 500;
 
-		protected SettingsTabViewModelBase(Config config)
+		protected SettingsTabViewModelBase()
 		{
-			ConfigOnOpen = new Config(config.FilePath);
+			ConfigOnOpen = new Config(Services.Config.FilePath);
 			ConfigOnOpen.LoadFile();
 		}
 
@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings
 
 		public static Config? ConfigOnOpen { get; set; }
 
-		private static object ConfigLock { get; } = new ();
+		private static object ConfigLock { get; } = new();
 
 		protected void Save()
 		{

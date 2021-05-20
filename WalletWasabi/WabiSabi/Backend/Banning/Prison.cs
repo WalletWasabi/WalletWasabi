@@ -37,15 +37,12 @@ namespace WalletWasabi.WabiSabi.Backend.Banning
 			}
 		}
 
-		public void Note(Alice alice, Guid lastDisruptedRoundId)
+		public void Note(Alice alice, uint256 lastDisruptedRoundId)
 		{
-			foreach (var input in alice.Coins.Select(x => x.Outpoint))
-			{
-				Punish(input, Punishment.Noted, lastDisruptedRoundId);
-			}
+			Punish(alice.Coin.Outpoint, Punishment.Noted, lastDisruptedRoundId);
 		}
 
-		public void Punish(OutPoint utxo, Punishment punishment, Guid lastDisruptedRoundId)
+		public void Punish(OutPoint utxo, Punishment punishment, uint256 lastDisruptedRoundId)
 			=> Punish(new Inmate(utxo, punishment, DateTimeOffset.UtcNow, lastDisruptedRoundId));
 
 		public void Punish(Inmate inmate)

@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
+using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Controls
 {
@@ -41,6 +42,9 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<bool> IsBusyProperty =
 			AvaloniaProperty.Register<ContentArea, bool>(nameof(IsBusy));
+
+		public static readonly StyledProperty<IBrush> HeaderBackgroundProperty =
+			AvaloniaProperty.Register<ContentArea, IBrush>(nameof(HeaderBackground));
 
 		private IContentPresenter? _titlePresenter;
 		private IContentPresenter? _captionPresenter;
@@ -117,6 +121,12 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(IsBusyProperty, value);
 		}
 
+		public IBrush HeaderBackground
+		{
+			get => GetValue(HeaderBackgroundProperty);
+			set => SetValue(HeaderBackgroundProperty, value);
+		}
+
 		protected override bool RegisterContentPresenter(IContentPresenter presenter)
 		{
 			var result = base.RegisterContentPresenter(presenter);
@@ -142,7 +152,7 @@ namespace WalletWasabi.Fluent.Controls
 
 					_captionPresenter = presenter;
 					_captionPresenter.PropertyChanged += PresenterOnPropertyChanged;
-					_captionPresenter.IsVisible = Caption is { };
+					_captionPresenter.IsVisible = Caption is not null;
 					result = true;
 					break;
 			}
@@ -166,9 +176,9 @@ namespace WalletWasabi.Fluent.Controls
 					newValue.Classes.Add(className);
 				}
 			}
-			else if (e.Property == CaptionProperty && _captionPresenter is { })
+			else if (e.Property == CaptionProperty && _captionPresenter is not null)
 			{
-				_captionPresenter.IsVisible = e.NewValue is { };
+				_captionPresenter.IsVisible = e.NewValue is not null;
 			}
 		}
 	}

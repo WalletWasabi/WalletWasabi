@@ -112,7 +112,7 @@ namespace WalletWasabi.Blockchain.Analysis
 			foreach (var newCoin in tx.WalletOutputs.ToArray())
 			{
 				// Begin estimating the anonymity set size based on the number of
-				// equivalent outputs that the i-th output has in in the transaction.
+				// equivalent outputs that the i-th output has in the transaction.
 				int anonset = anonsets[newCoin.Index];
 
 				// Picking randomly an output would make our anonset: total/ours.
@@ -144,7 +144,7 @@ namespace WalletWasabi.Blockchain.Analysis
 				}
 				else if (tx.WalletOutputs.Where(x => x != newCoin).Select(x => x.HdPubKey).Contains(hdPubKey))
 				{
-					// If it's a reuse of another output' pubkey, then intersection punishment can only go as low as the inherited anonset.
+					// If it's a reuse of another output's pubkey, then intersection punishment can only go as low as the inherited anonset.
 					hdPubKey.SetAnonymitySet(Math.Max(newInputAnonset, Intersect(new[] { anonset, hdPubKey.AnonymitySet }, 1)), txid);
 				}
 				else if (hdPubKey.OutputAnonSetReasons.Contains(txid))
@@ -215,7 +215,7 @@ namespace WalletWasabi.Blockchain.Analysis
 		private static void AnalyzeNormalSpend(SmartTransaction tx)
 		{
 			// If all our inputs are ours and there's more than one output that isn't,
-			// then we can assume that the persons the money was sent to learnt our inputs.
+			// then we can assume that the money was sent to learn our inputs.
 			// AND if there're outputs that go to someone else,
 			// then we can assume that the people learnt our change outputs,
 			// or at the very least assume that all the changes in the tx is ours.

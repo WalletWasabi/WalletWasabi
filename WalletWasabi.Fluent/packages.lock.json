@@ -2,6 +2,21 @@
   "version": 1,
   "dependencies": {
     ".NETCoreApp,Version=v5.0": {
+      "Avalonia": {
+        "type": "Direct",
+        "requested": "[0.10.5, )",
+        "resolved": "0.10.5",
+        "contentHash": "TLwRR1s+lAZclErsN3K3eqxHEmnyV7kjis5K/nJKnmh4IyqFQaJFF/3RxMjHuypHseEU/9bjPcAUvPrEfdAJFw==",
+        "dependencies": {
+          "Avalonia.Remote.Protocol": "0.10.5",
+          "JetBrains.Annotations": "10.3.0",
+          "System.ComponentModel.Annotations": "4.5.0",
+          "System.Memory": "4.5.3",
+          "System.Reactive": "5.0.0",
+          "System.Runtime.CompilerServices.Unsafe": "4.6.0",
+          "System.ValueTuple": "4.5.0"
+        }
+      },
       "Avalonia.Diagnostics": {
         "type": "Direct",
         "requested": "[0.10.5, )",
@@ -34,6 +49,7 @@
           "Avalonia": "0.10.5",
           "Avalonia.Xaml.Interactions": "0.10.5",
           "Avalonia.Xaml.Interactivity": "0.10.5"
+
         }
       },
       "Avalonia.Xaml.Interactions.Custom": {
@@ -178,9 +194,32 @@
         "type": "Transitive",
         "resolved": "0.10.5",
         "contentHash": "RihAl3fou4iAc4AG8GvaxRWQa3EhplBCE5JECuApjyHiv2GxvqlzGWpqmdR6FrNTdrYhVGTQMR8WQBnBPphqig==",
+
         "dependencies": {
           "Avalonia": "0.10.5",
           "Avalonia.Xaml.Interactivity": "0.10.5"
+
+        "dependencies": {
+          "Avalonia": "0.10.5",
+          "Avalonia.Xaml.Interactivity": "0.10.5"
+        }
+      },
+      "Avalonia.Xaml.Interactions.Custom": {
+        "type": "Transitive",
+        "resolved": "0.9.9",
+        "contentHash": "j1F+UPlhcITTfRKWXvoqrRZKodyj33uwl6S6oIfomex9y5Kha2G1Y9ykc1ewGBK5OWemJ2i7Kh77aiwp7rFedA==",
+        "dependencies": {
+          "Avalonia": "0.9.9",
+          "Avalonia.Xaml.Interactivity": "0.9.9"
+        }
+      },
+      "Avalonia.Xaml.Interactivity": {
+        "type": "Transitive",
+        "resolved": "0.10.5",
+        "contentHash": "VHkX2MpM/m9sAJTJfNwXCxxN8cpGtQmLZGoU7mc+axkF6alQsDIe23PBqUDBM5nKk9aBhyZj65wzbi/lxjQPjQ==",
+        "dependencies": {
+          "Avalonia": "0.10.5"
+
         }
       },
       "AvalonStudio.Shell": {
@@ -276,8 +315,8 @@
       },
       "Microsoft.AspNetCore.JsonPatch": {
         "type": "Transitive",
-        "resolved": "5.0.0",
-        "contentHash": "oy/fvnBHpofNPskGcCrzZv1AhY36YHV0lyWy9NC5ye5eHvEJeJsSKjn2fNk/j1lXOuF13H9qrvZrA9zNkymy5Q==",
+        "resolved": "5.0.5",
+        "contentHash": "ViYrCnQFWP3BHVyq73YYe7OijodEp0qBt3l0H3tQtdGB83fb/uEBPGXGrSvfCLkLJPa/Rk4/ZH3oEQcQao2VUg==",
         "dependencies": {
           "Microsoft.CSharp": "4.7.0",
           "Newtonsoft.Json": "12.0.2"
@@ -285,10 +324,10 @@
       },
       "Microsoft.AspNetCore.Mvc.NewtonsoftJson": {
         "type": "Transitive",
-        "resolved": "5.0.0",
-        "contentHash": "EnGI7CGWaijTuvUxY0lncAp/q/R7HZJCm8NwqiUHxDjrEWYdC/5oOHafVgNjVpk2zLsDesyaGnJundLnw5KNVA==",
+        "resolved": "5.0.5",
+        "contentHash": "3Vd2hbJwrHFOk6dYpqFQ10BBLeJvMPmbx3hxqH5erxSlvFOufnq3C9Nnz+hPpaqazRAQcOgkAWGvBsB3AM2XlQ==",
         "dependencies": {
-          "Microsoft.AspNetCore.JsonPatch": "5.0.0",
+          "Microsoft.AspNetCore.JsonPatch": "5.0.5",
           "Newtonsoft.Json": "12.0.2",
           "Newtonsoft.Json.Bson": "1.0.2"
         }
@@ -554,8 +593,8 @@
       },
       "NBitcoin": {
         "type": "Transitive",
-        "resolved": "5.0.73",
-        "contentHash": "Vre+l+Hx8uo+5Eq2T2uvq5kY+7YeccfvvUpfIj9YJrXI0j89gxsobfKfDhCw35gOIfSwIEDGv2N7LVbSA8w6HQ==",
+        "resolved": "5.0.81",
+        "contentHash": "sBOvupELGlaw5mr4sNW0q8kwc6ALlYaG6telvebDLU7+9DYYYaPiHS1L8gPIa4BKpSO/9STQkMRbKmW7DcAUfQ==",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
           "Newtonsoft.Json": "11.0.2"
@@ -2092,9 +2131,9 @@
       "walletwasabi": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "5.0.0",
+          "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "5.0.5",
           "Microsoft.Win32.SystemEvents": "5.0.0",
-          "NBitcoin": "5.0.73",
+          "NBitcoin": "5.0.81",
           "NBitcoin.Secp256k1": "1.0.10"
         }
       },

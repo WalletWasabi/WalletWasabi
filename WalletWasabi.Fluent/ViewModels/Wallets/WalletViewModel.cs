@@ -1,58 +1,142 @@
 using ReactiveUI;
 using System;
+using System.Collections.Generic;
 using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
+using System.Threading.Tasks;
+using NBitcoin;
+using WalletWasabi.Fluent.ViewModels.Navigation;
+using System.Windows.Input;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
-using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
-using WalletWasabi.Gui;
+using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
+using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class WalletViewModel : WalletViewModelBase
 	{
-		protected WalletViewModel(UiConfig uiConfig, Wallet wallet) : base(wallet)
+		[AutoNotify] private IList<TileViewModel> _tiles;
+
+		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
 			Disposables = Disposables is null
 				? new CompositeDisposable()
 				: throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			var balanceChanged =
-				Observable.FromEventPattern(Wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed)).Select(_ => Unit.Default)
-					.Throttle(TimeSpan.FromSeconds(0.1))
-					.Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed)).Select(_ => Unit.Default))
-					.Merge(uiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
+				Observable.FromEventPattern(
+						Wallet.TransactionProcessor,
+						nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
+					.Select(_ => Unit.Default)
+					.Merge(Observable.FromEventPattern(Wallet, nameof(Wallet.NewFilterProcessed))
+						.Select(_ => Unit.Default))
+					.Merge(Services.UiConfig.WhenAnyValue(x => x.PrivacyMode).Select(_ => Unit.Default))
 					.Merge(Wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Select(_ => Unit.Default))
+					.Throttle(TimeSpan.FromSeconds(0.1))
 					.ObserveOn(RxApp.MainThreadScheduler);
 
-			History = new HistoryViewModel(wallet, uiConfig, balanceChanged);
-			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged);
-			BalanceChartTile = new WalletBalanceChartTileViewModel(History.Transactions);
-			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged);
+			History = new HistoryViewModel(this, balanceChanged);
+
+			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged)
+			{
+				ColumnSpan = new List<int> { 1, 1, 1 },
+				RowSpan = new List<int> { 1, 1, 1 }
+			};
+			RoundStatusTile = new RoundStatusTileViewModel(wallet)
+			{
+				ColumnSpan = new List<int> { 1, 1, 1 },
+				RowSpan = new List<int> { 1, 1, 1 }
+			};
+			BtcPriceTile = new BtcPriceTileViewModel(wallet)
+			{
+				ColumnSpan = new List<int> { 1, 1, 1 },
+				RowSpan = new List<int> { 1, 1, 1 }
+			};
+			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged)
+			{
+				ColumnSpan = new List<int> { 1, 1, 1 },
+				RowSpan = new List<int> { 1, 2, 2 }
+			};
+			BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions)
+			{
+				ColumnSpan = new List<int> { 2, 2, 2 },
+				RowSpan = new List<int> { 1, 2, 2 }
+			};
+
+			_tiles = new List<TileViewModel>
+			{
+				BalanceTile,
+				RoundStatusTile,
+				BtcPriceTile,
+				WalletPieChart,
+				BalanceChartTile
+			};
+
+			SendCommand = ReactiveCommand.Create(() =>
+			{
+				Navigate(NavigationTarget.DialogScreen)
+					.To(new SendViewModel(wallet));
+			});
+
+			ReceiveCommand = ReactiveCommand.Create(() =>
+			{
+				Navigate(NavigationTarget.DialogScreen)
+					.To(new ReceiveViewModel(wallet));
+			});
 		}
 
-		private CompositeDisposable Disposables { get; set; }
+		public ICommand SendCommand { get; }
 
-		public override string IconName => "web_asset_regular";
+		public ICommand ReceiveCommand { get; }
+
+		private CompositeDisposable Disposables { get; set; }
 
 		public HistoryViewModel History { get; }
 
 		public WalletBalanceTileViewModel BalanceTile { get; }
 
-		public WalletBalanceChartTileViewModel BalanceChartTile { get; }
+		public RoundStatusTileViewModel RoundStatusTile { get; }
+
+		public BtcPriceTileViewModel BtcPriceTile { get; }
 
 		public WalletPieChartTileViewModel WalletPieChart { get; }
 
-		public static WalletViewModel Create(UiConfig uiConfig, Wallet wallet)
+		public WalletBalanceChartTileViewModel BalanceChartTile { get; }
+
+		public void NavigateAndHighlight(uint256 txid)
+		{
+			Navigate().To(this, NavigationMode.Clear);
+
+			RxApp.MainThreadScheduler.Schedule(async () =>
+			{
+				await Task.Delay(500);
+				History.SelectTransaction(txid);
+			});
+		}
+
+		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
+		{
+			base.OnNavigatedTo(isInHistory, disposables);
+
+			foreach (var tile in _tiles)
+			{
+				tile.Activate(disposables);
+			}
+
+			History.Activate(disposables);
+		}
+
+		public static WalletViewModel Create(Wallet wallet)
 		{
 			return wallet.KeyManager.IsHardwareWallet
-				? new HardwareWalletViewModel(uiConfig, wallet)
+				? new HardwareWalletViewModel(wallet)
 				: wallet.KeyManager.IsWatchOnly
-					? new WatchOnlyWalletViewModel(uiConfig, wallet)
-					: new WalletViewModel(uiConfig, wallet);
+					? new WatchOnlyWalletViewModel(wallet)
+					: new WalletViewModel(wallet);
 		}
 	}
 }

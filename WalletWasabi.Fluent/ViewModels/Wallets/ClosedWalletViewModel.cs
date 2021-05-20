@@ -7,8 +7,6 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
-using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -23,14 +21,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		protected ClosedWalletViewModel(WalletManagerViewModel walletManagerViewModel, Wallet wallet)
 			: base(wallet)
 		{
-			_smartHeaderChain = walletManagerViewModel.BitcoinStore.SmartHeaderChain;
+			_smartHeaderChain = Services.BitcoinStore.SmartHeaderChain;
 
 			OpenCommand = ReactiveCommand.Create(() => OnOpen(walletManagerViewModel));
 		}
 
-		public LoadingControlViewModel Loading { get; } = new ();
-
-		public override string IconName => "web_asset_regular";
+		public LoadingControlViewModel Loading { get; } = new();
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{
@@ -44,9 +40,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				{
 					var segwitActivationHeight = SmartHeader.GetStartingHeader(Wallet.Network).Height;
 					if (Wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight
-					    && lastProcessedFilterHeight > segwitActivationHeight
-					    && _smartHeaderChain.TipHeight is { } tipHeight
-					    && tipHeight > segwitActivationHeight)
+						&& lastProcessedFilterHeight > segwitActivationHeight
+						&& _smartHeaderChain.TipHeight is { } tipHeight
+						&& tipHeight > segwitActivationHeight)
 					{
 						var allFilters = tipHeight - segwitActivationHeight;
 						var processedFilters = lastProcessedFilterHeight - segwitActivationHeight;
@@ -59,12 +55,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 		private void UpdateStatus(uint allFilters, uint processedFilters, double elapsedMilliseconds)
 		{
-			var percent = (decimal) processedFilters / allFilters * 100;
+			var percent = (decimal)processedFilters / allFilters * 100;
 			_startingFilterIndex ??= processedFilters; // Store the filter index we started on. It is needed for better remaining time calculation.
 			var realProcessedFilters = processedFilters - _startingFilterIndex.Value;
 			var remainingFilterCount = allFilters - processedFilters;
 
-			var tempPercent = (uint) Math.Round(percent);
+			var tempPercent = (uint)Math.Round(percent);
 
 			if (tempPercent == 0 || realProcessedFilters == 0 || remainingFilterCount == 0)
 			{

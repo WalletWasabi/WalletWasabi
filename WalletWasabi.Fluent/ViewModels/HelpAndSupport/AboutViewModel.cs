@@ -29,7 +29,7 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(IoHelpers.OpenBrowserAsync);
 
 			AboutAdvancedInfoDialogCommand = ReactiveCommand.CreateFromTask(
-				execute: async () => await NavigateDialog(new AboutAdvancedInfoViewModel(), NavigationTarget.CompactDialogScreen));
+				execute: async () => await NavigateDialogAsync(new AboutAdvancedInfoViewModel(), NavigationTarget.CompactDialogScreen));
 
 			OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(
 				async (link) =>
@@ -40,6 +40,8 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport
 					await Application.Current.Clipboard.SetTextAsync(link));
 
 			NextCommand = CancelCommand;
+
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		}
 
 		public ICommand AboutAdvancedInfoDialogCommand { get; }

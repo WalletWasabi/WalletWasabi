@@ -88,7 +88,7 @@ namespace WalletWasabi.Wallets
 		public Network Network { get; }
 		public TransactionProcessor TransactionProcessor { get; private set; }
 
-		public IFeeProvider FeeProvider { get; private set; }
+		public HybridFeeProvider FeeProvider { get; private set; }
 		public FilterModel LastProcessedFilter { get; private set; }
 		public IBlockProvider BlockProvider { get; private set; }
 		private AsyncLock HandleFiltersLock { get; }
@@ -125,7 +125,7 @@ namespace WalletWasabi.Wallets
 			BitcoinStore bitcoinStore,
 			WasabiSynchronizer syncer,
 			ServiceConfiguration serviceConfiguration,
-			IFeeProvider feeProvider,
+			HybridFeeProvider feeProvider,
 			IBlockProvider blockProvider)
 		{
 			if (State > WalletState.WaitingForInit)
@@ -234,7 +234,7 @@ namespace WalletWasabi.Wallets
 				{
 					if (feeStrategy.Type == FeeStrategyType.Target)
 					{
-						return FeeProvider.AllFeeEstimate?.GetFeeRate(feeStrategy.Target) ?? throw new InvalidOperationException("Cannot get fee estimations.");
+						return FeeProvider.AllFeeEstimate?.GetFeeRate(feeStrategy.Target.Value) ?? throw new InvalidOperationException("Cannot get fee estimations.");
 					}
 					else if (feeStrategy.Type == FeeStrategyType.Rate)
 					{
@@ -248,7 +248,7 @@ namespace WalletWasabi.Wallets
 				allowedInputs,
 				lockTimeSelector: () =>
 				{
-					var currentTipHeight = Synchronizer.BitcoinStore.SmartHeaderChain.TipHeight;
+					var currentTipHeight = BitcoinStore.SmartHeaderChain.TipHeight;
 					return LockTimeSelector.Instance.GetLockTimeBasedOnDistribution(currentTipHeight);
 				},
 				payjoinClient);
@@ -504,7 +504,7 @@ namespace WalletWasabi.Wallets
 			State = WalletState.WaitingForInit;
 		}
 
-		public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, IBlockProvider blockProvider)
+		public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
 		{
 			var wallet = new Wallet(dataDir, network, keyManager);
 			wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);

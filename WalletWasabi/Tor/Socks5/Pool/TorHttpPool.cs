@@ -167,6 +167,11 @@ namespace WalletWasabi.Tor.Socks5.Pool
 					}
 				} while (i < attemptsNo);
 			}
+			catch (OperationCanceledException)
+			{
+				Logger.LogTrace($"[{connection}] Request was canceled: '{request.RequestUri}'.");
+				throw;
+			}
 			catch (Exception e)
 			{
 				Logger.LogTrace($"[{connection}] Request failed with exception", e);
@@ -227,6 +232,11 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			catch (TorException e)
 			{
 				Logger.LogDebug($"['{host}'][ERROR] Failed to create a new pool connection.", e);
+				throw;
+			}
+			catch (OperationCanceledException)
+			{
+				Logger.LogTrace($"['{host}'] Operation was canceled.");
 				throw;
 			}
 			catch (Exception e)

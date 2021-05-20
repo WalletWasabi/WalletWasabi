@@ -17,19 +17,12 @@ namespace WalletWasabi.Tor
 	/// <seealso href="https://2019.www.torproject.org/docs/tor-manual.html.en"/>
 	public class TorProcessManager
 	{
-		/// <summary>
-		/// Creates a new instance of the object.
-		/// </summary>
-		/// <param name="settings">Tor settings.</param>
-		/// <param name="torSocks5EndPoint">Valid Tor end point.</param>
 		public TorProcessManager(TorSettings settings, EndPoint torSocks5EndPoint)
 		{
 			TorSocks5EndPoint = torSocks5EndPoint;
 			TorProcess = null;
 			Settings = settings;
 			TcpConnectionFactory = new(torSocks5EndPoint);
-
-			IoHelpers.EnsureContainingDirectoryExists(Settings.LogFilePath);
 		}
 
 		private EndPoint TorSocks5EndPoint { get; }
@@ -44,11 +37,8 @@ namespace WalletWasabi.Tor
 		/// <summary>
 		/// Starts Tor process if it is not running already.
 		/// </summary>
-		/// <param name="ensureRunning">
-		/// If <c>false</c>, Tor is started but no attempt to verify that it actually runs is made.
-		/// <para>If <c>true</c>, we start Tor and attempt to connect to it to verify it is running (at most 25 attempts).</para>
-		/// </param>
-		public async Task<bool> StartAsync(bool ensureRunning)
+		/// <exception cref="OperationCanceledException"/>
+		public async Task<bool> StartAsync(CancellationToken token = default)
 		{
 			ThrowIfDisposed();
 
@@ -94,41 +84,44 @@ namespace WalletWasabi.Tor
 				Logger.LogInfo($"Starting Tor process ...");
 				TorProcess.Start();
 
-				if (ensureRunning)
+				// Ensure it's running.
+				int i = 0;
+				while (true)
 				{
-					int i = 0;
-					while (true)
+					i++;
+
+					bool isRunning = await TcpConnectionFactory.IsTorRunningAsync().ConfigureAwait(false);
+
+					if (isRunning)
 					{
-						i++;
-
-						bool isRunning = await TcpConnectionFactory.IsTorRunningAsync().ConfigureAwait(false);
-
-						if (isRunning)
-						{
-							break;
-						}
-
-						if (TorProcess.HasExited)
-						{
-							Logger.LogError("Tor process failed to start!");
-							return false;
-						}
-
-						const int MaxAttempts = 25;
-
-						if (i >= MaxAttempts)
-						{
-							Logger.LogError($"All {MaxAttempts} attempts to connect to Tor failed.");
-							return false;
-						}
-
-						// Wait 250 milliseconds between attempts.
-						await Task.Delay(250).ConfigureAwait(false);
+						break;
 					}
 
-					Logger.LogInfo("Tor is running.");
-					return true;
+					if (TorProcess.HasExited)
+					{
+						Logger.LogError("Tor process failed to start!");
+						return false;
+					}
+
+					const int MaxAttempts = 25;
+
+					if (i >= MaxAttempts)
+					{
+						Logger.LogError($"All {MaxAttempts} attempts to connect to Tor failed.");
+						return false;
+					}
+
+					// Wait 250 milliseconds between attempts.
+					await Task.Delay(250, token).ConfigureAwait(false);
 				}
+
+				Logger.LogInfo("Tor is running.");
+				return true;
+			}
+			catch (OperationCanceledException ex)
+			{
+				Logger.LogDebug("User canceled operation.", ex);
+				throw;
 			}
 			catch (Exception ex)
 			{
@@ -138,9 +131,9 @@ namespace WalletWasabi.Tor
 			return false;
 		}
 
-		public async Task StopAsync(bool killTor = false)
+		public async Task StopAsync()
 		{
-			if (TorProcess is { } && killTor)
+			if (TorProcess is { } && Settings.TerminateOnExit)
 			{
 				Logger.LogInfo($"Killing Tor process.");
 

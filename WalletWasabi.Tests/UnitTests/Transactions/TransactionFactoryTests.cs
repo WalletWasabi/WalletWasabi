@@ -179,7 +179,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions
 		}
 
 		[Fact]
-		public async Task SelectSameClusterCoinsAsync()
+		public void SelectSameClusterCoins()
 		{
 			var password = "foo";
 			var keyManager = ServiceFactory.CreateKeyManager(password);
