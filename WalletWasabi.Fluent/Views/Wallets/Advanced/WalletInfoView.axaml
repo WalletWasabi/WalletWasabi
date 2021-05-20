@@ -1,0 +1,79 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:advanced="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Advanced"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             x:DataType="advanced:WalletInfoViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletInfoView">
+  <c:ContentArea Title="{Binding Title}"
+                 EnableNext="True" NextContent="Done"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}">
+    <c:ContentArea.CancelContent>
+      <StackPanel Spacing="10" Orientation="Horizontal">
+        <PathIcon Data="{Binding LockIconString, Converter={x:Static conv:NavBarIconConverter.Instance}}" />
+        <TextBlock Text="{Binding ShowButtonText}" />
+      </StackPanel>
+    </c:ContentArea.CancelContent>
+    <StackPanel Spacing="10" Margin="0 0 20 0">
+      <c:PreviewItem Icon="{StaticResource key_regular}"
+                     Text="Extended Master Private Key"
+                     Content="{Binding ExtendedMasterPrivateKey}"
+                     CopyParameter="{Binding ExtendedMasterPrivateKey}"
+                     IsVisible="{Binding !!ExtendedMasterPrivateKey}"
+                     PrivacyModeEnabled="{Binding !ShowSensitiveData}" />
+      <Separator IsVisible="{Binding !!ExtendedMasterPrivateKey}" />
+
+      <c:PreviewItem Icon="{StaticResource key_regular}"
+                     Text="Extended Master zprv"
+                     Content="{Binding ExtendedMasterZprv}"
+                     CopyParameter="{Binding ExtendedMasterZprv}"
+                     IsVisible="{Binding !!ExtendedMasterZprv}"
+                     PrivacyModeEnabled="{Binding !ShowSensitiveData}" />
+      <Separator IsVisible="{Binding !!ExtendedMasterZprv}" />
+
+      <c:PreviewItem Icon="{StaticResource fingerprint_regular}"
+                     Text="Extended Master Fingerprint"
+                     Content="{Binding MasterKeyFingerprint}"
+                     CopyParameter="{Binding MasterKeyFingerprint}" />
+      <Separator />
+
+      <c:PreviewItem Icon="{StaticResource organization_regular}"
+                     Text="Account Key Path"
+                     Content="{Binding AccountKeyPath}"
+                     CopyParameter="{Binding AccountKeyPath}" />
+      <Separator />
+
+      <c:PreviewItem Icon="{StaticResource key_regular}"
+                     Text="Extended Account Private Key xpriv"
+                     Content="{Binding ExtendedAccountPrivateKey}"
+                     CopyParameter="{Binding ExtendedAccountPrivateKey}"
+                     IsVisible="{Binding !!ExtendedAccountPrivateKey}"
+                     PrivacyModeEnabled="{Binding !ShowSensitiveData}" />
+      <Separator IsVisible="{Binding !!ExtendedAccountPrivateKey}" />
+
+      <c:PreviewItem Icon="{StaticResource key_regular}"
+                     Text="Extended Account Private Key zprv"
+                     Content="{Binding ExtendedAccountZprv}"
+                     CopyParameter="{Binding ExtendedAccountZprv}"
+                     IsVisible="{Binding !!ExtendedAccountZprv}"
+                     PrivacyModeEnabled="{Binding !ShowSensitiveData}" />
+      <Separator IsVisible="{Binding !!ExtendedAccountZprv}" />
+
+      <c:PreviewItem Icon="{StaticResource key_regular}"
+                     Text="Extended Account Public Key"
+                     Content="{Binding ExtendedAccountPublicKey}"
+                     CopyParameter="{Binding ExtendedAccountPublicKey}" />
+      <Separator />
+
+      <c:PreviewItem Icon="{StaticResource key_regular}"
+                     Text="Extended Account zpub"
+                     Content="{Binding ExtendedAccountZpub}"
+                     CopyParameter="{Binding ExtendedAccountZpub}" />
+    </StackPanel>
+  </c:ContentArea>
+</UserControl>
