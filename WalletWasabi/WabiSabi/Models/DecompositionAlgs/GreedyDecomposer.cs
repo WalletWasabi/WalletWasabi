@@ -11,12 +11,12 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 	{
 		public GreedyDecomposer(IEnumerable<Money> baseDenominations, Money dustThreshold, FeeRate feeRate)
 		{
-			BaseDenominations = baseDenominations.OrderBy(d => d).ToArray();
+			BaseDenominations = baseDenominations.OrderBy(d => d).ToImmutableArray();
 			DustThreshold = dustThreshold;
 			FeeRate = feeRate;
 		}
 
-		private Money[] BaseDenominations { get; }
+		private ImmutableArray<Money> BaseDenominations { get; }
 
 		private List<Money> Decomposition { get; set; } = new List<Money>();
 		private Money DustThreshold { get; }
