@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced
 	{
 		[AutoNotify] private bool _showSensitiveData;
 		[AutoNotify] private string _showButtonText = "Show sensitive data";
-		[AutoNotify] private string _lockIconString = "lock_regular";
+		[AutoNotify] private string _lockIconString = "eye_show_regular";
 
 		public WalletInfoViewModel(Wallet wallet)
 		{
@@ -27,7 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced
 			{
 				ShowSensitiveData = !ShowSensitiveData;
 				ShowButtonText = ShowSensitiveData ? "Hide sensitive data" : "Show sensitive data";
-				LockIconString = ShowSensitiveData ? "unlock_regular" : "lock_regular";
+				LockIconString = ShowSensitiveData ? "eye_hide_regular" : "eye_show_regular";
 			});
 
 			if (!wallet.KeyManager.IsWatchOnly)
