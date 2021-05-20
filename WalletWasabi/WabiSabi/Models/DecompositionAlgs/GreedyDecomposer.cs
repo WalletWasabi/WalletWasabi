@@ -45,7 +45,7 @@ namespace WalletWasabi.WabiSabi.Models.DecompositionAlgs
 
 		private bool TryGetLargestDenomBelowIncl(Money amount, [NotNullWhen(true)] out Money? result)
 		{
-			result = BaseDenominations.Where(denoms => denoms <= amount).LastOrDefault();
+			result = BaseDenominations.LastOrDefault(denoms => denoms <= amount);
 			return result is not null;
 		}
 
