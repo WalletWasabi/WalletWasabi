@@ -59,11 +59,35 @@
                                           x:CompileBindings="False"/>
       </i:Interaction.Behaviors>
       <ScrollViewer Name="ScrollViewer"
-                    DockPanel.Dock="{Binding LayoutIndex, Converter={x:Static converters:TilesPositionConverter.Instance}}"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Top"
-                    HorizontalScrollBarVisibility="Auto"
-                    VerticalScrollBarVisibility="Auto">
+                    Classes.smallLayout="{Binding IsSmallLayout}"
+                    Classes.normalLayout="{Binding IsNormalLayout}"
+                    Classes.wideLayout="{Binding IsWideLayout}">
+        <ScrollViewer.Styles>
+          <Style Selector="ScrollViewer.smallLayout">
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="Margin" Value="0,0,0,31"/>
+            <Setter Property="(DockPanel.Dock)" Value="Top"/>
+          </Style>
+          <Style Selector="ScrollViewer.normalLayout">
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="Margin" Value="0,0,0,31"/>
+            <Setter Property="(DockPanel.Dock)" Value="Top"/>
+          </Style>
+          <Style Selector="ScrollViewer.wideLayout">
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="Margin" Value="0,0,31,0"/>
+            <Setter Property="(DockPanel.Dock)" Value="Left"/>
+          </Style>
+        </ScrollViewer.Styles>
         <i:Interaction.Behaviors>
           <behaviors:HorizontalScrollViewerBehavior RequireShiftKey="False" ScrollChangeSize="Page"/>
         </i:Interaction.Behaviors>
