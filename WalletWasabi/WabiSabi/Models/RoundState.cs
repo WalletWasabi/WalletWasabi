@@ -10,7 +10,7 @@ namespace WalletWasabi.WabiSabi.Models
 		CredentialIssuerParameters AmountCredentialIssuerParameters,
 		CredentialIssuerParameters VsizeCredentialIssuerParameters,
 		FeeRate FeeRate,
-		IState CoinjoinState)
+		MultipartyTransactionState CoinjoinState)
 	{
 		public static RoundState FromRound(Round round) =>
 			new RoundState(round.Id, round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, round.FeeRate, round.CoinjoinState);

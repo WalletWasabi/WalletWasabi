@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using System.Windows.Input;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
+using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
@@ -87,11 +90,34 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				Navigate(NavigationTarget.DialogScreen)
 					.To(new ReceiveViewModel(wallet));
 			});
+
+			WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				if (!string.IsNullOrEmpty(wallet.Kitchen.SaltSoup()))
+				{
+					var pwAuthDialog = new PasswordAuthDialogViewModel(wallet);
+					var res = await NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);
+
+					if (!res.Result && res.Kind == DialogResultKind.Normal)
+					{
+						await ShowErrorAsync("Wallet Info", "The password is incorrect! Try Again.", "");
+						return;
+					}
+					else if (res.Kind is DialogResultKind.Back or DialogResultKind.Cancel)
+					{
+						return;
+					}
+				}
+
+				Navigate(NavigationTarget.DialogScreen).To(new WalletInfoViewModel(wallet));
+			});
 		}
 
 		public ICommand SendCommand { get; }
 
 		public ICommand ReceiveCommand { get; }
+
+		public ICommand WalletInfoCommand { get; }
 
 		private CompositeDisposable Disposables { get; set; }
 

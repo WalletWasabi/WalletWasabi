@@ -12,21 +12,21 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 	// see: https://stackoverflow.com/a/51314147/627071
 	public class BackgroundServiceStarter<T> : IHostedService where T : IHostedService
 	{
-		private readonly T backgroundService;
+		private readonly T _backgroundService;
 
 		public BackgroundServiceStarter(T backgroundService)
 		{
-			this.backgroundService = backgroundService;
+			_backgroundService = backgroundService;
 		}
 
 		public Task StartAsync(CancellationToken cancellationToken)
 		{
-			return backgroundService.StartAsync(cancellationToken);
+			return _backgroundService.StartAsync(cancellationToken);
 		}
 
 		public Task StopAsync(CancellationToken cancellationToken)
 		{
-			return backgroundService.StopAsync(cancellationToken);
+			return _backgroundService.StopAsync(cancellationToken);
 		}
 	}
 }

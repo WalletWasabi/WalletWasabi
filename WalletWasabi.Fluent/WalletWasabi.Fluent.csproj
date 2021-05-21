@@ -16,10 +16,10 @@
 		<AvaloniaResource Include="Assets\**" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="0.10.4" />
-		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.4" />
-		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.4" />
-		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.4" />
+		<PackageReference Include="Avalonia" Version="0.10.5" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.5" />
+		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.5" />
+		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.5" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Gui\WalletWasabi.Gui.csproj" />
