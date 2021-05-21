@@ -29,12 +29,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[InlineData(18, new long[] { 10, 5, 2, 1 })]
 		[InlineData(19, new long[] { 10, 5, 2, 2 })]
 		[InlineData(38, new long[] { 10, 10, 10, 5, 2, 1 })]
-		public void Decompose1Test(int amount, long[] expected)
+		public void Decompose1Test(long amount, long[] expected)
 		{
-			var decomposer = new GreedyDecomposer(new long[] { 1, 2, 5, 10 });
-			var amounts = decomposer.Decompose(amount);
-			Assert.Equal(amount, amounts.Sum());
-			Assert.Equal(expected, amounts);
+			var decomposer = new GreedyDecomposer(new Money[] { new (1L), new (2L), new (5L), new (10L) });
+			var amounts = decomposer.Decompose(Money.Satoshis(amount));
+			Assert.Equal(Money.Satoshis(amount), amounts.Sum());
+			Assert.Equal(expected, amounts.Select(x => x.Satoshi));
 		}
 
 		[Theory]
@@ -59,12 +59,12 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[InlineData(18, new long[] { 11, 3, 3, 1 })]
 		[InlineData(19, new long[] { 11, 3, 3, 1, 1 })]
 		[InlineData(38, new long[] { 11, 11, 11, 3, 1, 1 })]
-		public void Decompose2Test(int amount, long[] expected)
+		public void Decompose2Test(long amount, long[] expected)
 		{
-			var decomposer = new GreedyDecomposer(new long[] { 1, 3, 11 });
-			var amounts = decomposer.Decompose(amount);
-			Assert.Equal(amount, amounts.Sum());
-			Assert.Equal(expected, amounts);
+			var decomposer = new GreedyDecomposer(new Money[] { new (1L), new (3L), new (11L) });
+			var amounts = decomposer.Decompose(Money.Satoshis(amount));
+			Assert.Equal(Money.Satoshis(amount), amounts.Sum());
+			Assert.Equal(expected, amounts.Select(x => x.Satoshi));
 		}
 	}
 }
