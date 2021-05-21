@@ -33,6 +33,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		[AutoNotify] private int _layoutIndex;
 		[AutoNotify] private double _widthSource;
 		[AutoNotify] private double _heightSource;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSmallLayout;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isNormalLayout;
+		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWideLayout;
 
 		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
@@ -131,8 +134,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			};
 
 			this.WhenAnyValue(x => x.LayoutIndex)
-				.Subscribe(_ =>
+				.Subscribe(x =>
 				{
+					SetLayoutFlag(x);
 					NotifyLayoutChanged();
 					UpdateTiles();
 				});
@@ -235,6 +239,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					tile.TilePresetIndex = LayoutIndex;
 				}
 			}
+		}
+
+		private void SetLayoutFlag(int layoutIndex)
+		{
+			IsSmallLayout = layoutIndex == _smallLayoutIndex;
+			IsNormalLayout = layoutIndex == _normalLayoutIndex;
+			IsWideLayout = layoutIndex == _wideLayoutIndex;
 		}
 
 		public void NavigateAndHighlight(uint256 txid)
