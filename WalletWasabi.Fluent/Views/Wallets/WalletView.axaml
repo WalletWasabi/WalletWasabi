@@ -2,6 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              xmlns:c="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:locator="using:WalletWasabi.Fluent"
              xmlns:tiles="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
@@ -48,44 +51,49 @@
       </StackPanel>
 
     </c:ContentArea.Title>
-    <DockPanel VerticalAlignment="Top">
-
+    <DockPanel Name="Panel" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+      <i:Interaction.Behaviors>
+        <behaviors:BoundsObserverBehavior Bounds="{Binding #Panel.Bounds, Mode=OneWay}"
+                                          Width="{Binding WidthSource, Mode=TwoWay}"
+                                          Height="{Binding HeightSource, Mode=TwoWay}"
+                                          x:CompileBindings="False"/>
+      </i:Interaction.Behaviors>
       <ScrollViewer Name="ScrollViewer"
-                    DockPanel.Dock="Top"
-                    Width="{Binding #HistoryTable.Bounds.Width}"
+                    DockPanel.Dock="{Binding LayoutIndex, Converter={x:Static converters:TilesPositionConverter.Instance}}"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Top"
-                    ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                    ScrollViewer.VerticalScrollBarVisibility="Disabled">
-        <ItemsRepeater Items="{Binding Tiles}"
-                       DockPanel.Dock="Top"
-                       Margin="0 0"
-                       HorizontalAlignment="Left"
-                       VerticalAlignment="Top"
-                       UseLayoutRounding="False">
-          <ItemsRepeater.Styles>
-            <Style Selector="ItemsRepeater > :is(Control)" x:DataType="tiles:TileViewModel">
-              <Setter Property="(c:NonVirtualizingResponsiveLayout.ColumnSpan)"
-                      Value="{Binding ColumnSpan}" />
-              <Setter Property="(c:NonVirtualizingResponsiveLayout.RowSpan)" Value="{Binding RowSpan}" />
+                    HorizontalScrollBarVisibility="Auto"
+                    VerticalScrollBarVisibility="Auto">
+        <i:Interaction.Behaviors>
+          <behaviors:HorizontalScrollViewerBehavior RequireShiftKey="False" ScrollChangeSize="Page"/>
+        </i:Interaction.Behaviors>
+        <ItemsControl Items="{Binding Tiles}"
+                      Margin="0 0"
+                      HorizontalAlignment="Left"
+                      VerticalAlignment="Top">
+          <ItemsControl.Styles>
+            <Style Selector="ItemsControl > ContentPresenter" x:DataType="tiles:TileViewModel">
+              <Setter Property="Grid.Column" Value="{Binding Column}" />
+              <Setter Property="Grid.Row" Value="{Binding Row}" />
+              <Setter Property="Grid.ColumnSpan" Value="{Binding ColumnSpan}" />
+              <Setter Property="Grid.RowSpan" Value="{Binding RowSpan}" />
+              <Setter Property="IsVisible" Value="{Binding IsVisible}" />
             </Style>
-          </ItemsRepeater.Styles>
-          <ItemsRepeater.ItemTemplate>
+          </ItemsControl.Styles>
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <c:BindableGrid ColumnDefinitionsSource="{Binding CurrentLayout.ColumnDefinitions}"
+                              RowDefinitionsSource="{Binding CurrentLayout.RowDefinitions}"
+                              ShowGridLines="False" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
             <locator:ViewLocator />
-          </ItemsRepeater.ItemTemplate>
-          <ItemsRepeater.Layout>
-            <c:NonVirtualizingResponsiveLayout ItemWidth="330"
-                                               ItemHeight="150"
-                                               WidthSource="{Binding #ScrollViewer.Bounds.Width}"
-                                               AspectRatio="NaN"
-                                               ColumnHints="3, 3, 3"
-                                               WidthTriggers="300, 660, 990" />
-          </ItemsRepeater.Layout>
-        </ItemsRepeater>
-
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
       </ScrollViewer>
-      <history:HistoryTable Name="HistoryTable" DataContext="{Binding History}" MaxWidth="1000"
-                            HorizontalAlignment="Left" VerticalAlignment="Top" />
+      <history:HistoryTable Name="HistoryTable" DataContext="{Binding History}"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
     </DockPanel>
   </c:ContentArea>
 </UserControl>
