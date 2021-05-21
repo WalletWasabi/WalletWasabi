@@ -10,17 +10,17 @@ namespace WalletWasabi.WabiSabi.Client
 	{
 		public GreedyDecomposer(IEnumerable<Money> denominations)
 		{
-			_denominations = denominations.Any()
+			Denominations = denominations.Any()
 				? denominations.OrderByDescending(x => x).ToImmutableList()
 				: throw new ArgumentException($"Argument {nameof(denominations)} has no elements");
 		}
 
-		private ImmutableList<Money> _denominations;
+		public ImmutableList<Money> Denominations { get; }
 
 		public IEnumerable<Money> Decompose(Money amount)
 		{
 			var i = 0;
-			var denomination = _denominations[i];
+			var denomination = Denominations[i];
 			while (amount > Money.Zero)
 			{
 				if (denomination <= amount)
@@ -28,9 +28,9 @@ namespace WalletWasabi.WabiSabi.Client
 					yield return denomination;
 					amount -= denomination;
 				}
-				else if(++i < _denominations.Count)
+				else if (++i < Denominations.Count)
 				{
-					denomination = _denominations[i];
+					denomination = Denominations[i];
 				}
 				else
 				{
