@@ -1,9 +1,11 @@
 using System.Linq;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet
 {
@@ -12,9 +14,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 	{
 		public AddedWalletPageViewModel(KeyManager keyManager)
 		{
-			WalletIcon = keyManager.Icon;
-			IsHardwareWallet = keyManager.IsHardwareWallet;
 			WalletName = keyManager.WalletName;
+			WalletType = WalletHelpers.GetType(keyManager);
 
 			SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 
@@ -23,9 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 			NextCommand = ReactiveCommand.Create(() => OnNext(keyManager));
 		}
 
-		public string? WalletIcon { get; }
-
-		public bool IsHardwareWallet { get; }
+		public WalletType WalletType { get; }
 
 		public string WalletName { get; }
 
