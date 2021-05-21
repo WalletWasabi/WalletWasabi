@@ -8,11 +8,11 @@ namespace WalletWasabi.Fluent.Helpers
 	{
 		public static WalletType GetType(KeyManager keyManager)
 		{
-			if (keyManager.Icon is { } icon)
+			if (keyManager.Icon is { } icon &&
+			    Enum.TryParse(typeof(WalletType), icon, true, out var type) &&
+			    type is { })
 			{
-				return Enum.TryParse(typeof(WalletType), icon, true, out var typ) && typ is { }
-					? (WalletType) typ
-					: WalletType.Normal;
+				return (WalletType) type;
 			}
 
 			return keyManager.IsHardwareWallet ? WalletType.Hardware : WalletType.Normal;
