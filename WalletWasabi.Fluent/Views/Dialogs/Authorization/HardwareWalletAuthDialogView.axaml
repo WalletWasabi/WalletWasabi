@@ -21,7 +21,7 @@
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <Viewbox MaxHeight="150">
-      <Image Source="{Binding WalletType, Converter={x:Static conv:WalletIconConverter.TypesToImage}}"/>
+      <Image Source="{Binding WalletType, Converter={x:Static conv:WalletIconConverter.WalletTypeToImage}}"/>
     </Viewbox>
   </c:ContentArea>
 </UserControl>
