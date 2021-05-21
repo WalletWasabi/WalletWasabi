@@ -40,29 +40,35 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Socks5
 			_ = mockTcpConnectionFactory.Setup(c => c.ConnectAsync(It.IsAny<Uri>(), defaultIdentity, It.IsAny<CancellationToken>())).ReturnsAsync(defaultConnection);
 
 			TorTcpConnectionFactory tcpConnectionFactory = mockTcpConnectionFactory.Object;
-			using TorHttpPool pool = new(tcpConnectionFactory, (TorTcpConnection tcpConnection, HttpRequestMessage request, CancellationToken cancellationToken) =>
-			{
-				HttpResponseMessage httpResponse = new(HttpStatusCode.OK);
 
-				if (tcpConnection == aliceConnection)
+			// Use implementation of TorHttpPool and only replace SendCoreAsync behavior.
+			Mock<TorHttpPool> mockTorHttpPool = new(MockBehavior.Loose, tcpConnectionFactory) { CallBase = true };
+			mockTorHttpPool.Setup(x => x.SendCoreAsync(It.IsAny<TorTcpConnection>(), It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
+				.Returns((TorTcpConnection tcpConnection, HttpRequestMessage request, CancellationToken cancellationToken) =>
 				{
-					httpResponse.Content = new StringContent("Alice circuit!");
-				}
-				else if (tcpConnection == bobConnection)
-				{
-					httpResponse.Content = new StringContent("Bob circuit!");
-				}
-				else if (tcpConnection == defaultConnection)
-				{
-					httpResponse.Content = new StringContent("Default circuit!");
-				}
-				else
-				{
-					throw new NotSupportedException();
-				}
+					HttpResponseMessage httpResponse = new(HttpStatusCode.OK);
 
-				return Task.FromResult(httpResponse);
-			});
+					if (tcpConnection == aliceConnection)
+					{
+						httpResponse.Content = new StringContent("Alice circuit!");
+					}
+					else if (tcpConnection == bobConnection)
+					{
+						httpResponse.Content = new StringContent("Bob circuit!");
+					}
+					else if (tcpConnection == defaultConnection)
+					{
+						httpResponse.Content = new StringContent("Default circuit!");
+					}
+					else
+					{
+						throw new NotSupportedException();
+					}
+
+					return Task.FromResult(httpResponse);
+				});
+
+			using TorHttpPool pool = mockTorHttpPool.Object;
 
 			using HttpRequestMessage request = new(HttpMethod.Get, "http://wasabi.backend");
 
