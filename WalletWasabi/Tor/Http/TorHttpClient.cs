@@ -65,14 +65,7 @@ namespace WalletWasabi.Tor.Http
 		/// <exception cref="OperationCanceledException">If <paramref name="token"/> is set.</exception>
 		public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token = default)
 		{
-			ICircuit circuit = Mode switch
-			{
-				Mode.DefaultCircuit => PredefinedCircuit!,
-				Mode.SingleCircuitPerLifetime => PredefinedCircuit!,
-				Mode.NewCircuitPerRequest => new OneOffCircuit(),
-				_ => throw new NotSupportedException()
-			};
-
+			ICircuit circuit = Mode is Mode.NewCircuitPerRequest ? new OneOffCircuit() : PredefinedCircuit!;
 			return TorHttpPool.SendAsync(request, circuit, token);
 		}
 
