@@ -112,7 +112,7 @@ namespace WalletWasabi.Fluent.QRCodeDecoder
 
 		internal bool Trans4Mode;
 
-		// transformation cooefficients from QR modules to image pixels
+		// transformation coefficients from QR modules to image pixels
 		internal double Trans3a;
 
 		internal double Trans3b;
