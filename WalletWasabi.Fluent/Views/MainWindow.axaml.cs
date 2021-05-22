@@ -1,10 +1,6 @@
-using System.IO;
-using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using Avalonia.Media.Imaging;
-using WalletWasabi.Fluent.QRCodeDecoder;
 
 namespace WalletWasabi.Fluent.Views
 {
