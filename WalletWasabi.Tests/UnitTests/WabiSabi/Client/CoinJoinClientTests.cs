@@ -1,13 +1,10 @@
 using Moq;
 using NBitcoin;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Controllers;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
@@ -15,6 +12,7 @@ using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Crypto;
+using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
 using Xunit;
 
@@ -30,7 +28,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
-			ClientRound clientRound = new(round);
+			var roundState = RoundState.FromRound(round);
 
 			using var key = new Key();
 			var outpoint = BitcoinFactory.CreateOutPoint();
@@ -55,8 +53,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			var wabiSabiApi = new WabiSabiController(coordinator);
 
-			using CoinJoinClient coinJoinClient = new(clientRound, wabiSabiApi, new[] { smartCoin.Coin }, kitchen, km);
-			await coinJoinClient.StartMixingCoinsAsync();
+			using CoinJoinClient coinJoinClient = new(roundState.Id, wabiSabiApi, new[] { smartCoin.Coin }, kitchen, km);
+			await coinJoinClient.StartAsync(CancellationToken.None);
 		}
 	}
 }
