@@ -35,7 +35,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public async Task RegisterInputAsync(CancellationToken cancellationToken)
 		{
-			var response = await ArenaClient.RegisterInputAsync(Coin.Amount, Coin.Outpoint, BitcoinSecret.PrivateKey, RoundId, cancellationToken).ConfigureAwait(false);
+			var response = await ArenaClient.RegisterInputAsync(Coin.Outpoint, BitcoinSecret.PrivateKey, RoundId, cancellationToken).ConfigureAwait(false);
 			var remoteAliceId = response.Value;
 			if (AliceId != remoteAliceId)
 			{

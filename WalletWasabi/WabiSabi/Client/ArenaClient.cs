@@ -41,7 +41,6 @@ namespace WalletWasabi.WabiSabi.Client
 		public IWabiSabiApiRequestHandler RequestHandler { get; }
 
 		public async Task<ArenaResponse<uint256>> RegisterInputAsync(
-			Money amount,
 			OutPoint outPoint,
 			Key key,
 			uint256 roundId,
@@ -64,9 +63,9 @@ namespace WalletWasabi.WabiSabi.Client
 				cancellationToken).ConfigureAwait(false);
 
 			var realAmountCredentials = AmountCredentialClient.HandleResponse(inputRegistrationResponse.AmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
-			var realVsizeCredentials  = VsizeCredentialClient.HandleResponse(inputRegistrationResponse.VsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
+			var realVsizeCredentials = VsizeCredentialClient.HandleResponse(inputRegistrationResponse.VsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
 
-			return new (inputRegistrationResponse.AliceId, realAmountCredentials, realVsizeCredentials);
+			return new(inputRegistrationResponse.AliceId, realAmountCredentials, realVsizeCredentials);
 		}
 
 		public async Task RemoveInputAsync(uint256 roundId, uint256 aliceId, CancellationToken cancellationToken)
@@ -108,7 +107,7 @@ namespace WalletWasabi.WabiSabi.Client
 			var realAmountCredentials = AmountCredentialClient.HandleResponse(outputRegistrationResponse.AmountCredentials, realAmountCredentialResponseValidation);
 			var realVsizeCredentials = VsizeCredentialClient.HandleResponse(outputRegistrationResponse.VsizeCredentials, realVsizeCredentialResponseValidation);
 
-			return new (realAmountCredentials, realVsizeCredentials);
+			return new(realAmountCredentials, realVsizeCredentials);
 		}
 
 		public async Task<ArenaResponse> ReissueCredentialAsync(
@@ -157,7 +156,7 @@ namespace WalletWasabi.WabiSabi.Client
 			AmountCredentialClient.HandleResponse(reissuanceResponse.ZeroAmountCredentials, zeroAmountCredentialRequestData.CredentialsResponseValidation);
 			VsizeCredentialClient.HandleResponse(reissuanceResponse.ZeroVsizeCredentials, zeroVsizeCredentialRequestData.CredentialsResponseValidation);
 
-			return new (realAmountCredentials, realVsizeCredentials);
+			return new(realAmountCredentials, realVsizeCredentials);
 		}
 
 		public async Task<ArenaResponse<bool>> ConfirmConnectionAsync(
@@ -204,10 +203,10 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				var realAmountCredentials = AmountCredentialClient.HandleResponse(confirmConnectionResponse.RealAmountCredentials, realAmountCredentialRequestData.CredentialsResponseValidation);
 				var realVsizeCredentials = VsizeCredentialClient.HandleResponse(confirmConnectionResponse.RealVsizeCredentials, realVsizeCredentialRequestData.CredentialsResponseValidation);
-				return new (true, realAmountCredentials, realVsizeCredentials);
+				return new(true, realAmountCredentials, realVsizeCredentials);
 			}
 
-			return new (false, Enumerable.Empty<Credential>(), Enumerable.Empty<Credential>());
+			return new(false, Enumerable.Empty<Credential>(), Enumerable.Empty<Credential>());
 		}
 
 		public async Task SignTransactionAsync(uint256 roundId, Coin coin, BitcoinSecret bitcoinSecret, Transaction unsignedCoinJoin, CancellationToken cancellationToken)
