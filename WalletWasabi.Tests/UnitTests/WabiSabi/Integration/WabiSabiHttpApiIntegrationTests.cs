@@ -73,7 +73,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				builder.ConfigureServices(services =>
 				{
 					var rpc = BitcoinFactory.GetMockMinimalRpc();
-					//
+
 					// Make the coordinator to believe that those two coins are real and
 					// that they exist in the blockchain with many confirmations.
 					rpc.OnGetTxOutAsync = (txId, idx, _) => new()
