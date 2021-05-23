@@ -49,20 +49,20 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 		[Fact]
 		public async Task SoloCoinJoinTest()
 		{
-			const int inputCount = 2;
+			const int InputCount = 2;
 
 			// At the end of the test a coinjoin transaction has to be created and broadcasted.
 			// we wait for 20 seconds before timing out.
-			const int coinjoinProcessTimeout = 20_000;
+			const int CoinjoinProcessTimeout = 20_000;
 			var transactionCompleted = new TaskCompletionSource<Transaction>();
-			using var cts = new CancellationTokenSource(coinjoinProcessTimeout);
+			using var cts = new CancellationTokenSource(CoinjoinProcessTimeout);
 			cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 			// Create a key manager and use it to create two fake coins.
 			var keyManager = KeyManager.CreateNew(out var _, password: "");
 			keyManager.AssertCleanKeysIndexed();
 			var coins = keyManager.GetKeys()
-				.Take(inputCount)
+				.Take(InputCount)
 				.Select(x => new Coin(
 					BitcoinFactory.CreateOutPoint(),
 					new TxOut(Money.Coins(1), x.P2wpkhScript)))
@@ -73,6 +73,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 				builder.ConfigureServices(services =>
 				{
 					var rpc = BitcoinFactory.GetMockMinimalRpc();
+					//
 					// Make the coordinator to believe that those two coins are real and
 					// that they exist in the blockchain with many confirmations.
 					rpc.OnGetTxOutAsync = (txId, idx, _) => new()
@@ -82,6 +83,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 						ScriptPubKeyType = "witness_v0_keyhash",
 						TxOut = coins.Single(x => x.Outpoint.Hash == txId && x.Outpoint.N == idx).TxOut
 					};
+
 					// Make the coordinator believe that the transaction is being
 					// broadcasted using the RPC interface. Once we receive this tx
 					// (the `SendRawTransationAsync` was invoked) we stop waiting
@@ -91,10 +93,11 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 						transactionCompleted.SetResult(tx);
 						return tx.GetHash();
 					};
+
 					// Instruct the coodinator DI container to use these two scoped
 					// services to build everything (wabisabi controller, arena, etc)
 					services.AddScoped<IRPCClient>(s => rpc);
-					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig { MaxInputCountByRound = inputCount });
+					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig { MaxInputCountByRound = InputCount });
 				});
 			}).CreateClient();
 

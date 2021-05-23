@@ -21,17 +21,6 @@ namespace WalletWasabi.WabiSabi.Client
 	public class CoinJoinClient : BackgroundService, IDisposable
 	{
 		private bool _disposedValue;
-		private uint256 RoundId { get; }
-		private RoundState RoundState { get; set; }
-		private ZeroCredentialPool ZeroAmountCredentialPool { get; } = new();
-		private ZeroCredentialPool ZeroVsizeCredentialPool { get; } = new();
-		private SecureRandom SecureRandom { get; }
-		private CancellationTokenSource DisposeCts { get; } = new();
-		private IEnumerable<Coin> Coins { get; set; }
-		private Random Random { get; } = new();
-		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
-		public Kitchen Kitchen { get; }
-		public KeyManager Keymanager { get; }
 
 		public CoinJoinClient(
 			uint256 roundId,
@@ -48,11 +37,23 @@ namespace WalletWasabi.WabiSabi.Client
 			Coins = coins;
 		}
 
+		private uint256 RoundId { get; }
+		private RoundState RoundState { get; set; }
+		private ZeroCredentialPool ZeroAmountCredentialPool { get; } = new();
+		private ZeroCredentialPool ZeroVsizeCredentialPool { get; } = new();
+		private SecureRandom SecureRandom { get; }
+		private CancellationTokenSource DisposeCts { get; } = new();
+		private IEnumerable<Coin> Coins { get; set; }
+		private Random Random { get; } = new();
+		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
+		public Kitchen Kitchen { get; }
+		public KeyManager Keymanager { get; }
+
 		protected override async Task ExecuteAsync(CancellationToken cancellationToken)
 		{
 			try
 			{
-				await RefreshRoundAsync(cancellationToken).ConfigureAwait(false); ;
+				await RefreshRoundAsync(cancellationToken).ConfigureAwait(false);
 				var aliceClients = CreateAliceClients();
 
 				// Register coins.
@@ -186,12 +187,14 @@ namespace WalletWasabi.WabiSabi.Client
 			IEnumerable<TxOut> outputs,
 			CancellationToken cancellationToken)
 		{
-			var stageItemsData = planStage.Zip(outputs, (s, o) => (
-				Value: s.Value,
-				RealAmountCredentials: new[] { s.RealAmountCredential },
-				RealVsizeCredentials: new[] { s.RealVsizeCredential },
-				BobClient: CreateBobClient(),
-				ScriptPubKey: o.ScriptPubKey));
+			var stageItemsData = planStage.Zip(
+					outputs,
+					(s, o) => (
+						Value: s.Value,
+						RealAmountCredentials: new[] { s.RealAmountCredential },
+						RealVsizeCredentials: new[] { s.RealVsizeCredential },
+						BobClient: CreateBobClient(),
+						ScriptPubKey: o.ScriptPubKey));
 
 			var outputRegisterRequests = stageItemsData
 				.Select(x => WrapCall(x, x.BobClient.RegisterOutputAsync(x.Value, x.ScriptPubKey, x.RealAmountCredentials, x.RealVsizeCredentials, cancellationToken)));
