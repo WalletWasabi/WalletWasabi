@@ -53,7 +53,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			// At the end of the test a coinjoin transaction has to be created and broadcasted.
 			// we wait for 20 seconds before timing out.
-			const int CoinjoinProcessTimeout = 20_000;
+			const int CoinjoinProcessTimeout = 40_000;
 			var transactionCompleted = new TaskCompletionSource<Transaction>();
 			using var cts = new CancellationTokenSource(CoinjoinProcessTimeout);
 			cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);

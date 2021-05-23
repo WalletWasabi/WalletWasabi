@@ -66,19 +66,16 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
 
-			using var destinationKey1 = new Key();
-			using var destinationKey2 = new Key();
-			using var destinationKey3 = new Key();
-			using var destinationKey4 = new Key();
+			using var destinationKey = new Key();
+			var destination = destinationKey.PubKey.WitHash.ScriptPubKey;
 
 			var bobClient = new BobClient(round.Id, bobArenaClient);
 
-			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey1.PubKey.WitHash.ScriptPubKey, aliceClient.RealAmountCredentials, aliceClient.RealVsizeCredentials, CancellationToken.None);
-			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey2.PubKey.WitHash.ScriptPubKey, aliceClient.RealAmountCredentials, aliceClient.RealVsizeCredentials, CancellationToken.None);
-			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey3.PubKey.WitHash.ScriptPubKey, aliceClient.RealAmountCredentials, aliceClient.RealVsizeCredentials, CancellationToken.None);
-			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destinationKey4.PubKey.WitHash.ScriptPubKey, aliceClient.RealAmountCredentials, aliceClient.RealVsizeCredentials, CancellationToken.None);
+			await bobClient.RegisterOutputAsync(Money.Coins(0.25m), destination, aliceClient.RealAmountCredentials, aliceClient.RealVsizeCredentials, CancellationToken.None);
 
-			Assert.Equal(4, round.Bobs.Count);
+			var bob = Assert.Single(round.Bobs);
+			Assert.Equal(destination, bob.Script);
+			Assert.Equal(25_000_000, bob.CredentialAmount);
 		}
 	}
 }
