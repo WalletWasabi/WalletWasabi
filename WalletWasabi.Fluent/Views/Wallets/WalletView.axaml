@@ -68,7 +68,7 @@
             <Setter Property="VerticalAlignment" Value="Top"/>
             <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
             <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
-            <Setter Property="Margin" Value="0,0,0,31"/>
+            <Setter Property="Margin" Value="0,0,0,11"/>
             <Setter Property="(DockPanel.Dock)" Value="Top"/>
           </Style>
           <Style Selector="ScrollViewer.normalLayout">
@@ -76,7 +76,7 @@
             <Setter Property="VerticalAlignment" Value="Top"/>
             <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
             <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
-            <Setter Property="Margin" Value="0,0,0,31"/>
+            <Setter Property="Margin" Value="0,0,0,11"/>
             <Setter Property="(DockPanel.Dock)" Value="Top"/>
           </Style>
           <Style Selector="ScrollViewer.wideLayout">
@@ -84,7 +84,7 @@
             <Setter Property="VerticalAlignment" Value="Top"/>
             <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
             <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
-            <Setter Property="Margin" Value="0,0,31,0"/>
+            <Setter Property="Margin" Value="0,0,11,0"/>
             <Setter Property="(DockPanel.Dock)" Value="Left"/>
           </Style>
         </ScrollViewer.Styles>
