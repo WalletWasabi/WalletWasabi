@@ -23,11 +23,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class WalletViewModel : WalletViewModelBase
 	{
-		private double _smallLayoutHeightBreakpoint;
-		private double _wideLayoutWidthBreakpoint;
-		private int _smallLayoutIndex;
-		private int _normalLayoutIndex;
-		private int _wideLayoutIndex;
+		private readonly double _smallLayoutHeightBreakpoint;
+		private readonly double _wideLayoutWidthBreakpoint;
+		private readonly int _smallLayoutIndex;
+		private readonly int _normalLayoutIndex;
+		private readonly int _wideLayoutIndex;
 		[AutoNotify] private IList<TileViewModel>? _tiles;
 		[AutoNotify] private IList<TileLayoutViewModel>? _layouts;
 		[AutoNotify] private int _layoutIndex;
