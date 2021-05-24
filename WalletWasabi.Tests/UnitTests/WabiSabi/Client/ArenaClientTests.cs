@@ -52,7 +52,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			ZeroCredentialPool zeroVsizeCredentials = new();
 			var aliceArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, zeroAmountCredentials, zeroVsizeCredentials, wabiSabiApi, new InsecureRandom());
 
-			var inputRegistrationResponse = await aliceArenaClient.RegisterInputAsync(Money.Coins(1m), outpoint, key, round.Id, CancellationToken.None);
+			var inputRegistrationResponse = await aliceArenaClient.RegisterInputAsync(outpoint, key, round.Id, CancellationToken.None);
 			var aliceId = inputRegistrationResponse.Value;
 
 			var reissuanceAmounts = new[]
