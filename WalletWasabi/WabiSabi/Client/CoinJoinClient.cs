@@ -54,6 +54,17 @@ namespace WalletWasabi.WabiSabi.Client
 			try
 			{
 				await RefreshRoundAsync(cancellationToken).ConfigureAwait(false);
+				var constructionState = RoundState.Assert<ConstructionState>();
+
+				// Calculate outputs values
+				var outputValues = DecomposeAmounts();
+				var outputs = outputValues.Zip(Keymanager.GetKeys(), (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
+
+				var plan = CreatePlan(
+					Coins.Select(x => (ulong)x.Amount.Satoshi),
+					Coins.Select(x => (ulong)x.ScriptPubKey.EstimateInputVsize()),
+					outputValues);
+
 				var aliceClients = CreateAliceClients();
 
 				// Register coins.
@@ -62,21 +73,12 @@ namespace WalletWasabi.WabiSabi.Client
 				// Confirm coins.
 				aliceClients = await ConfirmConnectionsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
 
-				// Calculate outputs values
-				var constructionState = RoundState.Assert<ConstructionState>();
-				var outputValues = DecomposeAmounts();
-				var outputs = outputValues.Zip(Keymanager.GetKeys(), (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
-
-				var plan = CreatePlan(
-					aliceClients.SelectMany(x => x.RealAmountCredentials),
-					aliceClients.SelectMany(x => x.RealVsizeCredentials),
-					outputValues);
-
 				// Output registration.
 				// Here we should have something like:
 				// RoundState roundState = await OutputRegistrationPhase.ConfigureAwait(false);
 				await WaitFor(Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
-				await ExecutePlanAsync(plan, outputs, cancellationToken).ConfigureAwait(false);
+                var outputsWithCredentials = outputs.Zip(aliceClients, (output, alice) => (output, alice.RealAmountCredentials, alice.RealVsizeCredentials));
+				await RegisterOutputsAsync(outputsWithCredentials, cancellationToken).ConfigureAwait(false);
 
 				await WaitFor(Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
 				var signingState = RoundState.Assert<SigningState>();
@@ -163,41 +165,29 @@ namespace WalletWasabi.WabiSabi.Client
 			return Coins.Select(c => c.Amount - RoundState.FeeRate.GetFee(c.ScriptPubKey.EstimateInputVsize()));
 		}
 
-		private IEnumerable<IEnumerable<(Credential RealAmountCredential, Credential RealVsizeCredential, Money Value)>> CreatePlan(
-			IEnumerable<Credential> realAmountCredentials,
-			IEnumerable<Credential> realVsizeCredentials,
+		private IEnumerable<IEnumerable<(ulong RealAmountCredentialValue, ulong RealVsizeCredentialValue, Money Value)>> CreatePlan(
+			IEnumerable<ulong> realAmountCredentialValues,
+			IEnumerable<ulong> realVsizeCredentialValues,
 			IEnumerable<Money> outputValues)
 		{
-			yield return realAmountCredentials.Zip(realVsizeCredentials, outputValues, (a, v, o) => (a, v, o));
+			yield return realAmountCredentialValues.Zip(realVsizeCredentialValues, outputValues, (a, v, o) => (a, v, o));
 		}
 
-		private async Task ExecutePlanAsync(
-			IEnumerable<IEnumerable<(Credential RealAmountCredential, Credential RealVsizeCredential, Money Value)>> plan,
-			IEnumerable<TxOut> outputs,
+		private async Task RegisterOutputsAsync(
+			IEnumerable<(TxOut Output, Credential[] RealAmountCredentials, Credential[] RealVsizeCredentials)> outputsWithCredentials,
 			CancellationToken cancellationToken)
 		{
-			foreach (var planStage in plan)
-			{
-				await ExecutePlanStageAsync(planStage, outputs, cancellationToken).ConfigureAwait(false);
-			}
-		}
+            var bobClients = Enumerable.Range(0, int.MaxValue).Select(_ => CreateBobClient());
+			var outputRegistrationData = outputsWithCredentials.Zip(
+                    bobClients, 
+                    (o, b) => (
+                        TxOut: o.Output,
+                        RealAmountCredentials: o.RealAmountCredentials,
+                        RealVsizeCredentials: o.RealVsizeCredentials,
+                        BobClient: b));
 
-		private async Task ExecutePlanStageAsync(
-			IEnumerable<(Credential RealAmountCredential, Credential RealVsizeCredential, Money Value)> planStage,
-			IEnumerable<TxOut> outputs,
-			CancellationToken cancellationToken)
-		{
-			var stageItemsData = planStage.Zip(
-					outputs,
-					(s, o) => (
-						Value: s.Value,
-						RealAmountCredentials: new[] { s.RealAmountCredential },
-						RealVsizeCredentials: new[] { s.RealVsizeCredential },
-						BobClient: CreateBobClient(),
-						ScriptPubKey: o.ScriptPubKey));
-
-			var outputRegisterRequests = stageItemsData
-				.Select(x => WrapCall(x, x.BobClient.RegisterOutputAsync(x.Value, x.ScriptPubKey, x.RealAmountCredentials, x.RealVsizeCredentials, cancellationToken)));
+			var outputRegisterRequests = outputRegistrationData
+				.Select(x => WrapCall(x.TxOut, x.BobClient.RegisterOutputAsync(x.TxOut.Value, x.TxOut.ScriptPubKey, x.RealAmountCredentials, x.RealVsizeCredentials, cancellationToken)));
 			var completedRequests = await Task.WhenAll(outputRegisterRequests).ConfigureAwait(false);
 
 			foreach (var request in completedRequests.Where(x => !x.Success))

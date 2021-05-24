@@ -208,6 +208,6 @@ namespace System.Linq
 		}
 
 		public static bool IsSuperSetOf<T>(this IEnumerable<T> me, IEnumerable<T> other) =>
-			me.All(x => other.Contains(x));
+			other.All(x => me.Contains(x));
 	}
 }
