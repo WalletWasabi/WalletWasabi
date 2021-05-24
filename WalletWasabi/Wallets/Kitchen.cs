@@ -16,7 +16,7 @@ namespace WalletWasabi.Wallets
 		private object RefrigeratorLock { get; } = new object();
 
 		[MemberNotNullWhen(returnValue: true, nameof(Salt), nameof(Soup))]
-		public bool HasIngredients => Salt is { } && Soup is { };
+		public bool HasIngredients => Salt is not null && Soup is not null;
 
 		public string SaltSoup()
 		{

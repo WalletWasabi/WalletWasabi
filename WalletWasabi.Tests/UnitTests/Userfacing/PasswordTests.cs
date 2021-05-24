@@ -85,8 +85,8 @@ namespace WalletWasabi.Tests.UnitTests
 		[Fact]
 		public void CompatibilityTest()
 		{
-			string buggy = "    w¾3AÍ-dCdï×¾M\\Øò¹ãÔÕýÈÝÁÐ9oEp¨}r:SR¦·ßNó±¥*W!¢ê#ikÇå<ðtÇf·a\\]§,à±H7«®È4nèNmæo4.qØ-¾ûda¯";
-			string original = "    w¾3AÍ-dCdï×¾M\\Øò¹ãÔÕýÈÝÁÐ9oEp¨}r:SR¦·ßNó±¥*W!¢ê#ikÇå<ðtÇf·a\\]§,à±H7«®È4nèNmæo4.qØ-¾ûda¯ºíö¾,¥¢½\\¹õèKeÁìÍSÈ@r±ØÙ2[r©UQÞ¶xN\"?:Ö@°&\n";
+			var buggy = "    w¾3AÍ-dCdï×¾M\\Øò¹ãÔÕýÈÝÁÐ9oEp¨}r:SR¦·ßNó±¥*W!¢ê#ikÇå<ðtÇf·a\\]§,à±H7«®È4nèNmæo4.qØ-¾ûda¯";
+			var original = "    w¾3AÍ-dCdï×¾M\\Øò¹ãÔÕýÈÝÁÐ9oEp¨}r:SR¦·ßNó±¥*W!¢ê#ikÇå<ðtÇf·a\\]§,à±H7«®È4nèNmæo4.qØ-¾ûda¯ºíö¾,¥¢½\\¹õèKeÁìÍSÈ@r±ØÙ2[r©UQÞ¶xN\"?:Ö@°&\n";
 
 			Assert.Throws<FormatException>(() => PasswordHelper.Guard(buggy));
 
@@ -103,10 +103,10 @@ namespace WalletWasabi.Tests.UnitTests
 			// This should pass
 			Assert.NotNull(PasswordHelper.GetMasterExtKey(keyManager, original, out _));
 
-			Assert.True(PasswordHelper.TryPassword(keyManager, buggy, out string compatiblePasswordNotUsed));
+			Assert.True(PasswordHelper.TryPassword(keyManager, buggy, out var compatiblePasswordNotUsed));
 			Assert.Null(compatiblePasswordNotUsed);
 
-			Assert.True(PasswordHelper.TryPassword(keyManager, original, out string compatiblePassword));
+			Assert.True(PasswordHelper.TryPassword(keyManager, original, out var compatiblePassword));
 			Assert.Equal(buggy, compatiblePassword);
 			Logger.TurnOn();
 		}
@@ -115,7 +115,7 @@ namespace WalletWasabi.Tests.UnitTests
 		public void EmptyNullTest()
 		{
 			string emptyPw = "";
-			string nullPw = null;
+			string? nullPw = null;
 
 			Logger.TurnOff();
 			var emptyPws = PasswordHelper.GetPossiblePasswords(emptyPw);

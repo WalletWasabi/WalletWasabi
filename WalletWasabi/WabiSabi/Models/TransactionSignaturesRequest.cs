@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using NBitcoin;
 
 namespace WalletWasabi.WabiSabi.Models
 {
 	public record TransactionSignaturesRequest(
-		Guid RoundId,
+		uint256 RoundId,
 		IEnumerable<InputWitnessPair> InputWitnessPairs
 	);
 }

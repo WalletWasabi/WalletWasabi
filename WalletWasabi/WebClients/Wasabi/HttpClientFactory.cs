@@ -10,7 +10,7 @@ namespace WalletWasabi.WebClients.Wasabi
 	/// <summary>
 	/// Factory class to get proper <see cref="IHttpClient"/> client which is set up based on user settings.
 	/// </summary>
-	public class HttpClientFactory
+	public class HttpClientFactory : IDisposable
 	{
 		/// <summary>
 		/// To detect redundant calls.
@@ -58,7 +58,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		/// <summary>Whether Tor is enabled or disabled.</summary>
 		[MemberNotNullWhen(returnValue: true, nameof(TorEndpoint))]
-		public bool IsTorEnabled => TorEndpoint is { };
+		public bool IsTorEnabled => TorEndpoint is not null;
 
 		private SocketsHttpHandler SocketHandler { get; }
 
@@ -129,6 +129,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 				HttpClient.Dispose();
 				SocketHandler.Dispose();
+				TorHttpPool?.Dispose();
 			}
 
 			_disposed = true;

@@ -51,10 +51,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 				throw new ArgumentException($"{nameof(dataCodewords)} num of bytes not equal to {nameof(vcStruct.VersionDetail.NumDataBytes)} for current version");
 			}
 
-			var encStruct = new EncodationStruct(vcStruct)
-			{
-				DataCodewords = dataCodewords
-			};
+			var encStruct = new EncodationStruct(vcStruct, dataCodewords);
 			return encStruct;
 		}
 

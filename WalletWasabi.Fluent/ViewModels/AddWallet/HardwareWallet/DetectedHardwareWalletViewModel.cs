@@ -16,9 +16,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 	[NavigationMetaData(Title = "Hardware Wallet")]
 	public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 	{
-		public DetectedHardwareWalletViewModel(WalletManager walletManager, string walletName, HwiEnumerateEntry device)
+		public DetectedHardwareWalletViewModel(string walletName, HwiEnumerateEntry device)
 		{
-			WalletManager = walletManager;
 			WalletName = walletName;
 			CancelCts = new CancellationTokenSource();
 
@@ -36,7 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 			EnableBack = false;
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNext(walletManager, device));
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(device));
 
 			NoCommand = ReactiveCommand.Create(OnNo);
 
@@ -44,8 +43,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 		}
 
 		public CancellationTokenSource CancelCts { get; }
-
-		public WalletManager WalletManager { get; }
 
 		public string WalletName { get; }
 
@@ -55,15 +52,15 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet
 
 		public ICommand NoCommand { get; }
 
-		private async Task OnNext(WalletManager walletManager, HwiEnumerateEntry device)
+		private async Task OnNextAsync(HwiEnumerateEntry device)
 		{
 			try
 			{
-				var walletFilePath = WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
-				var km = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, WalletManager.Network, CancelCts.Token);
+				var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
+				var km = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, Services.WalletManager.Network, CancelCts.Token);
 				km.SetIcon(Type);
 
-				Navigate().To(new AddedWalletPageViewModel(walletManager, km));
+				Navigate().To(new AddedWalletPageViewModel(km));
 			}
 			catch (Exception ex)
 			{

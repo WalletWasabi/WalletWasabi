@@ -30,7 +30,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Random = new SecureRandom();
 		}
 
-		public Dictionary<Guid, Round> Rounds { get; } = new();
+		public Dictionary<uint256, Round> Rounds { get; } = new();
 		private AsyncLock AsyncLock { get; } = new();
 		public Network Network { get; }
 		public WabiSabiConfig Config { get; }
@@ -119,7 +119,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var diff = aliceSum - bobSum;
 				if (diff == 0 || round.OutputRegistrationStart + round.OutputRegistrationTimeout < DateTimeOffset.UtcNow)
 				{
-					var coinjoin = round.CoinjoinState.AssertConstruction();
+					var coinjoin = round.Assert<ConstructionState>();
 
 					round.LogInfo($"{coinjoin.Inputs.Count} inputs were added.");
 					round.LogInfo($"{coinjoin.Outputs.Count} outputs were added.");
@@ -144,7 +144,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.TransactionSigning).ToArray())
 			{
-				var state = round.CoinjoinState.AssertSigning();
+				var state = round.Assert<SigningState>();
 
 				try
 				{
@@ -156,7 +156,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 						round.LogInfo("Trying to broadcast coinjoin.");
 						Coin[]? spentCoins = round.Alices.Select(x => x.Coin).ToArray();
 						Money networkFee = coinjoin.GetFee(spentCoins);
-						Guid roundId = round.Id;
+						uint256 roundId = round.Id;
 						FeeRate feeRate = coinjoin.GetFeeRate(spentCoins);
 						round.LogInfo($"Network Fee: {networkFee.ToString(false, false)} BTC.");
 						round.LogInfo($"Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} sat/vByte.");
@@ -190,7 +190,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private async Task FailTransactionSigningPhaseAsync(Round round)
 		{
-			var state = round.CoinjoinState.AssertSigning();
+			var state = round.Assert<SigningState>();
 
 			var unsignedPrevouts = state.UnsignedInputs.ToHashSet();
 
@@ -247,7 +247,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		}
 
 		public async Task<InputRegistrationResponse> RegisterInputAsync(
-			Guid roundId,
+			uint256 roundId,
 			Coin coin,
 			OwnershipProof ownershipProof,
 			ZeroCredentialsRequest zeroAmountCredentialRequests,
@@ -322,7 +322,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 				else if (round.Phase == Phase.ConnectionConfirmation)
 				{
-					var state = round.CoinjoinState.AssertConstruction();
+					var state = round.Assert<ConstructionState>();
 
 					// Ensure the input can be added to the CoinJoin
 					state = state.AddInput(alice.Coin);
@@ -405,7 +405,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
 				}
 
-				var state = round.CoinjoinState.AssertSigning();
+				var state = round.Assert<SigningState>();
 				foreach (var inputWitnessPair in request.InputWitnessPairs)
 				{
 					state = state.AddWitness((int)inputWitnessPair.InputIndex, inputWitnessPair.Witness);

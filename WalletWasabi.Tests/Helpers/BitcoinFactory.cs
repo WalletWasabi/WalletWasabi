@@ -1,14 +1,17 @@
 using NBitcoin;
+using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
+using WalletWasabi.Tests.UnitTests;
 
 namespace WalletWasabi.Tests.Helpers
 {
@@ -113,6 +116,30 @@ namespace WalletWasabi.Tests.Helpers
 			{
 				return key.PubKey.WitHash.ScriptPubKey;
 			}
+		}
+
+		// Creates and configures an fake RPC client used to simulate the
+		// interaction with our bitcoin full node RPC server.
+		public static MockRpcClient GetMockMinimalRpc()
+		{
+			var mockRpc = new MockRpcClient();
+			mockRpc.OnGetMempoolInfoAsync = () => Task.FromResult(
+				new MemPoolInfo
+				{
+					MemPoolMinFee = 0.00001000, // 1 s/b (default value)
+					Histogram = Array.Empty<FeeRateGroup>()
+				});
+
+			mockRpc.OnEstimateSmartFeeAsync = (target, mode) => Task.FromResult(
+				new EstimateSmartFeeResponse()
+				{
+					Blocks = target,
+					FeeRate = new FeeRate(Money.Satoshis(5000))
+				});
+
+			mockRpc.OnGetTxOutAsync = (_, _, _) => null;
+
+			return mockRpc;
 		}
 	}
 }

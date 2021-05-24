@@ -6,7 +6,6 @@ using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
-using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
@@ -29,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			WalletIcon = wallet.KeyManager.Icon;
 			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNext(walletManagerViewModel, closedWalletViewModel, wallet));
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(walletManagerViewModel, closedWalletViewModel, wallet));
 
 			OkCommand = ReactiveCommand.Create(OnOk);
 
@@ -38,7 +37,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			EnableAutoBusyOn(NextCommand);
 		}
 
-		private async Task OnNext(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel, Wallet wallet)
+		private async Task OnNextAsync(WalletManagerViewModel walletManagerViewModel, ClosedWalletViewModel closedWalletViewModel, Wallet wallet)
 		{
 			string? compatibilityPasswordUsed = null;
 
@@ -55,7 +54,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 				await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
 			}
 
-			var legalResult = await ShowLegalAsync(walletManagerViewModel.LegalChecker);
+			var legalResult = await ShowLegalAsync();
 
 			if (legalResult)
 			{
@@ -96,20 +95,20 @@ namespace WalletWasabi.Fluent.ViewModels.Login
 			Navigate().To(closedWalletViewModel, NavigationMode.Clear);
 		}
 
-		private async Task<bool> ShowLegalAsync(LegalChecker legalChecker)
+		private async Task<bool> ShowLegalAsync()
 		{
-			if (!legalChecker.TryGetNewLegalDocs(out var document))
+			if (!Services.LegalChecker.TryGetNewLegalDocs(out var document))
 			{
 				return true;
 			}
 
 			var legalDocs = new TermsAndConditionsViewModel(document.Content);
 
-			var dialogResult = await NavigateDialog(legalDocs, NavigationTarget.DialogScreen);
+			var dialogResult = await NavigateDialogAsync(legalDocs, NavigationTarget.DialogScreen);
 
 			if (dialogResult.Result)
 			{
-				await legalChecker.AgreeAsync();
+				await Services.LegalChecker.AgreeAsync();
 			}
 
 			return dialogResult.Result;

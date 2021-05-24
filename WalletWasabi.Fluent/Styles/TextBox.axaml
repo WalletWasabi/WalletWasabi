@@ -123,10 +123,15 @@
     <Setter Property="IsVisible" Value="True" />
   </Style>
 
-  <Style Selector="TextBox.selectable_text_block">
+  <Style Selector="TextBox.selectableTextBlock">
     <Setter Property="IsReadOnly" Value="True" />
     <Setter Property="Margin" Value="0" />
     <Setter Property="Padding" Value="0" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="CaretBrush" Value="Transparent" />
     <Setter Property="ContextMenu">
       <ContextMenu>
         <MenuItem Header="Copy" Command="{Binding $parent[TextBox].Copy}" IsEnabled="{Binding $parent[TextBox].CanCopy}" InputGesture="{x:Static TextBox.CopyGesture}"/>

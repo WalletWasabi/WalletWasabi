@@ -20,6 +20,9 @@ namespace WalletWasabi.Fluent.Controls
 {
 	public class TagsBox : TemplatedControl
 	{
+		public static readonly StyledProperty<string> WatermarkProperty =
+			TextBox.WatermarkProperty.AddOwner<TagsBox>();
+
 		public static readonly StyledProperty<bool> RestrictInputToSuggestionsProperty =
 			AvaloniaProperty.Register<TagsBox, bool>(nameof(RestrictInputToSuggestions));
 
@@ -47,6 +50,7 @@ namespace WalletWasabi.Fluent.Controls
 		private CompositeDisposable? _compositeDisposable;
 		private AutoCompleteBox? _autoCompleteBox;
 		private TextBox? _internalTextBox;
+		private TextBlock? _watermark;
 		private StringComparison _stringComparison;
 		private bool _backspaceEmptyField1;
 		private bool _backspaceEmptyField2;
@@ -69,6 +73,12 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			get => _items;
 			set => SetAndRaise(ItemsProperty, ref _items, value);
+		}
+
+		public string Watermark
+		{
+			get => GetValue(WatermarkProperty);
+			set => SetValue(WatermarkProperty, value);
 		}
 
 		public bool RestrictInputToSuggestions
@@ -124,6 +134,8 @@ namespace WalletWasabi.Fluent.Controls
 			var presenter = e.NameScope.Find<ItemsPresenter>("PART_ItemsPresenter");
 
 			presenter.ApplyTemplate();
+
+			_watermark = e.NameScope.Find<TextBlock>("PART_Watermark");
 
 			_autoCompleteBox = (presenter.Panel as ConcatenatingWrapPanel)?.ConcatenatedChildren
 				.OfType<AutoCompleteBox>().FirstOrDefault();
@@ -186,11 +198,33 @@ namespace WalletWasabi.Fluent.Controls
 				.DisposeWith(_compositeDisposable!);
 		}
 
+		protected override void OnGotFocus(GotFocusEventArgs e)
+		{
+			base.OnGotFocus(e);
+
+			_internalTextBox?.Focus();
+		}
+
 		private void CheckIsInputEnabled()
 		{
 			if (Items is IList x && ItemCountLimit > 0)
 			{
 				_isInputEnabled = x.Count < ItemCountLimit;
+			}
+		}
+
+		private void InvalidateWatermark()
+		{
+			if (_watermark is { } && _autoCompleteBox is { })
+			{
+				if ((Items is null || (Items is { } && !Items.Any())) && string.IsNullOrWhiteSpace(_autoCompleteBox?.Text))
+				{
+					_watermark.IsVisible = true;
+				}
+				else
+				{
+					_watermark.IsVisible = false;
+				}
 			}
 		}
 
@@ -206,6 +240,8 @@ namespace WalletWasabi.Fluent.Controls
 				e.Handled = true;
 				return;
 			}
+
+			InvalidateWatermark();
 
 			if (RestrictInputToSuggestions &&
 				Suggestions is IList<string> suggestions &&
@@ -263,6 +299,8 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void OnAutoCompleteBoxTextChanged(object? sender, EventArgs e)
 		{
+			InvalidateWatermark();
+
 			if (sender is not AutoCompleteBox autoCompleteBox ||
 				string.IsNullOrEmpty(Guard.Correct(autoCompleteBox.Text)))
 			{
@@ -384,6 +422,7 @@ namespace WalletWasabi.Fluent.Controls
 				list.RemoveAt(list.Count - 1);
 			}
 
+			InvalidateWatermark();
 			CheckIsInputEnabled();
 		}
 
@@ -410,6 +449,7 @@ namespace WalletWasabi.Fluent.Controls
 				list.Remove(tag);
 			}
 
+			InvalidateWatermark();
 			CheckIsInputEnabled();
 		}
 
@@ -425,6 +465,7 @@ namespace WalletWasabi.Fluent.Controls
 				x.Add(tag);
 			}
 
+			InvalidateWatermark();
 			CheckIsInputEnabled();
 		}
 	}

@@ -159,7 +159,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager.LoadWallets
 				// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
 				if (IsPasswordRequired)
 				{
-					if (PasswordHelper.TryPassword(keyManager, password, out string compatibilityPasswordUsed))
+					if (PasswordHelper.TryPassword(keyManager, password, out var compatibilityPasswordUsed))
 					{
 						NotificationHelpers.Success("Correct password.");
 						if (compatibilityPasswordUsed is { })

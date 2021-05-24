@@ -19,7 +19,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 	[NavigationMetaData(Title = "Transaction Details")]
 	public partial class TransactionDetailsViewModel : RoutableViewModel
 	{
-		private readonly BitcoinStore _bitcoinStore;
 		private readonly Wallet _wallet;
 		private readonly IObservable<Unit> _updateTrigger;
 
@@ -31,14 +30,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		[AutoNotify] private SmartLabel? _labels;
 		[AutoNotify] private uint256? _transactionId;
 
-		public TransactionDetailsViewModel(TransactionSummary transactionSummary, BitcoinStore bitcoinStore, Wallet wallet, IObservable<Unit> updateTrigger)
+		public TransactionDetailsViewModel(TransactionSummary transactionSummary, Wallet wallet, IObservable<Unit> updateTrigger)
 		{
-			_bitcoinStore = bitcoinStore;
 			_wallet = wallet;
 			_updateTrigger = updateTrigger;
 
 			NextCommand = ReactiveCommand.Create(OnNext);
-			CopyTransactionIdCommand = ReactiveCommand.CreateFromTask(OnCopyTransactionId);
+			CopyTransactionIdCommand = ReactiveCommand.CreateFromTask(OnCopyTransactionIdAsync);
 
 			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -47,7 +45,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 
 		public ICommand CopyTransactionIdCommand { get; set; }
 
-		private async Task OnCopyTransactionId()
+		private async Task OnCopyTransactionIdAsync()
 		{
 			if (TransactionId is null)
 			{
@@ -63,7 +61,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			TransactionId = transactionSummary.TransactionId;
 			Labels = transactionSummary.Label;
 			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0;
-			Confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int)_bitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
+			Confirmations = transactionSummary.Height.Type == HeightType.Chain ? (int)_wallet.BitcoinStore.SmartHeaderChain.TipHeight - transactionSummary.Height.Value + 1 : 0;
 			IsConfirmed = Confirmations > 0;
 			Amount = transactionSummary.Amount.ToString(fplus: false);
 		}

@@ -12,18 +12,18 @@
             <Button Name="PART_NoButton" HorizontalAlignment="Left" Content="No" Classes="yesNo" Command="{TemplateBinding NoCommand}" />
             <Button Name="PART_YesButton" HorizontalAlignment="Right" Content="Yes" Classes="yesNo" IsDefault="True" Command="{TemplateBinding YesCommand}" />
           </DockPanel>
-          <TextBlock Name="PART_Question"
-                     Text="{TemplateBinding Text}"
-                     FontSize="{TemplateBinding FontSize}"
-                     TextWrapping="Wrap"
-                     TextAlignment="Center"
-                     HorizontalAlignment="Center"
-                     DockPanel.Dock="Bottom"
-                     Margin="0 10 0 50" />
-          <Viewbox MaxHeight="150" DockPanel.Dock="Top">
-            <Image Height="100" Source="{TemplateBinding Icon}" />
-          </Viewbox>
-          <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" DockPanel.Dock="Top"/>
+          <ContentPresenter Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalContentAlignment="Center"
+                            TextBlock.FontSize="{TemplateBinding FontSize}"
+                            DockPanel.Dock="Bottom"
+                            Margin="0 10 0 50" />
+            <Panel DockPanel.Dock="Top">
+              <Viewbox MaxHeight="150">
+                <Image Height="100" Source="{TemplateBinding ImageIcon}" />
+              </Viewbox>
+              <ContentControl Content="{TemplateBinding IconContent}" DockPanel.Dock="Top"/>
+            </Panel>
         </DockPanel>
       </ControlTemplate>
     </Setter>

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using NBitcoin;
 using WalletWasabi.Wallets;
 
@@ -26,15 +27,24 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 	public partial class WalletPieChartTileViewModel : TileViewModel
 	{
 		private readonly Wallet _wallet;
+		private readonly IObservable<Unit> _balanceChanged;
 
 		[AutoNotify] private IList<(string color, double percentShare)>? _testDataPoints;
 		[AutoNotify] private IList<DataLegend>? _testDataPointsLegend;
 
 		public WalletPieChartTileViewModel(Wallet wallet, IObservable<Unit> balanceChanged)
 		{
+			_balanceChanged = balanceChanged;
 			_wallet = wallet;
+		}
 
-			balanceChanged.Subscribe(_ => Update());
+		protected override void OnActivated(CompositeDisposable disposables)
+		{
+			base.OnActivated(disposables);
+
+			_balanceChanged
+				.Subscribe(_ => Update())
+				.DisposeWith(disposables);
 
 			Update();
 		}
@@ -58,8 +68,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 			TestDataPointsLegend = new List<DataLegend>
 			{
-				new (privateCoins.TotalAmount(), "Private",  "#72BD81",  pcPrivate),
-				new (normalCoins.TotalAmount(), "Not Private",  "#F9DE7D",  pcNormal)
+				new(privateCoins.TotalAmount(), "Private", "#72BD81", pcPrivate),
+				new(normalCoins.TotalAmount(), "Not Private", "#F9DE7D", pcNormal)
 			};
 		}
 	}

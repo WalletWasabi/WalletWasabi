@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Controllers;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
@@ -43,14 +44,17 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				});
 
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
+			var wabiSabiApi = new WabiSabiController(coordinator);
 
-			CredentialPool amountCredentialPool = new();
-			CredentialPool vsizeCredentialPool = new();
-			var arenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, amountCredentialPool, vsizeCredentialPool, coordinator, new InsecureRandom());
+			ZeroCredentialPool amountCredentialPool = new();
+			ZeroCredentialPool vsizeCredentialPool = new();
+			var arenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, amountCredentialPool, vsizeCredentialPool, wabiSabiApi, new InsecureRandom());
 			Assert.Equal(Phase.InputRegistration, arena.Rounds.First().Value.Phase);
 
 			var bitcoinSecret = km.GetSecrets("", coin1.ScriptPubKey).Single().PrivateKey.GetBitcoinSecret(Network.Main);
-			var aliceClient = await AliceClient.CreateNewAsync(arenaClient, coin1.Coin, bitcoinSecret, round.Id, round.Hash, round.FeeRate);
+
+			var aliceClient = new AliceClient(round.Id, arenaClient, coin1.Coin, round.FeeRate, bitcoinSecret);
+			await aliceClient.RegisterInputAsync(CancellationToken.None);
 
 			Task confirmationTask = aliceClient.ConfirmConnectionAsync(TimeSpan.FromSeconds(3), CancellationToken.None);
 

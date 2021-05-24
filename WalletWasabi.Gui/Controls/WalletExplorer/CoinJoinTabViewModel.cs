@@ -345,7 +345,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				try
 				{
-					PasswordHelper.GetMasterExtKey(Wallet.KeyManager, Password, out string compatiblityPassword); // If the password is not correct we throw.
+					PasswordHelper.GetMasterExtKey(Wallet.KeyManager, Password, out var compatiblityPassword); // If the password is not correct we throw.
 
 					if (compatiblityPassword is { })
 					{

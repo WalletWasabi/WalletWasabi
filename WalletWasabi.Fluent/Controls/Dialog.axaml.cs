@@ -16,6 +16,7 @@ namespace WalletWasabi.Fluent.Controls
 	public class Dialog : ContentControl
 	{
 		private Panel? _dismissPanel;
+		private Panel? _overlayPanel;
 		private bool _canCancelOnPointerPressed;
 
 		public static readonly StyledProperty<bool> IsDialogOpenProperty =
@@ -137,6 +138,7 @@ namespace WalletWasabi.Fluent.Controls
 			base.OnApplyTemplate(e);
 
 			_dismissPanel = e.NameScope.Find<Panel>("PART_Dismiss");
+			_overlayPanel = e.NameScope.Find<Panel>("PART_Overlay");
 
 			if (this.GetVisualRoot() is TopLevel topLevel)
 			{
@@ -152,10 +154,12 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void CancelPointerPressed(object? sender, PointerPressedEventArgs e)
 		{
-			if (IsDialogOpen && EnableCancelOnPressed && !IsBusy && _dismissPanel is not null && _canCancelOnPointerPressed)
+			if (IsDialogOpen && EnableCancelOnPressed && !IsBusy && _dismissPanel is { } && _overlayPanel is { } && _canCancelOnPointerPressed)
 			{
 				var point = e.GetPosition(_dismissPanel);
-				if (!_dismissPanel.Bounds.Contains(point))
+				var isPressedOnTitleBar = e.GetPosition(_overlayPanel).Y < 30;
+
+				if (!_dismissPanel.Bounds.Contains(point) && !isPressedOnTitleBar)
 				{
 					Close();
 				}

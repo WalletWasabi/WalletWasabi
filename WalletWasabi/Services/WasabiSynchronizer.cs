@@ -9,6 +9,7 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -18,7 +19,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {
-	public class WasabiSynchronizer : NotifyPropertyChangedBase
+	public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvider
 	{
 		private const long StateNotStarted = 0;
 
@@ -47,6 +48,7 @@ namespace WalletWasabi.Services
 			LastResponse = null;
 			_running = StateNotStarted;
 			BitcoinStore = bitcoinStore;
+			FilterProcessor = new FilterProcessor(BitcoinStore);
 			HttpClientFactory = httpClientFactory;
 			WasabiClient = httpClientFactory.SharedWasabiClient;
 
@@ -58,6 +60,8 @@ namespace WalletWasabi.Services
 		public event EventHandler<bool>? ResponseArrivedIsGenSocksServFail;
 
 		public event EventHandler<SynchronizeResponse>? ResponseArrived;
+
+		public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
 
 		public SynchronizeResponse? LastResponse { get; private set; }
 
@@ -84,12 +88,22 @@ namespace WalletWasabi.Services
 		public BackendStatus BackendStatus
 		{
 			get => _backendStatus;
-			private set => RaiseAndSetIfChanged(ref _backendStatus, value);
+			private set
+			{
+				if (RaiseAndSetIfChanged(ref _backendStatus, value))
+				{
+					BackendStatusChangedAt = DateTimeOffset.UtcNow;
+				}
+			}
 		}
+
+		private DateTimeOffset BackendStatusChangedAt { get; set; } = DateTimeOffset.UtcNow;
+		public TimeSpan BackendStatusChangedSince => DateTimeOffset.UtcNow - BackendStatusChangedAt;
 
 		public TimeSpan MaxRequestIntervalForMixing { get; set; }
 
 		public BitcoinStore BitcoinStore { get; }
+		public FilterProcessor FilterProcessor { get; }
 
 		public bool IsRunning => Interlocked.Read(ref _running) == StateRunning;
 
@@ -97,6 +111,10 @@ namespace WalletWasabi.Services
 		/// Cancellation token source for stopping <see cref="WasabiSynchronizer"/>.
 		/// </summary>
 		private CancellationTokenSource StopCts { get; }
+
+		public AllFeeEstimate? LastAllFeeEstimate => LastResponse?.AllFeeEstimate;
+
+		public bool InError => BackendStatus != BackendStatus.Connected;
 
 		public bool AreRequestsBlocked() => Interlocked.Read(ref _blockRequests) == 1;
 
@@ -197,7 +215,7 @@ namespace WalletWasabi.Services
 							catch (Exception ex)
 							{
 								TorStatus = TorStatus.Running;
-								BackendStatus = BackendStatus.Connected;
+								BackendStatus = BackendStatus.NotConnected;
 								HandleIfGenSocksServFail(ex);
 								throw;
 							}
@@ -217,8 +235,14 @@ namespace WalletWasabi.Services
 								UsdExchangeRate = exchangeRate.Rate;
 							}
 
+							await FilterProcessor.ProcessAsync((uint)response.BestHeight, response.FiltersResponseState, response.Filters).ConfigureAwait(false);
+
 							LastResponse = response;
 							ResponseArrived?.Invoke(this, response);
+							if (response.AllFeeEstimate is { } allFeeEstimate)
+							{
+								AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
+							}
 						}
 						catch (OperationCanceledException)
 						{
@@ -319,7 +343,6 @@ namespace WalletWasabi.Services
 				await Task.Delay(50).ConfigureAwait(false);
 			}
 
-			HttpClientFactory.Dispose();
 			StopCts.Dispose();
 
 			EnableRequests(); // Enable requests (it's possible something is being blocked outside the class by AreRequestsBlocked.

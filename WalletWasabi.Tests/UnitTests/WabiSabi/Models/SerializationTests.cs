@@ -8,30 +8,17 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Groups;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
-using WalletWasabi.JsonConverters;
-using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
-using WalletWasabi.WabiSabi.Crypto.Serialization;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.Serialization;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 {
 	public class SerializationTests
 	{
-		private static JsonConverter[] Converters =
-		{
-			new ScalarJsonConverter(),
-			new GroupElementJsonConverter(),
-			new OutPointJsonConverter(),
-			new WitScriptJsonConverter(),
-			new ScriptJsonConverter(),
-			new OwnershipProofJsonConverter(),
-		};
-
 		private static IEnumerable<GroupElement> Points = Enumerable.Range(0, int.MaxValue).Select(i => Generators.FromText($"T{i}"));
 		private static IEnumerable<Scalar> Scalars = Enumerable.Range(1, int.MaxValue).Select(i => new Scalar((uint)i));
 		private static CredentialIssuerSecretKey IssuerKey = new (new InsecureRandom());
@@ -40,7 +27,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void InputRegistrationRequestMessageSerialization()
 		{
 			var message = new InputRegistrationRequest(
-					Guid.NewGuid(),
+					BitcoinFactory.CreateUint256(),
 					BitcoinFactory.CreateOutPoint(),
 					new OwnershipProof(),
 					CreateZeroCredentialsRequest(),
@@ -53,7 +40,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void InputRegistrationResponseMessageSerialization()
 		{
 			var message = new InputRegistrationResponse(
-				Guid.NewGuid(),
+				BitcoinFactory.CreateUint256(),
 				CreateCredentialsResponse(),
 				CreateCredentialsResponse());
 
@@ -64,8 +51,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void ConnectionConfirmationRequestMessageSerialization()
 		{
 			var message = new ConnectionConfirmationRequest(
-				Guid.NewGuid(),
-				Guid.NewGuid(),
+				BitcoinFactory.CreateUint256(),
+				BitcoinFactory.CreateUint256(),
 				CreateZeroCredentialsRequest(),
 				CreateRealCredentialsRequest(),
 				CreateZeroCredentialsRequest(),
@@ -90,7 +77,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void OutputRegistrationRequestMessageSerialization()
 		{
 			var message = new OutputRegistrationRequest(
-				Guid.NewGuid(),
+				BitcoinFactory.CreateUint256(),
 				BitcoinFactory.CreateScript(),
 				CreateRealCredentialsRequest(),
 				CreateRealCredentialsRequest());
@@ -112,7 +99,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void ReissueCredentialRequestMessageSerialization()
 		{
 			var message = new ReissueCredentialRequest(
-				Guid.NewGuid(),
+				BitcoinFactory.CreateUint256(),
 				CreateRealCredentialsRequest(),
 				CreateRealCredentialsRequest(),
 				CreateZeroCredentialsRequest(),
@@ -137,8 +124,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void InpuRemovalRequestMessageSerialization()
 		{
 			var message = new InputsRemovalRequest(
-				Guid.NewGuid(),
-				Guid.NewGuid());
+				BitcoinFactory.CreateUint256(),
+				BitcoinFactory.CreateUint256());
 
 			AssertSerialization(message);
 		}
@@ -149,7 +136,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			using var key1 = new Key();
 			using var key2 = new Key();
 			var message = new TransactionSignaturesRequest(
-				Guid.NewGuid(),
+				BitcoinFactory.CreateUint256(),
 				new[]
 				{
 					new InputWitnessPair(1, new WitScript(Op.GetPushOp(key1.PubKey.ToBytes())) ),
@@ -159,11 +146,19 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			AssertSerialization(message);
 		}
 
+		[Fact]
+		public void RoundStateMessageSerialization()
+		{
+			var round = WabiSabiFactory.CreateRound(new WalletWasabi.WabiSabi.Backend.WabiSabiConfig());
+			AssertSerialization(RoundState.FromRound(round));
+		}
+
 		private static void AssertSerialization<T>(T message)
 		{
-			var serializedMessage = JsonConvert.SerializeObject(message, Converters);
-			var deserializedMessage = JsonConvert.DeserializeObject<T>(serializedMessage, Converters);
-			var reserializedMessage = JsonConvert.SerializeObject(deserializedMessage, Converters);
+			var serializedMessage = JsonConvert.SerializeObject(message, JsonSerializationOptions.Default.Settings);
+			var deserializedMessage = JsonConvert.DeserializeObject<T>(serializedMessage, JsonSerializationOptions.Default.Settings);
+			var reserializedMessage = JsonConvert.SerializeObject(deserializedMessage, JsonSerializationOptions.Default.Settings);
+
 			Assert.Equal(reserializedMessage, serializedMessage);
 		}
 

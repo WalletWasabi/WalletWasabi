@@ -1,11 +1,9 @@
 using System;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoin.Client.Clients.Queuing;
@@ -27,10 +25,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		[AutoNotify] private string _confirmationTimeText;
 		[AutoNotify] private SmartLabel _labels;
 
-		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, TransactionBroadcaster broadcaster,
-			BuildTransactionResult transaction)
+		public TransactionPreviewViewModel(Wallet wallet, TransactionInfo info, BuildTransactionResult transaction)
 		{
 			_wallet = wallet;
+			_labels = SmartLabel.Empty;
 			_info = info;
 			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
@@ -38,20 +36,20 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			var destinationAmount = transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
 			var btcAmountText = $"{destinationAmount} bitcoins ";
-			var fiatAmountText = destinationAmount.GenerateFiatText(wallet.Synchronizer.UsdExchangeRate, "USD");
+			var fiatAmountText = destinationAmount.GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 			AmountText = $"{btcAmountText}{fiatAmountText}";
 
 			AddressText = info.Address.ToString();
 
 			var fee = transaction.Fee;
 			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} satoshis ";
-			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(wallet.Synchronizer.UsdExchangeRate, "USD");
+			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
 			FeeText = $"{btcFeeText}{fiatFeeText}";
 
 			PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
-			IsPayJoin = PayJoinUrl is { };
+			IsPayJoin = PayJoinUrl is not null;
 
-			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNext(wallet, broadcaster, transaction));
+			NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(transaction));
 		}
 
 		public string AmountText { get; }
@@ -72,11 +70,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			Labels = _info.Labels;
 		}
 
-		private async Task OnNext(Wallet wallet, TransactionBroadcaster broadcaster, BuildTransactionResult transaction)
+		private async Task OnNextAsync(BuildTransactionResult transaction)
 		{
 			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 
-			var authResult = await AuthorizeAsync(wallet, transactionAuthorizationInfo);
+			var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
 
 			if (authResult)
 			{
@@ -85,8 +83,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 				try
 				{
 					var finalTransaction = await GetFinalTransactionAsync(transactionAuthorizationInfo.Transaction, _info);
-					await SendTransaction(wallet, broadcaster, finalTransaction);
-					Navigate().To(new SendSuccessViewModel());
+					await SendTransactionAsync(finalTransaction);
+					Navigate().To(new SendSuccessViewModel(_wallet, finalTransaction));
 				}
 				catch (Exception ex)
 				{
@@ -97,15 +95,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			}
 		}
 
-		private async Task<bool> AuthorizeAsync(Wallet wallet, TransactionAuthorizationInfo transactionAuthorizationInfo)
+		private async Task<bool> AuthorizeAsync(TransactionAuthorizationInfo transactionAuthorizationInfo)
 		{
-			if (!wallet.KeyManager.IsHardwareWallet && string.IsNullOrEmpty(wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
+			if (!_wallet.KeyManager.IsHardwareWallet && string.IsNullOrEmpty(_wallet.Kitchen.SaltSoup())) // Do not show auth dialog when password is empty
 			{
 				return true;
 			}
 
-			var authDialog = AuthorizationHelpers.GetAuthorizationDialog(wallet, transactionAuthorizationInfo);
-			var authDialogResult = await NavigateDialog(authDialog, authDialog.DefaultTarget);
+			var authDialog = AuthorizationHelpers.GetAuthorizationDialog(_wallet, transactionAuthorizationInfo);
+			var authDialogResult = await NavigateDialogAsync(authDialog, authDialog.DefaultTarget);
 
 			if (!authDialogResult.Result && authDialogResult.Kind == DialogResultKind.Normal)
 			{
@@ -115,12 +113,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 			return authDialogResult.Result;
 		}
 
-		private async Task SendTransaction(Wallet wallet, TransactionBroadcaster broadcaster, SmartTransaction transaction)
+		private async Task SendTransactionAsync( SmartTransaction transaction)
 		{
 			// Dequeue any coin-joining coins.
-			await wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
+			await _wallet.ChaumianClient.DequeueAllCoinsFromMixAsync(DequeueReason.TransactionBuilding);
 
-			await broadcaster.SendTransactionAsync(transaction);
+			await Services.TransactionBroadcaster.SendTransactionAsync(transaction);
 		}
 
 		private async Task<SmartTransaction> GetFinalTransactionAsync(SmartTransaction transaction, TransactionInfo transactionInfo)
