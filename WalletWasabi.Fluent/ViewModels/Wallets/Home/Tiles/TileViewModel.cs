@@ -24,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			this.WhenAnyValue(x => x.TilePresetIndex)
 				.Subscribe(x =>
 				{
-					SetPresetSetFlag(x);
+					SetPresetFlag(x);
 					NotifyPresetChanged();
 				});
 		}
@@ -51,7 +51,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			this.RaisePropertyChanged(nameof(IsVisible));
 		}
 
-		private void SetPresetSetFlag(int presetIndex)
+		private void SetPresetFlag(int presetIndex)
 		{
 			IsSmallPreset = presetIndex == _smallPresetIndex;
 			IsNormalPreset = presetIndex == _normalPresetIndex;
