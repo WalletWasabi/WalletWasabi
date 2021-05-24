@@ -6,11 +6,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 {
 	public abstract partial class TileViewModel : ActivatableViewModel
 	{
-		private readonly int _smallLayoutIndex;
-		private readonly int _normalLayoutIndex;
-		private readonly int _wideLayoutIndex;
 		[AutoNotify] private ObservableCollection<TilePresetViewModel>? _tilePresets;
 		[AutoNotify] private int _tilePresetIndex;
+		[AutoNotify] private int _smallLayoutIndex;
+		[AutoNotify] private int _normalLayoutIndex;
+		[AutoNotify] private int _wideLayoutIndex;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSmallLayout;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isNormalLayout;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWideLayout;
