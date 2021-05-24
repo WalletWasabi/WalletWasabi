@@ -92,10 +92,28 @@
           <behaviors:HorizontalScrollViewerBehavior RequireShiftKey="False" ScrollChangeSize="Page"/>
         </i:Interaction.Behaviors>
         <ItemsControl Items="{Binding Tiles}"
-                      Margin="0 0"
-                      HorizontalAlignment="Left"
-                      VerticalAlignment="Top">
+                      Classes.smallLayout="{Binding IsSmallLayout}"
+                      Classes.normalLayout="{Binding IsNormalLayout}"
+                      Classes.wideLayout="{Binding IsWideLayout}">
           <ItemsControl.Styles>
+            <Style Selector="ItemsControl.smallLayout">
+              <Setter Property="HorizontalAlignment" Value="Left"/>
+              <Setter Property="VerticalAlignment" Value="Top"/>
+              <Setter Property="Margin" Value="0 0"/>
+              <Setter Property="Padding" Value="0,0,0,10"/>
+            </Style>
+            <Style Selector="ItemsControl.normalLayout">
+              <Setter Property="HorizontalAlignment" Value="Left"/>
+              <Setter Property="VerticalAlignment" Value="Top"/>
+              <Setter Property="Margin" Value="0 0"/>
+              <Setter Property="Padding" Value="0,0,0,10"/>
+            </Style>
+            <Style Selector="ItemsControl.wideLayout">
+              <Setter Property="HorizontalAlignment" Value="Left"/>
+              <Setter Property="VerticalAlignment" Value="Top"/>
+              <Setter Property="Margin" Value="0 0"/>
+              <Setter Property="Padding" Value="0,0,10,0"/>
+            </Style>
             <Style Selector="ItemsControl > ContentPresenter" x:DataType="tiles:TileViewModel">
               <Setter Property="Grid.Column" Value="{Binding Column}" />
               <Setter Property="Grid.Row" Value="{Binding Row}" />
