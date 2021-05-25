@@ -77,7 +77,7 @@ namespace WalletWasabi.WabiSabi.Client
 				// Here we should have something like:
 				// RoundState roundState = await OutputRegistrationPhase.ConfigureAwait(false);
 				await WaitFor(Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
-                var outputsWithCredentials = outputs.Zip(aliceClients, (output, alice) => (output, alice.RealAmountCredentials, alice.RealVsizeCredentials));
+				var outputsWithCredentials = outputs.Zip(aliceClients, (output, alice) => (output, alice.RealAmountCredentials, alice.RealVsizeCredentials));
 				await RegisterOutputsAsync(outputsWithCredentials, cancellationToken).ConfigureAwait(false);
 
 				await WaitFor(Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
@@ -177,14 +177,14 @@ namespace WalletWasabi.WabiSabi.Client
 			IEnumerable<(TxOut Output, Credential[] RealAmountCredentials, Credential[] RealVsizeCredentials)> outputsWithCredentials,
 			CancellationToken cancellationToken)
 		{
-            var bobClients = Enumerable.Range(0, int.MaxValue).Select(_ => CreateBobClient());
+			var bobClients = Enumerable.Range(0, int.MaxValue).Select(_ => CreateBobClient());
 			var outputRegistrationData = outputsWithCredentials.Zip(
-                    bobClients, 
-                    (o, b) => (
-                        TxOut: o.Output,
-                        RealAmountCredentials: o.RealAmountCredentials,
-                        RealVsizeCredentials: o.RealVsizeCredentials,
-                        BobClient: b));
+					bobClients,
+					(o, b) => (
+						TxOut: o.Output,
+						RealAmountCredentials: o.RealAmountCredentials,
+						RealVsizeCredentials: o.RealVsizeCredentials,
+						BobClient: b));
 
 			var outputRegisterRequests = outputRegistrationData
 				.Select(x => WrapCall(x.TxOut, x.BobClient.RegisterOutputAsync(x.TxOut.Value, x.TxOut.ScriptPubKey, x.RealAmountCredentials, x.RealVsizeCredentials, cancellationToken)));
