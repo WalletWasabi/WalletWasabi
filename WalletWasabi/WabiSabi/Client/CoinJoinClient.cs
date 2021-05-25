@@ -27,12 +27,14 @@ namespace WalletWasabi.WabiSabi.Client
 			IWabiSabiApiRequestHandler arenaRequestHandler,
 			IEnumerable<Coin> coins,
 			Kitchen kitchen,
-			KeyManager keymanager)
+			KeyManager keymanager,
+			RoundStatusUpdater roundStatusUpdater)
 		{
 			RoundId = roundId;
 			ArenaRequestHandler = arenaRequestHandler;
 			Kitchen = kitchen;
 			Keymanager = keymanager;
+			RoundStatusUpdater = roundStatusUpdater;
 			SecureRandom = new SecureRandom();
 			Coins = coins;
 		}
@@ -48,6 +50,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
+		private RoundStatusUpdater RoundStatusUpdater { get; }
 
 		protected override async Task ExecuteAsync(CancellationToken cancellationToken)
 		{
@@ -59,9 +62,9 @@ namespace WalletWasabi.WabiSabi.Client
 				// Calculate outputs values
 				var outputValues = DecomposeAmounts();
 
-                // Get all locked internal keys we have and assert we have enough.
-                Keymanager.AssertLockedInternalKeysIndexed(howMany: Coins.Count());
-                var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
+				// Get all locked internal keys we have and assert we have enough.
+				Keymanager.AssertLockedInternalKeysIndexed(howMany: Coins.Count());
+				var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
 				var outputs = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
 
 				var plan = CreatePlan(
@@ -78,13 +81,12 @@ namespace WalletWasabi.WabiSabi.Client
 				aliceClients = await ConfirmConnectionsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
 
 				// Output registration.
-				// Here we should have something like:
-				// RoundState roundState = await OutputRegistrationPhase.ConfigureAwait(false);
-				await WaitFor(Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
+				RoundState = await RoundStatusUpdater.CreateRoundAwaiter(RoundId, rs => rs.Phase == Phase.OutputRegistration).ConfigureAwait(false);
 				var outputsWithCredentials = outputs.Zip(aliceClients, (output, alice) => (output, alice.RealAmountCredentials, alice.RealVsizeCredentials));
 				await RegisterOutputsAsync(outputsWithCredentials, cancellationToken).ConfigureAwait(false);
 
-				await WaitFor(Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
+				// Signing.
+				RoundState = await RoundStatusUpdater.CreateRoundAwaiter(RoundId, rs => rs.Phase == Phase.TransactionSigning).ConfigureAwait(false);
 				var signingState = RoundState.Assert<SigningState>();
 				var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
 
@@ -97,17 +99,6 @@ namespace WalletWasabi.WabiSabi.Client
 			catch (Exception ex)
 			{
 				// The game is over for this round, no fallback mechanism. In the next round we will create another CoinJoinClient and try again.
-			}
-		}
-
-		private async Task WaitFor(Phase expectedPhase, CancellationToken cancellationToken)
-		{
-			// ideally this should await for a CompletionTask<RoundState> instead of
-			// iterate in this absurd way.
-			while (RoundState.Phase < expectedPhase)
-			{
-				await RefreshRoundAsync(cancellationToken).ConfigureAwait(false);
-				await Task.Delay(500).ConfigureAwait(false);
 			}
 		}
 

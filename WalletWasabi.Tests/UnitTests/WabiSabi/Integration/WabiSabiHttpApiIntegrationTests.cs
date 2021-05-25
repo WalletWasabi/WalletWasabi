@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -103,11 +104,16 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			// Create the coinjoin client
 			var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
+
 			var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
 			var roundState = rounds.First(x => x.CoinjoinState is ConstructionState);
 			var kitchen = new Kitchen();
 			kitchen.Cook("");
-			using var coinJoinClient = new CoinJoinClient(roundState.Id, apiClient, coins, kitchen, keyManager);
+
+			using var roundStateUpdater = new RoundStatusUpdater(TimeSpan.FromSeconds(1), apiClient);
+			await roundStateUpdater.StartAsync(CancellationToken.None);
+
+			using var coinJoinClient = new CoinJoinClient(roundState.Id, apiClient, coins, kitchen, keyManager, roundStateUpdater);
 
 			// Run the coinjoin client task.
 			await coinJoinClient.StartAsync(CancellationToken.None);
