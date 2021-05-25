@@ -58,7 +58,11 @@ namespace WalletWasabi.WabiSabi.Client
 
 				// Calculate outputs values
 				var outputValues = DecomposeAmounts();
-				var outputs = outputValues.Zip(Keymanager.GetKeys(), (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
+
+                // Get all locked internal keys we have and assert we have enough.
+                Keymanager.AssertLockedInternalKeysIndexed(howMany: Coins.Count());
+                var allLockedInternalKeys = Keymanager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked);
+				var outputs = outputValues.Zip(allLockedInternalKeys, (amount, hdPubKey) => new TxOut(amount, hdPubKey.P2wpkhScript));
 
 				var plan = CreatePlan(
 					Coins.Select(x => (ulong)x.Amount.Satoshi),
