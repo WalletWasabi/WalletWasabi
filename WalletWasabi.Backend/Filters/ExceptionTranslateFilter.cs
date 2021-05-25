@@ -13,7 +13,6 @@ namespace WalletWasabi.Backend.Filters
 		public override void OnException(ExceptionContext context)
 		{
 			var exception = context.Exception.InnerException ?? context.Exception;
-			var exceptionMessage = exception.Message;
 
 			context.Result = exception switch
 			{
@@ -21,9 +20,9 @@ namespace WalletWasabi.Backend.Filters
 					Type: ProtocolConstants.ProtocolViolationType,
 					ErrorCode: e.ErrorCode.ToString(),
 					Description: e.Message))
-					{
-						StatusCode = (int)HttpStatusCode.InternalServerError
-					},
+				{
+					StatusCode = (int)HttpStatusCode.InternalServerError
+				},
 				_ => new StatusCodeResult((int)HttpStatusCode.InternalServerError)
 			};
 		}

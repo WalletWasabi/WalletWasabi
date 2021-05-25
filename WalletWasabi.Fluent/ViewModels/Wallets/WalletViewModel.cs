@@ -1,6 +1,7 @@
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -22,7 +23,16 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 {
 	public partial class WalletViewModel : WalletViewModelBase
 	{
-		[AutoNotify] private IList<TileViewModel> _tiles;
+		private double _smallLayoutHeightBreakpoint;
+		private double _wideLayoutWidthBreakpoint;
+		private int _smallLayoutIndex;
+		private int _normalLayoutIndex;
+		private int _wideLayoutIndex;
+		[AutoNotify] private IList<TileViewModel>? _tiles;
+		[AutoNotify] private IList<TileLayoutViewModel>? _layouts;
+		[AutoNotify] private int _layoutIndex;
+		[AutoNotify] private double _widthSource;
+		[AutoNotify] private double _heightSource;
 
 		protected WalletViewModel(Wallet wallet) : base(wallet)
 		{
@@ -44,30 +54,71 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 
 			History = new HistoryViewModel(this, balanceChanged);
 
+			_smallLayoutHeightBreakpoint = 650;
+			_wideLayoutWidthBreakpoint = 1400;
+
+			_smallLayoutIndex = 0;
+			_normalLayoutIndex = 1;
+			_wideLayoutIndex = 2;
+
+			Layouts = new ObservableCollection<TileLayoutViewModel>()
+			{
+				new("Small", "330,330,330,330,330", "150"),
+				new("Normal", "330,330,330", "150,300"),
+				new("Wide", "330,330", "150,300,300")
+			};
+
+			LayoutIndex = _normalLayoutIndex;
+
 			BalanceTile = new WalletBalanceTileViewModel(wallet, balanceChanged)
 			{
-				ColumnSpan = new List<int> { 1, 1, 1 },
-				RowSpan = new List<int> { 1, 1, 1 }
+				TilePresets = new ObservableCollection<TilePresetViewModel>()
+				{
+					new(0, 0, 1, 1),
+					new(0, 0, 1, 1),
+					new(0, 0, 1, 1)
+				},
+				TilePresetIndex = LayoutIndex
 			};
 			RoundStatusTile = new RoundStatusTileViewModel(wallet)
 			{
-				ColumnSpan = new List<int> { 1, 1, 1 },
-				RowSpan = new List<int> { 1, 1, 1 }
+				TilePresets = new ObservableCollection<TilePresetViewModel>()
+				{
+					new(1, 0, 1, 1),
+					new(1, 0, 1, 1),
+					new(1, 0, 1, 1)
+				},
+				TilePresetIndex = LayoutIndex
 			};
 			BtcPriceTile = new BtcPriceTileViewModel(wallet)
 			{
-				ColumnSpan = new List<int> { 1, 1, 1 },
-				RowSpan = new List<int> { 1, 1, 1 }
+				TilePresets = new ObservableCollection<TilePresetViewModel>()
+				{
+					new(2, 0, 1, 1),
+					new(2, 0, 1, 1),
+					new(0, 1, 1, 1)
+				},
+				TilePresetIndex = LayoutIndex
 			};
 			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged)
 			{
-				ColumnSpan = new List<int> { 1, 1, 1 },
-				RowSpan = new List<int> { 1, 2, 2 }
+				TilePresets = new ObservableCollection<TilePresetViewModel>()
+				{
+					new(3, 0, 1, 1),
+					new(0, 1, 1, 1),
+					new(1, 1, 1, 1)
+				},
+				TilePresetIndex = LayoutIndex
 			};
 			BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions)
 			{
-				ColumnSpan = new List<int> { 2, 2, 2 },
-				RowSpan = new List<int> { 1, 2, 2 }
+				TilePresets = new ObservableCollection<TilePresetViewModel>()
+				{
+					new(4, 0, 1, 1),
+					new(1, 1, 2, 1),
+					new(0, 2, 2, 1)
+				},
+				TilePresetIndex = LayoutIndex
 			};
 
 			_tiles = new List<TileViewModel>
@@ -78,6 +129,19 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 				WalletPieChart,
 				BalanceChartTile
 			};
+
+			this.WhenAnyValue(x => x.LayoutIndex)
+				.Subscribe(_ =>
+				{
+					NotifyLayoutChanged();
+					UpdateTiles();
+				});
+
+			this.WhenAnyValue(x => x.WidthSource)
+				.Subscribe(x => LayoutSelector(x, _heightSource));
+
+			this.WhenAnyValue(x => x.HeightSource)
+				.Subscribe(x => LayoutSelector(_widthSource, x));
 
 			SendCommand = ReactiveCommand.Create(() =>
 			{
@@ -132,6 +196,46 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		public WalletPieChartTileViewModel WalletPieChart { get; }
 
 		public WalletBalanceChartTileViewModel BalanceChartTile { get; }
+
+		public TileLayoutViewModel? CurrentLayout => Layouts?[LayoutIndex];
+
+		private void LayoutSelector(double width, double height)
+		{
+			if (height < _smallLayoutHeightBreakpoint)
+			{
+				// Small Layout
+				LayoutIndex = _smallLayoutIndex;
+			}
+			else
+			{
+				if (width < _wideLayoutWidthBreakpoint)
+				{
+					// Normal Layout
+					LayoutIndex = _normalLayoutIndex;
+				}
+				else
+				{
+					// Wide Layout
+					LayoutIndex = _wideLayoutIndex;
+				}
+			}
+		}
+
+		private void NotifyLayoutChanged()
+		{
+			this.RaisePropertyChanged(nameof(CurrentLayout));
+		}
+
+		private void UpdateTiles()
+		{
+			if (Tiles != null)
+			{
+				foreach (var tile in Tiles)
+				{
+					tile.TilePresetIndex = LayoutIndex;
+				}
+			}
+		}
 
 		public void NavigateAndHighlight(uint256 txid)
 		{
