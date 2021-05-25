@@ -26,34 +26,25 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		private readonly ObservableCollectionExtended<HistoryItemViewModel> _unfilteredTransactions;
 		private readonly object _transactionListLock = new();
 
-		[AutoNotify] private bool _showCoinJoin;
 		[AutoNotify] private HistoryItemViewModel? _selectedItem;
 
 		public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
 		{
 			_walletViewModel = walletViewModel;
 			_updateTrigger = updateTrigger;
-			_showCoinJoin = Services.UiConfig.ShowCoinJoinInHistory;
 			_transactionSourceList = new SourceList<HistoryItemViewModel>();
 			_transactions = new ObservableCollectionExtended<HistoryItemViewModel>();
 			_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModel>();
 
-			this.WhenAnyValue(x => x.ShowCoinJoin)
-				.Subscribe(showCoinJoin => Services.UiConfig.ShowCoinJoinInHistory = showCoinJoin);
-
 			var sortDescription = DataGridSortDescription.FromPath(nameof(HistoryItemViewModel.OrderIndex), ListSortDirection.Descending);
 			CollectionView = new DataGridCollectionView(Transactions);
 			CollectionView.SortDescriptions.Add(sortDescription);
-
-			var coinJoinFilter = this.WhenAnyValue(x => x.ShowCoinJoin)
-				.Select(CoinJoinFilter);
 
 			_transactionSourceList
 				.Connect()
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Sort(SortExpressionComparer<HistoryItemViewModel>.Descending(x => x.OrderIndex))
 				.Bind(_unfilteredTransactions)
-				.Filter(coinJoinFilter)
 				.Bind(_transactions)
 				.Subscribe();
 
@@ -98,19 +89,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				.DisposeWith(disposables);
 
 			disposables.Add(Disposable.Create(() => _transactionSourceList.Clear()));
-		}
-
-		private static Func<HistoryItemViewModel, bool> CoinJoinFilter(bool showCoinJoin)
-		{
-			return item =>
-			{
-				if (showCoinJoin)
-				{
-					return true;
-				}
-
-				return !item.IsCoinJoin;
-			};
 		}
 
 		private async Task UpdateAsync()
