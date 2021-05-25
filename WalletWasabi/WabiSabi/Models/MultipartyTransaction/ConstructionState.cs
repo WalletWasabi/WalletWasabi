@@ -109,7 +109,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InsufficientFees);
 			}
 
-			return new SigningState(this);
+			return new SigningState(Parameters, Inputs, Outputs);
 		}
 	}
 }
