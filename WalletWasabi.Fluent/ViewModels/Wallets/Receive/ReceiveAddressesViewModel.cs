@@ -19,11 +19,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 	[NavigationMetaData(Title = "Receive Addresses")]
 	public partial class ReceiveAddressesViewModel : RoutableViewModel
 	{
+		private readonly HashSet<string> _suggestions;
+
 		[AutoNotify] private ObservableCollection<AddressViewModel> _addresses;
 		[AutoNotify] private AddressViewModel? _selectedAddress;
 
-		public ReceiveAddressesViewModel(Wallet wallet)
+		public ReceiveAddressesViewModel(Wallet wallet, HashSet<string> suggestions)
 		{
+			_suggestions = suggestions;
 			Wallet = wallet;
 			Network = wallet.Network;
 			_addresses = new ObservableCollection<AddressViewModel>();
@@ -33,19 +36,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			EnableBack = true;
 
 			InitializeAddresses();
-
-			this.WhenAnyValue(x => x.SelectedAddress)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(selected =>
-				{
-					if (selected is null)
-					{
-						return;
-					}
-
-					Navigate().To(new ReceiveAddressViewModel(selected.Model, wallet.Network, wallet.KeyManager.MasterFingerprint, wallet.KeyManager.IsHardwareWallet));
-					SelectedAddress = null;
-				});
 		}
 
 		public Wallet Wallet { get; }
@@ -73,7 +63,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 				foreach (HdPubKey key in keys)
 				{
-					Addresses.Add(new AddressViewModel(key, Network, HideAddressAsync));
+					Addresses.Add(new AddressViewModel(this, Wallet, key, Network));
 				}
 			}
 			catch (Exception ex)
@@ -82,7 +72,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			}
 		}
 
-		private async Task HideAddressAsync(HdPubKey model, string address)
+		public async Task HideAddressAsync(HdPubKey model, string address)
 		{
 			var result = await NavigateDialogAsync(new ConfirmHideAddressViewModel(model.Label));
 
@@ -99,6 +89,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			{
 				await Application.Current.Clipboard.ClearAsync();
 			}
+		}
+
+		public void NavigateToAddressEdit(HdPubKey hdPubKey, KeyManager keyManager)
+		{
+			Navigate(NavigationTarget.CompactDialogScreen).To(new AddressLabelEditViewModel(this, hdPubKey, keyManager, _suggestions));
 		}
 	}
 }

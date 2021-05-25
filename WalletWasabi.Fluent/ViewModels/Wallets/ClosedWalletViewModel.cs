@@ -7,8 +7,6 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Login;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Fluent.ViewModels.Wallets.HardwareWallet;
-using WalletWasabi.Fluent.ViewModels.Wallets.WatchOnlyWallet;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets
@@ -23,14 +21,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 		protected ClosedWalletViewModel(WalletManagerViewModel walletManagerViewModel, Wallet wallet)
 			: base(wallet)
 		{
-			_smartHeaderChain = walletManagerViewModel.BitcoinStore.SmartHeaderChain;
+			_smartHeaderChain = Services.BitcoinStore.SmartHeaderChain;
 
 			OpenCommand = ReactiveCommand.Create(() => OnOpen(walletManagerViewModel));
 		}
 
 		public LoadingControlViewModel Loading { get; } = new();
-
-		public override string IconName => "web_asset_regular";
 
 		protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 		{

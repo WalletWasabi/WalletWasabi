@@ -8,21 +8,24 @@ using Avalonia;
 using Gma.QrCodeNet.Encoding;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Hwi;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 {
 	[NavigationMetaData(Title = "Receive Address")]
 	public partial class ReceiveAddressViewModel : RoutableViewModel
 	{
-		public ReceiveAddressViewModel(HdPubKey model, Network network, HDFingerprint? masterFingerprint, bool isHardwareWallet)
+		public ReceiveAddressViewModel(Wallet wallet, HdPubKey model)
 		{
-			Address = model.GetP2wpkhAddress(network).ToString();
-			Reference = model.Label;
-			IsHardwareWallet = isHardwareWallet;
+			Address = model.GetP2wpkhAddress(wallet.Network).ToString();
+			Labels = model.Label;
+			IsHardwareWallet = wallet.KeyManager.IsHardwareWallet;
+			IsAutoCopyEnabled = Services.UiConfig.Autocopy;
 
 			GenerateQrCode();
 
@@ -32,7 +35,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			CopyAddressCommand = ReactiveCommand.CreateFromTask(async () => await Application.Current.Clipboard.SetTextAsync(Address));
 
-			ShowOnHwWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnShowOnHwWalletAsync(model, network, masterFingerprint));
+			ShowOnHwWalletCommand = ReactiveCommand.CreateFromTask(async () => await OnShowOnHwWalletAsync(model, wallet.Network, wallet.KeyManager.MasterFingerprint));
 
 			SaveQrCodeCommand = ReactiveCommand.CreateFromTask(async () => await OnSaveQrCodeAsync());
 
@@ -90,11 +93,13 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 		public string Address { get; }
 
-		public string Reference { get; }
+		public SmartLabel Labels { get; }
 
 		public bool[,]? QrCode { get; set; }
 
 		public bool IsHardwareWallet { get; }
+
+		public bool IsAutoCopyEnabled { get; }
 
 		private void GenerateQrCode()
 		{

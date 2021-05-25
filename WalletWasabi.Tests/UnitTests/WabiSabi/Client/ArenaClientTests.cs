@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Controllers;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
@@ -46,15 +47,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 					TxOut = new TxOut(Money.Coins(1m), key.PubKey.WitHash.GetAddress(Network.Main)),
 				});
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
+			var wabiSabiApi = new WabiSabiController(coordinator);
+			ZeroCredentialPool zeroAmountCredentials = new();
+			ZeroCredentialPool zeroVsizeCredentials = new();
+			var aliceArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, zeroAmountCredentials, zeroVsizeCredentials, wabiSabiApi, new InsecureRandom());
 
-			CredentialPool amountCredentials = new();
-			CredentialPool vsizeCredentials = new();
-			var aliceArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, amountCredentials, vsizeCredentials, coordinator, new InsecureRandom());
-
-			var aliceId = await aliceArenaClient.RegisterInputAsync(Money.Coins(1m), outpoint, key, round.Id, CancellationToken.None);
-
-			Assert.NotEqual(uint256.Zero, aliceId);
-			Assert.Empty(amountCredentials.Valuable);
+			var inputRegistrationResponse = await aliceArenaClient.RegisterInputAsync(outpoint, key, round.Id, CancellationToken.None);
+			var aliceId = inputRegistrationResponse.Value;
 
 			var reissuanceAmounts = new[]
 			{
@@ -68,60 +67,52 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			// Phase: Input Registration
 			Assert.Equal(Phase.InputRegistration, round.Phase);
 
-			await aliceArenaClient.ConfirmConnectionAsync(
+			var connectionConfirmationResponse1 = await aliceArenaClient.ConfirmConnectionAsync(
 				round.Id,
 				aliceId,
 				inputRemainingVsizes,
-				amountCredentials.ZeroValue.Take(ProtocolConstants.CredentialNumber),
+				inputRegistrationResponse.RealAmountCredentials,
+				inputRegistrationResponse.RealVsizeCredentials,
 				reissuanceAmounts,
 				CancellationToken.None);
-
-			Assert.Empty(amountCredentials.Valuable);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 			// Phase: Connection Confirmation
-			await aliceArenaClient.ConfirmConnectionAsync(
+			var connectionConfirmationResponse2 = await aliceArenaClient.ConfirmConnectionAsync(
 				round.Id,
 				aliceId,
 				inputRemainingVsizes,
-				amountCredentials.ZeroValue.Take(ProtocolConstants.CredentialNumber),
+				connectionConfirmationResponse1.RealAmountCredentials,
+				connectionConfirmationResponse1.RealVsizeCredentials,
 				reissuanceAmounts,
 				CancellationToken.None);
 
-			Assert.Single(amountCredentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.First());
-			Assert.Single(amountCredentials.Valuable, x => x.Amount.ToMoney() == reissuanceAmounts.Last());
-
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
+			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
 			Assert.Equal(Phase.OutputRegistration, round.Phase);
 
-			var bobArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, amountCredentials, vsizeCredentials, coordinator, new InsecureRandom());
-
-			Assert.Equal(4, amountCredentials.ZeroValue.Count());
+			var bobArenaClient = new ArenaClient(round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, zeroAmountCredentials, zeroVsizeCredentials, wabiSabiApi, new InsecureRandom());
 
 			// Phase: Output Registration
 			using var destinationKey1 = new Key();
 			using var destinationKey2 = new Key();
 
-			var result = await bobArenaClient.ReissueCredentialAsync(
+			var reissuanceResponse = await bobArenaClient.ReissueCredentialAsync(
 				round.Id,
 				reissuanceAmounts[0],
 				destinationKey1.PubKey.WitHash.ScriptPubKey,
 				reissuanceAmounts[1],
 				destinationKey2.PubKey.WitHash.ScriptPubKey,
-				amountCredentials.Valuable,
-				vsizeCredentials.Valuable,
+				connectionConfirmationResponse2.RealAmountCredentials,
+				connectionConfirmationResponse2.RealVsizeCredentials,
 				CancellationToken.None);
 
-			Assert.Equal(6, amountCredentials.ZeroValue.Count());
-			Assert.Equal(6, vsizeCredentials.ZeroValue.Count());
+			Credential amountCred1 = reissuanceResponse.RealAmountCredentials.ElementAt(0);
+			Credential amountCred2 = reissuanceResponse.RealAmountCredentials.ElementAt(1);
 
-			Credential amountCred1 = result.RealAmountCredentials.ElementAt(0);
-			Credential amountCred2 = result.RealAmountCredentials.ElementAt(1);
-
-			Credential vsizeCred1 = result.RealVsizeCredentials.ElementAt(0);
-			Credential vsizeCred2 = result.RealVsizeCredentials.ElementAt(1);
+			Credential vsizeCred1 = reissuanceResponse.RealVsizeCredentials.ElementAt(0);
+			Credential vsizeCred2 = reissuanceResponse.RealVsizeCredentials.ElementAt(1);
 
 			await bobArenaClient.RegisterOutputAsync(
 				round.Id,
@@ -142,7 +133,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-			var tx = round.CoinjoinState.AssertSigning().CreateTransaction();
+			var tx = round.Assert<SigningState>().CreateTransaction();
 			Assert.Single(tx.Inputs);
 			Assert.Equal(2, tx.Outputs.Count);
 		}
@@ -160,7 +151,8 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
 
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, arena.Rpc);
-			var apiClient = new ArenaClient(null!, null!, coordinator);
+			var wabiSabiApi = new WabiSabiController(coordinator);
+			var apiClient = new ArenaClient(null!, null!, wabiSabiApi);
 
 			round.SetPhase(Phase.InputRegistration);
 
@@ -186,18 +178,21 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			var mockRpc = new Mock<IRPCClient>();
 			await using var coordinator = new ArenaRequestHandler(config, new Prison(), arena, mockRpc.Object);
+			var wabiSabiApi = new WabiSabiController(coordinator);
 
 			var rnd = new InsecureRandom();
-			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, rnd, 4300000000000ul);
-			var vsizeClient = new WabiSabiClient(round.VsizeCredentialIssuerParameters, rnd, 2000ul);
-			var apiClient = new ArenaClient(amountClient, vsizeClient, coordinator);
+			ZeroCredentialPool zeroAmountCredentials = new();
+			ZeroCredentialPool zeroVsizeCredentials = new();
+			var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, rnd, 4300000000000ul, zeroAmountCredentials);
+			var vsizeClient = new WabiSabiClient(round.VsizeCredentialIssuerParameters, rnd, 2000ul, zeroVsizeCredentials);
+			var apiClient = new ArenaClient(amountClient, vsizeClient, wabiSabiApi);
 
 			round.SetPhase(Phase.TransactionSigning);
 
-			var emptyState = round.CoinjoinState.AssertConstruction();
+			var emptyState = round.Assert<ConstructionState>();
 
 			// We can't use ``emptyState.Finalize()` because this is not a valid transaction so we fake it
-			var finalizedEmptyState = new SigningState(emptyState.Parameters, emptyState.Inputs.ToImmutableArray(), emptyState.Outputs.ToImmutableArray());
+			var finalizedEmptyState = new SigningState(emptyState);
 
 			// No inputs in the CoinJoin.
 			await Assert.ThrowsAsync<ArgumentException>(async () =>
@@ -217,20 +212,20 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			await Assert.ThrowsAsync<InvalidOperationException>(async () =>
 				await apiClient.SignTransactionAsync(round.Id, alice1.Coin, new BitcoinSecret(key2, Network.Main), twoInputs.CreateUnsignedTransaction(), CancellationToken.None));
 
-			Assert.False(round.CoinjoinState.AssertSigning().IsFullySigned);
+			Assert.False(round.Assert<SigningState>().IsFullySigned);
 
-			var unsigned = round.CoinjoinState.AssertSigning().CreateUnsignedTransaction();
+			var unsigned = round.Assert<SigningState>().CreateUnsignedTransaction();
 
 			await apiClient.SignTransactionAsync(round.Id, alice1.Coin, new BitcoinSecret(key1, Network.Main), unsigned, CancellationToken.None);
-			Assert.True(round.CoinjoinState.AssertSigning().IsInputSigned(alice1.Coin.Outpoint));
-			Assert.False(round.CoinjoinState.AssertSigning().IsInputSigned(alice2.Coin.Outpoint));
+			Assert.True(round.Assert<SigningState>().IsInputSigned(alice1.Coin.Outpoint));
+			Assert.False(round.Assert<SigningState>().IsInputSigned(alice2.Coin.Outpoint));
 
-			Assert.False(round.CoinjoinState.AssertSigning().IsFullySigned);
+			Assert.False(round.Assert<SigningState>().IsFullySigned);
 
 			await apiClient.SignTransactionAsync(round.Id, alice2.Coin, new BitcoinSecret(key2, Network.Main), unsigned, CancellationToken.None);
-			Assert.True(round.CoinjoinState.AssertSigning().IsInputSigned(alice2.Coin.Outpoint));
+			Assert.True(round.Assert<SigningState>().IsInputSigned(alice2.Coin.Outpoint));
 
-			Assert.True(round.CoinjoinState.AssertSigning().IsFullySigned);
+			Assert.True(round.Assert<SigningState>().IsFullySigned);
 		}
 	}
 }
