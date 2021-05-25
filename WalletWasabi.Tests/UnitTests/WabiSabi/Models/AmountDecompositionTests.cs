@@ -10,10 +10,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		[Fact]
 		public void BaseDenomGeneratorTest()
 		{
-			FeeRate feeRate = new(100m);
-			var denoms = BaseDenominationGenerator.GenerateWithEffectiveCost(feeRate);
+			var denoms = BaseDenominationGenerator.Generate();
 			Assert.Equal(157, denoms.Count());
-
+			Assert.Equal(denoms, denoms.Distinct());
 			// It should be ordered.
 			Assert.Equal(denoms.OrderBy(d => d), denoms);
 		}

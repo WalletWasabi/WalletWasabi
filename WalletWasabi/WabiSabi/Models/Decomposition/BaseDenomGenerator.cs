@@ -13,7 +13,7 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 		private static IEnumerable<Money> Multiple(IEnumerable<long> coefficients, IEnumerable<long> values) =>
 			values.SelectMany(v => coefficients.Select(c => Money.Satoshis(c * v))).Where(x => x <= MaxSats);
 
-		private static IEnumerable<Money> Generate()
+		public static IEnumerable<Money> Generate()
 		{
 			var powersOfTwo = Enumerable.Range(0, 50).Select(x => (long)1m << x);
 			var powersOfThree = Enumerable.Range(0, 32).Select(x => (long)Math.Pow(3, x));
@@ -27,13 +27,6 @@ namespace WalletWasabi.WabiSabi.Models.Decomposition
 				.Union(ternary)
 				.Union(preferredValueSeries)
 				.OrderBy(v => v);
-		}
-
-		public static IEnumerable<Money> GenerateWithEffectiveCost(FeeRate feeRate)
-		{
-			var outputSize = Constants.OutputSizeInBytes;
-			var fee = feeRate.GetFee(outputSize);
-			return Generate().Select(m => m + fee);
 		}
 	}
 }
