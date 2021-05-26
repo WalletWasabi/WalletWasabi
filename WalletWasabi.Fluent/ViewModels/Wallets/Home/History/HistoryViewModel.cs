@@ -60,12 +60,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				.Filter(coinJoinFilter)
 				.Bind(_transactions)
 				.Subscribe();
-
-			this.WhenAnyValue(x => x.SelectedItem)
-				.Buffer(2, 1)
-				.Select(buf => buf[0])
-				.WhereNotNull()
-				.Subscribe(x => x.IsSelected = false);
 		}
 
 		public DataGridCollectionView CollectionView { get; }
@@ -141,7 +135,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 						_transactionSourceList.Add(new HistoryItemViewModel(i, transactionSummary, _walletViewModel, balance, _updateTrigger));
 					}
 
-					if (_txidsToSelect.FirstOrDefault() is { } txid)
+					// Flashing animation on the new items
+					foreach (var txid in _txidsToSelect.ToList())
 					{
 						SelectTransaction(txid);
 					}
