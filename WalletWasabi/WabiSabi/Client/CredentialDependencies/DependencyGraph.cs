@@ -9,6 +9,8 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 	{
 		public const int K = ProtocolConstants.CredentialNumber;
 
+		public static ImmutableArray<CredentialType> CredentialTypes { get; } = ImmutableArray.Create<CredentialType>(CredentialType.Amount, CredentialType.Vsize);
+
 		public ImmutableList<RequestNode> Vertices { get; private set; } = ImmutableList<RequestNode>.Empty;
 
 		public ImmutableList<RequestNode> Inputs { get; private set; } = ImmutableList<RequestNode>.Empty;
@@ -20,7 +22,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		// Internal properties used to keep track of effective values and edges
 		public ImmutableSortedDictionary<CredentialType, CredentialEdgeSet> edgeSets { get; init; } = ImmutableSortedDictionary<CredentialType, CredentialEdgeSet>.Empty
 			.Add(CredentialType.Amount, new() { CredentialType = CredentialType.Amount })
-			.Add(CredentialType.VirtualBytes, new() { CredentialType = CredentialType.VirtualBytes });
+			.Add(CredentialType.Vsize, new() { CredentialType = CredentialType.Vsize });
 
 		public long Balance(RequestNode node, CredentialType credentialType) => edgeSets[credentialType].Balance(node);
 
@@ -46,12 +48,12 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		public static DependencyGraph FromValues(IEnumerable<IEnumerable<ulong>> inputValues, IEnumerable<IEnumerable<ulong>> outputValues)
 		{
-			if (Enumerable.Concat(inputValues, outputValues).Any(x => x.Count() != (int)CredentialType.NumTypes))
+			if (Enumerable.Concat(inputValues, outputValues).Any(x => x.Count() != CredentialTypes.Length))
 			{
-				throw new ArgumentException($"Number of credential values must be {CredentialType.NumTypes}");
+				throw new ArgumentException($"Number of credential values must be {CredentialTypes.Length}");
 			}
 
-			for (CredentialType credentialType = 0; credentialType < CredentialType.NumTypes; credentialType++)
+			foreach (var credentialType in CredentialTypes)
 			{
 				// no Sum(Func<ulong, ulong>)) variant
 				long credentialValue(IEnumerable<ulong> x) => (long)x.Skip((int)credentialType).First();
@@ -177,8 +179,8 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		/// with non-maximized in-degrees, it can only increase the available
 		/// out degree for nodes which are not fully consumed.</para></remarks>
 		private DependencyGraph ResolveCredentials()
-			=> edgeSets.Keys.Aggregate(
-				edgeSets.Keys.Aggregate(this, (g, credentialType) => g.ResolveNegativeBalanceNodes(credentialType)),
+			=> CredentialTypes.Aggregate(
+				CredentialTypes.Aggregate(this, (g, credentialType) => g.ResolveNegativeBalanceNodes(credentialType)),
 				(g, credentialType) => g.ResolveZeroCredentials(credentialType));
 
 		private DependencyGraph ResolveNegativeBalanceNodes(CredentialType credentialType)
@@ -189,7 +191,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 			var negative = g.Vertices.Where(v => edgeSet.Balance(v) < 0);
 
-			if (negative.Count() == 0)
+			if (!negative.Any())
 			{
 				return g;
 			}
@@ -244,7 +246,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 			IEnumerable<RequestNode> negative = Vertices.Where(v => edgeSet.Balance(v) < 0).OrderBy(v => edgeSet.Balance(v));
 
-			if (negative.Count() == 0)
+			if (!negative.Any())
 			{
 				return this;
 			}
@@ -358,7 +360,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			// dependencies between different requests, weight credentials
 			// should often be easily satisfiable with parallel edges to the
 			// amount credential edges.
-			if (credentialType + 1 < CredentialType.NumTypes)
+			if (CredentialTypes.Contains(credentialType + 1))
 			{
 				// TODO Limit up to a certain height in the graph, no more than
 				// the initial value, this can sometimes create a deeper graph
@@ -394,7 +396,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			var edgeSet = edgeSets[credentialType];
 			var unresolvedNodes = Vertices.Where(v => edgeSet.RemainingInDegree(v) > 0 && edgeSet.AvailableZeroOutDegree(v) > 0).OrderByDescending(v => edgeSet.AvailableZeroOutDegree(v));
 
-			if (unresolvedNodes.Count() == 0)
+			if (!unresolvedNodes.Any())
 			{
 				return ResolveZeroCredentialsForTerminalNodes(credentialType); ;
 			}
@@ -425,7 +427,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			var edgeSet = edgeSets[credentialType];
 			var unresolvedNodes = Vertices.Where(v => edgeSet.RemainingInDegree(v) > 0).OrderByDescending(v => edgeSet.AvailableZeroOutDegree(v));
 
-			if (unresolvedNodes.Count() == 0)
+			if (!unresolvedNodes.Any())
 			{
 				return this;
 			}
@@ -459,19 +461,19 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 			foreach (var v in Vertices)
 			{
-				if (v.InitialBalance(CredentialType.Amount) == 0 && v.InitialBalance(CredentialType.VirtualBytes) == 0)
+				if (v.InitialBalance(CredentialType.Amount) == 0 && v.InitialBalance(CredentialType.Vsize) == 0)
 				{
 
 					output += $"  {id(v)} [label=\"\"];\n";
 				}
 				else
 				{
-					output += $"  {id(v)} [label=\"{v.InitialBalance(CredentialType.Amount)}s {v.InitialBalance(CredentialType.VirtualBytes)}b\"];\n";
+					output += $"  {id(v)} [label=\"{v.InitialBalance(CredentialType.Amount)}s {v.InitialBalance(CredentialType.Vsize)}b\"];\n";
 				}
 			}
 
 
-			for (CredentialType credentialType = 0; credentialType < CredentialType.NumTypes; credentialType++)
+			foreach (var credentialType in CredentialTypes)
 			{
 				var color = credentialType == 0 ? "blue" : "red";
 				var unit = credentialType == 0 ? "s" : "b";

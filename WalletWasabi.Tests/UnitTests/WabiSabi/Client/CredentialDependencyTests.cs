@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 using Xunit;
 
@@ -8,6 +11,115 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 {
 	public class CredentialDependencyTests
 	{
+		[Fact]
+		public async void AsyncDependencyGraphTraversal()
+		{
+			var g = DependencyGraph.ResolveCredentialDependencies(
+				inputValues: new[] { new ulong[] { 10000, 1930 }, new ulong[] { 1000, 1930 } },
+				outputValues: new[] { new ulong[] { 5000, 31 }, new ulong[] { 3500, 31 }, new ulong[] { 2500, 31 } });
+
+			await SimulateAsyncRequests(g);
+		}
+
+		// Demonstrate how to use the dependency grap. Also checks it can be
+		// executed with no deadlocks.
+		private async Task SimulateAsyncRequests(DependencyGraph g)
+		{
+			// Keep track of the partial sets credentials to present. Requests
+			// that are keys in this dictionary are still waiting to be sent.
+			var pendingCredentialsToPresent = g.Vertices.ToDictionary(v => v, _ => DependencyGraph.CredentialTypes.ToDictionary(t => t, _ => new List<ulong>()));
+
+			// A waiting request is blocked if either set of credentials that
+			// need to be presented is incomplete. Since input registrations and
+			// connection confirmation are modeled as a single node with in
+			// degree 0, they are never blocked.
+			ImmutableArray<RequestNode> unblockedRequests() => pendingCredentialsToPresent.Keys.Where(node => DependencyGraph.CredentialTypes.All(t => g.InDegree(node, t) == pendingCredentialsToPresent[node][t].Count)).ToImmutableArray();
+
+			// Also keep track of the in-flight requests
+			var inFlightRequests = new List<(Task<ImmutableSortedDictionary<CredentialType, IEnumerable<ulong>>> Task, ImmutableSortedDictionary<CredentialType, IEnumerable<CredentialDependency>> Dependencies)>();
+
+			// And all sent requests, for testing purposes.
+			var sent = new HashSet<RequestNode>();
+
+			var rng = new Random();
+
+			// Simulate sending a request. Instead of actual Credential objects,
+			// credentials are just represented as ulongs.
+			async Task<ImmutableSortedDictionary<CredentialType, IEnumerable<ulong>>> SimulateRequest(
+				RequestNode node,
+				ImmutableSortedDictionary<CredentialType, IEnumerable<ulong>> presented,
+				ImmutableSortedDictionary<CredentialType, IEnumerable<ulong>> requested)
+			{
+				foreach (var credentialType in presented.Keys)
+				{
+					Assert.Equal(g.InEdges(node, credentialType).Select(e => e.Value).OrderBy(x => x), presented[credentialType].OrderBy(x => x));
+					Assert.Equal(g.OutEdges(node, credentialType).Select(e => e.Value).OrderBy(x => x), requested[credentialType].OrderBy(x => x));
+				}
+
+				Assert.DoesNotContain(node, sent);
+				sent.Add(node);
+
+				await Task.Delay(1 + rng.Next(10));
+
+				return requested;
+			}
+
+			var ct = new CancellationTokenSource(40_000);
+
+			for (var remainingSteps = 2 * pendingCredentialsToPresent.Count; remainingSteps > 0 && pendingCredentialsToPresent.Count + inFlightRequests.Count > 0; remainingSteps--)
+			{
+				// Clear unblocked but waiting requests. Not very efficient
+				// (quadratic complexity), but good enough for demonstration
+				// purposes.
+				foreach (var node in unblockedRequests())
+				{
+					// FIXME this is a little ugly, how should it look in the real code? seems like we're missing an abstraction
+					var edgesByType = DependencyGraph.CredentialTypes.ToImmutableSortedDictionary(t => t, t => g.OutEdges(node, t));
+					var credentialsToRequest = edgesByType.ToImmutableSortedDictionary(kvp => kvp.Key, kvp => kvp.Value.Select(e => e.Value));
+					var credentialsToPresent = pendingCredentialsToPresent[node].ToImmutableSortedDictionary(kvp => kvp.Key, kvp => kvp.Value.AsEnumerable());
+
+					Assert.NotEmpty(edgesByType);
+
+					var task = SimulateRequest(node, credentialsToPresent, credentialsToRequest);
+
+					inFlightRequests.Add((Task: task, Dependencies: edgesByType));
+					Assert.True(pendingCredentialsToPresent.Remove(node));
+				}
+
+				// At this point at least one task must be in progress.
+				Assert.True(inFlightRequests.Count > 0);
+
+				// Wait for a response to arrive
+				var i = Task.WaitAny(inFlightRequests.Select(x => x.Task).ToArray(), ct.Token);
+				Assert.InRange(i, 0, inFlightRequests.Count);
+				var entry = inFlightRequests[i];
+				inFlightRequests.RemoveAt(i);
+
+				var issuedCredentials = await entry.Task;
+
+				// Unblock the requests that depend on the issued credentials from this response
+				foreach ((var credentialType, var edges) in entry.Dependencies)
+				{
+					Assert.Equal(edges.Count(), issuedCredentials[credentialType].Count());
+					foreach ((var credential, var edge) in issuedCredentials[credentialType].Zip(edges))
+					{
+						// Ignore the fact that credential is the same as
+						// edge.Value, it's meant to represent the real thing
+						// since it's returned from the task.
+						Assert.Equal(edge.Value, credential);
+						pendingCredentialsToPresent[edge.To][credentialType].Add(credential);
+					}
+				}
+			}
+
+			Assert.Empty(inFlightRequests);
+			Assert.Empty(pendingCredentialsToPresent);
+
+			Assert.True(g.Vertices.All(v => sent.Contains(v)));
+
+			ct.Dispose();
+		}
+
 		[Fact]
 		public void ResolveCredentialDependenciesBasic()
 		{
@@ -30,9 +142,9 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			Assert.Empty(g.OutEdges(small.To, CredentialType.Amount));
 			Assert.Equal(2, g.InEdges(small.To, CredentialType.Amount).Count());
 			Assert.Equal(1, g.InEdges(small.To, CredentialType.Amount).Select(e => e.From).Distinct().Count());
-			Assert.Empty(g.OutEdges(small.To, CredentialType.VirtualBytes));
-			Assert.Equal(2, g.InEdges(small.To, CredentialType.VirtualBytes).Count());
-			Assert.Equal(g.Vertices[0], g.InEdges(small.To, CredentialType.VirtualBytes).Select(e => e.From).Distinct().Single());
+			Assert.Empty(g.OutEdges(small.To, CredentialType.Vsize));
+			Assert.Equal(2, g.InEdges(small.To, CredentialType.Vsize).Count());
+			Assert.Equal(g.Vertices[0], g.InEdges(small.To, CredentialType.Vsize).Select(e => e.From).Distinct().Single());
 
 			var large = edges.OrderByDescending(e => e.Value).First();
 			Assert.Equal(2UL, large.Value);
@@ -66,10 +178,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			Assert.Empty(g.OutEdges(nonZeroEdge.To, CredentialType.Amount));
 			Assert.Equal(2, g.InEdges(nonZeroEdge.To, CredentialType.Amount).Count());
 			Assert.Equal(1, g.InEdges(nonZeroEdge.To, CredentialType.Amount).Select(e => e.From).Distinct().Count());
-			Assert.Empty(g.OutEdges(nonZeroEdge.To, CredentialType.VirtualBytes));
-			Assert.Equal(2, g.InEdges(nonZeroEdge.To, CredentialType.VirtualBytes).Count());
-			Assert.Equal(2, g.InEdges(nonZeroEdge.To, CredentialType.VirtualBytes).Select(e => e.Value == 0).Count());
-			Assert.Equal(g.Vertices[0], g.InEdges(nonZeroEdge.To, CredentialType.VirtualBytes).Select(e => e.From).Distinct().Single());
+			Assert.Empty(g.OutEdges(nonZeroEdge.To, CredentialType.Vsize));
+			Assert.Equal(2, g.InEdges(nonZeroEdge.To, CredentialType.Vsize).Count());
+			Assert.Equal(2, g.InEdges(nonZeroEdge.To, CredentialType.Vsize).Select(e => e.Value == 0).Count());
+			Assert.Equal(g.Vertices[0], g.InEdges(nonZeroEdge.To, CredentialType.Vsize).Select(e => e.From).Distinct().Single());
 
 			AssertResolvedGraphInvariants(g, inputValues, outputValues);
 		}
@@ -140,7 +252,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "11,5 10,5 10,5 10,6", 42)]
 		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "10,5 10,5 10,5 10,6", 43)]
 		[InlineData("21,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1 1,1", "10,5 10,5 10,5 10,5", 42)]
-		public void ResolveCredentialDependencies(string inputs, string outputs, int finalVertexCount)
+		public async void ResolveCredentialDependencies(string inputs, string outputs, int finalVertexCount)
 		{
 			// blackbox tests (apart from finalVertexCount, which leaks
 			// information about implementation) covering valid range
@@ -159,11 +271,13 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			Assert.Equal(finalVertexCount, g.Vertices.Count);
 
 			// TODO when sum is even, reverse
+
+			await SimulateAsyncRequests(g);
 		}
 
 		private void AssertResolvedGraphInvariants(DependencyGraph graph, IEnumerable<IEnumerable<ulong>> inputValues, IEnumerable<IEnumerable<ulong>> outputValues)
 		{
-			for (CredentialType credentialType = 0; credentialType < CredentialType.NumTypes; credentialType++)
+			foreach (var credentialType in DependencyGraph.CredentialTypes)
 			{
 				// Input nodes
 				foreach (var node in graph.Vertices.Take(inputValues.Count()))
@@ -232,7 +346,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[Fact]
 		public void EdgeConstraints()
 		{
-			var g = DependencyGraph.FromValues(new []{ new ulong[] { 11, 0 }, new ulong[] { 8, 0 } }, new[] { new ulong[] { 7, 0 }, new ulong[] { 11, 0 } });
+			var g = DependencyGraph.FromValues(new[] { new ulong[] { 11, 0 }, new ulong[] { 8, 0 } }, new[] { new ulong[] { 7, 0 }, new ulong[] { 11, 0 } });
 
 			var i = g.Inputs[0];
 			var o = g.Outputs[0];
@@ -263,7 +377,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, o, 7).AddEdge(i, o, 5));
 
 			// max indegree exceeded
-			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, o, 7).AddEdge(i, o,0).AddEdge(i, o, 0));
+			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, o, 7).AddEdge(i, o, 0).AddEdge(i, o, 0));
 
 			var o2 = g.Outputs[1];
 			Assert.Equal(0, edgeSet.AddEdge(i, o2, 7).AddEdge(i, o2, 4).Balance(i));
@@ -276,7 +390,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, o, 1).AddEdge(i, o2, 11));
 
 			// final in edge must discharge remaining negative balance
-			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, o, 7).AddEdge(i, o,0).AddEdge(i, o2, 4).AddEdge(i, o2, 0));
+			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, o, 7).AddEdge(i, o, 0).AddEdge(i, o2, 4).AddEdge(i, o2, 0));
 
 			// final out edge must discharge remaining balance
 			Assert.Throws<InvalidOperationException>(() => edgeSet.AddEdge(i, o, 7).AddEdge(i, o2, 3));
