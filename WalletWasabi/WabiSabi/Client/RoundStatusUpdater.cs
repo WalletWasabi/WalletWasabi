@@ -18,7 +18,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		private Dictionary<uint256, RoundState> RoundStates { get; set; } = new();
 
-		private Dictionary<uint256, List<(TaskCompletionSource<RoundState> Task, Predicate<RoundState> Predicate)>> Awaiters { get; set; } = new();
+		private Dictionary<uint256, List<(TaskCompletionSource<RoundState> Task, Predicate<RoundState> Predicate)>> Awaiters { get; } = new();
 
 		public RoundStatusUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler) : base(requestInterval)
 		{
@@ -55,14 +55,14 @@ namespace WalletWasabi.WabiSabi.Client
 				// TODO: set all associated tasks to failed.
 			}
 
-			RoundStates = updatedRoundStates.Union(newRoundStates).ToImmutableDictionary();
+			RoundStates = updatedRoundStates.Union(newRoundStates).ToDictionary(s => s.Key, s => s.Value);
 
 			ExecuteAwaiters(roundsToUpdate, RoundStates);
 		}
 
 		private void ExecuteAwaiters(
 			IEnumerable<uint256> roundsToUpdate,
-			ImmutableDictionary<uint256, RoundState> roundStates)
+			Dictionary<uint256, RoundState> roundStates)
 		{
 			foreach (var roundId in roundsToUpdate.Where(rid => roundStates.ContainsKey(rid) && Awaiters.ContainsKey(rid)))
 			{
