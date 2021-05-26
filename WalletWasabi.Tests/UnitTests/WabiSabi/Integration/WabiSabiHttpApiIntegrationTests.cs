@@ -122,6 +122,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			Assert.NotNull(boadcastedTx);
 
 			await coinJoinClient.StopAsync(CancellationToken.None);
+			await roundStateUpdater.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
