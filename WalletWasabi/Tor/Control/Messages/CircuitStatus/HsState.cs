@@ -24,9 +24,9 @@ namespace WalletWasabi.Tor.Control.Messages.CircuitStatus
 
 		// Service-side introduction-point circuit states
 
-		/// <summary>connecting to intro point</summary>
+		/// <summary>Connecting to intro point</summary>
 		HSSI_CONNECTING,
-		/// <summary>established intro point</summary>
+		/// <summary>Established intro point</summary>
 		HSSI_ESTABLISHED,
 
 		// Service-side rendezvous-point circuit states

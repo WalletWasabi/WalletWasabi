@@ -24,7 +24,7 @@ namespace WalletWasabi.Tor.Control.Messages
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">Section 2.3</seealso>
 	public class TorControlReply
 	{
-		private readonly static ReadOnlyCollection<string> NoLines = new List<string>().AsReadOnly();
+		private static readonly ReadOnlyCollection<string> NoLines = new List<string>().AsReadOnly();
 
 		public TorControlReply(StatusCode statusCode)
 		{
