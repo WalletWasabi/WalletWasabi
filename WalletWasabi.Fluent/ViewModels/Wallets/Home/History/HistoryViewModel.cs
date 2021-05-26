@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -29,7 +30,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 		[AutoNotify] private bool _showCoinJoin;
 		[AutoNotify] private HistoryItemViewModel? _selectedItem;
 
-		private uint256? _txidToSelectWhenAppears;
+		private List<uint256> _txidsToSelect;
 
 		public HistoryViewModel(WalletViewModel walletViewModel, IObservable<Unit> updateTrigger)
 		{
@@ -39,6 +40,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			_transactionSourceList = new SourceList<HistoryItemViewModel>();
 			_transactions = new ObservableCollectionExtended<HistoryItemViewModel>();
 			_unfilteredTransactions = new ObservableCollectionExtended<HistoryItemViewModel>();
+			_txidsToSelect = new List<uint256>();
 
 			this.WhenAnyValue(x => x.ShowCoinJoin)
 				.Subscribe(showCoinJoin => Services.UiConfig.ShowCoinJoinInHistory = showCoinJoin);
@@ -79,8 +81,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			if (txnItem is { })
 			{
 				SelectedItem = txnItem;
-				_txidToSelectWhenAppears = null;
 				SelectedItem.IsSelected = true;
+				_txidsToSelect.Remove(txnItem.TransactionSummary.TransactionId);
 
 				RxApp.MainThreadScheduler.Schedule(async () =>
 				{
@@ -90,7 +92,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 			}
 			else
 			{
-				_txidToSelectWhenAppears = txid;
+				_txidsToSelect.Add(txid);
 			}
 		}
 
@@ -139,7 +141,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 						_transactionSourceList.Add(new HistoryItemViewModel(i, transactionSummary, _walletViewModel, balance, _updateTrigger));
 					}
 
-					if (_txidToSelectWhenAppears is { } txid)
+					if (_txidsToSelect.FirstOrDefault() is { } txid)
 					{
 						SelectTransaction(txid);
 					}
