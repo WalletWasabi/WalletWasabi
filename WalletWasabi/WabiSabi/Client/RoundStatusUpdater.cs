@@ -57,7 +57,10 @@ namespace WalletWasabi.WabiSabi.Client
 
 			RoundStates = updatedRoundStates.Union(newRoundStates).ToDictionary(s => s.Key, s => s.Value);
 
-			ExecuteAwaiters(roundsToUpdate, RoundStates);
+			if (roundsToUpdate.Any())
+			{
+				ExecuteAwaiters(roundsToUpdate, RoundStates);
+			}
 		}
 
 		private void ExecuteAwaiters(
