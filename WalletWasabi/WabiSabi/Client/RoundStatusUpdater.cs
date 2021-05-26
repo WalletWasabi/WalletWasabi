@@ -89,16 +89,23 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		public Task<RoundState> CreateRoundAwaiter(uint256 roundId, Predicate<RoundState> predicate)
+		public Task<RoundState> CreateRoundAwaiter(uint256 roundId, Predicate<RoundState> predicate, CancellationToken cancellationToken)
 		{
-			// TODO: Add cancellationToken
-			var tcs = new TaskCompletionSource<RoundState>(TaskCreationOptions.RunContinuationsAsynchronously);
+			TaskCompletionSource<RoundState> tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
 			if (!Awaiters.ContainsKey(roundId))
 			{
 				Awaiters.Add(roundId, new List<(TaskCompletionSource<RoundState>, Predicate<RoundState>)>());
 			}
 			var predicateList = Awaiters[roundId];
-			predicateList.Add((tcs, predicate));
+			var taskAndPredicate = (tcs, predicate);
+			predicateList.Add(taskAndPredicate);
+
+			cancellationToken.Register(() =>
+			{
+				tcs.TrySetCanceled();
+				predicateList.Remove(taskAndPredicate);
+			});
+
 			return tcs.Task;
 		}
 	}
