@@ -52,7 +52,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			foreach (var round in removedRoundStates.Select(round => round.Value))
 			{
-				// TODO: set all associated tasks to failed.
+				roundsToUpdate.Add(round.Id);
 			}
 
 			RoundStates = updatedRoundStates.Union(newRoundStates).ToDictionary(s => s.Key, s => s.Value);
@@ -64,18 +64,27 @@ namespace WalletWasabi.WabiSabi.Client
 			IEnumerable<uint256> roundsToUpdate,
 			Dictionary<uint256, RoundState> roundStates)
 		{
-			foreach (var roundId in roundsToUpdate.Where(rid => roundStates.ContainsKey(rid) && Awaiters.ContainsKey(rid)))
+			foreach (var roundId in roundsToUpdate)
 			{
-				var roundState = roundStates[roundId];
-				var taskAndPredicateList = Awaiters[roundId];
-				foreach (var taskAndPredicate in taskAndPredicateList.ToArray())
+				if (roundStates.TryGetValue(roundId, out RoundState? roundState))
 				{
-					if (taskAndPredicate.Predicate(roundState))
+					// The round is missing.
+					var tasks = Awaiters[roundId];
+					foreach (var t in tasks)
 					{
-						var task = taskAndPredicate.Task;
-						task.TrySetResult(roundState);
-						taskAndPredicateList.Remove(taskAndPredicate);
+						t.Task.TrySetException(new InvalidOperationException($"Round {roundId} is not running anymore."));
 					}
+					Awaiters.Remove(roundId);
+					continue;
+				}
+
+				var taskAndPredicateList = Awaiters[roundId];
+				foreach (var taskAndPredicate in taskAndPredicateList.Where(taskAndPredicate => taskAndPredicate.Predicate(roundState!)).ToArray())
+				{
+					// The predicate was fulfilled.
+					var task = taskAndPredicate.Task;
+					task.TrySetResult(roundState!);
+					taskAndPredicateList.Remove(taskAndPredicate);
 				}
 			}
 		}
@@ -83,7 +92,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public Task<RoundState> CreateRoundAwaiter(uint256 roundId, Predicate<RoundState> predicate)
 		{
 			// TODO: Add cancellationToken
-			var tcs = new TaskCompletionSource<RoundState>();
+			var tcs = new TaskCompletionSource<RoundState>(TaskCreationOptions.RunContinuationsAsynchronously);
 			if (!Awaiters.ContainsKey(roundId))
 			{
 				Awaiters.Add(roundId, new List<(TaskCompletionSource<RoundState>, Predicate<RoundState>)>());
