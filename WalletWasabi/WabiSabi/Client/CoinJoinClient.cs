@@ -80,12 +80,12 @@ namespace WalletWasabi.WabiSabi.Client
 				aliceClients = await ConfirmConnectionsAsync(aliceClients, cancellationToken).ConfigureAwait(false);
 
 				// Output registration.
-				RoundState = await RoundStatusUpdater.CreateRoundAwaiter(RoundId, rs => rs.Phase == Phase.OutputRegistration).ConfigureAwait(false);
+				RoundState = await RoundStatusUpdater.CreateRoundAwaiter(RoundId, rs => rs.Phase == Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
 				var outputsWithCredentials = outputs.Zip(aliceClients, (output, alice) => (output, alice.RealAmountCredentials, alice.RealVsizeCredentials));
 				await RegisterOutputsAsync(outputsWithCredentials, cancellationToken).ConfigureAwait(false);
 
 				// Signing.
-				RoundState = await RoundStatusUpdater.CreateRoundAwaiter(RoundId, rs => rs.Phase == Phase.TransactionSigning).ConfigureAwait(false);
+				RoundState = await RoundStatusUpdater.CreateRoundAwaiter(RoundId, rs => rs.Phase == Phase.TransactionSigning, cancellationToken).ConfigureAwait(false);
 				var signingState = RoundState.Assert<SigningState>();
 				var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
 

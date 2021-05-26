@@ -111,5 +111,14 @@ namespace WalletWasabi.WabiSabi.Client
 
 			return tcs.Task;
 		}
+
+		public override Task StopAsync(CancellationToken cancellationToken)
+		{
+			foreach (var t in Awaiters.SelectMany(a => a.Value).Select(a => a.Task))
+			{
+				t.TrySetCanceled(cancellationToken);
+			}
+			return base.StopAsync(cancellationToken);
+		}
 	}
 }
