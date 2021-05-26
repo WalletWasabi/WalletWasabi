@@ -16,7 +16,7 @@ namespace WalletWasabi.WabiSabi.Client
 	public class RoundStatusUpdater : PeriodicRunner
 	{
 		private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
-		private ImmutableDictionary<uint256, RoundState> RoundStates { get; set; } = ImmutableDictionary.Create<uint256, RoundState>();
+		private Dictionary<uint256, RoundState> RoundStates { get; set; } = new();
 
 		private Dictionary<uint256, List<(TaskCompletionSource<RoundState> Task, Predicate<RoundState> Predicate)>> Awaiters { get; set; } = new();
 
