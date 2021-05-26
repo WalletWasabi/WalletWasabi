@@ -27,7 +27,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 				$"--CookieAuthentication 1",
 				$"--ControlPort 37151",
 				$"--CookieAuthFile \"{Path.Combine("temp", "tempDataDir", "control_auth_cookie")}\"",
-				$"--DataDirectory \"{Path.Combine("temp", "tempDataDir", "tordata")}\"",
+				$"--DataDirectory \"{Path.Combine("temp", "tempDataDir", "tordata2")}\"",
 				$"--GeoIPFile \"{Path.Combine("tempDistributionDir", "Tor", "Geoip", "geoip")}\"",
 				$"--GeoIPv6File \"{Path.Combine("tempDistributionDir", "Tor", "Geoip", "geoip6")}\"",
 				$"--Log \"notice file {Path.Combine("temp", "Tor.log")}\"",
