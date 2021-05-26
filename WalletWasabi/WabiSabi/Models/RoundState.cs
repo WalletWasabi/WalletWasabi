@@ -1,3 +1,4 @@
+using System;
 using NBitcoin;
 using WalletWasabi.Crypto;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -10,9 +11,17 @@ namespace WalletWasabi.WabiSabi.Models
 		CredentialIssuerParameters AmountCredentialIssuerParameters,
 		CredentialIssuerParameters VsizeCredentialIssuerParameters,
 		FeeRate FeeRate,
-		IState CoinjoinState)
+		Phase Phase,
+		MultipartyTransactionState CoinjoinState)
 	{
 		public static RoundState FromRound(Round round) =>
-			new RoundState(round.Id, round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, round.FeeRate, round.CoinjoinState);
+			new RoundState(round.Id, round.AmountCredentialIssuerParameters, round.VsizeCredentialIssuerParameters, round.FeeRate, round.Phase, round.CoinjoinState);
+
+		public TState Assert<TState>() where TState : MultipartyTransactionState =>
+			CoinjoinState switch
+			{
+				TState s => s,
+				_ => throw new InvalidOperationException($"{typeof(TState).Name} state was expected but {CoinjoinState.GetType().Name} state was received.")
+			};
 	}
 }

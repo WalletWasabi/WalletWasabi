@@ -30,10 +30,9 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Id = CalculateHash();
 		}
 
-		public IState CoinjoinState { get; set; }
+		public MultipartyTransactionState CoinjoinState { get; set; }
 		public uint256 Id { get; }
 		public Network Network => RoundParameters.Network;
-		public uint MaxInputCountByAlice => RoundParameters.MaxInputCountByAlice;
 		public Money MinRegistrableAmount => RoundParameters.MinRegistrableAmount;
 		public Money MaxRegistrableAmount => RoundParameters.MaxRegistrableAmount;
 		public uint PerAliceVsizeAllocation => RoundParameters.PerAliceVsizeAllocation;
@@ -64,6 +63,13 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public int RemainingInputVsizeAllocation => InitialInputVsizeAllocation - Alices.Count * (int)PerAliceVsizeAllocation;
 
 		private RoundParameters RoundParameters { get; }
+
+		public TState Assert<TState>() where TState : MultipartyTransactionState =>
+			CoinjoinState switch
+			{
+				TState s => s,
+				_ => throw new InvalidOperationException($"{typeof(TState).Name} state was expected but {CoinjoinState.GetType().Name} state was received.")
+			};
 
 		public void SetPhase(Phase phase)
 		{
@@ -121,17 +127,16 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		}
 
 		public ConstructionState AddInput(Coin coin)
-			=> CoinjoinState.AssertConstruction().AddInput(coin);
+			=> Assert<ConstructionState>().AddInput(coin);
 
 		public ConstructionState AddOutput(TxOut output)
-			=> CoinjoinState.AssertConstruction().AddOutput(output);
+			=> Assert<ConstructionState>().AddOutput(output);
 
 		public SigningState AddWitness(int index, WitScript witness)
-			=> CoinjoinState.AssertSigning().AddWitness(index, witness);
+			=> Assert<SigningState>().AddWitness(index, witness);
 
 		private uint256 CalculateHash()
 			=> StrobeHasher.Create(ProtocolConstants.RoundStrobeDomain)
-				.Append(ProtocolConstants.RoundMaxInputCountByAliceStrobeLabel, MaxInputCountByAlice)
 				.Append(ProtocolConstants.RoundMinRegistrableAmountStrobeLabel, MinRegistrableAmount)
 				.Append(ProtocolConstants.RoundMaxRegistrableAmountStrobeLabel, MaxRegistrableAmount)
 				.Append(ProtocolConstants.RoundPerAliceVsizeAllocationStrobeLabel, PerAliceVsizeAllocation)
