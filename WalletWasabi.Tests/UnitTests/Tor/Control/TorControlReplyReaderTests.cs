@@ -16,7 +16,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 	{
 		[Theory]
 		[InlineData(StatusCode.OK, 1, "250 OK\r\n")]
-		[InlineData(StatusCode.OK, 2, "250-SOCKSPORT=9050\r\n250 ORPORT=0\r\n")]
+		[InlineData(StatusCode.OK, 2, "250-SOCKSPORT=37150\r\n250 ORPORT=0\r\n")]
 		[InlineData(StatusCode.OK, 4, "250-PROTOCOLINFO 1\r\n250-AUTH METHODS=HASHEDPASSWORD\r\n250-VERSION Tor=\"0.4.3.5\"\r\n250 OK\r\n")]
 		[InlineData(StatusCode.AsynchronousEventNotify, 1, "650 CIRC 1000 EXTENDED moria1,moria2\r\n")]
 		public async Task WellformedTestsAsync(StatusCode expectedStatusCode, int expectedReplyLines, string data)

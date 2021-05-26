@@ -1,4 +1,6 @@
 using NBitcoin;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -8,17 +10,18 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 {
 	public record SigningState : MultipartyTransactionState
 	{
-		public SigningState(ConstructionState state)
-			: base(state.Parameters)
+		public SigningState(MultipartyTransactionParameters parameters, IEnumerable<Coin> inputs, IEnumerable<TxOut> outputs)
+			: base(parameters)
 		{
-			Inputs = state.Inputs;
-			Outputs = state.Outputs;
+			Inputs = inputs.ToImmutableList();
+			Outputs = outputs.ToImmutableList();
 		}
 
 		public ImmutableDictionary<int, WitScript> Witnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
 
 		public bool IsFullySigned => Witnesses.Count == Inputs.Count;
 
+		[JsonIgnore]
 		public IEnumerable<Coin> UnsignedInputs => Inputs.Where((_, i) => !IsInputSigned(i));
 
 		public bool IsInputSigned(int index) => Witnesses.ContainsKey(index);

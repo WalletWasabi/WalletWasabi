@@ -18,7 +18,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		public TorTests()
 		{
 			TorHttpPool = new(new TorTcpConnectionFactory(Common.TorSocks5Endpoint));
-			TorManager = new(Common.TorSettings, Common.TorSocks5Endpoint);
+			TorManager = new(Common.TorSettings);
 		}
 
 		private TorHttpPool TorHttpPool { get; }
@@ -194,7 +194,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 		[Fact]
 		public async Task TorRunningAsync()
 		{
-			TorTcpConnectionFactory client1 = new(new IPEndPoint(IPAddress.Loopback, 9050));
+			TorTcpConnectionFactory client1 = new(new IPEndPoint(IPAddress.Loopback, 37150));
 			Assert.True(await client1.IsTorRunningAsync());
 
 			TorTcpConnectionFactory client2 = new(new IPEndPoint(IPAddress.Loopback, 9054));
