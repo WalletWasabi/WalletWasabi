@@ -56,7 +56,6 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			try
 			{
-				await RefreshRoundAsync(cancellationToken).ConfigureAwait(false);
 				var constructionState = RoundState.Assert<ConstructionState>();
 
 				// Calculate outputs values
@@ -100,14 +99,6 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				// The game is over for this round, no fallback mechanism. In the next round we will create another CoinJoinClient and try again.
 			}
-		}
-
-		private async Task RefreshRoundAsync(CancellationToken cancellationToken)
-		{
-			// this code is part of a `RoundUpdater` background service that fetches this information
-			// periodically (PerioricRunner?)
-			RoundState[] roundStates = await ArenaRequestHandler.GetStatusAsync(cancellationToken).ConfigureAwait(false);
-			RoundState = roundStates.Single(x => x.Id == RoundId);
 		}
 
 		private List<AliceClient> CreateAliceClients()
