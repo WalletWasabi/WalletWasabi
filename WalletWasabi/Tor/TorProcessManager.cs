@@ -192,7 +192,6 @@ namespace WalletWasabi.Tor
 			return true;
 		}
 
-
 		/// <param name="tempPath">Path to location specified by Tor's <c>--ControlPortWriteToFile</c> invocation argument.</param>
 		/// <exception cref="TorControlException">When getting or storing the Tor control port fails for whatever reason.</exception>
 		private int ProcessControlPortFileCreatedByTor(string tempPath)
