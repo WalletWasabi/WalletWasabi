@@ -18,7 +18,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			ClearnetHttpClientFactory = new(torEndPoint: null, backendUriGetter: null);
 			TorHttpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: null);
 
-			TorManager = new(Common.TorSettings, Common.TorSocks5Endpoint);
+			TorManager = new(Common.TorSettings);
 		}
 
 		private HttpClientFactory ClearnetHttpClientFactory { get; }
