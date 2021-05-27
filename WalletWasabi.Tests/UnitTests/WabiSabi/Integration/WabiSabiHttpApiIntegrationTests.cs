@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -52,10 +53,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			const int InputCount = 2;
 
 			// At the end of the test a coinjoin transaction has to be created and broadcasted.
-			// we wait for 20 seconds before timing out.
-			const int CoinjoinProcessTimeout = 40_000;
 			var transactionCompleted = new TaskCompletionSource<Transaction>();
-			using var cts = new CancellationTokenSource(CoinjoinProcessTimeout);
+
+			// Total test timeout.
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120));
 			cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 			// Create a key manager and use it to create two fake coins.
@@ -103,11 +104,16 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			// Create the coinjoin client
 			var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
+
 			var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
 			var roundState = rounds.First(x => x.CoinjoinState is ConstructionState);
 			var kitchen = new Kitchen();
 			kitchen.Cook("");
-			using var coinJoinClient = new CoinJoinClient(roundState.Id, apiClient, coins, kitchen, keyManager);
+
+			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
+			await roundStateUpdater.StartAsync(CancellationToken.None);
+
+			using var coinJoinClient = new CoinJoinClient(apiClient, coins, kitchen, keyManager, roundStateUpdater);
 
 			// Run the coinjoin client task.
 			await coinJoinClient.StartAsync(CancellationToken.None);
@@ -116,6 +122,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			Assert.NotNull(boadcastedTx);
 
 			await coinJoinClient.StopAsync(CancellationToken.None);
+			await roundStateUpdater.StopAsync(CancellationToken.None);
 		}
 
 		[Fact]
