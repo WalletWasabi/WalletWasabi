@@ -219,8 +219,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 			}
 			else if (value > 0)
 			{
-				// Fan in, draining zero credentials is never necessary, either
-				// one or both available in-edges of `node` will be used
+				// Fan in, draining zero credentials is never necessary.
 				var edgeAmount = (ulong)Math.Min(-1 * Balance(node), value);
 				if (edgeAmount == (ulong)value || RemainingOutDegree(dischargeNode) > 1)
 				{
@@ -238,11 +237,6 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 					return this;
 				}
 			}
-			else if (value == 0 && (dischargeNode.InitialBalance(CredentialType) == 0))
-			{
-				// eagerly discharge zero credentials when the child node is a reissuance node
-				return DrainZeroCredentials(node, dischargeNode);
-			}
 			else
 			{
 				return this;
@@ -250,15 +244,10 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		}
 
 		public CredentialEdgeSet DrainZeroCredentials(RequestNode src, RequestNode dst)
-		{
-			if (Balance(dst) != 0 || AvailableZeroOutDegree(src) == 0 || RemainingInDegree(dst) == 0)
+			=> (Balance(dst) != 0 || AvailableZeroOutDegree(src) == 0 || RemainingInDegree(dst) == 0) switch
 			{
-				return this;
-			}
-			else
-			{
-				return AddZeroEdge(src, dst).DrainZeroCredentials(src, dst);
-			}
-		}
+				true => this,
+				false => AddZeroEdge(src, dst).DrainZeroCredentials(src, dst),
+			};
 	}
 }
