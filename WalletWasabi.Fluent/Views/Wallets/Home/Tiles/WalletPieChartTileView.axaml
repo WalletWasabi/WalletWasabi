@@ -2,16 +2,32 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
              xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:CompileBindings="True" x:DataType="vm:WalletPieChartTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletPieChartTileView">
     <Border ClipToBounds="False" CornerRadius="5" Background="{DynamicResource TileRegionColor}" Margin="6" Padding="16"
             BoxShadow="{DynamicResource InfoBoxShadow}">
         <DockPanel>
             <TextBlock Text="Wallet Privacy Status" DockPanel.Dock="Top" />
-            <DockPanel LastChildFill="True" TextBlock.FontSize="12">
+            <DockPanel LastChildFill="True" TextBlock.FontSize="12"
+                       Classes.smallPreset="{Binding IsSmallPreset}"
+                       Classes.normalPreset="{Binding IsNormalPreset}"
+                       Classes.widePreset="{Binding IsWidePreset}">
+                <DockPanel.Styles>
+                    <Style Selector="DockPanel.smallPreset">
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                    </Style>
+                    <Style Selector="DockPanel.normalPreset">
+                        <Setter Property="VerticalAlignment" Value="Stretch"/>
+                    </Style>
+                    <Style Selector="DockPanel.widePreset">
+                        <Setter Property="VerticalAlignment" Value="Stretch"/>
+                    </Style>
+                </DockPanel.Styles>
                 <ItemsRepeater DockPanel.Dock="Bottom" Margin="0,0,0,-8" Items="{Binding TestDataPointsLegend}">
                     <ItemsRepeater.ItemTemplate>
                         <DataTemplate x:DataType="wallets:DataLegend">
@@ -32,7 +48,21 @@
                     </ItemsRepeater.Layout>
                 </ItemsRepeater>
 
-                <Panel Margin="8" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <Panel Margin="8" VerticalAlignment="Center" HorizontalAlignment="Center"
+                       Classes.smallPreset="{Binding IsSmallPreset}"
+                       Classes.normalPreset="{Binding IsNormalPreset}"
+                       Classes.widePreset="{Binding IsWidePreset}">
+                    <Panel.Styles>
+                        <Style Selector="Panel.smallPreset">
+                            <Setter Property="IsVisible" Value="False"/>
+                        </Style>
+                        <Style Selector="Panel.normalPreset">
+                            <Setter Property="IsVisible" Value="True"/>
+                        </Style>
+                        <Style Selector="Panel.widePreset">
+                            <Setter Property="IsVisible" Value="True"/>
+                        </Style>
+                    </Panel.Styles>
                     <controls:RingChartControl DataPoints="{Binding TestDataPoints}" />
                 </Panel>
             </DockPanel>

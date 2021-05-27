@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              mc:Ignorable="d" d:DesignWidth="310" d:DesignHeight="150"
-             x:DataType="vm:WalletBalanceTileViewModel"
+             x:CompileBindings="True" x:DataType="vm:WalletBalanceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceTileView">
     <Border ClipToBounds="False" CornerRadius="5" Background="{DynamicResource TileRegionColor}" Margin="6" Padding="16" BoxShadow="{DynamicResource InfoBoxShadow}">
         <DockPanel>

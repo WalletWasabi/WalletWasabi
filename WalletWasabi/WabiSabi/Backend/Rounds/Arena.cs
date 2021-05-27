@@ -119,7 +119,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				var diff = aliceSum - bobSum;
 				if (diff == 0 || round.OutputRegistrationStart + round.OutputRegistrationTimeout < DateTimeOffset.UtcNow)
 				{
-					var coinjoin = round.CoinjoinState.AssertConstruction();
+					var coinjoin = round.Assert<ConstructionState>();
 
 					round.LogInfo($"{coinjoin.Inputs.Count} inputs were added.");
 					round.LogInfo($"{coinjoin.Outputs.Count} outputs were added.");
@@ -144,7 +144,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			foreach (var round in Rounds.Values.Where(x => x.Phase == Phase.TransactionSigning).ToArray())
 			{
-				var state = round.CoinjoinState.AssertSigning();
+				var state = round.Assert<SigningState>();
 
 				try
 				{
@@ -190,7 +190,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private async Task FailTransactionSigningPhaseAsync(Round round)
 		{
-			var state = round.CoinjoinState.AssertSigning();
+			var state = round.Assert<SigningState>();
 
 			var unsignedPrevouts = state.UnsignedInputs.ToHashSet();
 
@@ -322,7 +322,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 				}
 				else if (round.Phase == Phase.ConnectionConfirmation)
 				{
-					var state = round.CoinjoinState.AssertConstruction();
+					var state = round.Assert<ConstructionState>();
 
 					// Ensure the input can be added to the CoinJoin
 					state = state.AddInput(alice.Coin);
@@ -405,7 +405,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, $"Round ({request.RoundId}): Wrong phase ({round.Phase}).");
 				}
 
-				var state = round.CoinjoinState.AssertSigning();
+				var state = round.Assert<SigningState>();
 				foreach (var inputWitnessPair in request.InputWitnessPairs)
 				{
 					state = state.AddWitness((int)inputWitnessPair.InputIndex, inputWitnessPair.Witness);
