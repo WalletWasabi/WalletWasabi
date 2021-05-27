@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 			TorControlReply rawReply = await TorControlReplyReaderTest.ParseAsync(data);
 			GetInfoCircuitStatusReply reply = GetInfoCircuitStatusReply.FromReply(rawReply);
 
-			Assert.Equal(8, reply.Circuits.Count);
+			Assert.Equal(5, reply.Circuits.Count);
 
 			// Circuit #1.
 			{
@@ -178,7 +178,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 				Assert.Equal(Purpose.HS_CLIENT_REND, circuitInfo.Purpose);
 				Assert.Equal(HsState.HSCR_JOINED, circuitInfo.HsState);
 				Assert.Equal("wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad", circuitInfo.RendQuery);
-				Assert.Equal("2021-05-15T14:04:19.631228", circuitInfo.TimeCreated);
+				Assert.Equal("2021-05-15T14:04:20.634686", circuitInfo.TimeCreated);
 
 				Assert.Null(circuitInfo.Reason);
 				Assert.Null(circuitInfo.RemoteReason);
