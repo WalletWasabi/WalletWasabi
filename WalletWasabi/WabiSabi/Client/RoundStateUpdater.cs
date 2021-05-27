@@ -12,6 +12,7 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class RoundStateUpdater : PeriodicRunner
 	{
+		// Denotes that each round should be checked against a predicate list.
 		private static readonly uint256 AnyRoundId = uint256.Zero;
 
 		public RoundStateUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler) : base(requestInterval)
