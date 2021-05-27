@@ -57,6 +57,14 @@ namespace WalletWasabi.WabiSabi.Client
 
 			RoundStates = updatedRoundStates.Union(newRoundStates).ToDictionary(s => s.Key, s => s.Value);
 
+			if (Awaiters.TryGetValue(uint256.Zero, out var taskAndPredicateList))
+			{
+				foreach (var roundState in RoundStates.Values)
+				{
+					HandleTasks(taskAndPredicateList, roundState);
+				}
+			}
+
 			if (roundsToUpdate.Any())
 			{
 				ExecuteAwaiters(roundsToUpdate, RoundStates);
@@ -69,7 +77,7 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			foreach (var roundId in roundsToUpdate)
 			{
-				if (roundStates.TryGetValue(roundId, out RoundState? roundState))
+				if (!roundStates.TryGetValue(roundId, out var roundState))
 				{
 					// The round is missing.
 					var tasks = Awaiters[roundId];
@@ -81,14 +89,21 @@ namespace WalletWasabi.WabiSabi.Client
 					continue;
 				}
 
-				var taskAndPredicateList = Awaiters[roundId];
-				foreach (var taskAndPredicate in taskAndPredicateList.Where(taskAndPredicate => taskAndPredicate.Predicate(roundState!)).ToArray())
+				if (roundState is not null && Awaiters.TryGetValue(roundId, out var taskAndPredicateList))
 				{
-					// The predicate was fulfilled.
-					var task = taskAndPredicate.Task;
-					task.TrySetResult(roundState!);
-					taskAndPredicateList.Remove(taskAndPredicate);
+					HandleTasks(taskAndPredicateList, roundState);
 				}
+			}
+		}
+
+		private static void HandleTasks(List<(TaskCompletionSource<RoundState> Task, Predicate<RoundState> Predicate)> taskAndPredicateList, RoundState roundState)
+		{
+			foreach (var taskAndPredicate in taskAndPredicateList.Where(taskAndPredicate => taskAndPredicate.Predicate(roundState)).ToArray())
+			{
+				// The predicate was fulfilled.
+				var task = taskAndPredicate.Task;
+				task.TrySetResult(roundState);
+				taskAndPredicateList.Remove(taskAndPredicate);
 			}
 		}
 
@@ -110,6 +125,11 @@ namespace WalletWasabi.WabiSabi.Client
 			});
 
 			return tcs.Task;
+		}
+
+		public Task<RoundState> CreateRoundAwaiter(Predicate<RoundState> predicate, CancellationToken cancellationToken)
+		{
+			return CreateRoundAwaiter(uint256.Zero, predicate, cancellationToken);
 		}
 
 		public override Task StopAsync(CancellationToken cancellationToken)

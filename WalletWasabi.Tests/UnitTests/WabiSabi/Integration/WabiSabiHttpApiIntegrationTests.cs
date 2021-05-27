@@ -113,7 +113,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			using var roundStateUpdater = new RoundStatusUpdater(TimeSpan.FromSeconds(1), apiClient);
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
-			using var coinJoinClient = new CoinJoinClient(roundState.Id, apiClient, coins, kitchen, keyManager, roundStateUpdater);
+			using var coinJoinClient = new CoinJoinClient(apiClient, coins, kitchen, keyManager, roundStateUpdater);
 
 			// Run the coinjoin client task.
 			await coinJoinClient.StartAsync(CancellationToken.None);
