@@ -27,17 +27,6 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet
 		{
 			SelectionMode = NavBarItemSelectionMode.Button;
 
-			var enableBack = default(IDisposable);
-			this.WhenAnyValue(x => x.CurrentTarget)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(x =>
-				{
-					enableBack?.Dispose();
-					enableBack = Navigate()
-						.WhenAnyValue(y => y.CanNavigateBack)
-						.Subscribe(y => EnableBack = y);
-				});
-
 			var canExecute = this.WhenAnyValue(x => x.WalletName)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(x => !string.IsNullOrWhiteSpace(x) && !Validations.Any);
