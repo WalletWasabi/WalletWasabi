@@ -14,26 +14,31 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 {
-	public class RoundStatusUpdaterTests
+	public class RoundStateUpdaterTests
 	{
 		[Fact]
 		public async Task RoundStatusUpdaterTestsAsync()
 		{
-			List<RoundState> roundStates = new();
-			roundStates.Add(new RoundState(uint256.One, null, null, FeeRate.Zero, Phase.InputRegistration, null));
+			RoundState[] roundStates = new[] { new RoundState(uint256.One, null, null, FeeRate.Zero, Phase.InputRegistration, null) };
 
 			using CancellationTokenSource cancellationTokenSource = new();
 			var cancellationToken = cancellationTokenSource.Token;
 
 			var mockApiClient = new Mock<IWabiSabiApiRequestHandler>();
 			mockApiClient.Setup(apiClient => apiClient.GetStatusAsync(It.IsAny<CancellationToken>()))
-				.ReturnsAsync(() => roundStates.ToArray());
+				.ReturnsAsync(() => roundStates);
 
 			using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromSeconds(1), mockApiClient.Object);
 			await roundStatusUpdater.StartAsync(cancellationTokenSource.Token);
 
 			var waitFirst = await roundStatusUpdater.CreateRoundAwaiter(rs => rs.Phase == Phase.InputRegistration, cancellationToken);
 			Assert.Equal(uint256.One, waitFirst.Id);
+
+			var waitConnConfirmTask = roundStatusUpdater.CreateRoundAwaiter(rs => rs.Phase == Phase.ConnectionConfirmation, cancellationToken);
+			await Task.Delay(2);
+			Assert.False(waitConnConfirmTask.IsCompleted);
+			roundStates = new[] { new RoundState(uint256.One, null, null, FeeRate.Zero, Phase.ConnectionConfirmation, null) };
+			await waitConnConfirmTask;
 
 			await roundStatusUpdater.StopAsync(cancellationToken);
 		}
