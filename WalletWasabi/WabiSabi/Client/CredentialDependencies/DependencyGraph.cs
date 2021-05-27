@@ -155,18 +155,17 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		/// all of the remaining negative nodes on the graph add up to less than
 		/// it.</para>
 		///
-		/// <para>There are two special related special cases affecting vbyte
-		/// credentials - when the positive valued nodes are uniform and
-		/// sufficient for all of the negative amounts with leftovers, instead
-		/// of taking the largest node all of the negative nodes are reduced
-		/// together resulting in a more balanced structure overall. This is
-		/// combined with another special case that checks if each of the
-		/// positive valued nodes are all strictly greater than a smaller number
-		/// of negative nodes (uniform values are a special case of this), the
-		/// positive and negative nodes will be zipped with each node only
-		/// requiring a single edge. These can optimize amount credentials as
-		/// well when consolidating multiple equal valued inputs, but is only
-		/// expected to regularly occur for vbyte credentials.</para>
+		/// <para>There are two related/composing special cases mainly affecting
+		/// vsize credentials - when the positive valued nodes with remaining
+		/// out degree > 1 have a uniform and sufficient balance to cover all of
+		/// the negative balances, instead of taking the largest node all of the
+		/// equal valued nodes are reduced together resulting in a more balanced
+		/// structure overall. This is combined with another special case that
+		/// checks if pairing positive and negative nodes in a 1:1
+		/// correspondence is possible after aggregation into reissuance nodes.
+		/// This can apply to amount credentials as well when consolidating
+		/// multiple equal valued inputs, but is only expected to regularly
+		/// occur for vbyte credentials.</para>
 		///
 		/// <para>After all negative value nodes have been discharged, the
 		/// remaining in-edges of all nodes must be filled with zero
