@@ -117,6 +117,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public Task<RoundState> CreateRoundAwaiter(Predicate<RoundState> predicate, CancellationToken cancellationToken)
 		{
+			// Zero denotes that the predicate should run for any round.
 			return CreateRoundAwaiter(uint256.Zero, predicate, cancellationToken);
 		}
 
