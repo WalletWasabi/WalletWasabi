@@ -23,18 +23,13 @@
     </StackPanel.Styles>
 
     <DockPanel>
-      <TextBlock Text="Network Encryption (Tor)"/>
+      <TextBlock Text="Network Encryption (Tor)" />
       <ToggleSwitch IsChecked="{Binding UseTor}" />
     </DockPanel>
 
     <DockPanel IsVisible="{Binding UseTor}">
-      <TextBlock Text="Terminate Tor when Wasabi is Shutdown"/>
+      <TextBlock Text="Terminate Tor when Wasabi is Shutdown" />
       <ToggleSwitch IsChecked="{Binding TerminateTorOnExit}" />
     </DockPanel>
-
-    <StackPanel Spacing="10" IsVisible="{Binding UseTor}">
-      <TextBlock Text="Tor SOCKS5 Endpoint" />
-      <TextBox Text="{Binding TorSocks5EndPoint}" />
-    </StackPanel>
   </StackPanel>
 </UserControl>

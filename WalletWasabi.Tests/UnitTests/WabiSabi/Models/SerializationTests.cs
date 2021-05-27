@@ -12,6 +12,7 @@ using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using Xunit;
 
@@ -21,7 +22,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 	{
 		private static IEnumerable<GroupElement> Points = Enumerable.Range(0, int.MaxValue).Select(i => Generators.FromText($"T{i}"));
 		private static IEnumerable<Scalar> Scalars = Enumerable.Range(1, int.MaxValue).Select(i => new Scalar((uint)i));
-		private static CredentialIssuerSecretKey IssuerKey = new (new InsecureRandom());
+		private static CredentialIssuerSecretKey IssuerKey = new(new InsecureRandom());
 
 		[Fact]
 		public void InputRegistrationRequestMessageSerialization()
@@ -150,6 +151,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		public void RoundStateMessageSerialization()
 		{
 			var round = WabiSabiFactory.CreateRound(new WalletWasabi.WabiSabi.Backend.WabiSabiConfig());
+			AssertSerialization(RoundState.FromRound(round));
+
+			var state = round.Assert<ConstructionState>();
+			round.CoinjoinState = new SigningState(state.Parameters, state.Inputs, state.Outputs);
 			AssertSerialization(RoundState.FromRound(round));
 		}
 

@@ -36,8 +36,6 @@ namespace WalletWasabi.Helpers
 
 		public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
 
-		public const int DefaultTorSocksPort = 9050;
-
 		public const int DefaultMainNetBitcoinP2pPort = 8333;
 		public const int DefaultTestNetBitcoinP2pPort = 18333;
 		public const int DefaultRegTestBitcoinP2pPort = 18444;

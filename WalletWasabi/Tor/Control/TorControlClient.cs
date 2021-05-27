@@ -50,6 +50,40 @@ namespace WalletWasabi.Tor.Control
 		}
 
 		/// <summary>
+		/// Gets Tor's circuits that are currently available.
+		/// </summary>
+		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">3.9. GETINFO, and 4.1.1. Circuit status changed.</seealso>
+		public async Task<GetInfoCircuitStatusReply> GetCircuitStatusAsync(CancellationToken cancellationToken = default)
+		{
+			TorControlReply reply = await SendCommandAsync("GETINFO circuit-status\r\n", cancellationToken).ConfigureAwait(false);
+
+			return GetInfoCircuitStatusReply.FromReply(reply);
+		}
+
+		/// <summary>
+		/// Instructs Tor to shut down when this control connection is closed.
+		/// </summary>
+		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See 3.23. TAKEOWNERSHIP.</seealso>
+		public Task<TorControlReply> TakeOwnershipAsync(CancellationToken cancellationToken = default)
+			=> SendCommandAsync("TAKEOWNERSHIP\r\n", cancellationToken);
+
+		/// <summary>
+		/// Requests controlled shutdown.
+		/// </summary>
+		/// <remarks>If server is a client (OP), exit immediately. If it's a relay (OR), close listeners and exit after <c>ShutdownWaitLength</c> seconds.</remarks>
+		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See 3.7. SIGNAL.</seealso>
+		public Task<TorControlReply> SignalShutdownAsync(CancellationToken cancellationToken = default)
+			=> SendCommandAsync("SIGNAL SHUTDOWN\r\n", cancellationToken);
+
+		/// <summary>
+		/// Causes Tor to stop polling for the existence of a process with its owning controller's PID.
+		/// </summary>
+		/// <remarks>If TAKEOWNERSHIP command is sent, Tor will still exit when the control connection ends.</remarks>
+		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See 3.2. RESETCONF and 3.23. TAKEOWNERSHIP.</seealso>
+		public Task<TorControlReply> ResetOwningControllerProcessConfAsync(CancellationToken cancellationToken = default)
+			=> SendCommandAsync("RESETCONF __OwningControllerProcess\r\n", cancellationToken);
+
+		/// <summary>
 		/// Sends a command to Tor.
 		/// </summary>
 		/// <remarks>This is meant as a low-level API method, if needed for some reason.</remarks>

@@ -192,7 +192,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var emptyState = round.Assert<ConstructionState>();
 
 			// We can't use ``emptyState.Finalize()` because this is not a valid transaction so we fake it
-			var finalizedEmptyState = new SigningState(emptyState);
+			var finalizedEmptyState = new SigningState(emptyState.Parameters, emptyState.Inputs, emptyState.Outputs);
 
 			// No inputs in the CoinJoin.
 			await Assert.ThrowsAsync<ArgumentException>(async () =>
