@@ -29,6 +29,11 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public bool IsCompleted(Dictionary<uint256, RoundState> allRoundStates)
 		{
+			if (Task.IsCompleted)
+			{
+				return true;
+			}
+
 			if (RoundId is not null && !allRoundStates.ContainsKey(RoundId))
 			{
 				TaskCompletionSource.TrySetException(new InvalidOperationException($"Round {RoundId} is not running anymore."));
