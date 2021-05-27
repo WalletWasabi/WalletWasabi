@@ -26,15 +26,14 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			var cancellationToken = cancellationTokenSource.Token;
 
 			var mockApiClient = new Mock<IWabiSabiApiRequestHandler>();
-			mockApiClient.Setup(apiClient => apiClient.GetStatusAsync(cancellationToken))
-				.Returns(() => Task.FromResult(roundStates.ToArray()));
+			mockApiClient.Setup(apiClient => apiClient.GetStatusAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(() => roundStates.ToArray());
 
 			using RoundStatusUpdater roundStatusUpdater = new(TimeSpan.FromSeconds(1), mockApiClient.Object);
 			await roundStatusUpdater.StartAsync(cancellationTokenSource.Token);
 
-			// GetStatusAsync still returns empty array?
-			//var waitFirst = roundStatusUpdater.CreateRoundAwaiter(rs => rs.Phase == Phase.InputRegistration, cancellationToken);
-			//await waitFirst;
+			var waitFirst = await roundStatusUpdater.CreateRoundAwaiter(rs => rs.Phase == Phase.InputRegistration, cancellationToken);
+			Assert.Equal(uint256.One, waitFirst.Id);
 
 			await roundStatusUpdater.StopAsync(cancellationToken);
 		}
