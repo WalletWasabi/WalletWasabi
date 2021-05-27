@@ -200,9 +200,9 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 			(var largestMagnitudeNode, var smallMagnitudeNodes, var fanIn) = edgeSet.MatchNodesToDischarge(positive, negative);
 
-			var maxCount = (fanIn ? edgeSet.RemainingInDegree(largestMagnitudeNode!) : edgeSet.RemainingOutDegree(largestMagnitudeNode!));
+			var maxCount = (fanIn ? edgeSet.RemainingInDegree(largestMagnitudeNode) : edgeSet.RemainingOutDegree(largestMagnitudeNode));
 
-			if (Math.Abs(edgeSet.Balance(largestMagnitudeNode!)) > Math.Abs(smallMagnitudeNodes.Sum(x => edgeSet.Balance(x))))
+			if (Math.Abs(edgeSet.Balance(largestMagnitudeNode)) > Math.Abs(smallMagnitudeNodes.Sum(x => edgeSet.Balance(x))))
 			{
 				// When we are draining a positive valued node into multiple
 				// negative nodes and we can't drain it completely, we need to
@@ -223,7 +223,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 					// otherwise, drain the largest magnitude node into a new
 					// reissuance node which will have room for an unused edge
 					// in its out edge set.
-					(g, largestMagnitudeNode) = g.AggregateIntoReissuanceNode(new RequestNode[] { largestMagnitudeNode! }, credentialType);
+					(g, largestMagnitudeNode) = g.AggregateIntoReissuanceNode(new RequestNode[] { largestMagnitudeNode }, credentialType);
 				}
 			}
 
@@ -449,50 +449,5 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 
 		private DependencyGraph AddZeroCredential(RequestNode from, RequestNode to, CredentialType credentialType)
 			=> this with { edgeSets = edgeSets.SetItem(credentialType, edgeSets[credentialType].AddZeroEdge(from, to)) };
-
-		/// <summary>Format the graph in graphviz dot format, suitable for
-		/// reading or viewing.</summary>
-		public string Graphviz()
-		{
-
-			var output = "digraph {\n";
-
-			Func<RequestNode, int> id = Vertices.IndexOf;
-
-			foreach (var v in Vertices)
-			{
-				if (v.InitialBalance(CredentialType.Amount) == 0 && v.InitialBalance(CredentialType.Vsize) == 0)
-				{
-
-					output += $"  {id(v)} [label=\"\"];\n";
-				}
-				else
-				{
-					output += $"  {id(v)} [label=\"{v.InitialBalance(CredentialType.Amount)}s {v.InitialBalance(CredentialType.Vsize)}b\"];\n";
-				}
-			}
-
-
-			foreach (var credentialType in CredentialTypes)
-			{
-				var color = credentialType == 0 ? "blue" : "red";
-				var unit = credentialType == 0 ? "s" : "b";
-
-				output += "  {\n";
-				output += $"      edge [color={color}, fontcolor={color}];\n";
-
-				foreach (var e in edgeSets[credentialType].Predecessors.Values.Aggregate((a, b) => a.Union(b)).OrderByDescending(e => e.Value).ThenBy(e => id(e.From)).ThenBy(e => id(e.To)))
-				{
-					output += $"    {id(e.From)} -> {id(e.To)} [label=\"{e.Value}{unit}\"{(e.Value == 0 ? ", style=dashed" : "")}];\n";
-				}
-
-
-				output += "  }\n";
-			}
-
-
-			output += "}\n";
-			return output;
-		}
 	}
 }
