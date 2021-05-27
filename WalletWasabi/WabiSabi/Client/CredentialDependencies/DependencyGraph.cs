@@ -369,7 +369,7 @@ namespace WalletWasabi.WabiSabi.Client.CredentialDependencies
 		private DependencyGraph DrainTerminal(RequestNode node, IEnumerable<RequestNode> nodes, CredentialType credentialType)
 			// Here we avoid opportunistically adding edges of other types as it
 			// provides no benefit with K=2. Stable sorting prevents edge
-			// crossing.
+			// crossing to a limited degree, but could be much better.
 			=> this with { edgeSets = edgeSets.SetItem(credentialType, edgeSets[credentialType].DrainTerminal(node, nodes)) };
 
 		private DependencyGraph ResolveZeroCredentials(CredentialType credentialType)
