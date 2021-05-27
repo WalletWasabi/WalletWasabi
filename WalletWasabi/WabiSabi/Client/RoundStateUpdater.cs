@@ -47,7 +47,7 @@ namespace WalletWasabi.WabiSabi.Client
 				{
 					foreach (var roundState in RoundStates.Values)
 					{
-						HandleTasks(taskAndPredicateList, roundState);
+						RemoveCompletedAwaiters(taskAndPredicateList, roundState);
 					}
 				}
 
@@ -70,14 +70,14 @@ namespace WalletWasabi.WabiSabi.Client
 
 						if (roundState is not null && Awaiters.TryGetValue(roundId, out var list))
 						{
-							HandleTasks(list, roundState);
+							RemoveCompletedAwaiters(list, roundState);
 						}
 					}
 				}
 			}
 		}
 
-		private static void HandleTasks(List<RoundStateAwaiter> taskAndPredicateList, RoundState roundState)
+		private static void RemoveCompletedAwaiters(List<RoundStateAwaiter> taskAndPredicateList, RoundState roundState)
 		{
 			foreach (var taskAndPredicate in taskAndPredicateList.Where(taskAndPredicate => taskAndPredicate.Predicate(roundState)).ToArray())
 			{
