@@ -47,12 +47,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History
 				.Bind(_unfilteredTransactions)
 				.Bind(_transactions)
 				.Subscribe();
-
-			this.WhenAnyValue(x => x.SelectedItem)
-				.Buffer(2, 1)
-				.Select(buf => buf[0])
-				.WhereNotNull()
-				.Subscribe(x => x.IsSelected = false);
 		}
 
 		public DataGridCollectionView CollectionView { get; }
