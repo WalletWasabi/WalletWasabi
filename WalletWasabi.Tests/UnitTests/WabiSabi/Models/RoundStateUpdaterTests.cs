@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 
 			using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromDays(1), mockApiClient.Object);
 
-			var round1TSCts = new CancellationTokenSource();
+			using var round1TSCts = new CancellationTokenSource();
 			var round1IRTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.InputRegistration, cancellationToken);
 			var round1ORTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken);
 			var round1TSTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.TransactionSigning, round1TSCts.Token);
