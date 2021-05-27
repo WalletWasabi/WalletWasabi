@@ -21,9 +21,9 @@ namespace WalletWasabi.WabiSabi.Client
 			cancellationToken.Register(() => Cancel());
 		}
 
-		TaskCompletionSource<RoundState> TaskCompletionSource { get; }
-		Predicate<RoundState> Predicate { get; }
-		uint256? RoundId { get; }
+		private TaskCompletionSource<RoundState> TaskCompletionSource { get; }
+		private Predicate<RoundState> Predicate { get; }
+		private uint256? RoundId { get; }
 
 		public Task<RoundState> Task => TaskCompletionSource.Task;
 
