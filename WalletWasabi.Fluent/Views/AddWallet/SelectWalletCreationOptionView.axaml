@@ -8,9 +8,6 @@
              x:DataType="vm:SelectWalletCreationOptionViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.SelectWalletCreationOptionView">
-  <UserControl.KeyBindings>
-    <KeyBinding Gesture="Enter" Command="{Binding CreateWalletCommand}" />
-  </UserControl.KeyBindings>
   <c:ContentArea Title="{Binding Title}" Caption="Select an option:"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
@@ -24,7 +21,8 @@
       <c:TileButton Text="Create a new wallet"
                     Classes="action"
                     Icon="{StaticResource add_regular}"
-                    Command="{Binding CreateWalletCommand}" />
+                    Command="{Binding CreateWalletCommand}"
+                    IsDefault="True" />
       <c:TileButton Text="Connect to hardware wallet"
                     Icon="{StaticResource calculator_regular}"
                     Command="{Binding ConnectHardwareWalletCommand}" />
