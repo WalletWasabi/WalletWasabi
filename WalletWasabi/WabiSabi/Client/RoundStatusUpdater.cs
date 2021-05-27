@@ -15,16 +15,16 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class RoundStatusUpdater : PeriodicRunner
 	{
+		public RoundStatusUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler) : base(requestInterval)
+		{
+			ArenaRequestHandler = arenaRequestHandler;
+		}
+
 		private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		private Dictionary<uint256, RoundState> RoundStates { get; set; } = new();
 
 		private Dictionary<uint256, List<(TaskCompletionSource<RoundState> Task, Predicate<RoundState> Predicate)>> Awaiters { get; } = new();
 		private object AwaitersLock { get; } = new();
-
-		public RoundStatusUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler) : base(requestInterval)
-		{
-			ArenaRequestHandler = arenaRequestHandler;
-		}
 
 		protected override async Task ActionAsync(CancellationToken cancellationToken)
 		{
