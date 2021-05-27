@@ -12,9 +12,6 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class RoundStateUpdater : PeriodicRunner
 	{
-		// Denotes that each round should be checked against a predicate list.
-		private static readonly uint256 AnyRoundId = uint256.Zero;
-
 		public RoundStateUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler) : base(requestInterval)
 		{
 			ArenaRequestHandler = arenaRequestHandler;
@@ -23,7 +20,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		private Dictionary<uint256, RoundState> RoundStates { get; set; } = new();
 
-		private Dictionary<uint256, List<RoundStateAwaiter>> Awaiters { get; } = new();
+		private List<RoundStateAwaiter> Awaiters { get; } = new();
 		private object AwaitersLock { get; } = new();
 
 		protected override async Task ActionAsync(CancellationToken cancellationToken)
@@ -45,95 +42,48 @@ namespace WalletWasabi.WabiSabi.Client
 
 			lock (AwaitersLock)
 			{
-				// Handle round independent tasks.
-				if (Awaiters.TryGetValue(AnyRoundId, out var roundStateAwaiters))
+				foreach (var awaiter in Awaiters.Where(awaiter => awaiter.IsCompleted(RoundStates)).ToArray())
 				{
-					foreach (var roundState in RoundStates.Values)
-					{
-						RemoveCompletedAwaiters(roundStateAwaiters, roundState);
-					}
-				}
-
-				if (roundsToUpdate.Any())
-				{
-					// Handle round dependent tasks.
-					foreach (var roundId in roundsToUpdate)
-					{
-						if (!RoundStates.TryGetValue(roundId, out var roundState))
-						{
-							// The round is missing.
-							var tasks = Awaiters[roundId];
-							foreach (var t in tasks)
-							{
-								t.TaskCompletionSource.TrySetException(new InvalidOperationException($"Round {roundId} is not running anymore."));
-							}
-							Awaiters.Remove(roundId);
-							continue;
-						}
-
-						if (Awaiters.TryGetValue(roundId, out var list))
-						{
-							RemoveCompletedAwaiters(list, roundState);
-						}
-					}
+					// The predicate was fulfilled.
+					Awaiters.Remove(awaiter);
+					break;
 				}
 			}
 		}
 
-		private static void RemoveCompletedAwaiters(List<RoundStateAwaiter> roundStateAwaiters, RoundState roundState)
+		public Task<RoundState> CreateRoundAwaiter(uint256? roundId, Predicate<RoundState> predicate, CancellationToken cancellationToken)
 		{
-			foreach (var roundStateAwaiter in roundStateAwaiters.Where(roundStateAwaiter => roundStateAwaiter.Predicate(roundState)).ToArray())
-			{
-				// The predicate was fulfilled.
-				var task = roundStateAwaiter.TaskCompletionSource;
-				task.TrySetResult(roundState);
-				roundStateAwaiters.Remove(roundStateAwaiter);
-			}
-		}
-
-		public Task<RoundState> CreateRoundAwaiter(uint256 roundId, Predicate<RoundState> predicate, CancellationToken cancellationToken)
-		{
-			TaskCompletionSource<RoundState> tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
-			List<RoundStateAwaiter>? roundStateAwaiters = null;
 			RoundStateAwaiter? roundStateAwaiter = null;
 
 			lock (AwaitersLock)
 			{
-				if (!Awaiters.ContainsKey(roundId))
-				{
-					Awaiters.Add(roundId, new List<RoundStateAwaiter>());
-				}
-				roundStateAwaiters = Awaiters[roundId];
-
-				roundStateAwaiter = new RoundStateAwaiter(tcs, predicate);
-				roundStateAwaiters.Add(roundStateAwaiter);
+				roundStateAwaiter = new RoundStateAwaiter(predicate, roundId, cancellationToken);
+				Awaiters.Add(roundStateAwaiter);
 			}
 
 			cancellationToken.Register(() =>
 			{
-				tcs.TrySetCanceled();
 				lock (AwaitersLock)
 				{
-					roundStateAwaiters.Remove(roundStateAwaiter);
+					Awaiters.Remove(roundStateAwaiter);
 				}
 			});
 
-			return tcs.Task;
+			return roundStateAwaiter.Task;
 		}
 
 		public Task<RoundState> CreateRoundAwaiter(Predicate<RoundState> predicate, CancellationToken cancellationToken)
 		{
-			// Zero denotes that the predicate should run for any round.
-			return CreateRoundAwaiter(AnyRoundId, predicate, cancellationToken);
+			return CreateRoundAwaiter(null, predicate, cancellationToken);
 		}
 
 		public override Task StopAsync(CancellationToken cancellationToken)
 		{
 			lock (AwaitersLock)
 			{
-				foreach (var t in Awaiters.SelectMany(a => a.Value).Select(a => a.TaskCompletionSource))
+				foreach (var awaiter in Awaiters)
 				{
-					t.TrySetCanceled(cancellationToken);
+					awaiter.Cancel();
 				}
 			}
 			return base.StopAsync(cancellationToken);
