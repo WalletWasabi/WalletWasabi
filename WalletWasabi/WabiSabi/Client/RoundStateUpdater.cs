@@ -71,7 +71,7 @@ namespace WalletWasabi.WabiSabi.Client
 							continue;
 						}
 
-						if (roundState is not null && Awaiters.TryGetValue(roundId, out var list))
+						if (Awaiters.TryGetValue(roundId, out var list))
 						{
 							RemoveCompletedAwaiters(list, roundState);
 						}
