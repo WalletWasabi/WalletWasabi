@@ -27,7 +27,7 @@ namespace WalletWasabi.WabiSabi.Client
 			IEnumerable<Coin> coins,
 			Kitchen kitchen,
 			KeyManager keymanager,
-			RoundStatusUpdater roundStatusUpdater)
+			RoundStateUpdater roundStatusUpdater)
 		{
 			ArenaRequestHandler = arenaRequestHandler;
 			Kitchen = kitchen;
@@ -46,7 +46,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		public Kitchen Kitchen { get; }
 		public KeyManager Keymanager { get; }
-		private RoundStatusUpdater RoundStatusUpdater { get; }
+		private RoundStateUpdater RoundStatusUpdater { get; }
 
 		protected override async Task ExecuteAsync(CancellationToken cancellationToken)
 		{

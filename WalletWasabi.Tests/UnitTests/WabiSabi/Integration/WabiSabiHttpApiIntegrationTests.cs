@@ -110,7 +110,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 			var kitchen = new Kitchen();
 			kitchen.Cook("");
 
-			using var roundStateUpdater = new RoundStatusUpdater(TimeSpan.FromSeconds(1), apiClient);
+			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
 			using var coinJoinClient = new CoinJoinClient(apiClient, coins, kitchen, keyManager, roundStateUpdater);

@@ -53,7 +53,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 
 			var wabiSabiApi = new WabiSabiController(coordinator);
 
-			using var roundStateUpdater = new RoundStatusUpdater(TimeSpan.FromSeconds(1), wabiSabiApi);
+			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), wabiSabiApi);
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
 			using CoinJoinClient coinJoinClient = new(wabiSabiApi, new[] { smartCoin.Coin }, kitchen, km, roundStateUpdater);

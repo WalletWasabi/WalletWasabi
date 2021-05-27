@@ -29,7 +29,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			mockApiClient.Setup(apiClient => apiClient.GetStatusAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(() => roundStates.ToArray());
 
-			using RoundStatusUpdater roundStatusUpdater = new(TimeSpan.FromSeconds(1), mockApiClient.Object);
+			using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromSeconds(1), mockApiClient.Object);
 			await roundStatusUpdater.StartAsync(cancellationTokenSource.Token);
 
 			var waitFirst = await roundStatusUpdater.CreateRoundAwaiter(rs => rs.Phase == Phase.InputRegistration, cancellationToken);

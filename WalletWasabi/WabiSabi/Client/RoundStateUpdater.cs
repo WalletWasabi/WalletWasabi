@@ -10,9 +10,9 @@ using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client
 {
-	public class RoundStatusUpdater : PeriodicRunner
+	public class RoundStateUpdater : PeriodicRunner
 	{
-		public RoundStatusUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler) : base(requestInterval)
+		public RoundStateUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler) : base(requestInterval)
 		{
 			ArenaRequestHandler = arenaRequestHandler;
 		}
@@ -20,7 +20,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private IWabiSabiApiRequestHandler ArenaRequestHandler { get; }
 		private Dictionary<uint256, RoundState> RoundStates { get; set; } = new();
 
-		private Dictionary<uint256, List<(TaskCompletionSource<RoundState> Task, Predicate<RoundState> Predicate)>> Awaiters { get; } = new();
+		private Dictionary<uint256, List<RoundStateAwaiter>> Awaiters { get; } = new();
 		private object AwaitersLock { get; } = new();
 
 		protected override async Task ActionAsync(CancellationToken cancellationToken)
@@ -77,7 +77,7 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		private static void HandleTasks(List<(TaskCompletionSource<RoundState> Task, Predicate<RoundState> Predicate)> taskAndPredicateList, RoundState roundState)
+		private static void HandleTasks(List<RoundStateAwaiter> taskAndPredicateList, RoundState roundState)
 		{
 			foreach (var taskAndPredicate in taskAndPredicateList.Where(taskAndPredicate => taskAndPredicate.Predicate(roundState)).ToArray())
 			{
@@ -95,11 +95,11 @@ namespace WalletWasabi.WabiSabi.Client
 			{
 				if (!Awaiters.ContainsKey(roundId))
 				{
-					Awaiters.Add(roundId, new List<(TaskCompletionSource<RoundState>, Predicate<RoundState>)>());
+					Awaiters.Add(roundId, new List<RoundStateAwaiter>());
 				}
 				var predicateList = Awaiters[roundId];
 
-				var taskAndPredicate = (tcs, predicate);
+				var taskAndPredicate = new RoundStateAwaiter(tcs, predicate);
 				predicateList.Add(taskAndPredicate);
 
 				cancellationToken.Register(() =>
