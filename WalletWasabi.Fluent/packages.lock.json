@@ -31,9 +31,9 @@
       },
       "Avalonia.Lottie": {
         "type": "Direct",
-        "requested": "[0.10.3-cibuild14204, )",
-        "resolved": "0.10.3-cibuild14204",
-        "contentHash": "qwDsIDeUe7SjIjwsDLkkBnvl6k2dQM7Lw5JI45VcXugn46y7ZjJ5/n/syJgbaFwjZVFwZKdULaHH/q1I2mQ76w==",
+        "requested": "[0.10.3-cibuild14389, )",
+        "resolved": "0.10.3-cibuild14389",
+        "contentHash": "l6pyezuxxDeTnNFaSnbXXgoplfVM3vr0Nz631TMw0eLZQIjgsQPj7wvASBrKogsHqN/k1/L+hnxdUsvwI0UxlA==",
         "dependencies": {
           "Avalonia": "0.10.4",
           "DotNetZip": "1.15.0",
@@ -60,16 +60,6 @@
           "Avalonia": "0.10.5",
           "Avalonia.Xaml.Interactions": "0.10.5",
           "Avalonia.Xaml.Interactivity": "0.10.5"
-        }
-      },
-      "Avalonia.Xaml.Interactions.Custom": {
-        "type": "Direct",
-        "requested": "[0.10.3, )",
-        "resolved": "0.10.3",
-        "contentHash": "vygO1aKfp+YVO4oY+n01s3fCXRweYFRDXXfsO4KVfFQu2cowU7MGoT08IqwW/PKZvaZRjNAkM4ypTNCJ1jKwCQ==",
-        "dependencies": {
-          "Avalonia": "0.10.3",
-          "Avalonia.Xaml.Interactivity": "0.10.3"
         }
       },
       "Avalonia.Xaml.Interactivity": {
@@ -193,6 +183,15 @@
         "dependencies": {
           "Avalonia": "0.10.5",
           "Avalonia.Xaml.Interactivity": "0.10.5"
+        }
+      },
+      "Avalonia.Xaml.Interactions.Custom": {
+        "type": "Transitive",
+        "resolved": "0.9.9",
+        "contentHash": "j1F+UPlhcITTfRKWXvoqrRZKodyj33uwl6S6oIfomex9y5Kha2G1Y9ykc1ewGBK5OWemJ2i7Kh77aiwp7rFedA==",
+        "dependencies": {
+          "Avalonia": "0.9.9",
+          "Avalonia.Xaml.Interactivity": "0.9.9"
         }
       },
       "AvalonStudio.Shell": {
