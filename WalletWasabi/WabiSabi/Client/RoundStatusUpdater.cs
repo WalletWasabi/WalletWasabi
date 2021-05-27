@@ -45,6 +45,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 			lock (AwaitersLock)
 			{
+				// Handle round independent tasks.
 				if (Awaiters.TryGetValue(uint256.Zero, out var taskAndPredicateList))
 				{
 					foreach (var roundState in RoundStates.Values)
@@ -55,32 +56,26 @@ namespace WalletWasabi.WabiSabi.Client
 
 				if (roundsToUpdate.Any())
 				{
-					ExecuteAwaitersNoLock(roundsToUpdate, RoundStates);
-				}
-			}
-		}
-
-		private void ExecuteAwaitersNoLock(
-			IEnumerable<uint256> roundsToUpdate,
-			Dictionary<uint256, RoundState> roundStates)
-		{
-			foreach (var roundId in roundsToUpdate)
-			{
-				if (!roundStates.TryGetValue(roundId, out var roundState))
-				{
-					// The round is missing.
-					var tasks = Awaiters[roundId];
-					foreach (var t in tasks)
+					// Handle round dependent tasks.
+					foreach (var roundId in roundsToUpdate)
 					{
-						t.Task.TrySetException(new InvalidOperationException($"Round {roundId} is not running anymore."));
-					}
-					Awaiters.Remove(roundId);
-					continue;
-				}
+						if (!RoundStates.TryGetValue(roundId, out var roundState))
+						{
+							// The round is missing.
+							var tasks = Awaiters[roundId];
+							foreach (var t in tasks)
+							{
+								t.Task.TrySetException(new InvalidOperationException($"Round {roundId} is not running anymore."));
+							}
+							Awaiters.Remove(roundId);
+							continue;
+						}
 
-				if (roundState is not null && Awaiters.TryGetValue(roundId, out var taskAndPredicateList))
-				{
-					HandleTasks(taskAndPredicateList, roundState);
+						if (roundState is not null && Awaiters.TryGetValue(roundId, out var list))
+						{
+							HandleTasks(list, roundState);
+						}
+					}
 				}
 			}
 		}
