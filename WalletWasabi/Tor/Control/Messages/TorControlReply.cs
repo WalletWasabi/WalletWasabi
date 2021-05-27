@@ -28,7 +28,7 @@ namespace WalletWasabi.Tor.Control.Messages
 
 		public TorControlReply(StatusCode statusCode)
 		{
-			StatusCode = statusCode;			
+			StatusCode = statusCode;
 			ResponseLines = NoLines;
 		}
 

@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 			TorControlReply rawReply = await TorControlReplyReaderTest.ParseAsync(data);
 			GetInfoCircuitStatusReply reply = GetInfoCircuitStatusReply.FromReply(rawReply);
 
-			Assert.Equal(8, reply.Circuits.Count);			
+			Assert.Equal(8, reply.Circuits.Count);
 		}		
 	}
 }
