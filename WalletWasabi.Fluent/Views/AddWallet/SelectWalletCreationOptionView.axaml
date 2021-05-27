@@ -8,7 +8,7 @@
              x:DataType="vm:SelectWalletCreationOptionViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.SelectWalletCreationOptionView">
-  <c:ContentArea Title="{Binding Title}" Caption="Select an option:"
+  <c:ContentArea Title="{Binding Title}"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  IsBusy="{Binding IsBusy}">
