@@ -32,6 +32,12 @@ namespace WalletWasabi.WabiSabi.Backend.PostRequests
 
 		public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 		{
+#if !DEBUG
+			if (Network == Network.Main)
+			{
+				throw new InvalidOperationException("WabiSabi is under construction. Registration is not enabled in production.");
+			}
+#endif
 			DisposeGuard();
 			using (RunningTasks.RememberWith(RunningRequests))
 			{
