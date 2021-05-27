@@ -50,6 +50,17 @@ namespace WalletWasabi.Tor.Control
 		}
 
 		/// <summary>
+		/// Gets Tor's circuits that are currently available.
+		/// </summary>
+		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">3.9. GETINFO, and 4.1.1. Circuit status changed.</seealso>
+		public async Task<GetInfoCircuitStatusReply> GetCircuitStatusAsync(CancellationToken cancellationToken = default)
+		{
+			TorControlReply reply = await SendCommandAsync("GETINFO circuit-status\r\n", cancellationToken).ConfigureAwait(false);
+
+			return GetInfoCircuitStatusReply.FromReply(reply);
+		}
+
+		/// <summary>
 		/// Instructs Tor to shut down when this control connection is closed.
 		/// </summary>
 		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See 3.23. TAKEOWNERSHIP.</seealso>

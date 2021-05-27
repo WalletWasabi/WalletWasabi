@@ -1,5 +1,6 @@
 using System;
 using WalletWasabi.Tor.Control.Exceptions;
+using WalletWasabi.Tor.Control.Messages.CircuitStatus;
 
 namespace WalletWasabi.Tor.Control.Utils
 {
@@ -32,10 +33,29 @@ namespace WalletWasabi.Tor.Control.Utils
 		}
 
 		/// <summary>
+		/// Reads <c>&lt;KEY&gt;=&lt;VALUE&gt;</c>.
+		/// </summary>
+		public static (string key, string value, string remainder) ReadKeyValueAssignment(string input)
+		{
+			int valueStartAt = input.IndexOf('=');
+
+			if (valueStartAt == -1)
+			{
+				throw new TorControlReplyParseException("Missing equal sign ('=').");
+			}
+
+			string key = input[0..valueStartAt];
+
+			(string value, string remainder) = ReadUntilSeparator(input[(valueStartAt+1)..]);
+
+			return (key, value, remainder);
+		}
+
+		/// <summary>
 		/// Reads <c>&lt;KEY&gt;=QuotedString</c> string from <paramref name="input"/>.
 		/// </summary>
 		/// <returns>Quoted string content.</returns>
-		public static (string value, string remainder) ReadKeyValueAssignment(string key, string input)
+		public static (string value, string remainder) ReadKeyQuotedValueAssignment(string key, string input)
 		{
 			input = ReadExactString(key, input);
 
@@ -91,6 +111,18 @@ namespace WalletWasabi.Tor.Control.Utils
 			}
 
 			return input[expectedStart.Length..];
+		}
+
+		/// <summary>Parses a string value to an enum value.</summary>
+		/// <remarks>Tor spec mandates (in general) that unknown values cannot lead to crash of a Tor control parser.</remarks>
+		public static T ParseEnumValue<T>(string value, T defaultValue) where T : struct
+		{
+			if (!Enum.TryParse<T>(value, out T result))
+			{
+				result = defaultValue;
+			}
+
+			return result;
 		}
 	}
 }
