@@ -46,11 +46,11 @@ namespace WalletWasabi.WabiSabi.Client
 			lock (AwaitersLock)
 			{
 				// Handle round independent tasks.
-				if (Awaiters.TryGetValue(AnyRoundId, out var taskAndPredicateList))
+				if (Awaiters.TryGetValue(AnyRoundId, out var roundStateAwaiters))
 				{
 					foreach (var roundState in RoundStates.Values)
 					{
-						RemoveCompletedAwaiters(taskAndPredicateList, roundState);
+						RemoveCompletedAwaiters(roundStateAwaiters, roundState);
 					}
 				}
 
@@ -65,7 +65,7 @@ namespace WalletWasabi.WabiSabi.Client
 							var tasks = Awaiters[roundId];
 							foreach (var t in tasks)
 							{
-								t.Task.TrySetException(new InvalidOperationException($"Round {roundId} is not running anymore."));
+								t.TaskCompletionSource.TrySetException(new InvalidOperationException($"Round {roundId} is not running anymore."));
 							}
 							Awaiters.Remove(roundId);
 							continue;
@@ -80,22 +80,22 @@ namespace WalletWasabi.WabiSabi.Client
 			}
 		}
 
-		private static void RemoveCompletedAwaiters(List<RoundStateAwaiter> taskAndPredicateList, RoundState roundState)
+		private static void RemoveCompletedAwaiters(List<RoundStateAwaiter> roundStateAwaiters, RoundState roundState)
 		{
-			foreach (var taskAndPredicate in taskAndPredicateList.Where(taskAndPredicate => taskAndPredicate.Predicate(roundState)).ToArray())
+			foreach (var roundStateAwaiter in roundStateAwaiters.Where(roundStateAwaiter => roundStateAwaiter.Predicate(roundState)).ToArray())
 			{
 				// The predicate was fulfilled.
-				var task = taskAndPredicate.Task;
+				var task = roundStateAwaiter.TaskCompletionSource;
 				task.TrySetResult(roundState);
-				taskAndPredicateList.Remove(taskAndPredicate);
+				roundStateAwaiters.Remove(roundStateAwaiter);
 			}
 		}
 
 		public Task<RoundState> CreateRoundAwaiter(uint256 roundId, Predicate<RoundState> predicate, CancellationToken cancellationToken)
 		{
 			TaskCompletionSource<RoundState> tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
-			List<RoundStateAwaiter>? predicateList = null;
-			RoundStateAwaiter? taskAndPredicate = null;
+			List<RoundStateAwaiter>? roundStateAwaiters = null;
+			RoundStateAwaiter? roundStateAwaiter = null;
 
 			lock (AwaitersLock)
 			{
@@ -103,10 +103,10 @@ namespace WalletWasabi.WabiSabi.Client
 				{
 					Awaiters.Add(roundId, new List<RoundStateAwaiter>());
 				}
-				predicateList = Awaiters[roundId];
+				roundStateAwaiters = Awaiters[roundId];
 
-				taskAndPredicate = new RoundStateAwaiter(tcs, predicate);
-				predicateList.Add(taskAndPredicate);
+				roundStateAwaiter = new RoundStateAwaiter(tcs, predicate);
+				roundStateAwaiters.Add(roundStateAwaiter);
 			}
 
 			cancellationToken.Register(() =>
@@ -114,7 +114,7 @@ namespace WalletWasabi.WabiSabi.Client
 				tcs.TrySetCanceled();
 				lock (AwaitersLock)
 				{
-					predicateList.Remove(taskAndPredicate);
+					roundStateAwaiters.Remove(roundStateAwaiter);
 				}
 			});
 
@@ -131,7 +131,7 @@ namespace WalletWasabi.WabiSabi.Client
 		{
 			lock (AwaitersLock)
 			{
-				foreach (var t in Awaiters.SelectMany(a => a.Value).Select(a => a.Task))
+				foreach (var t in Awaiters.SelectMany(a => a.Value).Select(a => a.TaskCompletionSource))
 				{
 					t.TrySetCanceled(cancellationToken);
 				}

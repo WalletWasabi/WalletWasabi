@@ -7,7 +7,7 @@ using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client
 {
-	public record RoundStateAwaiter(TaskCompletionSource<RoundState> Task, Predicate<RoundState> Predicate)
+	public record RoundStateAwaiter(TaskCompletionSource<RoundState> TaskCompletionSource, Predicate<RoundState> Predicate)
 	{
 	}
 }
