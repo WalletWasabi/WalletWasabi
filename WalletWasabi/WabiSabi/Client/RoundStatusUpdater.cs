@@ -19,6 +19,7 @@ namespace WalletWasabi.WabiSabi.Client
 		private Dictionary<uint256, RoundState> RoundStates { get; set; } = new();
 
 		private Dictionary<uint256, List<(TaskCompletionSource<RoundState> Task, Predicate<RoundState> Predicate)>> Awaiters { get; } = new();
+		private object AwaitersLock { get; } = new();
 
 		public RoundStatusUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler) : base(requestInterval)
 		{
@@ -42,21 +43,24 @@ namespace WalletWasabi.WabiSabi.Client
 
 			RoundStates = updatedRoundStates.Union(newRoundStates).ToDictionary(s => s.Key, s => s.Value);
 
-			if (Awaiters.TryGetValue(uint256.Zero, out var taskAndPredicateList))
+			lock (AwaitersLock)
 			{
-				foreach (var roundState in RoundStates.Values)
+				if (Awaiters.TryGetValue(uint256.Zero, out var taskAndPredicateList))
 				{
-					HandleTasks(taskAndPredicateList, roundState);
+					foreach (var roundState in RoundStates.Values)
+					{
+						HandleTasks(taskAndPredicateList, roundState);
+					}
 				}
-			}
 
-			if (roundsToUpdate.Any())
-			{
-				ExecuteAwaiters(roundsToUpdate, RoundStates);
+				if (roundsToUpdate.Any())
+				{
+					ExecuteAwaitersNoLock(roundsToUpdate, RoundStates);
+				}
 			}
 		}
 
-		private void ExecuteAwaiters(
+		private void ExecuteAwaitersNoLock(
 			IEnumerable<uint256> roundsToUpdate,
 			Dictionary<uint256, RoundState> roundStates)
 		{
@@ -95,19 +99,23 @@ namespace WalletWasabi.WabiSabi.Client
 		public Task<RoundState> CreateRoundAwaiter(uint256 roundId, Predicate<RoundState> predicate, CancellationToken cancellationToken)
 		{
 			TaskCompletionSource<RoundState> tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
-			if (!Awaiters.ContainsKey(roundId))
+			lock (AwaitersLock)
 			{
-				Awaiters.Add(roundId, new List<(TaskCompletionSource<RoundState>, Predicate<RoundState>)>());
-			}
-			var predicateList = Awaiters[roundId];
-			var taskAndPredicate = (tcs, predicate);
-			predicateList.Add(taskAndPredicate);
+				if (!Awaiters.ContainsKey(roundId))
+				{
+					Awaiters.Add(roundId, new List<(TaskCompletionSource<RoundState>, Predicate<RoundState>)>());
+				}
+				var predicateList = Awaiters[roundId];
 
-			cancellationToken.Register(() =>
-			{
-				tcs.TrySetCanceled();
-				predicateList.Remove(taskAndPredicate);
-			});
+				var taskAndPredicate = (tcs, predicate);
+				predicateList.Add(taskAndPredicate);
+
+				cancellationToken.Register(() =>
+				{
+					tcs.TrySetCanceled();
+					predicateList.Remove(taskAndPredicate);
+				});
+			}
 
 			return tcs.Task;
 		}
@@ -119,9 +127,12 @@ namespace WalletWasabi.WabiSabi.Client
 
 		public override Task StopAsync(CancellationToken cancellationToken)
 		{
-			foreach (var t in Awaiters.SelectMany(a => a.Value).Select(a => a.Task))
+			lock (AwaitersLock)
 			{
-				t.TrySetCanceled(cancellationToken);
+				foreach (var t in Awaiters.SelectMany(a => a.Value).Select(a => a.Task))
+				{
+					t.TrySetCanceled(cancellationToken);
+				}
 			}
 			return base.StopAsync(cancellationToken);
 		}
