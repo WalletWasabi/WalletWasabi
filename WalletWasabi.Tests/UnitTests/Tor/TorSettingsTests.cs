@@ -18,17 +18,16 @@ namespace WalletWasabi.Tests.UnitTests.Tor
 			string distributionFolder = "tempDistributionDir";
 
 			TorSettings settings = new(dataDir, logFilePath, distributionFolder, terminateOnExit: true, owningProcessId: 7);
-			IPEndPoint endpoint = new(IPAddress.Loopback, WalletWasabi.Helpers.Constants.DefaultTorSocksPort);
 
-			string arguments = settings.GetCmdArguments(endpoint);
+			string arguments = settings.GetCmdArguments();
 
 			string expected = string.Join(
 				" ",
-				$"--SOCKSPort 127.0.0.1:9050",
+				$"--SOCKSPort 127.0.0.1:37150",
 				$"--CookieAuthentication 1",
 				$"--ControlPort 37151",
 				$"--CookieAuthFile \"{Path.Combine("temp", "tempDataDir", "control_auth_cookie")}\"",
-				$"--DataDirectory \"{Path.Combine("temp", "tempDataDir", "tordata")}\"",
+				$"--DataDirectory \"{Path.Combine("temp", "tempDataDir", "tordata2")}\"",
 				$"--GeoIPFile \"{Path.Combine("tempDistributionDir", "Tor", "Geoip", "geoip")}\"",
 				$"--GeoIPv6File \"{Path.Combine("tempDistributionDir", "Tor", "Geoip", "geoip6")}\"",
 				$"--Log \"notice file {Path.Combine("temp", "Tor.log")}\"",

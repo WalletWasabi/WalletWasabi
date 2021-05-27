@@ -22,21 +22,19 @@ namespace WalletWasabi.Tor
 	{
 		private bool _disposed = false;
 
-		public TorProcessManager(TorSettings settings, EndPoint torSocks5EndPoint)
+		public TorProcessManager(TorSettings settings)
 		{
-			TorSocks5EndPoint = torSocks5EndPoint;
 			TorProcess = null;
 			TorControlClient = null;
 			Settings = settings;
-			TcpConnectionFactory = new(torSocks5EndPoint);
+			TcpConnectionFactory = new(settings.SocksEndpoint);
 		}
 
-		private EndPoint TorSocks5EndPoint { get; }
 		private ProcessAsync? TorProcess { get; set; }
 		private TorSettings Settings { get; }
 		private TorTcpConnectionFactory TcpConnectionFactory { get; }
 
-		private TorControlClient? TorControlClient { get; set; }		
+		private TorControlClient? TorControlClient { get; set; }
 
 		/// <summary>
 		/// Starts Tor process if it is not running already.
@@ -53,16 +51,12 @@ namespace WalletWasabi.Tor
 
 				if (isAlreadyRunning)
 				{
-					string msg = TorSocks5EndPoint is IPEndPoint endpoint
-						? $"Tor is already running on {endpoint.Address}:{endpoint.Port}."
-						: "Tor is already running.";
-					Logger.LogInfo(msg);
-
-					TorControlClient = await InitTorControlOrThrowAsync(token).ConfigureAwait(false);
+					Logger.LogInfo($"Tor is already running on {Settings.SocksEndpoint.Address}:{Settings.SocksEndpoint.Port}.");
+					TorControlClient = await InitTorControlAsync(token).ConfigureAwait(false);
 					return true;
 				}
 
-				string torArguments = Settings.GetCmdArguments(TorSocks5EndPoint);
+				string torArguments = Settings.GetCmdArguments();
 
 				ProcessStartInfo startInfo = new()
 				{
@@ -122,7 +116,7 @@ namespace WalletWasabi.Tor
 				}
 
 				Logger.LogInfo("Tor is running.");
-				TorControlClient = await InitTorControlOrThrowAsync(token).ConfigureAwait(false);
+				TorControlClient = await InitTorControlAsync(token).ConfigureAwait(false);
 
 				return true;
 			}
@@ -144,7 +138,7 @@ namespace WalletWasabi.Tor
 		/// </summary>
 		/// <exception cref="TorControlException">When authentication fails for some reason.</exception>
 		/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
-		private async Task<TorControlClient> InitTorControlOrThrowAsync(CancellationToken token = default)
+		private async Task<TorControlClient> InitTorControlAsync(CancellationToken token = default)
 		{
 			// Get cookie.
 			string cookieString = ByteHelpers.ToHex(File.ReadAllBytes(Settings.CookieAuthFilePath));
@@ -159,7 +153,7 @@ namespace WalletWasabi.Tor
 				TorControlReply takeReply = await client.TakeOwnershipAsync(token).ConfigureAwait(false);
 
 				if (!takeReply)
-				{					
+				{
 					throw new TorControlException($"Failed to take ownership of the Tor instance. Reply: '{takeReply}'.");
 				}
 

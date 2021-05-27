@@ -19,33 +19,9 @@ namespace WalletWasabi.WabiSabi.Models.Serialization
 		[ThreadStatic]
 		private static bool IsWriting;
 
-		public override bool CanWrite
-		{
-			get
-			{
-				if (!IsWriting)
-				{
-					return true;
-				}
-				IsWriting = false;
+		public override bool CanWrite => !IsWriting;
 
-				return false;
-			}
-		}
-
-		public override bool CanRead
-		{
-			get
-			{
-				if (!IsReading)
-				{
-					return true;
-				}
-				IsReading = false;
-
-				return false;
-			}
-		}
+		public override bool CanRead => !IsReading;
 
 		public override bool CanConvert(Type objectType)
 		{
