@@ -71,4 +71,3 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		}
 	}
 }
-
