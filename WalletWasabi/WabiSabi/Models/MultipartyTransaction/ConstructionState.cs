@@ -8,8 +8,8 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 	// This class represents actions of the BIP 370 creator and constructor roles
 	public record ConstructionState : MultipartyTransactionState
 	{
-		public ConstructionState(MultipartyTransactionParameters Parameters)
-			: base(Parameters)
+		public ConstructionState(MultipartyTransactionParameters parameters)
+			: base(parameters)
 		{
 		}
 
@@ -109,7 +109,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InsufficientFees);
 			}
 
-			return new SigningState(this);
+			return new SigningState(Parameters, Inputs, Outputs);
 		}
 	}
 }

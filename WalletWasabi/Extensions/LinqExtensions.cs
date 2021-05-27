@@ -206,5 +206,8 @@ namespace System.Linq
 				yield return previous;
 			}
 		}
+
+		public static bool IsSuperSetOf<T>(this IEnumerable<T> me, IEnumerable<T> other) =>
+			other.All(x => me.Contains(x));
 	}
 }

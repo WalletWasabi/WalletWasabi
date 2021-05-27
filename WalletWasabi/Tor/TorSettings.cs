@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -16,16 +17,18 @@ namespace WalletWasabi.Tor
 		/// <param name="dataDir">Application data directory.</param>
 		/// <param name="logFilePath">Full Tor log file path.</param>
 		/// <param name="distributionFolderPath">Full path to folder containing Tor installation files.</param>
-		public TorSettings(string dataDir, string logFilePath, string distributionFolderPath, bool terminateOnExit)
+		public TorSettings(string dataDir, string logFilePath, string distributionFolderPath, bool terminateOnExit, int? owningProcessId = null)
 		{
 			TorBinaryFilePath = GetTorBinaryFilePath();
 			TorBinaryDir = Path.Combine(MicroserviceHelpers.GetBinaryFolder(), "Tor");
 
-			TorDataDir = Path.Combine(dataDir, "tordata");
+			TorDataDir = Path.Combine(dataDir, "tordata2");
+			CookieAuthFilePath = Path.Combine(dataDir, "control_auth_cookie");
 			LogFilePath = logFilePath;
 			IoHelpers.EnsureContainingDirectoryExists(LogFilePath);
 			DistributionFolder = distributionFolderPath;
 			TerminateOnExit = terminateOnExit;
+			OwningProcessId = owningProcessId;
 			GeoIpPath = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip");
 			GeoIp6Path = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip6");
 		}
@@ -45,8 +48,20 @@ namespace WalletWasabi.Tor
 		/// <summary>Whether Tor should be terminated when Wasabi Wallet terminates.</summary>
 		public bool TerminateOnExit { get; }
 
+		/// <summary>Owning process ID for Tor program.</summary>
+		public int? OwningProcessId { get; }
+
 		/// <summary>Full path to executable file that is used to start Tor process.</summary>
 		public string TorBinaryFilePath { get; }
+
+		/// <summary>Full path to Tor cookie file.</summary>
+		public string CookieAuthFilePath { get; }
+
+		/// <summary>Tor control endpoint.</summary>
+		public IPEndPoint SocksEndpoint { get; } = new(IPAddress.Loopback, 37150);
+
+		/// <summary>Tor control endpoint.</summary>
+		public IPEndPoint ControlEndpoint { get; } = new(IPAddress.Loopback, 37151);
 
 		private string GeoIpPath { get; }
 		private string GeoIp6Path { get; }
@@ -60,15 +75,26 @@ namespace WalletWasabi.Tor
 			return platform == OSPlatform.OSX ? $"{binaryPath}.real" : binaryPath;
 		}
 
-		public string GetCmdArguments(EndPoint torSocks5EndPoint)
+		public string GetCmdArguments()
 		{
-			return string.Join(
-				" ",
-				$"--SOCKSPort {torSocks5EndPoint}",
+			List<string> arguments = new()
+			{
+				$"--SOCKSPort {SocksEndpoint}",
+				$"--CookieAuthentication 1",
+				$"--ControlPort {ControlEndpoint.Port}",
+				$"--CookieAuthFile \"{CookieAuthFilePath}\"",
 				$"--DataDirectory \"{TorDataDir}\"",
 				$"--GeoIPFile \"{GeoIpPath}\"",
 				$"--GeoIPv6File \"{GeoIp6Path}\"",
-				$"--Log \"notice file {LogFilePath}\"");
+				$"--Log \"notice file {LogFilePath}\""
+			};
+
+			if (TerminateOnExit && OwningProcessId is not null)
+			{
+				arguments.Add($"__OwningControllerProcess {OwningProcessId}");
+			}
+
+			return string.Join(" ", arguments);
 		}
 	}
 }
