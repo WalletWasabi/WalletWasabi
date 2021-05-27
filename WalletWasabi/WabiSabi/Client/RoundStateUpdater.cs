@@ -12,6 +12,8 @@ namespace WalletWasabi.WabiSabi.Client
 {
 	public class RoundStateUpdater : PeriodicRunner
 	{
+		private static readonly uint256 AnyRoundId = uint256.Zero;
+
 		public RoundStateUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler) : base(requestInterval)
 		{
 			ArenaRequestHandler = arenaRequestHandler;
@@ -43,7 +45,7 @@ namespace WalletWasabi.WabiSabi.Client
 			lock (AwaitersLock)
 			{
 				// Handle round independent tasks.
-				if (Awaiters.TryGetValue(uint256.Zero, out var taskAndPredicateList))
+				if (Awaiters.TryGetValue(AnyRoundId, out var taskAndPredicateList))
 				{
 					foreach (var roundState in RoundStates.Values)
 					{
@@ -115,7 +117,7 @@ namespace WalletWasabi.WabiSabi.Client
 		public Task<RoundState> CreateRoundAwaiter(Predicate<RoundState> predicate, CancellationToken cancellationToken)
 		{
 			// Zero denotes that the predicate should run for any round.
-			return CreateRoundAwaiter(uint256.Zero, predicate, cancellationToken);
+			return CreateRoundAwaiter(AnyRoundId, predicate, cancellationToken);
 		}
 
 		public override Task StopAsync(CancellationToken cancellationToken)
