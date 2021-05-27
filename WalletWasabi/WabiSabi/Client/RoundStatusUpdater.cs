@@ -34,26 +34,11 @@ namespace WalletWasabi.WabiSabi.Client
 			var newRoundStates = responseRoundStates.Where(round => !RoundStates.ContainsKey(round.Key));
 			var removedRoundStates = RoundStates.Where(round => !responseRoundStates.ContainsKey(round.Key));
 
-			List<uint256> roundsToUpdate = new();
-
-			foreach (var updatedRound in updatedRoundStates.Select(round => round.Value))
-			{
-				var oldRound = RoundStates[updatedRound.Id];
-				if (oldRound != updatedRound)
-				{
-					roundsToUpdate.Add(updatedRound.Id);
-				}
-			}
-
-			foreach (var round in newRoundStates.Select(round => round.Value))
-			{
-				roundsToUpdate.Add(round.Id);
-			}
-
-			foreach (var round in removedRoundStates.Select(round => round.Value))
-			{
-				roundsToUpdate.Add(round.Id);
-			}
+			var roundsToUpdate = updatedRoundStates.Where(updatedRound => RoundStates[updatedRound.Key] != updatedRound.Value)
+				.Union(newRoundStates)
+				.Union(removedRoundStates)
+				.Select(rs => rs.Key)
+				.ToList();
 
 			RoundStates = updatedRoundStates.Union(newRoundStates).ToDictionary(s => s.Key, s => s.Value);
 
