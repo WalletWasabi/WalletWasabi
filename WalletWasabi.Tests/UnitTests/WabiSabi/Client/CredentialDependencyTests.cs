@@ -64,7 +64,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 				return requested;
 			}
 
-			var ct = new CancellationTokenSource(40_000);
+			var ct = new CancellationTokenSource(new TimeSpan(0, 2, 0));
 
 			for (var remainingSteps = 2 * pendingCredentialsToPresent.Count; remainingSteps > 0 && pendingCredentialsToPresent.Count + inFlightRequests.Count > 0; remainingSteps--)
 			{
