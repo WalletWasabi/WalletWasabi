@@ -32,7 +32,7 @@ namespace WalletWasabi.Tests.Helpers
 				var unit = credentialType == 0 ? "s" : "b";
 
 				output += "  {\n";
-				output += $"      edge [color={color}, fontcolor={color}];\n";
+				output += $"    edge [color={color}, fontcolor={color}];\n";
 
 				foreach (var e in g.edgeSets[credentialType].Predecessors.Values.Aggregate((a, b) => a.Union(b)).OrderByDescending(e => e.Value).ThenBy(e => id(e.From)).ThenBy(e => id(e.To)))
 				{
