@@ -153,7 +153,7 @@ namespace WalletWasabi.WabiSabi.Client
 
 		private async Task<List<AliceClient>> ConfirmConnectionsAsync(IEnumerable<AliceClient> aliceClients, CancellationToken cancellationToken)
 		{
-			var confirmationRequests = aliceClients.Select(alice => WrapCall(alice, alice.ConfirmConnectionAsync(TimeSpan.FromMilliseconds(Random.Next(100, 1_000)), cancellationToken))).ToArray();
+			var confirmationRequests = aliceClients.Select(alice => WrapCall(alice, alice.ConfirmConnectionAsync(cancellationToken))).ToArray();
 			var completedRequests = await Task.WhenAll(confirmationRequests).ConfigureAwait(false);
 
 			foreach (var request in completedRequests.Where(x => !x.Success))
