@@ -12,10 +12,10 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 {
-	public class RoundStatusUpdaterTests
+	public class RoundStateUpdaterTests
 	{
 		[Fact]
-		public async Task RoundStatusUpdaterTestsAsync()
+		public async Task RoundStateUpdaterTestsAsync()
 		{
 			var roundState1 = RoundState.FromRound(WabiSabiFactory.CreateRound(new()));
 			var roundState2 = RoundState.FromRound(WabiSabiFactory.CreateRound(new()));
