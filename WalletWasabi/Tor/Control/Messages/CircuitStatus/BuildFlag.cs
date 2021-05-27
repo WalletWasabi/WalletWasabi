@@ -13,5 +13,8 @@ namespace WalletWasabi.Tor.Control.Messages.CircuitStatus
 
 		/// <summary>This circuit must use only high-uptime nodes</summary>
 		NEED_UPTIME,
+
+		/// <summary>Reserved for unknown values</summary>
+		UNKNOWN
 	}
 }

@@ -34,5 +34,8 @@ namespace WalletWasabi.Tor.Control.Messages.CircuitStatus
 
 		/// <summary>Circuit that is being held open to disguise its true close time</summary>
 		CIRCUIT_PADDING,
+
+		/// <summary>Reserved for unknown values</summary>
+		UNKNOWN
 	}
 }

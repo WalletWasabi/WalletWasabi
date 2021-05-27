@@ -19,5 +19,8 @@ namespace WalletWasabi.Tor.Control.Messages.CircuitStatus
 
 		/// <summary>Circuit closed (was built)</summary>
 		CLOSED,
+
+		/// <summary>Reserved for unknown values</summary>
+		UNKNOWN,
 	}
 }

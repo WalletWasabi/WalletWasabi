@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Tor.Control.Messages;
+using WalletWasabi.Tor.Control.Messages.CircuitStatus;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Tor.Control
@@ -20,9 +22,7 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 			sb.Append("3 BUILT $E9F71AC06F29B2110E3FC09016B0E50407444EE2~libertas,$706A7674A217BA905FE677E82236B7B968A23DB7~rofltor04,$4D4938B725B89561773A161215D88B7C45C43C35~TheGreenDynamo,$18CA339AD0C33EAB035F1D869518F3D2D88BABC0~FreeAssange BUILD_FLAGS=IS_INTERNAL,NEED_CAPACITY PURPOSE=HS_CLIENT_HSDIR HS_STATE=HSCI_CONNECTING TIME_CREATED=2021-05-15T14:04:19.353271\r\n");
 			sb.Append("4 EXTENDED $E9F71AC06F29B2110E3FC09016B0E50407444EE2~libertas BUILD_FLAGS=IS_INTERNAL,NEED_CAPACITY PURPOSE=MEASURE_TIMEOUT TIME_CREATED=2021-05-15T14:04:19.631228\r\n");
 			sb.Append("5 BUILT $E9F71AC06F29B2110E3FC09016B0E50407444EE2~libertas,$31D270A38505D4BFBBCABF717E9FB4BCA6DDF2FF~Belgium,$B411027C926A9BFFCF7DA91E3CAF1856A321EFFD~pulsetor BUILD_FLAGS=IS_INTERNAL,NEED_CAPACITY PURPOSE=HS_CLIENT_REND HS_STATE=HSCR_JOINED REND_QUERY=wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad TIME_CREATED=2021-05-15T14:04:20.634686\r\n");
-			sb.Append("6 BUILT $E9F71AC06F29B2110E3FC09016B0E50407444EE2~libertas,$573CC3D8F1C845AA33AA4593B68CA0D47156AA30~loglessRelay0,$F0F2CEF702D60AC53747CA6A7CA0C5C145F873F9~ax01 BUILD_FLAGS=IS_INTERNAL,NEED_CAPACITY PURPOSE=GENERAL TIME_CREATED=2021-05-15T14:04:21.649363\r\n");
-			sb.Append("7 BUILT $E9F71AC06F29B2110E3FC09016B0E50407444EE2~libertas,$18ECBFC3A6834CB67414640C7F1E765E542CED2C~Unnamed,$708A968F3644F8A547156368FEA3DB664110E631~LittleFoxRahja,$81E18725397D620DA548ABBE24D9CD263DEF2FDC~rosskemp BUILD_FLAGS=IS_INTERNAL,NEED_CAPACITY PURPOSE=CIRCUIT_PADDING REND_QUERY=wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad TIME_CREATED=2021-05-15T14:04:22.311493\r\n");
-			sb.Append("8 BUILT $E9F71AC06F29B2110E3FC09016B0E50407444EE2~libertas,$2931AE89C9ED11361081D572F1174084CA8714CE~Hackhindi,$47E9EDA00A8A7BE0073501C3098EF9530771EB03~Unnamed BUILD_FLAGS=IS_INTERNAL,NEED_CAPACITY PURPOSE=GENERAL TIME_CREATED=2021-05-15T14:04:22.662664\r\n");
+
 			sb.Append(".\r\n");
 
 			string data = sb.ToString();
@@ -31,6 +31,160 @@ namespace WalletWasabi.Tests.UnitTests.Tor.Control
 			GetInfoCircuitStatusReply reply = GetInfoCircuitStatusReply.FromReply(rawReply);
 
 			Assert.Equal(8, reply.Circuits.Count);
-		}		
+
+			// Circuit #1.
+			{
+				CircuitInfo circuitInfo = reply.Circuits[0];
+
+				Assert.Equal("1", circuitInfo.CircuitID);
+				Assert.Equal(CircStatus.BUILT, circuitInfo.CircStatus);
+
+				List<CircPath> circPaths = circuitInfo.CircPaths;
+				Assert.Equal("$E9F71AC06F29B2110E3FC09016B0E50407444EE2", circPaths[0].FingerPrint);
+				Assert.Equal("libertas", circPaths[0].Nickname);
+
+				Assert.Equal("$D0423D3A13C18D2ED0F3D5BFD90E13E77C9AD239", circPaths[1].FingerPrint);
+				Assert.Equal("d0xkb", circPaths[1].Nickname);
+
+				Assert.Equal("$3A9559477D72F71215850C97FA62A0DA7380964B", circPaths[2].FingerPrint);
+				Assert.Equal("PawNetBlue", circPaths[2].Nickname);
+
+				BuildFlag buildFlag = Assert.Single(circuitInfo.BuildFlags);
+				Assert.Equal(BuildFlag.NEED_CAPACITY, buildFlag);
+
+				Assert.Equal(Purpose.GENERAL, circuitInfo.Purpose);
+				Assert.Equal("2021-05-15T14:04:17.615384", circuitInfo.TimeCreated);
+
+				Assert.Null(circuitInfo.Reason);
+				Assert.Null(circuitInfo.RemoteReason);
+				Assert.Null(circuitInfo.HsState);
+				Assert.Null(circuitInfo.RendQuery);
+				Assert.Null(circuitInfo.UserName);
+				Assert.Null(circuitInfo.UserPassword);
+			}
+
+			// Circuit #2.
+			{
+				CircuitInfo circuitInfo = reply.Circuits[1];
+
+				Assert.Equal("2", circuitInfo.CircuitID);
+				Assert.Equal(CircStatus.BUILT, circuitInfo.CircStatus);
+
+				List<CircPath> circPaths = circuitInfo.CircPaths;
+				Assert.Equal("$E9F71AC06F29B2110E3FC09016B0E50407444EE2", circPaths[0].FingerPrint);
+				Assert.Equal("libertas", circPaths[0].Nickname);
+
+				Assert.Equal("$A0FA50A070CFB4B89737A27F3259F92C118A0AF0", circPaths[1].FingerPrint);
+				Assert.Equal("pipiska", circPaths[1].Nickname);
+
+				Assert.Equal("$7E77CC94D94C08609D70B517FF938CC61C9F8232", circPaths[2].FingerPrint);
+				Assert.Equal("pitfall", circPaths[2].Nickname);
+
+				BuildFlag buildFlag = Assert.Single(circuitInfo.BuildFlags);
+				Assert.Equal(BuildFlag.NEED_CAPACITY, buildFlag);
+
+				Assert.Equal(Purpose.GENERAL, circuitInfo.Purpose);
+				Assert.Equal("2021-05-15T14:04:18.628885", circuitInfo.TimeCreated);
+
+				Assert.Null(circuitInfo.Reason);
+				Assert.Null(circuitInfo.RemoteReason);
+				Assert.Null(circuitInfo.HsState);
+				Assert.Null(circuitInfo.RendQuery);
+				Assert.Null(circuitInfo.UserName);
+				Assert.Null(circuitInfo.UserPassword);
+			}
+
+			// Circuit #3.
+			{
+				CircuitInfo circuitInfo = reply.Circuits[2];
+
+				Assert.Equal("3", circuitInfo.CircuitID);
+				Assert.Equal(CircStatus.BUILT, circuitInfo.CircStatus);
+
+				List<CircPath> circPaths = circuitInfo.CircPaths;
+				Assert.Equal("$E9F71AC06F29B2110E3FC09016B0E50407444EE2", circPaths[0].FingerPrint);
+				Assert.Equal("libertas", circPaths[0].Nickname);
+
+				Assert.Equal("$706A7674A217BA905FE677E82236B7B968A23DB7", circPaths[1].FingerPrint);
+				Assert.Equal("rofltor04", circPaths[1].Nickname);
+
+				Assert.Equal("$4D4938B725B89561773A161215D88B7C45C43C35", circPaths[2].FingerPrint);
+				Assert.Equal("TheGreenDynamo", circPaths[2].Nickname);
+
+				Assert.Equal("$18CA339AD0C33EAB035F1D869518F3D2D88BABC0", circPaths[3].FingerPrint);
+				Assert.Equal("FreeAssange", circPaths[3].Nickname);
+
+				Assert.Equal(2, circuitInfo.BuildFlags.Count);
+				Assert.Equal(BuildFlag.IS_INTERNAL, circuitInfo.BuildFlags[0]);
+				Assert.Equal(BuildFlag.NEED_CAPACITY, circuitInfo.BuildFlags[1]);
+
+				// HS_CLIENT_HSDIR is not known.
+				Assert.Equal(Purpose.UNKNOWN, circuitInfo.Purpose);
+				Assert.Equal(HsState.HSCI_CONNECTING, circuitInfo.HsState);
+				Assert.Equal("2021-05-15T14:04:19.353271", circuitInfo.TimeCreated);
+
+				Assert.Null(circuitInfo.Reason);
+				Assert.Null(circuitInfo.RemoteReason);
+				Assert.Null(circuitInfo.RendQuery);
+				Assert.Null(circuitInfo.UserName);
+				Assert.Null(circuitInfo.UserPassword);
+			}
+
+			// Circuit #4.
+			{
+				CircuitInfo circuitInfo = reply.Circuits[3];
+
+				Assert.Equal("4", circuitInfo.CircuitID);
+				Assert.Equal(CircStatus.EXTENDED, circuitInfo.CircStatus);
+
+				List<CircPath> circPaths = circuitInfo.CircPaths;
+				Assert.Equal("$E9F71AC06F29B2110E3FC09016B0E50407444EE2", circPaths[0].FingerPrint);
+				Assert.Equal("libertas", circPaths[0].Nickname);
+
+				Assert.Equal(2, circuitInfo.BuildFlags.Count);
+				Assert.Equal(BuildFlag.IS_INTERNAL, circuitInfo.BuildFlags[0]);
+				Assert.Equal(BuildFlag.NEED_CAPACITY, circuitInfo.BuildFlags[1]);
+				Assert.Equal(Purpose.MEASURE_TIMEOUT, circuitInfo.Purpose);
+				Assert.Equal("2021-05-15T14:04:19.631228", circuitInfo.TimeCreated);
+
+				Assert.Null(circuitInfo.HsState);
+				Assert.Null(circuitInfo.Reason);
+				Assert.Null(circuitInfo.RemoteReason);
+				Assert.Null(circuitInfo.RendQuery);
+				Assert.Null(circuitInfo.UserName);
+				Assert.Null(circuitInfo.UserPassword);
+			}
+
+			// Circuit #5.
+			{
+				CircuitInfo circuitInfo = reply.Circuits[4];
+
+				Assert.Equal("5", circuitInfo.CircuitID);
+				Assert.Equal(CircStatus.BUILT, circuitInfo.CircStatus);
+
+				List<CircPath> circPaths = circuitInfo.CircPaths;
+				Assert.Equal("$E9F71AC06F29B2110E3FC09016B0E50407444EE2", circPaths[0].FingerPrint);
+				Assert.Equal("libertas", circPaths[0].Nickname);
+
+				Assert.Equal("$31D270A38505D4BFBBCABF717E9FB4BCA6DDF2FF", circPaths[1].FingerPrint);
+				Assert.Equal("Belgium", circPaths[1].Nickname);
+
+				Assert.Equal("$B411027C926A9BFFCF7DA91E3CAF1856A321EFFD", circPaths[2].FingerPrint);
+				Assert.Equal("pulsetor", circPaths[2].Nickname);
+
+				Assert.Equal(2, circuitInfo.BuildFlags.Count);
+				Assert.Equal(BuildFlag.IS_INTERNAL, circuitInfo.BuildFlags[0]);
+				Assert.Equal(BuildFlag.NEED_CAPACITY, circuitInfo.BuildFlags[1]);
+				Assert.Equal(Purpose.HS_CLIENT_REND, circuitInfo.Purpose);
+				Assert.Equal(HsState.HSCR_JOINED, circuitInfo.HsState);
+				Assert.Equal("wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad", circuitInfo.RendQuery);
+				Assert.Equal("2021-05-15T14:04:19.631228", circuitInfo.TimeCreated);
+
+				Assert.Null(circuitInfo.Reason);
+				Assert.Null(circuitInfo.RemoteReason);
+				Assert.Null(circuitInfo.UserName);
+				Assert.Null(circuitInfo.UserPassword);
+			}
+		}
 	}
 }

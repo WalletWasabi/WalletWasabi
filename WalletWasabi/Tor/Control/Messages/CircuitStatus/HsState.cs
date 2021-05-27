@@ -35,5 +35,8 @@ namespace WalletWasabi.Tor.Control.Messages.CircuitStatus
 		HSSR_CONNECTING,
 		/// <summary>Connected to client's RP circuit</summary>
 		HSSR_JOINED,
+
+		/// <summary>Reserved for unknown values</summary>
+		UNKNOWN,
 	}
 }

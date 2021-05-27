@@ -42,14 +42,11 @@ namespace WalletWasabi.Tor.Control.Messages
 				(string circuitId, string remainder1) = Tokenizer.ReadUntilSeparator(line);
 				(string circuitStatus, string remainder2) = Tokenizer.ReadUntilSeparator(remainder1);
 
-				if (!Enum.TryParse(circuitStatus, out CircStatus circStatus))
-				{
-					throw new TorControlReplyParseException("GETINFO[circuit-status]: Circuit status is not defined.");
-				}
+				CircStatus circStatus = Tokenizer.ParseEnumValue(circuitStatus, CircStatus.UNKNOWN);
 
 				string remainder = remainder2;
 
-				BuildFlag? buildFlag = null;
+				List<BuildFlag> buildFlags = new();
 				Purpose? purpose = null;
 				HsState? hsState = null;
 				string? rendQuery = null;
@@ -87,17 +84,18 @@ namespace WalletWasabi.Tor.Control.Messages
 					// Read KEY=VALUE assignments.
 					(string key, string value, string rest) = Tokenizer.ReadKeyValueAssignment(remainder);
 
-					if (key == "BUILD_FLAGS" && Enum.TryParse(value, out BuildFlag flagVal))
+					if (key == "BUILD_FLAGS")
 					{
-						buildFlag = flagVal;
+						string[] flags = value.Split(',');
+						buildFlags = flags.Select(x => Tokenizer.ParseEnumValue(x, BuildFlag.UNKNOWN)).ToList();
 					}
-					else if (key == "PURPOSE" && Enum.TryParse(value, out Purpose purposeVal))
+					else if (key == "PURPOSE")
 					{
-						purpose = purposeVal;
+						purpose = Tokenizer.ParseEnumValue(value, Purpose.UNKNOWN);
 					}
-					else if (key == "HS_STATE" && Enum.TryParse(value, out HsState stateVal))
+					else if (key == "HS_STATE")
 					{
-						hsState = stateVal;
+						hsState = Tokenizer.ParseEnumValue(value, HsState.UNKNOWN);
 					}
 					else if (key == "REND_QUERY")
 					{
@@ -107,13 +105,13 @@ namespace WalletWasabi.Tor.Control.Messages
 					{
 						timeCreated = value;
 					}
-					else if (key == "REASON" && Enum.TryParse(value, out Reason reasonVal))
+					else if (key == "REASON")
 					{
-						reason = reasonVal;
+						reason = Tokenizer.ParseEnumValue(value, Reason.UNKNOWN);
 					}
-					else if (key == "REMOTE_REASON" && Enum.TryParse(value, out Reason remoteReasonVal))
+					else if (key == "REMOTE_REASON")
 					{
-						remoteReason = remoteReasonVal;
+						reason = Tokenizer.ParseEnumValue(value, Reason.UNKNOWN);
 					}
 					else
 					{
@@ -126,7 +124,7 @@ namespace WalletWasabi.Tor.Control.Messages
 				CircuitInfo circuitInfo = new(circuitId, circStatus)
 				{
 					CircPaths = circPaths,
-					BuildFlag = buildFlag,
+					BuildFlags = buildFlags,
 					Purpose = purpose,
 					HsState = hsState,
 					RendQuery = rendQuery,

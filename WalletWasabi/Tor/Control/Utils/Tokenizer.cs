@@ -1,5 +1,6 @@
 using System;
 using WalletWasabi.Tor.Control.Exceptions;
+using WalletWasabi.Tor.Control.Messages.CircuitStatus;
 
 namespace WalletWasabi.Tor.Control.Utils
 {
@@ -110,6 +111,18 @@ namespace WalletWasabi.Tor.Control.Utils
 			}
 
 			return input[expectedStart.Length..];
+		}
+
+		/// <summary>Parses a string value to an enum value.</summary>
+		/// <remarks>Tor spec mandates (in general) that unknown values cannot lead to crash of a Tor control parser.</remarks>
+		public static T ParseEnumValue<T>(string value, T defaultValue) where T : struct
+		{
+			if (!Enum.TryParse<T>(value, out T result))
+			{
+				result = defaultValue;
+			}
+
+			return result;
 		}
 	}
 }

@@ -23,7 +23,7 @@ namespace WalletWasabi.Tor.Control.Messages.CircuitStatus
 		public string CircuitID { get; }
 		public CircStatus CircStatus { get; }
 		public List<CircPath> CircPaths { get; init; } = new();
-		public BuildFlag? BuildFlag { get; init; }
+		public List<BuildFlag> BuildFlags { get; init; } = new();
 		public Purpose? Purpose { get; init; }
 		public HsState? HsState { get; init; }
 		public string? RendQuery { get; init; }

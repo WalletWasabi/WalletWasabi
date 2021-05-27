@@ -16,6 +16,9 @@ namespace WalletWasabi.Tor.Control.Messages.CircuitStatus
 		DESTROYED,
 		NOPATH,
 		NOSUCHSERVICE,
-		MEASUREMENT_EXPIRED
+		MEASUREMENT_EXPIRED,
+
+		/// <summary>Reserved for unknown values</summary>
+		UNKNOWN
 	}
 }
