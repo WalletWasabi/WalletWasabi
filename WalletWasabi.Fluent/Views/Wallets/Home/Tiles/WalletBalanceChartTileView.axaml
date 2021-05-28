@@ -5,6 +5,7 @@
              xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
              mc:Ignorable="d" d:DesignWidth="620" d:DesignHeight="310"
+             x:CompileBindings="True" x:DataType="vm:WalletBalanceChartTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceChartTileView">
     <UserControl.Styles>
         <!-- LineChart Area -->

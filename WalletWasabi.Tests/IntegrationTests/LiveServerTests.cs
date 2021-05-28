@@ -28,7 +28,7 @@ namespace WalletWasabi.Tests.IntegrationTests
 			LiveServerTestsFixture = liveServerTestsFixture;
 
 			TorHttpPool = new(new TorTcpConnectionFactory(Common.TorSocks5Endpoint));
-			TorManager = new(Common.TorSettings, Common.TorSocks5Endpoint);
+			TorManager = new(Common.TorSettings);
 		}
 
 		private TorProcessManager TorManager { get; }
