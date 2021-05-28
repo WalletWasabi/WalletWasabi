@@ -23,8 +23,10 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 			using CancellationTokenSource cancellationTokenSource = new();
 			var cancellationToken = cancellationTokenSource.Token;
 
+			// The coordinator creates two rounds.
 			var mockApiClient = new Mock<IWabiSabiApiRequestHandler>();
 			mockApiClient.SetupSequence(apiClient => apiClient.GetStatusAsync(It.IsAny<CancellationToken>()))
+				// Each line represents a response for each request.
 				.ReturnsAsync(() => new[] { roundState1 with { Phase = Phase.InputRegistration } })
 				.ReturnsAsync(() => new[] { roundState1 with { Phase = Phase.OutputRegistration } })
 				.ReturnsAsync(() => new[] { roundState1 with { Phase = Phase.OutputRegistration }, roundState2 with { Phase = Phase.InputRegistration } })
@@ -33,41 +35,60 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 
 			using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromDays(1), mockApiClient.Object);
 
+			// At this point in time the RoundStateUpdater only knows about `round1` and then we can subscribe to
+			// events for that round.
 			var round1TSCts = new CancellationTokenSource();
 			var round1IRTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.InputRegistration, cancellationToken);
 			var round1ORTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken);
 			var round1TSTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.TransactionSigning, round1TSCts.Token);
 			var round1TBTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.TransactionBroadcasting, cancellationToken);
-			var round2IRTask = roundStatusUpdater.CreateRoundAwaiter(roundState2.Id, rs => rs.Phase == Phase.InputRegistration, cancellationToken);
 
+			// Start
 			await roundStatusUpdater.StartAsync(cancellationTokenSource.Token);
 
+			// Wait for round1 in input registration.
 			var round1 = await round1IRTask;
 			Assert.Equal(roundState1.Id, round1.Id);
 			Assert.Equal(Phase.InputRegistration, round1.Phase);
-			Assert.All(new[] { round1ORTask, round1TSTask, round1TBTask, round2IRTask }, t => Assert.Equal(TaskStatus.WaitingForActivation, t.Status));
+			Assert.All(new[] { round1ORTask, round1TSTask, round1TBTask }, t => Assert.Equal(TaskStatus.WaitingForActivation, t.Status));
 
+			// Force the RoundStatusUpdater to run. After this it will know about the existance of `round2` so,
+			// we can subscribe to events.
 			await roundStatusUpdater.TriggerAndWaitRoundAsync(TimeSpan.FromMilliseconds(10));
+			var round2IRTask = roundStatusUpdater.CreateRoundAwaiter(roundState2.Id, rs => rs.Phase == Phase.InputRegistration, cancellationToken);
+			var round2TBTask = roundStatusUpdater.CreateRoundAwaiter(roundState2.Id, rs => rs.Phase == Phase.TransactionBroadcasting, cancellationToken);
+
+			// Force the RoundStatusUpdater to run again just to make it trigger the events.
 			await roundStatusUpdater.TriggerAndWaitRoundAsync(TimeSpan.FromMilliseconds(10));
+
+			// Wait for round1 in input registration.
 			var round2 = await round2IRTask;
 			Assert.Equal(roundState2.Id, round2.Id);
 			Assert.Equal(Phase.InputRegistration, round2.Phase);
-			Assert.All(new[] { round1TSTask, round1TBTask }, t => Assert.Equal(TaskStatus.WaitingForActivation, t.Status));
+			Assert.All(new[] { round1TSTask, round1TBTask, round2TBTask }, t => Assert.Equal(TaskStatus.WaitingForActivation, t.Status));
 
+			// `round1` changed to output registration phase even before `round2` was created so, it has to be completed.
 			round1 = await round1ORTask;
 			Assert.Equal(roundState1.Id, round1.Id);
 			Assert.Equal(Phase.OutputRegistration, round1.Phase);
-			Assert.All(new[] { round1TSTask, round1TBTask }, t => Assert.Equal(TaskStatus.WaitingForActivation, t.Status));
+			Assert.All(new[] { round1TSTask, round1TBTask, round2TBTask }, t => Assert.Equal(TaskStatus.WaitingForActivation, t.Status));
 
+			// We cancel the cancellation token source used for the `wake me up when round1 transactions has to be signed` awaiter
 			round1TSCts.Cancel();
 			Assert.True(round1TSTask.IsCanceled);
 
+			// At this oint in time all the rounds have disappeared and then the awaiter that was waiting for round1 to bradcast
+			// the transaction has to fail to let the sleeping component that the round doesn't exist any more.
 			await roundStatusUpdater.TriggerAndWaitRoundAsync(TimeSpan.FromMilliseconds(10));
 			var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await round1TBTask);
 			Assert.Contains(round1.Id.ToString(), ex.Message);
 			Assert.Contains("not running", ex.Message);
 
+			// `Round2 ` awaiter has to be cancelled immediatelly when we stop the updater.
+			Assert.Equal(TaskStatus.WaitingForActivation, round2TBTask.Status);
 			await roundStatusUpdater.StopAsync(cancellationToken);
+
+			Assert.Equal(TaskStatus.Canceled, round2TBTask.Status);
 		}
 	}
 }
