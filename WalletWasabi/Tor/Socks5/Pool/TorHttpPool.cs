@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -17,6 +16,7 @@ using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.Tor.Http.Models;
 using WalletWasabi.Tor.Socks5.Exceptions;
 using WalletWasabi.Tor.Socks5.Models.Fields.OctetFields;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 
 namespace WalletWasabi.Tor.Socks5.Pool
 {
@@ -31,11 +31,11 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		public const int MaxConnectionsPerHost = 10;
 
 		public TorHttpPool(EndPoint endpoint)
+			: this(new TorTcpConnectionFactory(endpoint))
 		{
-			TcpConnectionFactory = new(endpoint);
 		}
 
-		/// <summary>Use in tests.</summary>
+		/// <summary>Constructor that helps in tests.</summary>
 		internal TorHttpPool(TorTcpConnectionFactory tcpConnectionFactory)
 		{
 			TcpConnectionFactory = tcpConnectionFactory;
@@ -47,7 +47,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		/// <remarks>All access to this object must be guarded by <see cref="ObtainPoolConnectionLock"/>.</remarks>
 		private Dictionary<string, List<TorTcpConnection>> ConnectionPerHost { get; } = new();
 
-		/// <remarks>Lock object required for the combination of <see cref="TorTcpConnection"/> selection or creation in <see cref="ObtainFreeConnectionAsync(HttpRequestMessage, bool, CancellationToken)"/>.</remarks>
+		/// <remarks>Lock object required for the combination of <see cref="TorTcpConnection"/> selection or creation in <see cref="ObtainFreeConnectionAsync(HttpRequestMessage, ICircuit, CancellationToken)"/>.</remarks>
 		private AsyncLock ObtainPoolConnectionLock { get; } = new();
 
 		private TorTcpConnectionFactory TcpConnectionFactory { get; }
@@ -89,7 +89,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		/// <para><see cref="ObtainPoolConnectionLock"/> is acquired only for <see cref="TorTcpConnection"/> selection.</para>
 		/// </summary>
 		/// <exception cref="HttpRequestException">When <paramref name="request"/> fails to be processed.</exception>
-		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool isolateStream, CancellationToken cancellationToken = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken cancellationToken = default)
 		{
 			int i = 0;
 			int attemptsNo = 3;
@@ -100,7 +100,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 				do
 				{
 					i++;
-					connection = await ObtainFreeConnectionAsync(request, isolateStream, cancellationToken).ConfigureAwait(false);
+					connection = await ObtainFreeConnectionAsync(request, circuit, cancellationToken).ConfigureAwait(false);
 					TorTcpConnection? connectionToDispose = connection;
 
 					try
@@ -182,9 +182,9 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			throw new NotImplementedException("This should never happen.");
 		}
 
-		private async Task<TorTcpConnection> ObtainFreeConnectionAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token)
+		private async Task<TorTcpConnection> ObtainFreeConnectionAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken token)
 		{
-			Logger.LogTrace($"> request='{request.RequestUri}', isolateStream={isolateStream}");
+			Logger.LogTrace($"> request='{request.RequestUri}', circuit={circuit}");
 
 			string host = GetRequestHost(request);
 
@@ -192,7 +192,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			{
 				using (await ObtainPoolConnectionLock.LockAsync(token).ConfigureAwait(false))
 				{
-					bool canBeAdded = GetPoolConnectionNoLock(host, isolateStream, out TorTcpConnection? connection);
+					bool canBeAdded = GetPoolConnectionNoLock(host, circuit, out TorTcpConnection? connection);
 
 					if (connection is { })
 					{
@@ -202,7 +202,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 
 					if (canBeAdded)
 					{
-						connection = await CreateNewConnectionNoLockAsync(request, isolateStream, token).ConfigureAwait(false);
+						connection = await CreateNewConnectionNoLockAsync(request, circuit, token).ConfigureAwait(false);
 
 						if (connection is { })
 						{
@@ -218,14 +218,14 @@ namespace WalletWasabi.Tor.Socks5.Pool
 		}
 
 		/// <remarks>Caller is responsible for acquiring <see cref="ObtainPoolConnectionLock"/>.</remarks>
-		private async Task<TorTcpConnection?> CreateNewConnectionNoLockAsync(HttpRequestMessage request, bool isolateStream, CancellationToken token)
+		private async Task<TorTcpConnection?> CreateNewConnectionNoLockAsync(HttpRequestMessage request, ICircuit circuit, CancellationToken token)
 		{
 			TorTcpConnection? connection;
 			string host = GetRequestHost(request);
 
 			try
 			{
-				connection = await TcpConnectionFactory.ConnectAsync(request.RequestUri!, isolateStream, token).ConfigureAwait(false);
+				connection = await TcpConnectionFactory.ConnectAsync(request.RequestUri!, circuit, token).ConfigureAwait(false);
 				Logger.LogTrace($"[NEW {connection}]['{request.RequestUri}'] Created new Tor SOCKS5 connection.");
 				ConnectionPerHost[host].Add(connection);
 			}
@@ -249,7 +249,7 @@ namespace WalletWasabi.Tor.Socks5.Pool
 			return connection;
 		}
 
-		private async static Task<HttpResponseMessage> SendCoreAsync(TorTcpConnection connection, HttpRequestMessage request, CancellationToken token = default)
+		internal virtual async Task<HttpResponseMessage> SendCoreAsync(TorTcpConnection connection, HttpRequestMessage request, CancellationToken token = default)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-2.6
 			// Intermediaries that process HTTP messages (i.e., all intermediaries
@@ -283,9 +283,9 @@ namespace WalletWasabi.Tor.Socks5.Pool
 
 		/// <summary>Gets reserved <see cref="TorTcpConnection"/> to use, if any.</summary>
 		/// <param name="host">URI's host value.</param>
-		/// <param name="isolateStream"><c>true</c> if a new Tor circuit is required for this HTTP request.</param>
+		/// <param name="circuit">Tor circuit for which to get a TCP connection.</param>
 		/// <returns>Whether a connection can be added to <see cref="ConnectionPerHost"/> and reserved connection to use, if any.</returns>
-		private bool GetPoolConnectionNoLock(string host, bool isolateStream, out TorTcpConnection? connection)
+		private bool GetPoolConnectionNoLock(string host, ICircuit circuit, out TorTcpConnection? connection)
 		{
 			if (!ConnectionPerHost.ContainsKey(host))
 			{
@@ -294,8 +294,6 @@ namespace WalletWasabi.Tor.Socks5.Pool
 
 			List<TorTcpConnection> hostConnections = ConnectionPerHost[host];
 
-			connection = null;
-
 			// Find TCP connections to dispose.
 			foreach (TorTcpConnection tcpConnection in hostConnections.FindAll(c => c.NeedDisposal).ToList())
 			{
@@ -303,15 +301,8 @@ namespace WalletWasabi.Tor.Socks5.Pool
 				tcpConnection.Dispose();
 			}
 
-			if (!isolateStream)
-			{
-				// Find the first free TCP connection, if it exists.
-				connection = hostConnections.Find(connection => connection.TryReserve());
-			}
-			else
-			{
-				Logger.LogTrace($"['{host}'] Isolate stream requested. No pool connection can be re-used.");
-			}
+			// Find the first free TCP connection, if it exists.
+			connection = hostConnections.Find(connection => (connection.Circuit == circuit) && connection.TryReserve());
 
 			bool canBeAdded = hostConnections.Count < MaxConnectionsPerHost;
 
