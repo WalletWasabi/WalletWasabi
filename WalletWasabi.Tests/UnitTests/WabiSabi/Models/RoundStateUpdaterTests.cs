@@ -12,10 +12,10 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 {
-	public class RoundStatusUpdaterTests
+	public class RoundStateUpdaterTests
 	{
 		[Fact]
-		public async Task RoundStatusUpdaterTestsAsync()
+		public async Task RoundStateUpdaterTestsAsync()
 		{
 			var roundState1 = RoundState.FromRound(WabiSabiFactory.CreateRound(new()));
 			var roundState2 = RoundState.FromRound(WabiSabiFactory.CreateRound(new()));
@@ -37,7 +37,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 
 			// At this point in time the RoundStateUpdater only knows about `round1` and then we can subscribe to
 			// events for that round.
-			var round1TSCts = new CancellationTokenSource();
+			using var round1TSCts = new CancellationTokenSource();
 			var round1IRTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.InputRegistration, cancellationToken);
 			var round1ORTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.OutputRegistration, cancellationToken);
 			var round1TSTask = roundStatusUpdater.CreateRoundAwaiter(roundState1.Id, rs => rs.Phase == Phase.TransactionSigning, round1TSCts.Token);
@@ -92,4 +92,3 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models
 		}
 	}
 }
-
