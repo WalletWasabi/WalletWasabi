@@ -55,7 +55,10 @@ namespace WalletWasabi.Tor.Control
 			}
 			finally
 			{
-				clientToDispose?.Dispose();
+				if (clientToDispose is not null)
+				{
+					await clientToDispose.DisposeAsync().ConfigureAwait(false);
+				}
 			}
 		}
 

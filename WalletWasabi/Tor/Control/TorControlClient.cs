@@ -12,10 +12,8 @@ namespace WalletWasabi.Tor.Control
 	/// <summary>
 	/// Client already authenticated to Tor Control.
 	/// </summary>
-	public class TorControlClient : IDisposable
+	public class TorControlClient : IAsyncDisposable
 	{
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
 		public TorControlClient(TcpClient tcpClient)
 		{
 			TcpClient = tcpClient;
@@ -99,22 +97,11 @@ namespace WalletWasabi.Tor.Control
 			return reply;
 		}
 
-		protected virtual void Dispose(bool disposing)
+		public ValueTask DisposeAsync()
 		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					TcpClient?.Dispose();
-				}
+			TcpClient?.Dispose();
 
-				_disposedValue = true;
-			}
-		}
-
-		public void Dispose()
-		{
-			Dispose(true);
+			return ValueTask.CompletedTask;
 		}
 	}
 }
