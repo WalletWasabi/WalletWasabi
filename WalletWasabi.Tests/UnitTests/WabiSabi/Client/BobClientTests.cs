@@ -57,7 +57,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 			var aliceClient = new AliceClient(round.Id, aliceArenaClient, coin1.Coin, round.FeeRate, bitcoinSecret);
 			await aliceClient.RegisterInputAsync(CancellationToken.None);
 
-			Task confirmationTask = aliceClient.ConfirmConnectionAsync(CancellationToken.None);
+			Task confirmationTask = aliceClient.ConfirmConnectionAsync(TimeSpan.FromSeconds(1), CancellationToken.None);
 
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 			await confirmationTask;

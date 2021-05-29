@@ -46,11 +46,11 @@ namespace WalletWasabi.WabiSabi.Client
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Registered an input.");
 		}
 
-		public async Task ConfirmConnectionAsync(CancellationToken cancellationToken)
+		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, CancellationToken cancellationToken)
 		{
 			while (!await TryConfirmConnectionAsync(cancellationToken).ConfigureAwait(false))
 			{
-				await Task.Delay(1_000, cancellationToken).ConfigureAwait(false);
+				await Task.Delay(connectionConfirmationTimeout / 2, cancellationToken).ConfigureAwait(false);
 			}
 		}
 
