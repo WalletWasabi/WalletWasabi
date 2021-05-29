@@ -12,10 +12,10 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 	{
 		public BuildTransactionResult(SmartTransaction transaction, PSBT psbt, bool signed, Money fee, decimal feePercentOfSent)
 		{
-			Transaction = Guard.NotNull(nameof(transaction), transaction);
-			Psbt = Guard.NotNull(nameof(psbt), psbt);
+			Transaction = transaction;
+			Psbt = psbt;
 			Signed = signed;
-			Fee = fee ?? Money.Zero;
+			Fee = fee;
 			FeePercentOfSent = feePercentOfSent;
 		}
 

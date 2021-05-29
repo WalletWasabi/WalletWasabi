@@ -230,7 +230,7 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 
 					coinGroups = coinGroups.OrderBy(x => x.Count(y => y.Confirmed == false)).ToList(); // Where the lowest amount of unconfirmed coins there are.
 
-					IEnumerable<SmartCoin> best = coinGroups.FirstOrDefault();
+					var best = coinGroups.FirstOrDefault();
 
 					if (best is { })
 					{
@@ -407,8 +407,6 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 						}
 					}
 
-					round?.Registration?.AliceClient?.Dispose();
-
 					Logger.LogInfo($"Round ({round.State.RoundId}) removed. Reason: It's not running anymore.");
 				}
 				Rounds.RemoveAll(x => roundsToRemove.Contains(x.State.RoundId));
@@ -446,17 +444,6 @@ namespace WalletWasabi.CoinJoin.Client.Rounds
 					}
 					round.ClearRegistration();
 					Logger.LogInfo($"Round ({round.State.RoundId}) registration is cleared.");
-				}
-			}
-		}
-
-		public void DisposeAllAliceClients()
-		{
-			lock (StateLock)
-			{
-				foreach (var aliceClient in Rounds?.Select(x => x?.Registration?.AliceClient))
-				{
-					aliceClient?.Dispose();
 				}
 			}
 		}

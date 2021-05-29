@@ -1,19 +1,27 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
+using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.MathNet;
 
 namespace WalletWasabi.Fluent.Controls
 {
 	public partial class LineChart : Control
 	{
+		private readonly Dictionary<INotifyCollectionChanged, IDisposable> _collectionChangedSubscriptions;
+
 		public LineChart()
 		{
+			_collectionChangedSubscriptions = new Dictionary<INotifyCollectionChanged, IDisposable>();
+
 			AddHandler(PointerPressedEvent, PointerPressedHandler, RoutingStrategies.Tunnel);
 			AddHandler(PointerReleasedEvent, PointerReleasedHandler, RoutingStrategies.Tunnel);
 			AddHandler(PointerMovedEvent, PointerMovedHandler, RoutingStrategies.Tunnel);
@@ -23,11 +31,6 @@ namespace WalletWasabi.Fluent.Controls
 		private static double Clamp(double val, double min, double max)
 		{
 			return Math.Min(Math.Max(val, min), max);
-		}
-
-		private static double ScaleVertical(double value, double max, double range)
-		{
-			return range - value / max * range;
 		}
 
 		private static Geometry CreateFillGeometry(IReadOnlyList<Point> points, double width, double height)
@@ -60,7 +63,8 @@ namespace WalletWasabi.Fluent.Controls
 			return geometry;
 		}
 
-		private static FormattedText CreateFormattedText(string text, Typeface typeface, TextAlignment alignment, double fontSize, Size constraint)
+		private static FormattedText CreateFormattedText(string text, Typeface typeface, TextAlignment alignment,
+			double fontSize, Size constraint)
 		{
 			return new FormattedText()
 			{
@@ -85,7 +89,7 @@ namespace WalletWasabi.Fluent.Controls
 			var areaWidth = Bounds.Width - AreaMargin.Left - AreaMargin.Right;
 			var value = Clamp(x - AreaMargin.Left, 0, areaWidth);
 			var factor = value / areaWidth;
-			var index = (int) ((xAxisValues.Count - 1) * factor);
+			var index = (int)((xAxisValues.Count - 1) * factor);
 			var currentValue = xAxisValues[index];
 			XAxisCurrentValue = currentValue;
 		}
@@ -103,6 +107,7 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				return null;
 			}
+
 			var cursorHitTestSize = 5;
 			var cursorStrokeThickness = CursorStrokeThickness;
 			var cursorHitTestRect = new Rect(
@@ -134,8 +139,8 @@ namespace WalletWasabi.Fluent.Controls
 
 				var cursorHitTestRect = GetXAxisCursorHitTestRect();
 				var cursorSizeWestEast = cursorHitTestRect is not null && cursorHitTestRect.Value.Contains(position);
-				Cursor = cursorSizeWestEast ?
-					new Cursor(StandardCursorType.SizeWestEast)
+				Cursor = cursorSizeWestEast
+					? new Cursor(StandardCursorType.SizeWestEast)
 					: new Cursor(StandardCursorType.Arrow);
 			}
 		}
@@ -154,6 +159,7 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				Cursor = new Cursor(StandardCursorType.Arrow);
 			}
+
 			_captured = false;
 		}
 
@@ -187,6 +193,49 @@ namespace WalletWasabi.Fluent.Controls
 			return state;
 		}
 
+		private static IEnumerable<(double x, double y)> SplineInterpolate(double[] xs, double[] ys)
+		{
+			const int Divisions = 256;
+
+			if (xs.Length > 2)
+			{
+				var spline = CubicSpline.InterpolatePchipSorted(xs, ys);
+
+				for (var i = 0; i < xs.Length - 1; i++)
+				{
+					var a = xs[i];
+					var b = xs[i + 1];
+					var range = b - a;
+					var step = range / Divisions;
+
+					var t0 = xs[i];
+
+					var xt0 = spline.Interpolate(xs[i]);
+
+					yield return (t0, xt0);
+
+					for (var t = a + step; t < b; t += step)
+					{
+						var xt = spline.Interpolate(t);
+
+						yield return (t, xt);
+					}
+				}
+
+				var tn = xs[^1];
+				var xtn = spline.Interpolate(xs[^1]);
+
+				yield return (tn, xtn);
+			}
+			else
+			{
+				for (var i = 0; i < xs.Length; i++)
+				{
+					yield return (xs[i], ys[i]);
+				}
+			}
+		}
+
 		private void SetStateAreaPoints(LineChartState state)
 		{
 			var xAxisValues = XAxisValues;
@@ -208,17 +257,55 @@ namespace WalletWasabi.Fluent.Controls
 
 			var yAxisValuesLogScaledMax = yAxisValuesLogScaled.Max();
 
+			var yAxisScaler = new StraightLineFormula();
+			yAxisScaler.CalculateFrom(yAxisValuesLogScaledMax, 0, 0, state.AreaHeight);
+
 			var yAxisValuesScaled = yAxisValuesLogScaled
-				.Select(y => ScaleVertical(y, yAxisValuesLogScaledMax, state.AreaHeight))
+				.Select(y => yAxisScaler.GetYforX(y))
 				.ToList();
 
-			state.Points = new Point[yAxisValues.Count];
+			var xAxisValuesEnumerable = xAxisValues as IEnumerable<double>;
 
-			var pointStep = state.AreaWidth / (xAxisValues.Count - 1);
-
-			for (var i = 0; i < yAxisValuesScaled.Count; i++)
+			switch (XAxisPlotMode)
 			{
-				state.Points[i] = new Point(i * pointStep, yAxisValuesScaled[i]);
+				case AxisPlotMode.Normal:
+					var min = XAxisMinimum ?? xAxisValues.Min();
+					var max = xAxisValues.Max();
+
+					var xAxisScaler = new StraightLineFormula();
+					xAxisScaler.CalculateFrom(min, max, 0, state.AreaWidth);
+
+					xAxisValuesEnumerable = xAxisValuesEnumerable.Select(x => xAxisScaler.GetYforX(x));
+					break;
+
+				case AxisPlotMode.EvenlySpaced:
+					var pointStep = state.AreaWidth / (xAxisValues.Count - 1);
+
+					xAxisValuesEnumerable = Enumerable.Range(0, xAxisValues.Count).Select(x => pointStep * x);
+					break;
+
+				case AxisPlotMode.Logarithmic:
+					break;
+			}
+
+			if (SmoothCurve)
+			{
+				var interpolated = SplineInterpolate(xAxisValuesEnumerable.ToArray(), yAxisValuesScaled.ToArray());
+
+				state.Points = interpolated.Select(pt => new Point(pt.x, pt.y)).ToArray();
+			}
+			else
+			{
+				state.Points = new Point[xAxisValues.Count];
+
+				using (var enumerator = xAxisValuesEnumerable.GetEnumerator())
+				{
+					for (var i = 0; i < yAxisValuesScaled.Count; i++)
+					{
+						enumerator.MoveNext();
+						state.Points[i] = new Point(enumerator.Current, yAxisValuesScaled[i]);
+					}
+				}
 			}
 		}
 
@@ -315,11 +402,11 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var brush = AreaFill;
 			if (brush is null
-			    || state.Points is null
-			    || state.AreaWidth <= 0
-			    || state.AreaHeight <= 0
-			    || state.AreaWidth < AreaMinViableWidth
-			    || state.AreaHeight < AreaMinViableHeight)
+				|| state.Points is null
+				|| state.AreaWidth <= 0
+				|| state.AreaHeight <= 0
+				|| state.AreaWidth < AreaMinViableWidth
+				|| state.AreaHeight < AreaMinViableHeight)
 			{
 				return;
 			}
@@ -338,11 +425,11 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var brush = AreaStroke;
 			if (brush is null
-			    || state.Points is null
-			    || state.AreaWidth <= 0
-			    || state.AreaHeight <= 0
-			    || state.AreaWidth < AreaMinViableWidth
-			    || state.AreaHeight < AreaMinViableHeight)
+				|| state.Points is null
+				|| state.AreaWidth <= 0
+				|| state.AreaHeight <= 0
+				|| state.AreaWidth < AreaMinViableWidth
+				|| state.AreaHeight < AreaMinViableHeight)
 			{
 				return;
 			}
@@ -367,11 +454,11 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var brush = CursorStroke;
 			if (brush is null
-			    || double.IsNaN(state.XAxisCursorPosition)
-			    || state.AreaWidth <= 0
-			    || state.AreaHeight <= 0
-			    || state.AreaWidth < AreaMinViableWidth
-			    || state.AreaHeight < AreaMinViableHeight)
+				|| double.IsNaN(state.XAxisCursorPosition)
+				|| state.AreaWidth <= 0
+				|| state.AreaHeight <= 0
+				|| state.AreaWidth < AreaMinViableWidth
+				|| state.AreaHeight < AreaMinViableHeight)
 			{
 				return;
 			}
@@ -397,10 +484,10 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var brush = XAxisStroke;
 			if (brush is null
-			    || state.AreaWidth <= 0
-			    || state.AreaHeight <= 0
-			    || state.AreaWidth < XAxisMinViableWidth
-			    || state.AreaHeight < XAxisMinViableHeight)
+				|| state.AreaWidth <= 0
+				|| state.AreaHeight <= 0
+				|| state.AreaWidth < XAxisMinViableWidth
+				|| state.AreaHeight < XAxisMinViableHeight)
 			{
 				return;
 			}
@@ -432,11 +519,11 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var foreground = XAxisLabelForeground;
 			if (foreground is null
-			    || state.XAxisLabels is null
-			    || double.IsNaN(state.XAxisLabelStep)
-			    || state.ChartWidth <= 0
-			    || state.ChartHeight <= 0
-			    || state.ChartHeight - state.AreaMargin.Top < state.AreaMargin.Bottom)
+				|| state.XAxisLabels is null
+				|| double.IsNaN(state.XAxisLabelStep)
+				|| state.ChartWidth <= 0
+				|| state.ChartHeight <= 0
+				|| state.ChartHeight - state.AreaMargin.Top < state.AreaMargin.Bottom)
 			{
 				return;
 			}
@@ -470,13 +557,14 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				formattedTextLabels[i].Constraint = constraintMax;
 
-				var origin = new Point(i * state.XAxisLabelStep - constraintMax.Width / 2 + state.AreaMargin.Left, originTop);
+				var origin = new Point(i * state.XAxisLabelStep - constraintMax.Width / 2 + state.AreaMargin.Left,
+					originTop);
 				var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
 				var xPosition = origin.X + constraintMax.Width / 2;
 				var yPosition = origin.Y + constraintMax.Height / 2;
 				var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
-				             * Matrix.CreateRotation(angleRadians)
-				             * Matrix.CreateTranslation(xPosition, yPosition);
+							 * Matrix.CreateRotation(angleRadians)
+							 * Matrix.CreateTranslation(xPosition, yPosition);
 				var labelTransform = context.PushPreTransform(matrix);
 				var opacityState = context.PushOpacity(opacity);
 				context.DrawText(foreground, origin + offsetCenter, formattedTextLabels[i]);
@@ -496,10 +584,10 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var brush = YAxisStroke;
 			if (brush is null
-			    || state.AreaWidth <= 0
-			    || state.AreaHeight <= 0
-			    || state.AreaWidth < YAxisMinViableWidth
-			    || state.AreaHeight < YAxisMinViableHeight)
+				|| state.AreaWidth <= 0
+				|| state.AreaHeight <= 0
+				|| state.AreaWidth < YAxisMinViableWidth
+				|| state.AreaHeight < YAxisMinViableHeight)
 			{
 				return;
 			}
@@ -531,11 +619,11 @@ namespace WalletWasabi.Fluent.Controls
 		{
 			var foreground = YAxisLabelForeground;
 			if (foreground is null
-			    || state.YAxisLabels is null
-			    || double.IsNaN(state.YAxisLabelStep)
-			    || state.ChartWidth <= 0
-			    || state.ChartWidth - state.AreaMargin.Right < state.AreaMargin.Left
-			    || state.ChartHeight <= 0)
+				|| state.YAxisLabels is null
+				|| double.IsNaN(state.YAxisLabelStep)
+				|| state.ChartWidth <= 0
+				|| state.ChartWidth - state.AreaMargin.Right < state.AreaMargin.Left
+				|| state.ChartHeight <= 0)
 			{
 				return;
 			}
@@ -554,8 +642,9 @@ namespace WalletWasabi.Fluent.Controls
 			var constrainWidthMax = 0.0;
 			var constrainHeightMax = 0.0;
 
-			foreach (var label in state.YAxisLabels)
+			for (var index = state.YAxisLabels.Count - 1; index >= 0; index--)
 			{
+				var label = state.YAxisLabels[index];
 				var formattedText = CreateFormattedText(label, typeface, alignment, fontSize, Size.Empty);
 				formattedTextLabels.Add(formattedText);
 				constrainWidthMax = Math.Max(constrainWidthMax, formattedText.Bounds.Width);
@@ -569,13 +658,14 @@ namespace WalletWasabi.Fluent.Controls
 			{
 				formattedTextLabels[i].Constraint = constraintMax;
 
-				var origin = new Point(originLeft - constraintMax.Width, i * state.YAxisLabelStep - constraintMax.Height / 2 + state.AreaMargin.Top);
+				var origin = new Point(originLeft - constraintMax.Width,
+					i * state.YAxisLabelStep - constraintMax.Height / 2 + state.AreaMargin.Top);
 				var offsetCenter = new Point(constraintMax.Width / 2 - constraintMax.Width / 2, 0);
 				var xPosition = origin.X + constraintMax.Width / 2;
 				var yPosition = origin.Y + constraintMax.Height / 2;
 				var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
-				             * Matrix.CreateRotation(angleRadians)
-				             * Matrix.CreateTranslation(xPosition, yPosition);
+							 * Matrix.CreateRotation(angleRadians)
+							 * Matrix.CreateTranslation(xPosition, yPosition);
 				var labelTransform = context.PushPreTransform(matrix);
 				var opacityState = context.PushOpacity(opacity);
 				context.DrawText(foreground, origin + offsetCenter, formattedTextLabels[i]);
@@ -595,9 +685,9 @@ namespace WalletWasabi.Fluent.Controls
 			}
 
 			if (state.AreaWidth <= 0
-			    || state.AreaHeight <= 0
-			    || state.AreaWidth < YAxisMinViableWidth
-			    || state.AreaHeight < YAxisMinViableHeight)
+				|| state.AreaHeight <= 0
+				|| state.AreaWidth < YAxisMinViableWidth
+				|| state.AreaHeight < YAxisMinViableHeight)
 			{
 				return;
 			}
@@ -619,8 +709,8 @@ namespace WalletWasabi.Fluent.Controls
 			var xPosition = origin.X + size.Width / 2;
 			var yPosition = origin.Y + size.Height / 2;
 			var matrix = Matrix.CreateTranslation(-xPosition, -yPosition)
-			             * Matrix.CreateRotation(angleRadians)
-			             * Matrix.CreateTranslation(xPosition, yPosition);
+						 * Matrix.CreateRotation(angleRadians)
+						 * Matrix.CreateTranslation(xPosition, yPosition);
 			var labelTransform = context.PushPreTransform(matrix);
 			var offsetCenter = new Point(0, size.Height / 2 - formattedText.Bounds.Height / 2);
 			var opacityState = context.PushOpacity(opacity);
@@ -645,6 +735,43 @@ namespace WalletWasabi.Fluent.Controls
 			var rect = new Rect(0, 0, state.ChartWidth, state.ChartHeight);
 			var rectDeflate = rect.Deflate(thickness * 0.5);
 			context.DrawRectangle(Brushes.Transparent, pen, rectDeflate, radiusX, radiusY);
+		}
+
+		private void UpdateSubscription(INotifyCollectionChanged? oldValue, INotifyCollectionChanged? newValue)
+		{
+			if (oldValue is { } && _collectionChangedSubscriptions.ContainsKey(oldValue))
+			{
+				_collectionChangedSubscriptions[oldValue].Dispose();
+				_collectionChangedSubscriptions.Remove(oldValue);
+			}
+
+			if (newValue is { })
+			{
+				newValue.CollectionChanged += ItemsPropertyCollectionChanged;
+
+				_collectionChangedSubscriptions[newValue] = Disposable.Create(() =>
+				{
+					newValue.CollectionChanged -= ItemsPropertyCollectionChanged;
+				});
+			}
+		}
+
+		private void ItemsPropertyCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+		{
+			InvalidateVisual();
+		}
+
+		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+		{
+			base.OnPropertyChanged(change);
+
+			if (change.Property == XAxisValuesProperty || change.Property == YAxisValuesProperty ||
+				change.Property == XAxisLabelsProperty || change.Property == YAxisLabelsProperty)
+			{
+				UpdateSubscription(
+					change.OldValue.GetValueOrDefault<INotifyCollectionChanged>(),
+					change.NewValue.GetValueOrDefault<INotifyCollectionChanged>());
+			}
 		}
 
 		public override void Render(DrawingContext context)

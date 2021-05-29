@@ -9,8 +9,7 @@
              mc:Ignorable="d"
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView"
-             ClipToBounds="False">
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
     <UserControl.Styles>
         <!-- Slider Fee -->
         <Style Selector="Slider.cursor">
@@ -49,7 +48,7 @@
             <Setter Property="XAxisLabelFontFamily" Value="Arial" />
             <Setter Property="XAxisLabelFontStyle" Value="Normal" />
             <Setter Property="XAxisLabelFontWeight" Value="Normal" />
-            <Setter Property="XAxisLabelFontSize" Value="10" />
+            <Setter Property="XAxisLabelFontSize" Value="12" />
         </Style>
         <!-- LineChart Cursor -->
         <Style Selector="c|LineChart.cursor">
@@ -100,11 +99,9 @@
         </Style>
     </UserControl.Styles>
     <c:ContentArea Title="Send" Caption=""
-                   EnableCancel="{Binding EnableCancel}"
                    EnableBack="{Binding EnableBack}"
                    EnableNext="True"
                    NextContent="Continue"
-                   ClipToBounds="False"
                    IsBusy="{Binding IsBusy}"
                    ScrollViewer.VerticalScrollBarVisibility="Auto">
 
@@ -121,6 +118,7 @@
                              Watermark="(e.g. Bitcoin address or PayJoin URL)">
                         <i:Interaction.Behaviors>
                             <behaviors:FocusOnAttachedBehavior />
+                            <behaviors:ExecuteCommandOnClickBehavior Command="{Binding AutoPasteCommand}" />
                         </i:Interaction.Behaviors>
                         <TextBox.InnerRightContent>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
@@ -146,11 +144,12 @@
                 <DockPanel>
                     <Label DockPanel.Dock="Left" Content="_Labels:" Target="LabelTagBox" />
                     <c:TagsBox x:Name="LabelTagBox"
+                               Watermark="{StaticResource LabelsWatermarkText}"
                                TagSeparator=","
-                               Items="{Binding Labels}"
-                               Suggestions="{Binding PriorLabels}"
                                SuggestionsAreCaseSensitive="True"
-                               RestrictInputToSuggestions="False" />
+                               RestrictInputToSuggestions="False"
+                               Items="{Binding Labels}"
+                               Suggestions="{Binding PriorLabels}" />
                 </DockPanel>
                 <Separator DockPanel.Dock="Top"
                            HorizontalAlignment="Stretch"
@@ -160,7 +159,7 @@
 
             <DockPanel MinHeight="80">
                 <Slider x:Name="CursorValue2"
-                        Margin="10,0,10,0"
+                        Margin="18,0,18,0"
                         KeyboardNavigation.IsTabStop="False"
                         DockPanel.Dock="Bottom"
                         Classes="cursor"
@@ -170,7 +169,8 @@
                         Value="{Binding XAxisCurrentValueIndex}">
                 </Slider>
                 <c:LineChart x:Name="GradientLineChart"
-                             Margin="10,0,10,0"
+                             XAxisPlotMode="EvenlySpaced"
+                             Margin="18,0,18,0"
                              Classes="cursor border xAxisLabels yAxis yAxisTitle"
                              MinHeight="30"
                              XAxisLabels="{Binding XAxisLabels}"

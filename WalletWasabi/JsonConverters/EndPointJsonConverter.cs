@@ -32,7 +32,7 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			string endPointString = reader.Value as string;
+			var endPointString = reader.Value as string;
 			if (EndPointParser.TryParse(endPointString, DefaultPort, out EndPoint? endPoint))
 			{
 				return endPoint;

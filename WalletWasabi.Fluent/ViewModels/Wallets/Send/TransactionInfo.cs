@@ -1,14 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 {
 	public class TransactionInfo
 	{
-		public SmartLabel Labels { get; set; }
+		public SmartLabel UserLabels { private get; set; }
+
+		public SmartLabel Labels => SmartLabel.Merge(UserLabels, SmartLabel.Merge(Coins?.Select(x => x.HdPubKey.Cluster.Labels)));
 
 		public BitcoinAddress Address { get; set; }
 
@@ -19,5 +23,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		public TimeSpan ConfirmationTimeSpan { get; set; }
 
 		public IEnumerable<SmartCoin> Coins { get; set; }
+
+		public IPayjoinClient? PayJoinClient { get; set; }
 	}
 }

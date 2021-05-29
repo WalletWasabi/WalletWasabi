@@ -2,6 +2,7 @@ using System;
 using Avalonia.Controls;
 using Newtonsoft.Json;
 using System.ComponentModel;
+using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Bases;
@@ -21,6 +22,8 @@ namespace WalletWasabi.Gui
 		private bool _autocopy;
 		private int _feeDisplayFormat;
 		private bool _darkModeEnabled;
+		private string? _lastSelectedWallet;
+		private string _windowState = "Normal";
 
 		public UiConfig() : base()
 		{
@@ -34,7 +37,10 @@ namespace WalletWasabi.Gui
 					x => x.IsCustomFee,
 					x => x.IsCustomChangeAddress,
 					x => x.DarkModeEnabled,
-					x => x.FeeDisplayFormat)
+					x => x.FeeDisplayFormat,
+					x => x.LastSelectedWallet,
+					x => x.WindowState,
+					(_, _, _, _, _, _, _, _) => Unit.Default)
 				.Throttle(TimeSpan.FromMilliseconds(500))
 				.Skip(1) // Won't save on UiConfig creation.
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -43,7 +49,11 @@ namespace WalletWasabi.Gui
 
 		[JsonProperty(PropertyName = "WindowState")]
 		[JsonConverter(typeof(WindowStateAfterStartJsonConverter))]
-		public WindowState WindowState { get; internal set; } = WindowState.Normal;
+		public string WindowState
+		{
+			get => _windowState;
+			internal set => RaiseAndSetIfChanged(ref _windowState, value);
+		}
 
 		[DefaultValue(2)]
 		[JsonProperty(PropertyName = "FeeTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -115,6 +125,14 @@ namespace WalletWasabi.Gui
 		{
 			get => _darkModeEnabled;
 			set => RaiseAndSetIfChanged(ref _darkModeEnabled, value);
+		}
+
+		[DefaultValue(null)]
+		[JsonProperty(PropertyName = "LastSelectedWallet", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public string? LastSelectedWallet
+		{
+			get => _lastSelectedWallet;
+			set => RaiseAndSetIfChanged(ref _lastSelectedWallet, value);
 		}
 
 		[JsonProperty(PropertyName = "CoinListViewSortingPreference")]

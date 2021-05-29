@@ -88,7 +88,7 @@ namespace System.IO
 		{
 			if (Directory.Exists(dirPath))
 			{
-				using Process process = Process.Start(new ProcessStartInfo
+				using var process = Process.Start(new ProcessStartInfo
 				{
 					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
 						? "explorer.exe"
@@ -111,7 +111,7 @@ namespace System.IO
 			}
 			else
 			{
-				using Process process = Process.Start(new ProcessStartInfo
+				using var process = Process.Start(new ProcessStartInfo
 				{
 					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? url : "open",
 					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e {url}" : "",

@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Model;
 using WalletWasabi.Hwi;
 using WalletWasabi.Logging;
@@ -24,16 +25,14 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 
 			_wallet = wallet;
 			_transactionAuthorizationInfo = transactionAuthorizationInfo;
-			WalletIcon = _wallet.KeyManager.Icon;
+			WalletType = WalletHelpers.GetType(wallet.KeyManager);
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = true;
 		}
 
-		public string? WalletIcon { get; }
-
-		public bool IsHardwareWallet => true;
+		public WalletType WalletType { get; }
 
 		protected override async Task<bool> Authorize()
 		{

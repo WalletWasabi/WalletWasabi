@@ -4,12 +4,10 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
-using WalletWasabi.Stores;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 {
@@ -33,11 +31,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 		[AutoNotify] private string _inputCountString;
 		[AutoNotify] private string _outputCountString;
 
-		public BroadcastTransactionViewModel(
-			BitcoinStore store,
-			Network network,
-			TransactionBroadcaster broadcaster,
-			SmartTransaction transaction)
+		public BroadcastTransactionViewModel(Network network, SmartTransaction transaction)
 		{
 			Title = "Broadcast Transaction";
 
@@ -47,7 +41,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 			var psbt = PSBT.FromTransaction(transaction.Transaction, network);
 
 			TxOut GetOutput(OutPoint outpoint) =>
-				store.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
+				Services.BitcoinStore.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
 					? prevTxn.Transaction.Outputs[outpoint.N]
 					: nullOutput;
 
@@ -77,7 +71,7 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				? null
 				: TotalInputValue - TotalOutputValue;
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = false;
 
@@ -88,17 +82,17 @@ namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting
 				.Select(x => !x);
 
 			NextCommand = ReactiveCommand.CreateFromTask(
-				async () => await OnNext(broadcaster, transaction),
+				async () => await OnNextAsync(transaction),
 				nextCommandCanExecute);
 
 			EnableAutoBusyOn(NextCommand);
 		}
 
-		private async Task OnNext(TransactionBroadcaster broadcaster, SmartTransaction transaction)
+		private async Task OnNextAsync(SmartTransaction transaction)
 		{
 			try
 			{
-				await broadcaster.SendTransactionAsync(transaction);
+				await Services.TransactionBroadcaster.SendTransactionAsync(transaction);
 				Navigate().To(new SuccessBroadcastTransactionViewModel());
 			}
 			catch (Exception ex)

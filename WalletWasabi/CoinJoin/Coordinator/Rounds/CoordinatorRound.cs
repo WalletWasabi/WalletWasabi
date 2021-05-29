@@ -26,7 +26,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		private RoundPhase _phase;
 		private CoordinatorRoundStatus _status;
 
-		public CoordinatorRound(IRPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate)
+		public CoordinatorRound(IRPCClient rpc, UtxoReferee utxoReferee, CoordinatorRoundConfig config, int adjustedConfirmationTarget, int configuredConfirmationTarget, double configuredConfirmationTargetReductionRate, TimeSpan inputRegistrationTimeOut)
 		{
 			try
 			{
@@ -41,7 +41,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				ConfiguredConfirmationTargetReductionRate = configuredConfirmationTargetReductionRate;
 				CoordinatorFeePercent = config.CoordinatorFeePercent;
 				AnonymitySet = config.AnonymitySet;
-				InputRegistrationTimeout = TimeSpan.FromSeconds(config.InputRegistrationTimeout);
+				InputRegistrationTimeout = inputRegistrationTimeOut;
 				SetInputRegistrationTimesout();
 				ConnectionConfirmationTimeout = TimeSpan.FromSeconds(config.ConnectionConfirmationTimeout);
 				OutputRegistrationTimeout = TimeSpan.FromSeconds(config.OutputRegistrationTimeout);
@@ -192,7 +192,23 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 		public TimeSpan AliceRegistrationTimeout => ConnectionConfirmationTimeout;
 
 		public TimeSpan InputRegistrationTimeout { get; }
-		public DateTimeOffset InputRegistrationTimesout { get; set; }
+		public DateTimeOffset InputRegistrationTimesout { get; private set; }
+
+		public TimeSpan RemainingInputRegistrationTime
+		{
+			get
+			{
+				var remaining = InputRegistrationTimesout - DateTimeOffset.UtcNow;
+				if (Phase == RoundPhase.InputRegistration && remaining > TimeSpan.Zero)
+				{
+					return remaining;
+				}
+				else
+				{
+					return TimeSpan.Zero;
+				}
+			}
+		}
 
 		public TimeSpan ConnectionConfirmationTimeout { get; }
 
@@ -212,7 +228,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			InputRegistrationTimesout = DateTimeOffset.UtcNow + InputRegistrationTimeout;
 		}
 
-		public async Task ExecuteNextPhaseAsync(RoundPhase expectedPhase, Money? feePerInputs = null, Money? feePerOutputs = null)
+		public async Task ExecuteNextPhaseAsync(RoundPhase expectedPhase)
 		{
 			using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
 			{
@@ -227,7 +243,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 							return;
 						}
 
-						await MoveToInputRegistrationAsync(feePerInputs, feePerOutputs).ConfigureAwait(false);
+						await MoveToInputRegistrationAsync().ConfigureAwait(false);
 					}
 					else if (Status != CoordinatorRoundStatus.Running) // Aborted or succeeded, swallow.
 					{
@@ -372,7 +388,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 										break;
 
 									default:
-										throw new InvalidOperationException("This is impossible.");
+										throw new InvalidOperationException("This should never happen.");
 								}
 							}
 							catch (Exception ex)
@@ -416,7 +432,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					break;
 
 				default:
-					throw new InvalidOperationException("This is impossible.");
+					throw new InvalidOperationException("This should never happen.");
 			}
 
 			return timeout;
@@ -613,20 +629,12 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			Phase = RoundPhase.ConnectionConfirmation;
 		}
 
-		private async Task MoveToInputRegistrationAsync(Money feePerInputs, Money feePerOutputs)
+		private async Task MoveToInputRegistrationAsync()
 		{
 			// Calculate fees.
-			if (feePerInputs is null || feePerOutputs is null)
-			{
-				(Money feePerInputs, Money feePerOutputs) fees = await CalculateFeesAsync(RpcClient, AdjustedConfirmationTarget).ConfigureAwait(false);
-				FeePerInputs = feePerInputs ?? fees.feePerInputs;
-				FeePerOutputs = feePerOutputs ?? fees.feePerOutputs;
-			}
-			else
-			{
-				FeePerInputs = feePerInputs;
-				FeePerOutputs = feePerOutputs;
-			}
+			(Money feePerInputs, Money feePerOutputs) fees = await CalculateFeesAsync(RpcClient, AdjustedConfirmationTarget).ConfigureAwait(false);
+			FeePerInputs = fees.feePerInputs;
+			FeePerOutputs = fees.feePerOutputs;
 
 			Status = CoordinatorRoundStatus.Running;
 		}
@@ -638,7 +646,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			if (collision is { })
 			{
 				newDenomination -= Money.Satoshis(1);
-				Logger.LogDebug($"This is impossibru. The new base denomination is exactly the same as the one of the mixing level. Adjusted the new denomination one satoshi less.");
+				Logger.LogDebug($"This should never happen. The new base denomination is exactly the same as the one of the mixing level. Adjusted the new denomination one satoshi less.");
 			}
 
 			return newDenomination;
@@ -796,7 +804,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				Money fee = transaction.GetFee(spentCoins.ToArray());
 
 				// There is a currentFeeRate null check later.
-				FeeRate currentFeeRate = null;
+				FeeRate? currentFeeRate = null;
 				if (fee is null)
 				{
 					Logger.LogError($"Round ({RoundId}): Cannot calculate CoinJoin transaction fee. Some spent coins are missing.");
@@ -811,20 +819,11 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 				}
 
 				// 7.2. Get the most optimal FeeRate.
-				MemPoolInfo mempoolInfo = await RpcClient.GetMempoolInfoAsync().ConfigureAwait(false);
-				var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
-				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, sanityFeeRate, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false);
-
-				if (estimateSmartFeeResponse is null)
-				{
-					throw new InvalidOperationException($"{nameof(FeeRate)} is not yet initialized.");
-				}
-
-				FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
+				FeeRate optimalFeeRate = (await RpcClient.EstimateSmartFeeAsync(AdjustedConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false)).FeeRate;
 
 				if (optimalFeeRate is null || optimalFeeRate == FeeRate.Zero || currentFeeRate is null || currentFeeRate == FeeRate.Zero) // This would be really strange if it'd happen.
 				{
-					Logger.LogError($"Round ({RoundId}): This is impossible. {nameof(optimalFeeRate)}: {optimalFeeRate}, {nameof(currentFeeRate)}: {currentFeeRate}.");
+					Logger.LogError($"Round ({RoundId}): This should never happen. {nameof(optimalFeeRate)}: {optimalFeeRate}, {nameof(currentFeeRate)}: {currentFeeRate}.");
 				}
 				else if (optimalFeeRate < currentFeeRate)
 				{
@@ -835,9 +834,9 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 					// 7.2.2. Get the outputs to divide the savings between.
 					var indistinguishableOutputs = transaction.GetIndistinguishableOutputs(includeSingle: true).ToArray();
-					int maxMixCount = indistinguishableOutputs.Max(x => x.count);
-					Money bestMixAmount = indistinguishableOutputs.Where(x => x.count == maxMixCount).Max(x => x.value);
-					int bestMixCount = indistinguishableOutputs.First(x => x.value == bestMixAmount).count;
+					var maxMixCount = indistinguishableOutputs.Max(x => x.count);
+					var bestMixAmount = indistinguishableOutputs.Where(x => x.count == maxMixCount).Max(x => x.value);
+					var bestMixCount = indistinguishableOutputs.First(x => x.value == bestMixAmount).count;
 
 					// 7.2.3. Get the savings per best mix outputs.
 					long toSavePerBestMixOutputs = toSave.Satoshi / bestMixCount;
@@ -887,16 +886,13 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			Guard.NotNull(nameof(rpc), rpc);
 			Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
 
-			Money feePerInputs = null;
-			Money feePerOutputs = null;
+			Money? feePerInputs = null;
+			Money? feePerOutputs = null;
 			var inputSizeInBytes = (int)Math.Ceiling(((3 * Constants.P2wpkhInputSizeInBytes) + Constants.P2pkhInputSizeInBytes) / 4m);
 			var outputSizeInBytes = Constants.OutputSizeInBytes;
 			try
 			{
-				var mempoolInfo = await rpc.GetMempoolInfoAsync().ConfigureAwait(false);
-				var sanityFeeRate = mempoolInfo.GetSanityFeeRate();
-				var estimateSmartFeeResponse = await rpc.EstimateSmartFeeAsync(confirmationTarget, sanityFeeRate, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false);
-				var feeRate = estimateSmartFeeResponse.FeeRate;
+				var feeRate = (await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true).ConfigureAwait(false)).FeeRate;
 
 				// Make sure min relay fee (1000 sat) is hit.
 				feePerInputs = Math.Max(feeRate.GetFee(inputSizeInBytes), Money.Satoshis(500));
@@ -1053,7 +1049,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 			}
 		}
 
-		public Alice TryGetAliceBy(Guid uniqueId)
+		public Alice? TryGetAliceBy(Guid uniqueId)
 		{
 			using (RoundSynchronizerLock.Lock())
 			{
@@ -1085,10 +1081,10 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 					return; // Then no need to timeout alice.
 				}
 
-				Alice alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
-				foundAlice = alice is { };
-				if (foundAlice)
+				var alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
+				if (alice is not null)
 				{
+					foundAlice = true;
 					alice.LastSeen = started;
 				}
 			}
@@ -1105,8 +1101,8 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 						// 3. If the round is still running and the phase is still InputRegistration
 						if (Status == CoordinatorRoundStatus.Running && Phase == RoundPhase.InputRegistration)
 						{
-							Alice alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
-							if (alice is { })
+							var alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
+							if (alice is not null)
 							{
 								// 4. If LastSeen is not changed by then, remove Alice.
 								// But only if Alice didn't get blind sig yet.
@@ -1137,7 +1133,7 @@ namespace WalletWasabi.CoinJoin.Coordinator.Rounds
 
 		public async Task BroadcastCoinJoinIfFullySignedAsync()
 		{
-			Transaction broadcasted = null;
+			Transaction? broadcasted = null;
 			using (await RoundSynchronizerLock.LockAsync().ConfigureAwait(false))
 			{
 				// Check if fully signed.

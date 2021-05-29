@@ -1,5 +1,6 @@
 using Avalonia.Data.Converters;
 using NBitcoin;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Converters
 {
@@ -7,9 +8,12 @@ namespace WalletWasabi.Fluent.Converters
 	{
 		public static readonly IValueConverter MoneyToString =
 			new FuncValueConverter<Money?, string>(x => x switch
-				{
-					null => "Unknown",
-					{ } => x.ToString(fplus: false, trimExcessZero: true),
-				});
+			{
+				null => "Unknown",
+				{ } => x.ToString(fplus: false, trimExcessZero: true),
+			});
+
+		public static readonly IValueConverter ToFormattedString =
+			new FuncValueConverter<Money?, string>(money => money is null ? "" : money.ToFormattedString());
 	}
 }

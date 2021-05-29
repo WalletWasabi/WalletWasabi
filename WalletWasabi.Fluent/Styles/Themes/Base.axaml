@@ -23,10 +23,7 @@
     <SolidColorBrush x:Key="PrivacyLevelExtremeBrush" Color="#89C67A" />
     <SolidColorBrush x:Key="PrivacyLevelExtremeAltBrush" Color="#5B92D2" />
 
-    <SolidColorBrush x:Key="PrivacyOptimisationLevelStandardBrush" Color="#DDA73E" />
-    <SolidColorBrush x:Key="PrivacyOptimisationLevelBetterBrush" Color="{StaticResource SystemAccentColor}" />
-
-    <SolidColorBrush x:Key="WarningMessageForeground">#FFDD00</SolidColorBrush>
+    <SolidColorBrush x:Key="WarningMessageForeground">#DDA73E</SolidColorBrush>
     <StaticResource x:Key="SystemControlErrorTextForegroundBrush" ResourceKey="SystemErrorTextColor" />
     <SolidColorBrush x:Key="HyperLinkForeground">#00A2E8</SolidColorBrush>
 
@@ -39,5 +36,8 @@
     <x:Double x:Key="DataGridRowSelectedBackgroundOpacity">1.0</x:Double>
     <x:Double x:Key="DataGridRowSelectedUnfocusedBackgroundOpacity">1.0</x:Double>
 
+    <x:String x:Key="LabelsWatermarkText">i.e. Alice, Bob, Wasabi Inc, Exchange</x:String>
+
+    <StaticResource x:Key="NotificationCardInformationBackgroundBrush" ResourceKey="SystemAccentColor" />
   </Styles.Resources>
 </Styles>

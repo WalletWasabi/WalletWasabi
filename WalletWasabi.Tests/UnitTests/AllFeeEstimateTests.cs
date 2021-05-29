@@ -13,13 +13,14 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 using Moq;
+using System.Threading;
 
 namespace WalletWasabi.Tests.UnitTests
 {
 	public class AllFeeEstimateTests
 	{
 		[Fact]
-		public void AllFeeEstimateSerialization()
+		public void Serialization()
 		{
 			var estimations = new Dictionary<int, int>
 			{
@@ -38,7 +39,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public void AllFeeEstimateOrdersByTarget()
+		public void OrdersByTarget()
 		{
 			var estimations = new Dictionary<int, int>
 			{
@@ -55,7 +56,7 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public void AllFeeEstimateHandlesDuplicate()
+		public void HandlesDuplicate()
 		{
 			var estimations = new Dictionary<int, int>
 			{
@@ -69,7 +70,45 @@ namespace WalletWasabi.Tests.UnitTests
 		}
 
 		[Fact]
-		public void AllFeeEstimateHandlesInconsistentData()
+		public void HandlesOne()
+		{
+			// If there's no 2, this'll be 2.
+			var estimations = new Dictionary<int, int>
+			{
+				{ 1, 20 }
+			};
+
+			var allFees = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+			Assert.Single(allFees.Estimations);
+			Assert.Equal(estimations[1], allFees.Estimations[2]);
+
+			// If there's 2, 1 is dismissed.
+			estimations = new Dictionary<int, int>
+			{
+				{ 1, 20 },
+				{ 2, 21 }
+			};
+
+			allFees = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+			Assert.Single(allFees.Estimations);
+			Assert.Equal(estimations[2], allFees.Estimations[2]);
+		}
+
+		[Fact]
+		public void EndOfTheRange()
+		{
+			var estimations = new Dictionary<int, int>
+			{
+				{ 1007, 20 }
+			};
+
+			var allFees = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations, true);
+			var est = Assert.Single(allFees.Estimations);
+			Assert.Equal(1008, est.Key);
+		}
+
+		[Fact]
+		public void HandlesInconsistentData()
 		{
 			var estimations = new Dictionary<int, int>
 			{
@@ -108,7 +147,7 @@ namespace WalletWasabi.Tests.UnitTests
 				});
 			mockRpc.Setup(rpc => rpc.GetPeersInfoAsync())
 				.ReturnsAsync(Array.Empty<PeerInfo>());
-			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync())
+			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(new MemPoolInfo
 				{
 					MemPoolMinFee = 0.00001000 // 1 s/b (default value)
@@ -130,7 +169,7 @@ namespace WalletWasabi.Tests.UnitTests
 			mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), It.IsAny<EstimateSmartFeeMode>()))
 				.ThrowsAsync(new RPCException(RPCErrorCode.RPC_CLIENT_NOT_CONNECTED, "Error-EstimateSmartFee", null));
 
-			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync())
+			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(new MemPoolInfo
 				{
 					MemPoolMinFee = 0.00001000 // 1 s/b (default value)
@@ -193,7 +232,7 @@ namespace WalletWasabi.Tests.UnitTests
 			var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
 			var any = EstimateSmartFeeMode.Conservative;
 
-			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync()).ReturnsAsync(
+			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(
 				new MemPoolInfo
 				{
 					MemPoolMinFee = 0.00001000, // 1 s/b (default value)
@@ -241,7 +280,7 @@ namespace WalletWasabi.Tests.UnitTests
 			{
 				var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
 				var mempoolInfo = MempoolInfoGenerator.GenerateMempoolInfo();
-				mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync()).ReturnsAsync(mempoolInfo);
+				mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(mempoolInfo);
 				mockRpc.Setup(rpc => rpc.EstimateSmartFeeAsync(It.IsAny<int>(), EstimateSmartFeeMode.Conservative)).ReturnsAsync(FeeRateResponse(2, 120m));
 				var feeRates = await mockRpc.Object.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative);
 				var estimations = feeRates.Estimations;
@@ -266,7 +305,7 @@ namespace WalletWasabi.Tests.UnitTests
 				hasPeersInfo
 					? new[] { new PeerInfo() }
 					: Array.Empty<PeerInfo>());
-			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync()).ReturnsAsync(
+			mockRpc.Setup(rpc => rpc.GetMempoolInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(
 				new MemPoolInfo
 				{
 					MemPoolMinFee = memPoolMinFee, // 1 s/b (default value)

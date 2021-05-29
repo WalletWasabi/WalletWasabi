@@ -1,9 +1,15 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using WalletWasabi.Tor.Http.Helpers;
 using WalletWasabi.Tor.Http.Models;
+using WalletWasabi.WabiSabi;
+using WalletWasabi.WabiSabi.Backend.Models;
+using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Tor.Http.Extensions
 {
@@ -53,13 +59,30 @@ namespace WalletWasabi.Tor.Http.Extensions
 			return response;
 		}
 
-		public static async Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me)
+		public static async Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me, CancellationToken cancellationToken = default)
 		{
 			var errorMessage = "";
 
 			if (me.Content is { })
 			{
-				var contentString = await me.Content.ReadAsStringAsync().ConfigureAwait(false);
+				var contentString = await me.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+				var error = JsonConvert.DeserializeObject<Error>(contentString, new JsonSerializerSettings()
+				{
+					Error = (_, e) => e.ErrorContext.Handled = true // Try to deserialize an Error object
+				});
+				var innerException = error switch
+				{
+					{ Type: ProtocolConstants.ProtocolViolationType } => Enum.TryParse<WabiSabiProtocolErrorCode>(error.ErrorCode, out var code)
+						? new WabiSabiProtocolException(code, error.Description)
+						: new NotSupportedException($"Received wabisabi protocol exception with unknown '{error.ErrorCode}' error code.\n\tDescription: '{error.Description}'."),
+					{ Type: "unknown"} => new Exception(error.Description),
+					_ => null
+				};
+
+				if (innerException is not null)
+				{
+					throw new HttpRequestException("Remote coordinator responded with an error.", innerException, me.StatusCode);
+				}
 
 				// Remove " from beginning and end to ensure backwards compatibility and it's kindof trash, too.
 				if (contentString.Count(f => f == '"') <= 2)

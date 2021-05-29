@@ -66,11 +66,10 @@ namespace WalletWasabi.Wallets
 
 		private BitcoinStore BitcoinStore { get; set; }
 		private WasabiSynchronizer Synchronizer { get; set; }
-		private NodesGroup Nodes { get; set; }
 		private ServiceConfiguration ServiceConfiguration { get; set; }
 		private bool IsInitialized { get; set; }
 
-		private IFeeProvider FeeProvider { get; set; }
+		private HybridFeeProvider FeeProvider { get; set; }
 		public Network Network { get; }
 		public WalletDirectories WalletDirectories { get; }
 		private IBlockProvider BlockProvider { get; set; }
@@ -123,6 +122,8 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
+		public bool HasWallet() => AnyWallet(_ => true);
+
 		public bool AnyWallet()
 		{
 			return AnyWallet(x => x.State >= WalletState.Starting);
@@ -156,7 +157,7 @@ namespace WalletWasabi.Wallets
 
 			if (wallet.State == WalletState.WaitingForInit)
 			{
-				wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BlockProvider);
+				wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
 			}
 
 			using (await StartStopWalletLock.LockAsync(CancelAllInitialization.Token).ConfigureAwait(false))
@@ -397,18 +398,17 @@ namespace WalletWasabi.Wallets
 			}
 		}
 
-		public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, NodesGroup nodes, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, IBlockProvider blockProvider)
+		public void RegisterServices(BitcoinStore bitcoinStore, WasabiSynchronizer synchronizer, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
 		{
 			BitcoinStore = bitcoinStore;
 			Synchronizer = synchronizer;
-			Nodes = nodes;
 			ServiceConfiguration = serviceConfiguration;
 			FeeProvider = feeProvider;
 			BlockProvider = blockProvider;
 
 			foreach (var wallet in GetWallets().Where(w => w.State == WalletState.WaitingForInit))
 			{
-				wallet.RegisterServices(BitcoinStore, Synchronizer, Nodes, ServiceConfiguration, FeeProvider, BlockProvider);
+				wallet.RegisterServices(BitcoinStore, Synchronizer, ServiceConfiguration, FeeProvider, BlockProvider);
 			}
 
 			IsInitialized = true;

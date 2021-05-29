@@ -10,47 +10,21 @@
              x:Class="WalletWasabi.Fluent.Views.Dialogs.InsufficientBalanceDialogView">
   <c:ContentArea Title="{Binding Title}"
                  Caption="{Binding Caption}">
-    <c:ContentArea.Styles>
-      <Style Selector="TextBlock.storyline">
-        <Setter Property="Opacity" Value="0.6" />
-        <Setter Property="FontSize" Value="14" />
-      </Style>
-      <Style Selector="TextBlock.field">
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="Opacity" Value="0.85" />
-      </Style>
-    </c:ContentArea.Styles>
-    <c:QuestionControl Text="Would you like to do this instead?"
+    <c:QuestionControl Content="Would you like to do this instead?"
                        YesCommand="{Binding NextCommand}"
                        NoCommand="{Binding CancelCommand}"
                        HighlightButton="YesButton">
-      <StackPanel Spacing="20">
-        <StackPanel Orientation="Horizontal" Spacing="30">
-          <PathIcon Width="24" Height="24" Data="{StaticResource btc_logo}"
-                            Foreground="{DynamicResource SystemAccentColor}" />
-          <StackPanel Spacing="5">
-            <TextBlock Text="Send a total of " Classes="storyline" />
-            <StackPanel Orientation="Horizontal" Spacing="5">
-              <TextBlock Classes="field" Text="{Binding BtcAmountText}" />
-              <TextBlock Classes="field" Text="{Binding FiatAmountText}" />
-            </StackPanel>
-          </StackPanel>
-       </StackPanel>
-
-        <Separator />
-
-        <StackPanel Orientation="Horizontal" Spacing="30">
-          <PathIcon Width="24" Height="24" Data="{StaticResource paper_cash_regular}"
-                   Foreground="{DynamicResource SystemAccentColor}" />
-          <StackPanel Spacing="5">
-            <TextBlock Classes="storyline" Text="for an additional charge of" />
-            <StackPanel Orientation="Horizontal" Spacing="5">
-              <TextBlock Classes="field" Text="{Binding BtcFeeText}" />
-              <TextBlock Classes="field" Text="{Binding FiatFeeText}" />
-            </StackPanel>
-          </StackPanel>
+      <c:QuestionControl.IconContent>
+        <StackPanel Spacing="20">
+          <c:PreviewItem Icon="{StaticResource btc_logo}"
+                         Text="Send a total of"
+                         Content="{Binding AmountText, FallbackValue=0.213 BTC (≈55.34 USD)}" />
+          <Separator />
+          <c:PreviewItem Icon="{StaticResource paper_cash_regular}"
+                         Text="for an additional fee of"
+                         Content="{Binding FeeText, FallbackValue=235 satoshis (≈55.34 USD)}" />
         </StackPanel>
-      </StackPanel>
+      </c:QuestionControl.IconContent>
     </c:QuestionControl>
   </c:ContentArea>
 </UserControl>

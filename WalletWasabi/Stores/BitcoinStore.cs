@@ -2,9 +2,9 @@ using NBitcoin;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
-using WalletWasabi.Blockchain.P2p;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -29,8 +29,6 @@ namespace WalletWasabi.Stores
 			BlockRepository = blockRepository;
 		}
 
-		public bool IsInitialized { get; private set; }
-
 		public IndexStore IndexStore { get; }
 		public AllTransactionStore TransactionStore { get; }
 		public SmartHeaderChain SmartHeaderChain => IndexStore.SmartHeaderChain;
@@ -54,8 +52,6 @@ namespace WalletWasabi.Stores
 				};
 
 				await Task.WhenAll(initTasks).ConfigureAwait(false);
-
-				IsInitialized = true;
 			}
 		}
 

@@ -10,19 +10,19 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 {
 	public class PaymentIntent
 	{
-		public PaymentIntent(Script scriptPubKey, Money amount, bool subtractFee = false, SmartLabel label = null) : this(scriptPubKey, MoneyRequest.Create(amount, subtractFee), label)
+		public PaymentIntent(Script scriptPubKey, Money amount, bool subtractFee = false, SmartLabel? label = null) : this(scriptPubKey, MoneyRequest.Create(amount, subtractFee), label)
 		{
 		}
 
-		public PaymentIntent(Script scriptPubKey, MoneyRequest amount, SmartLabel label = null) : this(scriptPubKey.GetDestination(), amount, label)
+		public PaymentIntent(Script scriptPubKey, MoneyRequest amount, SmartLabel? label = null) : this(scriptPubKey.GetDestination(), amount, label)
 		{
 		}
 
-		public PaymentIntent(IDestination destination, Money amount, bool subtractFee = false, SmartLabel label = null) : this(destination, MoneyRequest.Create(amount, subtractFee), label)
+		public PaymentIntent(IDestination destination, Money amount, bool subtractFee = false, SmartLabel? label = null) : this(destination, MoneyRequest.Create(amount, subtractFee), label)
 		{
 		}
 
-		public PaymentIntent(IDestination destination, MoneyRequest amount, SmartLabel label = null) : this(new DestinationRequest(destination, amount, label))
+		public PaymentIntent(IDestination destination, MoneyRequest amount, SmartLabel? label = null) : this(new DestinationRequest(destination, amount, label))
 		{
 		}
 
@@ -69,7 +69,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 				}
 				else
 				{
-					throw new NotSupportedException("This is impossible.");
+					throw new NotSupportedException("This should never happen.");
 				}
 			}
 			else
@@ -90,7 +90,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding
 		{
 			request = Requests.SingleOrDefault(x => x.Amount.Type is MoneyRequestType.Change or MoneyRequestType.AllRemaining);
 
-			return request is { };
+			return request is not null;
 		}
 	}
 }

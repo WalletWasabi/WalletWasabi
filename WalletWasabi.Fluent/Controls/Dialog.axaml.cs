@@ -1,6 +1,8 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -14,6 +16,8 @@ namespace WalletWasabi.Fluent.Controls
 	public class Dialog : ContentControl
 	{
 		private Panel? _dismissPanel;
+		private Panel? _overlayPanel;
+		private bool _canCancelOnPointerPressed;
 
 		public static readonly StyledProperty<bool> IsDialogOpenProperty =
 			AvaloniaProperty.Register<Dialog, bool>(nameof(IsDialogOpen));
@@ -38,6 +42,11 @@ namespace WalletWasabi.Fluent.Controls
 
 		public static readonly StyledProperty<double> MaxContentWidthProperty =
 			AvaloniaProperty.Register<Dialog, double>(nameof(MaxContentWidth), double.PositiveInfinity);
+
+		public Dialog()
+		{
+			this.GetObservable(IsDialogOpenProperty).Subscribe(UpdateDelay);
+		}
 
 		public bool IsDialogOpen
 		{
@@ -87,6 +96,31 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetValue(MaxContentWidthProperty, value);
 		}
 
+		private CancellationTokenSource? CancelPointerPressedDelay { get; set; }
+
+		private void UpdateDelay(bool isDialogOpen)
+		{
+			try
+			{
+				_canCancelOnPointerPressed = false;
+				CancelPointerPressedDelay?.Cancel();
+
+				if (isDialogOpen)
+				{
+					CancelPointerPressedDelay = new CancellationTokenSource();
+
+					Task.Delay(TimeSpan.FromSeconds(1), CancelPointerPressedDelay.Token).ContinueWith(_ =>
+					{
+						_canCancelOnPointerPressed = true;
+					});
+				}
+			}
+			catch (OperationCanceledException)
+			{
+				// ignored
+			}
+		}
+
 		protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
 		{
 			base.OnPropertyChanged(change);
@@ -107,6 +141,7 @@ namespace WalletWasabi.Fluent.Controls
 			base.OnApplyTemplate(e);
 
 			_dismissPanel = e.NameScope.Find<Panel>("PART_Dismiss");
+			_overlayPanel = e.NameScope.Find<Panel>("PART_Overlay");
 
 			if (this.GetVisualRoot() is TopLevel topLevel)
 			{
@@ -122,10 +157,12 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void CancelPointerPressed(object? sender, PointerPressedEventArgs e)
 		{
-			if (IsDialogOpen && EnableCancelOnPressed && !IsBusy && IsCancelEnabled && _dismissPanel is not null)
+			if (IsDialogOpen && EnableCancelOnPressed && !IsBusy && _dismissPanel is { } && _overlayPanel is { } && _canCancelOnPointerPressed)
 			{
 				var point = e.GetPosition(_dismissPanel);
-				if (!_dismissPanel.Bounds.Contains(point))
+				var isPressedOnTitleBar = e.GetPosition(_overlayPanel).Y < 30;
+
+				if (!_dismissPanel.Bounds.Contains(point) && !isPressedOnTitleBar)
 				{
 					Close();
 				}
@@ -134,7 +171,7 @@ namespace WalletWasabi.Fluent.Controls
 
 		private void CancelKeyDown(object? sender, KeyEventArgs e)
 		{
-			if (e.Key == Key.Escape && EnableCancelOnEscape && !IsBusy && IsCancelEnabled)
+			if (e.Key == Key.Escape && EnableCancelOnEscape && !IsBusy)
 			{
 				Close();
 			}

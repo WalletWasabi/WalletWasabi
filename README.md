@@ -1,4 +1,41 @@
-![](https://i.imgur.com/4GO7nnY.png)
+<p align="center">
+  <a href="https://wasabiwallet.io">
+    <img src="https://user-images.githubusercontent.com/51679301/113864078-23c53900-97b3-11eb-9374-32577c58273d.png"/>
+  </a>
+</p>
+
+<h3 align="center">
+    An open-source, non-custodial, privacy-focused Bitcoin wallet for desktop.
+</h3>
+
+<h3 align="center">
+  <a href="https://wasabiwallet.io">
+    Website
+  </a>
+  <span> | </span>
+  <a href="https://docs.wasabiwallet.io/">
+    Documentation
+  </a>
+  <span> | </span>
+  <a href="https://docs.wasabiwallet.io/building-wasabi/TechnicalOverview.html#v-general-wallet-features">
+    API
+  </a>
+  <span> | </span>
+  <a href="https://github.com/zkSNACKs/WalletWasabi/discussions/5185">
+    Support
+  </a>
+  <span> | </span>
+  <a href="https://www.youtube.com/c/WasabiWallet">
+    YouTube
+  </a>
+  <span> | </span>
+  <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt">
+    PGP
+  </a>
+</div>
+
+<br>
+<br>
 
 | Code Quality           | Windows Tests           | Linux Tests             | macOS Tests             | Continuous Delivery       | Deterministic builds      | License                   |
 | :----------------------| :-----------------------| :-----------------------| :-----------------------| :-------------------------| :-------------------------| :-------------------------|
@@ -19,25 +56,31 @@
 [13]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.DeterministicBuild?branchName=master
 [14]: https://dev.azure.com/zkSNACKs/Wasabi/_build/latest?definitionId=13&branchName=master
 
-[Wasabi Wallet](https://wasabiwallet.io) is an open-source, non-custodial, privacy-focused Bitcoin wallet for desktop.
+<br>
 
-![](https://i.imgur.com/4tazbiF.png)
+<p align="center">
+  <img height="360" src="https://i.imgur.com/4tazbiF.png"/>
+</p>
 
 Note that [Wasabi Wallet 2.0](https://blog.wasabiwallet.io/wasabi-wallet-2/) is in the works, which means some code you may want to work on is about to be obsoleted. The most affected code is the UI and CoinJoin parts.
 
 For more information, please check out the [Wasabi Documentation](https://docs.wasabiwallet.io), an archive of knowledge about the nuances of Bitcoin privacy and how to use Wasabi.
 
-# [Download Wasabi](https://github.com/zkSNACKs/WalletWasabi/releases)
+<br>
 
-# Build From Source Code
+# 💻 [Download Wasabi](https://github.com/zkSNACKs/WalletWasabi/releases)
 
-## Get The Requirements
+<br>
+
+# 🏗️ Build From Source Code
+
+### Get The Requirements
 
 1. Get Git: https://git-scm.com/downloads
 2. Get .NET 5.0 SDK: https://dotnet.microsoft.com/download
-3. Optionally disable .NET's telemetry by typing `export DOTNET_CLI_TELEMETRY_OPTOUT=1` on Linux and macOS or `setx DOTNET_CLI_TELEMETRY_OPTOUT 1` on Windows.
+3. Optionally disable .NET's telemetry by executing in the terminal `export DOTNET_CLI_TELEMETRY_OPTOUT=1` on Linux and macOS or `setx DOTNET_CLI_TELEMETRY_OPTOUT 1` on Windows.
 
-## Get Wasabi
+### Get Wasabi
 
 Clone & Restore & Build
 
@@ -47,11 +90,11 @@ cd WalletWasabi/WalletWasabi.Gui
 dotnet build
 ```
 
-## Run Wasabi
+### Run Wasabi
 
 Run Wasabi with `dotnet run` from the `WalletWasabi.Gui` folder.
 
-## Update Wasabi
+### Update Wasabi
 
 ```sh
 git pull

@@ -17,7 +17,7 @@ namespace Gma.QrCodeNet.Encoding.Masking
 				MaskPatternType.Type5 => new Pattern5(),
 				MaskPatternType.Type6 => new Pattern6(),
 				MaskPatternType.Type7 => new Pattern7(),
-				_ => throw new NotSupportedException("This is impossible.")
+				_ => throw new NotSupportedException("This should never happen.")
 			};
 		}
 

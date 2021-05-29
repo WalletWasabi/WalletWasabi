@@ -6,7 +6,6 @@
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.NavBar"
              xmlns:vmw="using:WalletWasabi.Fluent.ViewModels.Wallets"
-             xmlns:vmwa="using:WalletWasabi.Fluent.ViewModels.Wallets.Actions"
              x:DataType="vm:NavBarViewModel"
              x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="459"
@@ -27,6 +26,25 @@
       <Setter Property="Margin" Value="0" />
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="ListBox.vertical > c|NavBarItem">
+      <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
+      <Setter Property="IsHitTestVisible" Value="{Binding IsEnabled}" x:CompileBindings="False" />
+      <Setter Property="Focusable" Value="{Binding IsEnabled}" x:CompileBindings="False" />
+      <Setter Property="IsEnabled" Value="{Binding IsEnabled}" x:CompileBindings="False" />
+    </Style>
+    <Style Selector="ListBox.vertical > c|NavBarItem:disabled PathIcon">
+      <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+    </Style>
+    <Style Selector="ListBox.horizontal > c|NavBarItem">
+      <Setter Property="IndicatorOrientation" Value="Horizontal" />
+      <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
+      <Setter Property="IsHitTestVisible" Value="{Binding IsEnabled}" x:CompileBindings="False" />
+      <Setter Property="Focusable" Value="{Binding IsEnabled}" x:CompileBindings="False" />
+      <Setter Property="IsEnabled" Value="{Binding IsEnabled}" x:CompileBindings="False" />
+    </Style>
+    <Style Selector="ListBox.horizontal > c|NavBarItem:disabled PathIcon">
+      <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
     </Style>
     <Style Selector="c|NavBarTreeItem">
       <Setter Property="IsExpanded" Value="{Binding IsExpanded}" x:CompileBindings="False" />
@@ -61,28 +79,19 @@
     <StackPanel DockPanel.Dock="Top" Spacing="5">
       <Panel Height="30" />
       <!-- Logo -->
-      <Border Padding="12" Margin="0 -10 0 0">
+      <Border Padding="12 12 12 5" Margin="0 -3 0 0">
         <Panel>
           <Panel Width="45" HorizontalAlignment="Left">
-            <PathIcon Data="{StaticResource wasabi_logo}" HorizontalAlignment="Left" Height="20" Width="20" />
+            <PathIcon Data="{StaticResource wasabi_logo}" HorizontalAlignment="Left" Height="20" Width="20" Opacity="0.8" />
           </Panel>
-          <TextBlock Text="Wasabi Wallet" Classes="h6" VerticalAlignment="Center" FontWeight="SemiBold" Margin="55 0 0 0" />
+          <TextBlock Text="Wasabi Wallet" Classes="h6" VerticalAlignment="Center" FontWeight="Normal" Margin="55 0 0 0" />
         </Panel>
       </Border>
       <!-- TopItems List -->
       <c:NavBarListBox Items="{Binding TopItems}"
-                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
-        <c:NavBarListBox.Styles>
-          <Style Selector="c|NavBarItem">
-            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
-            <Setter Property="IsHitTestVisible" Value="{Binding IsEnabled}" x:CompileBindings="False" />
-            <Setter Property="Focusable" Value="{Binding IsEnabled}" x:CompileBindings="False" />
-            <Setter Property="IsEnabled" Value="{Binding IsEnabled}" x:CompileBindings="False" />
-          </Style>
-          <Style Selector="c|NavBarItem:disabled PathIcon">
-            <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
-          </Style>
-        </c:NavBarListBox.Styles>
+                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                       Name="TopListBox"
+                       Classes="vertical">
         <c:NavBarListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:NavBarItemViewModel" x:CompileBindings="False">
             <Panel>
@@ -99,102 +108,14 @@
         </c:NavBarListBox.ItemTemplate>
       </c:NavBarListBox>
       <Separator />
-      <!-- Actions List -->
-      <c:NavBarListBox Items="{Binding Actions}"
-                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                       Name="ActionsListBox"
-                       RenderTransformOrigin="0%,50%">
-        <c:NavBarListBox.Styles>
-          <Style Selector=":is(ListBox):not(:empty)">
-            <Style.Animations>
-              <Animation Delay="0:0:0.0" Duration="0:0:0.175">
-                <KeyFrame Cue="0%">
-                  <Setter Property="Opacity" Value="0.0"/>
-                </KeyFrame>
-                <KeyFrame Cue="0.1%" KeySpline="{StaticResource FluentKeySpline}">
-                  <Setter Property="TranslateTransform.X" Value="-40"/>
-                  <Setter Property="ScaleTransform.ScaleX" Value="0.98"/>
-                  <Setter Property="ScaleTransform.ScaleY" Value="0.98"/>
-                </KeyFrame>
-                <KeyFrame Cue="99%">
-                  <Setter Property="Opacity" Value="1.0"/>
-                </KeyFrame>
-                <KeyFrame Cue="100%" KeySpline="{StaticResource FluentKeySpline}">
-                  <Setter Property="TranslateTransform.X" Value="0"/>
-                  <Setter Property="ScaleTransform.ScaleX" Value="1"/>
-                  <Setter Property="ScaleTransform.ScaleY" Value="1"/>
-                </KeyFrame>
-              </Animation>
-            </Style.Animations>
-          </Style>
-          <Style Selector="c|NavBarItem">
-            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
-            <Setter Property="IsHitTestVisible" Value="{Binding IsEnabled}" x:CompileBindings="False" />
-            <Setter Property="Focusable" Value="{Binding IsEnabled}" x:CompileBindings="False" />
-            <Setter Property="IsEnabled" Value="{Binding IsEnabled}" x:CompileBindings="False" />
-          </Style>
-          <Style Selector="c|NavBarItem:disabled PathIcon">
-            <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
-          </Style>
-        </c:NavBarListBox.Styles>
-        <c:NavBarListBox.DataTemplates>
-          <DataTemplate DataType="vmw:WalletViewModelBase">
-            <Panel>
-              <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
-                <PathIcon HorizontalAlignment="Left">
-                  <PathIcon.Data>
-                    <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
-                  </PathIcon.Data>
-                </PathIcon>
-                <Ellipse IsVisible="{Binding IsLoggedIn, Mode=OneWay}" Width="9" Height="9" Margin="15,0,0,-13" Fill="#F2994A"/>
-              </Panel>
-              <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
-            </Panel>
-          </DataTemplate>
-          <DataTemplate DataType="vm:NavBarItemViewModel">
-            <Panel>
-              <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
-                <PathIcon HorizontalAlignment="Left">
-                  <PathIcon.Data>
-                    <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
-                  </PathIcon.Data>
-                </PathIcon>
-              </Panel>
-              <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
-            </Panel>
-          </DataTemplate>
-        </c:NavBarListBox.DataTemplates>
-      </c:NavBarListBox>
-      <!-- Actions Separator -->
-      <Separator>
-        <Separator.IsVisible>
-          <MultiBinding Converter="{x:Static BoolConverters.And}">
-            <Binding Path="!!Actions.Count" />
-            <Binding Path="!!Items.Count" />
-            <Binding Path="!HideItems" />
-          </MultiBinding>
-        </Separator.IsVisible>
-        <Separator.Styles>
-          <Style Selector="Separator[IsVisible=True]">
-            <Style.Animations>
-              <Animation Delay="0:0:0.0" Duration="0:0:0.175">
-                <KeyFrame Cue="0%">
-                  <Setter Property="Opacity" Value="0.0"/>
-                </KeyFrame>
-                <KeyFrame Cue="100%">
-                  <Setter Property="Opacity" Value="1.0"/>
-                </KeyFrame>
-              </Animation>
-            </Style.Animations>
-          </Style>
-        </Separator.Styles>
-      </Separator>
     </StackPanel>
     <StackPanel DockPanel.Dock="Bottom">
       <Separator />
       <!-- BottomItems List -->
       <c:NavBarListBox Items="{Binding BottomItems}"
-                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                       Name="BottomListBox"
+                       Classes="horizontal">
         <c:NavBarListBox.Styles>
           <Style Selector=":is(ListBox)">
             <Setter Property="ItemsPanel">
@@ -204,16 +125,6 @@
                 </ItemsPanelTemplate>
               </Setter.Value>
             </Setter>
-          </Style>
-          <Style Selector="c|NavBarItem">
-            <Setter Property="IndicatorOrientation" Value="Horizontal" />
-            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
-            <Setter Property="IsHitTestVisible" Value="{Binding IsEnabled}" x:CompileBindings="False" />
-            <Setter Property="Focusable" Value="{Binding IsEnabled}" x:CompileBindings="False" />
-            <Setter Property="IsEnabled" Value="{Binding IsEnabled}" x:CompileBindings="False" />
-          </Style>
-          <Style Selector="c|NavBarItem:disabled PathIcon">
-            <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
           </Style>
         </c:NavBarListBox.Styles>
         <c:NavBarListBox.ItemTemplate>
@@ -230,82 +141,30 @@
       </c:NavBarListBox>
     </StackPanel>
     <!-- Items List -->
-    <c:NavBarListBox Items="{Binding Items}"
-                     SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                     IsVisible="{Binding !HideItems, Mode=OneWay}"
-                     Name="ItemsListBox"
-                     RenderTransformOrigin="0%,50%"
-                     VerticalAlignment="{Binding Actions.Count, Mode=OneWay, Converter={x:Static conv:NavBarItemsListBoxAlignmentConverter.Instance}}">
-      <c:NavBarListBox.Styles>
-        <Style Selector=":is(ListBox)[VerticalAlignment=Bottom]">
-          <Style.Animations>
-            <Animation Delay="0:0:0.1" Duration="0:0:0.175">
-              <KeyFrame Cue="0%">
-                <Setter Property="Opacity" Value="0.0"/>
-              </KeyFrame>
-              <KeyFrame Cue="0.1%" KeySpline="{StaticResource FluentKeySpline}">
-                <Setter Property="TranslateTransform.X" Value="-40"/>
-                <Setter Property="ScaleTransform.ScaleX" Value="0.98"/>
-                <Setter Property="ScaleTransform.ScaleY" Value="0.98"/>
-              </KeyFrame>
-              <KeyFrame Cue="99%">
-                <Setter Property="Opacity" Value="1.0"/>
-              </KeyFrame>
-              <KeyFrame Cue="100%" KeySpline="{StaticResource FluentKeySpline}">
-                <Setter Property="TranslateTransform.X" Value="0"/>
-                <Setter Property="ScaleTransform.ScaleX" Value="1"/>
-                <Setter Property="ScaleTransform.ScaleY" Value="1"/>
-              </KeyFrame>
-            </Animation>
-          </Style.Animations>
-        </Style>
-        <Style Selector=":is(ListBox)[VerticalAlignment=Top]">
-          <Style.Animations>
-            <Animation Delay="0:0:0.0" Duration="0:0:0.175">
-              <KeyFrame Cue="0%">
-                <Setter Property="Opacity" Value="0.0"/>
-              </KeyFrame>
-              <KeyFrame Cue="0.1%" KeySpline="{StaticResource FluentKeySpline}">
-                <Setter Property="TranslateTransform.X" Value="-40"/>
-                <Setter Property="ScaleTransform.ScaleX" Value="0.98"/>
-                <Setter Property="ScaleTransform.ScaleY" Value="0.98"/>
-              </KeyFrame>
-              <KeyFrame Cue="99%">
-                <Setter Property="Opacity" Value="1.0"/>
-              </KeyFrame>
-              <KeyFrame Cue="100%" KeySpline="{StaticResource FluentKeySpline}">
-                <Setter Property="TranslateTransform.X" Value="0"/>
-                <Setter Property="ScaleTransform.ScaleX" Value="1"/>
-                <Setter Property="ScaleTransform.ScaleY" Value="1"/>
-              </KeyFrame>
-            </Animation>
-          </Style.Animations>
-        </Style>
-        <Style Selector="c|NavBarItem">
-          <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" x:CompileBindings="False" />
-          <Setter Property="IsHitTestVisible" Value="{Binding IsEnabled}" x:CompileBindings="False" />
-          <Setter Property="Focusable" Value="{Binding IsEnabled}" x:CompileBindings="False" />
-          <Setter Property="IsEnabled" Value="{Binding IsEnabled}" x:CompileBindings="False" />
-        </Style>
-        <Style Selector="c|NavBarItem:disabled PathIcon">
-          <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
-        </Style>
-      </c:NavBarListBox.Styles>
-      <c:NavBarListBox.DataTemplates>
-        <DataTemplate DataType="vmw:WalletViewModelBase">
-          <Panel>
-            <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
-              <PathIcon HorizontalAlignment="Left">
-                <PathIcon.Data>
-                  <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
-                </PathIcon.Data>
-              </PathIcon>
-              <Ellipse IsVisible="{Binding IsLoggedIn, Mode=OneWay}" Width="9" Height="9" Margin="15,0,0,-13" Fill="#F2994A"/>
+    <DockPanel>
+      <TextBlock DockPanel.Dock="Top" Text="Wallets" FontSize="14" IsVisible="{Binding IsOpen}" Margin="25 15 0 12" Opacity="0.8" FontWeight="Light" />
+      <c:NavBarListBox Items="{Binding Wallets}"
+                       SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                       Name="ItemsListBox"
+                       Classes="vertical draggable"
+                       RenderTransformOrigin="0%,50%"
+                       VerticalAlignment="Stretch">
+        <c:NavBarListBox.DataTemplates>
+          <DataTemplate DataType="vmw:WalletViewModelBase">
+            <Panel>
+              <Panel Width="45" Background="Transparent" HorizontalAlignment="Left" ToolTip.Tip="{Binding Title}">
+                <PathIcon HorizontalAlignment="Left">
+                  <PathIcon.Data>
+                    <Binding Path="IconName" Converter="{x:Static conv:NavBarIconConverter.Instance}" />
+                  </PathIcon.Data>
+                </PathIcon>
+                <Ellipse IsVisible="{Binding IsLoggedIn, Mode=OneWay}" Width="9" Height="9" Margin="15,0,0,-13" Fill="#F2994A"/>
+              </Panel>
+              <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" Margin="55 0 15 0" />
             </Panel>
-            <TextBlock Text="{Binding Title}" Margin="55 0 0 0" />
-          </Panel>
-        </DataTemplate>
-      </c:NavBarListBox.DataTemplates>
-    </c:NavBarListBox>
+          </DataTemplate>
+        </c:NavBarListBox.DataTemplates>
+      </c:NavBarListBox>
+    </DockPanel>
   </DockPanel>
 </UserControl>

@@ -20,9 +20,9 @@ namespace WalletWasabi.Tor.Http.Extensions
 		public static async Task<string> ToHttpStringAsync(this HttpRequestMessage request, CancellationToken cancellationToken = default)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-3.3.2
-			// A user agent SHOULD send a Content - Length in a request message when no Transfer-Encoding is sent and the request method defines a meaning
-			// for an enclosed payload body. For example, a Content - Length header field is normally sent in a POST request even when the value is 0
-			// (indicating an empty payload body). A user agent SHOULD NOT send a Content - Length header field when the request message does not contain
+			// A user agent SHOULD send a Content-Length in a request message when no Transfer-Encoding is sent and the request method defines a meaning
+			// for an enclosed payload body. For example, a Content-Length header field is normally sent in a POST request even when the value is 0
+			// (indicating an empty payload body). A user agent SHOULD NOT send a Content-Length header field when the request message does not contain
 			// a payload body and the method semantics do not anticipate such a body.
 			if (request.Method == HttpMethod.Post)
 			{

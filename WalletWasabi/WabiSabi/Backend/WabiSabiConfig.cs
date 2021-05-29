@@ -1,15 +1,9 @@
 using NBitcoin;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters.Bitcoin;
-using WalletWasabi.JsonConverters.Collections;
 using WalletWasabi.JsonConverters.Timing;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -35,10 +29,6 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonConverter(typeof(TimeSpanJsonConverter))]
 		public TimeSpan ReleaseUtxoFromPrisonAfter { get; set; } = TimeSpan.FromHours(3);
 
-		[DefaultValue(2)]
-		[JsonProperty(PropertyName = "MaxInputCountByAlice", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public uint MaxInputCountByAlice { get; set; } = 2;
-
 		[DefaultValueMoneyBtc("0.00005")]
 		[JsonProperty(PropertyName = "MinRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
@@ -53,14 +43,14 @@ namespace WalletWasabi.WabiSabi.Backend
 		public Money MaxRegistrableAmount { get; set; } = Money.Coins(43_000m);
 
 		/// <summary>
-		/// How much weight units the server gives to alices per registrations.
-		/// If it's 1000, then about 400 alices can participate.
+		/// How many virtual bytes the server gives to alices per registrations.
+		/// If it's 250, then about 400 alices can participate.
 		/// The width of the rangeproofs are calculated from this, so don't choose stupid numbers.
 		/// Consider that it applies to registrations, not for inputs. This usually consists one input, but can be more.
 		/// </summary>
-		[DefaultValue(1000)]
-		[JsonProperty(PropertyName = "RegistrableWeightCredentials", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public uint RegistrableWeightCredentials { get; set; } = 1_000;
+		[DefaultValue(ProtocolConstants.MaxVsizePerAlice)]
+		[JsonProperty(PropertyName = "PerAliceVsizeAllocation", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public uint PerAliceVsizeAllocation { get; set; } = ProtocolConstants.MaxVsizePerAlice;
 
 		[DefaultValue(true)]
 		[JsonProperty(PropertyName = "AllowNotedInputRegistration", DefaultValueHandling = DefaultValueHandling.Populate)]

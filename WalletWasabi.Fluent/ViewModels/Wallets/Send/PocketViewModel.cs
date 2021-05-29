@@ -1,5 +1,4 @@
 using NBitcoin;
-using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 
@@ -9,12 +8,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 	{
 		[AutoNotify] private bool _isSelected;
 		[AutoNotify] private decimal _totalBtc;
-		[AutoNotify] private string[] _labels;
+		[AutoNotify] private SmartLabel _labels;
+		[AutoNotify] private bool _isWarningOpen;
+		[AutoNotify] private string? _warningMessage;
 
 		public PocketViewModel((SmartLabel labels, ICoinsView coins) pocket)
 		{
 			Coins = pocket.coins;
-			_labels = pocket.labels.Labels.ToArray();
+			_labels = pocket.labels;
 			_totalBtc = pocket.coins.TotalAmount().ToDecimal(MoneyUnit.BTC);
 		}
 

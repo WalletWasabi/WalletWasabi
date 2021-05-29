@@ -47,18 +47,15 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// Initializes a new instance of the CredentialIssuer class.
 		/// </summary>
 		/// <param name="credentialIssuerSecretKey">The <see cref="CredentialIssuerSecretKey">coordinator's secret key</see> used to issue the credentials.</param>
-		/// <param name="numberOfCredentials">The number of credentials that the protocol handles in each request/response.</param>
 		/// <param name="randomNumberGenerator">The random number generator.</param>
 		public CredentialIssuer(
 			CredentialIssuerSecretKey credentialIssuerSecretKey,
-			int numberOfCredentials,
 			WasabiRandom randomNumberGenerator,
 			ulong maxAmount)
 		{
 			MaxAmount = maxAmount;
 			RangeProofWidth = (int)Math.Ceiling(Math.Log2(MaxAmount));
 			CredentialIssuerSecretKey = Guard.NotNull(nameof(credentialIssuerSecretKey), credentialIssuerSecretKey);
-			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
 			CredentialIssuerParameters = CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
 		}
@@ -72,7 +69,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		private HashSet<GroupElement> SerialNumbers { get; } = new HashSet<GroupElement>();
 
 		// Canary test check to ensure credential balance is never negative
-		private long Balance { get; set; } = 0;
+		public long Balance { get; private set; } = 0;
 
 		private WasabiRandom RandomNumberGenerator { get; }
 
@@ -84,16 +81,26 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// Gets the number of credentials that have to be requested/presented
 		/// This parameter is called `k` in the WabiSabi paper.
 		/// </summary>
-		public int NumberOfCredentials { get; }
+		public int NumberOfCredentials => ProtocolConstants.CredentialNumber;
 
 		/// <summary>
 		/// Process the <see cref="CredentialsRequest">credentials registration requests</see> and
 		/// issues the credentials.
 		/// </summary>
 		/// <param name="registrationRequest">The request containing the credentials presentations, credential requests and the proofs.</param>
-		/// <returns>The <see cref="CredentialsResponse">registration response</see> containing the requested credentials and the proofs.</returns>
+		/// <returns>The <see cref="CredentialsResponse">registration response</see> containing the issued credentials and the proofs.</returns>
 		/// <exception cref="WabiSabiCryptoException">Error code: <see cref="WabiSabiCryptoErrorCode">WabiSabiErrorCode</see></exception>
 		public CredentialsResponse HandleRequest(CredentialsRequest registrationRequest)
+			=> PrepareResponse(registrationRequest).Commit();
+
+		/// <summary>
+		/// Validate the <see cref="CredentialsRequest">credentials registration requests</see> and
+		/// prepare to mark the serial numbers as used and issue the credentials.
+		/// </summary>
+		/// <param name="registrationRequest">The request containing the credentials presentations, credential requests and the proofs.</param>
+		/// <returns>The <see cref="ICommitableCredentialsResponse">The response ready to be committed to</see> which returns the <see cref="ICommitableCredentialsResponse">response</see> with the issued credentials and the proofs.</returns>
+		/// <exception cref="WabiSabiCryptoException">Error code: <see cref="WabiSabiCryptoErrorCode">WabiSabiErrorCode</see></exception>
+		public ICommitableCredentialsResponse PrepareResponse(CredentialsRequest registrationRequest)
 		{
 			Guard.NotNull(nameof(registrationRequest), registrationRequest);
 
@@ -200,12 +207,18 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var macs = credentials.Select(x => x.Mac);
 			var response = new CredentialsResponse(macs, proofs);
 
+			var serialNumbers = presented.Select(x => x.S);
+			return new PreparedCredentialsResponse(this, response, registrationRequest.Delta, serialNumbers);
+		}
+
+		private CredentialsResponse Commit(CredentialsResponse response, long delta, IEnumerable<GroupElement> serialNumbers)
+		{
 			// Register the serial numbers to prevent credential reuse.
-			foreach (var presentation in presented)
+			foreach (var serialNumber in serialNumbers)
 			{
-				SerialNumbers.Add(presentation.S);
+				SerialNumbers.Add(serialNumber);
 			}
-			Balance += registrationRequest.Delta;
+			Balance += delta;
 
 			return response;
 		}
@@ -223,6 +236,34 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var label = $"UnifiedRegistration/{NumberOfCredentials}/{isNullRequest}";
 			var encodedLabel = Encoding.UTF8.GetBytes(label);
 			return new Transcript(encodedLabel);
+		}
+
+		private class PreparedCredentialsResponse : ICommitableCredentialsResponse 
+		{
+			private readonly CredentialIssuer _issuer;
+			private readonly CredentialsResponse _response;
+			private readonly long _delta;
+			private readonly IEnumerable<GroupElement> _serialNumbers;
+			private bool _committed;
+
+			public PreparedCredentialsResponse(CredentialIssuer issuer, CredentialsResponse response, long delta, IEnumerable<GroupElement> serialNumbers)
+			{
+				_issuer = issuer;
+				_response = response;
+				_delta = delta;
+				_serialNumbers = serialNumbers;
+				_committed = false;
+			}
+
+			public CredentialsResponse Commit()
+			{
+				if (_committed)
+				{
+					throw new InvalidOperationException("The instance was already committed.");
+				}
+				_committed = true;
+				return _issuer.Commit(_response, _delta, _serialNumbers);
+			}
 		}
 	}
 }

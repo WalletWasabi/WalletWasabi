@@ -101,10 +101,10 @@ namespace WalletWasabi.Fluent.ViewModels.Search
 			return item =>
 			{
 				if (!string.IsNullOrWhiteSpace(searchQuery)
-				    && !searchQuery.Contains(',', StringComparison.OrdinalIgnoreCase))
+					&& !searchQuery.Contains(',', StringComparison.OrdinalIgnoreCase))
 				{
 					return item.Keywords.Any(x => x.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
-					       item.Caption.Contains(searchQuery, StringComparison.OrdinalIgnoreCase);
+						   item.Caption.Contains(searchQuery, StringComparison.OrdinalIgnoreCase);
 				}
 				return true;
 			};

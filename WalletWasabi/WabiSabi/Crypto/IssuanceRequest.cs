@@ -7,7 +7,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 	/// <summary>
 	/// Represents a request for issuing a new credential.
 	/// </summary>
-	public class IssuanceRequest
+	public record IssuanceRequest
 	{
 		[JsonConstructor]
 		internal IssuanceRequest(GroupElement ma, IEnumerable<GroupElement> bitCommitments)

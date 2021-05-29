@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
@@ -12,10 +13,15 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization
 
 		public PasswordAuthDialogViewModel(Wallet wallet)
 		{
+			if (wallet.KeyManager.IsHardwareWallet)
+			{
+				throw new InvalidOperationException("Password authorization is not possible on hardware wallets.");
+			}
+
 			_wallet = wallet;
 			_password = "";
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = false;
 		}

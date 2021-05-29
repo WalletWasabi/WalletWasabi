@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Helpers;
@@ -13,13 +13,14 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 		public InsufficientBalanceDialogViewModel(BalanceType type, BuildTransactionResult transaction, decimal usdExchangeRate)
 		{
 			var destinationAmount = transaction.CalculateDestinationAmount().ToDecimal(MoneyUnit.BTC);
+			var btcAmountText = $"{destinationAmount} bitcoins ";
+			var fiatAmountText = destinationAmount.GenerateFiatText(usdExchangeRate, "USD");
+			AmountText = $"{btcAmountText}{fiatAmountText}";
+
 			var fee = transaction.Fee;
-
-			BtcAmountText = $"{destinationAmount} bitcoins ";
-			FiatAmountText = $"(≈{(destinationAmount * usdExchangeRate).FormattedFiat()} USD) ";
-
-			BtcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
-			FiatFeeText = $"(≈{(fee.ToDecimal(MoneyUnit.BTC) * usdExchangeRate).FormattedFiat()} USD)";
+			var btcFeeText = $"{fee.ToDecimal(MoneyUnit.Satoshi)} sats ";
+			var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(usdExchangeRate, "USD");
+			FeeText = $"{btcFeeText}{fiatFeeText}";
 
 			switch (type)
 			{
@@ -36,15 +37,13 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs
 
 			NextCommand = ReactiveCommand.Create(() => Close(result: true));
 			CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));
+
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		}
 
-		public string FiatFeeText { get; set; }
+		public string AmountText { get; set; }
 
-		public string BtcFeeText { get; set; }
-
-		public string FiatAmountText { get; set; }
-
-		public string BtcAmountText { get; set; }
+		public string FeeText { get; set; }
 
 		public string Caption { get; }
 	}

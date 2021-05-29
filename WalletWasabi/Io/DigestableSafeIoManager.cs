@@ -98,14 +98,15 @@ namespace WalletWasabi.Io
 				{
 					var lineTask = sr.ReadLineAsync();
 					Task wTask = Task.CompletedTask;
-					string line = null;
+					string? line = null;
 					while (lineTask is { })
 					{
 						line ??= await lineTask.ConfigureAwait(false);
 
 						lineTask = sr.EndOfStream ? null : sr.ReadLineAsync();
 
-						if (linesArray[linesIndex] == line) // If the line is a line we want to write, then we know that someone else have worked into the file.
+						// If the line is a line we want to write, then we know that someone else have worked into the file.
+						if (linesArray[linesIndex] == line)
 						{
 							linesIndex++;
 							continue;
@@ -168,11 +169,9 @@ namespace WalletWasabi.Io
 
 		private async Task<(bool same, byte[] hash)> WorkWithHashAsync(ByteArrayBuilder byteArrayBuilder, CancellationToken cancellationToken)
 		{
-			byte[] hash = null;
+			var hash = HashHelpers.GenerateSha256Hash(byteArrayBuilder.ToArray());
 			try
 			{
-				var bytes = byteArrayBuilder.ToArray();
-				hash = HashHelpers.GenerateSha256Hash(bytes);
 				if (File.Exists(DigestFilePath))
 				{
 					var digest = await File.ReadAllBytesAsync(DigestFilePath, cancellationToken).ConfigureAwait(false);

@@ -1,5 +1,6 @@
 using NBitcoin;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Concurrency;
@@ -7,8 +8,8 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
-using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 
@@ -27,7 +28,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 		private PrivacySuggestionControlViewModel? _defaultSelection;
 
 		public OptimisePrivacyViewModel(Wallet wallet,
-			TransactionInfo transactionInfo, TransactionBroadcaster broadcaster, BuildTransactionResult requestedTransaction)
+			TransactionInfo transactionInfo, BuildTransactionResult requestedTransaction)
 		{
 			_wallet = wallet;
 			_requestedTransaction = requestedTransaction;
@@ -39,18 +40,17 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 
 			_privacySuggestions = new ObservableCollection<PrivacySuggestionControlViewModel>();
 
-			EnableCancel = true;
-
+			SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 			EnableBack = true;
 
 			NextCommand = ReactiveCommand.Create(
-				() => OnNext(wallet, transactionInfo, broadcaster),
+				() => OnNext(transactionInfo),
 				this.WhenAnyValue(x => x.SelectedPrivacySuggestion).Select(x => x is { }));
 		}
 
-		private void OnNext(Wallet wallet, TransactionInfo transactionInfo, TransactionBroadcaster broadcaster)
+		private void OnNext(TransactionInfo transactionInfo)
 		{
-			Navigate().To(new TransactionPreviewViewModel(wallet, transactionInfo, broadcaster,
+			Navigate().To(new TransactionPreviewViewModel(_wallet, transactionInfo,
 				SelectedPrivacySuggestion!.TransactionResult));
 		}
 
@@ -69,6 +69,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						MoneyRequest.CreateAllRemaining(subtractFee: true),
 						_transactionInfo.Labels);
 
+					PrivacySuggestionControlViewModel? smallerSuggestion = null;
+
 					if (_requestedTransaction.SpentCoins.Count() > 1)
 					{
 						var smallerTransaction = await Task.Run(() => _wallet.BuildTransaction(
@@ -82,16 +84,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 								.Skip(1)
 								.Select(x => x.OutPoint)));
 
-						_privacySuggestions.Add(new PrivacySuggestionControlViewModel(
+						smallerSuggestion = new PrivacySuggestionControlViewModel(
 							_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), smallerTransaction,
-							PrivacyOptimisationLevel.Better, "Improved Privacy"));
+							PrivacyOptimisationLevel.Better, _wallet.Synchronizer.UsdExchangeRate, "Improved Privacy");
 					}
 
 					_defaultSelection = new PrivacySuggestionControlViewModel(
 						_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), _requestedTransaction,
-						PrivacyOptimisationLevel.Standard);
-
-					_privacySuggestions.Add(_defaultSelection);
+						PrivacyOptimisationLevel.Standard, _wallet.Synchronizer.UsdExchangeRate);
 
 					var largerTransaction = await Task.Run(() => _wallet.BuildTransaction(
 						_wallet.Kitchen.SaltSoup(),
@@ -100,15 +100,58 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send
 						true,
 						_requestedTransaction.SpentCoins.Select(x => x.OutPoint)));
 
-					_privacySuggestions.Add(new PrivacySuggestionControlViewModel(
+					var largerSuggestion = new PrivacySuggestionControlViewModel(
 						_transactionInfo.Amount.ToDecimal(MoneyUnit.BTC), largerTransaction,
-						PrivacyOptimisationLevel.Better, "Improved Privacy"));
+						PrivacyOptimisationLevel.Better, _wallet.Synchronizer.UsdExchangeRate, "Improved Privacy");
+
+					// There are several scenarios, both the alternate suggestions are <, or >, or 1 < and 1 >.
+					// We sort them and add the suggestions accordingly.
+					var suggestions = new List<PrivacySuggestionControlViewModel> { _defaultSelection, largerSuggestion };
+
+					if (smallerSuggestion is { })
+					{
+						suggestions.Add(smallerSuggestion);
+					}
+
+					foreach (var suggestion in NormalizeSuggestions(suggestions, _defaultSelection))
+					{
+						_privacySuggestions.Add(suggestion);
+					}
 
 					SelectedPrivacySuggestion = _defaultSelection;
 
 					IsBusy = false;
 				});
 			}
+		}
+
+		private IEnumerable<PrivacySuggestionControlViewModel> NormalizeSuggestions(
+			IEnumerable<PrivacySuggestionControlViewModel> suggestions, PrivacySuggestionControlViewModel defaultSuggestion)
+		{
+			var normalized = suggestions
+				.OrderBy(x => x.TransactionResult.CalculateDestinationAmount())
+				.ToList();
+
+			if (normalized.Count == 3)
+			{
+				var index = normalized.IndexOf(defaultSuggestion);
+
+				switch (index)
+				{
+					case 1:
+						break;
+
+					case 0:
+						normalized = normalized.Take(2).ToList();
+						break;
+
+					case 2:
+						normalized = normalized.Skip(1).ToList();
+						break;
+				}
+			}
+
+			return normalized;
 		}
 	}
 }

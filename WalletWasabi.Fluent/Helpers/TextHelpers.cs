@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using NBitcoin;
 
 namespace WalletWasabi.Fluent.Helpers
 {
@@ -45,6 +46,37 @@ namespace WalletWasabi.Fluent.Helpers
 			}
 
 			return result;
+		}
+
+		public static string GenerateFiatText(this decimal amountBtc, decimal exchangeRate, string fiatCode)
+		{
+			return GenerateFiatText(amountBtc * exchangeRate, fiatCode);
+		}
+
+		public static string GenerateFiatText(this decimal amountFiat, string fiatCode)
+		{
+			return $"(≈{(amountFiat).FormattedFiat()} {fiatCode}) ";
+		}
+
+		public static string ToFormattedString(this Money money)
+		{
+			const int WholeGroupSize = 3;
+
+			var moneyString = money.ToString();
+
+			moneyString = moneyString.Insert(moneyString.Length - 4, " ");
+
+			var startIndex = moneyString.IndexOf(".", StringComparison.Ordinal) - WholeGroupSize;
+
+			if (startIndex > 0)
+			{
+				for (var i = startIndex; i > 0; i -= WholeGroupSize)
+				{
+					moneyString = moneyString.Insert(i, " ");
+				}
+			}
+
+			return moneyString;
 		}
 	}
 }

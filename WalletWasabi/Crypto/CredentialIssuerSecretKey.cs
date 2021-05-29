@@ -4,7 +4,7 @@ using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.Crypto
 {
-	public class CredentialIssuerSecretKey
+	public record CredentialIssuerSecretKey
 	{
 		public CredentialIssuerSecretKey(WasabiRandom rng)
 			: this(rng.GetScalar(), rng.GetScalar(), rng.GetScalar(), rng.GetScalar(), rng.GetScalar())

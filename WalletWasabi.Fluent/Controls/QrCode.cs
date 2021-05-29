@@ -49,7 +49,7 @@ namespace WalletWasabi.Fluent.Controls
 					}
 				});
 
-			_saveCommand = ReactiveCommand.CreateFromTask<string, Unit>(SaveQrCode);
+			_saveCommand = ReactiveCommand.CreateFromTask<string, Unit>(SaveQrCodeAsync);
 
 			SaveCommand.ThrownExceptions
 				.ObserveOn(RxApp.TaskpoolScheduler)
@@ -77,7 +77,7 @@ namespace WalletWasabi.Fluent.Controls
 			set => SetAndRaise(MatrixProperty, ref _matrix, value);
 		}
 
-		public async Task<Unit> SaveQrCode(string address)
+		public async Task<Unit> SaveQrCodeAsync(string address)
 		{
 			if (FinalMatrix is null)
 			{

@@ -47,8 +47,9 @@
 		<AvaloniaResource Include="Assets\**" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia.Desktop" Version="0.10.999-cibuild0012946-beta" />
-		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0012946-beta" />
+		<PackageReference Include="Avalonia" Version="0.10.5" />
+		<PackageReference Include="Avalonia.Desktop" Version="0.10.5" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.5" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj" />

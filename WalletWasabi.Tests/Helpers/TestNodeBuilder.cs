@@ -14,13 +14,12 @@ namespace WalletWasabi.Tests.Helpers
 {
 	public static class TestNodeBuilder
 	{
-		public static async Task<CoreNode> CreateAsync(HostedServices hostedServices, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", string additionalFolder = "", MempoolService? mempoolService = null)
+		public static async Task<CoreNode> CreateAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", string additionalFolder = "", MempoolService? mempoolService = null)
 		{
 			var network = Network.RegTest;
 			var nodeParameters = new CoreNodeParams(
 					network,
 					mempoolService ?? new MempoolService(),
-					hostedServices,
 					Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), additionalFolder),
 					tryRestart: true,
 					tryDeleteDataDir: true,

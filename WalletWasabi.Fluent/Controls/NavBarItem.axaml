@@ -9,8 +9,12 @@
   <Styles.Resources>
     <Thickness x:Key="ListBoxItemPadding">12</Thickness>
   </Styles.Resources>
-  <Style Selector="c|NavBarItem[IndicatorOrientation=Vertical]">
+
+  <Style Selector="c|NavBarItem">
     <Setter Property="Background" Value="Transparent" />
+  </Style>
+
+  <Style Selector="c|NavBarItem:vertical">
     <Setter Property="Padding" Value="{StaticResource ListBoxItemPadding}" />
     <Setter Property="Template">
       <ControlTemplate>
@@ -40,8 +44,7 @@
     </Setter>
   </Style>
 
-  <Style Selector="c|NavBarItem[IndicatorOrientation=Horizontal]">
-    <Setter Property="Background" Value="Transparent" />
+  <Style Selector="c|NavBarItem:horizontal">
     <Setter Property="Padding" Value="{StaticResource ListBoxItemPadding}" />
     <Setter Property="Template">
       <ControlTemplate>
@@ -102,14 +105,6 @@
   </Style>
   <Style Selector="c|NavBarItem:pressed /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource SystemControlHighlightAltBaseHighBrush}"/>
-  </Style>
-  <Style Selector="c|NavBarItem">
-    <Setter Property="RenderTransform" Value="none" />
-    <Setter Property="Transitions">
-      <Transitions>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.075" />
-      </Transitions>
-    </Setter>
   </Style>
   <Style Selector="c|NavBarItem:pressed">
     <Setter Property="RenderTransform" Value="scale(0.98)" />

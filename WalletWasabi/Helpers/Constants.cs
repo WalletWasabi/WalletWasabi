@@ -19,7 +19,7 @@ namespace WalletWasabi.Helpers
 		public const uint ProtocolVersionWitnessVersion = 70012;
 
 		public const int P2wpkhInputSizeInBytes = 41;
-		public const int P2wpkhInputVirtualSize = 68;
+		public const int P2wpkhInputVirtualSize = 69;
 		public const int P2pkhInputSizeInBytes = 145;
 		public const int OutputSizeInBytes = 33;
 
@@ -29,13 +29,12 @@ namespace WalletWasabi.Helpers
 
 		public const decimal MaximumNumberOfBitcoins = 20999999.9769m;
 
+		public const int FastestConfirmationTarget = 1;
 		public const int TwentyMinutesConfirmationTarget = 2;
 		public const int OneDayConfirmationTarget = 144;
 		public const int SevenDaysConfirmationTarget = 1008;
 
 		public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
-
-		public const int DefaultTorSocksPort = 9050;
 
 		public const int DefaultMainNetBitcoinP2pPort = 8333;
 		public const int DefaultTestNetBitcoinP2pPort = 18333;
@@ -52,8 +51,8 @@ namespace WalletWasabi.Helpers
 
 		public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
-		public static readonly Version ClientVersion = new(1, 1, 12, 6);
-		public static readonly Version HwiVersion = new("2.0.0");
+		public static readonly Version ClientVersion = new(1, 1, 12, 8);
+		public static readonly Version HwiVersion = new("2.0.1");
 		public static readonly Version BitcoinCoreVersion = new("0.21.0");
 		public static readonly Version LegalDocumentsVersion = new(2, 0);
 

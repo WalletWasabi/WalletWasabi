@@ -80,10 +80,6 @@ namespace WalletWasabi.Stores
 				using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 				using (await ImmatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 				{
-					IoHelpers.EnsureDirectoryExists(WorkFolderPath);
-
-					cancel.ThrowIfCancellationRequested();
-
 					await EnsureBackwardsCompatibilityAsync().ConfigureAwait(false);
 
 					if (Network == Network.RegTest)

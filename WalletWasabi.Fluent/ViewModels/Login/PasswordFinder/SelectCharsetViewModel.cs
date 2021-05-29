@@ -8,7 +8,7 @@ using WalletWasabi.Wallets.PasswordFinder;
 
 namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 {
-	[NavigationMetaData (Title = "Password Finder")]
+	[NavigationMetaData(Title = "Password Finder")]
 	public partial class SelectCharsetViewModel : RoutableViewModel
 	{
 		[AutoNotify] private Charset? _selectedCharset;
@@ -17,7 +17,7 @@ namespace WalletWasabi.Fluent.ViewModels.Login.PasswordFinder
 		{
 			Title = "Password Finder";
 
-			EnableCancel = true;
+			SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 			EnableBack = true;
 

@@ -23,11 +23,6 @@
         </Border>
       </ControlTemplate>
     </Setter>
-    <Setter Property="Transitions">
-      <Transitions>
-        <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
-      </Transitions>
-    </Setter>
   </Style>
 
   <Style Selector="c|TileButton /template/ PathIcon#PART_Icon">
@@ -73,15 +68,6 @@
 
   <Style Selector="c|TileButton:pressed">
     <Setter Property="RenderTransform" Value="scale(0.98)" />
-  </Style>
-
-  <!-- Fade in/out -->
-  <Style Selector="c|TileButton[IsEnabled=False]">
-    <Setter Property="Opacity" Value="0.4" />
-  </Style>
-
-  <Style Selector="c|TileButton[IsEnabled=True]">
-    <Setter Property="Opacity" Value="1" />
   </Style>
 
   <!-- Action style -->

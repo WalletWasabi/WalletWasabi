@@ -65,7 +65,7 @@ namespace WalletWasabi.Tor.Http.Models
 			// Since the Host field - value is critical information for handling a
 			// request, a user agent SHOULD generate Host as the first header field
 			// following the request - line.
-			HeaderField hostToCorrect = null;
+			HeaderField? hostToCorrect = null;
 			foreach (var f in hs.Fields)
 			{
 				// if we find host
@@ -95,7 +95,7 @@ namespace WalletWasabi.Tor.Http.Models
 			// indicating that duplicate Content-Length header fields have been
 			// generated or combined by an upstream message processor, then the
 			// recipient MUST either reject the message as invalid or replace the
-			// duplicated field - values with a single valid Content - Length field
+			// duplicated field - values with a single valid Content-Length field
 			// containing that decimal value prior to determining the message body
 			// length or forwarding the message.
 
@@ -187,14 +187,11 @@ namespace WalletWasabi.Tor.Http.Models
 			// If this section is not added the Content-Length header will not be set unless...
 			// - I put a break point at the start of the function
 			// - And I explicitly expand the "headers" variable
-			if (headers is HttpContentHeaders contentHeaders)
+			if (headers is HttpContentHeaders contentHeaders && contentHeaders.ContentLength is { } contentLength)
 			{
-				if (contentHeaders.ContentLength is { })
+				if (hs.Fields.All(x => x.Name != "Content-Length"))
 				{
-					if (hs.Fields.All(x => x.Name != "Content-Length"))
-					{
-						hs.Fields.Add(new HeaderField("Content-Length", contentHeaders.ContentLength.ToString()));
-					}
+					hs.Fields.Add(new HeaderField("Content-Length", contentLength.ToString()));
 				}
 			}
 			// -- End [SECTION] Crazy VS2017/.NET Core 1.1 bug ---

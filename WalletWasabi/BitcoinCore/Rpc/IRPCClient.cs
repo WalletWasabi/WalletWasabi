@@ -1,6 +1,7 @@
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc.Models;
 
@@ -35,7 +36,7 @@ namespace WalletWasabi.BitcoinCore.Rpc
 
 		Task<uint256[]> GetRawMempoolAsync();
 
-		Task<MemPoolInfo> GetMempoolInfoAsync();
+		Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancel = default);
 
 		Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, bool allowHighFees = false);
 

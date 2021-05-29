@@ -65,14 +65,16 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 		private static BitList GetFormatInfoBits(ErrorCorrectionLevel errorLevel, Pattern pattern)
 		{
 			int formatInfo = (int)pattern.MaskPatternType;
-			//Pattern bits length = 3
+
+			// Pattern bits length = 3
 			formatInfo |= GetErrorCorrectionIndicatorBits(errorLevel) << 3;
 
 			int bchCode = BCHCalculator.CalculateBCH(formatInfo, FormatInfoPoly);
-			//bchCode length = 10
+
+			// bchCode length = 10
 			formatInfo = (formatInfo << 10) | bchCode;
 
-			//xor maskPattern
+			// xor maskPattern
 			formatInfo ^= FormatInfoMaskPattern;
 
 			BitList resultBits = new()
@@ -90,14 +92,16 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 			}
 		}
 
-		//According Table 25 — Error correction level indicators
-		//Using these bits as enum values would destroy their order which currently corresponds to error correction strength.
+		/// <summary>
+		/// According Table 25 — Error correction level indicators
+		/// Using these bits as enum values would destroy their order which currently corresponds to error correction strength.
+		/// </summary>
 		internal static int GetErrorCorrectionIndicatorBits(ErrorCorrectionLevel errorLevel)
 		{
-			//L 01
-			//M 00
-			//Q 11
-			//H 10
+			// L 01
+			// M 00
+			// Q 11
+			// H 10
 			return errorLevel switch
 			{
 				ErrorCorrectionLevel.H => 0x02,

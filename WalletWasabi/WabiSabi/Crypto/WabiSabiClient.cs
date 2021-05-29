@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using NBitcoin;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Crypto;
@@ -22,32 +23,30 @@ namespace WalletWasabi.WabiSabi.Crypto
 	{
 		public WabiSabiClient(
 			CredentialIssuerParameters credentialIssuerParameters,
-			int numberOfCredentials,
 			WasabiRandom randomNumberGenerator,
-			ulong maxAmount)
+			ulong maxAmount,
+			ZeroCredentialPool zeroCredentialPool)
 		{
 			MaxAmount = maxAmount;
 			RangeProofWidth = (int)Math.Ceiling(Math.Log2(MaxAmount));
 			RandomNumberGenerator = Guard.NotNull(nameof(randomNumberGenerator), randomNumberGenerator);
-			NumberOfCredentials = Guard.InRangeAndNotNull(nameof(numberOfCredentials), numberOfCredentials, 1, 100);
 			CredentialIssuerParameters = Guard.NotNull(nameof(credentialIssuerParameters), credentialIssuerParameters);
-			Credentials = new CredentialPool();
+			ZeroCredentialPool = zeroCredentialPool;
 		}
 
 		public ulong MaxAmount { get; }
-
 		public int RangeProofWidth { get; }
 
-		private int NumberOfCredentials { get; }
+		public int NumberOfCredentials => ProtocolConstants.CredentialNumber;
 
 		private CredentialIssuerParameters CredentialIssuerParameters { get; }
 
 		private WasabiRandom RandomNumberGenerator { get; }
 
 		/// <summary>
-		/// The credentials pool containing the available credentials.
+		/// The credentials pool containing the available zero value credentials.
 		/// </summary>
-		public CredentialPool Credentials { get; }
+		private ZeroCredentialPool ZeroCredentialPool { get; }
 
 		/// <summary>
 		/// Creates a <see cref="CredentialsRequest">credential registration request messages</see>
@@ -58,7 +57,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// registration request message that has to be sent to the coordinator is a null request, in this
 		/// way the coordinator issues `k` zero-value credentials that can be used in following requests.
 		/// </remarks>
-		public (ZeroCredentialsRequest, CredentialsResponseValidation) CreateRequestForZeroAmount()
+		public ZeroCredentialsRequestData CreateRequestForZeroAmount()
 		{
 			var credentialsToRequest = new IssuanceRequest[NumberOfCredentials];
 			var knowledge = new Knowledge[NumberOfCredentials];
@@ -76,7 +75,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 
 			var transcript = BuildTransnscript(isNullRequest: true);
 
-			return (
+			return new(
 				new ZeroCredentialsRequest(
 					credentialsToRequest,
 					ProofSystem.Prove(transcript, knowledge, RandomNumberGenerator)),
@@ -92,13 +91,15 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// </summary>
 		/// <param name="amountsToRequest">List of amounts requested in credentials.</param>
 		/// <param name="credentialsToPresent">List of credentials to be presented to the coordinator.</param>
+		/// <param name="cancellationToken">The cancellation token to be used in case shut down is in progress..</param>
 		/// <returns>
 		/// A tuple containing the registration request message instance and the registration validation data
 		/// to be used to validate the coordinator response message (the issued credentials).
 		/// </returns>
-		public (RealCredentialsRequest, CredentialsResponseValidation) CreateRequest(
+		public RealCredentialsRequestData CreateRequest(
 			IEnumerable<long> amountsToRequest,
-			IEnumerable<Credential> credentialsToPresent)
+			IEnumerable<Credential> credentialsToPresent,
+			CancellationToken cancellationToken)
 		{
 			// Make sure we request always the same number of credentials
 			var credentialAmountsToRequest = amountsToRequest.ToList();
@@ -108,22 +109,8 @@ namespace WalletWasabi.WabiSabi.Crypto
 				credentialAmountsToRequest.Add(0);
 			}
 
-			// Make sure we present always the same number of credentials (except for Null requests)
-			var missingCredentialPresent = NumberOfCredentials - credentialsToPresent.Count();
+			credentialsToPresent = ZeroCredentialPool.FillOutWithZeroCredentials(credentialsToPresent, cancellationToken);
 
-			var alreadyPresentedZeroCredentials = credentialsToPresent.Where(x => x.Amount.IsZero);
-			var availableZeroCredentials = Credentials.ZeroValue.Except(alreadyPresentedZeroCredentials);
-
-			// This should not be possible
-			var availableZeroCredentialCount = availableZeroCredentials.Count();
-			if (availableZeroCredentialCount < missingCredentialPresent)
-			{
-				throw new WabiSabiCryptoException(
-					WabiSabiCryptoErrorCode.NotEnoughZeroCredentialToFillTheRequest,
-					$"{missingCredentialPresent} credentials are missing but there are only {availableZeroCredentialCount} zero-value credentials available.");
-			}
-
-			credentialsToPresent = credentialsToPresent.Concat(availableZeroCredentials.Take(missingCredentialPresent)).ToList();
 			var macsToPresent = credentialsToPresent.Select(x => x.Mac);
 			if (macsToPresent.Distinct().Count() < macsToPresent.Count())
 			{
@@ -171,7 +158,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			knowledgeToProve.Add(balanceKnowledge);
 
 			var transcript = BuildTransnscript(isNullRequest: false);
-			return (
+			return new(
 				new RealCredentialsRequest(
 					amountsToRequest.Sum() - credentialsToPresent.Sum(x => (long)x.Amount.ToUlong()),
 					presentations,
@@ -193,7 +180,9 @@ namespace WalletWasabi.WabiSabi.Crypto
 		/// </remarks>
 		/// <param name="registrationResponse">The registration response message received from the coordinator.</param>
 		/// <param name="registrationValidationData">The state data required to validate the issued credentials and the proofs.</param>
-		public void HandleResponse(CredentialsResponse registrationResponse, CredentialsResponseValidation registrationValidationData)
+		public Credential[] HandleResponse(
+			CredentialsResponse registrationResponse,
+			CredentialsResponseValidation registrationValidationData)
 		{
 			Guard.NotNull(nameof(registrationResponse), registrationResponse);
 			Guard.NotNull(nameof(registrationValidationData), registrationValidationData);
@@ -223,7 +212,7 @@ namespace WalletWasabi.WabiSabi.Crypto
 			var credentialReceived = credentials.Select(x =>
 				new Credential(new Scalar((ulong)x.Requested.Amount), x.Requested.Randomness, x.Issued));
 
-			Credentials.UpdateCredentials(credentialReceived, registrationValidationData.Presented);
+			return ZeroCredentialPool.ProcessAndGetValuableCredentials(credentialReceived).ToArray();
 		}
 
 		private Transcript BuildTransnscript(bool isNullRequest)

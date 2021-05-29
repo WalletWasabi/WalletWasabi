@@ -25,6 +25,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Nito.AsyncEx;
 using WalletWasabi.Services;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using static WalletWasabi.Crypto.SchnorrBlinding;
@@ -424,19 +425,12 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 			shuffledOutputs.Shuffle();
 			foreach (var activeOutput in shuffledOutputs)
 			{
-				IHttpClient httpClient = Synchronizer.HttpClientFactory.NewBackendHttpClient(isolateStream: true);
-				try
+				IHttpClient httpClient = Synchronizer.HttpClientFactory.NewBackendHttpClient(Mode.NewCircuitPerRequest);
+				var bobClient = new BobClient(httpClient);
+				if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput).ConfigureAwait(false))
 				{
-					var bobClient = new BobClient(httpClient);
-					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput).ConfigureAwait(false))
-					{
-						Logger.LogWarning($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.");
-						break;
-					}
-				}
-				finally
-				{
-					(httpClient as IDisposable)?.Dispose();
+					Logger.LogWarning($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.");
+					break;
 				}
 
 				// Unblind our exposed links.
@@ -452,7 +446,12 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 						else
 						{
 							// Should never happen, but oh well we can autocorrect it so why not.
-							ExposedLinks[input] = ExposedLinks[input].Append(new HdPubKeyBlindedPair(DestinationKeyManager.GetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey) ?? KeyManager.GetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey), false));
+							if (!DestinationKeyManager.TryGetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey, out HdPubKey? hdPubKey)
+								&& !KeyManager.TryGetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey, out hdPubKey))
+							{
+								throw new NotSupportedException($"Couldn't get the key for the script. Address: {activeOutput.Address}.");
+							}
+							ExposedLinks[input] = ExposedLinks[input].Append(new HdPubKeyBlindedPair(hdPubKey, false));
 						}
 					}
 				}
@@ -525,7 +524,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 					if (coin is null)
 					{
-						throw new NotSupportedException("This is impossible.");
+						throw new NotSupportedException("This should never happen.");
 					}
 
 					coin.BannedUntilUtc = DateTimeOffset.UtcNow + TimeSpan.FromMinutes(minuteInt);
@@ -533,7 +532,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					Logger.LogWarning(ex.Message.Split('\n')[1]);
 
 					await DequeueCoinsFromMixNoLockAsync(coinReference, DequeueReason.Banned).ConfigureAwait(false);
-					aliceClient?.Dispose();
 					return;
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("Provided input is not unspent", StringComparison.InvariantCultureIgnoreCase))
@@ -545,7 +543,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 					if (coin is null)
 					{
-						throw new NotSupportedException("This is impossible.");
+						throw new NotSupportedException("This should never happen.");
 					}
 
 					coin.SpentAccordingToBackend = true;
@@ -553,19 +551,16 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					Logger.LogWarning(ex.Message.Split('\n')[1]);
 
 					await DequeueCoinsFromMixNoLockAsync(coinReference, DequeueReason.Spent).ConfigureAwait(false);
-					aliceClient?.Dispose();
 					return;
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("No such running round in InputRegistration", StringComparison.InvariantCultureIgnoreCase))
 				{
 					Logger.LogInfo("Client tried to register a round that is not in InputRegistration anymore. Trying again later.");
-					aliceClient?.Dispose();
 					return;
 				}
 				catch (HttpRequestException ex) when (RpcErrorTools.IsTooLongMempoolChainError(ex.Message))
 				{
 					Logger.LogInfo("Coordinator failed because too much unconfirmed parent transactions. Trying again later.");
-					aliceClient?.Dispose();
 					return;
 				}
 
@@ -575,7 +570,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 					if (coin is null)
 					{
-						throw new NotSupportedException("This is impossible.");
+						throw new NotSupportedException("This should never happen.");
 					}
 
 					coinsRegistered.Add(coin);
@@ -588,7 +583,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				if (roundRegistered is null)
 				{
 					// If our SatoshiClient does not yet know about the round, because of delay, then delay the round registration.
-					DelayedRoundRegistration?.Dispose();
 					DelayedRoundRegistration = registration;
 				}
 
@@ -680,7 +674,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 					}
 					foreach (HdPubKeyBlindedPair link in outLinks)
 					{
-						HdPubKeyBlindedPair found = newOutLinks.FirstOrDefault(x => x == link);
+						var found = newOutLinks.FirstOrDefault(x => x == link);
 
 						if (found is null)
 						{
@@ -914,7 +908,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 				foreach (var round in State.GetAllMixingRounds().Where(x => x.CoinsRegistered.Contains(coinToDequeue)))
 				{
-					Exception exception = null;
+					Exception? exception = null;
 					if (round.State.Phase == RoundPhase.InputRegistration)
 					{
 						try
@@ -999,8 +993,6 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 			using (await MixLock.LockAsync(cancel).ConfigureAwait(false))
 			{
-				State.DisposeAllAliceClients();
-
 				IEnumerable<OutPoint> allCoins = State.GetAllQueuedCoins();
 				foreach (var coinReference in allCoins)
 				{
@@ -1053,19 +1045,11 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 
 		private async Task<AliceClientBase> CreateAliceClientAsync(long roundId, List<OutPoint> registrableCoins, (HdPubKey change, IEnumerable<HdPubKey> actives) outputAddresses)
 		{
-			RoundStateResponse4 state;
 			HttpClientFactory factory = Synchronizer.HttpClientFactory;
 
-			IHttpClient satoshiHttpClient = factory.NewBackendHttpClient(isolateStream: true);
-			try
-			{
-				var satoshiClient = new SatoshiClient(satoshiHttpClient);
-				state = (RoundStateResponse4)await satoshiClient.GetRoundStateAsync(roundId).ConfigureAwait(false);
-			}
-			finally
-			{
-				(satoshiHttpClient as IDisposable)?.Dispose();
-			}
+			IHttpClient satoshiHttpClient = factory.NewBackendHttpClient(Mode.NewCircuitPerRequest);
+			SatoshiClient satoshiClient = new(satoshiHttpClient);
+			RoundStateResponse4 state = (RoundStateResponse4)await satoshiClient.GetRoundStateAsync(roundId).ConfigureAwait(false);
 
 			PubKey[] signerPubKeys = state.SignerPubKeys.ToArray();
 			PublicNonceWithIndex[] numerateNonces = state.RPubKeys.ToArray();
@@ -1102,7 +1086,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 				if (coin is null)
 				{
-					throw new NotSupportedException("This is impossible.");
+					throw new NotSupportedException("This should never happen.");
 				}
 
 				coin.Secret ??= KeyManager.GetSecrets(Kitchen.SaltSoup(), coin.ScriptPubKey).Single();
@@ -1114,7 +1098,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 				inputProofs.Add(inputProof);
 			}
 
-			IHttpClient httpClient = Synchronizer.HttpClientFactory.NewHttpClient(CcjHostUriAction, isolateStream: true);
+			IHttpClient httpClient = Synchronizer.HttpClientFactory.NewHttpClient(CcjHostUriAction, Mode.NewCircuitPerRequest);
 			return await AliceClientBase.CreateNewAsync(roundId, registeredAddresses, signerPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, httpClient).ConfigureAwait(false);
 		}
 	}
