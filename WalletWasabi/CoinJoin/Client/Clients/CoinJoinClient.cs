@@ -449,7 +449,7 @@ namespace WalletWasabi.CoinJoin.Client.Clients
 							if (!DestinationKeyManager.TryGetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey, out HdPubKey? hdPubKey)
 								&& !KeyManager.TryGetKeyForScriptPubKey(activeOutput.Address.ScriptPubKey, out hdPubKey))
 							{
-								throw new NotSupportedException("Couldn't get the key for the script.");
+								throw new NotSupportedException($"Couldn't get the key for the script. Address: {activeOutput.Address}.");
 							}
 							ExposedLinks[input] = ExposedLinks[input].Append(new HdPubKeyBlindedPair(hdPubKey, false));
 						}
