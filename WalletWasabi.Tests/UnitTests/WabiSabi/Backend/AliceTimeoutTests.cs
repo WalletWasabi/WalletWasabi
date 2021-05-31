@@ -2,6 +2,7 @@ using NBitcoin;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
@@ -98,7 +99,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend
 		{
 			// Alice does not time out if input reg is full with alices,
 			// even though the deadline is reached and still in input reg.
-			WabiSabiConfig cfg = new() { MaxInputCountByRound = 3 };
+			WabiSabiConfig cfg = new() { MaxVsizeCapacityByRound = 3 * Constants.P2wpkhInputVirtualSize };
 			var round = WabiSabiFactory.CreateRound(cfg);
 			var alice = WabiSabiFactory.CreateAlice();
 			round.Alices.Add(alice);

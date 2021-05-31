@@ -81,15 +81,15 @@ namespace WalletWasabi.WabiSabi.Backend
 		[JsonConverter(typeof(TimeSpanJsonConverter))]
 		public TimeSpan TransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
-		[DefaultValue(100)]
-		[JsonProperty(PropertyName = "MaxInputCountByRound", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public uint MaxInputCountByRound { get; set; } = 100;
+		[DefaultValue(99954)]
+		[JsonProperty(PropertyName = "MaxVsizeCapacityByRound", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public int MaxVsizeCapacityByRound { get; set; } = 99954;
 
 		[DefaultValue(0.5)]
-		[JsonProperty(PropertyName = "MinInputCountByRoundMultiplier", DefaultValueHandling = DefaultValueHandling.Populate)]
-		public double MinInputCountByRoundMultiplier { get; set; } = 0.5;
+		[JsonProperty(PropertyName = "MinVsizeByRoundMultiplier", DefaultValueHandling = DefaultValueHandling.Populate)]
+		public double MinVsizeByRoundMultiplier { get; set; } = 0.5;
 
-		public uint MinInputCountByRound => (uint)(MaxInputCountByRound * MinInputCountByRoundMultiplier);
+		public int MinVsizeCapacityByRound => (int)(MaxVsizeCapacityByRound * MinVsizeByRoundMultiplier);
 
 		/// <summary>
 		/// If money comes to the blame script, then either an attacker lost money or there's a client bug.

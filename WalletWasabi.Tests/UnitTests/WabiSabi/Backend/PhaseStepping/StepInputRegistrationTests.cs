@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -13,7 +14,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 		[Fact]
 		public async Task RoundFullAsync()
 		{
-			WabiSabiConfig cfg = new() { MaxInputCountByRound = 3 };
+			WabiSabiConfig cfg = new() { MaxVsizeCapacityByRound = 3 * Constants.P2wpkhInputVirtualSize };
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 
@@ -35,11 +36,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 		[Fact]
 		public async Task BlameRoundFullAsync()
 		{
-			WabiSabiConfig cfg = new()
-			{
-				MaxInputCountByRound = 4,
-				MinInputCountByRoundMultiplier = 0.5
-			};
+			WabiSabiConfig cfg = new() { MaxVsizeCapacityByRound = 4 * Constants.P2wpkhInputVirtualSize };
 			var round = WabiSabiFactory.CreateRound(cfg);
 			var alice1 = WabiSabiFactory.CreateAlice();
 			var alice2 = WabiSabiFactory.CreateAlice();
@@ -72,8 +69,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			WabiSabiConfig cfg = new()
 			{
 				StandardInputRegistrationTimeout = TimeSpan.Zero,
-				MaxInputCountByRound = 4,
-				MinInputCountByRoundMultiplier = 0.5
+				MaxVsizeCapacityByRound = 4 * Constants.P2wpkhInputVirtualSize
 			};
 			var round = WabiSabiFactory.CreateRound(cfg);
 			round.Alices.Add(WabiSabiFactory.CreateAlice());
@@ -93,8 +89,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			{
 				BlameInputRegistrationTimeout = TimeSpan.Zero,
 				StandardInputRegistrationTimeout = TimeSpan.FromHours(1), // Test that this is disregarded.
-				MaxInputCountByRound = 4,
-				MinInputCountByRoundMultiplier = 0.5
+				MaxVsizeCapacityByRound = 4 * Constants.P2wpkhInputVirtualSize
 			};
 			var round = WabiSabiFactory.CreateRound(cfg);
 			var alice1 = WabiSabiFactory.CreateAlice();
@@ -120,8 +115,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			WabiSabiConfig cfg = new()
 			{
 				StandardInputRegistrationTimeout = TimeSpan.Zero,
-				MaxInputCountByRound = 4,
-				MinInputCountByRoundMultiplier = 0.5
+				MaxVsizeCapacityByRound = 4 * Constants.P2wpkhInputVirtualSize
 			};
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
@@ -144,8 +138,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			{
 				BlameInputRegistrationTimeout = TimeSpan.Zero,
 				StandardInputRegistrationTimeout = TimeSpan.FromHours(1), // Test that this is disregarded.
-				MaxInputCountByRound = 4,
-				MinInputCountByRoundMultiplier = 0.5
+				MaxVsizeCapacityByRound = 4 * Constants.P2wpkhInputVirtualSize
 			};
 			var round = WabiSabiFactory.CreateRound(cfg);
 			var alice1 = WabiSabiFactory.CreateAlice();
@@ -169,8 +162,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 			WabiSabiConfig cfg = new()
 			{
 				StandardInputRegistrationTimeout = TimeSpan.FromHours(1),
-				MaxInputCountByRound = 4,
-				MinInputCountByRoundMultiplier = 0.5
+				MaxVsizeCapacityByRound = 4 * Constants.P2wpkhInputVirtualSize
 			};
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);

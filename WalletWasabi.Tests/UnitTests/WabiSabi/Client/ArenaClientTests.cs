@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[Fact]
 		public async Task FullCoinjoinAsyncTestAsync()
 		{
-			var config = new WabiSabiConfig { MaxInputCountByRound = 1 };
+			var config = new WabiSabiConfig { MaxVsizeCapacityByRound = 1 * Constants.P2wpkhInputVirtualSize };
 			var round = WabiSabiFactory.CreateRound(config);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));

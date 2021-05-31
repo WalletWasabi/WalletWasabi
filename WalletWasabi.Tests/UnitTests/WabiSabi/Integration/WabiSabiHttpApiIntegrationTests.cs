@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -98,7 +99,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 					// Instruct the coodinator DI container to use these two scoped
 					// services to build everything (wabisabi controller, arena, etc)
 					services.AddScoped<IRPCClient>(s => rpc);
-					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig { MaxInputCountByRound = InputCount });
+					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig { MaxVsizeCapacityByRound = InputCount * Constants.P2wpkhInputVirtualSize });
 				});
 			}).CreateClient();
 

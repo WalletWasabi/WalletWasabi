@@ -18,12 +18,14 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 			FeeRate feeRate,
 			MoneyRange allowedInputAmounts,
 			MoneyRange allowedOutputAmounts,
+			int maxVsizeCapacityByRound,
 			Network network,
 			TimeSpan connectionConfirmationTimeout)
 		{
 			FeeRate = feeRate;
 			AllowedInputAmounts = allowedInputAmounts;
 			AllowedOutputAmounts = allowedOutputAmounts;
+			MaxVsizeCapacityByRound = maxVsizeCapacityByRound;
 			Network = network;
 			ConnectionConfirmationTimeout = connectionConfirmationTimeout;
 		}
@@ -42,6 +44,7 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 		public MoneyRange AllowedOutputAmounts { get; init; }
 		public Network Network { get; }
 		public TimeSpan ConnectionConfirmationTimeout { get; }
+		public int MaxVsizeCapacityByRound { get; init; }
 
 		// implied:
 		// segwit transaction

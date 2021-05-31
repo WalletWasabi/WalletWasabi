@@ -23,8 +23,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 		{
 			WabiSabiConfig cfg = new()
 			{
-				MaxInputCountByRound = 2,
-				MinInputCountByRoundMultiplier = 0.5
+				MaxVsizeCapacityByRound = 2 * Constants.P2wpkhInputVirtualSize
 			};
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
 
@@ -89,8 +88,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 		{
 			WabiSabiConfig cfg = new()
 			{
-				MaxInputCountByRound = 2,
-				MinInputCountByRoundMultiplier = 0.5,
+				MaxVsizeCapacityByRound = 2 * Constants.P2wpkhInputVirtualSize,
 				OutputRegistrationTimeout = TimeSpan.Zero
 			};
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
@@ -154,8 +152,7 @@ irreq1.OwnershipProof,
 		{
 			WabiSabiConfig cfg = new()
 			{
-				MaxInputCountByRound = 2,
-				MinInputCountByRoundMultiplier = 0.5,
+				MaxVsizeCapacityByRound = 2 * Constants.P2wpkhInputVirtualSize,
 				OutputRegistrationTimeout = TimeSpan.Zero
 			};
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
@@ -232,8 +229,7 @@ irreq1.OwnershipProof,
 		{
 			WabiSabiConfig cfg = new()
 			{
-				MaxInputCountByRound = 2,
-				MinInputCountByRoundMultiplier = 0.5
+				MaxVsizeCapacityByRound = 2 * Constants.P2wpkhInputVirtualSize
 			};
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
 

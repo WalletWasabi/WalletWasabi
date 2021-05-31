@@ -8,6 +8,7 @@ using WalletWasabi.Backend.Controllers;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
@@ -24,7 +25,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client
 		[Fact]
 		public async Task RegisterOutputTestAsync()
 		{
-			var config = new WabiSabiConfig { MaxInputCountByRound = 1 };
+			var config = new WabiSabiConfig { MaxVsizeCapacityByRound = 1 * Constants.P2wpkhInputVirtualSize };
 			var round = WabiSabiFactory.CreateRound(config);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(config, round);
 			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));

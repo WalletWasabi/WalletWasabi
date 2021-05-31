@@ -64,10 +64,10 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		{
 			foreach (var round in Rounds.Values.Where(x =>
 				x.Phase == Phase.InputRegistration
-				&& x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(x)))
+				&& x.IsInputRegistrationEnded(Config.MaxVsizeCapacityByRound, Config.GetInputRegistrationTimeout(x)))
 				.ToArray())
 			{
-				if (round.InputCount < Config.MinInputCountByRound)
+				if (round.TotalVsizeUsedByAlices < Config.MinVsizeCapacityByRound)
 				{
 					Rounds.Remove(round.Id);
 					round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase.");
@@ -97,7 +97,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 					var removedAliceCount = round.Alices.RemoveAll(x => alicesDidntConfirm.Contains(x));
 					round.LogInfo($"{removedAliceCount} alices removed because they didn't confirm.");
 
-					if (round.InputCount < Config.MinInputCountByRound)
+					if (round.TotalVsizeUsedByAlices < Config.MinVsizeCapacityByRound)
 					{
 						Rounds.Remove(round.Id);
 						round.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.ConnectionConfirmation)} phase.");
@@ -208,7 +208,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			round.Alices.RemoveAll(x => alicesWhoDidntSign.Contains(x));
 			Rounds.Remove(round.Id);
 
-			if (round.InputCount >= Config.MinInputCountByRound)
+			if (round.TotalVsizeUsedByAlices >= Config.MinVsizeCapacityByRound)
 			{
 				await CreateBlameRoundAsync(round).ConfigureAwait(false);
 			}
@@ -236,7 +236,7 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 
 		private void TimeoutAlices()
 		{
-			foreach (var round in Rounds.Values.Where(x => !x.IsInputRegistrationEnded(Config.MaxInputCountByRound, Config.GetInputRegistrationTimeout(x))).ToArray())
+			foreach (var round in Rounds.Values.Where(x => !x.IsInputRegistrationEnded(Config.MaxVsizeCapacityByRound, Config.GetInputRegistrationTimeout(x))).ToArray())
 			{
 				var removedAliceCount = round.Alices.RemoveAll(x => x.Deadline < DateTimeOffset.UtcNow);
 				if (removedAliceCount > 0)

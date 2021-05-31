@@ -19,8 +19,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 			Random = random;
 			FeeRate = feeRate;
 
-			MaxInputCountByRound = wabiSabiConfig.MaxInputCountByRound;
-			MinInputCountByRound = wabiSabiConfig.MinInputCountByRound;
+			MaxVsizeCapacityByRound = wabiSabiConfig.MaxVsizeCapacityByRound;
+			MinVsizeCapacityByRound = wabiSabiConfig.MinVsizeCapacityByRound;
 			MinRegistrableAmount = wabiSabiConfig.MinRegistrableAmount;
 			MaxRegistrableAmount = wabiSabiConfig.MaxRegistrableAmount;
 			PerAliceVsizeAllocation = wabiSabiConfig.PerAliceVsizeAllocation;
@@ -44,8 +44,8 @@ namespace WalletWasabi.WabiSabi.Backend.Rounds
 		public WasabiRandom Random { get; }
 		public FeeRate FeeRate { get; }
 		public Network Network { get; }
-		public uint MinInputCountByRound { get; }
-		public uint MaxInputCountByRound { get; }
+		public int MinVsizeCapacityByRound { get; }
+		public int MaxVsizeCapacityByRound { get; }
 		public Money MinRegistrableAmount { get; }
 		public Money MaxRegistrableAmount { get; }
 		public uint PerAliceVsizeAllocation { get; }

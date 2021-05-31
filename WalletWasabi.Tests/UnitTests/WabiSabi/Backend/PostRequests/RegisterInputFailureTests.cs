@@ -3,7 +3,9 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -62,7 +64,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 		[Fact]
 		public async Task InputRegistrationFullAsync()
 		{
-			WabiSabiConfig cfg = new() { MaxInputCountByRound = 3 };
+			WabiSabiConfig cfg = new() { MaxVsizeCapacityByRound = 3 * Constants.P2wpkhInputVirtualSize };
 			var round = WabiSabiFactory.CreateRound(cfg);
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
 			using Key key = new();
@@ -76,33 +78,6 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests
 			round.Alices.Add(WabiSabiFactory.CreateAlice());
 			await RegisterAndAssertWrongPhaseAsync(req, handler);
 			Assert.Equal(Phase.InputRegistration, round.Phase);
-
-			await arena.StopAsync(CancellationToken.None);
-		}
-
-		[Fact]
-		public async Task InputRegistrationFullVsizeAsync()
-		{
-			WabiSabiConfig cfg = new();
-			var round = WabiSabiFactory.CreateRound(cfg);
-			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg, round);
-			using Key key = new();
-
-			await using ArenaRequestHandler handler = new(cfg, new(), arena, WabiSabiFactory.CreateMockRpc(key));
-
-			// TODO add configuration parameter
-			round.InitialInputVsizeAllocation = (int)round.PerAliceVsizeAllocation;
-
-			// Add an alice
-			await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			round.Alices.Add(WabiSabiFactory.CreateAlice());
-
-			Assert.Equal(0, round.RemainingInputVsizeAllocation);
-
-			// try to add an additional input
-			var req = WabiSabiFactory.CreateInputRegistrationRequest(key, round);
-			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await handler.RegisterInputAsync(req, CancellationToken.None));
-			Assert.Equal(WabiSabiProtocolErrorCode.VsizeQuotaExceeded, ex.ErrorCode);
 
 			await arena.StopAsync(CancellationToken.None);
 		}

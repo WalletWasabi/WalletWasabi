@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -13,7 +14,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 		[Fact]
 		public async Task AllConfirmedStepsAsync()
 		{
-			WabiSabiConfig cfg = new() { MaxInputCountByRound = 4, MinInputCountByRoundMultiplier = 0.5 };
+			WabiSabiConfig cfg = new() { MaxVsizeCapacityByRound = 4 * Constants.P2wpkhInputVirtualSize };
 			var round = WabiSabiFactory.CreateRound(cfg);
 			var a1 = WabiSabiFactory.CreateAlice();
 			var a2 = WabiSabiFactory.CreateAlice();
@@ -39,7 +40,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 		[Fact]
 		public async Task NotAllConfirmedStaysAsync()
 		{
-			WabiSabiConfig cfg = new() { MaxInputCountByRound = 4, MinInputCountByRoundMultiplier = 0.5 };
+			WabiSabiConfig cfg = new() { MaxVsizeCapacityByRound = 4 * Constants.P2wpkhInputVirtualSize };
 			var round = WabiSabiFactory.CreateRound(cfg);
 			var a1 = WabiSabiFactory.CreateAlice();
 			var a2 = WabiSabiFactory.CreateAlice();
@@ -69,8 +70,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 		{
 			WabiSabiConfig cfg = new()
 			{
-				MaxInputCountByRound = 4,
-				MinInputCountByRoundMultiplier = 0.5,
+				MaxVsizeCapacityByRound = 4 * Constants.P2wpkhInputVirtualSize,
 				ConnectionConfirmationTimeout = TimeSpan.Zero
 			};
 			var round = WabiSabiFactory.CreateRound(cfg);
@@ -103,8 +103,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 		{
 			WabiSabiConfig cfg = new()
 			{
-				MaxInputCountByRound = 4,
-				MinInputCountByRoundMultiplier = 0.5,
+				MaxVsizeCapacityByRound = 4 * Constants.P2wpkhInputVirtualSize,
 				ConnectionConfirmationTimeout = TimeSpan.Zero
 			};
 			var round = WabiSabiFactory.CreateRound(cfg);

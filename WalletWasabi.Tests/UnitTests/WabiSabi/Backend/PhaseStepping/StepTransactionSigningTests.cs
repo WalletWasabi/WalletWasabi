@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -23,8 +24,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping
 		{
 			WabiSabiConfig cfg = new()
 			{
-				MaxInputCountByRound = 2,
-				MinInputCountByRoundMultiplier = 0.5
+				MaxVsizeCapacityByRound = 2 * Constants.P2wpkhInputVirtualSize
 			};
 			using Arena arena = await WabiSabiFactory.CreateAndStartArenaAsync(cfg);
 
@@ -102,8 +102,7 @@ irreq2.OwnershipProof,
 		{
 			WabiSabiConfig cfg = new()
 			{
-				MaxInputCountByRound = 2,
-				MinInputCountByRoundMultiplier = 0.5
+				MaxVsizeCapacityByRound = 2 * Constants.P2wpkhInputVirtualSize
 			};
 			var mockRpc = new MockRpcClient();
 			mockRpc.OnSendRawTransactionAsync = _ => throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
@@ -186,8 +185,7 @@ irreq2.OwnershipProof,
 		{
 			WabiSabiConfig cfg = new()
 			{
-				MaxInputCountByRound = 2,
-				MinInputCountByRoundMultiplier = 0.5
+				MaxVsizeCapacityByRound = 2 * Constants.P2wpkhInputVirtualSize
 			};
 			var mockRpc = new MockRpcClient();
 			mockRpc.OnSendRawTransactionAsync = _ => throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
@@ -274,8 +272,8 @@ irreq2.OwnershipProof,
 		{
 			WabiSabiConfig cfg = new()
 			{
-				MaxInputCountByRound = 2,
-				MinInputCountByRoundMultiplier = 1,
+				MaxVsizeCapacityByRound = 2 * Constants.P2wpkhInputVirtualSize,
+				MinVsizeByRoundMultiplier = 1,
 				TransactionSigningTimeout = TimeSpan.Zero
 			};
 			var mockRpc = new MockRpcClient();
@@ -353,8 +351,8 @@ irreq2.OwnershipProof,
 		{
 			WabiSabiConfig cfg = new()
 			{
-				MaxInputCountByRound = 2,
-				MinInputCountByRoundMultiplier = 1,
+				MaxVsizeCapacityByRound = 2 * Constants.P2wpkhInputVirtualSize,
+				MinVsizeByRoundMultiplier = 1,
 				TransactionSigningTimeout = TimeSpan.Zero,
 				OutputRegistrationTimeout = TimeSpan.Zero
 			};
