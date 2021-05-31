@@ -82,7 +82,8 @@ namespace WalletWasabi.WabiSabi.Client
 			var unsignedCoinJoin = signingState.CreateUnsignedTransaction();
 
 			// Sanity check.
-			if (SanityCheck(outputs, unsignedCoinJoin)) // FIXME: if it is NOT okay the fail.
+			var effectiveOutputs = outputs.Select(o => (o.Value - roundState.FeeRate.GetFee(o.ScriptPubKey.EstimateOutputVsize()), o.ScriptPubKey));
+			if (!SanityCheck(effectiveOutputs, unsignedCoinJoin))
 			{
 				throw new InvalidOperationException($"Round ({roundState.Id}): My output is missing.");
 			}
@@ -207,10 +208,9 @@ namespace WalletWasabi.WabiSabi.Client
 					SecureRandom));
 		}
 
-		private bool SanityCheck(IEnumerable<TxOut> outputs, Transaction unsignedCoinJoinTransaction)
+		private bool SanityCheck(IEnumerable<(Money Value, Script ScriptPubKey)> expectedOutputs, Transaction unsignedCoinJoinTransaction)
 		{
 			var coinJoinOutputs = unsignedCoinJoinTransaction.Outputs.Select(o => (o.Value, o.ScriptPubKey));
-			var expectedOutputs = outputs.Select(o => (o.Value, o.ScriptPubKey));
 			return coinJoinOutputs.IsSuperSetOf(expectedOutputs);
 		}
 
