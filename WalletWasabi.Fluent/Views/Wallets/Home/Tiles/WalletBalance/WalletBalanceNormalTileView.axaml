@@ -22,6 +22,7 @@
                     <TextBlock Text="{Binding BalanceFiat, FallbackValue='≈ 218,197 USD'}" HorizontalAlignment="Right" Opacity="0.8" FontSize="12"/>
                 </StackPanel>
             </StackPanel>
+            <Separator DockPanel.Dock="Top" Margin="-200 13 -200 0" HorizontalAlignment="Stretch" />
         </DockPanel>
     </Border>
 </UserControl>
