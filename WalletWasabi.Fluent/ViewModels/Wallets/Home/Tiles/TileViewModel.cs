@@ -8,9 +8,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 	{
 		[AutoNotify] private ObservableCollection<TilePresetViewModel>? _tilePresets;
 		[AutoNotify] private int _tilePresetIndex;
-		[AutoNotify] private int _smallPresetIndex;
-		[AutoNotify] private int _normalPresetIndex;
-		[AutoNotify] private int _widePresetIndex;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSmallPreset;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isNormalPreset;
 		[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWidePreset;
@@ -18,9 +15,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 		protected TileViewModel()
 		{
 			this.WhenAnyValue(x => x.TilePresetIndex)
-				.Subscribe(x =>
+				.Subscribe(_ =>
 				{
-					SetPresetFlag(x);
+					UpdatePresetFlags();
 					NotifyPresetChanged();
 				});
 		}
@@ -47,11 +44,11 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 			this.RaisePropertyChanged(nameof(IsVisible));
 		}
 
-		private void SetPresetFlag(int presetIndex)
+		private void UpdatePresetFlags()
 		{
-			IsSmallPreset = presetIndex == _smallPresetIndex;
-			IsNormalPreset = presetIndex == _normalPresetIndex;
-			IsWidePreset = presetIndex == _widePresetIndex;
+			IsSmallPreset = CurrentTilePreset?.TileSize == TileSize.Small;
+			IsNormalPreset = CurrentTilePreset?.TileSize == TileSize.Normal;
+			IsWidePreset = CurrentTilePreset?.TileSize == TileSize.Wide;
 		}
 	}
 }
