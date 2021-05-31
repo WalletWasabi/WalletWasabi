@@ -40,6 +40,21 @@
             <behaviors:FocusOnAttachedBehavior />
           </i:Interaction.Behaviors>
         </c:TagsBox>
+        <ItemsControl Items="{Binding InitialSuggestions}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="2" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="receive:SuggestionLabelViewModel">
+              <Button Classes="action"
+                      Focusable="False"
+                      Content="{Binding Suggestion}"
+                      Command="{Binding SelectedCommand}"/>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
       </StackPanel>
     </DockPanel>
   </c:ContentArea>
