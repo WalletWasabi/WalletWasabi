@@ -23,6 +23,10 @@
                 </StackPanel>
             </StackPanel>
             <Separator DockPanel.Dock="Top" Margin="-200 13 -200 0" HorizontalAlignment="Stretch" />
+            <DockPanel>
+                <!-- TODO: Private funds -->
+                <!-- TODO: Non-private funds -->
+            </DockPanel>
         </DockPanel>
     </Border>
 </UserControl>
