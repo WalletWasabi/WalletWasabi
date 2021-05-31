@@ -10,8 +10,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 			SelectedCommand = selectedCommand;
 		}
 
-		public  string Suggestion { get; }
-		
-		public  ICommand SelectedCommand { get; }
+		public string Suggestion { get; }
+
+		public ICommand SelectedCommand { get; }
 	}
 }
