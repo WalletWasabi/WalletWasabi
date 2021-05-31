@@ -46,15 +46,15 @@ namespace WalletWasabi.WabiSabi.Client
 			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Registered an input.");
 		}
 
-		public async Task ConfirmConnectionAsync(TimeSpan confirmInterval, CancellationToken cancellationToken)
+		public async Task ConfirmConnectionAsync(TimeSpan connectionConfirmationTimeout, CancellationToken cancellationToken)
 		{
-			while (!await ConfirmConnectionAsync(cancellationToken).ConfigureAwait(false))
+			while (!await TryConfirmConnectionAsync(cancellationToken).ConfigureAwait(false))
 			{
-				await Task.Delay(confirmInterval, cancellationToken).ConfigureAwait(false);
+				await Task.Delay(connectionConfirmationTimeout / 2, cancellationToken).ConfigureAwait(false);
 			}
 		}
 
-		private async Task<bool> ConfirmConnectionAsync(CancellationToken cancellationToken)
+		private async Task<bool> TryConfirmConnectionAsync(CancellationToken cancellationToken)
 		{
 			var inputVsize = Constants.P2wpkhInputVirtualSize;
 			var inputRemainingVsizes = new[] { ProtocolConstants.MaxVsizePerAlice - inputVsize };
