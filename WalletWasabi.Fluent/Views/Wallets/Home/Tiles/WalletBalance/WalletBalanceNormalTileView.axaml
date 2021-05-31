@@ -9,7 +9,7 @@
     <Border ClipToBounds="False" CornerRadius="5" Background="{DynamicResource TileRegionColor}" Margin="6" Padding="16" BoxShadow="{DynamicResource InfoBoxShadow}">
         <DockPanel>
             <TextBlock Text="Balance" DockPanel.Dock="Top" />
-            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="16">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,20">
                 <Viewbox Height="47" Width="47" DockPanel.Dock="Left">
                     <Panel>
                         <Ellipse Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="4" Height="115" Width="115" />
