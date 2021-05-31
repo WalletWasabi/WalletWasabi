@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:WalletWasabi.Fluent.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.WelcomePageView">
+  <controls:ContentArea Title="Welcome to Wasabi Wallet"
+                 EnableCancel="False"
+                 EnableBack="False"
+                 EnableNext="False"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <DockPanel>
+      <TextBlock DockPanel.Dock="Top" TextAlignment="Left">
+        Wasabi is your personal Bitcoin wallet. You can use Wasabi to receive bitcoin from anyone, and to spend bitcoin to whomever you want to. It's that easy, because Wasabi is build to protect your privacy automagically in the background back by default.
+        With Wasabi you can generate and manage hot wallets, where the private keys are stored on your desktop computer; but also with a hardware wallet, where the private keys are stored in a dedicated device.
+      </TextBlock>
+      <Button DockPanel.Dock="Bottom" HorizontalAlignment="Center" Classes="action" Content="Get Started" Command="{Binding GetStartedCommand}" />
+      <Viewbox Margin="30">
+        <Image Source="/Assets/welcome.png" />
+      </Viewbox>
+    </DockPanel>
+  </controls:ContentArea>
+</UserControl>
