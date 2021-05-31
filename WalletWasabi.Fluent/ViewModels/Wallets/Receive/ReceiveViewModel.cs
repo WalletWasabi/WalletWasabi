@@ -26,6 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 		private readonly Wallet _wallet;
 		[AutoNotify] private ObservableCollection<string> _labels;
 		[AutoNotify] private HashSet<string> _suggestions;
+		[AutoNotify] private HashSet<string> _initialSuggestions;
 		[AutoNotify] private bool _isExistingAddressesButtonVisible;
 
 		public ReceiveViewModel(Wallet wallet) : base(NavigationMode.Normal)
@@ -39,9 +40,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 					Label = x.Key,
 					Count = x.Count()
 				})
-				.OrderByDescending(x => x.Count);
+				.OrderByDescending(x => x.Count)
+				.Select(x => x.Label)
+				.ToList();
 
-			_suggestions = mostUsedLabels.Select(x => x.Label).ToHashSet();
+			_suggestions = mostUsedLabels.ToHashSet();
+			_initialSuggestions = mostUsedLabels.Take(3).ToHashSet();
 
 			SelectionMode = NavBarItemSelectionMode.Button;
 
