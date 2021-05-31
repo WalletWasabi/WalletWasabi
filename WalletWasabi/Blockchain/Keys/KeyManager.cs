@@ -418,16 +418,19 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 		}
 
-		public HdPubKey GetKeyForScriptPubKey(Script scriptPubKey)
+		public bool TryGetKeyForScriptPubKey(Script scriptPubKey, [NotNullWhen(true)] out HdPubKey? hdPubKey)
 		{
+			hdPubKey = default;
+
 			lock (ScriptHdPubKeyMapLock)
 			{
 				if (ScriptHdPubKeyMap.TryGetValue(scriptPubKey, out var key))
 				{
-					return key;
+					hdPubKey = key;
+					return true;
 				}
 
-				return default;
+				return false;
 			}
 		}
 
