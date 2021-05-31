@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets.Home.Tiles.Balance
+namespace WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalance
 {
 	public class WalletBalanceSmallTileView : UserControl
 	{

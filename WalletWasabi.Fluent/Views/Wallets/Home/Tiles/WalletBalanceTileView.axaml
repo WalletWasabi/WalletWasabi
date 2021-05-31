@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles"
-             xmlns:balance="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.Tiles.Balance"
+             xmlns:balance="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalance"
              mc:Ignorable="d"
              x:CompileBindings="True" x:DataType="vm:WalletBalanceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.WalletBalanceTileView">
