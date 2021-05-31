@@ -81,7 +81,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					new(0, 0, 1, 1),
 					new(0, 0, 1, 1)
 				},
-				TilePresetIndex = LayoutIndex
+				TilePresetIndex = LayoutIndex,
+				SmallPresetIndex = 0,
+				NormalPresetIndex = 1,
+				WidePresetIndex = 2
 			};
 			RoundStatusTile = new RoundStatusTileViewModel(wallet)
 			{
@@ -91,7 +94,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					new(1, 0, 1, 1),
 					new(1, 0, 1, 1)
 				},
-				TilePresetIndex = LayoutIndex
+				TilePresetIndex = LayoutIndex,
+				SmallPresetIndex = 0,
+				NormalPresetIndex = 1,
+				WidePresetIndex = 2
 			};
 			BtcPriceTile = new BtcPriceTileViewModel(wallet)
 			{
@@ -101,7 +107,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					new(2, 0, 1, 1),
 					new(0, 1, 1, 1)
 				},
-				TilePresetIndex = LayoutIndex
+				TilePresetIndex = LayoutIndex,
+				SmallPresetIndex = 0,
+				NormalPresetIndex = 1,
+				WidePresetIndex = 2
 			};
 			WalletPieChart = new WalletPieChartTileViewModel(wallet, balanceChanged)
 			{
@@ -111,7 +120,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					new(0, 1, 1, 1),
 					new(1, 1, 1, 1)
 				},
-				TilePresetIndex = LayoutIndex
+				TilePresetIndex = LayoutIndex,
+				SmallPresetIndex = 0,
+				NormalPresetIndex = 1,
+				WidePresetIndex = 2
 			};
 			BalanceChartTile = new WalletBalanceChartTileViewModel(History.UnfilteredTransactions)
 			{
@@ -121,7 +133,10 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 					new(1, 1, 2, 1),
 					new(0, 2, 2, 1)
 				},
-				TilePresetIndex = LayoutIndex
+				TilePresetIndex = LayoutIndex,
+				SmallPresetIndex = 0,
+				NormalPresetIndex = 1,
+				WidePresetIndex = 2
 			};
 
 			_tiles = new List<TileViewModel>

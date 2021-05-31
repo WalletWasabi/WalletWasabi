@@ -17,10 +17,6 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles
 
 		protected TileViewModel()
 		{
-			_smallPresetIndex = 0;
-			_normalPresetIndex = 1;
-			_widePresetIndex = 2;
-
 			this.WhenAnyValue(x => x.TilePresetIndex)
 				.Subscribe(x =>
 				{
