@@ -61,9 +61,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive
 
 			var suggestionLabelsFilter = this.WhenAnyValue(x => x.Labels).Select(_ => Unit.Default)
 				.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).Select(_ => Unit.Default))
-				.Throttle(TimeSpan.FromMilliseconds(100))
-				.Select(SuggestionLabelsFilter)
-				.DistinctUntilChanged();
+				.Select(SuggestionLabelsFilter);
 
 			_suggestionLabels
 				.ToObservableChangeSet()
