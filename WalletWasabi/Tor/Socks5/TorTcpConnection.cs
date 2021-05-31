@@ -5,6 +5,7 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
 using WalletWasabi.Tor.Socks5.Pool;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
 
 namespace WalletWasabi.Tor.Socks5
 {
@@ -20,11 +21,13 @@ namespace WalletWasabi.Tor.Socks5
 
 		/// <param name="tcpClient">TCP client connected to Tor SOCKS5 endpoint.</param>
 		/// <param name="transportStream">Transport stream to actually send the data to Tor SOCKS5 endpoint (the difference is SSL).</param>
-		/// <param name="allowRecycling">Whether it is allowed to re-use this Tor pool item.</param>
-		public TorTcpConnection(TcpClient tcpClient, Stream transportStream, bool allowRecycling)
+		/// <param name="circuit">Tor circuit under which we operate with this TCP connection.</param>
+		/// <param name="allowRecycling">Whether it is allowed to re-use this Tor TCP connection.</param>
+		public TorTcpConnection(TcpClient tcpClient, Stream transportStream, ICircuit circuit, bool allowRecycling)
 		{
 			TcpClient = tcpClient;
 			TransportStream = transportStream;
+			Circuit = circuit;
 			AllowRecycling = allowRecycling;
 			Id = Interlocked.Increment(ref LastId);
 		}
@@ -51,6 +54,9 @@ namespace WalletWasabi.Tor.Socks5
 		/// <summary>Transport stream for sending  HTTP/HTTPS requests through Tor's SOCKS5 server.</summary>
 		/// <remarks>This stream is not to be used to send commands to Tor's SOCKS5 server.</remarks>
 		private Stream TransportStream { get; }
+
+		/// <summary>Tor circuit under which this TCP connection operates.</summary>
+		public ICircuit Circuit { get; }
 
 		/// <summary>
 		/// Stream to transport HTTP(s) request.
