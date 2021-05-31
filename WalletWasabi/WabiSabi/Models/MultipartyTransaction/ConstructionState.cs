@@ -13,6 +13,8 @@ namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction
 		{
 		}
 
+		public TimeSpan ConnectionConfirmationTimeout => Parameters.ConnectionConfirmationTimeout;
+
 		// TODO ownership proofs and spend status also in scope
 		public ConstructionState AddInput(Coin coin)
 		{

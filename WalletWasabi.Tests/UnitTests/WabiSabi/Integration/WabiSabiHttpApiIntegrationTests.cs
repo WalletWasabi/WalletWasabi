@@ -104,24 +104,20 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration
 
 			// Create the coinjoin client
 			var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
-
-			var rounds = await apiClient.GetStatusAsync(CancellationToken.None);
-			var roundState = rounds.First(x => x.CoinjoinState is ConstructionState);
-			var kitchen = new Kitchen();
-			kitchen.Cook("");
-
 			using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
 			await roundStateUpdater.StartAsync(CancellationToken.None);
 
-			using var coinJoinClient = new CoinJoinClient(apiClient, coins, kitchen, keyManager, roundStateUpdater);
+			var kitchen = new Kitchen();
+			kitchen.Cook("");
+
+			var coinJoinClient = new CoinJoinClient(apiClient, coins, kitchen, keyManager, roundStateUpdater);
 
 			// Run the coinjoin client task.
-			await coinJoinClient.StartAsync(CancellationToken.None);
+			await coinJoinClient.StartCoinJoinAsync(cts.Token);
 
 			var boadcastedTx = await transactionCompleted.Task.ConfigureAwait(false); // wait for the transaction to be broadcasted.
 			Assert.NotNull(boadcastedTx);
 
-			await coinJoinClient.StopAsync(CancellationToken.None);
 			await roundStateUpdater.StopAsync(CancellationToken.None);
 		}
 
