@@ -77,9 +77,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				TilePresets = new ObservableCollection<TilePresetViewModel>()
 				{
-					new(0, 0, 1, 1),
-					new(0, 0, 1, 1),
-					new(0, 0, 1, 1)
+					new(0, 0, 1, 1, TileSize.Small),
+					new(0, 0, 1, 1, TileSize.Small),
+					new(0, 0, 1, 1, TileSize.Small)
 				},
 				TilePresetIndex = LayoutIndex
 			};
@@ -87,9 +87,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				TilePresets = new ObservableCollection<TilePresetViewModel>()
 				{
-					new(1, 0, 1, 1),
-					new(1, 0, 1, 1),
-					new(1, 0, 1, 1)
+					new(1, 0, 1, 1, TileSize.Small),
+					new(1, 0, 1, 1, TileSize.Small),
+					new(1, 0, 1, 1, TileSize.Small)
 				},
 				TilePresetIndex = LayoutIndex
 			};
@@ -97,9 +97,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				TilePresets = new ObservableCollection<TilePresetViewModel>()
 				{
-					new(2, 0, 1, 1),
-					new(2, 0, 1, 1),
-					new(0, 1, 1, 1)
+					new(2, 0, 1, 1, TileSize.Small),
+					new(2, 0, 1, 1, TileSize.Small),
+					new(0, 1, 1, 1, TileSize.Normal)
 				},
 				TilePresetIndex = LayoutIndex
 			};
@@ -107,9 +107,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				TilePresets = new ObservableCollection<TilePresetViewModel>()
 				{
-					new(3, 0, 1, 1),
-					new(0, 1, 1, 1),
-					new(1, 1, 1, 1)
+					new(3, 0, 1, 1, TileSize.Small),
+					new(0, 1, 1, 1, TileSize.Normal),
+					new(1, 1, 1, 1, TileSize.Normal)
 				},
 				TilePresetIndex = LayoutIndex
 			};
@@ -117,9 +117,9 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets
 			{
 				TilePresets = new ObservableCollection<TilePresetViewModel>()
 				{
-					new(4, 0, 1, 1),
-					new(1, 1, 2, 1),
-					new(0, 2, 2, 1)
+					new(4, 0, 1, 1, TileSize.Small),
+					new(1, 1, 2, 1, TileSize.Wide),
+					new(0, 2, 2, 1, TileSize.Wide)
 				},
 				TilePresetIndex = LayoutIndex
 			};
